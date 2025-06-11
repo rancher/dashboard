@@ -2,7 +2,7 @@ import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE } from '@shell/config/query
 import { NORMAN } from '@shell/config/types';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { addObjects, findBy, joinStringList } from '@shell/utils/array';
-import { openAuthPopup, returnTo } from '@shell/utils/auth';
+import { openAuthPopup, returnTo, checkIfIsRancherAsOidcProviderLogin, getRedirectUrlFromParams } from '@shell/utils/auth';
 import { base64Encode } from '@shell/utils/crypto';
 import { removeEmberPage } from '@shell/utils/ember-page';
 import { randomStr } from '@shell/utils/string';
@@ -265,7 +265,9 @@ export const actions = {
     }
   },
 
-  verifyOAuth({ dispatch }, { nonce, code, provider }) {
+  verifyOAuth({ dispatch }, {
+    nonce, code, provider, queryParams
+  }) {
     const expectJSON = this.$cookies.get(KEY, { parseJSON: false });
     let parsed;
 
@@ -290,7 +292,8 @@ export const actions = {
 
     return dispatch('login', {
       provider,
-      body
+      body,
+      queryParams
     });
   },
 
@@ -327,7 +330,7 @@ export const actions = {
     }
   },
 
-  async login({ dispatch }, { provider, body }) {
+  async login({ dispatch }, { provider, body, queryParams }) {
     const driver = await dispatch('getAuthProvider', provider);
 
     try {
@@ -336,6 +339,16 @@ export const actions = {
         responseType: 'cookie',
         ...body
       }, { redirectUnauthorized: false });
+
+      if (checkIfIsRancherAsOidcProviderLogin(queryParams)) {
+        const redirectUrl = getRedirectUrlFromParams(queryParams, 'redirect_uri');
+
+        if (redirectUrl) {
+          return window.location.replace(redirectUrl);
+        }
+
+        return Promise.reject(new Error('Something went wrong while generating the redirect URL for Rancher as an indentity provider and we cannot redirect you to the desired URL'));
+      }
 
       return res;
     } catch (err) {

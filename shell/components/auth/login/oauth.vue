@@ -6,7 +6,7 @@ export default {
 
   methods: {
     login() {
-      this.$store.dispatch('auth/redirectTo', { provider: this.name });
+      this.$store.dispatch('auth/redirectTo', { provider: this.name, queryParams: this.$route.query });
     },
   },
 };

@@ -47,6 +47,10 @@ export default class ArrayListPo extends ComponentPo {
     return this.self().find(`[data-testid="array-list-button"]`).contains(label).click();
   }
 
+  clearListItem(index: number) {
+    return this.self().find(`[data-testid="array-list-box${ index }"]`).find('input').clear();
+  }
+
   /**
    * Sets a value at the specified index
    * @param value The value to set
