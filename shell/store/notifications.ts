@@ -38,12 +38,19 @@ export enum NotificationLevel {
 export type Notification = {
   // Unique ID for the notification
   id: string;
+  // Title to be displayed in the notification
   title: string;
+  // Message to be shown in the notification (optional)
   message?: string;
+  // Notification Level
   level: NotificationLevel;
+  // Progress (0-100) for notifications of type `Task` (optional)
   progress?: number;
+  // Primary action to be shown in the notification (optional)
   primaryAction?: NotificationAction;
+  // Secondary to be shown in the notification (optional)
   secondaryAction?: NotificationAction;
+  // User Preference tied to the notification (optional) (the preference will be updated when the notification is marked read)
   preference?: NotificationPreference;
 }
 
