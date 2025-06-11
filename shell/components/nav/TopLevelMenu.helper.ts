@@ -1,6 +1,7 @@
 import { CAPI, MANAGEMENT } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
 import { PaginationParam, PaginationParamFilter, PaginationSort } from '@shell/types/store/pagination.types';
+import { STEVE_WATCH_EVENT_LISTENER_ARGS } from '@shell/types/store/subscribe.types';
 import { VuexStore } from '@shell/types/store/vuex';
 import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from '@shell/utils/cluster';
 import PaginationWrapper from '@shell/utils/pagination-wrapper';
@@ -202,9 +203,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.clustersOthersWrapper = new PaginationWrapper({
       $store,
       id:       'tlm-unpinned-clusters',
-      onChange: () => {
+      onChange: async() => {
         if (this.args) {
-          this.update(this.args);
+          await this.update(this.args);
         }
       },
       enabledFor: {
@@ -220,9 +221,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.provClusterWrapper = new PaginationWrapper({
       $store,
       id:       'tlm-prov-clusters',
-      onChange: () => {
+      onChange: async() => {
         if (this.args) {
-          this.update(this.args);
+          await this.update(this.args);
         }
       },
       enabledFor: {

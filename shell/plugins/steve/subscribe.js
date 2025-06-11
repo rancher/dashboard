@@ -435,12 +435,12 @@ const sharedActions = {
    * @param {STEVE_WATCH_PARAMS} params
    */
   watch({
-    state, dispatch, getters, rootGetters
+    state, dispatch, getters, rootGetters, commit
   }, params) {
     state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
     let {
       // eslint-disable-next-line prefer-const
-      type, selector, id, revision, namespace, stop, force, mode
+      type, selector, id, revision, namespace, stop, force, mode, transient
     } = params;
 
     namespace = acceptOrRejectSocketMessage.subscribeNamespace(namespace);
@@ -485,6 +485,10 @@ const sharedActions = {
       return;
     }
 
+    if (transient) {
+      commit('setTransient', { msg: params, transient });
+    }
+
     if (!stop) {
       dispatch('unwatchIncompatible', messageMeta);
     }
@@ -492,7 +496,7 @@ const sharedActions = {
     // Watch errors mean we make a http request to get latest revision (which is still missing) and try to re-watch with it...
     // etc
     if (typeof revision === 'undefined') {
-      revision = getters.nextResourceVersion(type, id);
+      revision = getters.nextResourceVersion(type, id, params);
     }
 
     const msg = { resourceType: type };
@@ -570,6 +574,7 @@ const sharedActions = {
           dispatch('watch', obj); // Ask the backend to stop watching the type
           // Make sure anything in the pending queue for the type is removed, since we've now removed the type
           commit('clearFromQueue', type);
+          commit('setTransient', { obj, transient: false });
         }
       };
 
@@ -587,9 +592,19 @@ const sharedActions = {
 
   /**
    * Unwatch watches that are incompatible with the new type
+   *
+   * This is mainly to prevent the cache being polluted with resources that aren't compatible with it's aim
+   *
+   * For instance if the store contains a page then we don't want to receive updates for watches on specific other resources
+   *
    */
   unwatchIncompatible({ state, dispatch, getters }, messageMeta) {
-    const watchesOfType = getters.watchesOfType(messageMeta.type);
+    // If the watch is transient (aka changes won't ever hit cache) we don't need to continue
+    if (getters.isTransient(messageMeta)) {
+      return;
+    }
+
+    const watchesOfType = getters.watchesOfType(messageMeta.type).filter((entry) => !getters.isTransient(entry));
     let unwatch = [];
 
     if (messageMeta.mode === STEVE_WATCH_EVENT.CHANGES) {
@@ -776,7 +791,7 @@ const defaultActions = {
         const listener = listeners[STEVE_WATCH_MODE.RESOURCE_CHANGES].find((sl) => equivalentWatch(sl.params, params));
 
         if (listener) {
-          Object.values(listener.callbacks).forEach((cb) => cb());
+          Object.values(listener.callbacks).forEach((listenerCb) => listenerCb({ forceWatch: opt.forceWatch }));
         }
       } else {
         have = getters['all'](resourceType).slice();
@@ -956,7 +971,8 @@ const defaultActions = {
     state.started.filter((entry) => {
       if (
         entry.type === newWatch.type &&
-        entry.namespace !== newWatch.namespace
+        entry.namespace !== newWatch.namespace &&
+        entry.mode !== newWatch.mode
       ) {
         return true;
       }
@@ -1162,6 +1178,12 @@ const defaultMutations = {
     }
   },
 
+  setTransient(state, { msg, transient }) {
+    const key = keyForSubscribe(msg);
+
+    state.isSocketTransient[key] = transient;
+  },
+
   setInError(state, { msg, reason }) {
     const key = keyForSubscribe(msg);
 
@@ -1201,6 +1223,10 @@ const defaultGetters = {
     return state.inError[keyForSubscribe(obj)];
   },
 
+  isTransient: (state) => (obj) => {
+    return state.isSocketTransient[keyForSubscribe(obj)];
+  },
+
   watchesOfType: (state) => (type) => {
     return state.started.filter((entry) => type === (entry.resourceType || entry.type));
   },
@@ -1224,7 +1250,13 @@ const defaultGetters = {
    *
    * Returns string, non-zero number or null
    */
-  nextResourceVersion: (state, getters) => (type, id) => {
+  nextResourceVersion: (state, getters) => (type, id, obj) => {
+    if (getters.isTransient(obj)) {
+      // We haven't stored the results for this type in the cache, don't look for revision there
+      // Instead do best effort - a low / non-existent reference which will force a re-fetch
+      return '0';
+    }
+
     type = normalizeType(type);
     let revision = 0;
 

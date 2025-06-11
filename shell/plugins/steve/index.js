@@ -17,16 +17,17 @@ export function SteveFactory(namespace, baseUrl) {
     state() {
       return {
         ...coreStoreState(namespace, baseUrl),
-        socket:           null,
-        queue:            [], // For change event coalescing
-        wantSocket:       false,
-        debugSocket:      false,
-        allowStreaming:   true,
-        pendingFrames:    [],
-        deferredRequests: {},
-        started:          [],
-        inError:          {},
-        podsByNamespace:  {}, // Cache of pods by namespace
+        socket:            null,
+        queue:             [], // For change event coalescing
+        wantSocket:        false,
+        debugSocket:       false,
+        allowStreaming:    true,
+        pendingFrames:     [],
+        deferredRequests:  {},
+        started:           [],
+        inError:           {},
+        isSocketTransient: {},
+        podsByNamespace:   {}, // Cache of pods by namespace
       };
     },
 

@@ -3,7 +3,8 @@ import { PaginationArgs, PaginationResourceContext } from '@shell/types/store/pa
 import { VuexStore } from '@shell/types/store/vuex';
 import { ActionFindPageArgs, ActionFindPageTransientResult } from '@shell/types/store/dashboard-store.types';
 import {
-  STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_UNWATCH_EVENT_PARAMS, STEVE_WATCH_EVENT, STEVE_WATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_PARAMS_COMMON, STEVE_WATCH_MODE
+  STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_UNWATCH_EVENT_PARAMS, STEVE_WATCH_EVENT, STEVE_WATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_PARAMS_COMMON, STEVE_WATCH_MODE,
+  STEVE_WATCH_EVENT_LISTENER_ARGS
 } from '@shell/types/store/subscribe.types';
 import { Reactive, reactive } from 'vue';
 
@@ -20,7 +21,7 @@ interface Args {
   /**
    * Callback called when the resource is changed (notified by socket)
    */
-  onChange?: () => void,
+  onChange?: () => Promise<any>,
 
   formatResponse?: {
     /**
@@ -66,7 +67,16 @@ class PaginationWrapper<T extends object> {
     this.$store = $store;
     this.id = id;
     this.enabledFor = enabledFor;
-    this.onChange = onChange;
+    this.onChange = onChange ? async(args: STEVE_WATCH_EVENT_LISTENER_ARGS) => {
+      onChange().then(() => {
+        if (args.forceWatch) {
+          this.$store.dispatch(`${ this.enabledFor.store }/watch`, {
+            ...this.steveWatchParams?.params,
+            force: true,
+          });
+        }
+      });
+    } : undefined;
     this.classify = formatResponse?.classify || false;
     this.reactive = formatResponse?.reactive || false;
 
@@ -90,17 +100,23 @@ class PaginationWrapper<T extends object> {
     const out: ActionFindPageTransientResult<T> = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
 
     // Watch
-    if (this.onChange && !this.steveWatchParams) {
-      this.steveWatchParams = {
-        event:  STEVE_WATCH_EVENT.CHANGES,
-        id:     this.id,
-        params: {
-          type: this.enabledFor.resource?.id as string,
-          mode: STEVE_WATCH_MODE.RESOURCE_CHANGES,
-        }
-      };
+    if (this.onChange) {
+      if (this.steveWatchParams) {
+        this.steveWatchParams.params.revision = out.pagination.result.revision;
+      } else {
+        this.steveWatchParams = {
+          event:  STEVE_WATCH_EVENT.CHANGES,
+          id:     this.id,
+          params: {
+            type:      this.enabledFor.resource?.id as string,
+            mode:      STEVE_WATCH_MODE.RESOURCE_CHANGES,
+            revision:  out.pagination.result.revision,
+            transient: true,
+          }
+        };
 
-      this.watch();
+        this.watch();
+      }
     }
 
     // Convert Response
@@ -126,7 +142,7 @@ class PaginationWrapper<T extends object> {
     }
     const watchParams: STEVE_WATCH_EVENT_PARAMS = {
       ...this.steveWatchParams,
-      callback: this.onChange as STEVE_WATCH_EVENT_LISTENER_CALLBACK, // we must have it by now
+      callback: this.onChange as STEVE_WATCH_EVENT_LISTENER_CALLBACK, // we must have onChange by now
     };
 
     await this.$store.dispatch(`${ this.enabledFor.store }/watchEvent`, watchParams);
