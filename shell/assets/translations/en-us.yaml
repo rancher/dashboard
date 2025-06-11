@@ -1044,7 +1044,7 @@ catalog:
       all: All Operating Systems
       linux: Linux
       windows: Windows
-    search: Filter charts results
+    search: Search the catalogue...
     deprecatedChartsFilter:
       label: Show deprecated apps
     addNewRepo:
