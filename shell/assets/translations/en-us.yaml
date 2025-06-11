@@ -1071,6 +1071,8 @@ catalog:
       recommended: 'Sort by: Recommended'
       lastUpdated: 'Sort by: Last updated'
       name: 'Sort by: Chart name'
+    refreshButton:
+      label: Refresh all repositories
   install:
     action:
       goToUpgrade: Edit/Upgrade

@@ -437,24 +437,33 @@ export default {
         {{ t('catalog.chart.header.charts') }}
       </h1>
       <AsyncButton
+        :action-label="t('catalog.charts.refreshButton.label')"
+        :waitingLabel="t('catalog.charts.refreshButton.label')"
+        :success-label="t('catalog.charts.refreshButton.label')"
+        mode="refresh"
         role="button"
         :aria-label="t('catalog.charts.refresh')"
-        :label="t('catalog.charts.refresh')"
-        class="refresh-btn"
-        mode="refresh"
+        actionColor="role-secondary"
+        successColor="bg-success"
         @click="refresh"
       />
     </div>
-    <input
-      ref="searchQuery"
-      v-model="searchQuery"
-      type="search"
-      class="input search-input"
-      :placeholder="t('catalog.charts.search')"
-      data-testid="charts-filter-input"
-      :aria-label="t('catalog.charts.search')"
-      role="textbox"
-    >
+    <div class="search-input">
+      <input
+        ref="searchQuery"
+        v-model="searchQuery"
+        type="search"
+        class="input"
+        :placeholder="t('catalog.charts.search')"
+        data-testid="charts-filter-input"
+        :aria-label="t('catalog.charts.search')"
+        role="textbox"
+      >
+      <i
+        v-if="!searchQuery"
+        class="icon icon-search"
+      />
+    </div>
     <button
       v-shortkey.once="['/']"
       class="hide"
@@ -558,7 +567,34 @@ export default {
 }
 
 .search-input {
+  position: relative;
   margin-bottom: 24px;
+
+  input {
+    height: 48px;
+  }
+
+  .icon-search {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 16px;
+  }
+}
+
+.checkbox-select {
+  .vs__search {
+    position: absolute;
+    right: 0
+  }
+
+  .vs__selected-options  {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: inline-block;
+    line-height: 2.4rem;
+  }
 }
 
 .right-section {
