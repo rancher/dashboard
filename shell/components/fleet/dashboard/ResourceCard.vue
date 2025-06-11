@@ -70,6 +70,9 @@ export default {
       }];
     },
 
+    /**
+     * Returns the count of the status for each resource in the GitRepo
+     */
     resourceCounts() {
       const out: Record<string, FleetResourceState> = clone(this.resourcesDefaultStates);
 
@@ -115,7 +118,7 @@ export default {
 
   methods: {
     select(value: PointerEvent) {
-      const elem = value?.srcElement as HTMLElement;
+      const elem = value?.target as HTMLElement;
 
       if (elem?.tagName === 'A' || elem?.tagName === 'BUTTON' || elem?.className.includes('icon icon-actions')) {
         return;

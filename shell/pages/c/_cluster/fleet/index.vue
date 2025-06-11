@@ -95,7 +95,6 @@ export default {
 
   data() {
     return {
-      repoSchema:  this.$store.getters['management/schemaFor'](FLEET.GIT_REPO),
       createRoute: {
         name:   'c-cluster-product-resource-create',
         params: {
@@ -150,6 +149,10 @@ export default {
     ...mapState(['workspace', 'allNamespaces']),
     ...mapGetters({ isOpenSlideInPanel: 'slideInPanel/isOpen' }),
     ...mapGetters({ isClosingSlideInPanel: 'slideInPanel/isClosing' }),
+
+    repoSchema() {
+      return this.$store.getters['management/schemaFor'](FLEET.GIT_REPO);
+    },
 
     workspaces() {
       if (this.fleetWorkspaces?.length) {

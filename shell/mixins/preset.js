@@ -4,12 +4,9 @@ import { NORMAN } from '@shell/config/types';
 
 export default {
   data() {
-    const principal = this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
-
     return {
       _init:   [],
       presets: {},
-      user:    principal.loginName,
     };
   },
 
@@ -43,6 +40,14 @@ export default {
       user: this.user,
       version
     };
+  },
+
+  computed: {
+    user() {
+      const principal = this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
+
+      return principal.loginName;
+    }
   },
 
   methods: {

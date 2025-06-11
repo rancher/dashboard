@@ -34,11 +34,17 @@ const showHeader = computed(() => currentProps?.value?.showHeader ?? true);
 const panelTitle = showHeader.value ? computed(() => currentProps?.value?.title || 'Details') : null;
 
 watch(
+  /**
+   * trigger focus trap
+   */
   () => currentProps?.value?.triggerFocusTrap,
   (neu) => {
     if (neu) {
       const opts = {
         ...DEFAULT_FOCUS_TRAP_OPTS,
+        /**
+         * will return focus to the first iterable node of this container select
+         */
         setReturnFocus: () => {
           const returnFocusSelector = currentProps?.value?.returnFocusSelector;
 
