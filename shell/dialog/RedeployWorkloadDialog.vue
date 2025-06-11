@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { TIMESTAMP } from '@shell/config/labels-annotations';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
@@ -6,6 +6,20 @@ import { Banner } from '@components/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { resourceNames } from '@shell/utils/string';
 import { mapGetters } from 'vuex';
+
+interface Workload {
+  nameDisplay: string;
+  type: string;
+  schema?: any;
+  spec: {
+    template: {
+      metadata?: {
+        annotations?: Record<string, string>;
+      };
+    };
+  };
+  save: () => Promise<void>;
+}
 
 export default {
   name: 'RedeployWorkloadDialog',
@@ -20,7 +34,7 @@ export default {
 
   props: {
     workloads: {
-      type:     Array,
+      type:     Array as () => Workload[],
       required: true,
     },
   },
@@ -31,10 +45,12 @@ export default {
 
   computed: {
     ...mapGetters({ t: 'i18n/t', labelFor: 'type-map/labelFor' }),
-    names() {
+
+    names(): string[] {
       return this.workloads.map(({ nameDisplay }) => nameDisplay);
     },
-    type() {
+
+    type(): string {
       const types = new Set(this.workloads.map(({ type }) => type));
 
       if (types.size > 1) {
@@ -53,33 +69,29 @@ export default {
 
   methods: {
     resourceNames,
-    close(buttonDone) {
-      if (typeof buttonDone === 'function') {
-        buttonDone(true);
-      }
+
+    close(): void {
       this.$emit('close');
     },
-    async apply(buttonDone) {
+
+    async apply(buttonDone?: (success: boolean) => void): Promise<void> {
       try {
         const now = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
 
         for (const workload of this.workloads) {
-          const metadata =
-            workload.spec.template.metadata ||
-            (workload.spec.template.metadata = {});
-          const annotations = metadata.annotations || (metadata.annotations = {});
+          const metadata = workload.spec.template.metadata ??= {};
+          const annotations = metadata.annotations ??= {};
 
           annotations[TIMESTAMP] = now;
 
           await workload.save();
         }
 
-        this.close(buttonDone);
+        buttonDone?.(true);
+        this.close();
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
-        if (typeof buttonDone === 'function') {
-          buttonDone(false);
-        }
+        buttonDone?.(false);
       }
     },
   },
