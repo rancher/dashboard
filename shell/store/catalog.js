@@ -567,11 +567,11 @@ function addChart(ctx, map, chart, repo) {
 
   obj.versions.push(chart);
 
-  if (obj.lastUpdated) {
+  if (obj.durationSinceRelease) {
     return;
   }
 
-  obj.lastUpdated = new Date(obj.versions[0].created).getTime();
+  obj.durationSinceRelease = Date.now() - new Date(obj.versions[0].created).getTime();
 }
 
 function preferSameRepo(matching, repoType, repoName) {
@@ -713,11 +713,11 @@ export function filterAndArrangeCharts(charts, {
   }
 
   if (sort === 'lastupdated') {
-    return sortBy(out, ['lastUpdated'], true);
+    return sortBy(out, ['durationSinceRelease', 'featuredNumber', 'certifiedSort', 'repoName', 'chartNameDisplay']);
   }
 
   if (sort === 'name') {
-    return sortBy(out, ['chartNameDisplay', 'certifiedSort', 'repoName']);
+    return sortBy(out, ['chartNameDisplay', 'featuredNumber', 'certifiedSort', 'repoName']);
   }
 
   return sortBy(out, ['certifiedSort', 'repoName', 'chartNameDisplay']);
