@@ -8,6 +8,9 @@ import { NAMESPACE, AGE } from '@shell/config/table-headers';
 import { findBy } from '@shell/utils/array';
 import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import { ToggleSwitch } from '@components/Form/ToggleSwitch';
+import ResourceTableWatch from '@shell/mixins/resource-table-watch';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -43,7 +46,13 @@ export default {
 
   emits: ['clickedActionButton'],
 
-  components: { ButtonGroup, SortableTable },
+  components: {
+    ButtonGroup, SortableTable, ToggleSwitch
+  },
+
+  mixins: [
+    ResourceTableWatch
+  ],
 
   props: {
     schema: {
@@ -222,7 +231,8 @@ export default {
        * Primary purpose is to directly connect an iteration of `rows` with a sortGeneration string. This avoids
        * reactivity issues where `rows` hasn't yet changed but something like workspaces has (stale values stored against fresh key)
        */
-      sortGeneration: undefined
+      sortGeneration:               undefined,
+      listAutoRefreshToggleEnabled: paginationUtils.listAutoRefreshToggleEnabled({ rootGetters: this.$store.getters }),
     };
   },
 
@@ -238,7 +248,8 @@ export default {
         }
       },
       immediate: true
-    }
+    },
+
   },
 
   computed: {
@@ -528,7 +539,6 @@ export default {
         pluralLabel:   this.$store.getters['type-map/labelFor'](this.schema, 99),
       };
     },
-
   },
 
   methods: {
@@ -589,8 +599,9 @@ export default {
       if (event.key === 'Enter') {
         this.keyAction('detail');
       }
-    }
-  },
+    },
+
+  }
 };
 </script>
 
@@ -646,7 +657,24 @@ export default {
       v-if="showGrouping"
       #header-right
     >
-      <slot name="header-right" />
+      <slot
+        name="header-right"
+      />
+    </template>
+
+    <template
+      v-if="externalPaginationEnabled"
+      #watch-controls
+    >
+      <!-- See https://github.com/rancher/dashboard/issues/14359 -->
+      <ToggleSwitch
+        v-if="listAutoRefreshToggleEnabled"
+        class="auto-update"
+        :value="watching"
+        name="label-system-toggle"
+        :on-label="t('resourceTable.autoRefresh.label')"
+        @update:value="toggleWatch"
+      />
     </template>
 
     <template #group-by="{group: thisGroup}">
@@ -694,3 +722,9 @@ export default {
     </template>
   </SortableTable>
 </template>
+
+<style lang="scss" scoped>
+.auto-update {
+  min-width: 150px; height: 40px
+}
+</style>

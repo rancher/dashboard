@@ -127,25 +127,38 @@ export default {
   },
 
   watch: {
-    // On page change
-    pagedRows() {
-      // When the table contents changes:
-      // - Remove items that are in the selection but no longer in the table.
+    /**
+     * Handle changes to the page (SSP enabled)
+     */
+    externalPaginationResult() {
+      // Handle changes to the page (SSP enabled)
+      this.pageChanged(this.pagedRows);
+    },
 
-      const content = this.pagedRows;
+    /**
+     * Handle changes to the page (SSP disabled)
+     */
+    pagedRows() {
+      this.pageChanged(this.pagedRows);
+    }
+  },
+
+  methods: {
+    /**
+     * Remove items that are in the selection but no longer in the table.
+     */
+    pageChanged(page) {
       const toRemove = [];
 
       for (const node of this.selectedRows) {
-        if (!content.includes(node) ) {
+        if (!page.includes(node) ) {
           toRemove.push(node);
         }
       }
 
       this.update([], toRemove);
-    }
-  },
+    },
 
-  methods: {
     onToggleAll(value) {
       if ( value ) {
         this.update(this.pagedRows, []);

@@ -441,6 +441,7 @@ export interface StorePaginationResult {
    * The last time the resource was updated. Used to assist list watching for changes
    */
   timestamp: number,
+  revision: string,
 }
 
 export interface StorePaginationRequest {
@@ -451,7 +452,12 @@ export interface StorePaginationRequest {
   /**
    * The set of pagination args used to create the request
    */
-  pagination: PaginationArgs
+  pagination: PaginationArgs,
+
+  /**
+   * Does this request stem from a list with manual refresh?
+   */
+  hasManualRefresh?: boolean,
 }
 
 /**
