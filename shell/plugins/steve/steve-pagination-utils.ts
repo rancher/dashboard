@@ -658,18 +658,19 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
       }
     }
   },
-  management: {
-    resources: {
-      enableAll:  false,
-      enableSome: {
-        enabled: [
-          { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] },
-          { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
-        ],
-        generic: false,
-      }
-    }
-  }
+  // Disabled due to https://github.com/rancher/dashboard/issues/14493
+  // management: {
+  //   resources: {
+  //     enableAll:  false,
+  //     enableSome: {
+  //       enabled: [
+  //         { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] },
+  //         { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
+  //       ],
+  //       generic: false,
+  //     }
+  //   }
+  // }
 };
 
 export default new StevePaginationUtils();
