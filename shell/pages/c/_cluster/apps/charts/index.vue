@@ -524,13 +524,6 @@ export default {
             :image="card.image"
             :content="card.content"
             :value="card.rawChart"
-            :actions="[
-              {
-                action: 'focusSearch',
-                label:  t('catalog.charts.search'),
-                enabled: true
-              }
-            ]"
             variant="medium"
             :clickable="true"
             @card-click="selectChart"

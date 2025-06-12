@@ -80,7 +80,23 @@ interface RcItemCardProps {
   /** Optional image to show in card (position depends on variant). A slot is available for it too #item-card-image */
   image?: Image;
 
-  /** Optional actions that will be displayed inside an action-menu */
+  /** Optional actions that will be displayed inside an action-menu
+   *
+   * Each action should include an `action` name, which is emitted as a custom event when selected.
+   * To respond to the event, you must also register a matching event listener using the `@` syntax.
+   *
+   * Example:
+   * <rc-item-card
+   *   :actions="[
+   *     {
+   *       action: 'focusSearch',
+   *       label: t('catalog.charts.search'),
+   *       enabled: true
+   *     }
+   *   ]"
+   *   @focusSearch="focusSearch"
+   * />
+   */
   actions?: DropdownOption[];
 
   /** Text content inside the card body. A slot is available for it too #item-card-content */
@@ -99,21 +115,20 @@ interface RcItemCardProps {
 const props = defineProps<RcItemCardProps>();
 
 /**
- * Emits 'card-click' when card is clicked or activated via keyboard.
+ * Emits:
+ * - 'card-click' when card is clicked or activated via keyboard.
+ * - custom events defined in the `actions` prop, but only if the corresponding event listener is explicitly declared on the component.
  */
- const emit = defineEmits<{
-  (e: 'card-click', value: ItemValue): void;
-  (e: string, payload: any): void;
-}>();
+const emit = defineEmits<{(e: 'card-click', value: ItemValue): void; (e: string, payload: unknown): void;}>();
 
 const actionListeners = computed(() => {
   if (!props.actions) return {};
 
-  const listeners: Record<string, (payload: any) => void> = {};
+  const listeners: Record<string, (payload: unknown) => void> = {};
 
   for (const a of props.actions) {
     if (a.action) {
-      listeners[a.action] = (payload: any) => emit(a.action, payload);
+      listeners[a.action] = (payload: unknown) => emit(a.action, payload);
     }
   }
 
@@ -265,7 +280,7 @@ const cardMeta = computed(() => ({
                   :custom-actions="actions"
                   v-on="actionListeners"
                 />
-            </rc-item-card-action>
+              </rc-item-card-action>
             </template>
           </div>
         </div>
@@ -379,7 +394,14 @@ $image-medium-box-width: 48px;
     }
 
     &-action-menu {
-      margin-left: 12px;
+      margin-left: 8px;
+
+      &:deep(.v-popper) {
+        .icon-actions {
+          color: var(--body-text);
+          font-size: 16px;
+        }
+      }
     }
   }
 
