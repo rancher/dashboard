@@ -88,8 +88,7 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     cy.wait('@pageLoad').its('response.statusCode').should('eq', 200);
     loadingPo.checkNotExists();
 
-    // ATTENTIOOOOOOOON aaaaaaaaaaaaaa
-    createAKSClusterPage.waitForPage('type=azureaks&rkeType=rke2#jPOWPLozSfyR2mcw');
+    createAKSClusterPage.waitForPage('type=azureaks&rkeType=rke2');
   });
 
   beforeEach( () => {
@@ -126,8 +125,7 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     loadingPo.checkNotExists();
     createAKSClusterPage.rke2PageTitle().should('include', 'Create Azure AKS');
 
-    // ATTENTION! Aaaaaaaaaaaaaaaaaaa
-    createAKSClusterPage.waitForPage('type=azureaks&rkeType=rke2#jPOWPLozSfyR2mcw');
+    createAKSClusterPage.waitForPage('type=azureaks&rkeType=rke2');
 
     // Verify that aks-zone-select dropdown is set to the default zone
     createAKSClusterPage.getRegion().checkOptionSelected(aksSettings.aksRegion);
@@ -162,35 +160,45 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     createAKSClusterPage.getSSHkey().getAttributeValue('placeholder').should('equal', 'Paste in your SSH public key');
     createAKSClusterPage.getLoadBalancerSKU().isDisabled();
     createAKSClusterPage.getLoadBalancerSKU().checkOptionSelected(aksSettings.loadBalancerSku);
-    
-    createAKSClusterPage.getInstanceType().checkContainsOptionSelected(aksSettings.instanceType);
-
-    // Check the default volume Size
-    createAKSClusterPage.getDiskSize().shouldHaveValue(aksSettings.diskSize);
+    createAKSClusterPage.getInputDNSprefix().getAttributeValue('placeholder').should('contain', 'aks-dns-x');
+    createAKSClusterPage.getDNSprefix().checkOptionSelected(aksSettings.dnsPrefix);
+    createAKSClusterPage.getNetworkPlugin().checkOptionSelected(aksSettings.networkPlugin);
+    createAKSClusterPage.getNetworkPolicy().checkOptionSelected(aksSettings.networkPolicy);
+    createAKSClusterPage.getVirtualNetwork().checkOptionSelected(aksSettings.virtualNetwork);
+    createAKSClusterPage.getKubernetesSAR().shouldHaveValue(aksSettings.serviceCidr);
+    createAKSClusterPage.getKubernetesDNS().shouldHaveValue(aksSettings.dnsServiceIp);
+    createAKSClusterPage.getDockerBridge().shouldHaveValue(aksSettings.dockerBridgeCidr);
 
     // Check that standard role is selected
-    const userModebuttom = createAKSClusterPage.getModeRadioGroup('[data-testid= "User"]');
+    const userModebuttom = new RadioGroupInputPo('[data-testid= "User"]');
 
     userModebuttom.isUnchecked(0);
 
     const systemModeButton = new RadioGroupInputPo('[data-testid= "System"]');
 
-    systemModeButton.isChecked(1);
+    systemModeButton.isChecked(0);
 
-    // Check that standard Networking access
-    createAKSClusterPage.getPublicAccess().isChecked();
-    createAKSClusterPage.getPrivateAccess().isUnchecked();
+    // Check that Service Principal is selected
 
-    // Check that default VPC and subnets are set
-    const vpcButtonGroup = new RadioGroupInputPo('[aria-label="VPCs and Subnets"]');
+    const servicePButtom = new RadioGroupInputPo('[data-testid= "Service Principal"]');
 
-    vpcButtonGroup.isChecked(0);
+    servicePButtom.isChecked(0);
 
-    // Set the cluster name and description in the Create EKS Page
+    const managedIdButton = new RadioGroupInputPo('[data-testid= "Managed Identity"]');
+
+    managedIdButton.isUnchecked(0);
+
+    createAKSClusterPage.getProjNetworkIsolation().isDisabled();
+    createAKSClusterPage.getProjNetworkIsolation().isUnchecked();
+    createAKSClusterPage.getHTTProuting().isUnchecked();
+    createAKSClusterPage.getEnablePrivateCluster().isUnchecked();
+    createAKSClusterPage.getAuthIPranges().isUnchecked();
+
+    // Set the cluster name and description in the Create AKS Page
     createAKSClusterPage.getClusterName().set(this.aksClusterName2);
     createAKSClusterPage.getClusterDescription().set(`${ this.aksClusterName2 }-description`);
 
-    // Create EKS Cluster and verify that the properties posted to the server match the expected settings
+    // Create AKS Cluster and verify that the properties posted to the server match the expected settings
     cy.intercept('POST', 'v3/clusters').as('createAKSCluster');
     createAKSClusterPage.create();
     cy.wait('@createAKSCluster').then(({ response }) => {
@@ -199,7 +207,7 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
       expect(response?.body).to.have.property('name', this.aksClusterName2);
       expect(response?.body).to.have.property('description', `${ this.aksClusterName2 }-description`);
       expect(response?.body.eksConfig).to.have.property('kubernetesVersion').contains(latestEKSversion);
-      expect(response?.body.eksConfig).to.have.property('region', aksSettings.eksRegion);
+      expect(response?.body.eksConfig).to.have.property('region', aksSettings.aksRegion);
       expect(response?.body.eksConfig).to.have.property('privateAccess', aksSettings.privateAccess);
       expect(response?.body.eksConfig).to.have.property('publicAccess', aksSettings.publicAccess);
       expect(response?.body.eksConfig.nodeGroups[0]).to.have.property('nodegroupName', aksSettings.nodegroupName);
