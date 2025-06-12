@@ -76,10 +76,6 @@ export default class ClusterManagerCreateAKSPagePo extends ClusterManagerCreateR
     return LabeledInputPo.byLabel(cy.get('[data-testid="cruaks-form"]'), 'Max Surge');
   }
 
-  getModeRadioGroup(selector: string) {
-    return new RadioGroupInputPo(selector);
-  }
-
   getLinuxAdmin() {
     return LabeledInputPo.byLabel(cy.get('[data-testid="cruaks-form"]'), 'Linux Admin Username');
   }
