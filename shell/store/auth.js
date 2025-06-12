@@ -345,7 +345,7 @@ export const actions = {
 
       if (checkIfIsRancherAsOidcProviderLogin(queryParams)) {
         // const redirectUrl = getRedirectUrlFromParams(queryParams, 'redirect_uri');
-        let urlParams = '?';
+        let urlParams = '';
 
         Object.keys(queryParams).forEach((key, i) => {
           urlParams = `${ urlParams }${ i !== 0 ? '&' : '' }${ key }=${ queryParams[key] }`;
