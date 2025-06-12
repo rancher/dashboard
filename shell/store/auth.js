@@ -2,7 +2,7 @@ import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE } from '@shell/config/query
 import { NORMAN } from '@shell/config/types';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { addObjects, findBy, joinStringList } from '@shell/utils/array';
-import { openAuthPopup, returnTo, checkIfIsRancherAsOidcProviderLogin } from '@shell/utils/auth';
+import { openAuthPopup, returnTo, checkIfIsRancherAsOidcProviderLogin, generateUrlQueryParamsStringOidc } from '@shell/utils/auth';
 import { base64Encode } from '@shell/utils/crypto';
 import { removeEmberPage } from '@shell/utils/ember-page';
 import { randomStr } from '@shell/utils/string';
@@ -344,11 +344,7 @@ export const actions = {
       console.error('LOGIN STORE ACTION!', queryParams);
 
       if (checkIfIsRancherAsOidcProviderLogin(queryParams)) {
-        let urlParams = '';
-
-        Object.keys(queryParams).forEach((key, i) => {
-          urlParams = `${ urlParams }${ i !== 0 ? '&' : '' }${ key }=${ key === 'redirect_uri' ? queryParams[key] : encodeURIComponent(queryParams[key]) }`;
-        });
+        const urlParams = generateUrlQueryParamsStringOidc(queryParams);
 
         // eslint-disable-next-line no-console
         console.error('WE ARE ON OIDC REALM1!', urlParams);

@@ -16,6 +16,34 @@ export function checkIfIsRancherAsOidcProviderLogin(queryParams) {
   return queryParams && Object.keys(queryParams).length && RANCHER_AS_OIDC_PROV_COND.every((item) => Object.keys(queryParams).includes(item));
 }
 
+export function generateUrlQueryParamsStringOidc(queryParams) {
+  let urlParams = '';
+
+  Object.keys(queryParams).forEach((key, i) => {
+    let value = encodeURIComponent(queryParams[key]);
+
+    // don't encode redirect_uri
+    if (key === 'redirect_uri') {
+      value = queryParams[key];
+    }
+
+    // the encoding adds %20 instead of +, let's handle it separately
+    if (key === 'scope') {
+      const arr = queryParams[key].split(' ');
+
+      if (arr.length > 1) {
+        value = arr.join('+');
+      } else {
+        value = queryParams[key];
+      }
+    }
+
+    urlParams = `${ urlParams }${ i !== 0 ? '&' : '' }${ key }=${ value }`;
+  });
+
+  return urlParams;
+}
+
 export function openAuthPopup(url, provider) {
   const popup = new Popup(() => {
     popup.promise = new Promise((resolve, reject) => {
