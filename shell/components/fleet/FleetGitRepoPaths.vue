@@ -17,10 +17,14 @@ interface Subpath {
   options?: string
 }
 
+interface Row {
+  path:       string,
+  subpaths?:  Subpath[],
+  isBundles?: boolean | undefined,
+}
+
 interface DataType {
-  paths:     string[],
-  subpaths:  Subpath[][],
-  isBundles: Record<string, boolean>
+  rows: Row[]
 }
 
 function _cl(str: string) {
@@ -91,9 +95,7 @@ export default {
 
   data(): DataType {
     return {
-      paths:     [],
-      subpaths:  [],
-      isBundles: {}
+      rows: []
     };
   },
 
@@ -105,51 +107,53 @@ export default {
     isView(): boolean {
       return this.mode === _VIEW;
     },
+
+    paths() {
+      return this.rows.map(({ path }) => path);
+    }
   },
 
   methods: {
-    updatePaths() {
+    updatePaths(paths: string[]) {
+      this.rows = paths.map((path, i) => ({
+        ...this.rows[i],
+        path
+      }));
+      
       this.update();
     },
 
     removePaths({ index }: { index: number }) {
-      this.subpaths[index] = [];
+      this.rows[index].isBundles = false;
+      this.rows[index].subpaths = [];
 
       this.update();
     },
 
     updatePath(index: number, value: any) {
-      if (!this.paths) {
-        return;
-      }
-
       const neu = value?.srcElement?.value;
 
-      this.paths[index] = value?.srcElement?.value;
+      this.rows[index].path = neu;
 
       if (!neu) {
-        delete this.isBundles[this.paths[index]];
+        this.rows[index].isBundles = undefined;
       }
 
       this.update();
     },
 
     updateSubpaths(index: number, value: Subpath[]) {
-      if (!this.subpaths) {
-        return;
-      }
-
-      this.subpaths[index] = value;
+      this.rows[index].subpaths = value;
 
       this.update();
     },
 
     updateIsBundles(index: number) {
-      if (!this.paths[index]) {
+      if (!this.rows[index].path) {
         return;
       }
 
-      this.isBundles[this.paths[index]] = !this.isBundles[this.paths[index]];
+      this.rows[index].isBundles = !this.rows[index].isBundles;
 
       this.update();
     },
@@ -164,29 +168,28 @@ export default {
       const paths = this.normalizePaths(this.value.paths);
       const bundles = this.buildBundlesRows(this.normalizeBundles(this.value.bundles));
 
-      const rPaths = uniq([
+      const rows: Row[] = uniq([
         ...Object.keys(bundles),
         ...paths.filter((path) => !this.value.bundles.map(({ base }) => _cl(base)).includes(path))
-      ]);
-
-      this.isBundles = rPaths.reduce((acc, key) => ({ ...acc, [key]: false }), {});
+      ]).map((path) => ({
+        path
+      }));
 
       Object.keys(bundles).forEach((key, i) => {
-        this.subpaths[i] = [];
+        rows[i].subpaths = [];
 
         bundles[key].forEach(({ base, options }) => {
           if (base || options) {
-            this.subpaths[i].push({ base, options });
+            if (rows[i].subpaths) {
+              rows[i].subpaths.push({ base, options });
+            }
           }
         });
 
-        this.isBundles[key] = true;
+        rows[i].isBundles = true;
       });
 
-      const ordered = Object.keys(this.isBundles).sort((a, b) => `${ this.isBundles[a] }${ a }`.localeCompare(`${ this.isBundles[b] }${ b }`));
-
-      this.subpaths = ordered.map((key) => this.subpaths[rPaths.indexOf(key)]);
-      this.paths = ordered;
+      this.rows = rows.sort((a, b) => `${ a.isBundles }${ a.path }`.localeCompare(`${ b.isBundles }${ b.path }`));
     },
 
     normalizePaths(paths: string[]) {
@@ -247,13 +250,13 @@ export default {
       const paths: string[] = [];
       const bundles: Subpath[] = [];
 
-      this.paths?.forEach((path, i) => {
-        const el = _cl(path);
+      this.rows.forEach((row, i) => {
+        const el = _cl(row.path);
 
         if (el) {
-          if (this.isBundles[path]) {
-            if (this.subpaths[i]?.length) {
-              this.subpaths[i]?.forEach(({ base, options }) => {
+          if (row.isBundles) {
+            if (row.subpaths?.length) {
+              row.subpaths?.forEach(({ base, options }) => {
                 bundles.push({
                   base:    _cl(`${ el }/${ _cl(base) }`),
                   options: options || undefined
@@ -283,7 +286,7 @@ export default {
     {{ t('fleet.gitRepo.paths.description2') }}
   </h4>
   <ArrayList
-    v-model:value="paths"
+    :value="paths"
     :mode="mode"
     :initial-empty-row="false"
     :a11y-label="t('fleet.gitRepo.paths.ariaLabel')"
@@ -313,7 +316,7 @@ export default {
             @input="updatePath(i, $event)"
           >
           <Checkbox
-            :value="isBundles[paths[i]]"
+            :value="rows[i]?.isBundles"
             class="check mt-10"
             type="checkbox"
             label-key="fleet.gitRepo.paths.enableBundles"
@@ -323,11 +326,11 @@ export default {
           />
         </div>
         <div
-          v-if="isBundles[paths[i]]"
+          v-if="rows[i]?.isBundles"
           class="paths-row"
         >
           <KeyValue
-            :value="subpaths[i]"
+            :value="rows[i]?.subpaths"
             :mode="mode"
             :key-name="'base'"
             :value-name="'options'"
