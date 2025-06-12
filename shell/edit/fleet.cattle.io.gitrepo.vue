@@ -644,9 +644,9 @@ export default {
           bundles: value.spec.bundles
         }"
         :mode="mode"
-:touched="touched"
+        :touched="touched"
         @udpate:value="updatePaths"
-@touched="touched=$event"
+        @touched="touched=$event"
       />
     </template>
 
