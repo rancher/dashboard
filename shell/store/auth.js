@@ -344,15 +344,14 @@ export const actions = {
       console.error('LOGIN STORE ACTION!', queryParams);
 
       if (checkIfIsRancherAsOidcProviderLogin(queryParams)) {
-        // const redirectUrl = getRedirectUrlFromParams(queryParams, 'redirect_uri');
         let urlParams = '';
 
         Object.keys(queryParams).forEach((key, i) => {
-          urlParams = `${ urlParams }${ i !== 0 ? '&' : '' }${ key }=${ queryParams[key] }`;
+          urlParams = `${ urlParams }${ i !== 0 ? '&' : '' }${ key }=${ key === 'redirect_uri' ? queryParams[key] : encodeURIComponent(queryParams[key]) }`;
         });
 
         // eslint-disable-next-line no-console
-        console.error('WE ARE ON OIDC REALM!', urlParams);
+        console.error('WE ARE ON OIDC REALM1!', urlParams);
 
         window.location.href = `/oidc/authorize?${ urlParams }`;
 
