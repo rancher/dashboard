@@ -5,6 +5,7 @@ import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
 import HomeClusterListPo from '@/cypress/e2e/po/lists/home-cluster-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import E2eRequestUtils from '@/cypress/support/utils/request-utils';
 
 const burgerMenu = new BurgerMenuPo();
 
@@ -20,8 +21,8 @@ export default class HomePagePo extends PagePo {
     // To help with this be super sure the page is ready
 
     PagePo.goToAndWaitForGet(HomePagePo.goTo, [
-      'v1/counts?exclude=metadata.managedFields',
-      'v1/namespaces?exclude=metadata.managedFields',
+      E2eRequestUtils.constructUrlWithDefaultQueryParams('v1/counts'),
+      E2eRequestUtils.constructUrlWithDefaultQueryParams('v1/namespaces'),
     ]);
 
     const homePage = new HomePagePo();

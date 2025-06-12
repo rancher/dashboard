@@ -1,5 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
+import E2eRequestUtils from '@/cypress/support/utils/request-utils';
 
 export class APIServicesPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -15,7 +16,7 @@ export class APIServicesPagePo extends PagePo {
   }
 
   waitForRequests() {
-    APIServicesPagePo.goToAndWaitForGet(this.goTo.bind(this), ['/v1/apiregistration.k8s.io.apiservices?exclude=metadata.managedFields']);
+    APIServicesPagePo.goToAndWaitForGet(this.goTo.bind(this), [E2eRequestUtils.constructUrlWithDefaultQueryParams('/v1/apiregistration.k8s.io.apiservices')]);
   }
 
   resourcesList() {

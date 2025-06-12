@@ -8,6 +8,7 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import ResourceYamlEditorPagePo from '@/cypress/e2e/po/pages/explorer/yaml-editor.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import E2eRequestUtils from '@/cypress/support/utils/request-utils';
 
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 
@@ -322,7 +323,7 @@ describe('User can update their preferences', () => {
     cy.wait('@prefUpdate').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isChecked();
 
-    repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`);
+    repoListPage.waitForGoTo(E2eRequestUtils.constructUrlWithDefaultQueryParams(CLUSTER_REPOS_BASE_URL));
     banners.self().should('not.exist');
 
     prefPage.goTo();
@@ -332,7 +333,7 @@ describe('User can update their preferences', () => {
     cy.wait('@prefUpdate2').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isUnchecked();
 
-    repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`);
+    repoListPage.waitForGoTo(E2eRequestUtils.constructUrlWithDefaultQueryParams(CLUSTER_REPOS_BASE_URL));
     banners.self().should('exist');
   });
 

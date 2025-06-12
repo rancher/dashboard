@@ -3,7 +3,8 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/extensions/imported/cluster-import-generic.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
-import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '~/cypress/support/utils/exception-utils';
+import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '@/cypress/support/utils/exception-utils';
+import E2eRequestUtils from '@/cypress/support/utils/request-utils';
 
 const homePage = new HomePagePo();
 const homeClusterList = homePage.list();
@@ -15,7 +16,7 @@ function goToHomePageAndSettle() {
   // Reset the home page cards pref so that everything is shown
   cy.setUserPreference({ 'home-page-cards': '{}' });
 
-  cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?exclude=metadata.managedFields', {
+  cy.intercept('GET', E2eRequestUtils.constructUrlWithDefaultQueryParams('/v1/provisioning.cattle.io.clusters'), {
     statusCode: 200,
     body:       {
       count: 0,

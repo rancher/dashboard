@@ -2,6 +2,7 @@ import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { generateDeprecatedAndExperimentalCharts, generateDeprecatedAndExperimentalChart } from '@/cypress/e2e/blueprints/charts/charts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import E2eRequestUtils from '@/cypress/support/utils/request-utils';
 
 const chartsPage = new ChartsPage();
 
@@ -151,7 +152,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   it('A disabled repo should NOT be listed on the repos dropdown', () => {
     const disabledRepoId = 'disabled-repo';
 
-    cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`, (req) => {
+    cy.intercept('GET', E2eRequestUtils.constructUrlWithDefaultQueryParams(CLUSTER_REPOS_BASE_URL), (req) => {
       req.reply({
         statusCode: 200,
         body:       {
