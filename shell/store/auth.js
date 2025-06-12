@@ -351,11 +351,10 @@ export const actions = {
 
         window.location.href = `/oidc/authorize?${ urlParams }`;
 
-        return Promise.reject(new Error(''));
+        // eslint-disable-next-line no-console
+        console.error('window.location.href', window.location.href);
 
-        // if (redirectUrl) {
-        //   return window.location.replace(redirectUrl);
-        // }
+        return;
       }
 
       return res;
