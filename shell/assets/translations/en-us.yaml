@@ -148,6 +148,7 @@ generic:
     genericAddRow: Add a new row
     arrayList: Array list input
     genericRow: row {index}
+  opensInNewTab: The link will open in a new tab
   
 
 locale:
