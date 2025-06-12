@@ -434,7 +434,7 @@ export default {
 
     <div class="wrapper">
       <rc-filter-panel
-        v-model="internalFilters"
+        :modelValue="internalFilters"
         :filters="filterPanelFilters"
         @update:modelValue="onFilterChange"
       />
