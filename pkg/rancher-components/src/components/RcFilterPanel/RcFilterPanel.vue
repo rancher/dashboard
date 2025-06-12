@@ -86,7 +86,7 @@ const updateFilter = (key: string, value: string[]) => {
             data-testid="filter-panel-custom-component"
           />
         </template>
-        <template v-else>
+        <template v-else-if="option.label">
           <Checkbox
             :key="i"
             class="filter-panel-filter-checkbox"
