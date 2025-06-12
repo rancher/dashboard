@@ -21,8 +21,8 @@ export default class HomePagePo extends PagePo {
     // To help with this be super sure the page is ready
 
     PagePo.goToAndWaitForGet(HomePagePo.goTo, [
-      E2eRequestUtils.constructUrlWithDefaultQueryParams('v1/counts'),
-      E2eRequestUtils.constructUrlWithDefaultQueryParams('v1/namespaces'),
+      'v1/counts?exclude=metadata.managedFields',
+      'v1/namespaces?exclude=metadata.managedFields',
     ]);
 
     const homePage = new HomePagePo();

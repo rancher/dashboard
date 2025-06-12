@@ -4,8 +4,7 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import WorkloadPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import { createDeploymentBlueprint } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployment-create';
-import { ChartsPage } from '~/cypress/e2e/po/pages/explorer/charts/charts.po';
-import ClusterDashboardPagePo from '~/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 
 const { name: workloadName, namespace } = createDeploymentBlueprint.metadata;
 const deploymentsListPage = new WorkloadsDeploymentsListPagePo('local');
