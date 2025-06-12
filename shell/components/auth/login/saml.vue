@@ -5,6 +5,8 @@ export default {
 
   methods: {
     async login() {
+      // eslint-disable-next-line no-console
+      console.error('LOGGING IN WITH SAML!');
       const { requestId, publicKey, responseType } = this.$route.query;
 
       const res = await this.$store.dispatch('auth/login', {
@@ -18,9 +20,9 @@ export default {
         queryParams: this.$route.query
       });
 
-      const { idpRedirectUrl } = res;
-
-      window.location.href = idpRedirectUrl;
+      if (res.idpRedirectUrl) {
+        window.location.href = res.idpRedirectUrl;
+      }
     },
   },
 };
