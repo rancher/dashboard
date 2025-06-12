@@ -104,7 +104,9 @@ export default {
       return;
     }
 
-    const { test, provider, nonce } = parsed;
+    const {
+      test, provider, nonce, queryParams
+    } = parsed;
 
     if (test) {
       return;
@@ -118,7 +120,7 @@ export default {
         code,
         nonce,
         provider,
-        queryParams: parsed
+        queryParams: queryParams || {}
       });
 
       if ( res._status === 200) {

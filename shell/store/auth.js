@@ -168,6 +168,10 @@ export const actions = {
   createNonce(ctx, opt) {
     const out = { nonce: randomStr(16), to: 'vue' };
 
+    if ( opt.queryParams ) {
+      out.queryParams = opt.queryParams;
+    }
+
     if ( opt.test ) {
       out.test = true;
     }
