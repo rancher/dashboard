@@ -349,9 +349,9 @@ export const actions = {
         // eslint-disable-next-line no-console
         console.error('WE ARE ON OIDC REALM1!', urlParams);
         // eslint-disable-next-line no-console
-        console.error('window.location.origin', window.location.origin);
+        console.error('window.location.origin111', window.location.origin);
 
-        return window.location.replace(`${ window.location.origin }/oidc/authorize?${ urlParams }&challenge_method=S256`);
+        return window.location.replace(`${ window.location.origin }/oidc/authorize?${ urlParams }&code_challenge_method=S256`);
       }
 
       return res;
