@@ -6,6 +6,8 @@ export default {
 
   methods: {
     login() {
+      // eslint-disable-next-line no-console
+      console.error('LOGGING IN WITH OAUTH!!!');
       this.$store.dispatch('auth/redirectTo', { provider: this.name, queryParams: this.$route.query });
     },
   },

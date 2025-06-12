@@ -225,10 +225,19 @@ export const actions = {
     // The base nonce that will be sent server way
     const baseNonce = opt.nonce || await dispatch('createNonce', opt);
 
+    // eslint-disable-next-line no-console
+    console.error('auth/redirectTo opt', opt);
+
+    // eslint-disable-next-line no-console
+    console.error('auth/redirectTo baseNonce', baseNonce);
+
     // Save a possibly expanded nonce
     await dispatch('saveNonce', opt.persistNonce || baseNonce);
     // Convert the base nonce in to something we can transmit
     const encodedNonce = await dispatch('encodeNonce', baseNonce);
+
+    // eslint-disable-next-line no-console
+    console.error('auth/redirectTo encodedNonce', encodedNonce);
 
     const fromQuery = unescape(parseUrl(redirectUrl).query?.[GITHUB_SCOPE] || '');
     let scopes = fromQuery.split(/[, ]+/).filter((x) => !!x);
@@ -258,6 +267,9 @@ export const actions = {
 
     url = addParams(url, params);
 
+    // eslint-disable-next-line no-console
+    console.error('auth/redirectTo url', url);
+
     if ( opt.redirect === false ) {
       return url;
     } else {
@@ -270,6 +282,18 @@ export const actions = {
   }) {
     const expectJSON = this.$cookies.get(KEY, { parseJSON: false });
     let parsed;
+
+    // eslint-disable-next-line no-console
+    console.error('verifyOAuth nonce', nonce);
+
+    // eslint-disable-next-line no-console
+    console.error('verifyOAuth code', code);
+
+    // eslint-disable-next-line no-console
+    console.error('verifyOAuth provider', provider);
+
+    // eslint-disable-next-line no-console
+    console.error('verifyOAuth queryParams', queryParams);
 
     try {
       parsed = JSON.parse(expectJSON);
@@ -289,6 +313,9 @@ export const actions = {
     if (parsed.pkceCodeVerifier) {
       body.code_verifier = parsed.pkceCodeVerifier;
     }
+
+    // eslint-disable-next-line no-console
+    console.error('verifyOAuth parsed', parsed);
 
     return dispatch('login', {
       provider,

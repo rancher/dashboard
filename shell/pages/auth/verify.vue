@@ -43,6 +43,9 @@ function isSaml($route) {
 
 export default {
   async fetch() {
+    // eslint-disable-next-line no-console
+    console.error('VERIFY START!');
+
     const code = this.$route.query[GITHUB_CODE];
     const stateStr = this.$route.query[GITHUB_NONCE];
     const {
@@ -106,6 +109,9 @@ export default {
     if (test) {
       return;
     }
+
+    // eslint-disable-next-line no-console
+    console.error('VERIFY decoded string', parsed);
 
     try {
       const res = await this.$store.dispatch('auth/verifyOAuth', {
