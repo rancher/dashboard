@@ -351,7 +351,7 @@ export const actions = {
         // eslint-disable-next-line no-console
         console.error('window.location.origin', window.location.origin);
 
-        return window.location.replace(`${ window.location.origin }/oidc/authorize?${ urlParams }`);
+        return window.location.replace(`${ window.location.origin }/oidc/authorize?${ urlParams }&challenge_method=S256`);
       }
 
       return res;
