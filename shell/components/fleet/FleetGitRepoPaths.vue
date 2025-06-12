@@ -298,6 +298,7 @@ export default {
     :a11y-label="t('fleet.gitRepo.paths.ariaLabel')"
     :add-label="t('fleet.gitRepo.paths.addLabel')"
     :add-icon="'icon-plus'"
+    :add-class="'btn-sm role-secondary mt-24'"
     :protip="t('fleet.gitRepo.paths.tooltip', {}, true)"
     :remove-allowed="false"
     @update:value="updatePaths"
@@ -312,8 +313,8 @@ export default {
             <button
               v-if="!isView"
               type="button"
-              class="btn role-link"
               role="button"
+              class="btn btn-sm role-tertiary add"
               @click="removePaths(i)"
             >
               <i :class="'icon-x'" />
@@ -332,7 +333,7 @@ export default {
           <Checkbox
             v-if="!isView"
             :value="rows[i]?.isBundles"
-            class="check mt-10"
+            class="check"
             type="checkbox"
             label-key="fleet.gitRepo.paths.enableBundles"
             :mode="mode"
@@ -360,8 +361,10 @@ export default {
             :value-placeholder="t('fleet.gitRepo.paths.subpaths.placeholders.value')"
             :add-label="t('fleet.gitRepo.paths.subpaths.addLabel')"
             :add-icon="'icon-plus'"
+            :add-class="'btn-sm role-tertiary'"
             :remove-label="' '"
             :remove-icon="'icon-x'"
+            :remove-class="'btn btn-sm role-tertiary add'"
             :protip="t('fleet.gitRepo.paths.subpaths.protipKey')"
             :protip-value="t('fleet.gitRepo.paths.subpaths.protipValue')"
             @update:value="updateSubpaths(i, $event)"
@@ -383,8 +386,15 @@ export default {
       justify-content: space-between;
 
       .btn {
-        padding-right: 0;
+        &:not(:hover) {
+          background: transparent;
+        }
+        border: 0
       }
+    }
+
+    .check {
+      margin-top: 16px;
     }
 
     .subpaths {
@@ -397,6 +407,18 @@ export default {
               content: "";
               display: block;
             }
+
+            .row {
+              .remove {
+                .btn {
+                  background: var(--accent-btn);
+                  &:not(:hover) {
+                    background: transparent;
+                  }
+                  border: 0
+                }
+              }
+            }
           }
 
           .rowgroup:not(:first-child) {
@@ -408,15 +430,17 @@ export default {
               margin-right: -10px;
             }
           }
+
         }
 
         :deep() .footer {
           margin-top: 5px !important;
-          margin-left: 20px;
+          margin-left: 30px;
 
           .btn {
-            background: transparent;
-            color: var(--link);
+            &:not(:hover) {
+              background: transparent;
+            }
             border: 0
           }
         }
