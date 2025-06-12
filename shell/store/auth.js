@@ -344,19 +344,18 @@ export const actions = {
       console.error('LOGIN STORE ACTION!', queryParams);
 
       if (checkIfIsRancherAsOidcProviderLogin(queryParams)) {
-        const redirectUrl = getRedirectUrlFromParams(queryParams, 'redirect_uri');
+        // const redirectUrl = getRedirectUrlFromParams(queryParams, 'redirect_uri');
 
         // eslint-disable-next-line no-console
-        console.error('WE ARE ON OIDC REALM!', redirectUrl);
+        console.error('WE ARE ON OIDC REALM!');
 
-        if (redirectUrl) {
-          // eslint-disable-next-line no-console
-          console.error('REDIRECTING...');
+        window.location.href = `/oidc/authorize?${ queryParams }`;
 
-          return window.location.replace(redirectUrl);
-        }
+        return Promise.reject(new Error(''));
 
-        return Promise.reject(new Error('Something went wrong while generating the redirect URL for Rancher as an indentity provider and we cannot redirect you to the desired URL'));
+        // if (redirectUrl) {
+        //   return window.location.replace(redirectUrl);
+        // }
       }
 
       return res;

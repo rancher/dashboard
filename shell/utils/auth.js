@@ -20,6 +20,11 @@ export function getRedirectUrlFromParams(queryParams, redirectUrlKey) {
   const redirectUrl = queryParams?.[redirectUrlKey];
   const urlParams = new URLSearchParams(queryParams);
 
+  // eslint-disable-next-line no-console
+  console.error('redirectUrl', redirectUrl);
+  // eslint-disable-next-line no-console
+  console.error('urlParams', urlParams);
+
   if (redirectUrl) {
     return `${ redirectUrl }?${ urlParams }`;
   }
