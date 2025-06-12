@@ -67,11 +67,11 @@ describe('Not found page display', { tags: ['@generic', '@adminUser', '@standard
   });
 
   it('Will not show a 404 for a valid type that does not have a real schema', () => {
-    const workloadPage = new NotFoundPagePo('/c/local/explorer/workload');
+    const chartsPage = new NotFoundPagePo('/c/local/apps/charts');
 
-    workloadPage.goTo();
-    workloadPage.waitForPage();
-    workloadPage.errorTitle().should('not.exist');
+    chartsPage.goTo();
+    chartsPage.waitForPage();
+    chartsPage.errorTitle().should('not.exist');
   });
 
   it('Will not show a 404 if we have a valid product + resource and we nav to page', () => {
