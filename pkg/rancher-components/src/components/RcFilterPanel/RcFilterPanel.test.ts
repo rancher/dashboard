@@ -25,7 +25,7 @@ describe('rcFilterPanel', () => {
   it('renders all filter groups and options with correct labels', () => {
     const wrapper = mount(RcFilterPanel, {
       props: {
-        value: {},
+        modelValue: {},
         filters
       }
     });
@@ -60,38 +60,13 @@ describe('rcFilterPanel', () => {
     expect(emitted?.[0][0].status).toStrictEqual(['installed', 'deprecated']);
   });
 
-  it('emits filter-change when a checkbox is checked (using value)', async() => {
-    const wrapper = mount(RcFilterPanel, {
-      props: {
-        value: {}, // using manual binding, not v-model
-        filters
-      }
-    });
-
-    const checkboxes = wrapper.findAllComponents(Checkbox);
-    const installedCheckbox = checkboxes.find((c) => c.props('label') === 'Installed');
-
-    expect(installedCheckbox).toBeTruthy();
-
-    installedCheckbox?.vm.$emit('update:value', ['installed']);
-    await wrapper.vm.$nextTick();
-
-    const emitted = wrapper.emitted('filter-change');
-
-    expect(emitted).toBeTruthy();
-
-    const emittedValue = emitted?.[0][0];
-
-    expect(emittedValue.status).toContain('installed');
-  });
-
   it('renders a custom component if provided in option', () => {
     const CustomComponent = { template: '<div>Custom content</div>' };
 
     const wrapper = mount(RcFilterPanel, {
       props: {
-        value:   {},
-        filters: [
+        modelValue: {},
+        filters:    [
           {
             key:     'custom',
             title:   'Custom Filters',
