@@ -5,6 +5,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import LazyImage from '@shell/components/LazyImage.vue';
 import { DropdownOption } from '@components/RcDropdown/types';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import RcItemCardAction from './RcItemCardAction';
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -80,7 +81,7 @@ interface RcItemCardProps {
   image?: Image;
 
   /** Optional actions that will be displayed inside an action-menu */
-  actions?: DropdownOption;
+  actions?: DropdownOption[];
 
   /** Text content inside the card body. A slot is available for it too #item-card-content */
   content?: Label;
@@ -100,7 +101,24 @@ const props = defineProps<RcItemCardProps>();
 /**
  * Emits 'card-click' when card is clicked or activated via keyboard.
  */
-const emit = defineEmits<{( e: 'card-click', value: ItemValue): void; }>();
+ const emit = defineEmits<{
+  (e: 'card-click', value: ItemValue): void;
+  (e: string, payload: any): void;
+}>();
+
+const actionListeners = computed(() => {
+  if (!props.actions) return {};
+
+  const listeners: Record<string, (payload: any) => void> = {};
+
+  for (const a of props.actions) {
+    if (a.action) {
+      listeners[a.action] = (payload: any) => emit(a.action, payload);
+    }
+  }
+
+  return listeners;
+});
 
 /**
  * Handles the card click while avoiding nested interactive elements
@@ -241,12 +259,13 @@ const cardMeta = computed(() => ({
               </div>
             </template>
             <template v-else-if="actions">
-              <div class="item-card-header-action-menu">
+              <rc-item-card-action class="item-card-header-action-menu">
                 <ActionMenu
                   data-testid="item-card-header-action-menu"
                   :custom-actions="actions"
+                  v-on="actionListeners"
                 />
-              </div>
+            </rc-item-card-action>
             </template>
           </div>
         </div>
