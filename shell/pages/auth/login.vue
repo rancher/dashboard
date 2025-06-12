@@ -254,6 +254,7 @@ export default {
 
     async loginLocal(buttonCb) {
       try {
+        console.error('LOGGING IN WITH LOCAL USER!');
         await this.$store.dispatch('auth/login', {
           provider: 'local',
           body:     {

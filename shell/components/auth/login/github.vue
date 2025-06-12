@@ -6,6 +6,7 @@ export default {
 
   methods: {
     login() {
+      console.error('LOGGING IN WITH GITHUB!!!');
       this.$store.dispatch('auth/redirectTo', { provider: 'github', queryParams: this.$route.query });
     },
   },

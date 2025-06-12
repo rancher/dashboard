@@ -340,10 +340,16 @@ export const actions = {
         ...body
       }, { redirectUnauthorized: false });
 
+      console.error('LOGIN STORE ACTION!', queryParams);
+
       if (checkIfIsRancherAsOidcProviderLogin(queryParams)) {
         const redirectUrl = getRedirectUrlFromParams(queryParams, 'redirect_uri');
 
+        console.error('WE ARE ON OIDC REALM!', redirectUrl);
+
         if (redirectUrl) {
+          console.error('REDIRECTING...');
+
           return window.location.replace(redirectUrl);
         }
 
