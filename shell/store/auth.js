@@ -345,10 +345,14 @@ export const actions = {
 
       if (checkIfIsRancherAsOidcProviderLogin(queryParams)) {
         // const redirectUrl = getRedirectUrlFromParams(queryParams, 'redirect_uri');
-        const urlParams = new URLSearchParams(queryParams);
+        let urlParams = '?';
+
+        Object.keys(queryParams).forEach((key, i) => {
+          urlParams = `${ urlParams }${ i !== 0 ? '&' : '' }${ key }=${ queryParams[key] }`;
+        });
 
         // eslint-disable-next-line no-console
-        console.error('WE ARE ON OIDC REALM!');
+        console.error('WE ARE ON OIDC REALM!', urlParams);
 
         window.location.href = `/oidc/authorize?${ urlParams }`;
 
