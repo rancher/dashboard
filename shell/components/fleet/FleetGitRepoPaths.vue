@@ -288,10 +288,10 @@ export default {
 </script>
 <template>
   <h3 v-t="'fleet.gitRepo.paths.label'" />
-  <h4 class="text-muted">
+  <p class="text-muted mb-10">
     {{ t('fleet.gitRepo.paths.description1') }}<br>
     {{ t('fleet.gitRepo.paths.description2') }}
-  </h4>
+  </p>
   <ArrayList
     :value="paths"
     :mode="mode"
@@ -307,7 +307,7 @@ export default {
     @remove="removePaths"
   >
     <template #columns="{row, i}">
-      <div class="paths-container">
+      <div class="row-container">
         <div>
           <h4>
             {{ t('fleet.gitRepo.paths.index', { index: i + 1 }, true) }}
@@ -335,7 +335,8 @@ export default {
         </div>
         <div
           v-if="rows[i]?.isBundles"
-          class="paths-row"
+          class="subpaths"
+          :class="{ ['mt-10']: isView }"
         >
           <KeyValue
             :value="rows[i]?.subpaths"
@@ -365,14 +366,14 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .paths-container {
+  .row-container {
     display: flex;
     flex-direction: column;
 
-    .paths-row {
+    .subpaths {
       .key-value {
         :deep() .kv-container {
-          grid-template-columns: 10px repeat(2, 1fr) 1px !important;
+          grid-template-columns: 10px repeat(2, 30%) 1px !important;
 
           .rowgroup {
             .row::before {

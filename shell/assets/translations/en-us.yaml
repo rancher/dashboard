@@ -2632,7 +2632,7 @@ fleet:
       label: Certificates
       placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"
     paths:
-      label: Paths and bundles
+      label: Custom paths
       index: Path {index}
       description1: The root of the repo is used by default. You can provide multiple different directories.
       description2: You can also add subpaths to specify different YAML config file paths and fleet.yaml files in options.
@@ -2640,7 +2640,7 @@ fleet:
       placeholder: e.g. /directory/in/your/repo
       addLabel: Add Path
       tooltip: The root of the repo is used by default.<br>Fleet will use additional kubernetes and config YAML files defined in subpaths to deploy resources.<br>Multiple different directories and options can be provided.
-      enableBundles: Let Fleet find fleet.yaml files in all subfolders
+      enableBundles: Manually specify the config files subpaths
       subpaths:
         addLabel: Add Subpath
         protipKey: "A subpath in the root path."
