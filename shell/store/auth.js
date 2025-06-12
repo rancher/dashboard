@@ -2,7 +2,7 @@ import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE } from '@shell/config/query
 import { NORMAN } from '@shell/config/types';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { addObjects, findBy, joinStringList } from '@shell/utils/array';
-import { openAuthPopup, returnTo, checkIfIsRancherAsOidcProviderLogin, getRedirectUrlFromParams } from '@shell/utils/auth';
+import { openAuthPopup, returnTo, checkIfIsRancherAsOidcProviderLogin } from '@shell/utils/auth';
 import { base64Encode } from '@shell/utils/crypto';
 import { removeEmberPage } from '@shell/utils/ember-page';
 import { randomStr } from '@shell/utils/string';
