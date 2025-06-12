@@ -3,7 +3,7 @@ import { NORMAN } from '@shell/config/types';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { addObjects, findBy, joinStringList } from '@shell/utils/array';
 import { openAuthPopup, returnTo, checkIfIsRancherAsOidcProviderLogin, generateUrlQueryParamsStringOidc } from '@shell/utils/auth';
-import { base64Encode } from '@shell/utils/crypto';
+import { base64Encode, base64Decode } from '@shell/utils/crypto';
 import { removeEmberPage } from '@shell/utils/ember-page';
 import { randomStr } from '@shell/utils/string';
 import { addParams, parse as parseUrl, removeParam } from '@shell/utils/url';
@@ -226,7 +226,10 @@ export const actions = {
     const baseNonce = opt.nonce || await dispatch('createNonce', opt);
 
     // eslint-disable-next-line no-console
-    console.error('auth/redirectTo opt', opt);
+    console.error('auth/redirectTo opt.nonce', opt.nonce);
+
+    // eslint-disable-next-line no-console
+    console.error('auth/redirectTo "createNonce STUFF"', await dispatch('createNonce', opt));
 
     // eslint-disable-next-line no-console
     console.error('auth/redirectTo baseNonce', baseNonce);
@@ -238,6 +241,8 @@ export const actions = {
 
     // eslint-disable-next-line no-console
     console.error('auth/redirectTo encodedNonce', encodedNonce);
+    // eslint-disable-next-line no-console
+    console.error('auth/redirectTo decodedNonce', base64Decode(encodedNonce));
 
     const fromQuery = unescape(parseUrl(redirectUrl).query?.[GITHUB_SCOPE] || '');
     let scopes = fromQuery.split(/[, ]+/).filter((x) => !!x);
@@ -245,6 +250,9 @@ export const actions = {
     if (BASE_SCOPES[provider]) {
       addObjects(scopes, BASE_SCOPES[provider]);
     }
+
+    // eslint-disable-next-line no-console
+    console.error('auth/redirectTo fromQuery', fromQuery);
 
     // Need to merge these 2 formats preventing duplicates between code and UI, e.g.
     // [ 'openid profile email' ] from BASE_SCOPES
