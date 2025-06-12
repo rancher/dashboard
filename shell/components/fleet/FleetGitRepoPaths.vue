@@ -8,18 +8,18 @@ import KeyValue from '@shell/components/form/KeyValue.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 interface DirectoryTree {
-  name?:    string,
+  name?: string,
   children: DirectoryTree[]
 }
 
 interface Subpath {
-  base:     string,
+  base: string,
   options?: string
 }
 
 interface Row {
-  path:       string,
-  subpaths?:  Subpath[],
+  path: string,
+  subpaths?: Subpath[],
   isBundles?: boolean | undefined,
 }
 
@@ -73,7 +73,7 @@ export default {
 
   inheritAttrs: false,
 
-  emits: ['udpate:value'],
+  emits: ['udpate:value', 'touched'],
 
   components: {
     ArrayList,
@@ -91,12 +91,15 @@ export default {
       type:    String,
       default: _EDIT,
     },
+
+    touched: {
+      type:    Object as PropType<Record<string, number>>,
+      default: () => ({}),
+    },
   },
 
   data(): DataType {
-    return {
-      rows: []
-    };
+    return { rows: [] };
   },
 
   mounted() {
@@ -119,7 +122,7 @@ export default {
         ...this.rows[i],
         path
       }));
-      
+
       this.update();
     },
 
@@ -162,18 +165,14 @@ export default {
       const value = this.fromDirectoryTree();
 
       this.$emit('udpate:value', value);
+      this.$emit('touched', this.pathsOrder());
     },
 
     toDirectoryTree() {
       const paths = this.normalizePaths(this.value.paths);
-      const bundles = this.buildBundlesRows(this.normalizeBundles(this.value.bundles));
+      const bundles = this.buildBundles(this.normalizeBundles(this.value.bundles));
 
-      const rows: Row[] = uniq([
-        ...Object.keys(bundles),
-        ...paths.filter((path) => !this.value.bundles.map(({ base }) => _cl(base)).includes(path))
-      ]).map((path) => ({
-        path
-      }));
+      const rows: Row[] = [...uniq(Object.keys(bundles)), ...uniq(paths)].map((path) => ({ path }));
 
       Object.keys(bundles).forEach((key, i) => {
         rows[i].subpaths = [];
@@ -189,25 +188,45 @@ export default {
         rows[i].isBundles = true;
       });
 
-      this.rows = rows.sort((a, b) => `${ a.isBundles }${ a.path }`.localeCompare(`${ b.isBundles }${ b.path }`));
+      if (!!this.touched) {
+        this.rows = rows.sort((a, b) => (this.touched[a.path] || -1) - (this.touched[b.path] || -1));
+      } else {
+        this.rows = rows.sort((b, a) => `${ a.isBundles }${ a.path }`.localeCompare(`${ b.isBundles }${ b.path }`));
+      }
     },
 
-    normalizePaths(paths: string[]) {
-      return uniq(paths || []).map((path) => _cl(path));
+    fromDirectoryTree() {
+      const paths: string[] = [];
+      const bundles: Subpath[] = [];
+
+      this.rows.forEach((row, i) => {
+        const el = _cl(row.path);
+
+        if (el) {
+          if (row.isBundles) {
+            if (row.subpaths?.length) {
+              row.subpaths?.forEach(({ base, options }) => {
+                bundles.push({
+                  base:    _cl(`${ el }/${ _cl(base) }`),
+                  options: options || undefined
+                });
+              });
+            } else {
+              bundles.push({ base: el });
+            }
+          } else if (!paths.includes(el)) {
+            paths.push(el);
+          }
+        }
+      });
+
+      return {
+        paths,
+        bundles
+      };
     },
 
-    normalizeBundles(_bundles: Subpath[]) {
-      const bundles = (_bundles || [])
-        .map((bundle) => ({
-          base:    _cl(bundle.base),
-          options: _cl(bundle.options || ''),
-        }));
-
-      return uniqBy(bundles, (elem) => `${ elem.base }_${ elem.options }`)
-        .sort((b, a) => `${ a.base }${ a.options }`.localeCompare(`${ b.base }${ b.options }`));
-    },
-
-    buildBundlesRows(bundles: Subpath[]) {
+    buildBundles(bundles: Subpath[]) {
       const out: Record<string, Subpath[]> = {};
 
       const prefixes = getRelevantPrefixes(bundles.map(({ base }) => base));
@@ -246,36 +265,24 @@ export default {
       return out;
     },
 
-    fromDirectoryTree() {
-      const paths: string[] = [];
-      const bundles: Subpath[] = [];
-
-      this.rows.forEach((row, i) => {
-        const el = _cl(row.path);
-
-        if (el) {
-          if (row.isBundles) {
-            if (row.subpaths?.length) {
-              row.subpaths?.forEach(({ base, options }) => {
-                bundles.push({
-                  base:    _cl(`${ el }/${ _cl(base) }`),
-                  options: options || undefined
-                });
-              });
-            } else {
-              bundles.push({ base: el });
-            }
-          } else {
-            paths.push(el);
-          }
-        }
-      });
-
-      return {
-        paths,
-        bundles
-      };
+    normalizePaths(paths: string[]) {
+      return uniq(paths || []).map((path) => _cl(path));
     },
+
+    normalizeBundles(_bundles: Subpath[]) {
+      const bundles = (_bundles || [])
+        .map((bundle) => ({
+          base:    _cl(bundle.base),
+          options: _cl(bundle.options || ''),
+        }));
+
+      return uniqBy(bundles, (elem) => `${ elem.base }_${ elem.options }`)
+        .sort((b, a) => `${ a.base }${ a.options }`.localeCompare(`${ b.base }${ b.options }`));
+    },
+
+    pathsOrder() {
+      return this.rows.reduce((acc, { path }, i) => ({ ...acc, [path]: i }), {});
+    }
   }
 };
 </script>
@@ -316,6 +323,7 @@ export default {
             @input="updatePath(i, $event)"
           >
           <Checkbox
+            v-if="!isView"
             :value="rows[i]?.isBundles"
             class="check mt-10"
             type="checkbox"
@@ -339,6 +347,7 @@ export default {
             :as-map="false"
             :value-can-be-empty="true"
             :read-allowed="false"
+            :initial-empty-row="true"
             :key-placeholder="t('fleet.gitRepo.paths.subpaths.placeholders.key')"
             :value-placeholder="t('fleet.gitRepo.paths.subpaths.placeholders.value')"
             :add-label="t('fleet.gitRepo.paths.subpaths.addLabel')"

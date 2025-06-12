@@ -154,7 +154,8 @@ export default {
           'required',
           'urlRepository'
         ],
-      }]
+      }],
+      touched: null,
     };
   },
 
@@ -643,7 +644,9 @@ export default {
           bundles: value.spec.bundles
         }"
         :mode="mode"
+:touched="touched"
         @udpate:value="updatePaths"
+@touched="touched=$event"
       />
     </template>
 
