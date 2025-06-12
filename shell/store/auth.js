@@ -348,13 +348,10 @@ export const actions = {
 
         // eslint-disable-next-line no-console
         console.error('WE ARE ON OIDC REALM1!', urlParams);
-
-        window.location.href = `/oidc/authorize?${ urlParams }`;
-
         // eslint-disable-next-line no-console
-        console.error('window.location.href', window.location.href);
+        console.error('window.location.origin', window.location.origin);
 
-        return;
+        return window.location.replace(`${ window.location.origin }/oidc/authorize?${ urlParams }`);
       }
 
       return res;
