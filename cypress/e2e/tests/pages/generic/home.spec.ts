@@ -4,7 +4,7 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/extensions/imported/cluster-import-generic.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '@/cypress/support/utils/exception-utils';
-import E2eRequestUtils from '@/cypress/support/utils/request-utils';
+import RequestUtils from '@/cypress/support/utils/request-utils';
 
 const homePage = new HomePagePo();
 const homeClusterList = homePage.list();
@@ -16,7 +16,7 @@ function goToHomePageAndSettle() {
   // Reset the home page cards pref so that everything is shown
   cy.setUserPreference({ 'home-page-cards': '{}' });
 
-  cy.intercept('GET', E2eRequestUtils.constructUrlWithDefaultQueryParams('/v1/provisioning.cattle.io.clusters'), {
+  cy.intercept('GET', RequestUtils.constructUrlWithDefaultQueryParams('/v1/provisioning.cattle.io.clusters'), {
     statusCode: 200,
     body:       {
       count: 0,

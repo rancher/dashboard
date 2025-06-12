@@ -1,15 +1,11 @@
 
-class E2eRequestUtils {
-  sqlCacheEnabled?: boolean;
+class RequestUtils {
+  private isVaiCacheEnabled?: boolean;
 
   constructUrlWithDefaultQueryParams(path = '', queryParams: string[] = [], { blockList }: { blockList: string[]} = { blockList: [] }): string {
-    if (this.sqlCacheEnabled === undefined) {
-      this.setSqlCacheEnabled();
-    }
-
     const qParams = [...queryParams];
 
-    if (this.sqlCacheEnabled && !blockList.includes('pagesize')) {
+    if (this.isVaiCacheEnabled && !blockList.includes('pagesize')) {
       qParams.push('pagesize=10000');
     }
 
@@ -20,16 +16,11 @@ class E2eRequestUtils {
     return `${ path }${ qParams.length ? `?${ qParams.join('&') }` : '' }`;
   }
 
-  setSqlCacheEnabled(hardcode?: boolean) {
-    if (hardcode === undefined) {
-      this.sqlCacheEnabled = true;
-      // throw new Error('Not Implemented');
-    } else {
-      this.sqlCacheEnabled = hardcode;
-    }
+  setIsVaiCacheEnabled(isVaiCacheEnabled: boolean) {
+    this.isVaiCacheEnabled = isVaiCacheEnabled;
   }
 }
 
-const instance = new E2eRequestUtils();
+const instance = new RequestUtils();
 
 export default instance;

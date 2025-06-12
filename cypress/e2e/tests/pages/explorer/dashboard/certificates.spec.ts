@@ -2,7 +2,7 @@
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { SecretsListPagePo } from '@/cypress/e2e/po/pages/explorer/secrets.po';
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '@/cypress/e2e/blueprints/blueprint.utils';
-import E2eRequestUtils from '@/cypress/support/utils/request-utils';
+import RequestUtils from '@/cypress/support/utils/request-utils';
 
 const certName = 'expired';
 const certNs = 'defaut';
@@ -66,7 +66,7 @@ describe('Certificates', { testIsolation: 'off', tags: ['@explorer', '@adminUser
   });
 
   it("show correct 'expired' states", () => {
-    cy.intercept('GET', E2eRequestUtils.constructUrlWithDefaultQueryParams('/v1/secrets', ['filter=metadata.fields.1~kubernetes.io/tls']), (req) => {
+    cy.intercept('GET', RequestUtils.constructUrlWithDefaultQueryParams('/v1/secrets', ['filter=metadata.fields.1~kubernetes.io/tls']), (req) => {
       req.reply((res) => {
         res.body.data.push(expiredCert);
         res.body.count += 1;

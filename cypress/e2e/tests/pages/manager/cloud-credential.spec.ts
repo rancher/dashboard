@@ -7,7 +7,7 @@ import ClusterManagerCreateRke2AzurePagePo from '@/cypress/e2e/po/edit/provision
 import CloudCredentialsCreatePagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials-create.po';
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
 import CloudCredentialsCreateAWSPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials-create-aws.po';
-import E2eRequestUtils from '@/cypress/support/utils/request-utils';
+import RequestUtils from '@/cypress/support/utils/request-utils';
 
 describe('Cloud Credential', { testIsolation: 'off' }, () => {
   const clusterList = new ClusterManagerListPagePo();
@@ -79,7 +79,7 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
       .then(() => {
         clusterList.goTo();
 
-        cy.intercept('GET', E2eRequestUtils.constructUrlWithDefaultQueryParams('/v1/provisioning.cattle.io.clusters'), (req) => {
+        cy.intercept('GET', RequestUtils.constructUrlWithDefaultQueryParams('/v1/provisioning.cattle.io.clusters'), (req) => {
           req.reply({
             statusCode: 200,
             body:       clusterProvDigitalOceanSingleResponse(clusterName, doCreatedCloudCredsIds[doCreatedCloudCredsIds.length - 1], machinePoolId),

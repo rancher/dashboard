@@ -4,7 +4,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 import { serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCases } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
-import E2eRequestUtils from '@/cypress/support/utils/request-utils';
+import RequestUtils from '@/cypress/support/utils/request-utils';
 
 // Cypress or the GrepTags avoid to run multiples times the same test for each tag used.
 // This is a temporary solution till initialization is not handled as a test
@@ -98,7 +98,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     });
   });
 
-  it('Create standard user', () => {
+  it('Initialise State', () => {
     cy.login();
 
     // Note: the username argument here should match the TEST_USERNAME env var used when running non-admin tests
@@ -112,10 +112,16 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
       },
       password: Cypress.env('password')
     }, { createNameOptions: { onlyContext: true } });
+
+    // RC: uncomment when FF on by default
+    // cy.isVaiCacheEnabled().then((isVaiCacheEnabled) => {
+    //   RequestUtils.setIsVaiCacheEnabled(isVaiCacheEnabled);
+    // });
   });
 
   const featureFlagsPage = new FeatureFlagsPagePo('local');
 
+  // RC: remove entire chunk when FF is on by default (and make vai-setup.spec disable ff instead of enable)
   it('Enable Feature Flag', () => {
     cy.login();
 
@@ -129,6 +135,8 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
 
     featureFlagsPage.list().details('ui-sql-cache', 0).should('include.text', 'Active');
 
-    E2eRequestUtils.setSqlCacheEnabled(true);
+    cy.isVaiCacheEnabled().then((isVaiCacheEnabled) => {
+      RequestUtils.setIsVaiCacheEnabled(isVaiCacheEnabled);
+    });
   });
 });
