@@ -147,7 +147,9 @@ generic:
     genericAddRow: Add a new row
     arrayList: Array list input
     genericRow: row {index}
-  
+  showLess: Show less
+  showMore: Show more
+  opensInNewTab: Opens in a new tab
 
 locale:
   menu: Locale selector menu
@@ -2493,13 +2495,29 @@ fleet:
     learnMoreLink: https://fleet.rancher.io
     noRepo: "You don't have any Git Repositories in your Workspaces"
     getStarted: Get started
-    thereIsMore: |-
-      {count, plural,
-      =1 { There is one other workspace with no repositories}
-      other { There are { count } other workspaces with no repositories}
-      }
+    workspace: Workspace
+    expand: Expand
+    collapse: Collapse
     expandAll: Expand All
     collapseAll: Collapse All
+    state: State
+    viewMode:
+      table: Show table
+      cards: Show cards
+    cards:
+      filters:
+        gitRepos: Show Git Repos
+        helmOps: Show Helm Ops
+      resourceSummary:
+        part1: in
+        part2: |-
+          {count, plural,
+          =1 { cluster }
+          other { clusters }
+          }
+      noClusters: Not targeting any clusters
+    resources: Resources
+    source: Source
   cluster:
     summary: Resource Summary
     nonReady: Non-Ready Bundles
@@ -2536,6 +2554,8 @@ fleet:
       notReady: Not Ready
       waitApplied: Wait Applied
   gitRepo:
+    intro:
+      add: Add Repository
     actions:
       forceUpdate:
         label: Force Update
@@ -2578,7 +2598,7 @@ fleet:
       placeholder: e.g. https://github.com/rancher/fleet-examples.git or git@github.com:rancher/fleet-examples.git
       addRepo: Add Repository
       noRepos: No repositories have been added
-      noWorkspaces: There are no workspaces. <br/> Please create a workspace before adding repositories
+      noWorkspaces: There are no workspaces.
     resources:
       label: 'Resource Handling'
       keepResources: Always keep resources
@@ -7136,6 +7156,11 @@ typeLabel:
     {count, plural,
       one { Git Repo }
       other {Git Repos }
+    }
+  fleet.cattle.io.helmop: |-
+    {count, plural,
+      one { Helm Op }
+      other { Helm Ops }
     }
   management.cattle.io.authconfig: |-
     {count, plural,
