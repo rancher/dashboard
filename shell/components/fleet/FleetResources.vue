@@ -28,18 +28,28 @@ export default {
       required: false,
       default:  null,
     },
+    search: {
+      type:    Boolean,
+      default: true
+    },
   },
 
   computed: {
-    resources() {
-      return (this.rows || []).map((r) => ({
+    computedResources() {
+      const resources = (this.rows || []).map((r) => ({
         tableKey: r.key,
         ...stateDisplayProperties(r.state),
         ...r,
       }));
+
+      if (this.clusterId) {
+        return resources.filter((r) => r.clusterId === this.clusterId);
+      }
+
+      return resources;
     },
     resourceHeaders() {
-      return [
+      const out = [
         {
           name:      'state',
           value:     'state',
@@ -49,16 +59,11 @@ export default {
           width:     100,
         },
         {
-          name:  'cluster',
-          value: 'clusterName',
-          sort:  ['clusterName', 'stateSort'],
-          label: 'Cluster',
-        },
-        {
-          name:  'apiVersion',
-          value: 'apiVersion',
-          sort:  'apiVersion',
-          label: 'API Version',
+          name:      'name',
+          value:     'name',
+          sort:      'name',
+          label:     'Name',
+          formatter: 'LinkDetail',
         },
         {
           name:  'kind',
@@ -67,19 +72,29 @@ export default {
           label: 'Kind',
         },
         {
-          name:      'name',
-          value:     'name',
-          sort:      'name',
-          label:     'Name',
-          formatter: 'LinkDetail',
-        },
-        {
           name:  'namespace',
           value: 'namespace',
           sort:  'namespace',
           label: 'Namespace',
         },
+        {
+          name:  'apiVersion',
+          value: 'apiVersion',
+          sort:  'apiVersion',
+          label: 'API Version',
+        },
       ];
+
+      if (!this.clusterId) {
+        out.splice(3, 0, {
+          name:  'cluster',
+          value: 'clusterName',
+          sort:  ['clusterName', 'stateSort'],
+          label: 'Cluster',
+        });
+      }
+
+      return out;
     },
   }
 };
@@ -87,12 +102,25 @@ export default {
 
 <template>
   <SortableTable
-    :rows="resources"
+    :rows="computedResources"
     :headers="resourceHeaders"
     :table-actions="false"
     :row-actions="false"
+    :search="search"
     key-field="tableKey"
     default-sort-by="state"
     :paged="true"
-  />
+  >
+    <!-- Pass down templates provided by the caller -->
+    <template
+      v-for="(_, slot) of $slots"
+      v-slot:[slot]="scope"
+      :key="slot"
+    >
+      <slot
+        :name="slot"
+        v-bind="scope"
+      />
+    </template>
+  </SortableTable>
 </template>

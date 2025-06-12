@@ -649,7 +649,7 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
         enabled: [
           NODE, EVENT,
           WORKLOAD_TYPES.CRON_JOB, WORKLOAD_TYPES.DAEMON_SET, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.STATEFUL_SET, POD,
-          CATALOG.APP, CATALOG.CLUSTER_REPO, CATALOG.OPERATION,
+          CATALOG.APP, CATALOG.OPERATION,
           HPA, INGRESS, SERVICE,
           PV, CONFIG_MAP, STORAGE_CLASS, PVC, SECRET,
           WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER
@@ -658,18 +658,19 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
       }
     }
   },
-  management: {
-    resources: {
-      enableAll:  false,
-      enableSome: {
-        enabled: [
-          { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] },
-          { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
-        ],
-        generic: false,
-      }
-    }
-  }
+  // Disabled due to https://github.com/rancher/dashboard/issues/14493
+  // management: {
+  //   resources: {
+  //     enableAll:  false,
+  //     enableSome: {
+  //       enabled: [
+  //         { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] },
+  //         { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
+  //       ],
+  //       generic: false,
+  //     }
+  //   }
+  // }
 };
 
 export default new StevePaginationUtils();

@@ -417,6 +417,8 @@ BODY, .theme-light {
   --input-addon-bg             : #{$darker};
   --input-hover-border         : #{darken($medium, 25%)};
 
+  --label-secondary           : #{$darker};
+
   --progress-bg                : #{$medium};
   --progress-divider           : #{$medium};
 
@@ -567,4 +569,20 @@ BODY, .theme-light {
   --gap                        : 8px;
   --gap-md                     : 16px;
   --gap-lg                     : 24px;
+
+  --click-badge-error          : #{$lightest};
+  --click-badge-error-bg       : #B13333;
+  --click-badge-error-border   : #7C0015;
+
+  --click-badge-warning        : #473900;
+  --click-badge-warning-bg     : #FFE47A;
+  --click-badge-warning-border : #E5A200;
+
+  --click-badge-success        : #007032;
+  --click-badge-success-bg     : #CEE4D7;
+  --click-badge-success-border : #1F7043;
+
+  --click-badge-info           : #{$lightest};
+  --click-badge-info-bg        : #{$info};
+  --click-badge-info-border    : #2673A6;
 }

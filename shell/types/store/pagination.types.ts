@@ -451,7 +451,12 @@ export interface StorePaginationRequest {
   /**
    * The set of pagination args used to create the request
    */
-  pagination: PaginationArgs
+  pagination: PaginationArgs,
+
+  /**
+   * Does this request stem from a list with manual refresh?
+   */
+  hasManualRefresh?: boolean,
 }
 
 /**
