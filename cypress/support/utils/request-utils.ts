@@ -2,18 +2,20 @@
 class E2eRequestUtils {
   sqlCacheEnabled?: boolean;
 
-  constructUrlWithDefaultQueryParams(path = '', queryParams: string[] = []): string {
+  constructUrlWithDefaultQueryParams(path = '', queryParams: string[] = [], { blockList }: { blockList: string[]} = { blockList: [] }): string {
     if (this.sqlCacheEnabled === undefined) {
       this.setSqlCacheEnabled();
     }
 
     const qParams = [...queryParams];
 
-    if (this.sqlCacheEnabled) {
+    if (this.sqlCacheEnabled && !blockList.includes('pagesize')) {
       qParams.push('pagesize=10000');
     }
 
-    qParams.push('exclude=metadata.managedFields');
+    if (!blockList.includes('exclude')) {
+      qParams.push('exclude=metadata.managedFields');
+    }
 
     return `${ path }${ qParams.length ? `?${ qParams.join('&') }` : '' }`;
   }

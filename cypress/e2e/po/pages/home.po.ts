@@ -5,7 +5,6 @@ import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
 import HomeClusterListPo from '@/cypress/e2e/po/lists/home-cluster-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import E2eRequestUtils from '@/cypress/support/utils/request-utils';
 
 const burgerMenu = new BurgerMenuPo();
 
