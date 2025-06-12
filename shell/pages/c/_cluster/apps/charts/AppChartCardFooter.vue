@@ -7,14 +7,14 @@ interface FooterItem {
   labels: string[];
 }
 
-const emit = defineEmits<{(e: 'footer-item-click', type: string, label: string): void; }>();
+const emit = defineEmits<{(e: 'click:item', type: string, label: string): void; }>();
 
 defineProps<{
   items: FooterItem[];
 }>();
 
-function onFooterItemClick(type: string, label: string) {
-  emit('footer-item-click', type, label);
+function onClickItem(type: string, label: string) {
+  emit('click:item', type, label);
 }
 
 </script>
@@ -39,9 +39,9 @@ function onFooterItemClick(type: string, label: string) {
         data-testid="app-chart-card-footer-item-text"
         tabindex="0"
         :aria-label="t('catalog.charts.appChartCard.footerItem.ariaLabel')"
-        @click="onFooterItemClick(footerItem.type, label)"
-        @keydown.enter="onFooterItemClick(footerItem.type, label)"
-        @keydown.space.prevent="onFooterItemClick(footerItem.type, label)"
+        @click="onClickItem(footerItem.type, label)"
+        @keydown.enter="onClickItem(footerItem.type, label)"
+        @keydown.space.prevent="onClickItem(footerItem.type, label)"
       >
         {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
       </rc-item-card-action>
