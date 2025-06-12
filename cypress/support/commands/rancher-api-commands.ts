@@ -1,6 +1,7 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2ClusterWithoutMachineConfigParams } from '@/cypress/globals';
 import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
+import RequestUtils from '@/cypress/support/utils/request-utils';
 
 // This file contains commands which makes API requests to the rancher API.
 // It includes the `login` command to store the `token` to use
@@ -1166,5 +1167,16 @@ Cypress.Commands.add('createService', (namespace: string, name: string, options:
 
   return cy.createRancherResource('v1', 'services', body).then((resp) => {
     return resp.body.metadata.name;
+  });
+});
+
+/**
+ * Supplement the provided path for a collection of steve resources with default steve query params
+ * @param path url path
+ * @param args other shizzle
+ */
+Cypress.Commands.add('pathWithDefaultSteveParams', (path?: string, args?: { queryParams?: string[], blockList?: string[]}) => {
+  return RequestUtils.initializeIsVaiCache().then(() => {
+    return cy.wrap(RequestUtils.pathWithDefaultSteveParams(path, args));
   });
 });

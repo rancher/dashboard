@@ -3,7 +3,6 @@ import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.cluste
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
-import RequestUtils from '@/cypress/support/utils/request-utils';
 
 describe('Apps', () => {
   describe('Repositories', { tags: ['@explorer', '@adminUser'] }, () => {
@@ -14,7 +13,10 @@ describe('Apps', () => {
         cy.login();
 
         appRepoList.goTo();
-        appRepoList.waitForGoTo(RequestUtils.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL));
+
+        cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL).then((url) => {
+          appRepoList.waitForGoTo(url);
+        });
 
         cy.createE2EResourceName('helm-repo-dupe-test').as('helmRepoDupeName');
       });

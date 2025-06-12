@@ -1,6 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
-import RequestUtils from '@/cypress/support/utils/request-utils';
 
 export class APIServicesPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -16,13 +15,16 @@ export class APIServicesPagePo extends PagePo {
   }
 
   waitForRequests() {
-    APIServicesPagePo.goToAndWaitForGet(this.goTo.bind(this), [
-      RequestUtils.pathWithDefaultSteveParams(
-        '/v1/apiregistration.k8s.io.apiservices',
-        ['page=1', 'pagesize=100', 'sort=metadata.name'],
-        { blockList: ['pagesize'] }
-      )
-    ]);
+    cy.pathWithDefaultSteveParams(
+      '/v1/apiregistration.k8s.io.apiservices',
+      {
+        queryParams: ['page=1', 'pagesize=100', 'sort=metadata.name'],
+        blockList:   ['pagesize'],
+      }).then((url) => {
+      APIServicesPagePo.goToAndWaitForGet(this.goTo.bind(this), [
+        url
+      ]);
+    });
   }
 
   resourcesList() {

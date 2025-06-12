@@ -4,7 +4,6 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 import { serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCases } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
-import RequestUtils from '@/cypress/support/utils/request-utils';
 
 // Cypress or the GrepTags avoid to run multiples times the same test for each tag used.
 // This is a temporary solution till initialization is not handled as a test
@@ -112,11 +111,6 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
       },
       password: Cypress.env('password')
     }, { createNameOptions: { onlyContext: true } });
-
-    // RC: uncomment when FF on by default
-    // cy.isVaiCacheEnabled().then((isVaiCacheEnabled) => {
-    //   RequestUtils.setIsVaiCacheEnabled(isVaiCacheEnabled);
-    // });
   });
 
   const featureFlagsPage = new FeatureFlagsPagePo('local');
@@ -134,7 +128,5 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
     featureFlagsPage.clickCardActionButtonAndWait('Activate', 'ui-sql-cache', true, { waitForModal: true, waitForRequest: true });
 
     featureFlagsPage.list().details('ui-sql-cache', 0).should('include.text', 'Active');
-
-    RequestUtils.setIsVaiCacheEnabled(true);
   });
 });

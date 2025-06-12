@@ -10,7 +10,6 @@ import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.cluste
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
-import RequestUtils from '@/cypress/support/utils/request-utils';
 
 export default class ExtensionsPagePo extends PagePo {
   static url = '/c/local/uiplugins'
@@ -57,7 +56,9 @@ export default class ExtensionsPagePo extends PagePo {
    * @returns {Cypress.Chainable}
    */
   addExtensionsRepository(repo: string, branch: string, name: string): Cypress.Chainable {
-    cy.intercept('GET', RequestUtils.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL)).as('getRepos');
+    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL).then((url) => {
+      cy.intercept('GET', url).as('getRepos');
+    });
 
     // we should be on the extensions page
     this.waitForPage(null, 'available');

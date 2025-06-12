@@ -2,7 +2,6 @@ import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { generateDeprecatedAndExperimentalCharts, generateDeprecatedAndExperimentalChart } from '@/cypress/e2e/blueprints/charts/charts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
-import RequestUtils from '@/cypress/support/utils/request-utils';
 
 const chartsPage = new ChartsPage();
 
@@ -152,18 +151,20 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   it('A disabled repo should NOT be listed on the repos dropdown', () => {
     const disabledRepoId = 'disabled-repo';
 
-    cy.intercept('GET', RequestUtils.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL), (req) => {
-      req.reply({
-        statusCode: 200,
-        body:       {
-          data: [
-            { id: disabledRepoId, spec: { enabled: false } }, // disabled
-            { id: 'enabled-repo-1', spec: { enabled: true } }, // enabled
-            { id: 'enabled-repo-2', spec: {} } // enabled
-          ]
-        }
-      });
-    }).as('getRepos');
+    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL).then((url) => {
+      cy.intercept('GET', url, (req) => {
+        req.reply({
+          statusCode: 200,
+          body:       {
+            data: [
+              { id: disabledRepoId, spec: { enabled: false } }, // disabled
+              { id: 'enabled-repo-1', spec: { enabled: true } }, // enabled
+              { id: 'enabled-repo-2', spec: {} } // enabled
+            ]
+          }
+        });
+      }).as('getRepos');
+    });
 
     cy.wait('@getRepos');
 

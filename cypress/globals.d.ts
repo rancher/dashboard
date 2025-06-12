@@ -187,6 +187,13 @@ declare global {
        * Run an accessibility check on the specified element
        */
       checkElementAccessibility(selector: any, description?: string);
+
+      /**
+       * Supplement the provided path for a collection of steve resources with default steve query params
+       * @param path url path
+       * @param args other shizzle
+       */
+      pathWithDefaultSteveParams(path?: string, args?: { queryParams?: string[], blockList?: string[]}): Cypress.Chainable<string>
     }
   }
 }

@@ -5,7 +5,6 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
-import RequestUtils from '@/cypress/support/utils/request-utils';
 
 const chartBranch = `release-v${ CURRENT_RANCHER_VERSION }`;
 const gitRepoUrl = 'https://github.com/rancher/charts';
@@ -230,7 +229,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   it('can create an oci repository with basic auth', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    repositoriesPage.waitForGoTo(RequestUtils.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL));
+    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL).then((url) => {
+      repositoriesPage.waitForGoTo(url);
+    });
     repositoriesPage.create();
     repositoriesPage.createEditRepositories().waitForPage();
     const ociUrl = 'oci://test.rancher.io/charts/mychart';

@@ -7,7 +7,6 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import 'cypress-real-events/support';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
-import RequestUtils from '@/cypress/support/utils/request-utils';
 const downloadsFolder = Cypress.config('downloadsFolder');
 
 const fakeProvClusterId = 'some-fake-cluster-id';
@@ -60,7 +59,9 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       cy.intercept('POST', `/v1/secrets/${ workspace }`).as('interceptSecret');
       cy.intercept('POST', '/v1/fleet.cattle.io.gitrepos').as('interceptGitRepo');
-      cy.intercept('GET', RequestUtils.pathWithDefaultSteveParams('/v1/secrets')).as('getSecrets');
+      cy.pathWithDefaultSteveParams('/v1/secrets').then((url) => {
+        cy.intercept('GET', url).as('getSecrets');
+      });
 
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();

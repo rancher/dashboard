@@ -8,7 +8,6 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import ResourceYamlEditorPagePo from '@/cypress/e2e/po/pages/explorer/yaml-editor.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
-import RequestUtils from '@/cypress/support/utils/request-utils';
 
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 
@@ -240,7 +239,10 @@ describe('User can update their preferences', () => {
     });
     prefPage.viewInApiCheckbox().isChecked();
 
-    repoListPage.waitForGoTo(RequestUtils.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL));
+    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL).then((url) => {
+      repoListPage.waitForGoTo(url);
+    });
+
     repoList.actionMenu('Partners').getMenuItem('View in API').should('exist');
 
     prefPage.goTo();
@@ -254,7 +256,10 @@ describe('User can update their preferences', () => {
     });
     prefPage.viewInApiCheckbox().isUnchecked();
 
-    repoListPage.waitForGoTo(RequestUtils.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL));
+    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL).then((url) => {
+      repoListPage.waitForGoTo(url);
+    });
+
     repoList.actionMenu('Partners').getMenuItem('View in API').should('not.exist');
   });
 
@@ -323,7 +328,9 @@ describe('User can update their preferences', () => {
     cy.wait('@prefUpdate').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isChecked();
 
-    repoListPage.waitForGoTo(RequestUtils.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL));
+    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL).then((url) => {
+      repoListPage.waitForGoTo(url);
+    });
     banners.self().should('not.exist');
 
     prefPage.goTo();
@@ -333,7 +340,9 @@ describe('User can update their preferences', () => {
     cy.wait('@prefUpdate2').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isUnchecked();
 
-    repoListPage.waitForGoTo(RequestUtils.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL));
+    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL).then((url) => {
+      repoListPage.waitForGoTo(url);
+    });
     banners.self().should('exist');
   });
 

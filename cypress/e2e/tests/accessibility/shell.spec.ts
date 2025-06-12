@@ -41,7 +41,6 @@ import { BrandingPagePo } from '@/cypress/e2e/po/pages/global-settings/branding.
 import { BannersPagePo } from '@/cypress/e2e/po/pages/global-settings/banners.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { FleetGitRepoCreateEditPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
-import RequestUtils from '@/cypress/support/utils/request-utils';
 
 describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () => {
   describe('Login page', () => {
@@ -612,7 +611,9 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       const usersPo = new UsersPo('_');
 
       it('Users page', () => {
-        cy.intercept('GET', RequestUtils.pathWithDefaultSteveParams(USERS_BASE_URL)).as('getUsers');
+        cy.pathWithDefaultSteveParams(USERS_BASE_URL).then((url) => {
+          return cy.intercept('GET', url).as('getUsers');
+        });
 
         usersPo.goTo();
         usersPo.waitForPage();
