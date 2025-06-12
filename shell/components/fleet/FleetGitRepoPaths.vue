@@ -31,6 +31,38 @@ function _cl(str: string) {
   return trim;
 }
 
+function getRelevantPrefixes(paths: string[]): string[] {
+  const prefixes: string[] = [];
+
+  getPrefixesRecursive(prefixes, paths, '', { name: '', children: pathArrayToTree(paths) });
+
+  return prefixes.sort((a, b) => b.localeCompare(a));
+}
+
+function getPrefixesRecursive(ret: string[], paths: string[], path: string, tree: DirectoryTree) {
+  if (tree.children.length === 0) {
+    const str = _cl(path === '/' ? path + tree.name : path);
+
+    if (str && !ret.includes(str)) {
+      ret.push(str);
+    }
+
+    return;
+  }
+
+  if (tree.children.length === 1 && paths.includes(tree.name || '')) {
+    const str = _cl(path + tree.name);
+
+    if (str && !ret.includes(str)) {
+      ret.push(str);
+    }
+  }
+
+  tree.children.forEach((child: DirectoryTree) => {
+    getPrefixesRecursive(ret, paths, `${ path + tree.name }/`, child);
+  });
+}
+
 export default {
 
   name: 'FleetGitRepoPaths',
@@ -151,14 +183,10 @@ export default {
         this.isBundles[key] = true;
       });
 
-      // if (this.mode === _CREATE) {
-      //   this.paths = rPaths;
-      // } else {
       const ordered = Object.keys(this.isBundles).sort((a, b) => `${ this.isBundles[a] }${ a }`.localeCompare(`${ this.isBundles[b] }${ b }`));
 
       this.subpaths = ordered.map((key) => this.subpaths[rPaths.indexOf(key)]);
       this.paths = ordered;
-      // }
     },
 
     normalizePaths(paths: string[]) {
@@ -179,7 +207,7 @@ export default {
     buildBundlesRows(bundles: Subpath[]) {
       const out: Record<string, Subpath[]> = {};
 
-      const prefixes = this.buildMaxPrefixes(bundles.map(({ base }) => base));
+      const prefixes = getRelevantPrefixes(bundles.map(({ base }) => base));
 
       const remaining: any[] = [];
 
@@ -244,38 +272,6 @@ export default {
         paths,
         bundles
       };
-    },
-
-    buildMaxPrefixes(paths: string[]): string[] {
-      const prefixes: string[] = [];
-
-      this.buildPrefixes(prefixes, '', { name: '', children: pathArrayToTree(paths) });
-
-      return prefixes.sort((a, b) => b.localeCompare(a));
-    },
-
-    buildPrefixes(ret: string[], path: string, tree: DirectoryTree) {
-      if (tree.children.length === 0) {
-        const str = _cl(path === '/' ? path + tree.name : path);
-
-        if (str && !ret.includes(str)) {
-          ret.push(str);
-        }
-
-        return;
-      }
-
-      if (tree.children.length === 1) {
-        const str = _cl(path + tree.name);
-
-        if (str && !ret.includes(str)) {
-          ret.push(str);
-        }
-      }
-
-      tree.children.forEach((child: DirectoryTree) => {
-        this.buildPrefixes(ret, `${ path + tree.name }/`, child);
-      });
     },
   }
 };
