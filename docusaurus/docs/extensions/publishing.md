@@ -83,7 +83,7 @@ Usage: yarn publish-pkgs [<options>] [plugins]
 
 ## Manually Publishing the Extension Helm Charts
 
-> Note: Currently, we only support publishing Extension Helm charts into a **public** Github repository, if you inted to deploy an extension from a private repository/registry, we recommend utilizing the [Extension Catalog Image](#manually-publishing-an-extension-catalog-image) method.
+> Note: Currently, we only support publishing Extension Helm charts into a **public** Github repository, if you intend to deploy an extension from a private repository/registry, we recommend utilizing the [Extension Catalog Image](#manually-publishing-an-extension-catalog-image) method.
 
 Building the Extension into Helm charts with the necessary assets can be accomplished with the `publish-pkgs` script declared in the extension's `package.json`.
 Running this script will bundle each extension package as a node.js app, create Helm charts with metadata needed by the [`ui-plugin-operator`](https://github.com/rancher/ui-plugin-operator), and a [Helm repo index](https://helm.sh/docs/helm/helm_repo_index/) to populate the Extension marketplace for installation.
@@ -126,7 +126,7 @@ After running the script, a number of directories will be created:
 - `index.yaml` - The Helm repo index file used by Helm to gather Chart information - this contains the `urls` property that targets the `assets/*` for each package.
 - `tmp` - Contains all of the directories and `index.yaml` mentioned which allows for simple aggregation when pushing charts to a repository.
 
-These files will need to be pushed into a publically available Github repository, for example:
+These files will need to be pushed into a publicly available Github repository, for example:
 
 ```console
 git add ./tmp/*
@@ -183,16 +183,16 @@ yarn publish-pkgs -c -p -r <REGISTRY> -o <ORGANIZATION>
 
 ## Additional Release Configuration
 
-Depending on your use case, there are multiple options on building and creating releases. When building an extension within a Github repository, you have the option of utilizing an action that triggers [prebuilt workflows](https://github.com/rancher/dashboard/tree/master/creators/extension/app/files/.github/workflows). When added to your extension, the `./github/workflows` directory will contain the files: `build-extension-charts.yml` and `build-extension-catalog.yml`. These workflows accomplish two seperate actions:
+Depending on your use case, there are multiple options on building and creating releases. When building an extension within a Github repository, you have the option of utilizing an action that triggers [prebuilt workflows](https://github.com/rancher/dashboard/tree/master/creators/extension/app/files/.github/workflows). When added to your extension, the `./github/workflows` directory will contain the files: `build-extension-charts.yml` and `build-extension-catalog.yml`. These workflows accomplish two separate actions:
 
 - `build-extension-charts` - Builds the Helm charts and necessary assets that are then published to the specified branch (defaults to `gh-pages`).
   - The versioning of these builds is determined by the Extension Package `version` property found in `./pkg/<package-name>/package.json`
-  - Find the resuable workflow file [here](https://github.com/rancher/dashboard/blob/master/.github/workflows/build-extension-charts.yml)
+  - Find the reusable workflow file [here](https://github.com/rancher/dashboard/blob/master/.github/workflows/build-extension-charts.yml)
 - `build-extension-catalog` - Builds and publishes the [Extension Catalog Image](./advanced/air-gapped-environments) (ECI) into the specified registry (defaults to `ghcr.io`), for use with private repositories or air-gapped builds.
   - An ECI contains the Helm charts and assets within the image, and is determined by the main Extension `version` property found in `./package.json`
   - Find the reusable workflow file [here](https://github.com/rancher/dashboard/blob/master/.github/workflows/build-extension-catalog.yml)
 
-By default, both of these actions are triggered by pushing into the `main` branch. This may not be your disired flow, and so you can modify the workflow file to fit your needs.
+By default, both of these actions are triggered by pushing into the `main` branch. This may not be your desired flow, and so you can modify the workflow file to fit your needs.
 
 > Note: Addition configuration information on the workflows can be found in the [Workflow Configuration](./advanced/workflow-configuration.md) section.
 
@@ -203,7 +203,7 @@ By default, both of these actions are triggered by pushing into the `main` branc
 When building an extension that will be housed in a GitLab repository or hosted environment, there is only one option for publishing automatically - That is by utilizing the provided [GitLab Pipeline CI file](https://github.com/rancher/dashboard/blob/master/creators/extension/app/files/.gitlab-ci.yml) that is generated when [creating the skeleton app](extensions-getting-started#creating-the-skeleton-app).
 
 This pipeline will build an ECI and publish it to container registry (`registry.gitlab.com` by default) to allow for importing into Rancher Manager.
-The actual pipeline jobs are defined in the [Dashboard repo](https://github.com/rancher/dashboard/blob/master/.gitlab/workflows/build-extension-catalog.gitlab-ci.yml) to allow for proper versioning and to apply any updates to the pipeline without any additional work from the Extension developer.
+The actual pipeline jobs are defined in the [Dashboard repo](https://github.com/rancher/dashboard/blob/master/shell/scripts/.gitlab/workflows/build-extension-catalog.gitlab-ci.yml) to allow for proper versioning and to apply any updates to the pipeline without any additional work from the Extension developer.
 
 > **_WARNING:_** Ensure the branch of `rancher/dashboard` in the `remote` url containing the reusable workflow matches the release version of your `@rancher/shell` npm dependency. For example:
 > - If building for the latest version of Rancher:
