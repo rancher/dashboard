@@ -36,7 +36,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
 
     const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
-    cy.intercept('GET', '/v1/pods').as('getPods');
+    cy.intercept('GET', '/v1/pods?*').as('getPods');
 
     WorkloadsPodsListPagePo.navTo();
     workloadsPodPage.waitForPage();

@@ -240,7 +240,7 @@ describe('User can update their preferences', () => {
     });
     prefPage.viewInApiCheckbox().isChecked();
 
-    repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`);
+    repoListPage.waitForGoTo(E2eRequestUtils.constructUrlWithDefaultQueryParams(CLUSTER_REPOS_BASE_URL));
     repoList.actionMenu('Partners').getMenuItem('View in API').should('exist');
 
     prefPage.goTo();
@@ -254,7 +254,7 @@ describe('User can update their preferences', () => {
     });
     prefPage.viewInApiCheckbox().isUnchecked();
 
-    repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`);
+    repoListPage.waitForGoTo(E2eRequestUtils.constructUrlWithDefaultQueryParams(CLUSTER_REPOS_BASE_URL));
     repoList.actionMenu('Partners').getMenuItem('View in API').should('not.exist');
   });
 
