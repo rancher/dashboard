@@ -66,7 +66,7 @@ describe('Certificates', { testIsolation: 'off', tags: ['@explorer', '@adminUser
   });
 
   it("show correct 'expired' states", () => {
-    cy.intercept('GET', RequestUtils.constructUrlWithDefaultQueryParams('/v1/secrets', ['filter=metadata.fields.1~kubernetes.io/tls']), (req) => {
+    cy.intercept('GET', RequestUtils.pathWithDefaultSteveParams('/v1/secrets', ['filter=metadata.fields.1~kubernetes.io/tls']), (req) => {
       req.reply((res) => {
         res.body.data.push(expiredCert);
         res.body.count += 1;

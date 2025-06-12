@@ -57,7 +57,7 @@ export default class ExtensionsPagePo extends PagePo {
    * @returns {Cypress.Chainable}
    */
   addExtensionsRepository(repo: string, branch: string, name: string): Cypress.Chainable {
-    cy.intercept('GET', RequestUtils.constructUrlWithDefaultQueryParams(CLUSTER_REPOS_BASE_URL)).as('getRepos');
+    cy.intercept('GET', RequestUtils.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL)).as('getRepos');
 
     // we should be on the extensions page
     this.waitForPage(null, 'available');

@@ -240,7 +240,7 @@ describe('User can update their preferences', () => {
     });
     prefPage.viewInApiCheckbox().isChecked();
 
-    repoListPage.waitForGoTo(RequestUtils.constructUrlWithDefaultQueryParams(CLUSTER_REPOS_BASE_URL));
+    repoListPage.waitForGoTo(RequestUtils.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL));
     repoList.actionMenu('Partners').getMenuItem('View in API').should('exist');
 
     prefPage.goTo();
@@ -254,7 +254,7 @@ describe('User can update their preferences', () => {
     });
     prefPage.viewInApiCheckbox().isUnchecked();
 
-    repoListPage.waitForGoTo(RequestUtils.constructUrlWithDefaultQueryParams(CLUSTER_REPOS_BASE_URL));
+    repoListPage.waitForGoTo(RequestUtils.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL));
     repoList.actionMenu('Partners').getMenuItem('View in API').should('not.exist');
   });
 
@@ -323,7 +323,7 @@ describe('User can update their preferences', () => {
     cy.wait('@prefUpdate').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isChecked();
 
-    repoListPage.waitForGoTo(RequestUtils.constructUrlWithDefaultQueryParams(CLUSTER_REPOS_BASE_URL));
+    repoListPage.waitForGoTo(RequestUtils.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL));
     banners.self().should('not.exist');
 
     prefPage.goTo();
@@ -333,7 +333,7 @@ describe('User can update their preferences', () => {
     cy.wait('@prefUpdate2').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isUnchecked();
 
-    repoListPage.waitForGoTo(RequestUtils.constructUrlWithDefaultQueryParams(CLUSTER_REPOS_BASE_URL));
+    repoListPage.waitForGoTo(RequestUtils.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL));
     banners.self().should('exist');
   });
 

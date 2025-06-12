@@ -79,7 +79,7 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
       .then(() => {
         clusterList.goTo();
 
-        cy.intercept('GET', RequestUtils.constructUrlWithDefaultQueryParams('/v1/provisioning.cattle.io.clusters'), (req) => {
+        cy.intercept('GET', RequestUtils.pathWithDefaultSteveParams('/v1/provisioning.cattle.io.clusters'), (req) => {
           req.reply({
             statusCode: 200,
             body:       clusterProvDigitalOceanSingleResponse(clusterName, doCreatedCloudCredsIds[doCreatedCloudCredsIds.length - 1], machinePoolId),

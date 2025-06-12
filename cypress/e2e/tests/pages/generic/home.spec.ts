@@ -16,7 +16,7 @@ function goToHomePageAndSettle() {
   // Reset the home page cards pref so that everything is shown
   cy.setUserPreference({ 'home-page-cards': '{}' });
 
-  cy.intercept('GET', RequestUtils.constructUrlWithDefaultQueryParams('/v1/provisioning.cattle.io.clusters'), {
+  cy.intercept('GET', RequestUtils.pathWithDefaultSteveParams('/v1/provisioning.cattle.io.clusters'), {
     statusCode: 200,
     body:       {
       count: 0,

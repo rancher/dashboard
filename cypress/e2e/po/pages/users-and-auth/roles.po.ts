@@ -28,7 +28,7 @@ export default class RolesPo extends ClusterPage {
   }
 
   waitForRequests() {
-    RolesPo.goToAndWaitForGet(this.goTo.bind(this), [RequestUtils.constructUrlWithDefaultQueryParams('/v1/management.cattle.io.roletemplates')]);
+    RolesPo.goToAndWaitForGet(this.goTo.bind(this), [RequestUtils.pathWithDefaultSteveParams('/v1/management.cattle.io.roletemplates')]);
   }
 
   createGlobal(userId?: string) {

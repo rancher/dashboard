@@ -14,7 +14,7 @@ describe('Apps', () => {
         cy.login();
 
         appRepoList.goTo();
-        appRepoList.waitForGoTo(RequestUtils.constructUrlWithDefaultQueryParams(CLUSTER_REPOS_BASE_URL));
+        appRepoList.waitForGoTo(RequestUtils.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL));
 
         cy.createE2EResourceName('helm-repo-dupe-test').as('helmRepoDupeName');
       });

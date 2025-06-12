@@ -17,7 +17,7 @@ export class APIServicesPagePo extends PagePo {
 
   waitForRequests() {
     APIServicesPagePo.goToAndWaitForGet(this.goTo.bind(this), [
-      RequestUtils.constructUrlWithDefaultQueryParams(
+      RequestUtils.pathWithDefaultSteveParams(
         '/v1/apiregistration.k8s.io.apiservices',
         ['page=1', 'pagesize=100', 'sort=metadata.name'],
         { blockList: ['pagesize'] }

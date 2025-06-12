@@ -60,7 +60,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       cy.intercept('POST', `/v1/secrets/${ workspace }`).as('interceptSecret');
       cy.intercept('POST', '/v1/fleet.cattle.io.gitrepos').as('interceptGitRepo');
-      cy.intercept('GET', RequestUtils.constructUrlWithDefaultQueryParams('/v1/secrets')).as('getSecrets');
+      cy.intercept('GET', RequestUtils.pathWithDefaultSteveParams('/v1/secrets')).as('getSecrets');
 
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
