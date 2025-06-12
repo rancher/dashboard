@@ -254,6 +254,7 @@ export default {
 
     async loginLocal(buttonCb) {
       try {
+        // eslint-disable-next-line no-console
         console.error('LOGGING IN WITH LOCAL USER!');
         await this.$store.dispatch('auth/login', {
           provider: 'local',

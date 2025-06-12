@@ -340,14 +340,17 @@ export const actions = {
         ...body
       }, { redirectUnauthorized: false });
 
+      // eslint-disable-next-line no-console
       console.error('LOGIN STORE ACTION!', queryParams);
 
       if (checkIfIsRancherAsOidcProviderLogin(queryParams)) {
         const redirectUrl = getRedirectUrlFromParams(queryParams, 'redirect_uri');
 
+        // eslint-disable-next-line no-console
         console.error('WE ARE ON OIDC REALM!', redirectUrl);
 
         if (redirectUrl) {
+          // eslint-disable-next-line no-console
           console.error('REDIRECTING...');
 
           return window.location.replace(redirectUrl);
