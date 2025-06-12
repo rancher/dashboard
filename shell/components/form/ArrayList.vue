@@ -69,6 +69,10 @@ export default {
       type:    String,
       default: '',
     },
+    removeIcon: {
+      type:    String,
+      default: '',
+    },
     removeAllowed: {
       type:    Boolean,
       default: true,
@@ -377,6 +381,10 @@ export default {
                 @click="remove(row, idx)"
               >
                 {{ _removeLabel }}
+                <i
+                  v-if="removeIcon"
+                  :class="[removeIcon]"
+                />
               </button>
             </slot>
           </div>

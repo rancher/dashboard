@@ -5,7 +5,6 @@ import {
   AUTH_TYPE, FLEET, NORMAN, SECRET, VIRTUAL_HARVESTER_PROVIDER
 } from '@shell/config/types';
 import { set } from '@shell/utils/object';
-import ArrayList from '@shell/components/form/ArrayList';
 import { Banner } from '@components/Banner';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
@@ -28,6 +27,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FormValidation from '@shell/mixins/form-validation';
 import UnitInput from '@shell/components/form/UnitInput';
 import { toSeconds } from '@shell/utils/duration';
+import FleetGitRepoPaths from '@shell/components/fleet/FleetGitRepoPaths.vue';
 import FleetOCIStorageSecret from '@shell/components/fleet/FleetOCIStorageSecret.vue';
 import { DEFAULT_POLLING_INTERVAL, MINIMUM_POLLING_INTERVAL } from '@shell/models/fleet-application';
 
@@ -44,10 +44,10 @@ export default {
 
   components: {
     Checkbox,
-    ArrayList,
     Banner,
     CruResource,
     FleetOCIStorageSecret,
+    FleetGitRepoPaths,
     InputWithSelect,
     Labels,
     LabeledInput,
@@ -310,6 +310,13 @@ export default {
   },
 
   methods: {
+    updatePaths(value) {
+      const { paths, bundles } = value;
+
+      this.value.spec.paths = paths;
+      this.value.spec.bundles = bundles;
+    },
+
     set,
 
     cleanTLS() {
@@ -630,17 +637,13 @@ export default {
         </div>
       </div>
 
-      <ArrayList
-        v-model:value="value.spec.paths"
-        data-testid="gitRepo-paths"
-        :title="t('fleet.gitRepo.paths.label')"
+      <FleetGitRepoPaths
+        :value="{
+          paths: value.spec.paths,
+          bundles: value.spec.bundles
+        }"
         :mode="mode"
-        :initial-empty-row="false"
-        :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
-        :add-label="t('fleet.gitRepo.paths.addLabel')"
-        :a11y-label="t('fleet.gitRepo.paths.ariaLabel')"
-        :add-icon="'icon-plus'"
-        :protip="t('fleet.gitRepo.paths.empty')"
+        @udpate:value="updatePaths"
       />
     </template>
 

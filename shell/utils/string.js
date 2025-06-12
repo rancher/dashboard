@@ -358,3 +358,21 @@ export function isBase64(value) {
 export function generateRandomAlphaString(length) {
   return Array.from({ length }, () => String.fromCharCode(97 + Math.random() * 26 | 0)).join('');
 }
+
+export function pathArrayToTree(paths) {
+  const result = [];
+  const level = { result };
+
+  paths.forEach((path) => {
+    path.split('/').reduce((r, name) => {
+      if (!r[name]) {
+        r[name] = { result: [] };
+        r.result.push({ name, children: r[name].result });
+      }
+
+      return r[name];
+    }, level);
+  });
+
+  return result;
+}

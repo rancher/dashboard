@@ -64,6 +64,12 @@ export default {
       type:    [String, Boolean],
       default: '',
     },
+
+    protipValue: {
+      type:    [String, Boolean],
+      default: '',
+    },
+
     // For asMap=false, the name of the field that goes into the row objects
     keyName: {
       type:    String,
@@ -210,7 +216,7 @@ export default {
     },
     removeIcon: {
       type:    String,
-      default: 'icon-minus',
+      default: '',
     },
     removeAllowed: {
       type:    Boolean,
@@ -624,6 +630,13 @@ export default {
               role="columnheader"
             >
               {{ _valueLabel }}
+              <i
+                v-if="protipValue && !isView && addAllowed"
+                v-clean-tooltip="{content: protipValue, triggers: ['hover', 'touch', 'focus'] }"
+                v-stripped-aria-label="protipValue"
+                class="icon icon-info"
+                tabindex="0"
+              />
             </label>
             <label
               v-for="(c, i) in extraColumns"
@@ -829,6 +842,10 @@ export default {
                   @click="remove(i)"
                 >
                   {{ removeLabel || t('generic.remove') }}
+                  <i
+                    v-if="removeIcon"
+                    :class="[removeIcon]"
+                  />
                 </button>
               </slot>
             </div>
