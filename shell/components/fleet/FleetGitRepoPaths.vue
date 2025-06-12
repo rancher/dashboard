@@ -126,9 +126,8 @@ export default {
       this.update();
     },
 
-    removePaths({ index }: { index: number }) {
-      this.rows[index].isBundles = false;
-      this.rows[index].subpaths = [];
+    removePaths(index: number) {
+      this.rows.splice(index, 1);
 
       this.update();
     },
@@ -300,18 +299,26 @@ export default {
     :add-label="t('fleet.gitRepo.paths.addLabel')"
     :add-icon="'icon-plus'"
     :protip="t('fleet.gitRepo.paths.tooltip', {}, true)"
-    :remove-label="' '"
-    :remove-icon="'icon-x'"
-    :removeAllowed="!isView"
+    :remove-allowed="false"
     @update:value="updatePaths"
-    @remove="removePaths"
   >
     <template #columns="{row, i}">
       <div class="row-container">
         <div>
-          <h4>
-            {{ t('fleet.gitRepo.paths.index', { index: i + 1 }, true) }}
-          </h4>
+          <div class="header">
+            <h4 class="m-0">
+              {{ t('fleet.gitRepo.paths.index', { index: i + 1 }, true) }}
+            </h4>
+            <button
+              v-if="!isView"
+              type="button"
+              class="btn role-link"
+              role="button"
+              @click="removePaths(i)"
+            >
+              <i :class="'icon-x'" />
+            </button>
+          </div>
           <p
             v-clean-html="'Main path'"
             class="text-muted mb-5"
@@ -370,6 +377,16 @@ export default {
     display: flex;
     flex-direction: column;
 
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .btn {
+        padding-right: 0;
+      }
+    }
+
     .subpaths {
       .key-value {
         :deep() .kv-container {
@@ -394,10 +411,22 @@ export default {
         }
 
         :deep() .footer {
-          margin-top: 10px !important;
-          margin-left: 30px;
+          margin-top: 5px !important;
+          margin-left: 20px;
+
+          .btn {
+            background: transparent;
+            color: var(--link);
+            border: 0
+          }
         }
       }
+    }
+  }
+
+  .array-list-main-container {
+    :deep() .box {
+      grid-template-columns: auto 1px;
     }
   }
 </style>
