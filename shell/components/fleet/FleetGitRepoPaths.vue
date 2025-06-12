@@ -35,7 +35,7 @@ function _cl(str: string) {
   return trim;
 }
 
-function getRelevantPrefixes(paths: string[]): string[] {
+export function getRelevantPrefixes(paths: string[]): string[] {
   const prefixes: string[] = [];
 
   getPrefixesRecursive(prefixes, paths, '', { name: '', children: pathArrayToTree(paths) });
