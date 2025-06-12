@@ -135,8 +135,6 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
 
     featureFlagsPage.list().details('ui-sql-cache', 0).should('include.text', 'Active');
 
-    cy.isVaiCacheEnabled().then((isVaiCacheEnabled) => {
-      RequestUtils.setIsVaiCacheEnabled(isVaiCacheEnabled);
-    });
+    RequestUtils.setIsVaiCacheEnabled(true);
   });
 });
