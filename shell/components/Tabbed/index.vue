@@ -393,7 +393,7 @@ export default {
     }
 
     .tab.active {
-      border-bottom: solid 2px var(--primary);
+      border-bottom: solid 3px var(--active, var(--primary));
     }
   }
 
@@ -404,7 +404,8 @@ export default {
   .tab {
     position: relative;
     float: left;
-    padding: 0 8px 0 0;
+    //padding: 0 8px 0 0;
+    margin-right: 4px;
     cursor: pointer;
 
     A {
@@ -431,7 +432,7 @@ export default {
 
     &.active {
       > A {
-        color: var(--primary);
+        color: var(--active, var(--primary));
         text-decoration: none;
       }
     }
@@ -511,16 +512,16 @@ export default {
       border-left: solid 5px transparent;
 
       &.toggle A {
-        color: var(--primary);
+        color: var(--active, var(--primary));
       }
 
       A {
-        color: var(--primary);
+        color: var(--link, var(--primary));
       }
 
       &.active {
         background-color: var(--body-bg);
-        border-left: solid 5px var(--primary);
+        border-left: solid 5px var(--active, var(--primary));
 
         & A {
           color: var(--input-label);

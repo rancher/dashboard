@@ -1077,7 +1077,7 @@ export default {
         align-items: center;
         cursor: pointer;
         display: flex;
-        color: var(--link);
+        color: var(--on-tertiary, var(--link));
         font-size: 14px;
         height: $option-height;
         white-space: nowrap;
@@ -1178,19 +1178,23 @@ export default {
             outline-offset: -4px;
           }
 
-          background: var(--primary-hover-bg);
-          color: var(--primary-hover-text);
+          background: var(--active, var(--primary-hover-bg));
+          color: var(--on-active, var(--primary-hover-text));
 
           svg {
-            fill: var(--primary-hover-text);
+            fill: var(--on-active, var(--primary-hover-text));
           }
 
           i {
-            color: var(--primary-hover-text);
+            color: var(--on-active, var(--primary-hover-text));
           }
 
           div .description {
-            color: var(--default);
+            color: var(--on-active, var(--default));
+          }
+
+          &:hover {
+            background: var(--nav-active-hover, var(--primary-hover-bg));
           }
         }
 
@@ -1201,21 +1205,13 @@ export default {
         }
 
         &:hover {
+          background: var(--nav-hover, var(--primary-hover-bg));
           color: var(--primary-hover-text);
-          background: var(--primary-hover-bg);
-          > div {
-            color: var(--primary-hover-text);
 
-            .description {
-              color: var(--default);
-            }
-          }
           svg {
             fill: var(--primary-hover-text);
           }
-          div {
-            color: var(--primary-hover-text);
-          }
+
           &.disabled {
             background: transparent;
             color: var(--muted);
