@@ -18,26 +18,6 @@ const unreadLevelClass = computed(() => {
 // There may be more notifications than we can show on screen, so the popover needs to scroll
 const scroller = ref<HTMLElement>();
 
-// This is a workaround
-// When either the top or bottom notification are focused via keyboard up/down, the item does not
-// fully scroll into view, which looks odd
-// Here we adjust the scroll position to fix that - note we do this via a timeout - if we try and
-// do this immediately or either via nextTick, this does not work
-const scrollPanel = (index: number, count: number) => {
-  const DELAY = 175;
-
-  // Header is 0, so 1 is the first notification
-  if (index === 1) {
-    setTimeout(() => {
-      scroller?.value?.scrollTo(0, 0);
-    }, DELAY);
-  } else if (index === count - 1) {
-    setTimeout(() => {
-      scroller?.value?.scrollTo(0, 2000000);
-    }, DELAY);
-  }
-};
-
 // Close all of the open growls when the notification center is shown, so that they do not overlap
 const open = (opened: boolean) => {
   if (opened) {
@@ -91,10 +71,7 @@ const open = (opened: boolean) => {
             :key="a.title"
           >
             <rc-dropdown-separator v-if="index > 0" />
-            <Notification
-              :item="a"
-              @didFocus="scrollPanel"
-            />
+            <Notification :item="a" />
           </template>
         </div>
       </div>

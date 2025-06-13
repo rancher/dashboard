@@ -57,7 +57,7 @@ const gotFocus = (e: Event) => {
     role="menuitem"
     class="notification-header"
     @click.stop
-    @keydown.up.down.stop="handleKeydown"
+    @keydown.up.down.stop.prevent="handleKeydown"
     @focus="gotFocus"
   >
     <div class="notification-header">
@@ -71,7 +71,7 @@ const gotFocus = (e: Event) => {
           tabindex="-1"
           href="#"
           data-testid="notifications-center-markall-read"
-          @keydown.up.down.stop="handleKeydown"
+          @keydown.up.down.stop.prevent="handleKeydown"
           @keydown.enter.space.stop="markAllRead(true)"
           @click="markAllRead(false)"
         >

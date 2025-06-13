@@ -73,29 +73,10 @@ function persist(state: NotificationsStore) {
   window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state.notifications));
 }
 
-export const state = function(a: any): NotificationsStore {
-  let notifications = [];
+export const state = function(): NotificationsStore {
+  const notifications: StoredNotification[] = [];
 
-  try {
-    notifications = JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-  } catch (e) {
-    console.error('Unable to read notifications from local storage', e); // eslint-disable-line no-console
-  }
-
-  // Expire old notifications
-  const now = new Date();
-
-  notifications = notifications.filter((n: StoredNotification) => {
-    // Try ... catch in case the date parsing fails
-    try {
-      const created = new Date(n.created);
-      const diff = (now.getTime() - created.getTime()) / 1000; // Diff in seconds
-
-      return diff < EXPIRY;
-    } catch (e) {}
-
-    return true;
-  });
+  // Note, the init action will load the notifications persisted in local storage at load time
 
   return { notifications };
 };
@@ -264,6 +245,33 @@ export const actions = {
   },
 
   init({ commit } : any) {
+    // Load persisted notifications from local storage
+    let notifications = [];
+
+    try {
+      notifications = JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+    } catch (e) {
+      console.error('Unable to read notifications from local storage', e); // eslint-disable-line no-console
+    }
+
+    // Expire old notifications
+    const now = new Date();
+
+    notifications = notifications.filter((n: StoredNotification) => {
+      // Try ... catch in case the date parsing fails
+      try {
+        const created = new Date(n.created);
+        const diff = (now.getTime() - created.getTime()) / 1000; // Diff in seconds
+
+        return diff < EXPIRY;
+      } catch (e) {}
+
+      return true;
+    });
+
+    commit('load', notifications);
+
+    // Listen to storage events, so if open in multiple tabs, notifications in one tab will be sync'ed across all tabs
     window.addEventListener('storage', (ev) => {
       if (ev.key === LOCAL_STORAGE_KEY) {
         try {
