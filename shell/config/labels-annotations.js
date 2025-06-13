@@ -188,5 +188,3 @@ export const SYSTEM_LABELS = [
   'node.kubernetes.io',
   'egress.rke2.io'
 ];
-
-export const CLOUD_CREDENTIALS = { EXPIRATION: 'rancher.io/expiration-timestamp' };
