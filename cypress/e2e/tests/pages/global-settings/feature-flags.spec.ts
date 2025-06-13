@@ -252,7 +252,7 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     });
   });
 
-  describe('List', { tags: ['@vai', '@globalSettings', '@adminUser', '@standardUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@globalSettings', '@adminUser', '@standardUser'] }, () => {
     it('validate feature flags table header content', () => {
       FeatureFlagsPagePo.navTo();
       // check table headers are visible

@@ -202,7 +202,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       });
     });
 
-    it('check table headers are available in list and details view', { tags: ['@vai', '@adminUser'] }, function() {
+    it('check table headers are available in list and details view', { tags: ['@noVai', '@adminUser'] }, function() {
       // go to fleet gitrepo
       listPage.goTo();
       listPage.waitForPage();

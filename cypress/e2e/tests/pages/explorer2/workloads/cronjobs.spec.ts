@@ -12,7 +12,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueCronJob = SortableTablePo.firstByDefaultName('cronjob');
     const cronJobNamesList = [];
     let nsName1: string;

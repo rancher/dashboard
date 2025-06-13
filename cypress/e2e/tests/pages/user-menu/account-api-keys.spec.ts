@@ -103,7 +103,7 @@ describe.skip('Account and API Keys', { testIsolation: 'off' }, () => {
     });
   });
 
-  describe('List', { tags: ['@vai', '@userMenu', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@userMenu', '@adminUser'] }, () => {
     const tokenDesc = 'e2e-test-description';
     const uniqueTokenDesc = 'aaa-e2e-test-description';
     let initialCount: number;

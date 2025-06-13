@@ -145,7 +145,7 @@ describe('Home Page', () => {
       desc.contains(longClusterDescription);
     });
 
-    it('check table headers are visible', { tags: ['@vai', '@generic', '@adminUser'] }, () => {
+    it('check table headers are visible', { tags: ['@noVai', '@generic', '@adminUser'] }, () => {
       homePage.goTo();
       homePage.waitForPage();
 
