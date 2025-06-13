@@ -24,6 +24,7 @@ export default {
 
         // eslint-disable-next-line no-console
         console.error('SAML - PROMISE RESOLVED', res);
+        console.error('SAML - PROMISE RESOLVED idpRedirectUrl', res?.idpRedirectUrl);
 
         if (res?.idpRedirectUrl) {
           // eslint-disable-next-line no-console
