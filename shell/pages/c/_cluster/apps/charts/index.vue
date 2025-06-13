@@ -532,6 +532,7 @@ export default {
             :content="card.content"
             :value="card.rawChart"
             variant="medium"
+            :class="{ 'single-card': appChartCards.length === 1 }"
             :clickable="true"
             @card-click="selectChart"
           >
@@ -656,6 +657,10 @@ export default {
   width: 100%;
   height: max-content;
   overflow: hidden;
+
+  .single-card {
+    max-width: 500px;
+  }
 }
 
 </style>
