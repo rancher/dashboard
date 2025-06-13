@@ -27,10 +27,10 @@ docker run -d --restart=unless-stopped -p 80:80 -p 443:443 ${VOLUME_ARGS} \
   -e CATTLE_UI_OFFLINE_PREFERRED=true \
   -e CATTLE_BOOTSTRAP_PASSWORD=password \
   -e CATTLE_PASSWORD_MIN_LENGTH=3 \
-  --features=oidc-provider=true \
   --name cypress \
   --privileged \
-  rancher/rancher:${RANCHER_IMG_VERSION}
+  rancher/rancher:${RANCHER_IMG_VERSION} \
+  --features=oidc-provider=true
 
 docker ps
 
