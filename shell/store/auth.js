@@ -390,7 +390,9 @@ export const actions = {
         // eslint-disable-next-line no-console
         console.error('window.location.origin111', window.location.origin);
 
-        return window.location.replace(`${ window.location.origin }/oidc/authorize?${ urlParams }&code_challenge_method=S256`);
+        window.location.replace(`${ window.location.origin }/oidc/authorize?${ urlParams }&code_challenge_method=S256`);
+
+        return Promise.resolve();
       }
 
       return res;
