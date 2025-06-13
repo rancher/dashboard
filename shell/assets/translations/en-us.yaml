@@ -151,7 +151,6 @@ generic:
   showLess: Show less
   showMore: Show more
   opensInNewTab: Opens in a new tab
-  
 
 locale:
   menu: Locale selector menu
