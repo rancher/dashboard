@@ -8261,7 +8261,6 @@ errors:
   notFound:
     withUrl: '{msg}: {url}'
     withoutUrl: '{msg}'
-
 component:
   resource:
     detail:
@@ -8294,6 +8293,7 @@ component:
       titleBar:
         showConfiguration: Show Configuration
       metadata:
+        labelsAndAnnotations: Labels and Annotations
         identifyingInformation:
           namespace: Namespace
           project: Project
@@ -8302,3 +8302,10 @@ component:
           ready: Ready
           up-to-date: Up-to-date
           available: Available
+        annotations:
+          title: Annotations
+        labels:
+          title: Labels
+        keyValue:
+          noRows: There are no {propertyName} configured on this resource.
+          showConfiguration: Show Configuration
