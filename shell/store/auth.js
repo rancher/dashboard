@@ -339,9 +339,14 @@ export const actions = {
   async test({ dispatch }, { provider, body }) {
     const driver = await dispatch('getAuthConfig', provider);
 
+    // eslint-disable-next-line no-console
+    console.error('AUTH TEST CHECK', driver);
+
     try {
       // saml providers
       if (!!driver?.actions?.testAndEnable) {
+        // eslint-disable-next-line no-console
+        console.error('AUTH TEST SAML WORLD');
         const finalRedirectUrl = returnTo({ config: provider }, this);
 
         const res = await driver.doAction('testAndEnable', { finalRedirectUrl });
@@ -392,9 +397,6 @@ export const actions = {
 
         window.location.href = `${ window.location.origin }/oidc/authorize?${ urlParams }&code_challenge_method=S256`;
 
-        // eslint-disable-next-line no-console
-        console.error('window.location.href', window.location.href);
-
         return Promise.reject(new Error('We are on Rancher as an OIDC provider world. Redirecting'));
       }
 
@@ -420,6 +422,8 @@ export const actions = {
   },
 
   async logout({ dispatch, getters, rootState }, options = {}) {
+    // eslint-disable-next-line no-console
+    console.error('AUTH STORE logout action');
     // So, we only do this check if auth has been initialized.
     //
     // It's possible to be logged in and visit auth/logout directly instead
