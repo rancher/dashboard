@@ -6,6 +6,6 @@ export default class CopyToClipboardTextPo extends ComponentPo {
   }
 
   copyToClipboard() {
-    return this.self().click().wait(500);
+    return this.self().click().wait(800);
   }
 }

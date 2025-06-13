@@ -16,17 +16,6 @@ export function checkIfIsRancherAsOidcProviderLogin(queryParams) {
   return queryParams && Object.keys(queryParams).length && RANCHER_AS_OIDC_PROV_COND.every((item) => Object.keys(queryParams).includes(item));
 }
 
-export function getRedirectUrlFromParams(queryParams, redirectUrlKey) {
-  const redirectUrl = queryParams?.[redirectUrlKey];
-  const urlParams = new URLSearchParams(queryParams);
-
-  if (redirectUrl) {
-    return `${ redirectUrl }?${ urlParams }`;
-  }
-
-  return undefined;
-}
-
 export function openAuthPopup(url, provider) {
   const popup = new Popup(() => {
     popup.promise = new Promise((resolve, reject) => {

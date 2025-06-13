@@ -111,8 +111,7 @@ export default {
       const res = await this.$store.dispatch('auth/verifyOAuth', {
         code,
         nonce,
-        provider,
-        queryParams: parsed
+        provider
       });
 
       if ( res._status === 200) {

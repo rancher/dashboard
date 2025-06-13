@@ -4,6 +4,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
 import UnitInputPo from '@/cypress/e2e/po/components/unit-input.po';
 import CopyToClipboardTextPo from '@/cypress/e2e/po/components/copy-to-clipboard-text.po';
+import ActionMenuPo from '@/cypress/e2e/po/components/action-menu-shell.po';
 
 export default class OidcClientsCreateEditPo extends PagePo {
   private static createPath(clusterId: string, oidcClientId?: string, isEdit?: boolean) {
@@ -44,12 +45,28 @@ export default class OidcClientsCreateEditPo extends PagePo {
     return new CopyToClipboardTextPo('[data-testid="oidc-clients-copy-clipboard-client-id"]');
   }
 
+  checkCopyClientIDExists() {
+    return cy.get('[data-testid="oidc-clients-copy-clipboard-client-id"]').should('exist');
+  }
+
   clientFullSecretCopy(index: number) {
     return new CopyToClipboardTextPo(`[data-testid="oidc-client-secret-${ index }-copy-full-secret"]`);
   }
 
+  checkClientFullSecretCopyExists(index: number) {
+    return cy.get(`[data-testid="oidc-client-secret-${ index }-copy-full-secret"]`).should('exist');
+  }
+
   addNewSecretBtnClick() {
     return cy.get('[data-testid="oidc-client-add-new-secret"]').click();
+  }
+
+  secretCardActionMenuToggle(index: number) {
+    return cy.get(`[data-testid="oidc-client-secret-${ index }-action-menu"]`).click();
+  }
+
+  secretCardMenu() {
+    return new ActionMenuPo();
   }
 
   regenSecretBtnClick(index: number) {
