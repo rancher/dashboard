@@ -376,7 +376,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     describe('Generic', () => {
       it('can create new cluster', () => {
-        cy.intercept('GET', `${ USERS_BASE_URL }?exclude=metadata.managedFields`).as('getUsers');
+        cy.pathWithDefaultSteveParams(USERS_BASE_URL, { isList: true }).then((url) => {
+          cy.intercept('GET', url).as('getUsers');
+        });
+
         cy.intercept('POST', `/v3/${ importType }s`).as('importRequest');
 
         clusterList.goTo();

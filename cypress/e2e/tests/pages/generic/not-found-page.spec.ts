@@ -78,9 +78,7 @@ describe('Not found page display', { tags: ['@generic', '@adminUser', '@standard
     const page = new PagePo('');
     const homePage = new HomePagePo();
     const notFoundPage = new NotFoundPagePo('');
-    // const workloadsPage = new WorkloadListPagePo();
     const chartsPage = new ChartsPage();
-    // const workloadPodsPage = new WorkloadsPodsListPagePo();
     const reposPage = new ChartRepositoriesPagePo('local', 'apps');
     const clustersPage = new ClusterManagerListPagePo('_');
 

@@ -59,7 +59,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       cy.intercept('POST', `/v1/secrets/${ workspace }`).as('interceptSecret');
       cy.intercept('POST', '/v1/fleet.cattle.io.gitrepos').as('interceptGitRepo');
-      cy.pathWithDefaultSteveParams('/v1/secrets').then((url) => {
+      cy.pathWithDefaultSteveParams('/v1/secrets', { sspEnabled: true, isList: true }).then((url) => {
         cy.intercept('GET', url).as('getSecrets');
       });
 

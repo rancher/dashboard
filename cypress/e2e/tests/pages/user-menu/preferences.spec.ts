@@ -328,7 +328,7 @@ describe('User can update their preferences', () => {
     cy.wait('@prefUpdate').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isChecked();
 
-    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL).then((url) => {
+    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL, { sspEnabled: true, isList: true }).then((url) => {
       repoListPage.waitForGoTo(url);
     });
     banners.self().should('not.exist');
@@ -340,7 +340,7 @@ describe('User can update their preferences', () => {
     cy.wait('@prefUpdate2').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isUnchecked();
 
-    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL).then((url) => {
+    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL, { sspEnabled: true, isList: true }).then((url) => {
       repoListPage.waitForGoTo(url);
     });
     banners.self().should('exist');

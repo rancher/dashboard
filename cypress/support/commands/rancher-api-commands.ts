@@ -1172,10 +1172,8 @@ Cypress.Commands.add('createService', (namespace: string, name: string, options:
 
 /**
  * Supplement the provided path for a collection of steve resources with default steve query params
- * @param path url path
- * @param args other shizzle
  */
-Cypress.Commands.add('pathWithDefaultSteveParams', (path?: string, args?: { queryParams?: string[], blockList?: string[]}) => {
+Cypress.Commands.add('pathWithDefaultSteveParams', (path?: string, args?: { isList?: boolean, sspEnabled?: boolean, queryParams?: string[], blockList?: string[]}) => {
   return RequestUtils.initializeIsVaiCache().then(() => {
     return cy.wrap(RequestUtils.pathWithDefaultSteveParams(path, args));
   });

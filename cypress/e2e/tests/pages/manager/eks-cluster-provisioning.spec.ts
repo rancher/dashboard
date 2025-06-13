@@ -71,7 +71,10 @@ describe('Create EKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     cloudCredForm.secretKey().set(Cypress.env('awsSecretKey'));
     cloudCredForm.saveButton().expectToBeEnabled();
 
-    cy.intercept('GET', '/v1/management.cattle.io.users?exclude=metadata.managedFields').as('pageLoad');
+    cy.pathWithDefaultSteveParams(`/v1/management.cattle.io.users`, { sspEnabled: false, isList: true }).then((url) => {
+      cy.intercept('GET', url).as('pageLoad');
+    });
+
     cloudCredForm.saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials').then((req) => {
       expect(req.response?.statusCode).to.equal(201);
     });

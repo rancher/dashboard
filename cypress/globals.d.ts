@@ -193,7 +193,24 @@ declare global {
        * @param path url path
        * @param args other shizzle
        */
-      pathWithDefaultSteveParams(path?: string, args?: { queryParams?: string[], blockList?: string[]}): Cypress.Chainable<string>
+      pathWithDefaultSteveParams(path?: string, args?: {
+        /**
+         * Is this fetching a collection?
+         */
+        isList?: boolean,
+        /**
+         * Does this request have a type that support server-side pagination?
+         */
+        sspEnabled?: boolean,
+        /**
+         * Prefix these additional query params
+         */
+        queryParams?: string[],
+        /**
+         * Explicitly don't add these query params
+         */
+        blockList?: string[]
+      }): Cypress.Chainable<string>
     }
   }
 }

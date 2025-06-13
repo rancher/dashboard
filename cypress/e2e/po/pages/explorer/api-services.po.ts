@@ -20,6 +20,8 @@ export class APIServicesPagePo extends PagePo {
       {
         queryParams: ['page=1', 'pagesize=100', 'sort=metadata.name'],
         blockList:   ['pagesize'],
+        sspEnabled:  true,
+        isList:      true,
       }).then((url) => {
       APIServicesPagePo.goToAndWaitForGet(this.goTo.bind(this), [
         url

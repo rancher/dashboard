@@ -229,7 +229,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   it('can create an oci repository with basic auth', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL).then((url) => {
+    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL, { sspEnabled: true, isList: true }).then((url) => {
       repositoriesPage.waitForGoTo(url);
     });
     repositoriesPage.create();

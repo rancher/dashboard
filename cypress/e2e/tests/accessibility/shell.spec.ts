@@ -611,7 +611,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       const usersPo = new UsersPo('_');
 
       it('Users page', () => {
-        cy.pathWithDefaultSteveParams(USERS_BASE_URL).then((url) => {
+        cy.pathWithDefaultSteveParams(USERS_BASE_URL, { sspEnabled: true, isList: true }).then((url) => {
           return cy.intercept('GET', url).as('getUsers');
         });
 

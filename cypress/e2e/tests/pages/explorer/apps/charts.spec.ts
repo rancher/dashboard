@@ -151,7 +151,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   it('A disabled repo should NOT be listed on the repos dropdown', () => {
     const disabledRepoId = 'disabled-repo';
 
-    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL).then((url) => {
+    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL, { sspEnabled: true, isList: true }).then((url) => {
       cy.intercept('GET', url, (req) => {
         req.reply({
           statusCode: 200,

@@ -14,7 +14,7 @@ describe('Apps', () => {
 
         appRepoList.goTo();
 
-        cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL).then((url) => {
+        cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL, { sspEnabled: true, isList: true }).then((url) => {
           appRepoList.waitForGoTo(url);
         });
 

@@ -279,8 +279,12 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     const { name: clonePodName } = clonePodBlueprint.metadata;
 
     beforeEach(() => {
-      cy.intercept('GET', `/v1/pods/${ namespace }/${ origPodName }?exclude=metadata.managedFields`).as('origPod');
-      cy.intercept('GET', `/v1/pods/${ namespace }/${ clonePodName }?exclude=metadata.managedFields`).as('clonedPod');
+      cy.pathWithDefaultSteveParams(`/v1/pods/${ namespace }/${ origPodName }`).then((url) => {
+        cy.intercept('GET', url).as('origPod');
+      });
+      cy.pathWithDefaultSteveParams(`/v1/pods/${ namespace }/${ clonePodName }`).then((url) => {
+        cy.intercept('GET', url).as('clonedPod');
+      });
 
       workloadsPodPage.goTo();
 

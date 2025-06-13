@@ -89,7 +89,10 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
     cloudCredForm.serviceAccount().set(serviceAccount);
     cloudCredForm.serviceAccount().set(serviceAccount);
     cloudCredForm.saveButton().expectToBeEnabled();
-    cy.intercept('GET', `${ USERS_BASE_URL }?exclude=metadata.managedFields`).as('pageLoad');
+    cy.pathWithDefaultSteveParams(USERS_BASE_URL, { sspEnabled: false, isList: true }).then((url) => {
+      cy.intercept('GET', url).as('pageLoad');
+    });
+
     cloudCredForm.saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials').then((req) => {
       expect(req.response?.statusCode).to.equal(201);
       cloudcredentialId = req.response?.body.id.replace(':', '%3A');

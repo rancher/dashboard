@@ -84,7 +84,7 @@ jobs:
           ['@manager'],
           ['@userMenu', '@usersAndAuths'],
           ['@components'],
-          # ['@vai']
+          ['@vai']
         ]
     runs-on: ubuntu-latest
     steps:

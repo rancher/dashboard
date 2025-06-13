@@ -74,7 +74,9 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
 
   // testing https://github.com/rancher/dashboard/issues/4849
   it('can uninstall both chart and crd at once', () => {
-    cy.intercept('GET', `${ CLUSTER_APPS_BASE_URL }?exclude=metadata.managedFields`).as('getCharts');
+    cy.pathWithDefaultSteveParams(CLUSTER_APPS_BASE_URL, { sspEnabled: true, isList: true }).then((url) => {
+      cy.intercept('GET', url).as('getCharts');
+    });
 
     const clusterTools = new ClusterToolsPagePo('local');
     const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
