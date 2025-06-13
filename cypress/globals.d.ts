@@ -187,6 +187,7 @@ declare global {
        * Run an accessibility check on the specified element
        */
       checkElementAccessibility(selector: any, description?: string);
+
     }
   }
 }

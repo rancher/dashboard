@@ -17,7 +17,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     let uniquePod = SortableTablePo.firstByDefaultName('pod');
     const podNamesList = [];
     let nsName1: string;
@@ -279,8 +279,8 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     const { name: clonePodName } = clonePodBlueprint.metadata;
 
     beforeEach(() => {
-      cy.intercept('GET', `/v1/pods/${ namespace }/${ origPodName }?exclude=metadata.managedFields`).as('origPod');
-      cy.intercept('GET', `/v1/pods/${ namespace }/${ clonePodName }?exclude=metadata.managedFields`).as('clonedPod');
+      cy.intercept('GET', `/v1/pods/${ namespace }/${ origPodName }?*`).as('origPod');
+      cy.intercept('GET', `/v1/pods/${ namespace }/${ clonePodName }?*`).as('clonedPod');
 
       workloadsPodPage.goTo();
 

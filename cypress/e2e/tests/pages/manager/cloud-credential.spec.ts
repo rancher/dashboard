@@ -77,8 +77,7 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
       .then(() => create(cloudCredsToCreate[2]))
       .then(() => {
         clusterList.goTo();
-
-        cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?exclude=metadata.managedFields', (req) => {
+        cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?*', (req) => {
           req.reply({
             statusCode: 200,
             body:       clusterProvDigitalOceanSingleResponse(clusterName, doCreatedCloudCredsIds[doCreatedCloudCredsIds.length - 1], machinePoolId),

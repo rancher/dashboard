@@ -99,6 +99,8 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
     networkPolicyPage.waitForPage();
     networkPolicyPage.searchForNetworkPolicy(networkPolicyName);
     networkPolicyPage.waitForPage(`q=${ networkPolicyName }`);
+    networkPolicyPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+    networkPolicyPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
     networkPolicyPage.list().actionMenu(networkPolicyName).getMenuItem('Edit Config').click();
     networkPolicyPage.createEditNetworkPolicyForm(namespace, networkPolicyName).waitForPage(`mode=edit#rule-ingress0`);
     // check elements value property
