@@ -1,5 +1,20 @@
 import { routeRequiresAuthentication } from '@shell/utils/router';
-import { isLoggedIn, notLoggedIn, noAuth, findMe } from '@shell/utils/auth';
+import {
+  isLoggedIn, notLoggedIn, noAuth, findMe, checkIfIsRancherAsOidcProviderLogin
+} from '@shell/utils/auth';
+import Cookie from 'cookie-universal';
+
+const cookies = Cookie();
+const RANCHER_AS_OIDC_COOKIE = 'rancher-as-oidc-prov';
+
+function handleOidcRedirectToCallbackUrl() {
+  const rancherAsOidcProvider = cookies.get(RANCHER_AS_OIDC_COOKIE, { parseJSON: false });
+
+  if (rancherAsOidcProvider) {
+    window.location.href = `${ window.location.origin }/oidc/authorize${ rancherAsOidcProvider }&code_challenge_method=S256`;
+    cookies.remove(RANCHER_AS_OIDC_COOKIE);
+  }
+}
 
 export function install(router, context) {
   router.beforeEach(async(to, from, next) => await authenticate(to, from, next, context));
@@ -21,6 +36,16 @@ function getUserObject(v3User, me) {
 
 export async function authenticate(to, from, next, { store }) {
   if (!routeRequiresAuthentication(to)) {
+    if (to.name === 'auth-login' && checkIfIsRancherAsOidcProviderLogin(to.query)) {
+      const queryString = window.location.search;
+
+      cookies.set(RANCHER_AS_OIDC_COOKIE, queryString, {
+        path:     '/',
+        sameSite: true,
+        secure:   true,
+      });
+    }
+
     return next();
   }
 
@@ -39,10 +64,12 @@ export async function authenticate(to, from, next, { store }) {
 
     if ( fromHeader === 'none' ) {
       noAuth(store);
+      handleOidcRedirectToCallbackUrl();
     } else if ( fromHeader === 'true' ) {
       const me = await findMe(store);
 
       await isLoggedIn(store, getUserObject(v3User, me));
+      handleOidcRedirectToCallbackUrl();
     } else if ( fromHeader === 'false' ) {
       notLoggedIn(store, next, to);
 
@@ -53,6 +80,7 @@ export async function authenticate(to, from, next, { store }) {
         const me = await findMe(store);
 
         await isLoggedIn(store, getUserObject(v3User, me));
+        handleOidcRedirectToCallbackUrl();
       } catch (e) {
         const status = e?._status;
 

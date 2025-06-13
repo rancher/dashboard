@@ -259,8 +259,7 @@ export default {
           body:     {
             username: this.username,
             password: this.password
-          },
-          currRoute: this.$route.query
+          }
         });
 
         const user = await this.$store.dispatch('rancher/findAll', {
