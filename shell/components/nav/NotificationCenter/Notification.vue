@@ -2,7 +2,7 @@
 import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
-import { computed, inject, PropType, ref } from 'vue';
+import { computed, inject, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { StoredNotification, NotificationAction, NotificationLevel } from '@shell/store/notifications';
@@ -19,7 +19,7 @@ const CLASSES = {
 
 const emits = defineEmits(['didFocus']);
 
-const props = defineProps({ item: { type: Object as PropType<StoredNotification>, required: true } });
+const props = defineProps<{item: StoredNotification}>();
 const { dropdownItems } = inject<DropdownContext>('dropdownContext') || defaultContext;
 
 const store = useStore();
@@ -202,7 +202,7 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
     role="menuitem"
     data-testid="notifications-center-item"
     :aria-label="t('notificationCenter.ariaLabel', { title: item.title })"
-    @keydown.up.down.stop="handleKeydown"
+    @keydown.up.down.stop.prevent="handleKeydown"
     @focus.stop="gotFocus"
     @click.stop
     @keydown.enter.space.stop="enterFocusTrap"
@@ -224,7 +224,6 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
         </div>
         <button
           ref="readButton"
-          tab-index="0"
           class="read-indicator"
           role="button"
           :aria-label="toggleLabel"
@@ -271,7 +270,6 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
           <button
             v-if="item.primaryAction"
             ref="primaryActionButton"
-            tab-index="1"
             role="button"
             class="btn btn-sm role-primary"
             @keydown.enter.space.stop="action(item.primaryAction)"
@@ -284,7 +282,6 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
           <button
             v-if="item.secondaryAction"
             ref="secondaryActionButton"
-            tab-index="2"
             role="button"
             class="btn btn-sm role-secondary"
             @keydown.enter.space.stop="action(item.secondaryAction)"
@@ -344,6 +341,9 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
           min-height: auto;
           padding: 0;
           margin-left: 16px;
+          width: 10px;
+          height: 10px;
+          background-color: var(--body-bg);
 
           &:disabled {
             cursor: default;
