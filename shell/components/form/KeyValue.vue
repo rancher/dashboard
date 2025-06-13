@@ -64,6 +64,12 @@ export default {
       type:    [String, Boolean],
       default: '',
     },
+
+    protipValue: {
+      type:    [String, Boolean],
+      default: '',
+    },
+
     // For asMap=false, the name of the field that goes into the row objects
     keyName: {
       type:    String,
@@ -184,6 +190,10 @@ export default {
       type:    String,
       default: '',
     },
+    addClass: {
+      type:    String,
+      default: '',
+    },
     addAllowed: {
       type:    Boolean,
       default: true,
@@ -210,7 +220,11 @@ export default {
     },
     removeIcon: {
       type:    String,
-      default: 'icon-minus',
+      default: '',
+    },
+    removeClass: {
+      type:    String,
+      default: '',
     },
     removeAllowed: {
       type:    Boolean,
@@ -624,6 +638,13 @@ export default {
               role="columnheader"
             >
               {{ _valueLabel }}
+              <i
+                v-if="protipValue && !isView && addAllowed"
+                v-clean-tooltip="{content: protipValue, triggers: ['hover', 'touch', 'focus'] }"
+                v-stripped-aria-label="protipValue"
+                class="icon icon-info"
+                tabindex="0"
+              />
             </label>
             <label
               v-for="(c, i) in extraColumns"
@@ -826,9 +847,14 @@ export default {
                   :disabled="isView || isProtected(row.key) || disabled"
                   :aria-label="t('generic.ariaLabel.remove', {index: i+1})"
                   class="btn role-link"
+                  :class="[removeClass]"
                   @click="remove(i)"
                 >
                   {{ removeLabel || t('generic.remove') }}
+                  <i
+                    v-if="removeIcon"
+                    :class="[removeIcon]"
+                  />
                 </button>
               </slot>
             </div>
@@ -849,6 +875,7 @@ export default {
           type="button"
           role="button"
           class="btn role-tertiary add"
+          :class="[addClass]"
           data-testid="add_row_item_button"
           :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
           :aria-label="t('generic.ariaLabel.addKeyValue')"
