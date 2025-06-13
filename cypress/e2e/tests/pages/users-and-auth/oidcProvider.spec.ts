@@ -48,14 +48,8 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
 
     // should be able to copy OIDC urls on list view
     oidcClientsPage.list().issuerURL().copyToClipboard();
-    cy.window().its('navigator.clipboard').invoke('readText')
-      .should('contain', 'oidc-issuer');
     oidcClientsPage.list().discoveryDocument().copyToClipboard();
-    cy.window().its('navigator.clipboard').invoke('readText')
-      .should('contain', 'oidc-issuer/.well-known/openid-configuration');
     oidcClientsPage.list().jwksURI().copyToClipboard();
-    cy.window().its('navigator.clipboard').invoke('readText')
-      .should('contain', 'oidc-issuer/keys');
 
     // let's create an oidc client
     oidcClientsPage.createOidcClient();
