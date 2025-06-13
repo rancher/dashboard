@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import RcFilterPanel from './RcFilterPanel.vue';
+import FilterPanel from './FilterPanel.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 const filters = [
@@ -21,9 +21,9 @@ const filters = [
   }
 ];
 
-describe('rcFilterPanel', () => {
+describe('component: FilterPanel', () => {
   it('renders all filter groups and options with correct labels', () => {
-    const wrapper = mount(RcFilterPanel, {
+    const wrapper = mount(FilterPanel, {
       props: {
         modelValue: {},
         filters
@@ -39,7 +39,7 @@ describe('rcFilterPanel', () => {
   });
 
   it('emits update:modelValue when a new status is added via checkbox emit', async() => {
-    const wrapper = mount(RcFilterPanel, {
+    const wrapper = mount(FilterPanel, {
       props: {
         modelValue: { status: ['installed'] },
         filters
@@ -63,7 +63,7 @@ describe('rcFilterPanel', () => {
   it('renders a custom component if provided in option', () => {
     const CustomComponent = { template: '<div>Custom content</div>' };
 
-    const wrapper = mount(RcFilterPanel, {
+    const wrapper = mount(FilterPanel, {
       props: {
         modelValue: {},
         filters:    [
