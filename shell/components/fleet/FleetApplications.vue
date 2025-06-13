@@ -1,6 +1,8 @@
-<script>
-import ResourceTable from '@shell/components/ResourceTable';
-import FleetIntro from '@shell/components/fleet/FleetIntro';
+<script lang="ts">
+import { PropType } from 'vue';
+import { Application } from '@shell/types/fleet';
+import ResourceTable from '@shell/components/ResourceTable.vue';
+import FleetIntro from '@shell/components/fleet/FleetIntro.vue';
 import {
   AGE,
   NAME,
@@ -38,7 +40,7 @@ export default {
     },
 
     rows: {
-      type:     Array,
+      type:     Array as PropType<Application[]>,
       required: true,
     },
 
@@ -58,11 +60,11 @@ export default {
     }
   },
 
-  data() {
-    return { createLocation: { name: 'c-cluster-fleet-application-create' } };
-  },
-
   computed: {
+    createLocation() {
+      return { name: 'c-cluster-fleet-application-create' };
+    },
+
     filteredRows() {
       if (!this.rows) {
         return [];
@@ -102,7 +104,7 @@ export default {
   },
 
   methods: {
-    getDetailLocation(row) {
+    getDetailLocation(row: Application) {
       return row._detailLocation;
     }
   },
