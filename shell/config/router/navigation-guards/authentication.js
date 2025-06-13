@@ -11,7 +11,7 @@ function handleOidcRedirectToCallbackUrl() {
   const rancherAsOidcProvider = cookies.get(RANCHER_AS_OIDC_COOKIE, { parseJSON: false });
 
   if (rancherAsOidcProvider) {
-    window.location.href = `${ window.location.origin }/oidc/authorize${ rancherAsOidcProvider }&code_challenge_method=S256`;
+    window.location.href = `${ window.location.origin }/oidc/authorize${ rancherAsOidcProvider }`;
     cookies.remove(RANCHER_AS_OIDC_COOKIE);
   }
 }
