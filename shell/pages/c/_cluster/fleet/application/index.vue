@@ -65,7 +65,7 @@ export default {
 
       }, this.$store);
 
-      this.hasWorkspaces = !!hash.workspaces;
+      this.hasWorkspaces = (hash.workspaces || []).length > 0;
     } catch (e) {
     }
 
