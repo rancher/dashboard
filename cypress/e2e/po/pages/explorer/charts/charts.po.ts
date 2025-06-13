@@ -3,7 +3,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import RcItemCardPo from '@/cypress/e2e/po/components/rc-item-card.po';
-import RcFilterPanelPo from '@/cypress/e2e/po/components/rc-filter-panel.po';
+import FilterPanelPo from '@/cypress/e2e/po/components/filter-panel.po';
 
 export class ChartsPage extends PagePo {
   private static createPath(clusterId: string) {
@@ -31,15 +31,15 @@ export class ChartsPage extends PagePo {
   }
 
   getFilterOptionByName(name: string) {
-    return new RcFilterPanelPo(this.self()).getFilterByName(name);
+    return new FilterPanelPo(this.self()).getFilterByName(name);
   }
 
   getAllOptionsByGroupName(name: string) {
-    return new RcFilterPanelPo(this.self()).getFiltersByGroupName(name);
+    return new FilterPanelPo(this.self()).getFiltersByGroupName(name);
   }
 
   resetAllFilters() {
-    const filterPanel = new RcFilterPanelPo(this.self());
+    const filterPanel = new FilterPanelPo(this.self());
 
     filterPanel.assertAllCheckboxesUnchecked();
     this.chartsSearchFilterInput().clear();

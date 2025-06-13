@@ -380,6 +380,12 @@ export default {
               </button>
             </slot>
           </div>
+          <slot
+            name="value-sub-row"
+            :row="row"
+            :mode="mode"
+            :isView="isView"
+          />
         </div>
       </template>
       <div v-else>

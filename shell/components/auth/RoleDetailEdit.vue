@@ -18,6 +18,7 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 
 import { SUBTYPE_MAPPING, VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import Loading from '@shell/components/Loading';
+import Banner from '@components/Banner/Banner.vue';
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 const CLUSTER = SUBTYPE_MAPPING.CLUSTER.key;
@@ -64,7 +65,8 @@ export default {
     SortableTable,
     Loading,
     Error,
-    LabeledInput
+    LabeledInput,
+    Banner,
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -497,7 +499,8 @@ export default {
           index:           i,
           apiGroups:       rule.apiGroups || [''],
           resources:       rule.resources || [],
-          nonResourceURLs: rule.nonResourceURLs || []
+          nonResourceURLs: rule.nonResourceURLs || [],
+          verbs:           rule.verbs,
         };
 
         VERBS.forEach((verb) => {
@@ -531,6 +534,13 @@ export default {
 
       return res;
     },
+
+    showPsaWarning(grant) {
+      return this.value.subtype === NAMESPACE &&
+        grant.verbs?.includes('updatepsa') &&
+        grant.resources?.includes('projects') &&
+        grant.apiGroups?.includes('management.cattle.io');
+    }
   }
 };
 </script>
@@ -558,7 +568,28 @@ export default {
         :table-actions="false"
         :row-actions="false"
         :search="false"
-      />
+        :sub-rows="true"
+      >
+        <template #sub-row="{row, fullColspan, onRowMouseEnter, onRowMouseLeave}">
+          <tr
+
+            class="sub-row"
+            @mouseenter="onRowMouseEnter"
+            @mouseleave="onRowMouseLeave"
+          >
+            <td
+              v-if="showPsaWarning(row)"
+              :colspan="fullColspan"
+            >
+              <Banner
+                style="margin: 0px"
+                label-key="rbac.roletemplate.tabs.grantResources.psaWarning"
+                color="warning"
+              />
+            </td>
+          </tr>
+        </template>
+      </SortableTable>
       <div
         v-for="(inherited, index) of inheritedRules"
         :key="index"
@@ -730,6 +761,17 @@ export default {
                     @input="setRule('nonResourceURLs', props.row.value, $event.target.value)"
                   />
                 </div>
+              </div>
+            </template>
+            <template #value-sub-row="{row}">
+              <div
+                v-if="showPsaWarning(row.value)"
+                class="mr-20"
+              >
+                <Banner
+                  label-key="rbac.roletemplate.tabs.grantResources.psaWarning"
+                  color="warning"
+                />
               </div>
             </template>
           </ArrayList>

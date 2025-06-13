@@ -235,6 +235,7 @@ export const FLEET = {
   CLUSTER_GROUP:            'fleet.cattle.io.clustergroup',
   DASHBOARD:                'fleet.cattle.io.dashboard',
   GIT_REPO:                 'fleet.cattle.io.gitrepo',
+  HELM_OP:                  'fleet.cattle.io.helmop',
   WORKSPACE:                'management.cattle.io.fleetworkspace',
   TOKEN:                    'fleet.cattle.io.clusterregistrationtoken',
   BUNDLE_NAMESPACE_MAPPING: 'fleet.cattle.io.bundlenamespacemapping',

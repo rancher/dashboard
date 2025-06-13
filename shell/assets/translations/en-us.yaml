@@ -148,6 +148,9 @@ generic:
     genericAddRow: Add a new row
     arrayList: Array list input
     genericRow: row {index}
+  showLess: Show less
+  showMore: Show more
+  opensInNewTab: Opens in a new tab
   
 
 locale:
@@ -858,6 +861,10 @@ asyncButton:
     action: Resume Orchestration
     success: Resumed Orchestration
     waiting: Resuming Orchestration
+  redeploy:
+    action: Redeploy
+    success: Redeployed
+    waiting: Redeploying Workload
   rollback:
     action: Roll Back
     success: Rolled Back
@@ -2516,13 +2523,29 @@ fleet:
     learnMoreLink: https://fleet.rancher.io
     noRepo: "You don't have any Git Repositories in your Workspaces"
     getStarted: Get started
-    thereIsMore: |-
-      {count, plural,
-      =1 { There is one other workspace with no repositories}
-      other { There are { count } other workspaces with no repositories}
-      }
+    workspace: Workspace
+    expand: Expand
+    collapse: Collapse
     expandAll: Expand All
     collapseAll: Collapse All
+    state: State
+    viewMode:
+      table: Show table
+      cards: Show cards
+    cards:
+      filters:
+        gitRepos: Show Git Repos
+        helmOps: Show Helm Ops
+      resourceSummary:
+        part1: in
+        part2: |-
+          {count, plural,
+          =1 { cluster }
+          other { clusters }
+          }
+      noClusters: Not targeting any clusters
+    resources: Resources
+    source: Source
   cluster:
     summary: Resource Summary
     nonReady: Non-Ready Bundles
@@ -2559,6 +2582,8 @@ fleet:
       notReady: Not Ready
       waitApplied: Wait Applied
   gitRepo:
+    intro:
+      add: Add Repository
     actions:
       forceUpdate:
         label: Force Update
@@ -2601,7 +2626,7 @@ fleet:
       placeholder: e.g. https://github.com/rancher/fleet-examples.git or git@github.com:rancher/fleet-examples.git
       addRepo: Add Repository
       noRepos: No repositories have been added
-      noWorkspaces: There are no workspaces. <br/> Please create a workspace before adding repositories
+      noWorkspaces: There are no workspaces.
     resources:
       label: 'Resource Handling'
       keepResources: Always keep resources
@@ -3994,7 +4019,7 @@ namespaceFilter:
   input: Filter namespace options
   button:
     clear: Remove applied namespace filters
-    clearFilter: Clear namespace options filter 
+    clearFilter: Clear namespace options filter
 
 namespaceList:
   selectLabel: Namespace
@@ -4129,6 +4154,7 @@ networkpolicy:
           =1 {1 of {totalNamespaces, number} namespaces: "{sampleNamespaces}"}
           other {{matchedNamespaces, number} of {totalNamespaces, number} existing namespaces, including "{sampleNamespaces}"}
         }
+
 node:
   list:
     pool: Pool
@@ -5026,6 +5052,10 @@ promptRollback:
   multipleWorkloadError: "Only one workload can be rolled back at a time."
   singleRevisionBanner: There are no revisions to roll back to.
 
+promptRedeploy:
+  title: Redeploy {type}?
+  attemptingToRedeploy: "You are attempting to redeploy the {type} {names}<br><br>Redeploying will restart the selected workloads and may cause temporary downtime."
+
 promptRotateEncryptionKey:
   title: Rotate Encryption Keys
   description: The last backup {name} was performed on {date}
@@ -5074,6 +5104,7 @@ rbac:
           resources: Resource
           nonResourceUrls: Non-Resource URLs
           apiGroups: API Groups
+        psaWarning: Granting Project Roles the ability to amend PSA labels could lead to a weaker security posture and allow for privilege escalation. This is only recommended for advanced users who understand the risks involved.
     subtypes:
       GLOBAL:
         createButton: Create Global Role
@@ -5280,6 +5311,8 @@ resourceTable:
     notInANodePool: "Not in a Pool"
     nodePool: "<span>Pool:</span> {name}"
     node: "<span>Node:</span> {name}"
+  autoRefresh:
+    label: Auto Refresh
 
 resourceTabs:
   conditions:
@@ -6667,6 +6700,9 @@ workload:
     workload: Workload
     pods: Pods by State
     runs: Runs
+    started: Started
+    duration: Last Scheduled Time
+    image: Image
   error: Pod { name } Security Policy Violation { policy }
   gaugeStates:
     succeeded: Successful
@@ -7157,6 +7193,11 @@ typeLabel:
     {count, plural,
       one { Git Repo }
       other {Git Repos }
+    }
+  fleet.cattle.io.helmop: |-
+    {count, plural,
+      one { Helm Op }
+      other { Helm Ops }
     }
   management.cattle.io.authconfig: |-
     {count, plural,
@@ -8226,7 +8267,7 @@ errors:
   maxLimitExceded: is too big
   messageAndDetail: '{message} ({detail})'
   messageOrDetail: '{val}'
-  failedInApi: 
+  failedInApi:
     withName:
       withCodeExplanation:
         withMessageDetail: 'Validation failed in API: {name} {codeExplanation}: {messageDetail}'
@@ -8234,7 +8275,7 @@ errors:
       withMessageDetail: 'Validation failed in API: {name} {messageDetail}'
       withoutAnythingElse: 'Validation failed in API: {name} '
     withoutName:
-      withMessageDetail: 
+      withMessageDetail:
         withCodeExplanation: 'Validation failed in API: {codeExplanation}: {messageDetail}'
         withoutCodeExplanation: 'Validation failed in API: {messageDetail}'
       withCode:
@@ -8245,5 +8286,43 @@ errors:
     withUrl: '{msg}: {url}'
     withoutUrl: '{msg}'
 
-
-
+component:
+  resource:
+    detail:
+      card:
+        resourceUsage:
+          used: Used
+          amount: '{used} of {available}'
+          cpu: CPU
+          memory: Memory
+          pods: Pods
+        resourcesCard:
+          title: Resources
+          rows:
+            services: Services
+            ingresses: Ingresses
+            referredToBy: Referred to by
+            refersTo: Refers to
+        podsCard:
+          title: Pods
+          ariaResourceName: pods
+        insightsCard:
+          title: Insights
+          rows:
+            conditions: Conditions
+            events: Events
+        scaler:
+          ariaLabel:
+            increase: Increase {resourceName}
+            decrease: Decrease {resourceName}
+      titleBar:
+        showConfiguration: Show Configuration
+      metadata:
+        identifyingInformation:
+          namespace: Namespace
+          project: Project
+          age: Age
+          image: Image
+          ready: Ready
+          up-to-date: Up-to-date
+          available: Available

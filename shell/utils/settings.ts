@@ -59,7 +59,10 @@ export const fetchInitialSettings = async(store: Store<any>): Promise<any> => {
     // We're authed, we will always get the full list
     return await store.dispatch('management/findAll', {
       type: MANAGEMENT.SETTING,
-      opt:  { url: `/v1/${ pluralize(MANAGEMENT.SETTING) }` }
+      opt:  {
+        url:   `/v1/${ pluralize(MANAGEMENT.SETTING) }`,
+        watch: false, // Watch requires FF and Settings, see `loadManagement` to see how this is handled
+      }
     } );
   }
 

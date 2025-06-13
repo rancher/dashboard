@@ -149,13 +149,15 @@ axios.get(ENDPOINTS_URL, { responseType: 'document' }).then((res) => {
   }
 
   const regions = findRegions(res.data);
+  const govRegions = existing.filter((r) => r.startsWith(US_GOV));
+  const existingCount = existing.length;
 
   if (regions.length === 0) {
     console.error('Could not fetch data from Azure - no regions found');
     process.exit(2);
   }
 
-  console.log(`Existing regions in our codebase: ${ existing.length }`);
+  console.log(`Existing regions in our codebase: ${ existingCount - govRegions.length } (Excluding US Government regions)`);
   console.log(existing);
   console.log('');
 
@@ -172,6 +174,10 @@ axios.get(ENDPOINTS_URL, { responseType: 'document' }).then((res) => {
       removed.push(r);
     }
   });
+
+  console.log('');
+  console.log(`US Government regions to be retained: ${ govRegions.join(', ') }`);
+  console.log('');
 
   if (removed.length) {
     console.log(`These region(s) have been removed: ${ removed.join(', ') }`);
@@ -192,6 +198,10 @@ axios.get(ENDPOINTS_URL, { responseType: 'document' }).then((res) => {
   if (added.length || removed.length) {
     // Sort the regions (needs a resort if we added back in usgov regions)
     writeNewFile(regions.sort());
+
+    console.log('');
+    console.log(`Regions updated from ${ existingCount } to ${ regions.length }`);
+    console.log('');
   } else {
     console.log('No changes to the Azure region data');
   }

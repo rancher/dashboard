@@ -64,7 +64,9 @@ export default defineComponent({
       v-if="icon"
       class="icon"
       :class="{[icon]: true, 'mr-5': !!msg}"
-    />{{ msg }}
+    />
+    <span class="msg">{{ msg }}</span>
+    <slot name="content-right" />
   </span>
 </template>
 

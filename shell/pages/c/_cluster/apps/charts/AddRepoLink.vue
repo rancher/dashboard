@@ -14,6 +14,7 @@ defineProps<{
     tabindex="0"
     :aria-label="t('catalog.charts.addNewRepo.ariaLabel')"
   >
+    <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
     + <span class="secondary-text-link">{{ t('catalog.charts.addNewRepo.label') }}</span>
   </router-link>
 </template>

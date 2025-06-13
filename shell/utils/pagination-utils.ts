@@ -1,4 +1,4 @@
-import { PaginationSettings, PaginationSettingsStore } from '@shell/types/resources/settings';
+import { PaginationFeature, PaginationSettings, PaginationSettingsStore } from '@shell/types/resources/settings';
 import {
   NAMESPACE_FILTER_ALL_USER as ALL_USER,
   NAMESPACE_FILTER_ALL as ALL,
@@ -126,6 +126,31 @@ class PaginationUtils {
     }
 
     return false;
+  }
+
+  listAutoRefreshToggleEnabled({ rootGetters }: any): boolean {
+    return this.isFeatureEnabled({ rootGetters }, 'listAutoRefreshToggle');
+  }
+
+  isListManualRefreshEnabled({ rootGetters }: any): boolean {
+    return this.isFeatureEnabled({ rootGetters }, 'listManualRefresh');
+  }
+
+  private isFeatureEnabled({ rootGetters }: any, featureName: PaginationFeature): boolean {
+    // Cache must be enabled to support pagination api
+    if (!this.isSteveCacheEnabled({ rootGetters })) {
+      return false;
+    }
+
+    const settings = this.getSettings({ rootGetters });
+
+    return !!settings.features?.[featureName]?.enabled;
+  }
+
+  resourceChangesDebounceMs({ rootGetters }: any): number | undefined {
+    const settings = this.getSettings({ rootGetters });
+
+    return settings.resourceChangesDebounceMs;
   }
 
   validateNsProjectFilters(nsProjectFilters: string[]) {

@@ -9,6 +9,7 @@ import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { addParam, parse } from '@shell/utils/url';
 import { conditionalDepaginate } from '@shell/store/type-map.utils';
+import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import { FilterArgs } from '@shell/types/store/pagination.types';
 import { isLabelSelectorEmpty, labelSelectorToSelector } from '@shell/utils/selector-typed';
 
@@ -183,7 +184,6 @@ export default {
 
     opt = opt || {};
     type = getters.normalizeType(type);
-
     if ( !getters.typeRegistered(type) ) {
       commit('registerType', type);
     }
@@ -426,8 +426,20 @@ export default {
       commit('registerType', type);
     }
 
+    // of type @STEVE_WATCH_PARAMS
+    const watchArgs = {
+      type,
+      namespace: opt.watchNamespace || opt.namespaced, // it could be either apparently
+      force:     opt.forceWatch === true,
+      mode:      STEVE_WATCH_MODE.RESOURCE_CHANGES,
+    };
+
     // No need to request the resources if we have them already
     if (!opt.transient && !opt.force && getters['havePaginatedPage'](type, opt)) {
+      if (opt.watch !== false ) {
+        dispatch('watch', watchArgs);
+      }
+
       return findAllGetter(getters, type, opt);
     }
 
@@ -451,11 +463,7 @@ export default {
       return Promise.reject(e);
     }
 
-    await dispatch('unwatch', {
-      type,
-      all: true,
-    });
-
+    // Of type @StorePagination
     const pagination = opt.pagination ? {
       request: {
         namespace:  opt.namespaced,
@@ -472,9 +480,14 @@ export default {
       commit('loadPage', {
         ctx,
         type,
-        data: out.data,
+        data:     out.data,
         pagination,
+        revision: out.revision,
       });
+    }
+
+    if ( !opt.transient && opt.watch !== false ) {
+      dispatch('watch', watchArgs);
     }
 
     if (opt.hasManualRefresh) {
@@ -671,7 +684,15 @@ export default {
     return out;
   },
 
-  load(ctx, { data, existing }) {
+  /**
+   * Add or update the given resource in the store
+   *
+   * invalidatePageCache
+   * - if something calls `load` then the cache no longer has a page so we invalidate it
+   * - however on resource create or remove this can lead to lists showing nothing... before the new page is fetched
+   * - for those cases avoid invaliding the page cache
+   */
+  load(ctx, { data, existing, invalidatePageCache }) {
     const { getters, commit } = ctx;
 
     let type = normalizeType(data.type);
@@ -704,7 +725,8 @@ export default {
     commit('load', {
       ctx,
       data,
-      existing
+      existing,
+      invalidatePageCache // Avoid havePage invalidation
     });
 
     if ( type === SCHEMA ) {

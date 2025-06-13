@@ -34,6 +34,8 @@ import { waitFor } from '@shell/utils/async';
 import { WORKER_MODES } from './worker';
 import acceptOrRejectSocketMessage from './accept-or-reject-socket-message';
 import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
+import { _MERGE } from '@shell/plugins/dashboard-store/actions';
+import { STEVE_WATCH_EVENT, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import paginationUtils from '@shell/utils/pagination-utils';
 
 // minimum length of time a disconnect notification is shown
@@ -185,10 +187,14 @@ export async function createWorker(store, ctx) {
 }
 
 export function equivalentWatch(a, b) {
-  const aresourceType = a.resourceType || a.type;
-  const bresourceType = b.resourceType || b.type;
+  const aResourceType = a.resourceType || a.type;
+  const bResourceType = b.resourceType || b.type;
 
-  if ( aresourceType !== bresourceType ) {
+  if ( aResourceType !== bResourceType ) {
+    return false;
+  }
+
+  if (a.mode !== b.mode && (a.mode || b.mode)) {
     return false;
   }
 
@@ -255,6 +261,13 @@ function queueChange({ getters, state, rootGetters }, { data, revision }, load, 
 function growlsDisabled(rootGetters) {
   return getPerformanceSetting(rootGetters)?.disableWebsocketNotification;
 }
+
+/**
+ * Supported events are listed
+ *
+ * of type { [key: STEVE_WATCH_EVENT]: STEVE_WATCH_EVENT_LISTENER[]}
+ */
+const listeners = { [STEVE_WATCH_EVENT.CHANGES]: [] };
 
 /**
  * Actions that cover all cases (see file description)
@@ -354,14 +367,80 @@ const sharedActions = {
     return Promise.all(cleanupTasks);
   },
 
+  /**
+   * Create a trigger for a specific type of watch event
+   *
+   * For example if a watch on mgmt clusters exists and a page wants to know when any changes occur
+   * @param {} ctx
+   * @param {STEVE_WATCH_EVENT_PARAMS} event
+   */
+  watchEvent(ctx, {
+    event = STEVE_WATCH_EVENT.CHANGES,
+    id,
+    callback,
+    /**
+     * of type @STEVE_WATCH_PARAMS
+     */
+    params
+  }) {
+    if (!listeners[event]) {
+      console.error(`Unknown event type "${ event }", only ${ Object.keys(listeners).join(',') } are supported`); // eslint-disable-line no-console
+
+      return;
+    }
+
+    // STEVE_WATCH_EVENT_LISTENER | undefined
+    let listener = listeners[event].find((l) => equivalentWatch(l.params, params));
+
+    if (!listener) {
+      listener = {
+        params,
+        callbacks: { }
+      };
+      listeners[event].push(listener);
+    }
+
+    if (!listener.callbacks[id]) {
+      listener.callbacks[id] = callback;
+      ctx.dispatch('watch', params);
+    }
+  },
+
+  /**
+   * @param {} ctx
+   * @param {STEVE_UNWATCH_EVENT_PARAMS} event
+   */
+  unwatchEvent(ctx, {
+    event = STEVE_WATCH_EVENT.CHANGES,
+    id,
+    /**
+     * of type @STEVE_WATCH_PARAMS
+     */
+    params
+  }) {
+    if (!listeners[event]) {
+      console.info(`Attempted to unwatch for an event "${ event }" but it had no watchers`); // eslint-disable-line no-console
+
+      return;
+    }
+
+    const existing = listeners[event].find((l) => equivalentWatch(l.params, params));
+
+    if (existing) {
+      delete existing.callbacks[id];
+    }
+  },
+
+  /**
+   * @param {STEVE_WATCH_PARAMS} params
+   */
   watch({
     state, dispatch, getters, rootGetters
   }, params) {
     state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
-
     let {
       // eslint-disable-next-line prefer-const
-      type, selector, id, revision, namespace, stop, force
+      type, selector, id, revision, namespace, stop, force, mode
     } = params;
 
     namespace = acceptOrRejectSocketMessage.subscribeNamespace(namespace);
@@ -393,28 +472,42 @@ const sharedActions = {
       return;
     }
 
-    if ( !stop && getters.watchStarted({
-      type, id, selector, namespace
-    }) ) {
+    const messageMeta = {
+      type, id, selector, namespace, mode
+    };
+
+    if (!stop && getters.watchStarted(messageMeta)) {
       // eslint-disable-next-line no-console
       state.debugSocket && console.debug(`Already Watching [${ getters.storeName }]`, {
-        type, id, selector, namespace
+        type, id, selector, namespace, mode
       });
 
       return;
     }
 
-    // isSteveCacheEnabled check is temporary and will be removed once Part 3 of https://github.com/rancher/dashboard/pull/10349 is resolved by backend
-    // Steve cache backed api does not return a revision, so `revision` here is always undefined
-    // Which means we find a revision within a resource itself and use it in the watch
-    // That revision is probably too old and results in a watch error
+    if (!stop) {
+      dispatch('unwatchIncompatible', messageMeta);
+    }
+
     // Watch errors mean we make a http request to get latest revision (which is still missing) and try to re-watch with it...
     // etc
-    if (typeof revision === 'undefined' && !paginationUtils.isSteveCacheEnabled({ rootGetters })) {
+    if (typeof revision === 'undefined') {
       revision = getters.nextResourceVersion(type, id);
     }
 
     const msg = { resourceType: type };
+
+    if (mode) {
+      msg.mode = mode;
+
+      if (mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
+        const debounceMs = paginationUtils.resourceChangesDebounceMs({ rootGetters });
+
+        if (debounceMs) {
+          msg.debounceMs = debounceMs;
+        }
+      }
+    }
 
     if ( revision ) {
       msg.resourceVersion = `${ revision }`;
@@ -452,7 +545,7 @@ const sharedActions = {
   },
 
   unwatch(ctx, {
-    type, id, namespace, selector, all
+    type, id, namespace, selector, all, mode
   }) {
     const { commit, getters, dispatch } = ctx;
 
@@ -464,6 +557,7 @@ const sharedActions = {
         id,
         namespace,
         selector,
+        mode,
         stop: true, // Stops the watch on a type
       };
 
@@ -489,6 +583,24 @@ const sharedActions = {
         unwatch(obj);
       }
     }
+  },
+
+  /**
+   * Unwatch watches that are incompatible with the new type
+   */
+  unwatchIncompatible({ state, dispatch, getters }, messageMeta) {
+    const watchesOfType = getters.watchesOfType(messageMeta.type);
+    let unwatch = [];
+
+    if (messageMeta.mode === STEVE_WATCH_EVENT.CHANGES) {
+      // resource.changes should not be running when other types are, so unwatch
+      unwatch = watchesOfType.filter((entry) => entry.mode !== STEVE_WATCH_EVENT.CHANGES);
+    } else {
+      // all other modes of watches should not be running when resource.changes is, so unwatch
+      unwatch = watchesOfType.filter((entry) => entry.mode === STEVE_WATCH_EVENT.CHANGES);
+    }
+
+    unwatch.forEach((entry) => dispatch('unwatch', entry));
   },
 
   'ws.ping'({ getters, dispatch }, msg) {
@@ -587,16 +699,30 @@ const defaultActions = {
     return Promise.all(promises);
   },
 
-  async resyncWatch({
-    state, getters, dispatch, commit
-  }, params) {
-    const {
-      resourceType, namespace, id, selector
-    } = params;
-
+  /**
+   * Socket has been closed, restart afresh (make http request, ensure we re-watch)
+   */
+  async resyncWatch({ getters, dispatch }, params) {
     console.info(`Resync [${ getters.storeName }]`, params); // eslint-disable-line no-console
 
-    const opt = { force: true, forceWatch: true };
+    await dispatch('fetchResources', {
+      ...params,
+      opt: { force: true, forceWatch: true }
+    });
+  },
+
+  async fetchResources({
+    state, getters, dispatch, commit
+  }, { opt, ...params }) {
+    const {
+      resourceType, namespace, id, selector, mode
+    } = params;
+
+    if (!resourceType) {
+      console.error(`A socket message has prompted a request to fetch a resource but no resource type was supplied`); // eslint-disable-line no-console
+
+      return;
+    }
 
     if ( id ) {
       await dispatch('find', {
@@ -613,7 +739,7 @@ const defaultActions = {
 
       return;
     }
-    let have, want;
+    let have = []; let want = [];
 
     if ( selector ) {
       have = getters['matching'](resourceType, selector).slice();
@@ -623,17 +749,48 @@ const defaultActions = {
         opt,
       });
     } else {
-      have = getters['all'](resourceType).slice();
+      if (mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
+        // Other findX use options (id/ns/selector) from the messages received over socket.
+        // However paginated requests have more complex params so grab them from store from the store.
+        const storePagination = getters['havePage'](resourceType);
 
-      if ( namespace ) {
-        have = have.filter((x) => x.metadata?.namespace === namespace);
+        if (!!storePagination) {
+          have = []; // findPage removes stale entries, so we don't need to rely on below process to remove them
+
+          // This could have been kicked off given a resource.changes message
+          // If the messages come in quicker than findPage completes (resource.changes debounce time >= http request time),
+          // and the request is the same, only the first request will be processed. all others until it finishes will be ignored
+          // (see deferred process - `waiting.push(later);` - in request action).
+          // If this becomes an issue we need to debounce and work around the deferred issue within request
+          want = await dispatch('findPage', {
+            type: resourceType,
+            opt:  {
+              ...opt,
+              // This brings in page, page size, filter, etc
+              ...storePagination.request
+            }
+          });
+        }
+
+        // Should any listeners be notified of this request for them to kick off their own event handling?
+        const listener = listeners[STEVE_WATCH_MODE.RESOURCE_CHANGES].find((sl) => equivalentWatch(sl.params, params));
+
+        if (listener) {
+          Object.values(listener.callbacks).forEach((cb) => cb());
+        }
+      } else {
+        have = getters['all'](resourceType).slice();
+
+        if ( namespace ) {
+          have = have.filter((x) => x.metadata?.namespace === namespace);
+        }
+
+        want = await dispatch('findAll', {
+          type:           resourceType,
+          watchNamespace: namespace,
+          opt
+        });
       }
-
-      want = await dispatch('findAll', {
-        type:           resourceType,
-        watchNamespace: namespace,
-        opt
-      });
     }
 
     const wantMap = {};
@@ -792,7 +949,8 @@ const defaultActions = {
       type:      msg.resourceType,
       namespace: msg.namespace,
       id:        msg.id,
-      selector:  msg.selector
+      selector:  msg.selector,
+      mode:      msg.mode,
     };
 
     state.started.filter((entry) => {
@@ -846,7 +1004,8 @@ const defaultActions = {
       type,
       id:        msg.id,
       namespace: msg.namespace,
-      selector:  msg.selector
+      selector:  msg.selector,
+      mode:      msg.mode
     };
 
     state.debugSocket && console.info(`Resource Stop [${ getters.storeName }]`, type, msg); // eslint-disable-line no-console
@@ -920,6 +1079,13 @@ const defaultActions = {
         });
       });
     }
+  },
+
+  'ws.resource.changes'({ dispatch }, msg) {
+    dispatch('fetchResources', {
+      ...msg,
+      opt: { force: true, load: _MERGE }
+    } );
   },
 
   'ws.resource.remove'(ctx, msg) {
@@ -1040,9 +1206,24 @@ const defaultGetters = {
   },
 
   watchStarted: (state) => (obj) => {
-    return !!state.started.find((entry) => equivalentWatch(obj, entry));
+    const existing = state.started.find((entry) => equivalentWatch(obj, entry));
+
+    return !!existing;
   },
 
+  /**
+   * Try to determine the latest revision to use in a watch request.
+   *
+   * It does some dodgy revision comparisons (revisions are not guaranteed to be numerical or equate higher to newer)
+   *
+   * If we have an id - and that resource has a revision - use it
+   * If we have a list - and the store has a revision - and it's a string - use it straight away
+   * If we have a list - and the store has a revision - and it's a number - compare it to the revisions in the list and use overall highest
+   *
+   * Note - This used to use parseInt which does stuff like `abc-123` --> NaN, `123-abc` --> 123
+   *
+   * Returns string, non-zero number or null
+   */
   nextResourceVersion: (state, getters) => (type, id) => {
     type = normalizeType(type);
     let revision = 0;
@@ -1050,32 +1231,38 @@ const defaultGetters = {
     if ( id ) {
       const existing = getters['byId'](type, id);
 
-      revision = parseInt(existing?.metadata?.resourceVersion, 10);
+      revision = existing?.metadata?.resourceVersion;
     }
 
     if ( !revision ) {
       const cache = state.types[type];
 
+      // No Cache, nothing to compare to, return early
       if ( !cache ) {
         return null;
       }
 
-      revision = cache.revision; // This is always zero.....
+      revision = Number(cache.revision);
 
-      for ( const obj of cache.list ) {
+      // Cached LIST revision isn't a number, cannot compare to, return early
+      if (Number.isNaN(revision)) {
+        return cache.revision || null;
+      }
+
+      for ( const obj of cache.list || [] ) {
         if ( obj && obj.metadata ) {
-          const neu = parseInt(obj.metadata.resourceVersion, 10);
+          const neu = Number(obj.metadata.resourceVersion);
+
+          if (Number.isNaN(neu)) {
+            continue;
+          }
 
           revision = Math.max(revision, neu);
         }
       }
     }
 
-    if ( revision ) {
-      return revision;
-    }
-
-    return null;
+    return revision || null;
   },
 };
 

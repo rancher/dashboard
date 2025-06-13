@@ -17,7 +17,7 @@ import { isUIPlugin } from '@shell/config/uiplugins';
 import { RcItemCard } from '@components/RcItemCard';
 import { get } from '@shell/utils/object';
 import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
-import { RcFilterPanel } from '@components/RcFilterPanel';
+import FilterPanel from '@shell/components/FilterPanel';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import AddRepoLink from '@shell/pages/c/_cluster/apps/charts/AddRepoLink';
@@ -38,7 +38,7 @@ export default {
     Banner,
     Loading,
     RcItemCard,
-    RcFilterPanel,
+    FilterPanel,
     AppChartCardSubHeader,
     AppChartCardFooter,
     Select
@@ -478,10 +478,10 @@ export default {
     />
 
     <div class="wrapper">
-      <rc-filter-panel
-        :value="internalFilters"
+      <FilterPanel
+        :modelValue="internalFilters"
         :filters="filterPanelFilters"
-        @filter-change="onFilterChange"
+        @update:modelValue="onFilterChange"
       />
 
       <div
@@ -547,7 +547,7 @@ export default {
             >
               <AppChartCardFooter
                 :items="card.footerItems"
-                @footer-item-click="handleFooterItemClick"
+                @click:item="handleFooterItemClick"
               />
             </template>
           </rc-item-card>
