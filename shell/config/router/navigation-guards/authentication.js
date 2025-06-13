@@ -10,8 +10,11 @@ const RANCHER_AS_OIDC_COOKIE = 'rancher-as-oidc-prov';
 function handleOidcRedirectToCallbackUrl() {
   const rancherAsOidcProvider = cookies.get(RANCHER_AS_OIDC_COOKIE, { parseJSON: false });
 
+  // eslint-disable-next-line no-console
+  console.error('COOKIE FOUND!!! -redirect ', rancherAsOidcProvider);
+
   if (rancherAsOidcProvider) {
-    window.location.href = `${ window.location.window.location.origin }/oidc/authorize${ rancherAsOidcProvider }&code_challenge_method=S256`;
+    window.location.href = `${ window.location.origin }/oidc/authorize${ rancherAsOidcProvider }&code_challenge_method=S256`;
     cookies.remove(RANCHER_AS_OIDC_COOKIE);
   }
 }
@@ -23,6 +26,8 @@ export function install(router, context) {
 export async function authenticate(to, from, next, { store }) {
   if (!routeRequiresAuthentication(to)) {
     if (to.name === 'auth-login' && checkIfIsRancherAsOidcProviderLogin(to.query)) {
+      // eslint-disable-next-line no-console
+      console.error('WE ARE ON OIDC WORLD!!!!', window.location.search);
       const queryString = window.location.search;
 
       cookies.set(RANCHER_AS_OIDC_COOKIE, queryString, {
