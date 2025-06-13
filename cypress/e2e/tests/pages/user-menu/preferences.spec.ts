@@ -239,7 +239,7 @@ describe('User can update their preferences', () => {
     });
     prefPage.viewInApiCheckbox().isChecked();
 
-    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL).then((url) => {
+    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL, { sspEnabled: true, isList: true }).then((url) => {
       repoListPage.waitForGoTo(url);
     });
 
@@ -256,7 +256,7 @@ describe('User can update their preferences', () => {
     });
     prefPage.viewInApiCheckbox().isUnchecked();
 
-    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL).then((url) => {
+    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL, { sspEnabled: true, isList: true }).then((url) => {
       repoListPage.waitForGoTo(url);
     });
 
