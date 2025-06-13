@@ -113,16 +113,16 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
 
     // Select and expand current top-level group
     group.click();
-    const homepage = new ClusterDashboardPagePo('local');
+    const clusterDashboard = new ClusterDashboardPagePo('local');
 
-    homepage.waitForPage();
+    clusterDashboard.waitForPage();
 
     // Go to the second subgroup
     productNavPo.visibleNavTypes().eq(2).click({ force: true });
 
     // Clicking back should take us back to clusters
     productNavPo.tabHeaders().eq(0).click(1, 1);
-    homepage.waitForPage();
+    clusterDashboard.waitForPage();
   });
 
   after(() => {
