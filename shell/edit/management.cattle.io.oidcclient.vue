@@ -13,6 +13,9 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading.vue';
 import FormValidation from '@shell/mixins/form-validation';
+import { RcItemCard } from '@components/RcItemCard';
+import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import { base64Decode } from '@shell/utils/crypto';
 
 const OIDC_SECRETS_NAMESPACE = 'cattle-oidc-client-secrets';
 
@@ -35,6 +38,8 @@ type SecretActionType = (typeof SECRET_ACTION)[keyof typeof SECRET_ACTION];
 
 interface secretManageData {
     id: string,
+    header?: any,
+    image?: any,
     createdAt: string,
     lastFiveCharacters: string,
     lastUsedAt: string,
@@ -43,6 +48,8 @@ interface secretManageData {
 }
 
 export default defineComponent({
+  emits: ['regenerateSecret', 'removeSecret'],
+
   components: {
     CruResource,
     LabeledInput,
@@ -50,6 +57,8 @@ export default defineComponent({
     UnitInput,
     CopyToClipboardText,
     DateComponent,
+    RcItemCard,
+    ActionMenu,
     Loading
   },
 
@@ -66,7 +75,6 @@ export default defineComponent({
 
   data() {
     let displayFirstSecret = false;
-    const schemaOidcClient = this.$store.getters[`management/schemaFor`](MANAGEMENT.OIDC_CLIENT);
 
     // setup the data for creation scenario
     if (this.mode === _CREATE) {
@@ -90,23 +98,29 @@ export default defineComponent({
       }
     }
 
-    console.warn('schemaOidcClient', schemaOidcClient);
-    console.warn('value', this.value);
-    console.warn('displayFirstSecret', displayFirstSecret);
-
     return {
       displayFirstSecret,
       snapshotSecretsOnLoad: Object.assign({}, this.value?.status?.clientSecrets),
       secretsRegenerated:    [],
       SECRET_ACTION,
       errors:                [],
-      secretsData:           [],
+      secretsData:           undefined,
       fvFormRuleSets:        [
         { path: 'metadata.name', rules: ['required'] },
         { path: 'spec.redirectURIs', rules: ['required', 'genericUrl'] },
         { path: 'spec.refreshTokenExpirationSeconds', rules: ['required'] },
         { path: 'spec.tokenExpirationSeconds', rules: ['required'] },
       ],
+      cardActions: [
+        {
+          action: 'regenerateSecret',
+          label:  this.t('oidcclient.regenerate')
+        },
+        {
+          action: 'removeSecret',
+          label:  this.t('generic.remove')
+        }
+      ]
     };
   },
 
@@ -135,11 +149,6 @@ export default defineComponent({
       const actualSecretData: Record<string, any> = this.secretsData?.find((secret: any) => secret.metadata?.namespace === OIDC_SECRETS_NAMESPACE && secret.metadata?.ownerReferences?.find((ref: any) => ref.name === this.value?.id)) || {};
       const oidcClientSecretsData = this.value?.status?.clientSecrets ? Object.entries(this.value?.status?.clientSecrets) : [];
 
-      console.error('actualSecretData k8s resource', actualSecretData);
-      console.error('oidcClientSecretsData', oidcClientSecretsData);
-      console.error('snapshotSecretsOnLoad', this.snapshotSecretsOnLoad);
-      console.error('secretsRegenerated', this.secretsRegenerated);
-
       oidcClientSecretsData.forEach((item: any, index: number) => {
         if (item[0] && item[1]) {
           const oidcSecretDataKey = item[0];
@@ -161,8 +170,15 @@ export default defineComponent({
             displayFullSecret = true;
           }
 
+          // this covers the removal, then adding a new secret again... We need to compare keys so that we can check it's new and render it
+          if (this.snapshotSecretsOnLoad[oidcSecretDataKey] && (this.snapshotSecretsOnLoad[oidcSecretDataKey].lastFiveCharacters !== oidcSecretData.lastFiveCharacters)) {
+            displayFullSecret = true;
+          }
+
           clientSecrets.push({
             id:                 oidcSecretDataKey,
+            header:             { title: { text: oidcSecretDataKey } },
+            image:              { src: require('~shell/assets/images/key.svg') },
             createdAt,
             lastFiveCharacters: oidcSecretData.lastFiveCharacters,
             lastUsedAt,
@@ -324,7 +340,7 @@ export default defineComponent({
           data-testid="oidc-clients-copy-clipboard-client-id"
         />
       </h3>
-      <!-- managing secrets -->
+      <!-- secrets cards -->
       <div
         v-if="!isCreate"
         class="mb-20"
@@ -332,55 +348,67 @@ export default defineComponent({
         <h3 class="mt-20 mb-20">
           {{ t('oidcclient.clientSecrets') }}
         </h3>
-        <div
+        <rc-item-card
           v-for="(secret, i) in clientSecrets"
-          :key="`secret-id-${i}`"
-          class="custom-card"
+          :id="secret.id"
+          :key="secret.id"
+          class="card-item"
+          :header="secret.header"
+          :image="secret.image"
+          :value="secret"
+          variant="medium"
+          :clickable="false"
         >
-          <div class="custom-card-content">
-            <p v-if="secret.displayFullSecret && isView">
+          <template #item-card-content>
+            <p
+              v-if="secret.displayFullSecret && isView"
+              class=""
+            >
               <CopyToClipboardText
                 :aria-label="t('oidcclient.a11y.copyText.clientSecret')"
                 :text="secret.decodedData"
                 :data-testid="`oidc-client-secret-${i}-copy-full-secret`"
               />
             </p>
-            <p v-else>
+            <p
+              v-else
+              class=""
+            >
               ********{{ secret.lastFiveCharacters }}
             </p>
-            <p>
-              <span>{{ t('generic.created') }}: </span>
-              <span><DateComponent :value="secret.createdAt" /></span>
-            </p>
-            <p>
-              <span>{{ t('tableHeaders.lastUsed') }}: </span>
-              <span v-if="!secret.lastUsedAt">{{ t('oidcclient.usedNever') }}</span>
-              <span v-else><DateComponent :value="secret.lastUsedAt" /></span>
-            </p>
-          </div>
-          <div class="custom-card-actions">
-            <button
-              class="btn-sm role-primary"
-              :data-testid="`oidc-client-secret-${i}-regen-secret`"
-              :disabled="isEdit ? 'true' : undefined"
-              @click="promptSecretsModal(SECRET_ACTION.REGEN, secret)"
-            >
-              {{ t('oidcclient.regenerate') }}
-            </button>
-            <button
-              class="btn-sm role-primary"
-              :data-testid="`oidc-client-secret-${i}-remove-secret`"
-              :disabled="isEdit ? 'true' : undefined"
-              @click="promptSecretsModal(SECRET_ACTION.REMOVE, secret)"
-            >
-              {{ t('generic.remove') }}
-            </button>
-          </div>
-        </div>
+          </template>
+          <template
+            #item-card-footer
+          >
+            <div class="card-footer">
+              <p class="mr-40">
+                <span class="card-footer-title">{{ t('generic.created') }}: </span>
+                <span><DateComponent :value="secret.createdAt" /></span>
+              </p>
+              <p>
+                <span class="card-footer-title">{{ t('tableHeaders.lastUsed') }}: </span>
+                <span v-if="!secret.lastUsedAt">{{ t('oidcclient.usedNever') }}</span>
+                <span v-else><DateComponent :value="secret.lastUsedAt" /></span>
+              </p>
+            </div>
+          </template>
+          <template
+            v-if="!isEdit"
+            #item-card-actions
+          >
+            <ActionMenu
+              :data-testid="`oidc-client-secret-${i}-action-menu`"
+              :resource="secret"
+              :custom-actions="cardActions"
+              @regenerateSecret="promptSecretsModal(SECRET_ACTION.REGEN, secret)"
+              @removeSecret="promptSecretsModal(SECRET_ACTION.REMOVE, secret)"
+            />
+          </template>
+        </rc-item-card>
         <button
-          class="btn role-primary mt-20"
+          v-if="!isEdit"
+          class="btn role-primary mt-10"
           data-testid="oidc-client-add-new-secret"
-          :disabled="isEdit ? 'true' : undefined"
           @click="addNewSecret"
         >
           {{ t('oidcclient.addNewSecret') }}
@@ -449,26 +477,22 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
-.custom-card {
+.card-item:not(:last-child) {
+  margin-bottom: 24px;
+}
+
+.card-footer {
   display: flex;
-  border: 1px solid black;
-  padding: 20px;
 
-  .custom-card-content {
-    flex-grow: 1;
+  p {
+    color: var(--link-text-secondary);
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0%;
 
-    p {
-      margin-bottom: 10px;
-    }
-  }
-
-  .custom-card-actions {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 20px;
-
-    button:first-child {
-      margin-bottom: 10px;
+    .card-footer-title {
+      text-decoration: underline;
     }
   }
 }

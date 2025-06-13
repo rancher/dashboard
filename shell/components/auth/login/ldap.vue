@@ -30,8 +30,7 @@ export default {
           body:     {
             username: this.username,
             password: this.password
-          },
-          queryParams: this.$route.query
+          }
         });
 
         await loadPlugins({
