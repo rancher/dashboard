@@ -106,6 +106,10 @@ export function init(store) {
     POD,
   ], 'workload');
 
+  setGroupDefaultType('workload', () => {
+    return store.getters['features/get'](STEVE_CACHE) ? WORKLOAD_TYPES.DEPLOYMENT : undefined;
+  });
+
   weightGroup('cluster', 99, true);
   weightGroup('workload', 98, true);
   weightGroup('serviceDiscovery', 96, true);
