@@ -19,12 +19,8 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
     describe('Rancher Backups storage class config', () => {
       beforeEach(() => {
-        cy.pathWithDefaultSteveParams('/v1/storage.k8s.io.storageclasses', { sspEnabled: true, isList: true }).then((url) => {
-          cy.intercept(url).as('storageClasses');
-        });
-        cy.pathWithDefaultSteveParams('/v1/persistentvolumes', { sspEnabled: true, isList: true }).then((url) => {
-          cy.intercept(url).as('persistentVolumes');
-        });
+        cy.intercept('/v1/storage.k8s.io.storageclasses?*').as('storageClasses');
+        cy.intercept('/v1/persistentvolumes?*').as('persistentVolumes');
 
         cy.createRancherResource('v1', STORAGE_CLASS_RESOURCE, JSON.stringify(defaultStorageClass));
         cy.createRancherResource('v1', STORAGE_CLASS_RESOURCE, JSON.stringify(exampleStorageClass));

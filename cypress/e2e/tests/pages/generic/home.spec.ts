@@ -14,16 +14,13 @@ const longClusterDescription = 'this-is-some-really-really-really-really-really-
 function goToHomePageAndSettle() {
   // Reset the home page cards pref so that everything is shown
   cy.setUserPreference({ 'home-page-cards': '{}' });
-
-  cy.pathWithDefaultSteveParams('/v1/provisioning.cattle.io.clusters', { sspEnabled: true, isList: true }).then((url) => {
-    cy.intercept('GET', url, {
-      statusCode: 200,
-      body:       {
-        count: 0,
-        data:  [],
-      },
-    }).as('fetchClustersHomePage');
-  });
+  cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?*', {
+    statusCode: 200,
+    body:       {
+      count: 0,
+      data:  [],
+    },
+  }).as('fetchClustersHomePage');
 
   // Go to the home page
   HomePagePo.goToAndWaitForGet();

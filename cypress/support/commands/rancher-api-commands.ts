@@ -1169,12 +1169,3 @@ Cypress.Commands.add('createService', (namespace: string, name: string, options:
     return resp.body.metadata.name;
   });
 });
-
-/**
- * Supplement the provided path for a collection of steve resources with default steve query params
- */
-Cypress.Commands.add('pathWithDefaultSteveParams', (path?: string, args?: { isList?: boolean, sspEnabled?: boolean, queryParams?: string[], blockList?: string[]}) => {
-  return RequestUtils.initializeIsVaiCache().then(() => {
-    return cy.wrap(RequestUtils.pathWithDefaultSteveParams(path, args));
-  });
-});

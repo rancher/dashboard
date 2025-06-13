@@ -15,18 +15,7 @@ export class APIServicesPagePo extends PagePo {
   }
 
   waitForRequests() {
-    cy.pathWithDefaultSteveParams(
-      '/v1/apiregistration.k8s.io.apiservices',
-      {
-        queryParams: ['page=1', 'pagesize=100', 'sort=metadata.name'],
-        blockList:   ['pagesize'],
-        sspEnabled:  true,
-        isList:      true,
-      }).then((url) => {
-      APIServicesPagePo.goToAndWaitForGet(this.goTo.bind(this), [
-        url
-      ]);
-    });
+    APIServicesPagePo.goToAndWaitForGet(this.goTo.bind(this), [`/v1/apiregistration.k8s.io.apiservices?*`]);
   }
 
   resourcesList() {

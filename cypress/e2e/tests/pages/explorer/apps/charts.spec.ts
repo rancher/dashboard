@@ -151,19 +151,17 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   it('A disabled repo should NOT be listed on the repos dropdown', () => {
     const disabledRepoId = 'disabled-repo';
 
-    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL, { sspEnabled: true, isList: true }).then((url) => {
-      cy.intercept('GET', url, (req) => {
-        req.reply({
-          statusCode: 200,
-          body:       {
-            data: [
-              { id: disabledRepoId, spec: { enabled: false } }, // disabled
-              { id: 'enabled-repo-1', spec: { enabled: true } }, // enabled
-              { id: 'enabled-repo-2', spec: {} } // enabled
-            ]
-          }
-        });
-      }).as('getRepos');
+    cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }?*`, (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       {
+          data: [
+            { id: disabledRepoId, spec: { enabled: false } }, // disabled
+            { id: 'enabled-repo-1', spec: { enabled: true } }, // enabled
+            { id: 'enabled-repo-2', spec: {} } // enabled
+          ]
+        }
+      });
     });
 
     cy.wait('@getRepos');

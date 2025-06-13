@@ -229,9 +229,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   it('can create an oci repository with basic auth', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL, { sspEnabled: true, isList: true }).then((url) => {
-      repositoriesPage.waitForGoTo(url);
-    });
+    repositoriesPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
     repositoriesPage.create();
     repositoriesPage.createEditRepositories().waitForPage();
     const ociUrl = 'oci://test.rancher.io/charts/mychart';

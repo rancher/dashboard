@@ -77,15 +77,12 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
       .then(() => create(cloudCredsToCreate[2]))
       .then(() => {
         clusterList.goTo();
-
-        cy.pathWithDefaultSteveParams('/v1/provisioning.cattle.io.clusters', { sspEnabled: true, isList: true }).then((url) => {
-          cy.intercept('GET', url, (req) => {
-            req.reply({
-              statusCode: 200,
-              body:       clusterProvDigitalOceanSingleResponse(clusterName, doCreatedCloudCredsIds[doCreatedCloudCredsIds.length - 1], machinePoolId),
-            });
-          }).as('dummyClusterListLoad');
-        });
+        cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?*', (req) => {
+          req.reply({
+            statusCode: 200,
+            body:       clusterProvDigitalOceanSingleResponse(clusterName, doCreatedCloudCredsIds[doCreatedCloudCredsIds.length - 1], machinePoolId),
+          });
+        }).as('dummyClusterListLoad');
 
         clusterList.checkIsCurrentPage();
         clusterList.editCluster(clusterName);

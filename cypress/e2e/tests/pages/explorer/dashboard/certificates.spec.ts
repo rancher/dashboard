@@ -65,14 +65,10 @@ describe('Certificates', { testIsolation: 'off', tags: ['@explorer', '@adminUser
   });
 
   it("show correct 'expired' states", () => {
-    cy.pathWithDefaultSteveParams('/v1/secrets', {
-      sspEnabled: true, isList: true, queryParams: ['filter=metadata.fields.1~kubernetes.io/tls']
-    }).then((url) => {
-      cy.intercept('GET', url, (req) => {
-        req.reply((res) => {
-          res.body.data.push(expiredCert);
-          res.body.count += 1;
-        });
+    cy.intercept('GET', '/v1/secrets?*', (req) => {
+      req.reply((res) => {
+        res.body.data.push(expiredCert);
+        res.body.count += 1;
       });
     });
 

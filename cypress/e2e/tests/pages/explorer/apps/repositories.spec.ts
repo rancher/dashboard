@@ -13,10 +13,7 @@ describe('Apps', () => {
         cy.login();
 
         appRepoList.goTo();
-
-        cy.pathWithDefaultSteveParams(CLUSTER_REPOS_BASE_URL, { sspEnabled: true, isList: true }).then((url) => {
-          appRepoList.waitForGoTo(url);
-        });
+        appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
 
         cy.createE2EResourceName('helm-repo-dupe-test').as('helmRepoDupeName');
       });
