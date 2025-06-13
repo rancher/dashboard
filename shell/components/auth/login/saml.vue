@@ -23,7 +23,7 @@ export default {
         });
 
         // eslint-disable-next-line no-console
-        console.error('SAML - PROMISE RESOLVED');
+        console.error('SAML - PROMISE RESOLVED', res);
 
         if (res?.idpRedirectUrl) {
           // eslint-disable-next-line no-console
