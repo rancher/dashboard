@@ -30,8 +30,6 @@ export async function authenticate(to, from, next, { store }) {
         sameSite: true,
         secure:   true,
       });
-    } else {
-      cookies.remove(RANCHER_AS_OIDC_COOKIE);
     }
 
     return next();
