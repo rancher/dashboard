@@ -859,6 +859,10 @@ asyncButton:
     action: Resume Orchestration
     success: Resumed Orchestration
     waiting: Resuming Orchestration
+  redeploy:
+    action: Redeploy
+    success: Redeployed
+    waiting: Redeploying Workload
   rollback:
     action: Roll Back
     success: Rolled Back
@@ -3991,7 +3995,7 @@ namespaceFilter:
   input: Filter namespace options
   button:
     clear: Remove applied namespace filters
-    clearFilter: Clear namespace options filter 
+    clearFilter: Clear namespace options filter
 
 namespaceList:
   selectLabel: Namespace
@@ -5023,6 +5027,10 @@ promptRollback:
   currentLabel: "(Current)"
   multipleWorkloadError: "Only one workload can be rolled back at a time."
   singleRevisionBanner: There are no revisions to roll back to.
+
+promptRedeploy:
+  title: Redeploy {type}?
+  attemptingToRedeploy: "You are attempting to redeploy the {type} {names}<br><br>Redeploying will restart the selected workloads and may cause temporary downtime."
 
 promptRotateEncryptionKey:
   title: Rotate Encryption Keys
@@ -8235,7 +8243,7 @@ errors:
   maxLimitExceded: is too big
   messageAndDetail: '{message} ({detail})'
   messageOrDetail: '{val}'
-  failedInApi: 
+  failedInApi:
     withName:
       withCodeExplanation:
         withMessageDetail: 'Validation failed in API: {name} {codeExplanation}: {messageDetail}'
@@ -8243,7 +8251,7 @@ errors:
       withMessageDetail: 'Validation failed in API: {name} {messageDetail}'
       withoutAnythingElse: 'Validation failed in API: {name} '
     withoutName:
-      withMessageDetail: 
+      withMessageDetail:
         withCodeExplanation: 'Validation failed in API: {codeExplanation}: {messageDetail}'
         withoutCodeExplanation: 'Validation failed in API: {messageDetail}'
       withCode:
