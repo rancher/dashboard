@@ -22,11 +22,20 @@ export default {
           queryParams: this.$route.query
         });
 
+        // eslint-disable-next-line no-console
+        console.error('SAML - PROMISE RESOLVED');
+
         if (res?.idpRedirectUrl) {
+          // eslint-disable-next-line no-console
+          console.error('SAML - REDIRECT');
+
           window.location.href = res.idpRedirectUrl;
         }
       } catch (err) {
         this.err = err;
+
+        // eslint-disable-next-line no-console
+        console.error('SAML - WE ARE ON ERROR STATUS');
 
         // emit error to parent so that it can displayed on the error Banner
         this.$emit('error', err);
