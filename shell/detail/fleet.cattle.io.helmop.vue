@@ -12,7 +12,7 @@ import FleetBundles from '@shell/components/fleet/FleetBundles.vue';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 export default {
-  name: 'DetailGitRepo',
+  name: 'DetailsHelmOp',
 
   emits: ['input'],
 
@@ -48,7 +48,7 @@ export default {
 
   computed: {
     ...mapState(['workspace']),
-    gitRepoHasClusters() {
+    helmOpHasClusters() {
       return this.value.status?.desiredReadyClusters;
     },
     clusterSchema() {
@@ -118,7 +118,7 @@ export default {
     class="mt-20"
   >
     <FleetSummary
-      v-if="gitRepoHasClusters"
+      v-if="helmOpHasClusters"
       :value="value"
       :bundles="bundles"
       class="mb-20"
@@ -128,7 +128,7 @@ export default {
       color="info"
       class="mb-20"
     >
-      {{ t('fleet.fleetSummary.noClusters.gitRepo') }}
+      {{ t('fleet.fleetSummary.noClusters.helmOp') }}
     </Banner>
     <ResourceTabs
       :value="value"

@@ -1,30 +1,30 @@
-<script>
-import ResourceTable from '@shell/components/ResourceTable';
-import FleetIntro from '@shell/components/fleet/FleetIntro';
-
+<script lang="ts">
+import { PropType } from 'vue';
+import { Application } from '@shell/types/fleet';
+import ResourceTable from '@shell/components/ResourceTable.vue';
+import FleetIntro from '@shell/components/fleet/FleetIntro.vue';
 import {
   AGE,
-  FLEET_REPO,
-  FLEET_REPO_CLUSTER_SUMMARY,
-  FLEET_APPLICATION_CLUSTERS_READY,
-  FLEET_REPO_PER_CLUSTER_STATE,
-  FLEET_REPO_TARGET,
-  FLEET_SUMMARY,
   NAME,
   STATE,
+  FLEET_APPLICATION_TYPE,
+  FLEET_APPLICATION_SOURCE,
+  FLEET_APPLICATION_TARGET,
+  FLEET_APPLICATION_CLUSTERS_READY,
+  FLEET_APPLICATION_RESOURCES_SUMMARY,
 } from '@shell/config/table-headers';
 
 export default {
-
-  name: 'FleetRepos',
+  name: 'FleetApplications',
 
   components: {
     FleetIntro,
     ResourceTable,
   },
+
   props: {
-    rows: {
-      type:     Array,
+    schema: {
+      type:     Object,
       required: true,
     },
 
@@ -39,8 +39,8 @@ export default {
       default:  null,
     },
 
-    schema: {
-      type:     Object,
+    rows: {
+      type:     Array as PropType<Application[]>,
       required: true,
     },
 
@@ -61,6 +61,10 @@ export default {
   },
 
   computed: {
+    createLocation() {
+      return { name: 'c-cluster-fleet-application-create' };
+    },
+
     filteredRows() {
       if (!this.rows) {
         return [];
@@ -81,41 +85,28 @@ export default {
       return !!this.clusterId;
     },
 
-    noRows() {
-      return !this.filteredRows.length;
-    },
-
-    headers() {
-      // Cluster summary is only shown in the cluster view
-      const summary = this.isClusterView ? [{
-        ...FLEET_REPO_CLUSTER_SUMMARY,
-        formatterOpts: { clusterId: this.clusterId },
-      }] : [FLEET_APPLICATION_CLUSTERS_READY, FLEET_SUMMARY];
-
-      // if hasPerClusterState then use the repo state
-      const state = this.isClusterView ? {
-        ...FLEET_REPO_PER_CLUSTER_STATE,
-        value: (repo) => repo.clusterState(this.clusterId),
-      } : STATE;
-
-      return [
-        state,
-        NAME,
-        FLEET_REPO,
-        FLEET_REPO_TARGET,
-        ...summary,
-        AGE
-      ];
-    },
-
     shouldShowIntro() {
       return this.showIntro && !this.filteredRows.length;
     },
-  },
-  methods: {
-    parseTargetMode(row) {
-      return row.targetInfo?.mode === 'clusterGroup' ? this.t('fleet.gitRepo.warningTooltip.clusterGroup') : this.t('fleet.gitRepo.warningTooltip.cluster');
+
+    headers() {
+      return [
+        STATE,
+        NAME,
+        FLEET_APPLICATION_TYPE,
+        FLEET_APPLICATION_SOURCE,
+        FLEET_APPLICATION_TARGET,
+        FLEET_APPLICATION_CLUSTERS_READY,
+        FLEET_APPLICATION_RESOURCES_SUMMARY,
+        AGE
+      ];
     },
+  },
+
+  methods: {
+    getDetailLocation(row: Application) {
+      return row._detailLocation;
+    }
   },
 };
 </script>
@@ -125,19 +116,22 @@ export default {
     <FleetIntro
       v-if="shouldShowIntro && !loading"
       :schema="schema"
-      :labelKey="'gitRepo'"
-      :icon="'icon-github'"
+      :is-creatable="true"
+      :labelKey="'application'"
+      :route="createLocation"
+      :icon="'icon-repository'"
     />
     <ResourceTable
       v-if="!shouldShowIntro"
       v-bind="$attrs"
+      key-field="_key"
       :schema="schema"
       :headers="headers"
-      :rows="rows"
+      :rows="filteredRows"
+      :get-custom-detail-link="getDetailLocation"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :namespaced="!workspace"
-      key-field="_key"
     />
   </div>
 </template>

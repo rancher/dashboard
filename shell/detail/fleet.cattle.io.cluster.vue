@@ -1,10 +1,10 @@
 <script>
 import Loading from '@shell/components/Loading';
 import ResourcesSummary from '@shell/components/fleet/ResourcesSummary';
-import FleetRepos from '@shell/components/fleet/FleetRepos';
+import FleetApplications from '@shell/components/fleet/FleetApplications';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Tab from '@shell/components/Tabbed/Tab';
-import { MANAGEMENT, FLEET } from '@shell/config/types';
+import { MANAGEMENT, FLEET, SCHEMA } from '@shell/config/types';
 import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { allHash } from 'utils/promise';
 
@@ -16,7 +16,7 @@ export default {
   components: {
     Loading,
     ResourcesSummary,
-    FleetRepos,
+    FleetApplications,
     ResourceTabs,
     Tab,
   },
@@ -35,17 +35,27 @@ export default {
         type: MANAGEMENT.CLUSTER,
         id:   managementClusterId
       }),
-      repos:             this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO }),
+      gitRepos:          this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO }),
+      helmOps:           this.$store.dispatch('management/findAll', { type: FLEET.HELM_OP }),
       workspaces:        this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE }),
       bundleDeployments: this.$store.dispatch('management/findAll', { type: FLEET.BUNDLE_DEPLOYMENT })
     });
 
     this.rancherCluster = hash.rancherCluster;
-    this.allRepos = hash.repos;
+    this.gitRepos = hash.gitRepos;
+    this.helmOps = hash.helmOps;
   },
 
   data() {
-    return { rancherCluster: null, allRepos: [] };
+    return {
+      rancherCluster: null,
+      gitRepos:       [],
+      helmOps:        [],
+      appSchema:      {
+        id:   FLEET.APPLICATION,
+        type: SCHEMA,
+      },
+    };
   },
 
   computed: {
@@ -53,14 +63,17 @@ export default {
       return this.value.id;
     },
 
-    repos() {
-      return this.allRepos.filter((x) => {
+    rows() {
+      return [
+        ...this.gitRepos,
+        ...this.helmOps
+      ].filter((x) => {
         return x.targetClusters.includes(this.value);
       });
     },
 
-    repoSchema() {
-      return this.$store.getters['management/schemaFor'](FLEET.GIT_REPO);
+    typeLabel() {
+      return this.t(`typeLabel."${ FLEET.APPLICATION }"`, { count: 2 });
     },
   },
 };
@@ -82,14 +95,14 @@ export default {
       @update:value="$emit('input', $event)"
     >
       <Tab
-        label="Git Repos"
-        name="repos"
+        :label="typeLabel"
+        name="applications"
         :weight="19"
       >
-        <FleetRepos
+        <FleetApplications
           :clusterId="clusterId"
-          :rows="repos"
-          :schema="repoSchema"
+          :rows="rows"
+          :schema="appSchema || {}"
           :paging="true"
           paging-label="sortableTable.paging.resource"
         />

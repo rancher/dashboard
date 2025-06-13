@@ -761,6 +761,52 @@ export const FLEET_SUMMARY = {
   width:     100,
 };
 
+export const FLEET_APPLICATION_TYPE = {
+  name:     'applicationType',
+  labelKey: 'fleet.tableHeaders.applicationType',
+  value:    'kind',
+  sort:     'kind',
+  search:   false,
+  align:    'center',
+  width:    100,
+};
+
+export const FLEET_APPLICATION_SOURCE = {
+  name:      'applicationSource',
+  labelKey:  'fleet.tableHeaders.applicationSource',
+  value:     'source.value',
+  formatter: 'FleetApplicationSource',
+  sort:      'source.value',
+  search:    ['source.value', 'sourceSub.value'],
+};
+
+export const FLEET_APPLICATION_TARGET = {
+  name:     'applicationTarget',
+  labelKey: 'fleet.tableHeaders.applicationTarget',
+  value:    'targetInfo.modeDisplay',
+  sort:     ['targetInfo.modeDisplay', 'targetInfo.cluster', 'targetInfo.clusterGroup'],
+};
+
+export const FLEET_APPLICATION_CLUSTERS_READY = {
+  name:      'applicationClustersReady',
+  labelKey:  'fleet.tableHeaders.applicationClustersReady',
+  value:     'readyClusters',
+  formatter: 'FleetApplicationClustersReady',
+  sort:      'readyClusters',
+  search:    false,
+};
+
+export const FLEET_APPLICATION_RESOURCES_SUMMARY = {
+  name:      'applicationResourcesSummary',
+  labelKey:  'fleet.tableHeaders.applicationResourcesSummary',
+  value:     'status.resourceCounts',
+  sort:      false,
+  search:    false,
+  formatter: 'FleetSummaryGraph',
+  align:     'center',
+  width:     100,
+};
+
 export const FLEET_REPO_CLUSTER_SUMMARY = {
   name:      'clusterSummary',
   labelKey:  'tableHeaders.clusterResources',
@@ -1052,37 +1098,20 @@ export const FLEET_BUNDLE_LAST_UPDATED = {
   sort:          ['lastUpdateTime']
 };
 
-export const FLEET_BUNDLE_TYPE = {
-  name:     'bundleType',
-  labelKey: 'tableHeaders.fleetBundleType',
-  value:    'bundleType',
-  sort:     ['bundleType'],
-  width:    100,
-};
-
-export const FLEET_REPO_CLUSTERS_READY = {
-  name:     'clustersReady',
-  labelKey: 'tableHeaders.clustersReady',
-  value:    'status.readyClusters',
-  sort:     'status.readyClusters',
-  search:   false,
-};
-
 export const FLEET_REPO_TARGET = {
   name:     'target',
   labelKey: 'tableHeaders.target',
   value:    'targetInfo.modeDisplay',
   sort:     ['targetInfo.modeDisplay', 'targetInfo.cluster', 'targetInfo.clusterGroup'],
-
 };
 
 export const FLEET_REPO = {
   name:      'repo',
   labelKey:  'tableHeaders.repo',
-  value:     'repoDisplay',
-  formatter: 'FleetRepo',
-  sort:      'repoDisplay',
-  search:    ['spec.repo', 'status.commit'],
+  value:     'source.value',
+  formatter: 'FleetApplicationSource',
+  sort:      'source.value',
+  search:    ['source.value', 'sourceSub.value'],
 };
 
 export const UI_PLUGIN_CATALOG = [

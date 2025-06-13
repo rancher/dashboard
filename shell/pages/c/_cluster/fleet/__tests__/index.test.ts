@@ -42,8 +42,9 @@ const fleetWorkspaces = [
       },
       uid: 'c117994d-5d21-4ac5-97be-15f25c5e8801'
     },
-    status: {},
-    repos:  [{ name: 'lots-a' }]
+    status:  {},
+    repos:   [{ name: 'lots-a' }],
+    helmOps: [{ name: 'lots-b' }]
   },
   {
     id:         'fleet-default',
@@ -84,8 +85,9 @@ const fleetWorkspaces = [
       },
       uid: 'c117994d-5d21-4ac5-97be-15f25c5e8801'
     },
-    status: {},
-    repos:  [{ name: 'lots-c' }]
+    status:  {},
+    repos:   [{ name: 'lots-c' }],
+    helmOps: [{ name: 'lots-d' }]
   }
 ];
 
@@ -270,10 +272,13 @@ const gitRepos = [
   }
 ];
 
+const mockedPresetMixin = { methods: { preset: jest.fn() } };
+
 const requiredSetup = (computed = {}, dataProps = {}) => {
   return {
     global: {
-      mocks: {
+      mixins: [mockedPresetMixin],
+      mocks:  {
         $store: {
           getters: {
             currentProduct:         { inStore: 'cluster' },
@@ -296,6 +301,7 @@ const requiredSetup = (computed = {}, dataProps = {}) => {
       ...computed
     },
     data: () => ({
+      presetVersion:         '',
       permissions:           {},
       FLEET,
       [FLEET.GIT_REPO]:      [],
