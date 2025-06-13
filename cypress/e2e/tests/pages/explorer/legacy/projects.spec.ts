@@ -23,6 +23,7 @@ describe('Legacy: Projects', { tags: ['@explorer', '@adminUser', '@ember'], test
         if (item.spec.displayName === 'Default') {
           const id = item.metadata.name;
 
+          // testing
           cy.updateNamespaceFilter('local', 'none', `{"local":["project://${ id }"]}`);
         }
       });
