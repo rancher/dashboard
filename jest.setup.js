@@ -72,11 +72,7 @@ jest.spyOn(console, 'warn').mockImplementation((warning) => warning.includes('[V
 jest.mock('@shell/composables/useI18n', () => {
   return {
     useI18n() {
-      return {
-        t(key) {
-          return key;
-        }
-      };
+      return { t: (key, options) => `${ key }${ options ? `-${ JSON.stringify(options) }` : '' }` };
     }
   };
 });

@@ -317,6 +317,37 @@ BODY, .theme-light {
       }
   }
 
+  --disabled : #{$disabled};
+  --disabled-text : #{contrast-color($disabled)};
+  --disabled-hover-bg : #{darken($disabled, 10%)};
+  --disabled-hover-text : #{saturate($lightest, 20%)};
+  --disabled-active-bg : #{darken($disabled, 25%)};
+  --disabled-active-text : #{contrast-color(darken($disabled, 25%))};
+  --disabled-border : #{$disabled};
+  --disabled-banner-bg : #{rgba($disabled, 0.15)};
+  --disabled-light-bg : #{rgba($disabled, 0.05)};
+
+
+  .text-disabled {
+    color: var(--disabled) !important;
+  }
+
+  .bg-disabled {
+    background-color: var(--disabled);
+    color: var(--disabled-text);
+
+    &.btn:hover {
+      color: var(--disabled-hover-text);
+      background: var(--disabled-hover-bg);
+      transition: all 0.3s ease;
+    }
+
+    &.btn:active {
+      color: var(--disabled-active-text);
+      background: var(--disabled-active-bg);
+    }
+  }
+
 
   --body-bg                    : #{$lightest};
   --body-text                  : #{$darkest};
@@ -585,4 +616,5 @@ BODY, .theme-light {
   --click-badge-info           : #{$lightest};
   --click-badge-info-bg        : #{$info};
   --click-badge-info-border    : #2673A6;
+  --bubble-bg                : #{$lighter};
 }
