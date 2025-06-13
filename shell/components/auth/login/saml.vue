@@ -1,6 +1,7 @@
 <script>
 import Login from '@shell/mixins/login';
 export default {
+  emits:  ['error'],
   mixins: [Login],
 
   methods: {
@@ -9,19 +10,26 @@ export default {
       console.error('LOGGING IN WITH SAML!');
       const { requestId, publicKey, responseType } = this.$route.query;
 
-      const res = await this.$store.dispatch('auth/login', {
-        provider: this.name,
-        body:     {
-          finalRedirectUrl: window.location.origin,
-          requestId,
-          publicKey,
-          responseType
-        },
-        queryParams: this.$route.query
-      });
+      try {
+        const res = await this.$store.dispatch('auth/login', {
+          provider: this.name,
+          body:     {
+            finalRedirectUrl: window.location.origin,
+            requestId,
+            publicKey,
+            responseType
+          },
+          queryParams: this.$route.query
+        });
 
-      if (res.idpRedirectUrl) {
-        window.location.href = res.idpRedirectUrl;
+        if (res?.idpRedirectUrl) {
+          window.location.href = res.idpRedirectUrl;
+        }
+      } catch (err) {
+        this.err = err;
+
+        // emit error to parent so that it can displayed on the error Banner
+        this.$emit('error', err);
       }
     },
   },
