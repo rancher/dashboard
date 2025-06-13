@@ -395,7 +395,7 @@ export const actions = {
         // eslint-disable-next-line no-console
         console.error('window.location.href', window.location.href);
 
-        return Promise.resolve();
+        return Promise.reject(new Error('We are on Rancher as an OIDC provider world. Redirecting'));
       }
 
       return res;
