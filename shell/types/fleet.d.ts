@@ -32,5 +32,5 @@ export interface Application {
   }
   _detailLocation: {
     name: string
-  } 
+  }
 }
