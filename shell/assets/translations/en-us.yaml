@@ -125,6 +125,7 @@ generic:
   shortFeatured: Feat
   category: Category
   tags: Tags
+  tag: Tag
   placeholder: "e.g. {text}"
   moreInfo: More Info
   selectors:
@@ -150,6 +151,7 @@ generic:
   showLess: Show less
   showMore: Show more
   opensInNewTab: Opens in a new tab
+  
 
 locale:
   menu: Locale selector menu
@@ -1028,9 +1030,6 @@ catalog:
     experimentalWarning: '{chartName} has been marked as experimental. Use caution when installing this helm chart as it might not function as expected.'
     deprecatedAndExperimentalWarning: '{chartName} has been marked as deprecated and experimental. Use caution when installing this helm chart as it might be removed in the future and might not function as expected.'
   charts:
-    browseBtn: Browse
-    featuredBtn: Featured
-    featuredAriaLabel: Show Featured Charts Carousel and charts grid
     browseAriaLabel: Show only charts grid
     iconAlt: Icon for {app} card/grid item
     refresh: refresh charts
@@ -1056,6 +1055,14 @@ catalog:
     search: Filter charts results
     deprecatedChartsFilter:
       label: Show deprecated apps
+    addNewRepo:
+      label: Add new
+      ariaLabel: Add a new repository
+    appChartCard:
+      footerItem:
+        ariaLabel: Apply filter
+    experimentalStatus:
+      tooltip: Experimental - using this filter is not yet 100% accurate. Proceed with caution.
   install:
     action:
       goToUpgrade: Edit/Upgrade

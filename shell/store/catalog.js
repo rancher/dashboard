@@ -31,6 +31,12 @@ const CERTIFIED_SORTS = {
   other:                               3,
 };
 
+export const APP_STATUS = {
+  INSTALLED:   'installed',
+  DEPRECATED:  'deprecated',
+  UPGRADEABLE: 'upgradeable'
+};
+
 export const APP_UPGRADE_STATUS = {
   NOT_APPLICABLE:    'not_applicable', // managed by fleet
   NO_UPGRADE:        'no_upgrade', // no upgrade found
@@ -598,6 +604,16 @@ function normalizeCategory(c) {
   return c.replace(/\s+/g, '').toLowerCase();
 }
 
+export function normalizeFilterQuery(value) {
+  if (Array.isArray(value)) {
+    return value.map((v) => v.toLowerCase());
+  } else if (value) {
+    return [value.toLowerCase()];
+  }
+
+  return undefined;
+}
+
 /*
 catalog.cattle.io/deplys-on-os: OS -> requires global.cattle.OS.enabled: true
   default: nothing
@@ -630,6 +646,7 @@ export function filterAndArrangeCharts(charts, {
   clusterProvider = '',
   operatingSystems,
   category,
+  tag,
   searchQuery,
   showDeprecated = false,
   showHidden = false,
@@ -657,8 +674,13 @@ export function filterAndArrangeCharts(charts, {
       return false;
     }
 
-    if ( category && !c.categories.includes(category) ) {
+    if (category?.length && !c.categories.some((cat) => category.includes(cat.toLowerCase()))) {
       // The category filter doesn't match
+      return false;
+    }
+
+    if (tag?.length && !c.tags.some((t) => tag.includes(t.toLowerCase()))) {
+      // The tag filter doesn't match
       return false;
     }
 
