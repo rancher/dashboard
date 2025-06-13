@@ -392,6 +392,9 @@ export const actions = {
 
         window.location.href = `${ window.location.origin }/oidc/authorize?${ urlParams }&code_challenge_method=S256`;
 
+        // eslint-disable-next-line no-console
+        console.error('window.location.href', window.location.href);
+
         return Promise.resolve();
       }
 
