@@ -13,7 +13,7 @@ export default defineComponent({
      * The checkbox value.
      */
     value: {
-      type:    [Boolean, Array, String] as PropType<boolean | boolean[] | string>,
+      type:    [Boolean, Array, String] as PropType<boolean | boolean[] | string | string[]>,
       default: false
     },
 
