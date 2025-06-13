@@ -255,7 +255,7 @@ export default {
               });
             }
           } else if (!remaining.find((r) => r.base === base)) {
-            remaining.push({ base });
+            remaining.push({ base, options });
           }
         });
         bundles = remaining;
