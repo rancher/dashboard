@@ -65,7 +65,7 @@ describe('Certificates', { testIsolation: 'off', tags: ['@explorer', '@adminUser
   });
 
   it("show correct 'expired' states", () => {
-    cy.intercept('GET', '/v1/secrets?*', (req) => {
+    cy.intercept('GET', /^\/v1\/secrets\?[\S]+$/, (req) => {
       req.reply((res) => {
         res.body.data.push(expiredCert);
         res.body.count += 1;

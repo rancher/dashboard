@@ -162,7 +162,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
           ]
         }
       });
-    });
+    }).as('getRepos');
 
     cy.wait('@getRepos');
 
