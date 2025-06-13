@@ -97,8 +97,16 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
       expect(request?.body.spec.ingress).to.deep.include({ ports: [{ port: 8080 }] });
     });
     networkPolicyPage.waitForPage();
+    cy.isVaiCacheEnabled().then((isVaiCacheEnabled) => {
+      const chain = isVaiCacheEnabled ? cy.intercept('GET', '/v1/networking.k8s.io.networkpolicies?*') : cy.wrap(true);
+
+      chain.as('listRequest');
+    });
+
     networkPolicyPage.searchForNetworkPolicy(networkPolicyName);
     networkPolicyPage.waitForPage(`q=${ networkPolicyName }`);
+    cy.wait('@listRequest');
+    networkPolicyPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     networkPolicyPage.list().actionMenu(networkPolicyName).getMenuItem('Edit Config').click();
     networkPolicyPage.createEditNetworkPolicyForm(namespace, networkPolicyName).waitForPage(`mode=edit#rule-ingress0`);
     // check elements value property
