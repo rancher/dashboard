@@ -1,7 +1,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { MANAGEMENT, SECRET } from '@shell/config/types';
+import { SECRET } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import ArrayList from '@shell/components/form/ArrayList.vue';
@@ -15,7 +15,6 @@ import Loading from '@shell/components/Loading.vue';
 import FormValidation from '@shell/mixins/form-validation';
 import { RcItemCard } from '@components/RcItemCard';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
-import { base64Decode } from '@shell/utils/crypto';
 
 const OIDC_SECRETS_NAMESPACE = 'cattle-oidc-client-secrets';
 
@@ -188,8 +187,6 @@ export default defineComponent({
         }
       });
 
-      console.error('clientSecrets', clientSecrets);
-
       return clientSecrets;
     }
   },
@@ -252,8 +249,6 @@ export default defineComponent({
     },
     async save(saveCb: Function) {
       this.errors = [];
-
-      console.log('**** VALUE ON SAVE *****', this.value);
 
       try {
         await this.value.save();
