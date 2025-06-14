@@ -157,6 +157,12 @@ export default {
     },
 
     _createButtonlabel() {
+      const overrideLabel = this.$store.getters['type-map/optionsFor'](this.resource).overrideCreateBtnListViewLabelKey;
+
+      if (overrideLabel) {
+        return this.t(overrideLabel);
+      }
+
       return this.createButtonLabel || this.t('resourceList.head.create');
     },
   }
