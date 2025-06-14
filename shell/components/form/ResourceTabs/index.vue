@@ -39,6 +39,10 @@ export default {
         return {};
       }
     },
+    relatedResources: {
+      type:     Object,
+      required: true
+    },
     // create-edit-view mode
     mode: {
       type:    String,
@@ -291,3 +295,17 @@ export default {
     </Tab>
   </Tabbed>
 </template>
+
+<style lang="scss" scoped>
+:deep() .tabs.horizontal {
+  border: none;
+}
+
+:deep() .tabs.horizontal + .tab-container {
+  border: none;
+  border-top: 1px solid var(--border);
+
+  padding: 0;
+  padding-top: 24px;
+}
+</style>

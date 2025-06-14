@@ -54,14 +54,18 @@ BODY {
  * making all elements inheriting from the root box-sizing value
  * See: https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/
  */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: inherit;
 }
 
 SELECT,
 TEXTAREA,
 .checkbox-custom {
-  &:focus, &.focused {
+
+  &:focus,
+  &.focused {
     @include form-focus;
   }
 }
@@ -71,7 +75,9 @@ INPUT,
 .radio-custom,
 .labeled-select,
 .unlabeled-select {
-  &:focus-visible, &.focused {
+
+  &:focus-visible,
+  &.focused {
     @include focus-outline;
     outline-offset: -1px;
   }
@@ -86,7 +92,9 @@ INPUT,
 }
 
 .unlabeled-select {
-  &:focus-visible, &.focused {
+
+  &:focus-visible,
+  &.focused {
     @include focus-outline;
   }
 }
@@ -144,16 +152,45 @@ HR.vertical {
 // Moved here, as these are styles and mixins should only include mixing definitions, not style definitions
 // --------------------------------------------------------------------------------------------------------
 
-.clearfix         { @include clearfix; }
-.list-unstyled    { @include list-unstyled }
-.no-select        { @include no-select }
-.no-resize        { @include no-resize }
-.hand             { @include hand }
-.fixed            { @include fixed }
-.clip             { @include clip }
-.force-wrap       { @include force-wrap }
-.bordered-section { @include bordered-section }
-.section-divider  { @include section-divider }
+.clearfix {
+  @include clearfix;
+}
+
+.list-unstyled {
+  @include list-unstyled
+}
+
+.no-select {
+  @include no-select
+}
+
+.no-resize {
+  @include no-resize
+}
+
+.hand {
+  @include hand
+}
+
+.fixed {
+  @include fixed
+}
+
+.clip {
+  @include clip
+}
+
+.force-wrap {
+  @include force-wrap
+}
+
+.bordered-section {
+  @include bordered-section
+}
+
+.section-divider {
+  @include section-divider
+}
 
 fieldset {
   border: 0;

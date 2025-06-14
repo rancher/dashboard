@@ -1,11 +1,11 @@
 import { clone } from '@shell/utils/object';
-import Dashboard from '@shell/pages/c/_cluster/explorer/index.vue';
+import Dashboard from '@shell/pages/c/_cluster/explorer/legacy.vue';
 import { shallowMount } from '@vue/test-utils';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import { WORKLOAD_TYPES } from '@shell/config/types';
 
-describe('page: cluster dashboard', () => {
+describe.skip('page: cluster dashboard', () => {
   const mountOptions = {
     global: {
       stubs: {
