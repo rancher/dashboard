@@ -131,7 +131,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * Get all clusters, whether pinned, filtered or not
    */
   allClusters(): Cypress.Chainable {
-    return this.self().find('.body .cluster.selector.option');
+    return this.self().find('.body .cluster.selector.option:not(.home)');
   }
 
   goToCluster(clusterId = 'local', toggleOpen = true) {
@@ -216,5 +216,24 @@ export default class BurgerMenuPo extends ComponentPo {
    */
   headerBrandLogoImage(): Cypress.Chainable {
     return cy.getId('header__brand-img');
+  }
+
+  seeAllClustersButton(): Cypress.Chainable {
+    return this.self().find('.clusters-all').contains('See all clusters');
+  }
+
+  clustersSearchInput(): Cypress.Chainable {
+    return this.self().find('.clusters-search input');
+  }
+
+  filterClusters(searchText: string) {
+    this.clustersSearchInput()
+      .focus()
+      .clear()
+      .type(searchText);
+  }
+
+  clustersSearchCount(): Cypress.Chainable {
+    return this.self().find('.clusters-search-count');
   }
 }
