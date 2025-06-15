@@ -10,6 +10,11 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { findBy } from '@shell/utils/array';
 
 export const AUTH_BROADCAST_CHANNEL_NAME = 'rancher-auth-test-callback';
+export const RANCHER_AS_OIDC_PROV_COND = ['scope', 'client_id', 'redirect_uri', 'response_type'];
+
+export function checkIfIsRancherAsOidcProviderLogin(queryParams) {
+  return queryParams && Object.keys(queryParams).length && RANCHER_AS_OIDC_PROV_COND.every((item) => Object.keys(queryParams).includes(item));
+}
 
 export function openAuthPopup(url, provider) {
   const popup = new Popup(() => {
