@@ -5,10 +5,32 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { defineComponent } from 'vue';
 
 describe('component: UnitInput', () => {
-  it('should renders', () => {
+  it('should render the UnitInput component with basic config', () => {
     const wrapper = mount(UnitInput, { props: { value: 1 } });
 
     expect(wrapper.isVisible()).toBe(true);
+  });
+
+  it('a11y: adding ARIA props should correctly fill out the appropriate fields on the component', () => {
+    const baseUnit = 'B';
+    const wrapper = mount(UnitInput,
+      {
+        props: {
+          value:    1,
+          baseUnit,
+          disabled: true
+        }
+      }
+    );
+
+    const inputElement = wrapper.find('input');
+    const unitDisplay = wrapper.find('.addon');
+
+    expect(wrapper.findComponent(LabeledInput as any).exists()).toBe(true);
+    expect(inputElement.attributes('aria-describedby')).toBe(wrapper.vm.describedById);
+    expect(unitDisplay.attributes('id')).toBe(wrapper.vm.describedById);
+    expect(inputElement.attributes('aria-disabled')).toBe('true');
+    expect(inputElement.attributes('disabled')).toBeDefined();
   });
 
   it.each(['blur', 'update:value'])('should emit input event when "%p" is fired', async(event) => {

@@ -25,6 +25,15 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   /**
+   * Get the bulk action button
+   * @param label
+   * @returns
+   */
+  bulkActionButton(label: string) {
+    return this.self().find(`.fixed-header-actions .bulk button`).contains(label);
+  }
+
+  /**
    * Get the bulk action dropdown button (this is where collapsed bulk actions go when screen width is too small)
    */
   bulkActionDropDown() {
@@ -159,8 +168,8 @@ export default class SortableTablePo extends ComponentPo {
   /**
    * Get rows names. To avoid the 'no rows' on first load use `noRowsShouldNotExist`
    */
-  rowNames(rowNameSelector = 'td:nth-of-type(3)') {
-    return this.rowElements().find(rowNameSelector).then(($els: any) => {
+  rowNames(rowNameSelector = 'td:nth-of-type(3)', options?: any) {
+    return this.rowElements(options).find(rowNameSelector).then(($els: any) => {
       return (
         Cypress.$.makeArray<string>($els).map((el: any) => el.innerText as string)
       );
@@ -257,5 +266,19 @@ export default class SortableTablePo extends ComponentPo {
   // pagination
   pagination() {
     return new PaginationPo();
+  }
+
+  waitForListItemRemoval(rowNameSelector = '.col-link-detail', name: string, options?: GetOptions) {
+    return this.rowNames(rowNameSelector)
+      .then((rowNames: string[]) => {
+        rowNames.forEach((name, index) => cy.log(`Row ${ index }: ${ name }`));
+
+        if (rowNames.includes(name)) {
+          cy.log(`${ name } found. Waiting for it to be removed...`);
+          cy.contains(rowNameSelector, name, options).should('not.exist');
+        } else {
+          cy.log(`${ name } already removed.`);
+        }
+      });
   }
 }

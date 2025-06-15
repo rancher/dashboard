@@ -34,6 +34,7 @@ import { markRaw } from 'vue';
 
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import { parse } from '@shell/utils/selector';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -1179,7 +1180,9 @@ export default class Resource {
     }
 
     // @TODO remove this once the API maps steve _type <-> k8s type in both directions
-    opt.data = this.toSave() || { ...this };
+    // `JSON.parse(JSON.stringify` - Completely disconnect the object we're going to send and `this`. This ensures that properties
+    // removed from opt.data before sending (as part of cleanForSave) are not stripped from where they're still needed (`this`)
+    opt.data = this.toSave() || JSON.parse(JSON.stringify(this));
 
     if (opt.data._type) {
       opt.data.type = opt.data._type;
@@ -1246,7 +1249,18 @@ export default class Resource {
 
     const res = await this.$dispatch('request', { opt, type: this.type } );
 
-    if ( res?._status === 204 ) {
+    // In theory...
+    // 200 - resource could have finalizer (could hang around, keep resource to show deleting state)
+    // 204 - resource should be gone gone (so remove immediately)
+    // However...
+    // 200 - this is the only status code returned
+    if ( res?._status === 200 ) {
+      // Show state (probably terminating) immediately, don't wait for resource.change or debounced resource.changes update
+      // It would be neater to only do this in the debounced resource.changes world, but there's no neat / complete way to do this (paginationUtils will cause dep issues if imported)
+      await this.$dispatch('load', {
+        data: res, existing: this, invalidatePageCache: false
+      });
+    } else if ( res?._status === 204 ) {
       // If there's no body, assume the resource was immediately deleted
       // and drop it from the store as if a remove event happened.
       await this.$dispatch('ws.resource.remove', { data: this });
@@ -1791,6 +1805,7 @@ export default class Resource {
       }
 
       if ( r.selector ) {
+        // A selector is a stringified version of a matchLabel (https://github.com/kubernetes/apimachinery/blob/master/pkg/labels/selector.go#L1010)
         addObjects(out.selectors, {
           type:      r.toType,
           namespace: r.toNamespace,
@@ -1834,15 +1849,32 @@ export default class Resource {
   }
 
   async _findRelationship(rel, direction) {
+    // Find resources for this resource's metadata.relationships (steve prop)
+    // These will either reference a selector (stringified matchLabels) OR specific resources (ids)
     const { selectors, ids } = this._relationshipsFor(rel, direction);
     const out = [];
 
+    // Find all the resources that match the selector
     for ( const sel of selectors ) {
-      const matching = await this.$dispatch('findMatching', sel);
+      const {
+        type,
+        selector,
+        namespace,
+        opt,
+      } = sel;
+      const matching = await this.$dispatch('findLabelSelector', {
+        type,
+        matching: {
+          namespace,
+          labelSelector: { matchExpressions: parse(selector) }
+        },
+        opts: opt
+      });
 
-      addObjects(out, matching.data);
+      addObjects(out, matching);
     }
 
+    // Find all the resources that match the required id's
     for ( const obj of ids ) {
       const { type, id } = obj;
       let matching = this.$getters['byId'](type, id);

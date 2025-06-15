@@ -598,6 +598,7 @@ export default {
     <div
       class="kv-container"
       role="grid"
+      :aria-label="title || t('generic.ariaLabel.keyValue')"
       :aria-rowcount="rows.length"
       :aria-colcount="extraColumns.length + 2"
       :style="containerStyle"
@@ -694,7 +695,7 @@ export default {
                   :taggable="keyTaggable"
                   :options="calculateOptions(row[keyName])"
                   :data-testid="`select-kv-item-key-${i}`"
-                  :aria-label="t('generic.ariaLabel.key', {index: i})"
+                  :aria-label="t('generic.ariaLabel.key', {index: i+1})"
                   @update:value="queueUpdate"
                 />
                 <input
@@ -704,7 +705,7 @@ export default {
                   :disabled="isView || disabled || !keyEditable || isProtected(row.key)"
                   :placeholder="_keyPlaceholder"
                   :data-testid="`input-kv-item-key-${i}`"
-                  :aria-label="t('generic.ariaLabel.key', {index: i})"
+                  :aria-label="t('generic.ariaLabel.key', {index: i+1})"
                   @input="queueUpdate"
                   @paste="onPaste(i, $event)"
                 >
@@ -762,7 +763,7 @@ export default {
                     :placeholder="_valuePlaceholder"
                     :min-height="40"
                     :spellcheck="false"
-                    :aria-label="t('generic.ariaLabel.value', {index: i})"
+                    :aria-label="t('generic.ariaLabel.value', {index: i+1})"
                     @update:value="queueUpdate"
                   />
                   <input
@@ -775,7 +776,7 @@ export default {
                     autocapitalize="off"
                     spellcheck="false"
                     :data-testid="`input-kv-item-value-${i}`"
-                    :aria-label="t('generic.ariaLabel.value', {index: i})"
+                    :aria-label="t('generic.ariaLabel.value', {index: i+1})"
                     @input="queueUpdate"
                   >
                   <FileSelector
@@ -783,7 +784,7 @@ export default {
                     class="btn btn-sm role-secondary file-selector"
                     :label="t('generic.upload')"
                     :include-file-name="true"
-                    :aria-label="t('generic.ariaLabel.value', {index: i})"
+                    :aria-label="t('generic.ariaLabel.value', {index: i+1})"
                     @selected="onValueFileSelected(i, $event)"
                   />
                 </div>
@@ -823,7 +824,7 @@ export default {
                   type="button"
                   role="button"
                   :disabled="isView || isProtected(row.key) || disabled"
-                  :aria-label="`${removeLabel || t('generic.remove')} ${ i+1 }`"
+                  :aria-label="t('generic.ariaLabel.remove', {index: i+1})"
                   class="btn role-link"
                   @click="remove(i)"
                 >
@@ -850,7 +851,7 @@ export default {
           class="btn role-tertiary add"
           data-testid="add_row_item_button"
           :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
-          :aria-label="_addLabel"
+          :aria-label="t('generic.ariaLabel.addKeyValue')"
           @click="add()"
         >
           <i
@@ -860,10 +861,12 @@ export default {
         </button>
         <FileSelector
           v-if="readAllowed"
+          :aria-label="t('generic.ariaLabel.readKeyValue')"
           :disabled="isView"
           class="role-tertiary"
           :label="t('generic.readFromFile')"
           :include-file-name="true"
+          data-testid="read_all_key_value_button"
           @selected="onFileSelected"
         />
       </slot>

@@ -22,7 +22,7 @@ import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { findBy, removeObject, clear } from '@shell/utils/array';
 import { createYaml } from '@shell/utils/create-yaml';
 import {
-  clone, diff, set, get, isEmpty, mergeWithReplaceArrays
+  clone, diff, set, get, isEmpty, mergeWithReplace
 } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
 import {
@@ -295,6 +295,21 @@ export default {
 
     chartValues() {
       return this.value.spec.rkeConfig.chartValues;
+    },
+
+    kubernetesVersion() {
+      return this.value.spec.kubernetesVersion;
+    },
+
+    rke2Charts() {
+      const rke2Versions = this.rke2Versions || [];
+      const kubernetesVersion = this.kubernetesVersion;
+
+      const charts = rke2Versions
+        .find((version) => version.id === kubernetesVersion)
+        ?.charts ?? {};
+
+      return Object.keys(charts);
     },
 
     serverConfig() {
@@ -1305,7 +1320,7 @@ export default {
         delete clonedCurrentConfig.metadata;
 
         if (this.provider === VMWARE_VSPHERE) {
-          machinePool.config = mergeWithReplaceArrays(clonedLatestConfig, clonedCurrentConfig);
+          machinePool.config = mergeWithReplace(clonedLatestConfig, clonedCurrentConfig, { mutateOriginal: true });
         } else {
           machinePool.config = merge(clonedLatestConfig, clonedCurrentConfig);
         }
@@ -1691,7 +1706,7 @@ export default {
       const defaultChartValue = this.versionInfo[name];
       const key = this.chartVersionKey(name);
 
-      return merge({}, defaultChartValue?.values || {}, this.userChartValues[key] || {});
+      return mergeWithReplace(defaultChartValue?.values, this.userChartValues[key]);
     },
 
     initServerAgentArgs() {
@@ -1850,7 +1865,9 @@ export default {
 
     applyChartValues(rkeConfig) {
       rkeConfig.chartValues = {};
-      this.addonNames.forEach((name) => {
+      const charts = [...this.addonNames, ...this.rke2Charts];
+
+      charts.forEach((name) => {
         const key = this.chartVersionKey(name);
         const userValues = this.userChartValues[key];
 

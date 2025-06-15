@@ -1,7 +1,9 @@
 <script>
 import { mapGetters, useStore } from 'vuex';
 import ResourceTable, { defaultTableSortGenerationFn } from '@shell/components/ResourceTable';
-import { STATE, AGE, NAME, NS_SNAPSHOT_QUOTA } from '@shell/config/table-headers';
+import {
+  STATE, AGE, NAME, NS_SNAPSHOT_QUOTA, DESCRIPTION
+} from '@shell/config/table-headers';
 import { uniq } from '@shell/utils/array';
 import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES, HCI } from '@shell/config/types';
 import { PROJECT_ID, FLAT_VIEW } from '@shell/config/query-params';
@@ -9,13 +11,13 @@ import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES, DEV } from '@shell/store/prefs';
-import MoveModal from '@shell/components/MoveModal';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import { escapeHtml } from '@shell/utils/string';
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import DOMPurify from 'dompurify';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import perfSettingsUtils from '@shell/utils/perf-setting.utils';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 
@@ -24,7 +26,6 @@ export default {
   components: {
     ExtensionPanel,
     Masthead,
-    MoveModal,
     ResourceTable,
     ButtonMultiAction,
     ActionMenu,
@@ -89,9 +90,20 @@ export default {
       }
     };
   },
-
+  watch: {
+    actionCb: {
+      handler(neu) {
+        if (neu?.moveNamespaceCb) {
+          this.clearSelection();
+          this.$store.dispatch('action-menu/clearCallbackData');
+        }
+      },
+      immediate: true
+    }
+  },
   computed: {
     ...mapGetters(['currentCluster', 'currentProduct']),
+    ...mapGetters({ actionCb: 'action-menu/performCallbackData' }),
     namespaces() {
       const inStore = this.$store.getters['currentStore'](NAMESPACE);
 
@@ -101,7 +113,7 @@ export default {
       return !this.currentCluster || this.namespaces.length ? false : this.$fetchState.pending;
     },
     showIncrementalLoadingIndicator() {
-      return this.perfConfig?.incrementalLoading?.enabled;
+      return perfSettingsUtils.incrementalLoadingUtils.isEnabled(this.calcCanPaginate(), this.perfConfig);
     },
     isNamespaceCreatable() {
       return (this.schema?.collectionMethods || []).includes('POST');
@@ -113,6 +125,7 @@ export default {
       const headers = [
         STATE,
         NAME,
+        DESCRIPTION
       ];
 
       if (this.groupPreference === 'none') {
@@ -493,6 +506,7 @@ export default {
               <ActionMenu
                 v-if="showProjectActionButton(group.group)"
                 :resource="getProjectActions(group.group)"
+                data-testid="action-button"
                 :button-aria-label="t('projectNamespaces.tableActionsLabel', { resource: projectResource(group.group) })"
               />
               <div
@@ -569,7 +583,6 @@ export default {
         </tr>
       </template>
     </ResourceTable>
-    <MoveModal @moving="clearSelection" />
   </div>
 </template>
 <style lang="scss" scoped>

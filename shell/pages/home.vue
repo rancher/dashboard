@@ -226,10 +226,6 @@ export default defineComponent({
     readWhatsNewAlready() {
       return readReleaseNotes(this.$store);
     },
-
-    showSetLoginBanner() {
-      return this.homePageCards?.setLoginPage;
-    },
   },
 
   async created() {
@@ -415,10 +411,6 @@ export default defineComponent({
       markReadReleaseNotes(this.$store);
     },
 
-    showUserPrefs() {
-      this.$router.push({ name: 'prefs' });
-    },
-
     async resetCards() {
       const value = this.$store.getters['prefs/get'](HIDE_HOME_PAGE_CARDS) || {};
 
@@ -439,21 +431,6 @@ export default defineComponent({
       }
 
       await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value });
-    },
-
-    async closeSetLoginBanner(retry = 0) {
-      let value = this.$store.getters['prefs/get'](HIDE_HOME_PAGE_CARDS);
-
-      if (value === true || value === false || value.length > 0) {
-        value = {};
-      }
-      value.setLoginPage = true;
-
-      const res = await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value });
-
-      if (retry === 0 && res?.type === 'error' && res?.status === 500) {
-        await this.closeSetLoginBanner(retry + 1);
-      }
     },
 
     /**
@@ -549,31 +526,6 @@ export default defineComponent({
       </div>
       <div class="row home-panels">
         <div class="col main-panel">
-          <div
-            v-if="!showSetLoginBanner"
-            class="mb-10 row"
-          >
-            <div class="col span-12">
-              <Banner
-                color="set-login-page mt-0"
-                data-testid="set-login-page-banner"
-                :closable="true"
-                @close="closeSetLoginBanner()"
-              >
-                <div>
-                  {{ t('landing.landingPrefs.title') }}
-                </div>
-                <a
-                  class="hand mr-20"
-                  tabindex="0"
-                  :aria-label="t('landing.landingPrefs.userPrefs')"
-                  @click.prevent.stop="showUserPrefs"
-                  @keyup.prevent.stop.enter="showUserPrefs"
-                  @keyup.prevent.stop.space="showUserPrefs"
-                ><span v-clean-html="t('landing.landingPrefs.userPrefs')" /></a>
-              </Banner>
-            </div>
-          </div>
           <div class="row panel">
             <div
               v-if="mcm"
@@ -671,6 +623,11 @@ export default defineComponent({
                           v-clean-tooltip="row.unavailableMachines"
                           class="conditions-alert-icon icon-alert icon"
                         />
+                        <i
+                          v-if="row.isRke1"
+                          v-clean-tooltip="t('cluster.rke1Unsupported')"
+                          class="rke1-unsupported-icon icon-warning icon"
+                        />
                       </p>
                       <p
                         v-if="row.description"
@@ -754,7 +711,7 @@ export default defineComponent({
     }
   }
 
-  .set-login-page, .whats-new {
+  .whats-new {
     > :deep() .banner__content {
       display: flex;
 
@@ -767,9 +724,6 @@ export default defineComponent({
     }
   }
 
-  .banner.set-login-page {
-    border: 1px solid var(--border);
-  }
   .table-heading {
     align-items: center;
     display: flex;
@@ -822,6 +776,11 @@ export default defineComponent({
 
     .conditions-alert-icon {
       color: var(--error);
+      margin-left: 4px;
+    }
+
+    .rke1-unsupported-icon {
+      color: var(--warning);
       margin-left: 4px;
     }
   }

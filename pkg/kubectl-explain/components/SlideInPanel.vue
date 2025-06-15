@@ -35,11 +35,20 @@ export default {
     };
   },
 
-  created() {
-    useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.isOpen, '.slide-in', {
-      escapeDeactivates: false,
-      allowOutsideClick: true
-    });
+  watch: {
+    // better to trigger focus-trap based on "isOpen" rather than using the "created" hook
+    // because re-opening an already loaded resource data would not run the "created" hook
+    // and therefore not triggering the focus trap
+    isOpen(neu, old) {
+      if (neu && neu !== old) {
+        useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.isOpen, '[data-testid="slide-in-panel-resource-explain"]', {
+          escapeDeactivates: false,
+          allowOutsideClick: true,
+          // putting the initial focus on the first element that is not conditionally displayed
+          initialFocus:      '[data-testid="slide-in-panel-close-resource-explain"]'
+        });
+      }
+    }
   },
 
   computed: {
@@ -199,7 +208,7 @@ export default {
       class="slide-in"
       :class="{ 'slide-in-open': isOpen }"
       :style="{ width, right, top, height }"
-      data-testid="slide-in-panel"
+      data-testid="slide-in-panel-resource-explain"
     >
       <div
         ref="resizer"
@@ -267,7 +276,7 @@ export default {
             role="button"
             :aria-label="t('kubectl-explain.scrollToTop')"
             class="icon icon-close"
-            data-testid="slide-in-panel-close"
+            data-testid="slide-in-panel-close-resource-explain"
             tabindex="0"
             @click="close()"
             @keydown.space.enter.stop.prevent="close()"

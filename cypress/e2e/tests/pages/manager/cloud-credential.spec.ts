@@ -209,7 +209,6 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
 
         clusterList.checkIsCurrentPage();
         clusterList.createCluster();
-        createRKE2AzureClusterPage.rkeToggle().set('RKE2/K3s');
         createRKE2AzureClusterPage.selectCreate(1);
         createRKE2AzureClusterPage.rke2PageTitle().should('include', 'Create Azure');
         createRKE2AzureClusterPage.waitForPage('type=azure&rkeType=rke2');

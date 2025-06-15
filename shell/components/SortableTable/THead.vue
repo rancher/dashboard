@@ -259,10 +259,13 @@ export default {
             v-clean-tooltip="tooltip(col)"
             class="content"
           >
-            <span v-clean-html="labelFor(col)" />
+            <span
+              v-clean-html="labelFor(col)"
+              class="text-no-break"
+            />
             <span
               v-if="col.subLabel"
-              class="text-muted"
+              class="text-muted text-no-break"
             >
               {{ col.subLabel }}
             </span>

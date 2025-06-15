@@ -1,13 +1,9 @@
 
 <script>
 import { Banner } from '@components/Banner';
-import DisableAuthProviderModal from '@shell/components/DisableAuthProviderModal';
 
 export default {
-  components: {
-    Banner,
-    DisableAuthProviderModal
-  },
+  components: { Banner },
 
   props: {
     tArgs: {
@@ -35,7 +31,18 @@ export default {
 
   methods: {
     showDisableModal() {
-      this.$refs.disableAuthProviderModal.show();
+      this.$store.dispatch('management/promptModal', {
+        component:      'DisableAuthProviderDialog',
+        customClass:    'remove-modal',
+        modalWidth:     '400',
+        height:         'auto',
+        styles:         'max-height: 100vh;',
+        componentProps: {
+          disableCb: () => {
+            this.disable();
+          }
+        }
+      });
     }
   },
 };
@@ -78,11 +85,6 @@ export default {
       v-if="$slots.footer"
       name="footer"
     />
-
-    <DisableAuthProviderModal
-      ref="disableAuthProviderModal"
-      @disable="disable"
-    />
   </div>
 </template>
 
@@ -96,9 +98,8 @@ export default {
 }
 
 .values {
-  tr td:not(:first-of-type) {
-    padding-left: 10px;
-  }
+  border-spacing: 8px 8px;  // Add spacing between columns and rows
+  margin-left: -8px; // Move the table back to the left, to compensate for the spacing from above on the left-hand column
 }
 
 </style>

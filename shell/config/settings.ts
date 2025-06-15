@@ -50,14 +50,12 @@ export const SETTING = {
   FIRST_LOGIN:                                   'first-login',
   INGRESS_IP_DOMAIN:                             'ingress-ip-domain',
   SERVER_URL:                                    'server-url',
-  RKE_METADATA_CONFIG:                           'rke-metadata-config',
   EULA_AGREED:                                   'eula-agreed',
   AUTH_USER_INFO_MAX_AGE_SECONDS:                'auth-user-info-max-age-seconds',
   AUTH_USER_SESSION_TTL_MINUTES:                 'auth-user-session-ttl-minutes',
   AUTH_USER_INFO_RESYNC_CRON:                    'auth-user-info-resync-cron',
   AUTH_LOCAL_VALIDATE_DESC:                      'auth-password-requirements-description',
   PASSWORD_MIN_LENGTH:                           'password-min-length', // CATTLE_PASSWORD_MIN_LENGTH
-  CLUSTER_TEMPLATE_ENFORCEMENT:                  'cluster-template-enforcement',
   UI_INDEX:                                      'ui-index',
   UI_DASHBOARD_INDEX:                            'ui-dashboard-index',
   UI_DASHBOARD_HARVESTER_LEGACY_PLUGIN:          'ui-dashboard-harvester-legacy-plugin',
@@ -148,7 +146,6 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES]: { kind: 'integer' },
   [SETTING.AUTH_USER_INFO_RESYNC_CRON]:           {},
   [SETTING.SERVER_URL]:                           { kind: 'url', canReset: true },
-  [SETTING.RKE_METADATA_CONFIG]:                  { kind: 'json' },
   [SETTING.SYSTEM_DEFAULT_REGISTRY]:              {},
   [SETTING.UI_INDEX]:                             {},
   [SETTING.UI_DASHBOARD_INDEX]:                   {},
@@ -156,10 +153,9 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     kind:    'enum',
     options: ['dynamic', 'true', 'false']
   },
-  [SETTING.BRAND]:                        { canReset: true },
-  [SETTING.CLUSTER_TEMPLATE_ENFORCEMENT]: { kind: 'boolean' },
-  [SETTING.HIDE_LOCAL_CLUSTER]:           { kind: 'boolean' },
-  [SETTING.AGENT_TLS_MODE]:               {
+  [SETTING.BRAND]:              { canReset: true },
+  [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
+  [SETTING.AGENT_TLS_MODE]:     {
     kind:    'enum',
     options: ['strict', 'system-store'],
     warning: 'agent-tls-mode'
@@ -200,14 +196,17 @@ export interface PerfSettingsKubeApi {
 
 export interface PerfSettings {
   inactivity: {
-      enabled: boolean;
-      threshold: number;
+    enabled: boolean;
+    threshold: number;
   };
   incrementalLoading: {
-      enabled: boolean;
-      threshold: number;
+    enabled: boolean;
+    threshold: number;
   };
-  manualRefresh: {};
+  manualRefresh: {
+    enabled: boolean;
+    threshold: number;
+  };
   disableWebsocketNotification: boolean;
   garbageCollection: GC_PREFERENCES;
   forceNsFilterV2: any;
@@ -251,8 +250,8 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
     }
   },
   serverPagination: {
-    enabled:          false,
-    useDefaultStores: true,
-    stores:           undefined,
+    useDefaultStores:          true,
+    stores:                    undefined,
+    resourceChangesDebounceMs: 4000,
   }
 };

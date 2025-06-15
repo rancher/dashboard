@@ -1,13 +1,12 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
-import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
-import ResourceListMastheadPo from '@/cypress/e2e/po/components/ResourceList/resource-list-masthead.po';
-import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
-export class WorkloadsDaemonsetsListPagePo extends PagePo {
+export class WorkloadsDaemonsetsListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/explorer/apps.daemonset`;
   }
@@ -20,28 +19,43 @@ export class WorkloadsDaemonsetsListPagePo extends PagePo {
     super(WorkloadsDaemonsetsListPagePo.createPath(clusterId));
   }
 
-  masthead() {
-    return new ResourceListMastheadPo(this.self());
-  }
+  static navTo(clusterId = 'local') {
+    const burgerMenu = new BurgerMenuPo();
+    const sideNav = new ProductNavPo();
 
-  createDaemonset() {
-    return this.masthead().create();
-  }
-
-  goToeditItemWithName(name:string) {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.actionMenu(name).getMenuItem('Edit Config').click();
-  }
-
-  listElementWithName(name:string) {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().rowElementWithName(name);
+    burgerMenu.goToCluster(clusterId);
+    sideNav.navToSideMenuGroupByLabel('Workloads');
+    sideNav.navToSideMenuEntryByLabel('DaemonSets');
   }
 }
 
-export class WorkLoadsDaemonsetsEditPagePo extends PagePo {
+export class WorkLoadsDaemonsetsCreatePagePo extends BaseDetailPagePo {
+  static url: string;
+
+  private static createPath(clusterId: string, queryParams?: Record<string, string>) {
+    const urlStr = `/c/${ clusterId }/explorer/apps.daemonset/create`;
+
+    if (!queryParams) {
+      return urlStr;
+    }
+
+    const params = new URLSearchParams(queryParams);
+
+    return `${ urlStr }?${ params.toString() }`;
+  }
+
+  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(this.url);
+  }
+
+  constructor(clusterId = 'local', queryParams?: Record<string, string>) {
+    super(WorkLoadsDaemonsetsCreatePagePo.createPath(clusterId, queryParams));
+
+    WorkLoadsDaemonsetsCreatePagePo.url = WorkLoadsDaemonsetsCreatePagePo.createPath(clusterId, queryParams);
+  }
+}
+
+export class WorkLoadsDaemonsetsEditPagePo extends BaseDetailPagePo {
   static url: string;
 
   private static createPath(daemonsetId: string, clusterId: string, namespaceId: string, queryParams?: Record<string, string>) {
@@ -66,10 +80,6 @@ export class WorkLoadsDaemonsetsEditPagePo extends PagePo {
     WorkLoadsDaemonsetsEditPagePo.url = WorkLoadsDaemonsetsEditPagePo.createPath(daemonsetId, clusterId, namespaceId, queryParams);
   }
 
-  nameNsDescription() {
-    return new NameNsDescription(this.self());
-  }
-
   containerImageInput(): LabeledInputPo {
     return LabeledInputPo.byLabel(this.self(), 'Container Image');
   }
@@ -80,9 +90,5 @@ export class WorkLoadsDaemonsetsEditPagePo extends PagePo {
 
   ScalingUpgradePolicyRadioBtn(): RadioGroupInputPo {
     return new RadioGroupInputPo('[data-testid="input-policy-strategy"]');
-  }
-
-  saveCreateForm(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 }

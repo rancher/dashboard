@@ -1,7 +1,7 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
-import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import WorkloadPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
@@ -9,8 +9,9 @@ import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import WorkloadPodStoragePo from '@/cypress/e2e/po/components/workloads/pod-storage.po';
 import ContainerMountPathPo from '@/cypress/e2e/po/components/workloads/container-mount-paths.po';
 import { WorkloadType } from '@shell/types/fleet';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
-export class workloadDetailsPageBasePo extends PagePo {
+export class workloadDetailsPageBasePo extends BaseDetailPagePo {
   static url: string;
 
   private static createPath(
@@ -76,7 +77,7 @@ export class workloadDetailsPageBasePo extends PagePo {
   }
 }
 
-export class WorkloadsListPageBasePo extends PagePo {
+export class WorkloadsListPageBasePo extends BaseListPagePo {
   static createPath(clusterId: string, workloadType: WorkloadType, queryParams?: Record<string, string>) {
     const urlStr = `/c/${ clusterId }/explorer/${ workloadType }`;
 
@@ -91,6 +92,12 @@ export class WorkloadsListPageBasePo extends PagePo {
 
   constructor(clusterId = 'local', workloadType: WorkloadType, queryParams?: Record<string, string>) {
     super(WorkloadsListPageBasePo.createPath(clusterId, workloadType, queryParams));
+  }
+
+  static navTo() {
+    const sideNav = new ProductNavPo();
+
+    sideNav.navToSideMenuGroupByLabel('Workloads');
   }
 
   navigateToCreatePage() {
@@ -112,7 +119,8 @@ export class WorkloadsListPageBasePo extends PagePo {
   }
 
   deleteItemWithUI(name: string) {
-    this.sortableTable().rowActionMenuOpen(name).getMenuItem('Delete').click();
+    this.sortableTable().rowActionMenuOpen(name).getMenuItem('Delete').scrollIntoView()
+      .click();
 
     const promptRemove = new PromptRemove();
 
@@ -155,7 +163,7 @@ export class WorkloadsListPageBasePo extends PagePo {
   }
 }
 
-export class WorkloadsCreatePageBasePo extends PagePo {
+export class WorkloadsCreatePageBasePo extends BaseDetailPagePo {
   static createPath(clusterId: string, workloadType: WorkloadType, queryParams?: Record<string, string>) {
     const urlStr = `/c/${ clusterId }/explorer/${ workloadType }/create`;
 
@@ -183,16 +191,8 @@ export class WorkloadsCreatePageBasePo extends PagePo {
     return LabeledInputPo.byLabel(this.self(), 'Namespace');
   }
 
-  name() {
-    return LabeledInputPo.bySelector(this.self(), '[data-testid="name-ns-description-name"]');
-  }
-
   containerImage(): LabeledInputPo {
     return LabeledInputPo.byLabel(this.self(), 'Container Image');
-  }
-
-  saveCreateForm(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 
   addEnvironmentVariable() {
@@ -257,9 +257,10 @@ export class WorkloadsCreatePageBasePo extends PagePo {
   createWithUI(name: string, containerImage: string, namespace = 'default') {
     // NB: namespace is already selected by default
     this.selectNamespace(namespace);
-    this.name().set(name);
+    this.resourceDetail().createEditView().nameNsDescription().name()
+      .set(name);
     this.containerImage().set(containerImage);
-    this.saveCreateForm().click();
+    this.resourceDetail().createEditView().save();
   }
 
   private workload() {

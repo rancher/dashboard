@@ -35,7 +35,6 @@ describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
     clusterList.createCluster();
 
     createCustomClusterPage.waitForPage();
-    createCustomClusterPage.rkeToggle().set('RKE2/K3s');
 
     createCustomClusterPage.selectCustom(0);
 
@@ -101,7 +100,6 @@ describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
     clusterList.createCluster();
 
     createCustomClusterPage.waitForPage();
-    createCustomClusterPage.rkeToggle().set('RKE2/K3s');
 
     createCustomClusterPage.selectCustom(0);
 

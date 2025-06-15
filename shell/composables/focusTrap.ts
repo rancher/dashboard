@@ -61,14 +61,14 @@ export function useWatcherBasedSetupFocusTrapWithDestroyIncluded(watchVar:any, f
           focusTrapInstance.activate();
         });
       });
-    } else if (!neu && Object.keys(focusTrapInstance).length && !useUnmountHook) {
+    } else if (!neu && focusTrapInstance && Object.keys(focusTrapInstance).length && !useUnmountHook) {
       focusTrapInstance.deactivate();
     }
-  });
+  }, { immediate: true });
 
   if (useUnmountHook) {
     onBeforeUnmount(() => {
-      if (Object.keys(focusTrapInstance).length) {
+      if (focusTrapInstance && Object.keys(focusTrapInstance).length) {
         focusTrapInstance.deactivate();
       }
     });

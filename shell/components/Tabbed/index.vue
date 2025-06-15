@@ -61,6 +61,11 @@ export default {
     tabsOnly: {
       type:    Boolean,
       default: false,
+    },
+
+    resource: {
+      type:    Object,
+      default: () => {}
     }
   },
 
@@ -355,6 +360,7 @@ export default {
       >
         <component
           :is="tab.component"
+          :resource="resource"
         />
       </Tab>
     </div>

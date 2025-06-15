@@ -457,34 +457,45 @@ export default defineComponent({
 
     // filter out versions outside ui-k8s-supported-versions-range global setting and versions < current version
     // sort versions, descending
-    aksVersionOptions(): Array<any> {
-      const filteredAndSortable = this.allAksVersions.filter((v: string) => {
-        if (this.supportedVersionRange && !semver.satisfies(v, this.supportedVersionRange)) {
-          return false;
-        }
-        if (this.originalVersion && semver.gt(this.originalVersion, v)) {
-          return false;
-        }
+    aksVersionOptions(): { value: string, label: string, sort?: string, disabled?: boolean }[] {
+      const validVersions = this.allAksVersions.reduce((versions, v: string) => {
+        const coerced = semver.coerce(v);
 
-        return true;
-      }).map((v: string) => {
-        let label = v;
-
-        if (v === this.originalVersion) {
-          label = this.t('aks.kubernetesVersion.current', { version: v });
+        if (!coerced || (this.supportedVersionRange && !semver.satisfies(coerced.version, this.supportedVersionRange))) {
+          return versions;
         }
 
-        return {
-          value: v,
-          label,
-          sort:  sortable(v)
-        };
+        if (!this.originalVersion) {
+          versions.push({ value: v, label: v });
+        } else if (semver.lte(semver.coerce(this.originalVersion), coerced)) {
+          const highestSupportedMinor = semver.coerce(this.originalVersion)?.minor + 1;
+
+          if (highestSupportedMinor && highestSupportedMinor < coerced?.minor) {
+            versions.push({
+              value:    v,
+              label:    `${ v } ${ this.t('aks.kubernetesVersion.upgradeWarning') }`,
+              disabled: true
+            });
+          } else {
+            const label = v === this.originalVersion ? this.t('aks.kubernetesVersion.current', { version: v }) : v;
+
+            versions.push({ value: v, label });
+          }
+        }
+
+        return versions;
+      }, [] as { value: string, label: string, sort?: string, disabled?: boolean }[]);
+
+      validVersions.forEach((v) => {
+        v.sort = sortable(v.value);
       });
 
-      const sorted = sortBy(filteredAndSortable, 'sort', true);
+      const sorted = sortBy(validVersions, 'sort', true); // Descending order
 
       if (!this.config.kubernetesVersion) {
-        this.config['kubernetesVersion'] = sorted[0]?.value;
+        const firstValid = sorted.find((v) => !v.disabled);
+
+        this.config.kubernetesVersion = firstValid?.value;
       }
 
       return sorted;
@@ -870,6 +881,7 @@ export default defineComponent({
         :show-tabs-add-remove="mode !== 'view'"
         :rules="fvGetAndReportPathRules('vmSize')"
         class="mb-20"
+        :use-hash="false"
         @addTab="addPool($event)"
         @removeTab="removePool($event)"
       >

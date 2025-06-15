@@ -1,6 +1,6 @@
 {
   "name": "@rancher/shell",
-  "version": "3.0.5-rc.1",
+  "version": "3.0.5-rc.3", 
   "description": "Rancher Dashboard Shell",
   "repository": "https://github.com/rancherlabs/dashboard",
   "license": "Apache-2.0",
@@ -56,6 +56,7 @@
     "babel-plugin-module-resolver": "4.0.0",
     "babel-preset-vue": "2.0.2",
     "cache-loader": "4.1.0",
+    "chart.js": "4.4.8",
     "clipboard-polyfill": "4.0.1",
     "codemirror-editor-vue3": "2.8.0",
     "codemirror": ">=5.64.0 <6",

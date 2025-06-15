@@ -15,6 +15,7 @@ Cypress.Commands.add('login', (
   password = Cypress.env('password'),
   cacheSession = true,
   skipNavigation = false,
+  acceptConfirmation = '', // Use when we expect the confirmation dialog to be present (expected button text)
 ) => {
   const login = () => {
     cy.intercept('POST', '/v3-public/localProviders/local*').as('loginReq');
@@ -26,6 +27,11 @@ Cypress.Commands.add('login', (
 
     loginPage
       .checkIsCurrentPage(!skipNavigation);
+
+    if (!!acceptConfirmation) {
+      loginPage.confirmationAcceptButton().shouldContainText(acceptConfirmation);
+      loginPage.confirmationAcceptButton().self().click();
+    }
 
     loginPage.switchToLocal();
 
@@ -508,7 +514,7 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body, failO
     });
 });
 
-Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId, testFn, retries = 20) => {
+Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId, testFn, retries = 20, config) => {
   const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`;
 
   const retry = () => {
@@ -519,6 +525,7 @@ Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId
         'x-api-csrf': token.value,
         Accept:       'application/json'
       },
+      failOnStatusCode: config?.failOnStatusCode === undefined ? true : !!config?.failOnStatusCode,
     })
       .then((resp) => {
         if (!testFn(resp)) {
@@ -526,14 +533,14 @@ Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId
           if (retries === 0) {
             cy.log(`waitForRancherResource: Failed to wait for updated state for ${ url }`);
 
-            return false;
+            return Promise.resolve(false);
           }
           cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting
 
           return retry();
         }
 
-        return true;
+        return Promise.resolve(true);
       });
   };
 
@@ -1105,5 +1112,59 @@ Cypress.Commands.add('setUserPreference', (prefs: any) => {
     delete update.links;
 
     return cy.setRancherResource('v1', 'userpreferences', update.id, update);
+  });
+});
+
+/**
+ * Create a secret via api request
+ */
+Cypress.Commands.add('createSecret', (namespace: string, name: string, options: { type?: string; metadata?: any; data?: any } = {}) => {
+  const defaultData = {
+    'tls.crt': Buffer.from('MOCKCERT').toString('base64'),
+    'tls.key': Buffer.from('MOCKPRIVATEKEY').toString('base64')
+  };
+
+  const body = {
+    type:     options.type || 'kubernetes.io/tls',
+    metadata: {
+      namespace,
+      name,
+      ...(options.metadata || {})
+    },
+    data: options.data || defaultData
+  };
+
+  return cy.createRancherResource('v1', 'secrets', body).then((resp) => {
+    return resp.body.metadata.name;
+  });
+});
+
+/**
+ * Create a service via api request
+ */
+Cypress.Commands.add('createService', (namespace: string, name: string, options: { type?: string; ports?: any[]; spec?: any; metadata?: any } = {}) => {
+  const defaultSpec = {
+    ports: options.ports || [{
+      name:       'myport',
+      port:       8080,
+      protocol:   'TCP',
+      targetPort: 80
+    }],
+    sessionAffinity: 'None',
+    type:            options.type || 'ClusterIP'
+  };
+
+  const body = {
+    type:     'service',
+    metadata: {
+      namespace,
+      name,
+      ...(options.metadata || {})
+    },
+    spec: options.spec || defaultSpec
+  };
+
+  return cy.createRancherResource('v1', 'services', body).then((resp) => {
+    return resp.body.metadata.name;
   });
 });

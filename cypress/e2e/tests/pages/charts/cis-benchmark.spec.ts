@@ -57,7 +57,7 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
         cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
         installChartPage.installChart();
         cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
-        cy.contains('Disconnected');
+        kubectl.waitForTerminalStatus('Disconnected');
 
         kubectl.closeTerminal();
 

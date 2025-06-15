@@ -208,6 +208,20 @@ export default {
     typeDisplay() {
       return this.t(`typeLabel."${ HCI.CLUSTER }"`, { count: this.rows?.length || 0 });
     },
+
+    rowsPerPage() {
+      // Using 5 as a rows limit to leave space below the table to display extension's messages.
+      if (
+        this.harvester.hasErrors ||
+        this.harvester.toInstall ||
+        this.harvester.toUpdate
+      ) {
+        return 5;
+      }
+
+      // No custom rows limit; 'Table Rows Per Page' preference will be used.
+      return null;
+    }
   },
 
   methods: {
@@ -270,9 +284,9 @@ export default {
           'install'
         );
 
-        const extension = await waitForUIExtension(this.$store, HARVESTER_CHART.name);
+        const extension = await waitForUIExtension(this.$store, HARVESTER_CHART.name, 20);
 
-        installed = await waitForUIPackage(this.$store, extension);
+        installed = await waitForUIPackage(this.$store, extension, 20);
       } catch (error) {
       }
 
@@ -385,7 +399,7 @@ export default {
         :is-creatable="true"
         :namespaced="false"
         :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-        :rows-per-page="5"
+        :rows-per-page="rowsPerPage"
       >
         <template #col:name="{row}">
           <td>

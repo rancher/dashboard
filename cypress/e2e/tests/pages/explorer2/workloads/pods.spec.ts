@@ -74,41 +74,70 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
 
       cy.waitForRancherResources('v1', 'pods', count - 1, true).then((resp: Cypress.Response<any>) => {
         // pagination is visible
-        workloadsPodPage.sortableTable().pagination().checkVisible();
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .checkVisible();
 
         // basic checks on navigation buttons
-        workloadsPodPage.sortableTable().pagination().beginningButton().isDisabled();
-        workloadsPodPage.sortableTable().pagination().leftButton().isDisabled();
-        workloadsPodPage.sortableTable().pagination().rightButton().isEnabled();
-        workloadsPodPage.sortableTable().pagination().endButton().isEnabled();
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .beginningButton()
+          .isDisabled();
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .leftButton()
+          .isDisabled();
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .rightButton()
+          .isEnabled();
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .endButton()
+          .isEnabled();
 
         // check text before navigation
-        workloadsPodPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
-        });
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
+          });
 
         // navigate to next page - right button
-        workloadsPodPage.sortableTable().pagination().rightButton().click();
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .rightButton()
+          .click();
 
         // check text and buttons after navigation
-        workloadsPodPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`11 - 20 of ${ count } Pods`);
-        });
-        workloadsPodPage.sortableTable().pagination().beginningButton().isEnabled();
-        workloadsPodPage.sortableTable().pagination().leftButton().isEnabled();
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`11 - 20 of ${ count } Pods`);
+          });
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .beginningButton()
+          .isEnabled();
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .leftButton()
+          .isEnabled();
 
         // navigate to first page - left button
-        workloadsPodPage.sortableTable().pagination().leftButton().click();
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .leftButton()
+          .click();
 
         // check text and buttons after navigation
-        workloadsPodPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
-        });
-        workloadsPodPage.sortableTable().pagination().beginningButton().isDisabled();
-        workloadsPodPage.sortableTable().pagination().leftButton().isDisabled();
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
+          });
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .beginningButton()
+          .isDisabled();
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .leftButton()
+          .isDisabled();
 
         // navigate to last page - end button
-        workloadsPodPage.sortableTable().pagination().endButton().scrollIntoView()
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .endButton()
+          .scrollIntoView()
           .click();
 
         // row count on last page
@@ -119,19 +148,29 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
         }
 
         // check text after navigation
-        workloadsPodPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Pods`);
-        });
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Pods`);
+          });
 
         // navigate to first page - beginning button
-        workloadsPodPage.sortableTable().pagination().beginningButton().click();
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .beginningButton()
+          .click();
 
         // check text and buttons after navigation
-        workloadsPodPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
-        });
-        workloadsPodPage.sortableTable().pagination().beginningButton().isDisabled();
-        workloadsPodPage.sortableTable().pagination().leftButton().isDisabled();
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
+          });
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .beginningButton()
+          .isDisabled();
+        workloadsPodPage.list().resourceTable().sortableTable().pagination()
+          .leftButton()
+          .isDisabled();
       });
     });
 
@@ -139,47 +178,61 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
       // use filter to only show test data
-      workloadsPodPage.sortableTable().filter(rootResourceName);
+      workloadsPodPage.list().resourceTable().sortableTable().filter(rootResourceName);
 
       // check table is sorted by name in ASC order by default
-      workloadsPodPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');
+      workloadsPodPage.list().resourceTable().sortableTable().tableHeaderRow()
+        .checkSortOrder(2, 'down');
 
       // pod name should be visible on first page (sorted in ASC order)
-      workloadsPodPage.sortableTable().tableHeaderRow().self().scrollIntoView();
-      workloadsPodPage.sortableTable().rowElementWithName(podNamesList[0]).scrollIntoView().should('be.visible');
+      workloadsPodPage.list().resourceTable().sortableTable().tableHeaderRow()
+        .self()
+        .scrollIntoView();
+      workloadsPodPage.list().resourceTable().sortableTable().rowElementWithName(podNamesList[0])
+        .scrollIntoView()
+        .should('be.visible');
 
       // sort by name in DESC order
-      workloadsPodPage.sortableTable().sort(2).click({ force: true });
-      workloadsPodPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'up');
+      workloadsPodPage.list().resourceTable().sortableTable().sort(2)
+        .click({ force: true });
+      workloadsPodPage.list().resourceTable().sortableTable().tableHeaderRow()
+        .checkSortOrder(2, 'up');
 
       // pod name should be NOT visible on first page (sorted in DESC order)
-      workloadsPodPage.sortableTable().rowElementWithName(podNamesList[0]).should('not.exist');
+      workloadsPodPage.list().resourceTable().sortableTable().rowElementWithName(podNamesList[0])
+        .should('not.exist');
 
       // navigate to last page
-      workloadsPodPage.sortableTable().pagination().endButton().scrollIntoView()
+      workloadsPodPage.list().resourceTable().sortableTable().pagination()
+        .endButton()
+        .scrollIntoView()
         .click();
 
       // pod name should be visible on last page (sorted in DESC order)
-      workloadsPodPage.sortableTable().rowElementWithName(podNamesList[0]).scrollIntoView().should('be.visible');
+      workloadsPodPage.list().resourceTable().sortableTable().rowElementWithName(podNamesList[0])
+        .scrollIntoView()
+        .should('be.visible');
     });
 
     it('filter pods', () => {
       WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
 
-      workloadsPodPage.sortableTable().checkVisible();
-      workloadsPodPage.sortableTable().checkLoadingIndicatorNotVisible();
-      workloadsPodPage.sortableTable().checkRowCount(false, 10);
+      workloadsPodPage.list().resourceTable().sortableTable().checkVisible();
+      workloadsPodPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      workloadsPodPage.list().resourceTable().sortableTable().checkRowCount(false, 10);
 
       // filter by name
-      workloadsPodPage.sortableTable().filter(podNamesList[0]);
-      workloadsPodPage.sortableTable().checkRowCount(false, 1);
-      workloadsPodPage.sortableTable().rowElementWithName(podNamesList[0]).should('be.visible');
+      workloadsPodPage.list().resourceTable().sortableTable().filter(podNamesList[0]);
+      workloadsPodPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+      workloadsPodPage.list().resourceTable().sortableTable().rowElementWithName(podNamesList[0])
+        .should('be.visible');
 
       // filter by namespace
-      workloadsPodPage.sortableTable().filter(nsName2);
-      workloadsPodPage.sortableTable().checkRowCount(false, 1);
-      workloadsPodPage.sortableTable().rowElementWithName(uniquePod).should('be.visible');
+      workloadsPodPage.list().resourceTable().sortableTable().filter(nsName2);
+      workloadsPodPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+      workloadsPodPage.list().resourceTable().sortableTable().rowElementWithName(uniquePod)
+        .should('be.visible');
     });
 
     it('pagination is hidden', () => {
@@ -192,10 +245,11 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       cy.wait('@podsDataSmall');
       workloadsPodPage.waitForPage();
 
-      workloadsPodPage.sortableTable().checkVisible();
-      workloadsPodPage.sortableTable().checkLoadingIndicatorNotVisible();
-      workloadsPodPage.sortableTable().checkRowCount(false, 3);
-      workloadsPodPage.sortableTable().pagination().checkNotExists();
+      workloadsPodPage.list().resourceTable().sortableTable().checkVisible();
+      workloadsPodPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      workloadsPodPage.list().resourceTable().sortableTable().checkRowCount(false, 3);
+      workloadsPodPage.list().resourceTable().sortableTable().pagination()
+        .checkNotExists();
     });
 
     after('clean up', () => {
@@ -317,7 +371,9 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
 
       podDetails.saveCreateForm().cruResource().saveOrCreate().click();
       workloadsPodPage.waitForPage();
-      workloadsPodPage.sortableTable().rowElementWithName(singlePodName).scrollIntoView().should('be.visible');
+      workloadsPodPage.list().resourceTable().sortableTable().rowElementWithName(singlePodName)
+        .scrollIntoView()
+        .should('be.visible');
     });
 
     it('Footer controls should stick to bottom in YAML Editor', () => {
@@ -328,16 +384,18 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
 
       workloadsPodPage.goTo();
       workloadsPodPage.waitForPage();
-      workloadsPodPage.sortableTable().rowElementWithName(singlePodName).scrollIntoView().should('be.visible');
+      workloadsPodPage.list().resourceTable().sortableTable().rowElementWithName(singlePodName)
+        .scrollIntoView()
+        .should('be.visible');
       workloadsPodPage.list().actionMenu(singlePodName).getMenuItem('Edit YAML').click();
       workloadsPodEditPage.waitForPage('mode=edit&as=yaml');
       cy.wait('@getPod');
 
       // clear the form
-      workloadsPodEditPage.saveCreateForm().resourceYaml().codeMirror().set('');
+      workloadsPodEditPage.resourceDetail().resourceYaml().codeMirror().set('');
 
       // footer should maintain its position on the page
-      workloadsPodEditPage.saveCreateForm().resourceYaml().footer().then(($el) => {
+      workloadsPodEditPage.resourceDetail().resourceYaml().footer().then(($el) => {
         const elementRect = $el[0].getBoundingClientRect();
         const viewportHeight = Cypress.config('viewportHeight');
         const pageHeight = Cypress.$(cy.state('window')).height();
@@ -362,6 +420,48 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
         cy.get('[data-testid="btn-container-1"]').should('contain.text', 'container-1');
         cy.get('[data-testid="workload-button-add-container"]').should('contain.text', 'Add Container');
       });
+    });
+
+    // testing https://github.com/rancher/dashboard/issues/14071
+    it('should remove the correct environment variable from the workload form', () => {
+      const podDetails = new PodPo();
+
+      workloadsPodPage.goTo();
+      workloadsPodPage.createPod();
+
+      podDetails.nameNsDescription().name().set(singlePodName);
+
+      // add multiple environment variables
+      const envVars = [
+        { key: 'FIRST_VAR', value: 'one' },
+        { key: 'SECOND_VAR', value: 'two' },
+        { key: 'THIRD_VAR', value: 'three' },
+      ];
+
+      envVars.forEach(({ key, value }, index) => {
+        podDetails.environmentVariables().setKeyValueEnvVarAtIndex(key, value, index);
+      });
+
+      // confirm all env vars are present
+      envVars.forEach(({ key }, index) => {
+        podDetails.environmentVariables().getVariableAtIndex(index).find('.name input')
+          .should('have.value', key)
+          .and('exist');
+      });
+
+      // remove SECOND_VAR
+      podDetails.environmentVariables().removeButtonAtIndex(1).click();
+
+      // confirm only FIRST_VAR and THIRD_VAR remain
+      const newEnvVars = [
+        { key: 'FIRST_VAR', value: 'one' },
+        { key: 'THIRD_VAR', value: 'three' },
+      ];
+
+      newEnvVars.forEach(({ key }, index) => {
+        podDetails.environmentVariables().getVariableAtIndex(index).find('.name input').should('have.value', key);
+      });
+      podDetails.environmentVariables().getVariableByName('SECOND_VAR').should('not.exist');
     });
   });
 

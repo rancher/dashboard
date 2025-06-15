@@ -121,6 +121,6 @@ export default {
 .events-link {
   align-self: center;
   padding-right: 20px;
-  min-width: 200px;
+  white-space: nowrap;
 }
 </style>

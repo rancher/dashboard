@@ -266,11 +266,13 @@ export const CREATION_DATE = {
 };
 
 export const DESCRIPTION = {
-  name:     'description',
-  labelKey: 'tableHeaders.description',
-  align:    'left',
-  sort:     ['description'],
-  width:    300,
+  name:      'description',
+  labelKey:  'tableHeaders.description',
+  align:     'left',
+  value:     'description',
+  sort:      ['description'],
+  formatter: 'Description',
+  width:     300,
 };
 
 export const NS_SNAPSHOT_QUOTA = {
@@ -1075,11 +1077,12 @@ export const FLEET_REPO_TARGET = {
 };
 
 export const FLEET_REPO = {
-  name:     'repo',
-  labelKey: 'tableHeaders.repo',
-  value:    'repoDisplay',
-  sort:     'repoDisplay',
-  search:   ['spec.repo', 'status.commit'],
+  name:      'repo',
+  labelKey:  'tableHeaders.repo',
+  value:     'repoDisplay',
+  formatter: 'FleetRepo',
+  sort:      'repoDisplay',
+  search:    ['spec.repo', 'status.commit'],
 };
 
 export const UI_PLUGIN_CATALOG = [

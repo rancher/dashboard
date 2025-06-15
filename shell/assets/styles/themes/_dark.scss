@@ -134,6 +134,8 @@
   --input-disabled-placeholder : #{darken($disabled, 10%)};
   --input-addon-bg             : #{$darker};
 
+  --label-secondary           : #{$lighter};
+
   --progress-bg                : #{$medium};
   --progress-divider           : #{$lightest};
 
@@ -226,7 +228,30 @@
   --badge-state-disabled-bg    : #{$medium};
   --badge-state-disabled-border: #{$lighter};
 
+  --click-badge-error          : #{$lightest};
+  --click-badge-error-bg       : #F43434;
+  --click-badge-error-border   : #FF8080;
+
+  --click-badge-warning        : #662E00;
+  --click-badge-warning-bg     : #FFCA4D;
+  --click-badge-warning-border : #F2870D;
+
+  --click-badge-success        : #00FF32;
+  --click-badge-success-bg     : #354240;
+  --click-badge-success-border : #4DFF70;
+  
+  --click-badge-info           : #{$lightest};
+  --click-badge-info-bg        : #{$info};
+  --click-badge-info-border    : #ACD2EC;
+  --bubble-bg                  : #{$darkest};
+
   $slate: #4B4F6B;
 
   --slate: #{$slate};
+
+  --link-text-secondary: #{$secondary};
+
+  .secondary-text-link {
+    color: var(--link-text-secondary);
+  }
 }

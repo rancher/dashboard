@@ -307,7 +307,14 @@ export default {
 
         // KeyCloakOIDCConfig --> OIDCConfig
         this.model.rancherUrl = `${ serverUrl }/verify-auth`;
-        this.model.scope = this.model.id === 'keycloakoidc' ? BASE_SCOPES.keycloakoidc[0] : BASE_SCOPES.genericoidc[0];
+
+        // If there are base scopes defined for this provider, use those
+        if (Array.isArray(BASE_SCOPES[this.model.id])) {
+          this.model.scope = BASE_SCOPES[this.model.id][0];
+        } else {
+          // Default if base scopes not defined for this auth provider
+          this.model.scope = BASE_SCOPES.genericoidc[0];
+        }
         break;
       }
 

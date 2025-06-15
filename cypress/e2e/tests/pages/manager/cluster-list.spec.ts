@@ -1,7 +1,7 @@
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-custom.po';
 import * as jsyaml from 'js-yaml';
-import { promptModal } from '@/cypress/e2e/po/prompts/shared/promptInstances.po';
+import { promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
 
 describe('Cluster List', { tags: ['@manager', '@adminUser'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
@@ -39,7 +39,6 @@ describe('Cluster List', { tags: ['@manager', '@adminUser'] }, () => {
 
     clusterList.createCluster();
     createRKE2ClusterPage.waitForPage();
-    createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
     createRKE2ClusterPage.selectCustom(0);
     createRKE2ClusterPage.title().then((title) => {
       expect(title.replace(/\s+/g, ' ')).to.contain('Cluster: Create Custom');
@@ -48,7 +47,7 @@ describe('Cluster List', { tags: ['@manager', '@adminUser'] }, () => {
     createRKE2ClusterPage.waitForPage();
     createRKE2ClusterPage.resourceDetail().createEditView().editClusterAsYaml();
     promptModal().checkVisible();
-    promptModal().submit('Save and Continue');
+    promptModal().clickActionButton('Save and Continue');
     createRKE2ClusterPage.waitForPage('type=custom&rkeType=rke2', 'basic');
     // provision cluster into a custom namespace
     createRKE2ClusterPage.resourceDetail().resourceYaml().codeMirror().value()
