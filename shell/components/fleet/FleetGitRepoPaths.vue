@@ -73,7 +73,7 @@ export default {
 
   inheritAttrs: false,
 
-  emits: ['udpate:value', 'touched'],
+  emits: ['update:value', 'touched'],
 
   components: {
     ArrayList,
@@ -163,7 +163,7 @@ export default {
     update() {
       const value = this.fromDirectoryTree();
 
-      this.$emit('udpate:value', value);
+      this.$emit('update:value', value);
       this.$emit('touched', this.pathsOrder());
     },
 

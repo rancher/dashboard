@@ -645,7 +645,7 @@ export default {
         }"
         :mode="mode"
         :touched="touched"
-        @udpate:value="updatePaths"
+        @update:value="updatePaths"
         @touched="touched=$event"
       />
     </template>
