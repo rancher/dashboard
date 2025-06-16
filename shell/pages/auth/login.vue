@@ -254,12 +254,15 @@ export default {
 
     async loginLocal(buttonCb) {
       try {
+        // eslint-disable-next-line no-console
+        console.error('LOGGING IN WITH LOCAL USER!');
         await this.$store.dispatch('auth/login', {
           provider: 'local',
           body:     {
             username: this.username,
             password: this.password
-          }
+          },
+          queryParams: this.$route.query
         });
 
         const user = await this.$store.dispatch('rancher/findAll', {

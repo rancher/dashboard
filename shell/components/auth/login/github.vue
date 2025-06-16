@@ -6,7 +6,9 @@ export default {
 
   methods: {
     login() {
-      this.$store.dispatch('auth/redirectTo', { provider: 'github' });
+      // eslint-disable-next-line no-console
+      console.error('LOGGING IN WITH GITHUB!!!');
+      this.$store.dispatch('auth/redirectTo', { provider: 'github', queryParams: this.$route.query });
     },
   },
 };

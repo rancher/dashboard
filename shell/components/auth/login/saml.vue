@@ -1,25 +1,47 @@
 <script>
 import Login from '@shell/mixins/login';
 export default {
+  emits:  ['error'],
   mixins: [Login],
 
   methods: {
     async login() {
+      // eslint-disable-next-line no-console
+      console.error('LOGGING IN WITH SAML!');
       const { requestId, publicKey, responseType } = this.$route.query;
 
-      const res = await this.$store.dispatch('auth/login', {
-        provider: this.name,
-        body:     {
-          finalRedirectUrl: window.location.origin,
-          requestId,
-          publicKey,
-          responseType
+      try {
+        const res = await this.$store.dispatch('auth/login', {
+          provider: this.name,
+          body:     {
+            finalRedirectUrl: window.location.origin,
+            requestId,
+            publicKey,
+            responseType
+          },
+          queryParams: this.$route.query
+        });
+
+        // eslint-disable-next-line no-console
+        console.error('SAML - PROMISE RESOLVED', res);
+        // eslint-disable-next-line no-console
+        console.error('SAML - PROMISE RESOLVED idpRedirectUrl', res?.idpRedirectUrl);
+
+        if (res?.idpRedirectUrl) {
+          // eslint-disable-next-line no-console
+          console.error('SAML - REDIRECT');
+
+          window.location.href = res.idpRedirectUrl;
         }
-      });
+      } catch (err) {
+        this.err = err;
 
-      const { idpRedirectUrl } = res;
+        // eslint-disable-next-line no-console
+        console.error('SAML - WE ARE ON ERROR STATUS');
 
-      window.location.href = idpRedirectUrl;
+        // emit error to parent so that it can displayed on the error Banner
+        this.$emit('error', err);
+      }
     },
   },
 };
