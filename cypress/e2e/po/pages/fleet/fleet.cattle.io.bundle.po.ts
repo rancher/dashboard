@@ -24,7 +24,7 @@ export class FleetBundlesListPagePo extends BaseListPagePo {
     const sideNav = new ProductNavPo();
 
     sideNav.navToSideMenuGroupByLabel('Resources');
-    sideNav.navToSideMenuEntryByLabel(/^Bundles$/);
+    sideNav.navToSideMenuEntryByLabel('Bundles');
   }
 }
 
