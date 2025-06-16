@@ -27,6 +27,7 @@ import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import { getClusterFromRoute, getProductFromRoute } from '@shell/utils/router';
 import { BOTTOM } from '@shell/utils/position';
 import SideNav from '@shell/components/SideNav';
+import Loading from '@shell/components/Loading.vue';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -39,6 +40,7 @@ export default {
     Header,
     ActionMenu,
     GrowlManager,
+    Loading,
     ModalManager,
     SlideInPanelManager,
     WindowManager,
@@ -202,10 +204,17 @@ export default {
         class="main-layout"
         :aria-label="t('layouts.default')"
       >
-        <router-view
-          :key="$route.path"
-          class="outlet"
-        />
+        <Suspense>
+          <template #default>
+            <router-view
+              :key="$route.path"
+              class="outlet"
+            />
+          </template>
+          <template #fallback>
+            <Loading />
+          </template>
+        </Suspense>
         <ActionMenu />
         <PromptRemove />
         <PromptRestore />
@@ -240,10 +249,17 @@ export default {
         class="main-layout"
         :aria-label="t('layouts.default')"
       >
-        <router-view
-          :key="$route.path"
-          class="outlet"
-        />
+        <Suspense>
+          <template #default>
+            <router-view
+              :key="$route.path"
+              class="outlet"
+            />
+          </template>
+          <template #fallback>
+            <Loading />
+          </template>
+        </Suspense>
       </main>
       <div
         v-if="$refs.draggableZone"
