@@ -43,17 +43,20 @@ export default {
   },
 
   data() {
+    const config = {
+      bucket:              '',
+      cloudCredentialName: null,
+      endpoint:            '',
+      endpointCA:          '',
+      folder:              '',
+      region:              '',
+      skipSSLVerify:       false,
+
+      ...(this.value || {}),
+    };
+
     return {
-      config: {
-        bucket:              '',
-        cloudCredentialName: null,
-        endpoint:            '',
-        endpointCA:          '',
-        folder:              '',
-        region:              '',
-        skipSSLVerify:       false,
-        ...(this.value || {}),
-      },
+      config,
       fvRules: {
         endpoint: [
           (value) => {
@@ -62,7 +65,7 @@ export default {
             }
             // If it's NOT HTTPS or HTTP, return an error message
             if (isHttpsOrHttp(value)) {
-            // needs to change to correct way of returning errors
+              // needs to change to correct way of returning errors
               return 'Endpoint cannot start with http:// or https://';
             }
           },
