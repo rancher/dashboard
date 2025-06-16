@@ -3,35 +3,18 @@ import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 
 import { downloadFile } from '@shell/utils/download';
-import { K8S_RESOURCE_NAME, REGISTRATION_CRD } from '../config/constants';
+import { REGISTRATION_NAMESPACE, REGISTRATION_SECRET, REGISTRATION_RESOURCE_NAME, REGISTRATION_LABEL } from '../config/constants';
+import { SECRET } from '@shell/config/types';
 
-type RegistrationStatus = 'registering-online' | 'registering-offline' | 'registered-online' | 'registered-offline' | null;
+type RegistrationStatus = 'registering-online' | 'registering-offline' | 'registered' | null;
 
-const registrationMock = {
-  none: {
-    product:    '--',
-    code:       '--',
-    expiration: '--',
-    color:      'error',
-    message:    'registration.list.table.badge.none',
-    status:     'none'
-  },
-  expired: {
-    product:    'SUSE Rancher Manager Prime Suite',
-    code:       'sdfs-a987435-kjhsf-8u44p0-dmw0o44p0dmasd9',
-    expiration: '12/12/2021',
-    color:      'error',
-    message:    'registration.list.table.badge.expired',
-    status:     'expired'
-  },
-  valid: {
-    product:    'SUSE Rancher Manager Prime Suite',
-    code:       'sdfs-a987435-kjhsf-8u44p0-dmw0o44p0dmasd9',
-    expiration: '12/12/2021',
-    color:      'success',
-    message:    'registration.list.table.badge.valid',
-    status:     'valid'
-  }
+const emptyRegistration = {
+  product:    '--',
+  code:       '--',
+  expiration: '--',
+  color:      'error',
+  message:    'registration.list.table.badge.none',
+  status:     'none'
 };
 
 const registrationBannerCases = {
@@ -52,7 +35,12 @@ export const usePrimeRegistration = () => {
   /**
    * Registration from CRD
    */
-  const registration = ref(registrationMock.none);
+  const registration = ref(emptyRegistration);
+
+  /**
+   * Secret containing user registration code or offline certificate
+   */
+  const secret = ref(null);
 
   /**
    * Single source for the registration status, used to define other computed properties
@@ -80,33 +68,65 @@ export const usePrimeRegistration = () => {
   const registrationBanner = computed(() => registration.value.status === 'valid' ? registrationBannerCases.valid : registrationBannerCases.none);
 
   /**
+   * Update registration to defined case
    * Reset other inputs and errors, set current state then patch the registration
    * @param type 'online' | 'offline' | 'deregister'
    * @param asyncButtonResolution Async button callback
    */
-  const patchRegistration = (type: 'online' | 'offline' | 'deregister', asyncButtonResolution: () => void) => {
+  const changeRegistration = async(type: 'online' | 'offline' | 'deregister', asyncButtonResolution: () => void) => {
     errors.value = [];
-    setTimeout(() => {
-      switch (type) {
-      case 'online':
-        offlineRegistrationCertificate.value = '';
-        registrationStatus.value = 'registered-online';
-        registration.value = registrationMock.valid;
-        break;
-      case 'offline':
-        registrationCode.value = '';
-        registrationStatus.value = 'registered-offline';
-        registration.value = registrationMock.expired;
-        break;
-      case 'deregister':
-        registrationStatus.value = null;
-        registrationCode.value = '';
-        offlineRegistrationCertificate.value = '';
-        registration.value = registrationMock.none;
-        break;
+    await ensureNamespace();
+    await deleteSecret();
+
+    switch (type) {
+    case 'online':
+      secret.value = await createSecret('online', registrationCode.value);
+      offlineRegistrationCertificate.value = '';
+      if (secret.value) {
+        registration.value = await getRegistration(secret.value.metadata?.labels?.[REGISTRATION_LABEL]);
+        if (registration.value) {
+          registrationStatus.value = 'registered';
+        }
       }
-      asyncButtonResolution();
-    }, 2000);
+      break;
+    case 'offline':
+      secret.value = await createSecret('offline', registrationCode.value);
+      registrationCode.value = '';
+      if (secret.value) {
+        registration.value = await getRegistration(secret.value.metadata?.labels?.[REGISTRATION_LABEL]);
+        if (registration.value) {
+          registrationStatus.value = 'registered';
+        }
+      }
+      break;
+    case 'deregister':
+      registrationStatus.value = null;
+      registrationCode.value = '';
+      offlineRegistrationCertificate.value = '';
+      registration.value = emptyRegistration;
+      break;
+    }
+    asyncButtonResolution();
+  };
+
+  /**
+   * Create registration namespace if none exists
+   */
+  const ensureNamespace = async() => {
+    try {
+      await store.dispatch('cluster/find', {
+        type: 'namespace',
+        id:   REGISTRATION_NAMESPACE,
+        opt:  { force: true }
+      });
+    } catch (error) {
+      const newNamespace = await store.dispatch('cluster/create', {
+        type:     'namespace',
+        metadata: { name: REGISTRATION_NAMESPACE }
+      });
+
+      newNamespace.save();
+    }
   };
 
   /**
@@ -122,7 +142,7 @@ export const usePrimeRegistration = () => {
    */
   const registerOnline = (asyncButtonResolution: () => void) => {
     registrationStatus.value = 'registering-online';
-    patchRegistration('online', asyncButtonResolution);
+    changeRegistration('online', asyncButtonResolution);
   };
 
   /**
@@ -132,7 +152,7 @@ export const usePrimeRegistration = () => {
   const registerOffline = (certificate: string) => {
     registrationStatus.value = 'registering-offline';
     offlineRegistrationCertificate.value = certificate;
-    patchRegistration('offline', () => {});
+    changeRegistration('offline', () => {});
   };
 
   /**
@@ -153,7 +173,7 @@ export const usePrimeRegistration = () => {
    * @param asyncButtonResolution Async button callback
    */
   const deregister = (asyncButtonResolution: () => void) => {
-    patchRegistration('deregister', asyncButtonResolution);
+    changeRegistration('deregister', asyncButtonResolution);
   };
 
   /**
@@ -164,41 +184,90 @@ export const usePrimeRegistration = () => {
     const fileName = 'rancher-offline-registration-request.json';
     const data = '';
 
-    setTimeout(() => {
-      downloadFile(fileName, JSON.stringify(data), 'application/json')
-        .then(() => asyncButtonResolution(true))
-        .catch(() => asyncButtonResolution(false));
-    }, 1000);
+    downloadFile(fileName, JSON.stringify(data), 'application/json')
+      .then(() => asyncButtonResolution(true))
+      .catch(() => asyncButtonResolution(false));
   };
 
   /**
-   * Initialize the CRD for registration if missing
+   * Get registration CRD matching secret label
    */
-  const registerSchema = async() => {
-    try {
-      await store.dispatch('management/request', {
-        url:    '/v1/apiextensions.k8s.io.customresourcedefinitions',
-        method: 'POST',
-        data:   REGISTRATION_CRD,
-      });
-    } catch (err) {
-      onError(t('registration.error.schema'), err as string);
+  const getRegistration = async(label: string) => {
+    const registrations = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME });
+
+    const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === label);
+
+    return registration ? {
+      product:    '--',
+      code:       regCode.value,
+      expiration: '--',
+      color:      'success',
+      message:    'registration.list.table.badge.valid',
+      status:     'valid'
+    } : emptyRegistration;
+  };
+
+  /**
+   * Get unique secret code with hardcoded namespace and name
+   */
+  const getSecret = async() => {
+    const secrets = await store.dispatch('cluster/findAll', { type: SECRET });
+
+    return secrets.find((secret) => secret.metadata?.namespace === REGISTRATION_NAMESPACE && secret.metadata?.name === REGISTRATION_SECRET);
+  };
+
+  /**
+   * Delete any secret before creating a new one
+   */
+  const deleteSecret = async() => {
+    if (secret.value) {
+      try {
+        await secret.value.remove();
+      } catch (error) {}
     }
   };
 
-  // Fetch data when the component is mounted
+  /**
+   * Create secret to trigger registration
+   * @param type 'online' | 'offline'
+   * @param code
+   * @returns
+   */
+  const createSecret = async(type: string, code: string) => {
+    try {
+      const secret = await store.dispatch('cluster/create', {
+        type:     SECRET,
+        metadata: {
+          namespace: REGISTRATION_NAMESPACE,
+          name:      REGISTRATION_SECRET,
+        },
+        data: {
+          regCode:          btoa(code),
+          registrationType: btoa(type)
+        }
+      });
+
+      await secret.save();
+
+      return secret;
+    } catch (error) {}
+  };
+
+  const regCode = computed(() => {
+    return secret.value?.data?.regCode ? atob(secret.value.data.regCode) : '';
+  });
+
   onMounted(async() => {
-    const schema = store.getters['management/schemaFor'](K8S_RESOURCE_NAME);
+    secret.value = await getSecret();
 
-    if (!schema) {
-      await registerSchema();
-    }
+    if (secret.value) {
+      registrationCode.value = regCode.value;
+      const hash = secret.value.metadata?.labels?.[REGISTRATION_LABEL];
 
-    const registrations = await store.dispatch('management/findAll', { type: K8S_RESOURCE_NAME });
-
-    // TODO: Pick one registration only to display
-    if (registrations.length) {
-      registration.value = registrations[0];
+      if (hash) {
+        registration.value = await getRegistration(hash) || emptyRegistration;
+        registrationStatus.value = 'registered';
+      }
     }
   });
 
