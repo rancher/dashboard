@@ -1,7 +1,7 @@
 import { randomStr } from '@shell/utils/string';
 import { Notification } from '@shell/types/notifications';
 
-const LOCAL_STORAGE_KEY = '#notifications';
+const LOCAL_STORAGE_KEY = 'notifications';
 
 /**
  * Expire in seconds (14 days)
@@ -67,6 +67,15 @@ export const mutations = {
   add(state: NotificationsStore, notification: Notification) {
     if (!notification.id) {
       notification.id = randomStr();
+    } else {
+      // Check that there is not already a notification with this id
+      const index = state.notifications.findIndex((n) => n.id === notification.id);
+
+      if (index !== -1) {
+        console.error(`Can not add a notification with the same id as an existing notification (${ notification.id })`); // eslint-disable-line no-console
+
+        return;
+      }
     }
 
     const stored = {

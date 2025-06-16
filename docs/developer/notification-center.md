@@ -12,7 +12,7 @@ The Notification Center adds a 'bell' icon in the top-right of the Rancher Manag
 
 ## Adding a Notification
 
-> Note: Types are defined in `types/notifications`
+> Note: Types are defined in `@shell/types/notifications`
 
 There is a new VueX store with actions under the `notifications` store.
 
@@ -33,7 +33,7 @@ Where `notification` is of type `Notification`. The properties on this type are:
 |id|Unique id (optional)|
 |preference|User Preference tied to the notification (optional) (the preference will be updated when the notification is marked read)|
 
-The `level` specifies the importance of the notification and determines the icon that is shown in the notification:
+The `level` specifies the importance of the notification and determines the icon that is shown in the notification. You should use the `NotificationLevel` type from `@shell/types/notifications`.
 
 |Level|Purpose|
 |---|---|
@@ -48,7 +48,7 @@ Example notification of type `Announcement`:
 
 ![Example Notification](./images/notification-example.png)
 
-Note that the `id` field is optional - if not specified, the notification will be assigned a unique identifier. Using a known identifier is only really required if you wish to be able to look up a notification by a known identifier OR you wish to be able yo update a notification after being added.
+Note that the `id` field is optional - if not specified, the notification will be assigned a unique identifier. Using a known identifier is only really required if you wish to be able to look up a notification by a known identifier OR you wish to be able to update a notification after being added.
 
 > Note: Be careful not to include sensitive information in notifications, since these are persisted to the browser's local storage
 
