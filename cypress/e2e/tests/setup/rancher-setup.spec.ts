@@ -3,7 +3,6 @@ import { RancherSetupConfigurePage } from '@/cypress/e2e/po/pages/rancher-setup-
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 import { serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCases } from '@/cypress/e2e/blueprints/global_settings/settings-data';
-import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
 
 // Cypress or the GrepTags avoid to run multiples times the same test for each tag used.
 // This is a temporary solution till initialization is not handled as a test
@@ -111,22 +110,5 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
       },
       password: Cypress.env('password')
     }, { createNameOptions: { onlyContext: true } });
-  });
-
-  const featureFlagsPage = new FeatureFlagsPagePo('local');
-
-  // RC: remove entire chunk when FF is on by default (and make vai-setup.spec disable ff instead of enable)
-  it('Enable Feature Flag', () => {
-    cy.login();
-
-    FeatureFlagsPagePo.goTo('local');
-    featureFlagsPage.waitForPage();
-
-    featureFlagsPage.list().details('ui-sql-cache', 0).should('include.text', 'Disabled');
-
-    featureFlagsPage.list().clickRowActionMenuItem('ui-sql-cache', 'Activate');
-    featureFlagsPage.clickCardActionButtonAndWait('Activate', 'ui-sql-cache', true, { waitForModal: true, waitForRequest: true });
-
-    featureFlagsPage.list().details('ui-sql-cache', 0).should('include.text', 'Active');
   });
 });
