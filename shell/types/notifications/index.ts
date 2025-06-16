@@ -12,7 +12,7 @@ export enum NotificationLevel {
   Success, // eslint-disable-line no-unused-vars
   Warning, // eslint-disable-line no-unused-vars
   Error, // eslint-disable-line no-unused-vars
-};
+}
 
 /**
  * An action that is shown as a button in the Notification Center
