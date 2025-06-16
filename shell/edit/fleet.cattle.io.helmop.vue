@@ -583,7 +583,7 @@ export default {
       case SOURCE_TYPE.OCI:
         this.fvFormRuleSets = [{
           path:  'spec.helm.chart',
-          rules: ['required'],
+          rules: ['required', 'ociRegistry'],
         }];
         break;
       case SOURCE_TYPE.TARBALL:

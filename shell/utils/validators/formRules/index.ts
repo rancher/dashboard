@@ -177,10 +177,16 @@ export default function(
     if (url) {
       const urlPart2 = url.replaceAll(regexPart1, '');
 
-      return !urlPart2 || url === urlPart2 || !regexPart2.test(urlPart2.replaceAll('%20', '')) ? t('validation.git.repository') : undefined;
+      return !urlPart2 || url === urlPart2 || !regexPart2.test(urlPart2.replaceAll('%20', '')) ? t('validation.git.url') : undefined;
     }
 
     return undefined;
+  };
+
+  const ociRegistry: Validator = (url: string) => {
+    const regex = /^oci:\/\/\S+$/gm;
+
+    return !regex.test(url) ? t('validation.oci.url') : undefined;
   };
 
   const alphanumeric: Validator = (val: string) => val && !/^[a-zA-Z0-9]+$/.test(val) ? t('validation.alphanumeric', { key }) : undefined;
@@ -542,6 +548,7 @@ export default function(
     minLength,
     minValue,
     noUpperCase,
+    ociRegistry,
     portNumber,
     registryUrl,
     required,
