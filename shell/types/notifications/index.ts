@@ -1,5 +1,3 @@
-import { RouteLocationRaw } from 'vue-router';
-
 /**
  * Type definitions for the Notification Center
  */
@@ -14,7 +12,7 @@ export enum NotificationLevel {
   Success, // eslint-disable-line no-unused-vars
   Warning, // eslint-disable-line no-unused-vars
   Error, // eslint-disable-line no-unused-vars
-}
+};
 
 /**
  * An action that is shown as a button in the Notification Center
@@ -22,7 +20,6 @@ export enum NotificationLevel {
 export type NotificationAction = {
   label: string; // Button label for the action
   target?: string; // HREF target when the button is clicked
-  route?: RouteLocationRaw; // Route to navigate to when the button is clicked
 };
 
 /**
@@ -35,40 +32,23 @@ export type NotificationPreference = {
 };
 
 /**
- * Type for Encrypted Notification data that is stored in local storage
- */
-export type EncryptedNotification = {
-  title: string;
-  // Message to be shown in the notification (optional)
-  message?: string;
-  // Notification Level
-  level: NotificationLevel;
-  // Primary action to be shown in the notification (optional)
-  primaryAction?: NotificationAction;
-  // Secondary to be shown in the notification (optional)
-  secondaryAction?: NotificationAction;
-};
-
-/**
  * Type for Notification that is sent
  */
 export type Notification = {
   // Unique ID for the notification
   id: string;
+  // Title to be displayed in the notification
+  title: string;
+  // Message to be shown in the notification (optional)
+  message?: string;
+  // Notification Level
+  level: NotificationLevel;
   // Progress (0-100) for notifications of type `Task` (optional)
   progress?: number;
+  // Primary action to be shown in the notification (optional)
+  primaryAction?: NotificationAction;
+  // Secondary to be shown in the notification (optional)
+  secondaryAction?: NotificationAction;
   // User Preference tied to the notification (optional) (the preference will be updated when the notification is marked read)
   preference?: NotificationPreference;
-} & EncryptedNotification;
-
-/**
- * Type for notification that is stored
- *
- * This should not be used outside of this store or the Notification Center UI components
- *
- * Includes extra fields managed by the notification center
- */
-export type StoredNotification = {
-  created: Date;
-  read: Boolean;
-} & Notification;
+};
