@@ -19,7 +19,7 @@ const MAX_NOTIFICATIONS = 50;
 
 /**
  * Type for notification that is stored
- * 
+ *
  * This should not be used outside of this store or the Notification Center UI components
  *
  * Includes extra fields managed by the notification center
