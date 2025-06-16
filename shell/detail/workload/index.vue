@@ -47,6 +47,10 @@ export default {
     } catch {}
 
     const hash = {
+      // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
+      // allPods:      this.$store.dispatch('cluster/findAll', { type: POD }),
+      // Used in conjunction with `matches/match/label selectors`. Requires https://github.com/rancher/dashboard/issues/10417 to fix
+      allServices:  this.$store.dispatch('cluster/findAll', { type: SERVICE }),
       allIngresses: this.$store.dispatch('cluster/findAll', { type: INGRESS }),
       // Nodes should be fetched because they may be referenced in the target
       // column of a service list item.

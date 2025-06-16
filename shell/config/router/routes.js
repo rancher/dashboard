@@ -480,7 +480,33 @@ export default [
         path:      '/c/:cluster/:product/:resource/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_id.vue')),
         name:      'c-cluster-product-resource-id'
-      }, {
+      },
+      {
+        path:      '/c/:cluster/:product/resource/namespace/:id',
+        component: () => interopDefault(import('@shell/pages/explorer/resource/detail/namespace.vue')),
+        name:      'namespace-detail',
+        meta:      { mode: 'detail', resource: 'namespace' },
+        beforeEnter(to, _, next) {
+          to.params.resource = 'namespace';
+          next();
+        }
+      },
+      /**
+       * Leaving this here as an example of how we have to use the correct name (ending in -detail), meta data and params in order
+       * to define a new resource route. I would prefer to define all detail pages instead of dynamically importing
+       * but requiring hacks like these is making that difficult.
+       */
+      // {
+      //   path:      '/c/:cluster/:product/resource/configmap/:namespace/:id',
+      //   component: () => interopDefault(import('@shell/pages/explorer/resource/detail/configmap.vue')),
+      //   name:      'configmap-detail',
+      //   meta:      { mode: 'detail' },
+      //   beforeEnter(to, _, next) {
+      //     to.params.resource = 'configmap';
+      //     next();
+      //   }
+      // },
+      {
         path:      '/c/:cluster/:product/:resource/:namespace/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_namespace/_id.vue')),
         name:      'c-cluster-product-resource-namespace-id'

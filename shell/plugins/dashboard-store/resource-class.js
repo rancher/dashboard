@@ -736,6 +736,17 @@ export default class Resource {
     );
   }
 
+  get stateColorPair() {
+    return {
+      state: this.stateDisplay,
+      color: this.stateSimpleColor
+    };
+  }
+
+  get stateSimpleColor() {
+    return this.stateColor.replace('text-', '');
+  }
+
   get stateBackground() {
     return this.stateColor.replace('text-', 'bg-');
   }
