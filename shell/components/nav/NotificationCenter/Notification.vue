@@ -220,7 +220,7 @@ const scrollIntoView = (event: Event) => {
     data-testid="notifications-center-item"
     :aria-label="t('notificationCenter.ariaLabel', { title: item.title })"
     @keydown.up.down.stop.prevent="handleKeydown"
-    @focusin="scrollIntoView"    
+    @focusin="scrollIntoView"
     @focus.stop="gotFocus"
     @click.stop
     @keydown.enter.space.stop="enterFocusTrap"
