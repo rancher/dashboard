@@ -125,7 +125,7 @@ export const mutations = {
     persist(state);
   },
 
-  update(state: NotificationsStore, notification: Notification) {
+  update(state: NotificationsStore, notification: Partial<Notification>) {
     if (notification?.id) {
       const index = state.notifications.findIndex((n) => n.id === notification.id);
 
