@@ -29,7 +29,7 @@ const {
 /**
  * Track both registration types
  */
-const isRegistered = computed(() => registrationStatus.value === 'registered-online' || registrationStatus.value === 'registered-offline');
+const isRegistered = computed(() => registrationStatus.value === 'registered');
 
 /**
  * Track both registering progresses as generic operation to disable all the inputs

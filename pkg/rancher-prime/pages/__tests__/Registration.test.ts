@@ -80,9 +80,9 @@ describe('page: Registration', () => {
     });
   });
 
-  describe('given registration online', () => {
+  describe('given registration', () => {
     beforeEach(() => {
-      wrapper.vm.registrationStatus = 'registered-online';
+      wrapper.vm.registrationStatus = 'registered';
     });
 
     it('should not display online registration button', () => {
@@ -113,12 +113,6 @@ describe('page: Registration', () => {
       const deregisterButtonOnline = wrapper.find('[data-testid="registration-deregister-cta"]');
 
       expect(deregisterButtonOnline.isDisabled()).toBe(false);
-    });
-  });
-
-  describe('given registration offline', () => {
-    beforeEach(() => {
-      wrapper.vm.registrationStatus = 'registered-offline';
     });
 
     it('should not allow offline registration', () => {
@@ -196,7 +190,7 @@ describe('page: Registration', () => {
 
   describe('while de-registering a online case', () => {
     beforeEach(() => {
-      wrapper.vm.registrationStatus = 'registered-online';
+      wrapper.vm.registrationStatus = 'registered';
     });
 
     it('should prevent new online request', () => {
@@ -233,7 +227,7 @@ describe('page: Registration', () => {
 
   describe('while de-registering a offline case', () => {
     beforeEach(() => {
-      wrapper.vm.registrationStatus = 'registered-offline';
+      wrapper.vm.registrationStatus = 'registered';
     });
 
     it('should prevent new online request', () => {
