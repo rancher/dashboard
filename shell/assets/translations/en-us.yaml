@@ -125,6 +125,7 @@ generic:
   shortFeatured: Feat
   category: Category
   tags: Tags
+  tag: Tag
   placeholder: "e.g. {text}"
   moreInfo: More Info
   selectors:
@@ -150,6 +151,7 @@ generic:
   showLess: Show less
   showMore: Show more
   opensInNewTab: Opens in a new tab
+  
 
 locale:
   menu: Locale selector menu
@@ -859,6 +861,10 @@ asyncButton:
     action: Resume Orchestration
     success: Resumed Orchestration
     waiting: Resuming Orchestration
+  redeploy:
+    action: Redeploy
+    success: Redeployed
+    waiting: Redeploying Workload
   rollback:
     action: Roll Back
     success: Rolled Back
@@ -1024,9 +1030,6 @@ catalog:
     experimentalWarning: '{chartName} has been marked as experimental. Use caution when installing this helm chart as it might not function as expected.'
     deprecatedAndExperimentalWarning: '{chartName} has been marked as deprecated and experimental. Use caution when installing this helm chart as it might be removed in the future and might not function as expected.'
   charts:
-    browseBtn: Browse
-    featuredBtn: Featured
-    featuredAriaLabel: Show Featured Charts Carousel and charts grid
     browseAriaLabel: Show only charts grid
     iconAlt: Icon for {app} card/grid item
     refresh: refresh charts
@@ -1052,6 +1055,14 @@ catalog:
     search: Filter charts results
     deprecatedChartsFilter:
       label: Show deprecated apps
+    addNewRepo:
+      label: Add new
+      ariaLabel: Add a new repository
+    appChartCard:
+      footerItem:
+        ariaLabel: Apply filter
+    experimentalStatus:
+      tooltip: Experimental - using this filter is not yet 100% accurate. Proceed with caution.
   install:
     action:
       goToUpgrade: Edit/Upgrade
@@ -3991,7 +4002,7 @@ namespaceFilter:
   input: Filter namespace options
   button:
     clear: Remove applied namespace filters
-    clearFilter: Clear namespace options filter 
+    clearFilter: Clear namespace options filter
 
 namespaceList:
   selectLabel: Namespace
@@ -4126,6 +4137,7 @@ networkpolicy:
           =1 {1 of {totalNamespaces, number} namespaces: "{sampleNamespaces}"}
           other {{matchedNamespaces, number} of {totalNamespaces, number} existing namespaces, including "{sampleNamespaces}"}
         }
+
 node:
   list:
     pool: Pool
@@ -5022,6 +5034,10 @@ promptRollback:
   currentLabel: "(Current)"
   multipleWorkloadError: "Only one workload can be rolled back at a time."
   singleRevisionBanner: There are no revisions to roll back to.
+
+promptRedeploy:
+  title: Redeploy {type}?
+  attemptingToRedeploy: "You are attempting to redeploy the {type} {names}<br><br>Redeploying will restart the selected workloads and may cause temporary downtime."
 
 promptRotateEncryptionKey:
   title: Rotate Encryption Keys
@@ -6667,6 +6683,9 @@ workload:
     workload: Workload
     pods: Pods by State
     runs: Runs
+    started: Started
+    duration: Last Scheduled Time
+    image: Image
   error: Pod { name } Security Policy Violation { policy }
   gaugeStates:
     succeeded: Successful
@@ -8231,7 +8250,7 @@ errors:
   maxLimitExceded: is too big
   messageAndDetail: '{message} ({detail})'
   messageOrDetail: '{val}'
-  failedInApi: 
+  failedInApi:
     withName:
       withCodeExplanation:
         withMessageDetail: 'Validation failed in API: {name} {codeExplanation}: {messageDetail}'
@@ -8239,7 +8258,7 @@ errors:
       withMessageDetail: 'Validation failed in API: {name} {messageDetail}'
       withoutAnythingElse: 'Validation failed in API: {name} '
     withoutName:
-      withMessageDetail: 
+      withMessageDetail:
         withCodeExplanation: 'Validation failed in API: {codeExplanation}: {messageDetail}'
         withoutCodeExplanation: 'Validation failed in API: {messageDetail}'
       withCode:
@@ -8250,5 +8269,43 @@ errors:
     withUrl: '{msg}: {url}'
     withoutUrl: '{msg}'
 
-
-
+component:
+  resource:
+    detail:
+      card:
+        resourceUsage:
+          used: Used
+          amount: '{used} of {available}'
+          cpu: CPU
+          memory: Memory
+          pods: Pods
+        resourcesCard:
+          title: Resources
+          rows:
+            services: Services
+            ingresses: Ingresses
+            referredToBy: Referred to by
+            refersTo: Refers to
+        podsCard:
+          title: Pods
+          ariaResourceName: pods
+        insightsCard:
+          title: Insights
+          rows:
+            conditions: Conditions
+            events: Events
+        scaler:
+          ariaLabel:
+            increase: Increase {resourceName}
+            decrease: Decrease {resourceName}
+      titleBar:
+        showConfiguration: Show Configuration
+      metadata:
+        identifyingInformation:
+          namespace: Namespace
+          project: Project
+          age: Age
+          image: Image
+          ready: Ready
+          up-to-date: Up-to-date
+          available: Available

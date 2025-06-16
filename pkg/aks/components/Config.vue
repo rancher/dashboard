@@ -881,6 +881,7 @@ export default defineComponent({
         :show-tabs-add-remove="mode !== 'view'"
         :rules="fvGetAndReportPathRules('vmSize')"
         class="mb-20"
+        :use-hash="false"
         @addTab="addPool($event)"
         @removeTab="removePool($event)"
       >

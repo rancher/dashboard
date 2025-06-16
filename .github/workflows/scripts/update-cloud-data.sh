@@ -26,7 +26,7 @@ BODY_FILE=$(mktemp)
 # This script returns a non-zero error code if there are changes
 set +e
 ${BASE_DIR}/scripts/aws/update-data > ${BODY_FILE}
-echo "\n" >> ${BODY_FILE}
+echo "" >> ${BODY_FILE} # Add blank line
 ${BASE_DIR}/scripts/azure/update-data >> ${BODY_FILE}
 
 cat ${BODY_FILE}

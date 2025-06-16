@@ -141,7 +141,7 @@ export default class BurgerMenuPo extends ComponentPo {
 
     this.self().find('.cluster-name').contains(clusterId).should('exist');
 
-    return this.self().find('.cluster-name').contains(clusterId).click();
+    return this.self().find('.cluster-name').contains(clusterId).click({ force: true });
   }
 
   /**
