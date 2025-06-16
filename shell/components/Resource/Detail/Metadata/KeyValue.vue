@@ -111,7 +111,7 @@ const displayValue = (row: Row) => `${ row.key }: ${ row.value }`;
     }
     .row {
         margin-top: 8px;
-        
+
         &:not(:first-of-type) {
             margin-top: 4px;
         }

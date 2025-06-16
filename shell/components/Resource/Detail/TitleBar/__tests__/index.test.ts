@@ -1,6 +1,5 @@
 import { mount, RouterLinkStub } from '@vue/test-utils';
 import TitleBar from '@shell/components/Resource/Detail/TitleBar/index.vue';
-import ButtonWithIcon from '@shell/components/ButtonWithIcon.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { createStore } from 'vuex';
 
@@ -60,7 +59,7 @@ describe('component: TitleBar/index', () => {
     expect(span.element.innerHTML).toStrictEqual(resourceName);
   });
 
-  it('should hide ButtonWithIcon if onShowConfiguration is not defined', async() => {
+  it('should hide the ShowConfiguration button if onShowConfiguration is not defined', async() => {
     const wrapper = mount(TitleBar, {
       props:  { resourceTypeLabel, resourceName },
       global: { stubs: { 'router-link': RouterLinkStub }, provide: { store } }
@@ -69,19 +68,18 @@ describe('component: TitleBar/index', () => {
     expect(wrapper.find('.top > .actions > .show-configuration').exists()).toBeFalsy();
   });
 
-  it('should pass appropriate props to ButtonWithIcon if onShowConfiguration is defined and emits show-configuration', async() => {
+  it('should pass appropriate props to RcButton if onShowConfiguration is defined and emits show-configuration', async() => {
     const wrapper = mount(TitleBar, {
       props: {
         resourceTypeLabel, resourceName, onShowConfiguration: () => {}
       },
-      global: { stubs: { 'router-link': RouterLinkStub }, provide: { store } }
+      global: { stubs: { 'router-link': RouterLinkStub, RcButton: true }, provide: { store } }
     });
 
     const button = wrapper.find('.top > .actions > .show-configuration');
-    const buttonComponent = button.getComponent(ButtonWithIcon);
+    const buttonComponent = button.getComponent<any>('rc-button-stub');
 
-    expect(buttonComponent.props('role')).toStrictEqual('primary');
-    expect(buttonComponent.props('imagePath')).toStrictEqual('@shell/assets/images/icons/document.svg');
+    expect(buttonComponent.props('primary')).toStrictEqual(true);
     button.trigger('click');
 
     expect(wrapper.emitted()).toHaveProperty('show-configuration');

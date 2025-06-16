@@ -8292,6 +8292,9 @@ component:
             decrease: Decrease {resourceName}
       titleBar:
         showConfiguration: Show Configuration
+        ariaLabel:
+          actionMenu: More actions - { resource }
+          showConfiguration: Show the entire configuration of { resource }
       metadata:
         labelsAndAnnotations: Labels and Annotations
         identifyingInformation:

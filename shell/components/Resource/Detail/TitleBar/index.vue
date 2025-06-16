@@ -1,12 +1,12 @@
 <script lang="ts">
 import BadgeState from '@pkg/rancher-components/src/components/BadgeState/BadgeState.vue';
 import { RouteLocationRaw } from 'vue-router';
-import ButtonWithIcon from '@shell/components/ButtonWithIcon.vue';
 import Title from '@shell/components/Resource/Detail/TitleBar/Title.vue';
 import Top from '@shell/components/Resource/Detail/TitleBar/Top.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
+import RcButton from '~/pkg/rancher-components/src/components/RcButton/RcButton.vue';
 
 export interface Badge {
   color: 'bg-success' | 'bg-error' | 'bg-warning' | 'bg-info';
@@ -69,15 +69,19 @@ const emit = defineEmits(['show-configuration']);
         />
       </Title>
       <div class="actions">
-        <ButtonWithIcon
+        <RcButton
           v-if="onShowConfiguration"
           class="show-configuration"
-          role="primary"
-          :image-path="showConfigurationIcon"
+          :primary="true"
+          :aria-label="i18n.t('component.resource.detail.titleBar.ariaLabel.showConfiguration', { resource: resourceName })"
           @click="emit('show-configuration')"
         >
+          <img
+            :src="showConfigurationIcon"
+            class="mmr-3"
+          >
           {{ i18n.t('component.resource.detail.titleBar.showConfiguration') }}
-        </ButtonWithIcon>
+        </RcButton>
         <ActionMenu
           v-if="actionMenuResource"
           class="title-bar-action-menu"
