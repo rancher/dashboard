@@ -1,6 +1,6 @@
 import { clear, findBy, removeObject } from '@shell/utils/array';
 import { stringify } from '@shell/utils/error';
-import { NotificationLevel } from '@shell/store/notifications';
+import { NotificationLevel } from '@shell/types/notifications';
 
 const DEFAULT_TIMEOUT = 5000;
 
