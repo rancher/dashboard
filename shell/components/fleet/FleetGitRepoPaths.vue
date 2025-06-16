@@ -292,6 +292,7 @@ export default {
     {{ t('fleet.gitRepo.paths.description2') }}
   </p>
   <ArrayList
+    data-testid="gitRepo-paths"
     :value="paths"
     :mode="mode"
     :initial-empty-row="false"
@@ -325,6 +326,7 @@ export default {
             class="text-muted mb-5"
           />
           <input
+            data-testid="main-path"
             :value="row.value"
             :placeholder="t('fleet.gitRepo.paths.placeholder')"
             :disabled="isView"

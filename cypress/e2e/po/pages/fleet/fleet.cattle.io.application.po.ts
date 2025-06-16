@@ -79,8 +79,11 @@ export class FleetGitRepoCreateEditPo extends BaseDetailPagePo {
     return LabeledInputPo.bySelector(this.self(), '[data-testid="gitrepo-helm-repo-url-regex"]').set(regexStr);
   }
 
-  setGitRepoPath(path: string, index = 0) {
-    return this.gitRepoPaths().setValueAtIndex(path, index);
+  setGitRepoPath(path: string) {
+    const repoPaths = this.gitRepoPaths();
+
+    repoPaths.clickAdd('Add Path');
+    repoPaths.self().find('[data-testid="main-path"]').type(path);
   }
 
   targetCluster(): LabeledSelectPo {
