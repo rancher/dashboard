@@ -8268,7 +8268,6 @@ errors:
   notFound:
     withUrl: '{msg}: {url}'
     withoutUrl: '{msg}'
-
 component:
   resource:
     detail:
@@ -8300,7 +8299,11 @@ component:
             decrease: Decrease {resourceName}
       titleBar:
         showConfiguration: Show Configuration
+        ariaLabel:
+          actionMenu: More actions - { resource }
+          showConfiguration: Show the entire configuration of { resource }
       metadata:
+        labelsAndAnnotations: Labels and Annotations
         identifyingInformation:
           namespace: Namespace
           project: Project
@@ -8309,3 +8312,10 @@ component:
           ready: Ready
           up-to-date: Up-to-date
           available: Available
+        annotations:
+          title: Annotations
+        labels:
+          title: Labels
+        keyValue:
+          noRows: There are no {propertyName} configured on this resource.
+          showConfiguration: Show Configuration
