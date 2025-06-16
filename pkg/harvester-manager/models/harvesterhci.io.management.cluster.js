@@ -41,6 +41,16 @@ export default class HciCluster extends ProvCluster {
     return false;
   }
 
+  // We do not allow users to edit Harvester clusters from Cluster Management, so we need to re-enable that action here.
+  get _availableActions() {
+    const out = super._availableActions;
+    const edit = out.find((action) => action.action === 'goToEdit');
+
+    edit.enabled = true;
+
+    return out;
+  }
+
   get stateColor() {
     if (!this.isSupportedHarvester) {
       return colorForState(STATES_ENUM.DENIED);
