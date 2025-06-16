@@ -137,15 +137,15 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       fleetClusterDetailsPage.clusterTabs().clickTabWithSelector('[data-testid="btn-repos"]');
 
       // check state
-      fleetClusterDetailsPage.appBunlesList().resourceTableDetails(gitRepo, 1).contains('Ready');
+      fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 1).contains('Ready');
       // check name
-      fleetClusterDetailsPage.appBunlesList().resourceTableDetails(gitRepo, 2).should('be.visible');
+      fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 2).should('be.visible');
       // check repo
-      fleetClusterDetailsPage.appBunlesList().resourceTableDetails(gitRepo, 3).contains('rancher/fleet-test-data master');
+      fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 3).contains('rancher/fleet-test-data master');
       // check target
-      fleetClusterDetailsPage.appBunlesList().resourceTableDetails(gitRepo, 4).contains('Advanced');
+      fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 4).contains('Advanced');
       // check cluster resources
-      fleetClusterDetailsPage.appBunlesList().resourceTableDetails(gitRepo, 5).should('have.text', ' 1 ');
+      fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 5).should('have.text', ' 1 ');
     });
 
     it('check all tabs are available in the details view', () => {
@@ -476,9 +476,9 @@ describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
       fleetClusterDetailsPage.waitForPage(null, 'applications');
 
       // check table headers
-      const expectedHeadersDetailsView = ['Cluster State', 'Name', 'Repo', 'Target', 'Cluster Resources', 'Age'];
+      const expectedHeadersDetailsView = ['State', 'Name', 'Source', 'Target', 'Clusters Ready', 'Resources', 'Age'];
 
-      fleetClusterDetailsPage.appBunlesList().sortableTable()
+      fleetClusterDetailsPage.appBundlesList().sortableTable()
         .tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {
