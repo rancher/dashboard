@@ -5,7 +5,8 @@ import { escapeHtml } from '@shell/utils/string';
 import { computed, inject, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
-import { StoredNotification, NotificationAction, NotificationLevel } from '@shell/store/notifications';
+import { NotificationAction, NotificationLevel } from '@shell/types/notifications';
+import { StoredNotification } from '@shell/store/notifications';
 import { DropdownContext, defaultContext } from '@components/RcDropdown/types';
 
 const CLASSES = {
@@ -192,6 +193,22 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
 
   return newIndex;
 };
+
+/**
+ * Ensure we scroll the item into view smoothly
+ * @param event FocusIn Event
+ */
+const scrollIntoView = (event: Event) => {
+  const target = event.target;
+
+  if (target instanceof HTMLElement) {
+    target?.scrollIntoView({
+      behavior: 'smooth',
+      block:    'center',
+      inline:   'nearest',
+    });
+  }
+};
 </script>
 
 <template>
@@ -203,6 +220,7 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
     data-testid="notifications-center-item"
     :aria-label="t('notificationCenter.ariaLabel', { title: item.title })"
     @keydown.up.down.stop.prevent="handleKeydown"
+    @focusin="scrollIntoView"    
     @focus.stop="gotFocus"
     @click.stop
     @keydown.enter.space.stop="enterFocusTrap"

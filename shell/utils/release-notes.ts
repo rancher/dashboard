@@ -1,5 +1,6 @@
 import { getVersionData } from '@shell/config/version';
 import { READ_WHATS_NEW } from '@shell/store/prefs';
+import { NotificationLevel } from '@shell/types/notifications';
 
 export async function addReleaseNotesNotification(dispatch: any, getters: any) {
   const rancherVersion = getVersionData().Version.split('-')[0];
@@ -29,7 +30,7 @@ export async function addReleaseNotesNotification(dispatch: any, getters: any) {
     // Register notification
     const notification = {
       id,
-      level:      2,
+      level:      NotificationLevel.Info,
       title:      t('landing.whatsNew.title', { version: rancherVersion }),
       message:    t('landing.whatsNew.message'),
       preference: {

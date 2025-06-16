@@ -1,61 +1,26 @@
 import { randomStr } from '@shell/utils/string';
+import { Notification } from '@shell/types/notifications';
 
 const LOCAL_STORAGE_KEY = '#notifications';
 
-// Expire in seconds (14 days)
+/**
+ * Expire in seconds (14 days)
+ */
 const EXPIRY = 14 * 24 * 60 * 60;
 
-// Maximum number of notifications that will be kept
+/**
+ * Maximum number of notifications that will be kept
+ */
 const MAX_NOTIFICATIONS = 50;
 
 /**
  * Store for the UI Notification Centre
  */
 
-export type NotificationAction = {
-  label: string; // Button label for the action
-  target?: string; // HREF target when the button is clicked
-};
-
-export type NotificationPreference = {
-  key: string; // User preference key to use when setting the preference when the notification is marked as read
-  value: string; // User preference value to use when setting the preference when the notification is marked as read
-  unsetValue?: string; // User preference value to use when setting the preference when the notification is marked as unread - defaults to empty string
-};
-
-export enum NotificationLevel {
-  Announcement = 0, // eslint-disable-line no-unused-vars
-  Task, // eslint-disable-line no-unused-vars
-  Info, // eslint-disable-line no-unused-vars
-  Success, // eslint-disable-line no-unused-vars
-  Warning, // eslint-disable-line no-unused-vars
-  Error, // eslint-disable-line no-unused-vars
-}
-
-/**
- * Type for Notification that is sent
- */
-export type Notification = {
-  // Unique ID for the notification
-  id: string;
-  // Title to be displayed in the notification
-  title: string;
-  // Message to be shown in the notification (optional)
-  message?: string;
-  // Notification Level
-  level: NotificationLevel;
-  // Progress (0-100) for notifications of type `Task` (optional)
-  progress?: number;
-  // Primary action to be shown in the notification (optional)
-  primaryAction?: NotificationAction;
-  // Secondary to be shown in the notification (optional)
-  secondaryAction?: NotificationAction;
-  // User Preference tied to the notification (optional) (the preference will be updated when the notification is marked read)
-  preference?: NotificationPreference;
-}
-
 /**
  * Type for notification that is stored
+ * 
+ * This should not be used outside of this store or the Notification Center UI components
  *
  * Includes extra fields managed by the notification center
  */

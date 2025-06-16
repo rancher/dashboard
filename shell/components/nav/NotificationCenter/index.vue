@@ -68,7 +68,7 @@ const open = (opened: boolean) => {
         >
           <template
             v-for="(a, index) in allNotifications"
-            :key="a.title"
+            :key="a.id"
           >
             <rc-dropdown-separator v-if="index > 0" />
             <Notification :item="a" />
