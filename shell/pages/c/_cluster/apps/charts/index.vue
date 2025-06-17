@@ -488,7 +488,28 @@ export default {
         v-if="filteredCharts.length === 0"
         class="app-chart-cards-empty-state"
       >
-        <h1>{{ t('catalog.charts.noCharts') }}</h1>
+        <h1 class="empty-state-title">
+          {{ t('catalog.charts.noCharts.title') }}
+        </h1>
+        <div class="tips">
+          <h4
+            v-clean-html="t('catalog.charts.noCharts.messagePart1', {}, true)"
+          />
+          <a
+            tabindex="0"
+            role="button"
+            class="empty-state-reset-filters link"
+            @click="resetAllFilters"
+          >
+            {{ t('catalog.charts.noCharts.messagePart2') }}
+          </a>
+          <h4
+            v-clean-html="t('catalog.charts.noCharts.messagePart3', { repositoriesUrl: `/c/${clusterId}/apps/catalog.cattle.io.clusterrepo`}, true)"
+          />
+        </div>
+        <h4
+          v-clean-html="t('catalog.charts.noCharts.messagePart4', {}, true)"
+        />
       </div>
       <div
         v-else
@@ -645,9 +666,32 @@ export default {
 
 .app-chart-cards-empty-state {
   width: 100%;
-  margin-top: 32px;
-  padding: 32px;
+  padding: 72px 0;
   text-align: center;
+
+  .title {
+    margin-bottom: 24px;
+  }
+
+  .tips {
+    margin-bottom: 8px;
+
+    .empty-state-reset-filters {
+      font-size: 16px;
+    }
+
+    h4 {
+      display: inline;
+    }
+  }
+
+  :deep(h4 .icon-external-link) {
+    text-decoration: underline;
+  }
+
+  :deep(h4:hover .icon-external-link) {
+    text-decoration: none;
+  }
 }
 
 .app-chart-cards {
