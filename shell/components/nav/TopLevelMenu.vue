@@ -17,7 +17,6 @@ import Pinned from '@shell/components/nav/Pinned';
 import { TopLevelMenuHelperPagination, TopLevelMenuHelperLegacy } from '@shell/components/nav/TopLevelMenu.helper';
 import { debounce } from 'lodash';
 import { sameContents } from '@shell/utils/array';
-import brand from '@shell/mixins/brand';
 
 export default {
   components: {
