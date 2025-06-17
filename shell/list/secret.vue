@@ -7,7 +7,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 import { SCOPE as SECRET_SCOPE, SCOPED_TABS as SECRET_SCOPED_TABS } from '@shell/config/query-params';
 import { NAMESPACE as NAMESPACE_HEADER } from '@shell/config/table-headers';
 import { MANAGEMENT } from '@shell/config/types';
-import { PROJECT } from '@shell/config/labels-annotations';
+import { UI_PROJECT_SCOPED } from '@shell/config/labels-annotations';
 
 export default {
   name:       'Secret',
@@ -64,7 +64,7 @@ export default {
 
   computed: {
     projectScopedSecrets() {
-      return this.rows.filter((r) => !!r.metadata.annotations?.[PROJECT]);
+      return this.rows.filter((r) => !!r.metadata.labels?.[UI_PROJECT_SCOPED]);
     },
 
     projectScopedHeaders() {
@@ -99,9 +99,9 @@ export default {
 
   methods: {
     getProjectName(row) {
-      const [clusterId, projectId] = row.metadata.annotations[PROJECT]?.split(':');
+      const projectId = row.metadata.labels[UI_PROJECT_SCOPED];
 
-      return this.allProjects.find((p) => p.clusterId === clusterId && p.projectId === projectId)?.projectName;
+      return this.allProjects.find((p) => p.projectId === projectId)?.projectName;
     },
 
     handleTabChange(data) {
@@ -147,6 +147,7 @@ export default {
           :headers="projectScopedHeaders"
           :rows="projectScopedSecrets"
           :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+          :groupable="false"
         >
           <template #cell:project="{row}">
             <span>{{ getProjectName(row) }}</span>

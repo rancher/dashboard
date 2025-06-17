@@ -5,7 +5,7 @@ import {
   CLOUD_CREDENTIAL, _CLONE, _CREATE, _EDIT, _FLAGGED
 } from '@shell/config/query-params';
 import { MANAGEMENT, NAMESPACE, DEFAULT_WORKSPACE } from '@shell/config/types';
-import { PROJECT, CAPI } from '@shell/config/labels-annotations';
+import { CAPI, UI_PROJECT_SCOPED } from '@shell/config/labels-annotations';
 import FormValidation from '@shell/mixins/form-validation';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -54,6 +54,36 @@ export default {
     if ( this.isCloud ) {
       this.nodeDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
     }
+
+    const projectScopedLabel = this.value.metadata?.labels?.[UI_PROJECT_SCOPED];
+    const isProjectScoped = !!projectScopedLabel || (this.isCreate && this.$route.query[SECRET_SCOPE] === SECRET_SCOPED_TABS.PROJECT_SCOPED);
+
+    this.isProjectScoped = isProjectScoped;
+
+    if (isProjectScoped) {
+      const clusterId = this.$store.getters['currentCluster'].id;
+      const allProjects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+      const projects = allProjects.filter((p) => p.spec?.clusterName === clusterId);
+
+      if (this.isCreate) {
+        // Pick first project as default
+        this.selectedProject = {
+          label: projects[0].nameDisplay,
+          value: projects[0].metadata.name
+        };
+
+        this.value.metadata.labels = this.value.metadata.labels || {};
+
+        // Set namespace and project-scoped label
+        this.value.metadata.namespace = `${ clusterId }-${ this.selectedProject.value }`;
+        this.value.metadata.labels[UI_PROJECT_SCOPED] = this.selectedProject.value;
+      } else {
+        this.selectedProject = {
+          label: projects.find((p) => p.metadata.name === projectScopedLabel).nameDisplay,
+          value: projects.find((p) => p.metadata.name === projectScopedLabel).metadata.name
+        };
+      }
+    }
   },
 
   data() {
@@ -89,17 +119,14 @@ export default {
       });
     });
 
-    const projectName = this.value?.metadata?.annotations?.[PROJECT]?.split(':')[1];
-    const isProjectScoped = !!projectName || (this.mode === _CREATE && this.$route.query[SECRET_SCOPE] === SECRET_SCOPED_TABS.PROJECT_SCOPED);
-
     return {
       isCloud,
-      isProjectScoped,
+      isProjectScoped:   false,
       nodeDrivers:       null,
       secretTypes,
       secretType:        this.value._type,
       initialSecretType: this.value._type,
-      projectName,
+      selectedProject:   null,
       fvFormRuleSets:    [
         {
           path:  'metadata.name',
@@ -126,10 +153,6 @@ export default {
           value: project.metadata.name,
         };
       });
-
-      if (this.isProjectScoped && !this.projectName) {
-        this.projectName = out[0];
-      }
 
       return out;
     },
@@ -338,11 +361,21 @@ export default {
         this.value['_type'] = type;
       }
     },
-
-    selectProject(project) {
-      this.value.metadata.namespace = project;
-    }
   },
+
+  watch: {
+    selectedProject(newProject) {
+      if (!this.isView) {
+        const clusterId = this.$store.getters['currentCluster'].id;
+
+        if (newProject) {
+          this.value.metadata.labels = this.value.metadata.labels || {};
+          this.value.metadata.namespace = `${ clusterId }-${ newProject }`;
+          this.value.metadata.labels[UI_PROJECT_SCOPED] = newProject;
+        }
+      }
+    }
+  }
 };
 </script>
 
@@ -374,13 +407,12 @@ export default {
       >
         <template #project-selector>
           <LabeledSelect
-            v-model:value="projectName"
+            v-model:value="selectedProject"
             class="mr-20"
             :disabled="!isCreate"
             :label="t('namespace.project.label')"
             :options="projectOpts"
             required
-            @update:value="selectProject"
           />
         </template>
       </NameNsDescription>
