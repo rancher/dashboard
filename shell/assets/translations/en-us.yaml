@@ -2378,6 +2378,14 @@ configmap:
       protip: Use this area for anything that's UTF-8 text data
     binaryData:
       label: Binary Data
+configmaps:
+  tabs:
+    namespaced:
+      label: Namespaced
+      create: Create Namespaced ConfigMap
+    projectScoped:
+      label: Project Scoped
+      create: Create Project Scoped ConfigMap
 
 containerResourceLimit:
   cpuPlaceholder: e.g. 1000

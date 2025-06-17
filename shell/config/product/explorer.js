@@ -185,6 +185,7 @@ export function init(store) {
   configureType(SNAPSHOT, { depaginate: true });
   configureType(NORMAN.ETCD_BACKUP, { depaginate: true });
   configureType(SECRET, { showListMasthead: false });
+  configureType(CONFIG_MAP, { showListMasthead: false });
 
   configureType(EVENT, { limit: 500 });
   weightType(EVENT, -1, true);
