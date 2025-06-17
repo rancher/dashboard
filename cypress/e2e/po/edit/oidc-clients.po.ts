@@ -45,16 +45,8 @@ export default class OidcClientsCreateEditPo extends PagePo {
     return new CopyToClipboardTextPo('[data-testid="oidc-clients-copy-clipboard-client-id"]');
   }
 
-  checkCopyClientIDExists() {
-    return cy.get('[data-testid="oidc-clients-copy-clipboard-client-id"]').should('exist');
-  }
-
   clientFullSecretCopy(index: number) {
     return new CopyToClipboardTextPo(`[data-testid="oidc-client-secret-${ index }-copy-full-secret"]`);
-  }
-
-  checkClientFullSecretCopyExists(index: number) {
-    return cy.get(`[data-testid="oidc-client-secret-${ index }-copy-full-secret"]`).should('exist');
   }
 
   addNewSecretBtnClick() {
@@ -67,14 +59,6 @@ export default class OidcClientsCreateEditPo extends PagePo {
 
   secretCardMenu() {
     return new ActionMenuPo();
-  }
-
-  regenSecretBtnClick(index: number) {
-    return cy.get(`[data-testid="oidc-client-secret-${ index }-regen-secret"]`).click();
-  }
-
-  removeSecretBtnClick(index: number) {
-    return cy.get(`[data-testid="oidc-client-secret-${ index }-remove-secret"]`).click();
   }
 
   saveCreateForm(): ResourceDetailPo {

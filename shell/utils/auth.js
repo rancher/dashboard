@@ -2,6 +2,7 @@ import { Popup, popupWindowOptions } from '@shell/utils/window';
 import { parse as parseUrl, addParam } from '@shell/utils/url';
 import {
   BACK_TO, SPA, _EDIT, _FLAGGED, TIMED_OUT, IS_SLO, LOGGED_OUT
+  , RANCHER_AS_OIDC_QUERY_PARAMS
 } from '@shell/config/query-params';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
@@ -10,10 +11,9 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { findBy } from '@shell/utils/array';
 
 export const AUTH_BROADCAST_CHANNEL_NAME = 'rancher-auth-test-callback';
-export const RANCHER_AS_OIDC_PROV_COND = ['scope', 'client_id', 'redirect_uri', 'response_type'];
 
-export function checkIfIsRancherAsOidcProviderLogin(queryParams) {
-  return queryParams && Object.keys(queryParams).length && RANCHER_AS_OIDC_PROV_COND.every((item) => Object.keys(queryParams).includes(item));
+export function isRancherOidcProviderLogin(queryParams) {
+  return queryParams && Object.keys(queryParams).length && RANCHER_AS_OIDC_QUERY_PARAMS.every((item) => Object.keys(queryParams).includes(item));
 }
 
 export function openAuthPopup(url, provider) {

@@ -25,10 +25,6 @@ export default class OidcClientsPagePo extends PagePo {
     sideNav.navToSideMenuGroupByLabel('Client Application');
   }
 
-  title() {
-    return cy.contains('.title > h1', 'Client Applications');
-  }
-
   createOidcClient() {
     return this.list().masthead().actions().eq(0)
       .click();

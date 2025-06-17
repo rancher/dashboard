@@ -78,3 +78,6 @@ export const CLOUD_CREDENTIAL = 'cloud';
 // NAMESPACE/PROJECT
 export const PROJECT_ID = 'projectId';
 export const FLAT_VIEW = 'flatView';
+
+// RANCHER OIDC CLIENT
+export const RANCHER_AS_OIDC_QUERY_PARAMS = ['scope', 'client_id', 'redirect_uri', 'response_type'];

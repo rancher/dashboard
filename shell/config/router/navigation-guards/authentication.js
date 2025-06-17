@@ -1,6 +1,6 @@
 import { routeRequiresAuthentication } from '@shell/utils/router';
 import {
-  isLoggedIn, notLoggedIn, noAuth, findMe, checkIfIsRancherAsOidcProviderLogin
+  isLoggedIn, notLoggedIn, noAuth, findMe, isRancherOidcProviderLogin
 } from '@shell/utils/auth';
 import Cookie from 'cookie-universal';
 
@@ -22,7 +22,7 @@ export function install(router, context) {
 
 export async function authenticate(to, from, next, { store }) {
   if (!routeRequiresAuthentication(to)) {
-    if (to.name === 'auth-login' && checkIfIsRancherAsOidcProviderLogin(to.query)) {
+    if (to.name === 'auth-login' && isRancherOidcProviderLogin(to.query)) {
       const queryString = window.location.search;
 
       cookies.set(RANCHER_AS_OIDC_COOKIE, queryString, {

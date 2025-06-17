@@ -8,4 +8,8 @@ export default class CopyToClipboardTextPo extends ComponentPo {
   copyToClipboard() {
     return this.self().click().wait(800);
   }
+
+  exists() {
+    return this.self().should('exist');
+  }
 }
