@@ -157,9 +157,9 @@ export default {
 
   methods: {
     // Ensure we only focus on open, otherwise we re-open on close
-    clickSelect() {
+    clickSelect(ev) {
       if (this.isOpen) {
-        this.focusSearch();
+        this.focusSearch(ev);
       }
     },
 

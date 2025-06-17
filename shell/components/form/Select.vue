@@ -125,9 +125,9 @@ export default {
     },
 
     // Ensure we only focus on open, otherwise we re-open on close
-    clickSelect() {
+    clickSelect(ev) {
       if (this.isOpen) {
-        this.focusSearch();
+        this.focusSearch(ev);
       }
     },
 
@@ -138,7 +138,6 @@ export default {
       if (!this.isSearchable || (searchBox && document.activeElement && !searchBox.contains(document.activeElement))) {
         ev.preventDefault();
       }
-
 
       this.$refs['select-input'].open = true;
 
