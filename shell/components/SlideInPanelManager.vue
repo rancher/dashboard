@@ -141,7 +141,7 @@ function closePanel() {
         }"
         @click="closePanel"
       />
-      <div
+      <aside
         class="slide-in"
         :class="{ 'slide-in-open': isOpen }"
         :style="{
@@ -175,7 +175,7 @@ function closePanel() {
             class="dynamic-panel-content"
           />
         </div>
-      </div>
+      </aside>
     </div>
   </Teleport>
 </template>
