@@ -16,7 +16,10 @@ export default class CheckboxInputPo extends ComponentPo {
    * @returns
    */
   set(): Cypress.Chainable {
-    return this.self().find('.checkbox-custom').click();
+    return this.self()
+      .find('.checkbox-custom')
+      .should('not.be.disabled') // check to ensure checkbox is ready to be clicked
+      .click();
   }
 
   /**

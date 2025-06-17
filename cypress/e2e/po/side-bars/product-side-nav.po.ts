@@ -59,7 +59,7 @@ export default class ProductNavPo extends ComponentPo {
    * Navigate to a side menu entry by label
    */
   navToSideMenuEntryByLabel(label: string): Cypress.Chainable {
-    return this.sideMenuEntryByLabel(label).click({ force: true });
+    return this.sideMenuEntryByLabel(label).click();
   }
 
   /**
