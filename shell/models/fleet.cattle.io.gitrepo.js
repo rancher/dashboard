@@ -97,13 +97,13 @@ export default class GitRepo extends FleetApplication {
   get github() {
     const value = this.spec.repo || '';
 
-    const matchHttps = value.match(FleetUtils.HTTPS_REGEX);
+    const matchHttps = value.match(FleetUtils.GIT_HTTPS_REGEX);
 
     if (matchHttps) {
       return matchHttps[1];
     }
 
-    const matchSSH = value.match(FleetUtils.SSH_REGEX);
+    const matchSSH = value.match(FleetUtils.GIT_SSH_REGEX);
 
     if (matchSSH) {
       return FleetUtils.parseSSHUrl(matchSSH[0]).repoPath;
@@ -172,8 +172,8 @@ export default class GitRepo extends FleetApplication {
   get source() {
     let value = this.spec.repo || '';
 
-    const matchHttps = value.match(FleetUtils.HTTPS_REGEX);
-    const matchSSH = value.match(FleetUtils.SSH_REGEX);
+    const matchHttps = value.match(FleetUtils.GIT_HTTPS_REGEX);
+    const matchSSH = value.match(FleetUtils.GIT_SSH_REGEX);
 
     if (matchSSH) {
       const { sshUserAndHost, repoPath } = FleetUtils.parseSSHUrl(matchSSH[0]);

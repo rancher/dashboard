@@ -96,13 +96,13 @@ export default class HelmOp extends FleetApplication {
   github(value) {
     const url = (value || '');
 
-    const matchHttps = url.match(FleetUtils.HTTPS_REGEX);
+    const matchHttps = url.match(FleetUtils.GIT_HTTPS_REGEX);
 
     if (matchHttps) {
       return matchHttps[1];
     }
 
-    const matchSSH = url.match(FleetUtils.SSH_REGEX);
+    const matchSSH = url.match(FleetUtils.GIT_SSH_REGEX);
 
     if (matchSSH) {
       return FleetUtils.parseSSHUrl(matchSSH[0]).repoPath;
@@ -176,9 +176,9 @@ export default class HelmOp extends FleetApplication {
       value = this.spec.helm?.chart || ''; // TODO ellipsis and tooltip
     }
 
-    const matchHttps = value.match(FleetUtils.HTTPS_REGEX);
+    const matchHttps = value.match(FleetUtils.HTTP_REGEX);
     const matchOCI = value.match(FleetUtils.OCI_REGEX);
-    const matchSSH = value.match(FleetUtils.SSH_REGEX);
+    const matchSSH = value.match(FleetUtils.GIT_SSH_REGEX);
 
     if (matchSSH) {
       const { sshUserAndHost, repoPath } = FleetUtils.parseSSHUrl(matchSSH[0]);

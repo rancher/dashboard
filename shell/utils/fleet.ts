@@ -151,8 +151,9 @@ class Fleet {
 
   HelmOp = new HelmOp();
 
-  HTTPS_REGEX = /^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/;
-  SSH_REGEX = /^git@github\.com:.*\.git$/;
+  GIT_HTTPS_REGEX = /^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/;
+  GIT_SSH_REGEX = /^git@github\.com:.*\.git$/;
+  HTTP_REGEX = /^(https?:\/\/[^\s]+)$/;
   OCI_REGEX = /^oci:\/\//;
 
   quacksLikeAHash(str: string) {
