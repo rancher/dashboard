@@ -66,13 +66,13 @@ export function init(store) {
   configureType(MANAGEMENT.USER, { showListMasthead: false });
 
   configureType(MANAGEMENT.OIDC_CLIENT, {
-    overrideCreateBtnListViewLabelKey: 'oidcclient.listViewCreate',
-    isCreatable:                       true,
-    isEditable:                        true,
-    isRemovable:                       true,
-    showAge:                           true,
-    showState:                         true,
-    canYaml:                           true,
+    listCreateButtonLabelKey: 'oidcclient.listViewCreate',
+    isCreatable:              true,
+    isEditable:               true,
+    isRemovable:              true,
+    showAge:                  true,
+    showState:                true,
+    canYaml:                  true,
   });
 
   spoofedType({

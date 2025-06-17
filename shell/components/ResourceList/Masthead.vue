@@ -157,7 +157,7 @@ export default {
     },
 
     _createButtonlabel() {
-      const overrideLabel = this.$store.getters['type-map/optionsFor'](this.resource).overrideCreateBtnListViewLabelKey;
+      const overrideLabel = this.$store.getters['type-map/optionsFor'](this.resource).listCreateButtonLabelKey;
 
       if (overrideLabel) {
         return this.t(overrideLabel);

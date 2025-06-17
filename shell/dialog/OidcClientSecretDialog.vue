@@ -1,6 +1,6 @@
 <script>
 import { Card } from '@components/Card';
-import { SECRET_ACTION } from '@shell/edit/management.cattle.io.oidcclient.vue';
+import { OIDC_CLIENT_SECRET_ACTION } from '@shell/edit/management.cattle.io.oidcclient.vue';
 
 export default {
   name: 'PromptRemove',
@@ -28,10 +28,10 @@ export default {
   },
   computed: {
     translationKey() {
-      if (this.type === SECRET_ACTION.REGEN) {
+      if (this.type === OIDC_CLIENT_SECRET_ACTION.REGEN) {
         return 'regenModal';
-      } else if (this.type === SECRET_ACTION.REMOVE) {
-        return 'removeModal';
+      } else if (this.type === OIDC_CLIENT_SECRET_ACTION.REMOVE) {
+        return 'deleteModal';
       }
 
       return '';

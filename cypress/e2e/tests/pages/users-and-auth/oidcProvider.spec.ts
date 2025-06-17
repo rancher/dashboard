@@ -42,7 +42,7 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
     oidcClientsPage.waitForPage();
 
     // check title and list view
-    oidcClientsPage.title().should('be.visible');
+    oidcClientsPage.waitForMastheadTitle('Client Applications').should('be.visible');
     oidcClientsPage.list().resourceTable().sortableTable().checkVisible();
     oidcClientsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
@@ -75,8 +75,8 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
       expect(response?.body.spec.tokenExpirationSeconds).to.equal(OIDC_CREATE_DATA.TOKEN_EXP);
     });
 
-    oidcClientsDetailPage.checkCopyClientIDExists();
-    oidcClientsDetailPage.checkClientFullSecretCopyExists(0);
+    oidcClientsDetailPage.clientID().exists();
+    oidcClientsDetailPage.clientFullSecretCopy(0).exists();
 
     oidcClientsDetailPage.clientID().copyToClipboard();
     oidcClientsDetailPage.clientFullSecretCopy(0).copyToClipboard();
@@ -126,7 +126,7 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
       expect(request.body.metadata.annotations['cattle.io/oidc-client-secret-create']).to.equal('true');
     });
 
-    oidcClientsDetailPage.checkClientFullSecretCopyExists(1);
+    oidcClientsDetailPage.clientFullSecretCopy(1).exists();
     oidcClientsDetailPage.clientFullSecretCopy(1).copyToClipboard();
   });
 
@@ -149,7 +149,7 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
       expect(request.body.metadata.annotations['cattle.io/oidc-client-secret-regenerate']).to.equal('client-secret-2');
     });
 
-    oidcClientsDetailPage.checkClientFullSecretCopyExists(1);
+    oidcClientsDetailPage.clientFullSecretCopy(1).exists();
     oidcClientsDetailPage.clientFullSecretCopy(1).copyToClipboard();
   });
 
