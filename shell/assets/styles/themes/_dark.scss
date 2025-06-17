@@ -1,10 +1,8 @@
+@import "~shell/assets/styles/base/_color-classic.scss";
+
 .classic {
   &.theme-dark {
-    // Local variables for reused colors
-
-    //dark sidebar
-    $darkest: #141419;
-
+    // Local variables color overrides
     //dark body
     $darker: #1b1c21;
 
@@ -19,9 +17,6 @@
 
     //dark secondary
     $lighter: #b6b6c2;
-
-    // dark main text
-    $lightest: #ffffff;
 
     // menu cluster description active+hover
     $desc-light: #EEEFF4;
