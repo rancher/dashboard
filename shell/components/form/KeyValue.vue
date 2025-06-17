@@ -617,6 +617,7 @@ export default {
                 v-stripped-aria-label="_protip"
                 class="icon icon-info"
                 tabindex="0"
+                role="button"
               />
             </label>
             <label

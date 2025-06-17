@@ -69,7 +69,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div role="group">
     <div v-if="mode === 'login'">
       <rc-dropdown v-if="showLocale">
         <rc-dropdown-trigger
