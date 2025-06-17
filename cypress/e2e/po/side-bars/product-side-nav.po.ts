@@ -1,6 +1,6 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import VersionNumberPo from '~/cypress/e2e/po/components/version-number.po';
-import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export default class ProductNavPo extends ComponentPo {
   constructor() {
@@ -43,20 +43,18 @@ export default class ProductNavPo extends ComponentPo {
   }
 
   sideMenuEntryByLabel(label: string): Cypress.Chainable {
-    return this.self().should('exist', LONG_TIMEOUT_OPT)
-      .find('.child.nav-type a .label')
-      .filter(`:contains("${ label }")`)
-      .filter((index, element) => {
-        // Only match exact text, not partial matches
-        return element.textContent.trim() === label;
-      });
+    return this.expandedGroup()
+      .find('.child.nav-type a')
+      // Only match exact text, not partial matches
+      .contains(new RegExp(`^${ label }$`), MEDIUM_TIMEOUT_OPT)
+      .should('be.visible');
   }
 
   /**
    * Navigate to a side menu entry by label
    */
   navToSideMenuEntryByLabel(label: string): Cypress.Chainable {
-    return this.sideMenuEntryByLabel(label).click({ force: true });
+    return this.sideMenuEntryByLabel(label).click();
   }
 
   /**

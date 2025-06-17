@@ -7,6 +7,6 @@ export class AlertingTab extends MonitoringTab {
   }
 
   deployCheckbox(): CheckboxInputPo {
-    return new CheckboxInputPo(cy.get('[aria-label="Deploy Alertmanager"]').parent().parent());
+    return new CheckboxInputPo(cy.contains('Deploy Alertmanager').parent().parent());
   }
 }
