@@ -11,10 +11,10 @@ import { PrometheusTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/prome
 import { GrafanaTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/grafana-tab.po';
 import { AlertingTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/alerting-tab.po';
 import { IstioTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/istio-tab.po';
-import { LONG_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
+import { EXTRA_LONG_TIMEOUT_OPT, LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { DEFAULT_GRAFANA_STORAGE_SIZE } from '@shell/config/types.js';
 
-describe.skip('[Vue3 Skip]: Charts', { tags: ['@charts', '@adminUser'] }, () => {
+describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   const chartsPage = new ChartsPage();
   const chartPage = new ChartPage();
   const installChart = new InstallChartPage();
@@ -43,8 +43,8 @@ describe.skip('[Vue3 Skip]: Charts', { tags: ['@charts', '@adminUser'] }, () => 
   describe('Monitoring', { testIsolation: 'off' }, () => {
     describe('Prometheus local provisioner config', () => {
       const provisionerVersion = 'v0.0.24';
+      const storageClass = 'local-path';
 
-      // Install the chart
       before(() => {
         ChartsPage.navTo();
         chartsPage.waitForPage();
@@ -64,6 +64,56 @@ describe.skip('[Vue3 Skip]: Charts', { tags: ['@charts', '@adminUser'] }, () => 
         cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('prometheusChartCreation');
       });
 
+      it('Prometheus and Grafana should have all relavant storage options and Storage Class inputs', () => {
+        const tabbedOptions = new TabbedPo();
+
+        ChartPage.navTo(null, 'Monitoring');
+        chartPage.waitForChartPage('rancher-charts', 'rancher-monitoring');
+        chartPage.goToInstall();
+        installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
+
+        // Check Grafana has all storage options: https://github.com/rancher/dashboard/issues/11540
+        const grafana = new GrafanaTab();
+
+        installChart.nextPage().selectTab(tabbedOptions, grafana.tabID());
+        installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
+        grafana.storageOptions().getAllOptions().should('have.length', 4);
+        grafana.storageOptions().isChecked(0); // Disabled by default
+
+        const options = ['Disabled', 'Enable With Existing PVC', 'Enable with PVC Template', 'Enable with StatefulSet Template'];
+
+        options.forEach((option, index) => {
+          grafana.storageOptions().getOptionByIndex(index).should('have.text', option);
+        });
+
+        // Check Grafana has storage class input: https://github.com/rancher/dashboard/issues/11539
+        grafana.storageOptions().set(2);
+        grafana.storageClass().checkExists();
+        grafana.storageClass().toggle();
+        grafana.storageClass().clickOptionWithLabel(storageClass);
+        grafana.storageClass().checkOptionSelected(storageClass);
+
+        grafana.storageOptions().set(3);
+        grafana.storageClass().checkExists();
+        grafana.storageClass().toggle();
+        grafana.storageClass().clickOptionWithLabel(storageClass);
+        grafana.storageClass().checkOptionSelected(storageClass);
+
+        // Check Prometheus has storage class input: https://github.com/rancher/dashboard/issues/11539
+        installChart.selectTab(tabbedOptions, prometheus.tabID());
+        installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
+
+        prometheus.scrollToTabBottom();
+
+        prometheus.persistentStorage().checkVisible();
+        prometheus.persistentStorage().set();
+
+        prometheus.storageClass().checkExists();
+        prometheus.storageClass().toggle();
+        prometheus.storageClass().clickOptionWithLabel(storageClass);
+        prometheus.storageClass().checkOptionSelected(storageClass);
+      });
+
       it('Should not include empty prometheus selector when installing.', () => {
         ChartPage.navTo(null, 'Monitoring');
 
@@ -71,8 +121,7 @@ describe.skip('[Vue3 Skip]: Charts', { tags: ['@charts', '@adminUser'] }, () => 
 
         const tabbedOptions = new TabbedPo();
 
-        // Latest (`104.0.0+up45.31.1`) is broken (crd installs, but not actual chart), use `103.1.1+up45.31.1` instead
-        chartPage.selectVersion('103.1.1+up45.31...');
+        chartPage.selectVersion('106.0.1+up66.7....');
 
         // Navigate to the edit options page and Set prometheus storage class
         chartPage.goToInstall();
@@ -95,10 +144,10 @@ describe.skip('[Vue3 Skip]: Charts', { tags: ['@charts', '@adminUser'] }, () => 
         prometheus.scrollToTabBottom();
 
         prometheus.storageClass().toggle();
-        prometheus.storageClass().clickOptionWithLabel('local-path');
+        prometheus.storageClass().clickOptionWithLabel(storageClass);
 
         // Disable installing Alert Manager
-        installChart.nextPage().selectTab(tabbedOptions, alerting.tabID());
+        installChart.selectTab(tabbedOptions, alerting.tabID());
 
         installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
 
@@ -128,12 +177,11 @@ describe.skip('[Vue3 Skip]: Charts', { tags: ['@charts', '@adminUser'] }, () => 
 
         const tabbedOptions = new TabbedPo();
 
-        // Latest (`104.0.0+up45.31.1`) is broken (crd installs, but not actual chart), use `103.1.1+up45.31.1` instead
-        chartPage.selectVersion('103.1.1+up45.31...');
+        chartPage.selectVersion('106.0.1+up66.7....');
 
         // Set prometheus storage class
         chartPage.goToInstall();
-        installChart.nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"]');
+        installChart.nextPage().selectTab(tabbedOptions, prometheus.tabID());
         installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
 
         // Scroll into view - scroll to bottom of view
@@ -145,7 +193,7 @@ describe.skip('[Vue3 Skip]: Charts', { tags: ['@charts', '@adminUser'] }, () => 
         prometheus.scrollToTabBottom();
 
         prometheus.storageClass().toggle();
-        prometheus.storageClass().clickOptionWithLabel('local-path');
+        prometheus.storageClass().clickOptionWithLabel(storageClass);
 
         // Add a selector and then remove it - previously this would result in the empty selector being present
         installChart.self().find(`[data-testid="input-match-expression-add-rule"]`).click();
@@ -170,6 +218,8 @@ describe.skip('[Vue3 Skip]: Charts', { tags: ['@charts', '@adminUser'] }, () => 
     describe('Grafana resource configuration', () => {
       beforeEach(() => {
         ChartPage.navTo(null, 'Monitoring');
+        chartPage.waitForChartPage('rancher-charts', 'rancher-monitoring');
+
         cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?*', {
           statusCode: 201,
           body:       {
@@ -195,7 +245,10 @@ describe.skip('[Vue3 Skip]: Charts', { tags: ['@charts', '@adminUser'] }, () => 
 
         // Set Grafana resource request/limits configuration
         chartPage.goToInstall();
-        installChart.nextPage().editOptions(tabbedOptions, '[data-testid="btn-grafana"');
+        installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
+
+        installChart.nextPage().selectTab(tabbedOptions, grafana.tabID());
+        installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
 
         grafana.requestedCpu().checkExists();
         grafana.requestedCpu().checkVisible();
@@ -255,38 +308,38 @@ describe.skip('[Vue3 Skip]: Charts', { tags: ['@charts', '@adminUser'] }, () => 
       HomePagePo.goTo();
     });
 
-    describe('Istio local provisioning', () => {
-      it('Should install Istio', () => {
-        ChartPage.navTo(null, 'Istio');
+    it('Should install Istio', () => {
+      ChartPage.navTo(null, 'Istio');
 
-        chartPage.waitForChartPage('rancher-charts', 'rancher-istio');
+      chartPage.waitForChartPage('rancher-charts', 'rancher-istio');
 
-        chartPage.goToInstall();
-        installChart.nextPage();
-        installChart.waitForChartPage('rancher-charts', 'rancher-istio');
+      chartPage.goToInstall();
+      installChart.nextPage();
+      installChart.waitForChartPage('rancher-charts', 'rancher-istio');
 
-        // Disable Ingress Gateway
-        istio.enableIngressGatewayCheckbox().checkExists();
-        istio.enableIngressGatewayCheckbox().set();
+      // Disable Ingress Gateway
+      istio.enableIngressGatewayCheckbox().checkExists();
+      istio.enableIngressGatewayCheckbox().set();
 
-        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
-        installChart.installChart();
-        cy.wait('@chartInstall', LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 201);
+      cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
+      installChart.installChart();
+      cy.wait('@chartInstall', LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 201);
 
-        terminal.waitForTerminalToBeVisible();
-        terminal.closeTerminal();
-      });
+      terminal.waitForTerminalToBeVisible();
+      terminal.waitForTerminalStatus('Connected');
+      terminal.waitForTerminalStatus('Disconnected', EXTRA_LONG_TIMEOUT_OPT);
+      terminal.closeTerminal();
+    });
 
-      it('Side-nav should contain Istio menu item', () => {
-        ClusterDashboardPagePo.navTo();
+    it('Side-nav should contain Istio menu item', () => {
+      ClusterDashboardPagePo.navTo();
 
-        const productMenu = new ProductNavPo();
+      const productMenu = new ProductNavPo();
 
-        productMenu.navToSideMenuGroupByLabel('Istio');
+      productMenu.navToSideMenuGroupByLabel('Istio');
 
-        cy.contains('Overview').should('exist');
-        cy.contains('Powered by Istio').should('exist');
-      });
+      cy.contains('Overview').should('exist');
+      cy.contains('Powered by Istio').should('exist');
     });
   });
 });

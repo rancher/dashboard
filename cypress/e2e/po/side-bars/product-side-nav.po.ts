@@ -43,20 +43,17 @@ export default class ProductNavPo extends ComponentPo {
   }
 
   sideMenuEntryByLabel(label: string): Cypress.Chainable {
-    return this.self().should('exist', LONG_TIMEOUT_OPT)
-      .find('.child.nav-type a .label')
-      .filter(`:contains("${ label }")`)
-      .filter((index, element) => {
-        // Only match exact text, not partial matches
-        return element.textContent.trim() === label;
-      });
+    return cy.get('.side-nav', LONG_TIMEOUT_OPT).should('exist')
+      .contains('span.label', new RegExp(`^\\s*${ label }\\s*$`))
+      .parent('a')
+      .should('be.visible');
   }
 
   /**
    * Navigate to a side menu entry by label
    */
   navToSideMenuEntryByLabel(label: string): Cypress.Chainable {
-    return this.sideMenuEntryByLabel(label).click({ force: true });
+    return this.sideMenuEntryByLabel(label).click();
   }
 
   /**
