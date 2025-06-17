@@ -1,10 +1,11 @@
+import { md5 } from '@shell/utils/crypto';
 import { randomStr } from '@shell/utils/string';
 import { Notification } from '@shell/types/notifications';
 
 /**
  * Key used to store notifications in the browser's local storage
  */
-const LOCAL_STORAGE_KEY = 'rancher-notifications';
+const LOCAL_STORAGE_KEY_PREFIX = 'rancher-notifications-';
 
 /**
  * Expire in seconds (14 days)
@@ -34,11 +35,12 @@ export type StoredNotification = {
 
 // Notifications store state
 interface NotificationsStore {
+  localStorageKey: string,
   notifications: StoredNotification[],
 }
 
 function persist(state: NotificationsStore) {
-  window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state.notifications));
+  window.localStorage.setItem(state.localStorageKey, JSON.stringify(state.notifications));
 }
 
 export const state = function(): NotificationsStore {
@@ -46,7 +48,10 @@ export const state = function(): NotificationsStore {
 
   // Note, the init action will load the notifications persisted in local storage at load time
 
-  return { notifications };
+  return {
+    localStorageKey: '',
+    notifications
+  };
 };
 
 export const getters = {
@@ -63,6 +68,13 @@ export const getters = {
   // Count of unread notifications
   unreadCount: (state: NotificationsStore) => {
     return state.notifications.filter((n) => !n.read).length;
+  },
+
+  /**
+   * Local storage key includes the user key
+   */
+  localStorageKey: (state: NotificationsStore) => {
+    return state.localStorageKey;
   },
 };
 
@@ -157,6 +169,10 @@ export const mutations = {
   load(state: NotificationsStore, notifications: StoredNotification[]) {
     state.notifications = notifications;
   },
+
+  localStorageKey(state: NotificationsStore, userKey: string) {
+    state.localStorageKey = `${ LOCAL_STORAGE_KEY_PREFIX }${ userKey }`;
+  },
 };
 
 export const actions = {
@@ -221,12 +237,25 @@ export const actions = {
     commit('clearAll');
   },
 
-  init({ commit } : any) {
+  init({ commit, getters } : any, userData: any) {
+    const userKey = userData.id;
+
+    if (!userKey) {
+      console.error('Unable to initialize notifications - no user key available'); // eslint-disable-line no-console
+
+      return;
+    }
+
+    // Notifications are stored under a key for the current user, so set the local storage key based on the user id
+    commit('localStorageKey', md5(userKey, 'hex'));
+
     // Load persisted notifications from local storage
     let notifications = [];
 
+    const localStorageKey = getters['localStorageKey'];
+
     try {
-      notifications = JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+      notifications = JSON.parse(window.localStorage.getItem(localStorageKey) || '[]');
     } catch (e) {
       console.error('Unable to read notifications from local storage', e); // eslint-disable-line no-console
     }
@@ -257,7 +286,7 @@ export const actions = {
 
     // Listen to storage events, so if open in multiple tabs, notifications in one tab will be sync'ed across all tabs
     window.addEventListener('storage', (ev) => {
-      if (ev.key === LOCAL_STORAGE_KEY) {
+      if (ev.key === localStorageKey) {
         try {
           const notifications = JSON.parse(ev.newValue || '[]') || [];
 
