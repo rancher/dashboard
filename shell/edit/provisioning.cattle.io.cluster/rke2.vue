@@ -230,7 +230,7 @@ export default {
       allPSAs:                         [],
       credentialId:                    '',
       credential:                      null,
-      initialMachinePoolsValues:       [],
+      initialMachinePoolsValues:       {},
       machinePools:                    null,
       rke2Versions:                    null,
       k3sVersions:                     null,
@@ -1233,9 +1233,9 @@ export default {
           out.push(poolData);
 
           // but we also store the initial data so that we can handle conflicts
-          const poolDataClone = structuredClone(poolData);
-
-          this.initialMachinePoolsValues.push(poolDataClone);
+          if (poolData?.config?.id) {
+            this.initialMachinePoolsValues[poolData.config.id] = structuredClone(poolData.config);
+          }
         }
       }
 
@@ -1301,10 +1301,6 @@ export default {
 
       this.machinePools.push(pool);
 
-      const poolDataClone = structuredClone(pool);
-
-      this.initialMachinePoolsValues.push(poolDataClone);
-
       this.$nextTick(() => {
         if (this.$refs.pools?.select) {
           this.$refs.pools.select(name);
@@ -1322,7 +1318,6 @@ export default {
       if (entry.create) {
         // If this is a new pool that isn't saved yet, it can just be dropped
         removeObject(this.machinePools, entry);
-        removeObject(this.initialMachinePoolsValues, entry);
       } else {
         // Mark for removal on save
         entry.remove = true;
@@ -1335,15 +1330,12 @@ export default {
         const _latestConfig = await this.$store.dispatch('management/request', { url: `/v1/${ machinePool.config.type }s/${ machinePool.config.id }` });
         const latestConfig = await this.$store.dispatch('management/create', _latestConfig);
 
-        const clonedCurrentConfig = await this.$store.dispatch('management/clone', { resource: machinePool.config });
-        const clonedLatestConfig = await this.$store.dispatch('management/clone', { resource: latestConfig });
-
-        const _initialMachinePoolValue = this.initialMachinePoolsValues.find((item) => item?.config?.id === machinePool?.config?.id);
-        const clonedInitialConfig = await this.$store.dispatch('management/clone', { resource: _initialMachinePoolValue.config });
+        const _initialMachinePoolValue = this.initialMachinePoolsValues[machinePool?.config?.id] || {};
+        const initialMachinePoolValue = await this.$store.dispatch('management/create', _initialMachinePoolValue);
 
         // if there's the initial machine pool config, we are in a good position to apply the handleConflict function
         // to deal with out-of-sync data between machinePools configs. This also mutates the data inside machinePool.config through object reference
-        const conflict = await handleConflict(clonedInitialConfig, clonedCurrentConfig, clonedLatestConfig, this.$store.getters, this.$store, 'management');
+        const conflict = await handleConflict(initialMachinePoolValue.toJSON(), machinePool.config, latestConfig, this.$store.getters, this.$store, 'management');
 
         // if there's conflicts, throw Error stops save process and surfaces error to user
         if (conflict) {
