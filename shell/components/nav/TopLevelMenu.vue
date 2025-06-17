@@ -1050,7 +1050,7 @@ export default {
         width: 25px;
         height: 25px;
         margin-left: 9px;
-        fill: var(--primary) !important;
+        fill: var(--primary);
       }
     }
     .home-text {
@@ -1186,6 +1186,12 @@ export default {
 
           &:hover {
             background: var(--nav-active--hover);
+          }
+
+          &.option.cluster.selector.home {
+            svg.top-menu-icon {
+              fill: var(--on-active);
+            }
           }
         }
 
@@ -1403,6 +1409,14 @@ export default {
          i {
             padding-left: $option-padding-left - 5;
           }
+      }
+      .option.cluster.selector.home {
+        svg {
+          width: 25px;
+          height: 25px;
+          margin-left: 9px;
+          fill: var(--primary);
+        }
       }
     }
 
