@@ -1,20 +1,8 @@
 @import "~shell/assets/styles/base/_color-classic.scss";
+@import "~shell/assets/styles/base/_variables-classic.scss";
 
 .classic {
   &.theme-light {
-
-    --primary                    : #{$primary};
-    --primary-text               : #{contrast-color($primary)};
-    --primary-hover-bg           : #{darken($primary, 10%)};
-    --primary-hover-text         : #{saturate($lightest, 20%)};
-    --primary-active-bg          : #{darken($primary, 25%)};
-    --primary-active-text        : #{contrast-color(darken($primary, 25%))};
-    --primary-border             : #{$primary};
-    --primary-banner-bg          : #{rgba($primary, 0.15)};
-    --primary-light-bg           : #{rgba($primary, 0.05)};
-    --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
-
-
     .text-primary {
       color: var(--primary) !important;
     }
@@ -34,19 +22,6 @@
         background: var(--primary-active-bg);
         }
     }
-
-    --link                    : #{$link};
-    --link-text               : #{contrast-color($link)};
-    --link-text-secondary     : #{$darker};
-    --link-hover-bg           : #{darken($link, 10%)};
-    --link-hover-text         : #{saturate($lightest, 20%)};
-    --link-active-bg          : #{darken($link, 25%)};
-    --link-active-text        : #{contrast-color(darken($link, 25%))};
-    --link-border             : #{$link};
-    --link-banner-bg          : #{rgba($link, 0.15)};
-    --link-light-bg           : #{rgba($link, 0.05)};
-
-
 
     .text-link {
       color: var(--link) !important;
@@ -94,7 +69,6 @@
     --slider-light-bg            : #{rgba($lightest, 1)};
     --slider-light-bg-right      : #{rgba($lightest, 0)};
 
-
     .text-default {
       color: var(--default) !important;
     }
@@ -115,16 +89,16 @@
         }
     }
 
-  --muted                      : #{$grey-30};
-  --deemphasized               : #717179;
+    --muted                      : #{$grey-30};
+    --deemphasized               : #717179;
 
-  .text-muted {
-    color: var(--muted) !important;
-  }
+    .text-muted {
+      color: var(--muted) !important;
+    }
 
-  .text-deemphasized {
-    color: var(--deemphasized);
-  }
+    .text-deemphasized {
+      color: var(--deemphasized);
+    }
 
     --darker                    : #{$darker};
     --darker-text               : #{contrast-color($darker)};
@@ -156,18 +130,6 @@
         }
     }
 
-
-
-    --success                    : #{$success};
-    --success-text               : #{contrast-color($success)};
-    --success-hover-bg           : #{darken($success, 10%)};
-    --success-hover-text         : #{saturate($lightest, 20%)};
-    --success-active-bg          : #{darken($success, 25%)};
-    --success-active-text        : #{contrast-color(darken($success, 25%))};
-    --success-border             : #{$success};
-    --success-banner-bg          : #{rgba($success, 0.15)};
-    --success-light-bg           : #{rgba($success, 0.05)};
-
     .text-success {
       color: var(--success) !important;
     }
@@ -187,17 +149,6 @@
         background: var(--success-active-bg);
         }
     }
-
-
-    --info                    : #{$info};
-    --info-text               : #{contrast-color($info)};
-    --info-hover-bg           : #{darken($info, 10%)};
-    --info-hover-text         : #{saturate($lightest, 20%)};
-    --info-active-bg          : #{darken($info, 25%)};
-    --info-active-text        : #{contrast-color(darken($info, 25%))};
-    --info-border             : #{$info};
-    --info-banner-bg          : #{rgba($info, 0.15)};
-    --info-light-bg           : #{rgba($info, 0.05)};
 
     .text-info {
       color: var(--info) !important;
@@ -219,17 +170,6 @@
         }
     }
 
-
-    --warning                    : #{$warning};
-    --warning-text               : #{contrast-color($warning)};
-    --warning-hover-bg           : #{darken($warning, 10%)};
-    --warning-hover-text         : #{saturate($lightest, 20%)};
-    --warning-active-bg          : #{darken($warning, 25%)};
-    --warning-active-text        : #{contrast-color(darken($warning, 25%))};
-    --warning-border             : #{$warning};
-    --warning-banner-bg          : #{rgba($warning, 0.15)};
-    --warning-light-bg           : #{rgba($warning, 0.05)};
-
     .text-warning {
       color: var(--warning) !important;
     }
@@ -249,18 +189,6 @@
         background: var(--warning-active-bg);
         }
     }
-
-
-    --error                    : #{$error};
-    --error-text               : #{contrast-color($error)};
-    --error-hover-bg           : #{darken($error, 10%)};
-    --error-hover-text         : #{saturate($lightest, 20%)};
-    --error-active-bg          : #{darken($error, 25%)};
-    --error-active-text        : #{contrast-color(darken($error, 25%))};
-    --error-border             : #{$error};
-    --error-banner-bg          : #{rgba($error, 0.15)};
-    --error-light-bg           : #{rgba($error, 0.05)};
-
 
     .text-error {
       color: var(--error) !important;
@@ -289,7 +217,6 @@
 
     --disabled : #{$disabled};
     --disabled-text : #{contrast-color($disabled)};
-    --disabled-hover-bg : #{darken($disabled, 10%)};
     --disabled-hover-text : #{saturate($lightest, 20%)};
     --disabled-active-bg : #{darken($disabled, 25%)};
     --disabled-active-text : #{contrast-color(darken($disabled, 25%))};
@@ -325,24 +252,24 @@
     // Header, Footer and Consent banner defaults
     --banner-text-color          : #{$darkest};
 
-  --header-bg                  : #{$lightest};
-  --header-btn-bg              : transparent;
-  --header-btn-text            : #{$darkest};
-  --header-btn-text-hover      : #{$lightest};
-  --header-input-text          : #{$darkest};
-  --header-height              : 55px;
-  --header-border              : #{$medium};
-  --header-border-size         : 1px;
-  --nav-width                  : 250px;
-  --nav-bg                     : var(--body__bg);
-  --nav-active                 : #{$grey-10};
-  --nav--hover                 : #{$grey-10};
-  --nav-category-active--hover : #{$grey-20};
-  --nav-active--hover          : var(--active--hover);
-  --nav-expander-hover         : #{darken($grey-20, 10%)};
-  --nav-border                 : #{$grey-20};
-  --nav-border-size            : 1px;
-  --nav-icon-badge-bg          : #{$lightest};
+    --header-bg                  : #{$lightest};
+    --header-btn-bg              : transparent;
+    --header-btn-text            : #{$darkest};
+    --header-btn-text-hover      : #{$lightest};
+    --header-input-text          : #{$darkest};
+    --header-height              : 55px;
+    --header-border              : #{$medium};
+    --header-border-size         : 1px;
+    --nav-width                  : 250px;
+    --nav-bg                     : var(--body__bg);
+    --nav-active                 : #{$grey-10};
+    --nav--hover                 : #{$grey-10};
+    --nav-category-active--hover : #{$grey-20};
+    --nav-active--hover          : var(--active--hover);
+    --nav-expander-hover         : #{darken($grey-20, 10%)};
+    --nav-border                 : #{$grey-20};
+    --nav-border-size            : 1px;
+    --nav-icon-badge-bg          : #{$lightest};
 
     --footer-bg                  : transparent;
     --footer-height              : 0px;
