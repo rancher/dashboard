@@ -1,4 +1,5 @@
 @import "~shell/assets/styles/base/_color-classic.scss";
+@import "~shell/assets/styles/base/_variables-classic.scss";
 
 .classic {
   &.theme-dark {
@@ -31,6 +32,15 @@
     $drag-over: #DCDEE7;
 
     $slate: #4B4F6B;
+
+    --secondary: var(--body-bg);
+    --secondary__border: #{$primary};
+    --on-secondary: #{$primary};
+    --secondary-hover: var(--non-primary-hover);
+
+    --tertiary: transparent;
+    --on-tertiary: var(--link);
+    --tertiary-hover: var(--non-primary-hover);
 
     --slate: #{$slate};
 
