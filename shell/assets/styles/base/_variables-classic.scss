@@ -77,9 +77,9 @@
   --on-active     : #{$grey-0};
   --active-hover  : var(--primary-hover-bg);
 
-  --toggle-OFF__bg      : var(--disabled-bg);
-  --toggle-OFF__color   : var(--body-text);
-  --toggle-ON__bg       : var(--primary);
-  --toggle-ON__color    : var(--on-active);
+  --toggle-OFF-bg      : var(--disabled-bg);
+  --toggle-OFF-color   : var(--body-text);
+  --toggle-ON-bg       : var(--primary);
+  --toggle-ON-color    : var(--on-active);
   --toggle-OFF-hover    : var(--disabled-bg);
 }
