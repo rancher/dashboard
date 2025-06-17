@@ -54,7 +54,7 @@ $drag-over: #DCDEE7;
 
 BODY, .theme-light {
   /*********************/
-  --body__border: #{$grey-20};
+  --body-border: #{$grey-20};
   --link: #{$primary-80};
   
   --primary: #{$primary};
@@ -64,7 +64,7 @@ BODY, .theme-light {
   --non-primary-hover: #{$primary-20};
 
   --secondary: var(--body-bg);
-  --secondary__border: #{$primary};
+  --secondary-border: #{$primary};
   --on-secondary: #{$primary};
   --secondary-hover: var(--non-primary-hover);
 
@@ -78,13 +78,13 @@ BODY, .theme-light {
   --category--active: #{$primary-15};
   --category--active-hover: #{$grey-20};
 
-  --toggle-OFF__bg: #{$grey-5};
-  --toggle-OFF__color: #{$grey-50};
-  --toggle-ON__bg: var(--active);
-  --toggle-ON__color: var(--on-active);
+  --toggle-OFF-bg: #{$grey-5};
+  --toggle-OFF-color: #{$grey-50};
+  --toggle-ON-bg: var(--active);
+  --toggle-ON-color: var(--on-active);
   --toggle-OFF-hover: #{$grey-10};
 
-  --vertical-tabs__bg: #{$grey-5};
+  --vertical-tabs-bg: #{$grey-5};
 
   --disabled-opacity: .35;
 
@@ -415,7 +415,7 @@ BODY, .theme-light {
   --shadow                     : #{rgba($grey-20, 0.85)};
 
   --checkbox-tick              : var(--on-active);
-  --checkbox-border            : var(--body__border);
+  --checkbox-border            : var(--body-border);
   --checkbox-tick-disabled     : #{darken($disabled, 40%)};
   --checkbox-disabled-bg       : #{$disabled};
   --checkbox-ticked-bg         : var(--active);
@@ -661,7 +661,7 @@ BODY, .theme-dark {
 
   /*********************/
   
-  --body__border: #5A5F6A;
+  --body-border: #5A5F6A;
   --link: #{$primary-55};
   
   --primary: #{$primary};
@@ -671,7 +671,7 @@ BODY, .theme-dark {
   --non-primary-hover: #{$primary-150};
 
   --secondary: var(--body-bg);
-  --secondary__border: #{$primary-60};
+  --secondary-border: #{$primary-60};
   --on-secondary: #{$primary-60};
   --secondary-hover: var(--non-primary-hover);
 
@@ -685,14 +685,14 @@ BODY, .theme-dark {
   --category--active: #{$primary-75};
   --category--active-hover: #{$grey-70};
 
-  --toggle-OFF__bg: #{$grey-80};
-  --toggle-OFF__color: #{$grey-30};
+  --toggle-OFF-bg: #{$grey-80};
+  --toggle-OFF-color: #{$grey-30};
   --toggle-OFF-hover: #{$grey-90};
-  --toggle-ON__bg: var(--active);
-  --toggle-ON__color: var(--on-active);
+  --toggle-ON-bg: var(--active);
+  --toggle-ON-color: var(--on-active);
 
-  --vertical-tabs__bg: #{darken($body-bg, 10%)};
-  --tabbed-sidebar-bg: var(--vertical-tabs__bg);
+  --vertical-tabs-bg: #{darken($body-bg, 10%)};
+  --tabbed-sidebar-bg: var(--vertical-tabs-bg);
 
   --disabled-opacity: .5;
 
@@ -790,7 +790,7 @@ BODY, .theme-dark {
   --shadow                     : #{rgba($darkest, 0.9)};
 
   --checkbox-tick              : var(--on-active);
-  --checkbox-border            : var(--body__border);
+  --checkbox-border            : var(--body-border);
   --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
   --checkbox-disabled-bg       : #{$disabled};
   --checkbox-ticked-bg         : var(--active);
@@ -913,17 +913,17 @@ BODY, .theme-dark {
 
   --slate: #{$slate};
 
-  --border: var(--body__border);
-  --nav-border: var(--body__border);
-  --topmost-border: var(--body__border);
-  --header-border: var(--body__border);
+  --border: var(--body-border);
+  --nav-border: var(--body-border);
+  --topmost-border: var(--body-border);
+  --header-border: var(--body-border);
 
   --nav-hover: #{lighten($body-bg, 10%)};
 
   --sortable-table-bg          : #{darken($body-bg, 10%)};
   --sortable-table-row-bg       : var(--body-bg);
   --sortable-table-header-bg    : #{darken($body-bg, 15%)};
-  --sortable-table-top-divider  : var(--body__border);
+  --sortable-table-top-divider  : var(--body-border);
   --sortable-table-hover-bg     : #{lighten($body-bg, 5%)};
   --sortable-table-selected-bg  : #{lighten($body-bg, 15%)};
   --sortable-table-group-label  : #{$grey-30};
