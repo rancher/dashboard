@@ -128,7 +128,7 @@ export const FLEET = {
   CREATED_BY_USER_ID:           'fleet.cattle.io/created-by-user-id',
   CREATED_BY_USER_NAME:         'fleet.cattle.io/created-by-display-name',
   OCI_STORAGE_SECRET_DEFAULT:   'ui-default-oci-registry',
-  OCI_STORAGE_SECRET_GENERATED: 'generated' // TODO add real id
+  OCI_STORAGE_SECRET_GENERATED: 'fleet.cattle.io/bundle-internal-secret',
 };
 
 export const RBAC = { PRODUCT: 'management.cattle.io/ui-product' };
