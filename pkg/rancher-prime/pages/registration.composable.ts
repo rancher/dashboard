@@ -1,4 +1,4 @@
-import { onMounted, computed, ref } from 'vue';
+import { onMounted, computed, ref, Ref } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 
@@ -7,10 +7,56 @@ import { REGISTRATION_NAMESPACE, REGISTRATION_SECRET, REGISTRATION_RESOURCE_NAME
 import { SECRET } from '@shell/config/types';
 
 type RegistrationStatus = 'registering-online' | 'registering-offline' | 'registered' | null;
+interface RegistrationDashboard {
+  active: boolean;
+  product: string;
+  mode: 'online' | 'offline' | '--';
+  expiration: string;
+  color: 'error' | 'success';
+  message: string;
+  status: 'valid' | 'error' | 'none';
+  registrationLink?: string;
+  resourceLink?: string;
+}
 
-const emptyRegistration = {
+interface Registration {
+  metadata: {
+    labels: Record<string, string>;
+    namespace: string;
+    name: string;
+  };
+  links: {
+    view: string;
+  };
+  spec: {
+    mode: 'online' | 'offline';
+  };
+  status: {
+    activationStatus: {
+      activated: boolean;
+      systemUrl: string;
+    };
+  };
+}
+
+interface Secret {
+  metadata: {
+    labels: Record<string, string>;
+    namespace: string;
+    name: string;
+  };
+  data: {
+    regCode: string;
+    registrationType: string;
+  };
+  remove: () => Promise<void>;
+  save: () => Promise<void>;
+}
+
+const emptyRegistration: RegistrationDashboard = {
+  active:     false,
   product:    '--',
-  code:       '--',
+  mode:       '--',
   expiration: '--',
   color:      'error',
   message:    'registration.list.table.badge.none',
@@ -25,6 +71,10 @@ const registrationBannerCases = {
   valid: {
     message: 'registration.banner.status.success',
     type:    'success',
+  },
+  error: {
+    message: 'registration.banner.status.error',
+    type:    'error',
   }
 };
 
@@ -40,7 +90,7 @@ export const usePrimeRegistration = () => {
   /**
    * Secret containing user registration code or offline certificate
    */
-  const secret = ref(null);
+  const secret: Ref<Secret | null> = ref(null);
 
   /**
    * Single source for the registration status, used to define other computed properties
@@ -132,8 +182,8 @@ export const usePrimeRegistration = () => {
   /**
    * Handle error
    */
-  const onError = (message: string, payload: unknown) => {
-    errors.value.push(message, payload as string);
+  const onError = (error: unknown) => {
+    errors.value.push(error?.message);
   };
 
   /**
@@ -153,19 +203,6 @@ export const usePrimeRegistration = () => {
     registrationStatus.value = 'registering-offline';
     offlineRegistrationCertificate.value = certificate;
     changeRegistration('offline', () => {});
-  };
-
-  /**
-   * TODO - #13387: Remove after implementing the real error handling
-   * @param asyncButtonResolution Async button callback
-   */
-  // eslint-disable-next-line no-unused-vars
-  const registerWithError = (asyncButtonResolution: () => void) => {
-    errors.value = [];
-    setTimeout(() => {
-      onError(t('registration.error.submission'), {});
-      asyncButtonResolution();
-    }, 1000);
   };
 
   /**
@@ -192,28 +229,49 @@ export const usePrimeRegistration = () => {
   /**
    * Get registration CRD matching secret label
    */
-  const getRegistration = async(label: string) => {
-    const registrations = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME });
-
+  const getRegistration = async(label: string): Promise<RegistrationDashboard> => {
+    const registrations: Registration[] = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME });
     const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === label);
 
-    return registration ? {
-      product:    '--',
-      code:       regCode.value,
-      expiration: '--',
-      color:      'success',
-      message:    'registration.list.table.badge.valid',
-      status:     'valid'
-    } : emptyRegistration;
+    if (!registration) {
+      return emptyRegistration;
+    } else {
+      const isActive = registration.status?.activationStatus?.activated === true;
+      const resourceLink = registration.links.view.replace('/apis/scc.cattle.io/v1/registrations/', '/c/local/explorer/scc.cattle.io.registration/');
+      // Common values for every registration
+      const commonRegistration = {
+        active:  isActive,
+        mode:    registration.spec.mode,
+        product: 'SUSE Rancher Manager Prime Suite',
+        resourceLink
+      };
+
+      return isActive ? {
+        ...commonRegistration,
+        registrationLink: registration.status?.activationStatus?.systemUrl,
+        expiration:       '--',
+        color:            'success',
+        message:          'registration.list.table.badge.valid',
+        status:           'valid'
+      } : {
+        ...commonRegistration,
+        registrationLink: registration.status?.activationStatus?.systemUrl,
+        expiration:       '--',
+        color:            'error',
+        message:          'registration.list.table.badge.invalid',
+        status:           'error'
+      };
+    }
   };
 
   /**
    * Get unique secret code with hardcoded namespace and name
    */
-  const getSecret = async() => {
-    const secrets = await store.dispatch('cluster/findAll', { type: SECRET });
+  const getSecret = async(): Promise<Secret | null> => {
+    const secrets: Secret[] = await store.dispatch('cluster/findAll', { type: SECRET });
 
-    return secrets.find((secret) => secret.metadata?.namespace === REGISTRATION_NAMESPACE && secret.metadata?.name === REGISTRATION_SECRET);
+    return secrets.find((secret) => secret.metadata?.namespace === REGISTRATION_NAMESPACE &&
+      secret.metadata?.name === REGISTRATION_SECRET) ?? null;
   };
 
   /**
@@ -233,7 +291,7 @@ export const usePrimeRegistration = () => {
    * @param code
    * @returns
    */
-  const createSecret = async(type: string, code: string) => {
+  const createSecret = async(type: string, code: string): Promise<Secret | null> => {
     try {
       const secret = await store.dispatch('cluster/create', {
         type:     SECRET,
@@ -250,7 +308,11 @@ export const usePrimeRegistration = () => {
       await secret.save();
 
       return secret;
-    } catch (error) {}
+    } catch (error) {
+      onError(error);
+
+      return null;
+    }
   };
 
   const regCode = computed(() => {

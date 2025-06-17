@@ -169,7 +169,7 @@ const isRegisteringOffline = computed(() => registrationStatus.value === 'regist
           {{ t('registration.list.table.header.expiration') }}
         </div>
         <div class="color-disabled-text">
-          {{ t('registration.list.table.header.code') }}
+          {{ t('registration.list.table.header.mode') }}
         </div>
         <div />
         <div>
@@ -179,13 +179,18 @@ const isRegisteringOffline = computed(() => registrationStatus.value === 'regist
           />
         </div>
         <div>
-          {{ registration.product }}
+          <a
+            v-if="registration.resourceLink"
+            :href="registration.resourceLink"
+            target="_blank"
+          >{{ registration.product }}</a>
+          <span v-else>{{ registration.product }}</span>
         </div>
         <div>
           {{ registration.expiration }}
         </div>
         <div>
-          {{ registration.code }}
+          {{ registration.mode }}
         </div>
         <div>
           <AsyncButton
