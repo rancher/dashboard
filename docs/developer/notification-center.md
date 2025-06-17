@@ -39,7 +39,7 @@ The `level` specifies the importance of the notification and determines the icon
 |---|---|
 |Announcement|An announcement (like info but shows the announcement icon|
 |Task|A task that is underway (will show progress bar if the `progress` field is et|
-|Info|Information notificatoon|
+|Info|Information notification|
 |Success|Notification that something has completed successfully|
 |Warning|Notification of a warning|
 |Error|Notification of an error|

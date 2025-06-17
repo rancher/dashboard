@@ -1,7 +1,10 @@
 import { randomStr } from '@shell/utils/string';
 import { Notification } from '@shell/types/notifications';
 
-const LOCAL_STORAGE_KEY = 'notifications';
+/**
+ * Key used to store notifications in the browser's local storage
+ */
+const LOCAL_STORAGE_KEY = 'rancher-notifications';
 
 /**
  * Expire in seconds (14 days)
@@ -226,6 +229,13 @@ export const actions = {
       notifications = JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
     } catch (e) {
       console.error('Unable to read notifications from local storage', e); // eslint-disable-line no-console
+    }
+
+    // Notifications needs to be an array, so check in case the data has been corrupted somehow and reset to empty state if so
+    if (!Array.isArray(notifications)) {
+      console.error('Notification data looks to be corrupt - ignoring persisted data'); // eslint-disable-line no-console
+
+      notifications = [];
     }
 
     // Expire old notifications
