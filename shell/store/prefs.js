@@ -204,6 +204,16 @@ export const getters = {
     return theme;
   },
 
+  brand: (_state, _getters, _rootState, rootGetters) => {
+    const brandSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.BRAND);
+
+    if (brandSetting && brandSetting.value && brandSetting.value !== '') {
+      return brandSetting.value;
+    }
+
+    return 'modern';
+  },
+
   afterLoginRoute: (state, getters) => {
     const afterLoginRoutePref = getters['get'](AFTER_LOGIN_ROUTE);
 
