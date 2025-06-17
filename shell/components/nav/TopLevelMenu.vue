@@ -1050,6 +1050,7 @@ export default {
         width: 25px;
         height: 25px;
         margin-left: 9px;
+        fill: var(--primary) !important;
       }
     }
     .home-text {
