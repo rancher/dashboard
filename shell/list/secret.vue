@@ -37,6 +37,16 @@ export default {
   },
 
   data() {
+    return {
+      headers:                  null,
+      hasAccessToProjectSchema: false,
+      allProjects:              [],
+      activeTab:                null,
+      SECRET_SCOPED_TABS
+    };
+  },
+
+  created() {
     const headers = this.$store.getters['type-map/headersFor'](this.schema, false);
     const hasAccessToProjectSchema = this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT);
     const allProjects = [];
@@ -53,13 +63,9 @@ export default {
       });
     }
 
-    return {
-      headers,
-      hasAccessToProjectSchema,
-      allProjects,
-      activeTab: null,
-      SECRET_SCOPED_TABS
-    };
+    this.headers = headers;
+    this.hasAccessToProjectSchema = hasAccessToProjectSchema;
+    this.allProjects = allProjects;
   },
 
   computed: {

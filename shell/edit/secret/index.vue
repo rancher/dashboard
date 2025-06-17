@@ -61,9 +61,8 @@ export default {
     this.isProjectScoped = isProjectScoped;
 
     if (isProjectScoped) {
-      const clusterId = this.$store.getters['currentCluster'].id;
       const allProjects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
-      const projects = allProjects.filter((p) => p.spec?.clusterName === clusterId);
+      const projects = allProjects.filter((p) => p.spec?.clusterName === this.clusterId);
 
       if (this.isCreate) {
         // Pick first project as default
@@ -75,7 +74,7 @@ export default {
         this.value.metadata.labels = this.value.metadata.labels || {};
 
         // Set namespace and project-scoped label
-        this.value.metadata.namespace = `${ clusterId }-${ this.selectedProject.value }`;
+        this.value.metadata.namespace = `${ this.clusterId }-${ this.selectedProject.value }`;
         this.value.metadata.labels[UI_PROJECT_SCOPED] = this.selectedProject.value;
       } else {
         this.selectedProject = {
@@ -141,12 +140,14 @@ export default {
   },
 
   computed: {
+    clusterId() {
+      return this.$store.getters['currentCluster'].id;
+    },
     projectOpts() {
-      const clusterId = this.$store.getters['currentCluster'].id;
       let projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
       // Filter out projects not for the current cluster
-      projects = projects.filter((c) => c.spec?.clusterName === clusterId);
+      projects = projects.filter((c) => c.spec?.clusterName === this.clusterId);
       const out = projects.map((project) => {
         return {
           label: project.nameDisplay,
@@ -365,14 +366,10 @@ export default {
 
   watch: {
     selectedProject(newProject) {
-      if (!this.isView) {
-        const clusterId = this.$store.getters['currentCluster'].id;
-
-        if (newProject) {
-          this.value.metadata.labels = this.value.metadata.labels || {};
-          this.value.metadata.namespace = `${ clusterId }-${ newProject }`;
-          this.value.metadata.labels[UI_PROJECT_SCOPED] = newProject;
-        }
+      if (!this.isView && newProject) {
+        this.value.metadata.labels = this.value.metadata.labels || {};
+        this.value.metadata.namespace = `${ this.clusterId }-${ newProject }`;
+        this.value.metadata.labels[UI_PROJECT_SCOPED] = newProject;
       }
     }
   }
@@ -396,7 +393,14 @@ export default {
       @error="e=>errors = e"
     >
       <NameNsDescription
-        v-if="isProjectScoped"
+        v-if="!isProjectScoped"
+        :value="value"
+        :mode="mode"
+        :namespaced="!isCloud"
+        @update:value="$emit('input', $event)"
+      />
+      <NameNsDescription
+        v-else
         :value="value"
         :namespaced="false"
         :mode="mode"
@@ -416,14 +420,6 @@ export default {
           />
         </template>
       </NameNsDescription>
-
-      <NameNsDescription
-        v-if="!isProjectScoped"
-        :value="value"
-        :mode="mode"
-        :namespaced="!isCloud"
-        @update:value="$emit('input', $event)"
-      />
 
       <div
         v-if="isCustomSecretCreate"
