@@ -73,9 +73,6 @@ async function extendApp(vueApp) {
 
   await installInjectedPlugins(appPartials, vueApp);
 
-  // Initialize notifications
-  await store.dispatch('notifications/init');
-
   // Wait for async component to be resolved first
   await new Promise((resolve, reject) => {
     // Ignore 404s rather than blindly replacing URL in browser
