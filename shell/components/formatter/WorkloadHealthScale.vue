@@ -182,7 +182,7 @@ export default {
     <div
       id="trigger"
       class="hs-popover__trigger"
-      aria-role="button"
+      role="button"
       tabindex="0"
       :class="{expanded}"
       :aria-roledescription="t('workload.scaleWorkloads')"
