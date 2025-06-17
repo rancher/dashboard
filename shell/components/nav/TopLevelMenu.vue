@@ -974,7 +974,8 @@ export default {
   $option-padding-left: 14px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
-  div .classic, .csp .side-menu .body .option {
+  div .classic .side-menu .body .option,
+  div .csp .side-menu .body .option {
     &:hover {
       background: var(--primary-hover-bg);
       color: var(--primary-hover-text);
