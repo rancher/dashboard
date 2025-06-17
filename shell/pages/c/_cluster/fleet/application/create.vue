@@ -31,13 +31,19 @@ export default {
         const schema = this.$store.getters['management/schemaFor'](type);
 
         if (schema) {
+          const label = this.$store.getters['type-map/labelFor'](schema, 2) || '';
+
+          const canCreate = !!schema.resourceMethods?.includes('PUT');
+
           return [
             ...acc,
             {
               id:          type,
-              label:       this.$store.getters['type-map/labelFor'](schema) || '',
+              label,
               description: `fleet.application.subTypes.'${ type }'.description`,
               icon:        FleetUtils.resourceIcons[type],
+              disabled:    !canCreate,
+              tooltip:     canCreate ? null : this.t('fleet.application.noPermissions', { label }, true),
             }
           ];
         }
@@ -52,7 +58,11 @@ export default {
   },
 
   methods: {
-    selectType(resource, event) {
+    selectType(subtype, event) {
+      if (subtype.disabled) {
+        return;
+      }
+
       if (event?.srcElement?.tagName === 'A') {
         return;
       }
@@ -60,9 +70,9 @@ export default {
       this.$router.push({
         name:   'c-cluster-fleet-application-resource-create',
         params: {
-          cluster: this.$route.params.cluster,
-          product: this.$store.getters['productId'],
-          resource,
+          cluster:  this.$route.params.cluster,
+          product:  this.$store.getters['productId'],
+          resource: subtype.id,
         },
       });
     },
@@ -86,15 +96,19 @@ export default {
       <div
         v-for="(subtype, i) in types"
         :key="i"
+        v-clean-tooltip="subtype.tooltip"
         class="subtype-banner"
-        :class="{ selected: subtype.id === selectedSubtype }"
-        :data-testid="`subtype-banner-item-${subtype.id}`"
         tabindex="0"
+        role="link"
+        :class="{
+          selected: subtype.id === selectedSubtype,
+          disabled: subtype.disabled
+        }"
+        :data-testid="`subtype-banner-item-${subtype.id}`"
         :aria-disabled="false"
         :aria-label="subtype.description ? `${subtype.label} - ${subtype.description}` : subtype.label"
-        role="link"
-        @click="selectType(subtype.id, $event)"
-        @keyup.enter.space="selectType(subtype.id, $event)"
+        @click="selectType(subtype, $event)"
+        @keyup.enter.space="selectType(subtype, $event)"
       >
         <slot name="subtype-content">
           <div class="subtype-container">

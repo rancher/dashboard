@@ -1,5 +1,7 @@
 <script lang="ts">
 import { PropType } from 'vue';
+import { checkPermissions } from '@shell/utils/auth';
+import { FLEET } from '@shell/config/types';
 import { Application } from '@shell/types/fleet';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import FleetIntro from '@shell/components/fleet/FleetIntro.vue';
@@ -13,6 +15,15 @@ import {
   FLEET_APPLICATION_CLUSTERS_READY,
   FLEET_APPLICATION_RESOURCES_SUMMARY,
 } from '@shell/config/table-headers';
+
+interface Permissions {
+  gitRepos: boolean,
+  helmOps: boolean,
+}
+
+interface DataType {
+  permissions: Permissions
+}
 
 export default {
   name: 'FleetApplications',
@@ -58,6 +69,36 @@ export default {
       type:    Boolean,
       default: true,
     }
+  },
+
+  async fetch() {
+    try {
+      const permissionsSchemas = {
+        gitRepos: {
+          type:            FLEET.GIT_REPO,
+          schemaValidator: (schema: any) => schema.resourceMethods.includes('PUT')
+        },
+        helmOps: {
+          type:            FLEET.HELM_OP,
+          schemaValidator: (schema: any) => schema.resourceMethods.includes('PUT')
+        },
+      };
+
+      const permissions = await checkPermissions(permissionsSchemas, this.$store.getters) as Permissions;
+
+      this.permissions = permissions;
+    } catch (e) {
+      console.error(e); // eslint-disable-line no-console
+    }
+  },
+
+  data(): DataType {
+    return {
+      permissions: {
+        gitRepos: true,
+        helmOps:  true
+      }
+    };
   },
 
   computed: {
@@ -116,7 +157,7 @@ export default {
     <FleetIntro
       v-if="shouldShowIntro && !loading"
       :schema="schema"
-      :is-creatable="true"
+      :is-creatable="permissions.gitRepos || permissions.helmOps"
       :labelKey="'application'"
       :route="createLocation"
       :icon="'icon-repository'"

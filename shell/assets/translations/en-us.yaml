@@ -2595,6 +2595,7 @@ fleet:
     warningTooltip:
       clusterGroup: There are no clusters in this Cluster Group
       cluster: There are no clusters available
+    noPermissions: You have no permissions to create {label}
   gitRepo:
     intro:
       add: Create Git Repo

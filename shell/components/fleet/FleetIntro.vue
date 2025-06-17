@@ -41,7 +41,7 @@ export default {
       },
     };
 
-    const canCreate = this.isCreatable || this.schema?.resourceMethods.includes('PUT');
+    const canCreate = this.isCreatable || this.schema?.resourceMethods?.includes('PUT');
 
     return {
       to,

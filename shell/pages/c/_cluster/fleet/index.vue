@@ -582,7 +582,10 @@ export default {
                 </template>
               </Checkbox>
             </div>
-            <div class="create-button">
+            <div
+              v-if="permissions.gitRepos || permissions.helmOps"
+              class="create-button"
+            >
               <router-link
                 :to="createRoute"
                 class="btn role-primary"

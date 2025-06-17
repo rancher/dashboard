@@ -34,7 +34,7 @@ export default {
       </a>
       <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
     </p>
-    <template v-if="permissions.gitRepos">
+    <template v-if="permissions.gitRepos || permissions.helmOps">
       <h3 class="mb-30">
         {{ t('fleet.dashboard.noApplications', null, true) }}
       </h3>
