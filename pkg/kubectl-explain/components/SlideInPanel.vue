@@ -204,7 +204,7 @@ export default {
       :class="{ 'slide-in-glass-open': isOpen }"
       @click="close()"
     />
-    <div
+    <aside
       class="slide-in"
       :class="{ 'slide-in-open': isOpen }"
       :style="{ width, right, top, height }"
@@ -220,7 +220,7 @@ export default {
       />
       <div class="main-panel">
         <div class="header">
-          <div
+          <nav
             v-if="breadcrumbs"
             class="breadcrumbs"
           >
@@ -250,7 +250,7 @@ export default {
                 @keydown.enter.space.stop.prevent="navigate(breadcrumbs.slice(0, i + 1))"
               >{{ b.name }}</a>
             </div>
-          </div>
+          </nav>
           <div
             v-else
             class="scroll-title"
@@ -333,7 +333,7 @@ export default {
           </div>
         </div>
       </div>
-    </div>
+    </aside>
   </div>
 </template>
 
