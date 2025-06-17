@@ -322,6 +322,7 @@ export default defineComponent({
             class="checkbox-info icon icon-info icon-lg"
             :data-testid="componentTestid + '-info-icon'"
             :tabindex="isDisabled ? -1 : 0"
+            role="button"
           />
           <i
             v-else-if="tooltip"
@@ -330,6 +331,7 @@ export default defineComponent({
             class="checkbox-info icon icon-info icon-lg"
             :data-testid="componentTestid + '-info-icon'"
             :tabindex="isDisabled ? -1 : 0"
+            role="button"
           />
         </slot>
       </span>
