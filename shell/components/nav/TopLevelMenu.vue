@@ -17,6 +17,7 @@ import Pinned from '@shell/components/nav/Pinned';
 import { TopLevelMenuHelperPagination, TopLevelMenuHelperLegacy } from '@shell/components/nav/TopLevelMenu.helper';
 import { debounce } from 'lodash';
 import { sameContents } from '@shell/utils/array';
+import brand from '@shell/mixins/brand';
 
 export default {
   components: {
@@ -73,6 +74,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ brand: 'prefs/brand' }),
     ...mapGetters(['clusterId']),
     ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct', 'isRancherInHarvester']),
     ...mapGetters({ features: 'features/get' }),
@@ -470,7 +472,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div :class="brand">
     <!-- Overlay -->
     <div
       v-if="shown"
@@ -973,6 +975,17 @@ export default {
   $option-padding-left: 14px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
+  div .classic .side-menu .body .option {
+    &:hover {
+      background: var(--primary-hover-bg);
+      color: var(--primary-hover-text);
+
+      svg {
+        fill: var(--primary-hover-text);
+      }
+    }
+  }
+
   .side-menu {
     .menu {
       position: absolute;
@@ -1159,7 +1172,7 @@ export default {
         .rancher-provider-icon,
         svg {
           margin-right: 16px;
-          fill: var(--link);
+          fill: var(--on-tertiary, var(--link));
         }
 
         .top-menu-icon {
@@ -1206,10 +1219,9 @@ export default {
 
         &:hover {
           background: var(--nav-hover, var(--primary-hover-bg));
-          color: var(--primary-hover-text);
 
           svg {
-            fill: var(--primary-hover-text);
+            fill: var(--on-tertiary);
           }
 
           &.disabled {
