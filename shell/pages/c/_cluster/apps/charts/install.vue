@@ -1484,10 +1484,10 @@ export default {
           <div class="step__values__controls--spacer">
 &nbsp;
           </div>
-          <div class="btn-group">
+          <div>
             <button
               type="button"
-              class="btn bg-primary btn-sm"
+              class="btn role-tertiary btn-sm"
               :disabled="!hasReadme || showingReadmeWindow"
               @click="showSlideIn = !showSlideIn"
             >
@@ -1521,11 +1521,10 @@ export default {
           />
           <div
             v-if="hasReadme && !showingReadmeWindow"
-            class="btn-group"
           >
             <button
               type="button"
-              class="btn bg-primary btn-sm"
+              class="btn role-tertiary btn-sm"
               @click="showSlideIn = !showSlideIn"
             >
               {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
@@ -1783,6 +1782,10 @@ export default {
   $title-height: 50px;
   $padding: 5px;
   $slideout-width: 35%;
+
+  .step__values__controls {
+    align-items: center;
+  }
 
   .install-steps {
     padding-top: 0;
