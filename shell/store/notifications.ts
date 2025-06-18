@@ -1,16 +1,11 @@
 import { md5 } from '@shell/utils/crypto';
 import { randomStr } from '@shell/utils/string';
-import { Notification } from '@shell/types/notifications';
+import { Notification, StoredNotification } from '@shell/types/notifications';
 
 /**
  * Key used to store notifications in the browser's local storage
  */
 const LOCAL_STORAGE_KEY_PREFIX = 'rancher-notifications-';
-
-/**
- * Expire in seconds (14 days)
- */
-const EXPIRY = 14 * 24 * 60 * 60;
 
 /**
  * Maximum number of notifications that will be kept
@@ -20,27 +15,14 @@ const MAX_NOTIFICATIONS = 50;
 /**
  * Store for the UI Notification Centre
  */
-
-/**
- * Type for notification that is stored
- *
- * This should not be used outside of this store or the Notification Center UI components
- *
- * Includes extra fields managed by the notification center
- */
-export type StoredNotification = {
-  created: Date;
-  read: Boolean;
-} & Notification;
-
-// Notifications store state
 interface NotificationsStore {
   localStorageKey: string,
+  userId: string;
   notifications: StoredNotification[],
 }
 
 function persist(state: NotificationsStore) {
-  window.localStorage.setItem(state.localStorageKey, JSON.stringify(state.notifications));
+  // window.localStorage.setItem(state.localStorageKey, JSON.stringify(state.notifications));
 }
 
 export const state = function(): NotificationsStore {
@@ -50,7 +32,8 @@ export const state = function(): NotificationsStore {
 
   return {
     localStorageKey: '',
-    notifications
+    userId:          '',
+    notifications,
   };
 };
 
@@ -75,6 +58,10 @@ export const getters = {
    */
   localStorageKey: (state: NotificationsStore) => {
     return state.localStorageKey;
+  },
+
+  userId: (state: NotificationsStore) => {
+    return state.userId;
   },
 };
 
@@ -167,11 +154,21 @@ export const mutations = {
   },
 
   load(state: NotificationsStore, notifications: StoredNotification[]) {
-    state.notifications = notifications;
+    // On load, check that the data actually is different
+    const existingData = JSON.stringify(state.notifications);
+    const newData = JSON.stringify(notifications);
+
+    if (existingData !== newData) {
+      state.notifications = notifications;
+    }
   },
 
   localStorageKey(state: NotificationsStore, userKey: string) {
     state.localStorageKey = `${ LOCAL_STORAGE_KEY_PREFIX }${ userKey }`;
+  },
+
+  userId(state: NotificationsStore, userId: string) {
+    state.userId = userId;
   },
 };
 
@@ -237,10 +234,15 @@ export const actions = {
     commit('clearAll');
   },
 
+  load({ commit }: any, data: StoredNotification[]) {
+    commit('load', data);
+  },
+
   init({ commit, getters } : any, userData: any) {
     const userKey = userData.id;
+    const userId = userData.v3User?.uuid;
 
-    if (!userKey) {
+    if (!userKey || !userId) {
       console.error('Unable to initialize notifications - no user key available'); // eslint-disable-line no-console
 
       return;
@@ -248,53 +250,6 @@ export const actions = {
 
     // Notifications are stored under a key for the current user, so set the local storage key based on the user id
     commit('localStorageKey', md5(userKey, 'hex'));
-
-    // Load persisted notifications from local storage
-    let notifications = [];
-
-    const localStorageKey = getters['localStorageKey'];
-
-    try {
-      notifications = JSON.parse(window.localStorage.getItem(localStorageKey) || '[]');
-    } catch (e) {
-      console.error('Unable to read notifications from local storage', e); // eslint-disable-line no-console
-    }
-
-    // Notifications needs to be an array, so check in case the data has been corrupted somehow and reset to empty state if so
-    if (!Array.isArray(notifications)) {
-      console.error('Notification data looks to be corrupt - ignoring persisted data'); // eslint-disable-line no-console
-
-      notifications = [];
-    }
-
-    // Expire old notifications
-    const now = new Date();
-
-    notifications = notifications.filter((n: StoredNotification) => {
-      // Try ... catch in case the date parsing fails
-      try {
-        const created = new Date(n.created);
-        const diff = (now.getTime() - created.getTime()) / 1000; // Diff in seconds
-
-        return diff < EXPIRY;
-      } catch (e) {}
-
-      return true;
-    });
-
-    commit('load', notifications);
-
-    // Listen to storage events, so if open in multiple tabs, notifications in one tab will be sync'ed across all tabs
-    window.addEventListener('storage', (ev) => {
-      if (ev.key === localStorageKey) {
-        try {
-          const notifications = JSON.parse(ev.newValue || '[]') || [];
-
-          commit('load', notifications);
-        } catch (e) {
-          console.error('Error parsing notifications from storage event', e); // eslint-disable-line no-console
-        }
-      }
-    });
+    commit('userId', userId);
   }
 };

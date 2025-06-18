@@ -5,8 +5,7 @@ import { escapeHtml } from '@shell/utils/string';
 import { computed, inject, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
-import { NotificationAction, NotificationLevel } from '@shell/types/notifications';
-import { StoredNotification } from '@shell/store/notifications';
+import { NotificationAction, NotificationLevel, StoredNotification } from '@shell/types/notifications';
 import { DropdownContext, defaultContext } from '@components/RcDropdown/types';
 
 const CLASSES = {
