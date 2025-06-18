@@ -231,6 +231,7 @@ export default class SortableTablePo extends ComponentPo {
     return new CheckboxInputPo(this.rowWithName(clusterName).column(0));
   }
 
+  // FIXME: resource / context specific functionality shouldn't be in generic components
   rowWithClusterName(clusterName: string) {
     return this.rowWithName(clusterName).column(2);
   }
