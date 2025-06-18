@@ -112,11 +112,6 @@ export default {
       return this.showIntro && !this.filteredRows.length;
     },
   },
-  methods: {
-    parseTargetMode(row) {
-      return row.targetInfo?.mode === 'clusterGroup' ? this.t('fleet.gitRepo.warningTooltip.clusterGroup') : this.t('fleet.gitRepo.warningTooltip.cluster');
-    },
-  },
 };
 </script>
 

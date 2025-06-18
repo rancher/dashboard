@@ -136,7 +136,7 @@ export default {
           <div class="col span-10">
             <LabeledSelect
               v-model:value="clusterId"
-              :label="'Cluster'"
+              :label="t('fleet.cluster.label')"
               :options="clusters"
               :mode="'edit'"
               :disabled="workspace.id === 'fleet-local'"
