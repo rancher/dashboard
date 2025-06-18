@@ -8,11 +8,15 @@ import { SCOPE as CONFIG_MAP_SCOPE, SCOPED_TABS as CONFIG_MAP_SCOPED_TABS } from
 import { NAMESPACE as NAMESPACE_HEADER } from '@shell/config/table-headers';
 import { MANAGEMENT } from '@shell/config/types';
 import { UI_PROJECT_SCOPED } from '@shell/config/labels-annotations';
+import { mapPref, GROUP_RESOURCES } from '@shell/store/prefs';
+
 export default {
-  name:       'ConfigMap',
+  name: 'ConfigMap',
+
   components: {
     ResourceTable, Tabbed, Tab, Masthead, Loading
   },
+
   props: {
     resource: {
       type:     String,
@@ -31,6 +35,7 @@ export default {
       default: false
     }
   },
+
   data() {
     return {
       headers:                  null,
@@ -40,6 +45,7 @@ export default {
       CONFIG_MAP_SCOPED_TABS
     };
   },
+
   created() {
     const headers = this.$store.getters['type-map/headersFor'](this.schema, false);
     const hasAccessToProjectSchema = this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT);
@@ -61,10 +67,24 @@ export default {
     this.hasAccessToProjectSchema = hasAccessToProjectSchema;
     this.allProjects = allProjects;
   },
+
   computed: {
-    projectScopedSecrets() {
-      return this.rows.filter((r) => !!r.metadata.labels?.[UI_PROJECT_SCOPED]);
+    groupPreference: mapPref(GROUP_RESOURCES),
+
+    projectGroupBy() {
+      return this.groupPreference === 'none' ? null : 'projectName';
     },
+
+    projectScopedConfigMaps() {
+      const filtered = this.rows.filter((r) => !!r.metadata.labels?.[UI_PROJECT_SCOPED]);
+
+      filtered.forEach((row) => {
+        row['projectName'] = this.getProjectName(row);
+      });
+
+      return filtered;
+    },
+
     projectScopedHeaders() {
       const projectHeader = {
         name:     'project',
@@ -74,12 +94,14 @@ export default {
 
       return this.headers.map((h) => h.name === NAMESPACE_HEADER.name ? projectHeader : h);
     },
+
     createLocation() {
       return {
         name:  'c-cluster-product-resource-create',
         query: { [CONFIG_MAP_SCOPE]: this.activeTab }
       };
     },
+
     createLabel() {
       if (!this.hasAccessToProjectSchema) {
         return this.t('generic.create');
@@ -92,12 +114,14 @@ export default {
       return this.t('generic.create');
     },
   },
+
   methods: {
     getProjectName(row) {
       const projectId = row.metadata.labels[UI_PROJECT_SCOPED];
 
       return this.allProjects.find((p) => p.projectId === projectId)?.projectName;
     },
+
     handleTabChange(data) {
       this.activeTab = data.selectedName;
     }
@@ -138,12 +162,13 @@ export default {
         <ResourceTable
           :schema="schema"
           :headers="projectScopedHeaders"
-          :rows="projectScopedSecrets"
+          :rows="projectScopedConfigMaps"
           :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-          :groupable="false"
+          :groupable="true"
+          :group-by="projectGroupBy"
         >
           <template #cell:project="{row}">
-            <span>{{ getProjectName(row) }}</span>
+            <span>{{ row.projectName }}</span>
           </template>
         </ResourceTable>
       </Tab>
