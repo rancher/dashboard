@@ -61,7 +61,7 @@ class Application {
       return 'local';
     }
 
-    if (!targets?.length) {
+    if (!targets.length) {
       return 'none';
     }
 
@@ -88,7 +88,14 @@ class Application {
       }
     }
 
-    if (isEqual(targets, [this.excludeHarvesterRule])) {
+    const normalized = [...targets].map((target) => {
+      delete target.name;
+
+      return target;
+    });
+
+    // Check if targets contains only harvester rule after name normalizing
+    if (isEqual(normalized, [this.excludeHarvesterRule])) {
       mode = 'all';
     }
 

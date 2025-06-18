@@ -78,7 +78,7 @@ export default {
       allClusters:      [],
       selectedClusters: [],
       clusterSelectors: [],
-      key:              0
+      key:              0 // Generates a unique key to handle Targets
     };
   },
 
@@ -91,7 +91,6 @@ export default {
   watch: {
     namespace() {
       if (this.mode === _CREATE) {
-        // TO TEST on edit
         this.reset();
       }
 
@@ -207,11 +206,15 @@ export default {
         }
 
         if (!isEmpty(clusterSelector)) {
-          this.clusterSelectors.push({
+          const neu = {
             key:              this.key++,
             matchLabels:      clusterSelector.matchLabels,
             matchExpressions: clusterSelector.matchExpressions?.filter((f) => f.key !== excludeHarvesterRule.clusterSelector.matchExpressions[0].key)
-          });
+          };
+
+          if (neu.matchLabels || neu.matchExpressions?.length) {
+            this.clusterSelectors.push(neu);
+          }
         }
       }
     },
