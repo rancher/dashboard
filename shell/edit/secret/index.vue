@@ -311,6 +311,11 @@ export default {
         }
       }
 
+      if (this.isProjectScoped) {
+        // Always create project-scoped secrets in the upstream local cluster
+        return this.save(btnCb, '/k8s/clusters/local/v1/secrets');
+      }
+
       return this.save(btnCb);
     },
 
