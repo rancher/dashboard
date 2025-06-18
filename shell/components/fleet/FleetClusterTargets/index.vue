@@ -184,7 +184,7 @@ export default {
     },
 
     fromTargets() {
-      this.targetMode = 'all';
+      this.targetMode = FleetUtils.Application.getTargetMode(this.targets || []);
 
       if (!this.targets?.length) {
         return;

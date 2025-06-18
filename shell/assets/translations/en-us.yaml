@@ -2722,8 +2722,7 @@ fleet:
       additionalOptions: Additional Options
     targetDisplay:
       advanced: Advanced
-      cluster: "Cluster"
-      clusterGroup: "Group"
+      clusters: "Clusters"
       all: All
       none: None
       local: Local
@@ -2855,8 +2854,7 @@ fleet:
       additionalOptions: Additional Options
     targetDisplay:
       advanced: Advanced
-      cluster: "Cluster"
-      clusterGroup: "Group"
+      clusters: "Clusters"
       all: All
       none: None
       local: Local
