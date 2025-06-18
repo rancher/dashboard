@@ -140,6 +140,33 @@ export const usePrimeRegistration = () => {
   });
 
   /**
+   * Retrieve and set registration related values based on the current secret
+   */
+  const setRegistration = async() => {
+    if (secret.value) {
+      const hash = secret.value.metadata?.labels?.[REGISTRATION_LABEL];
+
+      if (hash) {
+        registration.value = await getRegistration(hash) || emptyRegistration;
+        if (registration.value) {
+          registrationStatus.value = 'registered';
+        }
+      }
+    }
+  };
+
+  /**
+   * Reset page to initial state without registration
+   */
+  const resetRegistration = () => {
+    registrationStatus.value = null;
+    registrationCode.value = '';
+    offlineRegistrationCertificate.value = '';
+    registration.value = emptyRegistration;
+    secret.value = null;
+  };
+
+  /**
    * Update registration to defined case
    * Reset other inputs and errors, set current state then patch the registration
    * @param type 'online' | 'offline' | 'deregister'
@@ -154,28 +181,15 @@ export const usePrimeRegistration = () => {
     case 'online':
       secret.value = await createSecret('online', registrationCode.value);
       offlineRegistrationCertificate.value = '';
-      if (secret.value) {
-        registration.value = await getRegistration(secret.value.metadata?.labels?.[REGISTRATION_LABEL]);
-        if (registration.value) {
-          registrationStatus.value = 'registered';
-        }
-      }
+      setRegistration();
       break;
     case 'offline':
       secret.value = await createSecret('offline', registrationCode.value);
       registrationCode.value = '';
-      if (secret.value) {
-        registration.value = await getRegistration(secret.value.metadata?.labels?.[REGISTRATION_LABEL]);
-        if (registration.value) {
-          registrationStatus.value = 'registered';
-        }
-      }
+      setRegistration();
       break;
     case 'deregister':
-      registrationStatus.value = null;
-      registrationCode.value = '';
-      offlineRegistrationCertificate.value = '';
-      registration.value = emptyRegistration;
+      resetRegistration();
       break;
     }
     asyncButtonResolution();
@@ -302,9 +316,7 @@ export const usePrimeRegistration = () => {
    * @returns Formatted date string
    */
   const dateTimeFormat = (value: string): string => {
-    if (!value) {
-      return '';
-    }
+    if (!value) return '';
 
     const dateFormat = escapeHtml( store.getters['prefs/get'](DATE_FORMAT));
     const timeFormat = escapeHtml( store.getters['prefs/get'](TIME_FORMAT));
@@ -367,18 +379,9 @@ export const usePrimeRegistration = () => {
 
   onMounted(async() => {
     secret.value = await getSecret();
+    registrationCode.value = regCode.value;
 
-    if (secret.value) {
-      registrationCode.value = regCode.value;
-      const hash = secret.value.metadata?.labels?.[REGISTRATION_LABEL];
-
-      if (hash) {
-        registration.value = await getRegistration(hash) || emptyRegistration;
-        if (registration.value) {
-          registrationStatus.value = 'registered';
-        }
-      }
-    }
+    await setRegistration();
   });
 
   return {
