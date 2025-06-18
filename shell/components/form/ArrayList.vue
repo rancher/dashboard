@@ -447,6 +447,8 @@ export default {
     grid-template-columns: auto $array-list-remove-margin;
     align-items: center;
     margin-bottom: 10px;
+    gap: 1rem;
+
     .value {
       flex: 1;
       INPUT {
