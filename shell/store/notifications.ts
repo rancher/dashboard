@@ -21,14 +21,8 @@ interface NotificationsStore {
   notifications: StoredNotification[],
 }
 
-function persist(state: NotificationsStore) {
-  // window.localStorage.setItem(state.localStorageKey, JSON.stringify(state.notifications));
-}
-
 export const state = function(): NotificationsStore {
   const notifications: StoredNotification[] = [];
-
-  // Note, the init action will load the notifications persisted in local storage at load time
 
   return {
     localStorageKey: '',
@@ -93,8 +87,6 @@ export const mutations = {
     if (state.notifications.length > MAX_NOTIFICATIONS) {
       state.notifications.pop();
     }
-
-    persist(state);
   },
 
   markRead(state: NotificationsStore, id: string) {
@@ -103,8 +95,6 @@ export const mutations = {
     if (notification && !notification.read) {
       notification.read = true;
     }
-
-    persist(state);
   },
 
   markUnread(state: NotificationsStore, id: string) {
@@ -113,8 +103,6 @@ export const mutations = {
     if (notification && notification.read) {
       notification.read = false;
     }
-
-    persist(state);
   },
 
   markAllRead(state: NotificationsStore) {
@@ -123,8 +111,6 @@ export const mutations = {
         notification.read = true;
       }
     });
-
-    persist(state);
   },
 
   update(state: NotificationsStore, notification: Partial<Notification>) {
@@ -138,19 +124,14 @@ export const mutations = {
         };
       }
     }
-    persist(state);
   },
 
   clearAll(state: NotificationsStore) {
     state.notifications = [];
-
-    persist(state);
   },
 
   remove(state: NotificationsStore, id: string) {
     state.notifications = state.notifications.filter((n) => n.id !== id);
-
-    persist(state);
   },
 
   load(state: NotificationsStore, notifications: StoredNotification[]) {
@@ -238,12 +219,12 @@ export const actions = {
     commit('load', data);
   },
 
-  init({ commit, getters } : any, userData: any) {
+  init({ commit } : any, userData: any) {
     const userKey = userData.id;
     const userId = userData.v3User?.uuid;
 
     if (!userKey || !userId) {
-      console.error('Unable to initialize notifications - no user key available'); // eslint-disable-line no-console
+      console.error('Unable to initialize notifications - required user info not available'); // eslint-disable-line no-console
 
       return;
     }
