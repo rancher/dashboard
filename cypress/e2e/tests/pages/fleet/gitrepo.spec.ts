@@ -85,6 +85,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       gitRepoCreatePage.resourceDetail().createEditView().nextPage();
 
       // Target selection step
+      gitRepoCreatePage.targetClusterOptions().set(1);
       gitRepoCreatePage.targetClusterOptions().set(2);
       gitRepoCreatePage.targetCluster().toggle();
       gitRepoCreatePage.targetCluster().clickLabel(fakeProvClusterId);
