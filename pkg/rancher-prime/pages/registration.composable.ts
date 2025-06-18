@@ -2,9 +2,12 @@ import { onMounted, computed, ref, Ref } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 
+import dayjs from 'dayjs';
 import { downloadFile } from '@shell/utils/download';
 import { REGISTRATION_NAMESPACE, REGISTRATION_SECRET, REGISTRATION_RESOURCE_NAME, REGISTRATION_LABEL } from '../config/constants';
 import { SECRET } from '@shell/config/types';
+import { escapeHtml } from '@shell/utils/string';
+import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 
 type RegistrationStatus = 'registering-online' | 'registering-offline' | 'registered' | null;
 interface RegistrationDashboard {
@@ -19,7 +22,10 @@ interface RegistrationDashboard {
   resourceLink?: string;
 }
 
-interface Registration {
+/**
+ * Partial of the registration interface used for this page
+ */
+interface PartialRegistration {
   metadata: {
     labels: Record<string, string>;
     namespace: string;
@@ -32,6 +38,8 @@ interface Registration {
     mode: 'online' | 'offline';
   };
   status: {
+    registeredProduct: string;
+    registrationExpiresAt: string;
     activationStatus: {
       activated: boolean;
       systemUrl: string;
@@ -39,7 +47,10 @@ interface Registration {
   };
 }
 
-interface Secret {
+/**
+ * Partial of the secret interface used for this page
+ */
+interface PartialSecret {
   metadata: {
     labels: Record<string, string>;
     namespace: string;
@@ -90,7 +101,7 @@ export const usePrimeRegistration = () => {
   /**
    * Secret containing user registration code or offline certificate
    */
-  const secret: Ref<Secret | null> = ref(null);
+  const secret: Ref<PartialSecret | null> = ref(null);
 
   /**
    * Single source for the registration status, used to define other computed properties
@@ -230,7 +241,7 @@ export const usePrimeRegistration = () => {
    * Get registration CRD matching secret label
    */
   const getRegistration = async(label: string): Promise<RegistrationDashboard> => {
-    const registrations: Registration[] = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME });
+    const registrations: PartialRegistration[] = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME });
     const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === label);
 
     if (!registration) {
@@ -240,35 +251,53 @@ export const usePrimeRegistration = () => {
       const resourceLink = registration.links.view.replace('/apis/scc.cattle.io/v1/registrations/', '/c/local/explorer/scc.cattle.io.registration/');
       // Common values for every registration
       const commonRegistration = {
-        active:  isActive,
-        mode:    registration.spec.mode,
-        product: 'SUSE Rancher Manager Prime Suite',
+        active:           isActive,
+        mode:             registration.spec.mode,
+        registrationLink: registration.status?.activationStatus?.systemUrl,
         resourceLink
       };
 
       return isActive ? {
         ...commonRegistration,
-        registrationLink: registration.status?.activationStatus?.systemUrl,
-        expiration:       '--',
-        color:            'success',
-        message:          'registration.list.table.badge.valid',
-        status:           'valid'
+        product:    registration.status?.registeredProduct,
+        expiration: dateTimeFormat(registration.status?.registrationExpiresAt),
+        color:      'success',
+        message:    'registration.list.table.badge.valid',
+        status:     'valid'
       } : {
         ...commonRegistration,
-        registrationLink: registration.status?.activationStatus?.systemUrl,
-        expiration:       '--',
-        color:            'error',
-        message:          'registration.list.table.badge.invalid',
-        status:           'error'
+        product:    '--',
+        expiration: '--',
+        color:      'error',
+        message:    'registration.list.table.badge.invalid',
+        status:     'error'
       };
     }
   };
 
   /**
+   * Format date and time using user preferences
+   * @param value Date string to format
+   * @returns Formatted date string
+   */
+  const dateTimeFormat = (value: string): string => {
+    if (!value) {
+      return '';
+    }
+
+    const dateFormat = escapeHtml( store.getters['prefs/get'](DATE_FORMAT));
+    const timeFormat = escapeHtml( store.getters['prefs/get'](TIME_FORMAT));
+
+    const format = `${ dateFormat } ${ timeFormat }`;
+
+    return dayjs(value).format(format);
+  };
+
+  /**
    * Get unique secret code with hardcoded namespace and name
    */
-  const getSecret = async(): Promise<Secret | null> => {
-    const secrets: Secret[] = await store.dispatch('cluster/findAll', { type: SECRET });
+  const getSecret = async(): Promise<PartialSecret | null> => {
+    const secrets: PartialSecret[] = await store.dispatch('cluster/findAll', { type: SECRET });
 
     return secrets.find((secret) => secret.metadata?.namespace === REGISTRATION_NAMESPACE &&
       secret.metadata?.name === REGISTRATION_SECRET) ?? null;
@@ -291,7 +320,7 @@ export const usePrimeRegistration = () => {
    * @param code
    * @returns
    */
-  const createSecret = async(type: string, code: string): Promise<Secret | null> => {
+  const createSecret = async(type: string, code: string): Promise<PartialSecret | null> => {
     try {
       const secret = await store.dispatch('cluster/create', {
         type:     SECRET,
