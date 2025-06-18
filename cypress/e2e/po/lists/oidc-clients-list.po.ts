@@ -6,6 +6,10 @@ export default class OidcClientsListPo extends BaseResourceList {
     return this.resourceTable().sortableTable().rowWithName(name).column(index);
   }
 
+  title() {
+    return this.masthead().title();
+  }
+
   issuerURL() {
     return new CopyToClipboardTextPo('[data-testid="oidc-clients-copy-clipboard-issuer-url"]');
   }

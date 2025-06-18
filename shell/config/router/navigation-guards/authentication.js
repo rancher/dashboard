@@ -1,11 +1,14 @@
 import { routeRequiresAuthentication } from '@shell/utils/router';
-import {
-  isLoggedIn, notLoggedIn, noAuth, findMe, isRancherOidcProviderLogin
-} from '@shell/utils/auth';
+import { isLoggedIn, notLoggedIn, noAuth, findMe } from '@shell/utils/auth';
 import Cookie from 'cookie-universal';
+import { RANCHER_AS_OIDC_QUERY_PARAMS } from '@shell/config/query-params';
 
 const cookies = Cookie();
 const RANCHER_AS_OIDC_COOKIE = 'rancher-as-oidc-prov';
+
+function isRancherOidcProviderLogin(queryParams) {
+  return queryParams && Object.keys(queryParams).length && RANCHER_AS_OIDC_QUERY_PARAMS.every((item) => Object.keys(queryParams).includes(item));
+}
 
 function handleOidcRedirectToCallbackUrl() {
   const rancherAsOidcProvider = cookies.get(RANCHER_AS_OIDC_COOKIE, { parseJSON: false });
