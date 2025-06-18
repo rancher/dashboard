@@ -102,6 +102,7 @@ export default {
       ref,
       refValue,
       displayHelmRepoURLRegex: false,
+      targetsCreated:          '',
       fvFormRuleSets:          [{
         path:  'spec.repo',
         rules: [
@@ -662,7 +663,9 @@ export default {
         :matching="value.targetClusters"
         :namespace="value.metadata.namespace"
         :mode="realMode"
+        :created="targetsCreated"
         @update:value="updateTargets"
+        @created="targetsCreated=$event"
       />
 
       <h3 class="mt-40">

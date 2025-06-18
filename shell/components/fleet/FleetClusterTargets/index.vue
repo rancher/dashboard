@@ -28,7 +28,7 @@ export default {
 
   name: 'FleetClusterTargets',
 
-  emits: ['update:value'],
+  emits: ['update:value', 'created'],
 
   components: {
     Banner,
@@ -58,7 +58,12 @@ export default {
     mode: {
       type:    String,
       default: _EDIT
-    }
+    },
+
+    created: {
+      type:    String as PropType<TargetMode>,
+      default: '',
+    },
   },
 
   async fetch() {
@@ -85,7 +90,14 @@ export default {
   mounted() {
     this.fromTargets();
 
-    this.update();
+    if (this.mode === _CREATE) {
+      this.update();
+
+      // Restore the targetMode from parent component; this is the case of edit targets in CREATE mode, go to YAML editor and come back to the form
+      this.targetMode = this.created || 'all';
+    } else {
+      this.targetMode = FleetUtils.Application.getTargetMode(this.targets || [], this.namespace);
+    }
   },
 
   watch: {
@@ -149,6 +161,9 @@ export default {
     selectTargetMode(value: TargetMode) {
       this.targetMode = value;
 
+      // Save the current targetMode in parent component
+      this.$emit('created', this.targetMode);
+
       this.update();
     },
 
@@ -186,8 +201,6 @@ export default {
       if (!this.targets?.length) {
         return;
       }
-
-      this.targetMode = FleetUtils.Application.getTargetMode(this.targets || [], this.namespace);
 
       for (const target of this.targets) {
         const {

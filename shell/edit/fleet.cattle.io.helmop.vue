@@ -113,7 +113,8 @@ export default {
       tempCachedValues: {},
       doneRouteList:    'c-cluster-fleet-application',
       isRealModeEdit:   this.realMode === _EDIT,
-      fvFormRuleSets:   []
+      targetsCreated:   '',
+      fvFormRuleSets:   [],
     };
   },
 
@@ -678,7 +679,9 @@ export default {
         :matching="value.targetClusters"
         :namespace="value.metadata.namespace"
         :mode="realMode"
+        :created="targetsCreated"
         @update:value="updateTargets"
+        @created="targetsCreated=$event"
       />
 
       <h3 class="mt-40">
