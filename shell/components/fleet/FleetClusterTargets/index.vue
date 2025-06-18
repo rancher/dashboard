@@ -407,7 +407,6 @@ export default {
   >
     <div class="col span-6">
       <TargetsList
-        v-if="matching.length"
         class="target-list mt-20"
         :clusters="matching"
       />
