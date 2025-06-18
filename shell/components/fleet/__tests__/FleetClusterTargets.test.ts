@@ -1,19 +1,20 @@
 import { mount } from '@vue/test-utils';
+import flushPromises from 'flush-promises';
 import FleetClusterTargets from '@shell/components/fleet/FleetClusterTargets/index.vue';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { Selector } from '@shell/types/fleet';
 
 describe('component: FleetClusterTargets', () => {
-  describe('mode: create', () => {
-    const mode = _CREATE;
-
-    describe('targets', () => {
+  describe.each([
+    _EDIT,
+    _CREATE
+  ])('mode: %p', (mode) => {
+    describe('decode spec.targets and set form data', () => {
       it('should build form source data from target with clusterName and clusterSelector', () => {
         const target1 = {
           clusterName:     'fleet-5-france',
           clusterSelector: { matchLabels: { foo: 'true' } }
         };
-
         const wrapper = mount(FleetClusterTargets, {
           props: {
             targets:   [target1],
@@ -42,7 +43,6 @@ describe('component: FleetClusterTargets', () => {
             }]
           }
         };
-
         const wrapper = mount(FleetClusterTargets, {
           props: {
             targets:   [target1],
@@ -317,6 +317,281 @@ describe('component: FleetClusterTargets', () => {
         expect(targetMode).toBe('all');
         expect(selectedClusters).toStrictEqual([]);
         expect(clusterSelectors).toStrictEqual([]); // Harvester rule should be filtered out
+      });
+    });
+
+    describe('decode form data and emit to spec.targets', () => {
+      it('should emit target with clusterName and clusterSelector', async() => {
+        const target1 = {
+          clusterName:     'fleet-5-france',
+          clusterSelector: { matchLabels: { foo: 'true' } }
+        };
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [target1],
+            namespace: 'fleet-default',
+            mode,
+          },
+        });
+
+        await flushPromises();
+
+        expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{ clusterName: 'fleet-5-france' }, { clusterSelector: { matchLabels: { foo: 'true' } } }]);
+      });
+
+      it('should emit harvester exclude rule', async() => {
+        const target1 = {
+          clusterSelector: {
+            matchExpressions: [{
+              key:      'provider.cattle.io',
+              operator: 'NotIn',
+              values:   ['harvester']
+            }]
+          }
+        };
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [target1],
+            namespace: 'fleet-default',
+            mode,
+          },
+        });
+
+        await flushPromises();
+
+        expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{
+          clusterSelector: {
+            matchExpressions: [{
+              key: 'provider.cattle.io', operator: 'NotIn', values: ['harvester']
+            }]
+          }
+        }]);
+      });
+
+      it('should emit multiple targets with clusterName and clusterSelector', async() => {
+        const target1 = { clusterName: 'fleet-5-france' };
+
+        const target2 = { clusterSelector: { matchLabels: { foo: 'true' } } };
+
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [target1, target2],
+            namespace: 'fleet-default',
+            mode,
+          },
+        });
+
+        await flushPromises();
+
+        expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{ clusterName: 'fleet-5-france' }, { clusterSelector: { matchLabels: { foo: 'true' } } }]);
+      });
+
+      it('should emit multiple targets containing both clusterSelector fields', async() => {
+        const target1 = { clusterSelector: { matchLabels: { foo: 'true' } } };
+        const target2 = { clusterSelector: { matchLabels: { hci: 'true' } } };
+
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [target1, target2],
+            namespace: 'fleet-default',
+            mode,
+          },
+        });
+
+        await flushPromises();
+
+        expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{ clusterSelector: { matchLabels: { foo: 'true' } } }, { clusterSelector: { matchLabels: { hci: 'true' } } }]);
+      });
+
+      it('should emit advanced cases untouched', async() => {
+        const target1 = { clusterGroupSelector: {} };
+
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [target1],
+            namespace: 'fleet-default',
+            mode,
+          },
+        });
+
+        await flushPromises();
+
+        expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{ clusterGroupSelector: {} }]);
+      });
+
+      it('should emit full target definition', async() => {
+        const target1 = {
+          clusterGroup:         'cg1',
+          clusterGroupSelector: {
+            matchExpressions: [{
+              key:      'string',
+              operator: 'string',
+              values:   ['string']
+            }],
+            matchLabels: { foo: 'bar' }
+          },
+          clusterName:     'pippo',
+          clusterSelector: {
+            matchExpressions: [{
+              key:      'string',
+              operator: 'string',
+              values:   ['vvv']
+            }],
+            matchLabels: { foo: 'bar' }
+          },
+          name: 'tt1',
+        };
+
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [target1],
+            namespace: 'fleet-default',
+            mode,
+          },
+        });
+
+        await flushPromises();
+
+        expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{
+          clusterGroup:         'cg1',
+          clusterGroupSelector: {
+            matchExpressions: [{
+              key: 'string', operator: 'string', values: ['string']
+            }],
+            matchLabels: { foo: 'bar' }
+          },
+          clusterName:     'pippo',
+          clusterSelector: {
+            matchExpressions: [{
+              key: 'string', operator: 'string', values: ['vvv']
+            }],
+            matchLabels: { foo: 'bar' }
+          },
+          name: 'tt1'
+        }]);
+      });
+
+      it('should emit harvester rule from empty targets source', async() => {
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [],
+            namespace: 'fleet-default',
+            mode,
+          },
+        });
+
+        await flushPromises();
+
+        expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{
+          clusterSelector: {
+            matchExpressions: [{
+              key: 'provider.cattle.io', operator: 'NotIn', values: ['harvester']
+            }]
+          }
+        }]);
+      });
+
+      it('should emit untouched targets from source when operating in fleet-local workspace', async() => {
+        const target1 = { clusterSelector: { matchLabels: { foo: 'true' } } };
+
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [target1],
+            namespace: 'fleet-local',
+            mode,
+          },
+        });
+
+        await flushPromises();
+
+        expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{ clusterSelector: { matchLabels: { foo: 'true' } } }]);
+      });
+
+      it('should emit custom targets filtering out harvester rule', async() => {
+        const target1 = {
+          clusterSelector: {
+            matchExpressions: [{
+              key:      'provider.cattle.io',
+              operator: 'NotIn',
+              values:   ['harvester']
+            }, {
+              key:      'foo',
+              operator: 'In',
+              values:   ['bar']
+            }]
+          }
+        };
+
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [target1],
+            namespace: 'fleet-default',
+            mode,
+          },
+        });
+
+        await flushPromises();
+
+        expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{
+          clusterSelector: {
+            matchExpressions: [{
+              key: 'foo', operator: 'In', values: ['bar']
+            }]
+          }
+        }]);
+      });
+
+      it('should emit targets excluding target names and adding harvester rule', async() => {
+        const target1 = { name: 'simple-target' };
+
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [target1],
+            namespace: 'fleet-default',
+            mode,
+          },
+        });
+
+        await flushPromises();
+
+        expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{
+          clusterSelector: {
+            matchExpressions: [{
+              key: 'provider.cattle.io', operator: 'NotIn', values: ['harvester']
+            }]
+          }
+        }]);
+      });
+
+      it('should emit targets excluding target names and harvester rule if present in source targets', async() => {
+        const target1 = {
+          clusterSelector: {
+            matchExpressions: [{
+              key:      'provider.cattle.io',
+              operator: 'NotIn',
+              values:   ['harvester']
+            }]
+          },
+          name: 'simple-target'
+        };
+
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [target1],
+            namespace: 'fleet-default',
+            mode,
+          },
+        });
+
+        await flushPromises();
+
+        expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{
+          clusterSelector: {
+            matchExpressions: [{
+              key: 'provider.cattle.io', operator: 'NotIn', values: ['harvester']
+            }]
+          }
+        }]);
       });
     });
   });
