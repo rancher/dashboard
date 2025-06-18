@@ -63,7 +63,6 @@ export default {
     if (isProjectScoped) {
       if (this.isCreate) {
         // Pick first project as default
-        // this.projectName = this.filteredProjects[0].status.backingNamespace;
         this.projectName = this.filteredProjects[0].metadata.name;
 
         this.value.metadata.labels = this.value.metadata.labels || {};
@@ -366,6 +365,16 @@ export default {
         this.value['_type'] = type;
       }
     },
+
+    redirectAfterCancel() {
+      const redirectLocation = this.value.listLocation;
+
+      if (this.isProjectScoped) {
+        redirectLocation.hash = '#project-scoped';
+      }
+
+      this.$router.replace(redirectLocation);
+    }
   },
 
   watch: {
@@ -395,9 +404,11 @@ export default {
       :errors="errors"
       :done-route="doneRoute"
       :subtypes="secretSubTypes"
+      :cancel-event="true"
       @finish="saveSecret"
       @select-type="selectType"
       @error="e=>errors = e"
+      @cancel="redirectAfterCancel"
     >
       <NameNsDescription
         v-if="!isProjectScoped"
