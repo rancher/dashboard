@@ -70,7 +70,13 @@ export default {
 
   computed: {
     projectScopedSecrets() {
-      return this.rows.filter((r) => !!r.metadata.labels?.[UI_PROJECT_SCOPED]);
+      const filtered = this.rows.filter((r) => !!r.metadata.labels?.[UI_PROJECT_SCOPED]);
+
+      filtered.forEach((row) => {
+        row['projectName'] = this.getProjectName(row);
+      });
+
+      return filtered;
     },
 
     projectScopedHeaders() {
@@ -153,10 +159,11 @@ export default {
           :headers="projectScopedHeaders"
           :rows="projectScopedSecrets"
           :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-          :groupable="false"
+          :groupable="true"
+          group-by="projectName"
         >
           <template #cell:project="{row}">
-            <span>{{ getProjectName(row) }}</span>
+            <span>{{ row.projectName }}</span>
           </template>
         </ResourceTable>
       </Tab>
