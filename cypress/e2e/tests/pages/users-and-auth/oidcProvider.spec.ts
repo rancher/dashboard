@@ -42,7 +42,7 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
     oidcClientsPage.waitForPage();
 
     // check title and list view
-    oidcClientsPage.waitForMastheadTitle('Client Applications').should('be.visible');
+    oidcClientsPage.list().title().should('contain', 'OIDC Apps');
     oidcClientsPage.list().resourceTable().sortableTable().checkVisible();
     oidcClientsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
@@ -55,8 +55,8 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
     oidcClientsPage.createOidcClient();
     oidcClientsCreatePage.waitForPage();
 
-    oidcClientsCreatePage.applicationName().set(OIDC_CREATE_DATA.APP_NAME);
-    oidcClientsCreatePage.applicationDescription().set(OIDC_CREATE_DATA.APP_DESC);
+    oidcClientsCreatePage.nameNsDescription().name().set(OIDC_CREATE_DATA.APP_NAME);
+    oidcClientsCreatePage.nameNsDescription().description().set(OIDC_CREATE_DATA.APP_DESC);
     oidcClientsCreatePage.callbackUrls().setValueAtIndex(OIDC_CREATE_DATA.CB_URLS[0], 0, 'Add Callback URL');
     oidcClientsCreatePage.callbackUrls().setValueAtIndex(OIDC_CREATE_DATA.CB_URLS[1], 1, 'Add Callback URL');
     oidcClientsCreatePage.refreshTokenExpiration().setValue(OIDC_CREATE_DATA.REF_TOKEN_EXP);
@@ -90,7 +90,7 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
     oidcClientsPage.list().actionMenu(OIDC_CREATE_DATA.APP_NAME).getMenuItem('Edit Config').scrollIntoView()
       .click();
 
-    oidcClientsEditPage.applicationDescription().set(OIDC_EDIT_DATA.APP_DESC);
+    oidcClientsEditPage.nameNsDescription().description().set(OIDC_EDIT_DATA.APP_DESC);
     oidcClientsEditPage.callbackUrls().clearListItem(0);
     oidcClientsEditPage.callbackUrls().clearListItem(1);
     oidcClientsEditPage.callbackUrls().setValueAtIndex(OIDC_EDIT_DATA.CB_URLS[0], 0, 'Add Callback URL', undefined, false);
@@ -161,7 +161,7 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
 
     // let's remove the secret
     oidcClientsDetailPage.secretCardActionMenuToggle(1);
-    oidcClientsDetailPage.secretCardMenu().getMenuItem('Remove').click();
+    oidcClientsDetailPage.secretCardMenu().getMenuItem('Delete').click();
 
     promptModal().getBody().should('be.visible');
     promptModal().clickActionButton('Delete Secret');

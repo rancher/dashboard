@@ -1,10 +1,10 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
-import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
 import UnitInputPo from '@/cypress/e2e/po/components/unit-input.po';
 import CopyToClipboardTextPo from '@/cypress/e2e/po/components/copy-to-clipboard-text.po';
 import ActionMenuPo from '@/cypress/e2e/po/components/action-menu-shell.po';
+import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 
 export default class OidcClientsCreateEditPo extends PagePo {
   private static createPath(clusterId: string, oidcClientId?: string, isEdit?: boolean) {
@@ -21,12 +21,8 @@ export default class OidcClientsCreateEditPo extends PagePo {
     super(OidcClientsCreateEditPo.createPath(clusterId, oidcClientId, isEdit));
   }
 
-  applicationName() {
-    return new LabeledInputPo('[data-testid="oidc-client-app-name-field"]');
-  }
-
-  applicationDescription() {
-    return new LabeledInputPo('[data-testid="oidc-client-app-desc-field"]');
+  nameNsDescription() {
+    return new NameNsDescription(this.self());
   }
 
   callbackUrls() {

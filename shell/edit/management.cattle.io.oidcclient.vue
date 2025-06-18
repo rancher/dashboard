@@ -3,7 +3,6 @@
 import { defineComponent } from 'vue';
 import { SECRET } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { LabeledInput } from '@components/Form/LabeledInput';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import CruResource from '@shell/components/CruResource.vue';
@@ -14,6 +13,7 @@ import Loading from '@shell/components/Loading.vue';
 import FormValidation from '@shell/mixins/form-validation';
 import { RcItemCard } from '@components/RcItemCard';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import { OIDC_CLIENT_SECRET_ANNOTATIONS } from '@shell/config/labels-annotations.js';
 
 type SecretActionType = 'create-secret' | 'regen-secret' | 'remove-secret'
@@ -46,7 +46,7 @@ export default defineComponent({
 
   components: {
     CruResource,
-    LabeledInput,
+    NameNsDescription,
     ArrayList,
     UnitInput,
     CopyToClipboardText,
@@ -65,10 +65,6 @@ export default defineComponent({
     if (this.isView && this.canFetchSecrets) {
       this.secretsData = await this.$store.dispatch('management/findAll', { type: SECRET, opt: { namespaced: OIDC_SECRETS_NAMESPACE } });
     }
-  },
-
-  data() {
-    let displayFirstSecret = false;
 
     // setup the data for creation scenario
     if (this.isCreate) {
@@ -81,7 +77,7 @@ export default defineComponent({
 
     // this mean that we came from the create screen and we need to display that first secret generated
     if (this.isView && window.history?.state?.displaySecret) {
-      displayFirstSecret = true;
+      this.displayFirstSecret = true;
       const state = window.history.state;
 
       if (state?.displaySecret) {
@@ -91,14 +87,16 @@ export default defineComponent({
         window.history.replaceState(cleanedState, '', window.location.href);
       }
     }
+  },
 
+  data() {
     return {
-      displayFirstSecret,
+      displayFirstSecret:    false,
       snapshotSecretsOnLoad: Object.assign({}, this.value?.status?.clientSecrets),
-      secretsRegenerated:    [],
+      secretsRegenerated:    [] as any[],
       OIDC_CLIENT_SECRET_ACTION,
-      errors:                [],
-      secretsData:           undefined,
+      errors:                [] as any[],
+      secretsData:           [] as any[],
       fvFormRuleSets:        [
         { path: 'metadata.name', rules: ['required'] },
         { path: 'spec.redirectURIs', rules: ['required', 'genericUrl'] },
@@ -189,6 +187,10 @@ export default defineComponent({
   },
 
   methods: {
+    updateNameAndDescription(val: any) {
+      this.value.metadata.name = val.metadata.name;
+      this.value.spec.description = val.spec.description;
+    },
     promptSecretsModal(actionType: SecretActionType, secret: SecretManageData) {
       this.errors = [];
 
@@ -204,7 +206,7 @@ export default defineComponent({
             try {
               await this.performSecretAction(actionType, secret);
             } catch (error: any) {
-              this.errors.push(error.data);
+              this.errors = exceptionToErrorsArray(error);
             }
           }
         }
@@ -216,7 +218,7 @@ export default defineComponent({
       try {
         await this.performSecretAction(OIDC_CLIENT_SECRET_ACTION.CREATE, {});
       } catch (error: any) {
-        this.errors.push(error.data);
+        this.errors = exceptionToErrorsArray(error);
       }
     },
     async performSecretAction(actionType: SecretActionType, secret: SecretManageData | any) {
@@ -231,7 +233,7 @@ export default defineComponent({
         isValidAction = true;
       } else if (actionType === OIDC_CLIENT_SECRET_ACTION.REGEN) {
         this.value.metadata.annotations[OIDC_CLIENT_SECRET_ANNOTATIONS.REGEN] = secret.id;
-        this.secretsRegenerated.push(secret as never);
+        this.secretsRegenerated.push(secret);
         isValidAction = true;
       } else if (actionType === OIDC_CLIENT_SECRET_ACTION.REMOVE) {
         this.value.metadata.annotations[OIDC_CLIENT_SECRET_ANNOTATIONS.REMOVE] = secret.id;
@@ -242,7 +244,7 @@ export default defineComponent({
         return await this.value.save();
       }
 
-      return false;
+      Promise.reject(new Error(this.t('oidcclient.errors.performSecretAction')));
     },
     async save(saveCb: Function) {
       this.errors = [];
@@ -297,33 +299,29 @@ export default defineComponent({
       </h2>
       <!-- app name, app description -->
       <div class="row mt-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model:value="value.metadata.name"
+        <div class="col span-12">
+          <NameNsDescription
+            :value="value"
             :mode="mode"
-            label-key="oidcclient.appName.label"
-            :required="true"
-            :placeholder="t('oidcclient.appName.placeholder')"
-            :rules="fvGetAndReportPathRules('metadata.name')"
-            :disabled="!isCreate"
-            data-testid="oidc-client-app-name-field"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model:value="value.spec.description"
-            :mode="mode"
-            :label="t('oidcclient.appDescription.label')"
-            :placeholder="t('oidcclient.appDescription.placeholder')"
-            :min-height="30"
-            data-testid="oidc-client-app-desc-field"
+            :namespaced="false"
+            :name-key="'metadata.name'"
+            :name-label="'oidcclient.appName.label'"
+            :name-placeholder="'oidcclient.appName.placeholder'"
+            :name-editable="false"
+            :nameDisabled="!isCreate"
+            :description-key="'spec.description'"
+            :description-label="'oidcclient.appDescription.label'"
+            :description-placeholder="'oidcclient.appDescription.placeholder'"
+            :normalize-name="false"
+            :rules="{ name: fvGetAndReportPathRules('metadata.name'), description: [] }"
+            @update:value="updateNameAndDescription"
           />
         </div>
       </div>
       <!-- clientID -->
       <h3
         v-if="!isCreate"
-        class="mt-40 mb-40"
+        class="mt-20 mb-20"
       >
         {{ t('oidcclient.clientId') }}:
         <CopyToClipboardText
@@ -340,60 +338,62 @@ export default defineComponent({
         <h3 class="mt-20 mb-20">
           {{ t('oidcclient.clientSecrets') }}
         </h3>
-        <rc-item-card
-          v-for="(secret, i) in clientSecrets"
-          :id="secret.id"
-          :key="secret.id"
-          class="card-item"
-          :header="secret.header"
-          :image="secret.image"
-          :value="secret"
-          variant="medium"
-          :clickable="false"
-        >
-          <template #item-card-content>
-            <p v-if="secret.displayFullSecret && isView">
-              <CopyToClipboardText
-                :aria-label="t('oidcclient.a11y.copyText.clientSecret')"
-                :text="secret.decodedData"
-                :data-testid="`oidc-client-secret-${i}-copy-full-secret`"
+        <div class="card-grid-container">
+          <rc-item-card
+            v-for="(secret, i) in clientSecrets"
+            :id="secret.id"
+            :key="secret.id"
+            class="card-item"
+            :header="secret.header"
+            :image="secret.image"
+            :value="secret"
+            variant="medium"
+            :clickable="false"
+          >
+            <template #item-card-content>
+              <p v-if="secret.displayFullSecret && isView">
+                <CopyToClipboardText
+                  :aria-label="t('oidcclient.a11y.copyText.clientSecret')"
+                  :text="secret.decodedData"
+                  :data-testid="`oidc-client-secret-${i}-copy-full-secret`"
+                />
+              </p>
+              <p v-else>
+                ********{{ secret.lastFiveCharacters }}
+              </p>
+            </template>
+            <template
+              #item-card-footer
+            >
+              <div class="card-footer">
+                <p class="mr-40">
+                  <span class="card-footer-title">{{ t('generic.created') }}</span>
+                  <span>: <DateComponent :value="secret.createdAt" /></span>
+                </p>
+                <p>
+                  <span class="card-footer-title">{{ t('tableHeaders.lastUsed') }}</span>
+                  <span v-if="!secret.lastUsedAt">: {{ t('oidcclient.usedNever') }}</span>
+                  <span v-else>: <DateComponent :value="secret.lastUsedAt" /></span>
+                </p>
+              </div>
+            </template>
+            <template
+              v-if="!isEdit"
+              #item-card-actions
+            >
+              <ActionMenu
+                :data-testid="`oidc-client-secret-${i}-action-menu`"
+                :resource="secret"
+                :custom-actions="cardActions"
+                @regenerateSecret="promptSecretsModal(OIDC_CLIENT_SECRET_ACTION.REGEN, secret)"
+                @removeSecret="promptSecretsModal(OIDC_CLIENT_SECRET_ACTION.REMOVE, secret)"
               />
-            </p>
-            <p v-else>
-              ********{{ secret.lastFiveCharacters }}
-            </p>
-          </template>
-          <template
-            #item-card-footer
-          >
-            <div class="card-footer">
-              <p class="mr-40">
-                <span class="card-footer-title">{{ t('generic.created') }}</span>
-                <span>: <DateComponent :value="secret.createdAt" /></span>
-              </p>
-              <p>
-                <span class="card-footer-title">{{ t('tableHeaders.lastUsed') }}</span>
-                <span v-if="!secret.lastUsedAt">: {{ t('oidcclient.usedNever') }}</span>
-                <span v-else>: <DateComponent :value="secret.lastUsedAt" /></span>
-              </p>
-            </div>
-          </template>
-          <template
-            v-if="!isEdit"
-            #item-card-actions
-          >
-            <ActionMenu
-              :data-testid="`oidc-client-secret-${i}-action-menu`"
-              :resource="secret"
-              :custom-actions="cardActions"
-              @regenerateSecret="promptSecretsModal(OIDC_CLIENT_SECRET_ACTION.REGEN, secret)"
-              @removeSecret="promptSecretsModal(OIDC_CLIENT_SECRET_ACTION.REMOVE, secret)"
-            />
-          </template>
-        </rc-item-card>
+            </template>
+          </rc-item-card>
+        </div>
         <button
           v-if="!isEdit"
-          class="btn role-primary mt-10"
+          class="btn role-primary mt-20"
           data-testid="oidc-client-add-new-secret"
           @click="addNewSecret"
         >
@@ -463,8 +463,10 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
-.card-item:not(:last-child) {
-  margin-bottom: 24px;
+.card-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(410px, 1fr));
+  gap: 24px;
 }
 
 .card-footer {

@@ -7342,8 +7342,8 @@ typeDescription:
 typeLabel:
   management.cattle.io.oidcclient: |-
     {count, plural,
-      one { Client Application }
-      other { Client Applications }
+      one { OIDC App }
+      other { OIDC Apps }
     }
   management.cattle.io.token: |-
     {count, plural,
@@ -7931,17 +7931,19 @@ oidcclient:
   copySecretText: <b>Copy your secret now<b>. This is the only time it will be displayed. Be sure to save it in a safe place
   secretRegenerated: Secret regenerated!
   secretAdded: Secret Added!
+  errors:
+    performSecretAction: The action on OIDC secrets tried to perform is invalid. Please check the the valid parameters for this function
   removeOidcClientModal:
-    title: Client Application deletion
-    content: Are you sure you want to delete the following client applications?
+    title: OIDC Application deletion
+    content: Are you sure you want to delete the following OIDC applications?
     action: Delete Application
   regenModal:
-    title: Client Application Secret regeneration
-    content: Are you sure you want to regenerate this client application secret? The old secret will stop working immediately
+    title: OIDC Application Secret regeneration
+    content: Are you sure you want to regenerate this OIDC application secret? The old secret will stop working immediately
     action: Regenerate Secret
   deleteModal:
-    title: Client Application Secret deletion
-    content: Are you sure you want to delete this client application secret? It will stop working immediately
+    title: OIDC Application Secret deletion
+    content: Are you sure you want to delete this OIDC application secret? It will stop working immediately
     action: Delete Secret
   appName:
     label: Application Name
