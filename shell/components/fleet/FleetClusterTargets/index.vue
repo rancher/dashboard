@@ -1,0 +1,418 @@
+<script lang="ts">
+import { PropType } from 'vue';
+import { isEmpty } from 'lodash';
+import { checkSchemasForFindAllHash } from '@shell/utils/auth';
+import { isHarvesterCluster } from '@shell/utils/cluster';
+import { FLEET } from '@shell/config/types';
+import FleetUtils from '@shell/utils/fleet';
+import { Expression, Selector, Target, TargetMode } from '@shell/types/fleet';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import MatchExpressions from '@shell/components/form/MatchExpressions.vue';
+import { Banner } from '@components/Banner';
+import { RcButton } from '@components/RcButton';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+import TargetsList from '@shell/components/fleet/FleetClusterTargets/TargetsList.vue';
+
+interface DataType {
+  targetMode: TargetMode,
+  allClusters: any[],
+  selectedClusters: string[],
+  clusterSelectors: Selector[],
+  key: number,
+}
+
+const excludeHarvesterRule = FleetUtils.Application.excludeHarvesterRule;
+
+export default {
+
+  name: 'FleetClusterTargets',
+
+  emits: ['update:value'],
+
+  components: {
+    Banner,
+    LabeledSelect,
+    MatchExpressions,
+    RadioGroup,
+    RcButton,
+    TargetsList,
+  },
+
+  props: {
+    targets: {
+      type:    Array as PropType<Target[]>,
+      default: () => [],
+    },
+
+    matching: {
+      type:    Array as PropType<{ name: string }[]>,
+      default: () => [],
+    },
+
+    namespace: {
+      type:    String,
+      default: ''
+    },
+
+    mode: {
+      type:    String,
+      default: _EDIT
+    }
+  },
+
+  async fetch() {
+    const hash = await checkSchemasForFindAllHash({
+      allClusters: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER
+      }
+    }, this.$store) as { allClusters: any[] };
+
+    this.allClusters = hash.allClusters || [];
+  },
+
+  data(): DataType {
+    return {
+      targetMode:       'all',
+      allClusters:      [],
+      selectedClusters: [],
+      clusterSelectors: [],
+      key:              0
+    };
+  },
+
+  mounted() {
+    this.fromTargets();
+
+    this.update();
+  },
+
+  watch: {
+    namespace() {
+      if (this.mode === _CREATE) {
+        // TO TEST on edit
+        this.reset();
+      }
+
+      if (this.mode !== _VIEW) {
+        this.update();
+      }
+    },
+  },
+
+  computed: {
+    targetModeOptions(): { label: string, value: TargetMode }[] {
+      if (this.namespace === 'fleet-local') {
+        return [{
+          label: 'local cluster',
+          value: 'local'
+        }];
+      }
+
+      const out: { label: string, value: TargetMode }[] = [
+        {
+          label: 'All Clusters in the Workspace',
+          value: 'all',
+        },
+        {
+          label: 'No Clusters',
+          value: 'none'
+        },
+      ];
+
+      if (this.clustersOptions.length) {
+        out.push({
+          label: 'Manually select clusters',
+          value: 'clusters'
+        });
+      }
+
+      return out;
+    },
+
+    clustersOptions() {
+      return this.allClusters
+        .filter((x) => x.metadata.namespace === this.namespace && !isHarvesterCluster(x))
+        .map((x) => ({ label: x.nameDisplay, value: x.metadata.name }));
+    },
+
+    isLocal() {
+      return this.namespace === 'fleet-local';
+    },
+
+    isView() {
+      return this.mode === _VIEW;
+    }
+  },
+
+  methods: {
+    selectTargetMode(value: TargetMode) {
+      this.targetMode = value;
+
+      this.update();
+    },
+
+    selectClusters(list: string[]) {
+      this.selectedClusters = list;
+
+      this.update();
+    },
+
+    addMatchExpressions() {
+      this.clusterSelectors.push({ key: this.key++ });
+
+      this.update();
+    },
+
+    updateMatchExpressions(index: number, value: Selector, key?: number) {
+      this.clusterSelectors[index] = { ...value, key };
+
+      this.update();
+    },
+
+    removeMatchExpressions(key?: number) {
+      this.clusterSelectors = this.clusterSelectors.filter((f) => f.key !== key);
+
+      this.update();
+    },
+
+    update() {
+      const targets = this.toTargets();
+
+      this.$emit('update:value', targets);
+    },
+
+    fromTargets() {
+      this.targetMode = 'all';
+
+      if (!this.targets?.length) {
+        return;
+      }
+
+      for (const target of this.targets) {
+        const {
+          clusterName,
+          clusterSelector,
+          clusterGroup,
+          clusterGroupSelector,
+        } = target;
+
+        if (clusterGroup || clusterGroupSelector) {
+          return;
+        }
+
+        if (clusterName) {
+          this.selectedClusters.push(clusterName);
+        }
+
+        if (!isEmpty(clusterSelector)) {
+          this.clusterSelectors.push({
+            key:              this.key++,
+            matchLabels:      clusterSelector.matchLabels,
+            matchExpressions: clusterSelector.matchExpressions?.filter((f) => f.key !== excludeHarvesterRule.clusterSelector.matchExpressions[0].key)
+          });
+        }
+      }
+    },
+
+    toTargets(): Target[] | undefined {
+      switch (this.targetMode) {
+      case 'none':
+        return undefined;
+      case 'all':
+        return [excludeHarvesterRule];
+      case 'clusters':
+        return this.normalizeTargets(this.selectedClusters, this.clusterSelectors);
+      case 'advanced':
+      case 'local':
+        return this.targets;
+      }
+    },
+
+    normalizeTargets(selected: string[], clusterMatchExpressions: Selector[]) {
+      const targets: Target[] = [];
+
+      selected.forEach((clusterName) => {
+        targets.push({ clusterName });
+      });
+
+      clusterMatchExpressions.forEach((elem) => {
+        const { matchLabels: labels, matchExpressions: expressions } = elem || {};
+
+        if (labels || expressions) {
+          const matchLabels = Object.keys(labels || {}).reduce((acc, key) => {
+            if (key && labels) {
+              return {
+                ...acc,
+                [key]: labels[key],
+              };
+            }
+
+            return acc;
+          }, {});
+
+          const matchExpressions = (expressions || []).reduce((acc, expression) => {
+            // Do not display Harvester-exclude rule
+            if (expression.key && expression.key !== excludeHarvesterRule.clusterSelector.matchExpressions[0].key) {
+              return [
+                ...acc,
+                expression
+              ];
+            }
+
+            return acc;
+          }, [] as Expression[]);
+
+          const clusterSelector: Selector = {};
+
+          if (!isEmpty(matchLabels)) {
+            clusterSelector.matchLabels = matchLabels;
+          }
+
+          if (matchExpressions.length) {
+            clusterSelector.matchExpressions = matchExpressions;
+          }
+
+          if (!isEmpty(clusterSelector)) {
+            targets.push({ clusterSelector });
+          }
+        }
+      });
+
+      if (targets.length) {
+        return targets;
+      }
+
+      return undefined;
+    },
+
+    reset() {
+      this.targetMode = 'all';
+      this.selectedClusters = [];
+      this.clusterSelectors = [];
+    }
+  },
+};
+</script>
+
+<template>
+  <div
+    v-if="targetMode !== 'advanced'"
+    class="row"
+  >
+    <RadioGroup
+      name="targetMode"
+      :value="isLocal ? 'local' : targetMode"
+      :mode="mode"
+      :options="targetModeOptions"
+      :disabled="isView"
+      @update:value="selectTargetMode"
+    />
+  </div>
+
+  <Banner
+    v-if="targetMode === 'advanced'"
+    class="row"
+    color="warning"
+    :label="t('fleet.clusterTargets.advancedConfigs')"
+  />
+
+  <div
+    v-if="targetMode === 'clusters'"
+    class="row mt-20"
+  >
+    <div class="col span-8">
+      <LabeledSelect
+        :value="selectedClusters"
+        :label="t('fleet.clusterTargets.label')"
+        :options="clustersOptions"
+        :taggable="true"
+        :close-on-select="false"
+        :mode="mode"
+        :multiple="true"
+        :placeholder="t('fleet.clusterTargets.placeholders.selectMultiple')"
+        @update:value="selectClusters"
+      />
+      <div class="mt-20">
+        <h3> {{ t('fleet.clusterTargets.rules.title') }} </h3>
+        <p class="text-muted">
+          {{ t('fleet.clusterTargets.rules.description') }}
+        </p>
+        <div
+          v-for="(selector, i) in clusterSelectors"
+          :key="selector.key"
+          class="match-expressions-container mt-10"
+        >
+          <MatchExpressions
+            class="body"
+            :value="selector"
+            :mode="mode"
+            :initial-empty-row="true"
+            :add-icon="'icon-plus'"
+            @update:value="updateMatchExpressions(i, $event, selector.key)"
+          />
+          <RcButton
+            small
+            link
+            @click="removeMatchExpressions(selector.key)"
+          >
+            <i class="icon icon-x" />
+          </RcButton>
+        </div>
+        <RcButton
+          small
+          tertiary
+          class="mt-20"
+          @click="addMatchExpressions"
+        >
+          <i class="icon icon-plus" />
+          <span>{{ t('fleet.clusterTargets.rules.addSelector') }}</span>
+        </RcButton>
+      </div>
+    </div>
+
+    <div class="col span-1" />
+
+    <div class="col span-3">
+      <TargetsList
+        class="target-list"
+        :clusters="matching"
+      />
+    </div>
+  </div>
+
+  <div
+    v-if="targetMode === 'all' && !isLocal"
+    class="row mt-20"
+  >
+    <div class="col span-6">
+      <TargetsList
+        class="target-list"
+        :clusters="matching"
+      />
+    </div>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+  .match-expressions-container {
+    display: flex;
+    align-items: start;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+
+    .body {
+      padding: 15px;
+      width: 100%;
+    }
+
+    .btn {
+      margin: 5px;
+    }
+  }
+
+  .target-list {
+    max-height: 250px;
+  }
+</style>

@@ -2578,6 +2578,16 @@ fleet:
       unknown: 'Unknown'
       notReady: Not Ready
       waitApplied: Wait Applied
+  clusterTargets:
+    label: Clusters
+    advancedConfigs: Advanced target configurations are defined, check the YAML file for further details.
+    placeholders:
+      selectMultiple: Select Multiple Clusters
+    rules:
+      title: Labels matching rules
+      description: Add rules to select clusters with matching labels
+      addSelector: Add cluster selector
+      matching: Target Clusters
   application:
     pageTitle: App Bundles
     menuLabel: App Bundles
@@ -2709,6 +2719,7 @@ fleet:
       clusterGroup: Cluster Group
       label: Deploy To
       labelLocal: Deploy With
+      additionalOptions: Additional Options
     targetDisplay:
       advanced: Advanced
       cluster: "Cluster"
@@ -2841,6 +2852,7 @@ fleet:
       clusterGroup: Cluster Group
       label: Deploy To
       labelLocal: Deploy With
+      additionalOptions: Additional Options
     targetDisplay:
       advanced: Advanced
       cluster: "Cluster"
