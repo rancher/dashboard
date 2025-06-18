@@ -353,6 +353,7 @@ export default {
             :mode="mode"
             :initial-empty-row="true"
             :add-icon="'icon-plus'"
+            :add-class="'btn-sm'"
             @update:value="updateMatchExpressions(i, $event, selector.key)"
           />
           <RcButton

@@ -64,6 +64,11 @@ export default {
       default: '',
     },
 
+    addClass: {
+      type:    String,
+      default: '',
+    },
+
     // whether or not to show remove rule button right side of the rule
     showRemoveButton: {
       type:    Boolean,
@@ -408,6 +413,7 @@ export default {
       <button
         type="button"
         class="btn role-tertiary add"
+        :class="[addClass]"
         :data-testid="`input-match-expression-add-rule`"
         @click="addRule"
       >
