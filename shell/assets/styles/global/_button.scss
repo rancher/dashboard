@@ -126,7 +126,7 @@ button,
   background: var(--tertiary, transparent);
   color: var(--on-tertiary, var(--link));
   padding: 0;
-  width: $btn-height;
+  min-width: $btn-height;
   display: flex;
   justify-content: center;
 
@@ -143,10 +143,6 @@ button,
   &:focus-visible {
     @include focus-outline;
     outline-offset: 2px;
-  }
-
-  &.btn-sm {
-    width: $btn-sm-height;
   }
 }
 

@@ -67,6 +67,9 @@ defineExpose({ focus });
 
 <style lang="scss" scoped>
 button {
+  display: flex;
+  gap: 0.25rem;
+
   &.role-link {
     &:focus, &.focused {
       @include focus-outline;
