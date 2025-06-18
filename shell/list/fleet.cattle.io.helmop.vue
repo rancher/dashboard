@@ -1,5 +1,5 @@
 <script>
-import FleetRepos from '@shell/components/fleet/FleetRepos';
+import FleetHelmOps from '@shell/components/fleet/FleetHelmOps.vue';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import FleetNoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
 import { FLEET } from '@shell/config/types';
@@ -7,9 +7,9 @@ import ResourceFetch from '@shell/mixins/resource-fetch';
 import { checkPermissions, checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 export default {
-  name:       'ListGitRepo',
+  name:       'ListHelmOps',
   components: {
-    FleetRepos,
+    FleetHelmOps,
     Masthead,
     FleetNoWorkspaces,
   },
@@ -53,9 +53,9 @@ export default {
           type:        FLEET.CLUSTER_GROUP
         },
 
-        gitRepos: {
+        helmOps: {
           inStoreType: 'management',
-          type:        FLEET.GIT_REPO
+          type:        FLEET.HELM_OP
         },
 
         workspaces: {
@@ -70,7 +70,7 @@ export default {
     }
 
     try {
-      const permissions = await checkPermissions({ workspaces: { type: FLEET.WORKSPACE }, gitRepos: { type: FLEET.GIT_REPO } }, this.$store.getters);
+      const permissions = await checkPermissions({ workspaces: { type: FLEET.WORKSPACE }, helmOps: { type: FLEET.HELM_OP } }, this.$store.getters);
 
       this.permissions = permissions;
     } catch (e) {
@@ -92,9 +92,9 @@ export default {
       :show-incremental-loading-indicator="incrementalLoadingIndicator"
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
-      :create-button-label="t('fleet.gitRepo.repo.addRepo')"
+      :create-button-label="t('fleet.helmOp.actions.add')"
     />
-    <FleetRepos
+    <FleetHelmOps
       :rows="rows"
       :schema="schema"
       :loading="loading"

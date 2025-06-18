@@ -1,30 +1,24 @@
 <script>
-import FleetRepos from '@shell/components/fleet/FleetRepos';
+import { SCHEMA, FLEET } from '@shell/config/types';
+import { checkPermissions, checkSchemasForFindAllHash } from '@shell/utils/auth';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import FleetNoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
-import { FLEET } from '@shell/config/types';
-import ResourceFetch from '@shell/mixins/resource-fetch';
-import { checkPermissions, checkSchemasForFindAllHash } from '@shell/utils/auth';
+import FleetApplications from '@shell/components/fleet/FleetApplications';
+
+const schema = {
+  id:   FLEET.APPLICATION,
+  type: SCHEMA,
+};
 
 export default {
-  name:       'ListGitRepo',
+  name:       'ListApplications',
   components: {
-    FleetRepos,
     Masthead,
     FleetNoWorkspaces,
+    FleetApplications,
   },
-  mixins: [ResourceFetch],
-  props:  {
-    schema: {
-      type:     Object,
-      required: true,
-    },
 
-    resource: {
-      type:     String,
-      required: true,
-    },
-
+  props: {
     loadIndeterminate: {
       type:    Boolean,
       default: false
@@ -48,6 +42,7 @@ export default {
           inStoreType: 'management',
           type:        FLEET.CLUSTER
         },
+
         clusterGroups: {
           inStoreType: 'management',
           type:        FLEET.CLUSTER_GROUP
@@ -56,6 +51,11 @@ export default {
         gitRepos: {
           inStoreType: 'management',
           type:        FLEET.GIT_REPO
+        },
+
+        helmOps: {
+          inStoreType: 'management',
+          type:        FLEET.HELM_OP
         },
 
         workspaces: {
@@ -70,17 +70,42 @@ export default {
     }
 
     try {
-      const permissions = await checkPermissions({ workspaces: { type: FLEET.WORKSPACE }, gitRepos: { type: FLEET.GIT_REPO } }, this.$store.getters);
+      const permissions = await checkPermissions(
+        {
+          workspaces: { type: FLEET.WORKSPACE },
+          gitRepos:   { type: FLEET.GIT_REPO },
+          helmOps:    { type: FLEET.HELM_OP }
+        },
+        this.$store.getters
+      );
 
       this.permissions = permissions;
     } catch (e) {
     }
-    await this.$fetchType(this.resource);
   },
 
   data() {
-    return { hasWorkspaces: false, permissions: {} };
+    // TODO show warning if 1 of the {gitrepo, helmOps} has no permission
+
+    return {
+      schema,
+      hasWorkspaces:             false,
+      permissions:               {},
+      createLocation:            { name: 'c-cluster-fleet-application-create' },
+      forceUpdateLiveAndDelayed: 10
+    };
   },
+
+  computed: {
+    rows() {
+      return [
+        ...this.$store.getters[`management/all`](FLEET.GIT_REPO),
+        ...this.$store.getters[`management/all`](FLEET.HELM_OP)
+      ];
+    },
+  },
+
+  methods: {}
 };
 </script>
 
@@ -88,16 +113,22 @@ export default {
   <div v-if="hasWorkspaces">
     <Masthead
       :schema="schema"
-      :resource="resource"
-      :show-incremental-loading-indicator="incrementalLoadingIndicator"
-      :load-resources="loadResources"
-      :load-indeterminate="loadIndeterminate"
-      :create-button-label="t('fleet.gitRepo.repo.addRepo')"
-    />
-    <FleetRepos
+      :resource="schema.id"
+      :type-display="t('fleet.application.pageTitle')"
+    >
+      <template #createButton>
+        <router-link
+          :to="createLocation"
+          class="btn role-primary"
+        >
+          {{ t('fleet.application.actions.create') }}
+        </router-link>
+      </template>
+    </Masthead>
+    <FleetApplications
       :rows="rows"
       :schema="schema"
-      :loading="loading"
+      :loading="$fetchState.pending"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     />
