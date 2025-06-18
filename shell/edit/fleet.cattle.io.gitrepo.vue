@@ -152,7 +152,7 @@ export default {
         path:  'spec.repo',
         rules: [
           'required',
-          'gitRepository'
+          'urlRepository'
         ],
       }]
     };

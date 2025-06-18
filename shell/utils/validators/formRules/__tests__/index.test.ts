@@ -96,7 +96,7 @@ describe('formRules', () => {
     );
   });
 
-  describe('gitRepository', () => {
+  describe('urlRepository', () => {
     const message = JSON.stringify({ message: 'validation.git.url' });
     const testCases = [
       // Valid HTTP(s)
@@ -128,7 +128,7 @@ describe('formRules', () => {
     it.each(testCases)(
       'should return undefined or correct message based on the provided Git url: %p',
       (url, expected) => {
-        const formRuleResult = formRules.gitRepository(url);
+        const formRuleResult = formRules.urlRepository(url);
 
         expect(formRuleResult).toStrictEqual(expected);
       }

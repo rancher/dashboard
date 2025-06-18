@@ -574,10 +574,10 @@ export default {
       case SOURCE_TYPE.REPO:
         this.fvFormRuleSets = [{
           path:  'spec.helm.repo',
-          rules: ['required', 'gitRepository'],
+          rules: ['required', 'urlRepository'],
         }, {
           path:  'spec.helm.chart',
-          rules: ['required'],
+          rules: ['required', 'alphanumeric'],
         }];
         break;
       case SOURCE_TYPE.OCI:
@@ -589,7 +589,7 @@ export default {
       case SOURCE_TYPE.TARBALL:
         this.fvFormRuleSets = [{
           path:  'spec.helm.chart',
-          rules: ['required', 'gitRepository'],
+          rules: ['required', 'urlRepository'],
         }];
         break;
       }
