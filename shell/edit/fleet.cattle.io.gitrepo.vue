@@ -127,7 +127,7 @@ export default {
           label:          this.t('fleet.gitRepo.add.steps.metadata.label'),
           subtext:        this.t('fleet.gitRepo.add.steps.metadata.subtext'),
           descriptionKey: 'fleet.gitRepo.add.steps.metadata.description',
-          ready:          true,
+          ready:          this.isView || !!this.value.metadata.name,
           weight:         1
         },
         {
@@ -136,7 +136,7 @@ export default {
           label:          this.t('fleet.gitRepo.add.steps.repo.label'),
           subtext:        this.t('fleet.gitRepo.add.steps.repo.subtext'),
           descriptionKey: 'fleet.gitRepo.add.steps.repo.description',
-          ready:          true,
+          ready:          this.isView || (!!this.refValue && !!this.fvFormIsValid),
           weight:         1
         },
         {
