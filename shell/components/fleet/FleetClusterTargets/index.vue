@@ -306,6 +306,7 @@ export default {
   >
     <RadioGroup
       name="targetMode"
+      data-testid="fleet-target-cluster-radio-button"
       :value="isLocal ? 'local' : targetMode"
       :mode="mode"
       :options="targetModeOptions"
@@ -329,6 +330,7 @@ export default {
       <h3> {{ t('fleet.clusterTargets.title') }} </h3>
       <LabeledSelect
         class="mt-20"
+        data-testid="fleet-target-cluster-name-selector"
         :value="selectedClusters"
         :label="t('fleet.clusterTargets.label')"
         :options="clustersOptions"
