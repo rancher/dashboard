@@ -17,7 +17,7 @@ import { stringify } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
 
 function modeFor(route) {
-  if ( route.query?.mode === _IMPORT ) {
+  if ( route.query && route.query.mode === _IMPORT ) {
     return _IMPORT;
   }
 
