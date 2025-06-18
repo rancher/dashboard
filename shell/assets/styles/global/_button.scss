@@ -165,6 +165,10 @@ button,
 fieldset[disabled] .btn {
   cursor: not-allowed;
   opacity: var(--disabled-opacity);
+
+  &:hover {
+    background-color: initial;
+  }
 }
 
 .btn-group {
