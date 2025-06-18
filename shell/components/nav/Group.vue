@@ -440,6 +440,12 @@ export default {
       &.group-highlight {
         background: var(--category--active, var(--nav-active));
 
+        .active.header {
+          &:hover {
+            background-color: var(--nav-active-hover)
+          }
+        }
+
         .child, .header {
           &:hover {
             background: var(--category--active-hover);
