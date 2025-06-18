@@ -290,7 +290,6 @@ $width: 150px;
 
   &__content {
     z-index: 14;
-    width: $width;
 
     border: solid thin var(--sortable-table-top-divider);
     background-color: var(--sortable-table-row-bg);
@@ -332,6 +331,7 @@ $width: 150px;
       display: flex;
       justify-content: space-between;
       align-items: baseline;
+      gap: 1rem;
     }
   }
 }
