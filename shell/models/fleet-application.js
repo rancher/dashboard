@@ -138,7 +138,7 @@ export default class FleetApplication extends SteveModel {
   }
 
   get targetInfo() {
-    const mode = FleetUtils.Application.getTargetMode(this.spec.targets || []);
+    const mode = FleetUtils.Application.getTargetMode(this.spec.targets || [], this.metadata.namespace);
 
     return {
       mode,

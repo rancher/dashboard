@@ -184,11 +184,11 @@ export default {
     },
 
     fromTargets() {
-      this.targetMode = FleetUtils.Application.getTargetMode(this.targets || []);
-
       if (!this.targets?.length) {
         return;
       }
+
+      this.targetMode = FleetUtils.Application.getTargetMode(this.targets || [], this.namespace);
 
       for (const target of this.targets) {
         const {

@@ -56,7 +56,11 @@ class Application {
     },
   };
 
-  getTargetMode(targets: Target[]) {
+  getTargetMode(targets: Target[], namespace: string): TargetMode {
+    if (namespace === 'fleet-local') {
+      return 'local';
+    }
+
     if (!targets?.length) {
       return 'none';
     }
