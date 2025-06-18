@@ -8,6 +8,7 @@ import { SCOPE as SECRET_SCOPE, SCOPED_TABS as SECRET_SCOPED_TABS } from '@shell
 import { NAMESPACE as NAMESPACE_HEADER } from '@shell/config/table-headers';
 import { MANAGEMENT } from '@shell/config/types';
 import { UI_PROJECT_SCOPED } from '@shell/config/labels-annotations';
+import { mapPref, GROUP_RESOURCES } from '@shell/store/prefs';
 
 export default {
   name:       'Secret',
@@ -69,6 +70,12 @@ export default {
   },
 
   computed: {
+    groupPreference: mapPref(GROUP_RESOURCES),
+
+    projectgroupBy() {
+      return this.groupPreference === 'none' ? null : 'projectName';
+    },
+
     projectScopedSecrets() {
       const filtered = this.rows.filter((r) => !!r.metadata.labels?.[UI_PROJECT_SCOPED]);
 
@@ -160,7 +167,7 @@ export default {
           :rows="projectScopedSecrets"
           :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
           :groupable="true"
-          group-by="projectName"
+          :group-by="projectgroupBy"
         >
           <template #cell:project="{row}">
             <span>{{ row.projectName }}</span>
