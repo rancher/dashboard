@@ -50,6 +50,33 @@ export const urlFor = (state, getters) => (type, id, opt) => {
   return url;
 };
 
+function resourceCount(rootGetters, getters, typeObj) {
+  let _typeObj = typeObj;
+  const { name: type, count } = _typeObj;
+
+  if (!type) {
+    throw new Error(`Resource type required to calc count: ${ JSON.stringify(typeObj) }`);
+  }
+
+  if (!count) {
+    const schema = getters.schemaFor(type);
+    const counts = getters.all(COUNT)?.[0]?.counts || {};
+    const count = counts[type];
+
+    // This object aligns with `Type.vue` `type`
+    _typeObj = {
+      count:       count ? count.summary.count || 0 : null,
+      byNamespace: count ? count.namespaces : {},
+      revision:    count ? count.revision : null,
+      namespaced:  schema?.attributes?.namespaced
+    };
+  }
+
+  const namespaces = _typeObj?.namespaced && !rootGetters.isAllNamespaces ? Object.keys(rootGetters.activeNamespaceCache || {}) : [];
+
+  return matchingCounts(_typeObj, namespaces.length ? namespaces : null);
+}
+
 /**
  * Find the number of resources given
  * - if the type is namespaced
@@ -458,30 +485,13 @@ export default {
    *
    */
   count: (state, getters, rootState, rootGetters) => (typeObj) => {
-    let _typeObj = typeObj;
-    const { name: type, count } = _typeObj;
+    const subTypes = rootGetters['type-map/optionsFor'](typeObj.name).subTypes || [];
 
-    if (!type) {
-      throw new Error(`Resource type required to calc count: ${ JSON.stringify(typeObj) }`);
+    if (subTypes.length) {
+      return subTypes.reduce((acc, type) => acc + resourceCount(rootGetters, getters, { name: type }), 0);
     }
 
-    if (!count) {
-      const schema = getters.schemaFor(type);
-      const counts = getters.all(COUNT)?.[0]?.counts || {};
-      const count = counts[type];
-
-      // This object aligns with `Type.vue` `type`
-      _typeObj = {
-        count:       count ? count.summary.count || 0 : null,
-        byNamespace: count ? count.namespaces : {},
-        revision:    count ? count.revision : null,
-        namespaced:  schema?.attributes?.namespaced
-      };
-    }
-
-    const namespaces = _typeObj?.namespaced && !rootGetters.isAllNamespaces ? Object.keys(rootGetters.activeNamespaceCache || {}) : [];
-
-    return matchingCounts(_typeObj, namespaces.length ? namespaces : null);
+    return resourceCount(rootGetters, getters, typeObj);
   },
 
   generation: (state, getters) => (type) => {

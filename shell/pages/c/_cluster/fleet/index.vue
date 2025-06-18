@@ -2,7 +2,6 @@
 import { getVersionData } from '@shell/config/version';
 import { mapState, mapGetters } from 'vuex';
 import { isEmpty } from '@shell/utils/object';
-import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
 import { FLEET } from '@shell/config/types';
 import { WORKSPACE } from '@shell/store/prefs';
 import Loading from '@shell/components/Loading';
@@ -17,9 +16,14 @@ import ResourceDetails from '@shell/components/fleet/dashboard/ResourceDetails.v
 import EmptyDashboard from '@shell/components/fleet/dashboard/Empty.vue';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import FleetRepos from '@shell/components/fleet/FleetRepos';
+import FleetApplications from '@shell/components/fleet/FleetApplications.vue';
 import FleetUtils from '@shell/utils/fleet';
 import Preset from '@shell/mixins/preset';
+
+const VIEW_MODE = {
+  TABLE: 'flat',
+  CARDS: 'cards'
+};
 
 export default {
   name:       'FleetDashboard',
@@ -27,7 +31,7 @@ export default {
     ButtonGroup,
     Checkbox,
     EmptyDashboard,
-    FleetRepos,
+    FleetApplications,
     Loading,
     NoWorkspaces,
     RcButton,
@@ -83,6 +87,10 @@ export default {
           type:            FLEET.GIT_REPO,
           schemaValidator: (schema) => schema.resourceMethods.includes('PUT')
         },
+        helmOps: {
+          type:            FLEET.HELM_OP,
+          schemaValidator: (schema) => schema.resourceMethods.includes('PUT')
+        },
       };
 
       const permissions = await checkPermissions(permissionsSchemas, this.$store.getters);
@@ -95,34 +103,29 @@ export default {
 
   data() {
     return {
-      createRoute: {
-        name:   'c-cluster-product-resource-create',
-        params: {
-          product:  FLEET_NAME,
-          resource: FLEET.GIT_REPO
-        },
-      },
+      createRoute:     { name: 'c-cluster-fleet-application-create' },
       permissions:     {},
       FLEET,
       [FLEET.REPO]:    [],
       [FLEET.HELM_OP]: [],
       fleetWorkspaces: [],
+      VIEW_MODE,
       viewModeOptions: [
         {
           tooltipKey: 'fleet.dashboard.viewMode.table',
           icon:       'icon-list-flat',
-          value:      'flat',
+          value:      VIEW_MODE.TABLE,
         },
         {
           tooltipKey: 'fleet.dashboard.viewMode.cards',
           icon:       'icon-apps',
-          value:      'cards',
+          value:      VIEW_MODE.CARDS,
         },
       ],
       CARDS_MIN:            50,
       CARDS_SIZE:           50,
       cardsCount:           {},
-      viewMode:             'cards',
+      viewMode:             VIEW_MODE.CARDS,
       isWorkspaceCollapsed: {},
       isStateCollapsed:     {},
       typeFilter:           {},
@@ -176,7 +179,7 @@ export default {
     },
 
     applicationStates() {
-      return this._groupByWorkspace((ws) => this._resourceStates(ws.repos));
+      return this._groupByWorkspace((ws) => this._resourceStates([...ws.repos, ...ws.helmOps]));
     },
 
     clusterStates() {
@@ -502,11 +505,11 @@ export default {
             </div>
             <div class="body">
               <ResourcePanel
-                v-if="workspace.repos?.length"
+                v-if="workspace.repos?.length || workspace.helmOps?.length"
                 :data-testid="'resource-panel-applications'"
                 :states="applicationStates[workspace.id]"
                 :workspace="workspace.id"
-                :type="FLEET.GIT_REPO"
+                :type="FLEET.APPLICATION"
                 :selected-states="stateFilter[workspace.id] || {}"
                 @click:state="selectStates(workspace.id, $event)"
               />
@@ -531,7 +534,7 @@ export default {
           </div>
           <div class="card-panel-main-actions">
             <div
-              v-if="workspace.repos?.length"
+              v-if="workspace.repos?.length || workspace.helmOps?.length"
               class="expand-button"
               :data-testid="'expand-button'"
             >
@@ -552,15 +555,12 @@ export default {
           </div>
         </div>
         <div
-          v-if="!isWorkspaceCollapsed[workspace.id] && workspace.repos?.length"
-          class="card-panel-expand mt-10"
+          v-if="!isWorkspaceCollapsed[workspace.id] && (workspace.repos?.length || workspace.helmOps?.length)"
+          class="panel-expand mt-10"
           :data-testid="`fleet-dashboard-expanded-panel-${ workspace.id }`"
         >
           <div class="actions">
-            <div
-              v-if="false"
-              class="type-filters"
-            >
+            <div class="type-filters">
               <Checkbox
                 :data-testid="'fleet-dashboard-filter-git-repos'"
                 :value="typeFilter[workspace.id]?.[FLEET.GIT_REPO]"
@@ -583,14 +583,14 @@ export default {
               </Checkbox>
             </div>
             <div
-              v-if="viewMode === 'flat'"
+              v-if="permissions.gitRepos || permissions.helmOps"
               class="create-button"
             >
               <router-link
                 :to="createRoute"
                 class="btn role-primary"
               >
-                {{ t('fleet.gitRepo.intro.add') }}
+                {{ t('fleet.application.intro.add') }}
               </router-link>
             </div>
           </div>
@@ -631,7 +631,7 @@ export default {
                     <span class="partial">
                       {{ state.stateDisplay }}&nbsp;&nbsp;{{ cardResources[workspace.id]?.[state.stateDisplay]?.length }}
                     </span>
-                    <span class="total label-secondary">/{{ workspace.repos.length }}</span>
+                    <span class="total label-secondary">/{{ [ ...workspace.repos, ...workspace.helmOps ].length }}</span>
                   </div>
                 </div>
                 <div
@@ -680,13 +680,16 @@ export default {
             </div>
           </div>
           <div
-            v-if="viewMode === 'flat'"
+            v-if="viewMode === VIEW_MODE.TABLE"
             class="table-panel"
           >
-            <FleetRepos
+            <FleetApplications
               :workspace="workspace.id"
               :rows="tableResources[workspace.id]"
-              :schema="repoSchema"
+              :schema="{
+                id: FLEET.APPLICATION,
+                type: 'schema'
+              }"
               :loading="$fetchState.pending"
               :use-query-params-for-simple-filtering="true"
               :show-intro="false"
@@ -798,7 +801,7 @@ export default {
     }
   }
 
-  .card-panel-expand {
+  .panel-expand {
     animation: slideInOut 0.5s ease-in-out;
 
     :focus-visible {
@@ -815,7 +818,7 @@ export default {
         flex-direction: column;
         margin-top: 5px;
 
-        label {
+        .checkbox-outer-container {
           width: fit-content;
         }
 
@@ -828,10 +831,6 @@ export default {
           padding: 2px;
           font-size: 25px;
         }
-      }
-
-      .create-button {
-        margin-left: auto;
       }
     }
 

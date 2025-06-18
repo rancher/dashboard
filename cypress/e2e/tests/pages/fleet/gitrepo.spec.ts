@@ -1,4 +1,4 @@
-import { FleetGitRepoListPagePo, FleetGitRepoCreateEditPo, FleetGitRepoDetailsPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
+import { FleetApplicationListPagePo, FleetGitRepoCreateEditPo, FleetGitRepoDetailsPo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 import { gitRepoCreateRequest, gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
@@ -26,7 +26,7 @@ let adminUserId = '';
 const reposToDelete = [];
 
 describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
-  const listPage = new FleetGitRepoListPagePo();
+  const listPage = new FleetApplicationListPagePo();
   const headerPo = new HeaderPo();
 
   before(() => {
@@ -182,7 +182,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
         // TESTING https://github.com/rancher/dashboard/issues/9984 make sure details page loads fine
         listPage.goToDetailsPage('fleet-e2e-test-gitrepo');
         gitRepoCreatePage.mastheadTitle().then((title) => {
-          expect(title.replace(/\s+/g, ' ')).to.contain('Git 仓库: fleet-e2e-test-gitrepo');
+          expect(title.replace(/\s+/g, ' ')).to.contain('fleet-e2e-test-gitrepo');
         });
         // https://github.com/rancher/dashboard/issues/9984 reset lang to EN so that delete action can be performed
         prefPage.goTo();
@@ -207,7 +207,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       headerPo.selectWorkspace(workspace);
 
       // check table headers
-      const expectedHeadersListView = ['State', 'Name', 'Repo', 'Target', 'Clusters Ready', 'Resources', 'Age'];
+      const expectedHeadersListView = ['State', 'Name', 'Type', 'Source', 'Target', 'Clusters Ready', 'Resources', 'Age'];
 
       listPage.list().resourceTable().sortableTable()
         .tableHeaderRow()
@@ -329,7 +329,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       gitRepoEditPage.waitForPage('mode=clone');
       gitRepoEditPage.mastheadTitle().then((title) => {
-        expect(title.replace(/\s+/g, ' ')).to.contain(`Git Repo: Clone from ${ editRepoName }`);
+        expect(title.replace(/\s+/g, ' ')).to.contain(`App Bundle: Clone from ${ editRepoName }`);
       });
       gitRepoEditPage.resourceDetail().createEditView().nameNsDescription()
         .name()
@@ -358,7 +358,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       gitRepoEditPage.waitForPage(`mode=edit&as=yaml`);
       gitRepoEditPage.mastheadTitle().then((title) => {
-        expect(title.replace(/\s+/g, ' ')).to.contain(`Git Repo: ${ editRepoName }`);
+        expect(title.replace(/\s+/g, ' ')).to.contain(`App Bundle: ${ editRepoName }`);
       });
     });
 

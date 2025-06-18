@@ -58,12 +58,12 @@ export class FleetClusterDetailsPo extends BaseDetailPagePo {
     return new TabbedPo();
   }
 
-  gitReposList() {
-    return new ResourceTablePo('#repos [data-testid="sortable-table-list-container"]');
+  appBundlesList() {
+    return new ResourceTablePo('#applications [data-testid="sortable-table-list-container"]');
   }
 
-  addRepostoryButton() {
-    return this.self().get('.btn').contains('Add Repository');
+  addAppButton() {
+    return this.self().get('.btn').contains('Create App Bundle');
   }
 }
 

@@ -61,26 +61,17 @@ export default {
     this.isProjectScoped = isProjectScoped;
 
     if (isProjectScoped) {
-      const allProjects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
-      const projects = allProjects.filter((p) => p.spec?.clusterName === this.clusterId);
-
       if (this.isCreate) {
         // Pick first project as default
-        this.selectedProject = {
-          label: projects[0].nameDisplay,
-          value: projects[0].metadata.name
-        };
+        this.projectName = this.filteredProjects[0].metadata.name;
 
         this.value.metadata.labels = this.value.metadata.labels || {};
 
         // Set namespace and project-scoped label
-        this.value.metadata.namespace = `${ this.clusterId }-${ this.selectedProject.value }`;
-        this.value.metadata.labels[UI_PROJECT_SCOPED] = this.selectedProject.value;
+        this.value.metadata.namespace = this.filteredProjects[0].status.backingNamespace;
+        this.value.metadata.labels[UI_PROJECT_SCOPED] = this.filteredProjects[0].metadata.name;
       } else {
-        this.selectedProject = {
-          label: projects.find((p) => p.metadata.name === projectScopedLabel).nameDisplay,
-          value: projects.find((p) => p.metadata.name === projectScopedLabel).metadata.name
-        };
+        this.projectName = this.filteredProjects.find((p) => p.metadata.name === projectScopedLabel).metadata.name;
       }
     }
   },
@@ -125,7 +116,7 @@ export default {
       secretTypes,
       secretType:        this.value._type,
       initialSecretType: this.value._type,
-      selectedProject:   null,
+      projectName:       null,
       fvFormRuleSets:    [
         {
           path:  'metadata.name',
@@ -143,6 +134,13 @@ export default {
     clusterId() {
       return this.$store.getters['currentCluster'].id;
     },
+
+    filteredProjects() {
+      const allProjects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+
+      return allProjects.filter((p) => p.spec?.clusterName === this.clusterId);
+    },
+
     projectOpts() {
       let projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
@@ -311,6 +309,11 @@ export default {
         }
       }
 
+      if (this.isProjectScoped) {
+        // Always create project-scoped secrets in the upstream local cluster
+        return this.save(btnCb, '/k8s/clusters/local/v1/secrets');
+      }
+
       return this.save(btnCb);
     },
 
@@ -362,14 +365,27 @@ export default {
         this.value['_type'] = type;
       }
     },
+
+    redirectAfterCancel() {
+      const redirectLocation = this.value.listLocation;
+
+      if (this.isProjectScoped) {
+        redirectLocation.hash = '#project-scoped';
+      }
+
+      this.$router.replace(redirectLocation);
+    }
   },
 
   watch: {
-    selectedProject(newProject) {
-      if (!this.isView && newProject) {
+    projectName(neu) {
+      if (this.isCreate && neu) {
         this.value.metadata.labels = this.value.metadata.labels || {};
-        this.value.metadata.namespace = `${ this.clusterId }-${ newProject }`;
-        this.value.metadata.labels[UI_PROJECT_SCOPED] = newProject;
+        this.value.metadata.labels[UI_PROJECT_SCOPED] = neu;
+
+        const projectScopedNamespace = this.filteredProjects.find((p) => p.metadata.name === neu).status.backingNamespace;
+
+        this.value.metadata.namespace = projectScopedNamespace;
       }
     }
   }
@@ -388,9 +404,11 @@ export default {
       :errors="errors"
       :done-route="doneRoute"
       :subtypes="secretSubTypes"
+      :cancel-event="true"
       @finish="saveSecret"
       @select-type="selectType"
       @error="e=>errors = e"
+      @cancel="redirectAfterCancel"
     >
       <NameNsDescription
         v-if="!isProjectScoped"
@@ -411,7 +429,7 @@ export default {
       >
         <template #project-selector>
           <LabeledSelect
-            v-model:value="selectedProject"
+            v-model:value="projectName"
             class="mr-20"
             :disabled="!isCreate"
             :label="t('namespace.project.label')"
