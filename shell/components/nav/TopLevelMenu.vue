@@ -1086,6 +1086,14 @@ export default {
       width: 300px;
       overflow: auto;
 
+      a {
+        &.router-link-active, &.active-menu-link {
+          svg {
+            fill: var(--on-active, var(--primary-hover-text));
+          }
+        }
+      }
+
       .option {
         align-items: center;
         cursor: pointer;
@@ -1194,10 +1202,6 @@ export default {
           background: var(--active, var(--primary-hover-bg));
           color: var(--on-active, var(--primary-hover-text));
 
-          svg {
-            fill: var(--on-active, var(--primary-hover-text));
-          }
-
           i {
             color: var(--on-active, var(--primary-hover-text));
           }
@@ -1208,6 +1212,10 @@ export default {
 
           &:hover {
             background: var(--nav-active-hover, var(--primary-hover-bg));
+
+            svg {
+              fill: var(--on-active, var(--primary-hover-text));
+            }
           }
         }
 
