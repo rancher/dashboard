@@ -1509,8 +1509,6 @@ export default {
             v-model:value="preFormYamlOption"
             data-testid="btn-group-options-view"
             :options="formYamlOptions"
-            inactive-class="bg-disabled btn-sm"
-            active-class="bg-primary btn-sm"
             :disabled="preFormYamlOption != formYamlOption"
           />
           <div class="step__values__controls--spacer">
@@ -1520,8 +1518,6 @@ export default {
             v-if="showDiff"
             v-model:value="diffMode"
             :options="yamlDiffModeOptions"
-            inactive-class="bg-disabled btn-sm"
-            active-class="bg-primary btn-sm"
           />
           <div
             v-if="hasReadme && !showingReadmeWindow"
