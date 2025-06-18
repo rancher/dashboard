@@ -673,7 +673,6 @@ export default {
 
     <template #target>
       <h2 v-t="'fleet.helmOp.target.label'" />
-
       <FleetClusterTargets
         :targets="value.spec.targets"
         :matching="value.targetClusters"
@@ -682,7 +681,7 @@ export default {
         @update:value="updateTargets"
       />
 
-      <h3 class="mt-30">
+      <h3 class="mt-40">
         {{ t('fleet.helmOp.target.additionalOptions') }}
       </h3>
       <div class="row mt-20">

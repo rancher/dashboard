@@ -127,7 +127,7 @@ export default {
           label:          this.t('fleet.gitRepo.add.steps.metadata.label'),
           subtext:        this.t('fleet.gitRepo.add.steps.metadata.subtext'),
           descriptionKey: 'fleet.gitRepo.add.steps.metadata.description',
-          ready:          this.isView || !!this.value.metadata.name,
+          ready:          true,
           weight:         1
         },
         {
@@ -136,7 +136,7 @@ export default {
           label:          this.t('fleet.gitRepo.add.steps.repo.label'),
           subtext:        this.t('fleet.gitRepo.add.steps.repo.subtext'),
           descriptionKey: 'fleet.gitRepo.add.steps.repo.description',
-          ready:          this.isView || (!!this.refValue && !!this.fvFormIsValid),
+          ready:          true,
           weight:         1
         },
         {
@@ -657,7 +657,6 @@ export default {
 
     <template #stepTarget>
       <h2 v-t="'fleet.gitRepo.target.label'" />
-
       <FleetClusterTargets
         :targets="value.spec.targets"
         :matching="value.targetClusters"
@@ -666,7 +665,7 @@ export default {
         @update:value="updateTargets"
       />
 
-      <h3 class="mt-30">
+      <h3 class="mt-40">
         {{ t('fleet.gitRepo.target.additionalOptions') }}
       </h3>
       <div class="row mt-20">

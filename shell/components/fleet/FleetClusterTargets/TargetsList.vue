@@ -9,6 +9,11 @@ export default {
       type:    Array as PropType<{ name: string }[]>,
       default: () => [],
     },
+
+    emptyLabel: {
+      type:    String,
+      default: ''
+    }
   },
 
   computed: {
@@ -33,22 +38,25 @@ export default {
 
 <template>
   <div class="targets-list">
-    <h3>{{ t('fleet.clusterTargets.rules.matching') }}</h3>
+    <h3>{{ t('fleet.clusterTargets.rules.matching.title') }}</h3>
     <span
       v-for="(name, i) in names"
       :key="i"
-      class="row"
+      class="row mt-5"
     >
       {{ name }}
+    </span>
+    <span
+      v-if="!names.length"
+      class="text-muted"
+    >
+      {{ emptyLabel || t('fleet.clusterTargets.rules.matching.empty') }}
     </span>
   </div>
 </template>
 
 <style lang="scss" scoped>
   .targets-list {
-    border: 1px solid var(--border);
-    padding: 15px;
-    border-radius: 5px;
     height: 100%;
   }
 </style>

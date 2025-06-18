@@ -2579,15 +2579,18 @@ fleet:
       notReady: Not Ready
       waitApplied: Wait Applied
   clusterTargets:
+    title: Select by name
     label: Clusters
     advancedConfigs: Advanced target configurations are defined, check the YAML file for further details.
     placeholders:
       selectMultiple: Select Multiple Clusters
     rules:
-      title: Labels matching rules
-      description: Add rules to select clusters with matching labels
+      title: Select by labels
       addSelector: Add cluster selector
-      matching: Target Clusters
+      matching:
+        title: Selected clusters
+        placeholder: Select clusters by name or labels
+        empty: No clusters in the workspace
   application:
     pageTitle: App Bundles
     menuLabel: App Bundles
@@ -2719,7 +2722,7 @@ fleet:
       clusterGroup: Cluster Group
       label: Deploy To
       labelLocal: Deploy With
-      additionalOptions: Additional Options
+      additionalOptions: Additional settings
     targetDisplay:
       advanced: Advanced
       clusters: "Clusters"

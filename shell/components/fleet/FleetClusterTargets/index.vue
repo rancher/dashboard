@@ -111,18 +111,18 @@ export default {
 
       const out: { label: string, value: TargetMode }[] = [
         {
-          label: 'All Clusters in the Workspace',
+          label: 'All Clusters in the workspace',
           value: 'all',
         },
         {
-          label: 'No Clusters',
+          label: 'No clusters',
           value: 'none'
         },
       ];
 
       if (this.clustersOptions.length) {
         out.push({
-          label: 'Manually select clusters',
+          label: 'Manually selected clusters',
           value: 'clusters'
         });
       }
@@ -326,7 +326,9 @@ export default {
     class="row mt-20"
   >
     <div class="col span-8">
+      <h3> {{ t('fleet.clusterTargets.title') }} </h3>
       <LabeledSelect
+        class="mt-20"
         :value="selectedClusters"
         :label="t('fleet.clusterTargets.label')"
         :options="clustersOptions"
@@ -337,15 +339,12 @@ export default {
         :placeholder="t('fleet.clusterTargets.placeholders.selectMultiple')"
         @update:value="selectClusters"
       />
-      <div class="mt-20">
+      <div class="mt-30">
         <h3> {{ t('fleet.clusterTargets.rules.title') }} </h3>
-        <p class="text-muted">
-          {{ t('fleet.clusterTargets.rules.description') }}
-        </p>
         <div
           v-for="(selector, i) in clusterSelectors"
           :key="selector.key"
-          class="match-expressions-container mt-10"
+          class="match-expressions-container mt-20"
         >
           <MatchExpressions
             class="body"
@@ -382,6 +381,7 @@ export default {
       <TargetsList
         class="target-list"
         :clusters="matching"
+        :empty-label="t('fleet.clusterTargets.rules.matching.placeholder')"
       />
     </div>
   </div>
