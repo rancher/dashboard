@@ -153,6 +153,11 @@ generic:
   opensInNewTab: Opens in a new tab
   
 
+graph:
+  noPermissions: You do not have permission to Graph view
+  loading: Loading chart data...
+  rendering: Rendering chart...
+
 locale:
   menu: Locale selector menu
   en-us: English
@@ -236,6 +241,7 @@ nav:
     Scheduling: Scheduling
     Storage: Storage
     Project: Project
+    resources: Resources
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources
@@ -2497,6 +2503,12 @@ etcdInfoBanner:
   failedProposals: "Number of failed proposals:"
 
 fleet:
+  tableHeaders:
+    applicationType: Type
+    applicationSource: Source
+    applicationTarget: Target
+    applicationClustersReady: Clusters Ready
+    applicationResourcesSummary: Resources
   dashboard:
     pageTitle: Continuous Delivery Dashboard
     menuLabel: Dashboard
@@ -2504,7 +2516,7 @@ fleet:
     gitOpsScale: GitOps at scale.
     learnMore: Learn More.
     learnMoreLink: https://fleet.rancher.io
-    noRepo: "You don't have any Git Repositories in your Workspaces"
+    noApplications: "You don't have any App Bundles in your Workspaces"
     getStarted: Get started
     workspace: Workspace
     expand: Expand
@@ -2555,7 +2567,9 @@ fleet:
       other {# bundles are hidden as they belong to Harvester clusters that can not be used with Continuous Delivery}
       }
   fleetSummary:
-    noClustersGitRepo: This git repo is not targeting any clusters
+    noClusters:
+      gitRepo: This GitRepo is not targeting any clusters
+      helmOp: This HelmOp is not targeting any clusters
     state:
       ready: 'Ready'
       info: 'Transitioning'
@@ -2564,10 +2578,30 @@ fleet:
       unknown: 'Unknown'
       notReady: Not Ready
       waitApplied: Wait Applied
+  application:
+    pageTitle: App Bundles
+    menuLabel: App Bundles
+    intro:
+      add: Create App Bundle
+      empty: No App Bundles have been created
+    actions:
+      create: Create App Bundle
+    groupBy: Group By Type
+    subTypes:
+      fleet.cattle.io.gitrepo:
+        description: GitRepo describes a git repository that is watched by Fleet. The resource contains the necessary information to deploy the repo, or parts of it, to target clusters.
+      fleet.cattle.io.helmop:
+        description: HelmOp is a simplified way of creating bundles by directly pointing to a Helm repository or to an OCI registry, without needing to set up a git repository.
+    warningTooltip:
+      clusterGroup: There are no clusters in this Cluster Group
+      cluster: There are no clusters available
+    noPermissions: You have no permissions to create {label}
   gitRepo:
     intro:
-      add: Add Repository
+      add: Create Git Repo
+      empty: No Git Repos have been added
     actions:
+      add: Create Git Repo
       forceUpdate:
         label: Force Update
         promptTitle: Force Update
@@ -2624,6 +2658,13 @@ fleet:
         tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
         webhookWarning: A webhook is configured in Rancher to reconcile Git updates and GitRepo resources. The Polling Interval will automatically be adjusted to 1 hour.
         minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
+    ociStorageSecret:
+      title: OCI Registry
+      label: OCI Storage Secret
+      tooltip: If 'None' is selected, Fleet will use the 'ocistorage' fallback secret when existing in current workspace.<br>Every changes of the selected OCI storage secret will not be applied until next Git Repo update.
+      options:
+        chooseExisting: "Choose a secret:"
+        chooseCustom: "Choose a custom secret:"
     add:
       steps:
         metadata:
@@ -2680,13 +2721,155 @@ fleet:
       verify: Require a valid certificate
       specify: Specify additional certificates to be accepted
       skip: Accept any certificate (insecure)
-    warningTooltip:
-      clusterGroup: There are no clusters in this Cluster Group
-      cluster: There are no clusters available
     workspace:
       label: Workspace
       addWorkspace: Create a workspace
     helmRepoURLRegex: Helm Repos (URL Regex)
+  helmOp:
+    intro:
+      add: Create Helm Op
+      empty: No Helm Ops have been added
+    actions:
+      add: Create Helm Op
+      enablePolling:
+        label: Enable Polling
+      disablePolling:
+        label: Disable Polling
+      forceUpdate:
+        label: Force Update
+        promptTitle: Force Update
+        promptNames: 'You are attempting to update: '
+        promptWarning: |-
+          {
+            count, plural,
+            =1 {Force update could be a long running process.}
+            other {Force update could be a long running process.}
+          }
+      unpause:
+        label: Unpause
+      pause:
+        label: Pause
+    add:
+      steps:
+        metadata:
+          label: Metadata
+          title: Specify the Helm Op name and labels/annotations
+          subtext: 'Define metadata details'
+          description: Helm Op basic info
+        chart:
+          label: Chart
+          title: chart
+          subtext: 'Define Helm Chart source details'
+          description: chart
+        values:
+          label: Values
+          title: values
+          subtext: 'Define Helm Values for the chart'
+          description: values
+        targetInfo:
+          label: Target details
+          title: Specify which target to synchronise this repository to
+          subtext: 'Define target details'
+          description: You can configure which clusters will be used as the target of synchronisation with the resources in the repository.
+        advanced:
+          label: Advanced
+          title: Specify advanced settings like authenticaion credentials and polling
+          subtext: 'Define advanced settings'
+          description: Fleet will use the authentication settings and polling to synchronise the resources contained in it.
+          info: These settings are for advanced usage and optional. You can skip them and finish the creation process.
+    source:
+      title: Source
+      selectLabel: Type
+      types:
+        tarball: Tarball
+        repo: Repository
+        oci: OCI Registry
+      tarball:
+        label: Absolute URL
+        placeholder: e.g. https://github.com/rancher/fleet/helm-chart/helm-chart-0.0.1.tgz
+      repo:
+        repo:
+          label: URL
+          placeholder: e.g. https://github.com/rancher/fleet/helm-chart
+        chart:
+          label: Chart
+          placeholder: The path to the chart name in the repository
+      oci:
+        chart:
+          label: OCI Registry URL
+          placeholder: e.g. oci://ghcr.io/rancher/fleet/helm-chart or oci://ghcr.io/rancher/fleet/helm-chart:0.0.1
+      version:
+        label: Version
+        placeholder: The Chart version
+      release:
+        title: Release
+        label: Name
+        placeholder: The Helm release name
+    values:
+      title: Values
+      selectLabel: Values
+      description: Configure Values used by Helm that help define the App.
+      types:
+        values: Values
+        valuesFiles: Values Files
+        valuesFrom: Values From
+      yaml:
+        options:
+          edit: Edit YAML
+          diff: Compare Changes
+      values:
+        selectLabel: YAML
+        loading: Loading from chart
+      valuesFiles:
+        selectLabel: Files
+        ariaLabel: Enter path for value File
+        placeholder: ''
+        addLabel: Add File path
+        empty: empty
+      valuesFrom:
+        selectLabel: Values From
+    serviceAccount:
+      label: Service Account Name
+      placeholder: "Optional: Use a service account in the target clusters"
+    targetNamespace:
+      label: Target Namespace
+      placeholder: "Optional: Require all resources to be in this namespace"
+    target:
+      selectLabel: Target
+      advanced: Advanced
+      cluster: Cluster
+      clusterGroup: Cluster Group
+      label: Deploy To
+      labelLocal: Deploy With
+    targetDisplay:
+      advanced: Advanced
+      cluster: "Cluster"
+      clusterGroup: "Group"
+      all: All
+      none: None
+      local: Local
+    resources:
+      label: 'Resource Handling'
+      keepResources: Always keep resources
+      keepResourcesTooltip: When enabled, resources will be kept when deleting a HelmOp or Bundle - only Helm release secrets will be deleted.
+      correctDrift: Enable self-healing
+      correctDriftTooltip: When enabled, Fleet will ensure that the cluster resources are kept in sync with the HelmOp. All resource changes made on the cluster will be lost.
+    polling:
+      label: Polling
+      enable: Enable Polling
+      pollingInterval:
+        label: Polling Interval
+        tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
+        minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
+    tls:
+      insecure: Accept any certificate (insecure)
+    auth:
+      title: Authentication
+      label: Authentication
+      helm: Helm Authentication
+    caBundle:
+      label: Certificates
+      placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"
   clusterGroup:
     selector:
       label: Cluster Selectors
@@ -2698,8 +2881,6 @@ fleet:
           other {Matches {matched, number} of {total, number} existing clusters, including "{sample}"}
         }
   fdc:
-    loadingChart: Loading chart data...
-    renderingChart: Rendering chart...
     id: ID
     type: Type
     state: State
@@ -2710,6 +2891,7 @@ fleet:
   workspaces:
     tabs:
       restrictions: Allowed Target Namespaces
+      ociRegistry: Default OCI Registry
     timeout: Workspace creation timeout. It's possible the workspace was created. We suggest checking the workspace page before trying to create another.
     remove:
       warning: "Deleting a Workspace also deletes all resources in the Workspace. This includes GitRepos but also Clusters.<br><br>Deleted Clusters will be removed from {vendor}, and if {vendor} manages the life-cycle of the Cluster it's underlying infrastructure will also be deleted."
@@ -6009,7 +6191,6 @@ tableHeaders:
   endpoints: Endpoints
   expires: Expires
   firstSeen: First Seen
-  fleetBundleType: Type
   flow: Flow
   fingerprint: Fingerprint
   gitRepos: Git Repos
@@ -6309,7 +6490,9 @@ validation:
     both: Requires "Output" or "Cluster Output" to be selected.
     global: Requires "Cluster Output" to be selected.
   git:
-    repository: Repository URL must be a HTTP(s) or SSH url with no trailing spaces
+    url: URL must be a HTTP(s) or SSH url with no trailing spaces
+  oci:
+    url: URL must be an OCI url with no trailing spaces
   output:
     logdna:
       apiKey: Required an "Api Key" to be set.
@@ -7178,6 +7361,11 @@ typeLabel:
     {count, plural,
       one { Cluster Group }
       other {Cluster Groups }
+    }
+  fleet.cattle.io.application: |-
+    {count, plural,
+      one { App Bundle }
+      other { App Bundles }
     }
   fleet.cattle.io.gitrepo: |-
     {count, plural,
@@ -8275,7 +8463,6 @@ errors:
   notFound:
     withUrl: '{msg}: {url}'
     withoutUrl: '{msg}'
-
 component:
   resource:
     detail:
@@ -8307,7 +8494,11 @@ component:
             decrease: Decrease {resourceName}
       titleBar:
         showConfiguration: Show Configuration
+        ariaLabel:
+          actionMenu: More actions - { resource }
+          showConfiguration: Show the entire configuration of { resource }
       metadata:
+        labelsAndAnnotations: Labels and Annotations
         identifyingInformation:
           namespace: Namespace
           project: Project
@@ -8316,3 +8507,10 @@ component:
           ready: Ready
           up-to-date: Up-to-date
           available: Available
+        annotations:
+          title: Annotations
+        labels:
+          title: Labels
+        keyValue:
+          noRows: There are no {propertyName} configured on this resource.
+          showConfiguration: Show Configuration

@@ -57,6 +57,7 @@ export const SCOPED_RESOURCES = {
         'Contents',
         'GitRepos',
         'GitRepoRestrictions',
+        'HelmOps',
       ],
     },
     'gitjob.cattle.io': {

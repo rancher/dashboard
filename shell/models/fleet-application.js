@@ -9,6 +9,9 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import { mapStateToEnum, primaryDisplayStatusFromCount, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import FleetUtils from '@shell/utils/fleet';
 
+export const MINIMUM_POLLING_INTERVAL = 15;
+export const DEFAULT_POLLING_INTERVAL = 60;
+
 function normalizeStateCounts(data) {
   if (isEmpty(data)) {
     return {
@@ -44,6 +47,16 @@ export default class FleetApplication extends SteveModel {
     this.save();
   }
 
+  enablePollingAction() {
+    this.spec.disablePolling = false;
+    this.save();
+  }
+
+  disablePollingAction() {
+    this.spec.disablePolling = true;
+    this.save();
+  }
+
   goToClone() {
     if (this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID]) {
       delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
@@ -56,18 +69,8 @@ export default class FleetApplication extends SteveModel {
     super.goToClone();
   }
 
-  forceUpdate(resources = [this]) {
-    this.$dispatch('promptModal', {
-      componentProps: { repositories: resources },
-      component:      'GitRepoForceUpdateDialog'
-    });
-  }
-
-  forceUpdateBulk(resources) {
-    this.$dispatch('promptModal', {
-      componentProps: { repositories: resources },
-      component:      'GitRepoForceUpdateDialog'
-    });
+  get isPollingEnabled() {
+    return !this.spec.disablePolling;
   }
 
   get state() {
@@ -250,6 +253,7 @@ export default class FleetApplication extends SteveModel {
 
       return res;
     }, {});
+
     const resources = this.status?.resources?.reduce((acc, resourceInfo) => {
       const { perClusterState, ...resource } = resourceInfo;
 
@@ -312,10 +316,6 @@ export default class FleetApplication extends SteveModel {
     return primaryDisplayStatusFromCount(resourceCounts) || STATES_ENUM.ACTIVE;
   }
 
-  get clustersList() {
-    return this.$getters['all'](FLEET.CLUSTER);
-  }
-
   get authorId() {
     return this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
   }
@@ -351,5 +351,35 @@ export default class FleetApplication extends SteveModel {
 
   get showCreatedBy() {
     return !!this.createdBy;
+  }
+
+  get clustersList() {
+    return this.$getters['all'](FLEET.CLUSTER);
+  }
+
+  get readyClusters() {
+    return this.status?.readyClusters || 0;
+  }
+
+  get _detailLocation() {
+    return {
+      ...super._detailLocation,
+      name: 'c-cluster-fleet-application-resource-namespace-id'
+    };
+  }
+
+  get doneOverride() {
+    return {
+      ...super.listLocation,
+      name: 'c-cluster-fleet-application'
+    };
+  }
+
+  get doneRoute() {
+    return this.doneOverride?.name;
+  }
+
+  get parentNameOverride() {
+    return this.$rootGetters['i18n/t'](`typeLabel."${ FLEET.APPLICATION }"`, { count: 1 })?.trim();
   }
 }

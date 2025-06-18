@@ -7,7 +7,7 @@ import {
 } from 'chart.js';
 import { BadgeState } from '@components/BadgeState';
 import FleetUtils from '@shell/utils/fleet';
-import { FleetDashboardResourceStates, FleetDashboardState } from '@shell/utils/fleet-types';
+import { FleetDashboardResourceStates, FleetDashboardState } from '@shell/types/fleet';
 
 type ChartOptionsType = ChartOptions<'doughnut'>;
 type ChartType = Chart<'doughnut', any[], ChartOptionsType>;
