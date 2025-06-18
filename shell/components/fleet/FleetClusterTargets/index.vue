@@ -384,11 +384,12 @@ export default {
 
   <div
     v-if="targetMode === 'all' && !isLocal"
-    class="row mt-20"
+    class="row"
   >
     <div class="col span-6">
       <TargetsList
-        class="target-list"
+        v-if="matching.length"
+        class="target-list mt-20"
         :clusters="matching"
       />
     </div>
