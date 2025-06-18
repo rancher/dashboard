@@ -44,6 +44,10 @@ interface PartialRegistration {
       activated: boolean;
       systemUrl: string;
     };
+    conditions: Array<{
+      reason?: string;
+      message?: string;
+    }>
   };
 }
 
@@ -127,6 +131,13 @@ export const usePrimeRegistration = () => {
    * Displayed registration banner
    */
   const registrationBanner = computed(() => registration.value.status === 'valid' ? registrationBannerCases.valid : registrationBannerCases.none);
+
+  /**
+   * Reg code contained within the encoded secret
+   */
+  const regCode = computed(() => {
+    return secret.value?.data?.regCode ? atob(secret.value.data.regCode) : '';
+  });
 
   /**
    * Update registration to defined case
@@ -257,21 +268,31 @@ export const usePrimeRegistration = () => {
         resourceLink
       };
 
-      return isActive ? {
-        ...commonRegistration,
-        product:    registration.status?.registeredProduct,
-        expiration: dateTimeFormat(registration.status?.registrationExpiresAt),
-        color:      'success',
-        message:    'registration.list.table.badge.valid',
-        status:     'valid'
-      } : {
-        ...commonRegistration,
-        product:    '--',
-        expiration: '--',
-        color:      'error',
-        message:    'registration.list.table.badge.invalid',
-        status:     'error'
-      };
+      if (isActive) {
+        return {
+          ...commonRegistration,
+          product:    registration.status?.registeredProduct,
+          expiration: dateTimeFormat(registration.status?.registrationExpiresAt),
+          color:      'success',
+          message:    'registration.list.table.badge.valid',
+          status:     'valid'
+        };
+      } else {
+        // Retrieve failure message from conditions
+        const conditions = registration.status?.conditions || [];
+        const errorMessage = conditions.find((condition) => condition.reason && condition.message);
+
+        onError(errorMessage);
+
+        return {
+          ...commonRegistration,
+          product:    '--',
+          expiration: '--',
+          color:      'error',
+          message:    'registration.list.table.badge.invalid',
+          status:     'error'
+        };
+      }
     }
   };
 
@@ -344,10 +365,6 @@ export const usePrimeRegistration = () => {
     }
   };
 
-  const regCode = computed(() => {
-    return secret.value?.data?.regCode ? atob(secret.value.data.regCode) : '';
-  });
-
   onMounted(async() => {
     secret.value = await getSecret();
 
@@ -357,7 +374,9 @@ export const usePrimeRegistration = () => {
 
       if (hash) {
         registration.value = await getRegistration(hash) || emptyRegistration;
-        registrationStatus.value = 'registered';
+        if (registration.value) {
+          registrationStatus.value = 'registered';
+        }
       }
     }
   });
