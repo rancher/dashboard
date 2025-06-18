@@ -131,7 +131,8 @@ button,
   justify-content: center;
 
   &:hover, &._hover {
-    color: var(--lightest);
+    color: var(--body-text);
+    background-color: none;
   }
 
   &:focus, &.focused {
