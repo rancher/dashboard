@@ -494,7 +494,7 @@ export default {
               {{ projectDescription(group.group) }}
             </div>
           </div>
-          <div class="right mr-10">
+          <div class="right mr-10 container-actions">
             <router-link
               v-if="isNamespaceCreatable && (canSeeProjectlessNamespaces || group.group.key !== notInProjectKey)"
               class="create-namespace btn btn-sm role-secondary mr-5"
@@ -586,6 +586,11 @@ export default {
   </div>
 </template>
 <style lang="scss" scoped>
+.container-actions {
+  display: flex;
+  align-items: center;
+}
+
 .invisible {
   display: inline-block;
   min-width: 28px;
