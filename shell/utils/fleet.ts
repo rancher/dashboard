@@ -8,7 +8,8 @@ import {
 import { mapStateToEnum, STATES_ENUM, STATES } from '@shell/plugins/dashboard-store/resource-class';
 import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { NAME as EXPLORER_NAME } from '@shell/config/product/explorer';
-import { FleetDashboardState, FleetResourceState } from '@shell/utils/fleet-types';
+import { FleetDashboardState, FleetResourceState } from '@shell/types/fleet';
+import { FLEET } from '@shell/config/types';
 
 interface Resource extends BundleDeploymentResource {
   state: string,
@@ -16,6 +17,17 @@ interface Resource extends BundleDeploymentResource {
 
 type Labels = {
   [key: string]: string,
+}
+
+interface KeyRef {
+  key: string;
+  name: string;
+  namespace?: string;
+}
+
+interface ValueFrom {
+  configMapKeyRef?: KeyRef;
+  secretKeyRef?: KeyRef;
 }
 
 function resourceKey(r: BundleResourceKey): string {
@@ -30,7 +42,78 @@ function conditionIsTrue(conditions: Condition[] | undefined, type: string): boo
   return !!conditions.find((c) => c.type === type && c.status.toLowerCase() === 'true');
 }
 
+class HelmOp {
+  fromValuesFrom(data: ValueFrom[]): { valueFrom: ValueFrom }[] {
+    return (data || []).map((elem) => {
+      const out = {} as any;
+
+      const cm = elem.configMapKeyRef;
+
+      if (cm) {
+        out.valueFrom = {
+          configMapKeyRef: {
+            key:  cm.key || '',
+            name: cm.name || '',
+          }
+        };
+      }
+
+      const sc = elem.secretKeyRef;
+
+      if (sc) {
+        out.valueFrom = {
+          secretKeyRef: {
+            key:  sc.key || '',
+            name: sc.name || '',
+          }
+        };
+      }
+
+      return out;
+    });
+  }
+
+  toValuesFrom(data: { valueFrom: ValueFrom }[], namespace: string): ValueFrom[] {
+    return (data || [])
+      .filter((f) => f.valueFrom?.configMapKeyRef || f.valueFrom?.secretKeyRef)
+      .map(({ valueFrom }) => {
+        const cm = valueFrom.configMapKeyRef;
+        const sc = valueFrom.secretKeyRef;
+
+        const out = {} as ValueFrom;
+
+        if (cm?.name) {
+          out.configMapKeyRef = {
+            key:  cm.key,
+            name: cm.name,
+            namespace
+          };
+        }
+
+        if (sc?.name) {
+          out.secretKeyRef = {
+            key:  sc.key,
+            name: sc.name,
+            namespace
+          };
+        }
+
+        return out;
+      });
+  }
+}
+
 class Fleet {
+  resourceIcons = {
+    [FLEET.GIT_REPO]: 'icon icon-github',
+    [FLEET.HELM_OP]:  'icon icon-helm',
+  };
+
+  dashboardIcons = {
+    [FLEET.GIT_REPO]: 'icon icon-git',
+    [FLEET.HELM_OP]:  'icon icon-helm',
+  };
+
   dashboardStates: FleetDashboardState[] = [
     {
       index:           0,
@@ -65,6 +148,33 @@ class Fleet {
       stateBackground: 'bg-info'
     },
   ];
+
+  HelmOp = new HelmOp();
+
+  GIT_HTTPS_REGEX = /^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/;
+  GIT_SSH_REGEX = /^git@github\.com:.*\.git$/;
+  HTTP_REGEX = /^(https?:\/\/[^\s]+)$/;
+  OCI_REGEX = /^oci:\/\//;
+
+  quacksLikeAHash(str: string) {
+    if (str.match(/^[a-f0-9]{40,}$/i)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  parseSSHUrl(url: string) {
+    const parts = (url || '').split(':');
+
+    const sshUserAndHost = parts[0];
+    const repoPath = parts[1]?.replace('.git', '');
+
+    return {
+      sshUserAndHost,
+      repoPath
+    };
+  }
 
   resourceId(r: BundleResourceKey): string {
     return r.namespace ? `${ r.namespace }/${ r.name }` : r.name;

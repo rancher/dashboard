@@ -112,6 +112,10 @@ generic:
           other {匹配 {total, number} 中的 {matched, number} 个，包括 "{sample}"}
         }
 
+graph:
+  loading: 正在加载 Chart 数据...
+  rendering: 正在渲染 Chart...
+
 locale:
   en-us: English
   zh-hans: 简体中文
@@ -2087,7 +2091,7 @@ fleet:
     gitOpsScale: 大规模 GitOps。
     learnMore: 了解更多。
     learnMoreLink: https://fleet.rancher.io
-    noRepo: "工作区中没有任何 Git 仓库"
+    noApplications: "工作区中没有任何 Git 仓库"
     getStarted: 开始使用
     thereIsMore: |-
       {count, plural,
@@ -2119,7 +2123,9 @@ fleet:
       other {# 个 Bundle 未显示，因为它属于不能与持续交付一起使用的 Harvester 集群。}
       }
   fleetSummary:
-    noClustersGitRepo: 这个 Git 仓库不针对任何集群
+    noClusters:
+      gitRepo: 这个 Git 仓库不针对任何集群
+      helmOp: ''
     state:
       ready: '就绪'
       info: '转换中'
@@ -2218,8 +2224,6 @@ fleet:
           other {现有{total, number}个集群，与其中的{matched, number}个匹配，包括"{sample}"}
         }
   fdc:
-    loadingChart: 正在加载 Chart 数据...
-    renderingChart: 正在渲染 Chart...
     id: ID
     type: 类型
     state: 状态
@@ -5344,7 +5348,6 @@ tableHeaders:
   effect: 效果
   endpoints: 端点
   firstSeen: 首次出现时间
-  fleetBundleType: 类型
   flow: Flow
   fingerprint: 唯一标识
   gitRepos: Git 仓库

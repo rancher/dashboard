@@ -215,6 +215,22 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/index.vue')),
         name:      'c-cluster-fleet',
       }, {
+        path:      '/c/:cluster/fleet/application',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/index.vue')),
+        name:      'c-cluster-fleet-application',
+      }, {
+        path:      '/c/:cluster/fleet/application/create',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/create.vue')),
+        name:      'c-cluster-fleet-application-create',
+      }, {
+        path:      '/c/:cluster/fleet/application/:resource/create',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/_resource/create.vue')),
+        name:      'c-cluster-fleet-application-resource-create'
+      }, {
+        path:      '/c/:cluster/fleet/application/:resource/:namespace/:id?',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/_resource/_id.vue')),
+        name:      'c-cluster-fleet-application-resource-namespace-id'
+      }, {
         path:      '/c/:cluster/gatekeeper',
         component: () => interopDefault(import('@shell/pages/c/_cluster/gatekeeper/index.vue')),
         name:      'c-cluster-gatekeeper',
@@ -479,11 +495,13 @@ export default [
       }, {
         path:      '/c/:cluster/:product/:resource/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_id.vue')),
-        name:      'c-cluster-product-resource-id'
+        name:      'c-cluster-product-resource-id',
+        meta:      { asyncSetup: true }
       }, {
         path:      '/c/:cluster/:product/:resource/:namespace/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_namespace/_id.vue')),
-        name:      'c-cluster-product-resource-namespace-id'
+        name:      'c-cluster-product-resource-namespace-id',
+        meta:      { asyncSetup: true }
       }]
   },
   {
