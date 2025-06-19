@@ -495,11 +495,13 @@ export default [
       }, {
         path:      '/c/:cluster/:product/:resource/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_id.vue')),
-        name:      'c-cluster-product-resource-id'
+        name:      'c-cluster-product-resource-id',
+        meta:      { asyncSetup: true }
       }, {
         path:      '/c/:cluster/:product/:resource/:namespace/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_namespace/_id.vue')),
-        name:      'c-cluster-product-resource-namespace-id'
+        name:      'c-cluster-product-resource-namespace-id',
+        meta:      { asyncSetup: true }
       }]
   },
   {

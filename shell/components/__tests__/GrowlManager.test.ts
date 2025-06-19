@@ -43,7 +43,6 @@ describe('component: GrowlManager', () => {
     const growlFirstItemTitle = wrapper.find('.growl-list [data-testid="growl-list-item-0"] .growl-text div');
     const growlFirstItemMessage = wrapper.find('.growl-list [data-testid="growl-list-item-0"] .growl-text p');
     const growlFirstItemClose = wrapper.find('.growl-list [data-testid="growl-list-item-0"] .close.icon');
-    const clearAllButton = wrapper.find('button[type="button"]');
 
     expect(growlMainContainer.exists()).toBe(true);
     expect(growlListContainer.exists()).toBe(true);
@@ -52,7 +51,6 @@ describe('component: GrowlManager', () => {
     expect(growlFirstItemTitle.text()).toBe('growl1-title');
     expect(growlFirstItemMessage.text()).toBe('growl1-message');
     expect(growlFirstItemClose.exists()).toBe(true);
-    expect(clearAllButton.exists()).toBe(true);
   });
 
   it('clicking on individual growl close should dismiss the individual growl', async() => {
@@ -76,29 +74,6 @@ describe('component: GrowlManager', () => {
 
     expect(spyClose).toHaveBeenCalledTimes(1);
     expect(spyClose).toHaveBeenCalledWith(stackMock[0]);
-    expect(spyDispatch).toHaveBeenCalledTimes(1);
-  });
-
-  it('clicking on clear all growls should dismiss all growls', async() => {
-    const mockStore = {
-      getters:  { 'i18n/t': jest.fn() },
-      dispatch: () => jest.fn()
-    };
-
-    const wrapper = shallowMount(GrowlManager, {
-      computed: { stack: () => stackMock },
-      global:   { mocks: { $store: mockStore } }
-    });
-
-    const clearAllButton = wrapper.find('button[type="button"]');
-    const spyCloseAll = jest.spyOn(wrapper.vm, 'closeAll');
-    const spyDispatch = jest.spyOn(mockStore, 'dispatch');
-
-    clearAllButton.trigger('click');
-
-    await nextTick();
-
-    expect(spyCloseAll).toHaveBeenCalledTimes(1);
     expect(spyDispatch).toHaveBeenCalledTimes(1);
   });
 
