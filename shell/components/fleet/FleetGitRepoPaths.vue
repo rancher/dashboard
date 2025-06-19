@@ -6,6 +6,7 @@ import { pathArrayToTree } from '@shell/utils/string.js';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import { RcButton } from '@components/RcButton';
 
 interface DirectoryTree {
   name?: string,
@@ -79,6 +80,7 @@ export default {
     ArrayList,
     Checkbox,
     KeyValue,
+    RcButton,
   },
 
   props: {
@@ -311,15 +313,13 @@ export default {
             <h4 class="m-0">
               {{ t('fleet.gitRepo.paths.index', { index: i + 1 }, true) }}
             </h4>
-            <button
-              v-if="!isView"
-              type="button"
-              role="button"
-              class="btn btn-sm role-tertiary add"
+            <RcButton
+              small
+              link
               @click="removePaths(i)"
             >
-              <i :class="'icon-x'" />
-            </button>
+              <i class="icon icon-x" />
+            </RcButton>
           </div>
           <p
             v-clean-html="t('fleet.gitRepo.paths.description')"
@@ -366,7 +366,6 @@ export default {
             :add-class="'btn-sm role-tertiary'"
             :remove-label="' '"
             :remove-icon="'icon-x'"
-            :remove-class="'btn btn-sm role-tertiary add'"
             :protip="false"
             :protip-value="t('fleet.gitRepo.paths.subpaths.protipValue')"
             @update:value="updateSubpaths(i, $event)"
@@ -386,13 +385,6 @@ export default {
       display: flex;
       align-items: center;
       justify-content: space-between;
-
-      .btn {
-        &:not(:hover) {
-          background: transparent;
-        }
-        border: 0
-      }
     }
 
     .check {
@@ -417,7 +409,7 @@ export default {
                   &:not(:hover) {
                     background: transparent;
                   }
-                  border: 0
+                  padding: 0 7px;
                 }
               }
             }
@@ -432,10 +424,9 @@ export default {
               margin-right: -10px;
             }
           }
-
         }
 
-        :deep() .footer {
+        :deep(.footer) {
           margin-top: 5px !important;
           margin-left: 30px;
 

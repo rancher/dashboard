@@ -2643,7 +2643,7 @@ fleet:
       enableBundles: Manually specify config files subpaths (Fleet won't scan subfolders recursively to find fleet.yaml files)
       subpaths:
         addLabel: Add Subpath
-        protipValue: "The name of a fleet YAML file in the folder; optional."
+        protipValue: "The name of a fleet YAML file in the folder"
         props:
           base: Subpath
           options: Fleet YAML file (optional)
