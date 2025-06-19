@@ -324,6 +324,7 @@ export default {
               {{ t('fleet.gitRepo.paths.index', { index: i + 1 }, true) }}
             </h4>
             <RcButton
+v-if="!isView"
               small
               link
               @click="removePaths(i)"
@@ -369,8 +370,8 @@ export default {
             :value-can-be-empty="true"
             :read-allowed="false"
             :initial-empty-row="true"
-            :key-placeholder="t('fleet.gitRepo.paths.subpaths.placeholders.key')"
-            :value-placeholder="t('fleet.gitRepo.paths.subpaths.placeholders.value')"
+            :key-placeholder="isView ? ' ' : t('fleet.gitRepo.paths.subpaths.placeholders.key')"
+            :value-placeholder="isView ? ' ' : t('fleet.gitRepo.paths.subpaths.placeholders.value')"
             :add-label="t('fleet.gitRepo.paths.subpaths.addLabel')"
             :add-icon="'icon-plus'"
             :add-class="'btn-sm role-tertiary'"
