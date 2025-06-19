@@ -265,6 +265,9 @@ export const actions = {
       return;
     }
 
+    // Store the encryption key
+    commit('encryptionKey', encryptionKey);
+
     // Load the notifications from local storage
     try {
       const data = window.localStorage.getItem(localStorageKey) || '{}';
