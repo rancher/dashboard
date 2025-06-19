@@ -1,7 +1,8 @@
 import OidcClientsPagePo from '@/cypress/e2e/po/pages/users-and-auth/oidc-client.po';
-import OidcClientsCreateEditPo from '@/cypress/e2e/po/edit/oidc-clients.po';
+import OidcClientCreateEditPo from '~/cypress/e2e/po/edit/management.cattle.io.oidcclient.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
+import OIDCClientDetailPo from '@/cypress/e2e/po/detail/management.cattle.io.oidcclient.po';
 
 describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalSettings', '@adminUser'] }, () => {
   const OIDC_CREATE_DATA = {
@@ -26,10 +27,12 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
     TOKEN_EXP:     801
   };
 
-  const oidcClientsPage = new OidcClientsPagePo();
-  const oidcClientsCreatePage = new OidcClientsCreateEditPo();
-  const oidcClientsEditPage = new OidcClientsCreateEditPo('local', OIDC_CREATE_DATA.APP_NAME, true);
-  const oidcClientsDetailPage = new OidcClientsCreateEditPo('local', OIDC_CREATE_DATA.APP_NAME);
+  const clusterId = '_';
+
+  const oidcClientsPage = new OidcClientsPagePo(clusterId);
+  const oidcClientDetailPage = new OIDCClientDetailPo(clusterId, OIDC_CREATE_DATA.APP_NAME);
+  const oidcClientCreatePage = new OidcClientCreateEditPo(clusterId);
+  const oidcClientEditPage = new OidcClientCreateEditPo(clusterId, OIDC_CREATE_DATA.APP_NAME, true);
 
   before(() => {
     cy.login();
@@ -38,7 +41,7 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
   it('should be able to create an OIDC client application', () => {
     cy.intercept('POST', `/v1/management.cattle.io.oidcclients`).as('createRequest');
 
-    oidcClientsPage.goTo('local');
+    oidcClientsPage.goTo();
     oidcClientsPage.waitForPage();
 
     // check title and list view
@@ -53,16 +56,16 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
 
     // let's create an oidc client
     oidcClientsPage.createOidcClient();
-    oidcClientsCreatePage.waitForPage();
+    oidcClientCreatePage.waitForPage();
 
-    oidcClientsCreatePage.nameNsDescription().name().set(OIDC_CREATE_DATA.APP_NAME);
-    oidcClientsCreatePage.nameNsDescription().description().set(OIDC_CREATE_DATA.APP_DESC);
-    oidcClientsCreatePage.callbackUrls().setValueAtIndex(OIDC_CREATE_DATA.CB_URLS[0], 0, 'Add Callback URL');
-    oidcClientsCreatePage.callbackUrls().setValueAtIndex(OIDC_CREATE_DATA.CB_URLS[1], 1, 'Add Callback URL');
-    oidcClientsCreatePage.refreshTokenExpiration().setValue(OIDC_CREATE_DATA.REF_TOKEN_EXP);
-    oidcClientsCreatePage.tokenExpiration().setValue(OIDC_CREATE_DATA.TOKEN_EXP);
+    oidcClientCreatePage.nameNsDescription().name().set(OIDC_CREATE_DATA.APP_NAME);
+    oidcClientCreatePage.nameNsDescription().description().set(OIDC_CREATE_DATA.APP_DESC);
+    oidcClientCreatePage.callbackUrls().setValueAtIndex(OIDC_CREATE_DATA.CB_URLS[0], 0, 'Add Callback URL');
+    oidcClientCreatePage.callbackUrls().setValueAtIndex(OIDC_CREATE_DATA.CB_URLS[1], 1, 'Add Callback URL');
+    oidcClientCreatePage.refreshTokenExpiration().setValue(OIDC_CREATE_DATA.REF_TOKEN_EXP);
+    oidcClientCreatePage.tokenExpiration().setValue(OIDC_CREATE_DATA.TOKEN_EXP);
 
-    oidcClientsCreatePage.saveCreateForm().createEditView().create();
+    oidcClientCreatePage.saveCreateForm().createEditView().create();
 
     // check data from network request
     cy.wait('@createRequest').then(({ request, response }) => {
@@ -75,30 +78,32 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
       expect(response?.body.spec.tokenExpirationSeconds).to.equal(OIDC_CREATE_DATA.TOKEN_EXP);
     });
 
-    oidcClientsDetailPage.clientID().exists();
-    oidcClientsDetailPage.clientFullSecretCopy(0).exists();
+    oidcClientDetailPage.waitForPage();
 
-    oidcClientsDetailPage.clientID().copyToClipboard();
-    oidcClientsDetailPage.clientFullSecretCopy(0).copyToClipboard();
+    oidcClientDetailPage.clientID().exists();
+    oidcClientDetailPage.clientFullSecretCopy(0).exists();
+
+    oidcClientDetailPage.clientID().copyToClipboard();
+    oidcClientDetailPage.clientFullSecretCopy(0).copyToClipboard();
   });
 
   it('should be able to edit an OIDC client application', () => {
     cy.intercept('PUT', `/v1/management.cattle.io.oidcclients/${ OIDC_CREATE_DATA.APP_NAME }`).as('editRequest');
 
-    OidcClientsPagePo.goTo('local');
+    OidcClientsPagePo.goTo();
     oidcClientsPage.waitForPage();
     oidcClientsPage.list().actionMenu(OIDC_CREATE_DATA.APP_NAME).getMenuItem('Edit Config').scrollIntoView()
       .click();
 
-    oidcClientsEditPage.nameNsDescription().description().set(OIDC_EDIT_DATA.APP_DESC);
-    oidcClientsEditPage.callbackUrls().clearListItem(0);
-    oidcClientsEditPage.callbackUrls().clearListItem(1);
-    oidcClientsEditPage.callbackUrls().setValueAtIndex(OIDC_EDIT_DATA.CB_URLS[0], 0, 'Add Callback URL', undefined, false);
-    oidcClientsEditPage.callbackUrls().setValueAtIndex(OIDC_EDIT_DATA.CB_URLS[1], 1, 'Add Callback URL', undefined, false);
-    oidcClientsEditPage.refreshTokenExpiration().setValue(OIDC_EDIT_DATA.REF_TOKEN_EXP);
-    oidcClientsEditPage.tokenExpiration().setValue(OIDC_EDIT_DATA.TOKEN_EXP);
+    oidcClientEditPage.nameNsDescription().description().set(OIDC_EDIT_DATA.APP_DESC);
+    oidcClientEditPage.callbackUrls().clearListItem(0);
+    oidcClientEditPage.callbackUrls().clearListItem(1);
+    oidcClientEditPage.callbackUrls().setValueAtIndex(OIDC_EDIT_DATA.CB_URLS[0], 0, 'Add Callback URL', undefined, false);
+    oidcClientEditPage.callbackUrls().setValueAtIndex(OIDC_EDIT_DATA.CB_URLS[1], 1, 'Add Callback URL', undefined, false);
+    oidcClientEditPage.refreshTokenExpiration().setValue(OIDC_EDIT_DATA.REF_TOKEN_EXP);
+    oidcClientEditPage.tokenExpiration().setValue(OIDC_EDIT_DATA.TOKEN_EXP);
 
-    oidcClientsEditPage.saveCreateForm().createEditView().save();
+    oidcClientEditPage.saveCreateForm().createEditView().save();
 
     // check data from network request
     cy.wait('@editRequest').then(({ request, response }) => {
@@ -115,10 +120,10 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
   it('should be able to add a new secret for an OIDC provider', () => {
     cy.intercept('PUT', `/v1/management.cattle.io.oidcclients/${ OIDC_CREATE_DATA.APP_NAME }`).as('addNewSecret');
 
-    oidcClientsDetailPage.goTo();
-    oidcClientsDetailPage.waitForPage();
+    oidcClientDetailPage.goTo();
+    oidcClientDetailPage.waitForPage();
 
-    oidcClientsDetailPage.addNewSecretBtnClick();
+    oidcClientDetailPage.addNewSecretBtnClick();
 
     // check data from network request
     cy.wait('@addNewSecret').then(({ request, response }) => {
@@ -126,19 +131,19 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
       expect(request.body.metadata.annotations['cattle.io/oidc-client-secret-create']).to.equal('true');
     });
 
-    oidcClientsDetailPage.clientFullSecretCopy(1).exists();
-    oidcClientsDetailPage.clientFullSecretCopy(1).copyToClipboard();
+    oidcClientDetailPage.clientFullSecretCopy(1).exists();
+    oidcClientDetailPage.clientFullSecretCopy(1).copyToClipboard();
   });
 
   it('should be able to regenerate a secret for an OIDC provider', () => {
     cy.intercept('PUT', `/v1/management.cattle.io.oidcclients/${ OIDC_CREATE_DATA.APP_NAME }`).as('regenSecret');
 
-    oidcClientsDetailPage.goTo();
-    oidcClientsDetailPage.waitForPage();
+    oidcClientDetailPage.goTo();
+    oidcClientDetailPage.waitForPage();
 
     // let's regen the secret we've added the step before
-    oidcClientsDetailPage.secretCardActionMenuToggle(1);
-    oidcClientsDetailPage.secretCardMenu().getMenuItem('Regenerate').click();
+    oidcClientDetailPage.secretCardActionMenuToggle(1);
+    oidcClientDetailPage.secretCardMenu().getMenuItem('Regenerate').click();
 
     promptModal().getBody().should('be.visible');
     promptModal().clickActionButton('Regenerate Secret');
@@ -149,19 +154,19 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
       expect(request.body.metadata.annotations['cattle.io/oidc-client-secret-regenerate']).to.equal('client-secret-2');
     });
 
-    oidcClientsDetailPage.clientFullSecretCopy(1).exists();
-    oidcClientsDetailPage.clientFullSecretCopy(1).copyToClipboard();
+    oidcClientDetailPage.clientFullSecretCopy(1).exists();
+    oidcClientDetailPage.clientFullSecretCopy(1).copyToClipboard();
   });
 
   it('should be able to delete a secret for an OIDC provider', () => {
     cy.intercept('PUT', `/v1/management.cattle.io.oidcclients/${ OIDC_CREATE_DATA.APP_NAME }`).as('deleteSecret');
 
-    oidcClientsDetailPage.goTo();
-    oidcClientsDetailPage.waitForPage();
+    oidcClientDetailPage.goTo();
+    oidcClientDetailPage.waitForPage();
 
     // let's remove the secret
-    oidcClientsDetailPage.secretCardActionMenuToggle(1);
-    oidcClientsDetailPage.secretCardMenu().getMenuItem('Delete').click();
+    oidcClientDetailPage.secretCardActionMenuToggle(1);
+    oidcClientDetailPage.secretCardMenu().getMenuItem('Delete').click();
 
     promptModal().getBody().should('be.visible');
     promptModal().clickActionButton('Delete Secret');
@@ -179,7 +184,7 @@ describe('Rancher as an OIDC Provider', { testIsolation: 'off', tags: ['@globalS
   it('should be able to delete an OIDC client application', () => {
     cy.intercept('DELETE', `/v1/management.cattle.io.oidcclients/${ OIDC_CREATE_DATA.APP_NAME }`).as('deleteRequest');
 
-    OidcClientsPagePo.goTo('local');
+    OidcClientsPagePo.goTo();
     oidcClientsPage.waitForPage();
 
     oidcClientsPage.list().actionMenu(OIDC_CREATE_DATA.APP_NAME).getMenuItem('Delete').scrollIntoView()
