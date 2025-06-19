@@ -18,7 +18,6 @@ import Tab from '@shell/components/Tabbed/Tab';
 import Labels from '@shell/components/form/Labels';
 import { HIDE_SENSITIVE } from '@shell/store/prefs';
 import { clear, uniq } from '@shell/utils/array';
-import { NAME as MANAGER } from '@shell/config/product/manager';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
@@ -272,12 +271,14 @@ export default {
       }
     },
 
-    doneRoute() {
-      if ( this.$store.getters['currentProduct'].name === MANAGER ) {
-        return 'c-cluster-manager-secret';
-      } else {
-        return 'c-cluster-product-resource';
+    doneLocationOverride() {
+      const doneLocation = this.value.listLocation;
+
+      if (this.isProjectScoped) {
+        doneLocation.hash = '#project-scoped';
       }
+
+      return doneLocation;
     },
   },
 
@@ -367,13 +368,7 @@ export default {
     },
 
     redirectAfterCancel() {
-      const redirectLocation = this.value.listLocation;
-
-      if (this.isProjectScoped) {
-        redirectLocation.hash = '#project-scoped';
-      }
-
-      this.$router.replace(redirectLocation);
+      this.$router.replace(this.doneLocationOverride);
     }
   },
 
@@ -402,7 +397,6 @@ export default {
       :selected-subtype="value._type"
       :resource="value"
       :errors="errors"
-      :done-route="doneRoute"
       :subtypes="secretSubTypes"
       :cancel-event="true"
       @finish="saveSecret"
