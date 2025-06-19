@@ -50,12 +50,16 @@ const { rows } = defineProps<MetadataProps>();
           :class="['status', row.status]"
         />
         <router-link
-          v-if="row.to"
+          v-if="row.value && row.to"
           :to="row.to"
         >
           {{ row.value }}
         </router-link>
-        <span v-else>{{ row.value }}</span>
+        <span v-else-if="row.value">{{ row.value }}</span>
+        <span
+          v-else
+          class="text-muted"
+        >&mdash;</span>
       </div>
     </div>
   </div>

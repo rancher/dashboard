@@ -15,6 +15,10 @@ const currentComponent = computed(() => store.getters['slideInPanel/component'])
 const currentProps = computed(() => store.getters['slideInPanel/componentProps']);
 
 const panelTop = computed(() => {
+  if (currentProps?.value?.top) {
+    return currentProps?.value?.top;
+  }
+
   const banner = document.getElementById('banner-header');
   let height = HEADER_HEIGHT;
 
@@ -25,7 +29,7 @@ const panelTop = computed(() => {
   return `${ height }px`;
 });
 
-const panelHeight = computed(() => `calc(100vh - ${ panelTop?.value })`);
+const panelHeight = computed(() => (currentProps?.value?.height) ? (currentProps?.value?.height) : `calc(100vh - ${ panelTop?.value })`);
 const panelWidth = computed(() => currentProps?.value?.width || '33%');
 const panelRight = computed(() => (isOpen?.value ? '0' : `-${ panelWidth?.value }`));
 const panelZIndex = computed(() => `${ (isOpen?.value ? 1 : 2) * (currentProps?.value?.zIndex ?? 1000) }`);
@@ -100,6 +104,9 @@ function closePanel() {
         data-testid="slide-in-glass"
         class="slide-in-glass"
         :class="{ 'slide-in-glass-open': isOpen }"
+        :style="{
+          ['z-index']: panelZIndex
+        }"
         @click="closePanel"
       />
       <div

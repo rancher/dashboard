@@ -3,27 +3,36 @@ import { useDefaultIdentifyingInformation } from '@shell/components/Resource/Det
 import { useDefaultLabels } from '@shell/components/Resource/Detail/Metadata/Labels/composable';
 import { useDefaultAnnotations } from '@shell/components/Resource/Detail/Metadata/Annotations/composable';
 import { computed, toValue, Ref } from 'vue';
+import { useResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
 
 export const useBasicMetadata = (resource: any) => {
   const labels = useDefaultLabels(resource);
   const annotations = useDefaultAnnotations(resource);
+  const { openResourceDetailDrawer } = useResourceDetailDrawer();
 
-  return {
-    labels,
-    annotations
-  };
+  return computed(() => {
+    return {
+      labels:              labels.value,
+      annotations:         annotations.value,
+      onShowConfiguration: () => openResourceDetailDrawer(resource)
+    };
+  });
 };
 
-export const useDefaultMetadata = (resource: any, additionalIdentifyingInformation?: (IdentifyingInformationRow[] | Ref<IdentifyingInformationRow[]>)) => {
+export const useDefaultMetadataProps = (resource: any, additionalIdentifyingInformation?: (IdentifyingInformationRow[] | Ref<IdentifyingInformationRow[]>)) => {
   const defaultIdentifyingInformation = useDefaultIdentifyingInformation(resource);
   const additionalIdentifyingInformationValue = toValue(additionalIdentifyingInformation);
 
   const identifyingInformation = computed(() => [...defaultIdentifyingInformation.value, ...(additionalIdentifyingInformationValue || [])]);
-  const { labels, annotations } = useBasicMetadata(resource);
+  const basicMetaData = useBasicMetadata(resource);
+  const { openResourceDetailDrawer } = useResourceDetailDrawer();
 
-  return {
-    identifyingInformation,
-    labels,
-    annotations
-  };
+  return computed(() => {
+    return {
+      identifyingInformation: identifyingInformation.value,
+      labels:                 basicMetaData.value.labels,
+      annotations:            basicMetaData.value.annotations,
+      onShowConfiguration:    () => openResourceDetailDrawer(resource)
+    };
+  });
 };

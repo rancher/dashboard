@@ -238,11 +238,13 @@ export const useProject = (resource: any): ComputedRef<Row> => {
   const i18n = useI18n(store);
   const resourceValue = toValue(resource);
 
-  return computed(() => ({
-    label: i18n.t('component.resource.detail.metadata.identifyingInformation.project'),
-    value: resourceValue.project.nameDisplay,
-    to:    '#'
-  }));
+  return computed(() => {
+    return {
+      label: i18n.t('component.resource.detail.metadata.identifyingInformation.project'),
+      value: resourceValue.project?.nameDisplay,
+      to:    resourceValue.project?.detailLocation
+    };
+  });
 };
 
 export const useDefaultIdentifyingInformation = (resource: any): ComputedRef<Row[]> => {

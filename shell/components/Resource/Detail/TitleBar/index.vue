@@ -1,12 +1,12 @@
 <script lang="ts">
-import BadgeState from '@pkg/rancher-components/src/components/BadgeState/BadgeState.vue';
+import BadgeState from '@components/BadgeState/BadgeState.vue';
 import { RouteLocationRaw } from 'vue-router';
 import Title from '@shell/components/Resource/Detail/TitleBar/Title.vue';
 import Top from '@shell/components/Resource/Detail/TitleBar/Top.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
-import RcButton from '~/pkg/rancher-components/src/components/RcButton/RcButton.vue';
+import RcButton from '@components/RcButton/RcButton.vue';
 
 export interface Badge {
   color: 'bg-success' | 'bg-error' | 'bg-warning' | 'bg-info';
@@ -88,6 +88,7 @@ const emit = defineEmits(['show-configuration']);
           button-role="multiAction"
           :resource="actionMenuResource"
           data-testid="masthead-action-menu"
+          :button-aria-label="i18n.t('component.resource.detail.titleBar.ariaLabel.actionMenu', { resource: resourceName })"
         />
       </div>
     </Top>
@@ -119,6 +120,10 @@ const emit = defineEmits(['show-configuration']);
     flex-direction: row;
     justify-content: center;
     align-items: center;
+  }
+
+  .description {
+    max-width: 60%;
   }
 }
 </style>
