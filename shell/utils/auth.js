@@ -333,12 +333,12 @@ export async function tryInitialSetup(store, password = 'admin') {
 /**
  * Record in our state management that we're indeed logged in
  */
-export function isLoggedIn(store, userData) {
+export async function isLoggedIn(store, userData) {
   store.commit('auth/hasAuth', true);
   store.commit('auth/loggedInAs', userData.id);
 
   // Init the notification center now that we know who the user is
-  store.dispatch('notifications/init', userData);
+  await store.dispatch('notifications/init', userData);
 }
 
 /**

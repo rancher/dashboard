@@ -1,11 +1,18 @@
 import { md5 } from '@shell/utils/crypto';
 import { randomStr } from '@shell/utils/string';
 import { Notification, StoredNotification } from '@shell/types/notifications';
+import { deriveKey } from '@shell/utils/crypto/encryption';
+import { loadFromString } from '@shell/utils/notifications';
 
 /**
  * Key used to store notifications in the browser's local storage
  */
 const LOCAL_STORAGE_KEY_PREFIX = 'rancher-notifications-';
+
+/**
+ * Expire notifications in seconds (14 days)
+*/
+const EXPIRY = 14 * 24 * 60 * 60;
 
 /**
  * Maximum number of notifications that will be kept
@@ -19,6 +26,7 @@ interface NotificationsStore {
   localStorageKey: string,
   userId: string;
   notifications: StoredNotification[],
+  encryptionKey: CryptoKey | undefined,
 }
 
 export const state = function(): NotificationsStore {
@@ -27,6 +35,7 @@ export const state = function(): NotificationsStore {
   return {
     localStorageKey: '',
     userId:          '',
+    encryptionKey:   undefined,
     notifications,
   };
 };
@@ -56,6 +65,10 @@ export const getters = {
 
   userId: (state: NotificationsStore) => {
     return state.userId;
+  },
+
+  encryptionKey: (state: NotificationsStore) => {
+    return state.encryptionKey;
   },
 };
 
@@ -151,6 +164,10 @@ export const mutations = {
   userId(state: NotificationsStore, userId: string) {
     state.userId = userId;
   },
+
+  encryptionKey(state: NotificationsStore, encryptionKey: CryptoKey) {
+    state.encryptionKey = encryptionKey;
+  },
 };
 
 export const actions = {
@@ -219,7 +236,10 @@ export const actions = {
     commit('load', data);
   },
 
-  init({ commit } : any, userData: any) {
+  /**
+   * Initialize the notifications store and load the notifications from local storage
+   */
+  async init({ commit, getters } : any, userData: any) {
     const userKey = userData.id;
     const userId = userData.v3User?.uuid;
 
@@ -232,5 +252,43 @@ export const actions = {
     // Notifications are stored under a key for the current user, so set the local storage key based on the user id
     commit('localStorageKey', md5(userKey, 'hex'));
     commit('userId', userId);
+
+    let notifications: StoredNotification[] = [];
+    const localStorageKey = getters['localStorageKey'];
+    let encryptionKey;
+
+    try {
+      encryptionKey = await deriveKey(userId);
+    } catch (e) {
+      console.error('Unable to generate encryption key for notifications', e); // eslint-disable-line no-console
+
+      return;
+    }
+
+    // Load the notifications from local storage
+    try {
+      const data = window.localStorage.getItem(localStorageKey) || '{}';
+
+      notifications = await loadFromString(data, encryptionKey);
+    } catch (e) {
+      console.error('Unable to read notifications from local storage', e); // eslint-disable-line no-console
+    }
+
+    // Expire old notifications
+    const now = new Date();
+
+    notifications = notifications.filter((n: StoredNotification) => {
+      // Try ... catch in case the date parsing fails
+      try {
+        const created = new Date(n.created);
+        const diff = (now.getTime() - created.getTime()) / 1000; // Diff in seconds
+
+        return diff < EXPIRY;
+      } catch (e) {}
+
+      return true;
+    });
+
+    commit('load', notifications);
   }
 };

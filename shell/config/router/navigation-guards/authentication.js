@@ -42,7 +42,7 @@ export async function authenticate(to, from, next, { store }) {
     } else if ( fromHeader === 'true' ) {
       const me = await findMe(store);
 
-      isLoggedIn(store, getUserObject(v3User, me));
+      await isLoggedIn(store, getUserObject(v3User, me));
     } else if ( fromHeader === 'false' ) {
       notLoggedIn(store, next, to);
 
@@ -52,7 +52,7 @@ export async function authenticate(to, from, next, { store }) {
       try {
         const me = await findMe(store);
 
-        isLoggedIn(store, getUserObject(v3User, me));
+        await isLoggedIn(store, getUserObject(v3User, me));
       } catch (e) {
         const status = e?._status;
 
