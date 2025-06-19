@@ -2591,6 +2591,11 @@ fleet:
         title: Selected clusters
         placeholder: Select clusters by name or labels
         empty: No clusters in the workspace
+        plusMore: |-
+          {n, plural,
+            =1 {+ 1 more cluster}
+            other {+ {n, number} more clusters}
+          }
   application:
     pageTitle: App Bundles
     menuLabel: App Bundles
@@ -2725,7 +2730,7 @@ fleet:
       additionalOptions: Additional settings
     targetDisplay:
       advanced: Advanced
-      clusters: "Clusters"
+      clusters: Clusters
       all: All
       none: None
       local: Local
@@ -2857,7 +2862,7 @@ fleet:
       additionalOptions: Additional Options
     targetDisplay:
       advanced: Advanced
-      clusters: "Clusters"
+      clusters: Clusters
       all: All
       none: None
       local: Local

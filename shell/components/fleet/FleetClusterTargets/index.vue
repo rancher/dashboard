@@ -210,6 +210,7 @@ export default {
           clusterGroupSelector,
         } = target;
 
+        // If clusterGroup or clusterGroupSelector are defined, targets are marked as complex and won't handle by the UI
         if (clusterGroup || clusterGroupSelector) {
           return;
         }

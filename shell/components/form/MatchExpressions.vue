@@ -414,7 +414,7 @@ export default {
         type="button"
         class="btn role-tertiary add"
         :class="[addClass]"
-        :data-testid="`input-match-expression-add-rule`"
+        data-testid="input-match-expression-add-rule"
         @click="addRule"
       >
         <i

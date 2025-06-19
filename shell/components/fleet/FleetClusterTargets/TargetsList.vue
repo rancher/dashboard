@@ -26,7 +26,7 @@ export default {
       if (remaining > 0) {
         return [
           ...names.filter((_, i) => i < max),
-          `... and ${ remaining } other clusters`
+          this.t('fleet.clusterTargets.rules.matching.plusMore', { n: remaining }, true),
         ];
       }
 
