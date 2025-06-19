@@ -6,6 +6,11 @@ import KeyValue from '@shell/components/form/KeyValue';
 import Labels from '@shell/components/form/Labels';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
+import { UI_PROJECT_SCOPED } from '@shell/config/labels-annotations';
+import { MANAGEMENT } from '@shell/config/types';
+import { SCOPE as CONFIG_MAP_SCOPE, SCOPED_TABS as CONFIG_MAP_SCOPED_TABS } from '@shell/config/query-params';
+import FormValidation from '@shell/mixins/form-validation';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
   name:         'CruConfigMap',
@@ -16,22 +21,58 @@ export default {
     KeyValue,
     Labels,
     Tab,
-    Tabbed
+    Tabbed,
+    LabeledSelect
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
+
   data() {
     const { binaryData = {}, data = {} } = this.value;
 
     return {
       data,
-      binaryData
+      binaryData,
+      isProjectScoped: false,
+      projectName:     null,
+      fvFormRuleSets:  [
+        {
+          path:  'metadata.name',
+          rules: ['required'],
+        },
+        {
+          path:  'metadata.namespace',
+          rules: ['required'],
+        },
+      ]
     };
   },
+
+  created() {
+    const projectScopedLabel = this.value.metadata?.labels?.[UI_PROJECT_SCOPED];
+    const isProjectScoped = !!projectScopedLabel || (this.isCreate && this.$route.query[CONFIG_MAP_SCOPE] === CONFIG_MAP_SCOPED_TABS.PROJECT_SCOPED);
+
+    this.isProjectScoped = isProjectScoped;
+
+    if (isProjectScoped) {
+      if (this.isCreate) {
+        // Pick first project as default
+        this.projectName = this.filteredProjects[0].metadata.name;
+        this.value.metadata.labels = this.value.metadata.labels || {};
+        // Set namespace and project-scoped label
+        this.value.metadata.namespace = this.filteredProjects[0].status.backingNamespace;
+        this.value.metadata.labels[UI_PROJECT_SCOPED] = this.filteredProjects[0].metadata.name;
+      } else {
+        this.projectName = this.filteredProjects.find((p) => p.metadata.name === projectScopedLabel).metadata.name;
+      }
+    }
+  },
+
   computed: {
     hasBinaryData() {
       return Object.keys(this.binaryData).length > 0;
     },
+
     /**
      * Keep all newlines from end, see: https://yaml-multiline.info
      * Apply to 'data' field
@@ -46,8 +87,29 @@ export default {
       };
     },
 
-    validationPassed() {
-      return !!this.value.name;
+    clusterId() {
+      return this.$store.getters['currentCluster'].id;
+    },
+
+    filteredProjects() {
+      const allProjects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+
+      return allProjects.filter((p) => p.spec?.clusterName === this.clusterId);
+    },
+
+    projectOpts() {
+      let projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+
+      // Filter out projects not for the current cluster
+      projects = projects.filter((c) => c.spec?.clusterName === this.clusterId);
+      const out = projects.map((project) => {
+        return {
+          label: project.nameDisplay,
+          value: project.metadata.name,
+        };
+      });
+
+      return out;
     },
   },
 
@@ -55,9 +117,20 @@ export default {
     data(neu) {
       this.updateValue(neu, 'data');
     },
+
     binaryData(neu) {
       this.updateValue(neu, 'binaryData');
     },
+
+    projectName(neu) {
+      if (this.isCreate && neu) {
+        this.value.metadata.labels = this.value.metadata.labels || {};
+        this.value.metadata.labels[UI_PROJECT_SCOPED] = neu;
+        const projectScopedNamespace = this.filteredProjects.find((p) => p.metadata.name === neu).status.backingNamespace;
+
+        this.value.metadata.namespace = projectScopedNamespace;
+      }
+    }
   },
 
   methods: {
@@ -92,7 +165,7 @@ export default {
     :mode="mode"
     :resource="value"
     :subtypes="[]"
-    :validation-passed="validationPassed"
+    :validation-passed="fvFormIsValid"
     :yaml-modifiers="yamlModifiers"
     :errors="errors"
     @error="e=>errors = e"
@@ -100,10 +173,33 @@ export default {
     @cancel="done"
   >
     <NameNsDescription
+      v-if="!isProjectScoped"
       :value="value"
       :mode="mode"
       :register-before-hook="registerBeforeHook"
     />
+    <NameNsDescription
+      v-else
+      :value="value"
+      :mode="mode"
+      :register-before-hook="registerBeforeHook"
+      :namespaced="false"
+      :rules="{
+        name: fvGetAndReportPathRules('metadata.name'),
+        namespace: fvGetAndReportPathRules('metadata.namespace'),
+      }"
+    >
+      <template #project-selector>
+        <LabeledSelect
+          v-model:value="projectName"
+          class="mr-20"
+          :disabled="!isCreate"
+          :label="t('namespace.project.label')"
+          :options="projectOpts"
+          required
+        />
+      </template>
+    </NameNsDescription>
 
     <Tabbed :side-tabs="true">
       <Tab

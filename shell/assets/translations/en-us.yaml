@@ -2384,6 +2384,14 @@ configmap:
       protip: Use this area for anything that's UTF-8 text data
     binaryData:
       label: Binary Data
+configmaps:
+  tabs:
+    namespaced:
+      label: Namespaced
+      create: Create Namespaced ConfigMap
+    projectScoped:
+      label: Project Scoped
+      create: Create Project Scoped ConfigMap
 
 containerResourceLimit:
   cpuPlaceholder: e.g. 1000
@@ -5603,6 +5611,13 @@ secret:
     'kubernetes.io/tls':
       description: Store a certificate and key for TLS
       docLink: https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
+  tabs:
+    namespaced:
+      label: Namespaced
+      create: Create Namespaced Secret
+    projectScoped:
+      label: Project Scoped
+      create: Create Project Scoped Secret
 
 selectOrCreateAuthSecret:
   label: Authentication
