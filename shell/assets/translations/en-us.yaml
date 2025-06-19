@@ -284,6 +284,10 @@ nav:
     label: Page actions menu
     button:
       label: Open page actions menu
+  notifications:
+    label: Notification Center
+    button:
+      label: Open notification center
   failWhale:
     authMiddleware: Auth Middleware
     clusterNotFound: Cluster { clusterId } not found
@@ -3433,8 +3437,10 @@ landing:
       other {cores}}
     cpuUsed: CPU Used
     memoryUsed: Memory Used
-  seeWhatsNew: Learn more about the improvements and new capabilities in {version}
-  whatsNewLink: "What's new in {version}"
+  whatsNew:
+    title: Welcome to Rancher {version}
+    message: Learn more about the improvements and new capabilities in this version
+    link: Release Notes
   learnMore: Learn More
   support: Support
   community:
@@ -4375,6 +4381,17 @@ node:
     downloadNodeConfig: Download Keys
     scaleDown: Scale Down
     forceDelete: Force Delete
+
+notificationCenter:
+  caughtUp: "You're all caught up!"
+  dates:
+    today: Today
+    yesterday: Yesterday
+  markAllRead: Mark all as read
+  markRead: Mark as read
+  markUnread: Mark as unread
+  title: Notifications
+  ariaLabel: 'Notification {title}: Press enter to interact'
 
 persistentVolume:
   pluginConfiguration:
