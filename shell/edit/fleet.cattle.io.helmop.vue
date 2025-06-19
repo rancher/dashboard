@@ -415,7 +415,7 @@ export default {
     },
 
     updateBeforeSave() {
-this.value.spec.helm.valuesFrom = FleetUtils.HelmOp.toValuesFrom(this.valuesFrom, this.workspace);
+      this.value.spec.helm.valuesFrom = FleetUtils.HelmOp.toValuesFrom(this.valuesFrom, this.workspace);
       this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
     },
 
@@ -697,7 +697,7 @@ this.value.spec.helm.valuesFrom = FleetUtils.HelmOp.toValuesFrom(this.valuesFrom
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model:value="value.spec.targetNamespace"
+            v-model:value="value.spec.namespace"
             :mode="mode"
             label-key="fleet.helmOp.targetNamespace.label"
             placeholder-key="fleet.helmOp.targetNamespace.placeholder"
