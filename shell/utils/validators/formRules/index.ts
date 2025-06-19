@@ -170,13 +170,9 @@ export default function(
 
   const url: Validator = (val: string) => val && !isUrl(val) ? t('validation.setting.serverUrl.url') : undefined;
 
-<<<<<<< HEAD
-  const urlRepository: Validator = (url: string) => {
-=======
   const genericUrl: Validator = (val: string) => val && !isUrl(val) ? t('validation.genericUrl') : undefined;
 
   const gitRepository: Validator = (url: string) => {
->>>>>>> 156da13996 (logic almost finished as a poc + a bit of e2e testing (needs work on flow + finish e2e + implement card))
     const regexPart1 = /^((http|git|ssh|http(s)|file|\/?)|(git@[\w\.]+))(:(\/\/)?)/gm;
     const regexPart2 = /^([\w\.@\:\/\-]+)([\d\/\w.-]+?)(.git){0,1}(\/)?$/gm;
 
@@ -539,7 +535,7 @@ export default function(
     dnsLabelRestricted,
     externalName,
     fileRequired,
-    urlRepository,
+    gitRepository,
     groupsAreValid,
     hostname,
     imageUrl,

@@ -3,14 +3,12 @@ import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
-import { Banner } from '@components/Banner';
 
 export default {
   name:       'ListOidcClients',
   components: {
     CopyToClipboardText,
     PaginatedResourceTable,
-    Banner
   },
 
   props: {
@@ -43,11 +41,6 @@ export default {
 
 <template>
   <div>
-    <Banner color="info">
-      <span
-        v-clean-html="t('oidcclient.listInfoBanner')"
-      />
-    </Banner>
     <div class="oidc-application-list-header-data">
       <h3>{{ t('oidcclient.oidcEndpoints') }}</h3>
       <div>
