@@ -536,7 +536,7 @@ function addChart(ctx, map, chart, repo) {
       chartNameDisplay: chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
       chartDescription: chart.description,
       featured:         chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED],
-      featuredNumber:   chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED] ? Number(chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED]) : Number.MAX_SAFE_INTEGER,
+      featuredIndex:   chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED] ? Number(chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED]) : Number.MAX_SAFE_INTEGER,
       repoKey:          repo._key,
       versions:         [],
       categories:       filterCategories(chart.keywords),
@@ -709,15 +709,15 @@ export function filterAndArrangeCharts(charts, {
   });
 
   if (sort === 'featured') {
-    return sortBy(out, ['featuredNumber', 'certifiedSort', 'repoName', 'chartNameDisplay']);
+    return sortBy(out, ['featuredIndex', 'certifiedSort', 'repoName', 'chartNameDisplay']);
   }
 
   if (sort === 'lastupdated') {
-    return sortBy(out, ['durationSinceRelease', 'featuredNumber', 'certifiedSort', 'repoName', 'chartNameDisplay']);
+    return sortBy(out, ['durationSinceRelease', 'featuredIndex', 'certifiedSort', 'repoName', 'chartNameDisplay']);
   }
 
   if (sort === 'name') {
-    return sortBy(out, ['chartNameDisplay', 'featuredNumber', 'certifiedSort', 'repoName']);
+    return sortBy(out, ['chartNameDisplay', 'featuredIndex', 'certifiedSort', 'repoName']);
   }
 
   return sortBy(out, ['certifiedSort', 'repoName', 'chartNameDisplay']);
