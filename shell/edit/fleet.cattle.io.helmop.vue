@@ -408,8 +408,6 @@ export default {
 
     updateValueFrom(index, value) {
       this.valuesFrom[index] = value;
-
-      this.value.spec.helm.valuesFrom = FleetUtils.HelmOp.toValuesFrom(this.valuesFrom, this.workspace);
     },
 
     removeValueFrom(index) {
@@ -417,6 +415,7 @@ export default {
     },
 
     updateBeforeSave() {
+this.value.spec.helm.valuesFrom = FleetUtils.HelmOp.toValuesFrom(this.valuesFrom, this.workspace);
       this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
     },
 
@@ -647,7 +646,7 @@ export default {
         <h2 v-t="'fleet.helmOp.values.valuesFrom.selectLabel'" />
         <div
           v-for="(row, i) in valuesFrom"
-          :key="i"
+          :key="row.name"
         >
           <ValueFromResource
             :value="row"
