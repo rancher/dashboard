@@ -51,7 +51,7 @@ export default {
 
     this.searchQuery = query[SEARCH_QUERY] || '';
     this.debouncedSearchQuery = query[SEARCH_QUERY] || '';
-    this.selectedSortOption = query[SORT_BY] || 'featured';
+    this.selectedSortOption = query[SORT_BY] || 'recommended';
     this.showHidden = query[HIDDEN] === _FLAGGED;
     this.filters.repos = normalizeFilterQuery(query[REPO]) || [];
     this.filters.categories = normalizeFilterQuery(query[CATEGORY]) || [];
@@ -102,9 +102,9 @@ export default {
         }
       ],
       appCardsCache:      {},
-      selectedSortOption: 'featured',
+      selectedSortOption: 'recommended',
       sortOptions:        [
-        { value: 'featured', label: this.t('catalog.charts.sortBy.recommended') },
+        { value: 'recommended', label: this.t('catalog.charts.sortBy.recommended') },
         { value: 'lastupdated', label: this.t('catalog.charts.sortBy.lastUpdated') },
         { value: 'name', label: this.t('catalog.charts.sortBy.name') },
       ]
