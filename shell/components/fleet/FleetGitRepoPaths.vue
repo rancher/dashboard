@@ -286,7 +286,7 @@ export default {
 };
 </script>
 <template>
-  <h3 v-t="'fleet.gitRepo.paths.label'" />
+  <h3 v-t="'fleet.gitRepo.paths.title'" />
   <p class="text-muted mb-10">
     {{ t('fleet.gitRepo.paths.description1') }}<br>
     {{ t('fleet.gitRepo.paths.description2') }}
@@ -322,8 +322,8 @@ export default {
             </button>
           </div>
           <p
-            v-clean-html="'Main path'"
-            class="text-muted mb-5"
+            v-clean-html="t('fleet.gitRepo.paths.description')"
+            class="text-muted mt-10 mb-5"
           />
           <input
             data-testid="main-path"
@@ -367,7 +367,7 @@ export default {
             :remove-label="' '"
             :remove-icon="'icon-x'"
             :remove-class="'btn btn-sm role-tertiary add'"
-            :protip="t('fleet.gitRepo.paths.subpaths.protipKey')"
+            :protip="false"
             :protip-value="t('fleet.gitRepo.paths.subpaths.protipValue')"
             @update:value="updateSubpaths(i, $event)"
           />

@@ -266,6 +266,10 @@ export default {
   },
   computed: {
     _protip() {
+      if (this.protip === false) {
+        return null;
+      }
+
       return this.protip || this.t('keyValue.protip', null, true);
     },
     _keyLabel() {
