@@ -172,7 +172,7 @@ export default function(
 
   const genericUrl: Validator = (val: string) => val && !isUrl(val) ? t('validation.genericUrl') : undefined;
 
-  const gitRepository: Validator = (url: string) => {
+  const urlRepository: Validator = (url: string) => {
     const regexPart1 = /^((http|git|ssh|http(s)|file|\/?)|(git@[\w\.]+))(:(\/\/)?)/gm;
     const regexPart2 = /^([\w\.@\:\/\-]+)([\d\/\w.-]+?)(.git){0,1}(\/)?$/gm;
 
@@ -535,7 +535,7 @@ export default function(
     dnsLabelRestricted,
     externalName,
     fileRequired,
-    gitRepository,
+    urlRepository,
     groupsAreValid,
     hostname,
     imageUrl,
