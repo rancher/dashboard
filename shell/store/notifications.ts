@@ -3,6 +3,7 @@ import { randomStr } from '@shell/utils/string';
 import { Notification, StoredNotification } from '@shell/types/notifications';
 import { deriveKey } from '@shell/utils/crypto/encryption';
 import { loadFromString } from '@shell/utils/notifications';
+import { debounce } from 'lodash';
 
 /**
  * Key used to store notifications in the browser's local storage
@@ -39,6 +40,10 @@ export const state = function(): NotificationsStore {
     notifications,
   };
 };
+
+const debounceSetNotifications = debounce((state: NotificationsStore, notifications: StoredNotification[]) => {
+  state.notifications = notifications;
+}, 500);
 
 export const getters = {
   all: (state: NotificationsStore) => {
@@ -153,7 +158,7 @@ export const mutations = {
     const newData = JSON.stringify(notifications);
 
     if (existingData !== newData) {
-      state.notifications = notifications;
+      debounceSetNotifications(state, notifications);
     }
   },
 
