@@ -222,10 +222,6 @@ export default {
       type:    String,
       default: '',
     },
-    removeClass: {
-      type:    String,
-      default: '',
-    },
     removeAllowed: {
       type:    Boolean,
       default: true,
@@ -851,7 +847,6 @@ export default {
                   :disabled="isView || isProtected(row.key) || disabled"
                   :aria-label="t('generic.ariaLabel.remove', {index: i+1})"
                   class="btn role-link"
-                  :class="[removeClass]"
                   @click="remove(i)"
                 >
                   {{ removeLabel || t('generic.remove') }}

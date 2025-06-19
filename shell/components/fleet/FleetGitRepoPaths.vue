@@ -36,6 +36,14 @@ function _cl(str: string) {
   return trim;
 }
 
+/**
+ * Generates relevant prefixes from the list of paths
+ *
+ * example:
+ *
+ * paths: ['simple/dev', 'simple/dev/path1']
+ * result: ['simple/dev']
+ */
 export function getRelevantPrefixes(paths: string[]): string[] {
   const prefixes: string[] = [];
 
@@ -166,6 +174,8 @@ export default {
       const value = this.fromDirectoryTree();
 
       this.$emit('update:value', value);
+
+      // Save the form status when the user go to YAML view and then come back to GitRepo wizard
       this.$emit('touched', this.pathsOrder());
     },
 
@@ -402,6 +412,7 @@ export default {
               display: block;
             }
 
+            // Customize remove button
             .row {
               .remove {
                 .btn {
@@ -415,6 +426,7 @@ export default {
             }
           }
 
+          // Draw an arrow from each main path to every subpaths
           .rowgroup:not(:first-child) {
             .row::before {
               border-left: 1px solid var(--border);
@@ -426,6 +438,7 @@ export default {
           }
         }
 
+        // Customize Remove rows button
         :deep(.footer) {
           margin-top: 5px !important;
           margin-left: 30px;
@@ -441,6 +454,7 @@ export default {
     }
   }
 
+  // Removes space dedicated to values column as the Arraylist contains only keys
   .array-list-main-container {
     :deep() .box {
       grid-template-columns: auto 1px;
