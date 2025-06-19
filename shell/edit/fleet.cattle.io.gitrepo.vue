@@ -803,7 +803,7 @@ export default {
               :label="t('fleet.gitRepo.polling.pollingInterval.label')"
               :mode="mode"
               tooltip-key="fleet.gitRepo.polling.pollingInterval.tooltip"
-              @update:value="updatePollingInterval"
+              @blur.capture="updatePollingInterval(pollingInterval)"
             />
           </div>
         </template>
