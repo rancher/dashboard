@@ -1,6 +1,6 @@
 <script>
 import { Card } from '@components/Card';
-import { OIDC_CLIENT_SECRET_ACTION } from '@shell/edit/management.cattle.io.oidcclient.vue';
+import { OIDC_CLIENT_SECRET_ACTION } from '@shell/detail/management.cattle.io.oidcclient.vue';
 
 export default {
   name: 'PromptRemove',

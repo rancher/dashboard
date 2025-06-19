@@ -7338,6 +7338,7 @@ typeDescription:
   logging.banzaicloud.io.flow: A flow defines which logs to collect and filter as well as which output to send the logs. The flow is a namespaced resource, which means logs will only be collected from the namespace that the flow is deployed in.
   logging.banzaicloud.io.output: An output defines which logging providers that logs can be sent to. The output needs to be in the same namespace as the flow that is using it.
   group.principal: Assigning global roles to a group only works with external auth providers that support groups. Local authorization does not support groups.
+  management.cattle.io.oidcclient: Here you can add applications to Rancher's single sign-on identity provider
 
 typeLabel:
   management.cattle.io.oidcclient: |-
@@ -7917,8 +7918,7 @@ oidcclient:
       clientSecret: Copy client secret to clipboard
   usedNever: Never
   listViewCreate: Add Application
-  listInfoBanner: Here you can add applications to Rancher's single sign-on identity provider
-  oidcEndpoints: OIDC Endpoints
+  oidcEndpoints: Provider Endpoints
   createClient: Create a new application
   clientData: Application
   clientId: Client ID
@@ -7931,6 +7931,7 @@ oidcclient:
   copySecretText: <b>Copy your secret now<b>. This is the only time it will be displayed. Be sure to save it in a safe place
   secretRegenerated: Secret regenerated!
   secretAdded: Secret Added!
+  noClientId: No Client Id found for this application. If the problem persists please recreate the application
   errors:
     performSecretAction: The action on OIDC secrets tried to perform is invalid. Please check the the valid parameters for this function
   removeOidcClientModal:
@@ -7946,10 +7947,8 @@ oidcclient:
     content: Are you sure you want to delete this OIDC application secret? It will stop working immediately
     action: Delete Secret
   appName:
-    label: Application Name
-    placeholder: The name of your application shown to users during the authorization flow
+    placeholder: App name shown during the authorization flow
   appDescription:
-    label: Application Description
     placeholder: A brief description of your application
   redirectURIs:
     label: Authorization Callback URLs
@@ -7957,9 +7956,11 @@ oidcclient:
     valueLabel: Redirect URIs
     placeholder: The allowed redirect URL for your application after a user authenticates. HTTPS is required. You may add multiple URLs
   refreshTokenExpirationSeconds:
+    detailLabel: Refresh Token Expiration (seconds)
     label: Refresh Token Expiration
     placeholder:  Duration (in seconds) a refresh token can be used to obtain new access/ID tokens without re-login
   tokenExpirationSeconds:
+    detailLabel: Token Expiration (seconds)
     label: Token Expiration
     placeholder:  Duration (in seconds) the token containing user authentication information is valid
 
