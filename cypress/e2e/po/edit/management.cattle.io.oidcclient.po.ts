@@ -2,11 +2,10 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
 import UnitInputPo from '@/cypress/e2e/po/components/unit-input.po';
-import CopyToClipboardTextPo from '@/cypress/e2e/po/components/copy-to-clipboard-text.po';
-import ActionMenuPo from '@/cypress/e2e/po/components/action-menu-shell.po';
+
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 
-export default class OidcClientsCreateEditPo extends PagePo {
+export default class OidcClientCreateEditPo extends PagePo {
   private static createPath(clusterId: string, oidcClientId?: string, isEdit?: boolean) {
     const root = `/c/${ clusterId }/auth/management.cattle.io.oidcclient`;
 
@@ -14,11 +13,11 @@ export default class OidcClientsCreateEditPo extends PagePo {
   }
 
   static goTo(clusterId: string, oidcClientId?: string, isEdit?: boolean): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(OidcClientsCreateEditPo.createPath(clusterId, oidcClientId, isEdit));
+    return super.goTo(OidcClientCreateEditPo.createPath(clusterId, oidcClientId, isEdit));
   }
 
-  constructor(clusterId = 'local', oidcClientId = '', isEdit = false) {
-    super(OidcClientsCreateEditPo.createPath(clusterId, oidcClientId, isEdit));
+  constructor(clusterId = '_', oidcClientId = '', isEdit = false) {
+    super(OidcClientCreateEditPo.createPath(clusterId, oidcClientId, isEdit));
   }
 
   nameNsDescription() {
@@ -35,26 +34,6 @@ export default class OidcClientsCreateEditPo extends PagePo {
 
   tokenExpiration() {
     return new UnitInputPo('[data-testid="oidc-client-token-exp-input"]');
-  }
-
-  clientID() {
-    return new CopyToClipboardTextPo('[data-testid="oidc-clients-copy-clipboard-client-id"]');
-  }
-
-  clientFullSecretCopy(index: number) {
-    return new CopyToClipboardTextPo(`[data-testid="oidc-client-secret-${ index }-copy-full-secret"]`);
-  }
-
-  addNewSecretBtnClick() {
-    return cy.get('[data-testid="oidc-client-add-new-secret"]').click();
-  }
-
-  secretCardActionMenuToggle(index: number) {
-    return cy.get(`[data-testid="oidc-client-secret-${ index }-action-menu"]`).click();
-  }
-
-  secretCardMenu() {
-    return new ActionMenuPo();
   }
 
   saveCreateForm(): ResourceDetailPo {

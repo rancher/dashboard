@@ -1,5 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import OidcClientsListPo from '~/cypress/e2e/po/lists/oidc-clients-list.po';
+import OidcClientsListPo from '@/cypress/e2e/po/lists/management.cattle.io.oidcclient-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 /**
@@ -10,11 +10,11 @@ export default class OidcClientsPagePo extends PagePo {
     return `/c/${ clusterId }/auth/management.cattle.io.oidcclient`;
   }
 
-  static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+  static goTo(clusterId = '_'): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(OidcClientsPagePo.createPath(clusterId));
   }
 
-  constructor(clusterId = 'local') {
+  constructor(clusterId = '_') {
     super(OidcClientsPagePo.createPath(clusterId));
   }
 
