@@ -370,7 +370,7 @@ export function pathArrayToTree(paths) {
   const level = { result };
 
   paths.forEach((path) => {
-    path.split('/').reduce((r, name) => {
+    path?.split('/').reduce((r, name) => {
       if (!r[name]) {
         r[name] = { result: [] };
         r.result.push({ name, children: r[name].result });

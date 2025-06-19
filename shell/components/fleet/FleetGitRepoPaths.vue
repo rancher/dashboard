@@ -13,7 +13,7 @@ interface DirectoryTree {
   children: DirectoryTree[]
 }
 
-interface Subpath {
+export interface Subpath {
   base: string,
   options?: string
 }
@@ -324,7 +324,7 @@ export default {
               {{ t('fleet.gitRepo.paths.index', { index: i + 1 }, true) }}
             </h4>
             <RcButton
-v-if="!isView"
+              v-if="!isView"
               small
               link
               @click="removePaths(i)"
