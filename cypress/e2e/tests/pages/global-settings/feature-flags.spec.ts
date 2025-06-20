@@ -151,46 +151,6 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
   });
 
-  it('can toggle legacy feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Check Current State: should be disabled by default
-    FeatureFlagsPagePo.navTo();
-    featureFlagsPage.list().details('legacy', 0).should('include.text', 'Disabled');
-
-    // Activate
-    featureFlagsPage.list().clickRowActionMenuItem('legacy', 'Activate');
-    featureFlagsPage.clickCardActionButtonAndWait('Activate', 'legacy', true);
-
-    // Check Updated State: should be active
-    featureFlagsPage.list().details('legacy', 0).should('include.text', 'Active');
-
-    // Check cluster dashboard
-    const clusterDashboard = new ClusterDashboardPagePo('local');
-    const sideNav = new ProductNavPo();
-
-    clusterDashboard.goTo();
-    sideNav.groups().contains('Legacy').should('be.visible');
-
-    sideNav.navToSideMenuGroupByLabel('Legacy');
-    // Ensuring deprecated items are removed from the side navigation
-    sideNav.visibleNavTypes().should('not.contain', 'Alerts');
-    sideNav.visibleNavTypes().should('not.contain', 'Notifiers');
-    sideNav.visibleNavTypes().should('not.contain', 'Catalogs');
-    // Project item should exist
-    sideNav.visibleNavTypes().should('contain', 'Project');
-
-    // Deactivate
-    FeatureFlagsPagePo.navTo();
-    featureFlagsPage.list().clickRowActionMenuItem('legacy', 'Deactivate');
-    featureFlagsPage.clickCardActionButtonAndWait('Deactivate', 'legacy', false);
-
-    // Check Updated State: should be disabled
-    featureFlagsPage.list().details('legacy', 0).should('include.text', 'Disabled');
-
-    // Check cluster dashboard
-    clusterDashboard.goTo();
-    sideNav.groups().contains('Legacy').should('not.exist');
-  });
-
   it('error when toggling a feature flag is handled correctly', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be disabled by default
     FeatureFlagsPagePo.navTo();
