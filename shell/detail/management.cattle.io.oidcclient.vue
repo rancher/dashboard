@@ -62,7 +62,9 @@ export default defineComponent({
       window.history.replaceState(cleanedState, '', window.location.href);
     }
 
-    setTimeout(() => this.showNoSecretsDelay = true, 5000);
+    setTimeout(() => {
+      this.showNoSecretsDelay = true;
+    }, 5000);
   },
 
   data() {
