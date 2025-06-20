@@ -51,7 +51,7 @@ const VALUES_STATE = {
  * Helm CLI options that are not persisted on the back end,
  * but are used for the final install/upgrade operation.
  */
-const defaultCmdOpts = {
+export const defaultCmdOpts = {
   cleanupOnFail: false,
   crds:          true,
   hooks:         true,
