@@ -157,16 +157,9 @@ export default {
 
   methods: {
     // resizeHandler = in mixin
-    focusSearch(ev) {
+    focusSearch() {
       if (this.isView || this.disabled || this.loading) {
         return;
-      }
-
-      const searchBox = document.querySelector('.vs__search');
-
-      // added to mitigate https://github.com/rancher/dashboard/issues/14361
-      if (!this.isSearchable || (searchBox && document.activeElement && !searchBox.contains(document.activeElement))) {
-        ev.preventDefault();
       }
 
       this.$refs['select-input'].open = true;
@@ -300,7 +293,7 @@ export default {
     @click="focusSearch"
     @keydown.enter="focusSearch"
     @keydown.down.prevent="focusSearch"
-    @keydown.space="focusSearch"
+    @keydown.self.space.prevent="focusSearch"
   >
     <div
       :class="{ 'labeled-container': true, raised, empty, [mode]: true }"
