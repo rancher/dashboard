@@ -84,7 +84,6 @@ const emit = defineEmits(['show-configuration']);
         </RcButton>
         <ActionMenu
           v-if="actionMenuResource"
-          class="title-bar-action-menu"
           button-role="multiAction"
           :resource="actionMenuResource"
           data-testid="masthead-action-menu"
