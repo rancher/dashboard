@@ -51,14 +51,14 @@ const displayValue = (row: Row) => `${ row.key }: ${ row.value }`;
     </div>
     <div
       v-if="visibleRows.length === 0"
-      class="empty mmt-2"
+      class="empty mmt-2 text-muted"
     >
       <div class="no-rows">
         {{ i18n.t('component.resource.detail.metadata.keyValue.noRows', {propertyName: lowercasePropertyName}) }}
       </div>
       <div class="show-configuration mmt-1">
         <a
-          class="secondary"
+          class="secondary text-muted"
           href="#"
           @click="(ev: MouseEvent) => {ev.preventDefault(); emit('show-configuration');}"
         >
