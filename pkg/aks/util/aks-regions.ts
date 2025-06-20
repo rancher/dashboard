@@ -15,6 +15,7 @@ export const regionsWithAvailabilityZones = {
   japaneast:          true,
   japanwest:          true,
   koreacentral:       true,
+  malaysiawest:       true,
   mexicocentral:      true,
   newzealandnorth:    true,
   northeurope:        true,
