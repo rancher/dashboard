@@ -4,7 +4,7 @@ import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import { LoggingOverviewPagePo } from '@/cypress/e2e/po/other-products/logging/logging-overiew.po';
 
 export class LoggingClusterFlowListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
@@ -20,11 +20,9 @@ export class LoggingClusterFlowListPagePo extends BaseListPagePo {
   }
 
   static navTo(clusterId = 'local') {
-    const burgerMenu = new BurgerMenuPo();
     const sideNav = new ProductNavPo();
 
-    burgerMenu.goToCluster(clusterId);
-    sideNav.navToSideMenuGroupByLabel('Logging');
+    LoggingOverviewPagePo.navTo(clusterId);
     sideNav.navToSideMenuEntryByLabel('ClusterFlow');
   }
 }

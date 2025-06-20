@@ -2,6 +2,7 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class ChartPage extends PagePo {
   private static createPath(clusterId: string) {
@@ -38,6 +39,7 @@ export class ChartPage extends PagePo {
   goToInstall() {
     const btn = new AsyncButtonPo('.chart-header .btn.role-primary');
 
+    btn.checkVisible(MEDIUM_TIMEOUT_OPT);
     btn.click(true);
 
     return this;
