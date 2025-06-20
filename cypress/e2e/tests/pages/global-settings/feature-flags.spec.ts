@@ -1,6 +1,7 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 
 const featureFlagsPage = new FeatureFlagsPagePo();
 const burgerMenu = new BurgerMenuPo();
@@ -150,6 +151,10 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
   });
 
   it('error when toggling a feature flag is handled correctly', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    const clusterDashboard = new ClusterDashboardPagePo('local');
+
+    clusterDashboard.goTo();
+
     // Check Current State: should be disabled by default
     FeatureFlagsPagePo.navTo();
     featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
