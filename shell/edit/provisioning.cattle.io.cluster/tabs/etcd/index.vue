@@ -5,7 +5,6 @@ import { RadioGroup } from '@components/Form/Radio';
 
 import S3Config from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/S3Config';
 import UnitInput from '@shell/components/form/UnitInput';
-import { isHttpsOrHttp } from '@shell/utils/validators/setting';
 
 
 export default {
@@ -55,14 +54,6 @@ export default {
     configEtcdExposeMetrics() {
       return !!this.value.spec.rkeConfig.machineGlobalConfig['etcd-expose-metrics'];
     },
-    
-    checkIfEndpointIsValid(){
-      if (isHttpsOrHttp(this.value.spec.rkeConfig.etcd.s3.endpoint)) {
-        
-        return false; 
-      }
-      return true;
-    }
     
   },
 };
@@ -125,7 +116,6 @@ export default {
         :namespace="value.metadata.namespace"
         :register-before-hook="registerBeforeHook"
         :mode="mode"
-        :validation-passed="checkIfEndpointIsValid"
       />
     </template>
 

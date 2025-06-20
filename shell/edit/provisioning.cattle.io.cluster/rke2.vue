@@ -67,6 +67,8 @@ import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
 import { mapGetters } from 'vuex';
+import { isHttpsOrHttp } from '@shell/utils/validators/setting';
+import S3Config from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/S3Config.vue';
 const HARVESTER = 'harvester';
 const GOOGLE = 'google';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
@@ -122,7 +124,8 @@ export default {
     Advanced,
     ClusterAppearance,
     AddOnAdditionalManifest,
-    AccountAccess
+    AccountAccess,
+    S3Config,
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -146,7 +149,13 @@ export default {
     providerConfig: {
       type:    Object,
       default: () => null
-    }
+    },
+
+    s3EndpointHasError: {
+      type:    Boolean,
+      default: false,
+    },
+
   },
 
   async fetch() {
@@ -175,6 +184,12 @@ export default {
     if (!this.value.spec.rkeConfig) {
       this.value.spec.rkeConfig = {};
     }
+
+    if (!this.value.spec.rkeConfig.etcd) {
+      this.value.spec.rkeConfig.etcd = {};
+    }
+
+    const initialS3Config = this.value.spec.rkeConfig.etcd?.s3 || {};
 
     if (!this.value.spec.rkeConfig.chartValues) {
       this.value.spec.rkeConfig.chartValues = {};
@@ -274,11 +289,40 @@ export default {
       projectId:                                null,
       REGISTRIES_TAB_NAME,
       labelForAddon,
+      s3ConfigValue:                            { ...initialS3Config },
+
     };
   },
 
   computed: {
     ...mapGetters({ features: 'features/get' }),
+
+    s3ConfigComponent() {
+      return this.$refs.s3ConfigComponent;
+    },
+
+    isS3EndpointTrulyValid() {
+      const s3EndpointValue = this.rkeConfig.etcd?.s3?.endpoint;
+
+      if (!this.s3Backup && isEmpty(s3EndpointValue)) {
+        this.s3EndpointHasError = true;
+
+        return true;
+      }
+
+      if (!this.s3ConfigComponent && (this.s3Backup || !isEmpty(s3EndpointValue))) {
+        if (!isHttpsOrHttp(s3EndpointValue)) {
+          return true;
+        }
+
+        return false;
+      }
+
+      if (this.s3ConfigComponent) {
+        return !this.s3ConfigComponent.isEndpointInvalid;
+      }
+    },
+
     isActiveTabRegistries() {
       return this.activeTab?.selectedName === REGISTRIES_TAB_NAME;
     },
@@ -860,7 +904,14 @@ export default {
     },
     hideFooter() {
       return this.needCredential && !this.credential;
-    }
+    },
+
+    overallFormValidationPassed() {
+      return this.validationPassed && // Existing general validation (from mixin or other computations)
+             this.fvFormIsValid && // From FormValidation mixin
+             this.isS3EndpointTrulyValid; // S3 endpoint validation
+    },
+
   },
 
   watch: {
@@ -2119,8 +2170,10 @@ export default {
         if (isEmpty(this.rkeConfig.etcd?.s3)) {
           this.rkeConfig.etcd.s3 = {};
         }
+        this.s3ConfigValue = this.rkeConfig.etcd.s3;
       } else {
         this.rkeConfig.etcd.s3 = null;
+        this.s3ConfigValue = {};
       }
     },
     handleConfigEtcdExposeMetricsChanged(neu) {
@@ -2186,7 +2239,7 @@ export default {
     v-else
     ref="cruresource"
     :mode="mode"
-    :validation-passed="validationPassed && fvFormIsValid"
+    :validation-passed="overallFormValidationPassed"
     :resource="value"
     :errors="errors"
     :cancel-event="true"

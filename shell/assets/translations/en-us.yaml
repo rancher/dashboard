@@ -1576,6 +1576,7 @@ cluster:
       defaultEndpoint:
         label: Default Endpoint
         placeholder: "Optional: The default endpoint to use"
+        error: Endpoint URL cannot start with protocol (e.g. https://, http://)
       defaultFolder:
         label: Default Folder
         placeholder: "Optional: The default folder to use"

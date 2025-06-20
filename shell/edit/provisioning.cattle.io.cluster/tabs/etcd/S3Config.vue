@@ -4,10 +4,9 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { NORMAN } from '@shell/config/types';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
-import { isHttpsOrHttp } from '@shell/utils/validators/setting';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
-import CruResource from '@shell/components/CruResource.vue';
+import { isHttpsOrHttp } from '@shell/utils/validators/setting';
 
 export default {
   emits: ['update:value'],
@@ -16,7 +15,6 @@ export default {
     LabeledInput,
     Checkbox,
     SelectOrCreateAuthSecret,
-    CruResource,
   },
   mixins: [CreateEditView, FormValidation],
 
@@ -57,24 +55,12 @@ export default {
 
     return {
       config,
-      fvRules: {
-        endpoint: [
-          (value) => {
-            if (!value) {
-              return true; // Assuming optional if empty
-            }
-            // If it's NOT HTTPS or HTTP, return an error message
-            if (isHttpsOrHttp(value)) {
-              // needs to change to correct way of returning errors
-              return 'Endpoint cannot start with http:// or https://';
-            }
-          },
-        ],
-      }
+      s3EndpointHasError: false,
     };
   },
 
   computed: {
+
     ccData() {
       if ( this.config.cloudCredentialName ) {
         const cred = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.config.cloudCredentialName);
@@ -93,6 +79,9 @@ export default {
       return this.mode === _VIEW;
     },
 
+    isEndpointInvalid() {
+      return this.s3EndpointHasError;
+    }
   },
 
   methods: {
@@ -100,106 +89,125 @@ export default {
       const out = { ...this.config };
 
       this.$emit('update:value', out);
+
+      this.validateEndpoint(this.config.endpoint);
+    },
+    isHttpsOrHttp,
+
+    validateEndpoint(value) {
+      let message = '';
+
+      if (isHttpsOrHttp(value)) {
+        message = this.t('cluster.credential.s3.defaultEndpoint.error');
+        this.s3EndpointHasError = !!message; // Set to true if a message exists, false otherwise
+      }
+
+      return this.s3EndpointHasError;
     },
   },
 
   watch: {
-    fvFormIsValid: {
+    'config.endpoint': {
       handler(newValue) {
-        this.$emit('update:configIsValid', !!newValue);
+        this.validateEndpoint(newValue);
       },
       immediate: true,
     },
-  }
+    value: {
+      handler(newValue) {
+        if (newValue?.endpoint !== this.config.endpoint) {
+          this.config.endpoint = newValue?.endpoint || '';
+        }
+        this.validateEndpoint(this.config.endpoint);
+      },
+      deep:      true,
+      immediate: true,
+    }
+  },
+
 };
 </script>
 
 <template>
-  <CruResource
-    ref="cruresource"
-    :mode="mode"
-    :resource="value"
-    :validation-passed="fvFormIsValid"
-    :errors="errors"
-  >
-    <div>
-      <SelectOrCreateAuthSecret
-        v-model:value="config.cloudCredentialName"
-        :register-before-hook="registerBeforeHook"
-        in-store="management"
-        :allow-ssh="false"
-        :allow-basic="false"
-        :allow-s3="true"
-        :namespace="namespace"
-        generate-name="etcd-backup-s3-"
-        :cache-secrets="true"
-        @update:value="update"
-      />
+  <div>
+    <SelectOrCreateAuthSecret
+      v-model:value="config.cloudCredentialName"
+      :mode="mode"
+      :register-before-hook="registerBeforeHook"
+      in-store="management"
+      :allow-ssh="false"
+      :allow-basic="false"
+      :allow-s3="true"
+      :namespace="namespace"
+      generate-name="etcd-backup-s3-"
+      :cache-secrets="true"
+      @update:value="update"
+    />
 
-      <div class="row mt-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model:value="config.bucket"
-            label="Bucket"
-            :disabled="isView"
-            :placeholder="ccData.defaultBucket"
-            :required="!ccData.defaultBucket"
-            @update:value="update"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model:value="config.folder"
-            label="Folder"
-            :disabled="isView"
-            :placeholder="ccData.defaultFolder"
-            @update:value="update"
-          />
-        </div>
-      </div>
-
-      <div class="row mt-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model:value="config.region"
-            label="Region"
-            :disabled="isView"
-            :placeholder="ccData.defaultRegion"
-            @update:value="update"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model:value="config.endpoint"
-            label="Endpoint"
-            :disabled="isView"
-            :placeholder="ccData.defaultEndpoint"
-            :rules="fvRules.endpoint"
-            @update:value="update"
-          />
-        </div>
-      </div>
-
-      <div
-        v-if="!ccData.defaultSkipSSLVerify"
-        class="mt-20"
-      >
-        <Checkbox
-          v-model:value="config.skipSSLVerify"
+    <div class="row mt-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="config.bucket"
+          label="Bucket"
           :mode="mode"
-          label="Accept any certificate (insecure)"
+          :placeholder="ccData.defaultBucket"
+          :required="!ccData.defaultBucket"
+          :rules="!ccData.defaultBucket ? fvGetAndReportPathRules('bucket') : []"
           @update:value="update"
         />
-
+      </div>
+      <div class="col span-6">
         <LabeledInput
-          v-if="!config.skipSSLVerify"
-          v-model:value="config.endpointCA"
-          type="multiline"
-          label="Endpoint CA Cert"
-          :placeholder="ccData.defaultEndpointCA"
+          v-model:value="config.folder"
+          label="Folder"
+          :mode="mode"
+          :placeholder="ccData.defaultFolder"
           @update:value="update"
         />
       </div>
     </div>
-  </CruResource>
+
+    <div class="row mt-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="config.region"
+          label="Region"
+          :mode="mode"
+          :placeholder="ccData.defaultRegion"
+          @update:value="update"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model:value="config.endpoint"
+          label="Endpoint"
+          :mode="mode"
+          :placeholder="ccData.defaultEndpoint"
+          :rules="fvGetAndReportPathRules('endpoint')"
+          @update:value="update"
+        />
+      </div>
+    </div>
+
+    <div
+      v-if="!ccData.defaultSkipSSLVerify"
+      class="mt-20"
+    >
+      <Checkbox
+        v-model:value="config.skipSSLVerify"
+        :mode="mode"
+        label="Accept any certificate (insecure)"
+        @update:value="update"
+      />
+
+      <LabeledInput
+        v-if="!config.skipSSLVerify"
+        v-model:value="config.endpointCA"
+        type="multiline"
+        label="Endpoint CA Cert"
+        :placeholder="ccData.defaultEndpointCA"
+        @update:value="update"
+      />
+    </div>
+  </div>
 </template>
