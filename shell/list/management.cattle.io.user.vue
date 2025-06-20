@@ -7,6 +7,7 @@ import Masthead from '@shell/components/ResourceList/Masthead';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { isAdminUser } from '@shell/store/type-map';
 import TableDataUserIcon from '@shell/components/TableDataUserIcon';
+import RcButton from '@components/RcButton/RcButton.vue';
 
 export default {
   components: {
@@ -14,6 +15,7 @@ export default {
     ResourceTable,
     Masthead,
     TableDataUserIcon,
+    RcButton,
   },
   mixins: [ResourceFetch],
   props:  {
@@ -138,14 +140,17 @@ export default {
         v-if="isAdmin"
         #subHeader
       >
-        <router-link
-          :to="{ name: 'c-cluster-auth-user.retention'}"
-          class="btn role-link btn-sm btn-user-retention"
+        <rc-button
+          link
+          small
           data-testid="router-link-user-retention"
+          @click="$router.push({ name: 'c-cluster-auth-user.retention' })"
         >
-          <i class="icon icon-gear" />
+          <template #before>
+            <i class="icon icon-gear" />
+          </template>
           {{ t('user.retention.button.label') }}
-        </router-link>
+        </rc-button>
       </template>
     </Masthead>
 
@@ -168,11 +173,3 @@ export default {
     </ResourceTable>
   </div>
 </template>
-
-<style lang="scss">
-  .btn-user-retention {
-    display: flex;
-    gap: 0.25rem;
-    padding: 0;
-  }
-</style>

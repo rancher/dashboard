@@ -247,7 +247,7 @@ export default {
       white-space: nowrap;
       color: var(--body-text);
       height: 33px;
-
+/*
       &:hover {
         background: var(--nav-hover);
         text-decoration: none;
@@ -256,6 +256,7 @@ export default {
           color: var(--body-text);
         }
       }
+        */
     }
 
     .favorite {

@@ -45,7 +45,7 @@ export default {
     if ( this.$store.getters['management/canList'](CATALOG.APP) ) {
       this.apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
     }
-    this.brandSetting = await fetchOrCreateSetting(SETTING.BRAND, '');
+    this.brandSetting = await fetchOrCreateSetting(SETTING.BRAND, 'modern');
     this.serverUrlSetting = await fetchOrCreateSetting(SETTING.SERVER_URL, '');
     this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
     this.settings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
