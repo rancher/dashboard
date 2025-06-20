@@ -79,11 +79,11 @@ describe('component: FleetOCIStorageSecret', () => {
       const wrapper = mount(FleetOCIStorageSecret, {
         props: {
           workspace: 'fleet-local',
-          secret:    null,
+          secret:    '',
           mode,
         },
         data() {
-          return { secrets: [], workspaces };
+          return { secrets: [], workspaces } as any;
         },
       });
 
@@ -95,11 +95,11 @@ describe('component: FleetOCIStorageSecret', () => {
       const wrapper = mount(FleetOCIStorageSecret, {
         props: {
           workspace: 'fleet-local',
-          secret:    null,
+          secret:    '',
           mode,
         },
         data() {
-          return { secrets, workspaces };
+          return { secrets, workspaces } as any;
         },
       });
 
@@ -114,11 +114,11 @@ describe('component: FleetOCIStorageSecret', () => {
       const wrapper = mount(FleetOCIStorageSecret, {
         props: {
           workspace: 'fleet-default',
-          secret:    null,
+          secret:    '',
           mode,
         },
         data() {
-          return { secrets, workspaces };
+          return { secrets, workspaces } as any;
         },
       });
 
@@ -134,11 +134,11 @@ describe('component: FleetOCIStorageSecret', () => {
       const wrapper = mount(FleetOCIStorageSecret, {
         props: {
           workspace: 'fleet-custom-workspace',
-          secret:    null,
+          secret:    '',
           mode,
         },
         data() {
-          return { secrets, workspaces };
+          return { secrets, workspaces } as any;
         },
       });
 
@@ -156,11 +156,11 @@ describe('component: FleetOCIStorageSecret', () => {
       const wrapper = mount(FleetOCIStorageSecret, {
         props: {
           workspace: '',
-          secret:    null,
+          secret:    '',
           mode,
         },
         data() {
-          return { secrets, workspaces };
+          return { secrets, workspaces } as any;
         },
       });
 
@@ -174,11 +174,11 @@ describe('component: FleetOCIStorageSecret', () => {
       const wrapper = mount(FleetOCIStorageSecret, {
         props: {
           workspace: '',
-          secret:    null,
+          secret:    '',
           mode,
         },
         data() {
-          return { secrets, workspaces };
+          return { secrets, workspaces } as any;
         },
       });
 
@@ -200,7 +200,7 @@ describe('component: FleetOCIStorageSecret', () => {
           mode,
         },
         data() {
-          return { secrets, workspaces };
+          return { secrets, workspaces } as any;
         },
       });
 

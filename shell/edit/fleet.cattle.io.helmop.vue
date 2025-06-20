@@ -4,14 +4,11 @@ import jsyaml from 'js-yaml';
 import { saferDump } from '@shell/utils/create-yaml';
 import { mapGetters } from 'vuex';
 import { base64Encode } from '@shell/utils/crypto';
-import { exceptionToErrorsArray } from '@shell/utils/error';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import FleetUtils from '@shell/utils/fleet';
-import {
-  AUTH_TYPE, CONFIG_MAP, FLEET, NORMAN, SECRET, VIRTUAL_HARVESTER_PROVIDER
-} from '@shell/config/types';
-import { CAPI, CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
+import { AUTH_TYPE, CONFIG_MAP, NORMAN, SECRET } from '@shell/config/types';
+import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
@@ -28,9 +25,9 @@ import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import ValueFromResource from '@shell/components/form/ValueFromResource';
 import { mapPref, DIFF } from '@shell/store/prefs';
-import { isHarvesterCluster } from '@shell/utils/cluster';
 import { SECRET_TYPES } from '@shell/config/secret';
 import UnitInput from '@shell/components/form/UnitInput';
+import FleetClusterTargets from '@shell/components/fleet/FleetClusterTargets/index.vue';
 import { toSeconds } from '@shell/utils/duration';
 import { DEFAULT_POLLING_INTERVAL, MINIMUM_POLLING_INTERVAL } from '@shell/models/fleet-application';
 
@@ -51,6 +48,7 @@ export default {
     ButtonGroup,
     Checkbox,
     CruResource,
+    FleetClusterTargets,
     YamlEditor,
     LabeledInput,
     LabeledSelect,
@@ -66,16 +64,6 @@ export default {
 
   async fetch() {
     const hash = await checkSchemasForFindAllHash({
-      allClusters: {
-        inStoreType: 'management',
-        type:        FLEET.CLUSTER
-      },
-
-      allClusterGroups: {
-        inStoreType: 'management',
-        type:        FLEET.CLUSTER_GROUP
-      },
-
       allSecrets: {
         inStoreType: 'management',
         type:        SECRET
@@ -87,12 +75,8 @@ export default {
       }
     }, this.$store);
 
-    this.allClusters = hash.allClusters || [];
-    this.allClusterGroups = hash.allClusterGroups || [];
     this.allSecrets = hash.allSecrets || [];
     this.allConfigMaps = hash.allConfigMaps || [];
-
-    this.updateTargets();
   },
 
   data() {
@@ -107,21 +91,6 @@ export default {
       }
     }
 
-    const targetInfo = this.value.targetInfo;
-    const targetCluster = targetInfo.cluster;
-    const targetClusterGroup = targetInfo.clusterGroup;
-    const targetAdvanced = targetInfo.advanced;
-
-    let targetMode = targetInfo.mode;
-
-    if ( this.realMode === _CREATE ) {
-      targetMode = 'all';
-    } else if ( targetMode === 'cluster' ) {
-      targetMode = `cluster://${ targetCluster }`;
-    } else if ( targetMode === 'clusterGroup' ) {
-      targetMode = `group://${ targetClusterGroup }`;
-    }
-
     const correctDriftEnabled = this.value.spec?.correctDrift?.enabled || false;
 
     const chartValues = saferDump(clone(this.value.spec.helm.values));
@@ -129,27 +98,23 @@ export default {
     return {
       VALUES_STATE,
       SOURCE_TYPE,
-      allClusters:          [],
-      allClusterGroups:     [],
-      allSecrets:           [],
-      allConfigMaps:        [],
-      allWorkspaces:        [],
+      allSecrets:       [],
+      allConfigMaps:    [],
+      allWorkspaces:    [],
       pollingInterval,
-      targetMode,
-      targetAdvanced,
-      targetAdvancedErrors: null,
-      sourceTypeInit:       this.value.sourceType,
-      sourceType:           this.value.sourceType || SOURCE_TYPE.REPO,
-      helmSpecInit:         clone(this.value.spec.helm),
-      yamlForm:             VALUES_STATE.YAML,
+      sourceTypeInit:   this.value.sourceType,
+      sourceType:       this.value.sourceType || SOURCE_TYPE.REPO,
+      helmSpecInit:     clone(this.value.spec.helm),
+      yamlForm:         VALUES_STATE.YAML,
       chartValues,
-      chartValuesInit:      chartValues,
-      valuesFrom:           FleetUtils.HelmOp.fromValuesFrom(this.value.spec.helm.valuesFrom),
+      chartValuesInit:  chartValues,
+      valuesFrom:       FleetUtils.HelmOp.fromValuesFrom(this.value.spec.helm.valuesFrom),
       correctDriftEnabled,
-      tempCachedValues:     {},
-      doneRouteList:        'c-cluster-fleet-application',
-      isRealModeEdit:       this.realMode === _EDIT,
-      fvFormRuleSets:       []
+      tempCachedValues: {},
+      doneRouteList:    'c-cluster-fleet-application',
+      isRealModeEdit:   this.realMode === _EDIT,
+      targetsCreated:   '',
+      fvFormRuleSets:   [],
     };
   },
 
@@ -220,10 +185,6 @@ export default {
       ];
     },
 
-    isLocal() {
-      return this.value.metadata.namespace === 'fleet-local';
-    },
-
     sourceTypeOptions() {
       return Object.values(SOURCE_TYPE).map((value) => ({
         value,
@@ -277,74 +238,12 @@ export default {
       return EDITOR_MODES.EDIT_CODE;
     },
 
-    targetOptions() {
-      const out = [
-        {
-          label: 'No Clusters',
-          value: 'none'
-        },
-        {
-          label: 'All Clusters in the Workspace',
-          value: 'all',
-        },
-        {
-          label: 'Advanced',
-          value: 'advanced'
-        },
-      ];
-
-      const clusters = this.allClusters
-        .filter((x) => {
-          return x.metadata.namespace === this.value.metadata.namespace;
-        })
-        .filter((x) => !isHarvesterCluster(x))
-        .map((x) => {
-          return { label: x.nameDisplay, value: `cluster://${ x.metadata.name }` };
-        });
-
-      if ( clusters.length ) {
-        out.push({ kind: 'divider', disabled: true });
-        out.push({
-          kind:     'title',
-          label:    'Clusters',
-          disabled: true,
-        });
-
-        out.push(...clusters);
-      }
-
-      const groups = this.allClusterGroups
-        .filter((x) => x.metadata.namespace === this.value.metadata.namespace)
-        .map((x) => {
-          return { label: x.nameDisplay, value: `group://${ x.metadata.name }` };
-        });
-
-      if ( groups.length ) {
-        out.push({ kind: 'divider', disabled: true });
-        out.push({
-          kind:     'title',
-          label:    'Cluster Groups',
-          disabled: true
-        });
-
-        out.push(...groups);
-      }
-
-      return out;
-    },
-
     showPollingIntervalWarning() {
       return !this.isView && this.value.isPollingEnabled && this.pollingInterval < MINIMUM_POLLING_INTERVAL;
     },
   },
 
   watch: {
-    'value.metadata.namespace': 'updateTargets',
-    targetMode:                 'updateTargets',
-    targetCluster:              'updateTargets',
-    targetClusterGroup:         'updateTargets',
-    targetAdvanced:             'updateTargets',
-
     workspace(neu) {
       if (this.isCreate) {
         set(this.value, 'metadata.namespace', neu);
@@ -369,52 +268,8 @@ export default {
       this.updateValidationRules(type);
     },
 
-    updateTargets() {
-      const spec = this.value.spec;
-      const mode = this.targetMode;
-
-      let kind, value;
-      const match = mode.match(/([^:]+)(:\/\/(.*))?$/);
-
-      if ( match ) {
-        kind = match[1];
-        value = match[3];
-      }
-
-      if ( kind === 'all' ) {
-        spec.targets = [{
-          clusterSelector: {
-            matchExpressions: [{
-              key:      CAPI.PROVIDER,
-              operator: 'NotIn',
-              values:   [
-                VIRTUAL_HARVESTER_PROVIDER
-              ],
-            }],
-          },
-        }];
-      } else if ( kind === 'none' ) {
-        spec.targets = [];
-      } else if ( kind === 'cluster' ) {
-        spec.targets = [
-          { clusterName: value },
-        ];
-      } else if ( kind === 'group' ) {
-        spec.targets = [
-          { clusterGroup: value }
-        ];
-      } else if ( kind === 'advanced' ) {
-        try {
-          const parsed = jsyaml.load(this.targetAdvanced);
-
-          spec.targets = parsed;
-          this.targetAdvancedErrors = null;
-        } catch (e) {
-          this.targetAdvancedErrors = exceptionToErrorsArray(e);
-        }
-      } else {
-        spec.targets = [];
-      }
+    updateTargets(value) {
+      this.value.spec.targets = value;
     },
 
     enablePolling(value) {
@@ -553,8 +408,6 @@ export default {
 
     updateValueFrom(index, value) {
       this.valuesFrom[index] = value;
-
-      this.value.spec.helm.valuesFrom = FleetUtils.HelmOp.toValuesFrom(this.valuesFrom, this.workspace);
     },
 
     removeValueFrom(index) {
@@ -562,6 +415,7 @@ export default {
     },
 
     updateBeforeSave() {
+      this.value.spec.helm.valuesFrom = FleetUtils.HelmOp.toValuesFrom(this.valuesFrom, this.workspace);
       this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
     },
 
@@ -792,7 +646,7 @@ export default {
         <h2 v-t="'fleet.helmOp.values.valuesFrom.selectLabel'" />
         <div
           v-for="(row, i) in valuesFrom"
-          :key="i"
+          :key="row.name"
         >
           <ValueFromResource
             :value="row"
@@ -818,49 +672,20 @@ export default {
     </template>
 
     <template #target>
-      <h2 v-t="isLocal ? 'fleet.helmOp.target.labelLocal' : 'fleet.helmOp.target.label'" />
+      <h2 v-t="'fleet.helmOp.target.label'" />
+      <FleetClusterTargets
+        :targets="value.spec.targets"
+        :matching="value.targetClusters"
+        :namespace="value.metadata.namespace"
+        :mode="realMode"
+        :created="targetsCreated"
+        @update:value="updateTargets"
+        @created="targetsCreated=$event"
+      />
 
-      <template v-if="!isLocal">
-        <div class="row">
-          <div class="col span-6">
-            <LabeledSelect
-              v-model:value="targetMode"
-              :options="targetOptions"
-              option-key="value"
-              :mode="mode"
-              :selectable="option => !option.disabled"
-              :label="t('fleet.helmOp.target.selectLabel')"
-            >
-              <template v-slot:option="opt">
-                <hr v-if="opt.kind === 'divider'">
-                <div v-else-if="opt.kind === 'title'">
-                  {{ opt.label }}
-                </div>
-                <div v-else>
-                  {{ opt.label }}
-                </div>
-              </template>
-            </LabeledSelect>
-          </div>
-        </div>
-
-        <div
-          v-if="targetMode === 'advanced'"
-          class="row mt-10"
-        >
-          <div class="col span-12">
-            <YamlEditor v-model:value="targetAdvanced" />
-          </div>
-        </div>
-
-        <Banner
-          v-for="(err, i) in targetAdvancedErrors"
-          :key="i"
-          color="error"
-          :label="err"
-        />
-      </template>
-
+      <h3 class="mt-40">
+        {{ t('fleet.helmOp.target.additionalOptions') }}
+      </h3>
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
@@ -872,7 +697,7 @@ export default {
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model:value="value.spec.targetNamespace"
+            v-model:value="value.spec.namespace"
             :mode="mode"
             label-key="fleet.helmOp.targetNamespace.label"
             placeholder-key="fleet.helmOp.targetNamespace.placeholder"
