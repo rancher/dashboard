@@ -319,7 +319,7 @@ export default {
     }
 
     if (props.descriptionKey) {
-      description.value = get(v, props.descriptionKey);
+      description.value = get(v.value, props.descriptionKey);
     } else {
       description.value = metadata?.annotations?.[DESCRIPTION];
     }

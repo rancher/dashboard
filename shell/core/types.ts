@@ -325,6 +325,10 @@ export interface HeaderOptions {
 
 export interface ConfigureTypeOptions {
   /**
+   * Override for the create button string on a list view
+   */
+  listCreateButtonLabelKey?: boolean;
+  /**
    * The resource can edit/show yaml
    */
   canYaml?: boolean;
