@@ -11,7 +11,7 @@ describe('component: TitleBar/index', () => {
   const resourceName = 'RESOURCE_NAME';
   const store = createStore({});
 
-  it('shoulder render container with class title-bar', async() => {
+  it('should render container with class title-bar', async() => {
     const wrapper = mount(TitleBar, {
       props: {
         resourceTypeLabel,

@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import Top from '@shell/components/Resource/Detail/TitleBar/Top.vue';
 
 describe('component: TitleBar/Top', () => {
-  it('shoulder render container with class top', async() => {
+  it('should render container with class top', async() => {
     const wrapper = mount(Top);
 
     expect(wrapper.find('.top').exists()).toBeTruthy();

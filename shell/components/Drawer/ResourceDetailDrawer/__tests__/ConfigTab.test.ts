@@ -38,7 +38,7 @@ describe('component: ResourceDetailDrawer/ConfigTab', () => {
     expect(component.props('name')).toStrictEqual('config-tab');
   });
 
-  it('shoulder render a dynamic component within the .container and pass the correct props', () => {
+  it('should render a dynamic component within the .container and pass the correct props', () => {
     const wrapper = mount(ConfigTab, {
       props: { resource, component: markRaw(DynamicComponent) },
       global
