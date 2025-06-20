@@ -36,6 +36,7 @@ export const _LIST = 'list';
 export const _CLONE = 'clone';
 export const _STAGE = 'stage';
 export const _IMPORT = 'import';
+export const LEGACY = 'legacy';
 
 export const AS = 'as';
 export const _DETAIL = 'detail';
