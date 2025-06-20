@@ -81,7 +81,7 @@ const displayValue = (row: Row) => `${ row.key }: ${ row.value }`;
     <a
       v-if="showShowAllButton"
       href="#"
-      class="show-all"
+      class="show-all secondary"
       @click="(ev: MouseEvent) => {ev.preventDefault(); emit('show-configuration');}"
     >
       {{ showAllLabel }}
