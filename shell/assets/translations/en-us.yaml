@@ -2654,11 +2654,24 @@ fleet:
       label: Certificates
       placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"
     paths:
-      label: Paths
-      ariaLabel: Enter path for Git Repo
+      title: Custom paths
+      description: Root directory
+      index: Path {index}
+      description1: The root folder is used by default. Fleet will scan recursively all folders and subfolders to find fleet.yaml files.
+      description2: You can provide multiple different directories. You can also add subpaths to specify different YAML config file paths.
+      ariaLabel: Enter paths for Git Repo
       placeholder: e.g. /directory/in/your/repo
       addLabel: Add Path
-      empty: The root of the repo is used by default. Multiple different directories can be provided.
+      enableBundles: Manually specify config files subpaths (Fleet won't scan subfolders recursively to find fleet.yaml files)
+      subpaths:
+        addLabel: Add Subpath
+        protipValue: "The name of a fleet YAML file in the folder"
+        props:
+          base: Subpath
+          options: Fleet YAML file (optional)
+        placeholders:
+          key: e.g. dev
+          value: e.g. kustomize.yaml
     repo:
       title: Source
       label: Repository URL
