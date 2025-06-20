@@ -22,6 +22,7 @@ import IconOrSvg from '@shell/components/IconOrSvg';
 import { wait } from '@shell/utils/async';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
 import HeaderPageActionMenu from './HeaderPageActionMenu.vue';
+import NotificationCenter from './NotificationCenter';
 import {
   RcDropdown,
   RcDropdownItem,
@@ -40,6 +41,7 @@ export default {
     ClusterProviderIcon,
     IconOrSvg,
     AppModal,
+    NotificationCenter,
     HeaderPageActionMenu,
     RcDropdown,
     RcDropdownItem,
@@ -93,7 +95,8 @@ export default {
       'isSingleProduct',
       'isRancherInHarvester',
       'showTopLevelMenu',
-      'isMultiCluster'
+      'isMultiCluster',
+      'showWorkspaceSwitcher'
     ]),
 
     samlAuthProviderEnabled() {
@@ -238,16 +241,16 @@ export default {
   },
 
   watch: {
-    currentCluster(nue, old) {
-      if (nue && old && nue.id !== old.id) {
+    currentCluster(neu, old) {
+      if (neu && old && neu.id !== old.id) {
         this.checkClusterName();
       }
     },
     // since the Header is a "persistent component" we need to update it at every route change...
     $route: {
-      handler(nue) {
-        if (nue) {
-          this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, nue);
+      handler(neu) {
+        if (neu) {
+          this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, neu);
 
           this.navHeaderRight = this.$plugin?.getDynamic('component', 'NavHeaderRight');
         }
@@ -533,7 +536,7 @@ export default {
         class="top"
       >
         <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
-        <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
+        <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher && showWorkspaceSwitcher" />
       </div>
       <div
         v-if="currentCluster && !simple"
@@ -659,6 +662,7 @@ export default {
 
       <div class="center-self">
         <header-page-action-menu v-if="showPageActions" />
+        <NotificationCenter />
         <rc-dropdown
           v-if="showUserMenu"
           :aria-label="t('nav.userMenu.label')"

@@ -1,5 +1,5 @@
 <script>
-
+import { _CREATE, _VIEW } from '@shell/config/query-params';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
@@ -54,6 +54,11 @@ export default {
     steps: {
       type:     Array,
       required: true
+    },
+
+    mode: {
+      type:    String,
+      default: _CREATE
     },
 
     // Initial step to show when Wizard loads.
@@ -121,6 +126,11 @@ export default {
   },
 
   computed: {
+
+    isView() {
+      return this.mode === _VIEW;
+    },
+
     errorStrings() {
       return ( this.errors || [] ).map((x) => stringify(x));
     },
@@ -461,6 +471,7 @@ export default {
               :finish="finish"
             >
               <AsyncButton
+                v-if="!isView"
                 :disabled="!activeStep.ready"
                 :mode="finishMode"
                 @click="finish"

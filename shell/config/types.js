@@ -229,12 +229,14 @@ export const CAPI = {
 // Base: /k8s/clusters/<id>/v1/
 
 export const FLEET = {
+  APPLICATION:              'fleet.cattle.io.application',
   BUNDLE:                   'fleet.cattle.io.bundle',
   BUNDLE_DEPLOYMENT:        'fleet.cattle.io.bundledeployment',
   CLUSTER:                  'fleet.cattle.io.cluster',
   CLUSTER_GROUP:            'fleet.cattle.io.clustergroup',
   DASHBOARD:                'fleet.cattle.io.dashboard',
   GIT_REPO:                 'fleet.cattle.io.gitrepo',
+  HELM_OP:                  'fleet.cattle.io.helmop',
   WORKSPACE:                'management.cattle.io.fleetworkspace',
   TOKEN:                    'fleet.cattle.io.clusterregistrationtoken',
   BUNDLE_NAMESPACE_MAPPING: 'fleet.cattle.io.bundlenamespacemapping',

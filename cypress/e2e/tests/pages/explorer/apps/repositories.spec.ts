@@ -174,13 +174,7 @@ describe('Apps', () => {
 
         // Nav to a summary page for a specific chart
         chartsPage.goTo();
-        chartsPage.chartsFilterCategoriesSelect().toggle();
-        chartsPage.chartsFilterCategoriesSelect().clickOptionWithLabel('All Categories');
-        chartsPage.chartsFilterReposSelect().toggle();
-        chartsPage.chartsFilterReposSelect().enableOptionWithLabelForChartReposFilter('All');
-        chartsPage.chartsFilterCategoriesSelect().checkOptionSelected('All Categories');
-        chartsPage.chartsFilterReposSelect().checkOptionSelected('All');
-        chartsPage.chartsFilterInput().clear();
+        chartsPage.resetAllFilters();
 
         chartsPage.clickChart('Rancher Backups');
         chartPage.waitForPage();
