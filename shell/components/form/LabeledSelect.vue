@@ -9,6 +9,7 @@ import { generateRandomAlphaString } from '@shell/utils/string';
 import LabeledSelectPagination from '@shell/components/form/labeled-select-utils/labeled-select-pagination';
 import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
 import { mapGetters } from 'vuex';
+import { _VIEW } from '@shell/config/query-params';
 
 export default {
   name: 'LabeledSelect',
@@ -158,6 +159,12 @@ export default {
   methods: {
     // Ensure we only focus on open, otherwise we re-open on close
     clickSelect(ev) {
+      if (this.mode === _VIEW || this.loading === true || this.disabled === true) {
+        return;
+      }
+
+      this.isOpen = !this.isOpen;
+
       if (this.isOpen) {
         this.focusSearch(ev);
       }
@@ -168,8 +175,6 @@ export default {
       if (this.isView || this.disabled || this.loading) {
         return;
       }
-
-      this.$refs['select-input'].open = true;
 
       this.$nextTick(() => {
         const el = this.$refs['select-input']?.searchEl;
@@ -191,13 +196,12 @@ export default {
     },
 
     onOpen() {
-      this.isOpen = true;
+      this.focusSearch();
       this.$emit('on-open');
       this.resizeHandler();
     },
 
     onClose() {
-      this.isOpen = false;
       this.$emit('on-close');
     },
 
@@ -233,6 +237,10 @@ export default {
     },
 
     dropdownShouldOpen(instance, forceOpen = false) {
+      if (!this.isOpen) {
+        return false;
+      }
+
       const { noDrop, mutableLoading } = instance;
       const { open } = instance;
       const shouldOpen = this.shouldOpen;
@@ -298,9 +306,9 @@ export default {
     :aria-describedby="$attrs['aria-describedby'] || undefined"
     :aria-required="requiredField"
     @click="clickSelect"
-    @keydown.enter="focusSearch"
-    @keydown.down.prevent="focusSearch"
-    @keydown.self.space.prevent="focusSearch"
+    @keydown.self.enter="clickSelect"
+    @keydown.self.down.prevent="clickSelect"
+    @keydown.self.space.prevent="clickSelect"
   >
     <div
       :class="{ 'labeled-container': true, raised, empty, [mode]: true }"
