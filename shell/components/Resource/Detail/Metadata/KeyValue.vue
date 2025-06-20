@@ -30,6 +30,7 @@ const {
 
 const store = useStore();
 const i18n = useI18n(store);
+const emit = defineEmits(['show-configuration']);
 
 // Account for the show all button
 const visibleRowsLength = computed(() => (rows.value.length > maxRows.value ? maxRows.value - 1 : rows.value.length));
@@ -50,18 +51,19 @@ const displayValue = (row: Row) => `${ row.key }: ${ row.value }`;
     </div>
     <div
       v-if="visibleRows.length === 0"
-      class="empty mmt-2"
+      class="empty mmt-2 text-muted"
     >
       <div class="no-rows">
         {{ i18n.t('component.resource.detail.metadata.keyValue.noRows', {propertyName: lowercasePropertyName}) }}
       </div>
       <div class="show-configuration mmt-1">
-        <router-link
-          class="secondary"
-          to="#"
+        <a
+          class="secondary text-muted"
+          href="#"
+          @click="(ev: MouseEvent) => {ev.preventDefault(); emit('show-configuration');}"
         >
           {{ i18n.t('component.resource.detail.metadata.keyValue.showConfiguration') }}
-        </router-link>
+        </a>
       </div>
     </div>
     <div
@@ -76,13 +78,14 @@ const displayValue = (row: Row) => `${ row.key }: ${ row.value }`;
         {{ displayValue(row) }}
       </Rectangle>
     </div>
-    <router-link
+    <a
       v-if="showShowAllButton"
-      to="#"
-      class="show-all"
+      href="#"
+      class="show-all secondary"
+      @click="(ev: MouseEvent) => {ev.preventDefault(); emit('show-configuration');}"
     >
       {{ showAllLabel }}
-    </router-link>
+    </a>
   </div>
 </template>
 
@@ -101,19 +104,14 @@ const displayValue = (row: Row) => `${ row.key }: ${ row.value }`;
     }
 
     .row {
+        width: 100%;
+
         &:not(:first-of-type) {
             margin-top: 4px;
         }
 
         & {
             margin-top: 8px;
-        }
-    }
-    .row {
-        margin-top: 8px;
-
-        &:not(:first-of-type) {
-            margin-top: 4px;
         }
     }
     .show-all {

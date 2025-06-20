@@ -20,3 +20,18 @@
     </div>
   </div>
 </template>
+<style lang="scss" scoped>
+.resource-detail-page {
+  padding: 24px;
+
+  :deep() .tabs.horizontal {
+    border: none;
+  }
+  :deep() .tabs.horizontal + .tab-container {
+    border: none;
+    border-top: 1px solid var(--border);
+    padding: 0;
+    padding-top: 24px;
+  }
+}
+</style>

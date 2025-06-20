@@ -3,7 +3,7 @@ import Labels from '@shell/components/Resource/Detail/Metadata/Labels/index.vue'
 import { createStore } from 'vuex';
 
 describe('component: Metadata/Labels', () => {
-  it('shoulder render KeyValue with the appropriate props', async() => {
+  it('should render KeyValue with the appropriate props', async() => {
     const labels = [{ key: 'key', value: 'value' }];
     const wrapper = mount(Labels, {
       props:  { labels },

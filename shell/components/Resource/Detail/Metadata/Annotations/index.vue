@@ -7,12 +7,15 @@ export type Annotation = Row;
 
 export interface AnnotationsProps {
   annotations: Annotation[];
+
+  onShowConfiguration?: () => void;
 }
 
 </script>
 
 <script setup lang="ts">
 const { annotations } = defineProps<AnnotationsProps>();
+const emit = defineEmits(['show-configuration']);
 const store = useStore();
 const i18n = useI18n(store);
 </script>
@@ -22,5 +25,7 @@ const i18n = useI18n(store);
     :propertyName="i18n.t('component.resource.detail.metadata.annotations.title')"
     :rows="annotations"
     :outline="true"
+
+    @show-configuration="() => emit('show-configuration')"
   />
 </template>

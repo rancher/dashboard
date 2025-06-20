@@ -8505,6 +8505,22 @@ errors:
     withUrl: '{msg}: {url}'
     withoutUrl: '{msg}'
 component:
+  drawer:
+    chrome:
+      ariaLabel:
+        close: Close {target} drawer
+      close: Close
+    resourceDetailDrawer:
+      title: "{resourceName} ({resourceType}) - Configuration"
+      editConfig: Edit Config
+      editYaml: Edit YAML
+      ariaLabel:
+        editConfig: Edit Config
+        editYaml: Edit YAML
+      yamlTab:
+        title: YAML
+      configTab:
+        title: Config
   resource:
     detail:
       card:

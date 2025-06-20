@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import Title from '@shell/components/Resource/Detail/TitleBar/Title.vue';
 
 describe('component: TitleBar/Title', () => {
-  it('shoulder render container with class title', async() => {
+  it('should render container with class title', async() => {
     const wrapper = mount(Title);
 
     expect(wrapper.find('.title').exists()).toBeTruthy();

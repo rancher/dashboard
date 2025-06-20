@@ -7,6 +7,8 @@ import { useStore } from 'vuex';
 export type Label = Row;
 export interface LabelsProps {
     labels: Label[];
+
+    onShowConfiguration?: () => void;
 }
 
 </script>
@@ -14,6 +16,7 @@ export interface LabelsProps {
 <script setup lang="ts">
 const props = defineProps<LabelsProps>();
 const { labels } = toRefs(props);
+const emit = defineEmits(['show-configuration']);
 
 const store = useStore();
 const i18n = useI18n(store);
@@ -23,5 +26,6 @@ const i18n = useI18n(store);
   <KeyValue
     :propertyName="i18n.t('component.resource.detail.metadata.labels.title')"
     :rows="labels"
+    @show-configuration="() => emit('show-configuration')"
   />
 </template>
