@@ -1,63 +1,119 @@
-import { createLocalVue, shallowMount } from '@vue/test-utils';
-import Vuex from 'vuex';
-import Blank from '@shell/components/templates/blank.vue';
+import { mount } from '@vue/test-utils';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
-import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
+import Brand from '@shell/mixins/brand';
 
 describe('brandMixin', () => {
-  const createWrapper = () => {
-    const localVue = createLocalVue();
+  const createWrapper = (vaiOn = false) => {
+    const Component = {
+      template: '<div></div>',
+      mixins:   [Brand],
+    };
 
-    localVue.use(Vuex);
+    const data = {
+      apps: null, haveAppsAndSettings: null, canPaginate: false
+    };
 
-    const store = new Vuex.Store({
-      state:   {},
-      actions: {
-        'management/findAll': (type, opt) => {
-          if (type === MANAGEMENT.SETTING) {
+    const store = {
+      dispatch: (action, ...args) => {
+        switch (action) {
+        case 'management/findAll':
+          if (args[0] === MANAGEMENT.SETTING) {
             return [];
           }
-          if (type === CATALOG.APP) {
+          if (args[0] === CATALOG.APP) {
             return [];
           }
+          break;
         }
       },
       getters: {
         'auth/loggedIn':        () => true,
+        'auth/fromHeader':      () => false,
+        'management/byId':      () => undefined,
         'management/canList':   () => () => true,
-        'management/schemaFor': () => () => undefined
+        'management/schemaFor': (type: string) => {
+          switch (type) {
+          case MANAGEMENT.SETTING:
+            return { linkFor: () => undefined };
+          }
+        },
+        'management/generation':        () => undefined,
+        'management/paginationEnabled': () => vaiOn,
+        'management/all':               (type: string) => {
+          switch (type) {
+          case MANAGEMENT.SETTING:
+            return [];
+          }
+        },
       }
-    });
+    };
 
+    const wrapper = mount(
+      Component,
+      {
+        data:   () => data,
+        global: { mocks: { $store: store } }
+      });
     const spyManagementFindAll = jest.spyOn(store, 'dispatch');
-
-    const wrapper = shallowMount(Blank, {
-      store,
-      localVue,
-      stubs: ['router-link', 'router-view'],
-      mocks: { $config: {}, $route: { path: '' } }
-    });
 
     return {
       wrapper,
       store,
-      spyManagementFindAll
+      spyManagementFindAll,
     };
   };
 
-  it('should make correct requests', async() => {
-    const { wrapper, spyManagementFindAll } = createWrapper();
+  describe('should make correct requests', () => {
+    it('vai off', async() => {
+      const { wrapper, spyManagementFindAll } = createWrapper(false);
 
-    // NOTE - wrapper.vm.$options.fetch() doesn't work
-    await wrapper.vm.$options.fetch.apply(wrapper.vm, []);
+      // NOTE - wrapper.vm.$options.fetch() doesn't work
+      await wrapper.vm.$options.fetch.apply(wrapper.vm);
 
-    expect(spyManagementFindAll).toHaveBeenNthCalledWith(1, 'management/findAll', {
-      type: MANAGEMENT.SETTING,
-      opt:  {
-        load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
-      }
+      // wrapper.vm.$nextTick();
+      expect(spyManagementFindAll).toHaveBeenNthCalledWith(1, 'management/findAll', {
+        type: MANAGEMENT.SETTING,
+        opt:  {
+          load: 'multi', redirectUnauthorized: false, url: `/v1/${ MANAGEMENT.SETTING }s`
+        }
+      });
+      expect(spyManagementFindAll).toHaveBeenNthCalledWith(2, 'management/findAll', { type: CATALOG.APP });
     });
-    expect(spyManagementFindAll).toHaveBeenNthCalledWith(2, 'management/findAll', { type: CATALOG.APP, opt: { filter: { 'metadata.name': 'rancher-csp-adapter,rancher-csp-billing-adapter' } } });
+
+    it('vai on', async() => {
+      const { wrapper, spyManagementFindAll } = createWrapper(true);
+
+      // NOTE - wrapper.vm.$options.fetch() doesn't work
+      await wrapper.vm.$options.fetch.apply(wrapper.vm);
+
+      expect(spyManagementFindAll).toHaveBeenNthCalledWith(1, 'management/findAll', {
+        type: MANAGEMENT.SETTING,
+        opt:  {
+          load: 'multi', url: `/v1/${ MANAGEMENT.SETTING }s`, redirectUnauthorized: false
+        }
+      });
+      expect(spyManagementFindAll).toHaveBeenNthCalledWith(2, 'management/findPage', {
+        type: CATALOG.APP,
+        opt:  {
+          pagination: {
+            filters: [{
+              equals: true,
+              fields: [{
+                equals: true, exact: true, field: 'metadata.name', value: 'rancher-csp-adapter'
+              }, {
+                equals: true, exact: true, field: 'metadata.name', value: 'rancher-csp-billing-adapter'
+              }],
+              param: 'filter'
+            }],
+            labelSelector:        undefined,
+            page:                 null,
+            pageSize:             null,
+            projectsOrNamespaces: [],
+            sort:                 []
+          }
+        }
+      });
+    });
   });
 
   describe('cspAdapter', () => {
