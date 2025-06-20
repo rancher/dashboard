@@ -965,7 +965,7 @@ export default {
               :label="t('fleet.helmOp.polling.pollingInterval.label')"
               :mode="mode"
               tooltip-key="fleet.helmOp.polling.pollingInterval.tooltip"
-              @update:value="updatePollingInterval"
+              @blur.capture="updatePollingInterval(pollingInterval)"
             />
           </div>
         </template>
