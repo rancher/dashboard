@@ -207,7 +207,7 @@ export const getters = {
   brand: (_state, _getters, _rootState, rootGetters) => {
     const brandSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.BRAND);
 
-    if (brandSetting && brandSetting.value && brandSetting.value !== '') {
+    if (brandSetting?.value !== '') {
       return brandSetting.value;
     }
 
