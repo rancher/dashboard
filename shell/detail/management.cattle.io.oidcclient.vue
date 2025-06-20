@@ -61,6 +61,8 @@ export default defineComponent({
       // let's clean from the browser history state the flag so that when we do a refresh we don't get the same state back (we don't want to show the secret ever again)
       window.history.replaceState(cleanedState, '', window.location.href);
     }
+
+    setTimeout(() => this.showNoSecretsDelay = true, 5000);
   },
 
   data() {
@@ -90,7 +92,8 @@ export default defineComponent({
           label:      this.t('generic.delete')
         }
       ],
-      canFetchSecrets: this.$store.getters[`management/canList`](SECRET),
+      canFetchSecrets:    this.$store.getters[`management/canList`](SECRET),
+      showNoSecretsDelay: false
     };
   },
 
@@ -153,13 +156,10 @@ export default defineComponent({
   },
 
   watch: {
-    'value.status.clientID': {
+    clientSecretId: {
       handler(neu) {
         if (neu && this.canFetchSecrets) {
-          this.$store.dispatch('management/find', {
-            type: SECRET,
-            id:   `${ OIDC_SECRETS_NAMESPACE }/${ this.value.status.clientID }`
-          });
+          this.$store.dispatch('management/find', { type: SECRET, id: neu });
         }
       },
       immediate: true
@@ -170,9 +170,16 @@ export default defineComponent({
     clientID(): string {
       return this.value?.status?.clientID || '';
     },
-    clientSecret(): Record<string, any> | undefined {
-      return this.value.status.clientID ? this.$store.getters['management/byId'](SECRET, `${ OIDC_SECRETS_NAMESPACE }/${ this.value.status.clientID }`) : undefined;
+
+    clientSecretId(): string {
+      // We can either use `${ OIDC_SECRETS_NAMESPACE }/${ this.value.status.clientID }` directly, or attempt to find the secret owned by the client
+      return this.value.metadata.relationships.find((r: any) => r.rel === 'owner' && r.state === 'active' && r.toType === SECRET && r.toId.startsWith(OIDC_SECRETS_NAMESPACE))?.toId;
     },
+
+    clientSecret(): Record<string, any> | undefined {
+      return this.clientSecretId ? this.$store.getters['management/byId'](SECRET, this.clientSecretId) : undefined;
+    },
+
     clientSecrets(): SecretManageData[] {
       const clientSecrets: SecretManageData[] = [];
       const oidcClientSecretsData: [string, ClientSecretData][] = this.value?.status?.clientSecrets ? Object.entries(this.value?.status?.clientSecrets) : [];
@@ -217,6 +224,15 @@ export default defineComponent({
       });
 
       return clientSecrets;
+    },
+
+    showSecrets(): boolean {
+      return this.value.status?.clientID;
+    },
+
+    showNoSecrets(): boolean {
+      // Avoid the no secrets message blipping up whilst we wait for the client status to update over websocket (which unlocks the details required to fetch secrets)
+      return !this.showSecrets && this.showNoSecretsDelay;
     }
   }
 });
@@ -225,7 +241,7 @@ export default defineComponent({
 <template>
   <div>
     <Loading v-if="!value" />
-    <div v-else-if="value.status && value.status.clientID">
+    <div v-else-if="showSecrets">
       <div
         v-if="errors && errors.length"
       >
@@ -317,7 +333,7 @@ export default defineComponent({
         </button>
       </div>
     </div>
-    <div v-else>
+    <div v-else-if="showNoSecrets">
       {{ t('oidcclient.noClientId') }}
     </div>
   </div>
