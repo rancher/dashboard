@@ -11,10 +11,12 @@ import { useStore } from 'vuex';
 export interface MetadataProps {
   identifyingInformation: IdentifyingInformationRow[],
   labels: Label[],
-  annotations: Annotation[]
+  annotations: Annotation[],
+  onShowConfiguration?: () => void;
 }
 
 const { identifyingInformation, labels, annotations } = defineProps<MetadataProps>();
+const emit = defineEmits(['show-configuration']);
 
 const store = useStore();
 const i18n = useI18n(store);
@@ -37,6 +39,7 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
       <KeyValue
         :rows="[]"
         :propertyName="i18n.t('component.resource.detail.metadata.labelsAndAnnotations')"
+        @show-configuration="() => emit('show-configuration')"
       />
     </div>
     <!-- I'm not using v-else here so I can maintain the spacing correctly with the other columns in other rows. -->
@@ -44,13 +47,19 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
       v-if="!showBothEmpty"
       class="labels"
     >
-      <Labels :labels="labels" />
+      <Labels
+        :labels="labels"
+        @show-configuration="() => emit('show-configuration')"
+      />
     </div>
     <div
       v-if="!showBothEmpty"
       class="annotations"
     >
-      <Annotations :annotations="annotations" />
+      <Annotations
+        :annotations="annotations"
+        @show-configuration="() => emit('show-configuration')"
+      />
     </div>
   </SpacedRow>
 </template>
@@ -60,7 +69,5 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
     .labels-and-annotations-empty {
       grid-column: span 2;
     }
-
-    border-bottom: 1px solid var(--border);
 }
 </style>

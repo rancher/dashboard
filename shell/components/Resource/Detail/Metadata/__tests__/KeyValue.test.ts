@@ -52,7 +52,7 @@ describe('component: Metadata/IdentifyingInformation', () => {
     });
 
     expect(wrapper.find('.empty .no-rows').element.innerHTML.trim()).toStrictEqual(`component.resource.detail.metadata.keyValue.noRows-{"propertyName":"${ propertyName.toLowerCase() }"}`);
-    expect(wrapper.find('.empty .show-configuration').findComponent(RouterLinkStub).element.innerHTML).toStrictEqual('component.resource.detail.metadata.keyValue.showConfiguration');
+    expect(wrapper.find('.empty .show-configuration a').text()).toStrictEqual('component.resource.detail.metadata.keyValue.showConfiguration');
   });
 
   it('should render show all button if rows length exceeds max', async() => {

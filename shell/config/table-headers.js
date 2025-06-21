@@ -784,7 +784,7 @@ export const FLEET_APPLICATION_TARGET = {
   name:     'applicationTarget',
   labelKey: 'fleet.tableHeaders.applicationTarget',
   value:    'targetInfo.modeDisplay',
-  sort:     ['targetInfo.modeDisplay', 'targetInfo.cluster', 'targetInfo.clusterGroup'],
+  sort:     ['targetInfo.modeDisplay'],
 };
 
 export const FLEET_APPLICATION_CLUSTERS_READY = {
@@ -1102,7 +1102,7 @@ export const FLEET_REPO_TARGET = {
   name:     'target',
   labelKey: 'tableHeaders.target',
   value:    'targetInfo.modeDisplay',
-  sort:     ['targetInfo.modeDisplay', 'targetInfo.cluster', 'targetInfo.clusterGroup'],
+  sort:     ['targetInfo.modeDisplay'],
 };
 
 export const FLEET_REPO = {

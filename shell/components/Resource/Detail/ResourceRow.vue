@@ -1,6 +1,7 @@
 <script lang="ts">
 import SubtleLink from '@shell/components/SubtleLink.vue';
-import { StateColor, stateColorCssVar } from '@shell/utils/style';
+import StateDot from '@shell/components/StateDot/index.vue';
+import { StateColor } from '@shell/utils/style';
 import { sortBy } from 'lodash';
 import { RouteLocationRaw } from 'vue-router';
 
@@ -64,13 +65,10 @@ const {
         v-else
         class="counts"
       >
-        <span
+        <StateDot
           v-if="color"
-          class="dot"
-          :style="{backgroundColor: stateColorCssVar(color)}"
-        >
-&nbsp;
-        </span>
+          :color="color"
+        />
         <span
           v-for="count in counts"
           :key="count.label"
@@ -105,14 +103,7 @@ const {
       display: none;
     }
 
-    .dot {
-      display: inline-block;
-
-      $size: 6px;
-      width: $size;
-      height: $size;
-
-      border-radius: 50%;
+    .state-dot {
       margin-right: 10px;
     }
 }
