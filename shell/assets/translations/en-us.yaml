@@ -151,7 +151,6 @@ generic:
   showLess: Show less
   showMore: Show more
   opensInNewTab: Opens in a new tab
-  
 
 graph:
   noPermissions: You do not have permission to Graph view
@@ -1054,7 +1053,6 @@ catalog:
     windowsIncompatible: Linux only
     versionWindowsIncompatible: Linux only version
     header: Charts
-    featuredCharts: Featured Charts
     noCharts: 'There are no charts available, have you added any repos or set filters?'
     noWindows: Your repos do not contain any charts capable of being deployed on a cluster with Windows nodes.
     noWindowsAndLinux: Your repos do not contain any charts capable of being deployed on a cluster with both Windows and Linux worker nodes.
@@ -1062,7 +1060,7 @@ catalog:
       all: All Operating Systems
       linux: Linux
       windows: Windows
-    search: Filter charts results
+    search: Search the catalogue...
     deprecatedChartsFilter:
       label: Show deprecated apps
     addNewRepo:
@@ -1073,6 +1071,24 @@ catalog:
         ariaLabel: Apply filter
     experimentalStatus:
       tooltip: Experimental - using this filter is not yet 100% accurate. Proceed with caution.
+    totalChartsMessage: |-
+        {count , plural,
+          =1 { {count} chart in total }
+          other { {count} charts in total }
+        }
+    totalMatchedChartsMessage: |-
+        {count , plural,
+          =1 { {count} chart matching your criteria. }
+          other { {count} charts matching your criteria. }
+        }
+    resetFilters:
+      title: Clear All filters
+    sortBy:
+      recommended: 'Sort by: Recommended'
+      lastUpdated: 'Sort by: Last updated'
+      name: 'Sort by: Chart name'
+    refreshButton:
+      label: Refresh all repositories
   install:
     action:
       goToUpgrade: Edit/Upgrade

@@ -536,6 +536,7 @@ function addChart(ctx, map, chart, repo) {
       chartNameDisplay: chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
       chartDescription: chart.description,
       featured:         chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED],
+      featuredIndex:    chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED] ? Number(chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED]) : Number.MAX_SAFE_INTEGER,
       repoKey:          repo._key,
       versions:         [],
       categories:       filterCategories(chart.keywords),
@@ -565,6 +566,10 @@ function addChart(ctx, map, chart, repo) {
   }
 
   obj.versions.push(chart);
+
+  if (!obj.durationSinceRelease) {
+    obj.durationSinceRelease = Date.now() - new Date(obj.versions[0].created).getTime();
+  }
 }
 
 function preferSameRepo(matching, repoType, repoName) {
@@ -648,6 +653,7 @@ export function filterAndArrangeCharts(charts, {
   category,
   tag,
   searchQuery,
+  sort,
   showDeprecated = false,
   showHidden = false,
   showPrerelease = true,
@@ -699,6 +705,18 @@ export function filterAndArrangeCharts(charts, {
 
     return true;
   });
+
+  if (sort === 'recommended') {
+    return sortBy(out, ['featuredIndex', 'certifiedSort', 'repoName', 'chartNameDisplay']);
+  }
+
+  if (sort === 'lastupdated') {
+    return sortBy(out, ['durationSinceRelease', 'featuredIndex', 'certifiedSort', 'repoName', 'chartNameDisplay']);
+  }
+
+  if (sort === 'name') {
+    return sortBy(out, ['chartNameDisplay', 'featuredIndex', 'certifiedSort', 'repoName']);
+  }
 
   return sortBy(out, ['certifiedSort', 'repoName', 'chartNameDisplay']);
 }

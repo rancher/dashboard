@@ -4,7 +4,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, TAG, STATUS
+  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, SORT_BY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, TAG, STATUS
 } from '@shell/config/query-params';
 import { APP_STATUS, compatibleVersionsFor, filterAndArrangeCharts, normalizeFilterQuery } from '@shell/store/catalog';
 import { lcFirst } from '@shell/utils/string';
@@ -22,6 +22,14 @@ import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartC
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import AddRepoLink from '@shell/pages/c/_cluster/apps/charts/AddRepoLink';
 import StatusLabel from '@shell/pages/c/_cluster/apps/charts/StatusLabel';
+import Select from '@shell/components/form/Select';
+
+const createInitialFilters = () => ({
+  repos:      [],
+  categories: [],
+  statuses:   [],
+  tags:       []
+});
 
 export default {
   name:       'Charts',
@@ -32,7 +40,8 @@ export default {
     RcItemCard,
     FilterPanel,
     AppChartCardSubHeader,
-    AppChartCardFooter
+    AppChartCardFooter,
+    Select
   },
 
   async fetch() {
@@ -42,6 +51,7 @@ export default {
 
     this.searchQuery = query[SEARCH_QUERY] || '';
     this.debouncedSearchQuery = query[SEARCH_QUERY] || '';
+    this.selectedSortOption = query[SORT_BY] || 'recommended';
     this.showHidden = query[HIDDEN] === _FLAGGED;
     this.filters.repos = normalizeFilterQuery(query[REPO]) || [];
     this.filters.categories = normalizeFilterQuery(query[CATEGORY]) || [];
@@ -57,20 +67,11 @@ export default {
       debouncedSearchQuery: null,
       showDeprecated:       null,
       showHidden:           null,
-      filters:              {
-        repos:      [],
-        categories: [],
-        statuses:   [],
-        tags:       []
-      },
-      internalFilters: { // in order to update the filter checkboxes smoothly
-        repos:      [],
-        categories: [],
-        statuses:   [],
-        tags:       []
-      },
-      installedApps: [],
-      statusOptions: [
+      filters:              createInitialFilters(),
+      // to optimize UI responsiveness by immediately updating the filter state
+      internalFilters:      createInitialFilters(),
+      installedApps:        [],
+      statusOptions:        [
         {
           value: APP_STATUS.INSTALLED,
           label: {
@@ -100,7 +101,13 @@ export default {
           }
         }
       ],
-      appCardsCache: {},
+      appCardsCache:      {},
+      selectedSortOption: 'recommended',
+      sortOptions:        [
+        { value: 'recommended', label: this.t('catalog.charts.sortBy.recommended') },
+        { value: 'lastupdated', label: this.t('catalog.charts.sortBy.lastUpdated') },
+        { value: 'name', label: this.t('catalog.charts.sortBy.name') },
+      ]
     };
   },
 
@@ -171,7 +178,8 @@ export default {
         category:    categories,
         searchQuery: this.debouncedSearchQuery,
         repo:        repos,
-        tag:         tags
+        tag:         tags,
+        sort:        this.selectedSortOption
       });
 
       // status filtering is separated from other filters because "isInstalled" and "upgradeable" statuses are already calculated in models/chart.js
@@ -262,6 +270,18 @@ export default {
 
     clusterId() {
       return this.$store.getters['clusterId'];
+    },
+
+    noFiltersApplied() {
+      return Object.values(this.internalFilters).every((arr) => arr.length === 0) && !this.searchQuery;
+    },
+
+    totalMessage() {
+      if (this.noFiltersApplied) {
+        return this.t('catalog.charts.totalChartsMessage', { count: this.appChartCards.length });
+      } else {
+        return this.t('catalog.charts.totalMatchedChartsMessage', { count: this.appChartCards.length });
+      }
     }
   },
 
@@ -287,7 +307,14 @@ export default {
         this.$router.applyQuery(query);
         this.internalFilters = JSON.parse(JSON.stringify(newFilters));
       }
-    }
+    },
+
+    selectedSortOption: {
+      handler(neu) {
+        this.$router.applyQuery({ [SORT_BY]: neu || undefined });
+      },
+      immediate: false
+    },
   },
 
   methods: {
@@ -369,7 +396,7 @@ export default {
     },
 
     filterCharts({
-      repo, category, tag, searchQuery
+      repo, category, tag, searchQuery, sort
     }) {
       const enabledCharts = (this.enabledCharts || []);
       const clusterProvider = this.currentCluster.status.provider || 'other';
@@ -384,7 +411,16 @@ export default {
         showHidden:     this.showHidden,
         hideTypes:      [CATALOG._CLUSTER_TPL],
         showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
+        sort
       });
+    },
+
+    resetAllFilters() {
+      const initialState = createInitialFilters();
+
+      this.internalFilters = initialState;
+      this.filters = initialState;
+      this.searchQuery = '';
     },
   },
 };
@@ -401,24 +437,33 @@ export default {
         {{ t('catalog.chart.header.charts') }}
       </h1>
       <AsyncButton
+        :action-label="t('catalog.charts.refreshButton.label')"
+        :waitingLabel="t('catalog.charts.refreshButton.label')"
+        :success-label="t('catalog.charts.refreshButton.label')"
+        mode="refresh"
         role="button"
         :aria-label="t('catalog.charts.refresh')"
-        :label="t('catalog.charts.refresh')"
-        class="refresh-btn"
-        mode="refresh"
+        actionColor="role-secondary"
+        successColor="bg-success"
         @click="refresh"
       />
     </div>
-    <input
-      ref="searchQuery"
-      v-model="searchQuery"
-      type="search"
-      class="input search-input"
-      :placeholder="t('catalog.charts.search')"
-      data-testid="charts-filter-input"
-      :aria-label="t('catalog.charts.search')"
-      role="textbox"
-    >
+    <div class="search-input">
+      <input
+        ref="searchQuery"
+        v-model="searchQuery"
+        type="search"
+        class="input"
+        :placeholder="t('catalog.charts.search')"
+        data-testid="charts-filter-input"
+        :aria-label="t('catalog.charts.search')"
+        role="textbox"
+      >
+      <i
+        v-if="!searchQuery"
+        class="icon icon-search"
+      />
+    </div>
     <button
       v-shortkey.once="['/']"
       class="hide"
@@ -447,38 +492,67 @@ export default {
       </div>
       <div
         v-else
-        class="app-chart-cards"
-        data-testid="app-chart-cards-container"
+        class="right-section"
       >
-        <rc-item-card
-          v-for="card in appChartCards"
-          :id="card.id"
-          :key="card.id"
-          :pill="card.pill"
-          :header="card.header"
-          :image="card.image"
-          :content="card.content"
-          :value="card.rawChart"
-          variant="medium"
-          :clickable="true"
-          @card-click="selectChart"
+        <div class="total-and-sort">
+          <div class="total">
+            <p class="total-message">
+              {{ totalMessage }}
+            </p>
+            <a
+              v-if="!noFiltersApplied"
+              class="reset-filters"
+              role="button"
+              :aria-label="t('catalog.charts.resetFilters.title')"
+              @click="resetAllFilters"
+            >
+              {{ t('catalog.charts.resetFilters.title') }}
+            </a>
+          </div>
+          <Select
+            v-model:value="selectedSortOption"
+            :clearable="false"
+            :searchable="false"
+            :options="sortOptions"
+            placement="bottom"
+            class="charts-sort-select"
+          />
+        </div>
+        <div
+          class="app-chart-cards"
+          data-testid="app-chart-cards-container"
         >
-          <template
-            v-once
-            #item-card-sub-header
+          <rc-item-card
+            v-for="card in appChartCards"
+            :id="card.id"
+            :key="card.id"
+            :pill="card.pill"
+            :header="card.header"
+            :image="card.image"
+            :content="card.content"
+            :value="card.rawChart"
+            variant="medium"
+            :class="{ 'single-card': appChartCards.length === 1 }"
+            :clickable="true"
+            @card-click="selectChart"
           >
-            <AppChartCardSubHeader :items="card.subHeaderItems" />
-          </template>
-          <template
-            v-once
-            #item-card-footer
-          >
-            <AppChartCardFooter
-              :items="card.footerItems"
-              @click:item="handleFooterItemClick"
-            />
-          </template>
-        </rc-item-card>
+            <template
+              v-once
+              #item-card-sub-header
+            >
+              <AppChartCardSubHeader :items="card.subHeaderItems" />
+            </template>
+            <template
+              v-once
+              #item-card-footer
+            >
+              <AppChartCardFooter
+                :items="card.footerItems"
+                @click:item="handleFooterItemClick"
+              />
+            </template>
+          </rc-item-card>
+        </div>
       </div>
     </div>
   </div>
@@ -494,7 +568,19 @@ export default {
 }
 
 .search-input {
+  position: relative;
   margin-bottom: 24px;
+
+  input {
+    height: 48px;
+  }
+
+  .icon-search {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 16px;
+  }
 }
 
 .checkbox-select {
@@ -509,6 +595,46 @@ export default {
     text-overflow: ellipsis;
     display: inline-block;
     line-height: 2.4rem;
+  }
+}
+
+.right-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+  flex: 1;
+}
+
+.total-and-sort {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--gap-md);
+  padding: 8px 0;
+
+  .total {
+    display: flex;
+
+    .total-message {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--body-text);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .reset-filters {
+      font-size: 16px;
+      font-weight: 600;
+      margin-left: 8px;
+      cursor: pointer;
+    }
+  }
+
+  .charts-sort-select {
+    width: 300px;
   }
 }
 
@@ -531,6 +657,10 @@ export default {
   width: 100%;
   height: max-content;
   overflow: hidden;
+
+  .single-card {
+    max-width: 500px;
+  }
 }
 
 </style>
