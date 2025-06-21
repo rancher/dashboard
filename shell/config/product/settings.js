@@ -1,5 +1,5 @@
 import { DSL } from '@shell/store/type-map';
-import { MANAGEMENT, HELM } from '@shell/config/types';
+import { FLEET, MANAGEMENT, HELM } from '@shell/config/types';
 import {
   STATE,
   FEATURE_DESCRIPTION,
@@ -35,7 +35,7 @@ export function init(store) {
     labelKey:   'advancedSettings.label',
     name:       'settings',
     namespaced: false,
-    weight:     100,
+    weight:     101,
     icon:       'folder',
     route:      {
       name:   'c-cluster-product-resource',
@@ -51,7 +51,7 @@ export function init(store) {
     labelKey:   'featureFlags.label',
     name:       'features',
     namespaced: false,
-    weight:     99,
+    weight:     100,
     icon:       'folder',
     route:      {
       name:   'c-cluster-product-resource',
@@ -60,6 +60,16 @@ export function init(store) {
         resource: MANAGEMENT.FEATURE
       }
     }
+  });
+
+  virtualType({
+    ifHaveType: FLEET.GIT_REPO, // TODO should check HelmOps
+    labelKey:   'fleet.settings.label',
+    name:       'fleet-settings',
+    namespaced: false,
+    weight:     99,
+    icon:       'folder',
+    route:      { name: 'c-cluster-settings-fleet' }
   });
 
   virtualType({
@@ -108,7 +118,8 @@ export function init(store) {
     'brand',
     'banners',
     'performance',
-    'links'
+    'links',
+    'fleet-settings'
   ]);
 
   configureType(MANAGEMENT.SETTING, {
