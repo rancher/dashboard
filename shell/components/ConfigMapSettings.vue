@@ -14,7 +14,7 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export interface Setting {
   weight: number,
-  type: 'string' | 'number' | 'boolean',
+  type: 'string' | 'number' | 'boolean', // add here new types
   path: string,
   default: any,
   tooltip: boolean,
@@ -33,7 +33,6 @@ interface DataType {
   noPermissions: boolean,
   configMap: any,
   values: object,
-  valuesErrors: string[],
   errors: string[]
 }
 
@@ -52,22 +51,49 @@ export default {
   },
 
   props: {
+    /**
+     * A key-value object that defines a flat list of settings.
+     * Each entry describe the setting name and the path where to get/set in the ConfigMap data field
+     *
+     * example:
+     *
+     *  {
+     *    setting-name: {
+     *      weight:  0,
+     *      type:    'number',
+     *      path:    'the.path.to.nested.value',
+     *      default: '50',
+     *      tooltip: false,
+     *      info:    false,
+     *    },
+     *    ...
+     *  }
+     */
     settings: {
       type:     Object as PropType<Record<string, Setting>>,
       required: true
     },
 
-    path: {
-      type:     String,
-      required: true
-    },
-
+    /**
+     * ConfigMap name
+     */
     name: {
       type:     String,
       required: true
     },
 
+    /**
+     * ConfigMap namespace
+     */
     namespace: {
+      type:     String,
+      required: true
+    },
+
+    /**
+     * The key in ConfigMap.data where to save the settings values
+     */
+    dataKey: {
       type:     String,
       required: true
     },
@@ -75,6 +101,11 @@ export default {
     inStore: {
       type:    String,
       default: 'cluster',
+    },
+
+    labelKeyPrefix: {
+      type:    String,
+      default: 'settings'
     },
 
     title: {
@@ -92,15 +123,19 @@ export default {
     if (this.$store.getters[`${ this.inStore }/schemaFor`](CONFIG_MAP)) {
       try {
         this.configMap = await this.$store.dispatch(`${ this.inStore }/find`, { type: CONFIG_MAP, id: `${ this.namespace }/${ this.name }` });
-
-        const val = get(this.configMap || {}, `data.${ this.path }`) || '';
-
-        this.values = YAML.parse(val);
       } catch (err: any) {
-        if (!(err.status === 404 || err._status === 404)) {
-          this.valuesErrors.push(err);
-        }
       }
+
+      const configMapValues = get(this.configMap || {}, `data.${ this.dataKey }`);
+      const currentValues = YAML.parse(configMapValues || '');
+
+      const defaultValues = Object.keys(this.settings).reduce((acc, name) => {
+        set(acc, this.settings[name].path, this.settings[name].default);
+
+        return acc;
+      }, {});
+
+      this.values = merge(defaultValues, currentValues);
     } else {
       this.noPermissions = true;
     }
@@ -111,7 +146,6 @@ export default {
       noPermissions: false,
       configMap:     null,
       values:        {},
-      valuesErrors:  [],
       errors:        []
     };
   },
@@ -145,7 +179,7 @@ export default {
     },
 
     canEdit() {
-      return this.mode === _EDIT && !this.valuesErrors.length;
+      return this.mode === _EDIT;
     },
 
     fetchState(): {pending: boolean} {
@@ -155,13 +189,7 @@ export default {
 
   methods: {
     get(item: SettingDisplay) {
-      const out = get(this.values, item.path);
-
-      if (out === undefined) {
-        return this.settings[item.name].default;
-      }
-
-      return out;
+      return get(this.values, item.path);
     },
 
     set(item: SettingDisplay, value: any) {
@@ -174,23 +202,15 @@ export default {
         metadata: {
           namespace: this.namespace,
           name:      this.name
-        },
-        data: {}
+        }
       });
 
+      if (!configMap.data) {
+        configMap.data = {};
+      }
+
       try {
-        // Create default values object
-        const defaultValues = Object.keys(this.settings).reduce((acc, name) => {
-          set(acc, this.settings[name].path, this.settings[name].default);
-
-          return acc;
-        }, {} as object);
-
-        // Merge default values with form values
-        const values = merge(defaultValues, this.values);
-
-        // Merge data with current values from this.path
-        configMap.data = merge(configMap.data, { [this.path]: jsyaml.dump(merge(configMap[this.path] || {}, values)) });
+        configMap.data[this.dataKey] = jsyaml.dump(this.values);
 
         await configMap.save();
 
@@ -204,7 +224,7 @@ export default {
     },
 
     display(name: string, key: 'label' | 'description' | 'tooltip' | 'info') {
-      return this.t(`${ this.path }.settings.${ name }.${ key }`);
+      return this.t(`${ this.labelKeyPrefix }.${ name }.${ key }`);
     }
   }
 };
@@ -214,7 +234,7 @@ export default {
   <Loading v-if="fetchState.pending" />
   <div v-else-if="noPermissions">
     <span>
-      {{ t(`${ path }.settings.noPermissions`) }}
+      {{ t(`${ labelKeyPrefix }.noPermissions`) }}
     </span>
   </div>
   <div v-else>
@@ -276,7 +296,7 @@ export default {
             :mode="mode"
             :label="item.label"
             :placeholder="''"
-            @input="set(item, ($event?.target as any)?.value)"
+            @update:value="set(item, $event)"
           />
         </template>
 
