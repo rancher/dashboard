@@ -134,6 +134,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <Masthead
+      component-testid="secrets-list"
       :schema="schema"
       :resource="resource"
       :create-location="createLocation"

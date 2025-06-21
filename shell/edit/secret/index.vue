@@ -275,7 +275,7 @@ export default {
       const doneLocation = this.value.listLocation;
 
       if (this.isProjectScoped) {
-        doneLocation.hash = '#project-scoped';
+        doneLocation.hash = `#${ SECRET_SCOPED_TABS.PROJECT_SCOPED }`;
       }
 
       return doneLocation;
@@ -429,6 +429,7 @@ export default {
             :label="t('namespace.project.label')"
             :options="projectOpts"
             required
+            data-testid="secret-project-select"
           />
         </template>
       </NameNsDescription>

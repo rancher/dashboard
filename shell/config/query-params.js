@@ -80,7 +80,7 @@ export const CLOUD_CREDENTIAL = 'cloud';
 export const PROJECT_ID = 'projectId';
 export const FLAT_VIEW = 'flatView';
 
-// Secrets and Configmaps
+// Secrets
 export const SCOPED_TABS = {
   NAMESPACED:     'namespaced',
   PROJECT_SCOPED: 'project-scoped'
