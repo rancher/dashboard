@@ -62,10 +62,11 @@ export default {
     :settings="settings"
     :namespace="'cattle-system'"
     :name="'rancher-config'"
-    :path="'fleet'"
+    :data-key="'fleet'"
     :in-store="'management'"
     :title="t('fleet.settings.title')"
     :description="t('fleet.settings.description')"
+    :label-key-prefix="'fleet.settings'"
     @done="done"
     @errors="e=>errors = e"
   />
