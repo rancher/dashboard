@@ -70,9 +70,10 @@ export default {
       const out = [];
 
       for ( const r of this.filteredRelationships) {
-        const state = r.state || 'active';
-        const stateColor = colorForState(state, r.error, r.transitioning);
         const type = r[`${ this.direction }Type`];
+        const realResource = this.$store.getters[`${ inStore }/byId`](type, r[`${ this.direction }Id`]);
+        const state = r.state || (realResource ? realResource.state : 'missing');
+        const stateColor = colorForState(state, r.error, r.transitioning);
         const schema = this.$store.getters[`${ inStore }/schemaFor`](type);
 
         let name = r[`${ this.direction }Id`];
@@ -104,7 +105,7 @@ export default {
 
         out.push({
           type,
-          real:     this.$store.getters[`${ inStore }/byId`](type, r[`${ this.direction }Id`]),
+          real:     realResource,
           id:       r[`${ this.direction }Id`],
           state,
           metadata: { namespace, name },
@@ -180,7 +181,7 @@ export default {
       />
       <BadgeState
         v-else
-        :value="row"
+        :value="{...row, state: 'missing'}"
       />
     </template>
   </ResourceTable>
