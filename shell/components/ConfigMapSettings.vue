@@ -140,16 +140,7 @@ export default {
       } catch (err: any) {
       }
 
-      const configMapValues = get(this.configMap || {}, `data.${ this.dataKey }`);
-      const currentValues = YAML.parse(configMapValues || '');
-
-      const defaultValues = Object.keys(this.settings).reduce((acc, name) => {
-        set(acc, this.settings[name].path, this.settings[name].default);
-
-        return acc;
-      }, {});
-
-      this.values = merge(defaultValues, currentValues);
+      this.initValues();
     } else {
       this.noPermissions = true;
     }
@@ -237,6 +228,21 @@ export default {
         this.$emit('errors', this.errors);
         btnCB(false);
       }
+    },
+
+    initValues() {
+      const defaultValues = Object.keys(this.settings).reduce((acc, name) => {
+        set(acc, this.settings[name].path, this.settings[name].default);
+
+        return acc;
+      }, {});
+
+      const configMapValues = get(this.configMap || {}, `data.${ this.dataKey }`);
+      const currentValues = YAML.parse(configMapValues || '');
+
+      // this.sanitize(currentValues);
+
+      this.values = merge(defaultValues, currentValues);
     },
 
     display(name: string, key: 'label' | 'description' | 'tooltip' | 'info' | 'placeholder') {
