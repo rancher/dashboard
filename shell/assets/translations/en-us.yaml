@@ -2520,18 +2520,34 @@ fleet:
     title: Fleet Settings
     description: fleet settings description
     noPermissions: You have no permissions to modify Fleet Settings
+    singleSelect:
+      label: Single Select
+      description: descr
+      options:
+        aaa:
+          label: aaa
+        bbb:
+          label: bbb
+    multiSelect:
+      label: Multi Select
+      description: descr
+      options:
+        aaa:
+          label: aaa
+        bbb:
+          label: bbb
     gitRepoReconciler:
       label: Git Repo reconciler
-      description: descr1
+      description: descr
     agentTLSMode:
       label: Agent TLS Mode
-      description: descr2
+      description: descr
     agentCheckinInterval:
       label: Agent Checkin Interval
-      description: descr5
+      description: descr
     debug:
       label: Debug
-      description: descr3
+      description: descr
   tableHeaders:
     applicationType: Type
     applicationSource: Source

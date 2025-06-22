@@ -14,37 +14,75 @@ export default {
   computed: {
     settings() {
       return {
+        singleSelect: {
+          weight: 0,
+          type:   'string',
+          path:   'singleSelect',
+          items:  [{
+            type:  'string',
+            value: 'aaa'
+          }, {
+            type:  'string',
+            value: 'bbb'
+          }],
+          default:     'aaa',
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
+        },
+
+        multiSelect: {
+          weight: 0,
+          type:   'array',
+          path:   'multiSelect',
+          items:  [{
+            type:  'string',
+            value: 'aaa'
+          }, {
+            type:  'string',
+            value: 'bbb'
+          }],
+          default:     'aaa',
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
+        },
+
         gitRepoReconciler: {
-          weight:  0,
-          type:    'number',
-          path:    'controller.reconciler.workers.gitrepo',
-          default: '50',
-          tooltip: false,
-          info:    false,
+          weight:      0,
+          type:        'number',
+          path:        'controller.reconciler.workers.gitrepo',
+          default:     '50',
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
         },
         agentTLSMode: {
-          weight:  0,
-          type:    'string',
-          path:    'agentTLSMode',
-          default: 'system-store',
-          tooltip: false,
-          info:    false,
+          weight:      0,
+          type:        'string',
+          path:        'agentTLSMode',
+          default:     'system-store',
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
         },
         agentCheckinInterval: {
-          weight:  0,
-          type:    'string',
-          path:    'agentCheckinInterval',
-          default: '15m',
-          tooltip: false,
-          info:    false,
+          weight:      0,
+          type:        'string',
+          path:        'agentCheckinInterval',
+          default:     '15m',
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
         },
         debug: {
-          weight:  0,
-          type:    'boolean',
-          path:    'debug',
-          default: false,
-          tooltip: false,
-          info:    false,
+          weight:      0,
+          type:        'boolean',
+          path:        'debug',
+          default:     false,
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
         }
       } as Record<string, Setting>;
     },
