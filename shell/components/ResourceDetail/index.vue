@@ -29,10 +29,10 @@ const resourceToPage: any = {
   // 'batch.cronjob':    defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/batch.cronjob.vue')),
   // 'batch.job':        defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/batch.job.vue')),
   configmap: defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/configmap.vue')),
-  // namespace:          defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/namespace.vue')),
-  // node:               defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/node.vue')),
-  // pod:                defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/pod.vue')),
-  // secret:             defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/secret.vue')),
+  // namespace:           defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/namespace.vue')),
+  // node:                defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/node.vue')),
+  // pod:                 defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/pod.vue')),
+  secret:    defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/secret.vue')),
 };
 
 const route = useRoute();
