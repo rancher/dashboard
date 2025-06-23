@@ -123,7 +123,7 @@ export default {
           id:   SETTING.SERVER_URL,
         });
       } catch (e) {
-        console.error('Unable to fetch `server-url` setting: ', e); // eslint-disable-line no-console
+        this.$store.dispatch('growl/fromError', { err: e });
       }
 
       await this.$store.dispatch(`${ this.store }/findAll`, { type: MANAGEMENT.PROJECT });
@@ -144,9 +144,8 @@ export default {
       throttledRefreshCharts: null,
 
       // check the cluster repo schema
-      canCreateRepos:   false,
-      // once the target repo is created/found, we'll check that the user can perform the install action with that specific repo
-      // canInstallChart:  true,
+      canCreateRepos: false,
+
       serverUrlSetting: null,
       versionInfo:      null,
       userValues:       {},
