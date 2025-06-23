@@ -9,7 +9,6 @@ defineProps<{
 <template>
   <router-link
     :to="`/c/${clusterId}/apps/catalog.cattle.io.clusterrepo/create`"
-    target="_blank"
     class="add-repo-link"
     tabindex="0"
     :aria-label="t('catalog.charts.addNewRepo.ariaLabel')"
