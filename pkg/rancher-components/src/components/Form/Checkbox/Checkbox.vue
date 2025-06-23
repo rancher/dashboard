@@ -305,12 +305,15 @@ export default defineComponent({
         :class="{ 'checkbox-primary': primary }"
       >
         <slot name="label">
-          <t
+          <span
             v-if="labelKey"
             :id="idForLabel"
-            :k="labelKey"
-            :raw="true"
-          />
+          >
+            <t
+              :k="labelKey"
+              :raw="true"
+            />
+          </span>
           <span
             v-else-if="label"
             :id="idForLabel"
