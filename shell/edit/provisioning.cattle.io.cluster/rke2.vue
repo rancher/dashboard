@@ -282,7 +282,7 @@ export default {
       activeTab:                                null,
       REGISTRIES_TAB_NAME,
       labelForAddon,
-      s3ConfigValue:                            { ...initialS3Config },     
+      s3ConfigValue:                            { ...initialS3Config },
     };
   },
 
@@ -296,23 +296,21 @@ export default {
       const s3EndpointValue = this.rkeConfig.etcd?.s3?.endpoint;
 
       if (!this.s3Backup && isEmpty(s3EndpointValue)) {
-
         return true;
       }
 
       if (!this.s3ConfigComponent && (this.s3Backup || !isEmpty(s3EndpointValue))) {
-
         if (!isHttpsOrHttp(s3EndpointValue)) {
-
           return true;
         }
+
         return false;
       }
 
       if (this.s3ConfigComponent) {
-        
         return !this.s3ConfigComponent.isEndpointInvalid;
       }
+
       return false;
     },
     isActiveTabRegistries() {
@@ -876,6 +874,7 @@ export default {
       Object.values(this.machinePoolValidation).forEach((v) => (base = base && v));
 
       const hasAddonConfigErrors = Object.values(this.addonConfigValidation).filter((v) => v === false).length > 0;
+
       return validRequiredPools && base && !hasAddonConfigErrors;
     },
     currentCluster() {
@@ -894,9 +893,9 @@ export default {
       }
     },
     overallFormValidationPassed() {
-      return this.validationPassed && 
-            this.fvFormIsValid && 
-            this.isS3EndpointTrulyValid; 
+      return this.validationPassed &&
+            this.fvFormIsValid &&
+            this.isS3EndpointTrulyValid;
     },
   },
 
@@ -2100,7 +2099,7 @@ export default {
         this.s3ConfigValue = this.rkeConfig.etcd.s3;
       } else {
         this.rkeConfig.etcd.s3 = null;
-        this.s3ConfigValue = {}; 
+        this.s3ConfigValue = {};
       }
     },
     handleConfigEtcdExposeMetricsChanged(neu) {
@@ -2392,14 +2391,14 @@ export default {
           >
             <template #s3-config>
               <S3Config
-                v-show="s3Backup"  
+                v-show="s3Backup"
                 ref="s3ConfigComponent"
                 v-model:value="s3ConfigValue"
                 :mode="mode"
-                :namespace="value.metadata.namespace" 
+                :namespace="value.metadata.namespace"
                 :register-before-hook="registerBeforeHook"
-                @update:value="handleS3ConfigUpdate" 
-              /> 
+                @update:value="handleS3ConfigUpdate"
+              />
             </template>
           </Etcd>
         </Tab>

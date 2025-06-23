@@ -10,7 +10,7 @@ import { isHttpsOrHttp } from '@shell/utils/validators/setting';
 
 export default {
   emits: ['update:value'],
-  
+
   components: {
     LabeledInput,
     Checkbox,
@@ -53,14 +53,14 @@ export default {
       ...(this.value || {}),
     };
 
-    return { 
+    return {
       config,
       s3EndpointHasError: false,
     };
   },
 
   computed: {
-    
+
     ccData() {
       if ( this.config.cloudCredentialName ) {
         const cred = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.config.cloudCredentialName);
@@ -79,8 +79,8 @@ export default {
       return this.mode === _VIEW;
     },
 
-    isEndpointInvalid() { 
-        return this.s3EndpointHasError;
+    isEndpointInvalid() {
+      return this.s3EndpointHasError;
     }
   },
 
@@ -96,6 +96,7 @@ export default {
 
     validateEndpoint(value) {
       let message = '';
+
       if (isHttpsOrHttp(value)) {
         message = this.t('cluster.credential.s3.defaultEndpoint.error');
         this.s3EndpointHasError = !!message; // Set to true if a message exists, false otherwise
@@ -110,7 +111,7 @@ export default {
       handler(newValue) {
         this.validateEndpoint(newValue);
       },
-      immediate: true, 
+      immediate: true,
     },
     value: {
       handler(newValue) {
@@ -123,7 +124,7 @@ export default {
       immediate: true,
     }
   },
-  
+
 };
 </script>
 
@@ -185,9 +186,10 @@ export default {
           :error="s3EndpointHasError"
           @update:value="update"
         />
-        <div v-if="s3EndpointHasError" 
-             class="input-error-message"
-        >  
+        <div
+          v-if="s3EndpointHasError"
+          class="input-error-message"
+        >
           {{ t('cluster.credential.s3.defaultEndpoint.error') }}
         </div>
       </div>
