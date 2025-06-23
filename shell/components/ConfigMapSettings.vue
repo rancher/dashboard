@@ -1,7 +1,6 @@
 <script lang="ts">
 import { PropType } from 'vue';
 import jsyaml from 'js-yaml';
-import { merge } from 'lodash';
 import { set, get } from '@shell/utils/object';
 import YAML from 'yaml';
 import { CONFIG_MAP, MANAGEMENT } from '@shell/config/types';
@@ -11,13 +10,19 @@ import { Checkbox } from '@components/Form/Checkbox';
 import Loading from '@shell/components/Loading.vue';
 import AsyncButton from '@shell/components/AsyncButton.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import { Banner } from '@components/Banner';
 
-type SettingType = 'string' | 'number' | 'boolean' | 'array'; // add here new types
+type SettingType = 'string' | 'number' | 'boolean' | 'array' | 'object';
 
 interface Item {
   type: SettingType,
   value: string
+}
+
+interface Option {
+  label: string,
+  value: string,
 }
 
 export interface Setting {
@@ -34,7 +39,7 @@ export interface Setting {
 
 export type SettingDisplay = Setting & {
   name: string,
-  options?: { label: string, value: string }[]
+  options?: Option[]
   label: string,
   description: string,
   tooltipLabel?: string,
@@ -62,6 +67,7 @@ export default {
     Loading,
     AsyncButton,
     Banner,
+    TextAreaAutoGrow
   },
 
   props: {
@@ -137,7 +143,7 @@ export default {
     if (this.$store.getters[`${ this.inStore }/schemaFor`](CONFIG_MAP)) {
       try {
         this.configMap = await this.$store.dispatch(`${ this.inStore }/find`, { type: CONFIG_MAP, id: `${ this.namespace }/${ this.name }` });
-      } catch (err: any) {
+      } catch (err) {
       }
 
       this.initValues();
@@ -217,36 +223,66 @@ export default {
       }
 
       try {
-        configMap.data[this.dataKey] = jsyaml.dump(this.values);
+        const values = this.fromValues(this.values);
+
+        configMap.data[this.dataKey] = jsyaml.dump(values);
 
         await configMap.save();
 
         this.$emit('done', configMap);
         btnCB(true);
-      } catch (err: any) {
-        this.errors.push(err);
+      } catch (err) {
+        this.errors.push(err as string);
         this.$emit('errors', this.errors);
         btnCB(false);
       }
     },
 
     initValues() {
-      const defaultValues = Object.keys(this.settings).reduce((acc, name) => {
-        set(acc, this.settings[name].path, this.settings[name].default);
-
-        return acc;
-      }, {});
-
       const configMapValues = get(this.configMap || {}, `data.${ this.dataKey }`);
       const currentValues = YAML.parse(configMapValues || '');
 
-      // this.sanitize(currentValues);
+      this.values = this.toValues(currentValues);
+    },
 
-      this.values = merge(defaultValues, currentValues);
+    toValues(values: object) {
+      return this.buildValues(values, (name, value) => {
+        // use default value
+        if (value === undefined) {
+          value = this.settings[name].default;
+        }
+
+        // object type to json
+        if (this.settings[name].type === 'object') {
+          value = JSON.stringify(value || {});
+        }
+
+        return value;
+      });
+    },
+
+    fromValues(values: object) {
+      return this.buildValues(values, (name, value) => {
+        if (this.settings[name].type === 'object') {
+          value = YAML.parse(value);
+        }
+
+        return value;
+      });
+    },
+
+    buildValues<T = any>(values: object, fn: (name: string, value: T) => T) {
+      return Object.keys(this.settings).reduce((acc, name) => {
+        const value = get(values, this.settings[name].path);
+
+        set(acc, this.settings[name].path, fn(name, value));
+
+        return acc;
+      }, {});
     },
 
     display(name: string, key: 'label' | 'description' | 'tooltip' | 'info' | 'placeholder') {
-      return this.t(`${ this.labelKeyPrefix }.${ name }.${ key }`);
+      return this.t(`${ this.labelKeyPrefix }.${ name }.${ key }`, {}, true);
     }
   }
 };
@@ -327,7 +363,16 @@ export default {
             :multiple="item.type === 'array'"
             :options="item.options"
             :option-key="'value'"
-            :reduce="(opt: any)=>opt.value"
+            :reduce="(opt: Option)=>opt.value"
+            @update:value="set(item, $event)"
+          />
+        </template>
+
+        <template v-else-if="item.type === 'object'">
+          <TextAreaAutoGrow
+            :value="get(item)"
+            :min-height="10"
+            :mode="mode"
             @update:value="set(item, $event)"
           />
         </template>

@@ -63,21 +63,11 @@ export function init(store) {
   });
 
   virtualType({
-    ifHaveType: FLEET.GIT_REPO, // TODO should check HelmOps
-    labelKey:   'fleet.settings.label',
-    name:       'fleet-settings',
-    namespaced: false,
-    weight:     99,
-    icon:       'folder',
-    route:      { name: 'c-cluster-settings-fleet' }
-  });
-
-  virtualType({
     ifHaveType: MANAGEMENT.SETTING,
     labelKey:   'branding.label',
     name:       'brand',
     namespaced: false,
-    weight:     98,
+    weight:     99,
     icon:       'folder',
     route:      { name: 'c-cluster-settings-brand' }
   });
@@ -110,6 +100,16 @@ export function init(store) {
     weight:     96,
     icon:       'folder',
     route:      { name: 'c-cluster-settings-links' }
+  });
+
+  virtualType({
+    ifHaveType: FLEET.GIT_REPO,
+    labelKey:   'fleet.settings.label',
+    name:       'fleet-settings',
+    namespaced: false,
+    weight:     95,
+    icon:       'folder',
+    route:      { name: 'c-cluster-settings-fleet' }
   });
 
   basicType([

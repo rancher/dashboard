@@ -14,52 +14,16 @@ export default {
   computed: {
     settings() {
       return {
-        singleSelect: {
+        agentTLSMode: {
           weight: 0,
           type:   'string',
-          path:   'singleSelect',
           items:  [{
             type:  'string',
-            value: 'aaa'
+            value: 'strict'
           }, {
             type:  'string',
-            value: 'bbb'
+            value: 'system-store'
           }],
-          default:     'aaa',
-          tooltip:     false,
-          info:        false,
-          placeholder: false,
-        },
-
-        multiSelect: {
-          weight: 0,
-          type:   'array',
-          path:   'multiSelect',
-          items:  [{
-            type:  'string',
-            value: 'aaa'
-          }, {
-            type:  'string',
-            value: 'bbb'
-          }],
-          default:     'aaa',
-          tooltip:     false,
-          info:        false,
-          placeholder: false,
-        },
-
-        gitRepoReconciler: {
-          weight:      0,
-          type:        'number',
-          path:        'controller.reconciler.workers.gitrepo',
-          default:     '50',
-          tooltip:     false,
-          info:        false,
-          placeholder: false,
-        },
-        agentTLSMode: {
-          weight:      0,
-          type:        'string',
           path:        'agentTLSMode',
           default:     'system-store',
           tooltip:     false,
@@ -75,6 +39,87 @@ export default {
           info:        false,
           placeholder: false,
         },
+        garbageCollectionInterval: {
+          weight:      0,
+          type:        'string',
+          path:        'garbageCollectionInterval',
+          default:     '15m',
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
+        },
+        clusterEnqueueDelay: {
+          weight:      0,
+          type:        'string',
+          path:        'clusterEnqueueDelay',
+          default:     '120s',
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
+        },
+        proxy: {
+          weight:      0,
+          type:        'string',
+          path:        'proxy',
+          default:     '',
+          tooltip:     false,
+          info:        false,
+          placeholder: true,
+        },
+        noProxy: {
+          weight:      0,
+          type:        'string',
+          path:        'noProxy',
+          default:     '127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local',
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
+        },
+        gitClientTimeout: {
+          weight:      0,
+          type:        'string',
+          path:        'gitClientTimeout',
+          default:     '30s',
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
+        },
+        nodeSelector: {
+          weight:      0,
+          type:        'object',
+          path:        'nodeSelector',
+          default:     '{}',
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
+        },
+        tolerations: {
+          weight:      0,
+          type:        'object',
+          path:        'tolerations',
+          default:     '[]',
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
+        },
+        priorityClassName: {
+          weight:      0,
+          type:        'string',
+          path:        'priorityClassName',
+          default:     '',
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
+        },
+        metrics: {
+          weight:      0,
+          type:        'boolean',
+          path:        'metrics.enabled',
+          default:     false,
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
+        },
         debug: {
           weight:      0,
           type:        'boolean',
@@ -83,7 +128,44 @@ export default {
           tooltip:     false,
           info:        false,
           placeholder: false,
+        },
+        controllerReplicas: {
+          weight:      0,
+          type:        'number',
+          path:        'controller.replicas',
+          default:     1,
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
+        },
+        gitjobReplicas: {
+          weight:      0,
+          type:        'number',
+          path:        'gitjob.replicas',
+          default:     1,
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
+        },
+        helmopsReplicas: {
+          weight:      0,
+          type:        'number',
+          path:        'helmops.replicas',
+          default:     1,
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
+        },
+        agentReplicas: {
+          weight:      0,
+          type:        'number',
+          path:        'agent.replicas',
+          default:     1,
+          tooltip:     false,
+          info:        false,
+          placeholder: false,
         }
+
       } as Record<string, Setting>;
     },
   },
