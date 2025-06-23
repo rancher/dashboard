@@ -186,7 +186,8 @@ export default {
           @update:value="update"
           :error="s3EndpointHasError"
         />
-        <div v-if="s3EndpointHasError" class="input-error-message">
+        <div v-if="s3EndpointHasError" 
+             class="input-error-message">
           
           {{ t('cluster.credential.s3.defaultEndpoint.error') }}
         </div>
