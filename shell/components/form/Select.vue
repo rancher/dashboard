@@ -5,6 +5,7 @@ import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { generateRandomAlphaString } from '@shell/utils/string';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
+import { _VIEW } from '@shell/config/query-params';
 
 export default {
   emits: ['update:value', 'createdListItem', 'on-open', 'on-close'],
@@ -126,21 +127,18 @@ export default {
 
     // Ensure we only focus on open, otherwise we re-open on close
     clickSelect(ev) {
+      if (this.mode === _VIEW || this.loading === true || this.disabled === true) {
+        return;
+      }
+
+      this.isOpen = !this.isOpen;
+
       if (this.isOpen) {
         this.focusSearch(ev);
       }
     },
 
-   focusSearch(ev) {
-      const searchBox = document.querySelector('.vs__search');
-
-      // added to mitigate https://github.com/rancher/dashboard/issues/14361
-      if (!this.isSearchable || (searchBox && document.activeElement && !searchBox.contains(document.activeElement))) {
-        ev.preventDefault();
-      }
-
-      this.$refs['select-input'].open = true;
-
+    focusSearch() {
       this.$nextTick(() => {
         const el = this.$refs['select-input']?.searchEl;
 
@@ -202,18 +200,21 @@ export default {
     },
 
     handleDropdownOpen(args) {
+      if (!this.isOpen) {
+        return false;
+      }
+
       // function that prevents the "opening dropdown on focus"
       // default behaviour of v-select
       return args.noDrop || args.disabled ? false : args.open;
     },
     onOpen() {
-      this.isOpen = true;
+      this.focusSearch();
       this.$emit('on-open');
       this.resizeHandler();
     },
 
     onClose() {
-      this.isOpen = false;
       this.$emit('on-close');
     },
   },
@@ -281,9 +282,9 @@ export default {
     :aria-label="$attrs['aria-label'] || undefined"
     :aria-describedby="$attrs['aria-describedby'] || undefined"
     @click="clickSelect"
-    @keydown.enter="focusSearch"
-    @keydown.down.prevent="focusSearch"
-    @keydown.self.space.prevent="focusSearch"
+    @keydown.self.enter="clickSelect"
+    @keydown.self.down.prevent="clickSelect"
+    @keydown.self.space.prevent="clickSelect"
   >
     <v-select
       ref="select-input"
