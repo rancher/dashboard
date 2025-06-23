@@ -336,7 +336,7 @@ export default {
           id="password"
           type="password"
           name="password"
-          autocomplete="password"
+          autocomplete="new-password"
           :value="password"
           tabindex="-1"
           :data-lpignore="!isChange"
