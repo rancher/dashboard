@@ -1,21 +1,19 @@
 import { routeRequiresAuthentication } from '@shell/utils/router';
 import { isLoggedIn, notLoggedIn, noAuth, findMe } from '@shell/utils/auth';
-import Cookie from 'cookie-universal';
 import { RANCHER_AS_OIDC_QUERY_PARAMS } from '@shell/config/query-params';
 
-const cookies = Cookie();
-const RANCHER_AS_OIDC_COOKIE = 'rancher-as-oidc-prov';
+const R_OIDC_PROV_PARAMS = 'rancher-as-oidc-prov-params';
 
 function isRancherOidcProviderLogin(queryParams) {
   return queryParams && Object.keys(queryParams).length && RANCHER_AS_OIDC_QUERY_PARAMS.every((item) => Object.keys(queryParams).includes(item));
 }
 
 function handleOidcRedirectToCallbackUrl() {
-  const rancherAsOidcProvider = cookies.get(RANCHER_AS_OIDC_COOKIE, { parseJSON: false });
+  const rancherAsOidcProvider = sessionStorage.getItem(R_OIDC_PROV_PARAMS);
 
   if (rancherAsOidcProvider) {
-    window.location.href = `${ window.location.origin }/oidc/authorize${ rancherAsOidcProvider }`;
-    cookies.remove(RANCHER_AS_OIDC_COOKIE);
+    window.location.href = `${ window.location.origin }/oidc/authorize${ rancherAsOidcProvider }&code_challenge_method=S256`;
+    sessionStorage.removeItem(R_OIDC_PROV_PARAMS);
   }
 }
 
@@ -42,11 +40,7 @@ export async function authenticate(to, from, next, { store }) {
     if (to.name === 'auth-login' && isRancherOidcProviderLogin(to.query)) {
       const queryString = window.location.search;
 
-      cookies.set(RANCHER_AS_OIDC_COOKIE, queryString, {
-        path:     '/',
-        sameSite: true,
-        secure:   true,
-      });
+      sessionStorage.setItem(R_OIDC_PROV_PARAMS, queryString);
     }
 
     return next();
