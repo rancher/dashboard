@@ -24,8 +24,8 @@ const cssCache = {};
 
 const colors = {
   header: {
-    color: '--header-btn-text',
-    hover: '--header-btn-text-hover'
+    color: '--on-tertiary',
+    hover: '--on-tertiary'
   },
   primary: {
     color: '--link',

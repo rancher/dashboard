@@ -122,14 +122,19 @@ export function rgbToRgb(rgb) {
 }
 
 export function colorToRgb(color) {
+  let colorMut = color;
   let value;
 
-  if (color.startsWith('rgb(')) {
-    value = rgbToRgb(color);
-  } else if (color.startsWith('#')) {
-    value = hexToRgb(color);
+  if (colorMut.startsWith('hsl(')) {
+    colorMut = Color(colorMut).hex();
+  }
+
+  if (colorMut.startsWith('rgb(')) {
+    value = rgbToRgb(colorMut);
+  } else if (colorMut.startsWith('#')) {
+    value = hexToRgb(colorMut);
   } else {
-    console.warn(`Unable to parse color: ${ color }`); // eslint-disable-line no-console
+    console.warn(`Unable to parse color: ${ colorMut }`); // eslint-disable-line no-console
   }
 
   return value || {
