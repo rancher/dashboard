@@ -436,6 +436,7 @@ export default {
         {{ t('catalog.chart.header.charts') }}
       </h1>
       <AsyncButton
+        class="refresh-repo-button"
         :action-label="t('catalog.charts.refreshButton.label')"
         :waitingLabel="t('catalog.charts.refreshButton.label')"
         :success-label="t('catalog.charts.refreshButton.label')"
@@ -564,6 +565,13 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+
+  .refresh-repo-button {
+
+    :deep(.icon) {
+      font-size: 14px;
+    }
+  }
 }
 
 .search-input {
@@ -572,6 +580,8 @@ export default {
 
   input {
     height: 48px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .icon-search {
