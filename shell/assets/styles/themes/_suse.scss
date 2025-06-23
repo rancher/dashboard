@@ -1,10 +1,10 @@
 .suse {
-  $green-jungle : #33A86F;
+  $green-jungle : #30BA78;
   $light-green-jungle: #4DD192;
   $lighter-green-jungle: #72EEB3;
 
   &.theme-light {
-    --primary: #{$green-jungle};
+    --primary: #33A86F;
     --primary-text: #FFFFFF;
     --primary-hover: #{$green-120};
 
@@ -12,7 +12,7 @@
     --non-primary-hover: #{$green-20};
 
     --secondary: var(--body-bg);
-    --secondary-border: #{$green-jungle};
+    --secondary-border: var(--primary);
     --on-secondary: var(--non-primary-text);
     --secondary-hover: var(--non-primary-hover);
 
