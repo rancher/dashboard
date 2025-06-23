@@ -603,6 +603,10 @@ BODY, .theme-light {
   --badge-state-disabled-text  : #{$grey-50};
   --badge-state-disabled-bg    : #{$grey-5};
   --badge-state-disabled-border: #{$grey-20};
+
+  --gap                        : 8px;
+  --gap-md                     : 16px;
+  --gap-lg                     : 24px;
   
   /* Semantics */
 
