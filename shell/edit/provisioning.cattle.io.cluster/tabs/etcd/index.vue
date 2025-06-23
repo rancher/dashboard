@@ -53,7 +53,6 @@ export default {
     configEtcdExposeMetrics() {
       return !!this.value.spec.rkeConfig.machineGlobalConfig['etcd-expose-metrics'];
     },
-    
   },
 };
 </script>

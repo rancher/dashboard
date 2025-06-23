@@ -10,7 +10,7 @@ import { isHttpsOrHttp } from '@shell/utils/validators/setting';
 
 export default {
   emits: ['update:value'],
-    
+  
   components: {
     LabeledInput,
     Checkbox,

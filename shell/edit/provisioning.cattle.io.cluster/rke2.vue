@@ -282,8 +282,7 @@ export default {
       activeTab:                                null,
       REGISTRIES_TAB_NAME,
       labelForAddon,
-      s3ConfigValue:                            { ...initialS3Config },
-      
+      s3ConfigValue:                            { ...initialS3Config },     
     };
   },
 
@@ -293,15 +292,16 @@ export default {
     s3ConfigComponent() {
       return this.$refs.s3ConfigComponent;
     },
-
     isS3EndpointTrulyValid() {
       const s3EndpointValue = this.rkeConfig.etcd?.s3?.endpoint;
+
       if (!this.s3Backup && isEmpty(s3EndpointValue)) {
 
         return true;
       }
 
       if (!this.s3ConfigComponent && (this.s3Backup || !isEmpty(s3EndpointValue))) {
+
         if (!isHttpsOrHttp(s3EndpointValue)) {
 
           return true;
@@ -315,7 +315,6 @@ export default {
       }
       return false;
     },
-
     isActiveTabRegistries() {
       return this.activeTab?.selectedName === REGISTRIES_TAB_NAME;
     },
@@ -877,7 +876,6 @@ export default {
       Object.values(this.machinePoolValidation).forEach((v) => (base = base && v));
 
       const hasAddonConfigErrors = Object.values(this.addonConfigValidation).filter((v) => v === false).length > 0;
-      
       return validRequiredPools && base && !hasAddonConfigErrors;
     },
     currentCluster() {
@@ -895,13 +893,11 @@ export default {
         this.$emit('update:value', newValue);
       }
     },
-
     overallFormValidationPassed() {
       return this.validationPassed && 
             this.fvFormIsValid && 
             this.isS3EndpointTrulyValid; 
     },
-
   },
 
   watch: {
@@ -2407,7 +2403,6 @@ export default {
             </template>
           </Etcd>
         </Tab>
-        
         <!-- Networking -->
         <Tab
           v-if="haveArgInfo"
