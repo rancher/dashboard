@@ -134,6 +134,14 @@ export const CATALOG = {
   REPO:         'catalog.cattle.io.repo',
 };
 
+// Charts/Apps
+export const SORT_OPTIONS = {
+  RECOMMENDED:       'recommended',
+  LAST_UPDATED_DESC: 'lastupdatedDescending',
+  ALPHABETICAL_ASC:  'alphaAscending',
+  ALPHABETICAL_DESC: 'alphaDescending'
+};
+
 // UI Plugin type
 export const UI_PLUGIN = 'catalog.cattle.io.uiplugin';
 
@@ -229,6 +237,7 @@ export const CAPI = {
 // Base: /k8s/clusters/<id>/v1/
 
 export const FLEET = {
+  APPLICATION:              'fleet.cattle.io.application',
   BUNDLE:                   'fleet.cattle.io.bundle',
   BUNDLE_DEPLOYMENT:        'fleet.cattle.io.bundledeployment',
   CLUSTER:                  'fleet.cattle.io.cluster',

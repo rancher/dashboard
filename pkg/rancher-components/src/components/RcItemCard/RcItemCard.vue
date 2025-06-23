@@ -326,6 +326,11 @@ $image-medium-box-width: 48px;
     border-color: var(--primary);
   }
 
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: -2px;
+  }
+
   &-image {
     width: $image-medium-box-width;
     height: $image-medium-box-width;

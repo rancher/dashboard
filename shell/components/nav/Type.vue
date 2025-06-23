@@ -64,7 +64,10 @@ export default {
       // If the route explicitly declares the nav path that should be highlighted, then use that
       if (routeMetaNav) {
         const cluster = this.$route.params?.cluster;
-        const navPath = routeMetaNav.replace(':cluster', cluster);
+        const product = this.$route.params?.product;
+        const navPath = routeMetaNav
+          .replace(':cluster', cluster)
+          .replace(':product', product);
 
         if (navPath === typeFullPath) {
           return true;

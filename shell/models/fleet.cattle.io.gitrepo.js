@@ -3,14 +3,7 @@ import { insertAt } from '@shell/utils/array';
 import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import FleetApplication from '@shell/models/fleet-application';
-
-function quacksLikeAHash(str) {
-  if (str.match(/^[a-f0-9]{40,}$/i)) {
-    return true;
-  }
-
-  return false;
-}
+import FleetUtils from '@shell/utils/fleet';
 
 export default class GitRepo extends FleetApplication {
   applyDefaults() {
@@ -54,7 +47,7 @@ export default class GitRepo extends FleetApplication {
     });
 
     insertAt(out, 2, {
-      action:   'enablePolling',
+      action:   'enablePollingAction',
       label:    this.t('fleet.gitRepo.actions.enablePolling.label'),
       icon:     'icon icon-endpoints_connected',
       bulkable: true,
@@ -62,7 +55,7 @@ export default class GitRepo extends FleetApplication {
     });
 
     insertAt(out, 3, {
-      action:   'disablePolling',
+      action:   'disablePollingAction',
       label:    this.t('fleet.gitRepo.actions.disablePolling.label'),
       icon:     'icon icon-endpoints_disconnected',
       bulkable: true,
@@ -83,29 +76,49 @@ export default class GitRepo extends FleetApplication {
     return out;
   }
 
-  enablePolling() {
-    this.spec.disablePolling = false;
-    this.save();
+  forceUpdate(resources = [this]) {
+    this.$dispatch('promptModal', {
+      componentProps: { repositories: resources },
+      component:      'GitRepoForceUpdateDialog'
+    });
   }
 
-  disablePolling() {
-    this.spec.disablePolling = true;
-    this.save();
+  forceUpdateBulk(resources) {
+    this.$dispatch('promptModal', {
+      componentProps: { repositories: resources },
+      component:      'GitRepoForceUpdateDialog'
+    });
+  }
+
+  get isWebhookConfigured() {
+    return !!this.status?.webhookCommit;
   }
 
   get github() {
-    const match = (this.spec.repo || '').match(/^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/);
+    const value = this.spec.repo || '';
 
-    if (match) {
-      return match[1];
+    const matchHttps = value.match(FleetUtils.GIT_HTTPS_REGEX);
+
+    if (matchHttps) {
+      return matchHttps[1];
+    }
+
+    const matchSSH = value.match(FleetUtils.GIT_SSH_REGEX);
+
+    if (matchSSH) {
+      return FleetUtils.parseSSHUrl(matchSSH[0]).repoPath;
     }
 
     return false;
   }
 
-  get repoIcon() {
+  get dashboardIcon() {
+    return FleetUtils.dashboardIcons[FLEET.GIT_REPO];
+  }
+
+  get resourceIcon() {
     if (this.github) {
-      return 'icon icon-github';
+      return FleetUtils.resourceIcons[FLEET.GIT_REPO];
     }
 
     return '';
@@ -118,13 +131,13 @@ export default class GitRepo extends FleetApplication {
       return null;
     }
 
-    repo = repo.replace(/.git$/, '');
-    repo = repo.replace(/^https:\/\//, '');
-    repo = repo.replace(/\/+$/, '');
-
     if (this.github) {
       return this.github;
     }
+
+    repo = repo.replace(/.git$/, '');
+    repo = repo.replace(/^https:\/\//, '');
+    repo = repo.replace(/\/+$/, '');
 
     return repo;
   }
@@ -137,7 +150,7 @@ export default class GitRepo extends FleetApplication {
       return null;
     }
 
-    if (spec.revision && quacksLikeAHash(spec.revision)) {
+    if (spec.revision && FleetUtils.quacksLikeAHash(spec.revision)) {
       return spec.revision.substr(0, 7);
     } else if (spec.revision) {
       return spec.revision;
@@ -156,7 +169,30 @@ export default class GitRepo extends FleetApplication {
     return this.$getters['matching'](FLEET.BUNDLE_DEPLOYMENT, { [FLEET_ANNOTATIONS.REPO_NAME]: this.name });
   }
 
-  get dashboardIcon() {
-    return 'icon icon-git';
+  get source() {
+    let value = this.spec.repo || '';
+
+    const matchHttps = value.match(FleetUtils.GIT_HTTPS_REGEX);
+    const matchSSH = value.match(FleetUtils.GIT_SSH_REGEX);
+
+    if (matchSSH) {
+      const { sshUserAndHost, repoPath } = FleetUtils.parseSSHUrl(matchSSH[0]);
+
+      value = `https://${ sshUserAndHost.replace('git@', '') }/${ repoPath }`;
+    }
+
+    return {
+      value,
+      display:  this.repoDisplay,
+      icon:     this.resourceIcon,
+      showLink: matchHttps || matchSSH
+    };
+  }
+
+  get sourceSub() {
+    return {
+      value:   this.status?.commit,
+      display: this.commitDisplay
+    };
   }
 }

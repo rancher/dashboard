@@ -165,6 +165,7 @@
   --tabbed-container-bg        : #{mix($medium, $dark, 20%)};
 
   --yaml-editor-bg             : #{$darkest};
+  --drawer-body-bg             : #{$darkest};
 
   --diff-border                : var(--border);
   --diff-header-bg             : var(--nav-bg);
@@ -243,6 +244,7 @@
   --click-badge-info           : #{$lightest};
   --click-badge-info-bg        : #{$info};
   --click-badge-info-border    : #ACD2EC;
+  --bubble-bg                  : #{$darkest};
 
   $slate: #4B4F6B;
 

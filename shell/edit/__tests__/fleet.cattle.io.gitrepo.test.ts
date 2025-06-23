@@ -1,9 +1,11 @@
 import { mount } from '@vue/test-utils';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
-import GitRepo from '@shell/edit/fleet.cattle.io.gitrepo.vue';
+import GitRepo from '@shell/models/fleet.cattle.io.gitrepo';
+import GitRepoComponent from '@shell/edit/fleet.cattle.io.gitrepo.vue';
 
 const mockStore = {
   dispatch: jest.fn(),
+  commit:   jest.fn(),
   getters:  {
     'i18n/t':                  (text: string) => text,
     'i18n/exists':             jest.fn(),
@@ -12,8 +14,10 @@ const mockStore = {
     'current_store/schemaFor': jest.fn(),
     'current_store/all':       jest.fn(),
     workspace:                 jest.fn(),
-  }
+  },
+  rootGetters: { 'i18n/t': jest.fn() },
 };
+
 const mocks = {
   $store:      mockStore,
   $fetchState: { pending: false },
@@ -26,8 +30,9 @@ const mocks = {
     }
   },
 };
+
 const mockComputed = {
-  ...GitRepo.computed,
+  ...GitRepoComponent.computed,
   steps: () => [{
     name:           'stepAdvanced',
     title:          'title',
@@ -39,22 +44,46 @@ const mockComputed = {
   }],
 };
 
-const values = {
-  metadata: { namespace: 'test' },
-  spec:     {
-    template:     {},
-    correctDrift: { enabled: false },
+const mockRepo = {
+  type:       'fleet.cattle.io.gitrepo',
+  apiVersion: 'fleet.cattle.io/v1alpha1',
+  kind:       'GitRepo',
+  metadata:   {
+    name:      `test`,
+    namespace: 'test',
   },
-  targetInfo: { mode: 'all' },
+  spec: {
+    targetNamespace: 'custom-namespace-name',
+    targets:         [
+      { clusterName: `fleet-local` }
+    ],
+  },
+  status: {}
+};
+
+const initGitRepo = (props: any, value?: any) => {
+  const initValue = new GitRepo({
+    ...mockRepo,
+    ...(value || {})
+  }, {
+    getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+    dispatch:    jest.fn(),
+    rootGetters: { 'i18n/t': jest.fn() },
+  });
+
+  return {
+    props: {
+      value: initValue,
+      ...props
+    },
+    computed: mockComputed,
+    global:   { mocks },
+  };
 };
 
 describe('view: fleet.cattle.io.gitrepo, mode: view - should', () => {
   it('hide advanced options banner', () => {
-    const wrapper = mount(GitRepo, {
-      props:    { value: values, mode: _VIEW },
-      computed: mockComputed,
-      global:   { mocks }
-    });
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _VIEW }));
 
     const advancedInfoBanner = wrapper.find('[data-testid="gitrepo-advanced-info"]');
 
@@ -66,11 +95,7 @@ describe.each([
   _CREATE,
   _EDIT,
 ])('view: fleet.cattle.io.gitrepo, mode: %p - should', (mode) => {
-  const wrapper = mount(GitRepo, {
-    props:    { value: values, mode },
-    computed: mockComputed,
-    global:   { mocks }
-  });
+  const wrapper = mount(GitRepoComponent, initGitRepo({ mode }));
 
   it('show advanced options banner', () => {
     const advancedInfoBanner = wrapper.find('[data-testid="gitrepo-advanced-info"]');
@@ -119,21 +144,13 @@ describe.each([
     disablePolling,
     enabled
   ) => {
-    const wrapper = mount(GitRepo, {
-      props: {
-        value: {
-          ...values,
-          spec: {
-            disablePolling,
-            pollingInterval: 10
-          },
-          status: { webhookCommit: 'sha' },
-        },
-        realMode: mode
+    const wrapper = mount(GitRepoComponent, initGitRepo({ realMode: mode }, {
+      spec: {
+        disablePolling,
+        pollingInterval: 10
       },
-      computed: mockComputed,
-      global:   { mocks },
-    });
+      status: { webhookCommit: 'sha' },
+    }));
 
     const pollingCheckbox = wrapper.findComponent('[data-testid="gitRepo-enablePolling-checkbox"]') as any;
     const pollingIntervalInput = wrapper.find('[data-testid="gitRepo-pollingInterval-input"]');
@@ -167,17 +184,7 @@ describe.each([
     pollingInterval,
     unitValue,
   ) => {
-    const wrapper = mount(GitRepo, {
-      props: {
-        value: {
-          ...values,
-          spec: { pollingInterval }
-        },
-        realMode: mode
-      },
-      computed: mockComputed,
-      global:   { mocks },
-    });
+    const wrapper = mount(GitRepoComponent, initGitRepo({ realMode: mode }, { spec: { pollingInterval } }));
 
     const pollingIntervalInput = wrapper.find('[data-testid="gitRepo-pollingInterval-input"]').element as any;
 
@@ -198,17 +205,7 @@ describe.each([
     pollingInterval,
     visible,
   ) => {
-    const wrapper = mount(GitRepo, {
-      props: {
-        value: {
-          ...values,
-          spec: { pollingInterval }
-        },
-        realMode: mode
-      },
-      computed: mockComputed,
-      global:   { mocks },
-    });
+    const wrapper = mount(GitRepoComponent, initGitRepo({ realMode: mode }, { spec: { pollingInterval } }));
 
     const pollingIntervalMinimumValueWarning = wrapper.find('[data-testid="gitRepo-pollingInterval-minimumValueWarning"]');
 
@@ -226,21 +223,15 @@ describe.each([
     webhookCommit,
     visible
   ) => {
-    const wrapper = mount(GitRepo, {
-      props: {
-        value: {
-          ...values,
-          spec:   { pollingInterval: 60 },
-          status: { webhookCommit },
-        },
-        realMode: mode
-      },
-      computed: mockComputed,
-      global:   { mocks },
-    });
+    const wrapper = mount(GitRepoComponent, initGitRepo({ realMode: mode }, {
+      spec:   { pollingInterval: 60 },
+      status: { webhookCommit },
+    }));
 
     const pollingIntervalWebhookWarning = wrapper.find('[data-testid="gitRepo-pollingInterval-webhookWarning"]');
 
     expect(pollingIntervalWebhookWarning.exists()).toBe(visible);
   });
+
+  it.todo('test paths and subpaths');
 });

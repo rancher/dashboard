@@ -500,16 +500,25 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // Check if the API supports filtering by this field
               this.validateField(validateFields, schema, field.field);
 
-              const value = encodeURIComponent(field.value);
+              const encodedValue = encodeURIComponent(field.value);
 
               // = exact match (equals + exact)
               // ~ partial match (equals + !exact)
               // != not exact match (!equals + exact)
               // !~ not partial match (!equals + !exact)
               const operator = `${ field.equals ? '' : '!' }${ field.exact ? '=' : '~' }`;
-              const quotedValue = StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(value) ? value : `"${ value }"`;
+              let safeValue;
 
-              return `${ this.convertArrayPath(field.field) }${ operator }${ quotedValue }`;
+              if (StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(field.value)) {
+                // Does not contain any protected characters, send as is
+                safeValue = encodedValue;
+              } else {
+                // Contains protected characters, wrap in quotes to ensure backend doesn't fail
+                // - replace reserver `"`/`%22` with empty string - see https://github.com/rancher/dashboard/issues/14549 for improvement
+                safeValue = `"${ encodedValue.replaceAll('%22', '') }"`;
+              }
+
+              return `${ this.convertArrayPath(field.field) }${ operator }${ safeValue }`;
             }
 
             return field.value;
