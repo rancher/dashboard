@@ -80,13 +80,15 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       // Repository details step
       gitRepoCreatePage.setGitRepoUrl(repo);
       gitRepoCreatePage.setBranchName(branch);
-      gitRepoCreatePage.gitRepoPaths().setValueAtIndex(paths[0], 0, 'Add Path');
+      gitRepoCreatePage.setGitRepoPath(paths[0]);
 
       gitRepoCreatePage.resourceDetail().createEditView().nextPage();
 
-      // Target info step
+      // Target selection step
+      gitRepoCreatePage.targetClusterOptions().set(1);
+      gitRepoCreatePage.targetClusterOptions().set(2);
       gitRepoCreatePage.targetCluster().toggle();
-      gitRepoCreatePage.targetCluster().clickOption(6);
+      gitRepoCreatePage.targetCluster().clickLabel(fakeProvClusterId);
 
       gitRepoCreatePage.resourceDetail().createEditView().nextPage();
 

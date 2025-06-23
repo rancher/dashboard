@@ -1,12 +1,13 @@
+import { useResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
 import { TitleBarProps } from '@shell/components/Resource/Detail/TitleBar/index.vue';
 import { computed, Ref, toValue } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 
-export const useDefaultTitleBarData = (resource: any): Ref<TitleBarProps> => {
+export const useDefaultTitleBarProps = (resource: any): Ref<TitleBarProps> => {
   const route = useRoute();
   const store = useStore();
-
+  const { openResourceDetailDrawer } = useResourceDetailDrawer();
   const resourceValue = toValue(resource);
 
   return computed(() => ({
@@ -26,6 +27,7 @@ export const useDefaultTitleBarData = (resource: any): Ref<TitleBarProps> => {
       color: resourceValue.stateBackground,
       label: resourceValue.stateDisplay
     },
-    onShowConfiguration: () => resourceValue.goToEdit()
+    description:         resourceValue.description,
+    onShowConfiguration: () => openResourceDetailDrawer(resourceValue)
   }));
 };

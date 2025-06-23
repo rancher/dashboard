@@ -283,6 +283,10 @@ nav:
     label: Page actions menu
     button:
       label: Open page actions menu
+  notifications:
+    label: Notification Center
+    button:
+      label: Open notification center
   failWhale:
     authMiddleware: Auth Middleware
     clusterNotFound: Cluster { clusterId } not found
@@ -2596,6 +2600,24 @@ fleet:
       unknown: 'Unknown'
       notReady: Not Ready
       waitApplied: Wait Applied
+  clusterTargets:
+    title: Select by name
+    label: Clusters
+    advancedConfigs: Advanced target configurations are defined, check the YAML file for further details.
+    placeholders:
+      selectMultiple: Select Multiple Clusters
+    rules:
+      title: Select by labels
+      addSelector: Add cluster selector
+      matching:
+        title: Selected clusters
+        placeholder: Select clusters by name or labels
+        empty: No clusters in the workspace
+        plusMore: |-
+          {n, plural,
+            =1 {+ 1 more cluster}
+            other {+ {n, number} more clusters}
+          }
   application:
     pageTitle: App Bundles
     menuLabel: App Bundles
@@ -2650,11 +2672,24 @@ fleet:
       label: Certificates
       placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"
     paths:
-      label: Paths
-      ariaLabel: Enter path for Git Repo
+      title: Custom paths
+      description: Root directory
+      index: Path {index}
+      description1: The root folder is used by default. Fleet will scan recursively all folders and subfolders to find fleet.yaml files.
+      description2: You can provide multiple different directories. You can also add subpaths to specify different YAML config file paths.
+      ariaLabel: Enter paths for Git Repo
       placeholder: e.g. /directory/in/your/repo
       addLabel: Add Path
-      empty: The root of the repo is used by default. Multiple different directories can be provided.
+      enableBundles: Manually specify config files subpaths (Fleet won't scan subfolders recursively to find fleet.yaml files)
+      subpaths:
+        addLabel: Add Subpath
+        protipValue: "The name of a fleet YAML file in the folder"
+        props:
+          base: Subpath
+          options: Fleet YAML file (optional)
+        placeholders:
+          key: e.g. dev
+          value: e.g. kustomize.yaml
     repo:
       title: Source
       label: Repository URL
@@ -2727,10 +2762,10 @@ fleet:
       clusterGroup: Cluster Group
       label: Deploy To
       labelLocal: Deploy With
+      additionalOptions: Additional settings
     targetDisplay:
       advanced: Advanced
-      cluster: "Cluster"
-      clusterGroup: "Group"
+      clusters: Clusters
       all: All
       none: None
       local: Local
@@ -2859,10 +2894,10 @@ fleet:
       clusterGroup: Cluster Group
       label: Deploy To
       labelLocal: Deploy With
+      additionalOptions: Additional Options
     targetDisplay:
       advanced: Advanced
-      cluster: "Cluster"
-      clusterGroup: "Group"
+      clusters: Clusters
       all: All
       none: None
       local: Local
@@ -3451,8 +3486,10 @@ landing:
       other {cores}}
     cpuUsed: CPU Used
     memoryUsed: Memory Used
-  seeWhatsNew: Learn more about the improvements and new capabilities in {version}
-  whatsNewLink: "What's new in {version}"
+  whatsNew:
+    title: Welcome to Rancher {version}
+    message: Learn more about the improvements and new capabilities in this version
+    link: Release Notes
   learnMore: Learn More
   support: Support
   community:
@@ -4393,6 +4430,17 @@ node:
     downloadNodeConfig: Download Keys
     scaleDown: Scale Down
     forceDelete: Force Delete
+
+notificationCenter:
+  caughtUp: "You're all caught up!"
+  dates:
+    today: Today
+    yesterday: Yesterday
+  markAllRead: Mark all as read
+  markRead: Mark as read
+  markUnread: Mark as unread
+  title: Notifications
+  ariaLabel: 'Notification {title}: Press enter to interact'
 
 persistentVolume:
   pluginConfiguration:
@@ -8475,6 +8523,22 @@ errors:
     withUrl: '{msg}: {url}'
     withoutUrl: '{msg}'
 component:
+  drawer:
+    chrome:
+      ariaLabel:
+        close: Close {target} drawer
+      close: Close
+    resourceDetailDrawer:
+      title: "{resourceName} ({resourceType}) - Configuration"
+      editConfig: Edit Config
+      editYaml: Edit YAML
+      ariaLabel:
+        editConfig: Edit Config
+        editYaml: Edit YAML
+      yamlTab:
+        title: YAML
+      configTab:
+        title: Config
   resource:
     detail:
       card:

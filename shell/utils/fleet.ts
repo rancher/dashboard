@@ -1,3 +1,4 @@
+import { isEmpty, isEqual } from 'lodash';
 import {
   BundleDeploymentResource,
   BundleResourceKey,
@@ -6,10 +7,10 @@ import {
   Condition,
 } from '@shell/types/resources/fleet';
 import { mapStateToEnum, STATES_ENUM, STATES } from '@shell/plugins/dashboard-store/resource-class';
-import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
+import { FLEET as FLEET_LABELS, CAPI } from '@shell/config/labels-annotations';
 import { NAME as EXPLORER_NAME } from '@shell/config/product/explorer';
-import { FleetDashboardState, FleetResourceState } from '@shell/types/fleet';
-import { FLEET } from '@shell/config/types';
+import { FleetDashboardState, FleetResourceState, Target, TargetMode } from '@shell/types/fleet';
+import { FLEET, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 
 interface Resource extends BundleDeploymentResource {
   state: string,
@@ -40,6 +41,66 @@ function conditionIsTrue(conditions: Condition[] | undefined, type: string): boo
   }
 
   return !!conditions.find((c) => c.type === type && c.status.toLowerCase() === 'true');
+}
+
+class Application {
+  excludeHarvesterRule = {
+    clusterSelector: {
+      matchExpressions: [{
+        key:      CAPI.PROVIDER,
+        operator: 'NotIn',
+        values:   [
+          VIRTUAL_HARVESTER_PROVIDER
+        ],
+      }],
+    },
+  };
+
+  getTargetMode(targets: Target[], namespace: string): TargetMode {
+    if (namespace === 'fleet-local') {
+      return 'local';
+    }
+
+    if (!targets.length) {
+      return 'none';
+    }
+
+    let mode: TargetMode = 'all';
+
+    for (const target of targets) {
+      const {
+        clusterName,
+        clusterSelector,
+        clusterGroup,
+        clusterGroupSelector,
+      } = target;
+
+      if (clusterGroup || clusterGroupSelector) {
+        return 'advanced';
+      }
+
+      if (clusterName) {
+        mode = 'clusters';
+      }
+
+      if (!isEmpty(clusterSelector)) {
+        mode = 'clusters';
+      }
+    }
+
+    const normalized = [...targets].map((target) => {
+      delete target.name;
+
+      return target;
+    });
+
+    // Check if targets contains only harvester rule after name normalizing
+    if (isEqual(normalized, [this.excludeHarvesterRule])) {
+      mode = 'all';
+    }
+
+    return mode;
+  }
 }
 
 class HelmOp {
@@ -149,6 +210,7 @@ class Fleet {
     },
   ];
 
+  Application = new Application();
   HelmOp = new HelmOp();
 
   GIT_HTTPS_REGEX = /^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/;

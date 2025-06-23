@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import Rectangle from '@shell/components/Resource/Detail/Metadata/Rectangle.vue';
 
 describe('component: Rectangle', () => {
-  it('shoulder render container with class title and missing outline when passed outline:false', async() => {
+  it('should render container with class title and missing outline when passed outline:false', async() => {
     const wrapper = mount(Rectangle, { props: { outline: false } });
 
     expect(wrapper.find('.rectangle').exists()).toBeTruthy();

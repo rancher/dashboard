@@ -3,7 +3,7 @@ import Annotations from '@shell/components/Resource/Detail/Metadata/Annotations/
 import { createStore } from 'vuex';
 
 describe('component: Metadata/Annotations', () => {
-  it('shoulder render KeyValue with the appropriate props', async() => {
+  it('should render KeyValue with the appropriate props', async() => {
     const annotations = [{ key: 'key', value: 'value' }];
     const wrapper = mount(Annotations, {
       props:  { annotations },
