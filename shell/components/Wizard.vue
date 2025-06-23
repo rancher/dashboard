@@ -361,7 +361,7 @@ export default {
                     role="presentation"
                   >
                     <span
-                      :aria-controls="'step' + idx+1"
+                      :aria-controls="'step-container-' + step.name"
                       :aria-selected="step.name === activeStep.name"
                       role="tab"
                       class="controls"
@@ -387,9 +387,11 @@ export default {
           </div>
         </div>
         <slot
+          :id="'step-container-' + step.name"
           class="step-container"
           name="stepContainer"
           :activeStep="activeStep"
+          role="tabpanel"
         >
           <template
             v-for="(step, i) in steps"
