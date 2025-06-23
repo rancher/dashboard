@@ -128,7 +128,7 @@ export function elapsedTime(seconds: any) {
    * @param value Date string to format
    * @returns Formatted date string
    */
-export const dateTimeFormat = (value: string, store: Store<any>): string => {
+export const dateTimeFormat = (value: string | undefined, store: Store<any>): string => {
   if (!value) return '';
 
   const dateFormat = escapeHtml( store.getters['prefs/get'](DATE_FORMAT));
