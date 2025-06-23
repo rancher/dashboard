@@ -1,13 +1,10 @@
 import { onMounted, computed, ref, Ref } from 'vue';
 import { useStore } from 'vuex';
-import { useI18n } from '@shell/composables/useI18n';
 
-import dayjs from 'dayjs';
 import { downloadFile } from '@shell/utils/download';
 import { REGISTRATION_NAMESPACE, REGISTRATION_SECRET, REGISTRATION_RESOURCE_NAME, REGISTRATION_LABEL } from '../config/constants';
 import { SECRET } from '@shell/config/types';
-import { escapeHtml } from '@shell/utils/string';
-import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
+import { dateTimeFormat } from '@shell/utils/time';
 
 type RegistrationStatus = 'registering-online' | 'registering-offline' | 'registered' | null;
 interface RegistrationDashboard {
@@ -95,7 +92,6 @@ const registrationBannerCases = {
 
 export const usePrimeRegistration = () => {
   const store = useStore();
-  const { t } = useI18n(store);
 
   /**
    * Registration from CRD
@@ -286,7 +282,7 @@ export const usePrimeRegistration = () => {
         return {
           ...commonRegistration,
           product:    registration.status?.registeredProduct,
-          expiration: dateTimeFormat(registration.status?.registrationExpiresAt),
+          expiration: dateTimeFormat(registration.status?.registrationExpiresAt, store),
           color:      'success',
           message:    'registration.list.table.badge.valid',
           status:     'valid'
@@ -308,22 +304,6 @@ export const usePrimeRegistration = () => {
         };
       }
     }
-  };
-
-  /**
-   * Format date and time using user preferences
-   * @param value Date string to format
-   * @returns Formatted date string
-   */
-  const dateTimeFormat = (value: string): string => {
-    if (!value) return '';
-
-    const dateFormat = escapeHtml( store.getters['prefs/get'](DATE_FORMAT));
-    const timeFormat = escapeHtml( store.getters['prefs/get'](TIME_FORMAT));
-
-    const format = `${ dateFormat } ${ timeFormat }`;
-
-    return dayjs(value).format(format);
   };
 
   /**
