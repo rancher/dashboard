@@ -6,7 +6,6 @@ import { NORMAN } from '@shell/config/types';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
-import CruResource from '@shell/components/CruResource.vue';
 import { isHttpsOrHttp } from '@shell/utils/validators/setting';
 
 export default {
@@ -16,9 +15,8 @@ export default {
     LabeledInput,
     Checkbox,
     SelectOrCreateAuthSecret,
-    CruResource,
   },
-  mixins:     [CreateEditView, FormValidation],
+  mixins: [CreateEditView, FormValidation],
 
   props: {
     mode: {
@@ -183,12 +181,12 @@ export default {
           label="Endpoint"
           :disabled="isView"
           :placeholder="ccData.defaultEndpoint"
-          @update:value="update"
           :error="s3EndpointHasError"
+          @update:value="update"
         />
         <div v-if="s3EndpointHasError" 
-             class="input-error-message">
-          
+             class="input-error-message"
+        >  
           {{ t('cluster.credential.s3.defaultEndpoint.error') }}
         </div>
       </div>

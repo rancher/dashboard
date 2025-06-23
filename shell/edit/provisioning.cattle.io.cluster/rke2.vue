@@ -297,24 +297,19 @@ export default {
     isS3EndpointTrulyValid() {
       const s3EndpointValue = this.rkeConfig.etcd?.s3?.endpoint;
       if (!this.s3Backup && isEmpty(s3EndpointValue)) {
-        this.s3EndpointHasError= true;
         return true;
       }
 
       if (!this.s3ConfigComponent && (this.s3Backup || !isEmpty(s3EndpointValue))) {
-        if(!isHttpsOrHttp(s3EndpointValue)){
-          //this.s3EndpointHasError= true;
+        if(!isHttpsOrHttp(s3EndpointValue)) {
           return true;
         }
-        this.s3EndpointHasError= false;
         return false;
       }
 
       if (this.s3ConfigComponent) {
-        this.s3EndpointHasError= !this.s3ConfigComponent.isEndpointInvalid;
         return !this.s3ConfigComponent.isEndpointInvalid;
       }
-      this.s3EndpointHasError= !this.s3ConfigComponent.isEndpointInvalid;
       return false;
     },
 
@@ -2395,7 +2390,7 @@ export default {
             @s3-backup-changed="handleS3BackupChanged"
             @config-etcd-expose-metrics-changed="handleConfigEtcdExposeMetricsChanged"
             @update:value="$emit('input', $event)"
-            >
+        >
             <template #s3-config>
               <S3Config
                 v-show="s3Backup"  
@@ -2409,7 +2404,7 @@ export default {
               
             </template>
           </Etcd>
-          </Tab>
+        </Tab>
         
         <!-- Networking -->
         <Tab
