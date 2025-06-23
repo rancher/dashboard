@@ -2390,7 +2390,7 @@ export default {
             @s3-backup-changed="handleS3BackupChanged"
             @config-etcd-expose-metrics-changed="handleConfigEtcdExposeMetricsChanged"
             @update:value="$emit('input', $event)"
-        >
+          >
             <template #s3-config>
               <S3Config
                 v-show="s3Backup"  
