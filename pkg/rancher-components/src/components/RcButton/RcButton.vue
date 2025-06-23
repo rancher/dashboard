@@ -70,18 +70,6 @@ button {
   display: flex;
   gap: 0.25rem;
 
-  &.role-link {
-    &:focus, &.focused {
-      @include focus-outline;
-      outline-offset: -2px;
-    }
-
-    &:hover {
-      background-color: var(--accent-btn);
-      box-shadow: none;
-    }
-  }
-
   &.role-ghost {
     padding: 0;
     background-color: transparent;
