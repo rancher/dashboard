@@ -9,8 +9,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import { isHttpsOrHttp } from '@shell/utils/validators/setting';
 
 export default {
-  emits: ['update:value'],
-
+  emits:      ['update:value'],
   components: {
     LabeledInput,
     Checkbox,
