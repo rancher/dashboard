@@ -329,10 +329,11 @@ $image-medium-box-width: 48px;
 
     &-left {
       flex-grow: 1;
+      min-width: 0;
     }
 
     &-title {
-      max-width: 60%;
+      max-width: 80%;
       font-size: 18px;
       font-weight: 600;
       margin-bottom: 0px;
