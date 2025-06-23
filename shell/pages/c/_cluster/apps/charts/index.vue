@@ -416,10 +416,8 @@ export default {
     },
 
     resetAllFilters() {
-      const initialState = createInitialFilters();
-
-      this.internalFilters = initialState;
-      this.filters = initialState;
+      this.internalFilters = createInitialFilters();
+      this.filters = createInitialFilters();
       this.searchQuery = '';
     },
   },
