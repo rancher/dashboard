@@ -226,34 +226,36 @@ export default {
     class="accordion"
     :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': isGroupActive }"
   >
-    <div
-      v-if="showHeader"
-      class="header"
-      :class="{'active': isOverview, 'noHover': !canCollapse || fixedOpen}"
-      role="button"
-      :tabindex="fixedOpen ? -1 : 0"
-      :aria-label="group.labelDisplay || group.label || ''"
-      @click="groupSelected()"
-      @keyup.enter="groupSelected()"
-      @keyup.space="groupSelected()"
-    >
-      <slot name="header">
-        <router-link
-          v-if="hasOverview"
-          :to="group.children[0].route"
-          :exact="group.children[0].exact"
-          :tabindex="-1"
-        >
-          <h6>
+    <div class="accordion-item">
+      <div
+        v-if="showHeader"
+        class="header"
+        :class="{'active': isOverview, 'noHover': !canCollapse || fixedOpen}"
+        role="button"
+        :tabindex="fixedOpen ? -1 : 0"
+        :aria-label="group.labelDisplay || group.label || ''"
+        @click="groupSelected()"
+        @keyup.enter="groupSelected()"
+        @keyup.space="groupSelected()"
+      >
+        <slot name="header">
+          <router-link
+            v-if="hasOverview"
+            :to="group.children[0].route"
+            :exact="group.children[0].exact"
+            :tabindex="-1"
+          >
+            <h6>
+              <span v-clean-html="group.labelDisplay || group.label" />
+            </h6>
+          </router-link>
+          <h6
+            v-else
+          >
             <span v-clean-html="group.labelDisplay || group.label" />
           </h6>
-        </router-link>
-        <h6
-          v-else
-        >
-          <span v-clean-html="group.labelDisplay || group.label" />
-        </h6>
-      </slot>
+        </slot>
+      </div>
       <i
         v-if="!onlyHasOverview && canCollapse"
         class="icon toggle toggle-accordion"
@@ -330,6 +332,12 @@ export default {
       font-size: 14px;
     }
 
+    > H6 {
+        text-transform: none;
+        height: 100%;
+        padding: 8px 0 8px 16px;
+      }
+
     > A {
       display: block;
       box-sizing:border-box;
@@ -348,16 +356,25 @@ export default {
   }
 
   .accordion {
+    .accordion-item {
+      position: relative;
+      cursor: pointer;
+      color: var(--body-text);
+      height: 33px;
+      outline: none;
+
+      .toggle-accordion:focus-visible {
+        @include focus-outline;
+        outline-offset: -6px;
+      }
+    }
+
     .header {
       &:focus-visible {
         h6 span {
           @include focus-outline;
           outline-offset: 2px;
         }
-      }
-      .toggle-accordion:focus-visible {
-        @include focus-outline;
-        outline-offset: -6px;
       }
 
       &.active {
@@ -372,6 +389,10 @@ export default {
 
         &:hover {
           background-color: var(--primary-hover-bg);
+        }
+
+        ~ I {
+          color: var(--primary-hover-text);
         }
       }
       &:hover:not(.active) {
@@ -395,14 +416,14 @@ export default {
           text-transform: none;
           padding: 8px 0 8px 16px;
         }
+      }
 
-        > I {
-          position: absolute;
-          right: 0;
-          top: 0;
-          padding: 10px 10px 9px 7px;
-          user-select: none;
-        }
+      .accordion-item > I {
+        position: absolute;
+        right: 0;
+        top: 0;
+        padding: 10px 10px 9px 7px;
+        user-select: none;
       }
 
       > .body {
@@ -421,9 +442,11 @@ export default {
           line-height: 18px;
           padding: 8px 0 7px 5px !important;
         }
-        > I {
-          padding: 10px 7px 9px 7px !important;
-        }
+
+      }
+
+      .accordion-item > I {
+        padding: 10px 7px 9px 7px !important;
       }
 
       &:deep() .type-link > .label {
@@ -438,19 +461,19 @@ export default {
           display: inline-block;
           padding: 5px 0 5px 5px;
         }
+      }
 
-        > I {
-          position: absolute;
-          right: 0;
-          top: 0;
-          padding: 6px 8px 6px 8px;
-        }
+      .accordion-item > I {
+        position: absolute;
+        right: 0;
+        top: 0;
+        padding: 6px 8px 6px 8px;
       }
     }
   }
 
   .body :deep() > .child.router-link-active,
-  .header :deep() > .child.router-link-exact-active {
+  .accordion-item :deep() > .child.router-link-exact-active {
     padding: 0;
 
     A, A I {
