@@ -1,6 +1,7 @@
 <script lang="ts">
 import { PropType } from 'vue';
 import jsyaml from 'js-yaml';
+import { merge } from 'lodash';
 import { set, get } from '@shell/utils/object';
 import YAML from 'yaml';
 import { CONFIG_MAP, MANAGEMENT } from '@shell/config/types';
@@ -213,7 +214,9 @@ export default {
       }
 
       try {
-        const values = this.buildValues(this.values, (name, value) => {
+        const configMapValues = YAML.parse(configMap.data[this.dataKey] || '');
+
+        const currentValues = this.buildValues(this.values, (name, value) => {
           // object types from json
           if (this.settings[name].type === 'object') {
             value = YAML.parse(value);
@@ -221,6 +224,8 @@ export default {
 
           return value;
         });
+
+        const values = merge(configMapValues, currentValues);
 
         configMap.data[this.dataKey] = jsyaml.dump(values);
 
