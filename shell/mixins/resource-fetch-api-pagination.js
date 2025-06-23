@@ -7,6 +7,7 @@ import paginationUtils from '@shell/utils/pagination-utils';
 import debounce from 'lodash/debounce';
 import { PaginationParamFilter, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
+import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 
 /**
  * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace
@@ -350,4 +351,19 @@ export default {
       });
     }
   },
+
+  unmounted() {
+    if (this.havePaginated) {
+      // of type @STEVE_WATCH_PARAMS
+      const watchArgs = {
+        type: this.resource,
+        mode: STEVE_WATCH_MODE.RESOURCE_CHANGES,
+      };
+
+      this.$store.dispatch(`${ this.inStore }/forgetType`, this.resource, (watchParams) => {
+        return watchParams.type === watchArgs.type &&
+        watchParams.mode === watchArgs.type.mode;
+      });
+    }
+  }
 };
