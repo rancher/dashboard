@@ -651,7 +651,7 @@ export default {
 
 .app-chart-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   grid-gap: var(--gap-md);
   width: 100%;
   height: max-content;
