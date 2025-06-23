@@ -88,7 +88,7 @@ export default {
           weight:      0,
           type:        'object',
           path:        'nodeSelector',
-          default:     '{}',
+          default:     {},
           tooltip:     false,
           info:        false,
           placeholder: false,
@@ -97,7 +97,7 @@ export default {
           weight:      0,
           type:        'object',
           path:        'tolerations',
-          default:     '[]',
+          default:     [],
           tooltip:     false,
           info:        false,
           placeholder: false,
@@ -184,8 +184,6 @@ export default {
     :name="'rancher-config'"
     :data-key="'fleet'"
     :in-store="'management'"
-    :title="t('fleet.settings.title')"
-    :description="t('fleet.settings.description')"
     :label-key-prefix="'fleet.settings'"
     @done="done"
     @errors="e=>errors = e"

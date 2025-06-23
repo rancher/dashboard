@@ -49,7 +49,7 @@ export type SettingDisplay = Setting & {
 
 interface DataType {
   noPermissions: boolean,
-  configMap: any,
+  configMap: object | null,
   values: object,
   errors: string[]
 }
@@ -126,16 +126,6 @@ export default {
     labelKeyPrefix: {
       type:    String,
       default: 'settings'
-    },
-
-    title: {
-      type:    String,
-      default: ''
-    },
-
-    description: {
-      type:    String,
-      default: ''
     }
   },
 
@@ -223,7 +213,14 @@ export default {
       }
 
       try {
-        const values = this.fromValues(this.values);
+        const values = this.buildValues(this.values, (name, value) => {
+          // object types from json
+          if (this.settings[name].type === 'object') {
+            value = YAML.parse(value);
+          }
+
+          return value;
+        });
 
         configMap.data[this.dataKey] = jsyaml.dump(values);
 
@@ -242,29 +239,15 @@ export default {
       const configMapValues = get(this.configMap || {}, `data.${ this.dataKey }`);
       const currentValues = YAML.parse(configMapValues || '');
 
-      this.values = this.toValues(currentValues);
-    },
-
-    toValues(values: object) {
-      return this.buildValues(values, (name, value) => {
+      this.values = this.buildValues(currentValues, (name, value) => {
         // use default value
         if (value === undefined) {
           value = this.settings[name].default;
         }
 
-        // object type to json
+        // object types to json
         if (this.settings[name].type === 'object') {
           value = JSON.stringify(value || {});
-        }
-
-        return value;
-      });
-    },
-
-    fromValues(values: object) {
-      return this.buildValues(values, (name, value) => {
-        if (this.settings[name].type === 'object') {
-          value = YAML.parse(value);
         }
 
         return value;
@@ -301,13 +284,13 @@ export default {
     <slot name="header">
       <div class="header mb-20">
         <h1>
-          {{ title || 'Settings' }}
+          {{ t(`${ labelKeyPrefix }.title`) }}
         </h1>
 
         <span
           class="text-muted"
         >
-          {{ description || '' }}
+          {{ t(`${ labelKeyPrefix }.description`) }}
         </span>
       </div>
     </slot>
