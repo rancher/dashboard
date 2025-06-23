@@ -184,7 +184,7 @@ export default {
           label="Endpoint"
           :mode="mode"
           :placeholder="ccData.defaultEndpoint"
-          :rules="fvGetAndReportPathRules('endpoint')"
+          :error="s3EndpointHasError"
           @update:value="update"
         />
         <div
