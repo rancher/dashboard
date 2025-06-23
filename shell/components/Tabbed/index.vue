@@ -281,7 +281,7 @@ export default {
       >
         <a
           :data-testid="`btn-${tab.name}`"
-          :aria-controls="'#' + tab.name"
+          :aria-controls="tab.name"
           :aria-selected="tab.active"
           :aria-label="tab.labelDisplay || ''"
           role="tab"
