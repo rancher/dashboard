@@ -1065,8 +1065,9 @@ catalog:
     appChartCard:
       footerItem:
         ariaLabel: Apply filter
-    experimentalStatus:
-      tooltip: Experimental - using this filter is not yet 100% accurate. Proceed with caution.
+    statusFilterCautions:
+      installation: Installation status cannot be determined with 100% accuracy
+      upgradeable: Upgradeable status cannot be determined with 100% accuracy
     totalChartsMessage: |-
         {count , plural,
           =1 { {count} chart in total }

@@ -80,7 +80,7 @@ export default {
               label:     this.t('generic.installed'),
               icon:      'icon-warning',
               iconColor: 'warning',
-              tooltip:   this.t('catalog.charts.experimentalStatus.tooltip')
+              tooltip:   this.t('catalog.charts.statusFilterCautions.installation')
             }
           }
         },
@@ -96,7 +96,7 @@ export default {
               label:     this.t('generic.upgradeable'),
               icon:      'icon-warning',
               iconColor: 'warning',
-              tooltip:   this.t('catalog.charts.experimentalStatus.tooltip')
+              tooltip:   this.t('catalog.charts.statusFilterCautions.upgradeable')
             }
           }
         }
