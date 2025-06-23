@@ -2,20 +2,18 @@ import { routeRequiresAuthentication } from '@shell/utils/router';
 import {
   isLoggedIn, notLoggedIn, noAuth, findMe, checkIfIsRancherAsOidcProviderLogin
 } from '@shell/utils/auth';
-import Cookie from 'cookie-universal';
 
-const cookies = Cookie();
-const RANCHER_AS_OIDC_COOKIE = 'rancher-as-oidc-prov';
+const R_OIDC_PROV_PARAMS = 'rancher-as-oidc-prov-params';
 
 function handleOidcRedirectToCallbackUrl() {
-  const rancherAsOidcProvider = cookies.get(RANCHER_AS_OIDC_COOKIE, { parseJSON: false });
+  const rancherAsOidcProvider = sessionStorage.getItem(R_OIDC_PROV_PARAMS);
 
   // eslint-disable-next-line no-console
-  console.error('COOKIE FOUND!!! -redirect ', rancherAsOidcProvider);
+  console.error('SESSION STORAGE OIDC PARAMS FOUND!!! -redirect ', rancherAsOidcProvider);
 
   if (rancherAsOidcProvider) {
     window.location.href = `${ window.location.origin }/oidc/authorize${ rancherAsOidcProvider }&code_challenge_method=S256`;
-    cookies.remove(RANCHER_AS_OIDC_COOKIE);
+    sessionStorage.removeItem(R_OIDC_PROV_PARAMS);
   }
 }
 
@@ -30,11 +28,7 @@ export async function authenticate(to, from, next, { store }) {
       console.error('WE ARE ON OIDC WORLD!!!!', window.location.search);
       const queryString = window.location.search;
 
-      cookies.set(RANCHER_AS_OIDC_COOKIE, queryString, {
-        path:     '/',
-        sameSite: true,
-        secure:   true,
-      });
+      sessionStorage.setItem(R_OIDC_PROV_PARAMS, queryString);
     }
 
     return next();
