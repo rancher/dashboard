@@ -64,22 +64,22 @@ export function init(store) {
 
   virtualType({
     ifHaveType: MANAGEMENT.SETTING,
-    labelKey:   'branding.label',
-    name:       'brand',
+    labelKey:   'banner.settingName',
+    name:       'banners',
     namespaced: false,
     weight:     99,
     icon:       'folder',
-    route:      { name: 'c-cluster-settings-brand' }
+    route:      { name: 'c-cluster-settings-banners' }
   });
 
   virtualType({
     ifHaveType: MANAGEMENT.SETTING,
-    labelKey:   'banner.settingName',
-    name:       'banners',
+    labelKey:   'branding.label',
+    name:       'brand',
     namespaced: false,
     weight:     98,
     icon:       'folder',
-    route:      { name: 'c-cluster-settings-banners' }
+    route:      { name: 'c-cluster-settings-brand' }
   });
 
   virtualType({
