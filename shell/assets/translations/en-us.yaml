@@ -1081,8 +1081,9 @@ catalog:
       title: Clear All filters
     sortBy:
       recommended: 'Sort by: Recommended'
-      lastUpdated: 'Sort by: Last updated'
-      name: 'Sort by: Chart name'
+      lastUpdatedDesc: 'Sort by: Last updated'
+      alphaAscending: 'Sort by: Chart name, A → Z'
+      alphaDescending: 'Sort by: Chart name, Z → A'
     refreshButton:
       label: Refresh all repositories
   install:

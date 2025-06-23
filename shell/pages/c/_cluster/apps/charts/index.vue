@@ -16,7 +16,7 @@ import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
 import { RcItemCard } from '@components/RcItemCard';
 import { get } from '@shell/utils/object';
-import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
+import { CATALOG as CATALOG_TYPES, SORT_OPTIONS } from '@shell/config/types';
 import FilterPanel from '@shell/components/FilterPanel';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
@@ -51,7 +51,7 @@ export default {
 
     this.searchQuery = query[SEARCH_QUERY] || '';
     this.debouncedSearchQuery = query[SEARCH_QUERY] || '';
-    this.selectedSortOption = query[SORT_BY] || 'recommended';
+    this.selectedSortOption = query[SORT_BY] || SORT_OPTIONS.RECOMMENDED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
     this.filters.repos = normalizeFilterQuery(query[REPO]) || [];
     this.filters.categories = normalizeFilterQuery(query[CATEGORY]) || [];
@@ -102,11 +102,12 @@ export default {
         }
       ],
       appCardsCache:      {},
-      selectedSortOption: 'recommended',
+      selectedSortOption: SORT_OPTIONS.RECOMMENDED,
       sortOptions:        [
-        { value: 'recommended', label: this.t('catalog.charts.sortBy.recommended') },
-        { value: 'lastupdated', label: this.t('catalog.charts.sortBy.lastUpdated') },
-        { value: 'name', label: this.t('catalog.charts.sortBy.name') },
+        { value: SORT_OPTIONS.RECOMMENDED, label: this.t('catalog.charts.sortBy.recommended') },
+        { value: SORT_OPTIONS.LAST_UPDATED_DESC, label: this.t('catalog.charts.sortBy.lastUpdatedDesc') },
+        { value: SORT_OPTIONS.ALPHABETICAL_ASC, label: this.t('catalog.charts.sortBy.alphaAscending') },
+        { value: SORT_OPTIONS.ALPHABETICAL_DESC, label: this.t('catalog.charts.sortBy.alphaDescending') },
       ]
     };
   },
