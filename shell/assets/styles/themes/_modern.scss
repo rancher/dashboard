@@ -104,8 +104,8 @@ BODY, .theme-light {
   }
 
   .bg-primary {
-    background-color: var(--primary);
     color: var(--primary-text);
+    background-color: var(--primary-hover);
 
     &.btn:hover {
       color: var(--primary-hover-text);
