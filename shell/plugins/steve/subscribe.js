@@ -544,6 +544,9 @@ const sharedActions = {
     return dispatch('send', msg);
   },
 
+  /**
+   * @param {STEVE_WATCH_PARAMS} params
+   */
   unwatch(ctx, {
     type, id, namespace, selector, all, mode
   }) {
