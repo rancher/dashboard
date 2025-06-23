@@ -376,7 +376,7 @@ export default {
                       </span>
                     </span>
                   </li>
-                  <div
+                  <li
                     v-if="idx!==visibleSteps.length-1"
                     :key="step.name"
                     class="divider"
@@ -387,11 +387,9 @@ export default {
           </div>
         </div>
         <slot
-          :id="'step-container-' + step.name"
           class="step-container"
           name="stepContainer"
           :activeStep="activeStep"
-          role="tabpanel"
         >
           <template
             v-for="(step, i) in steps"
@@ -399,7 +397,9 @@ export default {
           >
             <div
               v-if="step.name === activeStep.name || step.hidden"
+              :id="'step-container-' + step.name"
               :key="step.name"
+              role="tabpanel"
               class="step-container__step"
               :class="{'hide': step.name !== activeStep.name && step.hidden}"
             >
