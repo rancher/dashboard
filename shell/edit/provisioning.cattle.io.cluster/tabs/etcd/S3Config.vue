@@ -53,8 +53,9 @@ export default {
       ...(this.value || {}),
     };
 
-    return { config,
-            s3EndpointHasError: false,
+    return { 
+      config,
+      s3EndpointHasError: false,
     };
   },
 
@@ -112,14 +113,14 @@ export default {
       immediate: true, 
     },
     value: {
-        handler(newValue) {
-            if (newValue?.endpoint !== this.config.endpoint) {
-                this.config.endpoint = newValue?.endpoint || '';
-            }
-            this.validateEndpoint(this.config.endpoint);
-        },
-        deep: true,
-        immediate: true,
+      handler(newValue) {
+        if (newValue?.endpoint !== this.config.endpoint) {
+          this.config.endpoint = newValue?.endpoint || '';
+        }
+        this.validateEndpoint(this.config.endpoint);
+      },
+      deep:      true,
+      immediate: true,
     }
   },
   

@@ -66,7 +66,7 @@ import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
 import { mapGetters } from 'vuex';
 import { isHttpsOrHttp } from '@shell/utils/validators/setting';
-import S3Config from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/S3Config.vue'
+import S3Config from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/S3Config.vue';
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 const NETBIOS_TRUNCATION_LENGTH = 15;
@@ -148,7 +148,7 @@ export default {
     },
 
     s3EndpointHasError: {
-      type: Boolean,
+      type:    Boolean,
       default: false,
     },
 
@@ -282,7 +282,7 @@ export default {
       activeTab:                                null,
       REGISTRIES_TAB_NAME,
       labelForAddon,
-      s3ConfigValue: { ...initialS3Config },
+      s3ConfigValue:                            { ...initialS3Config },
       
     };
   },
@@ -297,17 +297,20 @@ export default {
     isS3EndpointTrulyValid() {
       const s3EndpointValue = this.rkeConfig.etcd?.s3?.endpoint;
       if (!this.s3Backup && isEmpty(s3EndpointValue)) {
+
         return true;
       }
 
       if (!this.s3ConfigComponent && (this.s3Backup || !isEmpty(s3EndpointValue))) {
-        if(!isHttpsOrHttp(s3EndpointValue)) {
+        if (!isHttpsOrHttp(s3EndpointValue)) {
+
           return true;
         }
         return false;
       }
 
       if (this.s3ConfigComponent) {
+        
         return !this.s3ConfigComponent.isEndpointInvalid;
       }
       return false;
@@ -2400,8 +2403,7 @@ export default {
                 :namespace="value.metadata.namespace" 
                 :register-before-hook="registerBeforeHook"
                 @update:value="handleS3ConfigUpdate" 
-              />
-              
+              /> 
             </template>
           </Etcd>
         </Tab>

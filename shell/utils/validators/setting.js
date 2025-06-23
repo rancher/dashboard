@@ -5,10 +5,10 @@ export const isServerUrl = (value) => value === 'server-url';
 export const isHttps = (value) => value.toLowerCase().startsWith('https://');
 
 export const isHttpsOrHttp = (value) => {
-    if (typeof value !== 'string') {
-        return false; // Or throw new Error('Input is not a string');
-    }
-    
+  if (typeof value !== 'string') {
+    return false; // Or throw new Error('Input is not a string');
+  }
+
   return value.toLowerCase().startsWith('https://') || value.toLowerCase().startsWith('http://');
 };
 
