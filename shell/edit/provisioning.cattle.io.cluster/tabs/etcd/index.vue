@@ -6,7 +6,6 @@ import { RadioGroup } from '@components/Form/Radio';
 import S3Config from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/S3Config';
 import UnitInput from '@shell/components/form/UnitInput';
 
-
 export default {
   emits: ['s3-backup-changed', 'config-etcd-expose-metrics-changed'],
 

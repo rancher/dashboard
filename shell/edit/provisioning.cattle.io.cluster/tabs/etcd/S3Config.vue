@@ -187,6 +187,12 @@ export default {
           :rules="fvGetAndReportPathRules('endpoint')"
           @update:value="update"
         />
+        <div
+          v-if="s3EndpointHasError"
+          class="input-error-message"
+        >
+          {{ t('cluster.credential.s3.defaultEndpoint.error') }}
+        </div>
       </div>
     </div>
 

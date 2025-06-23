@@ -312,15 +312,22 @@ export default {
 
       if (!this.s3ConfigComponent && (this.s3Backup || !isEmpty(s3EndpointValue))) {
         if (!isHttpsOrHttp(s3EndpointValue)) {
+          // this.s3EndpointHasError= true;
           return true;
         }
+        this.s3EndpointHasError = false;
 
         return false;
       }
 
       if (this.s3ConfigComponent) {
+        this.s3EndpointHasError = !this.s3ConfigComponent.isEndpointInvalid;
+
         return !this.s3ConfigComponent.isEndpointInvalid;
       }
+      this.s3EndpointHasError = !this.s3ConfigComponent.isEndpointInvalid;
+
+      return false;
     },
 
     isActiveTabRegistries() {
@@ -907,9 +914,9 @@ export default {
     },
 
     overallFormValidationPassed() {
-      return this.validationPassed && // Existing general validation (from mixin or other computations)
-             this.fvFormIsValid && // From FormValidation mixin
-             this.isS3EndpointTrulyValid; // S3 endpoint validation
+      return this.validationPassed &&
+            this.fvFormIsValid &&
+            this.isS3EndpointTrulyValid;
     },
 
   },
