@@ -133,6 +133,7 @@ export default {
     <SelectOrCreateAuthSecret
       v-model:value="config.cloudCredentialName"
       :mode="mode"
+      :disable="isView"
       :register-before-hook="registerBeforeHook"
       in-store="management"
       :allow-ssh="false"
