@@ -132,13 +132,13 @@ button,
 
   &:hover, &._hover {
     color: var(--body-text);
-    background-color: none;
+    background-color: transparent;
+    box-shadow: none;
   }
 
   &:focus, &.focused {
-    background: transparent;
-    color: var(--link);
-    box-shadow: none;
+    @include focus-outline;
+    outline-offset: -2px;
   }
 
   &:focus-visible {
