@@ -2226,6 +2226,7 @@ export default {
           ref="pools"
           :side-tabs="true"
           :show-tabs-add-remove="!isView"
+          :use-hash="useTabbedHash"
           @addTab="addMachinePool($event)"
           @removeTab="removeMachinePool($event)"
         >
@@ -2270,6 +2271,7 @@ export default {
       <Tabbed
         :side-tabs="true"
         class="min-height"
+        :use-hash="useTabbedHash"
         @changed="handleTabChange"
       >
         <Tab

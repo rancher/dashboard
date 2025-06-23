@@ -4,6 +4,10 @@ import { useDefaultLabels } from '@shell/components/Resource/Detail/Metadata/Lab
 import { useDefaultAnnotations } from '@shell/components/Resource/Detail/Metadata/Annotations/composable';
 import { computed, toValue, Ref } from 'vue';
 import { useResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
+import {
+  useCreatedBy,
+  useLiveDate, useNamespace, useProject, useResourceDetails, useWorkspace
+} from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/identifying-fields';
 
 export const useBasicMetadata = (resource: any) => {
   const labels = useDefaultLabels(resource);
@@ -24,6 +28,37 @@ export const useDefaultMetadataProps = (resource: any, additionalIdentifyingInfo
   const additionalIdentifyingInformationValue = toValue(additionalIdentifyingInformation);
 
   const identifyingInformation = computed(() => [...defaultIdentifyingInformation.value, ...(additionalIdentifyingInformationValue || [])]);
+  const basicMetaData = useBasicMetadata(resource);
+  const { openResourceDetailDrawer } = useResourceDetailDrawer();
+
+  return computed(() => {
+    return {
+      identifyingInformation: identifyingInformation.value,
+      labels:                 basicMetaData.value.labels,
+      annotations:            basicMetaData.value.annotations,
+      onShowConfiguration:    () => openResourceDetailDrawer(resource)
+    };
+  });
+};
+
+export const useDefaultMetadataForLegacyPagesProps = (resource: any) => {
+  const resourceDetails = useResourceDetails(resource);
+
+  const identifyingInformation = computed((): IdentifyingInformationRow[] => {
+    const defaultInfo = [
+      useProject(resource)?.value,
+      useWorkspace(resource)?.value,
+      useNamespace(resource)?.value,
+      useLiveDate(resource)?.value,
+      useCreatedBy(resource)?.value,
+    ];
+    const info = [
+      ...defaultInfo,
+      ...(resourceDetails?.value || [])
+    ];
+
+    return info.filter((info) => typeof info !== 'undefined');
+  });
   const basicMetaData = useBasicMetadata(resource);
   const { openResourceDetailDrawer } = useResourceDetailDrawer();
 

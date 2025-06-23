@@ -102,7 +102,9 @@ describe('MachineSets', { testIsolation: 'off', tags: ['@manager', '@adminUser']
 
     // check details page
     machineSetsPage.list().details(this.machineSetName, 2).find('a').click();
-    cy.contains('secretName2').should('be.visible');
+    cy.contains('secretName2')
+      .scrollIntoView()
+      .should('be.visible');
   });
 
   it('can clone a MachineSet', function() {

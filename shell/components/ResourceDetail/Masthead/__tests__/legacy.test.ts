@@ -1,6 +1,6 @@
 import { mount, RouterLinkStub } from '@vue/test-utils';
 import { _VIEW } from '@shell/config/query-params';
-import Masthead from '@shell/components/ResourceDetail/Masthead.vue';
+import Legacy from '@shell/components/ResourceDetail/Masthead/legacy.vue';
 import { createStore } from 'vuex';
 
 const mockedStore = () => {
@@ -30,7 +30,7 @@ const requiredSetup = () => {
   };
 };
 
-describe('component: Masthead', () => {
+describe('component: Masthead/legacy', () => {
   it.each([
     ['hidden', '', false, { displayName: 'admin', location: { id: 'resource-id' } }, false, false],
     ['plain-text', 'admin', true, { displayName: 'admin', location: null }, false, true],
@@ -43,7 +43,7 @@ describe('component: Masthead', () => {
     showLink,
     showPlainText,
   ) => {
-    const wrapper = mount(Masthead, {
+    const wrapper = mount(Legacy, {
       props: {
         mode:  _VIEW,
         value: {

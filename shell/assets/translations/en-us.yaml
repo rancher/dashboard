@@ -67,6 +67,11 @@ generic:
       warning: Warning
       error: Error
   ok: OK
+  other: |-
+    {count, plural,
+    one  {other}
+    other {others}
+    }
   overview: Overview
   plusMore: "+ {n} more"
   readFromFile: Read from File
@@ -2474,6 +2479,9 @@ detailText:
   binary: '<Binary Data: {n, number} bytes>'
   empty: '<Empty>'
   unsupported: '<Value not supported by UI, see YAML>'
+  sensitive:
+      hide: Hide Sensitive Values
+      show: Show Sensitive Values
   plusMore: |-
     {n, plural,
       =1 {+ 1 more char}
@@ -8564,6 +8572,7 @@ component:
       metadata:
         labelsAndAnnotations: Labels and Annotations
         identifyingInformation:
+          createdBy: Created by
           namespace: Namespace
           project: Project
           age: Age
@@ -8571,6 +8580,12 @@ component:
           ready: Ready
           up-to-date: Up-to-date
           available: Available
+          serviceAccount: Service Account
+          type: Type
+          certificate: Certificate
+          issuer: Issuer
+          expires: Expires
+          workspace: Workspace
         annotations:
           title: Annotations
         labels:

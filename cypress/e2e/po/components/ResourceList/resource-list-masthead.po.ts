@@ -6,7 +6,7 @@ export default class ResourceListMastheadPo extends ComponentPo {
   }
 
   title() {
-    return this.self().get('.title h1').invoke('text');
+    return this.self().get('.with-subheader .title h1, .primaryheader h1, .title-bar h1.title').invoke('text');
   }
 
   createYaml() {
