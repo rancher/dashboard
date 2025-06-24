@@ -210,7 +210,11 @@ export const usePrimeRegistration = () => {
         metadata: { name: REGISTRATION_NAMESPACE }
       });
 
-      newNamespace.save();
+      if (!newNamespace) {
+        onError(error);
+      } else {
+        newNamespace.save();
+      }
     }
   };
 
@@ -227,7 +231,7 @@ export const usePrimeRegistration = () => {
    */
   const registerOnline = async(asyncButtonResolution: AsyncButtonFunction) => {
     registrationStatus.value = 'registering-online';
-    changeRegistration('online', asyncButtonResolution);
+    await changeRegistration('online', asyncButtonResolution);
   };
 
   /**
@@ -237,7 +241,7 @@ export const usePrimeRegistration = () => {
   const registerOffline = async(certificate: string) => {
     registrationStatus.value = 'registering-offline';
     offlineRegistrationCertificate.value = certificate;
-    changeRegistration('offline', () => {});
+    await changeRegistration('offline', () => {});
   };
 
   /**
@@ -245,7 +249,7 @@ export const usePrimeRegistration = () => {
    * @param asyncButtonResolution Async button callback
    */
   const deregister = async(asyncButtonResolution: AsyncButtonFunction) => {
-    changeRegistration('deregister', asyncButtonResolution);
+    await changeRegistration('deregister', asyncButtonResolution);
   };
 
   /**
