@@ -221,6 +221,8 @@ export default defineComponent({
      * In the paginated world we want to restrict the fetch of those resources to only the one's we need
      *
      * So when we have a page.... use those entries as filters when fetching the other resources
+     *
+     * of type PagTableFetchPageSecondaryResources
      */
     async fetchPageSecondaryResources({ canPaginate, force, page }: PagTableFetchPageSecondaryResourcesOpts) {
       if (!page?.length) {
