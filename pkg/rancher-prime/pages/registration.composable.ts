@@ -7,6 +7,7 @@ import { SECRET } from '@shell/config/types';
 import { dateTimeFormat } from '@shell/utils/time';
 
 type RegistrationStatus = 'registering-online' | 'registering-offline' | 'registered' | null;
+type AsyncButtonFunction = (val: boolean) => void;
 interface RegistrationDashboard {
   active: boolean;
   product: string;
@@ -15,8 +16,8 @@ interface RegistrationDashboard {
   color: 'error' | 'success';
   message: string;
   status: 'valid' | 'error' | 'none';
-  registrationLink?: string;
-  resourceLink?: string;
+  registrationLink?: string; // not generated on failure or reset
+  resourceLink?: string; // not generated on empty registration
 }
 
 /**
@@ -168,7 +169,7 @@ export const usePrimeRegistration = () => {
    * @param type 'online' | 'offline' | 'deregister'
    * @param asyncButtonResolution Async button callback
    */
-  const changeRegistration = async(type: 'online' | 'offline' | 'deregister', asyncButtonResolution: () => void) => {
+  const changeRegistration = async(type: 'online' | 'offline' | 'deregister', asyncButtonResolution: AsyncButtonFunction) => {
     errors.value = [];
     await ensureNamespace();
     await deleteSecret();
@@ -190,7 +191,7 @@ export const usePrimeRegistration = () => {
       resetRegistration();
       break;
     }
-    asyncButtonResolution();
+    asyncButtonResolution(true);
   };
 
   /**
@@ -224,7 +225,7 @@ export const usePrimeRegistration = () => {
    * Patch CRD for online registration
    * @param asyncButtonResolution Async button callback
    */
-  const registerOnline = (asyncButtonResolution: () => void) => {
+  const registerOnline = (asyncButtonResolution: AsyncButtonFunction) => {
     registrationStatus.value = 'registering-online';
     changeRegistration('online', asyncButtonResolution);
   };
@@ -243,7 +244,7 @@ export const usePrimeRegistration = () => {
    * De-register handler
    * @param asyncButtonResolution Async button callback
    */
-  const deregister = (asyncButtonResolution: () => void) => {
+  const deregister = (asyncButtonResolution: AsyncButtonFunction) => {
     changeRegistration('deregister', asyncButtonResolution);
   };
 
