@@ -111,12 +111,12 @@ export const usePrimeRegistration = () => {
   /**
    * Registration code for online registration; empty if none or offline
    */
-  const registrationCode = ref('');
+  const registrationCode = ref(null as string | null);
 
   /**
    * Certificate for offline registration; empty if none or online
    */
-  const offlineRegistrationCertificate = ref('');
+  const offlineRegistrationCertificate = ref(null as string | null);
 
   /**
    * Current error list, displayed in the banner
@@ -157,7 +157,7 @@ export const usePrimeRegistration = () => {
   const resetRegistration = () => {
     registrationStatus.value = null;
     registrationCode.value = '';
-    offlineRegistrationCertificate.value = '';
+    offlineRegistrationCertificate.value = null;
     registration.value = emptyRegistration;
     secret.value = null;
   };
@@ -175,13 +175,15 @@ export const usePrimeRegistration = () => {
 
     switch (type) {
     case 'online':
+      if (!registrationCode.value) break;
       secret.value = await createSecret('online', registrationCode.value);
-      offlineRegistrationCertificate.value = '';
+      offlineRegistrationCertificate.value = null;
       setRegistration();
       break;
     case 'offline':
+      if (!registrationCode.value) break;
       secret.value = await createSecret('offline', registrationCode.value);
-      registrationCode.value = '';
+      registrationCode.value = null;
       setRegistration();
       break;
     case 'deregister':
