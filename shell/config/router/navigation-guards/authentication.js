@@ -4,10 +4,16 @@ import { RANCHER_AS_OIDC_QUERY_PARAMS } from '@shell/config/query-params';
 
 const R_OIDC_PROV_PARAMS = 'rancher-as-oidc-prov-params';
 
+/**
+ * Detect if we've come from an OIDC client
+ */
 function isRancherOidcProviderLogin(queryParams) {
   return queryParams && Object.keys(queryParams).length && RANCHER_AS_OIDC_QUERY_PARAMS.every((item) => Object.keys(queryParams).includes(item));
 }
 
+/**
+ * If we've logged in on a request from an OIDC client return to it
+ */
 function handleOidcRedirectToCallbackUrl() {
   const rancherAsOidcProvider = sessionStorage.getItem(R_OIDC_PROV_PARAMS);
 
@@ -37,10 +43,14 @@ function getUserObject(v3User, me) {
 
 export async function authenticate(to, from, next, { store }) {
   if (!routeRequiresAuthentication(to)) {
-    if (to.name === 'auth-login' && isRancherOidcProviderLogin(to.query)) {
-      const queryString = window.location.search;
-
-      sessionStorage.setItem(R_OIDC_PROV_PARAMS, queryString);
+    if (to.name === 'auth-login') {
+      if (isRancherOidcProviderLogin(to.query)) {
+        // If redirected here from an oidc client persist the values we need to return to it once rancher auth is complete...
+        sessionStorage.setItem(R_OIDC_PROV_PARAMS, window.location.search);
+      } else if (sessionStorage.getItem(R_OIDC_PROV_PARAMS)) {
+        // ... otherwise clear it (to avoid a redirect to it on successful log in)
+        sessionStorage.removeItem(R_OIDC_PROV_PARAMS);
+      }
     }
 
     return next();
