@@ -3,6 +3,7 @@ import { IPlugin, PanelLocation } from '@shell/core/types';
 import { installDocHandler } from './docs';
 
 import routing from './routing/index';
+import { useI18n } from '@shell/composables/useI18n';
 
 // Init the package
 export default function(plugin: IPlugin) {
@@ -30,4 +31,24 @@ export default function(plugin: IPlugin) {
 
   // About page panel
   plugin.addPanel(PanelLocation.ABOUT_TOP, {}, { component: () => import('./components/AboutPanel.vue') });
+
+  plugin.addNavHooks({
+    onLogin: async(store: any) => {
+      const { t } = useI18n(store);
+      const notification = {
+        level:         'error',
+        title:         t('registration.notification.title'),
+        message:       t('registration.notification.message'),
+        progress:      0,
+        primaryAction: {
+          label:  t('registration.notification.button.primary.label'),
+          action: { route: '/c/local/settings/registration' }
+        },
+        id:         'rancher-prime-registration',
+        preference: 'rancher-prime-registration'
+      };
+
+      await store.dispatch('notifications/add', notification);
+    }
+  });
 }
