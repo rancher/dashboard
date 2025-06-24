@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 
@@ -22,6 +22,7 @@ const {
   registerOffline,
   deregister,
   errors,
+  initRegistration,
   registrationCode,
   registrationBanner
 } = usePrimeRegistration();
@@ -40,6 +41,10 @@ const isRegistering = computed(() => registrationStatus.value === 'registering-o
  * Track offline registration progress, to switch between file selector and async button
  */
 const isRegisteringOffline = computed(() => registrationStatus.value === 'registering-offline');
+
+onMounted(async() => {
+  initRegistration();
+});
 </script>
 
 <template>
