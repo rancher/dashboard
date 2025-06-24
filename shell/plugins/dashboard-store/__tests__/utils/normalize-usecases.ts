@@ -1,4 +1,666 @@
 export const handleConflictUseCases = [
+  // mergeWithReplace - merging arrays - usecase 1
+  {
+    description: 'mergeWithReplace usecase 1 - merge arrays',
+    data:        {
+      currentConfig: {
+        metadata: { resourceVersion: '3961358' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      { a: ['one'] }
+              }
+            }
+          }
+        },
+        __clone: true
+      },
+      latestConfig: {
+        metadata: { resourceVersion: '3960953' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      { a: [] }
+              }
+            }
+          }
+        }
+      },
+      initialConfig: {
+        metadata: { resourceVersion: '3960910' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      {}
+              }
+            }
+          }
+        },
+        __clone: true
+      }
+    },
+    result:           1,
+    outputValidation: {
+      spec: {
+        template: {
+          metadata: {},
+          spec:     {
+            selector: {
+              matchExpressions: [],
+              matchLabels:      { a: [] }
+            }
+          }
+        }
+      },
+    }
+  },
+  // mergeWithReplace - merging arrays - usecase 2
+  {
+    description: 'mergeWithReplace usecase 2 - merge arrays',
+    data:        {
+      currentConfig: {
+        metadata: { resourceVersion: '3961358' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      { a: ['one', 'two'] }
+              }
+            }
+          }
+        },
+        __clone: true
+      },
+      latestConfig: {
+        metadata: { resourceVersion: '3960953' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      { a: ['one', 'two', 'three'] }
+              }
+            }
+          }
+        }
+      },
+      initialConfig: {
+        metadata: { resourceVersion: '3960910' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      {}
+              }
+            }
+          }
+        },
+        __clone: true
+      }
+    },
+    result:           1,
+    outputValidation: {
+      spec: {
+        template: {
+          metadata: {},
+          spec:     {
+            selector: {
+              matchExpressions: [],
+              matchLabels:      { a: ['one', 'two', 'three'] }
+            }
+          }
+        }
+      },
+    }
+  },
+  // mergeWithReplace - merging arrays - usecase 3
+  {
+    description: 'mergeWithReplace usecase 3 - merge arrays',
+    data:        {
+      currentConfig: {
+        metadata: { resourceVersion: '3961358' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      { a: ['one', 'two'], b: ['three', 'four'] }
+              }
+            }
+          }
+        },
+        __clone: true
+      },
+      latestConfig: {
+        metadata: { resourceVersion: '3960953' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      { a: ['one'], b: [] }
+              }
+            }
+          }
+        }
+      },
+      initialConfig: {
+        metadata: { resourceVersion: '3960910' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      {}
+              }
+            }
+          }
+        },
+        __clone: true
+      }
+    },
+    result:           1,
+    outputValidation: {
+      spec: {
+        template: {
+          metadata: {},
+          spec:     {
+            selector: {
+              matchExpressions: [],
+              matchLabels:      { a: ['one'], b: [] }
+            }
+          }
+        }
+      },
+    }
+  },
+  // mergeWithReplace - merging arrays - usecase 4
+  {
+    description: 'mergeWithReplace usecase 4 - merge arrays',
+    data:        {
+      currentConfig: {
+        metadata: { resourceVersion: '3961358' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      {
+                  a: ['one', 'two'], b: ['three', 'four'], c: 'five'
+                }
+              }
+            }
+          }
+        },
+        __clone: true
+      },
+      latestConfig: {
+        metadata: { resourceVersion: '3960953' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      { a: ['one'], b: [] }
+              }
+            }
+          }
+        }
+      },
+      initialConfig: {
+        metadata: { resourceVersion: '3960910' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      {}
+              }
+            }
+          }
+        },
+        __clone: true
+      }
+    },
+    result:           1,
+    outputValidation: {
+      spec: {
+        template: {
+          metadata: {},
+          spec:     {
+            selector: {
+              matchExpressions: [],
+              matchLabels:      {
+                a: ['one'], b: [], c: 'five'
+              }
+            }
+          }
+        }
+      },
+    }
+  },
+  // mergeWithReplace - merging arrays - usecase 5
+  {
+    description: 'mergeWithReplace usecase 5 - merge arrays',
+    data:        {
+      currentConfig: {
+        metadata: { resourceVersion: '3961358' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      { a: 'one' }
+              }
+            }
+          }
+        },
+        __clone: true
+      },
+      latestConfig: {
+        metadata: { resourceVersion: '3960953' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      { b: 'two' }
+              }
+            }
+          }
+        }
+      },
+      initialConfig: {
+        metadata: { resourceVersion: '3960910' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      {}
+              }
+            }
+          }
+        },
+        __clone: true
+      }
+    },
+    result:           false,
+    outputValidation: {
+      spec: {
+        template: {
+          metadata: {},
+          spec:     {
+            selector: {
+              matchExpressions: [],
+              matchLabels:      { a: 'one', b: 'two' }
+            }
+          }
+        }
+      },
+    }
+  },
+  // mergeWithReplace - merging arrays - usecase 6
+  {
+    description: 'mergeWithReplace usecase 6 - merge arrays',
+    data:        {
+      currentConfig: {
+        metadata: { resourceVersion: '3961358' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      { a: 'one' }
+              }
+            }
+          }
+        },
+        __clone: true
+      },
+      latestConfig: {
+        metadata: { resourceVersion: '3960953' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      { a: '', b: 'two' }
+              }
+            }
+          }
+        }
+      },
+      initialConfig: {
+        metadata: { resourceVersion: '3960910' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      {}
+              }
+            }
+          }
+        },
+        __clone: true
+      }
+    },
+    result:           1,
+    outputValidation: {
+      spec: {
+        template: {
+          metadata: {},
+          spec:     {
+            selector: {
+              matchExpressions: [],
+              matchLabels:      { a: '', b: 'two' }
+            }
+          }
+        }
+      },
+    }
+  },
+  // mergeWithReplace - merging arrays - usecase 7
+  {
+    description: 'mergeWithReplace usecase 7 - merge arrays',
+    data:        {
+      currentConfig: {
+        metadata: { resourceVersion: '3961358' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      { a: 'one', b: 'two' }
+              }
+            }
+          }
+        },
+        __clone: true
+      },
+      latestConfig: {
+        metadata: { resourceVersion: '3960953' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      { a: 1, c: { d: null } }
+              }
+            }
+          }
+        }
+      },
+      initialConfig: {
+        metadata: { resourceVersion: '3960910' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      {}
+              }
+            }
+          }
+        },
+        __clone: true
+      }
+    },
+    result:           1,
+    outputValidation: {
+      spec: {
+        template: {
+          metadata: {},
+          spec:     {
+            selector: {
+              matchExpressions: [],
+              matchLabels:      {
+                a: 1, b: 'two', c: { d: null }
+              }
+            }
+          }
+        }
+      },
+    }
+  },
+  // mergeWithReplace - merging objects - usecase 1
+  {
+    description: 'mergeWithReplace usecase 1 - merge objects',
+    data:        {
+      currentConfig: {
+        metadata: { resourceVersion: '3961358' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      { a: { b: false, c: false } }
+              }
+            }
+          }
+        },
+        __clone: true
+      },
+      latestConfig: {
+        metadata: { resourceVersion: '3960953' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      { a: { b: true, c: null } }
+              }
+            }
+          }
+        }
+      },
+      initialConfig: {
+        metadata: { resourceVersion: '3960910' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      {}
+              }
+            }
+          }
+        },
+        __clone: true
+      }
+    },
+    result:           1,
+    outputValidation: {
+      spec: {
+        template: {
+          metadata: {},
+          spec:     {
+            selector: {
+              matchExpressions: [],
+              matchLabels:      { a: { b: true, c: null } }
+            }
+          }
+        }
+      },
+    }
+  },
+  // mergeWithReplace - merging objects - usecase 2
+  {
+    description: 'mergeWithReplace usecase 2 - merge objects',
+    data:        {
+      currentConfig: {
+        metadata: { resourceVersion: '3961358' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      {
+                  a: [{
+                    b: 'test', c: 'test', value: true
+                  }]
+                }
+              }
+            }
+          }
+        },
+        __clone: true
+      },
+      latestConfig: {
+        metadata: { resourceVersion: '3960953' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      {
+                  a: [{
+                    b: 'test', c: 'test', operator: 'exists'
+                  }]
+                }
+              }
+            }
+          }
+        }
+      },
+      initialConfig: {
+        metadata: { resourceVersion: '3960910' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      {}
+              }
+            }
+          }
+        },
+        __clone: true
+      }
+    },
+    result:           1,
+    outputValidation: {
+      spec: {
+        template: {
+          metadata: {},
+          spec:     {
+            selector: {
+              matchExpressions: [],
+              matchLabels:      {
+                a: [{
+                  b: 'test', c: 'test', operator: 'exists'
+                }]
+              }
+            }
+          }
+        }
+      },
+    }
+  },
+  // mergeWithReplace - merging objects - usecase 3
+  {
+    description: 'mergeWithReplace usecase 3 - merge objects',
+    data:        {
+      currentConfig: {
+        metadata: { resourceVersion: '3961358' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      {
+                  a: { enabled: false }, b: { enabled: false }, c: { enabled: false }
+                }
+              }
+            }
+          }
+        },
+        __clone: true
+      },
+      latestConfig: {
+        metadata: { resourceVersion: '3960953' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      { c: { enabled: true, stripUnderscores: true } }
+              }
+            }
+          }
+        }
+      },
+      initialConfig: {
+        metadata: { resourceVersion: '3960910' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      {}
+              }
+            }
+          }
+        },
+        __clone: true
+      }
+    },
+    result:           1,
+    outputValidation: {
+      spec: {
+        template: {
+          metadata: {},
+          spec:     {
+            selector: {
+              matchExpressions: [],
+              matchLabels:      {
+                a: { enabled: false }, b: { enabled: false }, c: { enabled: true, stripUnderscores: true }
+              }
+            }
+          }
+        }
+      },
+    }
+  },
   // 2 same keys entries but with different values, 1 different key, removing one of the same keys
   // remove from array
   // covers https://github.com/rancher/dashboard/issues/14397
