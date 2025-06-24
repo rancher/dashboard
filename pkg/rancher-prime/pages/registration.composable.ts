@@ -1,4 +1,4 @@
-import { onMounted, computed, ref, Ref } from 'vue';
+import { computed, ref, Ref } from 'vue';
 import { useStore } from 'vuex';
 
 import { downloadFile } from '@shell/utils/download';
@@ -360,12 +360,12 @@ export const usePrimeRegistration = () => {
     }
   };
 
-  onMounted(async() => {
+  const initRegistration = async() => {
     secret.value = await getSecret();
     registrationCode.value = regCode.value;
 
     await setRegistration();
-  });
+  };
 
   return {
     downloadOfflineRequest,
@@ -374,6 +374,7 @@ export const usePrimeRegistration = () => {
     registerOnline,
     registerOffline,
     deregister,
+    initRegistration,
     errors,
     offlineRegistrationCertificate,
     registrationCode,
