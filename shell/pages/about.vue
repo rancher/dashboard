@@ -46,7 +46,9 @@ export default {
     },
     downloads() {
       return [
-        this.createOSOption('about.os.mac', 'icon-apple', this.settings?.find((s) => s.id === SETTING.CLI_URL.DARWIN)?.value, null),
+        this.createOSOption('about.os.mac', 'icon-apple', this.settings?.find((s) => s.id === SETTING.CLI_URL.DARWIN)?.value),
+        this.createOSOption('about.os.linux', 'icon-linux', this.settings?.find((s) => s.id === SETTING.CLI_URL.LINUX)?.value),
+        this.createOSOption('about.os.windows', 'icon-windows', this.settings?.find((s) => s.id === SETTING.CLI_URL.WINDOWS)?.value)
       ];
     },
     downloadCli() {
@@ -54,13 +56,12 @@ export default {
     }
   },
   methods: {
-    createOSOption(label, icon, cliLink, imageList) {
+    createOSOption(label, icon, cliLink) {
       const slash = cliLink?.lastIndexOf('/');
 
       return {
         label,
         icon,
-        imageList,
         cliLink,
         cliFile: slash >= 0 ? cliLink.substr(slash + 1, cliLink.length - 1) : cliLink
       };
