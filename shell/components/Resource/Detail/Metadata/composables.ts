@@ -18,7 +18,7 @@ export const useBasicMetadata = (resource: any) => {
     return {
       labels:              labels.value,
       annotations:         annotations.value,
-      onShowConfiguration: () => openResourceDetailDrawer(resource)
+      onShowConfiguration: (returnFocusSelector: string) => openResourceDetailDrawer(resource, returnFocusSelector)
     };
   });
 };
@@ -36,7 +36,7 @@ export const useDefaultMetadataProps = (resource: any, additionalIdentifyingInfo
       identifyingInformation: identifyingInformation.value,
       labels:                 basicMetaData.value.labels,
       annotations:            basicMetaData.value.annotations,
-      onShowConfiguration:    () => openResourceDetailDrawer(resource)
+      onShowConfiguration:    (returnFocusSelector: string) => openResourceDetailDrawer(resource, returnFocusSelector)
     };
   });
 };

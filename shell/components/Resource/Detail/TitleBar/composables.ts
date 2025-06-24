@@ -35,7 +35,7 @@ export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: Ref<str
         label: resourceValue.stateDisplay
       },
       description:         resourceValue.description,
-      onShowConfiguration: () => openResourceDetailDrawer(resourceValue)
+      onShowConfiguration: (returnFocusSelector: string) => openResourceDetailDrawer(resourceValue, returnFocusSelector)
     };
   });
 };
