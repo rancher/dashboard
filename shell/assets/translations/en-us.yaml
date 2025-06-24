@@ -2562,17 +2562,20 @@ fleet:
     debug:
       label: Debug
       description: ''
+    replicas:
+      label: Replicas
+      description: replicas
     controllerReplicas:
-      label: Replicas Controller
+      label: Controller
       description: ""
     gitjobReplicas:
-      label: Replicas Gitjob
+      label: Gitjob
       description: ""
     helmopsReplicas:
-      label: Replicas Helmops
+      label: Helmops
       description: ""
     agentReplicas:
-      label: Replicas Agent
+      label: Agent
       description: ""
 
   tableHeaders:

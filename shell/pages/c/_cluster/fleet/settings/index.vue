@@ -1,5 +1,5 @@
 <script lang="ts">
-import ConfigMapSettings, { Setting } from '@shell/components/ConfigMapSettings.vue';
+import ConfigMapSettings, { Group, Setting } from '@shell/components/ConfigMapSettings/index.vue';
 
 export default {
 
@@ -24,26 +24,26 @@ export default {
             type:  'string',
             value: 'system-store'
           }],
-          path:        'agentTLSMode',
-          default:     'system-store',
+          path:    'agentTLSMode',
+          default: 'system-store',
         },
         agentCheckinInterval: {
-          weight:      0,
-          type:        'string',
-          path:        'agentCheckinInterval',
-          default:     '15m',
+          weight:  0,
+          type:    'string',
+          path:    'agentCheckinInterval',
+          default: '15m',
         },
         garbageCollectionInterval: {
-          weight:      0,
-          type:        'string',
-          path:        'garbageCollectionInterval',
-          default:     '15m',
+          weight:  0,
+          type:    'string',
+          path:    'garbageCollectionInterval',
+          default: '15m',
         },
         clusterEnqueueDelay: {
-          weight:      0,
-          type:        'string',
-          path:        'clusterEnqueueDelay',
-          default:     '120s',
+          weight:  0,
+          type:    'string',
+          path:    'clusterEnqueueDelay',
+          default: '120s',
         },
         proxy: {
           weight:      0,
@@ -53,74 +53,87 @@ export default {
           placeholder: true,
         },
         noProxy: {
-          weight:      0,
-          type:        'string',
-          path:        'noProxy',
-          default:     '127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local',
+          weight:  0,
+          type:    'string',
+          path:    'noProxy',
+          default: '127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local',
         },
         gitClientTimeout: {
-          weight:      0,
-          type:        'string',
-          path:        'gitClientTimeout',
-          default:     '30s',
+          weight:  0,
+          type:    'string',
+          path:    'gitClientTimeout',
+          default: '30s',
         },
         nodeSelector: {
-          weight:      0,
-          type:        'object',
-          path:        'nodeSelector',
-          default:     {},
+          weight:  0,
+          type:    'object',
+          path:    'nodeSelector',
+          default: {},
         },
         tolerations: {
-          weight:      0,
-          type:        'object',
-          path:        'tolerations',
-          default:     [],
+          weight:  0,
+          type:    'object',
+          path:    'tolerations',
+          default: [],
         },
         priorityClassName: {
-          weight:      0,
-          type:        'string',
-          path:        'priorityClassName',
-          default:     '',
+          weight:  0,
+          type:    'string',
+          path:    'priorityClassName',
+          default: '',
         },
         metrics: {
-          weight:      0,
-          type:        'boolean',
-          path:        'metrics.enabled',
-          default:     false,
+          weight:  0,
+          type:    'boolean',
+          path:    'metrics.enabled',
+          default: false,
         },
         debug: {
-          weight:      0,
-          type:        'boolean',
-          path:        'debug',
-          default:     false,
+          weight:  0,
+          type:    'boolean',
+          path:    'debug',
+          default: false,
         },
         controllerReplicas: {
-          weight:      0,
-          type:        'number',
-          path:        'controller.replicas',
-          default:     1,
+          weight:  0,
+          type:    'number',
+          path:    'controller.replicas',
+          default: 1,
         },
         gitjobReplicas: {
-          weight:      0,
-          type:        'number',
-          path:        'gitjob.replicas',
-          default:     1,
+          weight:  0,
+          type:    'number',
+          path:    'gitjob.replicas',
+          default: 1,
         },
         helmopsReplicas: {
-          weight:      0,
-          type:        'number',
-          path:        'helmops.replicas',
-          default:     1,
+          weight:  0,
+          type:    'number',
+          path:    'helmops.replicas',
+          default: 1,
         },
         agentReplicas: {
-          weight:      0,
-          type:        'number',
-          path:        'agent.replicas',
-          default:     1,
+          weight:  0,
+          type:    'number',
+          path:    'agent.replicas',
+          default: 1,
         }
 
       } as Record<string, Setting>;
     },
+
+    groups(): Group[] {
+      return [{
+        name:     'replicas',
+        children: [
+          'controllerReplicas',
+          'gitjobReplicas',
+          'helmopsReplicas',
+          'agentReplicas',
+        ],
+        weight: 0
+      }];
+    }
   },
 
   methods: {
@@ -133,6 +146,7 @@ export default {
 <template>
   <ConfigMapSettings
     :settings="settings"
+    :groups="groups"
     :namespace="'cattle-system'"
     :name="'rancher-config'"
     :data-key="'fleet'"

@@ -6,46 +6,34 @@ import { set, get } from '@shell/utils/object';
 import YAML from 'yaml';
 import { CONFIG_MAP, MANAGEMENT } from '@shell/config/types';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { Checkbox } from '@components/Form/Checkbox';
 import Loading from '@shell/components/Loading.vue';
 import AsyncButton from '@shell/components/AsyncButton.vue';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import { Banner } from '@components/Banner';
+import Settings from '@shell/components/ConfigMapSettings/Settings.vue';
 
-type SettingType = 'string' | 'number' | 'boolean' | 'array' | 'object';
+export type SettingType = 'string' | 'number' | 'boolean' | 'array' | 'object';
 
-interface Item {
+export interface Item {
   type: SettingType,
   value: string
 }
 
-interface Option {
-  label: string,
-  value: string,
+export interface Group {
+  name: string,
+  children: string[],
+  weight: number,
 }
 
 export interface Setting {
-    path: string,
+  path: string,
   type: SettingType,
   items?: Item[],
-  default: any,
+  default: object | string | boolean | number,
   tooltip?: boolean,
   info?: boolean,
   placeholder?: boolean,
-weight: number,
+  weight: number,
   // validationRules,
-}
-
-export type SettingDisplay = Setting & {
-  name: string,
-  options?: Option[]
-  label: string,
-  description: string,
-  tooltipLabel?: string,
-  infoLabel?: string,
-  placeholderLabel?: string,
 }
 
 interface DataType {
@@ -62,13 +50,10 @@ export default {
   emits: ['done', 'errors'],
 
   components: {
-    LabeledInput,
-    LabeledSelect,
-    Checkbox,
     Loading,
     AsyncButton,
     Banner,
-    TextAreaAutoGrow
+    Settings,
   },
 
   props: {
@@ -93,6 +78,14 @@ export default {
     settings: {
       type:     Object as PropType<Record<string, Setting>>,
       required: true
+    },
+
+    /**
+     * Groups of Settings
+     */
+    groups: {
+      type:    Array as PropType<Group[]>,
+      default: () => [],
     },
 
     /**
@@ -153,24 +146,6 @@ export default {
   },
 
   computed: {
-    settingsDisplay(): SettingDisplay[] {
-      const list = Object.keys(this.settings).reduce((acc, name) => [
-        ...acc,
-        {
-          ...this.settings[name],
-          name,
-          options:          this.settings[name].items?.map(({ value }) => ({ value, label: this.display(`${ name }.options.${ value }`, 'label') })),
-          label:            this.display(name, 'label'),
-          description:      this.display(name, 'description'),
-          tooltipLabel:     this.settings[name].tooltip ? this.display(name, 'tooltip') : '',
-          infoLabel:        this.settings[name].info ? this.display(name, 'info') : '',
-          placeholderLabel: this.settings[name].placeholder ? this.display(name, 'placeholder') : '',
-        },
-      ], [] as SettingDisplay[]);
-
-      return list.sort((a, b) => `${ this.settings[a.name].weight }-${ a.label }`.localeCompare(`${ this.settings[b.name].weight }-${ b.label }`));
-    },
-
     mode() {
       const settingsSchema = this.$store.getters[`${ this.inStore }/schemaFor`](MANAGEMENT.SETTING);
       const configMapsSchema = this.$store.getters[`${ this.inStore }/schemaFor`](CONFIG_MAP);
@@ -192,14 +167,6 @@ export default {
   },
 
   methods: {
-    get(item: SettingDisplay) {
-      return get(this.values, item.path);
-    },
-
-    set(item: SettingDisplay, value: any) {
-      set(this.values, item.path, value);
-    },
-
     async save(btnCB: (arg: boolean) => void) {
       const configMap = this.configMap || await this.$store.dispatch(`${ this.inStore }/create`, {
         type:     CONFIG_MAP,
@@ -219,7 +186,7 @@ export default {
         const currentValues = this.buildValues(this.values, (name, value) => {
           // object types from json
           if (this.settings[name].type === 'object') {
-            value = YAML.parse(value);
+            value = YAML.parse(value as string);
           }
 
           return value;
@@ -259,7 +226,7 @@ export default {
       });
     },
 
-    buildValues<T = any>(values: object, fn: (name: string, value: T) => T) {
+    buildValues<T = object | string | boolean | number>(values: object, fn: (name: string, value: T) => T) {
       return Object.keys(this.settings).reduce((acc, name) => {
         const value = get(values, this.settings[name].path);
 
@@ -267,10 +234,6 @@ export default {
 
         return acc;
       }, {});
-    },
-
-    display(name: string, key: 'label' | 'description' | 'tooltip' | 'info' | 'placeholder') {
-      return this.t(`${ this.labelKeyPrefix }.${ name }.${ key }`, {}, true);
     }
   }
 };
@@ -312,91 +275,15 @@ export default {
       </template>
     </slot>
 
-    <div
-      v-for="item in settingsDisplay"
-      :key="item.name"
-      class="settings-container mt-30"
-    >
-      <div class="header">
-        <h3
-          class="label"
-        >
-          {{ item.label }}
-          <i
-            v-if="item.tooltip"
-            v-clean-tooltip="item.tooltipLabel"
-            class="icon icon-info"
-          />
-        </h3>
-        <span
-          class="description text-muted"
-        >
-          {{ item.description }}
-        </span>
-
-        <Banner
-          v-if="item.info"
-          color="warning"
-          :label="item.infoLabel"
-        />
-      </div>
-
-      <div class="value mt-10">
-        <template v-if="item.items?.length">
-          <LabeledSelect
-            :value="get(item)"
-            :label="item.label"
-            :placeholder="item.placeholderLabel"
-            :mode="mode"
-            :multiple="item.type === 'array'"
-            :options="item.options"
-            :option-key="'value'"
-            :reduce="(opt: Option)=>opt.value"
-            @update:value="set(item, $event)"
-          />
-        </template>
-
-        <template v-else-if="item.type === 'object'">
-          <TextAreaAutoGrow
-            :value="get(item)"
-            :min-height="10"
-            :mode="mode"
-            @update:value="set(item, $event)"
-          />
-        </template>
-
-        <template v-else-if="item.type === 'string'">
-          <LabeledInput
-            :value="get(item)"
-            :mode="mode"
-            :label="item.label"
-            :placeholder="item.placeholderLabel"
-            @update:value="set(item, $event)"
-          />
-        </template>
-
-        <template v-else-if="item.type === 'number'">
-          <LabeledInput
-            :value="get(item)"
-            :mode="mode"
-            :label="item.label"
-            :placeholder="item.placeholderLabel"
-            class="input"
-            type="number"
-            @update:value="set(item, $event)"
-          />
-        </template>
-
-        <template v-else-if="item.type === 'boolean'">
-          <Checkbox
-            :value="get(item)"
-            :mode="mode"
-            :label="item.label"
-            @update:value="set(item, $event)"
-          />
-        </template>
-      </div>
-    </div>
+    <Settings
+      class="mt-30"
+      :settings="settings"
+      :groups="groups"
+      :values="values"
+      :mode="mode"
+      :label-key-prefix="labelKeyPrefix"
+      @update:value="values=$event"
+    />
 
     <div v-if="canEdit">
       <AsyncButton
@@ -409,8 +296,4 @@ export default {
 </template>
 
 <style scoped lang='scss'>
-  .settings-container {
-    display: flex;
-    flex-direction: column;
-  }
 </style>
