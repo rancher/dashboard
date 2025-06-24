@@ -1,5 +1,5 @@
 <script lang="ts">
-import ResourceYaml from '@shell/components/ResourceYaml.vue';
+import CodeMirror from '@shell/components/CodeMirror.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { _VIEW } from '@shell/config/query-params';
 import { useStore } from 'vuex';
@@ -24,10 +24,9 @@ const yamlComponent: any = useTemplateRef('yaml');
     :label="i18n.t('component.drawer.resourceDetailDrawer.yamlTab.title')"
     @active="() => yamlComponent?.refresh()"
   >
-    <ResourceYaml
+    <CodeMirror
       ref="yaml"
-      :value="props.resource"
-      :yaml="props.yaml"
+      :value="props.yaml"
       :mode="_VIEW"
     />
   </Tab>
@@ -35,7 +34,7 @@ const yamlComponent: any = useTemplateRef('yaml');
 
 <style lang="scss" scoped>
 .yaml-tab {
-  :deep() .yaml-editor .codemirror-container {
+  :deep() .codemirror-container {
     background-color: var(--body-bg);
     border-radius: var(--border-radius-md);
     padding: 16px;
