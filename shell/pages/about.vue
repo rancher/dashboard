@@ -5,7 +5,6 @@ import BackRoute from '@shell/mixins/back-link';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { getVendor } from '@shell/config/private-label';
-import { downloadFile } from '@shell/utils/download';
 import { mapGetters } from 'vuex';
 import TabTitle from '@shell/components/TabTitle';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
@@ -48,12 +47,7 @@ export default {
     downloads() {
       return [
         this.createOSOption('about.os.mac', 'icon-apple', this.settings?.find((s) => s.id === SETTING.CLI_URL.DARWIN)?.value, null),
-        this.createOSOption('about.os.linux', 'icon-linux', this.settings?.find((s) => s.id === SETTING.CLI_URL.LINUX)?.value, this.downloadLinuxImages),
-        this.createOSOption('about.os.windows', 'icon-windows', this.settings?.find((s) => s.id === SETTING.CLI_URL.WINDOWS)?.value, this.downloadWindowsImages)
       ];
-    },
-    downloadImageList() {
-      return this.downloads.filter((d) => !!d.imageList);
     },
     downloadCli() {
       return this.downloads.filter((d) => !!d.cliLink);
@@ -72,25 +66,6 @@ export default {
       };
     },
 
-    async downloadLinuxImages() {
-      const res = await this.$store.dispatch('management/request', { url: '/v3/kontainerdrivers/rancher-images' });
-
-      try {
-        await downloadFile(`.rancher-linux-images.txt`, res.data);
-      } catch (error) {
-        this.$store.dispatch('growl/fromError', { title: 'Error downloading Linux image list', err: error }, { root: true });
-      }
-    },
-
-    async downloadWindowsImages() {
-      const res = await this.$store.dispatch('management/request', { url: '/v3/kontainerdrivers/rancher-windows-images' });
-
-      try {
-        await downloadFile(`.rancher-windows-images.txt`, res.data);
-      } catch (error) {
-        this.$store.dispatch('growl/fromError', { title: 'Error downloading Windows image list', err: error }, { root: true });
-      }
-    },
   }
 };
 </script>
@@ -215,36 +190,6 @@ export default {
         {{ t('about.versions.releaseNotes') }}
       </a>
     </p>
-    <template v-if="downloadImageList.length">
-      <h3 class="pt-40">
-        {{ t('about.downloadImageList.title') }}
-      </h3>
-      <table>
-        <tr
-          v-for="(d, i) in downloadImageList"
-          :key="i"
-        >
-          <th>
-            <div class="os">
-              <i :class="`icon ${d.icon} mr-5`" /> {{ t(d.label) }}
-            </div>
-          </th>
-          <td>
-            <a
-              v-if="d.imageList"
-              tabindex="0"
-              :data-testid="`image_list_download_link__${d.label}`"
-              role="link"
-              :aria-label="t('about.versions.downloadImages', { listName: t(d.label) })"
-              @click="d.imageList"
-              @keyup.enter="d.imageList"
-            >
-              {{ t('asyncButton.download.action') }}
-            </a>
-          </td>
-        </tr>
-      </table>
-    </template>
     <template v-if="downloadCli.length">
       <h3 class="pt-40">
         {{ t('about.downloadCLI.title') }}
