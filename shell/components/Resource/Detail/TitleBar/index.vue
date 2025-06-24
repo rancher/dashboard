@@ -49,7 +49,7 @@ const showConfigurationReturnFocusSelector = computed(() => `[data-testid="${ sh
 <template>
   <div class="title-bar">
     <Top>
-      <Title>
+      <Title class="title">
         <TabTitle :show-child="false">
           {{ resourceTypeLabel }}
         </TabTitle>
@@ -71,6 +71,7 @@ const showConfigurationReturnFocusSelector = computed(() => `[data-testid="${ sh
         </span>
         <BadgeState
           v-if="badge"
+          class="badge-state"
           :color="badge.color"
           :label="badge.label"
         />
@@ -112,7 +113,7 @@ const showConfigurationReturnFocusSelector = computed(() => `[data-testid="${ sh
 <style lang="scss" scoped>
 .title-bar {
 
-  &:deep() .badge-state {
+  .badge-state {
     font-size: 16px;
     margin-left: 4px;
     position: relative;
@@ -135,7 +136,7 @@ const showConfigurationReturnFocusSelector = computed(() => `[data-testid="${ sh
   }
 
   // This prevents the title from overlapping with the actions
-  :deep().title {
+  .title {
     max-width: calc(100% - 260px);
   }
 
