@@ -41,6 +41,7 @@ interface DataType {
   configMap: object | null,
   values: object,
   errors: string[]
+  valuesErrors: string[],
 }
 
 export default {
@@ -141,12 +142,17 @@ export default {
       noPermissions: false,
       configMap:     null,
       values:        {},
-      errors:        []
+      errors:        [],
+      valuesErrors:  []
     };
   },
 
   computed: {
     mode() {
+      if (this.valuesErrors.length) {
+        return _VIEW;
+      }
+
       const settingsSchema = this.$store.getters[`${ this.inStore }/schemaFor`](MANAGEMENT.SETTING);
       const configMapsSchema = this.$store.getters[`${ this.inStore }/schemaFor`](CONFIG_MAP);
 
@@ -208,22 +214,28 @@ export default {
     },
 
     initValues() {
-      const configMapValues = get(this.configMap || {}, `data.${ this.dataKey }`);
-      const currentValues = YAML.parse(configMapValues || '');
+      try {
+        const configMapValues = get(this.configMap || {}, `data.${ this.dataKey }`);
+        const currentValues = YAML.parse(configMapValues || '');
 
-      this.values = this.buildValues(currentValues, (name, value) => {
-        // use default value
-        if (value === undefined) {
-          value = this.settings[name].default;
-        }
+        this.values = this.buildValues(currentValues, (name, value) => {
+          // use default value
+          if (value === undefined) {
+            value = this.settings[name].default;
+          }
 
-        // object types to json
-        if (this.settings[name].type === 'object') {
-          value = JSON.stringify(value || {});
-        }
+          // object types to json
+          if (this.settings[name].type === 'object') {
+            value = JSON.stringify(value || {});
+          }
 
-        return value;
-      });
+          return value;
+        });
+      } catch (err) {
+        const msg = this.t(`${ this.labelKeyPrefix }.parseError`, { id: `${ this.namespace }/${ this.name }`, path: `data.${ this.dataKey }` }, true);
+
+        this.valuesErrors.push(msg);
+      }
     },
 
     buildValues<T = object | string | boolean | number>(values: object, fn: (name: string, value: T) => T) {
@@ -248,7 +260,10 @@ export default {
       </span>
     </slot>
   </div>
-  <div v-else>
+  <div
+    v-else
+    data-testid="cm-settings"
+  >
     <slot name="header">
       <div class="header mb-20">
         <h1>
@@ -265,11 +280,12 @@ export default {
 
     <slot name="errors">
       <template
-        v-for="(err, j) in errors"
+        v-for="(err, j) in [ ...valuesErrors, ...errors ]"
         :key="j"
       >
         <Banner
           color="error"
+          data-testid="cm-settings-error"
           :label="err"
         />
       </template>

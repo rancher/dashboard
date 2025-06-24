@@ -2520,6 +2520,7 @@ fleet:
     title: Fleet Settings
     description: Fleet settings description
     noPermissions: You have no permissions to modify Fleet Settings
+    parseError: 'Cannot parse values from "{ path }" in "{ id }" ConfigMap'
     agentTLSMode:
       label: TLS Mode
       description: "Determines whether the agent should trust CA bundles from the operating system's trust store when connecting to a management cluster."
