@@ -23,12 +23,16 @@ export function install(router, context) {
 
 export async function authenticate(to, from, next, { store }) {
   if (!routeRequiresAuthentication(to)) {
-    if (to.name === 'auth-login' && checkIfIsRancherAsOidcProviderLogin(to.query)) {
-      // eslint-disable-next-line no-console
-      console.error('WE ARE ON OIDC WORLD!!!!', window.location.search);
-      const queryString = window.location.search;
-
-      sessionStorage.setItem(R_OIDC_PROV_PARAMS, queryString);
+    if (to.name === 'auth-login') {
+      if (checkIfIsRancherAsOidcProviderLogin(to.query)) {
+        // eslint-disable-next-line no-console
+        console.error('WE ARE ON OIDC WORLD!!!!', window.location.search);
+        // If redirected here from an oidc client persist the values we need to return to it once rancher auth is complete...
+        sessionStorage.setItem(R_OIDC_PROV_PARAMS, window.location.search);
+      } else if (sessionStorage.getItem(R_OIDC_PROV_PARAMS)) {
+        // ... otherwise clear it (to avoid a redirect to it on successful log in)
+        sessionStorage.removeItem(R_OIDC_PROV_PARAMS);
+      }
     }
 
     return next();
