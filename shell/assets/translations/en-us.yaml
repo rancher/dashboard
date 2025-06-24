@@ -152,6 +152,9 @@ generic:
   showMore: Show more
   opensInNewTab: Opens in a new tab
   
+tabs:
+  addItem: Add a new tab item
+  removeItem: Remove selected tab item
 
 graph:
   noPermissions: You do not have permission to Graph view
