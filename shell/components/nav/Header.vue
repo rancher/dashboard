@@ -647,7 +647,7 @@ export default {
           :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
           role="button"
           tabindex="0"
-          :aria-label="action.label"
+          :aria-label="action.labelKey ? t(action.labelKey) : action.label"
           @shortkey="handleExtensionAction(action, $event)"
           @click="handleExtensionAction(action, $event)"
         >
