@@ -54,6 +54,21 @@ export default {
       default: true
     },
 
+    addLabel: {
+      type:    String,
+      default: '',
+    },
+
+    addIcon: {
+      type:    String,
+      default: '',
+    },
+
+    addClass: {
+      type:    String,
+      default: '',
+    },
+
     // whether or not to show remove rule button right side of the rule
     showRemoveButton: {
       type:    Boolean,
@@ -144,6 +159,10 @@ export default {
   computed: {
     isView() {
       return this.mode === 'view';
+    },
+
+    _addLabel() {
+      return this.addLabel || this.t('workload.scheduling.affinity.matchExpressions.addRule');
     },
 
     node() {
@@ -394,10 +413,15 @@ export default {
       <button
         type="button"
         class="btn role-tertiary add"
-        :data-testid="`input-match-expression-add-rule`"
+        :class="[addClass]"
+        data-testid="input-match-expression-add-rule"
         @click="addRule"
       >
-        <t k="workload.scheduling.affinity.matchExpressions.addRule" />
+        <i
+          v-if="addIcon"
+          class="mr-5 icon"
+          :class="[addIcon]"
+        /> {{ _addLabel }}
       </button>
     </div>
   </div>

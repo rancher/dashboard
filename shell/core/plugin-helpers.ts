@@ -32,12 +32,13 @@ function checkRouteProduct($route: RouteLocation, locationConfigParam: string) {
   return false;
 }
 
-function checkRouteMode({ name, query }: {name: string, query: any}, locationConfigParam: LocationConfigParams) {
+function checkRouteMode({ name, query, meta }: {name: string, query: any, meta: any}, locationConfigParam: LocationConfigParams) {
   if (locationConfigParam === _EDIT && query.mode && query.mode === _EDIT && !query.as) {
     return true;
   } else if (locationConfigParam === _CONFIG && query.as && query.as === _CONFIG) {
     return true;
-  } else if (locationConfigParam === _DETAIL && !query.as && name.includes('-id') && (!query.mode || query?.mode !== _EDIT)) {
+  // I don't think we should be inspecting route names to infer modes. I'm thinking we may want to move it all to route metadata at some point
+  } else if (locationConfigParam === _DETAIL && !query.as && (name.includes('-id') || meta.mode === 'detail') && (!query.mode || query?.mode !== _EDIT)) {
     return true;
     // alias to target all list views
   } else if (locationConfigParam === _LIST && !name.includes('-id') && name.includes('-resource')) {

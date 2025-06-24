@@ -16,7 +16,7 @@ import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
 import { RcItemCard } from '@components/RcItemCard';
 import { get } from '@shell/utils/object';
-import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
+import { CATALOG as CATALOG_TYPES, SORT_OPTIONS } from '@shell/config/types';
 import FilterPanel from '@shell/components/FilterPanel';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
@@ -51,7 +51,7 @@ export default {
 
     this.searchQuery = query[SEARCH_QUERY] || '';
     this.debouncedSearchQuery = query[SEARCH_QUERY] || '';
-    this.selectedSortOption = query[SORT_BY] || 'featured';
+    this.selectedSortOption = query[SORT_BY] || SORT_OPTIONS.RECOMMENDED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
     this.filters.repos = normalizeFilterQuery(query[REPO]) || [];
     this.filters.categories = normalizeFilterQuery(query[CATEGORY]) || [];
@@ -80,7 +80,7 @@ export default {
               label:     this.t('generic.installed'),
               icon:      'icon-warning',
               iconColor: 'warning',
-              tooltip:   this.t('catalog.charts.experimentalStatus.tooltip')
+              tooltip:   this.t('catalog.charts.statusFilterCautions.installation')
             }
           }
         },
@@ -96,17 +96,18 @@ export default {
               label:     this.t('generic.upgradeable'),
               icon:      'icon-warning',
               iconColor: 'warning',
-              tooltip:   this.t('catalog.charts.experimentalStatus.tooltip')
+              tooltip:   this.t('catalog.charts.statusFilterCautions.upgradeable')
             }
           }
         }
       ],
       appCardsCache:      {},
-      selectedSortOption: 'featured',
+      selectedSortOption: SORT_OPTIONS.RECOMMENDED,
       sortOptions:        [
-        { value: 'featured', label: this.t('catalog.charts.sortBy.recommended') },
-        { value: 'lastupdated', label: this.t('catalog.charts.sortBy.lastUpdated') },
-        { value: 'name', label: this.t('catalog.charts.sortBy.name') },
+        { value: SORT_OPTIONS.RECOMMENDED, label: this.t('catalog.charts.sortBy.recommended') },
+        { value: SORT_OPTIONS.LAST_UPDATED_DESC, label: this.t('catalog.charts.sortBy.lastUpdatedDesc') },
+        { value: SORT_OPTIONS.ALPHABETICAL_ASC, label: this.t('catalog.charts.sortBy.alphaAscending') },
+        { value: SORT_OPTIONS.ALPHABETICAL_DESC, label: this.t('catalog.charts.sortBy.alphaDescending') },
       ]
     };
   },
@@ -416,10 +417,8 @@ export default {
     },
 
     resetAllFilters() {
-      const initialState = createInitialFilters();
-
-      this.internalFilters = initialState;
-      this.filters = initialState;
+      this.internalFilters = createInitialFilters();
+      this.filters = createInitialFilters();
       this.searchQuery = '';
     },
   },
@@ -437,6 +436,7 @@ export default {
         {{ t('catalog.chart.header.charts') }}
       </h1>
       <AsyncButton
+        class="refresh-repo-button"
         :action-label="t('catalog.charts.refreshButton.label')"
         :waitingLabel="t('catalog.charts.refreshButton.label')"
         :success-label="t('catalog.charts.refreshButton.label')"
@@ -586,6 +586,13 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+
+  .refresh-repo-button {
+
+    :deep(.icon) {
+      font-size: 14px;
+    }
+  }
 }
 
 .search-input {
@@ -594,6 +601,8 @@ export default {
 
   input {
     height: 48px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .icon-search {
@@ -696,7 +705,7 @@ export default {
 
 .app-chart-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   grid-gap: var(--gap-md);
   width: 100%;
   height: max-content;

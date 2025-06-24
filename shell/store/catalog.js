@@ -1,4 +1,4 @@
-import { CATALOG, EXPERIMENTAL, DEPRECATED } from '@shell/config/types';
+import { CATALOG, EXPERIMENTAL, DEPRECATED, SORT_OPTIONS } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addParams } from '@shell/utils/url';
 import { allHash, allHashSettled } from '@shell/utils/promise';
@@ -536,7 +536,7 @@ function addChart(ctx, map, chart, repo) {
       chartNameDisplay: chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
       chartDescription: chart.description,
       featured:         chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED],
-      featuredNumber:   chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED] ? Number(chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED]) : Number.MAX_SAFE_INTEGER,
+      featuredIndex:    chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED] ? Number(chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED]) : Number.MAX_SAFE_INTEGER,
       repoKey:          repo._key,
       versions:         [],
       categories:       filterCategories(chart.keywords),
@@ -567,11 +567,9 @@ function addChart(ctx, map, chart, repo) {
 
   obj.versions.push(chart);
 
-  if (obj.durationSinceRelease) {
-    return;
+  if (!obj.durationSinceRelease) {
+    obj.durationSinceRelease = Date.now() - new Date(obj.versions[0].created).getTime();
   }
-
-  obj.durationSinceRelease = Date.now() - new Date(obj.versions[0].created).getTime();
 }
 
 function preferSameRepo(matching, repoType, repoName) {
@@ -708,16 +706,20 @@ export function filterAndArrangeCharts(charts, {
     return true;
   });
 
-  if (sort === 'featured') {
-    return sortBy(out, ['featuredNumber', 'certifiedSort', 'repoName', 'chartNameDisplay']);
+  if (sort === SORT_OPTIONS.RECOMMENDED) {
+    return sortBy(out, ['featuredIndex', 'certifiedSort', 'repoName', 'chartNameDisplay']);
   }
 
-  if (sort === 'lastupdated') {
-    return sortBy(out, ['durationSinceRelease', 'featuredNumber', 'certifiedSort', 'repoName', 'chartNameDisplay']);
+  if (sort === SORT_OPTIONS.LAST_UPDATED_DESC) {
+    return sortBy(out, ['durationSinceRelease', 'featuredIndex', 'certifiedSort', 'repoName', 'chartNameDisplay']);
   }
 
-  if (sort === 'name') {
-    return sortBy(out, ['chartNameDisplay', 'featuredNumber', 'certifiedSort', 'repoName']);
+  if (sort === SORT_OPTIONS.ALPHABETICAL_ASC) {
+    return sortBy(out, ['chartNameDisplay', 'featuredIndex', 'certifiedSort', 'repoName']);
+  }
+
+  if (sort === SORT_OPTIONS.ALPHABETICAL_DESC) {
+    return sortBy(out, ['chartNameDisplay'], true);
   }
 
   return sortBy(out, ['certifiedSort', 'repoName', 'chartNameDisplay']);

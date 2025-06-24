@@ -6,7 +6,7 @@ import {
   AGE,
   FLEET_REPO,
   FLEET_REPO_CLUSTER_SUMMARY,
-  FLEET_REPO_CLUSTERS_READY,
+  FLEET_APPLICATION_CLUSTERS_READY,
   FLEET_REPO_PER_CLUSTER_STATE,
   FLEET_REPO_TARGET,
   FLEET_SUMMARY,
@@ -14,7 +14,6 @@ import {
   STATE,
 } from '@shell/config/table-headers';
 
-// i18n-ignore repoDisplay
 export default {
 
   name: 'FleetRepos',
@@ -91,7 +90,7 @@ export default {
       const summary = this.isClusterView ? [{
         ...FLEET_REPO_CLUSTER_SUMMARY,
         formatterOpts: { clusterId: this.clusterId },
-      }] : [FLEET_REPO_CLUSTERS_READY, FLEET_SUMMARY];
+      }] : [FLEET_APPLICATION_CLUSTERS_READY, FLEET_SUMMARY];
 
       // if hasPerClusterState then use the repo state
       const state = this.isClusterView ? {
@@ -113,17 +112,17 @@ export default {
       return this.showIntro && !this.filteredRows.length;
     },
   },
-  methods: {
-    parseTargetMode(row) {
-      return row.targetInfo?.mode === 'clusterGroup' ? this.t('fleet.gitRepo.warningTooltip.clusterGroup') : this.t('fleet.gitRepo.warningTooltip.cluster');
-    },
-  },
 };
 </script>
 
 <template>
   <div>
-    <FleetIntro v-if="shouldShowIntro && !loading" />
+    <FleetIntro
+      v-if="shouldShowIntro && !loading"
+      :schema="schema"
+      :labelKey="'gitRepo'"
+      :icon="'icon-github'"
+    />
     <ResourceTable
       v-if="!shouldShowIntro"
       v-bind="$attrs"
@@ -134,49 +133,9 @@ export default {
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :namespaced="!workspace"
       key-field="_key"
-    >
-      <template
-        v-if="!isClusterView"
-        #cell:clustersReady="{ row }"
-      >
-        <span
-          v-if="!row.clusterInfo"
-          class="text-muted"
-        >&mdash;</span>
-        <span
-          v-else-if="row.clusterInfo.unready"
-          class="text-warning"
-        >{{ row.clusterInfo.ready }}/{{
-          row.clusterInfo.total }}</span>
-        <span
-          v-else
-          class="cluster-count-info"
-        >
-          {{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}
-          <i
-            v-if="!row.clusterInfo.total"
-            v-clean-tooltip.bottom="parseTargetMode(row)"
-            class="icon icon-warning"
-          />
-        </span>
-      </template>
-
-      <template #cell:target="{ row }">
-        {{ row.targetInfo.modeDisplay }}
-      </template>
-    </ResourceTable>
+    />
   </div>
 </template>
 
 <style lang="scss" scoped>
-.cluster-count-info {
-  display: flex;
-  align-items: center;
-
-  i {
-    margin-left: 5px;
-    font-size: 22px;
-    color: var(--warning);
-  }
-}
 </style>

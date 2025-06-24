@@ -526,6 +526,7 @@ export const getters = {
       customRoute:            undefined,
       resourceEditMasthead:   true,
       custom:                 {},
+      subTypes:               [],
     };
 
     return (schemaOrType, pagination) => {
@@ -753,11 +754,13 @@ export const getters = {
         let group = findBy(tree.children, 'name', name);
 
         if ( !group ) {
+          const groupDefaultTypeFor = getters.groupDefaultTypeFor(name);
+
           group = {
             name,
             label,
             weight:      getters.groupWeightFor(name, forBasic),
-            defaultType: getters.groupDefaultTypeFor(name),
+            defaultType: typeof groupDefaultTypeFor === 'function' ? groupDefaultTypeFor() : groupDefaultTypeFor,
           };
 
           tree.children.push(group);
