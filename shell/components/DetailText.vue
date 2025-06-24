@@ -187,6 +187,7 @@ export default {
       :options="{mode:{name:'javascript', json:true}, lineNumbers:false, foldGutter:false, readOnly:true}"
       :value="jsonStr"
       :class="{'conceal': concealed}"
+      aria-live="polite"
     />
 
     <span
@@ -194,6 +195,7 @@ export default {
       v-clean-html="bodyHtml"
       data-testid="detail-top_html"
       :class="{'conceal': concealed, 'monospace': monospace && !isBinary}"
+      aria-live="polite"
     />
 
     <template v-if="!isBinary && !jsonStr && isLong && !expanded">
