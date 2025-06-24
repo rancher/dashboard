@@ -157,7 +157,7 @@ export const usePrimeRegistration = () => {
    */
   const resetRegistration = () => {
     registrationStatus.value = null;
-    registrationCode.value = '';
+    registrationCode.value = null;
     offlineRegistrationCertificate.value = null;
     registration.value = emptyRegistration;
     secret.value = null;
@@ -225,7 +225,7 @@ export const usePrimeRegistration = () => {
    * Patch CRD for online registration
    * @param asyncButtonResolution Async button callback
    */
-  const registerOnline = (asyncButtonResolution: AsyncButtonFunction) => {
+  const registerOnline = async(asyncButtonResolution: AsyncButtonFunction) => {
     registrationStatus.value = 'registering-online';
     changeRegistration('online', asyncButtonResolution);
   };
@@ -234,7 +234,7 @@ export const usePrimeRegistration = () => {
    * Set certificate from file, then patch the registration for offline
    * @param certificate base64 encoded certificate from SCC
    */
-  const registerOffline = (certificate: string) => {
+  const registerOffline = async(certificate: string) => {
     registrationStatus.value = 'registering-offline';
     offlineRegistrationCertificate.value = certificate;
     changeRegistration('offline', () => {});
@@ -244,7 +244,7 @@ export const usePrimeRegistration = () => {
    * De-register handler
    * @param asyncButtonResolution Async button callback
    */
-  const deregister = (asyncButtonResolution: AsyncButtonFunction) => {
+  const deregister = async(asyncButtonResolution: AsyncButtonFunction) => {
     changeRegistration('deregister', asyncButtonResolution);
   };
 
@@ -375,6 +375,7 @@ export const usePrimeRegistration = () => {
     registerOffline,
     deregister,
     errors,
+    offlineRegistrationCertificate,
     registrationCode,
     registrationBanner
   };
