@@ -6,6 +6,8 @@ import { removeAt } from '@shell/utils/array';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import { clone } from '@shell/utils/object';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import { randomStr } from '@shell/utils/string';
+
 const DEFAULT_PROTIP = 'Tip: Paste lines into any list field for easy bulk entry';
 
 export default {
@@ -114,12 +116,12 @@ export default {
     const rows = ref([]);
 
     for ( const value of input ) {
-      rows.value.push({ value });
+      rows.value.push({ value, id: randomStr() });
     }
     if ( !rows.value.length && props.initialEmptyRow ) {
       const value = props.defaultAddValue ? clone(props.defaultAddValue) : '';
 
-      rows.value.push({ value });
+      rows.value.push({ value, id: randomStr() });
     }
 
     const isView = computed(() => {
@@ -164,9 +166,19 @@ export default {
 
     watch(
       () => props.value,
-      () => {
+      (newVal) => {
         lastUpdateWasFromValue.value = true;
-        rows.value = (props.value || []).map((v) => ({ value: v }));
+        const newRows = (newVal || []).map((value) => {
+          const existingRow = rows.value.find((row) => row.value === value);
+
+          if (existingRow) {
+            return { value, id: existingRow.id };
+          } else {
+            return { value, id: randomStr() };
+          }
+        });
+
+        rows.value = newRows;
       },
       { deep: true }
     );
@@ -211,7 +223,10 @@ export default {
   },
   methods: {
     add() {
-      this.rows.push({ value: clone(this.defaultAddValue) });
+      this.rows.push({
+        value: clone(this.defaultAddValue),
+        id:    randomStr(),
+      });
       if (this.defaultAddValue) {
         this.queueUpdate();
       }
@@ -301,7 +316,7 @@ export default {
         </div>
         <div
           v-for="(row, idx) in rows"
-          :key="idx"
+          :key="row.id"
           :data-testid="`${componentTestid}-box${ idx }`"
           class="box"
           :class="{'hide-remove-is-view': isView}"
@@ -352,12 +367,13 @@ export default {
                 <input
                   v-else
                   ref="value"
-                  v-model="row.value"
+                  :value="row.value"
                   :data-testid="`${componentTestid}-input-${idx}`"
                   :placeholder="valuePlaceholder"
                   :disabled="isView || disabled"
                   :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
                   @paste="onPaste(idx, $event)"
+                  @input="queueUpdate"
                 >
               </slot>
             </div>
