@@ -5,10 +5,11 @@ import { useI18n } from '@shell/composables/useI18n';
 
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import { RcButton } from '@components/RcButton';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import { BadgeState } from '@components/BadgeState';
 import AsyncButton from '@shell/components/AsyncButton';
-import Banner from '@components/Banner/Banner.vue';
+import { Banner } from '@components/Banner';
 import FileSelector from '@shell/components/form/FileSelector';
 import { usePrimeRegistration } from './registration.composable';
 import Loading from '@shell/components/Loading.vue';
@@ -42,6 +43,10 @@ const isRegistering = computed(() => registrationStatus.value === 'registering-o
  * Track offline registration progress, to switch between file selector and async button
  */
 const isRegisteringOffline = computed(() => registrationStatus.value === 'registering-offline');
+
+const visitScc = () => {
+  window.open('https://scc.suse.com/register-offline/rancher', '_blank');
+};
 
 onMounted(async() => {
   initRegistration();
@@ -140,6 +145,21 @@ onMounted(async() => {
         <!-- Step 2 -->
         <p
           v-clean-html="t('registration.offline.steptwo', {}, true)"
+          class="mt-20"
+        />
+        <RcButton
+          secondary
+          class="mt-20"
+          data-testid="registration-offline-visit-scc"
+          :disabled="isRegistered || isRegistering"
+          @click="visitScc"
+        >
+          {{ t('registration.offline.button.visit.label') }}
+        </RcButton>
+
+        <!-- Step 3 -->
+        <p
+          v-clean-html="t('registration.offline.stepthree', {}, true)"
           class="mt-20"
         />
         <!-- Show async button while submitting file -->
