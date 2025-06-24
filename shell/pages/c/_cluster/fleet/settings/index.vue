@@ -14,8 +14,68 @@ export default {
   computed: {
     settings() {
       return {
+        // 'general' group
+        garbageCollectionInterval: {
+          weight:  0,
+          type:    'string',
+          path:    'garbageCollectionInterval',
+          default: '15m',
+        },
+        gitClientTimeout: {
+          weight:  1,
+          type:    'string',
+          path:    'gitClientTimeout',
+          default: '30s',
+        },
+        proxy: {
+          weight:      2,
+          type:        'string',
+          path:        'proxy',
+          default:     '',
+          placeholder: true,
+        },
+        noProxy: {
+          weight:  3,
+          type:    'string',
+          path:    'noProxy',
+          default: '127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local',
+        },
+        clusterEnqueueDelay: {
+          weight:  4,
+          type:    'string',
+          path:    'clusterEnqueueDelay',
+          default: '120s',
+        },
+
+        // 'controller' group
+        controllerReplicas: {
+          weight:  0,
+          type:    'number',
+          path:    'controller.replicas',
+          default: 1,
+        },
+        gitjobReplicas: {
+          weight:  1,
+          type:    'number',
+          path:    'gitjob.replicas',
+          default: 1,
+        },
+        helmopsReplicas: {
+          weight:  2,
+          type:    'number',
+          path:    'helmops.replicas',
+          default: 1,
+        },
+
+        // 'agent' group
+        agentReplicas: {
+          weight:  0,
+          type:    'number',
+          path:    'agent.replicas',
+          default: 1,
+        },
         agentTLSMode: {
-          weight: 0,
+          weight: 1,
           type:   'string',
           items:  [{
             type:  'string',
@@ -28,60 +88,39 @@ export default {
           default: 'system-store',
         },
         agentCheckinInterval: {
-          weight:  0,
+          weight:  2,
           type:    'string',
           path:    'agentCheckinInterval',
           default: '15m',
         },
-        garbageCollectionInterval: {
-          weight:  0,
-          type:    'string',
-          path:    'garbageCollectionInterval',
-          default: '15m',
-        },
-        clusterEnqueueDelay: {
-          weight:  0,
-          type:    'string',
-          path:    'clusterEnqueueDelay',
-          default: '120s',
-        },
-        proxy: {
-          weight:      0,
-          type:        'string',
-          path:        'proxy',
-          default:     '',
-          placeholder: true,
-        },
-        noProxy: {
-          weight:  0,
-          type:    'string',
-          path:    'noProxy',
-          default: '127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local',
-        },
-        gitClientTimeout: {
-          weight:  0,
-          type:    'string',
-          path:    'gitClientTimeout',
-          default: '30s',
-        },
-        nodeSelector: {
-          weight:  0,
-          type:    'object',
-          path:    'nodeSelector',
-          default: {},
-        },
-        tolerations: {
-          weight:  0,
-          type:    'object',
-          path:    'tolerations',
-          default: [],
-        },
+
+        // 'resource-definition' group
         priorityClassName: {
           weight:  0,
           type:    'string',
           path:    'priorityClassName',
           default: '',
         },
+        nodeSelector: {
+          weight:  1,
+          type:    'object',
+          path:    'nodeSelector',
+          default: {},
+        },
+        tolerations: {
+          weight:  2,
+          type:    'object',
+          path:    'tolerations',
+          default: [],
+        },
+        extraAnnotations: {
+          weight:  3,
+          type:    'object',
+          path:    'extraAnnotations',
+          default: {},
+        },
+
+        // 'developer' group
         metrics: {
           weight:  0,
           type:    'boolean',
@@ -89,49 +128,57 @@ export default {
           default: false,
         },
         debug: {
-          weight:  0,
+          weight:  1,
           type:    'boolean',
           path:    'debug',
           default: false,
-        },
-        controllerReplicas: {
-          weight:  0,
-          type:    'number',
-          path:    'controller.replicas',
-          default: 1,
-        },
-        gitjobReplicas: {
-          weight:  0,
-          type:    'number',
-          path:    'gitjob.replicas',
-          default: 1,
-        },
-        helmopsReplicas: {
-          weight:  0,
-          type:    'number',
-          path:    'helmops.replicas',
-          default: 1,
-        },
-        agentReplicas: {
-          weight:  0,
-          type:    'number',
-          path:    'agent.replicas',
-          default: 1,
         }
-
       } as Record<string, Setting>;
     },
 
     groups(): Group[] {
       return [{
-        name:     'replicas',
+        name:     'general',
+        children: [
+          'garbageCollectionInterval',
+          'gitClientTimeout',
+          'proxy',
+          'noProxy',
+          'clusterEnqueueDelay'
+        ],
+        weight: 0
+      }, {
+        name:     'controller',
         children: [
           'controllerReplicas',
           'gitjobReplicas',
           'helmopsReplicas',
-          'agentReplicas',
         ],
-        weight: 0
+        weight: 1
+      }, {
+        name:     'agent',
+        children: [
+          'agentReplicas',
+          'agentTLSMode',
+          'agentCheckinInterval'
+        ],
+        weight: 2
+      }, {
+        name:     'modifiers',
+        children: [
+          'nodeSelector',
+          'priorityClassName',
+          'tolerations',
+          'extraAnnotations'
+        ],
+        weight: 3
+      }, {
+        name:     'developer',
+        children: [
+          'metrics',
+          'debug'
+        ],
+        weight: 4
       }];
     }
   },

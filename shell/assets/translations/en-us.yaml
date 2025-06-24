@@ -2521,7 +2521,7 @@ fleet:
     description: Fleet settings description
     noPermissions: You have no permissions to modify Fleet Settings
     agentTLSMode:
-      label: Agent TLS Mode
+      label: TLS Mode
       description: "Determines whether the agent should trust CA bundles from the operating system's trust store when connecting to a management cluster."
       options:
         system-store:
@@ -2529,7 +2529,7 @@ fleet:
         strict:
           label: strict
     agentCheckinInterval:
-      label: Agent Checkin Interval
+      label: Checkin Interval
       description: A duration string for how often agents should report a heartbeat.
     garbageCollectionInterval:
       label: Garbage Collection Interval
@@ -2558,25 +2558,40 @@ fleet:
       description: "PriorityClassName assigned to deployment."
     metrics:
       label: Metrics
-      description: ''
+      description: 'Enable metrics'
     debug:
       label: Debug
-      description: ''
-    replicas:
-      label: Replicas
-      description: replicas
+      description: 'Enable debug mode'
+    extraAnnotations:
+      label: Extra Annotations
+      description: 'Extra annotations passed to the fleet pods.'
     controllerReplicas:
-      label: Controller
+      label: GitOps replicas
       description: ""
     gitjobReplicas:
-      label: Gitjob
+      label: Gitjob replicas
       description: ""
     helmopsReplicas:
-      label: Helmops
+      label: Helmops replicas
       description: ""
     agentReplicas:
-      label: Agent
+      label: Replicas
       description: ""
+    general:
+      label: General
+      description: ''
+    agent:
+      label: Agent
+      description: ''
+    controller:
+      label: Controller
+      description: ''
+    modifiers:
+      label: Resource modifiers
+      description: ''
+    developer:
+      label: Developer
+      description: ''
 
   tableHeaders:
     applicationType: Type

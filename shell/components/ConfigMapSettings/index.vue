@@ -287,7 +287,7 @@ export default {
 
     <div v-if="canEdit">
       <AsyncButton
-        class="pull-right mt-20"
+        class="pull-right mt-30"
         mode="apply"
         @click="save"
       />

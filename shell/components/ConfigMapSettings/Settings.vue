@@ -98,7 +98,7 @@ export default {
         });
       });
 
-      return out.sort((a, b) => `${ a.weight }-${ a.label }`.localeCompare(`${ b.weight }-${ b.label }`));
+      return out.sort((a, b) => (a.weight || 0) - (b.weight || 0) || (a.label || '').localeCompare(b.label || ''));
     },
   },
 
@@ -132,8 +132,10 @@ export default {
       class="setting-row"
     >
       <div class="header mb-10">
-        <h3
+        <h2
+          v-if="item.label"
           class="label"
+          :style="!item.children ? { fontSize: '18px' } : { marginBottom: '10px' }"
         >
           {{ item.label }}
           <i
@@ -141,9 +143,9 @@ export default {
             v-clean-tooltip="item.tooltipLabel"
             class="icon icon-info"
           />
-        </h3>
+        </h2>
         <p
-          v-if="item.description"
+          v-if="item.description && item.type !== 'boolean'"
           class="description text-muted mt-10"
         >
           {{ item.description }}
@@ -159,7 +161,7 @@ export default {
       <div class="body">
         <div
           v-if="item.children"
-          class="group"
+          class="group box"
         >
           <Settings
             :settings="item.children"
@@ -223,7 +225,7 @@ export default {
             <Checkbox
               :value="get(item)"
               :mode="mode"
-              :label="item.label"
+              :label="item.description"
               @update:value="set(item, $event)"
             />
           </template>
@@ -248,12 +250,12 @@ export default {
           margin: 0;
         }
       }
-
-      .group {
-        border-radius: var(--border-radius);
-        border: 1px solid var(--border);
-        padding: 15px;
-      }
     }
+  }
+
+  .box {
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border);
+    padding: 15px;
   }
 </style>
