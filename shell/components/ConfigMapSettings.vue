@@ -27,14 +27,14 @@ interface Option {
 }
 
 export interface Setting {
-  weight: number,
-  path: string,
+    path: string,
   type: SettingType,
   items?: Item[],
   default: any,
-  tooltip: boolean,
-  info: boolean,
-  placeholder: boolean,
+  tooltip?: boolean,
+  info?: boolean,
+  placeholder?: boolean,
+weight: number,
   // validationRules,
 }
 
