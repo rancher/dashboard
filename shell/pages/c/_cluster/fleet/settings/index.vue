@@ -7,12 +7,8 @@ export default {
 
   components: { ConfigMapSettings },
 
-  data() {
-    return { errors: [] };
-  },
-
   computed: {
-    settings() {
+    settings(): Record<string, Setting> {
       return {
         // 'general' group
         garbageCollectionInterval: {
@@ -133,7 +129,7 @@ export default {
           path:    'debug',
           default: false,
         }
-      } as Record<string, Setting>;
+      };
     },
 
     groups(): Group[] {
@@ -181,11 +177,6 @@ export default {
         weight: 4
       }];
     }
-  },
-
-  methods: {
-    done() {
-    }
   }
 };
 </script>
@@ -199,8 +190,6 @@ export default {
     :data-key="'fleet'"
     :in-store="'management'"
     :label-key-prefix="'fleet.settings'"
-    @done="done"
-    @errors="e=>errors = e"
   />
 </template>
 
