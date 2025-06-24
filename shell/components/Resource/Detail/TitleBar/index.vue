@@ -87,6 +87,7 @@ const showConfigurationReturnFocusSelector = computed(() => `[data-testid="${ sh
           <img
             :src="showConfigurationIcon"
             class="mmr-3"
+            aria-hidden="true"
           >
           {{ i18n.t('component.resource.detail.titleBar.showConfiguration') }}
         </RcButton>
