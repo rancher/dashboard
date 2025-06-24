@@ -453,6 +453,135 @@ export const handleConflictUseCases = [
       },
     }
   },
+  // mergeWithReplace - merging arrays - usecase 8
+  {
+    description: 'mergeWithReplace usecase 8 - merge arrays',
+    data:        {
+      currentConfig: {
+        metadata: { resourceVersion: '3961358' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      undefined
+              }
+            }
+          }
+        },
+        __clone: true
+      },
+      latestConfig: {
+        metadata: { resourceVersion: '3960953' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      {}
+              }
+            }
+          }
+        }
+      },
+      initialConfig: {
+        metadata: { resourceVersion: '3960910' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      undefined
+              }
+            }
+          }
+        },
+        __clone: true
+      }
+    },
+    result:           false,
+    outputValidation: {
+      spec: {
+        template: {
+          metadata: {},
+          spec:     {
+            selector: {
+              matchExpressions: [],
+              matchLabels:      {}
+            }
+          }
+        }
+      },
+    }
+  },
+  // mergeWithReplace - merging arrays - usecase 9
+  {
+    description: 'mergeWithReplace usecase 9 - merge arrays',
+    data:        {
+      currentConfig: {
+        metadata: { resourceVersion: '3961358' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      {}
+              }
+            }
+          }
+        },
+        __clone: true
+      },
+      latestConfig: {
+        metadata: { resourceVersion: '3960953' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      undefined
+              }
+            }
+          }
+        }
+      },
+      initialConfig: {
+        metadata: { resourceVersion: '3960910' },
+        spec:     {
+          template: {
+            metadata: {},
+            spec:     {
+              selector: {
+                matchExpressions: [],
+                matchLabels:      undefined
+              }
+            }
+          }
+        },
+        __clone: true
+      }
+    },
+    result:           false,
+    outputValidation: {
+      spec: {
+        template: {
+          metadata: {},
+          spec:     {
+            selector: {
+              matchExpressions: [],
+              matchLabels:      {}
+            }
+          }
+        }
+      },
+    }
+  },
+
   // mergeWithReplace - merging objects - usecase 1
   {
     description: 'mergeWithReplace usecase 1 - merge objects',
