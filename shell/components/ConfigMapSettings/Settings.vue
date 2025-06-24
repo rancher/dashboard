@@ -130,6 +130,7 @@ export default {
       v-for="item in settingsDisplay"
       :key="item.name"
       class="setting-row"
+      data-testid="cm-settings-row"
     >
       <div class="header mb-10">
         <h2
@@ -162,6 +163,7 @@ export default {
         <div
           v-if="item.children"
           class="group box"
+          :data-testid="`cm-settings-group-${ item.name }`"
         >
           <Settings
             :settings="item.children"
@@ -178,6 +180,7 @@ export default {
         >
           <template v-if="item.items?.length">
             <LabeledSelect
+              :data-testid="`cm-settings-field-${ item.type === 'array' ? 'array' : item.type }-${ item.name }`"
               :value="get(item)"
               :label="item.label"
               :placeholder="item.placeholderLabel"
@@ -192,7 +195,8 @@ export default {
 
           <template v-else-if="item.type === 'object'">
             <TextAreaAutoGrow
-              :value="get(item)"
+              :data-testid="`cm-settings-field-${ item.type }-${ item.name }`"
+              :value="get(item) || ''"
               :min-height="10"
               :mode="mode"
               @update:value="set(item, $event)"
@@ -201,6 +205,7 @@ export default {
 
           <template v-else-if="item.type === 'string'">
             <LabeledInput
+              :data-testid="`cm-settings-field-${ item.type }-${ item.name }`"
               :value="get(item)"
               :mode="mode"
               :label="item.label"
@@ -211,6 +216,7 @@ export default {
 
           <template v-else-if="item.type === 'number'">
             <LabeledInput
+              :data-testid="`cm-settings-field-${ item.type }-${ item.name }`"
               :value="get(item)"
               :mode="mode"
               :label="item.label"
@@ -223,6 +229,7 @@ export default {
 
           <template v-else-if="item.type === 'boolean'">
             <Checkbox
+              :data-testid="`cm-settings-field-${ item.type }-${ item.name }`"
               :value="get(item)"
               :mode="mode"
               :label="item.description"
