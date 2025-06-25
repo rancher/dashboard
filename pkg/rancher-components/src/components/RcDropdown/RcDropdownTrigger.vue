@@ -25,7 +25,7 @@ const focus = () => {
 
 const closeDropdown = () => {
   showMenu(false);
-}
+};
 
 defineExpose({ focus, closeDropdown });
 </script>
