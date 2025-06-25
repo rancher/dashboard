@@ -67,6 +67,11 @@ generic:
       warning: Warning
       error: Error
   ok: OK
+  other: |-
+    {count, plural,
+    one  {other}
+    other {others}
+    }
   overview: Overview
   plusMore: "+ {n} more"
   readFromFile: Read from File
@@ -2493,6 +2498,9 @@ detailText:
   binary: '<Binary Data: {n, number} bytes>'
   empty: '<Empty>'
   unsupported: '<Value not supported by UI, see YAML>'
+  sensitive:
+      hide: Hide Sensitive Values
+      show: Show Sensitive Values
   plusMore: |-
     {n, plural,
       =1 {+ 1 more char}
@@ -5670,6 +5678,13 @@ secret:
     'kubernetes.io/tls':
       description: Store a certificate and key for TLS
       docLink: https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
+  tabs:
+    namespaced:
+      label: Namespaced
+      create: Create Namespaced Secret
+    projectScoped:
+      label: Project Scoped
+      create: Create Project Scoped Secret
 
 selectOrCreateAuthSecret:
   label: Authentication
@@ -8363,20 +8378,6 @@ embedding:
   retry: Retry
   unavailable: Cluster Manager UI is not available
 
-legacy:
-  alerts: Alerts
-  apps: Apps
-  catalogs: Catalogs
-  configMaps: Config Maps
-  configuration: Configuration
-  notifiers: Notifiers
-  monitoring: Monitoring
-  secrets: Secrets
-
-  project:
-    label: Project
-    select: "Use the Project/Namespace filter at the top of the page to select a Project in order to see legacy Project features."
-
 serverUpgrade:
   title: "{vendor} Server Changed"
   message: "The page reloaded because the version of {vendor} running on your server changed."
@@ -8576,6 +8577,7 @@ component:
       metadata:
         labelsAndAnnotations: Labels and Annotations
         identifyingInformation:
+          createdBy: Created by
           namespace: Namespace
           project: Project
           age: Age
@@ -8583,6 +8585,12 @@ component:
           ready: Ready
           up-to-date: Up-to-date
           available: Available
+          serviceAccount: Service Account
+          type: Type
+          certificate: Certificate
+          issuer: Issuer
+          expires: Expires
+          workspace: Workspace
         annotations:
           title: Annotations
         labels:
