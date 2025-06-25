@@ -3,7 +3,7 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 
 export default class ClusterScanBenchmark extends SteveModel {
   warnDeletionMessage(toRemove = []) {
-    return this.$rootGetters['i18n/t']('cis.deleteBenchmarkWarning', { count: toRemove.length });
+    return this.$rootGetters['i18n/t']('compliance.deleteBenchmarkWarning', { count: toRemove.length });
   }
 
   get isDefault() {

@@ -264,7 +264,7 @@ export const SCOPED_RESOURCES = {
         'Jobs',
       ]
     },
-    'cis.cattle.io': {
+    'compliance.cattle.io': {
       resources: [
         'ClusterScans',
         'ClusterScanReports'

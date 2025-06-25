@@ -295,11 +295,11 @@ export const BACKUP_RESTORE = {
   RESTORE:      'resources.cattle.io.restore',
 };
 
-export const CIS = {
-  CLUSTER_SCAN:         'cis.cattle.io.clusterscan',
-  CLUSTER_SCAN_PROFILE: 'cis.cattle.io.clusterscanprofile',
-  BENCHMARK:            'cis.cattle.io.clusterscanbenchmark',
-  REPORT:               'cis.cattle.io.clusterscanreport'
+export const COMPLIANCE = {
+  CLUSTER_SCAN:         'compliance.cattle.io.clusterscan',
+  CLUSTER_SCAN_PROFILE: 'compliance.cattle.io.clusterscanprofile',
+  BENCHMARK:            'compliance.cattle.io.clusterscanbenchmark',
+  REPORT:               'compliance.cattle.io.clusterscanreport'
 };
 
 export const UI = { NAV_LINK: 'ui.cattle.io.navlink' };

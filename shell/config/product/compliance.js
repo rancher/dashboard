@@ -1,9 +1,9 @@
 import { DSL } from '@shell/store/type-map';
-import { CIS } from '@shell/config/types';
+import { COMPLIANCE } from '@shell/config/types';
 import { STATE, NAME as NAME_HEADER, AGE } from '@shell/config/table-headers';
 
-export const NAME = 'cis';
-export const CHART_NAME = 'rancher-cis-benchmark';
+export const NAME = 'compliance';
+export const CHART_NAME = 'rancher-compliance';
 
 export function init(store) {
   const {
@@ -15,23 +15,22 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    ifHaveGroup: /^(.*\.)*cis\.cattle\.io$/,
-    icon:        'cis',
+    ifHaveGroup: /^(.*\.)*compliance\.cattle\.io$/,
   });
 
-  weightType(CIS.CLUSTER_SCAN, 3, true);
-  weightType(CIS.CLUSTER_SCAN_PROFILE, 2, true);
-  weightType(CIS.BENCHMARK, 1, true);
+  weightType(COMPLIANCE.CLUSTER_SCAN, 3, true);
+  weightType(COMPLIANCE.CLUSTER_SCAN_PROFILE, 2, true);
+  weightType(COMPLIANCE.BENCHMARK, 1, true);
 
   basicType([
-    'cis.cattle.io.clusterscan',
-    'cis.cattle.io.clusterscanprofile',
-    'cis.cattle.io.clusterscanbenchmark',
+    'compliance.cattle.io.clusterscan',
+    'compliance.cattle.io.clusterscanprofile',
+    'compliance.cattle.io.clusterscanbenchmark',
   ]);
 
-  configureType(CIS.CLUSTER_SCAN, { canYaml: false, showAge: false });
+  configureType(COMPLIANCE.CLUSTER_SCAN, { canYaml: false, showAge: false });
 
-  headers(CIS.CLUSTER_SCAN, [
+  headers(COMPLIANCE.CLUSTER_SCAN, [
     STATE,
     NAME_HEADER,
     {
@@ -44,7 +43,7 @@ export function init(store) {
     },
     {
       name:      'total',
-      labelKey:  'cis.scan.total',
+      labelKey:  'compliance.scan.total',
       value:     'status.summary.total',
       formatter: 'ScanResult'
 
@@ -52,34 +51,34 @@ export function init(store) {
     {
       name:      'pass',
       value:     'status.summary.pass',
-      labelKey:  'cis.scan.pass',
+      labelKey:  'compliance.scan.pass',
       formatter: 'ScanResult'
 
     },
     {
       name:      'fail',
-      labelKey:  'cis.scan.fail',
+      labelKey:  'compliance.scan.fail',
       value:     'status.summary.fail',
       formatter: 'ScanResult'
 
     },
     {
       name:      'warn',
-      labelKey:  'cis.scan.warn',
+      labelKey:  'compliance.scan.warn',
       value:     'status.summary.warn',
       formatter: 'ScanResult'
 
     },
     {
       name:      'skip',
-      labelKey:  'cis.scan.skip',
+      labelKey:  'compliance.scan.skip',
       value:     'status.summary.skip',
       formatter: 'ScanResult'
 
     },
     {
       name:      'notApplicable',
-      labelKey:  'cis.scan.notApplicable',
+      labelKey:  'compliance.scan.notApplicable',
       value:     'status.summary.notApplicable',
       formatter: 'ScanResult'
 
@@ -107,12 +106,12 @@ export function init(store) {
     },
   ]);
 
-  headers(CIS.CLUSTER_SCAN_PROFILE, [
+  headers(COMPLIANCE.CLUSTER_SCAN_PROFILE, [
     STATE,
     NAME_HEADER,
     {
       name:          'benchmarkVersion',
-      labelKey:      'cis.benchmarkVersion',
+      labelKey:      'compliance.benchmarkVersion',
       value:         'spec.benchmarkVersion',
       formatter:     'Link',
       formatterOpts: { options: { internal: true }, urlKey: 'benchmarkVersionLink' },
@@ -120,18 +119,18 @@ export function init(store) {
     },
     {
       name:     'skippedTests',
-      labelKey: 'cis.testsSkipped',
+      labelKey: 'compliance.testsSkipped',
       value:    'numberTestsSkipped',
       sort:     ['numberTestsSkipped']
     }
   ]);
 
-  headers(CIS.BENCHMARK, [
+  headers(COMPLIANCE.BENCHMARK, [
     STATE,
     NAME_HEADER,
     {
       name:     'clusterProvider',
-      labelKey: 'cis.clusterProvider',
+      labelKey: 'compliance.clusterProvider',
       value:    'spec.clusterProvider',
     },
     {

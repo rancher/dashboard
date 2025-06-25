@@ -164,7 +164,7 @@ export function init(store) {
   mapGroup(/^(.*\.)?(k3s)\.cattle\.io$/, 'K3s');
   mapGroup(/^(.*\.)?(helm)\.cattle\.io$/, 'Helm');
   mapGroup(/^(.*\.)?upgrade\.cattle\.io$/, 'Upgrade Controller');
-  mapGroup(/^(.*\.)?cis\.cattle\.io$/, 'CIS');
+  mapGroup(/^(.*\.)?compliance\.cattle\.io$/, 'Compliance');
   mapGroup(/^(.*\.)?traefik\.containo\.us$/, 'Træfik');
   mapGroup(/^(catalog|management|project|ui)\.cattle\.io$/, 'Rancher');
   mapGroup(/^(.*\.)?istio\.io$/, 'Istio');

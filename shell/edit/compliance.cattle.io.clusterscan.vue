@@ -5,7 +5,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import UnitInput from '@shell/components/form/UnitInput';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
-import { CIS, CONFIG_MAP } from '@shell/config/types';
+import { COMPLIANCE, CONFIG_MAP } from '@shell/config/types';
 import { mapGetters } from 'vuex';
 import createEditView from '@shell/mixins/create-edit-view';
 import { allHash } from '@shell/utils/promise';
@@ -14,7 +14,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { get } from '@shell/utils/object';
 import { _VIEW, _CREATE } from '@shell/config/query-params';
 import { isValidCron } from 'cron-validator';
-import { fetchSpecsScheduledScanConfig } from '@shell/models/cis.cattle.io.clusterscan';
+import { fetchSpecsScheduledScanConfig } from '@shell/models/compliance.cattle.io.clusterscan';
 
 const semver = require('semver');
 
@@ -72,14 +72,14 @@ export default {
     this.scanAlertRule = this.value.spec.scheduledScanConfig.scanAlertRule;
 
     const hash = await allHash({
-      profiles:               this.$store.dispatch('cluster/findAll', { type: CIS.CLUSTER_SCAN_PROFILE }),
-      benchmarks:             this.$store.dispatch('cluster/findAll', { type: CIS.BENCHMARK }),
+      profiles:               this.$store.dispatch('cluster/findAll', { type: COMPLIANCE.CLUSTER_SCAN_PROFILE }),
+      benchmarks:             this.$store.dispatch('cluster/findAll', { type: COMPLIANCE.BENCHMARK }),
       // Ensure the clusterscan model has everything it needs
       hasScheduledScanConfig: fetchSpecsScheduledScanConfig(this.schema),
     });
 
     try {
-      this.defaultConfigMap = await this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id: 'cis-operator-system/default-clusterscanprofiles' });
+      this.defaultConfigMap = await this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id: 'rancher-compliance-system/default-clusterscanprofiles' });
     } catch {}
 
     this.allProfiles = hash.profiles;
@@ -111,7 +111,7 @@ export default {
     ...mapGetters({ currentCluster: 'currentCluster', t: 'i18n/t' }),
 
     canBeScheduled() {
-      // check if scan was created and run with an older cis install that doesn't support scheduling/alerting/warn state
+      // check if scan was created and run with an older compliance install that doesn't support scheduling/alerting/warn state
       if (this.mode === _VIEW) {
         const warn = get(this.value, 'status.summary.warn');
 
@@ -124,7 +124,7 @@ export default {
     validProfiles() {
       const profileNames = this.allProfiles.filter((profile) => {
         const benchmarkVersion = profile?.spec?.benchmarkVersion;
-        const benchmark = this.$store.getters['cluster/byId'](CIS.BENCHMARK, benchmarkVersion);
+        const benchmark = this.$store.getters['cluster/byId'](COMPLIANCE.BENCHMARK, benchmarkVersion);
 
         return this.validateBenchmark(benchmark, this.currentCluster );
       }).map((profile) => {
@@ -160,7 +160,7 @@ export default {
         if (name) {
           const profile = this.allProfiles.find((profile) => profile.id === name);
           const benchmarkVersion = profile?.spec?.benchmarkVersion;
-          const benchmark = this.$store.getters['cluster/byId'](CIS.BENCHMARK, benchmarkVersion);
+          const benchmark = this.$store.getters['cluster/byId'](COMPLIANCE.BENCHMARK, benchmarkVersion);
 
           if (this.validateBenchmark(benchmark, this.currentCluster )) {
             return profile;
@@ -217,7 +217,7 @@ export default {
     defaultProfile(neu) {
       if (neu && !this.value.spec.scanProfileName) {
         const benchmarkVersion = neu?.spec?.benchmarkVersion;
-        const benchmark = this.$store.getters['cluster/byId'](CIS.BENCHMARK, benchmarkVersion);
+        const benchmark = this.$store.getters['cluster/byId'](COMPLIANCE.BENCHMARK, benchmarkVersion);
 
         if (!this.validateBenchmark(benchmark, this.currentCluster)) {
           return;
@@ -281,7 +281,7 @@ export default {
     <Banner
       v-if="!validProfiles.length"
       color="warning"
-      :label="t('cis.noProfiles')"
+      :label="t('compliance.noProfiles')"
     />
 
     <div
@@ -292,7 +292,7 @@ export default {
         <LabeledSelect
           v-model:value="value.spec.scanProfileName"
           :mode="mode"
-          :label="t('cis.profile')"
+          :label="t('compliance.profile')"
           :options="validProfiles"
         />
       </div>
@@ -300,8 +300,8 @@ export default {
         v-if="canBeScheduled"
         class="col span-6"
       >
-        <span>{{ t('cis.scoreWarning.label') }}</span> <i
-          v-clean-tooltip="t('cis.scoreWarning.protip')"
+        <span>{{ t('compliance.scoreWarning.label') }}</span> <i
+          v-clean-tooltip="t('compliance.scoreWarning.protip')"
           class="icon icon-info"
         />
         <RadioGroup
@@ -309,19 +309,19 @@ export default {
           :mode="mode"
           name="scoreWarning"
           :options="['pass', 'fail']"
-          :labels="[t('cis.scan.pass'), t('cis.scan.fail')]"
+          :labels="[t('compliance.scan.pass'), t('compliance.scan.fail')]"
         />
       </div>
     </div>
     <template v-if="canBeScheduled">
-      <h3>{{ t('cis.scheduling.title') }}</h3>
+      <h3>{{ t('compliance.scheduling.title') }}</h3>
       <div class="row mb-20">
         <div class="col">
           <RadioGroup
             v-model:value="isScheduled"
             :mode="mode"
             name="scheduling"
-            :options="[ {value: false, label: t('cis.scheduling.disable')}, {value: true, label: t('cis.scheduling.enable')}]"
+            :options="[ {value: false, label: t('compliance.scheduling.disable')}, {value: true, label: t('compliance.scheduling.enable')}]"
           />
         </div>
       </div>
@@ -332,23 +332,23 @@ export default {
               v-model:value="scheduledScanConfig.cronSchedule"
               required
               :mode="mode"
-              :label="t('cis.cronSchedule.label')"
-              :placeholder="t('cis.cronSchedule.placeholder')"
+              :label="t('compliance.cronSchedule.label')"
+              :placeholder="t('compliance.cronSchedule.placeholder')"
               type="cron"
             />
           </div>
           <div class="col span-6">
             <UnitInput
               v-model:value="scheduledScanConfig.retentionCount"
-              :suffix="t('cis.reports')"
+              :suffix="t('compliance.reports')"
               type="number"
               :mode="mode"
-              :label="t('cis.retention')"
+              :label="t('compliance.retention')"
             />
           </div>
         </div>
         <h3 class="mt-20">
-          {{ t('cis.alerting') }}
+          {{ t('compliance.alerting') }}
         </h3>
         <div class="row mb-20">
           <div class="col span-12">
@@ -357,17 +357,17 @@ export default {
               class="mt-0"
               :color="hasAlertManager ? 'info' : 'warning'"
             >
-              <span v-clean-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
+              <span v-clean-html="t('compliance.alertNeeded', {link: monitoringUrl}, true)" />
             </banner>
             <Checkbox
               v-model:value="scanAlertRule.alertOnComplete"
               :mode="mode"
-              :label="t('cis.alertOnComplete')"
+              :label="t('compliance.alertOnComplete')"
             />
             <Checkbox
               v-model:value="scanAlertRule.alertOnFailure"
               :mode="mode"
-              :label="t('cis.alertOnFailure')"
+              :label="t('compliance.alertOnFailure')"
             />
           </div>
         </div>
