@@ -45,12 +45,24 @@ const props = withDefaults(defineProps<Props>(), {
   errorsMap:           undefined
 });
 
-const currentResourceName = computed<string>(() => route.params.resource as string);
-const mode = computed(() => route.query[MODE]);
+const currentResourceName = computed(() => {
+  const resource = route?.params?.resource;
+
+  if (!resource) {
+    return;
+  }
+
+  if (typeof resource === 'string') {
+    return resource;
+  }
+
+  return resource[0];
+});
+const mode = computed(() => route?.query?.[MODE]);
 const isView = computed(() => mode.value === _VIEW);
 // We're defaulting to legacy being on, we'll switch this once we want to enable the new detail page by default
 const iseNewDetailPageEnabled = useIsNewDetailPageEnabled();
-const page = computed(() => resourceToPage[currentResourceName.value]);
+const page = computed(() => currentResourceName.value ? resourceToPage[currentResourceName.value] : undefined);
 const useLatest = computed(() => !!(iseNewDetailPageEnabled && isView.value && page.value));
 </script>
 
