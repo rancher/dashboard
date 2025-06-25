@@ -39,7 +39,11 @@ skipGeometric=true`;
     // Enter ConfigMap description
     const configMapPo = new ConfigMapPo();
 
-    const configMapName = 'custom-config-map';
+    // we need to add a variable resource name otherwise future
+    // runs of the pipeline will fail because the resource already exists
+    const runTimestamp = +new Date();
+    const runPrefix = `e2e-test-${ runTimestamp }`;
+    const configMapName = `${ runPrefix }-custom-config-map`;
 
     configMapPo.nameInput().set(configMapName);
     configMapPo.keyInput().set('managerApiConfiguration.properties');
@@ -56,6 +60,9 @@ skipGeometric=true`;
 
     // Navigate back to the edit page
     configMapPage.list().actionMenu(configMapName).getMenuItem('Edit Config').click();
+
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(2000);
 
     // Assert the current value yaml dumps will append a newline at the end
     configMapPo.valueInput().value().should('eq', `${ expectedValue }\n`);

@@ -15,9 +15,10 @@ import { splitObjectPath } from '@shell/utils/string';
 import { parseType } from '@shell/models/schema';
 import {
   STEVE_AGE_COL,
-  STEVE_ID_COL, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_STATE_COL
+  STEVE_ID_COL, STEVE_LIST_GROUPS, STEVE_NAME_COL, STEVE_NAMESPACE_COL, STEVE_STATE_COL
 } from '@shell/config/pagination-table-headers';
 import { createHeaders } from '@shell/store/type-map.utils';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 export const STEVE_MODEL_TYPES = {
   NORMAN:  'norman',
@@ -36,16 +37,34 @@ const GC_IGNORE_TYPES = {
 const steveRegEx = new RegExp('(/v1)|(\/k8s\/clusters\/[a-z0-9-]+\/v1)');
 
 export default {
-  urlOptions: () => (url, opt, schema) => {
-    opt = opt || {};
-    const parsedUrl = parse(url);
-    const isSteve = steveRegEx.test(parsedUrl.path);
+  /**
+   * Is the url path a rancher steve one?
+   *
+   * Can be used to change behaviour given steve api
+   */
+  isSteveUrl:      () => (urlPath) => steveRegEx.test(urlPath),
+  /**
+   * Is the url path a rancher steve one AND the steve cache is enabled?
+   *
+   * Can be used to change behaviour given steve cache api functionality
+   */
+  isSteveCacheUrl: (state, getters, rootState, rootGetters) => (urlPath) => getters.isSteveUrl(urlPath) && paginationUtils.isSteveCacheEnabled({ rootGetters }),
 
-    const stevePagination = stevePaginationUtils.createParamsForPagination(schema, opt);
+  /**
+   * opt: ActionFindPageArgs
+   */
+  urlOptions: (state, getters) => (url, opt, schema) => {
+    opt = opt || {};
+    const parsedUrl = parse(url || '');
+
+    const isSteveUrl = getters.isSteveUrl(parsedUrl.path);
+    const stevePagination = stevePaginationUtils.createParamsForPagination({ schema, opt });
 
     if (stevePagination) {
       url += `${ (url.includes('?') ? '&' : '?') + stevePagination }`;
     } else {
+      const isSteveCacheUrl = getters.isSteveCacheUrl(parsedUrl.path);
+
       // labelSelector
       if ( opt.labelSelector ) {
         url += `${ url.includes('?') ? '&' : '?' }labelSelector=${ opt.labelSelector }`;
@@ -54,6 +73,7 @@ export default {
 
       // Filter
       if ( opt.filter ) {
+        // When ui-sql-cache is always on we should look to replace the usages of this with findPage (basically using the new filter definitions)
         url += `${ (url.includes('?') ? '&' : '?') }`;
         const keys = Object.keys(opt.filter);
 
@@ -64,13 +84,12 @@ export default {
             vals = [vals];
           }
 
-          // Steve's filter options now support more complex filtering not yet implemented here #9341
-          if (isSteve) {
+          if (isSteveUrl) {
             url += `${ (url.includes('filter=') ? '&' : 'filter=') }`;
           }
 
           const filterStrings = vals.map((val) => {
-            return `${ encodeURI(key) }=${ encodeURI(val) }`;
+            return `${ encodeURI(key) }${ isSteveCacheUrl ? '~' : '=' }${ encodeURI(val) }`;
           });
           const urlEnding = url.charAt(url.length - 1);
           const nextStringConnector = ['&', '?', '='].includes(urlEnding) ? '' : '&';
@@ -97,13 +116,22 @@ export default {
       }
       // End: Limit
 
+      // Page Size
+      if (isSteveCacheUrl && opt.isCollection) {
+        // This is a steve url and the new cache is being used.
+        // Pre-cache there was always a max page size (given kube proxy). With cache there's not.
+        // So ensure we don't go backwards (and fetch crazy high resource counts) by adding a default
+        url += `${ url.includes('?') ? '&' : '?' }pagesize=${ paginationUtils.defaultPageSize }`;
+      }
+      // End: Page Size
+
       // Sort
       // Steve's sort options supports multi-column sorting and column specific sort orders, not implemented yet #9341
       const sortBy = opt.sortBy;
       const orderBy = opt.sortOrder;
 
       if ( sortBy ) {
-        if (isSteve) {
+        if (isSteveUrl) {
           url += `${ url.includes('?') ? '&' : '?' }sort=${ (orderBy === 'desc' ? '-' : '') + encodeURI(sortBy) }`;
         } else {
           url += `${ url.includes('?') ? '&' : '?' }sort=${ encodeURI(sortBy) }`;
@@ -118,7 +146,7 @@ export default {
     // Exclude
     // excludeFields should be an array of strings representing the paths of the fields to exclude
     // only works on Steve but is ignored without error by Norman
-    if (isSteve) {
+    if (isSteveUrl) {
       if (!Array.isArray(opt?.excludeFields)) {
         const excludeFields = ['metadata.managedFields'];
 
@@ -312,6 +340,7 @@ export default {
       typeOptions: typeMapGetters['optionsFor'](schema, true),
       schema,
       columns:     {
+        name:      STEVE_NAME_COL,
         state:     STEVE_STATE_COL,
         namespace: STEVE_NAMESPACE_COL,
         age:       STEVE_AGE_COL,

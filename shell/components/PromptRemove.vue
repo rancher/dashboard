@@ -1,4 +1,5 @@
 <script>
+import { shallowRef } from 'vue';
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@shell/utils/object';
 import { escapeHtml, resourceNames } from '@shell/utils/string';
@@ -38,15 +39,16 @@ export default {
       error:               '',
       warning:             '',
       preventDelete:       false,
-      removeComponent:     this.$store.getters['type-map/importCustomPromptRemove'](resource),
+      removeComponent:     shallowRef(this.$store.getters['type-map/importCustomPromptRemove'](resource)),
       chartsToRemoveIsApp: false,
       chartsDeleteCrd:     false,
       showModal:           false,
+      cachedDoneLocation:  null
     };
   },
   computed: {
     names() {
-      return this.toRemove.map((obj) => obj.nameDisplay).slice(0, 5);
+      return this.toRemove.map((obj) => obj.nameDisplay);
     },
 
     nameToMatchPosition() {
@@ -90,12 +92,6 @@ export default {
       const first = this.toRemove[0];
 
       return first?.confirmRemove;
-    },
-
-    plusMore() {
-      const remaining = this.toRemove.length - this.names.length;
-
-      return this.t('promptRemove.andOthers', { count: remaining });
     },
 
     // if the current route ends with the ID of the resource being deleted, whatever page this is wont be valid after successful deletion: navigate away
@@ -167,7 +163,7 @@ export default {
       if (show) {
         const selected = this.toRemove[0];
 
-        if (this.currentRouter?.currentRoute?.name === 'c-cluster-explorer-tools' &&
+        if (this.currentRouter?.currentRoute?.value?.name === 'c-cluster-explorer-tools' &&
             selected.type === CATALOG.APP &&
             selected.spec?.chart?.metadata?.annotations[CATALOG_ANNOTATIONS.AUTO_INSTALL]) {
           this.chartsToRemoveIsApp = true;
@@ -183,7 +179,7 @@ export default {
 
         this.hasCustomRemove = this.$store.getters['type-map/hasCustomPromptRemove'](resource);
 
-        this.removeComponent = this.$store.getters['type-map/importCustomPromptRemove'](resource);
+        this.removeComponent = shallowRef(this.$store.getters['type-map/importCustomPromptRemove'](resource));
       } else {
         this.showModal = false;
       }
@@ -225,6 +221,7 @@ export default {
       this.error = '';
       this.chartsDeleteCrd = false;
       this.chartsToRemoveIsApp = false;
+      this.cachedDoneLocation = null;
       this.$store.commit('action-menu/togglePromptRemove');
     },
 
@@ -232,6 +229,8 @@ export default {
       if (this.doneLocation) {
         // doneLocation will recompute to undefined when delete request completes
         this.cachedDoneLocation = { ...this.doneLocation };
+      } else {
+        this.cachedDoneLocation = null;
       }
 
       if (this.hasCustomRemove && this.$refs?.customPrompt?.remove) {
@@ -299,7 +298,7 @@ export default {
       }
     },
     done() {
-      if ( this.cachedDoneLocation && !isEmpty(this.cachedDoneLocation) ) {
+      if (!isEmpty(this.cachedDoneLocation) && this.currentRouter) {
         this.currentRouter.push(this.cachedDoneLocation);
       }
       this.close();
@@ -344,6 +343,7 @@ export default {
     :width="400"
     height="auto"
     styles="max-height: 100vh;"
+    :trigger-focus-trap="true"
     @close="close"
   >
     <Card
@@ -359,7 +359,7 @@ export default {
         <div class="mb-10">
           <template v-if="!hasCustomRemove">
             {{ t('promptRemove.attemptingToRemove', { type }) }} <span
-              v-clean-html="resourceNames(names, plusMore, t)"
+              v-clean-html="resourceNames(names, null, t)"
             />
           </template>
 
@@ -368,7 +368,7 @@ export default {
             v-if="hasCustomRemove"
             ref="customPrompt"
             v-model:value="toRemove"
-            v-bind="_data"
+            v-bind="$data"
             :close="close"
             :needs-confirm="needsConfirm"
             :value="toRemove"
@@ -394,6 +394,7 @@ export default {
           v-focus
           :data-testid="componentTestid + '-input'"
           type="text"
+          :aria-label="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) })"
         >
           <div class="text-warning mb-10 mt-10">
             {{ warning }}
@@ -407,22 +408,28 @@ export default {
           >
             {{ protip }}
           </div>
-          <Checkbox
-            v-if="chartsToRemoveIsApp"
-            v-model:value="chartsDeleteCrd"
-            label-key="promptRemoveApp.removeCrd"
-            class="mt-10 type"
-            @update:value="chartAddCrdToRemove"
-          />
         </LabeledInput>
         <div v-else-if="!hasCustomRemove">
-          <div class="text-warning mb-10 mt-10">
+          <div
+            v-if="warning"
+            class="text-warning mb-10 mt-10"
+          >
             {{ warning }}
           </div>
-          <div class="text-error mb-10 mt-10">
+          <div
+            v-if="error"
+            class="text-error mb-10 mt-10"
+          >
             {{ error }}
           </div>
         </div>
+        <Checkbox
+          v-if="chartsToRemoveIsApp"
+          v-model:value="chartsDeleteCrd"
+          label-key="promptRemoveApp.removeCrd"
+          class="mt-10 type"
+          @update:value="chartAddCrdToRemove"
+        />
       </template>
       <template #actions>
         <button

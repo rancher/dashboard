@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, onMounted, onBeforeUnmount, useTemplateRef } from 'vue';
+import { defineComponent, onMounted, onBeforeUnmount, ref } from 'vue';
 
 type StateType = boolean | 'true' | 'false' | undefined;
 
@@ -29,12 +29,17 @@ export default defineComponent({
       type:    String,
       default: '',
     },
+
+    disabled: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   emits: ['update:value'],
 
   setup() {
-    const switchChrome = useTemplateRef<HTMLElement>('switchChrome');
+    const switchChrome = ref<HTMLElement | null>(null);
     const focus = () => {
       switchChrome.value?.classList.add('focus');
     };
@@ -43,7 +48,7 @@ export default defineComponent({
       switchChrome.value?.classList.remove('focus');
     };
 
-    const switchInput = useTemplateRef<HTMLInputElement>('switchInput');
+    const switchInput = ref<HTMLInputElement | null>(null);
 
     onMounted(() => {
       switchInput.value?.addEventListener('focus', focus);
@@ -54,6 +59,11 @@ export default defineComponent({
       switchInput.value?.removeEventListener('focus', focus);
       switchInput.value?.removeEventListener('blur', blur);
     });
+
+    return {
+      switchChrome,
+      switchInput,
+    };
   },
 
   data() {
@@ -79,7 +89,10 @@ export default defineComponent({
 </script>
 
 <template>
-  <span class="toggle-container">
+  <span
+    class="toggle-container"
+    :class="{'toggle-disabled': disabled}"
+  >
     <span
       class="label no-select hand"
       :class="{ active: !state}"
@@ -120,6 +133,18 @@ $toggle-height: 16px;
   }
   span:last-child {
     padding-left: 6px;
+  }
+
+  &.toggle-disabled {
+    pointer-events: none;
+
+    .slider {
+      background-color: var(--checkbox-disabled-bg);
+
+      &:before {
+        opacity: 0.6;
+      }
+    }
   }
 }
 /* The switch - the box around the slider */

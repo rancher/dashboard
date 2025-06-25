@@ -1,9 +1,13 @@
 import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
-// import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import { CLUSTER_APPS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
+import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const clusterTools = new ClusterToolsPagePo('local');
+const kubectl = new Kubectl();
 
 describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
   beforeEach(() => {
@@ -38,40 +42,41 @@ describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
       installCharts.installChart();
       cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
       clusterTools.waitForPage();
-      cy.contains('Connected');
+      kubectl.waitForTerminalStatus('Connected');
+      kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
     });
   });
 
-  // it.skip('can edit chart successfully', () => {
-  //   // Note: this test fails due to https://github.com/rancher/dashboard/issues/9940
-  //   // skipping this test until issue is resolved
-  //   clusterTools.goTo();
-  //   clusterTools.waitForPage();
-  //   clusterTools.editChart(0);
+  it('can edit chart successfully', () => {
+    clusterTools.goTo();
+    clusterTools.waitForPage();
+    clusterTools.editChart(0);
 
-  //   const installChart = new InstallChartPage();
+    const installChart = new InstallChartPage();
 
-  //   installChart.nextPage();
+    installChart.nextPage();
 
-  //   cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=upgrade').as('chartUpdate');
-  //   installChart.installChart();
-  //   cy.wait('@chartUpdate').its('response.statusCode').should('eq', 201);
-  //   clusterTools.waitForPage();
-  //   cy.contains('Connected');
-  // });
+    cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=upgrade').as('chartUpdate');
+    installChart.installChart();
+    cy.wait('@chartUpdate').its('response.statusCode').should('eq', 201);
+    clusterTools.waitForPage();
+    kubectl.waitForTerminalStatus('Connected');
+    kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
+  });
 
-  // it.skip('can uninstall chart successfully', () => {
-  //   // Note: this test fails due to https://github.com/rancher/dashboard/issues/9940
-  //   // skipping this test until issue is resolved
-  //   clusterTools.goTo();
-  //   clusterTools.waitForPage();
-  //   clusterTools.deleteChart(0);
+  it('can uninstall chart successfully', () => {
+    clusterTools.goTo();
+    clusterTools.waitForPage();
+    clusterTools.deleteChart('rancher-alerting-drivers');
 
-  //   const promptRemove = new PromptRemove();
+    const promptRemove = new PromptRemove();
 
-  //   cy.intercept('POST', '/v1/catalog.cattle.io.apps/default/rancher-alerting-drivers?action=uninstall').as('chartUninstall');
-  //   promptRemove.remove();
-  //   cy.wait('@chartUninstall').its('response.statusCode').should('eq', 201);
-  //   cy.contains('Disconnected');
-  // });
+    promptRemove.checkbox().checkNotExists();
+
+    cy.intercept('POST', `${ CLUSTER_APPS_BASE_URL }/default/rancher-alerting-drivers?action=uninstall`).as('chartUninstall');
+    promptRemove.remove();
+    cy.wait('@chartUninstall').its('response.statusCode').should('eq', 201);
+    kubectl.waitForTerminalStatus('Connected');
+    kubectl.waitForTerminalStatus('Disconnected');
+  });
 });

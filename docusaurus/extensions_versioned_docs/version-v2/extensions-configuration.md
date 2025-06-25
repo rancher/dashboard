@@ -70,7 +70,6 @@ It's possible that different products will use the same kubernetes resource, but
 | `catalog.cattle.io/kube-version` | `Range` | Determines if the Kubernetes version that Rancher Manager is utilizing is compatible with the Extension package. |
 | `catalog.cattle.io/rancher-version` | `Range` | Determines the compatibility of the installed Rancher Manager version with the Extension package. |
 | `catalog.cattle.io/ui-extensions-version` | `Range` | Determines the Extensions API version that is compatible with the Extension package. |
-| `catalog.cattle.io/ui-version` | `Range` | Determines the Rancher UI version that is compatible with the Extension package. |
 | `catalog.cattle.io/display-name` | `String` | Specifies the Display Name for an Extension package's card on the "Extensions" page. |
 
 ## Other configuration properties
@@ -93,7 +92,6 @@ ___`./pkg/my-package/package.json`___
       "catalog.cattle.io/kube-version": ">= v1.26.0-0 < v1.29.0-0",
       "catalog.cattle.io/rancher-version": ">= 2.7.7-0 < 2.9.0-0",
       "catalog.cattle.io/ui-extensions-version": ">= 1.1.0",
-      "catalog.cattle.io/ui-version": ">= 2.7.7-0 < 2.9.0-0",
       "catalog.cattle.io/display-name": "My Super Great Extension"
     },
     "noAuth": true

@@ -1,6 +1,7 @@
+import { Translation } from '@shell/types/t';
 import formRulesGenerator from '@shell/utils/validators/formRules';
 
-const mockT = (key: string, args: any) => {
+const mockT: Translation = (key: string, args: any) => {
   return JSON.stringify({
     message: key,
     ...args
@@ -8,6 +9,14 @@ const mockT = (key: string, args: any) => {
 };
 
 describe('formRules', () => {
+  it('should use "Value" as default label', () => {
+    const validators = formRulesGenerator(mockT, {});
+
+    const message = validators.required(null);
+
+    expect(message).toStrictEqual('{\"message\":\"validation.required\",\"key\":\"Value\"}');
+  });
+
   const formRules = formRulesGenerator(mockT, { key: 'testDisplayKey' });
 
   it('"required" : returns undefined when value supplied', () => {
@@ -87,8 +96,8 @@ describe('formRules', () => {
     );
   });
 
-  describe('gitRepository', () => {
-    const message = JSON.stringify({ message: 'validation.git.repository' });
+  describe('urlRepository', () => {
+    const message = JSON.stringify({ message: 'validation.git.url' });
     const testCases = [
       // Valid HTTP(s)
       ['https://github.com/rancher/dashboard.git', undefined],
@@ -119,7 +128,40 @@ describe('formRules', () => {
     it.each(testCases)(
       'should return undefined or correct message based on the provided Git url: %p',
       (url, expected) => {
-        const formRuleResult = formRules.gitRepository(url);
+        const formRuleResult = formRules.urlRepository(url);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
+  });
+
+  describe('ociRegistry', () => {
+    const message = JSON.stringify({ message: 'validation.oci.url' });
+    const testCases = [
+      // Valid
+      ['oci://bucket/object', undefined],
+      ['oci://region.objectstorage.example.com/n', undefined],
+      ['oci://a', undefined],
+      ['oci://UPPERCASE/path', undefined],
+
+      // Invalid
+      ['http://example.com/oci', message],
+      ['https://oci.cloud.com', message],
+      ['ftp://oci.server.net', message],
+      ['/path/to/oci', message],
+      ['oci:/missing/slash', message],
+      ['oci:', message],
+      ['oci://', message],
+      ['oci://space between', message],
+      ['oci://resource multiple spaces', message],
+      ['', message],
+      [undefined, message],
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided OCI url: %p',
+      (url, expected) => {
+        const formRuleResult = formRules.ociRegistry(url);
 
         expect(formRuleResult).toStrictEqual(expected);
       }
@@ -242,6 +284,33 @@ describe('formRules', () => {
     });
 
     expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  describe('"registryUrl": has the expected output for each input', () => {
+    const expectedTranslation = JSON.stringify({ message: 'cluster.privateRegistry.privateRegistryUrlError' });
+    const testCases = [
+      // Empty
+      [undefined, undefined],
+
+      // Word
+      ['registry', expectedTranslation],
+
+      // Without schema
+      ['registry.io', undefined],
+
+      // With schemas
+      ['http://registry.io', undefined],
+      ['https://registry.io', undefined],
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided url',
+      (url, expected) => {
+        const formRuleResult = formRules.registryUrl(url);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
   });
 
   it('"ruleGroups" : returns undefined when rulegroups are supplied', () => {

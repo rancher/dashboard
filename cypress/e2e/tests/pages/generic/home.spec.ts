@@ -1,8 +1,6 @@
-import { CURRENT_RANCHER_VERSION } from '@shell/config/version.js';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
-import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
+import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/extensions/imported/cluster-import-generic.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
 import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '~/cypress/support/utils/exception-utils';
 
@@ -55,6 +53,14 @@ describe('Home Page', () => {
   describe('List', { testIsolation: 'off' }, () => {
     before(() => {
       cy.login();
+    });
+
+    it('Validate home page with percy', { tags: ['@generic', '@adminUser'] }, () => {
+      // Navigate to home page and wait for page to be fully loaded.
+      HomePagePo.goToAndWaitForGet();
+
+      // #takes percy snapshot.
+      cy.percySnapshot('Home Page');
     });
 
     it('Can see that cluster details match those in Cluster Manangement page', { tags: ['@generic', '@adminUser'] }, () => {
@@ -173,13 +179,13 @@ describe('Home Page', () => {
     });
 
     it('can click on Forums link', () => {
-      catchTargetPageException('TenantFeatures', 'https://forums.rancher.com');
+      catchTargetPageException('TenantFeatures', 'https://forums.suse.com');
 
       // click Forums link
       homePage.clickSupportLink(1, true);
 
-      cy.origin('https://forums.rancher.com', () => {
-        cy.url().should('include', 'forums.rancher.com/');
+      cy.origin('https://forums.suse.com', () => {
+        cy.url().should('include', 'forums.suse.com/');
       });
     });
 
@@ -223,51 +229,81 @@ describe('Home Page', () => {
       cy.login();
     });
 
-    it('Can navigate to Preferences page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-    /**
-     * Click link and verify user lands on preferences page
-     */
-
+    it('Can navigate to Home page', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
       HomePagePo.navTo();
       homePage.waitForPage();
-      const prefPage = new PreferencesPagePo();
-
-      homePage.prefPageLink().click();
-      prefPage.waitForPage();
-      prefPage.checkIsCurrentPage();
-      prefPage.title();
     });
 
-    it('Can restore hidden cards', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+    it('has notification for release notes', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
+      cy.setUserPreference({ 'read-whatsnew': '' });
+
       goToHomePageAndSettle();
 
-      // Banner graphic and the login banner should be visible
-      homePage.bannerGraphic().graphicBanner().should('exist');
-      homePage.bannerGraphic().graphicBanner().should('be.visible');
-      homePage.getLoginPageBanner().checkVisible();
+      // Notification centre should have one unread notification for the release notes
+      const nc = homePage.notificationsCenter();
 
-      // Close the banner for changing login view
-      homePage.getLoginPageBanner().closeButton();
-      homePage.getLoginPageBanner().checkNotExists();
+      // Open the notification centre
+      nc.toggle();
 
-      // Restore the cards should bring back the login banner
-      homePage.restoreAndWait();
+      nc.checkOpen();
 
-      // Check login banner is visible
-      homePage.getLoginPageBanner().checkVisible();
+      nc.checkExists();
+      nc.checkVisible();
+      nc.checkHasUnread();
+      nc.checkCount(1);
+
+      // Get the release notes notification - this is the first (and only) one
+      let item = nc.getNotificationByIndex(0);
+
+      item.checkExists();
+
+      cy.intercept('PUT', 'v1/userpreferences/*').as('markReleaseNotesRead');
+
+      // Mark all as read
+      nc.markAllRead();
+
+      nc.checkAllRead();
+
+      // Close
+      nc.toggle();
+
+      cy.wait(['@markReleaseNotesRead']);
+
+      nc.checkClosed();
+
+      // Open again
+      nc.toggle();
+
+      nc.checkOpen();
+
+      nc.checkExists();
+      nc.checkVisible();
+      nc.checkCount(1);
+      nc.checkAllRead();
+
+      // Now mark the notification as unread
+      item = nc.getNotificationByIndex(0);
+
+      item.title().should('contain', `Welcome to Rancher v`);
+      item.primaryActionButton().should('exist');
+
+      item.checkRead();
+      item.toggleRead();
+      item.checkUnread();
+      nc.checkHasUnread();
     });
 
     it('Can toggle banner graphic', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
       goToHomePageAndSettle();
 
-      // Banner graphic and the login banner should be visible
+      // Banner graphic should be visible
       homePage.bannerGraphic().graphicBanner().should('exist');
       homePage.bannerGraphic().graphicBanner().should('be.visible');
 
       // Hide the main banner graphic
       homePage.toggleBanner();
 
-      // Banner graphic and the login banner should be visible
+      // Banner graphic should be visible
       homePage.bannerGraphic().graphicBanner().should('not.exist');
 
       // Show the banner graphic
@@ -297,30 +333,34 @@ describe('Home Page', () => {
       genericCreateClusterPage.waitForPage();
     });
 
-    // Note: This must be the last test to run in this test suite.
-    // When the test clicks on a link that opens a new tab it causes failures in tests that run after it.
     it('Can navigate to release notes page for latest Rancher version', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
-      /**
-       * Verify changelog banner is hidden after clicking link
-       * Verify release notes link is valid github page
-       * Verify correct Rancher version is displayed
-       */
+      cy.setUserPreference({ 'read-whatsnew': '' });
       HomePagePo.navTo();
       homePage.waitForPage();
-      homePage.restoreAndWait();
 
       cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-        homePage.changelog().self().contains('Learn more about the improvements and new capabilities in this version');
-        homePage.whatsNewBannerLink().contains(`What's new in ${ CURRENT_RANCHER_VERSION }`);
+        const nc = homePage.notificationsCenter();
 
-        homePage.whatsNewBannerLink().invoke('attr', 'href').then((releaseNotesUrl) => {
-          cy.request(releaseNotesUrl).then((res) => {
-            expect(res.status).equals(200);
-          });
+        // Open the notification centre
+        nc.toggle();
+
+        nc.checkOpen();
+        nc.checkExists();
+        nc.checkVisible();
+        nc.checkCount(1);
+
+        // Get the release notes notification
+        const item = nc.getNotificationByIndex(0);
+
+        item.checkExists();
+
+        cy.window().then((win) => {
+          cy.stub(win, 'open', () => {}).as('openReleaseNotes');
         });
 
-        homePage.whatsNewBannerLink().click();
-        homePage.changelog().self().should('not.exist');
+        item.primaryActionButton().click();
+
+        cy.get('@openReleaseNotes').should('be.calledWith', 'https://github.com/rancher/rancher/releases/latest', '_blank');
       });
     });
   });

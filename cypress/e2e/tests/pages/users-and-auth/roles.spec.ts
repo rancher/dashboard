@@ -296,7 +296,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       const actionMenu = detailPage.detail().openMastheadActionMenu();
 
-      actionMenu.clickMenuItem(5);
+      actionMenu.clickMenuItem(4);
 
       const promptRemove = new PromptRemove();
 

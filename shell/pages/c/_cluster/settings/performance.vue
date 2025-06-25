@@ -10,14 +10,14 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import UnitInput from '@shell/components/form/UnitInput';
 import { STEVE_CACHE } from '@shell/store/features';
 import { NAME as SETTING_PRODUCT } from '@shell/config/product/settings';
+import paginationUtils from '@shell/utils/pagination-utils';
+import Collapse from '@shell/components/Collapse';
 
 const incompatible = {
-  incrementalLoading: ['forceNsFilterV2', 'serverPagination'],
-  manualRefresh:      ['forceNsFilterV2', 'serverPagination'],
+  incrementalLoading: ['forceNsFilterV2'],
+  manualRefresh:      ['forceNsFilterV2'],
   forceNsFilterV2:    ['incrementalLoading', 'manualRefresh'],
-  serverPagination:   ['incrementalLoading', 'manualRefresh'],
 };
-
 const l10n = {
   incrementalLoading: 'incrementalLoad',
   manualRefresh:      'manualRefresh',
@@ -32,7 +32,8 @@ export default {
     AsyncButton,
     Banner,
     LabeledInput,
-    UnitInput
+    UnitInput,
+    Collapse,
   },
 
   async fetch() {
@@ -74,7 +75,8 @@ export default {
           product:  SETTING_PRODUCT,
           resource: MANAGEMENT.FEATURE
         }
-      }).href
+      }).href,
+      ssPApplicableTypesOpen: false,
     };
   },
 
@@ -93,10 +95,11 @@ export default {
       return this.$store.getters['features/get'](STEVE_CACHE);
     },
 
-    steveCacheApplicableResources() {
+    sspApplicableResources() {
       const storeResources = [];
+      const stores = paginationUtils.getStoreSettings(this.value.serverPagination);
 
-      Object.entries(this.value.serverPagination.stores).forEach(([store, settings]) => {
+      Object.entries(stores).forEach(([store, settings]) => {
         const resources = [];
 
         if (settings.resources.enableAll) {
@@ -173,7 +176,7 @@ export default {
       this.$store.dispatch('cluster/promptModal', {
         component:      'GenericPrompt',
         componentProps: {
-          applyMode: 'enable',
+          applyMode: 'continue',
           confirm:   (confirmed) => {
             this.value[property].enabled = confirmed;
           },
@@ -188,13 +191,6 @@ export default {
         },
       });
     },
-
-    setPaginationDefaults() {
-      this.value = {
-        ...this.value,
-        serverPagination: { ...DEFAULT_PERF_SETTING.serverPagination }
-      };
-    }
   },
 };
 </script>
@@ -207,45 +203,6 @@ export default {
     </h1>
     <div>
       <div class="ui-perf-setting">
-        <!-- Server Side Pagination -->
-        <div class="mt-40">
-          <h2 id="ssp-setting">
-            {{ t('performance.serverPagination.label') }}
-          </h2>
-          <p>{{ t('performance.serverPagination.description') }}</p>
-          <Banner
-            color="error"
-            label-key="performance.experimental"
-          />
-          <Banner
-            v-if="!steveCacheEnabled"
-            v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)"
-            color="warning"
-          />
-          <Checkbox
-            v-model:value="value.serverPagination.enabled"
-            :mode="mode"
-            :label="t('performance.serverPagination.checkboxLabel')"
-            class="mt-10 mb-20"
-            :primary="true"
-            :disabled="(!steveCacheEnabled && !value.serverPagination.enabled)"
-            @update:value="compatibleWarning('serverPagination', $event)"
-          />
-          <p :class="{ 'text-muted': !value.serverPagination.enabled }">
-            {{ t('performance.serverPagination.applicable') }}
-          </p>
-          <p
-            v-clean-html="steveCacheApplicableResources"
-            :class="{ 'text-muted': !value.serverPagination.enabled }"
-          />
-          <button
-            class="btn btn-sm role-primary"
-            style="width: fit-content;"
-            @click.prevent="setPaginationDefaults()"
-          >
-            {{ t('performance.serverPagination.populateDefaults') }}
-          </button>
-        </div>
         <!-- Inactivity -->
         <div class="mt-20">
           <h2>{{ t('performance.inactivity.title') }}</h2>
@@ -287,8 +244,31 @@ export default {
             :primary="true"
           />
         </div>
+        <!-- Server Side Pagination -->
+        <div class="mt-20">
+          <h2 id="ssp-setting">
+            {{ t('performance.serverPagination.label') }}
+          </h2>
+          <p>{{ t('performance.serverPagination.description') }}</p>
+          <Banner
+            color="warning"
+          >
+            <div v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)" />
+          </Banner>
+          <Collapse
+            :title="t('performance.serverPagination.applicable')"
+            :open="steveCacheEnabled && ssPApplicableTypesOpen"
+            :isDisabled="!steveCacheEnabled"
+            @update:open="ssPApplicableTypesOpen = !ssPApplicableTypesOpen"
+          >
+            <p
+              v-clean-html="sspApplicableResources"
+              :class="{ 'text-muted': !value.serverPagination.enabled }"
+            />
+          </Collapse>
+        </div>
         <!-- Incremental Loading -->
-        <div class="mt-40">
+        <div class="mt-20">
           <h2>{{ t('performance.incrementalLoad.label') }}</h2>
           <Banner
             color="warning"
@@ -451,7 +431,7 @@ export default {
           />
         </div>
         <!-- Advanced Websocket Worker -->
-        <div class="mt-40">
+        <div class="mt-20">
           <h2>{{ t('performance.advancedWorker.label') }}</h2>
           <Banner
             color="warning"

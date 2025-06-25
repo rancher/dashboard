@@ -1,6 +1,7 @@
 import RootClusterPage from '@/cypress/e2e/po/pages/root-cluster-page';
 import SettingsEditPo from '@/cypress/e2e/po/edit/settings.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
 export class SettingsPagePo extends RootClusterPage {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/settings/management.cattle.io.setting`;
@@ -18,6 +19,10 @@ export class SettingsPagePo extends RootClusterPage {
     BurgerMenuPo.burgerMenuNavToMenubyLabel('Global Settings');
   }
 
+  settingBanner() {
+    return new BannersPo('[data-testid="global-settings-banner"]', this.self());
+  }
+
   /**
    * Get advanced settings row per setting name
    * @param label
@@ -33,7 +38,11 @@ export class SettingsPagePo extends RootClusterPage {
    * @returns
    */
   actionButtonByLabel(label: string) {
-    return this.advancedSettingRow(label).find('.action > button');
+    return this.advancedSettingRow(label).find('[data-testid*="action-button"]');
+  }
+
+  editSettingsButton() {
+    return cy.get('[dropdown-menu-item]').contains('Edit Setting');
   }
 
   /**
@@ -44,7 +53,7 @@ export class SettingsPagePo extends RootClusterPage {
   editSettingsByLabel(label: string) {
     this.actionButtonByLabel(label).click();
 
-    return cy.contains('Edit Setting').click();
+    return this.editSettingsButton().click();
   }
 
   editSettings(clusterId: string, setting: string) {

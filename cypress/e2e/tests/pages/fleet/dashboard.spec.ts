@@ -1,27 +1,20 @@
-import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
-import FleetGitRepoDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.gitrepo.po';
-import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
-import { GitRepoEditPo } from '@/cypress/e2e/po/edit/fleet/gitrepo-edit.po';
+import { FleetDashboardListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
+import { FleetApplicationCreatePo, FleetGitRepoCreateEditPo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
-import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
-import { MenuActions } from '@/cypress/support/types/menu-actions';
-import * as path from 'path';
-import * as jsyaml from 'js-yaml';
-import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
-const downloadsFolder = Cypress.config('downloadsFolder');
+import FleetApplicationDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.application.po';
 
 describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () => {
-  const fleetDashboardPage = new FleetDashboardPagePo('_');
-  const gitRepoCreatePage = new GitRepoCreatePo('_');
-  const headerPo = new HeaderPo();
+  const fleetDashboardPage = new FleetDashboardListPagePo('_');
+  const appBundleCreatePage = new FleetApplicationCreatePo();
+  const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
   let repoName;
   const gitRepoUrl = 'https://github.com/rancher/fleet-test-data';
   const branch = 'master';
   const paths = 'qa-test-apps/nginx-app';
   const localWorkspace = 'fleet-local';
+  // const defaultWorkspace = 'fleet-default';
   let removeGitRepo = false;
   const reposToDelete = [];
 
@@ -32,7 +25,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     });
   });
 
-  it('has the correct title', () => {
+  it('Has the correct title', () => {
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
 
@@ -47,15 +40,21 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     fleetDashboardPage.fleetDashboardEmptyState().should('be.visible');
     fleetDashboardPage.getStartedButton().click();
+
+    appBundleCreatePage.waitForPage();
+    appBundleCreatePage.createGitRepo();
+
     gitRepoCreatePage.waitForPage();
-    gitRepoCreatePage.title().contains('Git Repo: Create').should('be.visible');
+    gitRepoCreatePage.mastheadTitle().then((title) => {
+      expect(title.replace(/\s+/g, ' ')).to.contain('App Bundle: Create');
+    });
   });
 
-  it('Should display cluster status', () => {
+  it('Should display workspace cards', () => {
     // create gitrepo
     cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(localWorkspace, repoName, gitRepoUrl, branch, paths)).then(() => {
       removeGitRepo = true;
-      reposToDelete.push(`fleet-local/${ repoName }`);
+      reposToDelete.push(`${ localWorkspace }/${ repoName }`);
     });
 
     fleetDashboardPage.goTo();
@@ -64,147 +63,151 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     // check if burguer menu nav is highlighted correctly for Fleet
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Continuous Delivery');
 
-    const row = fleetDashboardPage.sortableTable(localWorkspace).row(0);
+    fleetDashboardPage.viewModeButton().checkVisible();
 
-    row.get('.bg-success[data-testid="clusters-ready"]', LONG_TIMEOUT_OPT).should('exist');
-    row.get('.bg-success[data-testid="clusters-ready"] span').should('have.text', '1/1');
+    const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
 
-    row.get('.bg-success[data-testid="bundles-ready"]').should('exist');
-    row.get('.bg-success[data-testid="bundles-ready"] span').should('have.text', '1/1');
+    workspaceCard.expandButton().should('be.visible');
 
-    row.get('.bg-success[data-testid="resources-ready"]').should('exist');
-    row.get('.bg-success[data-testid="resources-ready"] span').should('have.text', '1/1');
+    const applicationsPanel = workspaceCard.resourcePanel('applications');
+
+    applicationsPanel.chart().should('exist');
+    applicationsPanel.stateBadge('success').should('exist');
+    applicationsPanel.description().should('contain', '1');
+
+    const clustersPanel = workspaceCard.resourcePanel('clusters');
+
+    clustersPanel.chart().should('exist');
+    clustersPanel.stateBadge('success').should('exist');
+    clustersPanel.description().should('contain', '1');
+
+    const clusterGroupsPanel = workspaceCard.resourcePanel('cluster-groups');
+
+    clusterGroupsPanel.self().should('exist');
+    clusterGroupsPanel.chart().should('not.exist');
+    clusterGroupsPanel.stateBadge('success').should('exist');
+    clusterGroupsPanel.description().should('contain', '1');
   });
 
-  it('can navigate to Git Repo details page from Fleet Dashboard', () => {
-    const gitRepoDetails = new FleetGitRepoDetailsPo(localWorkspace, repoName);
-
+  it('Should show workspace cards panel when expanded', () => {
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
-    fleetDashboardPage.list().rowWithName(repoName).column(0).find('a')
-      .click();
-    gitRepoDetails.waitForPage(null, 'bundles');
+
+    const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
+
+    const expandButton = workspaceCard.expandButton();
+
+    expandButton.should('be.visible');
+    expandButton.click();
+
+    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
+
+    cardsPanel.self().should('be.visible');
+
+    cardsPanel.gitReposFilter().checkVisible();
+    cardsPanel.gitReposFilter().isChecked();
+
+    cardsPanel.helmOpsFilter().checkVisible();
+    cardsPanel.helmOpsFilter().isChecked();
+
+    const activeStatePanel = cardsPanel.statePanel('Active');
+
+    activeStatePanel.title().should('contain.text', 'Active');
+    activeStatePanel.title().should('contain.text', '1');
+    activeStatePanel.title().should('contain.text', '/1');
+    activeStatePanel.title().click();
+
+    const card = activeStatePanel.card(repoName);
+
+    card.should('be.visible');
+    card.find('.title').should('contain.text', repoName);
   });
 
-  it('should only display action menu with allowed actions only', () => {
+  it('Should filter by GitRepo type', () => {
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
-    headerPo.selectWorkspace(localWorkspace);
 
-    const constActionMenu = fleetDashboardPage.sortableTable().rowActionMenuOpen(repoName);
+    const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
+    const expandButton = workspaceCard.expandButton();
 
-    const allowedActions: MenuActions[] = [
-      MenuActions.Pause,
-      MenuActions.ForceUpdate,
-      MenuActions.EditYaml,
-      MenuActions.EditConfig,
-      MenuActions.Clone,
-      MenuActions.DownloadYaml,
-      MenuActions.Delete
-    ];
+    expandButton.click();
 
-    const disabledActions: MenuActions[] = [MenuActions.ChangeWorkspace];
+    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
 
-    allowedActions.forEach((action) => {
-      constActionMenu.getMenuItem(action).should('exist');
-    });
+    cardsPanel.gitReposFilter().set();
+    const activeStatePanel = cardsPanel.statePanel('Active');
 
-    // Disabled actions should not exist
-    disabledActions.forEach((action) => {
-      constActionMenu.getMenuItem(action).should('not.exist');
-    });
+    activeStatePanel.self().should('not.be.visible');
   });
 
-  it('can clone a git repo', () => {
-    const gitRepoEditPage = new GitRepoEditPo(localWorkspace, repoName);
-
-    cy.intercept('GET', '/v1/secrets?exclude=metadata.managedFields').as('getSecrets');
-
+  it('Should change ViewMode', () => {
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
-    fleetDashboardPage.sortableTable().rowActionMenuOpen(repoName).getMenuItem('Clone').click();
 
-    gitRepoEditPage.waitForPage('mode=clone');
-    cy.wait('@getSecrets', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-    gitRepoEditPage.title().contains(`Git Repo: Clone from ${ repoName }`).should('be.visible');
-    headerPo.selectWorkspace('fleet-default');
-    gitRepoEditPage.nameNsDescription().name().set(`clone-${ repoName }`);
-    gitRepoEditPage.footer().nextPage();
-    gitRepoEditPage.footer().create().then(() => {
-      removeGitRepo = true;
-      reposToDelete.push(`fleet-default/clone-${ repoName }`);
-    });
+    const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
+    const expandButton = workspaceCard.expandButton();
 
-    FleetDashboardPagePo.navTo();
-    fleetDashboardPage.waitForPage();
-    fleetDashboardPage.sortableTable('fleet-default').rowElementWithName(`clone-${ repoName }`).should('be.visible');
-    fleetDashboardPage.sortableTable('fleet-local').rowElementWithName(repoName).should('be.visible');
+    expandButton.click();
+
+    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
+
+    cardsPanel.checkExists();
+
+    // click 'card' mode
+    fleetDashboardPage.viewModeButton().self().find('[data-testid="button-group-child-0"]').click();
+
+    cardsPanel.checkNotExists();
+
+    const tablePanel = workspaceCard.expandedPanel().tablePanel();
+
+    tablePanel.checkExists();
   });
 
-  it('user lands in correct git repo workspace when using workspace link on Fleet Dashboard', () => {
-    const gitrepoListPage = new FleetGitRepoListPagePo();
-
+  it('Should open slide-in panel', () => {
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
-    fleetDashboardPage.sortableTable('fleet-default').rowElementWithName(`clone-${ repoName }`).should('be.visible');
-    fleetDashboardPage.sortableTable('fleet-local').rowElementWithName(repoName).should('be.visible');
 
-    // click workspace link: fleet default
-    fleetDashboardPage.goToGitRepoListLink('fleet-default').click();
-    gitrepoListPage.waitForPage();
-    headerPo.checkCurrentWorkspace('fleet-default');
+    const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
+    const expandButton = workspaceCard.expandButton();
 
-    // click workspace link: fleet local
-    fleetDashboardPage.goTo();
-    fleetDashboardPage.waitForPage();
-    fleetDashboardPage.goToGitRepoListLink('fleet-local').click();
-    gitrepoListPage.waitForPage();
-    headerPo.checkCurrentWorkspace('fleet-local');
+    expandButton.click();
+
+    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
+
+    const activeStatePanel = cardsPanel.statePanel('Active');
+
+    activeStatePanel.title().click();
+
+    activeStatePanel.card(repoName).click();
+
+    const details = fleetDashboardPage.slideInPanel();
+
+    details.should('be.visible');
+    details.should('contain.text', repoName);
   });
 
-  it('can Edit Yaml', () => {
-    const gitRepoEditPage = new GitRepoEditPo(localWorkspace, repoName);
+  it('Should navigate to App Bundles details page from Fleet Dashboard', () => {
+    const appDetails = new FleetApplicationDetailsPo(localWorkspace, repoName, 'fleet.cattle.io.gitrepo');
 
     fleetDashboardPage.goTo();
     fleetDashboardPage.waitForPage();
-    fleetDashboardPage.sortableTable().rowActionMenuOpen(repoName).getMenuItem('Edit YAML').click();
-    gitRepoEditPage.waitForPage('mode=edit&as=yaml');
-    gitRepoEditPage.title().contains(`Git Repo: ${ repoName }`).should('be.visible');
-  });
 
-  it('can Download Yaml', () => {
-    cy.deleteDownloadsFolder();
+    const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
+    const expandButton = workspaceCard.expandButton();
 
-    fleetDashboardPage.goTo();
-    fleetDashboardPage.waitForPage();
-    fleetDashboardPage.sortableTable().rowActionMenuOpen(repoName).getMenuItem('Download YAML').click();
+    expandButton.click();
 
-    const downloadedFilename = path.join(downloadsFolder, `${ repoName }.yaml`);
+    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
 
-    cy.readFile(downloadedFilename).then((buffer) => {
-      const obj: any = jsyaml.load(buffer);
+    const activeStatePanel = cardsPanel.statePanel('Active');
 
-      // Basic checks on the downloaded YAML
-      expect(obj.kind).to.equal('GitRepo');
-      expect(obj.metadata['name']).to.equal(repoName);
-      expect(obj.metadata['namespace']).to.equal(localWorkspace);
-      expect(obj.spec['repo']).to.equal(gitRepoUrl);
-    });
-  });
+    activeStatePanel.title().click();
 
-  it('can Edit Config', () => {
-    const gitRepoEditPage = new GitRepoEditPo(localWorkspace, repoName);
-    const description = `${ repoName }-desc`;
+    const card = activeStatePanel.card(repoName);
 
-    fleetDashboardPage.goTo();
-    fleetDashboardPage.waitForPage();
-    fleetDashboardPage.sortableTable().rowActionMenuOpen(repoName).getMenuItem('Edit Config').click();
+    card.find('.title a').click();
 
-    gitRepoEditPage.waitForPage('mode=edit');
-    gitRepoEditPage.nameNsDescription().description().set(description);
-    gitRepoEditPage.footer().nextPage();
-    gitRepoEditPage.footer().save();
-    fleetDashboardPage.waitForPage();
+    appDetails.waitForPage(null, 'bundles');
   });
 
   after(() => {

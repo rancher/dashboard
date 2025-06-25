@@ -141,7 +141,7 @@ export default class BurgerMenuPo extends ComponentPo {
 
     this.self().find('.cluster-name').contains(clusterId).should('exist');
 
-    return this.self().find('.cluster-name').contains(clusterId).click();
+    return this.self().find('.cluster-name').contains(clusterId).click({ force: true });
   }
 
   /**
@@ -215,6 +215,6 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns
    */
   headerBrandLogoImage(): Cypress.Chainable {
-    return cy.getId('header-side-menu__brand-img');
+    return cy.getId('header__brand-img');
   }
 }

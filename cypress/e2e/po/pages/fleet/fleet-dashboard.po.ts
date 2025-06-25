@@ -1,10 +1,10 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import FleetDashboardWorkspaceCardPo from '@/cypress/e2e/po/components/fleet/fleet-dashboard-workspace-card.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ButtonGroupPo from '@/cypress/e2e/po/components/button-group.po';
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
-import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 
-export class FleetDashboardPagePo extends PagePo {
+export class FleetDashboardListPagePo extends BaseListPagePo {
     static url: string;
 
     private static createPath(
@@ -23,7 +23,7 @@ export class FleetDashboardPagePo extends PagePo {
     }
 
     static goTo(clusterId = 'local'): Cypress.Chainable<Cypress.AUTWindow> {
-      return super.goTo(FleetDashboardPagePo.createPath(clusterId));
+      return super.goTo(FleetDashboardListPagePo.createPath(clusterId));
     }
 
     static navTo() {
@@ -33,25 +33,15 @@ export class FleetDashboardPagePo extends PagePo {
     }
 
     constructor(clusterId: string) {
-      super(FleetDashboardPagePo.createPath(clusterId));
+      super(FleetDashboardListPagePo.createPath(clusterId));
     }
 
-    resourceTable(name: string) {
-      const table = this.self().find(`[data-testid="collapsible-card-${ name }"]`);
-
-      return new ResourceTablePo(table);
+    workspaceCard(name) {
+      return new FleetDashboardWorkspaceCardPo(name);
     }
 
-    sortableTable(tableName = 'fleet-local') {
-      return this.resourceTable(tableName).sortableTable();
-    }
-
-    goToGitRepoListLink(name: 'fleet-local' | 'fleet-default') {
-      return this.self().find(`[data-testid="collapsible-card-${ name }"] h2 span` );
-    }
-
-    list() {
-      return new BaseResourceList('[data-testid="sortable-table-list-container"]');
+    slideInPanel() {
+      return cy.get('[data-testid="slide-in-panel-component"] [data-testid="fleet-dashboard-resource-details-header"]');
     }
 
     fleetDashboardEmptyState() {
@@ -60,5 +50,9 @@ export class FleetDashboardPagePo extends PagePo {
 
     getStartedButton() {
       return this.self().get('.btn').contains('Get started');
+    }
+
+    viewModeButton() {
+      return new ButtonGroupPo('[data-testid="view-button"]', this.self());
     }
 }

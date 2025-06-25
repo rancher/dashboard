@@ -63,7 +63,7 @@ export default {
     }
 
     if (projectRoleTemplateBindingSchema) {
-      this.$store.dispatch('rancher/findAll', { type: NORMAN.PROJECT_ROLE_TEMPLATE_BINDING }, { root: true })
+      this.$store.dispatch('rancher/findAll', { type: NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, opt: { force: true } }, { root: true })
         .then((bindings) => {
           this['projectRoleTemplateBindings'] = bindings;
           this.loadingProjectBindings = false;
@@ -355,7 +355,8 @@ export default {
                 <button
                   v-if="canEditProjectMembers"
                   type="button"
-                  class="create-namespace btn btn-sm role-secondary mr-10 right"
+                  class="btn btn-sm role-secondary mr-10 right"
+                  :data-testid="`add-project-member-${getProjectLabel(group).replace(' ', '').toLowerCase()}`"
                   @click="addProjectMember(group)"
                 >
                   {{ t('members.createActionLabel') }}

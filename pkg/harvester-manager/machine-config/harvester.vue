@@ -4,7 +4,6 @@ import isEmpty from 'lodash/isEmpty';
 import jsyaml from 'js-yaml';
 import YAML from 'yaml';
 import { isBase64 } from '@shell/utils/string';
-
 import NodeAffinity from '@shell/components/form/NodeAffinity';
 import PodAffinity from '@shell/components/form/PodAffinity';
 import InfoBox from '@shell/components/InfoBox';
@@ -204,24 +203,7 @@ export default {
         this.networkDataOptions = networkDataOptions;
         this.images = res.images.value?.data;
         this.storageClass = res.storageClass.value?.data;
-        this.networkOptions = (res.networks.value?.data || []).filter((O) => O.metadata?.annotations?.[STORAGE_NETWORK] !== 'true').map((O) => {
-          let value;
-          let label;
-
-          try {
-            const config = JSON.parse(O.spec.config);
-
-            const id = config.vlan;
-
-            value = O.id;
-            label = `${ value } (vlanId=${ id })`;
-          } catch (err) {}
-
-          return {
-            label,
-            value
-          };
-        });
+        this.networks = res.networks.value?.data;
 
         let systemNamespaces = (res.settings.value?.data || []).filter((x) => x.id === SETTING.SYSTEM_NAMESPACES);
 
@@ -321,6 +303,7 @@ export default {
       this.update();
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
+      console.error('Failed to initialize harvester machine config data', e); // eslint-disable-line no-console
     }
   },
 
@@ -391,7 +374,7 @@ export default {
       storageClass:       [],
       namespaces:         [],
       namespaceOptions:   [],
-      networkOptions:     [],
+      networks:           [],
       userDataOptions:    [],
       networkDataOptions: [],
       allNodeObjects:     [],
@@ -437,6 +420,31 @@ export default {
       },
       set(neu) {
         this.images = neu;
+      }
+    },
+
+    networkOptions: {
+      get() {
+        return (this.networks || []).filter((O) => O.metadata?.annotations?.[STORAGE_NETWORK] !== 'true').map((O) => {
+          let value;
+          let label;
+
+          try {
+            const config = JSON.parse(O.spec.config);
+            const id = config.vlan;
+
+            value = O.id;
+            label = `${ value } (vlanId=${ id })`;
+          } catch (err) {}
+
+          return {
+            label,
+            value
+          };
+        });
+      },
+      set(neu) {
+        this.networks = neu;
       }
     },
 
@@ -579,9 +587,10 @@ export default {
         this.value.vmAffinity = base64Decode(this.value.vmAffinity);
       }
 
-      if (!this.value.cpuCount) {
-        const message = this.validatorRequiredField(
-          this.t('cluster.credential.harvester.cpu')
+      if (!this.value.cpuCount || Number(this.value.cpuCount) <= 0) {
+        const message = this.validatorMinimumField(
+          this.t('cluster.credential.harvester.cpu'),
+          1
         );
 
         errors.push(message);
@@ -595,9 +604,10 @@ export default {
         errors.push(message);
       }
 
-      if (!this.value.memorySize) {
-        const message = this.validatorRequiredField(
-          this.t('cluster.credential.harvester.memory')
+      if (!this.value.memorySize || Number(this.value.memorySize) <= 0) {
+        const message = this.validatorMinimumField(
+          this.t('cluster.credential.harvester.memory'),
+          1
         );
 
         errors.push(message);
@@ -624,6 +634,10 @@ export default {
       return this.t('validation.required', { key });
     },
 
+    validatorMinimumField(key, min) {
+      return this.t('validation.minValue', { key, min });
+    },
+
     validatorDiskAndNetowrk(errors) {
       const disks = JSON.parse(this.value.diskInfo).disks;
       const interfaces = JSON.parse(this.value.networkInfo).interfaces;
@@ -645,9 +659,10 @@ export default {
           errors.push(message);
         }
 
-        if (!disk.size) {
-          const message = this.validatorRequiredField(
-            this.t('cluster.credential.harvester.disk')
+        if (!disk.size || Number(disk.size) <= 0) {
+          const message = this.validatorMinimumField(
+            this.t('cluster.credential.harvester.disk'),
+            1
           );
 
           errors.push(message);
@@ -738,17 +753,33 @@ export default {
       }
     },
 
+    async getAvailableNetworks() {
+      try {
+        const clusterId = get(this.credential, 'decodedData.clusterId');
+
+        if (clusterId) {
+          const url = `/k8s/clusters/${ clusterId }/v1`;
+          const res = await this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` });
+
+          this.networks = res?.data;
+        }
+      } catch (e) {
+        this.errors = exceptionToErrorsArray(e);
+      }
+    },
+
     async getAvailableVGpuDevices() {
       const clusterId = get(this.credential, 'decodedData.clusterId');
 
       if (clusterId) {
         const url = `/k8s/clusters/${ clusterId }/v1`;
 
-        const vGpus = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.VGPU_DEVICE }` });
-
         let deviceCapacity = null;
+        let vGpus = null ;
 
         try {
+          vGpus = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.VGPU_DEVICE }` });
+
           const harvesterCluster = await this.$store.dispatch('cluster/request', { url: `${ url }/harvester/cluster/local` });
 
           if (harvesterCluster?.links?.deviceCapacity) {
@@ -913,27 +944,10 @@ export default {
     },
 
     updateUserData(templateValue) {
-      try {
-        const templateJsonData = this.convertToJson(templateValue);
+      this.installAgent = false;
 
-        let userDataYaml;
-
-        if (this.installAgent) {
-          const mergedObj = Object.assign(templateJsonData, { ...QGA_JSON });
-
-          userDataYaml = this.addCloudConfigComment(mergedObj);
-        } else {
-          userDataYaml = templateValue;
-        }
-
-        this.$refs.userDataYamlEditor.updateValue(userDataYaml);
-        this.userData = userDataYaml;
-      } catch (e) {
-        this.$store.dispatch('growl/error', {
-          title:   this.t('generic.notification.title.error'),
-          message: this.t('harvesterManager.rke.templateError')
-        }, { root: true });
-      }
+      this.$refs.userDataYamlEditor.updateValue(templateValue);
+      this.userData = templateValue;
     },
 
     updateVGpu() {
@@ -1185,6 +1199,7 @@ export default {
             suffix="C"
             output-as="string"
             required
+            min="1"
             :mode="mode"
             :disabled="disabled"
             :placeholder="t('cluster.harvester.machinePool.cpu.placeholder')"
@@ -1201,6 +1216,7 @@ export default {
             :mode="mode"
             :disabled="disabled"
             required
+            min="1"
             :placeholder="t('cluster.harvester.machinePool.memory.placeholder')"
           />
         </div>
@@ -1309,6 +1325,7 @@ export default {
                     :mode="mode"
                     :disabled="disabled"
                     required
+                    min="1"
                     :placeholder="t('cluster.harvester.machinePool.disk.placeholder')"
                     @update:value="update"
                   />
@@ -1363,7 +1380,10 @@ export default {
         </button>
       </div>
 
-      <hr class="mt-10 mb-10">
+      <hr
+        class="mt-10 mb-10"
+        role="none"
+      >
 
       <h2>{{ t('cluster.credential.harvester.network.title') }}</h2>
       <div
@@ -1400,6 +1420,7 @@ export default {
                 :required="true"
                 label-key="cluster.credential.harvester.network.networkName"
                 :placeholder="t('cluster.harvester.machinePool.network.placeholder')"
+                @on-open="getAvailableNetworks"
                 @update:value="update"
               />
             </div>
@@ -1510,7 +1531,10 @@ export default {
           />
         </div>
 
-        <hr class="divider mt-20">
+        <hr
+          class="divider mt-20"
+          role="none"
+        >
 
         <h3 class="mt-20">
           {{ t("workload.container.titles.nodeScheduling") }}
@@ -1534,7 +1558,10 @@ export default {
           @update="updateScheduling"
         />
 
-        <hr class="divider mt-20">
+        <hr
+          class="divider mt-20"
+          role="none"
+        >
       </portal>
     </div>
     <div v-if="errors.length">

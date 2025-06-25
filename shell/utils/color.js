@@ -19,14 +19,15 @@ export function createCssVars(color, theme = 'light', name = 'primary') {
   const contrastOpts = theme === 'light' ? LIGHT_CONTRAST_COLORS : DARK_CONTRAST_COLORS;
 
   return {
-    [`--${ name }`]:             color,
-    [`--${ name }-text `]:       contrastColor(color, contrastOpts),
-    [`--${ name }-hover-bg`]:    lighten(color, -10),
-    [`--${ name }-active-bg`]:   lighten(color, -25),
-    [`--${ name }-active-text`]: contrastColor(lighten(color, -25), contrastOpts),
-    [`--${ name }-border`]:      color,
-    [`--${ name }-banner-bg`]:   opacity(color, 0.15),
-    [`--${ name }-light-bg`]:    opacity(color, 0.05),
+    [`--${ name }`]:                color,
+    [`--${ name }-text `]:          contrastColor(color, contrastOpts),
+    [`--${ name }-hover-bg`]:       lighten(color, -10),
+    [`--${ name }-active-bg`]:      lighten(color, -25),
+    [`--${ name }-active-text`]:    contrastColor(lighten(color, -25), contrastOpts),
+    [`--${ name }-border`]:         color,
+    [`--${ name }-banner-bg`]:      opacity(color, 0.15),
+    [`--${ name }-light-bg`]:       opacity(color, 0.05),
+    [`--${ name }-keyboard-focus`]: lighten(color, -10),
   };
 }
 

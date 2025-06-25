@@ -230,6 +230,7 @@ export default {
           data-testid="sortable-table_check_select_all"
           :indeterminate="isIndeterminate"
           :disabled="noRows || noResults"
+          :alternate-label="t('sortableTable.genericGroupCheckbox')"
         />
       </th>
       <th
@@ -258,10 +259,13 @@ export default {
             v-clean-tooltip="tooltip(col)"
             class="content"
           >
-            <span v-clean-html="labelFor(col)" />
+            <span
+              v-clean-html="labelFor(col)"
+              class="text-no-break"
+            />
             <span
               v-if="col.subLabel"
-              class="text-muted"
+              class="text-muted text-no-break"
             >
               {{ col.subLabel }}
             </span>
@@ -269,6 +273,7 @@ export default {
           <div
             v-if="col.sort"
             class="sort"
+            aria-hidden="true"
           >
             <i
               v-show="hasAdvancedFiltering && !col.isFilter"
@@ -280,10 +285,12 @@ export default {
               <i
                 v-if="isCurrent(col) && !descending"
                 class="icon icon-sort-down icon-stack-1x"
+                :alt="t('sortableTable.alt.sortingIconDesc')"
               />
               <i
                 v-if="isCurrent(col) && descending"
                 class="icon icon-sort-up icon-stack-1x"
+                :alt="t('sortableTable.alt.sortingIconAsc')"
               />
             </span>
           </div>

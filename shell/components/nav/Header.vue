@@ -5,7 +5,6 @@ import { MANAGEMENT, NORMAN, STEVE } from '@shell/config/types';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { ucFirst } from '@shell/utils/string';
 import { isAlternate, isMac } from '@shell/utils/platform';
-import Import from '@shell/components/Import';
 import BrandImage from '@shell/components/BrandImage';
 import { getProduct, getVendor } from '@shell/config/private-label';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
@@ -16,7 +15,6 @@ import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
 
-import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
 import { ActionLocation, ExtensionPoint } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
@@ -24,6 +22,7 @@ import IconOrSvg from '@shell/components/IconOrSvg';
 import { wait } from '@shell/utils/async';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
 import HeaderPageActionMenu from './HeaderPageActionMenu.vue';
+import NotificationCenter from './NotificationCenter';
 import {
   RcDropdown,
   RcDropdownItem,
@@ -36,14 +35,13 @@ export default {
   components: {
     NamespaceFilter,
     WorkspaceSwitcher,
-    Import,
     TopLevelMenu,
-    Jump,
     BrandImage,
     ClusterBadge,
     ClusterProviderIcon,
     IconOrSvg,
     AppModal,
+    NotificationCenter,
     HeaderPageActionMenu,
     RcDropdown,
     RcDropdownItem,
@@ -79,9 +77,7 @@ export default {
       LOGGED_OUT,
       navHeaderRight:         null,
       extensionHeaderActions: getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, this.$route),
-      ctx:                    this,
-      showImportModal:        false,
-      showSearchModal:        false,
+      ctx:                    this
     };
   },
 
@@ -99,7 +95,8 @@ export default {
       'isSingleProduct',
       'isRancherInHarvester',
       'showTopLevelMenu',
-      'isMultiCluster'
+      'isMultiCluster',
+      'showWorkspaceSwitcher'
     ]),
 
     samlAuthProviderEnabled() {
@@ -244,16 +241,16 @@ export default {
   },
 
   watch: {
-    currentCluster(nue, old) {
-      if (nue && old && nue.id !== old.id) {
+    currentCluster(neu, old) {
+      if (neu && old && neu.id !== old.id) {
         this.checkClusterName();
       }
     },
     // since the Header is a "persistent component" we need to update it at every route change...
     $route: {
-      handler(nue) {
-        if (nue) {
-          this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, nue);
+      handler(neu) {
+        if (neu) {
+          this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, neu);
 
           this.navHeaderRight = this.$plugin?.getDynamic('component', 'NavHeaderRight');
         }
@@ -316,19 +313,24 @@ export default {
     },
 
     openImport() {
-      this.showImportModal = true;
-    },
-
-    closeImport() {
-      this.showImportModal = false;
+      this.$store.dispatch('cluster/promptModal', {
+        component:      'ImportDialog',
+        modalWidth:     '75%',
+        height:         'auto',
+        styles:         'max-height: 90vh;',
+        componentProps: { cluster: this.currentCluster }
+      });
     },
 
     openSearch() {
-      this.showSearchModal = true;
-    },
-
-    hideSearch() {
-      this.showSearchModal = false;
+      this.$store.dispatch('cluster/promptModal', {
+        component:           'SearchDialog',
+        testId:              'search-modal',
+        modalWidth:          '50%',
+        height:              'auto',
+        styles:              'max-height: 90vh;',
+        returnFocusSelector: '#header-btn-search'
+      });
     },
 
     checkClusterName() {
@@ -403,6 +405,7 @@ export default {
     <div>
       <TopLevelMenu v-if="isRancherInHarvester || isMultiCluster || !isSingleProduct" />
     </div>
+
     <div
       class="menu-spacer"
       :class="{'isSingleProduct': isSingleProduct }"
@@ -410,20 +413,25 @@ export default {
       <router-link
         v-if="isSingleProduct && !isRancherInHarvester"
         :to="singleProductLogoRoute"
+        role="link"
+        :alt="t('branding.logos.home')"
       >
         <BrandImage
           v-if="isSingleProduct.supportCustomLogo && isHarvester"
           class="side-menu-logo"
           file-name="harvester.svg"
           :support-custom-logo="true"
+          :alt="t('branding.logos.label')"
         />
         <img
           v-else
           class="side-menu-logo"
           :src="isSingleProduct.logo"
+          :alt="t('branding.logos.label')"
         >
       </router-link>
     </div>
+
     <div
       v-if="!simple"
       ref="product"
@@ -450,6 +458,7 @@ export default {
             v-if="currentCluster"
             :cluster="currentCluster"
             class="mr-10"
+            :alt="t('branding.logos.label')"
           />
           <div
             v-if="currentCluster"
@@ -462,6 +471,7 @@ export default {
             v-if="currentCluster"
             :cluster="currentCluster"
             class="ml-10"
+            :alt="t('branding.logos.label')"
           />
           <div
             v-if="!currentCluster"
@@ -470,6 +480,7 @@ export default {
             <BrandImage
               class="side-menu-logo-img"
               file-name="rancher-logo.svg"
+              :alt="t('branding.logos.label')"
             />
           </div>
         </template>
@@ -484,12 +495,14 @@ export default {
           :src="currentProduct.iconHeader"
           class="cluster-os-logo mr-10"
           style="width: 44px; height: 36px;"
+          :alt="t('branding.logos.label')"
         >
         <div class="product-name">
           {{ prod }}
         </div>
       </div>
     </div>
+
     <div
       v-else
       class="simple-title"
@@ -507,8 +520,9 @@ export default {
       >
         <BrandImage
           class="side-menu-logo-img"
-          data-testid="header-side-menu__brand-img"
+          data-testid="header__brand-img"
           file-name="rancher-logo.svg"
+          :alt="t('branding.logos.label')"
         />
       </div>
     </div>
@@ -522,7 +536,7 @@ export default {
         class="top"
       >
         <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
-        <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
+        <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher && showWorkspaceSwitcher" />
       </div>
       <div
         v-if="currentCluster && !simple"
@@ -536,24 +550,13 @@ export default {
             type="button"
             class="btn header-btn role-tertiary"
             data-testid="header-action-import-yaml"
+            role="button"
+            tabindex="0"
+            :aria-label="t('nav.import')"
             @click="openImport()"
           >
             <i class="icon icon-upload icon-lg" />
           </button>
-          <app-modal
-            v-if="showImportModal"
-            class="import-modal"
-            name="importModal"
-            width="75%"
-            height="auto"
-            styles="max-height: 90vh;"
-            @close="closeImport"
-          >
-            <Import
-              :cluster="currentCluster"
-              @close="closeImport"
-            />
-          </app-modal>
 
           <button
             v-if="showKubeShell"
@@ -563,6 +566,9 @@ export default {
             :disabled="!shellEnabled"
             type="button"
             class="btn header-btn role-tertiary"
+            role="button"
+            tabindex="0"
+            :aria-label="t('nav.shellShortcut', {key:''})"
             @shortkey="currentCluster.openShell()"
             @click="currentCluster.openShell()"
           >
@@ -576,6 +582,9 @@ export default {
             type="button"
             class="btn header-btn role-tertiary"
             data-testid="btn-download-kubeconfig"
+            role="button"
+            tabindex="0"
+            :aria-label="t('nav.kubeconfig.download')"
             @click="currentCluster.downloadKubeConfig()"
           >
             <i class="icon icon-file icon-lg" />
@@ -588,6 +597,9 @@ export default {
             type="button"
             class="btn header-btn role-tertiary"
             data-testid="btn-copy-kubeconfig"
+            role="button"
+            tabindex="0"
+            :aria-label="t('nav.kubeconfig.copy')"
             @click="copyKubeConfig($event)"
           >
             <i
@@ -603,26 +615,20 @@ export default {
 
         <button
           v-if="showSearch"
+          id="header-btn-search"
           v-clean-tooltip="t('nav.resourceSearch.toolTip', {key: searchShortcut})"
           v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}"
           type="button"
           class="btn header-btn role-tertiary"
           data-testid="header-resource-search"
+          role="button"
+          tabindex="0"
+          :aria-label="t('nav.resourceSearch.toolTip', {key: ''})"
           @shortkey="openSearch()"
           @click="openSearch()"
         >
           <i class="icon icon-search icon-lg" />
         </button>
-        <app-modal
-          v-if="showSearch && showSearchModal"
-          class="search-modal"
-          name="searchModal"
-          width="50%"
-          height="auto"
-          @close="hideSearch()"
-        >
-          <Jump @closeSearch="hideSearch()" />
-        </app-modal>
       </div>
 
       <!-- Extension header actions -->
@@ -639,6 +645,9 @@ export default {
           type="button"
           class="btn header-btn role-tertiary"
           :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
+          role="button"
+          tabindex="0"
+          :aria-label="action.label"
           @shortkey="handleExtensionAction(action, $event)"
           @click="handleExtensionAction(action, $event)"
         >
@@ -653,6 +662,7 @@ export default {
 
       <div class="center-self">
         <header-page-action-menu v-if="showPageActions" />
+        <NotificationCenter />
         <rc-dropdown
           v-if="showUserMenu"
           :aria-label="t('nav.userMenu.label')"
@@ -669,6 +679,7 @@ export default {
               :class="{'avatar-round': principal.roundAvatar}"
               width="36"
               height="36"
+              :alt="t('nav.alt.userAvatar')"
             >
             <i
               v-else

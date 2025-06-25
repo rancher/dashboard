@@ -1,0 +1,6 @@
+name: Elemental
+author: SUSE
+authorUrl: https://www.rancher.com/products/rancher-platform
+description: Adds support for OS Management to Rancher Manager through Elemental
+url: https://elemental.docs.rancher.com
+icon: https://elemental.docs.rancher.com/img/logo.svg

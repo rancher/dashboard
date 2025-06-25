@@ -16,11 +16,19 @@ export default {
       default: () => {}
     },
   },
-  data() {
-    const cloned = this.getLabel(this.value.toLowerCase());
-    const headless = this.value === 'ClusterIP' && this.row?.spec?.clusterIP === 'None' ? this.getLabel('headless') : undefined;
 
-    return { translated: cloned, headless };
+  computed: {
+    translated() {
+      const value = this.value;
+
+      return this.getLabel(value.toLocaleLowerCase());
+    },
+    clusterIp() {
+      return this.row?.spec?.clusterIP;
+    },
+    headless() {
+      return this.value === 'ClusterIP' && this.clusterIp === 'None' ? this.getLabel('headless') : undefined;
+    }
   },
 
   methods: {

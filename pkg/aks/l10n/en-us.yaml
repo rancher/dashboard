@@ -4,7 +4,7 @@ aks:
     label: Region
     withAZ: Regions with Availability Zones
     withoutAZ: Regions without Availability Zones
-    azWarning: No availablity zones are available for the selected region. For the most resiliency it is recommended to select a High Availablity region.
+    azWarning: No availability zones are available for the selected region. For the most resiliency it is recommended to select a High Availablity region.
   clusterResourceGroup:
     label: Cluster Resource Group
     placeholder: 'aks-resource-group'
@@ -12,6 +12,7 @@ aks:
   kubernetesVersion:
     label: Kubernetes Version
     current: '{version} (Current)'
+    upgradeWarning: (minor version >1 not allowed by AKS)
     notAvailableInRegion: This version is not available in the selected region.
   nodeResourceGroup:
     tooltip: 'The cluster resource group contains the Kubernetes Service resource. The node resource group contains all infrastructure resources associated with the cluster. If left blank, Azure will automatically create a name in the format MC_resource-group_cluster-name_location. This value cannot exceed 80 characters.'
@@ -77,7 +78,6 @@ aks:
   accordions:
     basics: Basics
     networking: Networking
-    clusterMembers: Cluster Members
     labels: Labels and Annotations
   containerMonitoring:
     label: Configure Container Monitoring
@@ -141,13 +141,17 @@ aks:
     label: User Assigned Identity
   managedIdentity:
     label: Managed Identity
+  servicePrincipal:
+    label: Service Principal
+  clusterToRegister: Cluster to register
+  importedRbac: This cluster has Kubernetes RBAC disabled. Importing a cluster without RBAC enabled may cause unexpected behavior.
   errors:
-    regions: 'An error occured while fetching the available regions: {e}'
+    regions: 'An error occurred while fetching the available regions: {e}'
     vmSizes: 
-      fetching: 'An error occured while fetching the available VM sizes: {e}'
-      available: This size is not avaiable in the selected region
-    virtualNetworks: 'An error occured while fetching the available virtual networks: {e}'
-    kubernetesVersions: 'An error occured while fetching the available kubernetes versions: {e}'
+      fetching: 'An error occurred while fetching the available VM sizes: {e}'
+      available: This size is not available in the selected region
+    virtualNetworks: 'An error occurred while fetching the available virtual networks: {e}'
+    kubernetesVersions: 'An error occurred while fetching the available kubernetes versions: {e}'
     clusterName: 
       chars: Name may only contain lowercase alphanumerics, underscores, and hyphens.
       startEnd: Name must start and end with an alphanumeric.

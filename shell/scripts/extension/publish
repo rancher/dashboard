@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# set -eo pipefail comment out for now because of a Harvester issue
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 BASE_DIR="$(pwd)"
@@ -331,6 +332,12 @@ if [ "${UPDATE_LATEST_PACAKGES}" = "true" ]; then
       popd > /dev/null
 
       # --------------------------------------------------------------------------------
+      # Package extensions into tgz for the compressedEndpoint
+      # --------------------------------------------------------------------------------
+      echo -e "${CYAN}Packaging extension into tgz${RESET}"
+      tar -czf ${BASE_DIR}/extensions/${pkg}/${PKG_VERSION}.tgz -C ${BASE_DIR}/extensions/${pkg} ${PKG_VERSION}
+
+      # --------------------------------------------------------------------------------
       # Create the Helm chart
       # --------------------------------------------------------------------------------
 
@@ -358,18 +365,11 @@ if [ "${UPDATE_LATEST_PACAKGES}" = "true" ]; then
         cp ./pkg/${pkg}/README.md ${CHART_FOLDER}/README.md
       fi
 
-      pushd ${CHART_FOLDER}/templates > /dev/null
-      
-      if [ "${GITHUB_BUILD}" == "true" ]; then
-        echo "Patching for GitHub build"
-        ENDPOINT=https://raw.githubusercontent.com/${GITHUB_SOURCE}/${GITHUB_BRANCH}/extensions/${pkg}/${PKG_VERSION}
-      else
-        echo "Patching for container build"
-        ENDPOINT=http://${IMAGE_PREFIX}${BASE_EXT}-svc.cattle-ui-plugin-system:8080/plugin/${PKG_NAME}
-      fi
-      sed -i.bak -e 's@endpoint: .*@endpoint: '"${ENDPOINT}"'@g' cr.yaml
-      rm *.bak
-      popd > /dev/null
+      export GITHUB_BUILD
+      export IMAGE_PREFIX
+      export BASE_EXT
+      export GITHUB_SOURCE
+      export GITHUB_BRANCH
 
       # Additional patches
       ${SCRIPT_DIR}/helmpatch ${CHART_FOLDER} "${BASE_DIR}/pkg/${pkg}/package.json"

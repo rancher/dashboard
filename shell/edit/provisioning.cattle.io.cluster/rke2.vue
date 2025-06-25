@@ -22,10 +22,12 @@ import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { findBy, removeObject, clear } from '@shell/utils/array';
 import { createYaml } from '@shell/utils/create-yaml';
 import {
-  clone, diff, set, get, isEmpty, mergeWithReplaceArrays
+  clone, diff, set, get, isEmpty, mergeWithReplace
 } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
-import { getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon } from '@shell/utils/cluster';
+import {
+  getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon, initSchedulingCustomization
+} from '@shell/utils/cluster';
 
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
@@ -47,7 +49,7 @@ import Labels from '@shell/edit/provisioning.cattle.io.cluster/Labels';
 import MachinePool from '@shell/edit/provisioning.cattle.io.cluster/tabs/MachinePool';
 import SelectCredential from './SelectCredential';
 import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
-import AgentConfiguration from '@shell/edit/provisioning.cattle.io.cluster/tabs/AgentConfiguration';
+import AgentConfiguration from '@shell/edit/provisioning.cattle.io.cluster/tabs/AgentConfiguration.vue';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import MemberRoles from '@shell/edit/provisioning.cattle.io.cluster/tabs/MemberRoles';
@@ -62,7 +64,7 @@ import { DEFAULT_COMMON_BASE_PATH, DEFAULT_SUBDIRS } from '@shell/edit/provision
 import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
-
+import { mapGetters } from 'vuex';
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 const NETBIOS_TRUNCATION_LENGTH = 15;
@@ -86,6 +88,8 @@ const NODE_TOTAL = {
 };
 const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
 const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
+
+const REGISTRIES_TAB_NAME = 'registry';
 
 const isAzureK8sUnsupported = (version) => semver.gte(version, '1.30.0');
 
@@ -146,6 +150,13 @@ export default {
     await this.initSpecs();
     await this.initAddons();
     await this.initRegistry();
+    const sc = await initSchedulingCustomization(this.value.spec, this.features, this.$store, this.mode);
+
+    this.clusterAgentDefaultPC = sc.clusterAgentDefaultPC;
+    this.clusterAgentDefaultPDB = sc.clusterAgentDefaultPDB;
+    this.schedulingCustomizationFeatureEnabled = sc.schedulingCustomizationFeatureEnabled;
+    this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
+    this.errors = this.errors.concat(sc.errors);
 
     Object.entries(this.chartValues).forEach(([name, value]) => {
       const key = this.chartVersionKey(name);
@@ -239,20 +250,32 @@ export default {
       fvFormRuleSets:                  [{
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
-      harvesterVersionRange: {},
-      cisOverride:           false,
+      harvesterVersionRange:                    {},
+      cisOverride:                              false,
       truncateLimit,
-      busy:                  false,
-      machinePoolValidation: {}, // map of validation states for each machine pool
-      machinePoolErrors:     {},
-      addonConfigValidation: {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
-      allNamespaces:         [],
-      extensionTabs:         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
+      busy:                                     false,
+      machinePoolValidation:                    {}, // map of validation states for each machine pool
+      machinePoolErrors:                        {},
+      addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
+      allNamespaces:                            [],
+      extensionTabs:                            getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
+      clusterAgentDeploymentCustomization:      null,
+      schedulingCustomizationFeatureEnabled:    false,
+      schedulingCustomizationOriginallyEnabled: false,
+      clusterAgentDefaultPC:                    null,
+      clusterAgentDefaultPDB:                   null,
+      activeTab:                                null,
+      REGISTRIES_TAB_NAME,
       labelForAddon
+
     };
   },
 
   computed: {
+    ...mapGetters({ features: 'features/get' }),
+    isActiveTabRegistries() {
+      return this.activeTab?.selectedName === REGISTRIES_TAB_NAME;
+    },
     clusterName() {
       return this.value.metadata?.name || '';
     },
@@ -272,6 +295,21 @@ export default {
 
     chartValues() {
       return this.value.spec.rkeConfig.chartValues;
+    },
+
+    kubernetesVersion() {
+      return this.value.spec.kubernetesVersion;
+    },
+
+    rke2Charts() {
+      const rke2Versions = this.rke2Versions || [];
+      const kubernetesVersion = this.kubernetesVersion;
+
+      const charts = rke2Versions
+        .find((version) => version.id === kubernetesVersion)
+        ?.charts ?? {};
+
+      return Object.keys(charts);
     },
 
     serverConfig() {
@@ -553,7 +591,7 @@ export default {
         out.tooltip[role] = this.t(`cluster.machinePool.nodeTotals.tooltip.${ role }`, { count: counts[role] });
       }
 
-      if (counts.etcd === 0) {
+      if (counts.etcd <= 0) {
         out.color.etcd = NODE_TOTAL.error.color;
         out.icon.etcd = NODE_TOTAL.error.icon;
       } else if (counts.etcd === 1 || counts.etcd % 2 === 0 || counts.etcd > 7) {
@@ -561,7 +599,7 @@ export default {
         out.icon.etcd = NODE_TOTAL.warning.icon;
       }
 
-      if (counts.controlPlane === 0) {
+      if (counts.controlPlane <= 0) {
         out.color.controlPlane = NODE_TOTAL.error.color;
         out.icon.controlPlane = NODE_TOTAL.error.icon;
       } else if (counts.controlPlane === 1) {
@@ -569,7 +607,7 @@ export default {
         out.icon.controlPlane = NODE_TOTAL.warning.icon;
       }
 
-      if (counts.worker === 0) {
+      if (counts.worker <= 0) {
         out.color.worker = NODE_TOTAL.error.color;
         out.icon.worker = NODE_TOTAL.error.icon;
       } else if (counts.worker === 1) {
@@ -1047,6 +1085,14 @@ export default {
       }
     },
 
+    setSchedulingCustomization(val) {
+      if (val) {
+        set(this.value, 'spec.clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+      } else {
+        delete this.value.spec.clusterAgentDeploymentCustomization.schedulingCustomization;
+      }
+    },
+
     cleanAgentConfiguration(model, key) {
       if (!model || !model[key]) {
         return;
@@ -1274,7 +1320,7 @@ export default {
         delete clonedCurrentConfig.metadata;
 
         if (this.provider === VMWARE_VSPHERE) {
-          machinePool.config = mergeWithReplaceArrays(clonedLatestConfig, clonedCurrentConfig);
+          machinePool.config = mergeWithReplace(clonedLatestConfig, clonedCurrentConfig, { mutateOriginal: true });
         } else {
           machinePool.config = merge(clonedLatestConfig, clonedCurrentConfig);
         }
@@ -1660,7 +1706,7 @@ export default {
       const defaultChartValue = this.versionInfo[name];
       const key = this.chartVersionKey(name);
 
-      return mergeWithReplaceArrays(defaultChartValue?.values, this.userChartValues[key]);
+      return mergeWithReplace(defaultChartValue?.values, this.userChartValues[key]);
     },
 
     initServerAgentArgs() {
@@ -1819,7 +1865,9 @@ export default {
 
     applyChartValues(rkeConfig) {
       rkeConfig.chartValues = {};
-      this.addonNames.forEach((name) => {
+      const charts = [...this.addonNames, ...this.rke2Charts];
+
+      charts.forEach((name) => {
         const key = this.chartVersionKey(name);
         const userValues = this.userChartValues[key];
 
@@ -2051,6 +2099,10 @@ export default {
     addonConfigValidationChanged(configName, isValid) {
       this.addonConfigValidation[configName] = isValid;
     },
+
+    handleTabChange(data) {
+      this.activeTab = data;
+    }
   }
 };
 </script>
@@ -2218,6 +2270,7 @@ export default {
       <Tabbed
         :side-tabs="true"
         class="min-height"
+        @changed="handleTabChange"
       >
         <Tab
           name="basic"
@@ -2328,10 +2381,11 @@ export default {
 
         <!-- Registries -->
         <Tab
-          name="registry"
+          :name="REGISTRIES_TAB_NAME"
           label-key="cluster.tabs.registry"
         >
           <Registries
+            v-if="isActiveTabRegistries"
             v-model:value="localValue"
             :mode="mode"
             :register-before-hook="registerBeforeHook"
@@ -2391,15 +2445,20 @@ export default {
 
         <!-- Cluster Agent Configuration -->
         <Tab
+          v-if="value.spec.clusterAgentDeploymentCustomization"
           name="clusteragentconfig"
           label-key="cluster.agentConfig.tabs.cluster"
         >
           <AgentConfiguration
-            v-if="value.spec.clusterAgentDeploymentCustomization"
             v-model:value="value.spec.clusterAgentDeploymentCustomization"
             data-testid="rke2-cluster-agent-config"
             type="cluster"
             :mode="mode"
+            :scheduling-customization-feature-enabled="schedulingCustomizationFeatureEnabled"
+            :default-p-c="clusterAgentDefaultPC"
+            :default-p-d-b="clusterAgentDefaultPDB"
+            :scheduling-customization-originally-enabled="schedulingCustomizationOriginallyEnabled"
+            @scheduling-customization-changed="setSchedulingCustomization"
           />
         </Tab>
 

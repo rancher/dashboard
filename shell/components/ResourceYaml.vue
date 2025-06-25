@@ -289,6 +289,9 @@ export default {
       }
     },
 
+    refresh() {
+      this.$refs.yamleditor.refresh();
+    }
   }
 };
 </script>
@@ -298,6 +301,7 @@ export default {
     <YamlEditor
       ref="yamleditor"
       v-model:value="currentYaml"
+      :mode="mode"
       :initial-yaml-values="initialYaml"
       class="yaml-editor flex-content"
       :editor-mode="editorMode"

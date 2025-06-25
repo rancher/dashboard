@@ -261,15 +261,15 @@ export default {
       this.reportedWidth = this.width;
     },
 
-    setWmDimensions() {
+    setWmDimensions(forceValue) {
       switch (this.userPin) {
       case RIGHT:
       case LEFT:
         document.documentElement.style.setProperty('--wm-height', `${ window.innerHeight - 55 }px`);
-        document.documentElement.style.setProperty('--wm-width', `${ this.width }px`);
+        document.documentElement.style.setProperty('--wm-width', `${ forceValue || this.width }px`);
         break;
       case BOTTOM:
-        document.documentElement.style.setProperty('--wm-height', `${ this.height }px`);
+        document.documentElement.style.setProperty('--wm-height', `${ forceValue || this.height }px`);
         break;
       }
     },
@@ -293,6 +293,32 @@ export default {
 
     emitDraggable(event) {
       this.$emit('draggable', event);
+    },
+
+    resizeVertical(arrowUp) {
+      const resizeStep = 20;
+      const height = arrowUp ? this.height + resizeStep : this.height - resizeStep;
+
+      this.height = height;
+
+      this.setWmDimensions(height);
+      this.setReportedHeight(height);
+    },
+
+    resizeHorizontal(arrowLeft) {
+      const resizeStep = 20;
+      let width;
+
+      if (this.userPin === 'left') {
+        width = arrowLeft ? this.width - resizeStep : this.width + resizeStep;
+      } else {
+        width = arrowLeft ? this.width + resizeStep : this.width - resizeStep;
+      }
+
+      this.width = width;
+
+      this.setWmDimensions(width);
+      this.setReportedWidth(width);
     }
   }
 };
@@ -300,6 +326,7 @@ export default {
 
 <template>
   <div
+    v-if="open"
     id="windowmanager"
     data-testid="windowmanager"
     class="windowmanager"
@@ -311,60 +338,103 @@ export default {
       :class="{
         'resizer-left': userPin == 'left',
       }"
+      role="tablist"
+      @keyup.right.prevent="selectNext(1)"
+      @keyup.left.prevent="selectNext(-1)"
       @mousedown="emitDraggable(true)"
       @mouseup="emitDraggable(false)"
     >
       <div
         v-if="userPin == 'right'"
         class="resizer resizer-x"
+        role="button"
+        tabindex="0"
+        :aria-label="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
+        aria-expanded="true"
         @mousedown.prevent.stop="dragXStart($event)"
         @touchstart.prevent.stop="dragXStart($event)"
+        @keyup.left.prevent.stop="resizeHorizontal(true)"
+        @keyup.right.prevent.stop="resizeHorizontal(false)"
       >
-        <i class="icon icon-code" />
+        <i
+          class="icon icon-code"
+          :alt="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
+        />
       </div>
       <div
         v-for="(tab, i) in tabs"
         :key="i"
         class="tab"
         :class="{'active': tab.id === active}"
+        role="tab"
+        :aria-selected="tab.id === active"
+        :aria-label="tab.label"
+        :aria-controls="`panel-${tab.id}`"
+        tabindex="0"
         @click="switchTo(tab.id)"
+        @keyup.enter.space="switchTo(tab.id)"
       >
         <i
           v-if="tab.icon"
           class="icon"
           :class="{['icon-'+ tab.icon]: true}"
+          :alt="t('wm.containerShell.tabIcon')"
         />
         <span class="tab-label"> {{ tab.label }}</span>
         <i
           data-testid="wm-tab-close-button"
           class="closer icon icon-fw icon-x wm-closer-button"
+          :alt="t('wm.containerShell.closeShellTab', { tab: tab.label })"
+          tabindex="0"
+          :aria-label="t('windowmanager.closeTab', { tabId: tab.id })"
           @click.stop="close(tab.id)"
+          @keyup.enter.space.stop="close(tab.id)"
         />
       </div>
       <div
         v-if="userPin == 'bottom'"
         class="resizer resizer-y"
+        role="button"
+        tabindex="0"
+        :aria-label="t('wm.containerShell.resizeShellWindow', {arrow1: 'up', arrow2: 'down'})"
+        aria-expanded="true"
         @mousedown.prevent.stop="dragYStart($event)"
         @touchstart.prevent.stop="dragYStart($event)"
         @click="toggle"
+        @keyup.up.prevent.stop="resizeVertical(true)"
+        @keyup.down.prevent.stop="resizeVertical(false)"
       >
-        <i class="icon icon-sort" />
+        <i
+          class="icon icon-sort"
+          :alt="t('wm.containerShell.resizeShellWindow', {arrow1: 'up', arrow2: 'down'})"
+        />
       </div>
       <div
         v-if="userPin == 'left'"
         class="resizer resizer-x resizer-align-right"
+        role="button"
+        tabindex="0"
+        :aria-label="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
+        aria-expanded="true"
         @mousedown.prevent.stop="dragXStart($event)"
         @touchstart.prevent.stop="dragXStart($event)"
+        @keyup.left.prevent.stop="resizeHorizontal(true)"
+        @keyup.right.prevent.stop="resizeHorizontal(false)"
       >
-        <i class="icon icon-code" />
+        <i
+          class="icon icon-code"
+          :alt="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
+        />
       </div>
     </div>
     <div
       v-for="(tab, i) in tabs"
+      :id="`panel-${tab.id}`"
       :key="i"
       class="body"
       :class="{'active': tab.id === active}"
       draggable="false"
+      role="tabpanel"
       @dragstart.prevent.stop
       @dragend.prevent.stop
       @mouseover="emitDraggable(false)"
@@ -431,6 +501,11 @@ export default {
           z-index: 1;
         }
 
+        &:focus-visible {
+          @include focus-outline;
+          outline-offset: -3px;
+        }
+
         .closer {
           margin-left: 5px;
           border: 1px solid var(--body-text);
@@ -445,6 +520,11 @@ export default {
           &:hover {
             border-color: var(--link-border);
             color: var(--link-border);
+          }
+
+          &:focus-visible {
+            @include focus-outline;
+            outline-offset: 1px;
           }
         }
       }

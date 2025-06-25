@@ -5,6 +5,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import UiPluginsPagePo from '@/cypress/e2e/po/pages/explorer/uiplugins.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
+import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 const namespaceFilter = new NamespaceFilterPo();
 const cluster = 'local';
@@ -24,14 +25,34 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     cy.login();
   });
 
-  it('versions for built-in extensions should display as expected', () => {
-    const pluginVersion = '1.0.0';
+  it('should go to the available tab by default', () => {
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
     extensionsPo.waitForPage(null, 'available');
-    extensionsPo.extensionTabInstalledClick();
-    extensionsPo.waitForPage(null, 'installed');
+  });
+
+  it('should show built-in extensions only when configured', () => {
+    const extensionsPo = new ExtensionsPagePo();
+    const pluginVersion = '1.0.0';
+
+    cy.setUserPreference({ 'plugin-developer': false });
+    extensionsPo.goTo();
+    extensionsPo.waitForPage(null, 'available');
+
+    // Should not be able to see the built-in tab
+    extensionsPo.extensionTabBuiltin().checkNotExists();
+
+    // Set the preference
+    cy.setUserPreference({ 'plugin-developer': true });
+    extensionsPo.goTo();
+    extensionsPo.waitForPage(null, 'available');
+
+    // Reload
+    extensionsPo.extensionTabBuiltin().checkExists();
+    extensionsPo.waitForPage(null, 'available');
+    extensionsPo.extensionTabBuiltinClick();
+    extensionsPo.waitForPage(null, 'builtin');
 
     // AKS Provisioning
     extensionsPo.extensionCardVersion('aks').should('contain', pluginVersion);
@@ -60,6 +81,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.extensionDetailsTitle().should('contain', 'Virtualization Manager');
     extensionsPo.extensionDetailsVersion().should('contain', pluginVersion);
     extensionsPo.extensionDetailsCloseClick();
+
+    cy.setUserPreference({ 'plugin-developer': false });
   });
 
   it('add repository', () => {
@@ -258,7 +281,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   });
 
   it('Should install an extension', () => {
-    cy.intercept('POST', `/v1/catalog.cattle.io.clusterrepos/${ GIT_REPO_NAME }?action=install`).as('installExtension');
+    cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=install`).as('installExtension');
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();
@@ -305,7 +328,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   });
 
   it('Should update an extension version', () => {
-    cy.intercept('POST', `/v1/catalog.cattle.io.clusterrepos/${ GIT_REPO_NAME }?action=upgrade`).as('upgradeExtension');
+    cy.intercept('POST', `${ CLUSTER_REPOS_BASE_URL }/${ GIT_REPO_NAME }?action=upgrade`).as('upgradeExtension');
     const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.goTo();

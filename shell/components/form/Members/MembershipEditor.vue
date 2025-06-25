@@ -1,6 +1,7 @@
 <script>
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import ArrayList from '@shell/components/form/ArrayList';
+import Principal from '@shell/components/auth/Principal';
 import Loading from '@shell/components/Loading';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { get, set } from '@shell/utils/object';
@@ -18,7 +19,9 @@ export function canViewMembershipEditor(store, needsProject = false) {
 export default {
   emits: ['membership-update'],
 
-  components: { ArrayList, Loading },
+  components: {
+    ArrayList, Loading, Principal
+  },
 
   props: {
     addMemberDialogName: {
@@ -61,7 +64,7 @@ export default {
     const roleBindingRequestParams = { type: this.type, opt: { force: true } };
 
     if (this.type === NORMAN.PROJECT_ROLE_TEMPLATE_BINDING && this.parentId) {
-      Object.assign(roleBindingRequestParams, { opt: { filter: { projectId: this.parentId.split('/').join(':') } } });
+      Object.assign(roleBindingRequestParams, { opt: { filter: { projectId: this.parentId.split('/').join(':') }, force: true } });
     }
     const userHydration = [
       this.schema ? this.$store.dispatch(`rancher/findAll`, roleBindingRequestParams) : [],
@@ -177,14 +180,17 @@ export default {
         </div>
       </div>
     </template>
-    <template #columns="{row}">
+    <template #columns="{row, i}">
       <div class="columns row">
         <div class="col span-6">
           <Principal
             :value="row.value.principalId"
           />
         </div>
-        <div class="col span-6 role">
+        <div
+          :data-testid="`role-item-${i}`"
+          class="col span-6 role"
+        >
           {{ row.value.roleDisplay }}
         </div>
       </div>
@@ -193,6 +199,7 @@ export default {
       <button
         type="button"
         class="btn role-primary mt-10"
+        data-testid="add-item"
         @click="addMember"
       >
         {{ t('generic.add') }}
@@ -205,6 +212,7 @@ export default {
         type="button"
         :disabled="isView"
         class="btn role-link"
+        :data-testid="`remove-item-${i}`"
         @click="remove"
       >
         {{ t('generic.remove') }}

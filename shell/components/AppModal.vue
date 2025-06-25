@@ -1,6 +1,10 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
-import { DEFAULT_FOCUS_TRAP_OPTS, useBasicSetupFocusTrap, getFirstFocusableElement } from '@shell/composables/focusTrap';
+import { defineComponent, ref } from 'vue';
+import {
+  DEFAULT_FOCUS_TRAP_OPTS,
+  getFirstFocusableElement,
+  useWatcherBasedSetupFocusTrapWithDestroyIncluded
+} from '@shell/composables/focusTrap';
 
 export const DEFAULT_ITERABLE_NODE_SELECTOR = 'body;';
 
@@ -80,6 +84,13 @@ export default defineComponent({
     returnFocusFirstIterableNodeSelector: {
       type:    String,
       default: DEFAULT_ITERABLE_NODE_SELECTOR,
+    },
+    /**
+     * watcher-based focus trap variable to watch
+     */
+    focusTrapWatcherBasedVariable: {
+      type:    Boolean,
+      default: undefined,
     }
   },
   computed: {
@@ -131,7 +142,10 @@ export default defineComponent({
         };
       }
 
-      useBasicSetupFocusTrap('#modal-container-element', opts);
+      // prop used to immediately trigger the focus trap when a proper watch variable is not required
+      const autoTriggerFocusTrapWatcher = ref(true);
+
+      useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => props.focusTrapWatcherBasedVariable ?? autoTriggerFocusTrapWatcher, '#modal-container-element', opts, true);
     }
   },
   mounted() {
@@ -208,7 +222,7 @@ export default defineComponent({
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 20;
+    z-index: z-index('modalOverlay');
 
     .modal-container {
       background-color: var(--modal-bg);

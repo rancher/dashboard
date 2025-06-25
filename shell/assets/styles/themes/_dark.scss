@@ -21,7 +21,6 @@
 
   // dark main text
   $lightest: #ffffff;
-  $keyboard-focus: #00ddff;
 
   // menu cluster description active+hover
   $desc-light: #EEEFF4;
@@ -50,7 +49,6 @@
   --default-light-bg           : #{rgba($dark, 0.05)};
   --slider-light-bg            : #{rgba($darker, 1)};
   --slider-light-bg-right      : #{rgba($darker, 0)};
-  --primary-keyboard-focus     : #{$keyboard-focus};
 
   --muted                      : #{$disabled};
 
@@ -118,7 +116,7 @@
   --dropdown-hover-bg          : #{$slate};
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-disabled-text     : #{$disabled};
-  --dropdown-group-text        : #{$disabled};
+  --dropdown-group-text        : #{$lighter};
   --dropdown-highlight-text    : var(--link);
 
   --input-text                 : #{$lightest};
@@ -135,6 +133,8 @@
   --input-disabled-border      : #{darken($medium, 30%)};
   --input-disabled-placeholder : #{darken($disabled, 10%)};
   --input-addon-bg             : #{$darker};
+
+  --label-secondary           : #{$lighter};
 
   --progress-bg                : #{$medium};
   --progress-divider           : #{$lightest};
@@ -165,6 +165,7 @@
   --tabbed-container-bg        : #{mix($medium, $dark, 20%)};
 
   --yaml-editor-bg             : #{$darkest};
+  --drawer-body-bg             : #{$darkest};
 
   --diff-border                : var(--border);
   --diff-header-bg             : var(--nav-bg);
@@ -228,7 +229,30 @@
   --badge-state-disabled-bg    : #{$medium};
   --badge-state-disabled-border: #{$lighter};
 
+  --click-badge-error          : #{$lightest};
+  --click-badge-error-bg       : #F43434;
+  --click-badge-error-border   : #FF8080;
+
+  --click-badge-warning        : #662E00;
+  --click-badge-warning-bg     : #FFCA4D;
+  --click-badge-warning-border : #F2870D;
+
+  --click-badge-success        : #00FF32;
+  --click-badge-success-bg     : #354240;
+  --click-badge-success-border : #4DFF70;
+  
+  --click-badge-info           : #{$lightest};
+  --click-badge-info-bg        : #{$info};
+  --click-badge-info-border    : #ACD2EC;
+  --bubble-bg                  : #{$darkest};
+
   $slate: #4B4F6B;
 
   --slate: #{$slate};
+
+  --link-text-secondary: #{$secondary};
+
+  .secondary-text-link {
+    color: var(--link-text-secondary);
+  }
 }

@@ -41,15 +41,11 @@ export default class AboutPagePo extends PagePo {
       .click();
   }
 
-  getLinuxDownloadLink() {
-    return cy.getId('image_list_download_link__about.os.linux');
-  }
-
-  getWindowsDownloadLink() {
-    return cy.getId('image_list_download_link__about.os.windows');
-  }
-
   getCliDownloadLinkByLabel(label: string) {
     return this.self().contains(label);
+  }
+
+  rancherPrimeInfo() {
+    return this.self().get('[data-testid="rancher-prime-about-panel"]');
   }
 }

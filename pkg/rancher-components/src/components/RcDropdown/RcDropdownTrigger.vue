@@ -2,7 +2,7 @@
 /**
  * A button that opens a menu. Used in conjunction with `RcDropdown.vue`.
  */
-import { inject, onMounted, useTemplateRef } from 'vue';
+import { inject, onMounted, ref } from 'vue';
 import { RcButton, RcButtonType } from '@components/RcButton';
 import { DropdownContext, defaultContext } from './types';
 
@@ -13,7 +13,7 @@ const {
   handleKeydown,
 } = inject<DropdownContext>('dropdownContext') || defaultContext;
 
-const dropdownTrigger = useTemplateRef<RcButtonType>('dropdownTrigger');
+const dropdownTrigger = ref<RcButtonType | null>(null);
 
 onMounted(() => {
   registerTrigger(dropdownTrigger.value);
@@ -35,8 +35,18 @@ defineExpose({ focus });
     @keydown.enter.space="handleKeydown"
     @click="showMenu(true)"
   >
+    <template #before>
+      <slot name="before">
+        <!-- Empty Content -->
+      </slot>
+    </template>
     <slot name="default">
       <!--Empty slot content-->
     </slot>
+    <template #after>
+      <slot name="after">
+        <!-- Empty Content -->
+      </slot>
+    </template>
   </RcButton>
 </template>

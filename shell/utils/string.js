@@ -151,16 +151,34 @@ export function pluralize(str) {
   }
 }
 
-export function resourceNames(names, plusMore, t) {
+export function resourceNames(names, plusMore, t, endString) {
+  const MAX_NAMES_COUNT = 5;
+
+  // plusMore default value
+  if (!plusMore) {
+    plusMore = t('promptRemove.andOthers', { count: names.length > MAX_NAMES_COUNT ? names.length - MAX_NAMES_COUNT : 0 });
+  }
+
+  // endString default value
+  if (!endString) {
+    endString = endString === false ? ' ' : '.';
+  }
+
   return names.reduce((res, name, i) => {
-    if (i >= 5) {
-      return res;
+    if (i < MAX_NAMES_COUNT) {
+      res += `<b>${ escapeHtml( name ) }</b>`;
+
+      if (i === names.length - 1) {
+        res += endString;
+      } else if (i === names.length - 2) {
+        res += names.length <= 5 ? t('generic.and') : '';
+      } else {
+        res += i < MAX_NAMES_COUNT - 1 ? t('generic.comma') : '';
+      }
     }
-    res += `<b>${ escapeHtml( name ) }</b>`;
-    if (i === names.length - 1) {
+
+    if (i === MAX_NAMES_COUNT) {
       res += plusMore;
-    } else {
-      res += i === names.length - 2 ? t('generic.and') : t('generic.comma');
     }
 
     return res;
@@ -335,4 +353,32 @@ export function isBase64(value) {
   const base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 
   return base64regex.test(value);
+}
+
+export function generateRandomAlphaString(length) {
+  return Array.from({ length }, () => String.fromCharCode(97 + Math.random() * 26 | 0)).join('');
+}
+
+/**
+ * Generate a key-value nested object from a list of paths that represents a directory tree.
+ *
+ * Each key is a subpath
+ * Each value contains the children of the subpath
+ */
+export function pathArrayToTree(paths) {
+  const result = [];
+  const level = { result };
+
+  paths.forEach((path) => {
+    path?.split('/').reduce((r, name) => {
+      if (!r[name]) {
+        r[name] = { result: [] };
+        r.result.push({ name, children: r[name].result });
+      }
+
+      return r[name];
+    }, level);
+  });
+
+  return result;
 }

@@ -117,6 +117,7 @@ export default defineComponent({
       <LabeledSelect
         :disabled="mode!=='create'"
         :value="region"
+        data-testid="eks_region"
         label-key="eks.region.label"
         :options="regionOptions"
         @update:value="$emit('update-region', $event)"
@@ -143,7 +144,6 @@ export default defineComponent({
 <style lang="scss">
   .credential-region {
     display: flex;
-    flex-grow:1;
 
     .region {
       flex-basis: 50%;
@@ -153,6 +153,7 @@ export default defineComponent({
 
     &.showing-form {
       flex-direction: column;
+      flex-grow: 1;
 
       &>.region {
         margin: 0;

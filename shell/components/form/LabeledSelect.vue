@@ -5,6 +5,7 @@ import { get } from '@shell/utils/object';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
+import { generateRandomAlphaString } from '@shell/utils/string';
 import LabeledSelectPagination from '@shell/components/form/labeled-select-utils/labeled-select-pagination';
 import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
 import { mapGetters } from 'vuex';
@@ -115,8 +116,11 @@ export default {
 
   data() {
     return {
-      selectedVisibility: 'visible',
-      shouldOpen:         true
+      selectedVisibility:   'visible',
+      shouldOpen:           true,
+      labeledSelectLabelId: `ls-label-id-${ generateRandomAlphaString(12) }`,
+      isOpen:               false,
+      generatedUid:         `ls-uid-${ generateRandomAlphaString(12) }`
     };
   },
 
@@ -153,22 +157,18 @@ export default {
 
   methods: {
     // resizeHandler = in mixin
-    focusSearch() {
-      // we need this override as in a "closeOnSelect" type of component
-      // if we don't have this override, it would open again
-      if (this.overridesMixinPreventDoubleTriggerKeysOpen) {
-        this.$nextTick(() => {
-          const el = this.$refs['select'];
-
-          if ( el ) {
-            el.focus();
-          }
-
-          this.overridesMixinPreventDoubleTriggerKeysOpen = false;
-        });
-
+    focusSearch(ev) {
+      if (this.isView || this.disabled || this.loading) {
         return;
       }
+
+      const searchBox = document.querySelector('.vs__search');
+
+      // added to mitigate https://github.com/rancher/dashboard/issues/14361
+      if (!this.isSearchable || (searchBox && document.activeElement && !searchBox.contains(document.activeElement))) {
+        ev.preventDefault();
+      }
+
       this.$refs['select-input'].open = true;
 
       this.$nextTick(() => {
@@ -191,11 +191,13 @@ export default {
     },
 
     onOpen() {
+      this.isOpen = true;
       this.$emit('on-open');
       this.resizeHandler();
     },
 
     onClose() {
+      this.isOpen = false;
       this.$emit('on-close');
     },
 
@@ -273,6 +275,7 @@ export default {
 
 <template>
   <div
+    :id="hasLabel ? labeledSelectLabelId : undefined"
     ref="select"
     class="labeled-select"
     :class="[
@@ -290,14 +293,23 @@ export default {
       }
     ]"
     :tabindex="isView || disabled ? -1 : 0"
+    role="combobox"
+    :aria-expanded="isOpen"
+    :aria-describedby="$attrs['aria-describedby'] || undefined"
+    :aria-required="requiredField"
     @click="focusSearch"
-    @keydown.enter.space.down="focusSearch"
+    @keydown.enter="focusSearch"
+    @keydown.down.prevent="focusSearch"
+    @keydown.space="focusSearch"
   >
     <div
       :class="{ 'labeled-container': true, raised, empty, [mode]: true }"
       :style="{ border: 'none' }"
     >
-      <label v-if="hasLabel">
+      <label
+        v-if="hasLabel"
+        :for="labeledSelectLabelId"
+      >
         <t
           v-if="labelKey"
           :k="labelKey"
@@ -307,6 +319,7 @@ export default {
         <span
           v-if="requiredField"
           class="required"
+          :aria-hidden="true"
         >*</span>
       </label>
     </div>
@@ -332,6 +345,8 @@ export default {
       :modelValue="value != null && !loading ? value : ''"
       :dropdown-should-open="dropdownShouldOpen"
       :tabindex="-1"
+      :uid="generatedUid"
+      :aria-label="'-'"
       @update:modelValue="$emit('selecting', $event); $emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
@@ -340,6 +355,7 @@ export default {
       @close="onClose"
       @option:selecting="$emit('selecting', $event)"
       @option:deselecting="$emit('deselecting', $event)"
+      @keydown.enter.stop
     >
       <template #option="option">
         <template v-if="showTagPrompts">
@@ -361,7 +377,7 @@ export default {
           </div>
         </template>
         <template v-else-if="option.kind === 'divider'">
-          <hr>
+          <hr role="none">
         </template>
         <template v-else-if="option.kind === 'highlighted'">
           <div class="option-kind-highlighted">

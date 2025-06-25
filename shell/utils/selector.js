@@ -11,7 +11,14 @@ const OP_MAP = {
   '>':  'Gt',
 };
 
-// Parse a labelSelector string
+/**
+ * Convert a string to a matchExpression object
+ *
+ * *string* is from https://github.com/kubernetes/apimachinery/blob/master/pkg/labels/selector.go#L1010.
+ * However... it seems to contain more operators than just `=` which the labels.Selector `String` does not use
+ *
+ * matchExpression is an array of 'key' 'operator' 'values'
+ */
 export function parse(labelSelector) {
   // matchLabels:
   // comma-separated list, all rules ANDed together
@@ -31,6 +38,10 @@ export function parse(labelSelector) {
   // key: optional.prefix/some-key
   // operator: In, NotIn, Exists, or DoesNotExist
   // values:  [array, of, values, even, if, only, one]
+
+  if (!labelSelector) {
+    return [];
+  }
 
   labelSelector = labelSelector.replace(/\+/g, ' ');
 
@@ -101,13 +112,17 @@ export function parse(labelSelector) {
   return out;
 }
 
-// Convert a Selector object to matchExpressions
+/**
+ * Convert a Selector object to matchExpressions
+ */
 export function convertSelectorObj(obj) {
   return convert(obj.matchLabels || {}, obj.matchExpressions || []);
 }
 
-// Convert matchLabels to matchExpressions
-// Optionally combining with an existing set of matchExpressions
+/**
+ * Convert matchLabels to matchExpressions
+ * Optionally combining with an existing set of matchExpressions
+ */
 export function convert(matchLabelsObj, matchExpressions) {
   const keys = Object.keys(matchLabelsObj || {});
   const out = matchExpressions || [];
@@ -130,8 +145,10 @@ export function convert(matchLabelsObj, matchExpressions) {
   return out;
 }
 
-// Convert matchExpressions to matchLabels when possible,
-// returning the simplest combination of them.
+/**
+ * Convert matchExpressions to matchLabels when possible,
+ * returning the simplest combination of them.
+ */
 export function simplify(matchExpressionsInput) {
   const matchLabels = {};
   const matchExpressions = [];
@@ -163,6 +180,12 @@ export function simplify(matchExpressionsInput) {
   return { matchLabels, matchExpressions };
 }
 
+/**
+ *
+ * For a fn that accepts a kube labelSelector object see shell/utils/selector-typed.ts `matches`
+ *
+ * @param {*} selector Is NOT a labelSelector object
+ */
 export function matches(obj, selector, labelKey = 'metadata.labels') {
   let rules = [];
 

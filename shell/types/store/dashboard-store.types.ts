@@ -1,9 +1,10 @@
-import { PaginationArgs } from '@shell/types/store/pagination.types';
+import { PaginationArgs, StorePagination } from '@shell/types/store/pagination.types';
 
 /**
  * Properties on all findX actions
  */
 export type ActionCoreFindArgs = {
+  url?: string,
   force?: boolean,
 }
 
@@ -13,7 +14,29 @@ export type ActionCoreFindArgs = {
 export interface ActionFindAllArgs extends ActionCoreFindArgs {
   watch?: boolean,
   namespaced?: string[],
-  incremental?: boolean,
+  /**
+   * Should resources be fetched in increments?
+   */
+  incremental?: {
+    /**
+     * load this amount of info first, to show something quickly
+     *
+     * helpful if resources per increments turns out to be large
+     */
+    quickLoadCount: number,
+    /**
+     * Number of resources to fetch in each increment
+     */
+    resourcesPerIncrement: number,
+    /**
+     * Number of increments to fetch
+     */
+    increments: number,
+    /**
+     * Fetch increments by page size and number (instead of limit and next)
+     */
+    pageByNumber: boolean,
+  },
   hasManualRefresh?: boolean,
   limit?: number,
   /**
@@ -22,6 +45,11 @@ export interface ActionFindAllArgs extends ActionCoreFindArgs {
    * This is done via the native kube pagination api, not steve
    */
   depaginate?: boolean,
+}
+
+export interface ActionFindPageTransientResult<T> {
+  pagination: StorePagination,
+  data: T[],
 }
 
 /**
@@ -39,8 +67,17 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
    */
   namespaced?: string,
   /**
-   * Result of request is transient and not persisted to store
+   * Watch for changes
+   *
+   * false = no, all other values = yes
+   */
+  watch?: boolean,
+  /**
+   * Does this request stem from a list with manual refresh?
+   */
+  hasManualRefresh?: boolean,
+  /**
+   * If true don't persist the http response to the store, just pass it back
    */
   transient?: boolean,
-  hasManualRefresh?: boolean,
 }

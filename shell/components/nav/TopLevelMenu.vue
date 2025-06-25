@@ -14,7 +14,6 @@ import { SETTING } from '@shell/config/settings';
 import { getProductFromRoute } from '@shell/utils/router';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
-import { getGlobalBannerFontSizes } from '@shell/utils/banners';
 import { TopLevelMenuHelperPagination, TopLevelMenuHelperLegacy } from '@shell/components/nav/TopLevelMenu.helper';
 import { debounce } from 'lodash';
 import { sameContents } from '@shell/utils/array';
@@ -80,15 +79,6 @@ export default {
 
     pinnedIds() {
       return this.$store.getters['prefs/get'](PINNED_CLUSTERS);
-    },
-
-    sideMenuStyle() {
-      const globalBannerSettings = getGlobalBannerFontSizes(this.$store);
-
-      return {
-        marginBottom: globalBannerSettings?.footerFont,
-        marginTop:    globalBannerSettings?.headerFont
-      };
     },
 
     showClusterSearch() {
@@ -267,6 +257,13 @@ export default {
       });
 
       return appBar;
+    },
+
+    hideLocalCluster() {
+      const hideLocalSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.HIDE_LOCAL_CLUSTER) || {};
+      const value = hideLocalSetting.value || hideLocalSetting.default || 'false';
+
+      return value === 'true';
     }
   },
 
@@ -319,6 +316,9 @@ export default {
       immediate: true,
     },
 
+    hideLocalCluster() {
+      this.updateClusters(this.pinnedIds, 'slow');
+    }
   },
 
   mounted() {
@@ -327,6 +327,7 @@ export default {
 
   beforeUnmount() {
     document.removeEventListener('keyup', this.handler);
+    this.helper?.destroy();
   },
 
   methods: {
@@ -440,8 +441,7 @@ export default {
 
       return {
         content,
-        placement:     'right',
-        popperOptions: { modifiers: { preventOverflow: { enabled: false }, hide: { enabled: false } } },
+        placement: 'right',
         popperClass
       };
     },
@@ -483,7 +483,6 @@ export default {
         data-testid="side-menu"
         class="side-menu"
         :class="{'menu-open': shown, 'menu-close':!shown}"
-        :style="sideMenuStyle"
         tabindex="-1"
         role="navigation"
         :aria-label="t('nav.ariaLabel.topLevelMenu')"
@@ -710,7 +709,7 @@ export default {
                   v-if="clustersFiltered.length > 0"
                   class="category-title"
                 >
-                  <hr>
+                  <hr role="none">
                 </div>
               </div>
 
@@ -824,7 +823,7 @@ export default {
               <div
                 class="category-title"
               >
-                <hr>
+                <hr role="none">
                 <span>
                   {{ t('nav.categories.multiCluster') }}
                 </span>
@@ -857,7 +856,7 @@ export default {
               <div
                 class="category-title"
               >
-                <hr>
+                <hr role="none">
                 <span>
                   {{ t('nav.categories.configuration') }}
                 </span>
@@ -1002,7 +1001,7 @@ export default {
       }
     }
 
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0px;
     bottom: 0;

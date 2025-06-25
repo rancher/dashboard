@@ -7,11 +7,12 @@ import {
 } from '@shell/store/prefs';
 import ActionMenu from '@shell/components/ActionMenu';
 import GrowlManager from '@shell/components/GrowlManager';
+import ModalManager from '@shell/components/ModalManager';
+import SlideInPanelManager from '@shell/components/SlideInPanelManager';
 import WindowManager from '@shell/components/nav/WindowManager';
 import PromptRemove from '@shell/components/PromptRemove';
 import PromptRestore from '@shell/components/PromptRestore';
 import PromptModal from '@shell/components/PromptModal';
-import AssignTo from '@shell/components/AssignTo';
 import Header from '@shell/components/nav/Header';
 import Inactivity from '@shell/components/Inactivity';
 import Brand from '@shell/mixins/brand';
@@ -20,14 +21,12 @@ import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import DraggableZone from '@shell/components/DraggableZone';
 import { MANAGEMENT } from '@shell/config/types';
-import isEqual from 'lodash/isEqual';
 import { markSeenReleaseNotes } from '@shell/utils/version';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import { getClusterFromRoute, getProductFromRoute } from '@shell/utils/router';
 import { BOTTOM } from '@shell/utils/position';
 import SideNav from '@shell/components/SideNav';
-import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -36,11 +35,12 @@ export default {
   components: {
     PromptRemove,
     PromptRestore,
-    AssignTo,
     PromptModal,
     Header,
     ActionMenu,
     GrowlManager,
+    ModalManager,
+    SlideInPanelManager,
     WindowManager,
     FixedBanner,
     AwsComplianceBanner,
@@ -85,8 +85,8 @@ export default {
 
       if (canSetAsHome) {
         pageActions.push({
-          labelKey: 'nav.header.setLoginPage',
-          action:   SET_LOGIN_ACTION
+          label:  this.t('nav.header.setLoginPage'),
+          action: SET_LOGIN_ACTION
         });
       }
 
@@ -115,35 +115,6 @@ export default {
 
   },
 
-  watch: {
-    clusterId(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Store the last visited route when the cluster changes
-        this.setClusterAsLastRoute();
-      }
-    },
-
-    async currentProduct(a, b) {
-      if ( !isEqual(a, b) ) {
-        if ((a.inStore !== b.inStore || a.inStore !== 'cluster') && this.clusterId && a.name) {
-          const route = {
-            name:   'c-cluster-product',
-            params: {
-              cluster: this.clusterId,
-              product: a.name,
-            }
-          };
-
-          await this.$store.dispatch('prefs/setLastVisited', route);
-        }
-      }
-    },
-  },
-
-  async created() {
-    await this.$store.dispatch('prefs/setLastVisited', this.$route);
-  },
-
   mounted() {
     this.wmPin = window.localStorage.getItem('wm-pin') || BOTTOM;
 
@@ -159,20 +130,6 @@ export default {
   },
 
   methods: {
-    async setClusterAsLastRoute() {
-      if (!this.clusterId || this.clusterId === BLANK_CLUSTER) {
-        return;
-      }
-      const route = {
-        name:   this.$route.name,
-        params: {
-          ...this.$route.params,
-          cluster: this.clusterId,
-        }
-      };
-
-      await this.$store.dispatch('prefs/setLastVisited', route);
-    },
 
     handlePageAction(action) {
       if (action.action === SET_LOGIN_ACTION) {
@@ -243,6 +200,7 @@ export default {
       <main
         v-if="clusterAndRouteReady"
         class="main-layout"
+        :aria-label="t('layouts.default')"
       >
         <router-view
           :key="$route.path"
@@ -251,8 +209,8 @@ export default {
         <ActionMenu />
         <PromptRemove />
         <PromptRestore />
-        <AssignTo />
         <PromptModal />
+        <ModalManager />
         <button
           v-if="noLocaleShortcut"
           v-shortkey.once="['shift','l']"
@@ -280,6 +238,7 @@ export default {
       <main
         v-else-if="unmatchedRoute"
         class="main-layout"
+        :aria-label="t('layouts.default')"
       >
         <router-view
           :key="$route.path"
@@ -302,6 +261,7 @@ export default {
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
+    <SlideInPanelManager />
     <Inactivity />
     <DraggableZone ref="draggableZone" />
   </div>

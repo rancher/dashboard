@@ -1,5 +1,5 @@
 <script>
-
+import { _CREATE, _VIEW } from '@shell/config/query-params';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
@@ -54,6 +54,11 @@ export default {
     steps: {
       type:     Array,
       required: true
+    },
+
+    mode: {
+      type:    String,
+      default: _CREATE
     },
 
     // Initial step to show when Wizard loads.
@@ -121,6 +126,11 @@ export default {
   },
 
   computed: {
+
+    isView() {
+      return this.mode === _VIEW;
+    },
+
     errorStrings() {
       return ( this.errors || [] ).map((x) => stringify(x));
     },
@@ -154,7 +164,9 @@ export default {
     },
 
     canNext() {
-      return (this.activeStepIndex < this.visibleSteps.length - 1) && this.activeStep.ready;
+      const activeStep = this.visibleSteps[this.activeStepIndex];
+
+      return (this.activeStepIndex < this.visibleSteps.length - 1) && activeStep.ready;
     },
 
     readySteps() {
@@ -277,124 +289,126 @@ export default {
       class="outer-container"
       :class="{'hide': !stepsLoaded}"
     >
-      <div class="header">
-        <div class="title">
-          <div
-            v-if="showBanner"
-            class="top choice-banner"
-          >
-            <slot
-              v-if="!!bannerImage || !!bannerTitle"
-              name="bannerTitle"
-            >
-              <div
-                v-show="initialTitle || activeStepIndex > 0"
-                class="title"
-              >
-                <!-- Logo -->
-                <slot name="bannerTitleImage">
-                  <div
-                    v-if="bannerImage"
-                    class="round-image"
-                  >
-                    <LazyImage
-                      :src="bannerImage"
-                      class="logo"
-                    />
-                  </div>
-                </slot>
-                <!-- Title with subtext -->
-                <div class="subtitle">
-                  <h2 v-if="bannerTitle">
-                    {{ bannerTitle }}
-                  </h2>
-                  <span
-                    v-if="bannerTitleSubtext"
-                    class="subtext"
-                  >{{ bannerTitleSubtext }}</span>
-                </div>
-              </div>
-            </slot>
-            <!-- Step number with subtext -->
+      <div>
+        <div class="header">
+          <div class="title">
             <div
-              v-if="activeStep && showSteps"
-              class="subtitle"
+              v-if="showBanner"
+              class="top choice-banner"
             >
-              <h2>{{ !!headerMode ? t(`wizard.${headerMode}`) : t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
-              <slot name="bannerSubtext">
-                <span
-                  v-if="activeStep.subtext !== null"
-                  class="subtext"
-                >{{ activeStep.subtext || activeStep.label }}</span>
-              </slot>
-            </div>
-          </div>
-          <div class="step-sequence">
-            <ul
-              v-if="showSteps"
-              class="steps"
-              tabindex="0"
-              @keyup.right.stop="selectNext(1)"
-              @keyup.left.stop="selectNext(-1)"
-            >
-              <template
-                v-for="(step, idx ) in visibleSteps"
-                :key="idx"
+              <slot
+                v-if="!!bannerImage || !!bannerTitle"
+                name="bannerTitle"
               >
-                <li
-
-                  :id="step.name"
-                  :class="{step: true, active: step.name === activeStep.name, disabled: !isAvailable(step)}"
-                  role="presentation"
+                <div
+                  v-show="initialTitle || activeStepIndex > 0"
+                  class="title"
                 >
+                  <!-- Logo -->
+                  <slot name="bannerTitleImage">
+                    <div
+                      v-if="bannerImage"
+                      class="round-image"
+                    >
+                      <LazyImage
+                        :src="bannerImage"
+                        class="logo"
+                      />
+                    </div>
+                  </slot>
+                  <!-- Title with subtext -->
+                  <div class="subtitle">
+                    <h2 v-if="bannerTitle">
+                      {{ bannerTitle }}
+                    </h2>
+                    <span
+                      v-if="bannerTitleSubtext"
+                      class="subtext"
+                    >{{ bannerTitleSubtext }}</span>
+                  </div>
+                </div>
+              </slot>
+              <!-- Step number with subtext -->
+              <div
+                v-if="activeStep && showSteps"
+                class="subtitle"
+              >
+                <h2>{{ !!headerMode ? t(`wizard.${headerMode}`) : t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
+                <slot name="bannerSubtext">
                   <span
-                    :aria-controls="'step' + idx+1"
-                    :aria-selected="step.name === activeStep.name"
-                    role="tab"
-                    class="controls"
-                    @click.prevent="goToStep(idx+1, true)"
+                    v-if="activeStep.subtext !== null"
+                    class="subtext"
+                  >{{ activeStep.subtext || activeStep.label }}</span>
+                </slot>
+              </div>
+            </div>
+            <div class="step-sequence">
+              <ul
+                v-if="showSteps"
+                class="steps"
+                tabindex="0"
+                @keyup.right.stop="selectNext(1)"
+                @keyup.left.stop="selectNext(-1)"
+              >
+                <template
+                  v-for="(step, idx ) in visibleSteps"
+                  :key="idx"
+                >
+                  <li
+
+                    :id="step.name"
+                    :class="{step: true, active: step.name === activeStep.name, disabled: !isAvailable(step)}"
+                    role="presentation"
                   >
                     <span
-                      class="icon icon-lg"
-                      :class="{'icon-dot': step.name === activeStep.name, 'icon-dot-open':step.name !== activeStep.name}"
-                    />
-                    <span>
-                      {{ step.label }}
+                      :aria-controls="'step' + idx+1"
+                      :aria-selected="step.name === activeStep.name"
+                      role="tab"
+                      class="controls"
+                      @click.prevent="goToStep(idx+1, true)"
+                    >
+                      <span
+                        class="icon icon-lg"
+                        :class="{'icon-dot': step.name === activeStep.name, 'icon-dot-open':step.name !== activeStep.name}"
+                      />
+                      <span>
+                        {{ step.label }}
+                      </span>
                     </span>
-                  </span>
-                </li>
-                <div
-                  v-if="idx!==visibleSteps.length-1"
-                  :key="step.name"
-                  class="divider"
-                />
-              </template>
-            </ul>
+                  </li>
+                  <div
+                    v-if="idx!==visibleSteps.length-1"
+                    :key="step.name"
+                    class="divider"
+                  />
+                </template>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
-      <slot
-        class="step-container"
-        name="stepContainer"
-        :activeStep="activeStep"
-      >
-        <template
-          v-for="(step, i) in steps"
-          :key="i"
+        <slot
+          class="step-container"
+          name="stepContainer"
+          :activeStep="activeStep"
         >
-          <div
-            v-if="step.name === activeStep.name || step.hidden"
-            :key="step.name"
-            class="step-container__step"
-            :class="{'hide': step.name !== activeStep.name && step.hidden}"
+          <template
+            v-for="(step, i) in steps"
+            :key="i"
           >
-            <slot
-              :step="step"
-              :name="step.name"
-            />
-          </div>
-        </template>
-      </slot>
+            <div
+              v-if="step.name === activeStep.name || step.hidden"
+              :key="step.name"
+              class="step-container__step"
+              :class="{'hide': step.name !== activeStep.name && step.hidden}"
+            >
+              <slot
+                :step="step"
+                :name="step.name"
+              />
+            </div>
+          </template>
+        </slot>
+      </div>
       <slot
         name="controlsContainer"
         :showPrevious="showPrevious"
@@ -422,7 +436,7 @@ export default {
         </div>
         <div
           id="wizard-footer-controls"
-          class="controls-row pt-20"
+          class="controls-row"
         >
           <slot
             name="cancel"
@@ -457,6 +471,7 @@ export default {
               :finish="finish"
             >
               <AsyncButton
+                v-if="!isView"
                 :disabled="!activeStep.ready"
                 :mode="finishMode"
                 @click="finish"
@@ -491,7 +506,7 @@ $spacer: 10px;
   flex-direction: column;
   flex: 1;
   padding: 0;
-  justify-content: flex-start;
+  justify-content: space-between;
 }
 
 .header {
@@ -670,7 +685,7 @@ $spacer: 10px;
 // We have to account for the absolute position of the .controls-row
 .footer-error {
   margin-top: -40px;
-  margin-bottom: 70px;
+  margin-bottom: calc($footer-height + 10px);
 }
 
   .controls-row {

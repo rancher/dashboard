@@ -1,7 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from '@shell/store/prefs';
-import { Banner } from '@components/Banner';
+import { mapPref, AFTER_LOGIN_ROUTE, HIDE_HOME_PAGE_CARDS } from '@shell/store/prefs';
 import BannerGraphic from '@shell/components/BannerGraphic.vue';
 import IndentedPanel from '@shell/components/IndentedPanel.vue';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
@@ -14,7 +13,7 @@ import { NAME as MANAGER } from '@shell/config/product/manager';
 import { STATE } from '@shell/config/table-headers';
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { createMemoryFormat, formatSi, parseSi, createMemoryValues } from '@shell/utils/units';
-import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenReleaseNotes } from '@shell/utils/version';
+import { markSeenReleaseNotes } from '@shell/utils/version';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
@@ -29,12 +28,13 @@ import { PaginationParamFilter, FilterArgs, PaginationFilterField, PaginationArg
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import { sameContents } from '@shell/utils/array';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
+import { CURRENT_RANCHER_VERSION } from '@shell/config/version';
+import { CAPI as CAPI_LAB_AND_ANO } from '@shell/config/labels-annotations';
 
 export default defineComponent({
   name:       'Home',
   layout:     'home',
   components: {
-    Banner,
     BannerGraphic,
     IndentedPanel,
     PaginatedResourceTable,
@@ -47,23 +47,37 @@ export default defineComponent({
   mixins: [PageHeaderActions],
 
   data() {
+    const options = this.$store.getters[`type-map/optionsFor`](CAPI.RANCHER_CLUSTER)?.custom || {};
+    const params = {
+      product:  MANAGER,
+      cluster:  BLANK_CLUSTER,
+      resource: CAPI.RANCHER_CLUSTER
+    };
+    const defaultCreateLocation = {
+      name: 'c-cluster-product-resource-create',
+      params,
+    };
+    const defaultImportLocation = {
+      ...defaultCreateLocation,
+      query: { [MODE]: _IMPORT }
+    };
+
     return {
       HIDE_HOME_PAGE_CARDS,
-      fullVersion: getVersionInfo(this.$store).fullVersion,
       // Page actions don't change on the Home Page
       pageActions: [
         {
-          labelKey: 'nav.header.setLoginPage',
-          action:   SET_LOGIN_ACTION
+          label:  this.t('nav.header.setLoginPage'),
+          action: SET_LOGIN_ACTION
         },
-        { separator: true },
+        { divider: true },
         {
-          labelKey: 'nav.header.showHideBanner',
-          action:   SHOW_HIDE_BANNER_ACTION
+          label:  this.t('nav.header.showHideBanner'),
+          action: SHOW_HIDE_BANNER_ACTION
         },
         {
-          labelKey: 'nav.header.restoreCards',
-          action:   RESET_CARDS_ACTION
+          label:  this.t('nav.header.restoreCards'),
+          action: RESET_CARDS_ACTION
         },
       ],
       vendor: getVendor(),
@@ -85,24 +99,9 @@ export default defineComponent({
         },
       },
 
-      createLocation: {
-        name:   'c-cluster-product-resource-create',
-        params: {
-          product:  MANAGER,
-          cluster:  BLANK_CLUSTER,
-          resource: CAPI.RANCHER_CLUSTER
-        },
-      },
+      createLocation: options.createLocation ? options.createLocation(params) : defaultCreateLocation,
 
-      importLocation: {
-        name:   'c-cluster-product-resource-create',
-        params: {
-          product:  MANAGER,
-          cluster:  BLANK_CLUSTER,
-          resource: CAPI.RANCHER_CLUSTER
-        },
-        query: { [MODE]: _IMPORT }
-      },
+      importLocation: options.importLocation ? options.importLocation(params) : defaultImportLocation,
 
       headers: [
         STATE,
@@ -155,11 +154,12 @@ export default defineComponent({
 
       paginationHeaders: [
         STEVE_STATE_COL,
-        // https://github.com/rancher/dashboard/issues/12890 BUG - rke1 cluster's prov cluster metadata.name is the mgmt cluster id rather than true name
         {
           ...STEVE_NAME_COL,
           canBeVariable: true,
-          getValue:      (row: ProvCluster) => row.metadata?.name
+          value:         `metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]`,
+          sort:          [`metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]`],
+          search:        `metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]`,
         },
         {
           label:     this.t('landing.clusters.provider'),
@@ -203,12 +203,14 @@ export default defineComponent({
       ],
 
       clusterCount: 0,
+
+      CURRENT_RANCHER_VERSION
     };
   },
 
   computed: {
     ...mapState(['managementReady']),
-    ...mapGetters(['currentCluster', 'defaultClusterId', 'releaseNotesUrl']),
+    ...mapGetters(['currentCluster', 'defaultClusterId']),
     mcm: mapFeature(MULTI_CLUSTER),
 
     canCreateCluster() {
@@ -218,18 +220,16 @@ export default defineComponent({
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
     homePageCards:   mapPref(HIDE_HOME_PAGE_CARDS),
 
-    readWhatsNewAlready() {
-      return readReleaseNotes(this.$store);
-    },
-
-    showSetLoginBanner() {
-      return this.homePageCards?.setLoginPage;
-    },
   },
 
   async created() {
     // Update last visited on load
     await this.$store.dispatch('prefs/setLastVisited', { name: 'home' });
+
+    // We mark the release notes as seen still - the user has visited the home page, which will show the
+    // notification centre containing the release notes notification
+    // If we do not, then if they set the landing page, that won't work unless the release notes are marked read
+    // otherwise we always take them to the home page to see the release notes
     markSeenReleaseNotes(this.$store);
   },
 
@@ -405,23 +405,12 @@ export default defineComponent({
       return `${ memValues.useful }/${ memValues.total } ${ memValues.units }`;
     },
 
-    showWhatsNew() {
-      // Update the value, so that the message goes away
-      markReadReleaseNotes(this.$store);
-    },
-
-    showUserPrefs() {
-      this.$router.push({ name: 'prefs' });
-    },
-
     async resetCards() {
       const value = this.$store.getters['prefs/get'](HIDE_HOME_PAGE_CARDS) || {};
 
       delete value.setLoginPage;
 
       await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value });
-
-      await this.$store.dispatch('prefs/set', { key: READ_WHATS_NEW, value: '' });
     },
 
     async toggleBanner() {
@@ -434,21 +423,6 @@ export default defineComponent({
       }
 
       await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value });
-    },
-
-    async closeSetLoginBanner(retry = 0) {
-      let value = this.$store.getters['prefs/get'](HIDE_HOME_PAGE_CARDS);
-
-      if (value === true || value === false || value.length > 0) {
-        value = {};
-      }
-      value.setLoginPage = true;
-
-      const res = await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value });
-
-      if (retry === 0 && res?.type === 'error' && res?.status === 500) {
-        await this.closeSetLoginBanner(retry + 1);
-      }
     },
 
     /**
@@ -507,7 +481,7 @@ export default defineComponent({
       :show-child="false"
       :breadcrumb="false"
     >
-      {{ vendor }}
+      {{ `${vendor} - ${t('landing.homepage')}` }}
     </TabTitle>
     <BannerGraphic
       :small="true"
@@ -517,58 +491,8 @@ export default defineComponent({
       data-testid="home-banner-graphic"
     />
     <IndentedPanel class="mt-20 mb-20">
-      <div
-        v-if="!readWhatsNewAlready"
-        class="row"
-      >
-        <div class="col span-12">
-          <Banner
-            data-testid="changelog-banner"
-            color="info whats-new"
-          >
-            <div>
-              {{ t('landing.seeWhatsNew') }}
-            </div>
-            <a
-              class="hand banner-link"
-              :href="releaseNotesUrl"
-              role="link"
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-              :aria-label="t('landing.whatsNewLink')"
-              @click.stop="showWhatsNew"
-              @keyup.stop.enter="showWhatsNew"
-            ><span v-clean-html="t('landing.whatsNewLink')" /></a>
-          </Banner>
-        </div>
-      </div>
       <div class="row home-panels">
         <div class="col main-panel">
-          <div
-            v-if="!showSetLoginBanner"
-            class="mb-10 row"
-          >
-            <div class="col span-12">
-              <Banner
-                color="set-login-page mt-0"
-                data-testid="set-login-page-banner"
-                :closable="true"
-                @close="closeSetLoginBanner()"
-              >
-                <div>
-                  {{ t('landing.landingPrefs.title') }}
-                </div>
-                <a
-                  class="hand mr-20"
-                  tabindex="0"
-                  :aria-label="t('landing.landingPrefs.userPrefs')"
-                  @click.prevent.stop="showUserPrefs"
-                  @keyup.prevent.stop.enter="showUserPrefs"
-                  @keyup.prevent.stop.space="showUserPrefs"
-                ><span v-clean-html="t('landing.landingPrefs.userPrefs')" /></a>
-              </Banner>
-            </div>
-          </div>
           <div class="row panel">
             <div
               v-if="mcm"
@@ -666,6 +590,11 @@ export default defineComponent({
                           v-clean-tooltip="row.unavailableMachines"
                           class="conditions-alert-icon icon-alert icon"
                         />
+                        <i
+                          v-if="row.isRke1"
+                          v-clean-tooltip="t('cluster.rke1Unsupported')"
+                          class="rke1-unsupported-icon icon-warning icon"
+                        />
                       </p>
                       <p
                         v-if="row.description"
@@ -749,22 +678,6 @@ export default defineComponent({
     }
   }
 
-  .set-login-page, .whats-new {
-    > :deep() .banner__content {
-      display: flex;
-
-      > div {
-        flex: 1;
-      }
-      > a {
-        align-self: flex-end;
-      }
-    }
-  }
-
-  .banner.set-login-page {
-    border: 1px solid var(--border);
-  }
   .table-heading {
     align-items: center;
     display: flex;
@@ -800,6 +713,12 @@ export default defineComponent({
     .cluster-name {
       display: flex;
       align-items: center;
+
+      // Ensure long cluster names truncate with ellipsis
+      > A {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
 
     .cluster-description {
@@ -811,6 +730,11 @@ export default defineComponent({
 
     .conditions-alert-icon {
       color: var(--error);
+      margin-left: 4px;
+    }
+
+    .rke1-unsupported-icon {
+      color: var(--warning);
       margin-left: 4px;
     }
   }

@@ -131,7 +131,7 @@ export default defineComponent({
               :mode="mode"
               :label-key="`gke.authScopes.scopes.&quot;${scopeKey}&quot;`"
               :disabled="disabled"
-              @selecting="setScopeValue(scopeKey, $event.value)"
+              @selecting="setScopeValue(scopeKey, $event)"
             />
           </div>
           <div
@@ -145,7 +145,7 @@ export default defineComponent({
               :mode="mode"
               :label-key="`gke.authScopes.scopes.&quot;${nextScopeKey(index)}&quot;`"
               :disabled="disabled"
-              @selecting="setScopeValue(nextScopeKey(index), $event.value)"
+              @selecting="setScopeValue(nextScopeKey(index), $event)"
             />
           </div>
         </div>

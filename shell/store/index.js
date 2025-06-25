@@ -39,6 +39,7 @@ import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
 import { isDevBuild } from '@shell/utils/version';
 import { markRaw } from 'vue';
 import paginationUtils from '@shell/utils/pagination-utils';
+import { addReleaseNotesNotification } from '@shell/utils/release-notes';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -263,6 +264,7 @@ export const state = () => {
      * Cache state of side nav clusters. This avoids flickering when the user changes pages and the side nav component re-renders
      */
     sideNavCache:            undefined,
+    showWorkspaceSwitcher:   true,
   };
 };
 
@@ -601,6 +603,16 @@ export const getters = {
     return getters['isRancherInHarvester'] || getters['isMultiCluster'] || !getters['isSingleProduct'];
   },
 
+  showWorkspaceSwitcher(state, getters) {
+    const product = getters['currentProduct'];
+
+    if (!product) {
+      return false;
+    }
+
+    return product.showWorkspaceSwitcher && state.showWorkspaceSwitcher;
+  },
+
   targetRoute(state) {
     return state.targetRoute;
   },
@@ -763,7 +775,11 @@ export const mutations = {
 
   setSideNavCache(state, sideNavCache) {
     state.sideNavCache = sideNavCache;
-  }
+  },
+
+  showWorkspaceSwitcher(state, value) {
+    state.showWorkspaceSwitcher = value;
+  },
 };
 
 export const actions = {
@@ -801,7 +817,7 @@ export const actions = {
 
     const promises = {
       // Features checks on its own if they are available
-      features: dispatch('features/loadServer'),
+      [MANAGEMENT.FEATURE]: dispatch('features/loadServer'),
     };
 
     const toWatch = [
@@ -816,33 +832,33 @@ export const actions = {
     }
 
     if ( getters['management/schemaFor'](COUNT) ) {
-      promises['counts'] = dispatch('management/findAll', { type: COUNT, opt: { watch: false } });
+      promises[COUNT] = dispatch('management/findAll', { type: COUNT, opt: { watch: false } });
       toWatch.push(COUNT);
     }
 
     if ( getters['management/canList'](MANAGEMENT.SETTING) ) {
-      promises['settings'] = dispatch('management/findAll', { type: MANAGEMENT.SETTING, opt: { watch: false } });
+      promises[MANAGEMENT.SETTING] = dispatch('management/findAll', { type: MANAGEMENT.SETTING, opt: { watch: false } });
       toWatch.push(MANAGEMENT.SETTING);
     }
 
     if ( getters['management/schemaFor'](NAMESPACE) ) {
-      promises['namespaces'] = dispatch('management/findAll', { type: NAMESPACE, opt: { watch: false } });
+      promises[NAMESPACE] = dispatch('management/findAll', { type: NAMESPACE, opt: { watch: false } });
       toWatch.push(NAMESPACE);
     }
 
     const fleetSchema = getters['management/schemaFor'](FLEET.WORKSPACE);
 
     if (fleetSchema?.links?.collection) {
-      promises['workspaces'] = dispatch('management/findAll', { type: FLEET.WORKSPACE, opt: { watch: false } });
+      promises[FLEET.WORKSPACE] = dispatch('management/findAll', { type: FLEET.WORKSPACE, opt: { watch: false } });
       toWatch.push(FLEET.WORKSPACE);
     }
 
     res = await allHash(promises);
 
-    if (!res.settings || !paginateClusters(rootGetters)) {
+    if (!res[MANAGEMENT.SETTING] || !paginateClusters(rootGetters)) {
       // This introduces a synchronous request, however we need settings to determine if SSP is enabled
       // Eventually it will be removed when SSP is always on
-      res.clusters = await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { watch: false } });
+      res[MANAGEMENT.CLUSTER] = await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { watch: false } });
       toWatch.push(MANAGEMENT.CLUSTER);
     }
 
@@ -854,7 +870,7 @@ export const actions = {
     const isMultiCluster = getters['isMultiCluster'];
 
     // If the local cluster is a Harvester cluster and 'rancher-manager-support' is true, it means that the embedded Rancher is being used.
-    const localCluster = res.clusters?.find((c) => c.id === 'local');
+    const localCluster = res[MANAGEMENT.CLUSTER]?.find((c) => c.id === 'local');
 
     if (localCluster?.isHarvester) {
       const harvesterSetting = await dispatch('cluster/findAll', { type: HCI.SETTING, opt: { url: `/v1/harvester/${ HCI.SETTING }s` } });
@@ -862,11 +878,16 @@ export const actions = {
       const isRancherInHarvester = (rancherManagerSupport?.value || rancherManagerSupport?.default) === 'true';
 
       commit('isRancherInHarvester', isRancherInHarvester);
+
+      if (getters['isSingleProduct']) {
+        console.log('Detect standalone harvester, subscribe Rancher socket'); // eslint-disable-line no-console
+        await dispatch('rancher/subscribe');
+      }
     }
 
-    const pl = res.settings?.find((x) => x.id === 'ui-pl')?.value;
-    const brand = res.settings?.find((x) => x.id === SETTING.BRAND)?.value;
-    const systemNamespaces = res.settings?.find((x) => x.id === SETTING.SYSTEM_NAMESPACES);
+    const pl = res[MANAGEMENT.SETTING]?.find((x) => x.id === 'ui-pl')?.value;
+    const brand = res[MANAGEMENT.SETTING]?.find((x) => x.id === SETTING.BRAND)?.value;
+    const systemNamespaces = res[MANAGEMENT.SETTING]?.find((x) => x.id === SETTING.SYSTEM_NAMESPACES);
 
     if ( pl ) {
       setVendor(pl);
@@ -874,6 +895,11 @@ export const actions = {
 
     if (brand) {
       setBrand(brand);
+    }
+
+    // Add the notification for the release notes
+    if (isRancher) {
+      await addReleaseNotesNotification(dispatch, getters);
     }
 
     if (systemNamespaces) {
@@ -887,10 +913,10 @@ export const actions = {
       isRancher,
     });
 
-    if ( res.workspaces ) {
+    if ( res[FLEET.WORKSPACE] ) {
       commit('updateWorkspace', {
         value: getters['prefs/get'](WORKSPACE),
-        all:   res.workspaces,
+        all:   res[FLEET.WORKSPACE],
         getters
       });
     }
@@ -1284,6 +1310,10 @@ export const actions = {
 
   setSideNavCache({ commit }, sideNavCache) {
     commit('setSideNavCache', sideNavCache);
+  },
+
+  showWorkspaceSwitcher({ commit }, value) {
+    commit('showWorkspaceSwitcher', value);
   },
 
   ...gcActions

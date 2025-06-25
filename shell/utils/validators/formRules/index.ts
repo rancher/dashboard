@@ -62,8 +62,21 @@ export interface ValidationOptions {
   key?: string,
 }
 
-// "t" is the function name we use for getting a translated string
-export default function(t: Translation, { key = 'Value' }: ValidationOptions): { [key:string]: Validator<any> | ValidatorFactory } {
+/**
+ * @param t the function name we use for getting a translated string
+ * @param key the argument passed to the translation to reference the label
+ * @returns { Validator<any> | ValidatorFactory } A dictionary of actual validation functions or factories (require parameter)
+ * @description
+ * This function returns a set of validators that can be used in the form validation process.
+ * @example
+ * const validators = formRulesGenerator(t, { key: 'MyLabel' });
+ * validators.required(); // '"MyLabel" is required'
+ * validators.minLength(5)('123'); // '"MyLabel" must contain more than 5 characters'
+ */
+export default function(
+  t: Translation,
+  { key = 'Value' }: ValidationOptions
+): { [key: string]: Validator<any> | ValidatorFactory } {
   // utility validators these validators only get used by other validators
   const startDot: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1) === '.' ? t(`validation.dns.${ label }.startDot`, { key }) : undefined;
 
@@ -157,7 +170,24 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
 
   const url: Validator = (val: string) => val && !isUrl(val) ? t('validation.setting.serverUrl.url') : undefined;
 
-  const gitRepository: Validator = (val: string) => val && !/^((http|git|ssh|http(s)|file|\/?)|(git@[\w\.]+))(:(\/\/)?)([\w\.@\:\/\-]+)([\d\/\w.-]+?)(.git){0,1}(\/)?$/gm.test(val) ? t('validation.git.repository') : undefined;
+  const urlRepository: Validator = (url: string) => {
+    const regexPart1 = /^((http|git|ssh|http(s)|file|\/?)|(git@[\w\.]+))(:(\/\/)?)/gm;
+    const regexPart2 = /^([\w\.@\:\/\-]+)([\d\/\w.-]+?)(.git){0,1}(\/)?$/gm;
+
+    if (url) {
+      const urlPart2 = url.replaceAll(regexPart1, '');
+
+      return !urlPart2 || url === urlPart2 || !regexPart2.test(urlPart2.replaceAll('%20', '')) ? t('validation.git.url') : undefined;
+    }
+
+    return undefined;
+  };
+
+  const ociRegistry: Validator = (url: string) => {
+    const regex = /^oci:\/\/\S+$/gm;
+
+    return !regex.test(url) ? t('validation.oci.url') : undefined;
+  };
 
   const alphanumeric: Validator = (val: string) => val && !/^[a-zA-Z0-9]+$/.test(val) ? t('validation.alphanumeric', { key }) : undefined;
 
@@ -174,6 +204,21 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
 
     // making sure each container has an image name
     return containers.map((container: any) => containerImage(container)).find((containerError: string) => containerError);
+  };
+
+  const registryUrl = (privateRegistryURL: string) => {
+    if (!privateRegistryURL) {
+      return;
+    }
+
+    const pattern = new RegExp('^([a-z\\-0-9]+:\\/\\/?)?' + // scheme (optional, https://, http://, file:/, admin:/)
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))' + // ip address
+        '(\\:\\d+)?'); // port
+
+    const isValid = pattern.test(privateRegistryURL);
+
+    return isValid ? undefined : t('cluster.privateRegistry.privateRegistryUrlError');
   };
 
   const dnsLabel: Validator = (val: string) => {
@@ -488,7 +533,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
     dnsLabelRestricted,
     externalName,
     fileRequired,
-    gitRepository,
+    urlRepository,
     groupsAreValid,
     hostname,
     imageUrl,
@@ -503,7 +548,9 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
     minLength,
     minValue,
     noUpperCase,
+    ociRegistry,
     portNumber,
+    registryUrl,
     required,
     requiredInt,
     isInteger,

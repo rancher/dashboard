@@ -8,7 +8,7 @@ gke:
     advanced: Additional Options
     config: Config
     labels: Labels and Annotations
-    members: Cluster Members
+    import: Choose Cluster
     networking: Networking
     nodePools: Node Pools
   authScopes:
@@ -109,6 +109,9 @@ gke:
     WINDOWS_SAC: Windows Semi-Annual Channel with Docker
     WINDOWS_SAC_CONTAINERD: Windows Semi-Annual Channel with Containerd
     label: Image Type
+  import:
+    cluster:
+      label: Cluster to register
   initialNodeCount:
     label: Initial Node Count
   label: Google GKE

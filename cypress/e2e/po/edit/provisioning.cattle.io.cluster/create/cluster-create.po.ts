@@ -1,4 +1,3 @@
-import ToggleSwitchPo from '@/cypress/e2e/po/components/toggle-switch.po';
 import ClusterManagerCreateImportPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/cluster-create-import.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 
@@ -22,20 +21,8 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
     super(ClusterManagerCreatePagePo.createPath(clusterId, queryParams));
   }
 
-  rke1PageTitle(): Cypress.Chainable<string> {
-    return cy.iFrame().find('.header h1').invoke('text');
-  }
-
   rke2PageTitle(): Cypress.Chainable<string> {
     return this.self().find('.primaryheader h1').invoke('text');
-  }
-
-  rkeToggle() {
-    return new ToggleSwitchPo('.toggle-container', this.self());
-  }
-
-  rkeToggleExistance(assertion: string) {
-    this.self().find('.toggle-container').should(assertion);
   }
 
   gridElementExistanceByName(name: string, assertion: string) {
@@ -66,15 +53,15 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
     return this.self().get('.checkbox-label').contains('Insecure:');
   }
 
-  customClusterRegistrationCmd(cmd: string, rkeType?: number) {
-    if (rkeType === 1) {
-      return `ssh -i custom_node_rke1.key -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" root@${ Cypress.env('customNodeIpRke1') } \"nohup ${ cmd }\"`;
-    }
-
+  customClusterRegistrationCmd(cmd: string) {
     return `ssh -i custom_node.key -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" root@${ Cypress.env('customNodeIp') } \"nohup ${ cmd }\"`;
   }
 
   credentialsBanner() {
     return new BannersPo(this.self().find('.banner').contains(`Ok, Let's create a new credential`));
+  }
+
+  errorsBanner() {
+    return new BannersPo('.banner.error', this.self());
   }
 }

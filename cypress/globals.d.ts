@@ -69,10 +69,11 @@ declare global {
   // eslint-disable-next-line no-unused-vars
   namespace Cypress {
     interface Chainable {
-
+      setupWebSocket: any;
+      hideElementBySelector(text:string) :void;
       state(state: any): any;
 
-      login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
+      login(username?: string, password?: string, cacheSession?: boolean, skipNavigation?: boolean, acceptConfirmation?: string): Chainable<Element>;
       logout(): Chainable;
       byLabel(label: string): Chainable<Element>;
       getRootE2EResourceName(): Chainable<string>;
@@ -94,11 +95,13 @@ declare global {
       createAmazonMachineConfig(instanceType: string, region: string, vpcId: string, zone: string, type: string, clusterName: string, namespace: string): Chainable;
       createAmazonRke2Cluster(params: CreateAmazonRke2ClusterParams): Chainable;
       createAmazonRke2ClusterWithoutMachineConfig(params: CreateAmazonRke2ClusterWithoutMachineConfigParams): Chainable;
+      createSecret(namespace: string, name: string, options?: { type?: string; metadata?: any; data?: any }): Chainable;
+      createService(namespace: string, name: string, options?: { type?: string; ports?: any[]; spec?: any; metadata?: any }): Chainable;
 
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: any): Chainable;
-      createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any): Chainable;
-      waitForRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, testFn: (resp: any) => boolean, retries?: number): Chainable;
+      createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any, failOnStatusCode?: boolean): Chainable;
+      waitForRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, testFn: (resp: any) => boolean, retries?: number, config?: {failOnStatusCode?: boolean}): Chainable;
       waitForRancherResources(prefix: 'v3' | 'v1', resourceType: string, expectedResourcesTotal: number, greaterThan: boolean): Chainable;
       deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
       deleteNodeTemplate(nodeTemplateId: string, timeout?: number, failOnStatusCode?: boolean)
@@ -174,6 +177,16 @@ declare global {
        * Check if the vai FF is enabled
        */
       isVaiCacheEnabled(): Chainable<boolean>;
+
+      /**
+       * Run an accessibility check on the current page or the specified element
+       */
+      checkPageAccessibility(description?: string);
+
+      /**
+       * Run an accessibility check on the specified element
+       */
+      checkElementAccessibility(selector: any, description?: string);
     }
   }
 }

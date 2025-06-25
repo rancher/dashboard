@@ -4,37 +4,22 @@ import {
 } from '@shell/config/types';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { listNodeRoles } from '@shell/models/cluster/node';
-import { insertAt } from '@shell/utils/array';
 import { downloadUrl } from '@shell/utils/download';
 import findLast from 'lodash/findLast';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 
+const RKE1_ALLOWED_ACTIONS = [
+  'goToViewYaml',
+  'download',
+  'viewInApi'
+];
+
 export default class MgmtNode extends HybridModel {
   get _availableActions() {
     const out = super._availableActions;
 
-    const downloadKeys = {
-      action:  'downloadKeys',
-      enabled: !!this.norman?.links?.nodeConfig,
-      icon:    'icon icon-fw icon-download',
-      label:   this.t('node.actions.downloadNodeConfig'),
-    };
-
-    const scaleDown = {
-      action:     'scaleDown',
-      bulkAction: 'scaleDown',
-      enabled:    !!this.canScaleDown,
-      icon:       'icon icon-minus icon-fw',
-      label:      this.t('node.actions.scaleDown'),
-      bulkable:   true,
-    };
-
-    insertAt(out, 0, { divider: true });
-    insertAt(out, 0, downloadKeys);
-    insertAt(out, 0, scaleDown);
-
-    return out;
+    return out.filter((a) => a.divider || RKE1_ALLOWED_ACTIONS.includes(a.action));
   }
 
   get kubeNodeName() {
@@ -168,11 +153,11 @@ export default class MgmtNode extends HybridModel {
   }
 
   get canScaleDown() {
-    if (!this.isEtcd && !this.isControlPlane) {
+    const hasAction = this.norman?.actions?.scaledown;
+
+    if (!this.isEtcd && !this.isControlPlane && hasAction) {
       return true;
     }
-
-    const hasAction = this.norman?.actions?.scaledown;
 
     return hasAction && notOnlyOfRole(this, this.provisioningCluster?.nodes);
   }

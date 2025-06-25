@@ -1,14 +1,12 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import Link from '@shell/components/formatter/Link';
-import Shortened from '@shell/components/formatter/Shortened';
 import FleetIntro from '@shell/components/fleet/FleetIntro';
 
 import {
   AGE,
   FLEET_REPO,
   FLEET_REPO_CLUSTER_SUMMARY,
-  FLEET_REPO_CLUSTERS_READY,
+  FLEET_APPLICATION_CLUSTERS_READY,
   FLEET_REPO_PER_CLUSTER_STATE,
   FLEET_REPO_TARGET,
   FLEET_SUMMARY,
@@ -16,23 +14,29 @@ import {
   STATE,
 } from '@shell/config/table-headers';
 
-// i18n-ignore repoDisplay
 export default {
 
   name: 'FleetRepos',
 
   components: {
-    ResourceTable, Link, Shortened, FleetIntro
+    FleetIntro,
+    ResourceTable,
   },
   props: {
+    rows: {
+      type:     Array,
+      required: true,
+    },
+
+    workspace: {
+      type:    String,
+      default: ''
+    },
+
     clusterId: {
       type:     String,
       required: false,
       default:  null,
-    },
-    rows: {
-      type:     Array,
-      required: true,
     },
 
     schema: {
@@ -48,6 +52,11 @@ export default {
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
+    },
+
+    showIntro: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -57,11 +66,14 @@ export default {
         return [];
       }
 
-      // Returns boolean { [namespace]: true }
-      const selectedWorkspace = this.$store.getters['namespaces']();
+      const selectedNamespaces = this.$store.getters['namespaces']();
 
       return this.rows.filter((row) => {
-        return !!selectedWorkspace[row.metadata.namespace];
+        if (this.workspace) {
+          return this.workspace === row.metadata.namespace;
+        }
+
+        return !!selectedNamespaces[row.metadata.namespace];
       });
     },
 
@@ -78,7 +90,7 @@ export default {
       const summary = this.isClusterView ? [{
         ...FLEET_REPO_CLUSTER_SUMMARY,
         formatterOpts: { clusterId: this.clusterId },
-      }] : [FLEET_REPO_CLUSTERS_READY, FLEET_SUMMARY];
+      }] : [FLEET_APPLICATION_CLUSTERS_READY, FLEET_SUMMARY];
 
       // if hasPerClusterState then use the repo state
       const state = this.isClusterView ? {
@@ -95,10 +107,9 @@ export default {
         AGE
       ];
     },
-  },
-  methods: {
-    parseTargetMode(row) {
-      return row.targetInfo?.mode === 'clusterGroup' ? this.t('fleet.gitRepo.warningTooltip.clusterGroup') : this.t('fleet.gitRepo.warningTooltip.cluster');
+
+    shouldShowIntro() {
+      return this.showIntro && !this.filteredRows.length;
     },
   },
 };
@@ -106,79 +117,25 @@ export default {
 
 <template>
   <div>
-    <FleetIntro v-if="noRows && !loading" />
+    <FleetIntro
+      v-if="shouldShowIntro && !loading"
+      :schema="schema"
+      :labelKey="'gitRepo'"
+      :icon="'icon-github'"
+    />
     <ResourceTable
-      v-if="!noRows"
+      v-if="!shouldShowIntro"
       v-bind="$attrs"
       :schema="schema"
       :headers="headers"
       :rows="rows"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :namespaced="!workspace"
       key-field="_key"
-    >
-      <template #cell:repo="{ row }">
-        <Link
-          :row="row"
-          :value="row.spec.repo"
-          label-key="repoDisplay"
-          before-icon-key="repoIcon"
-          url-key="spec.repo"
-        />
-        {{ row.cluster }}
-        <template v-if="row.commitDisplay">
-          <div class="text-muted">
-            <Shortened
-              long-value-key="status.commit"
-              :row="row"
-              :value="row.commitDisplay"
-            />
-          </div>
-        </template>
-      </template>
-
-      <template
-        v-if="!isClusterView"
-        #cell:clustersReady="{ row }"
-      >
-        <span
-          v-if="!row.clusterInfo"
-          class="text-muted"
-        >&mdash;</span>
-        <span
-          v-else-if="row.clusterInfo.unready"
-          class="text-warning"
-        >{{ row.clusterInfo.ready }}/{{
-          row.clusterInfo.total }}</span>
-        <span
-          v-else
-          class="cluster-count-info"
-        >
-          {{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}
-          <i
-            v-if="!row.clusterInfo.total"
-            v-clean-tooltip.bottom="parseTargetMode(row)"
-            class="icon icon-warning"
-          />
-        </span>
-      </template>
-
-      <template #cell:target="{ row }">
-        {{ row.targetInfo.modeDisplay }}
-      </template>
-    </ResourceTable>
+    />
   </div>
 </template>
 
 <style lang="scss" scoped>
-.cluster-count-info {
-  display: flex;
-  align-items: center;
-
-  i {
-    margin-left: 5px;
-    font-size: 22px;
-    color: var(--warning);
-  }
-}
 </style>

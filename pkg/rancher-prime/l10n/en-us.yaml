@@ -1,0 +1,50 @@
+registration:
+  navigation:
+    label: Registration
+
+  title: Product Registration
+  banner:
+    status:
+      success: System registration successfully activated.
+      error: This system does not have an active registration.
+
+  online:
+    title: Online Registration
+    description: Copy a valid registration code for Rancher Manager into the field below and then click the Register button.
+    input:
+      label: 'Registration code:'
+      placeholder: e.g. sdfs-a987435-kjhsf-8u44p0-dmw0o44p0dmasd9
+    button-cta:
+      label: Register
+      progress: Registering
+
+  offline:
+    title: Offline Registration
+    stepone: '<b>Step 1:</b> To register Rancher Manager offline, you must download the registration request file below and visit the SUSE Customer Center (SCC) offline registration tool <a tabindex="0" target="_blank" href="https://scc.suse.com/register-offline/rancher">https://scc.suse.com/register-offline/rancher</a>.' 
+    steptwo: '<b>Step 2:</b> Once logged in to SCC, follow the instructions to get your registration certificate provided by SCC. Once retrieved, upload the file below to register your product.'
+    button:
+      download: 
+        label: Download registration request
+        progress: Downloading
+      register:
+        label: Upload certificate and register
+        progress: Registering
+  list:
+    title: Product Registration
+    table:
+      header:
+        status: Status
+        product: Product
+        expiration: Expires
+        code: Registration code
+      button:
+        label: Deregister
+        progress: Deregistering
+      badge:
+        none: Unregistered
+        expired: Expired
+        valid: Active
+
+prime:
+  installed: This is a SUSE Rancher Prime installation
+  
