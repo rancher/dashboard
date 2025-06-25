@@ -205,6 +205,7 @@ export default {
     width: 100%;
     flex-direction:row;
     align-content: baseline;
+    justify-content: space-between;
   }
   .subtype-content {
     width: 100%;
