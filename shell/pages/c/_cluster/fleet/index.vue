@@ -452,26 +452,28 @@ export default {
         </h1>
 
         <div class="dashboard-main-actions">
-          <div :data-testid="'fleet-dashboard-expand-all'">
-            <p
-              v-if="allCardsExpanded"
-              @click="toggleCardAll('collapse')"
-            >
-              {{ t('fleet.dashboard.collapseAll') }}
-            </p>
-            <p
-              v-else
-              @click="toggleCardAll('expand')"
-            >
-              {{ t('fleet.dashboard.expandAll') }}
-            </p>
-          </div>
           <ButtonGroup
             :data-testid="'view-button'"
             :value="viewMode"
             :options="viewModeOptions"
             @update:value="viewMode = $event"
           />
+          <RcButton
+            small
+            ghost
+            data-testid="fleet-dashboard-expand-all"
+            @click="toggleCardAll(allCardsExpanded ? 'collapse' : 'expand')"
+          >
+            <p class="ml-10">
+              {{ allCardsExpanded ? t('fleet.dashboard.collapseAll') : t('fleet.dashboard.expandAll') }}
+            </p>
+            <i
+              :class="{
+                ['icon icon-chevron-right']: !allCardsExpanded,
+                ['icon icon-chevron-down']: allCardsExpanded,
+              }"
+            />
+          </RcButton>
         </div>
       </div>
       <div
