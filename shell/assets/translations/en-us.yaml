@@ -2537,7 +2537,7 @@ fleet:
       description: The amount of time that agents will wait before they clean up old Helm releases. A non-existent value or 0 will result in an interval of 15 minutes.
     clusterEnqueueDelay:
       label: Cluster Enqueue Delay
-      description: "Counts from gitrepo are out of sync with bundleDeployment state. Just retry in a number of seconds as there is no great way to trigger an event that doesn't cause a loop. If not set default is 15 seconds."
+      description: "Interval to sync a repo with bunldle deployments states."
     proxy:
       label: Proxy
       description: Fleet http[s] proxy server.
@@ -2550,10 +2550,12 @@ fleet:
       description: "The amount of time to wait for a response from the server before canceling the request. Used to retrieve the latest commit of configured git repositories. A non-existent value or 0 will result in a timeout of 30 seconds."
     nodeSelector:
       label: Node Selector
-      description: "Node labels for pod assignment. Ref: https://kubernetes.io/docs/user-guide/node-selection/"
+      description: "Node labels for pod assignment."
+      add: Add Selector
     tolerations:
       label: Tolerations
       description: "List of node taints to tolerate (requires Kubernetes >= 1.6)"
+      add: Add Toleration
     priorityClassName:
       label: Priority Class Name
       description: "PriorityClassName assigned to deployment."
@@ -2563,36 +2565,45 @@ fleet:
     debug:
       label: Debug
       description: 'Enable debug mode'
-    extraAnnotations:
-      label: Extra Annotations
-      description: 'Extra annotations passed to the fleet pods.'
+    controllerAnnotations:
+      label: Controller
+      description: ""
+      add: Add Annotation
+    gitjobAnnotations:
+      label: Gitjob
+      description: ""
+      add: Add Annotation
+    helmopsAnnotations:
+      label: Helmops
+      description: ""
+      add: Add Annotation
     controllerReplicas:
-      label: GitOps replicas
+      label: Controller
       description: ""
     gitjobReplicas:
-      label: Gitjob replicas
+      label: Gitjob
       description: ""
     helmopsReplicas:
-      label: Helmops replicas
+      label: Helmops
       description: ""
     agentReplicas:
-      label: Replicas
+      label: Agent
       description: ""
     general:
       label: General
-      description: ''
+      description: 'General settings.'
     agent:
       label: Agent
-      description: ''
-    controller:
-      label: Controller
-      description: ''
-    modifiers:
-      label: Resource modifiers
-      description: ''
+      description: 'Agent deployment settings.'
+    replicas:
+      label: Replicas
+      description: 'Number of replicas of Fleet pods.'
+    annotations:
+      label: Extra Annotations
+      description: 'Extra annotations passed to the Fleet pods.'
     developer:
       label: Developer
-      description: ''
+      description: 'Enable debug info from Fleet.'
 
   tableHeaders:
     applicationType: Type

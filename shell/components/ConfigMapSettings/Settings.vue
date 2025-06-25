@@ -134,7 +134,7 @@ export default {
       this.$emit('update:value', this.values);
     },
 
-    display(name: string, key: 'label' | 'description' | 'tooltip' | 'info' | 'placeholder') {
+    display(name: string, key: 'label' | 'description' | 'tooltip' | 'info' | 'placeholder' | 'add') {
       return this.t(`${ this.labelKeyPrefix }.${ name }.${ key }`, {}, true);
     },
 
@@ -255,6 +255,7 @@ export default {
                 :mode="mode"
                 :read-allowed="false"
                 :add-icon="'icon-plus'"
+                :add-label="display(item.name, 'add')"
                 @update:value="set(item, $event)"
               />
               <Taints

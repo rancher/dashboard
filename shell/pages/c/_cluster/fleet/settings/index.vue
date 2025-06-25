@@ -11,22 +11,44 @@ export default {
     settings(): Record<string, Setting> {
       return {
         // 'general' group
-        garbageCollectionInterval: {
+        nodeSelector: {
           weight:  0,
+          type:    'object',
+          handler: 'KeyValue',
+          path:    'nodeSelector',
+          default: {},
+          class:   'span-8',
+        },
+        tolerations: {
+          weight:  1,
+          type:    'object',
+          handler: 'Taints',
+          path:    'tolerations',
+          default: [],
+          class:   'span-8',
+        },
+        garbageCollectionInterval: {
+          weight:  2,
           type:    'number',
           handler: 'UnitInput',
           path:    'garbageCollectionInterval',
           default: '15m',
         },
+        priorityClassName: {
+          weight:  3,
+          type:    'string',
+          path:    'priorityClassName',
+          default: '',
+        },
         gitClientTimeout: {
-          weight:  1,
+          weight:  4,
           type:    'number',
           handler: 'UnitInput',
           path:    'gitClientTimeout',
           default: '30s',
         },
         proxy: {
-          weight:      2,
+          weight:      5,
           type:        'string',
           path:        'proxy',
           default:     '',
@@ -34,47 +56,47 @@ export default {
           class:       'span-8',
         },
         noProxy: {
-          weight:  3,
+          weight:  6,
           type:    'string',
           path:    'noProxy',
           default: '127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local',
           class:   'span-8',
         },
         clusterEnqueueDelay: {
-          weight:  4,
+          weight:  7,
           type:    'number',
           handler: 'UnitInput',
           path:    'clusterEnqueueDelay',
           default: '120s',
         },
 
-        // 'controller' group
+        // 'replicas' group
         controllerReplicas: {
           weight:  0,
           type:    'number',
           path:    'controller.replicas',
           default: 1,
         },
-        gitjobReplicas: {
+        agentReplicas: {
           weight:  1,
+          type:    'number',
+          path:    'agent.replicas',
+          default: 1,
+        },
+        gitjobReplicas: {
+          weight:  2,
           type:    'number',
           path:    'gitjob.replicas',
           default: 1,
         },
         helmopsReplicas: {
-          weight:  2,
+          weight:  3,
           type:    'number',
           path:    'helmops.replicas',
           default: 1,
         },
 
         // 'agent' group
-        agentReplicas: {
-          weight:  0,
-          type:    'number',
-          path:    'agent.replicas',
-          default: 1,
-        },
         agentTLSMode: {
           weight: 1,
           type:   'string',
@@ -96,34 +118,28 @@ export default {
           default: '15m',
         },
 
-        // 'resource-definition' group
-        priorityClassName: {
+        // 'annotations' group
+        controllerAnnotations: {
           weight:  0,
-          type:    'string',
-          path:    'priorityClassName',
-          default: '',
-        },
-        nodeSelector: {
-          weight:  1,
           type:    'object',
           handler: 'KeyValue',
-          path:    'nodeSelector',
+          path:    'extraAnnotations.fleetController',
           default: {},
           class:   'span-8',
         },
-        tolerations: {
-          weight:  2,
-          type:    'object',
-          handler: 'Taints',
-          path:    'tolerations',
-          default: [],
-          class:   'span-8',
-        },
-        extraAnnotations: {
-          weight:  3,
+        gitjobAnnotations: {
+          weight:  1,
           type:    'object',
           handler: 'KeyValue',
-          path:    'extraAnnotations',
+          path:    'extraAnnotations.gitjob',
+          default: {},
+          class:   'span-8',
+        },
+        helmopsAnnotations: {
+          weight:  2,
+          type:    'object',
+          handler: 'KeyValue',
+          path:    'extraAnnotations.helmops',
           default: {},
           class:   'span-8',
         },
@@ -152,33 +168,35 @@ export default {
           'gitClientTimeout',
           'proxy',
           'noProxy',
-          'clusterEnqueueDelay'
+          'clusterEnqueueDelay',
+          'nodeSelector',
+          'priorityClassName',
+          'tolerations',
         ],
         expanded: true,
         weight:   0
       }, {
-        name:     'controller',
+        name:     'agent',
+        children: [
+          'agentTLSMode',
+          'agentCheckinInterval'
+        ],
+        weight: 1
+      }, {
+        name:     'replicas',
         children: [
           'controllerReplicas',
           'gitjobReplicas',
           'helmopsReplicas',
-        ],
-        weight: 1
-      }, {
-        name:     'agent',
-        children: [
           'agentReplicas',
-          'agentTLSMode',
-          'agentCheckinInterval'
         ],
         weight: 2
       }, {
-        name:     'modifiers',
+        name:     'annotations',
         children: [
-          'nodeSelector',
-          'priorityClassName',
-          'tolerations',
-          'extraAnnotations'
+          'controllerAnnotations',
+          'gitjobAnnotations',
+          'helmopsAnnotations'
         ],
         weight: 3
       }, {
