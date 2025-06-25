@@ -29,7 +29,7 @@ env:
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
   BUILD_DASHBOARD: true
 
-  E2E_RANCHER_LOG: rancher_log
+  E2E_RANCHER_LOG: rancher.log
   E2E_BUILD_DIST_NAME: dist
   E2E_BUILD_DIST_DIR: dist
   E2E_BUILD_DIST_EMBER_NAME: dist_ember
@@ -150,8 +150,8 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
-          name: ${{ env.E2E_RANCHER_LOG }}
-          path: ./
+          name: ${{github.run_number}}-${{github.run_attempt}}-rancher-logs-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
+          path: ${{ env.E2E_RANCHER_LOG }}
           if-no-files-found: error
           retention-days: 5
           compression-level: 9
