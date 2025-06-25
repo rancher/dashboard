@@ -331,7 +331,7 @@ export default {
           :value="username"
           tabindex="-1"
           :data-lpignore="!isChange"
-          role="presentation"
+          aria-hidden="true"
         >
         <input
           id="password"
@@ -341,7 +341,7 @@ export default {
           :value="password"
           tabindex="-1"
           :data-lpignore="!isChange"
-          role="presentation"
+          aria-hidden="true"
         >
         <Password
           v-if="isChange"
