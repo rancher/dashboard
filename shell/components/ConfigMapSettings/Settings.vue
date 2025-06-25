@@ -5,7 +5,10 @@ import { _EDIT } from '@shell/config/query-params';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import KeyValue from '@shell/components/form/KeyValue.vue';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
+import Taints from '@shell/components/form/Taints.vue';
+import UnitInput from '@shell/components/form/UnitInput.vue';
 import { Banner } from '@components/Banner';
 import { RcButton } from '@components/RcButton';
 import { Group, Setting } from '@shell/components/ConfigMapSettings/index.vue';
@@ -39,10 +42,13 @@ export default {
   components: {
     LabeledInput,
     LabeledSelect,
+    KeyValue,
     Checkbox,
     Banner,
     RcButton,
+    Taints,
     TextAreaAutoGrow,
+    UnitInput,
   },
 
   props: {
@@ -230,10 +236,29 @@ export default {
 
           <template v-else-if="item.type === 'object'">
             <TextAreaAutoGrow
-              :data-testid="`cm-settings-field-${ item.type }-${ item.name }`"
+              v-if="item.handler === 'Textarea'"
+              :data-testid="`cm-settings-field-${ item.type }-${ item.handler }-${ item.name }`"
               :value="get(item) || ''"
               :min-height="10"
               :mode="mode"
+              @update:value="set(item, $event)"
+            />
+            <KeyValue
+              v-else-if="item.handler === 'KeyValue'"
+              :data-testid="`cm-settings-field-${ item.type }-${ item.handler }-${ item.name }`"
+              :value="get(item)"
+              :mode="mode"
+              :read-allowed="false"
+              :add-icon="'icon-plus'"
+              @update:value="set(item, $event)"
+            />
+            <Taints
+              v-else-if="item.handler === 'Taints'"
+              :data-testid="`cm-settings-field-${ item.type }-${ item.handler }-${ item.name }`"
+              :value="get(item)"
+              :mode="mode"
+              :title="' '"
+              :add-icon="'icon-plus'"
               @update:value="set(item, $event)"
             />
           </template>
@@ -250,7 +275,19 @@ export default {
           </template>
 
           <template v-else-if="item.type === 'number'">
+            <UnitInput
+              v-if="item.handler === 'UnitInput'"
+              :data-testid="`cm-settings-field-${ item.type }-${ item.handler }-${ item.name }`"
+              :value="get(item)"
+              :mode="mode"
+              :suffix="t('suffix.sec')"
+              :label="item.label"
+              :placeholder="item.placeholderLabel"
+              min="0"
+              @update:value="set(item, $event)"
+            />
             <LabeledInput
+              v-else
               :data-testid="`cm-settings-field-${ item.type }-${ item.name }`"
               :value="get(item)"
               :mode="mode"

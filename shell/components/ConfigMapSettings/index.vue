@@ -6,12 +6,15 @@ import { set, get } from '@shell/utils/object';
 import YAML from 'yaml';
 import { CONFIG_MAP, MANAGEMENT } from '@shell/config/types';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { toSeconds } from '@shell/utils/duration';
 import Loading from '@shell/components/Loading.vue';
 import AsyncButton from '@shell/components/AsyncButton.vue';
 import { Banner } from '@components/Banner';
 import Settings from '@shell/components/ConfigMapSettings/Settings.vue';
 
 export type SettingType = 'string' | 'number' | 'boolean' | 'array' | 'object';
+
+export type SettingHandler = 'Textarea' | 'KeyValue' | 'Taints' | 'UnitInput';
 
 export interface Item {
   type: SettingType,
@@ -28,6 +31,7 @@ export interface Group {
 export interface Setting {
   path: string,
   type: SettingType,
+  handler?: SettingHandler,
   items?: Item[],
   default: object | string | boolean | number,
   tooltip?: boolean,
@@ -195,14 +199,7 @@ export default {
       try {
         const configMapValues = YAML.parse(configMap.data[this.dataKey] || '');
 
-        const currentValues = this.buildValues(this.values, (name, value) => {
-          // object types from json
-          if (this.settings[name].type === 'object') {
-            value = YAML.parse(value as string);
-          }
-
-          return value;
-        });
+        const currentValues = this.buildValues(this.values, this.encodeValue);
 
         const values = merge(configMapValues, currentValues);
 
@@ -224,19 +221,7 @@ export default {
         const configMapValues = get(this.configMap || {}, `data.${ this.dataKey }`);
         const currentValues = YAML.parse(configMapValues || '');
 
-        this.values = this.buildValues(currentValues, (name, value) => {
-          // use default value
-          if (value === undefined) {
-            value = this.settings[name].default;
-          }
-
-          // object types to json
-          if (this.settings[name].type === 'object') {
-            value = JSON.stringify(value || {});
-          }
-
-          return value;
-        });
+        this.values = this.buildValues(currentValues, this.decodeValue);
       } catch (err) {
         const msg = this.t(`${ this.labelKeyPrefix }.parseError`, { id: `${ this.namespace }/${ this.name }`, path: `data.${ this.dataKey }` }, true);
 
@@ -252,6 +237,39 @@ export default {
 
         return acc;
       }, {});
+    },
+
+    decodeValue<T = object | string | boolean | number>(name: string, value: T): T {
+      // use default value
+      if (value === undefined) {
+        value = this.settings[name].default as T;
+      }
+
+      // object types to json
+      if (this.settings[name].type === 'object' && this.settings[name].handler === 'Textarea') {
+        value = JSON.stringify(value || {}) as T;
+      }
+
+      // number in seconds
+      if (this.settings[name].type === 'number' && this.settings[name].handler === 'UnitInput') {
+        value = toSeconds(value) as T;
+      }
+
+      return value;
+    },
+
+    encodeValue<T = object | string | boolean | number>(name: string, value: T): T {
+      // object types from json
+      if (this.settings[name].type === 'object' && this.settings[name].handler === 'Textarea') {
+        value = YAML.parse(value as string);
+      }
+
+      // number to string with unit of measure
+      if (this.settings[name].type === 'number' && this.settings[name].handler === 'UnitInput') {
+        value = `${ value || 0 }s` as T;
+      }
+
+      return value;
     }
   }
 };

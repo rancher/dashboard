@@ -13,13 +13,15 @@ export default {
         // 'general' group
         garbageCollectionInterval: {
           weight:  0,
-          type:    'string',
+          type:    'number',
+          handler: 'UnitInput',
           path:    'garbageCollectionInterval',
           default: '15m',
         },
         gitClientTimeout: {
           weight:  1,
-          type:    'string',
+          type:    'number',
+          handler: 'UnitInput',
           path:    'gitClientTimeout',
           default: '30s',
         },
@@ -38,7 +40,8 @@ export default {
         },
         clusterEnqueueDelay: {
           weight:  4,
-          type:    'string',
+          type:    'number',
+          handler: 'UnitInput',
           path:    'clusterEnqueueDelay',
           default: '120s',
         },
@@ -85,7 +88,8 @@ export default {
         },
         agentCheckinInterval: {
           weight:  2,
-          type:    'string',
+          type:    'number',
+          handler: 'UnitInput',
           path:    'agentCheckinInterval',
           default: '15m',
         },
@@ -100,18 +104,21 @@ export default {
         nodeSelector: {
           weight:  1,
           type:    'object',
+          handler: 'KeyValue',
           path:    'nodeSelector',
           default: {},
         },
         tolerations: {
           weight:  2,
           type:    'object',
+          handler: 'Taints',
           path:    'tolerations',
           default: [],
         },
         extraAnnotations: {
           weight:  3,
           type:    'object',
+          handler: 'KeyValue',
           path:    'extraAnnotations',
           default: {},
         },

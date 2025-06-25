@@ -39,10 +39,24 @@ const settings = {
     path:    'garbageCollectionInterval',
     default: '15m',
   },
+  garbageCollectionIntervalNumber: {
+    weight:  0,
+    type:    'number',
+    handler: 'UnitInput',
+    path:    'garbageCollectionIntervalNumber',
+    default: '15m',
+  },
   gitClientTimeout: {
     weight:  1,
     type:    'string',
     path:    'gitClientTimeout',
+    default: '30s',
+  },
+  gitClientTimeoutNumber: {
+    weight:  1,
+    type:    'number',
+    handler: 'UnitInput',
+    path:    'gitClientTimeoutNumber',
     default: '30s',
   },
   gitjobReplicas: {
@@ -80,15 +94,34 @@ const settings = {
   nodeSelector: {
     weight:  1,
     type:    'object',
+    handler: 'Textarea',
     path:    'nodeSelector',
     default: {},
+  },
+  nodeSelectorKeyValue: {
+    weight:  1,
+    type:    'object',
+    handler: 'KeyValue',
+    path:    'nodeSelectorKeyValue',
+    default: { foo: 'val' },
   },
   debug: {
     weight:  1,
     type:    'boolean',
     path:    'debug',
     default: false,
-  }
+  },
+  tolerationsTaints: {
+    weight:  2,
+    type:    'object',
+    handler: 'Taints',
+    path:    'tolerationsTaints',
+    default: [{
+      key:    'foo1',
+      value:  'bar1',
+      effect: 'PreferNoSchedule'
+    }],
+  },
 } as Record<string, Setting>;
 
 const groups = [{
@@ -109,11 +142,19 @@ const configMap = {
   },
   data: {
     fleet: jsyaml.dump({
-      foo:                       'bar',
-      garbageCollectionInterval: '1h',
-      gitjob:                    { replicas: 5 },
-      debug:                     true,
-      nodeSelector:              { key: 'value1' }
+      foo:                             'bar',
+      garbageCollectionInterval:       '1h',
+      gitjob:                          { replicas: 5 },
+      debug:                           true,
+      nodeSelector:                    { key: 'value1' },
+      garbageCollectionIntervalNumber: '14m',
+      gitClientTimeoutNumber:          '3m',
+      nodeSelectorKeyValue:            { foo: 'bar' },
+      tolerationsTaints:               [{
+        key:    'foo',
+        value:  'bar',
+        effect: 'PreferNoSchedule'
+      }]
     }),
     foo: { bar: 'value' }
   },
@@ -145,19 +186,27 @@ describe('component: ConfigMapSettings', () => {
     const generalGroup = wrapper.find('[data-testid="cm-settings-group-body-general"]');
 
     const garbageCollectionInterval = wrapper.find('[data-testid="cm-settings-field-string-garbageCollectionInterval"]').element as HTMLInputElement;
+    const garbageCollectionIntervalNumber = wrapper.find('[data-testid="cm-settings-field-number-UnitInput-garbageCollectionIntervalNumber"]').element as HTMLInputElement;
     const gitClientTimeout = wrapper.find('[data-testid="cm-settings-field-string-gitClientTimeout"]').element as HTMLInputElement;
+    const gitClientTimeoutNumber = wrapper.find('[data-testid="cm-settings-field-number-UnitInput-gitClientTimeoutNumber"]').element as HTMLInputElement;
     const gitjobReplicas = wrapper.find('[data-testid="cm-settings-field-number-gitjobReplicas"]').element as HTMLInputElement;
     const multiSelect = wrapper.find('[data-testid="cm-settings-field-array-multiSelect"]').element as HTMLInputElement;
-    const nodeSelector = wrapper.find('[data-testid="cm-settings-field-object-nodeSelector"]').element as HTMLInputElement;
+    const nodeSelector = wrapper.find('[data-testid="cm-settings-field-object-Textarea-nodeSelector"]').element as HTMLInputElement;
+    const nodeSelectorKeyValue = wrapper.find('[data-testid="cm-settings-field-object-KeyValue-nodeSelectorKeyValue"]').find('[data-testid="input-kv-item-key-0"]').element as HTMLInputElement;
+    const tolerationsTaints = wrapper.find('[data-testid="cm-settings-field-object-Taints-tolerationsTaints"]').find('[data-testid="input-kv-item-key-0"]').element as HTMLInputElement;
     const singleSelect = wrapper.find('[data-testid="cm-settings-field-string-singleSelect"]').element as HTMLInputElement;
     const debug = wrapper.find('[data-testid="cm-settings-field-boolean-debug"]').find('input[type="checkbox"]').element as HTMLInputElement;
 
     expect(generalGroup.exists()).toBe(true);
     expect(garbageCollectionInterval.value).toBe('15m');
+    expect(garbageCollectionIntervalNumber.value).toBe('900');
     expect(gitClientTimeout.value).toBe('30s');
+    expect(gitClientTimeoutNumber.value).toBe('30');
     expect(multiSelect.textContent).toContain('foo');
     expect(singleSelect.textContent).toContain('system-store');
     expect(nodeSelector.value).toBe('{}');
+    expect(nodeSelectorKeyValue.value).toBe('foo');
+    expect(tolerationsTaints.value).toBe('foo1');
     expect(gitjobReplicas.value).toBe('1');
     expect(debug.checked).toBe(false);
   });
@@ -229,9 +278,13 @@ describe('component: ConfigMapSettings', () => {
     const gitClientTimeout = wrapper.find('[data-testid="cm-settings-field-string-gitClientTimeout"]').element as HTMLInputElement;
     const gitjobReplicas = wrapper.find('[data-testid="cm-settings-field-number-gitjobReplicas"]').element as HTMLInputElement;
     const multiSelect = wrapper.find('[data-testid="cm-settings-field-array-multiSelect"]').element as HTMLInputElement;
-    const nodeSelector = wrapper.find('[data-testid="cm-settings-field-object-nodeSelector"]').element as HTMLInputElement;
+    const nodeSelector = wrapper.find('[data-testid="cm-settings-field-object-Textarea-nodeSelector"]').element as HTMLInputElement;
     const singleSelect = wrapper.find('[data-testid="cm-settings-field-string-singleSelect"]').element as HTMLInputElement;
     const debug = wrapper.find('[data-testid="cm-settings-field-boolean-debug"]').find('input[type="checkbox"]').element as HTMLInputElement;
+    const garbageCollectionIntervalNumber = wrapper.find('[data-testid="cm-settings-field-number-UnitInput-garbageCollectionIntervalNumber"]').element as HTMLInputElement;
+    const gitClientTimeoutNumber = wrapper.find('[data-testid="cm-settings-field-number-UnitInput-gitClientTimeoutNumber"]').element as HTMLInputElement;
+    const nodeSelectorKeyValue = wrapper.find('[data-testid="cm-settings-field-object-KeyValue-nodeSelectorKeyValue"]').find('[data-testid="input-kv-item-key-0"]').element as HTMLInputElement;
+    const tolerationsTaints = wrapper.find('[data-testid="cm-settings-field-object-Taints-tolerationsTaints"]').find('[data-testid="input-kv-item-key-0"]').element as HTMLInputElement;
 
     expect(garbageCollectionInterval.value).toBe('1h');
     expect(gitClientTimeout.value).toBe('30s');
@@ -240,6 +293,10 @@ describe('component: ConfigMapSettings', () => {
     expect(nodeSelector.value).toBe('{\"key\":\"value1\"}');
     expect(gitjobReplicas.value).toBe('5');
     expect(debug.checked).toBe(true);
+    expect(garbageCollectionIntervalNumber.value).toBe('840');
+    expect(gitClientTimeoutNumber.value).toBe('180');
+    expect(nodeSelectorKeyValue.value).toBe('foo');
+    expect(tolerationsTaints.value).toBe('foo');
   });
 
   it('should save ConfigMap values preserving extraneous values', async() => {
@@ -270,12 +327,12 @@ describe('component: ConfigMapSettings', () => {
     const cm = wrapper.vm.configMap as any;
 
     expect(cm.data).toStrictEqual({
-      fleet: 'foo: bar\ngarbageCollectionInterval: 1h\ngitjob:\n  replicas: 5\ndebug: true\nnodeSelector:\n  key: value1\ngitClientTimeout: 30s\nmultiSelect: foo\nagentTLSMode: system-store\n',
+      fleet: 'foo: bar\ngarbageCollectionInterval: 1h\ngitjob:\n  replicas: 5\ndebug: true\nnodeSelector:\n  key: value1\ngarbageCollectionIntervalNumber: 840s\ngitClientTimeoutNumber: 180s\nnodeSelectorKeyValue:\n  foo: bar\ntolerationsTaints:\n  - key: foo\n    value: bar\n    effect: PreferNoSchedule\ngitClientTimeout: 30s\nmultiSelect: foo\nagentTLSMode: system-store\n',
       foo:   { bar: 'value' },
     });
   });
 
-  it('should show groups titles and hide body if group is collpased', async() => {
+  it('should show groups titles and hide body if group is collapsed', async() => {
     const wrapper = mount(ConfigMapSettings, {
       ...requiredSetup(),
       props: {
