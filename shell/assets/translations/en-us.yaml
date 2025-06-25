@@ -2518,7 +2518,6 @@ fleet:
   settings:
     label: Fleet
     title: Fleet Settings
-    description: Fleet settings description
     noPermissions: You have no permissions to modify Fleet Settings
     parseError: 'Cannot parse values from "{ path }" in "{ id }" ConfigMap'
     agentTLSMode:

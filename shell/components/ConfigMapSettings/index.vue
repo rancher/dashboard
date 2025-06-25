@@ -122,7 +122,12 @@ export default {
     labelKeyPrefix: {
       type:    String,
       default: 'settings'
-    }
+    },
+
+    showDescription: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   async fetch() {
@@ -266,14 +271,12 @@ export default {
     data-testid="cm-settings"
   >
     <slot name="header">
-      <div class="header mb-20">
+      <div class="header">
         <h1>
           {{ t(`${ labelKeyPrefix }.title`) }}
         </h1>
 
-        <span
-          class="text-muted"
-        >
+        <span v-if="showDescription">
           {{ t(`${ labelKeyPrefix }.description`) }}
         </span>
       </div>
