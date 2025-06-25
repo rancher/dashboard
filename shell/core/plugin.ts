@@ -14,7 +14,7 @@ import {
   ExtensionPoint,
   TabLocation,
   ModelExtensionConstructor,
-  PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut,
+  PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnReady, OnNavToPackage, OnNavAwayFromPackage, OnLogOut,
   ExtensionEnvironment
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
@@ -43,6 +43,7 @@ export class Plugin implements IPlugin {
   public onEnter: OnNavToPackage = () => Promise.resolve();
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
   public _onLogOut: OnLogOut = () => Promise.resolve();
+  public onReady: OnReady = () => Promise.resolve();
 
   public uiConfig: { [key: string]: any } = {};
 
@@ -321,6 +322,19 @@ export class Plugin implements IPlugin {
     this.onEnter = onEnter;
     this.onLeave = onLeave;
     this._onLogOut = onLogOut;
+  }
+
+  /**
+   * Set 'onReady' function that will be called once the user has logged in and the UI is ready
+   *
+   * @param onReady Function to be called when the user has logged in and the UI is ready
+   */
+  public setOnReady(onReady: OnReady): void {
+    if (onReady && typeof onReady === 'function') {
+      this.onReady = onReady;
+    } else {
+      console.warn('setOnReady was passed a parameter that was not a function'); // eslint-disable-line no-console
+    }
   }
 
   public async onLogOut(store: any) {

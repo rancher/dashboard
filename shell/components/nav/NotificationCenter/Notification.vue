@@ -4,6 +4,7 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import { computed, inject, ref } from 'vue';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router'
 import { useI18n } from '@shell/composables/useI18n';
 import { NotificationAction, NotificationLevel, StoredNotification } from '@shell/types/notifications';
 import { DropdownContext, defaultContext } from '@components/RcDropdown/types';
@@ -17,13 +18,14 @@ const CLASSES = {
   [NotificationLevel.Success]:      'icon-notify-tick text-success',
 };
 
-const emits = defineEmits(['didFocus']);
+const emits = defineEmits(['didFocus', 'close-center']);
 
 const props = defineProps<{item: StoredNotification}>();
 const { dropdownItems } = inject<DropdownContext>('dropdownContext') || defaultContext;
 
 const store = useStore();
 const { t } = useI18n(store);
+const router = useRouter()
 const unreadCount = computed<number>(() => store.getters['notifications/unreadCount']);
 const dateFormat = escapeHtml( store.getters['prefs/get'](DATE_FORMAT));
 const timeFormat = escapeHtml( store.getters['prefs/get'](TIME_FORMAT));
@@ -76,9 +78,17 @@ const age = computed(() => {
 
 const clz = computed(() => CLASSES[props.item.level]);
 
-// Open a URL from either the primary or secondary buttons in a new tab
+// Invoke action on either the primary or secondary buttons
+// This can open a URL in a new tab OR navigate to an application route
 const action = (action: NotificationAction) => {
-  window.open(action.target, '_blank');
+  if (action.target) {
+    window.open(action.target, '_blank');
+  } else if (action.route) {
+    router.push(action.route);
+    emits('close-center');
+  } else {
+    console.error('Notification action must either specify a "target" or a "route"'); // eslint-disable-line no-console
+  }
 };
 
 const toggleRead = (e: MouseEvent | KeyboardEvent, fromKeyboard = false) => {
