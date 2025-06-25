@@ -133,6 +133,11 @@ export default {
       type:    Boolean,
       default: false
     },
+
+    showInfo: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   async fetch() {
@@ -295,10 +300,21 @@ export default {
           {{ t(`${ labelKeyPrefix }.title`) }}
         </h1>
 
-        <span v-if="showDescription">
-          {{ t(`${ labelKeyPrefix }.description`) }}
-        </span>
+        <label
+          v-if="showDescription"
+          class="text-label"
+        >
+          {{ t(`${ labelKeyPrefix }.description`, {}, true) }}
+        </label>
       </div>
+    </slot>
+
+    <slot name="info">
+      <Banner
+        v-if="showInfo"
+        color="info"
+        :label="t(`${ labelKeyPrefix }.info`, {}, true)"
+      />
     </slot>
 
     <slot name="errors">
@@ -315,7 +331,7 @@ export default {
     </slot>
 
     <Settings
-      class="mt-30"
+      class="mt-10"
       :settings="settings"
       :groups="groups"
       :values="values"

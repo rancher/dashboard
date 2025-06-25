@@ -203,6 +203,7 @@ export default {
     :data-key="'fleet'"
     :in-store="'management'"
     :label-key-prefix="'fleet.settings'"
+    :show-info="true"
   />
 </template>
 
