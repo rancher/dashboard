@@ -614,8 +614,8 @@ export default {
       <template v-if="rows.length || isView">
         <div class="rowgroup">
           <div class="row">
-            <label
-              class="text-label"
+            <div
+              class="text-label key-value-label"
               role="columnheader"
             >
               {{ _keyLabel }}
@@ -627,9 +627,9 @@ export default {
                 tabindex="0"
                 role="button"
               />
-            </label>
-            <label
-              class="text-label"
+            </div>
+            <div
+              class="text-label key-value-label"
               role="columnheader"
             >
               {{ _valueLabel }}
@@ -640,14 +640,16 @@ export default {
                 class="icon icon-info"
                 tabindex="0"
               />
-            </label>
-            <label
+            </div>
+            <div
               v-for="(c, i) in extraColumns"
               :key="i"
               role="columnheader"
             >
-              <slot :name="'label:'+c">{{ c }}</slot>
-            </label>
+              <slot :name="'label:'+c">
+                {{ c }}
+              </slot>
+            </div>
             <slot
               v-if="canRemove"
               name="remove"
@@ -912,7 +914,8 @@ export default {
     display: grid;
     align-items: center;
     column-gap: 20px;
-    label {
+
+    .key-value-label {
       margin-bottom: 0;
     }
     & .kv-item {
