@@ -1,4 +1,5 @@
 import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
+import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 
 const mockStore = {
@@ -32,7 +33,7 @@ describe('composables: TitleBar', () => {
     mockStore.getters['cluster/schemaFor'].mockImplementation(() => schema);
     mockStore.getters['type-map/labelFor'].mockImplementation(() => labelFor);
 
-    const props = useDefaultTitleBarProps(resource);
+    const props = useDefaultTitleBarProps(resource, ref(undefined));
 
     expect(props.value.resourceTypeLabel).toStrictEqual(labelFor);
     expect(mockStore.getters['type-map/labelFor']).toHaveBeenLastCalledWith(schema);

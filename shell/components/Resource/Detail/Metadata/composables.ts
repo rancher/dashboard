@@ -43,14 +43,19 @@ export const useDefaultMetadataProps = (resource: any, additionalIdentifyingInfo
 
 export const useDefaultMetadataForLegacyPagesProps = (resource: any) => {
   const resourceDetails = useResourceDetails(resource);
+  const project = useProject(resource);
+  const workspace = useWorkspace(resource);
+  const namespace = useNamespace(resource);
+  const liveDate = useLiveDate(resource);
+  const createdBy = useCreatedBy(resource);
 
   const identifyingInformation = computed((): IdentifyingInformationRow[] => {
     const defaultInfo = [
-      useProject(resource)?.value,
-      useWorkspace(resource)?.value,
-      useNamespace(resource)?.value,
-      useLiveDate(resource)?.value,
-      useCreatedBy(resource)?.value,
+      project?.value,
+      workspace?.value,
+      namespace?.value,
+      liveDate?.value,
+      createdBy?.value,
     ];
     const info = [
       ...defaultInfo,

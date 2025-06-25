@@ -4,17 +4,18 @@ import { computed, Ref, toValue } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 
-export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: string): Ref<TitleBarProps> => {
+export const useDefaultTitleBarProps = (resource: any, resourceSubtype: Ref<string | undefined>): Ref<TitleBarProps> => {
   const route = useRoute();
   const store = useStore();
   const { openResourceDetailDrawer } = useResourceDetailDrawer();
   const resourceValue = toValue(resource);
 
   return computed(() => {
+    const resourceSubtypeValue = toValue(resourceSubtype);
     const currentStore = store.getters['currentStore'](resourceValue.type);
     const schema = store.getters[`${ currentStore }/schemaFor`](resourceValue.type);
     const resourceTypeLabel = resourceValue.parentNameOverride || store.getters['type-map/labelFor'](schema);
-    const resourceName = resourceSubtype ? `${ resourceSubtype } - ${ resourceValue.nameDisplay }` : resourceValue.nameDisplay;
+    const resourceName = resourceSubtypeValue ? `${ resourceSubtypeValue } - ${ resourceValue.nameDisplay }` : resourceValue.nameDisplay;
 
     return {
       resourceTypeLabel,

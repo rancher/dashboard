@@ -56,6 +56,7 @@ const currentResourceName = computed(() => {
     return resource;
   }
 
+  // This should never occur, just satisfying the types
   return resource[0];
 });
 const mode = computed(() => route?.query?.[MODE]);

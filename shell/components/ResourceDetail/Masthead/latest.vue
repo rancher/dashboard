@@ -17,9 +17,10 @@ export interface Props {
 <script lang="ts" setup>
 const props = withDefaults(defineProps<Props>(), { value: () => ({}), resourceSubtype: undefined });
 
-const titleBarProps = computed(() => useDefaultTitleBarProps(props.value, props.resourceSubtype).value);
-const metadataProps = computed(() => useDefaultMetadataForLegacyPagesProps(props.value).value);
-const bannerProps = computed(() => useResourceDetailBannerProps(props.value).value);
+const resourceSubtype = computed(() => props.resourceSubtype);
+const titleBarProps = useDefaultTitleBarProps(props.value, resourceSubtype);
+const metadataProps = useDefaultMetadataForLegacyPagesProps(props.value);
+const bannerProps = useResourceDetailBannerProps(props.value);
 </script>
 
 <template>
