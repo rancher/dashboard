@@ -6,6 +6,11 @@ import {
   AGE,
   NAME,
   STATE,
+  FLEET_APPLICATION_TYPE,
+  FLEET_APPLICATION_SOURCE,
+  FLEET_APPLICATION_TARGET,
+  FLEET_APPLICATION_CLUSTERS_READY,
+  FLEET_APPLICATION_RESOURCES_SUMMARY,
 } from '@shell/config/table-headers';
 
 export default {
@@ -71,6 +76,11 @@ export default {
       return [
         STATE,
         NAME,
+        FLEET_APPLICATION_TYPE,
+        FLEET_APPLICATION_SOURCE,
+        FLEET_APPLICATION_TARGET,
+        FLEET_APPLICATION_CLUSTERS_READY,
+        FLEET_APPLICATION_RESOURCES_SUMMARY,
         AGE
       ];
     },
