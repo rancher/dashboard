@@ -2554,6 +2554,7 @@ fleet:
     resources: Resources
     source: Source
   cluster:
+    label: Cluster
     summary: Resource Summary
     nonReady: Non-Ready Bundles
     labels: Labels
