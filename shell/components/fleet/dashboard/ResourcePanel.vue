@@ -108,7 +108,7 @@ export default {
             }
           }
         },
-        cutout:  13,
+        cutout:  14,
         onHover: (event: any) => {
           if (this.selectable && event?.native?.target?.style) {
             event.native.target.style.cursor = 'pointer';
@@ -293,8 +293,8 @@ export default {
 
     .panel-chart-container {
       padding: 3px;
-      min-width: 80px;
-      width: 80px;
+      min-width: 68px;
+      width: 68px;
     }
 
     .details {
