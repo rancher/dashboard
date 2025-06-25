@@ -8,16 +8,18 @@ import { getYaml } from '@shell/components/Drawer/ResourceDetailDrawer/helpers';
 export function useResourceDetailDrawer() {
   const { open, close } = useDrawer();
 
-  const openResourceDetailDrawer = (resource: any) => {
-    open(ResourceDetailDrawer, {
-      resource,
-      onClose:   close,
-      width:     '73%',
-      // We want this to be full viewport height top to bottom
-      height:    '100vh',
-      top:       '0',
-      'z-index': 101 // We want this to be above the main side menu
-    });
+  const openResourceDetailDrawer = (resource: any, returnFocusSelector: string) => {
+    open(ResourceDetailDrawer,
+      returnFocusSelector,
+      {
+        resource,
+        onClose:   close,
+        width:     '73%',
+        // We want this to be full viewport height top to bottom
+        height:    '100vh',
+        top:       '0',
+        'z-index': 101 // We want this to be above the main side menu
+      });
   };
 
   return { openResourceDetailDrawer };

@@ -60,21 +60,21 @@ describe('composables: ResourceDetailDrawer', () => {
     it('should create a wrapper that passes that appropriate properties to the drawer methods', () => {
       const openSpy = jest.fn();
       const closeSpy = jest.fn();
-
+      const selector = '.selector';
       const useDrawerSpy = jest.spyOn(drawer, 'useDrawer').mockImplementation(() => ({ open: openSpy, close: closeSpy }));
       const resourceDetailDrawer = useResourceDetailDrawer();
 
-      resourceDetailDrawer.openResourceDetailDrawer(resource);
+      resourceDetailDrawer.openResourceDetailDrawer(resource, selector);
 
       expect(useDrawerSpy).toHaveBeenCalledTimes(1);
-      expect(openSpy).toHaveBeenCalledWith({ name: 'ResourceDetailDrawer' }, {
+      expect(openSpy).toHaveBeenCalledWith({ name: 'ResourceDetailDrawer' }, selector, {
         resource,
         onClose:   closeSpy,
         width:     '73%',
         // We want this to be full viewport height top to bottom
         height:    '100vh',
         top:       '0',
-        'z-index': 101 // We want this to be above the main side menu
+        'z-index': 101, // We want this to be above the main side menu
       });
     });
   });

@@ -29,11 +29,13 @@ const resourceToPage: any = {
   // 'batch.cronjob':    defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/batch.cronjob.vue')),
   // 'batch.job':        defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/batch.job.vue')),
   configmap: defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/configmap.vue')),
-  // namespace:          defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/namespace.vue')),
-  // node:               defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/node.vue')),
-  // pod:                defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/pod.vue')),
-  // secret:             defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/secret.vue')),
+  // namespace:           defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/namespace.vue')),
+  // node:                defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/node.vue')),
+  // pod:                 defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/pod.vue')),
+  secret:    defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/secret.vue')),
 };
+
+defineOptions({ inheritAttrs: false });
 
 const route = useRoute();
 const props = withDefaults(defineProps<Props>(), {
@@ -60,7 +62,7 @@ const currentResourceName = computed(() => {
   return resource[0];
 });
 const mode = computed(() => route?.query?.[MODE]);
-const isView = computed(() => mode.value === _VIEW);
+const isView = computed(() => route?.params?.id && (!mode.value || mode.value === _VIEW));
 // We're defaulting to legacy being on, we'll switch this once we want to enable the new detail page by default
 const iseNewDetailPageEnabled = useIsNewDetailPageEnabled();
 const page = computed(() => currentResourceName.value ? resourceToPage[currentResourceName.value] : undefined);
@@ -78,6 +80,6 @@ const useLatest = computed(() => !!(iseNewDetailPageEnabled && isView.value && p
   </Suspense>
   <Legacy
     v-else
-    v-bind="props"
+    v-bind="{...$attrs, ...props}"
   />
 </template>

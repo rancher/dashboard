@@ -8,6 +8,7 @@ import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import RcButton from '@components/RcButton/RcButton.vue';
 import TabTitle from '@shell/components/TabTitle';
+import { computed } from 'vue';
 
 export interface Badge {
   color: 'bg-success' | 'bg-error' | 'bg-warning' | 'bg-info';
@@ -26,7 +27,7 @@ export interface TitleBarProps {
   // I don't have the time right now to swap this out though.
   actionMenuResource?: any;
 
-  onShowConfiguration?: () => void;
+  onShowConfiguration?: (returnFocusSelector: string) => void;
 }
 
 const showConfigurationIcon = require(`@shell/assets/images/icons/document.svg`);
@@ -41,12 +42,14 @@ const store = useStore();
 const i18n = useI18n(store);
 
 const emit = defineEmits(['show-configuration']);
+const showConfigurationDataTestId = 'show-configuration-cta';
+const showConfigurationReturnFocusSelector = computed(() => `[data-testid="${ showConfigurationDataTestId }"]`);
 </script>
 
 <template>
   <div class="title-bar">
     <Top>
-      <Title>
+      <Title class="title">
         <TabTitle :show-child="false">
           {{ resourceTypeLabel }}
         </TabTitle>
@@ -68,6 +71,7 @@ const emit = defineEmits(['show-configuration']);
         </span>
         <BadgeState
           v-if="badge"
+          class="badge-state"
           :color="badge.color"
           :label="badge.label"
         />
@@ -75,14 +79,16 @@ const emit = defineEmits(['show-configuration']);
       <div class="actions">
         <RcButton
           v-if="onShowConfiguration"
+          :data-testid="showConfigurationDataTestId"
           class="show-configuration"
           :primary="true"
           :aria-label="i18n.t('component.resource.detail.titleBar.ariaLabel.showConfiguration', { resource: resourceName })"
-          @click="emit('show-configuration')"
+          @click="() => emit('show-configuration', showConfigurationReturnFocusSelector)"
         >
           <img
             :src="showConfigurationIcon"
             class="mmr-3"
+            aria-hidden="true"
           >
           {{ i18n.t('component.resource.detail.titleBar.showConfiguration') }}
         </RcButton>
@@ -107,7 +113,7 @@ const emit = defineEmits(['show-configuration']);
 <style lang="scss" scoped>
 .title-bar {
 
-  &:deep() .badge-state {
+  .badge-state {
     font-size: 16px;
     margin-left: 4px;
     position: relative;
@@ -130,7 +136,7 @@ const emit = defineEmits(['show-configuration']);
   }
 
   // This prevents the title from overlapping with the actions
-  :deep().title {
+  .title {
     max-width: calc(100% - 260px);
   }
 

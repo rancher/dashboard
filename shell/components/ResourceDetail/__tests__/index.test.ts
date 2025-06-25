@@ -117,6 +117,7 @@ describe('component: ResourceDetail/index', () => {
 
   it('should render new component if useIsNewDetailPageEnabledSpy is true', async() => {
     mockParams.resource = resourceName;
+    mockParams.id = 'ID';
     mockQuery[MODE] = _VIEW;
     mockQuery[LEGACY] = 'false';
 
