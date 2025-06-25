@@ -12,7 +12,7 @@ export interface MetadataProps {
   identifyingInformation: IdentifyingInformationRow[],
   labels: Label[],
   annotations: Annotation[],
-  onShowConfiguration?: () => void;
+  onShowConfiguration?: (returnFocusSelector: string) => void;
 }
 
 const { identifyingInformation, labels, annotations } = defineProps<MetadataProps>();
