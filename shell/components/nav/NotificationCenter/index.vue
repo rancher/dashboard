@@ -17,6 +17,7 @@ import {
 import { StoredNotification } from '@shell/types/notifications';
 import { encrypt } from '@shell/utils/crypto/encryption';
 import { loadFromString } from '@shell/utils/notifications';
+import { onExtensionsReady } from '@shell/utils/uiplugins';
 
 const store = useStore();
 const allNotifications = computed(() => store.getters['notifications/all']);
@@ -74,19 +75,7 @@ onMounted(async() => {
   // Listen to storage events, so if the UI is open in multiple tabs, notifications in one tab will be sync'ed across all tabs
   window.addEventListener('storage', localStorageEventHandler);
 
-  // Go through all extensions and call the onReady function
-  // This allows them to add notifications at start-up, if they want to (once the user has logged in and the UI is ready)
-  const extensions = store.getters['uiplugins/plugins'] || [];
-
-  for (let i = 0; i < extensions.length; i++) {
-    const ext = extensions[i];
-
-    try {
-      await ext.onReady(store);
-    } catch (e) {
-      console.error(`Exception caught in onReady for extension ${ ext.name }`, e); // eslint-disable-line no-console
-    }
-  }
+  await onExtensionsReady(store);
 });
 
 onUnmounted(() => {
