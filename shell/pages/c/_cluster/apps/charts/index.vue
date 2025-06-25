@@ -497,7 +497,7 @@ export default {
         <h1 class="empty-state-title">
           {{ t('catalog.charts.noCharts.title') }}
         </h1>
-        <div class="tips">
+        <div class="empty-state-tips">
           <h4
             v-clean-html="t('catalog.charts.noCharts.messagePart1', {}, true)"
           />
@@ -638,21 +638,6 @@ export default {
   }
 }
 
-.checkbox-select {
-  .vs__search {
-    position: absolute;
-    right: 0
-  }
-
-  .vs__selected-options  {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    display: inline-block;
-    line-height: 2.4rem;
-  }
-}
-
 .right-section {
   display: flex;
   flex-direction: column;
@@ -709,12 +694,12 @@ export default {
   padding: 72px 0;
   text-align: center;
 
-  .title {
+  .empty-state-title {
     margin-bottom: 24px;
   }
 
-  .tips {
-    margin-bottom: 8px;
+  .empty-state-tips {
+    margin-bottom: 12px;
 
     .empty-state-reset-filters {
       font-size: 16px;
