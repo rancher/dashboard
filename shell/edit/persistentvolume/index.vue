@@ -277,7 +277,10 @@ export default {
         />
       </div>
     </div>
-    <Tabbed :side-tabs="true">
+    <Tabbed
+      :side-tabs="true"
+      :use-hash="useTabbedHash"
+    >
       <Tab
         name="plugin-configuration"
         :label="t('persistentVolume.pluginConfiguration.label')"

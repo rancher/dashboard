@@ -9,6 +9,8 @@ export interface Row {
       props?: Object
     },
     to?: RouteLocationRaw;
+    dataTestid?: string;
+    valueDataTestid?: string;
     status?: 'success' | 'warning' | 'info' | 'error',
 }
 
@@ -27,18 +29,20 @@ const { rows } = defineProps<MetadataProps>();
       v-for="row in rows"
       :key="`${row.label}:${row.value}`"
       class="row"
+      :data-testid="row.dataTestid"
     >
       <div class="label text-muted">
         {{ row.label }}
       </div>
       <div
-        v-if="row.valueOverride?.component"
+        v-if="row.valueOverride?.component && row.value"
         class="value"
       >
         <component
           :is="row.valueOverride?.component"
           v-if="row.valueOverride?.component"
           v-bind="row.valueOverride?.props"
+          :data-testid="row.valueDataTestid"
         />
       </div>
       <div
@@ -52,13 +56,18 @@ const { rows } = defineProps<MetadataProps>();
         <router-link
           v-if="row.value && row.to"
           :to="row.to"
+          :data-testid="row.valueDataTestid"
         >
           {{ row.value }}
         </router-link>
-        <span v-else-if="row.value">{{ row.value }}</span>
+        <span
+          v-else-if="row.value"
+          :data-testid="row.valueDataTestid"
+        >{{ row.value }}</span>
         <span
           v-else
           class="text-muted"
+          :data-testid="row.valueDataTestid"
         >&mdash;</span>
       </div>
     </div>

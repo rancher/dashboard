@@ -7,6 +7,7 @@ import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import RcButton from '@components/RcButton/RcButton.vue';
+import TabTitle from '@shell/components/TabTitle';
 
 export interface Badge {
   color: 'bg-success' | 'bg-error' | 'bg-warning' | 'bg-info';
@@ -46,6 +47,9 @@ const emit = defineEmits(['show-configuration']);
   <div class="title-bar">
     <Top>
       <Title>
+        <TabTitle :show-child="false">
+          {{ resourceTypeLabel }}
+        </TabTitle>
         <router-link
           v-if="resourceTo"
           :to="resourceTo"
@@ -59,7 +63,7 @@ const emit = defineEmits(['show-configuration']);
         >
           {{ resourceTypeLabel }}:
         </span>
-        <span class="resource-name">
+        <span class="resource-name masthead-resource-title">
           {{ resourceName }}
         </span>
         <BadgeState
@@ -102,10 +106,10 @@ const emit = defineEmits(['show-configuration']);
 
 <style lang="scss" scoped>
 .title-bar {
+
   &:deep() .badge-state {
     font-size: 16px;
     margin-left: 4px;
-    top: -4px;
     position: relative;
   }
 
@@ -123,6 +127,22 @@ const emit = defineEmits(['show-configuration']);
 
   .description {
     max-width: 60%;
+  }
+
+  // This prevents the title from overlapping with the actions
+  :deep().title {
+    max-width: calc(100% - 260px);
+  }
+
+  // We want the resource name to be what collaspes wh
+  .resource-name {
+    display: inline-block;
+    flex: 1;
+    white-space: nowrap;
+    overflow-x: hidden;
+    overflow-y: clip;
+    text-overflow: ellipsis;
+    margin-left: 4px;
   }
 }
 </style>
