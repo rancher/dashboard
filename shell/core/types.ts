@@ -622,6 +622,13 @@ export interface IPlugin {
   setHomePage(component: any): void;
 
   /**
+   * Set 'onReady' function that will be called once the user has logged in and the UI is ready
+   *
+   * @param onReady Function to be called when the user has logged in and the UI is ready
+   */
+  setOnReady(onReady: OnReady): void;
+
+  /**
    * Add routes to the Vue Router
    */
   addRoutes(routes: PluginRouteRecordRaw[] | RouteRecordRaw[]): void;

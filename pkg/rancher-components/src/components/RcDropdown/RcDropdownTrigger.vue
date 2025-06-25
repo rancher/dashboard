@@ -23,7 +23,11 @@ const focus = () => {
   dropdownTrigger?.value?.focus();
 };
 
-defineExpose({ focus });
+const closeDropdown = () => {
+  showMenu(false);
+}
+
+defineExpose({ focus, closeDropdown });
 </script>
 
 <template>

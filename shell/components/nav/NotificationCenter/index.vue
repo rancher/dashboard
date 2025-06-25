@@ -28,6 +28,9 @@ const unreadLevelClass = computed(() => {
 // There may be more notifications than we can show on screen, so the popover needs to scroll
 const scroller = ref<HTMLElement>();
 
+// Menu Trigger button
+const trigger = ref();
+
 // Close all of the open growls when the notification center is shown, so that they do not overlap
 const open = (opened: boolean) => {
   if (opened) {
@@ -50,6 +53,10 @@ const localStorageEventHandler = async(ev: any) => {
   }
 };
 
+const closeCenter = () => {
+  trigger?.value?.closeDropdown();
+};
+
 /**
  * When notifications are updated, write to local storage
  */
@@ -69,6 +76,18 @@ onMounted(async() => {
   window.addEventListener('storage', localStorageEventHandler);
 
   await onExtensionsReady(store);
+  // This allows them to add notifications at start-up, if they want to (once the user has logged in and the UI is ready)
+  const extensions = store.getters['uiplugins/plugins'] || [];
+
+  for (let i = 0; i < extensions.length; i++) {
+    const ext = extensions[i];
+
+    try {
+      await ext.onReady(store);
+    } catch (e) {
+      console.error(`Exception caught in onReady for extension ${ ext.name }`, e); // eslint-disable-line no-console
+    }
+  }
 });
 
 onUnmounted(() => {
@@ -82,6 +101,7 @@ onUnmounted(() => {
     @update:open="open"
   >
     <rc-dropdown-trigger
+      ref="trigger"
       tertiary
       data-testid="notifications-center"
       :aria-label="t('nav.notifications.button.label')"
@@ -121,7 +141,10 @@ onUnmounted(() => {
             :key="a.id"
           >
             <rc-dropdown-separator v-if="index > 0" />
-            <Notification :item="a" />
+            <Notification
+              :item="a"
+              @closeCenter="closeCenter"
+            />
           </template>
         </div>
       </div>

@@ -19,7 +19,7 @@ const CLASSES = {
   [NotificationLevel.Success]:      'icon-notify-tick text-success',
 };
 
-const emits = defineEmits(['didFocus']);
+const emits = defineEmits(['didFocus', 'close-center']);
 
 const props = defineProps<{item: StoredNotification}>();
 const { dropdownItems } = inject<DropdownContext>('dropdownContext') || defaultContext;
