@@ -98,6 +98,7 @@ export default {
             tooltipLabel:     this.settings[name].tooltip ? this.display(name, 'tooltip') : '',
             infoLabel:        this.settings[name].info ? this.display(name, 'info') : '',
             placeholderLabel: this.settings[name].placeholder ? this.display(name, 'placeholder') : '',
+            class:            this.settings[name].class || 'span-4'
           }
         ], [] as SettingDisplay[]);
 
@@ -203,7 +204,7 @@ export default {
       >
         <div
           v-if="item.children"
-          class="group"
+          class="group mt-10"
           :data-testid="`cm-settings-group-body-${ item.name }`"
         >
           <Settings
@@ -217,97 +218,102 @@ export default {
 
         <div
           v-else
-          class="simple"
+          class="row simple"
         >
-          <template v-if="item.items?.length">
-            <LabeledSelect
-              :data-testid="`cm-settings-field-${ item.type === 'array' ? 'array' : item.type }-${ item.name }`"
-              :value="get(item)"
-              :label="item.label"
-              :placeholder="item.placeholderLabel"
-              :mode="mode"
-              :multiple="item.type === 'array'"
-              :options="item.options"
-              :option-key="'value'"
-              :reduce="(opt: Option)=>opt.value"
-              @update:value="set(item, $event)"
-            />
-          </template>
+          <div
+            class="col"
+            :class="item.class"
+          >
+            <template v-if="item.items?.length">
+              <LabeledSelect
+                :data-testid="`cm-settings-field-${ item.type === 'array' ? 'array' : item.type }-${ item.name }`"
+                :value="get(item)"
+                :label="item.label"
+                :placeholder="item.placeholderLabel"
+                :mode="mode"
+                :multiple="item.type === 'array'"
+                :options="item.options"
+                :option-key="'value'"
+                :reduce="(opt: Option)=>opt.value"
+                @update:value="set(item, $event)"
+              />
+            </template>
 
-          <template v-else-if="item.type === 'object'">
-            <TextAreaAutoGrow
-              v-if="item.handler === 'Textarea'"
-              :data-testid="`cm-settings-field-${ item.type }-${ item.handler }-${ item.name }`"
-              :value="get(item) || ''"
-              :min-height="10"
-              :mode="mode"
-              @update:value="set(item, $event)"
-            />
-            <KeyValue
-              v-else-if="item.handler === 'KeyValue'"
-              :data-testid="`cm-settings-field-${ item.type }-${ item.handler }-${ item.name }`"
-              :value="get(item)"
-              :mode="mode"
-              :read-allowed="false"
-              :add-icon="'icon-plus'"
-              @update:value="set(item, $event)"
-            />
-            <Taints
-              v-else-if="item.handler === 'Taints'"
-              :data-testid="`cm-settings-field-${ item.type }-${ item.handler }-${ item.name }`"
-              :value="get(item)"
-              :mode="mode"
-              :title="' '"
-              :add-icon="'icon-plus'"
-              @update:value="set(item, $event)"
-            />
-          </template>
+            <template v-else-if="item.type === 'object'">
+              <TextAreaAutoGrow
+                v-if="item.handler === 'Textarea'"
+                :data-testid="`cm-settings-field-${ item.type }-${ item.handler }-${ item.name }`"
+                :value="get(item) || ''"
+                :min-height="10"
+                :mode="mode"
+                @update:value="set(item, $event)"
+              />
+              <KeyValue
+                v-else-if="item.handler === 'KeyValue'"
+                :data-testid="`cm-settings-field-${ item.type }-${ item.handler }-${ item.name }`"
+                :value="get(item)"
+                :mode="mode"
+                :read-allowed="false"
+                :add-icon="'icon-plus'"
+                @update:value="set(item, $event)"
+              />
+              <Taints
+                v-else-if="item.handler === 'Taints'"
+                :data-testid="`cm-settings-field-${ item.type }-${ item.handler }-${ item.name }`"
+                :value="get(item)"
+                :mode="mode"
+                :title="' '"
+                :add-icon="'icon-plus'"
+                @update:value="set(item, $event)"
+              />
+            </template>
 
-          <template v-else-if="item.type === 'string'">
-            <LabeledInput
-              :data-testid="`cm-settings-field-${ item.type }-${ item.name }`"
-              :value="get(item)"
-              :mode="mode"
-              :label="item.label"
-              :placeholder="item.placeholderLabel"
-              @update:value="set(item, $event)"
-            />
-          </template>
+            <template v-else-if="item.type === 'string'">
+              <LabeledInput
+                :data-testid="`cm-settings-field-${ item.type }-${ item.name }`"
+                :value="get(item)"
+                :mode="mode"
+                :label="item.label"
+                :placeholder="item.placeholderLabel"
+                @update:value="set(item, $event)"
+              />
+            </template>
 
-          <template v-else-if="item.type === 'number'">
-            <UnitInput
-              v-if="item.handler === 'UnitInput'"
-              :data-testid="`cm-settings-field-${ item.type }-${ item.handler }-${ item.name }`"
-              :value="get(item)"
-              :mode="mode"
-              :suffix="t('suffix.sec')"
-              :label="item.label"
-              :placeholder="item.placeholderLabel"
-              min="0"
-              @update:value="set(item, $event)"
-            />
-            <LabeledInput
-              v-else
-              :data-testid="`cm-settings-field-${ item.type }-${ item.name }`"
-              :value="get(item)"
-              :mode="mode"
-              :label="item.label"
-              :placeholder="item.placeholderLabel"
-              class="input"
-              type="number"
-              @update:value="set(item, $event)"
-            />
-          </template>
+            <template v-else-if="item.type === 'number'">
+              <UnitInput
+                v-if="item.handler === 'UnitInput'"
+                :data-testid="`cm-settings-field-${ item.type }-${ item.handler }-${ item.name }`"
+                :value="get(item)"
+                :mode="mode"
+                :suffix="t('suffix.sec')"
+                :label="item.label"
+                :placeholder="item.placeholderLabel"
+                min="0"
+                @update:value="set(item, $event)"
+              />
+              <LabeledInput
+                v-else
+                :data-testid="`cm-settings-field-${ item.type }-${ item.name }`"
+                :value="get(item)"
+                :mode="mode"
+                :label="item.label"
+                :placeholder="item.placeholderLabel"
+                class="input"
+                type="number"
+                @update:value="set(item, $event)"
+              />
+            </template>
 
-          <template v-else-if="item.type === 'boolean'">
-            <Checkbox
-              :data-testid="`cm-settings-field-${ item.type }-${ item.name }`"
-              :value="get(item)"
-              :mode="mode"
-              :label="item.description"
-              @update:value="set(item, $event)"
-            />
-          </template>
+            <template v-else-if="item.type === 'boolean'">
+              <Checkbox
+                :data-testid="`cm-settings-field-${ item.type }-${ item.name }`"
+                :value="get(item)"
+                :mode="mode"
+                :label="item.description"
+                @update:value="set(item, $event)"
+              />
+            </template>
+          </div>
         </div>
       </div>
     </div>

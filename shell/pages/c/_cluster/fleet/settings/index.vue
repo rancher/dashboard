@@ -31,12 +31,14 @@ export default {
           path:        'proxy',
           default:     '',
           placeholder: true,
+          class:       'span-8',
         },
         noProxy: {
           weight:  3,
           type:    'string',
           path:    'noProxy',
           default: '127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local',
+          class:   'span-8',
         },
         clusterEnqueueDelay: {
           weight:  4,
@@ -107,6 +109,7 @@ export default {
           handler: 'KeyValue',
           path:    'nodeSelector',
           default: {},
+          class:   'span-8',
         },
         tolerations: {
           weight:  2,
@@ -114,6 +117,7 @@ export default {
           handler: 'Taints',
           path:    'tolerations',
           default: [],
+          class:   'span-8',
         },
         extraAnnotations: {
           weight:  3,
@@ -121,6 +125,7 @@ export default {
           handler: 'KeyValue',
           path:    'extraAnnotations',
           default: {},
+          class:   'span-8',
         },
 
         // 'developer' group

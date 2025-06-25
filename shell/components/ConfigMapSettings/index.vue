@@ -37,6 +37,7 @@ export interface Setting {
   tooltip?: boolean,
   info?: boolean,
   placeholder?: boolean,
+  class?: string,
   weight: number,
   // validationRules,
 }
