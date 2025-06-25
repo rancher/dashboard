@@ -1083,12 +1083,13 @@ catalog:
           other { {count} charts matching your criteria. }
         }
     resetFilters:
-      title: Clear All filters
-    sortBy:
-      recommended: 'Sort by: Recommended'
-      lastUpdatedDesc: 'Sort by: Last updated'
-      alphaAscending: 'Sort by: Chart name, A → Z'
-      alphaDescending: 'Sort by: Chart name, Z → A'
+      title: Clear all filters
+    sort:
+      prefix: Sort by
+      recommended: Recommended
+      lastUpdatedDesc: Last updated
+      alphaAscending: Chart name, A → Z
+      alphaDescending: Chart name, Z → A
     refreshButton:
       label: Refresh all repositories
   install:

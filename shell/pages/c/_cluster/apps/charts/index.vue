@@ -70,6 +70,7 @@ export default {
       filters:              createInitialFilters(),
       // to optimize UI responsiveness by immediately updating the filter state
       internalFilters:      createInitialFilters(),
+      isFilterUpdating:     false,
       installedApps:        [],
       statusOptions:        [
         {
@@ -104,10 +105,11 @@ export default {
       appCardsCache:      {},
       selectedSortOption: SORT_OPTIONS.RECOMMENDED,
       sortOptions:        [
-        { value: SORT_OPTIONS.RECOMMENDED, label: this.t('catalog.charts.sortBy.recommended') },
-        { value: SORT_OPTIONS.LAST_UPDATED_DESC, label: this.t('catalog.charts.sortBy.lastUpdatedDesc') },
-        { value: SORT_OPTIONS.ALPHABETICAL_ASC, label: this.t('catalog.charts.sortBy.alphaAscending') },
-        { value: SORT_OPTIONS.ALPHABETICAL_DESC, label: this.t('catalog.charts.sortBy.alphaDescending') },
+        { kind: 'group', label: this.t('catalog.charts.sort.prefix') },
+        { value: SORT_OPTIONS.RECOMMENDED, label: this.t('catalog.charts.sort.recommended') },
+        { value: SORT_OPTIONS.LAST_UPDATED_DESC, label: this.t('catalog.charts.sort.lastUpdatedDesc') },
+        { value: SORT_OPTIONS.ALPHABETICAL_ASC, label: this.t('catalog.charts.sort.alphaAscending') },
+        { value: SORT_OPTIONS.ALPHABETICAL_DESC, label: this.t('catalog.charts.sort.alphaDescending') },
       ]
     };
   },
@@ -278,10 +280,12 @@ export default {
     },
 
     totalMessage() {
+      const count = !this.isFilterUpdating ? this.appChartCards.length : '. . .';
+
       if (this.noFiltersApplied) {
-        return this.t('catalog.charts.totalChartsMessage', { count: this.appChartCards.length });
+        return this.t('catalog.charts.totalChartsMessage', { count });
       } else {
-        return this.t('catalog.charts.totalMatchedChartsMessage', { count: this.appChartCards.length });
+        return this.t('catalog.charts.totalMatchedChartsMessage', { count });
       }
     }
   },
@@ -322,6 +326,7 @@ export default {
     get,
 
     onFilterChange(newFilters) {
+      this.isFilterUpdating = true;
       this.internalFilters = newFilters;
 
       this.applyFiltersDebounced(newFilters);
@@ -329,6 +334,7 @@ export default {
 
     applyFiltersDebounced: debounce(function(newFilters) {
       this.filters = newFilters;
+      this.isFilterUpdating = false;
     }, 100),
 
     selectChart(chart) {
@@ -516,7 +522,26 @@ export default {
             :options="sortOptions"
             placement="bottom"
             class="charts-sort-select"
-          />
+          >
+            <template #selected-option="{ label }">
+              <span class="mmr-1">{{ t('catalog.charts.sort.prefix') }}:</span>{{ label }}
+            </template>
+
+            <template #option="{ label, kind }">
+              <span
+                v-if="kind === 'group'"
+                class="mml-2 mmr-2"
+              >
+                {{ label }}:
+              </span>
+              <span
+                v-else
+                class="mml-6"
+              >
+                {{ label }}
+              </span>
+            </template>
+          </Select>
         </div>
         <div
           class="app-chart-cards"
@@ -644,6 +669,12 @@ export default {
 
   .charts-sort-select {
     width: 300px;
+
+    // make the color of the selected item consistent with the group title when the select dropdown is open
+    :deep(.v-select.inline.vs--single.vs--open .vs__selected) {
+      opacity: 1;
+      color: var(--dropdown-disabled-text);
+    }
   }
 }
 
