@@ -655,6 +655,7 @@ export default {
             class="icon icon-lg"
             :icon="action.icon"
             :src="action.svg"
+            :img-alt="action.tooltipKey ? t(action.tooltipKey) : action.labelKey ? t(action.labelKey) : action.label ? action.label : t('generic.imageAlt')"
             color="header"
           />
         </button>
