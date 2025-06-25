@@ -6,7 +6,7 @@ export default class RcItemCardPo extends ComponentPo {
   }
 
   static getCardByTitle(title: string) {
-    return new RcItemCardPo(cy.get('.item-card').contains(title));
+    return new RcItemCardPo(cy.get('[data-testid="item-card-header-title"]').contains(title));
   }
 
   getImage() {
@@ -14,6 +14,6 @@ export default class RcItemCardPo extends ComponentPo {
   }
 
   click() {
-    this.self().click({ force: true });
+    this.self().click();
   }
 }
