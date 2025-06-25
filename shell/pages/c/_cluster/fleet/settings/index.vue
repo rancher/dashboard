@@ -142,7 +142,8 @@ export default {
           'noProxy',
           'clusterEnqueueDelay'
         ],
-        weight: 0
+        expanded: true,
+        weight:   0
       }, {
         name:     'controller',
         children: [

@@ -21,6 +21,7 @@ export interface Item {
 export interface Group {
   name: string,
   children: string[],
+  expanded?: boolean,
   weight: number,
 }
 

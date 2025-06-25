@@ -97,7 +97,8 @@ const groups = [{
     'garbageCollectionInterval',
     'gitClientTimeout'
   ],
-  weight: 0
+  expanded: true,
+  weight:   0
 }];
 
 const configMap = {
@@ -141,7 +142,7 @@ describe('component: ConfigMapSettings', () => {
 
     await wrapper.vm.$nextTick();
 
-    const generalGroup = wrapper.find('[data-testid="cm-settings-group-general"]');
+    const generalGroup = wrapper.find('[data-testid="cm-settings-group-body-general"]');
 
     const garbageCollectionInterval = wrapper.find('[data-testid="cm-settings-field-string-garbageCollectionInterval"]').element as HTMLInputElement;
     const gitClientTimeout = wrapper.find('[data-testid="cm-settings-field-string-gitClientTimeout"]').element as HTMLInputElement;
@@ -272,5 +273,47 @@ describe('component: ConfigMapSettings', () => {
       fleet: 'foo: bar\ngarbageCollectionInterval: 1h\ngitjob:\n  replicas: 5\ndebug: true\nnodeSelector:\n  key: value1\ngitClientTimeout: 30s\nmultiSelect: foo\nagentTLSMode: system-store\n',
       foo:   { bar: 'value' },
     });
+  });
+
+  it('should show groups titles and hide body if group is collpased', async() => {
+    const wrapper = mount(ConfigMapSettings, {
+      ...requiredSetup(),
+      props: {
+        settings,
+        groups: [{
+          name:     'general',
+          children: [
+            'garbageCollectionInterval',
+            'gitClientTimeout'
+          ],
+          expanded: false,
+          weight:   0
+        }],
+        name:      'cm-name',
+        namespace: 'cm-namespace',
+        dataKey:   'fleet'
+      },
+      computed: {
+        mode:       () => _EDIT,
+        canEdit:    () => true,
+        fetchState: () => ({ $fetchState: false }),
+      },
+    });
+
+    wrapper.vm.initValues();
+
+    await wrapper.vm.$nextTick();
+
+    const generalGroupRow = wrapper.find('[data-testid="cm-settings-row-general"]');
+    const generalGroupBody = wrapper.find('[data-testid="cm-settings-group-body-general"]');
+
+    const garbageCollectionInterval = wrapper.find('[data-testid="cm-settings-field-string-garbageCollectionInterval"]');
+    const gitClientTimeout = wrapper.find('[data-testid="cm-settings-field-string-gitClientTimeout"]');
+
+    expect(generalGroupRow.exists()).toBe(true);
+    expect(generalGroupBody.exists()).toBe(false);
+
+    expect(garbageCollectionInterval.exists()).toBe(false);
+    expect(gitClientTimeout.exists()).toBe(false);
   });
 });

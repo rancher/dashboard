@@ -7,6 +7,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import { Banner } from '@components/Banner';
+import { RcButton } from '@components/RcButton';
 import { Group, Setting } from '@shell/components/ConfigMapSettings/index.vue';
 
 interface Option {
@@ -25,6 +26,10 @@ type SettingDisplay = Partial<Setting> & {
   placeholderLabel?: string,
 }
 
+interface DataType {
+  isGroupExpanded: Record<string, boolean>;
+}
+
 export default {
 
   name: 'Settings',
@@ -36,6 +41,7 @@ export default {
     LabeledSelect,
     Checkbox,
     Banner,
+    RcButton,
     TextAreaAutoGrow,
   },
 
@@ -64,6 +70,10 @@ export default {
       type:    String,
       default: _EDIT
     },
+  },
+
+  data(): DataType {
+    return { isGroupExpanded: this.groups.reduce((acc, { name, expanded }) => ({ ...acc, [name]: !!expanded }), {}) };
   },
 
   computed: {
@@ -119,6 +129,10 @@ export default {
 
     display(name: string, key: 'label' | 'description' | 'tooltip' | 'info' | 'placeholder') {
       return this.t(`${ this.labelKeyPrefix }.${ name }.${ key }`, {}, true);
+    },
+
+    toggleGroup(item: SettingDisplay) {
+      this.isGroupExpanded[item.name] = !this.isGroupExpanded[item.name];
     }
   }
 };
@@ -130,21 +144,39 @@ export default {
       v-for="item in settingsDisplay"
       :key="item.name"
       class="setting-row"
-      data-testid="cm-settings-row"
+      :class="{ box: item.children }"
+      :data-testid="`cm-settings-row-${ item.name }`"
     >
-      <div class="header mb-10">
-        <h2
-          v-if="item.label"
-          class="label"
-          :style="!item.children ? { fontSize: '18px' } : { marginBottom: '10px' }"
-        >
-          {{ item.label }}
-          <i
-            v-if="item.tooltip"
-            v-clean-tooltip="item.tooltipLabel"
-            class="icon icon-info"
-          />
-        </h2>
+      <div class="header">
+        <div class="title">
+          <RcButton
+            v-if="item.children"
+            small
+            ghost
+            @click="toggleGroup(item)"
+          >
+            <i
+              :class="{
+                ['icon icon-chevron-right']: !isGroupExpanded[item.name],
+                ['icon icon-chevron-down']: isGroupExpanded[item.name],
+              }"
+            />
+          </RcButton>
+
+          <h2
+            v-if="item.label"
+            class="label"
+            :style="!item.children ? { fontSize: '18px' } : { marginBottom: '10px' }"
+          >
+            {{ item.label }}
+            <i
+              v-if="item.tooltip"
+              v-clean-tooltip="item.tooltipLabel"
+              class="icon icon-info"
+            />
+          </h2>
+        </div>
+
         <p
           v-if="item.description && item.type !== 'boolean'"
           class="description text-muted mt-10"
@@ -159,11 +191,14 @@ export default {
         />
       </div>
 
-      <div class="body">
+      <div
+        v-if="!item.children || isGroupExpanded[item.name]"
+        class="body mt-10"
+      >
         <div
           v-if="item.children"
-          class="group box"
-          :data-testid="`cm-settings-group-${ item.name }`"
+          class="group"
+          :data-testid="`cm-settings-group-body-${ item.name }`"
         >
           <Settings
             :settings="item.children"
@@ -253,8 +288,15 @@ export default {
       flex-direction: column;
 
       .header {
-        .label {
-          margin: 0;
+        .title {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 10px;
+
+          .label {
+            margin: 0 !important;
+          }
         }
       }
     }
