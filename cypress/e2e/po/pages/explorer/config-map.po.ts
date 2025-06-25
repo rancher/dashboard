@@ -44,6 +44,6 @@ export class ConfigMapPagePo extends PagePo {
   }
 
   title() {
-    return this.self().get('.title h1').invoke('text');
+    return this.self().get('.title-bar .title').invoke('text');
   }
 }

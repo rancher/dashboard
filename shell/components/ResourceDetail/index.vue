@@ -62,7 +62,7 @@ const currentResourceName = computed(() => {
   return resource[0];
 });
 const mode = computed(() => route?.query?.[MODE]);
-const isView = computed(() => !mode.value || mode.value === _VIEW);
+const isView = computed(() => route?.params?.id && (!mode.value || mode.value === _VIEW));
 // We're defaulting to legacy being on, we'll switch this once we want to enable the new detail page by default
 const iseNewDetailPageEnabled = useIsNewDetailPageEnabled();
 const page = computed(() => currentResourceName.value ? resourceToPage[currentResourceName.value] : undefined);
