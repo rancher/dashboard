@@ -241,18 +241,6 @@ export default [
         name:      'c-cluster-istio',
         meta:      { ...installRedirectRouteMeta(ISTIO_NAME, ISTIO_CHART_NAME) }
       }, {
-        path: '/c/:cluster/legacy',
-        redirect(to) {
-          return {
-            name:   'c-cluster-legacy-project',
-            params: {
-              ...(to?.params || {}),
-              product: EXPLORER,
-            }
-          };
-        },
-        name: 'c-cluster-legacy'
-      }, {
         path:      '/c/:cluster/logging',
         component: () => interopDefault(import('@shell/pages/c/_cluster/logging/index.vue')),
         name:      'c-cluster-logging',
@@ -331,10 +319,6 @@ export default [
         path:      '/c/:cluster/gatekeeper/constraints',
         component: () => interopDefault(import('@shell/pages/c/_cluster/gatekeeper/constraints/index.vue')),
         name:      'c-cluster-gatekeeper-constraints'
-      }, {
-        path:      '/c/:cluster/legacy/project',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/legacy/project/index.vue')),
-        name:      'c-cluster-legacy-project'
       }, {
         path:      '/c/:cluster/manager/cloudCredential',
         component: () => interopDefault(import('@shell/pages/c/_cluster/manager/cloudCredential/index.vue')),
@@ -416,14 +400,6 @@ export default [
         path:      '/c/:cluster/auth/config/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/auth/config/_id.vue')),
         name:      'c-cluster-auth-config-id'
-      }, {
-        path:      '/c/:cluster/legacy/pages/:page?',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/legacy/pages/_page.vue')),
-        name:      'c-cluster-legacy-pages-page'
-      }, {
-        path:      '/c/:cluster/legacy/project/:page',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/legacy/project/_page.vue')),
-        name:      'c-cluster-legacy-project-page'
       }, {
         path:      '/c/:cluster/manager/cloudCredential/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/manager/cloudCredential/_id.vue')),

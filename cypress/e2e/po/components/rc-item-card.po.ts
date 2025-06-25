@@ -14,6 +14,6 @@ export default class RcItemCardPo extends ComponentPo {
   }
 
   click() {
-    this.self().click();
+    this.self().click({ force: true });
   }
 }

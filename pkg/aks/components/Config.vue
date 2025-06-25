@@ -27,13 +27,13 @@ import Banner from '@components/Banner/Banner.vue';
 import { RadioGroup } from '@components/Form/Radio';
 
 import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
-import type { AKSDiskType, AKSNodePool, AKSPoolMode, AKSConfig } from '../types/index';
+import type { AKSNodePool, AKSPoolMode, AKSConfig } from '../types/index';
 import {
   getAKSVirtualNetworks, getAKSVMSizes, getAKSKubernetesVersions
   , regionsWithAvailabilityZones
 } from '../util/aks';
 import { parseTaint } from '../util/taints';
-import { NETWORKING_AUTH_MODES } from './CruAks.vue';
+import { NETWORKING_AUTH_MODES, defaultNodePool } from './CruAks.vue';
 import {
   requiredInCluster,
 
@@ -48,25 +48,6 @@ import {
   nodePoolNamesUnique,
   nodePoolCount
 } from '../util/validators';
-
-export const defaultNodePool = {
-  availabilityZones:     ['1', '2', '3'],
-  count:                 1,
-  enableAutoScaling:     false,
-  maxPods:               110,
-  maxSurge:              '1',
-  mode:                  'System' as AKSPoolMode,
-  name:                  'agentpool',
-  nodeLabels:            { },
-  nodeTaints:            [],
-  orchestratorVersion:   '',
-  osDiskSizeGB:          128,
-  osDiskType:            'Managed' as AKSDiskType,
-  osType:                'Linux',
-  vmSize:                'Standard_DS2_v2',
-  _isNewOrUnprovisioned: true,
-  _validation:           {}
-};
 
 const _NONE = 'none';
 
