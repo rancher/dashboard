@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -e # Enable fail-on-error
+
+# Script that will run an e2e suite locally as if running in the gh pr gates
+# First arg is the grep tag that determines which test suite should run, for example `explorer2`
+# WIP
+
+echo Building UI
+rm -rf ./dist
+rm -rf ./dist_ember
+yarn e2e:build
+
+echo Spinning up Rancher \(and patch in ui\)
+yarn docker:local:stop
+RANCHER_IMG_VERSION="${RANCHER_IMG_VERSION:-head}" yarn e2e:docker
+
+echo Setting up Rancher
+export suite=$1
+
+TEST_DISABLE_DASHBOARD=true \
+GREP_TAGS=@adminUserSetup+@$suite \
+TEST_ONLY=setup \
+TEST_USERNAME=admin \
+CATTLE_BOOTSTRAP_PASSWORD=password \
+TEST_BASE_URL=https://127.0.0.1/dashboard yarn e2e:prod
+
+echo Running e2e tests
+TEST_DISABLE_DASHBOARD=true \
+GREP_TAGS=@adminUser+@$suite \
+TEST_SKIP=setup \
+TEST_USERNAME=admin \
+CATTLE_BOOTSTRAP_PASSWORD=password \
+TEST_BASE_URL=https://127.0.0.1/dashboard yarn e2e:prod
+
+
+
+
+
