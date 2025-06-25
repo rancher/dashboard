@@ -187,6 +187,7 @@ export default {
         <p
           v-if="item.description && item.type !== 'boolean'"
           class="description text-muted mt-10"
+          :aria-describedby="item.description"
         >
           {{ item.description }}
         </p>
@@ -243,6 +244,7 @@ export default {
               <TextAreaAutoGrow
                 v-if="item.handler === 'Textarea'"
                 :data-testid="`cm-settings-field-${ item.type }-${ item.handler }-${ item.name }`"
+                :aria-label="t(`${ labelKeyPrefix }.fields.ariaLabel`, { name: item.label })"
                 :value="get(item) || ''"
                 :min-height="10"
                 :mode="mode"
@@ -251,6 +253,7 @@ export default {
               <KeyValue
                 v-else-if="item.handler === 'KeyValue'"
                 :data-testid="`cm-settings-field-${ item.type }-${ item.handler }-${ item.name }`"
+                :aria-label="t(`${ labelKeyPrefix }.fields.ariaLabel`, { name: item.label })"
                 :value="get(item)"
                 :mode="mode"
                 :read-allowed="false"
@@ -261,6 +264,7 @@ export default {
               <Taints
                 v-else-if="item.handler === 'Taints'"
                 :data-testid="`cm-settings-field-${ item.type }-${ item.handler }-${ item.name }`"
+                :aria-label="t(`${ labelKeyPrefix }.fields.ariaLabel`, { name: item.label })"
                 :value="get(item)"
                 :mode="mode"
                 :title="' '"
@@ -272,6 +276,7 @@ export default {
             <template v-else-if="item.type === 'string'">
               <LabeledInput
                 :data-testid="`cm-settings-field-${ item.type }-${ item.name }`"
+                :aria-label="t(`${ labelKeyPrefix }.fields.ariaLabel`, { name: item.label })"
                 :value="get(item)"
                 :mode="mode"
                 :label="item.label"
@@ -284,6 +289,7 @@ export default {
               <UnitInput
                 v-if="item.handler === 'UnitInput'"
                 :data-testid="`cm-settings-field-${ item.type }-${ item.handler }-${ item.name }`"
+                :aria-label="t(`${ labelKeyPrefix }.fields.ariaLabel`, { name: item.label })"
                 :value="get(item)"
                 :mode="mode"
                 :suffix="t('suffix.sec')"
@@ -295,6 +301,7 @@ export default {
               <LabeledInput
                 v-else
                 :data-testid="`cm-settings-field-${ item.type }-${ item.name }`"
+                :aria-label="t(`${ labelKeyPrefix }.fields.ariaLabel`, { name: item.label })"
                 :value="get(item)"
                 :mode="mode"
                 :label="item.label"
@@ -308,6 +315,7 @@ export default {
             <template v-else-if="item.type === 'boolean'">
               <Checkbox
                 :data-testid="`cm-settings-field-${ item.type }-${ item.name }`"
+                :aria-label="t(`${ labelKeyPrefix }.fields.ariaLabel`, { name: item.label })"
                 :value="get(item)"
                 :mode="mode"
                 :label="item.description"
