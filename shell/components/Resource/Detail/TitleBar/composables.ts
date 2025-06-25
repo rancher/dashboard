@@ -4,7 +4,7 @@ import { computed, Ref, toValue } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 
-export const useDefaultTitleBarProps = (resource: any, resourceSubtype: Ref<string | undefined>): Ref<TitleBarProps> => {
+export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: Ref<string | undefined>): Ref<TitleBarProps> => {
   const route = useRoute();
   const store = useStore();
   const { openResourceDetailDrawer } = useResourceDetailDrawer();
