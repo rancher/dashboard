@@ -1,10 +1,13 @@
 import { useI18n } from '@shell/composables/useI18n';
-import { computed, ComputedRef, toValue } from 'vue';
+import { computed, ComputedRef, markRaw, toValue } from 'vue';
+import Additional from '@shell/components/Resource/Detail/Additional.vue';
 import { useStore } from 'vuex';
-import { NAMESPACE, FLEET } from '@shell/config/types';
+import { NAMESPACE, FLEET, SERVICE_ACCOUNT } from '@shell/config/types';
 import { Row } from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/index.vue';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 import { useRoute } from 'vue-router';
+import { TYPES as SECRET_TYPES } from '@shell/models/secret';
+import { KUBERNETES } from '@shell/config/labels-annotations';
 
 export const useNamespace = (resource: any): ComputedRef<Row> | undefined => {
   const store = useStore();
@@ -154,5 +157,142 @@ export const useResourceDetails = (resource: any): undefined | ComputedRef<Row[]
           valueOverride: extractValueOverride(detail)
         };
       });
+  });
+};
+
+export const useImage = (resource: any): ComputedRef<Row> => {
+  const store = useStore();
+  const i18n = useI18n(store);
+  const resourceValue = toValue(resource);
+
+  return computed(() => ({
+    label:         i18n.t('component.resource.detail.metadata.identifyingInformation.image'),
+    value:         resourceValue.imageNames,
+    valueOverride: {
+      component: markRaw(Additional),
+      props:     { items: resourceValue.imageNames }
+    },
+  }));
+};
+
+export const useReady = (resource: any): ComputedRef<Row> => {
+  const store = useStore();
+  const i18n = useI18n(store);
+  const resourceValue = toValue(resource);
+
+  return computed(() => ({
+    label: i18n.t('component.resource.detail.metadata.identifyingInformation.ready'),
+    value: resourceValue.ready,
+  }));
+};
+
+export const useSecretType = (resource: any): ComputedRef<Row> => {
+  const store = useStore();
+  const i18n = useI18n(store);
+
+  const resourceValue = toValue(resource);
+
+  return computed(() => {
+    return {
+      label: i18n.t('component.resource.detail.metadata.identifyingInformation.type'),
+      value: resourceValue.typeDisplay,
+    };
+  });
+};
+
+export const useServiceAccount = (resource: any): undefined | ComputedRef<Row> => {
+  const store = useStore();
+  const i18n = useI18n(store);
+
+  const resourceValue = toValue(resource);
+
+  if (resourceValue._type !== SECRET_TYPES.SERVICE_ACCT) {
+    return;
+  }
+
+  const serviceAccountName = resourceValue.metadata?.annotations?.[KUBERNETES.SERVICE_ACCOUNT_NAME];
+
+  if (!serviceAccountName) {
+    return;
+  }
+
+  return computed(() => {
+    return {
+      label: i18n.t('component.resource.detail.metadata.identifyingInformation.serviceAccount'),
+      value: serviceAccountName,
+      to:    {
+        name:   `c-cluster-product-resource-namespace-id`,
+        params: {
+          product:   store.getters['productId'],
+          cluster:   store.getters['clusterId'],
+          namespace: resource.namespace,
+          resource:  SERVICE_ACCOUNT,
+          id:        serviceAccountName
+        }
+      }
+    };
+  });
+};
+
+export const useCertificate = (resource: any): undefined | ComputedRef<Row> => {
+  const store = useStore();
+  const i18n = useI18n(store);
+
+  const resourceValue = toValue(resource);
+
+  if (!resourceValue.cn) {
+    return;
+  }
+
+  const certificate = resourceValue.plusMoreNames ? `${ resourceValue.cn } ${ i18n.t('secret.certificate.plusMore', { n: resourceValue.plusMoreNames }) }` : resourceValue.cn;
+
+  return computed(() => {
+    return {
+      label: i18n.t('component.resource.detail.metadata.identifyingInformation.certificate'),
+      value: certificate,
+    };
+  });
+};
+
+export const useIssuer = (resource: any): undefined | ComputedRef<Row> => {
+  const store = useStore();
+  const i18n = useI18n(store);
+
+  const resourceValue = toValue(resource);
+
+  if (!resourceValue.issuer) {
+    return;
+  }
+
+  return computed(() => {
+    return {
+      label: i18n.t('component.resource.detail.metadata.identifyingInformation.issuer'),
+      value: resourceValue.issuer,
+    };
+  });
+};
+
+export const useExpires = (resource: any): undefined | ComputedRef<Row> => {
+  const store = useStore();
+  const i18n = useI18n(store);
+
+  const resourceValue = toValue(resource);
+
+  if (!resourceValue.notAfter) {
+    return;
+  }
+
+  return computed(() => {
+    return {
+      label:         i18n.t('component.resource.detail.metadata.identifyingInformation.expires'),
+      valueOverride: {
+        component: markRaw(Date),
+        props:     {
+          value: resourceValue.notAfter,
+          class: resourceValue.dateClass
+        }
+      },
+      value: resourceValue.notAfter,
+    };
   });
 };

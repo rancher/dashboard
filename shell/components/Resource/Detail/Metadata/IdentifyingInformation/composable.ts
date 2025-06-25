@@ -10,30 +10,34 @@ import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 
 export const useDefaultIdentifyingInformation = (resource: any): ComputedRef<Row[]> => {
-  return computed(() => {
-    const namespace = useNamespace(resource);
-    const liveDate = useLiveDate(resource);
+  const namespace = useNamespace(resource);
+  const liveDate = useLiveDate(resource);
 
+  return computed(() => {
     return [
-      namespace.value,
-      liveDate.value
-    ];
+      namespace?.value,
+      liveDate?.value
+    ].filter((info) => typeof info !== 'undefined');
   });
 };
 
 export const useSecretIdentifyingInformation = (resource: any): ComputedRef<Row[]> => {
+  const secretType = useSecretType(resource);
+  const serviceAccount = useServiceAccount(resource);
+  const certificate = useCertificate(resource);
+  const issuer = useIssuer(resource);
+  const expires = useExpires(resource);
+
   return computed(() => {
     const rows = [
-      useSecretType(resource),
-      useServiceAccount(resource),
-      useCertificate(resource),
-      useIssuer(resource),
-      useExpires(resource),
+      secretType?.value,
+      serviceAccount?.value,
+      certificate?.value,
+      issuer?.value,
+      expires?.value,
     ];
 
-    return rows
-      .filter((r) => typeof r !== 'undefined')
-      .map((r) => r.value);
+    return rows.filter((r) => typeof r !== 'undefined');
   });
 };
 
@@ -42,10 +46,12 @@ export const useDefaultWorkloadIdentifyingInformation = (resource: any): Compute
   const i18n = useI18n(store);
 
   const resourceValue = toValue(resource);
+  const image = useImage(resource);
+  const ready = useReady(resource);
 
   return computed(() => [
-    useImage(resource).value,
-    useReady(resource).value,
+    image.value,
+    ready.value,
     {
       label: i18n.t('component.resource.detail.metadata.identifyingInformation.up-to-date'),
       value: resourceValue.upToDate,

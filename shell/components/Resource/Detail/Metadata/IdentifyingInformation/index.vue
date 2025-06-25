@@ -69,14 +69,10 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
         </router-link>
         <span
           v-else-if="row.value"
-          <<<<<<<
-          HEAD
           :data-testid="row.valueDataTestid"
-          =="====="
           tabindex="0"
           :aria-label="row.value"
-        >>>>>>> Switched to labels and made use of the :for attribute
-          >{{ row.value }}</span>
+        >{{ row.value }}</span>
         <span
           v-else
           class="text-muted"
