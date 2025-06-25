@@ -2,7 +2,7 @@
 
 > &#x26a0;&#xfe0f; Documentation in this directory is intended for internal use only. Any information contained here is unsupported.
 
-> For now, developers can use the Notification Centre via the VueX store. In the future, we will add an API for this, that will be fully supported as part of the UI Extensions API.
+> For now, developers can use the Notification Center via the VueX store. In the future, we will add an API for this, that will be fully supported as part of the UI Extensions API.
 
 The Notification Center adds a 'bell' icon in the top-right of the Rancher Manager UI which supports a history of application notifications. When there are unread notifications, then bell icon shows a red dot, for example:
 

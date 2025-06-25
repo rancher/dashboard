@@ -211,6 +211,16 @@ const scrollIntoView = (event: Event) => {
   const target = event.target;
 
   if (target instanceof HTMLElement) {
+    const t = target as HTMLElement;
+
+    // If a button was clicked, then do not scroll into view, as this will scroll to make the button
+    // visible and the click will be ignored - so just return, so that the click works as expected
+    if (t.tagName === 'BUTTON') {
+      return;
+    }
+  }
+
+  if (target instanceof HTMLElement) {
     target?.scrollIntoView({
       behavior: 'smooth',
       block:    'center',
@@ -302,7 +312,7 @@ const scrollIntoView = (event: Event) => {
             @keydown.enter.space.stop="action(item.primaryAction)"
             @keydown.tab.stop="innerFocusNext($event)"
             @keydown.escape.stop="exitFocusTrap"
-            @click.stop="action(item.primaryAction)"
+            @click.stop.prevent="action(item.primaryAction)"
           >
             {{ item.primaryAction.label }}
           </button>
@@ -314,7 +324,7 @@ const scrollIntoView = (event: Event) => {
             @keydown.enter.space.stop="action(item.secondaryAction)"
             @keydown.tab.stop="innerFocusNext($event)"
             @keydown.escape.stop="exitFocusTrap"
-            @click.stop="action(item.secondaryAction)"
+            @click.stop.prevent="action(item.secondaryAction)"
           >
             {{ item.secondaryAction.label }}
           </button>
