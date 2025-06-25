@@ -95,6 +95,7 @@ export default {
           v-model:value="row.effect"
           :data-testid="`taints-effect-row-${i}`"
           :options="effectOptions"
+          :mode="mode"
           :disabled="disabled"
           class="compact-select"
           @update:value="queueUpdate"
