@@ -4,7 +4,7 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import { computed, inject, ref } from 'vue';
 import { useStore } from 'vuex';
-import { useRouter } from 'vue-router'
+import { useRouter } from 'vue-router';
 import { useI18n } from '@shell/composables/useI18n';
 import { NotificationAction, NotificationLevel, StoredNotification } from '@shell/types/notifications';
 import { DropdownContext, defaultContext } from '@components/RcDropdown/types';
@@ -25,7 +25,7 @@ const { dropdownItems } = inject<DropdownContext>('dropdownContext') || defaultC
 
 const store = useStore();
 const { t } = useI18n(store);
-const router = useRouter()
+const router = useRouter();
 const unreadCount = computed<number>(() => store.getters['notifications/unreadCount']);
 const dateFormat = escapeHtml( store.getters['prefs/get'](DATE_FORMAT));
 const timeFormat = escapeHtml( store.getters['prefs/get'](TIME_FORMAT));
