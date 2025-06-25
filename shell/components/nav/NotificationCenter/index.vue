@@ -76,18 +76,6 @@ onMounted(async() => {
   window.addEventListener('storage', localStorageEventHandler);
 
   await onExtensionsReady(store);
-  // This allows them to add notifications at start-up, if they want to (once the user has logged in and the UI is ready)
-  const extensions = store.getters['uiplugins/plugins'] || [];
-
-  for (let i = 0; i < extensions.length; i++) {
-    const ext = extensions[i];
-
-    try {
-      await ext.onReady(store);
-    } catch (e) {
-      console.error(`Exception caught in onReady for extension ${ ext.name }`, e); // eslint-disable-line no-console
-    }
-  }
 });
 
 onUnmounted(() => {
