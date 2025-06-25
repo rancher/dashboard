@@ -36,7 +36,7 @@ export class SecretsListPagePo extends BaseListPagePo {
   }
 
   title() {
-    return this.self().get('.title-bar .title').invoke('text');
+    return this.self().get('.title h1').invoke('text');
   }
 
   createButton() {
