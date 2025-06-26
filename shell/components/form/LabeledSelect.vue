@@ -202,6 +202,7 @@ export default {
     },
 
     onClose() {
+      this.isOpen = false;
       this.$emit('on-close');
     },
 
