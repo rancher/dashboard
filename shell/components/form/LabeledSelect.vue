@@ -185,6 +185,10 @@ export default {
       });
     },
 
+    focusWrapper() {
+      this.$refs.select.focus();
+    },
+
     onFocus() {
       this.selectedVisibility = 'hidden';
       this.onFocusLabeled();
@@ -204,6 +208,7 @@ export default {
     onClose() {
       this.isOpen = false;
       this.$emit('on-close');
+      this.focusWrapper();
     },
 
     getOptionLabel(option) {

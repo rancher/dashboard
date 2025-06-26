@@ -148,6 +148,10 @@ export default {
       });
     },
 
+    focusWrapper() {
+      this.$refs.select.focus();
+    },
+
     get,
 
     onClickOption(option, event) {
@@ -217,6 +221,7 @@ export default {
     onClose() {
       this.isOpen = false;
       this.$emit('on-close');
+      this.focusWrapper();
     },
   },
   computed: {
