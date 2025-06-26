@@ -267,7 +267,8 @@ describe('component: LabeledSelect', () => {
         value,
         label:      'some-label',
         options,
-        searchable: true
+        searchable: true,
+        loading:    false,
       }
     });
 
@@ -281,7 +282,9 @@ describe('component: LabeledSelect', () => {
     await input.trigger('keydown.enter');
 
     // mimic pressing space on search box inside v-select
-    await input.trigger('keydown.space', mockEvent);
+    const search = input.find('input');
+
+    await search.trigger('keydown.space', mockEvent);
 
     // eslint-disable-next-line
     expect(spyFocus).toHaveBeenCalled();
