@@ -205,6 +205,7 @@ export default {
     width: 100%;
     flex-direction:row;
     align-content: baseline;
+    justify-content: space-between;
   }
   .subtype-content {
     width: 100%;
@@ -334,7 +335,7 @@ export default {
   .footer {
     display: flex;
     justify-content: flex-end;
-    margin: 20px 10px 0 10px;
+    margin: auto 10px 0 10px;
     z-index: 19;
   }
 </style>
