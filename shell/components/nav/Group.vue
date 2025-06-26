@@ -251,7 +251,9 @@ export default {
         <h6
           v-else
         >
-          <span v-clean-html="group.labelDisplay || group.label" />
+          <span
+            v-clean-html="group.labelDisplay || group.label"
+          />
         </h6>
       </slot>
       <i
@@ -342,7 +344,7 @@ export default {
       }
       > H6 {
         text-transform: none;
-        padding: 8px 0 8px 16px;
+        padding: 8px 0 8px 14px;
       }
     }
   }
@@ -365,7 +367,7 @@ export default {
         background-color: var(--active, var(--primary-hover-bg));
 
         h6 {
-          padding: 8px 0 8px 16px;
+          padding: 8px 0 8px 14px;
           font-weight: bold;
           color: var(--on-active, var(--primary-hover-text));
         }
@@ -393,7 +395,7 @@ export default {
 
         > H6 {
           text-transform: none;
-          padding: 8px 0 8px 16px;
+          padding: 8px 0 8px 14px;
         }
 
         > I {
