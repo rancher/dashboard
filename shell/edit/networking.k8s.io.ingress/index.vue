@@ -226,7 +226,10 @@ export default {
       :rules="fvGetAndReportPathRules('spec')"
       as-banner
     />
-    <Tabbed :side-tabs="true">
+    <Tabbed
+      :side-tabs="true"
+      :use-hash="useTabbedHash"
+    >
       <Tab
         :label="firstTabLabel"
         name="rules"

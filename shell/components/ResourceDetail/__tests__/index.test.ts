@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils';
-
 import ResourceDetail from '@shell/components/ResourceDetail/index.vue';
 import { _EDIT, _VIEW, LEGACY, MODE } from '@shell/config/query-params';
+import * as pageEnabled from '@shell/composables/useIsNewDetailPageEnabled';
 import flushPromises from 'flush-promises';
 
 const mockQuery: any = {};
@@ -30,12 +30,21 @@ jest.mock('vue-router', () => ({
   })
 }));
 
+jest.mock('@shell/composables/useIsNewDetailPageEnabled');
+
 describe('component: ResourceDetail/index', () => {
   const resourceName = 'configmap';
+  const useIsNewDetailPageEnabledSpy = jest.spyOn(pageEnabled, 'useIsNewDetailPageEnabled');
 
-  it('should render legacy component with default props if LEGACY=false is not present', async() => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should render legacy component with default props if useIsNewDetailPageEnabledSpy is false', async() => {
     mockParams.resource = resourceName;
     mockQuery[MODE] = _VIEW;
+
+    useIsNewDetailPageEnabledSpy.mockReturnValue(false);
 
     const wrapper = mount(ResourceDetail, { });
     const legacyComponent = wrapper.findComponent<any>({ name: 'Legacy' });
@@ -46,26 +55,33 @@ describe('component: ResourceDetail/index', () => {
     expect(legacyComponent.props('resourceOverride')).toBeUndefined();
     expect(legacyComponent.props('parentRouteOverride')).toBeUndefined();
     expect(legacyComponent.props('errorsMap')).toBeUndefined();
+    expect(useIsNewDetailPageEnabledSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should render legacy component with default props if LEGACY=false is present but resourceName has not been added to our mapping', async() => {
+  it('should render legacy component with default props if useIsNewDetailPageEnabledSpy is false but resourceName has not been added to our mapping', async() => {
     mockParams.resource = 'notMapped';
     mockQuery[MODE] = _VIEW;
 
+    useIsNewDetailPageEnabledSpy.mockReturnValue(false);
+
     const wrapper = mount(ResourceDetail, {});
     const legacyComponent = wrapper.findComponent<any>({ name: 'Legacy' });
 
     expect(legacyComponent.exists()).toBeTruthy();
+    expect(useIsNewDetailPageEnabledSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should render legacy component with default props if LEGACY=false is present but mode is not VIEW', async() => {
+  it('should render legacy component with default props if useIsNewDetailPageEnabledSpy is false but mode is not VIEW', async() => {
     mockParams.resource = resourceName;
     mockQuery[MODE] = _EDIT;
 
+    useIsNewDetailPageEnabledSpy.mockReturnValue(false);
+
     const wrapper = mount(ResourceDetail, {});
     const legacyComponent = wrapper.findComponent<any>({ name: 'Legacy' });
 
     expect(legacyComponent.exists()).toBeTruthy();
+    expect(useIsNewDetailPageEnabledSpy).toHaveBeenCalledTimes(1);
   });
 
   it('should render legacy component while forwarding props', async() => {
@@ -99,10 +115,13 @@ describe('component: ResourceDetail/index', () => {
     expect(legacyComponent.props('errorsMap')).toStrictEqual(errorsMap);
   });
 
-  it('should render new component if LEGACY=false is present', async() => {
+  it('should render new component if useIsNewDetailPageEnabledSpy is true', async() => {
     mockParams.resource = resourceName;
+    mockParams.id = 'ID';
     mockQuery[MODE] = _VIEW;
     mockQuery[LEGACY] = 'false';
+
+    useIsNewDetailPageEnabledSpy.mockReturnValue(true);
 
     const wrapper = mount(ResourceDetail);
 
@@ -110,5 +129,6 @@ describe('component: ResourceDetail/index', () => {
     const configmapComponent = wrapper.findComponent<any>({ name: 'configmap' });
 
     expect(configmapComponent.exists()).toBeTruthy();
+    expect(useIsNewDetailPageEnabledSpy).toHaveBeenCalledTimes(1);
   });
 });

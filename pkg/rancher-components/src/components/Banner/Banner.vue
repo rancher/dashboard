@@ -3,6 +3,19 @@ import { defineComponent } from 'vue';
 import { nlToBr, generateRandomAlphaString } from '@shell/utils/string';
 import { stringify } from '@shell/utils/error';
 
+/**
+ * These should eventually be used when making this component use the composable api but I need the props elsewhere so I'm defining them here.
+ */
+export interface Props {
+  color?: string;
+  label?: string | Error | Object;
+  labelKey?: string;
+  icon?: string;
+  closable?: boolean;
+  stacked?: boolean;
+  disabled?: boolean;
+}
+
 export default defineComponent({
   props: {
     /**

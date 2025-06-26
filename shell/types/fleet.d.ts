@@ -34,3 +34,27 @@ export interface Application {
     name: string
   }
 }
+
+export type TargetMode = 'none' | 'all' | 'clusters' | 'local' | 'advanced';
+
+export type MatchLabels = Record<string, string>;
+
+export interface Expression {
+  key: string,
+  operator: string,
+  values: string[]
+}
+
+export interface Selector {
+  key?: number,
+  matchLabels?: MatchLabels,
+  matchExpressions?: Expression[]
+}
+
+export interface Target {
+  name?: string,
+  clusterName?: string,
+  clusterSelector?: Selector,
+  clusterGroup?: string,
+  clusterGroupSelector?: Selector
+}

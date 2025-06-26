@@ -27,6 +27,10 @@ export default {
       type:    String,
       default: 'ingress'
     },
+    useTabbedHash: {
+      type:    Boolean,
+      default: undefined
+    }
   },
   data() {
     if (!this.value.spec[this.type]) {
@@ -56,6 +60,7 @@ export default {
         <Tabbed
           :side-tabs="true"
           :show-tabs-add-remove="mode !== 'view'"
+          :use-hash="useTabbedHash"
           @addTab="addPolicyRule"
           @removeTab="removePolicyRule"
         >

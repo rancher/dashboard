@@ -16,13 +16,17 @@ export interface KeyValueProps {
     rows: Row[];
     maxRows?: number;
     outline?: boolean;
+
+    onShowConfiguration?: (returnFocusSelector: string) => void;
 }
 </script>
 
 <script setup lang="ts">
 const props = withDefaults(
   defineProps<KeyValueProps>(),
-  { outline: false, maxRows: 4 }
+  {
+    outline: false, maxRows: 4, onShowConfiguration: undefined
+  }
 );
 const {
   propertyName, rows, maxRows, outline
@@ -30,6 +34,7 @@ const {
 
 const store = useStore();
 const i18n = useI18n(store);
+const emit = defineEmits(['show-configuration']);
 
 // Account for the show all button
 const visibleRowsLength = computed(() => (rows.value.length > maxRows.value ? maxRows.value - 1 : rows.value.length));
@@ -40,6 +45,10 @@ const showShowAllButton = computed(() => rows.value.length > maxRows.value);
 const showAllLabel = computed(() => `Show all ${ lowercasePropertyName.value }`);
 
 const displayValue = (row: Row) => `${ row.key }: ${ row.value }`;
+const showConfigurationEmptyDataTestId = computed(() => `empty-show-configuration_${ propertyName.value.replaceAll(' ', '').toLowerCase() }`);
+const showConfigurationEmptyFocusSelector = computed(() => `[data-testid="${ showConfigurationEmptyDataTestId.value }"]`);
+const showConfigurationMoreDataTestId = computed(() => `more-show-configuration_${ propertyName.value.replaceAll(' ', '').toLowerCase() }`);
+const showConfigurationMoreFocusSelector = computed(() => `[data-testid="${ showConfigurationMoreDataTestId.value }"]`);
 </script>
 
 <template>
@@ -50,18 +59,20 @@ const displayValue = (row: Row) => `${ row.key }: ${ row.value }`;
     </div>
     <div
       v-if="visibleRows.length === 0"
-      class="empty mmt-2"
+      class="empty mmt-2 text-muted"
     >
       <div class="no-rows">
         {{ i18n.t('component.resource.detail.metadata.keyValue.noRows', {propertyName: lowercasePropertyName}) }}
       </div>
       <div class="show-configuration mmt-1">
-        <router-link
-          class="secondary"
-          to="#"
+        <a
+          :data-testid="showConfigurationEmptyDataTestId"
+          class="secondary text-muted"
+          href="#"
+          @click="(ev: MouseEvent) => {ev.preventDefault(); emit('show-configuration', showConfigurationEmptyFocusSelector);}"
         >
           {{ i18n.t('component.resource.detail.metadata.keyValue.showConfiguration') }}
-        </router-link>
+        </a>
       </div>
     </div>
     <div
@@ -76,13 +87,15 @@ const displayValue = (row: Row) => `${ row.key }: ${ row.value }`;
         {{ displayValue(row) }}
       </Rectangle>
     </div>
-    <router-link
+    <a
       v-if="showShowAllButton"
-      to="#"
-      class="show-all"
+      :data-testid="showConfigurationMoreDataTestId"
+      href="#"
+      class="show-all secondary"
+      @click="(ev: MouseEvent) => {ev.preventDefault(); emit('show-configuration', showConfigurationMoreFocusSelector);}"
     >
       {{ showAllLabel }}
-    </router-link>
+    </a>
   </div>
 </template>
 
@@ -101,19 +114,14 @@ const displayValue = (row: Row) => `${ row.key }: ${ row.value }`;
     }
 
     .row {
+        width: 100%;
+
         &:not(:first-of-type) {
             margin-top: 4px;
         }
 
         & {
             margin-top: 8px;
-        }
-    }
-    .row {
-        margin-top: 8px;
-
-        &:not(:first-of-type) {
-            margin-top: 4px;
         }
     }
     .show-all {

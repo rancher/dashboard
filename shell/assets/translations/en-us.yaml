@@ -67,6 +67,11 @@ generic:
       warning: Warning
       error: Error
   ok: OK
+  other: |-
+    {count, plural,
+    one  {other}
+    other {others}
+    }
   overview: Overview
   plusMore: "+ {n} more"
   readFromFile: Read from File
@@ -2474,6 +2479,9 @@ detailText:
   binary: '<Binary Data: {n, number} bytes>'
   empty: '<Empty>'
   unsupported: '<Value not supported by UI, see YAML>'
+  sensitive:
+      hide: Hide Sensitive Values
+      show: Show Sensitive Values
   plusMore: |-
     {n, plural,
       =1 {+ 1 more char}
@@ -2546,6 +2554,7 @@ fleet:
     resources: Resources
     source: Source
   cluster:
+    label: Cluster
     summary: Resource Summary
     nonReady: Non-Ready Bundles
     labels: Labels
@@ -2582,6 +2591,24 @@ fleet:
       unknown: 'Unknown'
       notReady: Not Ready
       waitApplied: Wait Applied
+  clusterTargets:
+    title: Select by name
+    label: Clusters
+    advancedConfigs: Advanced target configurations are defined, check the YAML file for further details.
+    placeholders:
+      selectMultiple: Select Multiple Clusters
+    rules:
+      title: Select by labels
+      addSelector: Add cluster selector
+      matching:
+        title: Selected clusters
+        placeholder: Select clusters by name or labels
+        empty: No clusters in the workspace
+        plusMore: |-
+          {n, plural,
+            =1 {+ 1 more cluster}
+            other {+ {n, number} more clusters}
+          }
   application:
     pageTitle: App Bundles
     menuLabel: App Bundles
@@ -2636,11 +2663,24 @@ fleet:
       label: Certificates
       placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"
     paths:
-      label: Paths
-      ariaLabel: Enter path for Git Repo
+      title: Custom paths
+      description: Root directory
+      index: Path {index}
+      description1: The root folder is used by default. Fleet will scan recursively all folders and subfolders to find fleet.yaml files.
+      description2: You can provide multiple different directories. You can also add subpaths to specify different YAML config file paths.
+      ariaLabel: Enter paths for Git Repo
       placeholder: e.g. /directory/in/your/repo
       addLabel: Add Path
-      empty: The root of the repo is used by default. Multiple different directories can be provided.
+      enableBundles: Manually specify config files subpaths (Fleet won't scan subfolders recursively to find fleet.yaml files)
+      subpaths:
+        addLabel: Add Subpath
+        protipValue: "The name of a fleet YAML file in the folder"
+        props:
+          base: Subpath
+          options: Fleet YAML file (optional)
+        placeholders:
+          key: e.g. dev
+          value: e.g. kustomize.yaml
     repo:
       title: Source
       label: Repository URL
@@ -2713,10 +2753,10 @@ fleet:
       clusterGroup: Cluster Group
       label: Deploy To
       labelLocal: Deploy With
+      additionalOptions: Additional settings
     targetDisplay:
       advanced: Advanced
-      cluster: "Cluster"
-      clusterGroup: "Group"
+      clusters: Clusters
       all: All
       none: None
       local: Local
@@ -2845,10 +2885,10 @@ fleet:
       clusterGroup: Cluster Group
       label: Deploy To
       labelLocal: Deploy With
+      additionalOptions: Additional Options
     targetDisplay:
       advanced: Advanced
-      cluster: "Cluster"
-      clusterGroup: "Group"
+      clusters: Clusters
       all: All
       none: None
       local: Local
@@ -5620,6 +5660,13 @@ secret:
     'kubernetes.io/tls':
       description: Store a certificate and key for TLS
       docLink: https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
+  tabs:
+    namespaced:
+      label: Namespaced
+      create: Create Namespaced Secret
+    projectScoped:
+      label: Project Scoped
+      create: Create Project Scoped Secret
 
 selectOrCreateAuthSecret:
   label: Authentication
@@ -8313,20 +8360,6 @@ embedding:
   retry: Retry
   unavailable: Cluster Manager UI is not available
 
-legacy:
-  alerts: Alerts
-  apps: Apps
-  catalogs: Catalogs
-  configMaps: Config Maps
-  configuration: Configuration
-  notifiers: Notifiers
-  monitoring: Monitoring
-  secrets: Secrets
-
-  project:
-    label: Project
-    select: "Use the Project/Namespace filter at the top of the page to select a Project in order to see legacy Project features."
-
 serverUpgrade:
   title: "{vendor} Server Changed"
   message: "The page reloaded because the version of {vendor} running on your server changed."
@@ -8474,6 +8507,22 @@ errors:
     withUrl: '{msg}: {url}'
     withoutUrl: '{msg}'
 component:
+  drawer:
+    chrome:
+      ariaLabel:
+        close: Close {target} drawer
+      close: Close
+    resourceDetailDrawer:
+      title: "{resourceName} ({resourceType}) - Configuration"
+      editConfig: Edit Config
+      editYaml: Edit YAML
+      ariaLabel:
+        editConfig: Edit Config
+        editYaml: Edit YAML
+      yamlTab:
+        title: YAML
+      configTab:
+        title: Config
   resource:
     detail:
       card:
@@ -8510,6 +8559,7 @@ component:
       metadata:
         labelsAndAnnotations: Labels and Annotations
         identifyingInformation:
+          createdBy: Created by
           namespace: Namespace
           project: Project
           age: Age
@@ -8517,6 +8567,12 @@ component:
           ready: Ready
           up-to-date: Up-to-date
           available: Available
+          serviceAccount: Service Account
+          type: Type
+          certificate: Certificate
+          issuer: Issuer
+          expires: Expires
+          workspace: Workspace
         annotations:
           title: Annotations
         labels:

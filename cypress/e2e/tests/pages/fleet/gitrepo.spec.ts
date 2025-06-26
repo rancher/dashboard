@@ -80,13 +80,15 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       // Repository details step
       gitRepoCreatePage.setGitRepoUrl(repo);
       gitRepoCreatePage.setBranchName(branch);
-      gitRepoCreatePage.gitRepoPaths().setValueAtIndex(paths[0], 0, 'Add Path');
+      gitRepoCreatePage.setGitRepoPath(paths[0]);
 
       gitRepoCreatePage.resourceDetail().createEditView().nextPage();
 
-      // Target info step
+      // Target selection step
+      gitRepoCreatePage.targetClusterOptions().set(1);
+      gitRepoCreatePage.targetClusterOptions().set(2);
       gitRepoCreatePage.targetCluster().toggle();
-      gitRepoCreatePage.targetCluster().clickOption(6);
+      gitRepoCreatePage.targetCluster().clickLabel(fakeProvClusterId);
 
       gitRepoCreatePage.resourceDetail().createEditView().nextPage();
 
@@ -301,19 +303,20 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
     //   gitRepoDetails.bundlesCount().should('contain', '1');
     // });
 
-    it('check if graph is visible', function() {
-      const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
+    // We no longer have the button group on the detail pages but we still need to discuss where it's moving to
+    // it('check if graph is visible', function() {
+    //   const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
 
-      listPage.goTo();
-      listPage.waitForPage();
-      headerPo.selectWorkspace(workspace);
-      listPage.goToDetailsPage(this.gitRepo);
+    //   listPage.goTo();
+    //   listPage.waitForPage();
+    //   headerPo.selectWorkspace(workspace);
+    //   listPage.goToDetailsPage(this.gitRepo);
 
-      gitRepoDetails.waitForPage(null, 'bundles');
+    //   gitRepoDetails.waitForPage(null, 'bundles');
 
-      gitRepoDetails.showGraph();
-      gitRepoDetails.graph().should('contain', this.gitRepo);
-    });
+    //   gitRepoDetails.showGraph();
+    //   gitRepoDetails.graph().should('contain', this.gitRepo);
+    // });
   });
 
   describe('Edit', () => {

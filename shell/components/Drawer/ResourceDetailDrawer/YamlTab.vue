@@ -1,0 +1,47 @@
+<script lang="ts">
+import CodeMirror from '@shell/components/CodeMirror.vue';
+import { useI18n } from '@shell/composables/useI18n';
+import { _VIEW } from '@shell/config/query-params';
+import { useStore } from 'vuex';
+import Tab from '@shell/components/Tabbed/Tab.vue';
+import { useTemplateRef } from 'vue';
+
+export interface Props {
+  resource: any;
+  yaml: string;
+}
+</script>
+<script setup lang="ts">
+const props = defineProps<Props>();
+const store = useStore();
+const i18n = useI18n(store);
+const yamlComponent: any = useTemplateRef('yaml');
+</script>
+<template>
+  <Tab
+    class="yaml-tab"
+    name="yaml-tab"
+    :label="i18n.t('component.drawer.resourceDetailDrawer.yamlTab.title')"
+    @active="() => yamlComponent?.refresh()"
+  >
+    <CodeMirror
+      ref="yaml"
+      :value="props.yaml"
+      :mode="_VIEW"
+    />
+  </Tab>
+</template>
+
+<style lang="scss" scoped>
+.yaml-tab {
+  :deep() .codemirror-container {
+    background-color: var(--body-bg);
+    border-radius: var(--border-radius-md);
+    padding: 16px;
+
+    .CodeMirror, .CodeMirror-gutter {
+      background-color: var(--body-bg);
+    }
+  }
+}
+</style>

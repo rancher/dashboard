@@ -8,6 +8,7 @@ import SelectOrCreateAuthPo from '@/cypress/e2e/po/components/select-or-create-a
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
+import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 
 export class FleetApplicationListPagePo extends BaseListPagePo {
   static url = `/c/_/fleet/application`;
@@ -79,12 +80,19 @@ export class FleetGitRepoCreateEditPo extends BaseDetailPagePo {
     return LabeledInputPo.bySelector(this.self(), '[data-testid="gitrepo-helm-repo-url-regex"]').set(regexStr);
   }
 
-  setGitRepoPath(path: string, index = 0) {
-    return this.gitRepoPaths().setValueAtIndex(path, index);
+  setGitRepoPath(path: string) {
+    const repoPaths = this.gitRepoPaths();
+
+    repoPaths.clickAdd('Add Path');
+    repoPaths.self().find('[data-testid="main-path"]').type(path);
+  }
+
+  targetClusterOptions(): RadioGroupInputPo {
+    return new RadioGroupInputPo('[data-testid="fleet-target-cluster-radio-button"]');
   }
 
   targetCluster(): LabeledSelectPo {
-    return new LabeledSelectPo('[data-testid="fleet-gitrepo-target-cluster"]');
+    return new LabeledSelectPo('[data-testid="fleet-target-cluster-name-selector"]');
   }
 
   gitRepoPaths() {

@@ -9,6 +9,8 @@ export interface Row {
       props?: Object
     },
     to?: RouteLocationRaw;
+    dataTestid?: string;
+    valueDataTestid?: string;
     status?: 'success' | 'warning' | 'info' | 'error',
 }
 
@@ -19,6 +21,8 @@ export interface MetadataProps {
 
 <script setup lang="ts">
 const { rows } = defineProps<MetadataProps>();
+
+const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`.toLowerCase().replaceAll(' ', '');
 </script>
 
 <template>
@@ -27,22 +31,29 @@ const { rows } = defineProps<MetadataProps>();
       v-for="row in rows"
       :key="`${row.label}:${row.value}`"
       class="row"
+      :data-testid="row.dataTestid"
     >
-      <div class="label text-muted">
+      <label
+        class="label text-muted"
+        :for="getRowValueId(row)"
+      >
         {{ row.label }}
-      </div>
+      </label>
       <div
-        v-if="row.valueOverride?.component"
+        v-if="row.valueOverride?.component && row.value"
+        :id="getRowValueId(row)"
         class="value"
       >
         <component
           :is="row.valueOverride?.component"
           v-if="row.valueOverride?.component"
           v-bind="row.valueOverride?.props"
+          :data-testid="row.valueDataTestid"
         />
       </div>
       <div
         v-else
+        :id="getRowValueId(row)"
         class="value"
       >
         <div
@@ -50,12 +61,23 @@ const { rows } = defineProps<MetadataProps>();
           :class="['status', row.status]"
         />
         <router-link
-          v-if="row.to"
+          v-if="row.value && row.to"
           :to="row.to"
+          :data-testid="row.valueDataTestid"
         >
           {{ row.value }}
         </router-link>
-        <span v-else>{{ row.value }}</span>
+        <span
+          v-else-if="row.value"
+          :data-testid="row.valueDataTestid"
+          tabindex="0"
+          :aria-label="row.value"
+        >{{ row.value }}</span>
+        <span
+          v-else
+          class="text-muted"
+          :data-testid="row.valueDataTestid"
+        >&mdash;</span>
       </div>
     </div>
   </div>
