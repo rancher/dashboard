@@ -241,7 +241,7 @@ export default {
       font-size: 14px;
       line-height: 24px;
       padding: 7.5px 7px 7.5px 10px;
-      margin: 0 0 0 -3px;
+      margin: 0 0 0 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;

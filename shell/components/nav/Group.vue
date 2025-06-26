@@ -353,7 +353,7 @@ export default {
       }
       > H6 {
         text-transform: none;
-        padding: 8px 0 8px 16px;
+        padding: 8px 0 8px 14px;
       }
     }
   }
@@ -385,7 +385,7 @@ export default {
         background-color: var(--active, var(--primary-hover-bg));
 
         h6 {
-          padding: 8px 0 8px 16px;
+          padding: 8px 0 8px 14px;
           font-weight: bold;
           color: var(--on-active, var(--primary-hover-text));
         }
@@ -417,7 +417,7 @@ export default {
 
         > H6 {
           text-transform: none;
-          padding: 8px 0 8px 16px;
+          padding: 8px 0 8px 14px;
         }
       }
 
