@@ -148,6 +148,10 @@ watch(
 </template>
 
 <style lang="scss" scoped>
+.actions {
+  display: flex;
+}
+
 .title-bar {
   min-width: 740px;
 
