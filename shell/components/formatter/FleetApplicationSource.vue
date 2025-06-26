@@ -50,7 +50,7 @@ export default {
       :value="row.source.value || ''"
     />
     <template v-if="row.source.value && row.sourceSub.value">
-      <div class="text-muted">
+      <div class="text-label">
         <Shortened
           long-value-key="sourceSub.value"
           :row="row"
