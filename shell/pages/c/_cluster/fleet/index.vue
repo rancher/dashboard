@@ -465,10 +465,10 @@ export default {
             class="collapse-all-btn"
             @click="toggleCardAll(allCardsExpanded ? 'collapse' : 'expand')"
           >
+            <p class="ml-10">
+              {{ allCardsExpanded ? t('fleet.dashboard.collapseAll') : t('fleet.dashboard.expandAll') }}
+            </p>
             <template #after>
-              <p class="ml-10">
-                {{ allCardsExpanded ? t('fleet.dashboard.collapseAll') : t('fleet.dashboard.expandAll') }}
-              </p>
               <i
                 :class="{
                   ['icon icon-chevron-right']: !allCardsExpanded,
