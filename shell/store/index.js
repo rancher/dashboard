@@ -1177,6 +1177,9 @@ export const actions = {
   },
 
   async onLogout(store) {
+    // eslint-disable-next-line no-console
+    console.error('AUTH STORE onLogout');
+
     const { dispatch, commit, state } = store;
 
     store.dispatch('gcStopIntervals');

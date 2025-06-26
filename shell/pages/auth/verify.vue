@@ -13,6 +13,8 @@ const samlProviders = ['ping', 'adfs', 'keycloak', 'okta', 'shibboleth'];
 const oauthProviders = ['github', 'googleoauth', 'azuread'];
 
 function reply(err, code) {
+  // eslint-disable-next-line no-console
+  console.error('VERIFY on reply....', err, code);
   try {
     // If we have access to the opener, then use the `onAuthTest` callback
     if (window.opener) {
@@ -43,6 +45,9 @@ function isSaml($route) {
 
 export default {
   async fetch() {
+    // eslint-disable-next-line no-console
+    console.error('VERIFY START!');
+
     const code = this.$route.query[GITHUB_CODE];
     const stateStr = this.$route.query[GITHUB_NONCE];
     const {
@@ -101,17 +106,23 @@ export default {
       return;
     }
 
-    const { test, provider, nonce } = parsed;
+    const {
+      test, provider, nonce, queryParams
+    } = parsed;
 
     if (test) {
       return;
     }
 
+    // eslint-disable-next-line no-console
+    console.error('VERIFY decoded string', parsed);
+
     try {
       const res = await this.$store.dispatch('auth/verifyOAuth', {
         code,
         nonce,
-        provider
+        provider,
+        queryParams: queryParams || {}
       });
 
       if ( res._status === 200) {
@@ -141,6 +152,9 @@ export default {
   },
 
   data() {
+    // eslint-disable-next-line no-console
+    console.error('VERIFY DATA!');
+
     return {
       testing: null,
       isSlo:   null,
@@ -148,6 +162,8 @@ export default {
   },
 
   created() {
+    // eslint-disable-next-line no-console
+    console.error('VERIFY CREATED!');
     const stateJSON = this.$route.query[GITHUB_NONCE] || '';
 
     let parsed = {};
@@ -164,7 +180,11 @@ export default {
   },
 
   mounted() {
+    // eslint-disable-next-line no-console
+    console.error('VERIFY MOUNTED!');
     if ( this.testing ) {
+      // eslint-disable-next-line no-console
+      console.error('VERIFY is testing');
       try {
         const {
           error: respError, error_description: respErrorDescription, [GITHUB_CODE]: code, errorMsg
@@ -176,16 +196,29 @@ export default {
           error = this.$store.getters['i18n/withFallback'](`login.serverError.${ errorMsg }`, null, errorMsg);
         }
 
+        // eslint-disable-next-line no-console
+        console.error('VERIFY is testing - success');
+
         reply(error, code );
       } catch (e) {
         window.close();
       }
     } else {
+      // eslint-disable-next-line no-console
+      console.error('VERIFY NOT testing');
       if ( window.opener ) {
+        // eslint-disable-next-line no-console
+        console.error('VERIFY aaaa');
         if (isSaml(this.$route)) {
+          // eslint-disable-next-line no-console
+          console.error('VERIFY bbb');
           if ( window.opener.window.onAuthTest ) {
+            // eslint-disable-next-line no-console
+            console.error('VERIFY cccc');
             reply(null, null);
           } else {
+            // eslint-disable-next-line no-console
+            console.error('VERIFY dddd');
             reply({ err: 'failure' });
           }
         }
