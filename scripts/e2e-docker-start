@@ -32,7 +32,7 @@ docker run -d --restart=unless-stopped -p 80:80 -p 443:443 ${VOLUME_ARGS} \
   -e CATTLE_TRACE=true \
   --name cypress \
   --privileged \
-  rancher/rancher:${RANCHER_IMG_VERSION} \
+  crobby/rancher:v2.12-882e7a1b4-head \
   --features=oidc-provider=true
 
 docker ps
