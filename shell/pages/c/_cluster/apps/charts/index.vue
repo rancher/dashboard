@@ -492,9 +492,13 @@ export default {
 
       <div
         v-if="filteredCharts.length === 0"
-        class="app-chart-cards-empty-state"
+        class="charts-empty-state"
+        data-testid="charts-empty-state"
       >
-        <h1 class="empty-state-title">
+        <h1
+          class="empty-state-title"
+          data-testid="charts-empty-state-title"
+        >
           {{ t('catalog.charts.noCharts.title') }}
         </h1>
         <div class="empty-state-tips">
@@ -505,6 +509,7 @@ export default {
             tabindex="0"
             role="button"
             class="empty-state-reset-filters link"
+            data-testid="charts-empty-state-reset-filters"
             @click="resetAllFilters"
           >
             {{ t('catalog.charts.noCharts.messagePart2') }}
@@ -689,7 +694,7 @@ export default {
   gap: var(--gap-lg);
 }
 
-.app-chart-cards-empty-state {
+.charts-empty-state {
   width: 100%;
   padding: 72px 0;
   text-align: center;
