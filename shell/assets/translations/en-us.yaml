@@ -2524,6 +2524,98 @@ etcdInfoBanner:
   failedProposals: "Number of failed proposals:"
 
 fleet:
+  settings:
+    label: Fleet
+    title: Fleet Settings
+    info: Rancher will reboot Fleet agent and controller on settings change.
+    noPermissions: You have no permissions to modify Fleet Settings
+    parseError: 'Cannot parse values from "{ path }" in "{ id }" ConfigMap'
+    fields:
+      ariaLabel: Fleet {name} setting
+    agentTLSMode:
+      label: TLS Mode
+      description: "Determines whether the agent should trust CA bundles from the operating system's trust store when connecting to a management cluster."
+      options:
+        system-store:
+          label: system-store
+        strict:
+          label: strict
+    agentCheckinInterval:
+      label: Checkin Interval
+      description: A duration string for how often agents should report a heartbeat.
+    garbageCollectionInterval:
+      label: Garbage Collection Interval
+      description: The amount of time that agents will wait before they clean up old Helm releases. A non-existent value or 0 will result in an interval of 15 minutes.
+    clusterEnqueueDelay:
+      label: Cluster Enqueue Delay
+      description: "Interval to sync a repo with bunldle deployments states."
+    proxy:
+      label: Proxy
+      description: Fleet http[s] proxy server.
+      placeholder: http://<username>@<password>:<url>:<port>
+    noProxy:
+      label: No Proxy
+      description: Comma separated list of domains or ip addresses that will not use the proxy.
+    gitClientTimeout:
+      label: Git Client Timeout
+      description: "The amount of time to wait for a response from the server before canceling the request. Used to retrieve the latest commit of configured git repositories. A non-existent value or 0 will result in a timeout of 30 seconds."
+    nodeSelector:
+      label: Node Selector
+      description: "Node labels for pod assignment."
+      add: Add Selector
+    tolerations:
+      label: Tolerations
+      description: "List of node taints to tolerate (requires Kubernetes >= 1.6)"
+      add: Add Toleration
+    priorityClassName:
+      label: Priority Class Name
+      description: "PriorityClassName assigned to deployment."
+    metrics:
+      label: Metrics
+      description: 'Enable metrics'
+    debug:
+      label: Debug
+      description: 'Enable debug mode'
+    controllerAnnotations:
+      label: Controller
+      description: ""
+      add: Add Annotation
+    gitjobAnnotations:
+      label: Gitjob
+      description: ""
+      add: Add Annotation
+    helmopsAnnotations:
+      label: Helmops
+      description: ""
+      add: Add Annotation
+    controllerReplicas:
+      label: Controller
+      description: ""
+    gitjobReplicas:
+      label: Gitjob
+      description: ""
+    helmopsReplicas:
+      label: Helmops
+      description: ""
+    agentReplicas:
+      label: Agent
+      description: ""
+    general:
+      label: General
+      description: 'General settings.'
+    agent:
+      label: Agent
+      description: 'Agent deployment settings.'
+    replicas:
+      label: Replicas
+      description: 'Number of replicas of Fleet pods.'
+    annotations:
+      label: Extra Annotations
+      description: 'Extra annotations passed to the Fleet pods.'
+    developer:
+      label: Developer
+      description: 'Enable debug info from Fleet.'
+
   tableHeaders:
     applicationType: Type
     applicationSource: Source
