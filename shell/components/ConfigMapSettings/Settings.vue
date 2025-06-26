@@ -184,13 +184,17 @@ export default {
           </h2>
         </div>
 
-        <p
+        <div
           v-if="item.description && item.type !== 'boolean'"
-          class="description text-muted mt-10"
-          :aria-describedby="item.description"
+          class="description mt-10"
         >
-          {{ item.description }}
-        </p>
+          <label
+            class="text-label"
+            :aria-describedby="item.description"
+          >
+            {{ item.description }}
+          </label>
+        </div>
 
         <Banner
           v-if="item.info"
