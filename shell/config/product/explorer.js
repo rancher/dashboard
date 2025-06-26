@@ -106,6 +106,10 @@ export function init(store) {
     POD,
   ], 'workload');
 
+  setGroupDefaultType('workload', () => {
+    return store.getters['features/get'](STEVE_CACHE) ? WORKLOAD_TYPES.DEPLOYMENT : undefined;
+  });
+
   weightGroup('cluster', 99, true);
   weightGroup('workload', 98, true);
   weightGroup('serviceDiscovery', 96, true);
@@ -184,6 +188,7 @@ export function init(store) {
   configureType(NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, { depaginate: dePaginateNormanBindings });
   configureType(SNAPSHOT, { depaginate: true });
   configureType(NORMAN.ETCD_BACKUP, { depaginate: true });
+  configureType(SECRET, { showListMasthead: false });
 
   configureType(EVENT, { limit: 500 });
   weightType(EVENT, -1, true);

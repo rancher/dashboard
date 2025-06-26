@@ -195,7 +195,10 @@ export default {
       :rules="{ name: fvGetAndReportPathRules('spec.displayName'), namespace: [], description: [] }"
       @update:value="$emit('input', $event)"
     />
-    <Tabbed :side-tabs="true">
+    <Tabbed
+      :side-tabs="true"
+      :use-hash="useTabbedHash"
+    >
       <Tab
         v-if="canViewMembers"
         name="members"

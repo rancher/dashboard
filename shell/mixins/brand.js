@@ -1,39 +1,38 @@
 import { mapGetters } from 'vuex';
-import { CATALOG, MANAGEMENT } from '@shell/config/types';
+import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { createCssVars } from '@shell/utils/color';
 import { setTitle } from '@shell/config/private-label';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
-
-const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
-
-export const hasCspAdapter = (apps) => {
-  return apps?.find((a) => cspAdaptorApp.includes(a.metadata?.name));
-};
+import { allHash } from '@shell/utils/promise';
+import { fetchInitialSettings } from '@shell/utils/settings';
+import CspAdapterUtils from '@shell/utils/cspAdaptor';
 
 export default {
   async fetch() {
-    // For the login page, the schemas won't be loaded - we don't need the apps in this case
     try {
-      if (this.$store.getters['management/canList'](CATALOG.APP)) {
-        this.apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
-      }
-    } catch (e) {}
+      const res = await allHash({
+        // Ensure we read the settings even when we are not authenticated
+        globalSettings: fetchInitialSettings(this.$store),
+        apps:           CspAdapterUtils.fetchCspAdaptorApp(this.$store),
+      });
 
-    // Ensure we read the settings even when we are not authenticated
-    try {
       // The favicon is implicitly dependent on the initial settings having already been fetched
       if (!haveSetFavIcon()) {
         setFavIcon(this.$store);
       }
-    } catch (e) {}
+
+      this.apps = res.apps;
+    } catch (e) { }
 
     // Setting this up front will remove `computed` churn, and we only care that we've initialised them
     this.haveAppsAndSettings = !!this.apps && !!this.globalSettings;
   },
 
   data() {
-    return { apps: null, haveAppsAndSettings: null };
+    return {
+      apps: null, haveAppsAndSettings: null, canPaginate: false
+    };
   },
 
   computed: {
@@ -87,7 +86,7 @@ export default {
       // Note! this used to be `findBy(this.app)` however for that case we lost reactivity on the collection
       // (computed fires before fetch, fetch happens and update apps, computed would not fire again - even with vue.set)
       // So use `.find` in method instead
-      return hasCspAdapter(this.apps);
+      return CspAdapterUtils.hasCspAdapter({ $store: this.$store, apps: this.apps });
     },
 
     canCalcCspAdapter() {

@@ -203,7 +203,7 @@ export default {
       @input="$emit('input', $event)"
     />
 
-    <Tabbed>
+    <Tabbed :use-hash="useTabbedHash">
       <Tab
         :label="t('monitoring.route.label')"
         :weight="1"

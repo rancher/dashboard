@@ -174,7 +174,10 @@ export default {
 
     <div class="row mb-40">
       <div class="col span-12">
-        <Tabbed :side-tabs="true">
+        <Tabbed
+          :side-tabs="true"
+          :use-hash="useTabbedHash"
+        >
           <Tab
             name="ingress"
             label-key="networkpolicy.ingress.label"
@@ -196,7 +199,7 @@ export default {
               :value="value"
               type="ingress"
               :mode="mode"
-
+              :use-tabbed-hash="useTabbedHash"
               @update:value="$emit('input', $event)"
             />
           </Tab>

@@ -2,6 +2,12 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
+import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
+import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
+import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
+import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
 
 export class SecretsListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
@@ -24,7 +30,32 @@ export class SecretsListPagePo extends BaseListPagePo {
     sideNav.navToSideMenuGroupByLabel('Storage');
     sideNav.navToSideMenuEntryByLabel('Secrets');
   }
+
+  clickTab(name: string) {
+    new TabbedPo().clickTabWithName(name);
+  }
+
+  title() {
+    return this.self().get('.title h1').invoke('text');
+  }
+
+  createButton() {
+    return this.self().get('[data-testid="secrets-list-create');
+  }
+
+  createButtonTitle() {
+    return this.createButton().invoke('text');
+  }
+
+  list() {
+    return new BaseResourceList('[data-testid="sortable-table-list-container"]');
+  }
+
+  sortableTable() {
+    return this.list().resourceTable().sortableTable();
+  }
 }
+
 export class SecretsCreateEditPo extends BaseDetailPagePo {
   private static createPath(clusterId: string, namespace?: string, id?: string ) {
     const root = `/c/${ clusterId }/explorer/secret`;
@@ -38,5 +69,25 @@ export class SecretsCreateEditPo extends BaseDetailPagePo {
 
   constructor(clusterId: string, namespace?: string, id?: string) {
     super(SecretsCreateEditPo.createPath(clusterId, namespace, id));
+  }
+
+  selectSecretSubtype(subtype: string) {
+    return this.self().get(`[data-testid="subtype-banner-item-${ subtype }"]`);
+  }
+
+  projectSelect() {
+    return new LabeledSelectPo('[data-testid="secret-project-select"]');
+  }
+
+  nameNsDescription() {
+    return new NameNsDescription(this.self());
+  }
+
+  basicAuthUsernameInput() {
+    return new LabeledInputPo('[data-testid="secret-basic-username"]');
+  }
+
+  saveOrCreate(): AsyncButtonPo {
+    return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 }
