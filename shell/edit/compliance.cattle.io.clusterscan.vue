@@ -136,12 +136,12 @@ export default {
 
     defaultProfile() {
       if (this.defaultConfigMap) {
-        const profiles = this.defaultConfigMap.data;
+        const profiles = this.defaultConfigMap.data || {}; // The config map might be empty, so ensure we have an object
         const provider = this.currentCluster.status.provider;
 
         let name = profiles[provider] || profiles.default;
 
-        if (name.includes(':')) {
+        if (name?.includes(':')) {
           const pairs = name.split('\n');
           const clusterVersion = this.currentCluster.kubernetesVersion;
 
@@ -166,15 +166,14 @@ export default {
             return profile;
           }
         }
-        const cis16 = this.validProfiles.find((profile) => profile.value === 'cis-1.6-profile');
 
-        if (cis16) {
-          return this.allProfiles.find((profile) => profile.id === 'cis-1.6-profile');
-        } else {
-          return this.allProfiles.find((profile) => profile.id === 'cis-1.5-profile');
+        // Just use the first one as the default - check the profiles we consider to be valid for this cluster first
+        if (this.validProfiles.length > 0) {
+          return this.allProfiles.find((profile) => profile.id === this.validProfiles[0].value) || null;
         }
       }
 
+      // Can not find a default
       return null;
     },
 
