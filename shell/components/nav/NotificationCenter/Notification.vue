@@ -4,9 +4,11 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import { computed, inject, ref } from 'vue';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 import { useI18n } from '@shell/composables/useI18n';
 import { NotificationAction, NotificationLevel, StoredNotification } from '@shell/types/notifications';
 import { DropdownContext, defaultContext } from '@components/RcDropdown/types';
+import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
 
 const CLASSES = {
   [NotificationLevel.Announcement]: 'icon-notify-announcement text-info',
@@ -24,9 +26,12 @@ const { dropdownItems } = inject<DropdownContext>('dropdownContext') || defaultC
 
 const store = useStore();
 const { t } = useI18n(store);
+const router = useRouter();
 const unreadCount = computed<number>(() => store.getters['notifications/unreadCount']);
 const dateFormat = escapeHtml( store.getters['prefs/get'](DATE_FORMAT));
 const timeFormat = escapeHtml( store.getters['prefs/get'](TIME_FORMAT));
+
+const { close } = useDropdownItem();
 
 // Outer element for the notification
 const dropdownMenuItem = ref<HTMLElement>();
@@ -76,9 +81,21 @@ const age = computed(() => {
 
 const clz = computed(() => CLASSES[props.item.level]);
 
-// Open a URL from either the primary or secondary buttons in a new tab
+// Invoke action on either the primary or secondary buttons
+// This can open a URL in a new tab OR navigate to an application route
 const action = (action: NotificationAction) => {
-  window.open(action.target, '_blank');
+  if (action.target) {
+    window.open(action.target, '_blank');
+  } else if (action.route) {
+    try {
+      router.push(action.route);
+    } catch (e) {
+      console.error('Error navigating to route for the notification action', e); // eslint-disable-line no-console
+    }
+    close();
+  } else {
+    console.error('Notification action must either specify a "target" or a "route"'); // eslint-disable-line no-console
+  }
 };
 
 const toggleRead = (e: MouseEvent | KeyboardEvent, fromKeyboard = false) => {
@@ -201,6 +218,16 @@ const scrollIntoView = (event: Event) => {
   const target = event.target;
 
   if (target instanceof HTMLElement) {
+    const t = target as HTMLElement;
+
+    // If a button was clicked, then do not scroll into view, as this will scroll to make the button
+    // visible and the click will be ignored - so just return, so that the click works as expected
+    if (t.tagName === 'BUTTON') {
+      return;
+    }
+  }
+
+  if (target instanceof HTMLElement) {
     target?.scrollIntoView({
       behavior: 'smooth',
       block:    'center',
@@ -292,7 +319,7 @@ const scrollIntoView = (event: Event) => {
             @keydown.enter.space.stop="action(item.primaryAction)"
             @keydown.tab.stop="innerFocusNext($event)"
             @keydown.escape.stop="exitFocusTrap"
-            @click.stop="action(item.primaryAction)"
+            @click.stop.prevent="action(item.primaryAction)"
           >
             {{ item.primaryAction.label }}
           </button>
@@ -304,7 +331,7 @@ const scrollIntoView = (event: Event) => {
             @keydown.enter.space.stop="action(item.secondaryAction)"
             @keydown.tab.stop="innerFocusNext($event)"
             @keydown.escape.stop="exitFocusTrap"
-            @click.stop="action(item.secondaryAction)"
+            @click.stop.prevent="action(item.secondaryAction)"
           >
             {{ item.secondaryAction.label }}
           </button>

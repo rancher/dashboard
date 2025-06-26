@@ -39,6 +39,17 @@ export type OnEnterLeavePackageConfig = {
 export type OnNavToPackage = (store: any, config: OnEnterLeavePackageConfig) => Promise<void>;
 export type OnNavAwayFromPackage = (store: any, config: OnEnterLeavePackageConfig) => Promise<void>;
 export type OnLogOut = (store: any) => Promise<void>;
+export type OnLogIn = (store: any) => Promise<void>;
+
+/**
+ * Navigation hooks specified as an object
+ */
+export type NavHooks = {
+  onEnter?: OnNavToPackage,
+  onLeave?: OnNavAwayFromPackage,
+  onLogout?: OnLogOut,
+  onLogin?: OnLogIn,
+}
 
 /** Enum regarding the extensible areas/places of the UI */
 export enum ExtensionPoint {
@@ -648,8 +659,10 @@ export interface IPlugin {
   addNavHooks(
     onEnter?: OnNavToPackage,
     onLeave?: OnNavAwayFromPackage,
-    onLogOut?: OnLogOut
+    onLogOut?: OnLogOut,
+    onLogIn?: OnLogIn,
   ): void;
+  addNavHooks(hooks: NavHooks): void;
 
   /**
    * Adds a model extension
