@@ -16,7 +16,7 @@ import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
 import { RcItemCard } from '@components/RcItemCard';
 import { get } from '@shell/utils/object';
-import { CATALOG as CATALOG_TYPES, SORT_OPTIONS } from '@shell/config/types';
+import { CATALOG as CATALOG_TYPES, CATALOG_SORT_OPTIONS } from '@shell/config/types';
 import FilterPanel from '@shell/components/FilterPanel';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
@@ -51,7 +51,7 @@ export default {
 
     this.searchQuery = query[SEARCH_QUERY] || '';
     this.debouncedSearchQuery = query[SEARCH_QUERY] || '';
-    this.selectedSortOption = query[SORT_BY] || SORT_OPTIONS.RECOMMENDED;
+    this.selectedSortOption = query[SORT_BY] || CATALOG_SORT_OPTIONS.RECOMMENDED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
     this.filters.repos = normalizeFilterQuery(query[REPO]) || [];
     this.filters.categories = normalizeFilterQuery(query[CATEGORY]) || [];
@@ -103,13 +103,13 @@ export default {
         }
       ],
       appCardsCache:      {},
-      selectedSortOption: SORT_OPTIONS.RECOMMENDED,
+      selectedSortOption: CATALOG_SORT_OPTIONS.RECOMMENDED,
       sortOptions:        [
         { kind: 'group', label: this.t('catalog.charts.sort.prefix') },
-        { value: SORT_OPTIONS.RECOMMENDED, label: this.t('catalog.charts.sort.recommended') },
-        { value: SORT_OPTIONS.LAST_UPDATED_DESC, label: this.t('catalog.charts.sort.lastUpdatedDesc') },
-        { value: SORT_OPTIONS.ALPHABETICAL_ASC, label: this.t('catalog.charts.sort.alphaAscending') },
-        { value: SORT_OPTIONS.ALPHABETICAL_DESC, label: this.t('catalog.charts.sort.alphaDescending') },
+        { value: CATALOG_SORT_OPTIONS.RECOMMENDED, label: this.t('catalog.charts.sort.recommended') },
+        { value: CATALOG_SORT_OPTIONS.LAST_UPDATED_DESC, label: this.t('catalog.charts.sort.lastUpdatedDesc') },
+        { value: CATALOG_SORT_OPTIONS.ALPHABETICAL_ASC, label: this.t('catalog.charts.sort.alphaAscending') },
+        { value: CATALOG_SORT_OPTIONS.ALPHABETICAL_DESC, label: this.t('catalog.charts.sort.alphaDescending') },
       ]
     };
   },

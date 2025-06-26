@@ -1,4 +1,4 @@
-import { CATALOG, EXPERIMENTAL, DEPRECATED, SORT_OPTIONS } from '@shell/config/types';
+import { CATALOG, EXPERIMENTAL, DEPRECATED, CATALOG_SORT_OPTIONS } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addParams } from '@shell/utils/url';
 import { allHash, allHashSettled } from '@shell/utils/promise';
@@ -706,19 +706,19 @@ export function filterAndArrangeCharts(charts, {
     return true;
   });
 
-  if (sort === SORT_OPTIONS.RECOMMENDED) {
+  if (sort === CATALOG_SORT_OPTIONS.RECOMMENDED) {
     return sortBy(out, ['featuredIndex', 'certifiedSort', 'repoName', 'chartNameDisplay']);
   }
 
-  if (sort === SORT_OPTIONS.LAST_UPDATED_DESC) {
+  if (sort === CATALOG_SORT_OPTIONS.LAST_UPDATED_DESC) {
     return sortBy(out, ['durationSinceRelease', 'featuredIndex', 'certifiedSort', 'repoName', 'chartNameDisplay']);
   }
 
-  if (sort === SORT_OPTIONS.ALPHABETICAL_ASC) {
+  if (sort === CATALOG_SORT_OPTIONS.ALPHABETICAL_ASC) {
     return sortBy(out, ['chartNameDisplay', 'featuredIndex', 'certifiedSort', 'repoName']);
   }
 
-  if (sort === SORT_OPTIONS.ALPHABETICAL_DESC) {
+  if (sort === CATALOG_SORT_OPTIONS.ALPHABETICAL_DESC) {
     return sortBy(out, ['chartNameDisplay'], true);
   }
 

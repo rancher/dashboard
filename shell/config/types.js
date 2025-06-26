@@ -135,7 +135,7 @@ export const CATALOG = {
 };
 
 // Charts/Apps
-export const SORT_OPTIONS = {
+export const CATALOG_SORT_OPTIONS = {
   RECOMMENDED:       'recommended',
   LAST_UPDATED_DESC: 'lastupdatedDescending',
   ALPHABETICAL_ASC:  'alphaAscending',
