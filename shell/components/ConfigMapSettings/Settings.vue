@@ -10,7 +10,6 @@ import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import Taints from '@shell/components/form/Taints.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import { Banner } from '@components/Banner';
-import { RcButton } from '@components/RcButton';
 import { Group, Setting } from '@shell/components/ConfigMapSettings/index.vue';
 
 interface Option {
@@ -45,7 +44,6 @@ export default {
     KeyValue,
     Checkbox,
     Banner,
-    RcButton,
     Taints,
     TextAreaAutoGrow,
     UnitInput,
@@ -139,7 +137,9 @@ export default {
     },
 
     toggleGroup(item: SettingDisplay) {
-      this.isGroupExpanded[item.name] = !this.isGroupExpanded[item.name];
+      if (item.children) {
+        this.isGroupExpanded[item.name] = !this.isGroupExpanded[item.name];
+      }
     }
   }
 };
@@ -155,21 +155,21 @@ export default {
       :data-testid="`cm-settings-row-${ item.name }`"
     >
       <div class="header">
-        <div class="title">
-          <RcButton
+        <div
+          class="title"
+          :class="{ clickable: item.children }"
+          :tabindex="item.children ? 0 : undefined"
+          :role="item.children ? 'button' : undefined"
+          @click="toggleGroup(item)"
+          @keydown.space.enter.stop.prevent="toggleGroup(item)"
+        >
+          <i
             v-if="item.children"
-            small
-            ghost
-            @click="toggleGroup(item)"
-          >
-            <i
-              :class="{
-                ['icon icon-chevron-right']: !isGroupExpanded[item.name],
-                ['icon icon-chevron-down']: isGroupExpanded[item.name],
-              }"
-            />
-          </RcButton>
-
+            :class="{
+              ['icon icon-chevron-right']: !isGroupExpanded[item.name],
+              ['icon icon-chevron-down']: isGroupExpanded[item.name],
+            }"
+          />
           <h2
             v-if="item.label"
             class="label"
@@ -345,6 +345,11 @@ export default {
           flex-direction: row;
           align-items: center;
           gap: 10px;
+          width: fit-content;
+
+          &:focus-visible {
+            @include focus-outline;
+          }
 
           .label {
             margin: 0 !important;
@@ -358,5 +363,9 @@ export default {
     border-radius: var(--border-radius);
     border: 1px solid var(--border);
     padding: 15px;
+  }
+
+  .clickable {
+    cursor: pointer;
   }
 </style>
