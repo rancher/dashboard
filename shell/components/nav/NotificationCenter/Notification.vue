@@ -8,6 +8,7 @@ import { useRouter } from 'vue-router';
 import { useI18n } from '@shell/composables/useI18n';
 import { NotificationAction, NotificationLevel, StoredNotification } from '@shell/types/notifications';
 import { DropdownContext, defaultContext } from '@components/RcDropdown/types';
+import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
 
 const CLASSES = {
   [NotificationLevel.Announcement]: 'icon-notify-announcement text-info',
@@ -18,7 +19,7 @@ const CLASSES = {
   [NotificationLevel.Success]:      'icon-notify-tick text-success',
 };
 
-const emits = defineEmits(['didFocus', 'close-center']);
+const emits = defineEmits(['didFocus']);
 
 const props = defineProps<{item: StoredNotification}>();
 const { dropdownItems } = inject<DropdownContext>('dropdownContext') || defaultContext;
@@ -29,6 +30,8 @@ const router = useRouter();
 const unreadCount = computed<number>(() => store.getters['notifications/unreadCount']);
 const dateFormat = escapeHtml( store.getters['prefs/get'](DATE_FORMAT));
 const timeFormat = escapeHtml( store.getters['prefs/get'](TIME_FORMAT));
+
+const { close } = useDropdownItem();
 
 // Outer element for the notification
 const dropdownMenuItem = ref<HTMLElement>();
@@ -89,7 +92,7 @@ const action = (action: NotificationAction) => {
     } catch (e) {
       console.error('Error navigating to route for the notification action', e); // eslint-disable-line no-console
     }
-    emits('close-center');
+    close();
   } else {
     console.error('Notification action must either specify a "target" or a "route"'); // eslint-disable-line no-console
   }

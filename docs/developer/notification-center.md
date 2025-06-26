@@ -117,11 +117,9 @@ This has the following fields:
 
 # Adding Notifications in a UI Extension
 
-One common use case is to add/manage notifications at load time in a UI Extension.
+Add and manage notifications at load time using the `onLogin` navigation hook. `onLogin` is invoked when the user logs in and notifications have been loaded and initialized.
 
-To do this, you can leverage the `onLogin` navigation hook that is invoked when the user logs in and the notifications have been loaded and initialized.
-
-This can be set in the `init` function of your UI Extension with the `addNavHooks` function and using the `onLogin` hook, for example:
+The `onLogin` hook can be set in the `init` function of your UI Extension with the `addNavHooks` function and using the `onLogin` hook, for example:
 
 ```
 import { IPlugin } from '@shell/core/types';
