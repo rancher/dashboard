@@ -23,8 +23,10 @@ const i18n = useI18n(store);
     <div class="container">
       <component
         :is="props.component"
-        v-model:value="props.resource"
+        :value="props.resource"
+        :liveValue="props.resource"
         :mode="_VIEW"
+        :real-mode="_VIEW"
         :initial-value="props.resource"
         :use-tabbed-hash="false /* Have to disable hashing on child components or it modifies the url and closes the drawer */"
       />
