@@ -130,6 +130,6 @@ export default defineConfig({
   },
   videoCompression:    15,
   videoUploadOnPasses: false,
-  viewportWidth: 1280,
-  viewportHeight: 720,
+  viewportWidth:       1280,
+  viewportHeight:      720,
 });
