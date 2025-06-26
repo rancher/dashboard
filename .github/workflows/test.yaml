@@ -142,6 +142,20 @@ jobs:
           name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
           path: cypress/screenshots
 
+      - name: Create Rancher Logs
+        if: ${{ failure() }}
+        run: yarn docker:local:logs
+
+      - name: Upload Rancher logs
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-rancher-logs-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
+          path: ${{ env.E2E_RANCHER_LOG }}
+          if-no-files-found: error
+          retention-days: 5
+          compression-level: 9
+
   a11y-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
