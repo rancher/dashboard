@@ -76,7 +76,7 @@ export default {
       class="header"
       :data-testid="'fleet-dashboard-resource-details-header'"
     >
-      <div class="title">
+      <h3 class="title">
         <i :class="value.dashboardIcon" />
         <router-link
           class="label"
@@ -90,7 +90,7 @@ export default {
           :class="statePanel.icon"
           :style="{ color: statePanel.color }"
         />
-      </div>
+      </h3>
       <RcButton
         small
         ghost
@@ -104,9 +104,9 @@ export default {
       </RcButton>
     </div>
 
-    <h3>
+    <h4>
       {{ t('fleet.dashboard.source') }}
-    </h3>
+    </h4>
     <div class="mb-15">
       <FleetApplicationSource
         v-if="value.source.value"
@@ -120,9 +120,9 @@ export default {
       </div>
     </div>
 
-    <h3>
+    <h4>
       {{ t('fleet.dashboard.resources') }}
-    </h3>
+    </h4>
     <FleetResources
       :rows="value.resourcesStatuses"
       :cluster-id="clusterId"
@@ -168,9 +168,7 @@ export default {
         display: flex;
         align-items: center;
         flex: 1;
-        font-style: normal;
-        font-weight: 600;
-        font-size: 18px;
+        margin-bottom: 0;
 
         .icon {
           font-size: 2em;
