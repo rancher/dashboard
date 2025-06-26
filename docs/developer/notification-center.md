@@ -29,8 +29,6 @@ The Notification Center adds a 'bell' icon in the top-right of the Rancher Manag
 
 > The existing `growl` store is deprecated - notifications added to the notification center of certain notification levels will automatically show growls.
 
-> See [Best Practice](#notification-best-practice) for best practice for notifications
-
 ## Adding a Notification
 
 > Note: Types are defined in `@shell/types/notifications`
@@ -141,24 +139,3 @@ export default function(plugin: IPlugin) {
 ```
 
 > Note: If you need to access the translation service for your notification messages, you can access the `t` function by obtaining it from the store with `  const t = store.getters['i18n/t'];`
-
-When adding notifications, please take into consideration the following best practice:
-
-**Notification level:**
-
-- Information = blue “info” symbol, to be used when we want to inform on low-interest topics. E.g. “Welcome to Rancher v2.8"
-- Announcement = blue “megaphone” symbol, to be used when we want to inform on high-interest topics - news, updates, changes, scheduled maintenance, etc. E.g. “New version available!”
-- Process = blue “loading” symbol, to be used when we want to inform on a process taking place - on-going actions that might take a while. E.g. “Cluster provisioning in progress”
-- Confirmation = green “checkmark” symbol, to be used when we want to confirm a successful action was completed. E.g. “Cluster provisioning completed”
-- Warning = orange “warning” symbol, to be used when we want to warn about a potential risk. E.g. “Nodes limitation warning”
-- Alert = red “alert” symbol, to be used when we want to alert on a confirmed risk. E.g. “Extension failed to load”
-
-**Notification title (text):**
-
-Keep it concise, relevant and direct
-
-**Notification message (body) **
-
-The content of the notification.
-
-This should expand on the notification title by providing further details about the notification.

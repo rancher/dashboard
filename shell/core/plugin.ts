@@ -44,6 +44,7 @@ export class Plugin implements IPlugin {
   public onEnter: OnNavToPackage = () => Promise.resolve();
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
   public _onLogOut: OnLogOut = () => Promise.resolve();
+  public onLogIn: OnLogIn = () => Promise.resolve();
 
   public uiConfig: { [key: string]: any } = {};
 
