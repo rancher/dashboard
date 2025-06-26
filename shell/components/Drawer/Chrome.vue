@@ -55,6 +55,10 @@ const ariaLabel = computed(() => i18n.t('component.drawer.chrome.ariaLabel.close
   </div>
 </template>
 <style lang="scss" scoped>
+.actions {
+  display: flex;
+}
+
 .chrome {
     position: absolute;
     top: 0;
