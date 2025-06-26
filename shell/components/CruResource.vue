@@ -412,7 +412,6 @@ export default {
           newNamespace.applyDefaults();
           await newNamespace.save();
         } catch (e) {
-          // this.errors = exceptionToErrorsArray(e);
           this.$emit('error', exceptionToErrorsArray(e));
           throw new Error(`Could not create the new namespace. ${ e.message }`);
         }
