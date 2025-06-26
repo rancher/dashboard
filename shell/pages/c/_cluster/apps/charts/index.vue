@@ -492,9 +492,35 @@ export default {
 
       <div
         v-if="filteredCharts.length === 0"
-        class="app-chart-cards-empty-state"
+        class="charts-empty-state"
+        data-testid="charts-empty-state"
       >
-        <h1>{{ t('catalog.charts.noCharts') }}</h1>
+        <h1
+          class="empty-state-title"
+          data-testid="charts-empty-state-title"
+        >
+          {{ t('catalog.charts.noCharts.title') }}
+        </h1>
+        <div class="empty-state-tips">
+          <h4
+            v-clean-html="t('catalog.charts.noCharts.messagePart1', {}, true)"
+          />
+          <a
+            tabindex="0"
+            role="button"
+            class="empty-state-reset-filters link"
+            data-testid="charts-empty-state-reset-filters"
+            @click="resetAllFilters"
+          >
+            {{ t('catalog.charts.noCharts.messagePart2') }}
+          </a>
+          <h4
+            v-clean-html="t('catalog.charts.noCharts.messagePart3', { repositoriesUrl: `/c/${clusterId}/apps/catalog.cattle.io.clusterrepo`}, true)"
+          />
+        </div>
+        <h4
+          v-clean-html="t('catalog.charts.noCharts.messagePart4', {}, true)"
+        />
       </div>
       <div
         v-else
@@ -617,21 +643,6 @@ export default {
   }
 }
 
-.checkbox-select {
-  .vs__search {
-    position: absolute;
-    right: 0
-  }
-
-  .vs__selected-options  {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    display: inline-block;
-    line-height: 2.4rem;
-  }
-}
-
 .right-section {
   display: flex;
   flex-direction: column;
@@ -683,11 +694,34 @@ export default {
   gap: var(--gap-lg);
 }
 
-.app-chart-cards-empty-state {
+.charts-empty-state {
   width: 100%;
-  margin-top: 32px;
-  padding: 32px;
+  padding: 72px 0;
   text-align: center;
+
+  .empty-state-title {
+    margin-bottom: 24px;
+  }
+
+  .empty-state-tips {
+    margin-bottom: 12px;
+
+    .empty-state-reset-filters {
+      font-size: 16px;
+    }
+
+    h4 {
+      display: inline;
+    }
+  }
+
+  :deep(h4 .icon-external-link) {
+    text-decoration: underline;
+  }
+
+  :deep(h4:hover .icon-external-link) {
+    text-decoration: none;
+  }
 }
 
 .app-chart-cards {
