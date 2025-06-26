@@ -81,7 +81,6 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   describe('Roles', () => {
     beforeEach(() => {
       cy.login();
-      cy.viewport(1280, 720);
     });
 
     it('can create a Global Role template', () => {

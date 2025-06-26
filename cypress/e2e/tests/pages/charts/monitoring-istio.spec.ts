@@ -25,7 +25,6 @@ describe.skip('[Vue3 Skip]: Charts', { tags: ['@charts', '@adminUser'] }, () => 
 
   before(() => {
     cy.login();
-    cy.viewport(1280, 720);
   });
 
   after(() => {
