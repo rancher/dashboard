@@ -161,7 +161,7 @@ export default {
     rowActionsWidth: {
       // How wide the action dropdown column should be
       type:    Number,
-      default: 40
+      default: 55
     },
 
     search: {
