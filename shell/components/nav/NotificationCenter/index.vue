@@ -28,9 +28,6 @@ const unreadLevelClass = computed(() => {
 // There may be more notifications than we can show on screen, so the popover needs to scroll
 const scroller = ref<HTMLElement>();
 
-// Menu Trigger button
-const trigger = ref();
-
 // Close all of the open growls when the notification center is shown, so that they do not overlap
 const open = (opened: boolean) => {
   if (opened) {
@@ -51,10 +48,6 @@ const localStorageEventHandler = async(ev: any) => {
       console.error('Error parsing notifications from storage event', e); // eslint-disable-line no-console
     }
   }
-};
-
-const closeCenter = () => {
-  trigger?.value?.closeDropdown();
 };
 
 /**
@@ -89,7 +82,6 @@ onUnmounted(() => {
     @update:open="open"
   >
     <rc-dropdown-trigger
-      ref="trigger"
       tertiary
       data-testid="notifications-center"
       :aria-label="t('nav.notifications.button.label')"
@@ -129,10 +121,7 @@ onUnmounted(() => {
             :key="a.id"
           >
             <rc-dropdown-separator v-if="index > 0" />
-            <Notification
-              :item="a"
-              @closeCenter="closeCenter"
-            />
+            <Notification :item="a" />
           </template>
         </div>
       </div>
