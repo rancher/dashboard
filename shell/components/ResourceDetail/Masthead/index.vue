@@ -40,7 +40,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const isNewDetailPageEnabled = useIsNewDetailPageEnabled();
 const isView = computed(() => props.mode === _VIEW);
-const showLatestMasthead = computed(() => isNewDetailPageEnabled && isView.value );
+const showLatestMasthead = computed(() => isNewDetailPageEnabled.value && isView.value );
 </script>
 
 <template>
