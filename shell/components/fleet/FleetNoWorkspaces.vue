@@ -58,6 +58,7 @@ export default {
   text-align: center;
   max-width: 600px;
 }
+
 .icon-repository {
   font-size: 96px;
   margin-bottom: 32px;

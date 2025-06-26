@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -e # Enable fail-on-error
+
+# Script that will run an e2e SUITE locally as if running in the gh pr gates
+# First arg is the grep tag that determines which test SUITE should run, for example `explorer2`
+
+export TEST_USERNAME="admin"
+export TEST_PASSWORD="password"
+export CATTLE_BOOTSTRAP_PASSWORD="password"
+export TEST_BASE_URL="https://127.0.0.1/dashboard"
+export API="https://127.0.0.1"
+export TEST_PROJECT_ID="rancher-dashboard"
+export TEST_DISABLE_DASHBOARD="true"
+
+SUITE=$1
+export RANCHER_IMG_VERSION="${RANCHER_IMG_VERSION:-head}"
+
+echo "--------------- Cleaning Env ---------------------"
+yarn cache clean && rm -rf node_nodules && yarn install
+rm -rf ./dist
+rm -rf ./dist_ember
+
+echo "--------------- Building UI ---------------------"
+yarn e2e:build
+
+echo "--------------- Provisioning Rancher and patching in ui  ---------------------"
+yarn e2e:docker
+
+echo "--------------- Setting up Rancher ---------------------"
+GREP_TAGS="@adminUserSetup+@$SUITE" TEST_ONLY="setup" yarn e2e:prod
+
+echo "--------------- Running e2e tests ---------------------"
+GREP_TAGS="@adminUser+@$SUITE" TEST_SKIP="setup" yarn e2e:prod
+
+
+# TEST_DISABLE_DASHBOARD=true \
+# GREP_TAGS=@adminUserSetup+@$SUITE \
+# TEST_ONLY=setup \
+# TEST_USERNAME=admin \
+# CATTLE_BOOTSTRAP_PASSWORD=password \
+# TEST_BASE_URL=https://127.0.0.1/dashboard yarn e2e:prod
+
+# TEST_DISABLE_DASHBOARD=true \
+# GREP_TAGS=@adminUser+@$SUITE \
+# TEST_SKIP=setup \
+# TEST_USERNAME=admin \
+# CATTLE_BOOTSTRAP_PASSWORD=password \
+# TEST_BASE_URL=https://127.0.0.1/dashboard yarn e2e:prod

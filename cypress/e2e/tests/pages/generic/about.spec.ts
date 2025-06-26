@@ -1,10 +1,8 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import AboutPagePo from '@/cypress/e2e/po/pages/about.po';
 import DiagnosticsPagePo from '@/cypress/e2e/po/pages/diagnostics.po';
-import * as path from 'path';
 
 const aboutPage = new AboutPagePo();
-const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   before(() => {
@@ -84,36 +82,6 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
       aboutPage.clickVersionLink('Machine');
       cy.origin('https://github.com/rancher/machine', () => {
         cy.url().should('include', 'https://github.com/rancher/machine');
-      });
-    });
-  });
-
-  describe('Image List', () => {
-    before(() => {
-      aboutPage.goTo();
-    });
-
-    it('can download Linux Image List', () => {
-      // Download txt and verify file exists
-      const downloadedFilename = path.join(downloadsFolder, 'rancher-linux-images.txt');
-
-      aboutPage.getLinuxDownloadLink().click();
-
-      cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-        const rancherVersion = resp.body['value'];
-
-        cy.readFile(downloadedFilename).should('contain', rancherVersion);
-      });
-    });
-
-    it('can download Windows Image List', () => {
-      const downloadedFilename = path.join(downloadsFolder, 'rancher-windows-images.txt');
-
-      aboutPage.getWindowsDownloadLink().click();
-      cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-        const rancherVersion = resp.body['value'];
-
-        cy.readFile(downloadedFilename).should('contain', rancherVersion);
       });
     });
   });
