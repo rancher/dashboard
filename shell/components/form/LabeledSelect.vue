@@ -10,6 +10,8 @@ import LabeledSelectPagination from '@shell/components/form/labeled-select-utils
 import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
 import { mapGetters } from 'vuex';
 import { _VIEW } from '@shell/config/query-params';
+import { useClickOutside } from '@shell/composables/useClickOutside';
+import { ref } from 'vue';
 
 export default {
   name: 'LabeledSelect',
@@ -115,12 +117,22 @@ export default {
     }
   },
 
+  setup() {
+    const select = ref(null);
+    const isOpen = ref(false);
+
+    useClickOutside(select, () => {
+      isOpen.value = false;
+    });
+
+    return { isOpen, select };
+  },
+
   data() {
     return {
       selectedVisibility:   'visible',
       shouldOpen:           true,
       labeledSelectLabelId: `ls-label-id-${ generateRandomAlphaString(12) }`,
-      isOpen:               false,
       generatedUid:         `ls-uid-${ generateRandomAlphaString(12) }`
     };
   },
@@ -158,7 +170,7 @@ export default {
 
   methods: {
     // Ensure we only focus on open, otherwise we re-open on close
-    clickSelect(ev) {
+    clickSelect() {
       if (this.mode === _VIEW || this.loading === true || this.disabled === true) {
         return;
       }
@@ -166,7 +178,7 @@ export default {
       this.isOpen = !this.isOpen;
 
       if (this.isOpen) {
-        this.focusSearch(ev);
+        this.focusSearch();
       }
     },
 
@@ -205,8 +217,12 @@ export default {
       this.resizeHandler();
     },
 
-    onClose() {
+    close() {
       this.isOpen = false;
+      this.onClose();
+    },
+
+    onClose() {
       this.$emit('on-close');
       this.focusWrapper();
     },
@@ -341,6 +357,7 @@ export default {
       ref="select-input"
       v-bind="filteredAttrs"
       class="inline"
+      :close-on-select="false"
       :append-to-body="appendToBody"
       :calculate-position="positionDropdown"
       :class="{ 'no-label': !(label || '').length}"
@@ -368,6 +385,7 @@ export default {
       @open="onOpen"
       @close="onClose"
       @option:selecting="$emit('selecting', $event)"
+      @option:selected="close"
       @option:deselecting="$emit('deselecting', $event)"
       @keydown.enter.stop
     >

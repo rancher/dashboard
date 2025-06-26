@@ -6,6 +6,8 @@ import { generateRandomAlphaString } from '@shell/utils/string';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
 import { _VIEW } from '@shell/config/query-params';
+import { useClickOutside } from '@shell/composables/useClickOutside';
+import { ref } from 'vue';
 
 export default {
   emits: ['update:value', 'createdListItem', 'on-open', 'on-close'],
@@ -94,11 +96,18 @@ export default {
       default: false
     }
   },
+  setup() {
+    const select = ref(null);
+    const isOpen = ref(false);
+
+    useClickOutside(select, () => {
+      isOpen.value = false;
+    });
+
+    return { isOpen, select };
+  },
   data() {
-    return {
-      isOpen:       false,
-      generatedUid: `s-uid-${ generateRandomAlphaString(12) }`
-    };
+    return { generatedUid: `s-uid-${ generateRandomAlphaString(12) }` };
   },
   methods: {
     // resizeHandler = in mixin
@@ -218,8 +227,12 @@ export default {
       this.resizeHandler();
     },
 
-    onClose() {
+    close() {
       this.isOpen = false;
+      this.onClose();
+    },
+
+    onClose() {
       this.$emit('on-close');
       this.focusWrapper();
     },
@@ -323,6 +336,7 @@ export default {
       @open="onOpen"
       @close="onClose"
       @option:created="(e) => $emit('createdListItem', e)"
+      @option:selected="close"
       @keydown.enter.stop
     >
       <template
