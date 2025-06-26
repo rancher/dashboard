@@ -462,17 +462,21 @@ export default {
             small
             ghost
             data-testid="fleet-dashboard-expand-all"
+            class="collapse-all-btn"
             @click="toggleCardAll(allCardsExpanded ? 'collapse' : 'expand')"
           >
-            <p class="ml-10">
-              {{ allCardsExpanded ? t('fleet.dashboard.collapseAll') : t('fleet.dashboard.expandAll') }}
-            </p>
-            <i
-              :class="{
-                ['icon icon-chevron-right']: !allCardsExpanded,
-                ['icon icon-chevron-down']: allCardsExpanded,
-              }"
-            />
+            <template #after>
+              <p class="ml-10">
+                {{ allCardsExpanded ? t('fleet.dashboard.collapseAll') : t('fleet.dashboard.expandAll') }}
+              </p>
+              <i
+                :class="{
+                  ['icon icon-chevron-right']: !allCardsExpanded,
+                  ['icon icon-chevron-down']: allCardsExpanded,
+                }"
+                aria-hidden="true"
+              />
+            </template>
           </RcButton>
         </div>
       </div>
@@ -551,6 +555,7 @@ export default {
                     ['icon icon-lg icon-chevron-right']: isWorkspaceCollapsed[workspace.id],
                     ['icon icon-lg icon-chevron-down']: !isWorkspaceCollapsed[workspace.id],
                   }"
+                  aria-hidden="true"
                 />
               </RcButton>
             </div>
@@ -710,6 +715,10 @@ export default {
   align-items: center;
   justify-content: end;
   gap: 15px;
+
+  .collapse-all-btn {
+    width: 105px;
+  }
 }
 
 .dashboard-header {
