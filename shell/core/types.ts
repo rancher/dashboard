@@ -39,7 +39,17 @@ export type OnEnterLeavePackageConfig = {
 export type OnNavToPackage = (store: any, config: OnEnterLeavePackageConfig) => Promise<void>;
 export type OnNavAwayFromPackage = (store: any, config: OnEnterLeavePackageConfig) => Promise<void>;
 export type OnLogOut = (store: any) => Promise<void>;
-export type OnReady = (store: any) => Promise<void>;
+export type OnLogIn = (store: any) => Promise<void>;
+
+/**
+ * Navigation hooks specified as an object
+ */
+export type NavHooks = {
+  onEnter?: OnNavToPackage,
+  onLeave?: OnNavAwayFromPackage,
+  onLogout?: OnLogOut,
+  onLogin?: OnLogIn,
+}
 
 /** Enum regarding the extensible areas/places of the UI */
 export enum ExtensionPoint {
@@ -612,13 +622,6 @@ export interface IPlugin {
   setHomePage(component: any): void;
 
   /**
-   * Set 'onReady' function that will be called once the user has logged in and the UI is ready
-   *
-   * @param onReady Function to be called when the user has logged in and the UI is ready
-   */
-  setOnReady(onReady: OnReady): void;
-
-  /**
    * Add routes to the Vue Router
    */
   addRoutes(routes: PluginRouteRecordRaw[] | RouteRecordRaw[]): void;
@@ -652,8 +655,10 @@ export interface IPlugin {
   addNavHooks(
     onEnter?: OnNavToPackage,
     onLeave?: OnNavAwayFromPackage,
-    onLogOut?: OnLogOut
+    onLogOut?: OnLogOut,
+    onLogIn?: OnLogIn,
   ): void;
+  addNavHooks(hooks: NavHooks): void;
 
   /**
    * Adds a model extension

@@ -335,7 +335,7 @@ export async function onExtensionsReady(store: any) {
     const ext = extensions[i];
 
     try {
-      await ext.onReady(store);
+      await ext.onLogIn(store);
     } catch (e) {
       console.error(`Exception caught in onReady for extension ${ ext.name }`, e); // eslint-disable-line no-console
     }

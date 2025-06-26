@@ -84,7 +84,11 @@ const action = (action: NotificationAction) => {
   if (action.target) {
     window.open(action.target, '_blank');
   } else if (action.route) {
-    router.push(action.route);
+    try {
+      router.push(action.route);
+    } catch (e) {
+      console.error('Error navigating to route for the notification action', e); // eslint-disable-line no-console
+    }
     emits('close-center');
   } else {
     console.error('Notification action must either specify a "target" or a "route"'); // eslint-disable-line no-console
