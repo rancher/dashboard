@@ -367,13 +367,12 @@ export default {
                 <input
                   v-else
                   ref="value"
-                  :value="row.value"
+                  v-model="row.value"
                   :data-testid="`${componentTestid}-input-${idx}`"
                   :placeholder="valuePlaceholder"
                   :disabled="isView || disabled"
                   :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
                   @paste="onPaste(idx, $event)"
-                  @input="queueUpdate"
                 >
               </slot>
             </div>
