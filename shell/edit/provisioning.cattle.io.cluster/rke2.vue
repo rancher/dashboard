@@ -289,26 +289,16 @@ export default {
   computed: {
     ...mapGetters({ features: 'features/get' }),
 
-    s3ConfigComponent() {
-      return this.$refs.s3ConfigComponent;
-    },
     isS3EndpointTrulyValid() {
       const s3EndpointValue = this.rkeConfig.etcd?.s3?.endpoint;
 
-      if (!this.s3Backup && isEmpty(s3EndpointValue)) {
+      this.s3ConfigValue.endpoint = s3EndpointValue || '';
+      // if empty or is not protocol
+      if (isEmpty(s3EndpointValue) || !isHttpsOrHttp(s3EndpointValue)) {
         return true;
       }
-
-      if (!this.s3ConfigComponent && (this.s3Backup || !isEmpty(s3EndpointValue))) {
-        if (!isHttpsOrHttp(s3EndpointValue)) {
-          return true;
-        }
-
-        return false;
-      }
-
-      if (this.s3ConfigComponent) {
-        return !this.s3ConfigComponent.isEndpointInvalid;
+      if (this.s3ConfigValue) {
+        return this.s3EndpointHasError;
       }
 
       return false;
@@ -2384,7 +2374,6 @@ export default {
             :s3-backup="s3Backup"
             :register-before-hook="registerBeforeHook"
             :selected-version="selectedVersion"
-            :tooltip="s3ConfigComponent && !s3ConfigComponent.isEndpointInvalid ? t('cluster.credential.s3.defaultEndpoint.error') : ''"
             @s3-backup-changed="handleS3BackupChanged"
             @config-etcd-expose-metrics-changed="handleConfigEtcdExposeMetricsChanged"
             @update:value="$emit('input', $event)"
@@ -2397,7 +2386,7 @@ export default {
                 :mode="mode"
                 :namespace="value.metadata.namespace"
                 :register-before-hook="registerBeforeHook"
-                @update:value="handleS3ConfigUpdate"
+                @update:value="$emit('input', $event)"
               />
             </template>
           </Etcd>

@@ -9,7 +9,9 @@ export const isHttpsOrHttp = (value) => {
     return false; // Or throw new Error('Input is not a string');
   }
 
-  return value.toLowerCase().startsWith('https://') || value.toLowerCase().startsWith('http://');
+  const lowerCaseValue = value.toLowerCase();
+
+  return lowerCaseValue.startsWith('https://') || lowerCaseValue.startsWith('http://');
 };
 
 export const isLocalhost = (value) => (/^(?:https?:\/\/)?(?:localhost|127\.0\.0\.1)/i).test(value);
