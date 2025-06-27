@@ -44,8 +44,8 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
       it('Complete install and a Scan is created', () => {
         cy.updateNamespaceFilter('local', 'none', '{"local":[]}');
         const kubectl = new Kubectl();
-        const cisBenchmark = new CompliancePo();
-        const cisBenchmarkList = new ComplianceListPo();
+        const compliance = new CompliancePo();
+        const complianceList = new ComplianceListPo();
         const sideNav = new ProductNavPo();
         const terminal = new Kubectl();
 
@@ -63,7 +63,7 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
         kubectl.closeTerminal();
 
         sideNav.navToSideMenuGroupByLabel('Compliance');
-        cisBenchmarkList.waitForPage();
+        complianceList.waitForPage();
 
         // Compliance does not come with any profiles, so create one
 
@@ -75,18 +75,18 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
 
         terminal.closeTerminal();
 
-        cisBenchmarkList.createScan();
-        cisBenchmark.waitForPage();
-        cisBenchmark.cruResource().saveAndWaitForRequests('POST', 'v1/compliance.cattle.io.clusterscans')
+        complianceList.createScan();
+        compliance.waitForPage();
+        compliance.cruResource().saveAndWaitForRequests('POST', 'v1/compliance.cattle.io.clusterscans')
           .then(({ response }) => {
             expect(response?.statusCode).to.eq(201);
             expect(response?.body).to.have.property('type', 'compliance.cattle.io.clusterscan');
             expect(response?.body.metadata).to.have.property('name');
             expect(response?.body.metadata).to.have.property('generateName', 'scan-');
           });
-        cisBenchmarkList.waitForPage();
-        cisBenchmarkList.checkVisible();
-        const column = cisBenchmarkList.firstRow().column(1);
+        complianceList.waitForPage();
+        complianceList.checkVisible();
+        const column = complianceList.firstRow().column(1);
 
         column.get('.bg-success', LONG_TIMEOUT_OPT).should('exist');
       });
