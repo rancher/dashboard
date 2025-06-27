@@ -47,6 +47,7 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
         const cisBenchmark = new CompliancePo();
         const cisBenchmarkList = new ComplianceListPo();
         const sideNav = new ProductNavPo();
+        const terminal = new Kubectl();
 
         ChartPage.navTo(null, 'Rancher Compliance');
         chartPage.waitForChartHeader('Rancher Compliance', MEDIUM_TIMEOUT_OPT);
@@ -63,6 +64,17 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
 
         sideNav.navToSideMenuGroupByLabel('Compliance');
         cisBenchmarkList.waitForPage();
+
+        // Compliance does not come with any profiles, so create one
+
+        // Open terminal
+        terminal.openTerminal(LONG_TIMEOUT_OPT);
+
+        // kubectl commands
+        terminal.executeCommand(`apply -f https://raw.githubusercontent.com/rancher/compliance-operator/refs/heads/main/tests/k3s-bench-test.yaml`);
+
+        terminal.closeTerminal();
+
         cisBenchmarkList.createScan();
         cisBenchmark.waitForPage();
         cisBenchmark.cruResource().saveAndWaitForRequests('POST', 'v1/compliance.cattle.io.clusterscans')
