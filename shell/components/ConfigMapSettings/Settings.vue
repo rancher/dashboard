@@ -146,7 +146,7 @@ export default {
 </script>
 
 <template>
-  <div class="settings-main-content">
+  <div class="settings-container">
     <div
       v-for="item in settingsDisplay"
       :key="item.name"
@@ -350,16 +350,10 @@ export default {
 </template>
 
 <style scoped lang='scss'>
-  .settings-main-content {
+  .settings-container {
     display: flex;
     flex-direction: column;
     gap: 24px;
-
-    .settings-container {
-      display: flex;
-      flex-direction: column;
-      gap: 32px;
-    }
 
     .setting-row {
       display: flex;
