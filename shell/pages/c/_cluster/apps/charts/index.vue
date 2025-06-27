@@ -312,7 +312,7 @@ export default {
         this.$router.applyQuery(query);
         this.internalFilters = JSON.parse(JSON.stringify(newFilters));
       }
-    }
+    },
 
     selectedSortOption: {
       handler(neu) {
