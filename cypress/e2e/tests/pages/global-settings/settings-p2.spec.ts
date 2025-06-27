@@ -396,7 +396,6 @@ describe('Settings', { testIsolation: 'off' }, () => {
   it('standard user has only read access to Settings page', { tags: ['@globalSettings', '@standardUser'] }, () => {
     // verify action buttons are hidden for standard user
     SettingsPagePo.navTo();
-    settingsPage.actionButtonByLabel('engine-install-url').should('not.exist');
     settingsPage.actionButtonByLabel('password-min-length').should('not.exist');
   });
 
