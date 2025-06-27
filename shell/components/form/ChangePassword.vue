@@ -331,15 +331,17 @@ export default {
           :value="username"
           tabindex="-1"
           :data-lpignore="!isChange"
+          aria-hidden="true"
         >
         <input
           id="password"
           type="password"
           name="password"
-          autocomplete="password"
+          autocomplete="new-password"
           :value="password"
           tabindex="-1"
           :data-lpignore="!isChange"
+          aria-hidden="true"
         >
         <Password
           v-if="isChange"

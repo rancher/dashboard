@@ -361,7 +361,7 @@ export default {
                     role="presentation"
                   >
                     <span
-                      :aria-controls="'step' + idx+1"
+                      :aria-controls="'step-container-' + step.name"
                       :aria-selected="step.name === activeStep.name"
                       role="tab"
                       class="controls"
@@ -376,7 +376,7 @@ export default {
                       </span>
                     </span>
                   </li>
-                  <div
+                  <li
                     v-if="idx!==visibleSteps.length-1"
                     :key="step.name"
                     class="divider"
@@ -397,7 +397,9 @@ export default {
           >
             <div
               v-if="step.name === activeStep.name || step.hidden"
+              :id="'step-container-' + step.name"
               :key="step.name"
+              role="tabpanel"
               class="step-container__step"
               :class="{'hide': step.name !== activeStep.name && step.hidden}"
             >

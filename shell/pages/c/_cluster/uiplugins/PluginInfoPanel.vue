@@ -167,7 +167,7 @@ export default {
       @after-enter="onEnter"
       @after-leave="onLeave"
     >
-      <div
+      <aside
         v-if="showSlideIn"
         id="slide-in-content-element"
         class="slideIn"
@@ -293,7 +293,7 @@ export default {
             </div>
           </div>
         </div>
-      </div>
+      </aside>
     </transition>
   </div>
 </template>

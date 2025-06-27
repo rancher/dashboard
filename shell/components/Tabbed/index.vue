@@ -275,7 +275,7 @@ export default {
       >
         <a
           :data-testid="`btn-${tab.name}`"
-          :aria-controls="'#' + tab.name"
+          :aria-controls="tab.name"
           :aria-selected="tab.active"
           :aria-label="tab.labelDisplay || ''"
           role="tab"
@@ -312,6 +312,7 @@ export default {
             type="button"
             class="btn bg-transparent"
             data-testid="tab-list-add"
+            :aria-label="t('tabs.addItem')"
             @click="tabAddClicked"
           >
             <i class="icon icon-plus" />
@@ -321,6 +322,7 @@ export default {
             class="btn bg-transparent"
             :disabled="!sortedTabs.length"
             data-testid="tab-list-remove"
+            :aria-label="t('tabs.removeItem')"
             @click="tabRemoveClicked"
           >
             <i class="icon icon-minus" />

@@ -647,7 +647,7 @@ export default {
           :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
           role="button"
           tabindex="0"
-          :aria-label="action.label"
+          :aria-label="action.labelKey ? t(action.labelKey) : action.label"
           @shortkey="handleExtensionAction(action, $event)"
           @click="handleExtensionAction(action, $event)"
         >
@@ -655,6 +655,7 @@ export default {
             class="icon icon-lg"
             :icon="action.icon"
             :src="action.svg"
+            :img-alt="action.tooltipKey ? t(action.tooltipKey) : action.labelKey ? t(action.labelKey) : action.label ? action.label : t('generic.imageAlt')"
             color="header"
           />
         </button>
