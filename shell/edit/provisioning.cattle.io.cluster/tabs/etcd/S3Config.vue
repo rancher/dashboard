@@ -3,8 +3,6 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { NORMAN } from '@shell/config/types';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
-import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import { isHttpsOrHttp } from '@shell/utils/validators/setting';
 
@@ -15,7 +13,7 @@ export default {
     Checkbox,
     SelectOrCreateAuthSecret,
   },
-  mixins: [CreateEditView, FormValidation],
+  mixins: [FormValidation],
 
   props: {
     mode: {
@@ -71,12 +69,6 @@ export default {
 
       return {};
     },
-    isEdit() {
-      return this.mode === _EDIT;
-    },
-    isView() {
-      return this.mode === _VIEW;
-    },
 
     isEndpointInvalid() {
       return this.s3EndpointHasError;
@@ -96,9 +88,11 @@ export default {
     validateEndpoint(value) {
       let message = '';
 
-      if (isHttpsOrHttp(value)) {
+      if (isHttpsOrHttp(this.value.endpoint)) {
         message = this.t('cluster.credential.s3.defaultEndpoint.error');
         this.s3EndpointHasError = !!message; // Set to true if a message exists, false otherwise
+      } else {
+        this.s3EndpointHasError = false;
       }
 
       return this.s3EndpointHasError;
@@ -132,7 +126,6 @@ export default {
     <SelectOrCreateAuthSecret
       v-model:value="config.cloudCredentialName"
       :mode="mode"
-      :disable="isView"
       :register-before-hook="registerBeforeHook"
       in-store="management"
       :allow-ssh="false"
@@ -183,12 +176,12 @@ export default {
           label="Endpoint"
           :mode="mode"
           :placeholder="ccData.defaultEndpoint"
-          :error="s3EndpointHasError"
           @update:value="update"
         />
         <div
-          v-if="s3EndpointHasError"
-          class="input-error-message"
+          v-if="isEndpointInvalid"
+          class="mt-5 input-error-message text-error icon icon-error icon-lg"
+          color="error"
         >
           {{ t('cluster.credential.s3.defaultEndpoint.error') }}
         </div>
