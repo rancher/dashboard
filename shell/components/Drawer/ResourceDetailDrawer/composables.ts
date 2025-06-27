@@ -44,6 +44,7 @@ export function useDefaultConfigTabProps(resource: any): ConfigTabProps | undefi
 
   return {
     resource,
-    component: store.getters['type-map/importEdit'](resource.type)
+    component:    store.getters['type-map/importEdit'](resource.type),
+    resourceType: resource.type
   };
 }
