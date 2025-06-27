@@ -1,4 +1,7 @@
 import day from 'dayjs';
+import { escapeHtml } from '@shell/utils/string';
+import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
+import { type Store } from 'vuex';
 
 const FACTORS = [60, 60, 24];
 const LABELS = ['sec', 'min', 'hour', 'day'];
@@ -6,7 +9,7 @@ const LABELS = ['sec', 'min', 'hour', 'day'];
 // Diff two dates and return an object with values for presentation
 // If 't' is also passed, 'string' property is set on the return object with the diff formatted as a string
 // e.g. formats a date difference to return '1 day', '20 hours' etc
-export function diffFrom(value, from, t) {
+export function diffFrom(value: any, from: any, t: any) {
   const now = day();
 
   from = from || now;
@@ -15,7 +18,7 @@ export function diffFrom(value, from, t) {
   let absDiff = Math.abs(diff);
 
   let next = 1;
-  let label = '?';
+  let label: any = '?';
 
   let i = 0;
 
@@ -30,7 +33,7 @@ export function diffFrom(value, from, t) {
   } else {
     label = Math.floor(absDiff);
   }
-  const ret = {
+  const ret: any = {
     diff,
     absDiff,
     label,
@@ -47,7 +50,7 @@ export function diffFrom(value, from, t) {
   return ret;
 }
 
-export function safeSetTimeout(timeout, callback, that) {
+export function safeSetTimeout(timeout: any, callback: any, that: any) {
   if (timeout <= 2147483647) {
     // Max value setTimeout can take is max 32 bit int (about 24.9 days)
     return setTimeout(() => {
@@ -56,7 +59,7 @@ export function safeSetTimeout(timeout, callback, that) {
   }
 }
 
-export function getSecondsDiff(startDate, endDate) {
+export function getSecondsDiff(startDate: any, endDate: any) {
   return Math.round(
     Math.abs(Date.parse(endDate) - Date.parse(startDate)) / 1000
   );
@@ -68,7 +71,7 @@ export function getSecondsDiff(startDate, endDate) {
  * diff:  update frequency in seconds
  * label: content of the cell's column
  */
-export function elapsedTime(seconds) {
+export function elapsedTime(seconds: any) {
   if (!seconds) {
     return {};
   }
@@ -119,3 +122,19 @@ export function elapsedTime(seconds) {
     label: `${ hours }h${ minutes - (hours * 60) }m`,
   };
 }
+
+/**
+   * Format date and time using user preferences
+   * @param value Date string to format
+   * @returns Formatted date string
+   */
+export const dateTimeFormat = (value: string | undefined, store: Store<any>): string => {
+  if (!value) return '';
+
+  const dateFormat = escapeHtml( store.getters['prefs/get'](DATE_FORMAT));
+  const timeFormat = escapeHtml( store.getters['prefs/get'](TIME_FORMAT));
+
+  const format = `${ dateFormat } ${ timeFormat }`;
+
+  return day(value).format(format);
+};
