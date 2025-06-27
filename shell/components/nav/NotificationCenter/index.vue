@@ -144,15 +144,15 @@ onMounted(async() => {
     display: flex;
     position: relative;
     height: 20px;
-    width: 20px;
+    width: 18px;
 
     .trigger-level {
       position: absolute;
-      right: -5px;
-      top: -5px;
+      right: -6px;
+      top: -4px;
       border-radius: 50%;
-      height: 11px;
-      width: 11px;
+      height: 8px;
+      width: 8px;
       background-color: var(--primary);
       transition: opacity 0.5s ease-in-out;
       opacity: 0;

@@ -183,6 +183,14 @@ const handleKeydown = (e: KeyboardEvent) => {
 };
 
 /**
+ * This allows the user to press up/down while in the focus trap for a notification and exit the focus trap and move to the next/previous notification
+ */
+const handleKeydownFocusTrap = (e: KeyboardEvent) => {
+  exitFocusTrap(e);
+  handleKeydown(e);
+};
+
+/**
  * Finds the new index for the dropdown item based on the key pressed.
  * @param shouldAdvance - Whether to advance to the next or previous item.
  * @param activeIndex - Current active index.
@@ -250,6 +258,7 @@ const scrollIntoView = (event: Event) => {
     @focus.stop="gotFocus"
     @click.stop
     @keydown.enter.space.stop="enterFocusTrap"
+    :class="{ 'notification-unread': !item.read }"
   >
     <div
       class="notification"
@@ -274,6 +283,7 @@ const scrollIntoView = (event: Event) => {
           @keydown.enter.space.stop="toggleRead($event, true)"
           @keydown.tab.stop="innerFocusNext($event)"
           @keydown.escape.stop="exitFocusTrap"
+          @keydown.up.down.prevent.stop="handleKeydownFocusTrap"
           @click.stop="toggleRead($event, false)"
         >
           <div
@@ -320,6 +330,7 @@ const scrollIntoView = (event: Event) => {
             @keydown.tab.stop="innerFocusNext($event)"
             @keydown.escape.stop="exitFocusTrap"
             @click.stop.prevent="action(item.primaryAction)"
+            @keydown.up.down.prevent.stop="handleKeydownFocusTrap"
           >
             {{ item.primaryAction.label }}
           </button>
@@ -332,6 +343,7 @@ const scrollIntoView = (event: Event) => {
             @keydown.tab.stop="innerFocusNext($event)"
             @keydown.escape.stop="exitFocusTrap"
             @click.stop.prevent="action(item.secondaryAction)"
+            @keydown.up.down.prevent.stop="handleKeydownFocusTrap"
           >
             {{ item.secondaryAction.label }}
           </button>
@@ -348,7 +360,10 @@ const scrollIntoView = (event: Event) => {
     align-items: center;
     padding: 12px;
     margin: 0 8px;
-    border-radius: 4px;
+
+    &.notification-unread {
+      background-color: var(--notification-unread-bg);
+    }
 
     &:focus-visible, &:focus {
       @include focus-outline;
@@ -385,8 +400,8 @@ const scrollIntoView = (event: Event) => {
           min-height: auto;
           padding: 0;
           margin-left: 16px;
-          width: 10px;
-          height: 10px;
+          width: 8px;
+          height: 8px;
           background-color: var(--body-bg);
 
           &:disabled {
@@ -401,8 +416,8 @@ const scrollIntoView = (event: Event) => {
           .read-icon {
             border: 2px solid var(--primary);
             border-radius: 50%;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
 
             &.unread {
               background-color: var(--primary);
@@ -420,10 +435,11 @@ const scrollIntoView = (event: Event) => {
         margin-left: 32px; // 20px icon + 12px spacing
 
         .created {
-          font-size: 12px;
+          font-size: 13px;
         }
 
         .message {
+          line-height: 20px;
           padding: 6px 0;
         }
 

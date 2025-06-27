@@ -427,6 +427,8 @@ BODY, .theme-light {
   --dropdown-group-text        : #{$darker};
   --dropdown-highlight-text    : var(--link);
 
+  --notification-unread-bg     : #{$light};
+
   --card-badge-text            : #ffffff;
 
   // UNUSED?
