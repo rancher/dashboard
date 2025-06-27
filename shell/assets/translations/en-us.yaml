@@ -157,7 +157,6 @@ generic:
   showLess: Show less
   showMore: Show more
   opensInNewTab: Opens in a new tab
-  
 
 graph:
   noPermissions: You do not have permission to Graph view
@@ -1068,15 +1067,19 @@ catalog:
     windowsIncompatible: Linux only
     versionWindowsIncompatible: Linux only version
     header: Charts
-    featuredCharts: Featured Charts
-    noCharts: 'There are no charts available, have you added any repos or set filters?'
+    noCharts:
+      title: No charts to show
+      messagePart1: <b>Tips:</b> undo the last filter you applied or
+      messagePart2: clear all filters
+      messagePart3: ', and ensure you have the right <a tabindex="0" href={repositoriesUrl} rel="noopener noreferrer nofollow">repositories</a> in place.'
+      messagePart4: 'Want to learn more about Helm Charts and Apps? Read our <a tabindex="0" href="{docsBase}/how-to-guides/new-user-guides/helm-charts-in-rancher" target="_blank" class="secondary-text-link">documentation <i class="icon icon-external-link"></i></a>.'
     noWindows: Your repos do not contain any charts capable of being deployed on a cluster with Windows nodes.
     noWindowsAndLinux: Your repos do not contain any charts capable of being deployed on a cluster with both Windows and Linux worker nodes.
     operatingSystems:
       all: All Operating Systems
       linux: Linux
       windows: Windows
-    search: Filter charts results
+    search: Search the catalogue...
     deprecatedChartsFilter:
       label: Show deprecated apps
     addNewRepo:
@@ -1085,8 +1088,29 @@ catalog:
     appChartCard:
       footerItem:
         ariaLabel: Apply filter
-    experimentalStatus:
-      tooltip: Experimental - using this filter is not yet 100% accurate. Proceed with caution.
+    statusFilterCautions:
+      installation: Installation status cannot be determined with 100% accuracy
+      upgradeable: Upgradeable status cannot be determined with 100% accuracy
+    totalChartsMessage: |-
+        {count , plural,
+          =1 { {count} chart in total }
+          other { {count} charts in total }
+        }
+    totalMatchedChartsMessage: |-
+        {count , plural,
+          =1 { {count} chart matching your criteria. }
+          other { {count} charts matching your criteria. }
+        }
+    resetFilters:
+      title: Clear all filters
+    sort:
+      prefix: Sort by
+      recommended: Recommended
+      lastUpdatedDesc: Last updated
+      alphaAscending: Chart name, A → Z
+      alphaDescending: Chart name, Z → A
+    refreshButton:
+      label: Refresh all repositories
   install:
     action:
       goToUpgrade: Edit/Upgrade

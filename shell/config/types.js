@@ -134,6 +134,14 @@ export const CATALOG = {
   REPO:         'catalog.cattle.io.repo',
 };
 
+// Charts/Apps
+export const CATALOG_SORT_OPTIONS = {
+  RECOMMENDED:       'recommended',
+  LAST_UPDATED_DESC: 'lastupdatedDescending',
+  ALPHABETICAL_ASC:  'alphaAscending',
+  ALPHABETICAL_DESC: 'alphaDescending'
+};
+
 // UI Plugin type
 export const UI_PLUGIN = 'catalog.cattle.io.uiplugin';
 

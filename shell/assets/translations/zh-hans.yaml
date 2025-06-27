@@ -866,7 +866,6 @@ catalog:
     windowsIncompatible: 仅 Linux
     versionWindowsIncompatible: 仅限 Linux 版本
     header: Chart
-    featuredCharts: 精选 Chart
     noCharts: '没有可用的 Chart，你有添加仓库吗？'
     noWindows: 你的应用商店没有能够部署在具有 Windows 节点的集群的 Chart。
     noWindowsAndLinux: 你的应用商店没有能部署在具有 Windows 和 Linux Worker 节点的集群的 Chart。
