@@ -31,9 +31,9 @@ export default {
     const baseUrl = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SERVER_URL)?.value;
 
     return {
-      issuerURL:         `${ baseUrl }/v1/oidc-issuer`,
-      discoveryDocument: `${ baseUrl }/v1/oidc-issuer/.well-known/openid-configuration`,
-      jwksURI:           `${ baseUrl }/v1/oidc-issuer/keys`
+      issuerURL:         `${ baseUrl }/oidc`,
+      discoveryDocument: `${ baseUrl }/oidc/.well-known/openid-configuration`,
+      jwksURI:           `${ baseUrl }/oidc/.well-known/jwks.json`
     };
   },
 };
