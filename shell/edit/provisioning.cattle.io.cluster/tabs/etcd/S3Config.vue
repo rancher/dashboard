@@ -3,6 +3,8 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { NORMAN } from '@shell/config/types';
+import FormValidation from '@shell/mixins/form-validation';
+import { isHttpsOrHttp } from '@shell/utils/validators/setting';
 
 export default {
   emits: ['update:value'],
@@ -12,6 +14,7 @@ export default {
     Checkbox,
     SelectOrCreateAuthSecret,
   },
+  mixins: [FormValidation],
 
   props: {
     mode: {
@@ -48,10 +51,14 @@ export default {
       ...(this.value || {}),
     };
 
-    return { config };
+    return {
+      config,
+      s3EndpointHasError: false,
+    };
   },
 
   computed: {
+
     ccData() {
       if ( this.config.cloudCredentialName ) {
         const cred = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.config.cloudCredentialName);
@@ -63,6 +70,10 @@ export default {
 
       return {};
     },
+
+    isEndpointInvalid() {
+      return this.s3EndpointHasError;
+    }
   },
 
   methods: {
@@ -70,8 +81,47 @@ export default {
       const out = { ...this.config };
 
       this.$emit('update:value', out);
+
+      this.validateEndpoint(this.config.endpoint);
+    },
+    isHttpsOrHttp,
+
+    validateEndpoint(value) {
+      let message = '';
+
+      if (isHttpsOrHttp(this.value.endpoint)) {
+        message = this.t('cluster.credential.s3.defaultEndpoint.error');
+        this.s3EndpointHasError = !!message; // Set to true if a message exists, false otherwise
+      } else {
+        this.s3EndpointHasError = false;
+      }
+
+      return this.s3EndpointHasError;
+    },
+    endpointMessage() {
+      return this.s3EndpointHasError ? this.t('cluster.credential.s3.defaultEndpoint.error') : null;
     },
   },
+
+  watch: {
+    'config.endpoint': {
+      handler(newValue) {
+        this.validateEndpoint(newValue);
+      },
+      immediate: true,
+    },
+    value: {
+      handler(newValue) {
+        if (newValue?.endpoint !== this.config.endpoint) {
+          this.config.endpoint = newValue?.endpoint || '';
+        }
+        this.validateEndpoint(this.config.endpoint);
+      },
+      deep:      true,
+      immediate: true,
+    }
+  },
+
 };
 </script>
 
@@ -79,6 +129,7 @@ export default {
   <div>
     <SelectOrCreateAuthSecret
       v-model:value="config.cloudCredentialName"
+      :mode="mode"
       :register-before-hook="registerBeforeHook"
       in-store="management"
       :allow-ssh="false"
@@ -95,6 +146,7 @@ export default {
         <LabeledInput
           v-model:value="config.bucket"
           label="Bucket"
+          :mode="mode"
           :placeholder="ccData.defaultBucket"
           :required="!ccData.defaultBucket"
           @update:value="update"
@@ -104,6 +156,7 @@ export default {
         <LabeledInput
           v-model:value="config.folder"
           label="Folder"
+          :mode="mode"
           :placeholder="ccData.defaultFolder"
           @update:value="update"
         />
@@ -115,6 +168,7 @@ export default {
         <LabeledInput
           v-model:value="config.region"
           label="Region"
+          :mode="mode"
           :placeholder="ccData.defaultRegion"
           @update:value="update"
         />
@@ -123,7 +177,9 @@ export default {
         <LabeledInput
           v-model:value="config.endpoint"
           label="Endpoint"
+          :mode="mode"
           :placeholder="ccData.defaultEndpoint"
+          :rules="[endpointMessage]"
           @update:value="update"
         />
       </div>
