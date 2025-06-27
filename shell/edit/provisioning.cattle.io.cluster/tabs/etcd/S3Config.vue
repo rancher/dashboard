@@ -97,6 +97,9 @@ export default {
 
       return this.s3EndpointHasError;
     },
+    endpointMessage() {
+      return this.s3EndpointHasError ? this.t('cluster.credential.s3.defaultEndpoint.error') : null;
+    },
   },
 
   watch: {
@@ -176,15 +179,9 @@ export default {
           label="Endpoint"
           :mode="mode"
           :placeholder="ccData.defaultEndpoint"
+          :rules="[endpointMessage]"
           @update:value="update"
         />
-        <div
-          v-if="isEndpointInvalid"
-          class="mt-5 input-error-message text-error icon icon-error icon-lg"
-          color="error"
-        >
-          {{ t('cluster.credential.s3.defaultEndpoint.error') }}
-        </div>
       </div>
     </div>
 
