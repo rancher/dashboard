@@ -625,7 +625,7 @@ export default {
                 v-stripped-aria-label="_protip"
                 class="icon icon-info"
                 tabindex="0"
-                role="button"
+                role="tooltip"
               />
             </div>
             <div
@@ -639,6 +639,7 @@ export default {
                 v-stripped-aria-label="protipValue"
                 class="icon icon-info"
                 tabindex="0"
+                role="tooltip"
               />
             </div>
             <div

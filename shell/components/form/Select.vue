@@ -307,6 +307,7 @@ export default {
     role="combobox"
     :aria-expanded="isOpen"
     :aria-label="$attrs['aria-label'] || undefined"
+    :aria-labelledby="$attrs['aria-labelledby'] || undefined"
     :aria-describedby="$attrs['aria-describedby'] || undefined"
     @click="clickSelect"
     @keydown.self.enter="clickSelect"
