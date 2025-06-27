@@ -2,7 +2,6 @@
 import {
   computed,
   onMounted,
-  onUnmounted,
   ref,
   watch
 } from 'vue';
@@ -16,7 +15,6 @@ import {
 } from '@components/RcDropdown';
 import { StoredNotification } from '@shell/types/notifications';
 import { encrypt } from '@shell/utils/crypto/encryption';
-import { loadFromString } from '@shell/utils/notifications';
 import { onExtensionsReady } from '@shell/utils/uiplugins';
 
 const store = useStore();
@@ -38,18 +36,6 @@ const open = (opened: boolean) => {
 const localStorageKey = store.getters['notifications/localStorageKey'];
 const encryptionKey = store.getters['notifications/encryptionKey'];
 
-const localStorageEventHandler = async(ev: any) => {
-  if (ev.key === localStorageKey) {
-    try {
-      const data = await loadFromString(ev.newValue || '{}', encryptionKey);
-
-      store.dispatch('notifications/load', data);
-    } catch (e) {
-      console.error('Error parsing notifications from storage event', e); // eslint-disable-line no-console
-    }
-  }
-};
-
 /**
  * When notifications are updated, write to local storage
  */
@@ -65,14 +51,7 @@ watch(allNotifications, async(newData: StoredNotification[]) => {
 }, { deep: true });
 
 onMounted(async() => {
-  // Listen to storage events, so if the UI is open in multiple tabs, notifications in one tab will be sync'ed across all tabs
-  window.addEventListener('storage', localStorageEventHandler);
-
   await onExtensionsReady(store);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('storage', localStorageEventHandler);
 });
 </script>
 
