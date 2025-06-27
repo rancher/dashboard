@@ -8226,7 +8226,7 @@ advancedSettings:
       strict: 'Strict'
       system-store: 'System Store'
   provisioning:
-    header: Cluster provisioning
+    header: Cluster Provisioning
 
 featureFlags:
   label: Feature Flags
