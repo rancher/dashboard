@@ -84,7 +84,7 @@ export default {
     },
     closeOnSelect: {
       type:    Boolean,
-      default: true
+      default: false,
     },
 
     compact: {
@@ -227,6 +227,12 @@ export default {
       this.resizeHandler();
     },
 
+    closeOnSelecting(e) {
+      if (e.value === this.value) {
+        this.close();
+      }
+    },
+
     close() {
       this.isOpen = false;
       this.onClose();
@@ -336,6 +342,7 @@ export default {
       @open="onOpen"
       @close="onClose"
       @option:created="(e) => $emit('createdListItem', e)"
+      @option:selecting="closeOnSelecting"
       @option:selected="close"
       @keydown.enter.stop
     >

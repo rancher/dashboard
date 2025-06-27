@@ -217,6 +217,14 @@ export default {
       this.resizeHandler();
     },
 
+    closeOnSelecting(e) {
+      if (e.value === this.value) {
+        this.close();
+      }
+
+      this.$emit('selecting', e);
+    },
+
     close() {
       this.isOpen = false;
       this.onClose();
@@ -384,7 +392,7 @@ export default {
       @search="onSearch"
       @open="onOpen"
       @close="onClose"
-      @option:selecting="$emit('selecting', $event)"
+      @option:selecting="closeOnSelecting"
       @option:selected="close"
       @option:deselecting="$emit('deselecting', $event)"
       @keydown.enter.stop
