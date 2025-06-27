@@ -3,7 +3,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
 import { MEDIUM_TIMEOUT_OPT, LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
-import { CisBenchmarkPo, CisBenchmarkListPo } from '@/cypress/e2e/po/other-products/cis-benchmark.po';
+import { CompliancePo, ComplianceListPo } from '~/cypress/e2e/po/other-products/compliance.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, () => {
@@ -12,14 +12,14 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
     HomePagePo.goTo();
   });
 
-  describe('CIS Benchmark install', () => {
+  describe('Compliance install', () => {
     const installChartPage = new InstallChartPage();
     const chartPage = new ChartPage();
 
     describe('YAML view', () => {
       beforeEach(() => {
-        ChartPage.navTo(null, 'CIS Benchmark');
-        chartPage.waitForChartHeader('CIS Benchmark', MEDIUM_TIMEOUT_OPT);
+        ChartPage.navTo(null, 'Rancher Compliance');
+        chartPage.waitForChartHeader('Rancher Compliance', MEDIUM_TIMEOUT_OPT);
         chartPage.goToInstall();
         installChartPage.nextPage().editYaml();
       });
@@ -40,16 +40,16 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
       });
     });
 
-    describe('CIS Chart setup', () => {
+    describe('Compliance Chart setup', () => {
       it('Complete install and a Scan is created', () => {
         cy.updateNamespaceFilter('local', 'none', '{"local":[]}');
         const kubectl = new Kubectl();
-        const cisBenchmark = new CisBenchmarkPo();
-        const cisBenchmarkList = new CisBenchmarkListPo();
+        const cisBenchmark = new CompliancePo();
+        const cisBenchmarkList = new ComplianceListPo();
         const sideNav = new ProductNavPo();
 
-        ChartPage.navTo(null, 'CIS Benchmark');
-        chartPage.waitForChartHeader('CIS Benchmark', MEDIUM_TIMEOUT_OPT);
+        ChartPage.navTo(null, 'Rancher Compliance');
+        chartPage.waitForChartHeader('Rancher Compliance', MEDIUM_TIMEOUT_OPT);
         chartPage.goToInstall();
 
         installChartPage.nextPage();
@@ -65,10 +65,10 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
         cisBenchmarkList.waitForPage();
         cisBenchmarkList.createScan();
         cisBenchmark.waitForPage();
-        cisBenchmark.cruResource().saveAndWaitForRequests('POST', 'v1/cis.cattle.io.clusterscans')
+        cisBenchmark.cruResource().saveAndWaitForRequests('POST', 'v1/compliance.cattle.io.clusterscans')
           .then(({ response }) => {
             expect(response?.statusCode).to.eq(201);
-            expect(response?.body).to.have.property('type', 'cis.cattle.io.clusterscan');
+            expect(response?.body).to.have.property('type', 'compliance.cattle.io.clusterscan');
             expect(response?.body.metadata).to.have.property('name');
             expect(response?.body.metadata).to.have.property('generateName', 'scan-');
           });
@@ -80,9 +80,9 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
       });
 
       after('clean up', () => {
-        const chartNamespace = 'cis-operator-system';
-        const chartApp = 'rancher-cis-benchmark';
-        const chartCrd = 'rancher-cis-benchmark-crd';
+        const chartNamespace = 'rancher-compliance-system';
+        const chartApp = 'rancher-compliance';
+        const chartCrd = 'rancher-compliance-crd';
 
         cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartApp }?action=uninstall`, '{}');
         cy.createRancherResource('v1', `catalog.cattle.io.apps/${ chartNamespace }/${ chartCrd }?action=uninstall`, '{}');
