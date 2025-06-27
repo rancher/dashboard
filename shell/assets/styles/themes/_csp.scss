@@ -1,25 +1,43 @@
 .csp {
-  $primary: hsl(151, 59%, 46%);
-  $info:  mix($primary, $secondary, 50%);
-  $selected: rgba($primary, .5);
+  $primary  : hsl(151, 59%, 46%);
+  $info     : mix($primary, $secondary, 50%);
+  $selected : rgba($primary, .5);
 
   --primary                    : #{$primary};
   --primary-text               : #fff;
+  --primary-hover              : var(--primary-hover-bg);
   --primary-hover-bg           : #{darken($primary, 10%)};
-  --primary-hover-text         : #{saturate($lightest, 20%)};
+  --primary-hover-text         : #{saturate($grey-0, 20%)};
   --primary-active-bg          : #{darken($primary, 25%)};
   --primary-active-text        : #{contrast-color(darken($primary, 25%))};
   --primary-border             : #{$primary};
   --primary-banner-bg          : #{rgba($primary, 0.15)};
   --primary-light-bg           : #{rgba($primary, 0.05)};
 
+  --secondary         : var(--body-bg);
+  --secondary-border : #{$primary};
+  --on-secondary      : #{$primary};
+
   --info                    : #{$info};
   --info-text               : #{contrast-color($info)};
   --info-hover-bg           : #{darken($info, 10%)};
-  --info-hover-text         : #{saturate($lightest, 20%)};
+  --info-hover-text         : #{saturate($grey-0, 20%)};
   --info-active-bg          : #{darken($info, 25%)};
   --info-active-text        : #{contrast-color(darken($info, 25%))};
   --info-border             : #{$info};
   --info-banner-bg          : #{rgba($info, 0.15)};
   --info-light-bg           : #{rgba($info, 0.05)};
+
+  --active        : var(--primary);
+  --active-hover  : var(--primary-hover-bg);
+
+  --link: var(--primary);
+
+  &.light {
+    --secondary-hover   : #{$grey-40};
+  }
+
+  &.dark {
+    --secondary-hover   : #{$grey-80};
+  }
 }

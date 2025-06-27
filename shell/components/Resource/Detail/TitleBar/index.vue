@@ -111,6 +111,10 @@ const showConfigurationReturnFocusSelector = computed(() => `[data-testid="${ sh
 </template>
 
 <style lang="scss" scoped>
+.actions {
+  display: flex;
+}
+
 .title-bar {
 
   .badge-state {
