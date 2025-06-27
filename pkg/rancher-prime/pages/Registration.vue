@@ -11,6 +11,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import Banner from '@components/Banner/Banner.vue';
 import FileSelector from '@shell/components/form/FileSelector';
 import { usePrimeRegistration } from './registration.composable';
+import Loading from '@shell/components/Loading.vue';
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -48,7 +49,12 @@ onMounted(async() => {
 </script>
 
 <template>
-  <div style="padding: 20px;">
+  <Loading v-if="registrationStatus === 'loading'" />
+
+  <div
+    v-else
+    style="padding: 20px;"
+  >
     <h1>{{ t('registration.title') }}</h1>
 
     <!-- Status Banner -->

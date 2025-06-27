@@ -6,7 +6,7 @@ import { REGISTRATION_NAMESPACE, REGISTRATION_SECRET, REGISTRATION_RESOURCE_NAME
 import { SECRET } from '@shell/config/types';
 import { dateTimeFormat } from '@shell/utils/time';
 
-type RegistrationStatus = 'registering-online' | 'registering-offline' | 'registered' | null;
+type RegistrationStatus = 'loading' | 'registering-online' | 'registering-offline' | 'registered' | null;
 type AsyncButtonFunction = (val: boolean) => void;
 interface RegistrationDashboard {
   active: boolean;
@@ -107,7 +107,7 @@ export const usePrimeRegistration = () => {
   /**
    * Single source for the registration status, used to define other computed properties
    */
-  const registrationStatus = ref(null as RegistrationStatus);
+  const registrationStatus = ref('loading' as RegistrationStatus);
 
   /**
    * Registration code for online registration; empty if none or offline
@@ -139,17 +139,19 @@ export const usePrimeRegistration = () => {
   /**
    * Retrieve and set registration related values based on the current secret
    */
-  const setRegistration = async() => {
+  const getRegistration = async(): Promise<RegistrationStatus> => {
     if (secret.value) {
       const hash = secret.value.metadata?.labels?.[REGISTRATION_LABEL];
 
       if (hash) {
-        registration.value = await getRegistration(hash) || emptyRegistration;
+        registration.value = await findRegistration(hash) || emptyRegistration;
         if (registration.value) {
-          registrationStatus.value = 'registered';
+          return 'registered';
         }
       }
     }
+
+    return null;
   };
 
   /**
@@ -179,13 +181,13 @@ export const usePrimeRegistration = () => {
       if (!registrationCode.value) break;
       secret.value = await createSecret('online', registrationCode.value);
       offlineRegistrationCertificate.value = null;
-      setRegistration();
+      registrationStatus.value = await getRegistration();
       break;
     case 'offline':
       if (!registrationCode.value) break;
       secret.value = await createSecret('offline', registrationCode.value);
       registrationCode.value = null;
-      setRegistration();
+      registrationStatus.value = await getRegistration();
       break;
     case 'deregister':
       resetRegistration();
@@ -268,7 +270,7 @@ export const usePrimeRegistration = () => {
   /**
    * Get registration CRD matching secret label
    */
-  const getRegistration = async(label: string): Promise<RegistrationDashboard> => {
+  const findRegistration = async(label: string): Promise<RegistrationDashboard> => {
     const registrations: PartialRegistration[] = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME });
     const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === label);
 
@@ -368,7 +370,7 @@ export const usePrimeRegistration = () => {
     secret.value = await getSecret();
     registrationCode.value = regCode.value;
 
-    await setRegistration();
+    registrationStatus.value = await getRegistration();
   };
 
   return {
