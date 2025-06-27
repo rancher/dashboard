@@ -3,7 +3,6 @@ import { randomStr } from '@shell/utils/string';
 import { Notification, StoredNotification } from '@shell/types/notifications';
 import { deriveKey } from '@shell/utils/crypto/encryption';
 import { loadFromString } from '@shell/utils/notifications';
-import { debounce } from 'lodash';
 
 /**
  * Key used to store notifications in the browser's local storage
@@ -51,10 +50,6 @@ let bc: BroadcastChannel;
 function sync(operation: string, param?: any) {
   bc?.postMessage({ operation, param });
 }
-
-const debounceSetNotifications = debounce((state: NotificationsStore, notifications: StoredNotification[]) => {
-  state.notifications = notifications;
-}, 500);
 
 export const getters = {
   all: (state: NotificationsStore) => {
@@ -164,13 +159,7 @@ export const mutations = {
   },
 
   load(state: NotificationsStore, notifications: StoredNotification[]) {
-    // On load, check that the data actually is different
-    const existingData = JSON.stringify(state.notifications);
-    const newData = JSON.stringify(notifications);
-
-    if (existingData !== newData) {
-      debounceSetNotifications(state, notifications);
-    }
+    state.notifications = notifications;
   },
 
   localStorageKey(state: NotificationsStore, userKey: string) {
@@ -206,6 +195,7 @@ export const actions = {
 
   update({ commit }: any, notification: Notification) {
     commit('update', notification);
+    sync('update', notification);
   },
 
   async markRead({ commit, dispatch, getters }: any, id: string) {
@@ -253,10 +243,6 @@ export const actions = {
   clearAll({ commit }: any) {
     commit('clearAll');
     sync('clearAll');
-  },
-
-  load({ commit }: any, data: StoredNotification[]) {
-    commit('load', data);
   },
 
   /**
