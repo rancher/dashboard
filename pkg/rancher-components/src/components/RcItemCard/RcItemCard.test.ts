@@ -186,4 +186,24 @@ describe('rcItemCard', () => {
 
     expect(icon.attributes('style')).toContain('color: red');
   });
+
+  it('emits custom action events correctly', async() => {
+    const wrapper = mount(RcItemCard, {
+      props: {
+        ...baseProps,
+        actions: [
+          { action: 'myActionA', label: 'Edit' },
+          { action: 'myActionB', label: 'Delete' }
+        ]
+      }
+    });
+
+    const listeners = wrapper.vm.$.setupState.actionListeners;
+
+    listeners.myActionA('payload-1');
+    listeners.myActionB('payload-2');
+
+    expect(wrapper.emitted('myActionA')?.[0]).toStrictEqual(['payload-1']);
+    expect(wrapper.emitted('myActionB')?.[0]).toStrictEqual(['payload-2']);
+  });
 });
