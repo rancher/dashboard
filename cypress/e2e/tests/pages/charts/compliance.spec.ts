@@ -61,7 +61,7 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
 
         kubectl.closeTerminal();
 
-        sideNav.navToSideMenuGroupByLabel('CIS Benchmark');
+        sideNav.navToSideMenuGroupByLabel('Compliance');
         cisBenchmarkList.waitForPage();
         cisBenchmarkList.createScan();
         cisBenchmark.waitForPage();
