@@ -257,7 +257,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       .should('have.length.gte', 2);
   });
 
-  it('can view events table empty if no events', { tags: ['@vai', '@adminUser'] }, () => {
+  it('can view events table empty if no events', { tags: ['@noVai', '@adminUser'] }, () => {
     eventsNoDataset();
     clusterDashboard.goTo();
 

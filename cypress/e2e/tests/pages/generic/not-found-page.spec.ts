@@ -1,9 +1,9 @@
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
-import { WorkloadsPodsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
-import WorkloadListPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import NotFoundPagePo from '@/cypress/e2e/po/pages/not-found-page.po';
 import PagePo from '@/cypress/e2e/po/pages/page.po';
+import ChartRepositoriesPagePo from '~/cypress/e2e/po/pages/chart-repositories.po';
+import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 
 describe('Not found page display', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   beforeEach(() => {
@@ -67,31 +67,31 @@ describe('Not found page display', { tags: ['@generic', '@adminUser', '@standard
   });
 
   it('Will not show a 404 for a valid type that does not have a real schema', () => {
-    const workloadPage = new NotFoundPagePo('/c/local/explorer/workload');
+    const chartsPage = new NotFoundPagePo('/c/local/apps/charts');
 
-    workloadPage.goTo();
-    workloadPage.waitForPage();
-    workloadPage.errorTitle().should('not.exist');
+    chartsPage.goTo();
+    chartsPage.waitForPage();
+    chartsPage.errorTitle().should('not.exist');
   });
 
   it('Will not show a 404 if we have a valid product + resource and we nav to page', () => {
     const page = new PagePo('');
     const homePage = new HomePagePo();
     const notFoundPage = new NotFoundPagePo('');
-    const workloadsPage = new WorkloadListPagePo();
-    const workloadPodsPage = new WorkloadsPodsListPagePo();
+    const chartsPage = new ChartsPage();
+    const reposPage = new ChartRepositoriesPagePo('local', 'apps');
     const clustersPage = new ClusterManagerListPagePo('_');
 
     homePage.goTo();
 
     page.navToClusterMenuEntry('local');
 
-    page.navToSideMenuGroupByLabel('Workloads');
-    workloadsPage.waitForPage();
+    page.navToSideMenuGroupByLabel('Apps');
+    chartsPage.waitForPage();
     notFoundPage.errorTitle().should('not.exist');
 
-    page.navToSideMenuEntryByLabel('Pods');
-    workloadPodsPage.waitForPage();
+    page.navToSideMenuEntryByLabel('Repositories');
+    reposPage.waitForPage();
     notFoundPage.errorTitle().should('not.exist');
 
     page.navToMenuEntry('Cluster Management');

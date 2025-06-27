@@ -1048,7 +1048,15 @@ Cypress.Commands.add('fetchRevision', () => {
  */
 Cypress.Commands.add('isVaiCacheEnabled', () => {
   return cy.getRancherResource('v1', 'management.cattle.io.features', 'ui-sql-cache', 200)
-    .then((res) => res.body.spec.value === true || res.body.spec.value === 'true');
+    .then((res) => {
+      // copy of shell/models/management.cattle.io.feature.js enabled
+
+      if (res.body.status.lockedValue !== null) {
+        return res.body.status.lockedValue;
+      }
+
+      return (res.body.spec.value !== null) ? res.body.spec.value : res.body.status.default;
+    });
 });
 
 Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration = 0) => {

@@ -25,7 +25,6 @@ import { ProjectsNamespacesListPagePo, NamespaceCreateEditPagePo, ProjectCreateE
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { dialogModal, promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
 import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po';
-import { WorkloadsListPageBasePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads.po';
 import { WorkLoadsDaemonsetsCreatePagePo, WorkloadsDaemonsetsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-daemonsets.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
@@ -356,29 +355,12 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       });
 
       describe('Workloads', () => {
-        it('Workloads page', () => {
-          const workloadsListPage = new WorkloadsListPageBasePo('local', 'workload');
-
-          WorkloadsListPageBasePo.navTo();
-          workloadsListPage.waitForPage();
-          workloadsListPage.sortableTable().checkLoadingIndicatorNotVisible();
-          // expand the health scale up/down control
-          workloadsListPage.details('rancher', 8).should('be.visible');
-          workloadsListPage.details('rancher', 8).click();
-
-          cy.injectAxe();
-
-          cy.checkPageAccessibility();
-        });
-
         it('Deployments page', () => {
           const deploymentsListPage = new WorkloadsDeploymentsListPagePo();
 
           deploymentsListPage.goTo();
           deploymentsListPage.waitForPage();
           deploymentsListPage.sortableTable().checkLoadingIndicatorNotVisible();
-          // expand the health scale up/down control
-          deploymentsListPage.sortableTable().getTableCell(1, 10).click();
           cy.injectAxe();
 
           cy.checkPageAccessibility();
@@ -633,7 +615,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       const usersPo = new UsersPo('_');
 
       it('Users page', () => {
-        cy.intercept('GET', `${ USERS_BASE_URL }?exclude=metadata.managedFields`).as('getUsers');
+        cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('getUsers');
 
         usersPo.goTo();
         usersPo.waitForPage();

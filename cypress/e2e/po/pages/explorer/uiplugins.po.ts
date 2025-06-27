@@ -15,10 +15,12 @@ export default class UiPluginsPagePo extends PagePo {
     super(UiPluginsPagePo.createPath(clusterId));
   }
 
-  cacheState(name: string) {
-    const resourceTable = new ResourceTablePo(this.self());
+  resourceTable() {
+    return new ResourceTablePo(this.self());
+  }
 
-    return resourceTable.sortableTable().rowWithName(name).column(5);
+  cacheState(name: string) {
+    return this.resourceTable().sortableTable().rowWithName(name).column(5);
   }
 
   goToDetailsPage(elemName: string) {

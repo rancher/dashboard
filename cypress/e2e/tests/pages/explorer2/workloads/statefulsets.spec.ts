@@ -12,7 +12,7 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueStatefulSet = SortableTablePo.firstByDefaultName('statefulset');
     const statefulSetNamesList = [];
     let nsName1: string;
