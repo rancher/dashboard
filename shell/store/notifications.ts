@@ -21,6 +21,11 @@ const EXPIRY = 14 * 24 * 60 * 60;
 const MAX_NOTIFICATIONS = 50;
 
 /**
+ * Broadcast channel name to send changes across tabs
+ */
+const NOTIFICATION_CHANNEL_NAME = 'rancher-notification-sync';
+
+/**
  * Store for the UI Notification Centre
  */
 interface NotificationsStore {
@@ -40,6 +45,12 @@ export const state = function(): NotificationsStore {
     notifications,
   };
 };
+
+let bc: BroadcastChannel;
+
+function sync(operation: string, param?: any) {
+  bc?.postMessage({ operation, param });
+}
 
 const debounceSetNotifications = debounce((state: NotificationsStore, notifications: StoredNotification[]) => {
   state.notifications = notifications;
@@ -178,6 +189,7 @@ export const mutations = {
 export const actions = {
   add( { commit, dispatch }: any, notification: Notification) {
     commit('add', notification);
+    sync('add', notification);
 
     // Show a growl for the notification if necessary
     dispatch('growl/notification', notification, { root: true });
@@ -187,6 +199,7 @@ export const actions = {
     notification.id = randomStr();
 
     commit('add', notification);
+    sync('add', notification);
 
     return notification.id;
   },
@@ -197,6 +210,7 @@ export const actions = {
 
   async markRead({ commit, dispatch, getters }: any, id: string) {
     commit('markRead', id);
+    sync('markRead', id);
 
     const notification = getters.item(id);
 
@@ -207,6 +221,7 @@ export const actions = {
 
   async markUnread({ commit, dispatch, getters }: any, id: string) {
     commit('markUnread', id);
+    sync('markUnread', id);
 
     const notification = getters.item(id) as Notification;
 
@@ -220,6 +235,7 @@ export const actions = {
 
   async markAllRead({ commit, dispatch, getters }: any) {
     commit('markAllRead');
+    sync('markAllRead');
 
     // For all notifications that have a preference, set the preference, since they are now read
     const withPreference = getters.all.filter((n: Notification) => !!n.preference);
@@ -231,10 +247,12 @@ export const actions = {
 
   remove({ commit }: any, id: string) {
     commit('remove', id);
+    sync('remove', id);
   },
 
   clearAll({ commit }: any) {
     commit('clearAll');
+    sync('clearAll');
   },
 
   load({ commit }: any, data: StoredNotification[]) {
@@ -298,5 +316,14 @@ export const actions = {
     });
 
     commit('load', notifications);
+
+    // Set up broadcast listener to listen for updates from other tabs
+    bc = new BroadcastChannel(NOTIFICATION_CHANNEL_NAME);
+
+    bc.onmessage = (msgEvent: any) => {
+      if (msgEvent?.data?.operation) {
+        commit(msgEvent.data.operation, msgEvent.data.param);
+      }
+    };
   }
 };
