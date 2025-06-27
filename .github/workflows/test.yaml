@@ -144,16 +144,23 @@ jobs:
           path: cypress/screenshots
 
       - name: Create Rancher Logs
-        if: ${{ failure() }}
-        run: yarn docker:local:logs
+        if: ${{ always() }}
+        run: |
+          mkdir -p logs
+          docker logs cypress > logs/rancher.log 2>&1 || true
+          docker exec cypress journalctl -u k3s > logs/k3s.log 2>&1 || true
+          for pod in $(docker exec cypress kubectl -n cattle-system get pods -l app=rancher-webhook -o name); do
+            name=$(basename "$pod")
+            docker exec cypress kubectl -n cattle-system logs "$pod" > logs/webhook-${name}.log 2>&1 || true
+          done
 
       - name: Upload Rancher logs
         uses: actions/upload-artifact@v4
-        if: ${{ failure() }}
+        if: ${{ always() }}
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-rancher-logs-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
-          path: ${{ env.E2E_RANCHER_LOG }}
-          if-no-files-found: error
+          path: logs/
+          if-no-files-found: warn
           retention-days: 5
           compression-level: 9
 
