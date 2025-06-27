@@ -38,7 +38,7 @@ export default {
     addIcon: {
       type:    String,
       default: '',
-    }, 
+    },
     addClass: {
       type:    String,
       default: '',
