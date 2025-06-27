@@ -1,29 +1,39 @@
 #!/usr/bin/env bash
 
-DIR=$(cd $(dirname $0)/..; pwd)
+set -euo pipefail
 
-# See `script/build-e2e`
-DASHBOARD_DIST=${DIR}/dist
-EMBER_DIST=${DIR}/dist_ember
-
-# Image version
-RANCHER_IMG_VERSION=head
-# RANCHER_IMG_VERSION=v2.12-146a265b2d3e50d789ae55ad13daec8a1416c5fb-head - commit before 1.33 + steve bump
-
-# Docker volume args when mounting the locally-built UI into the container
+DIR=$(cd "$(dirname "$0")/.."; pwd)
+DASHBOARD_DIST="${DIR}/dist"
+EMBER_DIST="${DIR}/dist_ember"
+RANCHER_IMG_VERSION="head"
 VOLUME_ARGS="-v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard -v ${EMBER_DIST}:/usr/share/rancher/ui"
 
-# check if script invoke contains any argument. If so, adjust RANCHER_IMG_VERSION
 if [ $# -eq 1 ]; then
   RANCHER_IMG_VERSION=$1
-  # When an image is specified, we use that image, including its front-end, so we don't want the volume args to mount the locally-built UI
   VOLUME_ARGS=""
 fi
 
 echo "Using Rancher image version: ${RANCHER_IMG_VERSION}"
 
-# we are now enabling the "oidc-provider" feature flag on install because we will need it for e2e testing (not enabled by default in non-prime versions)
-# "oidc-provider" feature flag needs a system restart so it's not feasible to enable it as part of the test
+# Define cleanup function to always run on exit
+cleanup() {
+  echo "===== Collecting Rancher container logs ====="
+  docker logs cypress > rancher-container.log 2>&1 || true
+  cat rancher-container.log
+
+  echo "===== Collecting k3s logs ====="
+  docker exec cypress journalctl -u k3s > k3s.log 2>&1 || echo "Failed to get k3s logs"
+
+  echo "===== Collecting rancher-webhook pod logs ====="
+  docker exec cypress kubectl -n cattle-system get pods -l app=rancher-webhook -o name | while read pod; do
+    docker exec cypress kubectl -n cattle-system logs "$pod" > "webhook-${pod##*/}.log" 2>&1 || true
+    echo "--- Logs from $pod ---"
+    cat "webhook-${pod##*/}.log"
+  done
+}
+trap cleanup EXIT
+
+# Run Rancher
 docker run -d --restart=unless-stopped -p 80:80 -p 443:443 ${VOLUME_ARGS} \
   -e CATTLE_UI_OFFLINE_PREFERRED=true \
   -e CATTLE_BOOTSTRAP_PASSWORD=password \
@@ -32,27 +42,22 @@ docker run -d --restart=unless-stopped -p 80:80 -p 443:443 ${VOLUME_ARGS} \
   -e CATTLE_TRACE=true \
   --name cypress \
   --privileged \
-  crobby/rancher:v2.12-882e7a1b4-latest2 \
+  crobby/rancher:${RANCHER_IMG_VERSION} \
   --debug=true \
   --features=oidc-provider=true
 
 docker ps
 
 echo "Waiting for dashboard UI to be reachable (initial 20s wait) ..."
-
 sleep 20
 
+# Wait for dashboard to become available
 echo "Waiting for dashboard UI to be reachable ..."
-
 okay=0
-
 while [ $okay -lt 30 ]; do
   STATUS=$(curl --silent --head -k https://127.0.0.1/dashboard/ | awk '/^HTTP/{print $2}')
-
   echo "Status: $STATUS (Try: $okay)"
-
   okay=$((okay+1))
-
   if [ "$STATUS" == "200" ]; then
     okay=100
   else
@@ -67,10 +72,11 @@ fi
 
 echo "Dashboard UI is ready"
 
+# Wait for webhook to be ready
 echo "Waiting for webhook to be running..."
 okay=0
-while [ $okay -lt 30 ] ; do
-  if docker exec cypress kubectl -n cattle-system get po -l app=rancher-webhook | grep -q '1/1.*Running' ; then
+while [ $okay -lt 30 ]; do
+  if docker exec cypress kubectl -n cattle-system get po -l app=rancher-webhook | grep -q '1/1.*Running'; then
     break
   else
     echo "Webhook not ready, checking again in 10s..."
@@ -78,4 +84,5 @@ while [ $okay -lt 30 ] ; do
     sleep 10
   fi
 done
+
 echo "Rancher is ready"
