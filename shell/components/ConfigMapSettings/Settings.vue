@@ -170,18 +170,32 @@ export default {
               ['icon icon-chevron-down']: isGroupExpanded[item.name],
             }"
           />
-          <h2
-            v-if="item.label"
-            class="label"
-            :style="!item.children ? { fontSize: '18px' } : { marginBottom: '10px' }"
-          >
-            {{ item.label }}
-            <i
-              v-if="item.tooltip"
-              v-clean-tooltip="item.tooltipLabel"
-              class="icon icon-info"
-            />
-          </h2>
+          <div v-if="item.children">
+            <h2
+              v-if="item.label"
+              class="label"
+            >
+              {{ item.label }}
+              <i
+                v-if="item.tooltip"
+                v-clean-tooltip="item.tooltipLabel"
+                class="icon icon-info"
+              />
+            </h2>
+          </div>
+          <div v-else>
+            <h3
+              v-if="item.label"
+              class="label"
+            >
+              {{ item.label }}
+              <i
+                v-if="item.tooltip"
+                v-clean-tooltip="item.tooltipLabel"
+                class="icon icon-info"
+              />
+            </h3>
+          </div>
         </div>
 
         <div
@@ -263,6 +277,7 @@ export default {
                 :read-allowed="false"
                 :add-icon="'icon-plus'"
                 :add-label="display(item.name, 'add')"
+                :add-class="'btn-sm'"
                 @update:value="set(item, $event)"
               />
               <Taints
@@ -273,6 +288,7 @@ export default {
                 :mode="mode"
                 :title="' '"
                 :add-icon="'icon-plus'"
+                :add-class="'btn-sm'"
                 @update:value="set(item, $event)"
               />
             </template>
@@ -337,7 +353,7 @@ export default {
   .settings-container {
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 24px;
 
     .setting-row {
       display: flex;
