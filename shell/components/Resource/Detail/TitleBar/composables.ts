@@ -16,6 +16,7 @@ export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: Ref<str
     const schema = store.getters[`${ currentStore }/schemaFor`](resourceValue.type);
     const resourceTypeLabel = resourceValue.parentNameOverride || store.getters['type-map/labelFor'](schema);
     const resourceName = resourceSubtypeValue ? `${ resourceSubtypeValue } - ${ resourceValue.nameDisplay }` : resourceValue.nameDisplay;
+    const hasGraph = !!store.getters['type-map/hasGraph'](resourceValue.type);
 
     return {
       resourceTypeLabel,
@@ -35,6 +36,7 @@ export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: Ref<str
         label: resourceValue.stateDisplay
       },
       description:         resourceValue.description,
+      showViewOptions:     hasGraph,
       onShowConfiguration: (returnFocusSelector: string) => openResourceDetailDrawer(resourceValue, returnFocusSelector)
     };
   });
