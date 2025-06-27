@@ -7,9 +7,7 @@ registration:
     message: Register your SUSE Rancher Manager Prime Suite to receive the latest updates and support.
     button:
       primary:
-        label: Register SUSE Rancher Manager Prime
-      secondary:
-        label: Dismiss
+        label: Register Now
 
   title: Product Registration
   banner:
