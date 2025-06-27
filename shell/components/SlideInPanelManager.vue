@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, watch } from 'vue';
+import { computed, onBeforeUnmount, watch } from 'vue';
 import { useStore } from 'vuex';
 import {
   DEFAULT_FOCUS_TRAP_OPTS,
@@ -89,6 +89,8 @@ watch(
   },
   { deep: true }
 );
+
+onBeforeUnmount(closePanel);
 
 function closePanel() {
   store.commit('slideInPanel/close');
