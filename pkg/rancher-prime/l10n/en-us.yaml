@@ -34,14 +34,15 @@ registration:
     table:
       header:
         status: Status
-        product: Product
-        expiration: Expires
-        code: Registration code
+        product: Product name
+        expiration: Expiration
+        mode: Registration mode
       button:
         label: Deregister
         progress: Deregistering
       badge:
         none: Unregistered
+        invalid: Invalid
         expired: Expired
         valid: Active
 

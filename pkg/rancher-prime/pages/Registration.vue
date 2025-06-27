@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 
@@ -22,6 +22,7 @@ const {
   registerOffline,
   deregister,
   errors,
+  initRegistration,
   registrationCode,
   registrationBanner
 } = usePrimeRegistration();
@@ -29,7 +30,7 @@ const {
 /**
  * Track both registration types
  */
-const isRegistered = computed(() => registrationStatus.value === 'registered-online' || registrationStatus.value === 'registered-offline');
+const isRegistered = computed(() => registrationStatus.value === 'registered');
 
 /**
  * Track both registering progresses as generic operation to disable all the inputs
@@ -40,6 +41,10 @@ const isRegistering = computed(() => registrationStatus.value === 'registering-o
  * Track offline registration progress, to switch between file selector and async button
  */
 const isRegisteringOffline = computed(() => registrationStatus.value === 'registering-offline');
+
+onMounted(async() => {
+  initRegistration();
+});
 </script>
 
 <template>
@@ -169,7 +174,7 @@ const isRegisteringOffline = computed(() => registrationStatus.value === 'regist
           {{ t('registration.list.table.header.expiration') }}
         </div>
         <div class="color-disabled-text">
-          {{ t('registration.list.table.header.code') }}
+          {{ t('registration.list.table.header.mode') }}
         </div>
         <div />
         <div>
@@ -179,13 +184,18 @@ const isRegisteringOffline = computed(() => registrationStatus.value === 'regist
           />
         </div>
         <div>
-          {{ registration.product }}
+          <a
+            v-if="registration.resourceLink"
+            :href="registration.resourceLink"
+            target="_blank"
+          >{{ registration.product }}</a>
+          <span v-else>{{ registration.product }}</span>
         </div>
         <div>
           {{ registration.expiration }}
         </div>
         <div>
-          {{ registration.code }}
+          {{ registration.mode }}
         </div>
         <div>
           <AsyncButton
