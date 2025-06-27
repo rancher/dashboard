@@ -116,7 +116,7 @@ export default {
           :mode="mode"
           label="Password"
           type="password"
-          autocomplete="new-password"
+          autocomplete="current-password"
         />
       </div>
     </div>
