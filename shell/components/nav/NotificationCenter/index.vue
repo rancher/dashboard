@@ -17,6 +17,7 @@ import {
 import { StoredNotification } from '@shell/types/notifications';
 import { encrypt } from '@shell/utils/crypto/encryption';
 import { loadFromString } from '@shell/utils/notifications';
+import { onExtensionsReady } from '@shell/utils/uiplugins';
 
 const store = useStore();
 const allNotifications = computed(() => store.getters['notifications/all']);
@@ -66,6 +67,8 @@ watch(allNotifications, async(newData: StoredNotification[]) => {
 onMounted(async() => {
   // Listen to storage events, so if the UI is open in multiple tabs, notifications in one tab will be sync'ed across all tabs
   window.addEventListener('storage', localStorageEventHandler);
+
+  await onExtensionsReady(store);
 });
 
 onUnmounted(() => {

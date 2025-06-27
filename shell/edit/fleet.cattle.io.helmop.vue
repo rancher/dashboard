@@ -646,7 +646,7 @@ export default {
         <h2 v-t="'fleet.helmOp.values.valuesFrom.selectLabel'" />
         <div
           v-for="(row, i) in valuesFrom"
-          :key="row.name"
+          :key="row?.name + '-' + row?.valueFrom?.configMapKeyRef?.key + '-' + row?.valueFrom?.secretKeyRef?.key"
         >
           <ValueFromResource
             :value="row"

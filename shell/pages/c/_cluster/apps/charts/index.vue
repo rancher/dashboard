@@ -16,7 +16,7 @@ import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
 import { RcItemCard } from '@components/RcItemCard';
 import { get } from '@shell/utils/object';
-import { CATALOG as CATALOG_TYPES, SORT_OPTIONS } from '@shell/config/types';
+import { CATALOG as CATALOG_TYPES, CATALOG_SORT_OPTIONS } from '@shell/config/types';
 import FilterPanel from '@shell/components/FilterPanel';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
@@ -51,7 +51,7 @@ export default {
 
     this.searchQuery = query[SEARCH_QUERY] || '';
     this.debouncedSearchQuery = query[SEARCH_QUERY] || '';
-    this.selectedSortOption = query[SORT_BY] || SORT_OPTIONS.RECOMMENDED;
+    this.selectedSortOption = query[SORT_BY] || CATALOG_SORT_OPTIONS.RECOMMENDED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
     this.filters.repos = normalizeFilterQuery(query[REPO]) || [];
     this.filters.categories = normalizeFilterQuery(query[CATEGORY]) || [];
@@ -70,6 +70,7 @@ export default {
       filters:              createInitialFilters(),
       // to optimize UI responsiveness by immediately updating the filter state
       internalFilters:      createInitialFilters(),
+      isFilterUpdating:     false,
       installedApps:        [],
       statusOptions:        [
         {
@@ -102,12 +103,13 @@ export default {
         }
       ],
       appCardsCache:      {},
-      selectedSortOption: SORT_OPTIONS.RECOMMENDED,
+      selectedSortOption: CATALOG_SORT_OPTIONS.RECOMMENDED,
       sortOptions:        [
-        { value: SORT_OPTIONS.RECOMMENDED, label: this.t('catalog.charts.sortBy.recommended') },
-        { value: SORT_OPTIONS.LAST_UPDATED_DESC, label: this.t('catalog.charts.sortBy.lastUpdatedDesc') },
-        { value: SORT_OPTIONS.ALPHABETICAL_ASC, label: this.t('catalog.charts.sortBy.alphaAscending') },
-        { value: SORT_OPTIONS.ALPHABETICAL_DESC, label: this.t('catalog.charts.sortBy.alphaDescending') },
+        { kind: 'group', label: this.t('catalog.charts.sort.prefix') },
+        { value: CATALOG_SORT_OPTIONS.RECOMMENDED, label: this.t('catalog.charts.sort.recommended') },
+        { value: CATALOG_SORT_OPTIONS.LAST_UPDATED_DESC, label: this.t('catalog.charts.sort.lastUpdatedDesc') },
+        { value: CATALOG_SORT_OPTIONS.ALPHABETICAL_ASC, label: this.t('catalog.charts.sort.alphaAscending') },
+        { value: CATALOG_SORT_OPTIONS.ALPHABETICAL_DESC, label: this.t('catalog.charts.sort.alphaDescending') },
       ]
     };
   },
@@ -278,10 +280,12 @@ export default {
     },
 
     totalMessage() {
+      const count = !this.isFilterUpdating ? this.appChartCards.length : '. . .';
+
       if (this.noFiltersApplied) {
-        return this.t('catalog.charts.totalChartsMessage', { count: this.appChartCards.length });
+        return this.t('catalog.charts.totalChartsMessage', { count });
       } else {
-        return this.t('catalog.charts.totalMatchedChartsMessage', { count: this.appChartCards.length });
+        return this.t('catalog.charts.totalMatchedChartsMessage', { count });
       }
     }
   },
@@ -308,7 +312,7 @@ export default {
         this.$router.applyQuery(query);
         this.internalFilters = JSON.parse(JSON.stringify(newFilters));
       }
-    },
+    }
 
     selectedSortOption: {
       handler(neu) {
@@ -316,12 +320,12 @@ export default {
       },
       immediate: false
     },
-  },
 
   methods: {
     get,
 
     onFilterChange(newFilters) {
+      this.isFilterUpdating = true;
       this.internalFilters = newFilters;
 
       this.applyFiltersDebounced(newFilters);
@@ -329,6 +333,7 @@ export default {
 
     applyFiltersDebounced: debounce(function(newFilters) {
       this.filters = newFilters;
+      this.isFilterUpdating = false;
     }, 100),
 
     selectChart(chart) {
@@ -436,6 +441,7 @@ export default {
         {{ t('catalog.chart.header.charts') }}
       </h1>
       <AsyncButton
+        class="refresh-repo-button"
         :action-label="t('catalog.charts.refreshButton.label')"
         :waitingLabel="t('catalog.charts.refreshButton.label')"
         :success-label="t('catalog.charts.refreshButton.label')"
@@ -485,9 +491,35 @@ export default {
 
       <div
         v-if="filteredCharts.length === 0"
-        class="app-chart-cards-empty-state"
+        class="charts-empty-state"
+        data-testid="charts-empty-state"
       >
-        <h1>{{ t('catalog.charts.noCharts') }}</h1>
+        <h1
+          class="empty-state-title"
+          data-testid="charts-empty-state-title"
+        >
+          {{ t('catalog.charts.noCharts.title') }}
+        </h1>
+        <div class="empty-state-tips">
+          <h4
+            v-clean-html="t('catalog.charts.noCharts.messagePart1', {}, true)"
+          />
+          <a
+            tabindex="0"
+            role="button"
+            class="empty-state-reset-filters link"
+            data-testid="charts-empty-state-reset-filters"
+            @click="resetAllFilters"
+          >
+            {{ t('catalog.charts.noCharts.messagePart2') }}
+          </a>
+          <h4
+            v-clean-html="t('catalog.charts.noCharts.messagePart3', { repositoriesUrl: `/c/${clusterId}/apps/catalog.cattle.io.clusterrepo`}, true)"
+          />
+        </div>
+        <h4
+          v-clean-html="t('catalog.charts.noCharts.messagePart4', {}, true)"
+        />
       </div>
       <div
         v-else
@@ -515,7 +547,26 @@ export default {
             :options="sortOptions"
             placement="bottom"
             class="charts-sort-select"
-          />
+          >
+            <template #selected-option="{ label }">
+              <span class="mmr-1">{{ t('catalog.charts.sort.prefix') }}:</span>{{ label }}
+            </template>
+
+            <template #option="{ label, kind }">
+              <span
+                v-if="kind === 'group'"
+                class="mml-2 mmr-2"
+              >
+                {{ label }}:
+              </span>
+              <span
+                v-else
+                class="mml-6"
+              >
+                {{ label }}
+              </span>
+            </template>
+          </Select>
         </div>
         <div
           class="app-chart-cards"
@@ -564,6 +615,13 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+
+  .refresh-repo-button {
+
+    :deep(.icon) {
+      font-size: 14px;
+    }
+  }
 }
 
 .search-input {
@@ -572,6 +630,8 @@ export default {
 
   input {
     height: 48px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .icon-search {
@@ -579,21 +639,6 @@ export default {
     top: 16px;
     right: 16px;
     font-size: 16px;
-  }
-}
-
-.checkbox-select {
-  .vs__search {
-    position: absolute;
-    right: 0
-  }
-
-  .vs__selected-options  {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    display: inline-block;
-    line-height: 2.4rem;
   }
 }
 
@@ -634,6 +679,12 @@ export default {
 
   .charts-sort-select {
     width: 300px;
+
+    // make the color of the selected item consistent with the group title when the select dropdown is open
+    :deep(.v-select.inline.vs--single.vs--open .vs__selected) {
+      opacity: 1;
+      color: var(--dropdown-disabled-text);
+    }
   }
 }
 
@@ -642,11 +693,34 @@ export default {
   gap: var(--gap-lg);
 }
 
-.app-chart-cards-empty-state {
+.charts-empty-state {
   width: 100%;
-  margin-top: 32px;
-  padding: 32px;
+  padding: 72px 0;
   text-align: center;
+
+  .empty-state-title {
+    margin-bottom: 24px;
+  }
+
+  .empty-state-tips {
+    margin-bottom: 12px;
+
+    .empty-state-reset-filters {
+      font-size: 16px;
+    }
+
+    h4 {
+      display: inline;
+    }
+  }
+
+  :deep(h4 .icon-external-link) {
+    text-decoration: underline;
+  }
+
+  :deep(h4:hover .icon-external-link) {
+    text-decoration: none;
+  }
 }
 
 .app-chart-cards {

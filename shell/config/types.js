@@ -135,7 +135,7 @@ export const CATALOG = {
 };
 
 // Charts/Apps
-export const SORT_OPTIONS = {
+export const CATALOG_SORT_OPTIONS = {
   RECOMMENDED:       'recommended',
   LAST_UPDATED_DESC: 'lastupdatedDescending',
   ALPHABETICAL_ASC:  'alphaAscending',
@@ -219,7 +219,8 @@ export const MANAGEMENT = {
   GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider',
   RKE_TEMPLATE:                  'management.cattle.io.clustertemplate',
   RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
-  CLUSTER_PROXY_CONFIG:          'management.cattle.io.clusterproxyconfig'
+  CLUSTER_PROXY_CONFIG:          'management.cattle.io.clusterproxyconfig',
+  OIDC_CLIENT:                   'management.cattle.io.oidcclient'
 };
 
 export const CAPI = {

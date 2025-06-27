@@ -121,7 +121,7 @@ export default {
       v-if="shouldShowIntro && !loading"
       :schema="schema"
       :labelKey="'gitRepo'"
-      :icon="'icon-github'"
+      :icon="'icon-git'"
     />
     <ResourceTable
       v-if="!shouldShowIntro"
