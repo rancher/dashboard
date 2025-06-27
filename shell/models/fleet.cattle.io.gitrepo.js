@@ -118,10 +118,10 @@ export default class GitRepo extends FleetApplication {
 
   get resourceIcon() {
     if (this.github) {
-      return FleetUtils.resourceIcons[FLEET.GIT_REPO];
+      return 'icon icon-github';
     }
 
-    return '';
+    return FleetUtils.resourceIcons[FLEET.GIT_REPO];
   }
 
   get repoDisplay() {

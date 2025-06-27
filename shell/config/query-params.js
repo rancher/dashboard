@@ -86,3 +86,5 @@ export const SCOPED_TABS = {
   PROJECT_SCOPED: 'project-scoped'
 };
 export const SCOPE = 'scope';
+// RANCHER OIDC CLIENT
+export const RANCHER_AS_OIDC_QUERY_PARAMS = ['scope', 'client_id', 'redirect_uri', 'response_type'];

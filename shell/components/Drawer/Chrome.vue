@@ -82,11 +82,13 @@ const ariaLabel = computed(() => i18n.t('component.drawer.chrome.ariaLabel.close
 
       & > .actions {
         button {
-          display: inline-block;
+          display: inline-flex;
           $size: 24px;
           width: $size;
           height: $size;
           color: var(--body-text);
+
+          justify-content: center;
         }
       }
     }

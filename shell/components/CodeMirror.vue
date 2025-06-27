@@ -227,7 +227,7 @@ export default {
     },
 
     onFocus() {
-      this.isCodeMirrorFocused = !this.isDisabled;
+      this.isCodeMirrorFocused = true;
       this.$emit('onFocus', this.isCodeMirrorFocused);
     },
 

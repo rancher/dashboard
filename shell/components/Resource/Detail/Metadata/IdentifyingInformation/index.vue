@@ -21,6 +21,8 @@ export interface MetadataProps {
 
 <script setup lang="ts">
 const { rows } = defineProps<MetadataProps>();
+
+const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`.toLowerCase().replaceAll(' ', '');
 </script>
 
 <template>
@@ -31,11 +33,15 @@ const { rows } = defineProps<MetadataProps>();
       class="row"
       :data-testid="row.dataTestid"
     >
-      <div class="label text-muted">
+      <label
+        class="label text-muted"
+        :for="getRowValueId(row)"
+      >
         {{ row.label }}
-      </div>
+      </label>
       <div
         v-if="row.valueOverride?.component && row.value"
+        :id="getRowValueId(row)"
         class="value"
       >
         <component
@@ -47,6 +53,7 @@ const { rows } = defineProps<MetadataProps>();
       </div>
       <div
         v-else
+        :id="getRowValueId(row)"
         class="value"
       >
         <div
@@ -63,6 +70,8 @@ const { rows } = defineProps<MetadataProps>();
         <span
           v-else-if="row.value"
           :data-testid="row.valueDataTestid"
+          tabindex="0"
+          :aria-label="row.value"
         >{{ row.value }}</span>
         <span
           v-else

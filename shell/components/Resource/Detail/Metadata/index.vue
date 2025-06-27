@@ -12,7 +12,7 @@ export interface MetadataProps {
   identifyingInformation: IdentifyingInformationRow[],
   labels: Label[],
   annotations: Annotation[],
-  onShowConfiguration?: () => void;
+  onShowConfiguration?: (returnFocusSelector: string) => void;
 }
 
 const { identifyingInformation, labels, annotations } = defineProps<MetadataProps>();
@@ -39,7 +39,7 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
       <KeyValue
         :rows="[]"
         :propertyName="i18n.t('component.resource.detail.metadata.labelsAndAnnotations')"
-        @show-configuration="() => emit('show-configuration')"
+        @show-configuration="(returnFocusSelector: string) => emit('show-configuration', returnFocusSelector)"
       />
     </div>
     <!-- I'm not using v-else here so I can maintain the spacing correctly with the other columns in other rows. -->
@@ -49,7 +49,7 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
     >
       <Labels
         :labels="labels"
-        @show-configuration="() => emit('show-configuration')"
+        @show-configuration="(returnFocusSelector: string) => emit('show-configuration', returnFocusSelector)"
       />
     </div>
     <div
@@ -58,7 +58,7 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
     >
       <Annotations
         :annotations="annotations"
-        @show-configuration="() => emit('show-configuration')"
+        @show-configuration="(returnFocusSelector: string) => emit('show-configuration', returnFocusSelector)"
       />
     </div>
   </SpacedRow>
