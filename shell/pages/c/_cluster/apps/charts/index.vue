@@ -320,6 +320,7 @@ export default {
       },
       immediate: false
     },
+  },
 
   methods: {
     get,
