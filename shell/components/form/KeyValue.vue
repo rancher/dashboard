@@ -863,7 +863,7 @@ export default {
     </div>
     <div
       v-if="(addAllowed || readAllowed) && !isView"
-      class="footer mt-20"
+      class="footer mt-10"
     >
       <slot
         name="add"
