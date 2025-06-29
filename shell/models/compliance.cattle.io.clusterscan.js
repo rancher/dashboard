@@ -1,5 +1,5 @@
-import { NAME as PRODUCT_NAME } from '@shell/config/product/cis';
-import { CIS } from '@shell/config/types';
+import { NAME as PRODUCT_NAME } from '@shell/config/product/compliance';
+import { COMPLIANCE } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
 import { downloadFile, generateZip } from '@shell/utils/download';
 import { get, isEmpty } from '@shell/utils/object';
@@ -53,7 +53,7 @@ export default class ClusterScan extends SteveModel {
       action:  'downloadLatestReport',
       enabled: this.hasReport,
       icon:    'icon icon-fw icon-download',
-      label:   t('cis.downloadReport'),
+      label:   t('compliance.downloadReport'),
       total:   1,
     };
 
@@ -61,7 +61,7 @@ export default class ClusterScan extends SteveModel {
       action:  'downloadAllReports',
       enabled: this.hasReport,
       icon:    'icon icon-fw icon-download',
-      label:   t('cis.downloadAllReports'),
+      label:   t('compliance.downloadAllReports'),
       total:   1,
     };
 
@@ -69,7 +69,7 @@ export default class ClusterScan extends SteveModel {
       out.unshift({ divider: true });
       if (this.spec?.scheduledScanConfig?.cronSchedule) {
         out.unshift(downloadAllReports);
-        downloadReport.label = t('cis.downloadLatestReport');
+        downloadReport.label = t('compliance.downloadLatestReport');
       }
       out.unshift(downloadReport);
     }
@@ -92,7 +92,7 @@ export default class ClusterScan extends SteveModel {
   get hasReports() {
     const { relationships = [] } = this.metadata;
 
-    const reportRel = findBy(relationships, 'toType', CIS.REPORT);
+    const reportRel = findBy(relationships, 'toType', COMPLIANCE.REPORT);
 
     return !!reportRel;
   }
@@ -100,7 +100,7 @@ export default class ClusterScan extends SteveModel {
   async getReports() {
     const owned = await this.findOwned();
 
-    const reports = owned.filter((obj) => obj.type === CIS.REPORT) || [];
+    const reports = owned.filter((obj) => obj.type === COMPLIANCE.REPORT) || [];
 
     return sortBy(reports, 'metadata.creationTimestamp', true);
   }
@@ -158,7 +158,7 @@ export default class ClusterScan extends SteveModel {
       return {
         name:   'c-cluster-product-resource-id',
         params: {
-          resource: CIS.CLUSTER_SCAN_PROFILE,
+          resource: COMPLIANCE.CLUSTER_SCAN_PROFILE,
           product:  PRODUCT_NAME,
           id:       this.status?.lastRunScanProfileName
         }

@@ -3,7 +3,7 @@ import ResourceTable from '@shell/components/ResourceTable';
 import { AGE } from '@shell/config/table-headers';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { allHash } from '@shell/utils/promise';
-import { fetchSpecsScheduledScanConfig } from '@shell/models/cis.cattle.io.clusterscan';
+import { fetchSpecsScheduledScanConfig } from '@shell/models/compliance.cattle.io.clusterscan';
 
 export default {
   components: { ResourceTable },
@@ -40,7 +40,7 @@ export default {
   },
 
   computed: {
-    // warning state and scheduling added in the same version of cis so a check for one is a check for the other
+    // warning state and scheduling added in the same version of compliance so a check for one is a check for the other
     hasWarningState() {
       return this.hasScheduledScanConfig;
     },

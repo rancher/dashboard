@@ -5,7 +5,7 @@ import ArrayList from '@shell/components/form/ArrayList';
 import createEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import { mapGetters } from 'vuex';
-import { CIS } from '@shell/config/types';
+import { COMPLIANCE } from '@shell/config/types';
 const semver = require('semver');
 
 export default {
@@ -33,7 +33,7 @@ export default {
   },
 
   async fetch() {
-    this.allBenchmarks = await this.$store.dispatch('cluster/findAll', { type: CIS.BENCHMARK });
+    this.allBenchmarks = await this.$store.dispatch('cluster/findAll', { type: COMPLIANCE.BENCHMARK });
   },
 
   data() {
@@ -129,7 +129,7 @@ export default {
           <LabeledSelect
             v-model:value="value.spec.benchmarkVersion"
             :mode="mode"
-            :label="t('cis.benchmarkVersion')"
+            :label="t('compliance.benchmarkVersion')"
             :options="compatibleBenchmarkNames"
           />
         </div>
@@ -139,8 +139,8 @@ export default {
         <div class="col span-6">
           <ArrayList
             v-model:value="value.spec.skipTests"
-            :title="t('cis.testsToSkip')"
-            :value-placeholder="t('cis.testID')"
+            :title="t('compliance.testsToSkip')"
+            :value-placeholder="t('compliance.testID')"
             :mode="mode"
           />
         </div>

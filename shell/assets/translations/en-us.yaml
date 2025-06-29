@@ -307,7 +307,7 @@ product:
   apps: Apps
   auth: Users & Authentication
   backup: Rancher Backups
-  cis: CIS Benchmark
+  compliance: Compliance
   ecm: Cluster Manager
   explorer: Cluster Explorer
   fleet: Continuous Delivery
@@ -1315,10 +1315,10 @@ chartHeading:
   overview: Overview
   poweredBy: "Powered by:"
 
-cis:
+compliance:
   addTest: Add Test ID
   alertNeeded: |-
-    Alerting must be enabled within the CIS chart values.yaml.
+    Alerting must be enabled within the compliance chart values.yaml.
     This requires that the <a tabindex="0" href="{link}">{vendor} Monitoring and Alerting app</a> is installed
     and the Receivers and Routes are <a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/how-to-guides/advanced-user-guides/monitoring-v2-configuration-guides/advanced-configuration/alertmanager'> configured to send out alerts.</a>
   alertOnComplete: Alert on scan completion
@@ -2194,8 +2194,8 @@ cluster:
   rke2:
     banner:
       psaChange: PSACT is now set to Rancher default automatically
-      cisOverride: Changing this setting may affect cluster security as it overrides default CIS settings
-      cisUnsupported: The selected Kubernetes Version no longer supports CIS Profile "{cisProfile}". Please select a supported profile. We recommend reviewing the <a href="https://docs.rke2.io/security/hardening_guide" target="_blank" rel="noopener noreferrer nofollow">documentation</a> to evaluate the impact of changing the CIS Profile.
+      complianceOverride: Changing this setting may affect cluster security as it overrides default compliance settings
+      complianceUnsupported: The selected Kubernetes Version no longer supports compliance profile "{profile}". Please select a supported profile. We recommend reviewing the <a href="https://docs.rke2.io/security/hardening_guide" target="_blank" rel="noopener noreferrer nofollow">documentation</a> to evaluate the impact of changing the compliance profile.
     modal:
       editYamlMachinePool:
         title: Save Machine Configurations
@@ -2222,10 +2222,10 @@ cluster:
         label: Default - RKE2 Embedded
     security:
       header: Security
-    cis:
-      server: Server CIS Profile
-      agent: CIS Profile
-      override: Allow the default Pod Security Admission Configuration Template to be overridden when using a CIS Profile
+    compliance:
+      server: Server compliance Profile
+      agent: Compliance Profile
+      override: Allow the default Pod Security Admission Configuration Template to be overridden when using a compliance profile
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
       option: Default - RKE2 Embedded
@@ -2236,7 +2236,7 @@ cluster:
         default: Default - RKE2 Embedded
     secretEncryption:
       label: Encrypt Secrets
-    cisProfile:
+    complianceProfile:
       option: (None)
     enableNetworkPolicy:
       label: Project Network Isolation
@@ -5529,8 +5529,8 @@ rbac:
         label: Manage all Clusters
         description: Allows the user to manage all clusters, including ones they are not a member of.
       clusterscans-manage:
-        label: Manage CIS Cluster Scans
-        description: Allows the user to launch new and manage CIS cluster scans.
+        label: Manage Compliance Cluster Scans
+        description: Allows the user to launch new and manage compliance cluster scans.
       kontainerdrivers-manage:
         label: Create new Cluster Drivers
         description: Allows the user to create new cluster drivers and become the owner of them.
@@ -7437,10 +7437,10 @@ typeDescription:
   jwt.authentication: Enable this feature on a cluster to add support for JWT authenticating downstream service accounts.
   branding: "Branding allows administrators to globally re-brand the UI by customizing the Rancher product name, logos and color scheme."
   chart: "All charts have at least one version that is installable on clusters with Linux and Windows nodes unless otherwise indicated."
-  cis.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
-  cis.cattle.io.clusterscanprofile: A profile is the configuration for the CIS scan, which is the benchmark versions to use and any specific tests to skip in that benchmark.
-  cis.cattle.io.clusterscan: A scan is created to trigger a CIS scan on the cluster based on the defined profile. A report is created after the scan is completed.
-  cis.cattle.io.clusterscanreport: A report is the result of a CIS scan of the cluster.
+  compliance.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
+  compliance.cattle.io.clusterscanprofile: A profile is the configuration for the compliance scan, which is the benchmark versions to use and any specific tests to skip in that benchmark.
+  compliance.cattle.io.clusterscan: A scan is created to trigger a compliance scan on the cluster based on the defined profile. A report is created after the scan is completed.
+  compliance.cattle.io.clusterscanreport: A report is the result of a compliance scan of the cluster.
   management.cattle.io.feature: Feature Flags allow certain {vendor} features to be toggled on and off.  Features that are off by default should be considered experimental functionality.
   cluster.x-k8s.io.machine: A Machine encapsulates the configuration of a Kubernetes Node. Use this view to see what happens after updating a cluster.
   cluster.x-k8s.io.machinedeployment: A Machine Deployment orchestrates deployments via templates over a collection of Machine Sets (similar to a Deployment). Use this view to see what happens after updating a cluster.
@@ -7476,17 +7476,17 @@ typeLabel:
       one { API Key }
       other { API Keys }
     }
-  cis.cattle.io.clusterscan: |-
+  compliance.cattle.io.clusterscan: |-
     {count, plural,
       one { Scan }
       other { Scans }
     }
-  cis.cattle.io.clusterscanprofile: |-
+  compliance.cattle.io.clusterscanprofile: |-
     {count, plural,
       one { Profile }
       other { Profiles }
     }
-  cis.cattle.io.clusterscanbenchmark: |-
+  compliance.cattle.io.clusterscanbenchmark: |-
     {count, plural,
       one { Benchmark Version }
       other { Benchmark Versions }
