@@ -2997,6 +2997,10 @@ fleet:
         empty: empty
       valuesFrom:
         selectLabel: Values From
+        options:
+          configMapKeyRef: ConfigMap Key
+          secretKeyRef: Secret key
+        loading: Loading ConfigMaps and Secrets
     serviceAccount:
       label: Service Account Name
       placeholder: "Optional: Use a service account in the target clusters"
