@@ -170,32 +170,18 @@ export default {
               ['icon icon-chevron-down']: isGroupExpanded[item.name],
             }"
           />
-          <div v-if="item.children">
-            <h2
-              v-if="item.label"
-              class="label"
-            >
-              {{ item.label }}
-              <i
-                v-if="item.tooltip"
-                v-clean-tooltip="item.tooltipLabel"
-                class="icon icon-info"
-              />
-            </h2>
-          </div>
-          <div v-else>
-            <h3
-              v-if="item.label"
-              class="label"
-            >
-              {{ item.label }}
-              <i
-                v-if="item.tooltip"
-                v-clean-tooltip="item.tooltipLabel"
-                class="icon icon-info"
-              />
-            </h3>
-          </div>
+          <component
+            :is="item.children ? 'h2' : 'h3'"
+            v-if="item.label"
+            class="label"
+          >
+            {{ item.label }}
+            <i
+              v-if="item.tooltip"
+              v-clean-tooltip="item.tooltipLabel"
+              class="icon icon-info"
+            />
+          </component>
         </div>
 
         <div
