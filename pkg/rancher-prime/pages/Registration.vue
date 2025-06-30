@@ -104,6 +104,8 @@ onMounted(async() => {
           class="mt-20"
           :waitingLabel="t('registration.online.button-cta.progress')"
           :action-label="t('registration.online.button-cta.label')"
+          :success-label="t('registration.online.button-cta.label')"
+          successColor="role-primary"
           data-testid="registration-online-cta"
           :disabled="isRegistered || isRegistering || !registrationCode"
           @click="registerOnline"
@@ -205,10 +207,13 @@ onMounted(async() => {
         </div>
         <div>
           <AsyncButton
-            currentPhase="error"
+            waitingColor="bg-error"
+            actionColor="bg-error"
+            successColor="bg-error"
             :waitingLabel="t('registration.list.table.button.progress')"
             :error-label="t('registration.list.table.button.label')"
             :action-label="t('registration.list.table.button.label')"
+            :success-label="t('registration.list.table.button.label')"
             data-testid="registration-deregister-cta"
             :disabled="isRegistering || !isRegistered"
             @click="deregister"
