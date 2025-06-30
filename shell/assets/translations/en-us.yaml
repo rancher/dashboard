@@ -1913,8 +1913,13 @@ cluster:
     gce:
       machineImage:
         label: Machine Image
+        option: '{name} - {description}'
+        deprecatedOption: '{name}(deprecated) - {description}'
       imageProjects:
         label: Image Projects
+      showDeprecated:
+        label: Show Deprecated
+        tooltip: Includes deprecated images
       diskType:
         label: Disk Type
       diskSize:
@@ -1925,6 +1930,8 @@ cluster:
         label: Subnetwork
       machineType:
         label: Machine Type
+      family:
+        label: Image Family
       location:
         zone:
           label: Zone
@@ -1951,13 +1958,17 @@ cluster:
         placeholder: /Directory/of/File
       preemptible:
         label: Preemptible
-        tootltip: Indicates whether the GCE VM instance should be preemptible.
+        tooltip: Indicates whether the GCE VM instance should be preemptible.
       useInternalIP:
         label: Use Internal IP
-        tootltip: Indicates whether to use the internal IP address of the GCE VM instance instead of the public one.
+        tooltip: Indicates whether to use the internal IP address of the GCE VM instance instead of the public one.
       useInternalIPOnly:
         label: Only use Internal IP
-        tootltip: Configures the GCE instance to not have an external IP address.
+        tooltip: Configures the GCE instance to not have an external IP address.
+      useExisting:
+        label: Use existing VM
+        tooltip: Use an existing VM instance instead of creating a new one.
+
   addOns:
     dependencyBanner: Add-On Configuration can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.
     additionalManifest:
