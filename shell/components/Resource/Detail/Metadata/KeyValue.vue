@@ -3,6 +3,7 @@ import { computed, toRefs } from 'vue';
 import Rectangle from '@shell/components/Resource/Detail/Metadata/Rectangle.vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
+import CopyToClipboard from '@shell/components/Resource/Detail/CopyToClipboard.vue';
 
 export type KeyValueType = {[key: string]: string};
 
@@ -81,11 +82,10 @@ const showConfigurationMoreFocusSelector = computed(() => `[data-testid="${ show
       class="row"
     >
       <Rectangle
-        v-clean-tooltip="displayValue(row)"
+        class="rectangle"
         :outline="outline"
-      >
-        {{ displayValue(row) }}
-      </Rectangle>
+        :row="row"
+      />
     </div>
     <a
       v-if="showShowAllButton"
@@ -116,6 +116,7 @@ const showConfigurationMoreFocusSelector = computed(() => `[data-testid="${ show
     .row {
         display: block;
         width: 100%;
+        display: inline-block;
 
         &:not(:nth-child(2)) {
             margin-top: 4px;
@@ -123,14 +124,6 @@ const showConfigurationMoreFocusSelector = computed(() => `[data-testid="${ show
     }
     .show-all {
         margin-top: 8px;
-    }
-
-    .rectangle {
-      display: inline-block;
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
 
     .no-rows {
