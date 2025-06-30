@@ -84,7 +84,7 @@ export default {
     },
     closeOnSelect: {
       type:    Boolean,
-      default: false,
+      default: true,
     },
 
     compact: {
@@ -227,10 +227,12 @@ export default {
       this.resizeHandler();
     },
 
-    closeOnSelecting(e) {
-      if (e.value === this.value) {
-        this.close();
+    closeOnSelecting() {
+      if (!this.closeOnSelect) {
+        return;
       }
+
+      this.close();
     },
 
     close() {
@@ -324,7 +326,7 @@ export default {
       :get-option-label="(opt) => getOptionLabel(opt)"
       :label="optionLabel"
       :options="options"
-      :close-on-select="closeOnSelect"
+      :close-on-select="false"
       :map-keydown="mappedKeys"
       :placeholder="placeholder"
       :reduce="(x) => reduce(x)"
@@ -343,7 +345,7 @@ export default {
       @close="onClose"
       @option:created="(e) => $emit('createdListItem', e)"
       @option:selecting="closeOnSelecting"
-      @option:selected="close"
+      @option:selected="closeOnSelect && close"
       @keydown.enter.stop
     >
       <template
