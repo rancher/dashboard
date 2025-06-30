@@ -277,9 +277,9 @@ const scrollIntoView = (event: Event) => {
         </div>
         <button
           ref="readButton"
+          v-clean-tooltip="item.read ? t('notificationCenter.markUnread') : t('notificationCenter.markRead')"
           class="read-indicator"
           role="button"
-          v-clean-tooltip="item.read ? t('notificationCenter.markUnread') : t('notificationCenter.markRead')"
           :aria-label="toggleLabel"
           @keydown.enter.space.stop="toggleRead($event, true)"
           @keydown.tab.stop="innerFocusNext($event)"
