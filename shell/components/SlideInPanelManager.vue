@@ -5,6 +5,8 @@ import {
   DEFAULT_FOCUS_TRAP_OPTS,
   useWatcherBasedSetupFocusTrapWithDestroyIncluded
 } from '@shell/composables/focusTrap';
+import { isEqual } from 'lodash';
+import { useRouter } from 'vue-router';
 
 const HEADER_HEIGHT = 55;
 
@@ -38,6 +40,16 @@ const panelZIndex = computed(() => `${ (isOpen?.value ? 1 : 2) * (currentProps?.
 
 const showHeader = computed(() => currentProps?.value?.showHeader ?? true);
 const panelTitle = showHeader.value ? computed(() => currentProps?.value?.title || 'Details') : null;
+const closeOnRouteChange = computed(() => {
+  const propsCloseOnRouteChange = currentProps?.value.closeOnRouteChange;
+
+  if (!propsCloseOnRouteChange) {
+    return ['name', 'params', 'hash', 'query'];
+  }
+
+  return propsCloseOnRouteChange;
+});
+const router = useRouter();
 
 watch(
   /**
@@ -81,9 +93,25 @@ watch(
 );
 
 watch(
-  () => (store as any).$router?.currentRoute,
-  () => {
-    if (isOpen?.value && currentProps?.value.closeOnRouteChange !== false) {
+  () => router?.currentRoute?.value,
+  (newValue, oldValue) => {
+    if (!isOpen?.value) {
+      return;
+    }
+
+    if (closeOnRouteChange.value.includes('name') && !isEqual(newValue?.name, oldValue?.name)) {
+      closePanel();
+    }
+
+    if (closeOnRouteChange.value.includes('params') && !isEqual(newValue?.params, oldValue?.params)) {
+      closePanel();
+    }
+
+    if (closeOnRouteChange.value.includes('hash') && !isEqual(newValue?.hash, oldValue?.hash)) {
+      closePanel();
+    }
+
+    if (closeOnRouteChange.value.includes('query') && !isEqual(newValue?.query, oldValue?.query)) {
       closePanel();
     }
   },

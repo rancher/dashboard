@@ -3,6 +3,7 @@ import ResourceDetail from '@shell/components/ResourceDetail/index.vue';
 import { _EDIT, _VIEW, LEGACY, MODE } from '@shell/config/query-params';
 import * as pageEnabled from '@shell/composables/useIsNewDetailPageEnabled';
 import flushPromises from 'flush-promises';
+import { computed } from 'vue';
 
 const mockQuery: any = {};
 const mockParams: any = {};
@@ -44,7 +45,7 @@ describe('component: ResourceDetail/index', () => {
     mockParams.resource = resourceName;
     mockQuery[MODE] = _VIEW;
 
-    useIsNewDetailPageEnabledSpy.mockReturnValue(false);
+    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => false));
 
     const wrapper = mount(ResourceDetail, { });
     const legacyComponent = wrapper.findComponent<any>({ name: 'Legacy' });
@@ -62,7 +63,7 @@ describe('component: ResourceDetail/index', () => {
     mockParams.resource = 'notMapped';
     mockQuery[MODE] = _VIEW;
 
-    useIsNewDetailPageEnabledSpy.mockReturnValue(false);
+    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => false));
 
     const wrapper = mount(ResourceDetail, {});
     const legacyComponent = wrapper.findComponent<any>({ name: 'Legacy' });
@@ -75,7 +76,7 @@ describe('component: ResourceDetail/index', () => {
     mockParams.resource = resourceName;
     mockQuery[MODE] = _EDIT;
 
-    useIsNewDetailPageEnabledSpy.mockReturnValue(false);
+    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => false));
 
     const wrapper = mount(ResourceDetail, {});
     const legacyComponent = wrapper.findComponent<any>({ name: 'Legacy' });
@@ -121,7 +122,7 @@ describe('component: ResourceDetail/index', () => {
     mockQuery[MODE] = _VIEW;
     mockQuery[LEGACY] = 'false';
 
-    useIsNewDetailPageEnabledSpy.mockReturnValue(true);
+    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => true));
 
     const wrapper = mount(ResourceDetail);
 

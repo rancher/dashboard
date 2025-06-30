@@ -69,12 +69,13 @@ describe('composables: ResourceDetailDrawer', () => {
       expect(useDrawerSpy).toHaveBeenCalledTimes(1);
       expect(openSpy).toHaveBeenCalledWith({ name: 'ResourceDetailDrawer' }, selector, {
         resource,
-        onClose:   closeSpy,
-        width:     '73%',
+        onClose:            closeSpy,
+        width:              '73%',
         // We want this to be full viewport height top to bottom
-        height:    '100vh',
-        top:       '0',
-        'z-index': 101, // We want this to be above the main side menu
+        height:             '100vh',
+        top:                '0',
+        'z-index':          101, // We want this to be above the main side menu
+        closeOnRouteChange: ['name', 'params', 'query']
       });
     });
   });
