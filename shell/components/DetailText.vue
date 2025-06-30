@@ -22,7 +22,7 @@ export default {
 
     value: {
       type:    String,
-      default: null,
+      default: '',
     },
 
     maxLength: {
