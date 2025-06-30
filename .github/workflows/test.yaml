@@ -157,6 +157,16 @@ jobs:
           retention-days: 5
           compression-level: 9
 
+      - name: Copy containerd log from container
+        if: ${{ failure() }}
+        run: |
+          CONTAINER_ID=$(docker ps -qf "name=rancher" | head -n1)
+          if [ -n "$CONTAINER_ID" ]; then
+            docker cp "$CONTAINER_ID:/var/lib/rancher/k3s/agent/containerd/containerd.log" containerd.log || echo "Failed to copy containerd.log"
+          else
+            echo "Rancher container not found"
+          fi          
+
   a11y-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
