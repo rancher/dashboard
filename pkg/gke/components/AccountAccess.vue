@@ -69,6 +69,7 @@ export default defineComponent({
 
       try {
         await getGKEZones(store, this.credential, this.project, {});
+        console.log(this.credential);
 
         this.$emit('update:isAuthenticated', true);
 

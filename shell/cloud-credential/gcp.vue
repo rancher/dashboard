@@ -34,6 +34,7 @@ export default {
 
       try {
         credentials = this.value.decodedData.authEncodedJson;
+        console.log(credentials);
         config = JSON.parse(credentials || '{}');
         projectId = config?.project_id; // eslint-disable-line camelcase
       } catch (error) {

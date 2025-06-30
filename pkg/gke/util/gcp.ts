@@ -8,7 +8,8 @@ import {
   getGKEVersionsResponse,
   GKEZone,
   getGKEZonesResponse,
-  getGKEServiceAccountsResponse
+  getGKEServiceAccountsResponse,
+  getGKEImageFamiliesResponse
 } from 'types/gcp';
 import { Store } from 'vuex';
 
@@ -25,7 +26,7 @@ export const DEFAULT_GCP_SERVICE_ACCOUNT = 'Compute Engine default service accou
  * @param location object containing either gcp region or zone in which to make the request - defaults to DEFAULT_GCP_ZONE if both zone and region are undefined. region preempts zone
  * @returns
  */
-function getGKEOptions(resource: string, store: any, cloudCredentialId: string, projectId: string, location: {zone?: string, region?: string}, clusterId?:string ) {
+function getGKEOptions(resource: string, store: any, cloudCredentialId: string, projectId: string, location: {zone?: string, region?: string}, clusterId?:string, extraParams?: object ) {
   if (!cloudCredentialId || !projectId) {
     return;
   }
@@ -46,6 +47,9 @@ function getGKEOptions(resource: string, store: any, cloudCredentialId: string, 
   }
   if (clusterId) {
     params.clusterId = clusterId;
+  }
+  if (extraParams) {
+    params = { ...params, ...extraParams };
   }
 
   const url = addParams(`/meta/${ resource }`, params);
@@ -98,6 +102,33 @@ export function getGKERegionFromZone(zone: GKEZone): string|undefined {
 
   return regionUrl.split('/').pop();
 }
+
+export function getGKEFamiliesFromProject(store: Store<any>, cloudCredentialId: string, projectId: string, location: {zone?: string, region?: string}, imageProjects: string, showDeprecated = false): Promise<getGKEServiceAccountsResponse> {
+  const extraParams = { imageProjects, showDeprecated };
+
+  return getGKEOptions('gkeFamiliesFromProject', store, cloudCredentialId, projectId, location, '', extraParams);
+}
+
+export function getGKEImageFamilies(store: Store<any>, cloudCredentialId: string, projectId: string, location: {zone?: string, region?: string}, imageFamilies: string, imageProject: string, showDeprecated = false): Promise<getGKEImageFamiliesResponse> {
+  const extraParams = {
+    imageFamilies, imageProject, showDeprecated
+  };
+
+  return getGKEOptions('gkeImageFamilies', store, cloudCredentialId, projectId, location, '', extraParams);
+}
+export function getGKEDiskTypes(store: Store<any>, cloudCredentialId: string, projectId: string, location: {zone?: string, region?: string}): Promise<getGKEServiceAccountsResponse> {
+  return getGKEOptions('gkeDiskTypes', store, cloudCredentialId, projectId, location);
+}
+//   const params: QueryParams = { cloudCredentialId, imageFamilies };
+
+//   const url = addParams(`/meta/gkeImageFamilies`, params);
+
+//   return store.dispatch('management/request', {
+//     url,
+//     method:               'POST',
+//     redirectUnauthorized: false,
+//   });
+// }
 
 /** The Ember logic around image types is more complicated; it includes docker variants and windows SAC, with version-dependent availability
  * the gke versions supporting those options are well outside the versions that will be supported in rancher 2.9
