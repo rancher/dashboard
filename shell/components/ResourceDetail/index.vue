@@ -66,7 +66,7 @@ const isView = computed(() => route?.params?.id && (!mode.value || mode.value ==
 // We're defaulting to legacy being on, we'll switch this once we want to enable the new detail page by default
 const iseNewDetailPageEnabled = useIsNewDetailPageEnabled();
 const page = computed(() => currentResourceName.value ? resourceToPage[currentResourceName.value] : undefined);
-const useLatest = computed(() => !!(iseNewDetailPageEnabled && isView.value && page.value));
+const useLatest = computed(() => !!(iseNewDetailPageEnabled.value && isView.value && page.value));
 </script>
 
 <template>

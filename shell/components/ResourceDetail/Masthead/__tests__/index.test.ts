@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils';
 import { _VIEW } from '@shell/config/query-params';
 import Index from '@shell/components/ResourceDetail/Masthead/index.vue';
 import * as PageEnabled from '@shell/composables/useIsNewDetailPageEnabled';
+import { computed } from 'vue';
 
 jest.mock('@shell/composables/useIsNewDetailPageEnabled');
 jest.mock('@shell/components/ResourceDetail/Masthead/latest.vue', () => ({
@@ -22,7 +23,7 @@ describe('component: Masthead/index', () => {
   });
 
   it('should render Latest if useIsNewDetailPageEnabled is true and mode is _VIEW', () => {
-    useIsNewDetailPageEnabledSpy.mockReturnValue(true);
+    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => true));
     const props = {
       value:           { type: 'VALUE' },
       mode:            _VIEW,
@@ -38,7 +39,7 @@ describe('component: Masthead/index', () => {
   });
 
   it('should render Legacy if useIsNewDetailPageEnabled is false and mode is _VIEW', () => {
-    useIsNewDetailPageEnabledSpy.mockReturnValue(false);
+    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => false));
     const props = {
       value:           { type: 'VALUE' },
       mode:            _VIEW,
@@ -53,7 +54,7 @@ describe('component: Masthead/index', () => {
   });
 
   it('should render Legacy if useIsNewDetailPageEnabled is true and mode is not _VIEW', () => {
-    useIsNewDetailPageEnabledSpy.mockReturnValue(true);
+    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => true));
     const props = {
       value:           { type: 'VALUE' },
       mode:            'ANYTHING',

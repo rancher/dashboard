@@ -7,6 +7,7 @@ import Tab from '@shell/components/Tabbed/Tab.vue';
 export interface Props {
   resource: any;
   component: any;
+  resourceType: string;
 }
 </script>
 <script setup lang="ts">
@@ -25,6 +26,7 @@ const i18n = useI18n(store);
         :is="props.component"
         :value="props.resource"
         :liveValue="props.resource"
+        :resourceType="props.resourceType"
         :mode="_VIEW"
         :real-mode="_VIEW"
         :initial-value="props.resource"
