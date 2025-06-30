@@ -143,46 +143,6 @@ jobs:
           name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
           path: cypress/screenshots
 
-- name: Create Rancher Logs
-        if: ${{ always() }}
-        run: |
-          mkdir -p logs
-
-          echo "===== Collecting Rancher container logs ====="
-          if docker ps -a --format '{{.Names}}' | grep -q '^cypress$'; then
-            docker logs cypress > logs/rancher.log 2>&1 || echo "Failed to collect Rancher logs"
-          else
-            echo "Rancher container not found"
-          fi
-
-          echo "===== Collecting k3s logs ====="
-          if docker ps --format '{{.Names}}' | grep -q '^cypress$'; then
-            docker exec cypress journalctl -u k3s > logs/k3s.log 2>&1 || echo "Failed to get k3s logs"
-          else
-            echo "cypress container not running, skipping k3s logs"
-          fi
-
-          echo "===== Collecting rancher-webhook pod logs ====="
-          if docker ps --format '{{.Names}}' | grep -q '^cypress$'; then
-            webhook_pods=$(docker exec cypress kubectl -n cattle-system get pods -l app=rancher-webhook -o name 2>/dev/null || true)
-            for pod in $webhook_pods; do
-              name=$(basename "$pod")
-              docker exec cypress kubectl -n cattle-system logs "$pod" > "logs/webhook-${name}.log" 2>&1 || echo "Failed to get logs for $name"
-            done
-          else
-            echo "cypress container not running, skipping webhook logs"
-          fi
-
-      - name: Upload Rancher logs
-        uses: actions/upload-artifact@v4
-        if: ${{ always() }}
-        with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-rancher-logs-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
-          path: logs/
-          if-no-files-found: warn
-          retention-days: 5
-          compression-level: 9
-
   a11y-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
