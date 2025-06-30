@@ -34,7 +34,7 @@ export async function matching({
   $store,
   inScopeCount = undefined,
   namespace = undefined,
-  transient = false,
+  transient = true,
 }: {
   /**
    * Standard kube label selector object.

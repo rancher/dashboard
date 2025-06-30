@@ -1879,10 +1879,13 @@ export default class Resource {
           namespace,
           labelSelector: { matchExpressions: parse(selector) }
         },
-        opts: opt
+        opts: {
+          transient: true,
+          ...opt,
+        },
       });
 
-      addObjects(out, matching);
+      addObjects(out, matching.data);
     }
 
     // Find all the resources that match the required id's

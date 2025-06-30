@@ -580,7 +580,7 @@ const sharedActions = {
         dispatch('watch', obj); // Ask the backend to stop watching the type
       } else if (all) {
         getters['watchesOfType'](type).forEach((obj) => {
-          unwatch(obj);
+          unwatch({ ...obj, stop: true });
         });
       } else if (getters['watchStarted'](obj)) {
         unwatch(obj);
@@ -769,6 +769,7 @@ const defaultActions = {
             type: resourceType,
             opt:  {
               ...opt,
+              namespaced: namespace,
               // This brings in page, page size, filter, etc
               ...storePagination.request
             }

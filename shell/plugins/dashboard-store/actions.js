@@ -408,6 +408,7 @@ export default {
    *
    * @param {*} ctx
    * @param { {type: string, opt: ActionFindPageArgs} } opt
+   * @returns @ActionFindPageResponse
    */
   async findPage(ctx, { type, opt }) {
     const { getters, commit, dispatch } = ctx;
@@ -512,6 +513,9 @@ export default {
    * b) Pagination Disabled - use the old 'native kube api' - findMatching
    *
    * Filter is defined via the kube labelSelector object (see KubeLabelSelector)
+   *
+   * opt: @ActionFindLabelSelectorArgs
+   * @returns @ActionFindMatchingResponse (resources[], or if transient { data: resources[], pagination: StorePagination })
    */
   async findLabelSelector(ctx, {
     type,
@@ -528,6 +532,8 @@ export default {
       context,
     };
 
+    opt = opt || {};
+
     if (getters[`paginationEnabled`]?.(args)) {
       if (isLabelSelectorEmpty(labelSelector)) {
         throw new Error(`labelSelector must not be empty when using findLabelSelector (avoid fetching all resources)`);
@@ -537,21 +543,28 @@ export default {
       return dispatch('findPage', {
         type,
         opt: {
-          ...(opt || {}),
+          ...opt,
           namespaced: namespace,
           pagination: new FilterArgs({ labelSelector }),
+          transient:  opt?.transient !== undefined ? opt.transient : false // Call this out explicitly here, as by default findX methods ar eusually be cached AND watched
         }
       });
     }
 
-    return dispatch('findMatching', {
+    // opt of type ActionFindPageArgs
+    const findMatching = await dispatch('findMatching', {
       type,
       selector: labelSelectorToSelector(labelSelector),
       opt,
       namespace,
     });
+
+    return opt.transient ? { data: findMatching } : findMatching;
   },
 
+  /**
+   * opt: @ActionFindMatchingArgs
+   */
   async findMatching(ctx, {
     type,
     selector,
