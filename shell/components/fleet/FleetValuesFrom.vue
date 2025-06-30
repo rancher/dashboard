@@ -124,18 +124,18 @@ export default {
     updateValueFrom(id: number, value: ValuesFrom) {
       for (let index = 0; index < this.valuesFrom.length; index++) {
         if (this.valuesFrom[index].id === id) {
-          const oldValueFrom = Object.keys(this.valuesFrom[index]?.valueFrom || {})[0] as KeyRefName;
-          const newValueFrom = Object.keys(value?.valueFrom || {})[0] as KeyRefName;
+          const oldKeyRefName = Object.keys(this.valuesFrom[index]?.valueFrom || {})[0] as KeyRefName;
+          const newKeyRefName = Object.keys(value?.valueFrom || {})[0] as KeyRefName;
 
-          const oldKeyRef = this.valuesFrom[index]?.valueFrom?.[oldValueFrom]?.name;
-          const newKeyRef = value?.valueFrom?.[newValueFrom]?.name;
+          const oldKey = this.valuesFrom[index]?.valueFrom?.[oldKeyRefName]?.name;
+          const newKey = value?.valueFrom?.[newKeyRefName]?.name;
 
-          if (oldValueFrom && newValueFrom && oldValueFrom !== newValueFrom) {
-            this.valuesFrom[index].valueFrom = { [newValueFrom]: {} };
-          } else if (oldKeyRef && newKeyRef && oldKeyRef !== newKeyRef) {
+          if (oldKeyRefName && newKeyRefName && oldKeyRefName !== newKeyRefName) {
+            this.valuesFrom[index].valueFrom = { [newKeyRefName]: {} };
+          } else if (oldKey && newKey && oldKey !== newKey) {
             this.valuesFrom[index].valueFrom = {
-              [newValueFrom]: {
-                ...(value?.valueFrom?.[newValueFrom] || {}),
+              [newKeyRefName]: {
+                ...(value?.valueFrom?.[newKeyRefName] || {}),
                 key: ''
               },
             };
