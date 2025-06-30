@@ -1,4 +1,4 @@
-import Registration from '../Registration.vue';
+import Registration from './Registration.vue';
 import { mount, VueWrapper } from '@vue/test-utils';
 
 const dispatchSpy = jest.fn().mockReturnValue(Promise.resolve([]));
