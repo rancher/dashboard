@@ -84,5 +84,4 @@ while [ $okay -lt 30 ]; do
     sleep 10
   fi
 done
-
 echo "Rancher is ready"
