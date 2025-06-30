@@ -14,6 +14,7 @@ import debounce from 'lodash/debounce';
 import { getGKENetworksResponse, GKESubnetwork, GKENetwork } from '../types/gcp';
 import Banner from '@components/Banner/Banner.vue';
 import { GKENetworkOption, GKESubnetworkOption, GKESecondaryRangeOption } from 'types';
+import { formatSharedNetworks, formatNetworkOptions, formatSubnetworkOptions } from '../util/formatter';
 
 const GKE_NONE_OPTION = 'none';
 
@@ -363,80 +364,19 @@ export default defineComponent({
 
     sharedNetworks(): {[key: string]: GKESubnetwork[]} {
       const allSharedSubnetworks = this.sharedSubnetworksResponse?.subnetworks || [];
-      const networks: {[key: string]: GKESubnetwork[]} = {};
 
-      allSharedSubnetworks.forEach((s) => {
-        if (!s.network) {
-          return;
-        }
-        const network = s.network.split('/').pop() || s.network;
-
-        if (!networks[network]) {
-          networks[network] = [];
-        }
-        networks[network].push(s);
-      });
-
-      return networks;
+      return formatSharedNetworks(allSharedSubnetworks);
     },
 
     networkOptions(): GKENetworkOption[] {
-      const out: GKENetworkOption[] = [];
-      const unshared = (this.networksResponse?.items || []).map((n) => {
-        const subnetworksAvailable = this.subnetworks.find((s) => s.network === n.selfLink);
-
-        return { ...n, label: subnetworksAvailable ? `${ n.name } (${ this.t('gke.network.subnetworksAvailable') })` : n.name };
-      });
-      const shared = (Object.keys(this.sharedNetworks) || []).map((n) => {
-        const firstSubnet = this.sharedNetworks[n][0];
-
-        return {
-          name: n, label: `${ n } (${ this.t('gke.network.subnetworksAvailable') })`, ...firstSubnet
-        };
-      });
-
-      if (shared.length) {
-        out.push({
-          label:    this.t('gke.network.sharedvpc'),
-          kind:     'group',
-          disabled: true,
-          name:     'shared'
-        }, ...shared);
-      } if (unshared.length) {
-        out.push({
-          label:    this.t('gke.network.vpc'),
-          kind:     'group',
-          disabled: true,
-          name:     'unshared'
-        }, ...unshared);
-      }
+      const networks = this.networksResponse?.items || [];
+      const out: GKENetworkOption[] = formatNetworkOptions(this.t, networks, this.subnetworks, this.sharedNetworks );
 
       return out;
     },
 
     subnetworkOptions(): GKESubnetworkOption[] {
-      const out: any[] = [];
-      const isShared = !!this.sharedNetworks[this.network];
-
-      if (isShared) {
-        out.push(...this.sharedNetworks[this.network]);
-      } else {
-        out.push(...(this.subnetworks.filter((s) => s.network.split('/').pop() === this.network) || []));
-      }
-
-      const labeled: GKESubnetworkOption[] = out.map((sn: GKESubnetwork) => {
-        const name = sn.name ? sn.name : (sn.subnetwork || '').split('/').pop();
-
-        return {
-          name, label: `${ name } (${ sn.ipCidrRange })`, ...sn
-        };
-      });
-
-      if (this.useIpAliases) {
-        labeled.unshift({ label: this.t('gke.subnetwork.auto'), name: GKE_NONE_OPTION });
-      }
-
-      return labeled;
+      return formatSubnetworkOptions(this.t, this.network, this.subnetworks, this.sharedNetworks, this.useIpAliases);
     },
 
     clusterSecondaryRangeOptions(): GKESecondaryRangeOption[] {

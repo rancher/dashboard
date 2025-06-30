@@ -1951,6 +1951,54 @@ cluster:
         label: Network
       serverOs:
         label: OS
+    gce:
+      machineImage:
+        label: Machine Image
+      imageProjects:
+        label: Image Projects
+      diskType:
+        label: Disk Type
+      diskSize:
+        label: Disk Size
+      network:
+        label: Network
+      subnetwork:
+        label: Subnetwork
+      machineType:
+        label: Machine Type
+      location:
+        zone:
+          label: Zone
+      scopes:
+        add: Add scope
+        label: Scopes
+      tags:
+        add: Add tags
+        label: Tags
+      openPort:
+        add: Add port
+        label: Open Ports
+      address:
+        label: External Address
+        placeholder: '10.0.0.0/14'
+        tooltip: External IP address for the GCE VM instance.
+      username:
+        label: Username
+        placeholder: docker-user
+        tooltip: This is the username used when SSH'ing into the node, and not a username associated with the GCP account.
+      userdata:
+        label: User-data file
+        tooltip: GCE user-data file path.
+        placeholder: /Directory/of/File
+      preemptible:
+        label: Preemptible
+        tootltip: Indicates whether the GCE VM instance should be preemptible.
+      useInternalIP:
+        label: Use Internal IP
+        tootltip: Indicates whether to use the internal IP address of the GCE VM instance instead of the public one.
+      useInternalIPOnly:
+        label: Only use Internal IP
+        tootltip: Configures the GCE instance to not have an external IP address.
   addOns:
     dependencyBanner: Add-On Configuration can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.
     additionalManifest:

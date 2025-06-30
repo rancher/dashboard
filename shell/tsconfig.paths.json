@@ -15,6 +15,9 @@
       ],
       "@components/*": [
         "../pkg/rancher-components/src/components/*"
+      ],
+      "@gke/*":[
+        "../pkg/gke/*"
       ]
     },
   },

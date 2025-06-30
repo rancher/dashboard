@@ -384,6 +384,8 @@ export default defineComponent({
         }
         const res = await getGKEZones(this.$store, this.cloudCredentialId, this.projectId, location);
 
+        console.log(res);
+
         this.zones = sortBy((res.items || []).map((z) => {
           z.disabled = z?.status?.toLowerCase() !== 'up';
           z.sortName = sortableNumericSuffix(z.name);
