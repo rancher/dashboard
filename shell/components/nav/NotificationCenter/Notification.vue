@@ -253,12 +253,12 @@ const scrollIntoView = (event: Event) => {
     role="menuitem"
     data-testid="notifications-center-item"
     :aria-label="t('notificationCenter.ariaLabel', { title: item.title })"
+    :class="{ 'notification-unread': !item.read }"
     @keydown.up.down.stop.prevent="handleKeydown"
     @focusin="scrollIntoView"
     @focus.stop="gotFocus"
     @click.stop
     @keydown.enter.space.stop="enterFocusTrap"
-    :class="{ 'notification-unread': !item.read }"
   >
     <div
       class="notification"
@@ -279,6 +279,7 @@ const scrollIntoView = (event: Event) => {
           ref="readButton"
           class="read-indicator"
           role="button"
+          v-clean-tooltip="item.read ? t('notificationCenter.markUnread') : t('notificationCenter.markRead')"
           :aria-label="toggleLabel"
           @keydown.enter.space.stop="toggleRead($event, true)"
           @keydown.tab.stop="innerFocusNext($event)"
@@ -286,10 +287,12 @@ const scrollIntoView = (event: Event) => {
           @keydown.up.down.prevent.stop="handleKeydownFocusTrap"
           @click.stop="toggleRead($event, false)"
         >
-          <div
-            class="read-icon"
-            :class="{ 'unread': !item.read }"
-          />
+          <div>
+            <div
+              class="read-icon"
+              :class="{ 'unread': !item.read }"
+            />
+          </div>
         </button>
       </div>
       <div class="bottom">
@@ -359,7 +362,7 @@ const scrollIntoView = (event: Event) => {
     gap: 8px;
     align-items: center;
     padding: 12px;
-    margin: 0 8px;
+    margin: 0 3px;
 
     &.notification-unread {
       background-color: var(--notification-unread-bg);
@@ -378,7 +381,7 @@ const scrollIntoView = (event: Event) => {
       .top {
         align-items: center;
         display: flex;
-        padding: 4px 0;
+        padding: 0;
 
         .icon {
           display: flex;
@@ -398,11 +401,12 @@ const scrollIntoView = (event: Event) => {
         button.read-indicator {
           line-height: normal;
           min-height: auto;
-          padding: 0;
+          padding: 8px;
           margin-left: 16px;
-          width: 8px;
-          height: 8px;
-          background-color: var(--body-bg);
+          background-color: unset;
+          display: flex;
+          align-items: center;
+          justify-content: center;
 
           &:disabled {
             cursor: default;
