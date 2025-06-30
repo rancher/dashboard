@@ -6,7 +6,6 @@ import { mapGetters } from 'vuex';
 import { base64Encode } from '@shell/utils/crypto';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
-import FleetUtils from '@shell/utils/fleet';
 import { AUTH_TYPE, CONFIG_MAP, NORMAN, SECRET } from '@shell/config/types';
 import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
@@ -23,13 +22,13 @@ import ButtonGroup from '@shell/components/ButtonGroup';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
-import ValueFromResource from '@shell/components/form/ValueFromResource';
 import { mapPref, DIFF } from '@shell/store/prefs';
 import { SECRET_TYPES } from '@shell/config/secret';
 import UnitInput from '@shell/components/form/UnitInput';
 import FleetClusterTargets from '@shell/components/fleet/FleetClusterTargets/index.vue';
 import { toSeconds } from '@shell/utils/duration';
 import { DEFAULT_POLLING_INTERVAL, MINIMUM_POLLING_INTERVAL } from '@shell/models/fleet-application';
+import FleetValuesFrom from '@shell/components/fleet/FleetValuesFrom.vue';
 
 const VALUES_STATE = {
   YAML: 'YAML',
@@ -49,6 +48,7 @@ export default {
     Checkbox,
     CruResource,
     FleetClusterTargets,
+    FleetValuesFrom,
     YamlEditor,
     LabeledInput,
     LabeledSelect,
@@ -56,14 +56,14 @@ export default {
     Loading,
     NameNsDescription,
     SelectOrCreateAuthSecret,
-    ValueFromResource,
     UnitInput,
   },
 
   mixins: [CreateEditView, FormValidation],
 
   async fetch() {
-    const hash = await checkSchemasForFindAllHash({
+    // Fetch Secrets and ConfigMaps to mask the loading phase in FleetValuesFrom.vue
+    checkSchemasForFindAllHash({
       allSecrets: {
         inStoreType: 'management',
         type:        SECRET
@@ -74,9 +74,6 @@ export default {
         type:        CONFIG_MAP
       }
     }, this.$store);
-
-    this.allSecrets = hash.allSecrets || [];
-    this.allConfigMaps = hash.allConfigMaps || [];
   },
 
   data() {
@@ -98,8 +95,6 @@ export default {
     return {
       VALUES_STATE,
       SOURCE_TYPE,
-      allSecrets:       [],
-      allConfigMaps:    [],
       allWorkspaces:    [],
       pollingInterval,
       sourceTypeInit:   this.value.sourceType,
@@ -108,7 +103,6 @@ export default {
       yamlForm:         VALUES_STATE.YAML,
       chartValues,
       chartValuesInit:  chartValues,
-      valuesFrom:       FleetUtils.HelmOp.fromValuesFrom(this.value.spec.helm.valuesFrom),
       correctDriftEnabled,
       tempCachedValues: {},
       doneRouteList:    'c-cluster-fleet-application',
@@ -190,17 +184,6 @@ export default {
         value,
         label: this.t(`fleet.helmOp.source.types.${ value }`)
       }));
-    },
-
-    valueFromOptions() {
-      return [
-        {
-          value: 'configMapKeyRef', label: 'ConfigMap Key', hideVariableName: true
-        },
-        {
-          value: 'secretKeyRef', label: 'Secret key', hideVariableName: true
-        },
-      ];
     },
 
     yamlFormOptions() {
@@ -402,20 +385,7 @@ export default {
       }
     },
 
-    addValueFrom() {
-      this.valuesFrom.push({ valueFrom: {} });
-    },
-
-    updateValueFrom(index, value) {
-      this.valuesFrom[index] = value;
-    },
-
-    removeValueFrom(index) {
-      this.valuesFrom.splice(index, 1);
-    },
-
     updateBeforeSave() {
-      this.value.spec.helm.valuesFrom = FleetUtils.HelmOp.toValuesFrom(this.valuesFrom, this.workspace);
       this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
     },
 
@@ -643,30 +613,10 @@ export default {
       </div>
 
       <div class="mb-20">
-        <h2 v-t="'fleet.helmOp.values.valuesFrom.selectLabel'" />
-        <div
-          v-for="(row, i) in valuesFrom"
-          :key="row?.name + '-' + row?.valueFrom?.configMapKeyRef?.key + '-' + row?.valueFrom?.secretKeyRef?.key"
-        >
-          <ValueFromResource
-            :value="row"
-            :options="valueFromOptions"
-            :all-secrets="allSecrets"
-            :all-config-maps="allConfigMaps"
-            :namespaced="true"
-            :mode="mode"
-            :show-variable-name="true"
-            @remove="removeValueFrom(i)"
-            @update:value="updateValueFrom(i, $event)"
-          />
-        </div>
-        <button
-          v-if="!isView"
-          v-t="'workload.container.command.addEnvVar'"
-          type="button"
-          class="btn role-tertiary add"
-          data-testid="add-env-var"
-          @click="addValueFrom"
+        <FleetValuesFrom
+          v-model:value="value.spec.helm.valuesFrom"
+          :namespace="value.metadata.namespace"
+          :mode="realMode"
         />
       </div>
     </template>
