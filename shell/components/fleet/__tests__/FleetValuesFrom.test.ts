@@ -212,7 +212,16 @@ describe('component: FleetValuesFrom', () => {
 
       await flushPromises();
 
-      // Config Map and Key fields are deleted from row 1 -> excluding row 1 from emit
+      const exConfigMapRef = wrapper.find('[data-testid="fleet-values-from-item-0"]').element;
+
+      // Type column is changed to Secret
+      expect(exConfigMapRef.textContent).toContain('secretKeyRef'); // Type column
+
+      // Config Map and Key fields are deleted from row 1
+      expect(exConfigMapRef.textContent).not.toContain('configmap-2'); // ConfigMap column
+      expect(exConfigMapRef.textContent).not.toContain('foo0'); // Key column
+
+      // excluding row 1 from emit
       expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{
         secretKeyRef: {
           key: 'foo3', name: 'secret-2', namespace: 'fleet-default'
@@ -265,7 +274,18 @@ describe('component: FleetValuesFrom', () => {
 
       await flushPromises();
 
-      // Key field is deleted from row 1 -> emit empty Key
+      const configMapRef = wrapper.find('[data-testid="fleet-values-from-item-0"]').element;
+
+      // Type column is not changed
+      expect(configMapRef.textContent).toContain('configMapKeyRef'); // Type column
+
+      // Config Map column is now configmap-3
+      expect(configMapRef.textContent).toContain('configmap-3'); // ConfigMap column
+
+      // Key column is empty
+      expect(configMapRef.textContent).toContain('workload.container.command.fromResource.key.label%Loading'); // Key column
+
+      // Emit empty Key
       expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{
         configMapKeyRef: {
           key: '', name: 'configmap-3', namespace: 'fleet-default'
