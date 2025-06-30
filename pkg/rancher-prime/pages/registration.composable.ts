@@ -144,7 +144,7 @@ export const usePrimeRegistration = () => {
       const hash = secret.value.metadata?.labels?.[REGISTRATION_LABEL];
 
       if (hash) {
-        registration.value = await findRegistration(hash) || emptyRegistration;
+        registration.value = mapRegistration(await findRegistration(hash));
         if (registration.value) {
           return 'registered';
         }
@@ -181,13 +181,13 @@ export const usePrimeRegistration = () => {
       if (!registrationCode.value) break;
       secret.value = await createSecret('online', registrationCode.value);
       offlineRegistrationCertificate.value = null;
-      registrationStatus.value = await getRegistration();
+      registrationStatus.value = await poolRegistration(secret.value?.metadata?.labels?.[REGISTRATION_LABEL]) ? 'registered' : null;
       break;
     case 'offline':
       if (!registrationCode.value) break;
       secret.value = await createSecret('offline', registrationCode.value);
       registrationCode.value = null;
-      registrationStatus.value = await getRegistration();
+      registrationStatus.value = await poolRegistration(secret.value?.metadata?.labels?.[REGISTRATION_LABEL]) ? 'registered' : null;
       break;
     case 'deregister':
       resetRegistration();
@@ -269,11 +269,20 @@ export const usePrimeRegistration = () => {
 
   /**
    * Get registration CRD matching secret label
+   * @param hash current registration hash
    */
-  const findRegistration = async(label: string): Promise<RegistrationDashboard> => {
+  const findRegistration = async(hash: string | undefined): Promise<PartialRegistration | undefined> => {
     const registrations: PartialRegistration[] = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME });
-    const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === label);
+    const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === hash);
 
+    return registration;
+  };
+
+  /**
+   * Map registration to the displayed format
+   * @param registration Registration
+   */
+  const mapRegistration = (registration: PartialRegistration | undefined): RegistrationDashboard => {
     if (!registration) {
       return emptyRegistration;
     } else {
@@ -284,7 +293,7 @@ export const usePrimeRegistration = () => {
         active:           isActive,
         mode:             registration.spec.mode,
         registrationLink: registration.status?.activationStatus?.systemUrl,
-        resourceLink
+        resourceLink,
       };
 
       if (isActive) {
@@ -366,6 +375,38 @@ export const usePrimeRegistration = () => {
     }
   };
 
+  /**
+   * Fetch periodically till a registration for given hash is found or the timeout is reached
+   * @param hash current registration hash
+   * @param frequency Frequency in milliseconds to check the registration status
+   */
+  const poolRegistration = async(originalHash: string | undefined, frequency = 500, timeout = 10000) => {
+    return new Promise<RegistrationDashboard>((resolve, reject) => {
+      const startTime = Date.now();
+
+      const interval = setInterval(async() => {
+        if (Date.now() - startTime > timeout) {
+          clearInterval(interval);
+          reject(new Error('Timeout reached while waiting for registration'));
+
+          return;
+        }
+
+        const hash = secret.value?.metadata?.labels?.[REGISTRATION_LABEL];
+        const registration = await findRegistration(hash);
+        const newHash = registration?.metadata?.labels[REGISTRATION_LABEL];
+
+        if ((originalHash && !newHash) || (!originalHash && newHash) || (originalHash && newHash && originalHash !== newHash)) {
+          clearInterval(interval);
+          resolve(mapRegistration(registration));
+        }
+      }, frequency);
+    });
+  };
+
+  /**
+   * Retrieve the initial registration state
+   */
   const initRegistration = async() => {
     secret.value = await getSecret();
     registrationCode.value = regCode.value;
