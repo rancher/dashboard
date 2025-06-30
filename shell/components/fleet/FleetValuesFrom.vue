@@ -20,7 +20,7 @@ interface ValueFrom {
 }
 
 interface ValuesFrom {
-  name?: string,
+  id: number,
   valueFrom: ValueFrom
 }
 
@@ -28,6 +28,7 @@ interface DataType {
   allSecrets: object[] | null,
   allConfigMaps: object[] | null,
   valuesFrom: ValuesFrom[],
+  id: number,
 }
 
 export default {
@@ -77,6 +78,7 @@ export default {
       allSecrets:    null,
       allConfigMaps: null,
       valuesFrom:    [],
+      id:            0,
     };
   },
 
@@ -111,42 +113,45 @@ export default {
 
   methods: {
     addValueFrom() {
-      this.valuesFrom.push({ valueFrom: {} });
+      this.valuesFrom.push({
+        id:        this.id++,
+        valueFrom: {}
+      });
 
       this.update();
     },
 
-    updateValueFrom(index: number, value: ValuesFrom) {
-      const oldValueFrom = Object.keys(this.valuesFrom[index]?.valueFrom || {})[0] as KeyRefName;
-      const newValueFrom = Object.keys(value?.valueFrom || {})[0] as KeyRefName;
+    updateValueFrom(id: number, value: ValuesFrom) {
+      for (let index = 0; index < this.valuesFrom.length; index++) {
+        if (this.valuesFrom[index].id === id) {
+          const oldValueFrom = Object.keys(this.valuesFrom[index]?.valueFrom || {})[0] as KeyRefName;
+          const newValueFrom = Object.keys(value?.valueFrom || {})[0] as KeyRefName;
 
-      const oldKeyRef = this.valuesFrom[index]?.valueFrom?.[oldValueFrom]?.name;
-      const newKeyRef = value?.valueFrom?.[newValueFrom]?.name;
+          const oldKeyRef = this.valuesFrom[index]?.valueFrom?.[oldValueFrom]?.name;
+          const newKeyRef = value?.valueFrom?.[newValueFrom]?.name;
 
-      if (oldValueFrom && newValueFrom && oldValueFrom !== newValueFrom) {
-        this.valuesFrom[index] = {
-          name:      value.name,
-          valueFrom: { [newValueFrom]: {} }
-        };
-      } else if (oldKeyRef && newKeyRef && oldKeyRef !== newKeyRef) {
-        this.valuesFrom[index] = {
-          name:      value.name,
-          valueFrom: {
-            [newValueFrom]: {
-              ...(value?.valueFrom?.[newValueFrom] || {}),
-              key: ''
-            },
+          if (oldValueFrom && newValueFrom && oldValueFrom !== newValueFrom) {
+            this.valuesFrom[index].valueFrom = { [newValueFrom]: {} };
+          } else if (oldKeyRef && newKeyRef && oldKeyRef !== newKeyRef) {
+            this.valuesFrom[index].valueFrom = {
+              [newValueFrom]: {
+                ...(value?.valueFrom?.[newValueFrom] || {}),
+                key: ''
+              },
+            };
+          } else {
+            this.valuesFrom[index].valueFrom = value?.valueFrom;
           }
-        };
-      } else {
-        this.valuesFrom[index] = value;
+
+          break;
+        }
       }
 
       this.update();
     },
 
-    removeValueFrom(index: number) {
-      this.valuesFrom.splice(index, 1);
+    removeValueFrom(id: number) {
+      this.valuesFrom = this.valuesFrom.filter((el) => el.id !== id);
 
       this.update();
     },
@@ -157,10 +162,10 @@ export default {
       this.$emit('update:value', value);
     },
 
-    fromValuesFrom(data: ValueFrom[]): { valueFrom: ValueFrom }[] {
+    fromValuesFrom(data: ValueFrom[]): ValuesFrom[] {
       return (data || [])
         .map((elem) => {
-          const out = {} as ValuesFrom;
+          const out = { id: this.id++ } as ValuesFrom;
 
           const cm = elem?.configMapKeyRef;
 
@@ -224,7 +229,10 @@ export default {
 </script>
 
 <template>
-  <div v-if="!allConfigMaps || !allSecrets">
+  <div
+    v-if="!allConfigMaps || !allSecrets"
+    data-testid="fleet-values-from-loading"
+  >
     <i
       class="icon icon-lg icon-spinner icon-spin"
     />
@@ -235,13 +243,15 @@ export default {
   <div
     v-else
     class="values-from-container"
+    data-testid="fleet-values-from-list"
   >
     <h2 v-t="'fleet.helmOp.values.valuesFrom.selectLabel'" />
     <div
-      v-for="(row, i) in valuesFrom"
-      :key="row?.name + '-' + row?.valueFrom?.configMapKeyRef?.key + '-' + row?.valueFrom?.secretKeyRef?.key"
+      v-for="row in valuesFrom"
+      :key="row.id + '-' + row?.valueFrom?.configMapKeyRef?.key + '-' + row?.valueFrom?.secretKeyRef?.key"
     >
       <ValueFromResource
+        :data-testid="`fleet-values-from-item-${ row.id }`"
         :value="row"
         :options="valueFromOptions"
         :all-secrets="allSecrets"
@@ -249,16 +259,16 @@ export default {
         :namespaced="true"
         :mode="mode"
         :show-variable-name="true"
-        @remove="removeValueFrom(i)"
-        @update:value="updateValueFrom(i, $event)"
+        @remove="removeValueFrom(row.id)"
+        @update:value="updateValueFrom(row.id, $event)"
       />
     </div>
     <button
       v-if="!isView"
       v-t="'workload.container.command.addEnvVar'"
+      data-testid="fleet-values-from-add"
       type="button"
       class="btn role-tertiary add"
-      data-testid="add-env-var"
       @click="addValueFrom"
     />
   </div>
