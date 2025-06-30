@@ -181,14 +181,16 @@ export const usePrimeRegistration = () => {
       if (!registrationCode.value) break;
       secret.value = await createSecret('online', registrationCode.value);
       offlineRegistrationCertificate.value = null;
-      registrationStatus.value = await poolRegistration(secret.value?.metadata?.labels?.[REGISTRATION_LABEL]) ? 'registered' : null;
+      registration.value = await poolRegistration(secret.value?.metadata?.labels?.[REGISTRATION_LABEL]);
+      registrationStatus.value = registration.value ? 'registered' : null;
       asyncButtonResolution(true);
       break;
     case 'offline':
       if (!registrationCode.value) break;
       secret.value = await createSecret('offline', registrationCode.value);
       registrationCode.value = null;
-      registrationStatus.value = await poolRegistration(secret.value?.metadata?.labels?.[REGISTRATION_LABEL]) ? 'registered' : null;
+      registration.value = await poolRegistration(secret.value?.metadata?.labels?.[REGISTRATION_LABEL]);
+      registrationStatus.value = registration.value ? 'registered' : null;
       asyncButtonResolution(true);
       break;
     case 'deregister':
