@@ -44,7 +44,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
               namespace: nsName1
             },
             spec: {
-              schedule:                   '*/1 * * * *',
+              schedule:                   '1 * * * *',
               concurrencyPolicy:          'Allow',
               failedJobsHistoryLimit:     1,
               successfulJobsHistoryLimit: 3,
@@ -54,7 +54,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
                   template: {
                     spec: {
                       containers:    [SMALL_CONTAINER],
-                      restartPolicy: 'OnFailure'
+                      restartPolicy: 'Never'
                     }
                   }
                 }
