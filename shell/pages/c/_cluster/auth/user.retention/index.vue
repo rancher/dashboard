@@ -177,91 +177,93 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
 </script>
 
 <template>
-  <div>
-    <user-retention-header />
-    <div
-      v-if="!loading"
-      class="form-user-retention"
-    >
-      <banner
-        v-if="error"
-        color="error"
+  <div class="user-retention">
+    <div class="user-retention-content">
+      <user-retention-header />
+      <div
+        v-if="!loading"
+        class="form-user-retention"
       >
-        {{ error }}
-      </banner>
-      <div class="input-fieldset">
-        <checkbox
-          v-model:value="disableAfterPeriod"
-          data-testid="disableAfterPeriod"
-          :label="t('user.retention.edit.form.disableAfter.checkbox')"
-        />
-        <labeled-input
-          v-model:value="userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER]"
-          data-testid="disableAfterPeriodInput"
-          :tooltip="t('user.retention.edit.form.disableAfter.input.tooltip')"
-          class="input-field"
-          :label="t('user.retention.edit.form.disableAfter.input.label')"
-          :disabled="!disableAfterPeriod"
-          :rules="[validateDisableInactiveUserAfterDuration, validateDurationAgainstAuthUserSession]"
-          @update:validation="e => setValidation(SETTING.DISABLE_INACTIVE_USER_AFTER, e)"
-        />
-      </div>
-      <div class="input-fieldset">
-        <checkbox
-          v-model:value="deleteAfterPeriod"
-          data-testid="deleteAfterPeriod"
-          :label="t('user.retention.edit.form.deleteAfter.checkbox')"
-        />
-        <labeled-input
-          v-model:value="userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER]"
-          data-testid="deleteAfterPeriodInput"
-          :tooltip="t('user.retention.edit.form.deleteAfter.input.tooltip')"
-          class="input-field"
-          :label="t('user.retention.edit.form.deleteAfter.input.label')"
-          :sub-label="t('user.retention.edit.form.deleteAfter.input.subLabel')"
-          :disabled="!deleteAfterPeriod"
-          :rules="[validateDeleteInactiveUserAfterDuration, validateDurationAgainstAuthUserSession, validateDeleteInactiveUserAfter]"
-          @update:validation="e => setValidation(SETTING.DELETE_INACTIVE_USER_AFTER, e)"
-        />
-      </div>
-      <template
-        v-if="disableAfterPeriod || deleteAfterPeriod"
-      >
-        <div class="input-fieldset pt-12">
+        <banner
+          v-if="error"
+          color="error"
+        >
+          {{ error }}
+        </banner>
+        <div class="input-fieldset">
+          <checkbox
+            v-model:value="disableAfterPeriod"
+            data-testid="disableAfterPeriod"
+            :label="t('user.retention.edit.form.disableAfter.checkbox')"
+          />
           <labeled-input
-            v-model:value="userRetentionSettings[SETTING.USER_RETENTION_CRON]"
-            data-testid="userRetentionCron"
+            v-model:value="userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER]"
+            data-testid="disableAfterPeriodInput"
+            :tooltip="t('user.retention.edit.form.disableAfter.input.tooltip')"
             class="input-field"
-            required
-            type="cron"
-            :tooltip="t('user.retention.edit.form.cron.subLabel')"
-            :rules="[validateUserRetentionCron]"
-            :label="t('user.retention.edit.form.cron.label')"
-            :require-dirty="false"
-            @update:validation="e => setValidation(SETTING.USER_RETENTION_CRON, e)"
+            :label="t('user.retention.edit.form.disableAfter.input.label')"
+            :disabled="!disableAfterPeriod"
+            :rules="[validateDisableInactiveUserAfterDuration, validateDurationAgainstAuthUserSession]"
+            @update:validation="e => setValidation(SETTING.DISABLE_INACTIVE_USER_AFTER, e)"
           />
         </div>
-        <div class="input-fieldset condensed pt-12">
-          <toggle-switch
-            v-model:value="userRetentionSettings[SETTING.USER_RETENTION_DRY_RUN]"
-            data-testid="userRetentionDryRun"
-            :onValue="'true'"
-            :offValue="'false'"
-            :on-label="t('user.retention.edit.form.dryRun.label')"
+        <div class="input-fieldset">
+          <checkbox
+            v-model:value="deleteAfterPeriod"
+            data-testid="deleteAfterPeriod"
+            :label="t('user.retention.edit.form.deleteAfter.checkbox')"
           />
-          <span class="input-detail">{{ t('user.retention.edit.form.dryRun.subLabel') }}</span>
-        </div>
-        <div class="input-fieldset condensed">
           <labeled-input
-            v-model:value="userRetentionSettings[SETTING.USER_LAST_LOGIN_DEFAULT]"
-            data-testid="userLastLoginDefault"
+            v-model:value="userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER]"
+            data-testid="deleteAfterPeriodInput"
+            :tooltip="t('user.retention.edit.form.deleteAfter.input.tooltip')"
             class="input-field"
-            :label="t('user.retention.edit.form.defaultLastLogin.label')"
-            :sub-label="t('user.retention.edit.form.defaultLastLogin.subLabel')"
-            :placeholder="t('user.retention.edit.form.defaultLastLogin.placeholder')"
+            :label="t('user.retention.edit.form.deleteAfter.input.label')"
+            :sub-label="t('user.retention.edit.form.deleteAfter.input.subLabel')"
+            :disabled="!deleteAfterPeriod"
+            :rules="[validateDeleteInactiveUserAfterDuration, validateDurationAgainstAuthUserSession, validateDeleteInactiveUserAfter]"
+            @update:validation="e => setValidation(SETTING.DELETE_INACTIVE_USER_AFTER, e)"
           />
         </div>
-      </template>
+        <template
+          v-if="disableAfterPeriod || deleteAfterPeriod"
+        >
+          <div class="input-fieldset pt-12">
+            <labeled-input
+              v-model:value="userRetentionSettings[SETTING.USER_RETENTION_CRON]"
+              data-testid="userRetentionCron"
+              class="input-field"
+              required
+              type="cron"
+              :tooltip="t('user.retention.edit.form.cron.subLabel')"
+              :rules="[validateUserRetentionCron]"
+              :label="t('user.retention.edit.form.cron.label')"
+              :require-dirty="false"
+              @update:validation="e => setValidation(SETTING.USER_RETENTION_CRON, e)"
+            />
+          </div>
+          <div class="input-fieldset condensed pt-12">
+            <toggle-switch
+              v-model:value="userRetentionSettings[SETTING.USER_RETENTION_DRY_RUN]"
+              data-testid="userRetentionDryRun"
+              :onValue="'true'"
+              :offValue="'false'"
+              :on-label="t('user.retention.edit.form.dryRun.label')"
+            />
+            <span class="input-detail">{{ t('user.retention.edit.form.dryRun.subLabel') }}</span>
+          </div>
+          <div class="input-fieldset condensed">
+            <labeled-input
+              v-model:value="userRetentionSettings[SETTING.USER_LAST_LOGIN_DEFAULT]"
+              data-testid="userLastLoginDefault"
+              class="input-field"
+              :label="t('user.retention.edit.form.defaultLastLogin.label')"
+              :sub-label="t('user.retention.edit.form.defaultLastLogin.subLabel')"
+              :placeholder="t('user.retention.edit.form.defaultLastLogin.placeholder')"
+            />
+          </div>
+        </template>
+      </div>
     </div>
     <Footer
       class="footer-user-retention"
@@ -274,6 +276,15 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
 </template>
 
 <style lang="scss" scoped>
+  .user-retention {
+    height: 100%;
+  }
+
+  .user-retention-content {
+    height: 100%;
+    overflow-y: scroll;
+  }
+
   .form-user-retention {
     display: flex;
     flex: 1;
@@ -283,15 +294,13 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
 
   .footer-user-retention {
     border-top: var(--header-border-size) solid var(--header-border);
-    right: 0;
-    position: sticky;
-    bottom: 0;
     background-color: var(--header-bg);
     margin-left: -20px;
     margin-right: -20px;
     margin-bottom: -20px;
     margin-top: 20px;
     padding: 10px 20px;
+    height: 60px;
 
     :deep() .spacer-small {
       padding: 0;
