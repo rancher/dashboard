@@ -286,17 +286,21 @@ export default class FleetApplication extends SteveModel {
     return this.status?.readyClusters || 0;
   }
 
+  get meta() {
+    return this.currentRoute()?.meta || {};
+  }
+
   get _detailLocation() {
     return {
       ...super._detailLocation,
-      name: 'c-cluster-fleet-application-resource-namespace-id'
+      name: this.meta.detailLocation || super._detailLocation.name
     };
   }
 
   get doneOverride() {
     return {
       ...super.listLocation,
-      name: 'c-cluster-fleet-application'
+      name: this.meta.doneOverride || super.listLocation.name
     };
   }
 
