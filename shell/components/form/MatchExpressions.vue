@@ -8,7 +8,7 @@ import { convert, simplify } from '@shell/utils/selector';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
-  emits: ['update:value', 'remove'],
+  emits: ['update:value', 'add', 'remove'],
 
   components: { Select, LabeledSelect },
   props:      {
@@ -236,6 +236,12 @@ export default {
       }
 
       this.rules.push(newRule);
+
+      this.$nextTick(() => {
+        this.focus(this.rules.length - 1);
+
+        this.$emit('add');
+      });
     },
 
     update() {
@@ -271,8 +277,8 @@ export default {
       });
     },
 
-    focus() {
-      this.$refs['input-match-expression-key-0']?.[0]?.focus();
+    focus(index = 0) {
+      this.$refs[`input-match-expression-key-${ index }`]?.[0]?.focus();
     }
   }
 };
