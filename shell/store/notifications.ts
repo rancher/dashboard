@@ -89,14 +89,12 @@ function syncIndex(state: NotificationsStore) {
   const localStorageKey = state.localStorageKey;
 
   // We just want the id, created, read and progress properties for the index
-  const index = state.notifications.map((n) => {
-    return {
-      id:       n.id,
-      created:  n.created,
-      read:     n.read,
-      progress: n.progress,
-    };
-  });
+  const index = state.notifications.map((n) => ({
+    id:       n.id,
+    created:  n.created,
+    read:     n.read,
+    progress: n.progress,
+  }));
 
   try {
     window.localStorage.setItem(localStorageKey, JSON.stringify(index));
@@ -163,7 +161,12 @@ export const mutations = {
 
     // Check that we have not exceeded the maximum number of notifications
     if (state.notifications.length > MAX_NOTIFICATIONS) {
-      state.notifications.pop();
+      const removed = state.notifications.pop();
+
+      if (removed) {
+        // Remove the encrypted data for the notification that we just removed
+        window.localStorage.removeItem(`${ state.localStorageKey }-${ removed.id }`);
+      }
     }
 
     syncIndex(state);
