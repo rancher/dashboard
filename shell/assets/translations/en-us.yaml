@@ -2555,6 +2555,7 @@ fleet:
     label: Fleet
     title: Fleet Settings
     info: Rancher will reboot Fleet agent and controller on settings change.
+    apply: Apply changes
     noPermissions: You have no permissions to modify Fleet Settings
     parseError: 'Cannot parse values from "{ path }" in "{ id }" ConfigMap'
     fields:
