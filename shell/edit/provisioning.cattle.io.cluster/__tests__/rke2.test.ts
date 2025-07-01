@@ -247,7 +247,7 @@ describe('component: rke2', () => {
 
     const cloudConfigPath = get(wrapper.vm.userChartValues, `${ chartKey }.cloudConfigPath`);
 
-    expect(cloudConfigPath).toStrictEqual('my-k8s-distro-path/var/lib/rancher/rke2/etc/config-files/cloud-provider-config');
+    expect(cloudConfigPath).toStrictEqual('my-k8s-distro-path/etc/config-files/cloud-provider-config');
   });
 
   // TODO: Complete test after implementing fetch https://github.com/rancher/dashboard/issues/9322
