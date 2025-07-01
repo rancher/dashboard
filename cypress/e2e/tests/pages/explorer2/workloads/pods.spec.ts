@@ -7,11 +7,11 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { generatePodsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/pods/pods-get';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
-import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { createManyWorkloads, deleteManyWorkloadNamespaces, SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 const cluster = 'local';
 
-describe('Pods', { testIsolation: 'off', tags: ['@2explorer2', '@adminUser'] }, () => {
+describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const workloadsPodPage = new WorkloadsPodsListPagePo(cluster);
 
   before(() => {
@@ -20,7 +20,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@2explorer2', '@adminUser'] }, 
 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     let uniquePod = SortableTablePo.firstByDefaultName('pod');
-    const podNamesList = [];
+    let podNamesList = [];
     let nsName1: string;
     let nsName2: string;
     let rootResourceName: string;
@@ -30,38 +30,34 @@ describe('Pods', { testIsolation: 'off', tags: ['@2explorer2', '@adminUser'] }, 
         rootResourceName = root;
       });
 
-      cy.createE2EResourceName('ns1').then((ns1) => {
-        nsName1 = ns1;
-        // create namespace
-        cy.createNamespace(nsName1);
+      const createPod = (podName?: string) => {
+        return ({ ns, i }: {ns: string, i: number}) => {
+          const name = podName || Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
 
-        // create pods
-        let i = 0;
+          return cy.createPod(ns, name, SMALL_CONTAINER.image, false, { createNameOptions: { prefixContext: true } });
+        };
+      };
 
-        while (i < 25) {
-          const podName = Cypress._.uniqueId(Date.now().toString());
-
-          cy.createPod(nsName1, podName, SMALL_CONTAINER.image, false, { createNameOptions: { prefixContext: true } }).then((resp) => {
-            podNamesList.push(resp.body.metadata.name);
-          });
-
-          i++;
-        }
-
-        cy.createE2EResourceName('ns2').then((ns2) => {
-          nsName2 = ns2;
-
-          // create namespace
-          cy.createNamespace(nsName2);
-
-          // create unique pod for filtering/sorting test
-          cy.createPod(nsName2, uniquePod, SMALL_CONTAINER.image, true, { createNameOptions: { prefixContext: true } }).then((resp) => {
-            uniquePod = resp.body.metadata.name;
-          });
+      createManyWorkloads({
+        context:        'ns1',
+        createWorkload: createPod(),
+        count:          25
+      })
+        .then(({ ns, workloadNames }) => {
+          podNamesList = workloadNames;
+          nsName1 = ns;
+        })
+        .then(() => createManyWorkloads({
+          context:        'ns2',
+          createWorkload: createPod(uniquePod),
+          count:          1
+        }))
+        .then(({ ns, workloadNames }) => {
+          uniquePod = workloadNames[0];
+          nsName2 = ns;
 
           cy.tableRowsPerPageAndNamespaceFilter(10, cluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
         });
-      });
     });
 
     it('pagination is visible and user is able to navigate through pods data', () => {
@@ -258,8 +254,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@2explorer2', '@adminUser'] }, 
       cy.tableRowsPerPageAndNamespaceFilter(100, cluster, 'none', '{"local":["all://user"]}');
 
       // delete namespace (this will also delete all pods in it)
-      cy.deleteRancherResource('v1', 'namespaces', nsName1);
-      cy.deleteRancherResource('v1', 'namespaces', nsName2);
+      deleteManyWorkloadNamespaces([nsName1, nsName2]);
     });
   });
 

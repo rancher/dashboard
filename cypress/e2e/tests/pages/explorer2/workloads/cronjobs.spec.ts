@@ -3,7 +3,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateCronJobsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/cronjobs/cronjobs-get';
-import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { createManyWorkloads, deleteManyWorkloadNamespaces, SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -15,7 +15,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueCronJob = SortableTablePo.firstByDefaultName('cronjob');
-    const cronJobNamesList = [];
+    let cronJobNamesList = [];
     let nsName1: string;
     let nsName2: string;
     let rootResourceName: string;
@@ -25,23 +25,16 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
         rootResourceName = root;
       });
 
-      cy.createE2EResourceName('ns1').then((ns1) => {
-        nsName1 = ns1;
-        // create namespace
-        cy.createNamespace(nsName1);
+      const createCronJob = (cronJobName?: string) => {
+        return ({ ns, i }: {ns: string, i: number}) => {
+          const name = cronJobName || Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
 
-        // create cronjobs
-        let i = 0;
-
-        while (i < 25) {
-          const cronJobName = Cypress._.uniqueId(Date.now().toString());
-
-          cy.createRancherResource('v1', 'batch.cronjob', JSON.stringify({
+          return cy.createRancherResource('v1', 'batch.cronjob', JSON.stringify({
             apiVersion: 'batch/v1',
             kind:       'CronJob',
             metadata:   {
-              name:      cronJobName,
-              namespace: nsName1
+              name,
+              namespace: ns
             },
             spec: {
               schedule:                   '1 * * * *',
@@ -60,51 +53,30 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
                 }
               }
             }
-          })).then((resp) => {
-            cronJobNamesList.push(resp.body.metadata.name);
-          });
+          }));
+        };
+      };
 
-          i++;
-        }
-
-        cy.createE2EResourceName('ns2').then((ns2) => {
-          nsName2 = ns2;
-
-          // create namespace
-          cy.createNamespace(nsName2);
-
-          // create unique cronjob for filtering/sorting test
-          cy.createRancherResource('v1', 'batch.cronjob', JSON.stringify({
-            apiVersion: 'batch/v1',
-            kind:       'CronJob',
-            metadata:   {
-              name:      uniqueCronJob,
-              namespace: nsName2
-            },
-            spec: {
-              schedule:                   '1 * * * *',
-              concurrencyPolicy:          'Allow',
-              failedJobsHistoryLimit:     1,
-              successfulJobsHistoryLimit: 3,
-              suspend:                    false,
-              jobTemplate:                {
-                spec: {
-                  template: {
-                    spec: {
-                      containers:    [SMALL_CONTAINER],
-                      restartPolicy: 'Never'
-                    }
-                  }
-                }
-              }
-            }
-          })).then((resp) => {
-            uniqueCronJob = resp.body.metadata.name;
-          });
+      createManyWorkloads({
+        context:        'ns1',
+        createWorkload: createCronJob(),
+        count:          25
+      })
+        .then(({ ns, workloadNames }) => {
+          cronJobNamesList = workloadNames;
+          nsName1 = ns;
+        })
+        .then(() => createManyWorkloads({
+          context:        'ns2',
+          createWorkload: createCronJob(uniqueCronJob),
+          count:          1
+        }))
+        .then(({ ns, workloadNames }) => {
+          uniqueCronJob = workloadNames[0];
+          nsName2 = ns;
 
           cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
         });
-      });
     });
 
     it('pagination is visible and user is able to navigate through cronjobs data', () => {
@@ -301,8 +273,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
       cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
 
       // delete namespace (this will also delete all cronjobs in it)
-      cy.deleteRancherResource('v1', 'namespaces', nsName1);
-      cy.deleteRancherResource('v1', 'namespaces', nsName2);
+      deleteManyWorkloadNamespaces([nsName1, nsName2]);
     });
   });
 });

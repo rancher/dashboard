@@ -3,7 +3,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateJobsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/jobs/jobs-get';
-import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { deleteManyWorkloadNamespaces, SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -372,8 +372,7 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
 
       // delete namespace (this will also delete all jobs in it)
-      cy.deleteRancherResource('v1', 'namespaces', nsName1);
-      cy.deleteRancherResource('v1', 'namespaces', nsName2);
+      deleteManyWorkloadNamespaces([nsName1, nsName2]);
     });
   });
 });
