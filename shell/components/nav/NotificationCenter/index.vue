@@ -99,7 +99,10 @@ onMounted(async() => {
             v-for="(a, index) in allNotifications"
             :key="a.id"
           >
-            <rc-dropdown-separator v-if="index > 0" />
+            <rc-dropdown-separator
+              v-if="index > 0"
+              class="notification-separator"
+            />
             <Notification :item="a" />
           </template>
         </div>
@@ -121,8 +124,13 @@ onMounted(async() => {
     .scroll-container {
       overflow: auto;
       max-height: 80vh;
-      padding: 5px 0;
+      padding: 3px 0; // Need padding at top and bottom in order to show the focus border for the notification
     }
+  }
+
+  .notification-separator {
+    margin: 0 3px;
+    width: auto;
   }
 
   .no-notifications {
@@ -144,15 +152,15 @@ onMounted(async() => {
     display: flex;
     position: relative;
     height: 20px;
-    width: 20px;
+    width: 18px;
 
     .trigger-level {
       position: absolute;
-      right: -5px;
-      top: -5px;
+      right: -6px;
+      top: -4px;
       border-radius: 50%;
-      height: 11px;
-      width: 11px;
+      height: 8px;
+      width: 8px;
       background-color: var(--primary);
       transition: opacity 0.5s ease-in-out;
       opacity: 0;
