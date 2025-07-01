@@ -127,6 +127,14 @@ export default {
   },
 
   methods: {
+    onAddPath() {
+      this.$nextTick(() => {
+        const input = this.$refs[`path-input-${ this.rows?.length || 0 }`] as HTMLInputElement;
+
+        input?.focus();
+      });
+    },
+
     updatePaths(paths: string[]) {
       this.rows = paths.map((path, i) => ({
         ...this.rows[i],
@@ -315,6 +323,7 @@ export default {
     :add-class="'btn-sm role-secondary'"
     :protip="t('fleet.gitRepo.paths.tooltip', {}, true)"
     :remove-allowed="false"
+    @add="onAddPath"
     @update:value="updatePaths"
   >
     <template #columns="{row, i}">
@@ -338,6 +347,7 @@ export default {
             class="text-label mmt-2"
           />
           <input
+            :ref="`path-input-${ i }`"
             data-testid="main-path"
             class="mt-5"
             :value="row.value"
