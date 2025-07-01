@@ -96,6 +96,7 @@ declare global {
       createAmazonRke2Cluster(params: CreateAmazonRke2ClusterParams): Chainable;
       createAmazonRke2ClusterWithoutMachineConfig(params: CreateAmazonRke2ClusterWithoutMachineConfigParams): Chainable;
       createSecret(namespace: string, name: string, options?: { type?: string; metadata?: any; data?: any }): Chainable;
+      createConfigMap(namespace: string, name: string, options?: { metadata?: any; data?: any }): Chainable;
       createService(namespace: string, name: string, options?: { type?: string; ports?: any[]; spec?: any; metadata?: any }): Chainable;
 
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
