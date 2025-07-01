@@ -37,7 +37,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
               namespace: ns
             },
             spec: {
-              schedule:                   '1 * * * *',
+              schedule:                   '1 1 1 1 1', // basically never
               concurrencyPolicy:          'Allow',
               failedJobsHistoryLimit:     1,
               successfulJobsHistoryLimit: 3,
