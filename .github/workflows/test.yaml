@@ -172,6 +172,22 @@ jobs:
           retention-days: 5
           compression-level: 9          
 
+      - name: Copy k3s log from container
+        if: ${{ failure() }}
+        run: |
+          docker cp cypress:/var/lib/rancher/k3s.log k3s.log || echo "Failed to copy k3s.log"
+
+      - name: Upload k3s.log
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-k3s-log-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
+          path: k3s.log
+          if-no-files-found: warn
+          retention-days: 5
+          compression-level: 9          
+
+
   a11y-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
