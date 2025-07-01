@@ -3,7 +3,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateJobsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/jobs/jobs-get';
-import { deleteManyWorkloadNamespaces, SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { createManyWorkloads, deleteManyWorkloadNamespaces, SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -96,7 +96,7 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
     const jobsListPage = new WorkloadsJobsListPagePo(localCluster);
 
     let uniqueJob = SortableTablePo.firstByDefaultName('job');
-    const jobNamesList = [];
+    let jobNamesList = [];
     let nsName1: string;
     let nsName2: string;
     let rootResourceName: string;
@@ -106,76 +106,53 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
         rootResourceName = root;
       });
 
-      cy.createE2EResourceName('ns1').then((ns1) => {
-        nsName1 = ns1;
-        // create namespace
-        cy.createNamespace(nsName1);
+      const createJob = (jobName?: string) => {
+        return ({ ns, i }: {ns: string, i: number}) => {
+          const name = jobName || Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
 
-        // create jobs
-        let i = 0;
-
-        while (i < 25) {
-          const jobName = Cypress._.uniqueId(Date.now().toString());
-
-          cy.createRancherResource('v1', 'batch.job', JSON.stringify({
+          return cy.createRancherResource('v1', 'batch.job', JSON.stringify({
             apiVersion: 'batch/v1',
             kind:       'Job',
             metadata:   {
-              name:      jobName,
-              namespace: nsName1
+              name,
+              namespace: ns
             },
             spec: {
               backoffLimit: 6,
               completions:  1,
               parallelism:  1,
               template:     {
-                metadata: { labels: { 'job-name': jobName } },
+                metadata: { labels: { 'job-name': name } },
                 spec:     {
                   containers:    [SMALL_CONTAINER],
                   restartPolicy: 'Never'
                 }
               }
             }
-          })).then((resp) => {
-            jobNamesList.push(resp.body.metadata.name);
-          });
+          }));
+        };
+      };
 
-          i++;
-        }
-
-        cy.createE2EResourceName('ns2').then((ns2) => {
-          nsName2 = ns2;
-
-          // create namespace
-          cy.createNamespace(nsName2);
-
-          // create unique job for filtering/sorting test
-          cy.createRancherResource('v1', 'batch.job', JSON.stringify({
-            apiVersion: 'batch/v1',
-            kind:       'Job',
-            metadata:   {
-              name:      uniqueJob,
-              namespace: nsName2
-            },
-            spec: {
-              backoffLimit: 6,
-              completions:  1,
-              parallelism:  1,
-              template:     {
-                metadata: { labels: { 'job-name': uniqueJob } },
-                spec:     {
-                  containers:    [SMALL_CONTAINER],
-                  restartPolicy: 'Never'
-                }
-              }
-            }
-          })).then((resp) => {
-            uniqueJob = resp.body.metadata.name;
-          });
+      createManyWorkloads({
+        context:        'ns1',
+        createWorkload: createJob(),
+        count:          25
+      })
+        .then(({ ns, workloadNames }) => {
+          jobNamesList = workloadNames;
+          nsName1 = ns;
+        })
+        .then(() => createManyWorkloads({
+          context:        'ns2',
+          createWorkload: createJob(uniqueJob),
+          count:          1
+        }))
+        .then(({ ns, workloadNames }) => {
+          uniqueJob = workloadNames[0];
+          nsName2 = ns;
 
           cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
         });
-      });
     });
 
     it('pagination is visible and user is able to navigate through jobs data', () => {
