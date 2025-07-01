@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+
+K3S_VERSION=v1.28.8+k3s1
+
+# Image version
+# RANCHER_IMG_VERSION=v2.9-c9be13b09329bbee60a5f6419d500198f83c44d1-head
+RANCHER_IMG_VERSION=v2.9-head
+
+# check if script invoke contains any argument. If so, adjust RANCHER_IMG_VERSION
+if [ $# -eq 1 ]; then
+  RANCHER_IMG_VERSION=$1
+fi
+
+DASHBOARD_URL="${TEST_BASE_URL#https://}"
+NAMESPACE=cattle-system
+
+DIR=$(cd $(dirname $0)/..; pwd)
+
+# See `script/build-e2e`. This is the ui builds we wish to test
+DASHBOARD_DIST=${DIR}/dist
+EMBER_DIST=${DIR}/dist_ember
+
+echo "Installing k3s (with kubectl).........."
+curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="$K3S_VERSION" sh -
+export KUBECONFIG=~/.kube/config
+mkdir ~/.kube 2> /dev/null
+sudo k3s kubectl config view --raw > "$KUBECONFIG"
+chmod 600 "$KUBECONFIG"
+
+echo "Installing helm.........."
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+
+echo "Installing cert-manager.........."
+kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.7.1/cert-manager.crds.yaml
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+helm install cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --version v1.7.1
+
+echo "Cert manager pods should be up"
+kubectl get pods --namespace cert-manager
+
+echo "Setting up Rancher Repo.........."
+helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
+helm repo update
+
+echo "Installing Rancher.........."
+kubectl create ns $NAMESPACE
+helm install rancher rancher-latest/rancher \
+  --namespace cattle-system \
+  --set hostname=$DASHBOARD_URL \
+  --set replicas="1" \
+  --set rancherImage="rancher/rancher" \
+  --set rancherImageTag="$RANCHER_IMG_VERSION" \
+  --set rancherImagePullPolicy="Always" \
+  --set extraEnv\[0\].name="CATTLE_AGENT_IMAGE" \
+  --set-string extraEnv\[0\].value="rancher/rancher:$RANCHER_IMG_VERSION" \
+  --set extraEnv\[1\].name="CATTLE_UI_OFFLINE_PREFERRED" \
+  --set-string extraEnv\[1\].value="true" \
+  --set extraEnv\[2\].name="CATTLE_BOOTSTRAP_PASSWORD" \
+  --set-string extraEnv\[2\].value="password" \
+  --set extraEnv\[3\].name="CATTLE_PASSWORD_MIN_LENGTH" \
+  --set-string extraEnv\[3\].value="3"
+
+echo "Waiting for Rancher to come up.........."
+kubectl -n cattle-system rollout status deploy/rancher
+
+echo "Waiting for dashboard UI to be reachable.........."
+
+okay=0
+
+while [ $okay -lt 20 ]; do
+  STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
+
+  echo "Status: $STATUS (Try: $okay)"
+
+  okay=$((okay+1))
+
+  if [ "$STATUS" == "200" ]; then
+    okay=100
+  else
+    sleep 5
+  fi
+done
+
+if [ "$STATUS" != "200" ]; then
+  echo "Dashboard did not become available in a reasonable time"
+  exit 1
+fi
+
+echo "Updating UI within Rancher container.........."
+# Note - these will pick the first container within the pod, so replicas=1 above is important
+POD_NAME=$(kubectl get pods --selector=app=rancher -n $NAMESPACE | tail -n 1 | cut -d ' ' -f1)
+echo "POD NAME: $POD_NAME"
+if [ "$POD_NAME" == "" ]; then
+  echo "Failed to find rancher pod"
+  exit 1
+fi
+
+# Remove root folders that container UIs
+kubectl exec $POD_NAME -n $NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui-dashboard/dashboard'
+kubectl exec $POD_NAME -n $NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui'
+
+# Copy local builds to root folders that should contain UIs
+mv $DASHBOARD_DIST dashboard
+mv $EMBER_DIST ui
+kubectl cp dashboard $POD_NAME:/usr/share/rancher/ui-dashboard -n $NAMESPACE
+kubectl cp ui $POD_NAME:/usr/share/rancher -n $NAMESPACE
+
+# Final validation
+STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
+echo "Status: $STATUS"
+
+if [ "$STATUS" != "200" ]; then
+  echo "After updating dashboard with dev build it is no longer available"
+  exit 1
+fi
+
+echo "Dashboard UI is ready"
