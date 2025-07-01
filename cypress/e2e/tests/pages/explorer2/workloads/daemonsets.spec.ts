@@ -5,7 +5,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { generateDaemonSetsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/daemonsets/daemonsets-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
-describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('DaemonSets', { testIsolation: 'off', tags: ['@2explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
 
   before(() => {
