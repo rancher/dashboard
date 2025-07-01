@@ -8,7 +8,7 @@ import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const localCluster = 'local';
 
-describe('Deployments', { testIsolation: 'off', tags: '@explorer2' }, () => {
+describe('Deployments', { testIsolation: 'off', tags: ['@explorer2'] }, () => {
   before(() => {
     cy.login();
   });
