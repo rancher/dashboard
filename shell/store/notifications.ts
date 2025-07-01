@@ -3,7 +3,6 @@ import { randomStr } from '@shell/utils/string';
 import { Notification, StoredNotification } from '@shell/types/notifications';
 import { deriveKey } from '@shell/utils/crypto/encryption';
 import { loadFromString } from '@shell/utils/notifications';
-import { debounce } from 'lodash';
 
 /**
  * Key used to store notifications in the browser's local storage
@@ -19,6 +18,11 @@ const EXPIRY = 14 * 24 * 60 * 60;
  * Maximum number of notifications that will be kept
  */
 const MAX_NOTIFICATIONS = 50;
+
+/**
+ * Broadcast channel name to send changes across tabs
+ */
+const NOTIFICATION_CHANNEL_NAME = 'rancher-notification-sync';
 
 /**
  * Store for the UI Notification Centre
@@ -41,9 +45,19 @@ export const state = function(): NotificationsStore {
   };
 };
 
-const debounceSetNotifications = debounce((state: NotificationsStore, notifications: StoredNotification[]) => {
-  state.notifications = notifications;
-}, 500);
+let bc: BroadcastChannel;
+
+/**
+ * Sync notifications to other tabs using the broadcast channel. Send the user id, to cover corner case
+ * where a stale login exists for a different user in another tab.
+ */
+function sync(userId: string, operation: string, param?: any) {
+  bc?.postMessage({
+    userId,
+    operation,
+    param
+  });
+}
 
 export const getters = {
   all: (state: NotificationsStore) => {
@@ -153,13 +167,7 @@ export const mutations = {
   },
 
   load(state: NotificationsStore, notifications: StoredNotification[]) {
-    // On load, check that the data actually is different
-    const existingData = JSON.stringify(state.notifications);
-    const newData = JSON.stringify(notifications);
-
-    if (existingData !== newData) {
-      debounceSetNotifications(state, notifications);
-    }
+    state.notifications = notifications;
   },
 
   localStorageKey(state: NotificationsStore, userKey: string) {
@@ -176,27 +184,31 @@ export const mutations = {
 };
 
 export const actions = {
-  add( { commit, dispatch }: any, notification: Notification) {
+  add( { commit, dispatch, getters }: any, notification: Notification) {
     commit('add', notification);
+    sync(getters['userId'], 'add', notification);
 
     // Show a growl for the notification if necessary
     dispatch('growl/notification', notification, { root: true });
   },
 
-  fromGrowl( { commit }: any, notification: Notification) {
+  fromGrowl( { commit, getters }: any, notification: Notification) {
     notification.id = randomStr();
 
     commit('add', notification);
+    sync(getters['userId'], 'add', notification);
 
     return notification.id;
   },
 
-  update({ commit }: any, notification: Notification) {
+  update({ commit, getters }: any, notification: Notification) {
     commit('update', notification);
+    sync(getters['userId'], 'update', notification);
   },
 
   async markRead({ commit, dispatch, getters }: any, id: string) {
     commit('markRead', id);
+    sync(getters['userId'], 'markRead', id);
 
     const notification = getters.item(id);
 
@@ -207,6 +219,7 @@ export const actions = {
 
   async markUnread({ commit, dispatch, getters }: any, id: string) {
     commit('markUnread', id);
+    sync(getters['userId'], 'markUnread', id);
 
     const notification = getters.item(id) as Notification;
 
@@ -220,6 +233,7 @@ export const actions = {
 
   async markAllRead({ commit, dispatch, getters }: any) {
     commit('markAllRead');
+    sync(getters['userId'], 'markAllRead');
 
     // For all notifications that have a preference, set the preference, since they are now read
     const withPreference = getters.all.filter((n: Notification) => !!n.preference);
@@ -229,16 +243,14 @@ export const actions = {
     }
   },
 
-  remove({ commit }: any, id: string) {
+  remove({ commit, getters }: any, id: string) {
     commit('remove', id);
+    sync(getters['userId'], 'remove', id);
   },
 
-  clearAll({ commit }: any) {
+  clearAll({ commit, getters }: any) {
     commit('clearAll');
-  },
-
-  load({ commit }: any, data: StoredNotification[]) {
-    commit('load', data);
+    sync(getters['userId'], 'clearAll');
   },
 
   /**
@@ -298,5 +310,15 @@ export const actions = {
     });
 
     commit('load', notifications);
+
+    // Set up broadcast listener to listen for updates from other tabs
+    bc = new BroadcastChannel(NOTIFICATION_CHANNEL_NAME);
+
+    bc.onmessage = (msgEvent: any) => {
+      // Ignore events where the user id does not match (corner case of stale login in another tab)
+      if (msgEvent?.data?.operation && msgEvent?.data?.userId === userId) {
+        commit(msgEvent.data.operation, msgEvent.data.param);
+      }
+    };
   }
 };
