@@ -2,7 +2,7 @@ import { ConfigMapPagePo } from '@/cypress/e2e/po/pages/explorer/config-map.po';
 import ConfigMapPo from '@/cypress/e2e/po/components/storage/config-map.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
-import { createManyWorkloads } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { createManyWorkloads, deleteManyWorkloadNamespaces } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 const configMapPage = new ConfigMapPagePo('local');
 const localCluster = 'local';
@@ -88,7 +88,7 @@ skipGeometric=true`;
     configMapPo.errorBanner().should('exist').and('be.visible');
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     const uniqueConfigMap = SortableTablePo.firstByDefaultName('cm');
     let cmNamesList = [];
     let nsName1: string;
@@ -108,7 +108,7 @@ skipGeometric=true`;
         return ({ ns, i }: {ns: string, i: number}) => {
           const name = cmName || Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
 
-          return cy.createConfigMap(ns, name);
+          return cy.createConfigMap(ns, name).then((name) => ({ body: { metadata: { name } } }));
         };
       };
 
@@ -312,8 +312,7 @@ skipGeometric=true`;
       cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
 
       // delete namespace (this will also delete all configmaps in it)
-      cy.deleteRancherResource('v1', 'namespaces', nsName1);
-      cy.deleteRancherResource('v1', 'namespaces', nsName2);
+      deleteManyWorkloadNamespaces([nsName1, nsName2]);
     });
   });
 });
