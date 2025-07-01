@@ -131,7 +131,7 @@ class Fleet {
     {
       index:           3,
       id:              'info',
-      label:           'InProgress',
+      label:           'Pending',
       color:           '#3d98d3',
       icon:            'icon icon-warning',
       stateBackground: 'bg-info'
