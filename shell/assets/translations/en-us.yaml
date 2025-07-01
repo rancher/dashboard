@@ -2729,6 +2729,7 @@ fleet:
     rules:
       title: Select by labels
       addSelector: Add cluster selector
+      labelKey: Label
       matching:
         title: Selected clusters
         placeholder: Select clusters by name or labels

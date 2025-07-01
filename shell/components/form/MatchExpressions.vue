@@ -54,6 +54,11 @@ export default {
       default: true
     },
 
+    labelKey: {
+      type:    String,
+      default: '',
+    },
+
     addLabel: {
       type:    String,
       default: '',
@@ -293,7 +298,7 @@ export default {
         {{ t('workload.scheduling.affinity.matchExpressions.matchType') }}
       </label>
       <label>
-        {{ t('workload.scheduling.affinity.matchExpressions.key') }}
+        {{ labelKey || t('workload.scheduling.affinity.matchExpressions.key') }}
       </label>
       <label>
         {{ t('workload.scheduling.affinity.matchExpressions.operator') }}
@@ -408,7 +413,7 @@ export default {
     </div>
     <div
       v-if="!isView && showAddButton"
-      class="mt-20"
+      class="mmt-4"
     >
       <button
         type="button"
