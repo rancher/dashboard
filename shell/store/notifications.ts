@@ -47,8 +47,16 @@ export const state = function(): NotificationsStore {
 
 let bc: BroadcastChannel;
 
-function sync(operation: string, param?: any) {
-  bc?.postMessage({ operation, param });
+/**
+ * Sync notifications to other tabs using the broadcast channel. Send the user id, to cover corner case
+ * where a stale login exists for a different user in another tab.
+ */
+function sync(userId: string, operation: string, param?: any) {
+  bc?.postMessage({
+    userId,
+    operation,
+    param
+  });
 }
 
 export const getters = {
@@ -176,31 +184,31 @@ export const mutations = {
 };
 
 export const actions = {
-  add( { commit, dispatch }: any, notification: Notification) {
+  add( { commit, dispatch, getters }: any, notification: Notification) {
     commit('add', notification);
-    sync('add', notification);
+    sync(getters['userId'], 'add', notification);
 
     // Show a growl for the notification if necessary
     dispatch('growl/notification', notification, { root: true });
   },
 
-  fromGrowl( { commit }: any, notification: Notification) {
+  fromGrowl( { commit, getters }: any, notification: Notification) {
     notification.id = randomStr();
 
     commit('add', notification);
-    sync('add', notification);
+    sync(getters['userId'], 'add', notification);
 
     return notification.id;
   },
 
-  update({ commit }: any, notification: Notification) {
+  update({ commit, getters }: any, notification: Notification) {
     commit('update', notification);
-    sync('update', notification);
+    sync(getters['userId'], 'update', notification);
   },
 
   async markRead({ commit, dispatch, getters }: any, id: string) {
     commit('markRead', id);
-    sync('markRead', id);
+    sync(getters['userId'], 'markRead', id);
 
     const notification = getters.item(id);
 
@@ -211,7 +219,7 @@ export const actions = {
 
   async markUnread({ commit, dispatch, getters }: any, id: string) {
     commit('markUnread', id);
-    sync('markUnread', id);
+    sync(getters['userId'], 'markUnread', id);
 
     const notification = getters.item(id) as Notification;
 
@@ -225,7 +233,7 @@ export const actions = {
 
   async markAllRead({ commit, dispatch, getters }: any) {
     commit('markAllRead');
-    sync('markAllRead');
+    sync(getters['userId'], 'markAllRead');
 
     // For all notifications that have a preference, set the preference, since they are now read
     const withPreference = getters.all.filter((n: Notification) => !!n.preference);
@@ -235,14 +243,14 @@ export const actions = {
     }
   },
 
-  remove({ commit }: any, id: string) {
+  remove({ commit, getters }: any, id: string) {
     commit('remove', id);
-    sync('remove', id);
+    sync(getters['userId'], 'remove', id);
   },
 
-  clearAll({ commit }: any) {
+  clearAll({ commit, getters }: any) {
     commit('clearAll');
-    sync('clearAll');
+    sync(getters['userId'], 'clearAll');
   },
 
   /**
@@ -307,7 +315,8 @@ export const actions = {
     bc = new BroadcastChannel(NOTIFICATION_CHANNEL_NAME);
 
     bc.onmessage = (msgEvent: any) => {
-      if (msgEvent?.data?.operation) {
+      // Ignore events where the user id does not match (corner case of stale login in another tab)
+      if (msgEvent?.data?.operation && msgEvent?.data?.userId === userId) {
         commit(msgEvent.data.operation, msgEvent.data.param);
       }
     };
