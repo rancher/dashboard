@@ -68,6 +68,16 @@ export default class FleetApplication extends SteveModel {
     super.goToClone();
   }
 
+  cleanForSave(data) {
+    const val = super.cleanForSave(data);
+
+    if (val.type) {
+      delete val.type;
+    }
+
+    return val;
+  }
+
   get isPollingEnabled() {
     return !this.spec.disablePolling;
   }
