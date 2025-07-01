@@ -3,6 +3,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateStatefulSetsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/statefulsets/statefulsets-get';
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -50,12 +51,7 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
               selector:            { matchLabels: { app: statefulSetName } },
               template:            {
                 metadata: { labels: { app: statefulSetName } },
-                spec:     {
-                  containers: [{
-                    name:  'nginx',
-                    image: 'nginx:alpine'
-                  }]
-                }
+                spec:     { containers: [SMALL_CONTAINER] }
               }
             }
           })).then((resp) => {
@@ -87,12 +83,7 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
               selector:            { matchLabels: { app: uniqueStatefulSet } },
               template:            {
                 metadata: { labels: { app: uniqueStatefulSet } },
-                spec:     {
-                  containers: [{
-                    name:  'nginx',
-                    image: 'nginx:alpine'
-                  }]
-                }
+                spec:     { containers: [SMALL_CONTAINER] }
               }
             }
           })).then((resp) => {

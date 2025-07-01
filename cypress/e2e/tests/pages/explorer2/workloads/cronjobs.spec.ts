@@ -3,6 +3,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateCronJobsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/cronjobs/cronjobs-get';
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -52,10 +53,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
                 spec: {
                   template: {
                     spec: {
-                      containers: [{
-                        name:  'nginx',
-                        image: 'nginx:alpine'
-                      }],
+                      containers:    [SMALL_CONTAINER],
                       restartPolicy: 'OnFailure'
                     }
                   }
@@ -93,10 +91,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
                 spec: {
                   template: {
                     spec: {
-                      containers: [{
-                        name:  'nginx',
-                        image: 'nginx:alpine'
-                      }],
+                      containers:    [SMALL_CONTAINER],
                       restartPolicy: 'OnFailure'
                     }
                   }

@@ -3,6 +3,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateJobsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/jobs/jobs-get';
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -130,10 +131,7 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
               template:     {
                 metadata: { labels: { 'job-name': jobName } },
                 spec:     {
-                  containers: [{
-                    name:  'nginx',
-                    image: 'nginx:alpine'
-                  }],
+                  containers:    [SMALL_CONTAINER],
                   restartPolicy: 'Never'
                 }
               }
@@ -166,10 +164,7 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
               template:     {
                 metadata: { labels: { 'job-name': uniqueJob } },
                 spec:     {
-                  containers: [{
-                    name:  'nginx',
-                    image: 'nginx:alpine'
-                  }],
+                  containers:    [SMALL_CONTAINER],
                   restartPolicy: 'Never'
                 }
               }

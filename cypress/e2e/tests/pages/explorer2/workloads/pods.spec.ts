@@ -7,6 +7,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { generatePodsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/pods/pods-get';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 const cluster = 'local';
 
@@ -40,7 +41,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
         while (i < 25) {
           const podName = Cypress._.uniqueId(Date.now().toString());
 
-          cy.createPod(nsName1, podName, 'nginx:alpine', false, { createNameOptions: { prefixContext: true } }).then((resp) => {
+          cy.createPod(nsName1, podName, SMALL_CONTAINER.image, false, { createNameOptions: { prefixContext: true } }).then((resp) => {
             podNamesList.push(resp.body.metadata.name);
           });
 
@@ -54,7 +55,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
           cy.createNamespace(nsName2);
 
           // create unique pod for filtering/sorting test
-          cy.createPod(nsName2, uniquePod, 'nginx:alpine', true, { createNameOptions: { prefixContext: true } }).then((resp) => {
+          cy.createPod(nsName2, uniquePod, SMALL_CONTAINER.image, true, { createNameOptions: { prefixContext: true } }).then((resp) => {
             uniquePod = resp.body.metadata.name;
           });
 
@@ -353,7 +354,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
 
       const podDetailsGeneral = podDetails.containerButton().general();
 
-      podDetailsGeneral.inputImageName().set('nginx:alpine');
+      podDetailsGeneral.inputImageName().set(SMALL_CONTAINER.image);
       const podDetailsResources = podDetails.containerButton().resources();
 
       podDetailsResources.clickResources();

@@ -42,7 +42,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     clusterList.goTo();
     clusterList.waitForPage();
 
-    // check if burguer menu nav is highlighted correctly for cluster manager
+    // check if burger menu nav is highlighted correctly for cluster manager
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Cluster Management');
 
     clusterList.list().explore('local').click();

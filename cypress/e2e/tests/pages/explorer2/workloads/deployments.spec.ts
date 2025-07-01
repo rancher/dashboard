@@ -5,6 +5,7 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateDeploymentsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployments-get';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 const localCluster = 'local';
 
@@ -245,12 +246,7 @@ describe('Deployments', { testIsolation: 'off', tags: '@explorer2' }, () => {
               selector: { matchLabels: { app: deploymentName } },
               template: {
                 metadata: { labels: { app: deploymentName } },
-                spec:     {
-                  containers: [{
-                    name:  'nginx',
-                    image: 'nginx:alpine'
-                  }]
-                }
+                spec:     { containers: [SMALL_CONTAINER] }
               }
             }
           })).then((resp) => {
@@ -279,12 +275,7 @@ describe('Deployments', { testIsolation: 'off', tags: '@explorer2' }, () => {
               selector: { matchLabels: { app: uniqueDeployment } },
               template: {
                 metadata: { labels: { app: uniqueDeployment } },
-                spec:     {
-                  containers: [{
-                    name:  'nginx',
-                    image: 'nginx:alpine'
-                  }]
-                }
+                spec:     { containers: [SMALL_CONTAINER] }
               }
             }
           })).then((resp) => {
