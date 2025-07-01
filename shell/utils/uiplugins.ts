@@ -321,3 +321,25 @@ export async function getHelmChart(store: any, repository: any, chartName: strin
     await new Promise((resolve) => setTimeout(resolve, RETRY_WAIT));
   }
 }
+
+export async function onExtensionsReady(store: any) {
+  const alreadyReady = store.getters['uiplugins/ready'];
+
+  if (alreadyReady) {
+    return;
+  }
+
+  const extensions = store.getters['uiplugins/plugins'] || [];
+
+  for (let i = 0; i < extensions.length; i++) {
+    const ext = extensions[i];
+
+    try {
+      await ext.onLogIn(store);
+    } catch (e) {
+      console.error(`Exception caught in onReady for extension ${ ext.name }`, e); // eslint-disable-line no-console
+    }
+  }
+
+  await store.dispatch('uiplugins/setReady', true);
+}

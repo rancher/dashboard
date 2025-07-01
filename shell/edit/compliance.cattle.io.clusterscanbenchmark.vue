@@ -117,7 +117,7 @@ export default {
           :clearable="true"
           :options="providers"
           :mode="mode"
-          :label="t('cis.clusterProvider')"
+          :label="t('compliance.clusterProvider')"
         />
       </div>
       <div class="col span-6">
@@ -127,7 +127,7 @@ export default {
           option-key="id"
           option-label="id"
           :mode="mode"
-          :label="t('cis.customConfigMap')"
+          :label="t('compliance.customConfigMap')"
           :resource-type="CONFIG_MAP"
           :paginated-resource-settings="configMapPaginateSettings"
         />
@@ -138,14 +138,14 @@ export default {
         <LabeledInput
           v-model:value="value.spec.minKubernetesVersion"
           :mode="mode"
-          :label="t('cis.minKubernetesVersion')"
+          :label="t('compliance.minKubernetesVersion')"
         />
       </div>
       <div class="col span-6">
         <LabeledInput
           v-model:value="value.spec.maxKubernetesVersion"
           :mode="mode"
-          :label="t('cis.maxKubernetesVersion')"
+          :label="t('compliance.maxKubernetesVersion')"
         />
       </div>
     </div>

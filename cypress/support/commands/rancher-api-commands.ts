@@ -1148,6 +1148,26 @@ Cypress.Commands.add('createSecret', (namespace: string, name: string, options: 
 });
 
 /**
+ * Create a configmap via api request
+ */
+Cypress.Commands.add('createConfigMap', (namespace: string, name: string, options: { metadata?: any; data?: any } = {}) => {
+  const defaultData = { foo: 'bar' };
+
+  const body = {
+    metadata: {
+      namespace,
+      name,
+      ...(options.metadata || {})
+    },
+    data: options.data || defaultData
+  };
+
+  return cy.createRancherResource('v1', 'configmaps', body).then((resp) => {
+    return resp.body.metadata.name;
+  });
+});
+
+/**
  * Create a service via api request
  */
 Cypress.Commands.add('createService', (namespace: string, name: string, options: { type?: string; ports?: any[]; spec?: any; metadata?: any } = {}) => {

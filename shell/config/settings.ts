@@ -45,11 +45,11 @@ export const SETTING = {
   AUTH_TOKEN_MAX_TTL_MINUTES:                    'auth-token-max-ttl-minutes',
   KUBECONFIG_GENERATE_TOKEN:                     'kubeconfig-generate-token',
   KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES:          'kubeconfig-default-token-ttl-minutes',
-  ENGINE_URL:                                    'engine-install-url',
   ENGINE_ISO_URL:                                'engine-iso-url',
   FIRST_LOGIN:                                   'first-login',
   INGRESS_IP_DOMAIN:                             'ingress-ip-domain',
   SERVER_URL:                                    'server-url',
+  RKE_METADATA_CONFIG:                           'rke-metadata-config',
   EULA_AGREED:                                   'eula-agreed',
   AUTH_USER_INFO_MAX_AGE_SECONDS:                'auth-user-info-max-age-seconds',
   AUTH_USER_SESSION_TTL_MINUTES:                 'auth-user-session-ttl-minutes',
@@ -106,6 +106,7 @@ export const SETTING = {
   DISABLE_INACTIVE_USER_AFTER:                   'disable-inactive-user-after',
   DELETE_INACTIVE_USER_AFTER:                    'delete-inactive-user-after',
   K3S_UPGRADER_UNINSTALL_CONCURRENCY:            'k3s-based-upgrader-uninstall-concurrency',
+  SYSTEM_AGENT_UPGRADER_INSTALL_CONCURRENCY:     'system-agent-upgrader-install-concurrency',
   IMPORTED_CLUSTER_VERSION_MANAGEMENT:           'imported-cluster-version-management',
   CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS:          'cluster-agent-default-priority-class',
   CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET: 'cluster-agent-default-pod-disruption-budget'
@@ -114,7 +115,6 @@ export const SETTING = {
 // These are the settings that are allowed to be edited via the UI
 export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.CA_CERTS]:            { kind: 'multiline', readOnly: true },
-  [SETTING.ENGINE_URL]:          {},
   [SETTING.ENGINE_ISO_URL]:      {},
   [SETTING.PASSWORD_MIN_LENGTH]: {
     kind:    'integer',
@@ -146,6 +146,7 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES]: { kind: 'integer' },
   [SETTING.AUTH_USER_INFO_RESYNC_CRON]:           {},
   [SETTING.SERVER_URL]:                           { kind: 'url', canReset: true },
+  [SETTING.RKE_METADATA_CONFIG]:                  { kind: 'json' },
   [SETTING.SYSTEM_DEFAULT_REGISTRY]:              {},
   [SETTING.UI_INDEX]:                             {},
   [SETTING.UI_DASHBOARD_INDEX]:                   {},
@@ -160,6 +161,10 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     options: ['strict', 'system-store'],
     warning: 'agent-tls-mode'
   },
+  [SETTING.SYSTEM_AGENT_UPGRADER_INSTALL_CONCURRENCY]: {
+    kind:    'integer',
+    ruleSet: [{ name: 'minValue', factoryArg: 1 }]
+  },
   [SETTING.K3S_UPGRADER_UNINSTALL_CONCURRENCY]: {
     kind:    'integer',
     ruleSet: [{ name: 'minValue', factoryArg: 1 }]
@@ -170,7 +175,20 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
 
 };
 
-export const PROVISIONING_SETTINGS = ['engine-iso-url', 'engine-install-url', 'imported-cluster-version-management', 'cluster-agent-default-priority-class', 'cluster-agent-default-pod-disruption-budget'];
+/**
+ * Show settings in a special cluster provisioning section
+ *
+ * These should probably be an option in the maps above...
+ */
+export const PROVISIONING_SETTINGS = [
+  SETTING.ENGINE_ISO_URL,
+  SETTING.RKE_METADATA_CONFIG,
+  SETTING.K3S_UPGRADER_UNINSTALL_CONCURRENCY,
+  SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT,
+  SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
+  SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET
+];
+
 /**
  * Settings on how to handle warnings returning in api responses, specifically which to show as growls
  */

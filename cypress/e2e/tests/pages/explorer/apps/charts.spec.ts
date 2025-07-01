@@ -94,4 +94,19 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
     appRepoList.list().actionMenu('Partners').getMenuItem('Enable').click();
   });
+
+  it('should display empty state properly', () => {
+    // selecting Rancher repo, PaaS category and Installed status filters to get no results in order to see an empty state
+    chartsPage.getFilterOptionByName('Rancher').set();
+    chartsPage.getFilterOptionByName('PaaS').set();
+    chartsPage.getFilterOptionByName('Installed').set();
+    // check empty state to be displayed
+    chartsPage.emptyState().isVisible();
+    chartsPage.emptyStateTitle().should('eq', 'No charts to show');
+    // reset filters
+    chartsPage.emptyStateResetFilters().isVisible();
+    chartsPage.emptyStateResetFilters().click();
+    // check empty state is NOT displayed
+    chartsPage.emptyState().should('not.exist');
+  });
 });

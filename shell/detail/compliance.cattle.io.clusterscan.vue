@@ -7,11 +7,11 @@ import Loading from '@shell/components/Loading';
 import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml, randomStr } from '@shell/utils/string';
-import { CIS } from '@shell/config/types';
+import { COMPLIANCE } from '@shell/config/types';
 import { STATE } from '@shell/config/table-headers';
 import { get } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
-import { fetchSpecsScheduledScanConfig } from '@shell/models/cis.cattle.io.clusterscan';
+import { fetchSpecsScheduledScanConfig } from '@shell/models/compliance.cattle.io.clusterscan';
 
 export default {
   components: {
@@ -95,50 +95,50 @@ export default {
 
       const out = [
         {
-          label: this.t('cis.profile'),
+          label: this.t('compliance.profile'),
           value: this.value.status.lastRunScanProfileName,
           to:    {
             name:   'c-cluster-product-resource-id',
             params: {
               ...this.$route.params,
-              resource: CIS.CLUSTER_SCAN_PROFILE,
+              resource: COMPLIANCE.CLUSTER_SCAN_PROFILE,
               id:       this.value.status.lastRunScanProfileName
             }
           }
         },
         {
-          label: this.t('cis.scan.total'),
+          label: this.t('compliance.scan.total'),
           value: this.parsedReport.total
         },
         {
-          label: this.t('cis.scan.pass'),
+          label: this.t('compliance.scan.pass'),
           value: this.parsedReport.pass
         },
         {
-          label: this.t('cis.scan.warn'),
+          label: this.t('compliance.scan.warn'),
           value: this.parsedReport.warn
         },
         {
-          label: this.t('cis.scan.skip'),
+          label: this.t('compliance.scan.skip'),
           value: this.parsedReport.skip
         },
         {
-          label: this.t('cis.scan.fail'),
+          label: this.t('compliance.scan.fail'),
           value: this.parsedReport.fail
         },
         {
-          label: this.t('cis.scan.notApplicable'),
+          label: this.t('compliance.scan.notApplicable'),
           value: this.parsedReport.notApplicable
         },
         {
-          label:     this.canBeScheduled ? this.t('cis.scan.lastScanTime') : this.t('cis.scan.scanDate'),
+          label:     this.canBeScheduled ? this.t('compliance.scan.lastScanTime') : this.t('compliance.scan.scanDate'),
           value:     this.value.status.lastRunTimestamp,
           component: 'Date'
         },
       ];
 
       if (!this.canBeScheduled) {
-        return out.filter((each) => each.label !== this.t('cis.scan.warn'));
+        return out.filter((each) => each.label !== this.t('compliance.scan.warn'));
       }
 
       return out;
@@ -154,14 +154,14 @@ export default {
         },
         {
           name:  'number',
-          label: this.t('cis.scan.number'),
+          label: this.t('compliance.scan.number'),
           value: 'id',
           sort:  'testIdSort',
           width: 100
         },
         {
           name:  'description',
-          label: this.t('cis.scan.description'),
+          label: this.t('compliance.scan.description'),
           value: 'description',
         }
       ];
@@ -250,7 +250,7 @@ export default {
       if (!remediation) {
 
       } else {
-        return `${ this.t('cis.scan.remediation') }: ${ remediation }`;
+        return `${ this.t('compliance.scan.remediation') }: ${ remediation }`;
       }
     },
     get
@@ -287,13 +287,13 @@ export default {
     >
       <div class="col span-8">
         <h3>
-          {{ t('cis.scan.scanReport') }}
+          {{ t('compliance.scan.scanReport') }}
         </h3>
       </div>
       <div class="col span-4">
         <LabeledSelect
           v-model:value="clusterReport"
-          :label="t('cis.reports')"
+          :label="t('compliance.reports')"
           :options="clusterReports"
           :get-option-label="reportLabel"
           :get-option-key="report=>report.id"
@@ -302,7 +302,7 @@ export default {
     </div>
     <div v-if="results && !!get(value, 'status.summary')">
       <SortableTable
-        no-rows-key="cis.noReportFound"
+        no-rows-key="compliance.noReportFound"
         default-sort-by="state"
         :search="false"
         :row-actions="false"

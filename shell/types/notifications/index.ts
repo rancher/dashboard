@@ -1,3 +1,5 @@
+import { RouteLocationRaw } from 'vue-router';
+
 /**
  * Type definitions for the Notification Center
  */
@@ -20,6 +22,7 @@ export enum NotificationLevel {
 export type NotificationAction = {
   label: string; // Button label for the action
   target?: string; // HREF target when the button is clicked
+  route?: RouteLocationRaw; // Route to navigate to when the button is clicked
 };
 
 /**

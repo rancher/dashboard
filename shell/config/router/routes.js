@@ -1,13 +1,13 @@
 import { NAME as APPS } from '@shell/config/product/apps';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as MANAGER } from '@shell/config/product/manager';
-import { CAPI, MANAGEMENT, BACKUP_RESTORE, CIS } from '@shell/config/types';
+import { CAPI, MANAGEMENT, BACKUP_RESTORE, COMPLIANCE } from '@shell/config/types';
 import { NAME as AUTH } from '@shell/config/product/auth';
 
 // All these imports are related to the install-redirect.js navigation guard.
 import { installRedirectRouteMeta } from '@shell/config/router/navigation-guards/install-redirect';
 import { NAME as BACKUP_NAME, CHART_NAME as BACKUP_CHART_NAME } from '@shell/config/product/backup';
-import { NAME as CIS_NAME, CHART_NAME as CIS_CHART_NAME } from '@shell/config/product/cis';
+import { NAME as COMPLIANCE_NAME, CHART_NAME as COMPLIANCE_CHART_NAME } from '@shell/config/product/compliance';
 import { NAME as GATEKEEPER_NAME, CHART_NAME as GATEKEEPER_CHART_NAME } from '@shell/config/product/gatekeeper';
 import { NAME as ISTIO_NAME, CHART_NAME as ISTIO_CHART_NAME } from '@shell/config/product/istio';
 import { NAME as LOGGING_NAME, CHART_NAME as LOGGING_CHART_NAME } from '@shell/config/product/logging';
@@ -207,9 +207,9 @@ export default [
         name: 'c-cluster-backup',
         meta: { ...installRedirectRouteMeta(BACKUP_NAME, BACKUP_CHART_NAME, BACKUP_RESTORE.BACKUP) }
       }, {
-        path: '/c/:cluster/cis',
-        name: 'c-cluster-cis',
-        meta: { ...installRedirectRouteMeta(CIS_NAME, CIS_CHART_NAME, CIS.CLUSTER_SCAN) }
+        path: '/c/:cluster/compliance',
+        name: 'c-cluster-compliance',
+        meta: { ...installRedirectRouteMeta(COMPLIANCE_NAME, COMPLIANCE_CHART_NAME, COMPLIANCE.CLUSTER_SCAN) }
       }, {
         path:      '/c/:cluster/fleet',
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/index.vue')),
@@ -363,6 +363,10 @@ export default [
         path:      '/c/:cluster/settings/performance',
         component: () => interopDefault(import('@shell/pages/c/_cluster/settings/performance.vue')),
         name:      'c-cluster-settings-performance'
+      }, {
+        path:      '/c/:cluster/settings/fleet',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/settings/index.vue')),
+        name:      'c-cluster-settings-fleet'
       }, {
         path:      '/c/:cluster/auth/group.principal/assign-edit',
         component: () => interopDefault(import('@shell/pages/c/_cluster/auth/group.principal/assign-edit.vue')),

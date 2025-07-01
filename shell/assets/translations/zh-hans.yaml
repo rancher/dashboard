@@ -213,7 +213,7 @@ product:
   apps: 应用
   auth: 用户 & 认证
   backup: Rancher 备份
-  cis: CIS Benchmark
+  compliance: Compliance
   ecm: Cluster Manager
   explorer: 集群浏览器
   fleet: 持续交付
@@ -866,7 +866,6 @@ catalog:
     windowsIncompatible: 仅 Linux
     versionWindowsIncompatible: 仅限 Linux 版本
     header: Chart
-    featuredCharts: 精选 Chart
     noCharts: '没有可用的 Chart，你有添加仓库吗？'
     noWindows: 你的应用商店没有能够部署在具有 Windows 节点的集群的 Chart。
     noWindowsAndLinux: 你的应用商店没有能部署在具有 Windows 和 Linux Worker 节点的集群的 Chart。
@@ -1046,10 +1045,10 @@ chartHeading:
   overview: 概述
   poweredBy: "Powered by:"
 
-cis:
+compliance:
   addTest: 添加测试 ID
   alertNeeded: |-
-    必须在 CIS Chart values.yaml 中开启告警。
+    必须在 Compliance Chart values.yaml 中开启告警。
     这要求<a tabindex="0" href="{link}"> {vendor} 的 Monitoring 与 Alerting 应用</a>已经安装
     ，而且接收器和路由<a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/how-to-guides/advanced-user-guides/monitoring-v2-configuration-guides/advanced-configuration/alertmanager'>已配置告警发送</a>。
   alertOnComplete: 扫描完成告警

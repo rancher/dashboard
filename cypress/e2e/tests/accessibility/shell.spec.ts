@@ -744,7 +744,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         cy.checkPageAccessibility();
 
         // expand menu
-        settingsPage.actionButtonByLabel('engine-install-url').click();
+        settingsPage.actionButtonByLabel('agent-tls-mode').click();
         settingsPage.editSettingsButton().should('be.visible');
         cy.injectAxe();
 

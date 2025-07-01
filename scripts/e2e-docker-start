@@ -23,6 +23,8 @@ fi
 
 echo "Using Rancher image version: ${RANCHER_IMG_VERSION}"
 
+# we are now enabling the "oidc-provider" feature flag on install because we will need it for e2e testing (not enabled by default in non-prime versions)
+# "oidc-provider" feature flag needs a system restart so it's not feasible to enable it as part of the test
 docker run -d --restart=unless-stopped -p 80:80 -p 443:443 ${VOLUME_ARGS} \
   -e CATTLE_UI_OFFLINE_PREFERRED=true \
   -e CATTLE_BOOTSTRAP_PASSWORD=password \
@@ -31,7 +33,8 @@ docker run -d --restart=unless-stopped -p 80:80 -p 443:443 ${VOLUME_ARGS} \
   -e CATTLE_TRACE=true \
   --name cypress \
   --privileged \
-  rancher/rancher:${RANCHER_IMG_VERSION}
+  rancher/rancher:${RANCHER_IMG_VERSION} \
+  --features=oidc-provider=true
 
 docker ps
 

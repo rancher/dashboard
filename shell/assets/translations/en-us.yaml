@@ -80,6 +80,7 @@ generic:
   reload: Reload
   register: Register
   remove: Remove
+  delete: Delete
   addCatalog: Add Catalog
   resource: |-
     {count, plural,
@@ -156,7 +157,6 @@ generic:
   showLess: Show less
   showMore: Show more
   opensInNewTab: Opens in a new tab
-  
 
 graph:
   noPermissions: You do not have permission to Graph view
@@ -307,7 +307,7 @@ product:
   apps: Apps
   auth: Users & Authentication
   backup: Rancher Backups
-  cis: CIS Benchmark
+  compliance: Compliance
   ecm: Cluster Manager
   explorer: Cluster Explorer
   fleet: Continuous Delivery
@@ -757,6 +757,14 @@ assignTo:
 asyncButton:
   alt:
     iconAlt: Async button icon
+  registerApplication:
+    action: Add Application
+    success: Added
+    waiting: Adding&hellip;
+  saveApplication:
+    action: Save Application
+    success: Saved
+    waiting: Saving&hellip;
   apply:
     action: Apply
     success: Applied
@@ -1059,15 +1067,19 @@ catalog:
     windowsIncompatible: Linux only
     versionWindowsIncompatible: Linux only version
     header: Charts
-    featuredCharts: Featured Charts
-    noCharts: 'There are no charts available, have you added any repos or set filters?'
+    noCharts:
+      title: No charts to show
+      messagePart1: <b>Tips:</b> undo the last filter you applied or
+      messagePart2: clear all filters
+      messagePart3: ', and ensure you have the right <a tabindex="0" href={repositoriesUrl} rel="noopener noreferrer nofollow">repositories</a> in place.'
+      messagePart4: 'Want to learn more about Helm Charts and Apps? Read our <a tabindex="0" href="{docsBase}/how-to-guides/new-user-guides/helm-charts-in-rancher" target="_blank" class="secondary-text-link">documentation <i class="icon icon-external-link"></i></a>.'
     noWindows: Your repos do not contain any charts capable of being deployed on a cluster with Windows nodes.
     noWindowsAndLinux: Your repos do not contain any charts capable of being deployed on a cluster with both Windows and Linux worker nodes.
     operatingSystems:
       all: All Operating Systems
       linux: Linux
       windows: Windows
-    search: Filter charts results
+    search: Search the catalogue...
     deprecatedChartsFilter:
       label: Show deprecated apps
     addNewRepo:
@@ -1076,8 +1088,29 @@ catalog:
     appChartCard:
       footerItem:
         ariaLabel: Apply filter
-    experimentalStatus:
-      tooltip: Experimental - using this filter is not yet 100% accurate. Proceed with caution.
+    statusFilterCautions:
+      installation: Installation status cannot be determined with 100% accuracy
+      upgradeable: Upgradeable status cannot be determined with 100% accuracy
+    totalChartsMessage: |-
+        {count , plural,
+          =1 { {count} chart in total }
+          other { {count} charts in total }
+        }
+    totalMatchedChartsMessage: |-
+        {count , plural,
+          =1 { {count} chart matching your criteria. }
+          other { {count} charts matching your criteria. }
+        }
+    resetFilters:
+      title: Clear all filters
+    sort:
+      prefix: Sort by
+      recommended: Recommended
+      lastUpdatedDesc: Last updated
+      alphaAscending: Chart name, A → Z
+      alphaDescending: Chart name, Z → A
+    refreshButton:
+      label: Refresh all repositories
   install:
     action:
       goToUpgrade: Edit/Upgrade
@@ -1282,10 +1315,10 @@ chartHeading:
   overview: Overview
   poweredBy: "Powered by:"
 
-cis:
+compliance:
   addTest: Add Test ID
   alertNeeded: |-
-    Alerting must be enabled within the CIS chart values.yaml.
+    Alerting must be enabled within the compliance chart values.yaml.
     This requires that the <a tabindex="0" href="{link}">{vendor} Monitoring and Alerting app</a> is installed
     and the Receivers and Routes are <a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/how-to-guides/advanced-user-guides/monitoring-v2-configuration-guides/advanced-configuration/alertmanager'> configured to send out alerts.</a>
   alertOnComplete: Alert on scan completion
@@ -2161,8 +2194,8 @@ cluster:
   rke2:
     banner:
       psaChange: PSACT is now set to Rancher default automatically
-      cisOverride: Changing this setting may affect cluster security as it overrides default CIS settings
-      cisUnsupported: The selected Kubernetes Version no longer supports CIS Profile "{cisProfile}". Please select a supported profile. We recommend reviewing the <a href="https://docs.rke2.io/security/hardening_guide" target="_blank" rel="noopener noreferrer nofollow">documentation</a> to evaluate the impact of changing the CIS Profile.
+      complianceOverride: Changing this setting may affect cluster security as it overrides default compliance settings
+      complianceUnsupported: The selected Kubernetes Version no longer supports compliance profile "{profile}". Please select a supported profile. We recommend reviewing the <a href="https://docs.rke2.io/security/hardening_guide" target="_blank" rel="noopener noreferrer nofollow">documentation</a> to evaluate the impact of changing the compliance profile.
     modal:
       editYamlMachinePool:
         title: Save Machine Configurations
@@ -2189,10 +2222,10 @@ cluster:
         label: Default - RKE2 Embedded
     security:
       header: Security
-    cis:
-      server: Server CIS Profile
-      agent: CIS Profile
-      override: Allow the default Pod Security Admission Configuration Template to be overridden when using a CIS Profile
+    compliance:
+      server: Server compliance Profile
+      agent: Compliance Profile
+      override: Allow the default Pod Security Admission Configuration Template to be overridden when using a compliance profile
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
       option: Default - RKE2 Embedded
@@ -2203,7 +2236,7 @@ cluster:
         default: Default - RKE2 Embedded
     secretEncryption:
       label: Encrypt Secrets
-    cisProfile:
+    complianceProfile:
       option: (None)
     enableNetworkPolicy:
       label: Project Network Isolation
@@ -2515,6 +2548,98 @@ etcdInfoBanner:
   failedProposals: "Number of failed proposals:"
 
 fleet:
+  settings:
+    label: Fleet
+    title: Fleet Settings
+    info: Rancher will reboot Fleet agent and controller on settings change.
+    noPermissions: You have no permissions to modify Fleet Settings
+    parseError: 'Cannot parse values from "{ path }" in "{ id }" ConfigMap'
+    fields:
+      ariaLabel: Fleet {name} setting
+    agentTLSMode:
+      label: TLS Mode
+      description: "Determines whether the agent should trust CA bundles from the operating system's trust store when connecting to a management cluster."
+      options:
+        system-store:
+          label: system-store
+        strict:
+          label: strict
+    agentCheckinInterval:
+      label: Checkin Interval
+      description: A duration string for how often agents should report a heartbeat.
+    garbageCollectionInterval:
+      label: Garbage Collection Interval
+      description: The amount of time that agents will wait before they clean up old Helm releases. A non-existent value or 0 will result in an interval of 15 minutes.
+    clusterEnqueueDelay:
+      label: Cluster Enqueue Delay
+      description: "Interval to sync a repo with bunldle deployments states."
+    proxy:
+      label: Proxy
+      description: Fleet http[s] proxy server.
+      placeholder: http://<username>@<password>:<url>:<port>
+    noProxy:
+      label: No Proxy
+      description: Comma separated list of domains or ip addresses that will not use the proxy.
+    gitClientTimeout:
+      label: Git Client Timeout
+      description: "The amount of time to wait for a response from the server before canceling the request. Used to retrieve the latest commit of configured git repositories. A non-existent value or 0 will result in a timeout of 30 seconds."
+    nodeSelector:
+      label: Node Selector
+      description: "Node labels for pod assignment."
+      add: Add Selector
+    tolerations:
+      label: Tolerations
+      description: "List of node taints to tolerate (requires Kubernetes >= 1.6)"
+      add: Add Toleration
+    priorityClassName:
+      label: Priority Class Name
+      description: "PriorityClassName assigned to deployment."
+    metrics:
+      label: Metrics
+      description: 'Enable metrics'
+    debug:
+      label: Debug
+      description: 'Enable debug mode'
+    controllerAnnotations:
+      label: Controller
+      description: ""
+      add: Add Annotation
+    gitjobAnnotations:
+      label: Gitjob
+      description: ""
+      add: Add Annotation
+    helmopsAnnotations:
+      label: Helmops
+      description: ""
+      add: Add Annotation
+    controllerReplicas:
+      label: Controller
+      description: ""
+    gitjobReplicas:
+      label: Gitjob
+      description: ""
+    helmopsReplicas:
+      label: Helmops
+      description: ""
+    agentReplicas:
+      label: Agent
+      description: ""
+    general:
+      label: General
+      description: 'General settings.'
+    agent:
+      label: Agent
+      description: 'Agent deployment settings.'
+    replicas:
+      label: Replicas
+      description: 'Number of replicas of Fleet pods.'
+    annotations:
+      label: Extra Annotations
+      description: 'Extra annotations passed to the Fleet pods.'
+    developer:
+      label: Developer
+      description: 'Enable debug info from Fleet.'
+
   tableHeaders:
     applicationType: Type
     applicationSource: Source
@@ -5404,8 +5529,8 @@ rbac:
         label: Manage all Clusters
         description: Allows the user to manage all clusters, including ones they are not a member of.
       clusterscans-manage:
-        label: Manage CIS Cluster Scans
-        description: Allows the user to launch new and manage CIS cluster scans.
+        label: Manage Compliance Cluster Scans
+        description: Allows the user to launch new and manage compliance cluster scans.
       kontainerdrivers-manage:
         label: Create new Cluster Drivers
         description: Allows the user to create new cluster drivers and become the owner of them.
@@ -6640,6 +6765,7 @@ validation:
       localhost: If the Server URL is internal to the Rancher server (e.g. localhost) the downstream clusters may not be able to communicate with Rancher.
       trailingForwardSlash: Server URL should not have a trailing forward slash.
       url: Server URL must be an URL.
+  genericUrl: Field must be a valid URL
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
     exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'
@@ -7311,10 +7437,10 @@ typeDescription:
   jwt.authentication: Enable this feature on a cluster to add support for JWT authenticating downstream service accounts.
   branding: "Branding allows administrators to globally re-brand the UI by customizing the Rancher product name, logos and color scheme."
   chart: "All charts have at least one version that is installable on clusters with Linux and Windows nodes unless otherwise indicated."
-  cis.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
-  cis.cattle.io.clusterscanprofile: A profile is the configuration for the CIS scan, which is the benchmark versions to use and any specific tests to skip in that benchmark.
-  cis.cattle.io.clusterscan: A scan is created to trigger a CIS scan on the cluster based on the defined profile. A report is created after the scan is completed.
-  cis.cattle.io.clusterscanreport: A report is the result of a CIS scan of the cluster.
+  compliance.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
+  compliance.cattle.io.clusterscanprofile: A profile is the configuration for the compliance scan, which is the benchmark versions to use and any specific tests to skip in that benchmark.
+  compliance.cattle.io.clusterscan: A scan is created to trigger a compliance scan on the cluster based on the defined profile. A report is created after the scan is completed.
+  compliance.cattle.io.clusterscanreport: A report is the result of a compliance scan of the cluster.
   management.cattle.io.feature: Feature Flags allow certain {vendor} features to be toggled on and off.  Features that are off by default should be considered experimental functionality.
   cluster.x-k8s.io.machine: A Machine encapsulates the configuration of a Kubernetes Node. Use this view to see what happens after updating a cluster.
   cluster.x-k8s.io.machinedeployment: A Machine Deployment orchestrates deployments via templates over a collection of Machine Sets (similar to a Deployment). Use this view to see what happens after updating a cluster.
@@ -7337,24 +7463,30 @@ typeDescription:
   logging.banzaicloud.io.flow: A flow defines which logs to collect and filter as well as which output to send the logs. The flow is a namespaced resource, which means logs will only be collected from the namespace that the flow is deployed in.
   logging.banzaicloud.io.output: An output defines which logging providers that logs can be sent to. The output needs to be in the same namespace as the flow that is using it.
   group.principal: Assigning global roles to a group only works with external auth providers that support groups. Local authorization does not support groups.
+  management.cattle.io.oidcclient: Here you can add applications to Rancher's single sign-on identity provider
 
 typeLabel:
+  management.cattle.io.oidcclient: |-
+    {count, plural,
+      one { OIDC App }
+      other { OIDC Apps }
+    }
   management.cattle.io.token: |-
     {count, plural,
       one { API Key }
       other { API Keys }
     }
-  cis.cattle.io.clusterscan: |-
+  compliance.cattle.io.clusterscan: |-
     {count, plural,
       one { Scan }
       other { Scans }
     }
-  cis.cattle.io.clusterscanprofile: |-
+  compliance.cattle.io.clusterscanprofile: |-
     {count, plural,
       one { Profile }
       other { Profiles }
     }
-  cis.cattle.io.clusterscanbenchmark: |-
+  compliance.cattle.io.clusterscanbenchmark: |-
     {count, plural,
       one { Benchmark Version }
       other { Benchmark Versions }
@@ -7901,6 +8033,62 @@ typeLabel:
       other { Cluster Registration Tokens }
     }
 
+oidcclient:
+  a11y:
+    copyText:
+      issuerURL: Copy Issuer URL to clipboard
+      discoveryDocument: Copy Discovery Document URL to clipboard
+      jwksUri: Copy JWKS URI to clipboard
+      clientId: Copy client Id to clipboard
+      clientSecret: Copy client secret to clipboard
+  usedNever: Never
+  listViewCreate: Add Application
+  oidcEndpoints: Provider Endpoints
+  createClient: Create a new application
+  clientData: Application
+  clientId: Client ID
+  clientSecrets: Client Secrets
+  issuerURL: Issuer URL
+  discoveryDocument: Discovery Document
+  jwksUri: JWKS URI
+  regenerate: Regenerate
+  addNewSecret: Add new secret
+  copySecretText: <b>Copy your secret now<b>. This is the only time it will be displayed. Be sure to save it in a safe place
+  secretRegenerated: Secret regenerated!
+  secretAdded: Secret Added!
+  noClientId: No Client Id found for this application. If the problem persists please recreate the application
+  errors:
+    performSecretAction: The action on OIDC secrets tried to perform is invalid. Please check the the valid parameters for this function
+  removeOidcClientModal:
+    title: OIDC Application deletion
+    content: Are you sure you want to delete the following OIDC applications?
+    action: Delete Application
+  regenModal:
+    title: OIDC Application Secret regeneration
+    content: Are you sure you want to regenerate this OIDC application secret? The old secret will stop working immediately
+    action: Regenerate Secret
+  deleteModal:
+    title: OIDC Application Secret deletion
+    content: Are you sure you want to delete this OIDC application secret? It will stop working immediately
+    action: Delete Secret
+  appName:
+    placeholder: App name shown during the authorization flow
+  appDescription:
+    placeholder: A brief description of your application
+  redirectURIs:
+    label: Authorization Callback URLs
+    addLabel: Add Callback URL
+    valueLabel: Redirect URIs
+    placeholder: The allowed redirect URL for your application after a user authenticates. HTTPS is required. You may add multiple URLs
+  refreshTokenExpirationSeconds:
+    detailLabel: Refresh Token Expiration (seconds)
+    label: Refresh Token Expiration
+    placeholder:  Duration (in seconds) a refresh token can be used to obtain new access/ID tokens without re-login
+  tokenExpirationSeconds:
+    detailLabel: Token Expiration (seconds)
+    label: Token Expiration
+    placeholder:  Duration (in seconds) the token containing user authentication information is valid
+
 action:
   ariaLabel:
     hidePass: Hide {area}
@@ -8036,7 +8224,8 @@ advancedSettings:
     'brand': Folder name for an alternative theme defined in '/assets/brand'
     'hide-local-cluster': Hide the local cluster
     'agent-tls-mode': "Rancher Certificate Verification. In `strict` mode the agents (system, cluster, fleet, etc) will only trust Rancher installations which are using a certificate signed by the CABundle in the `cacerts` setting. When the mode is system-store, the agents will trust any certificate signed by a CABundle in the operating system’s trust store."
-    'k3s-based-upgrader-uninstall-concurrency': Defines the maximum number of clusters in which Rancher can concurrently uninstall the legacy `rancher-k3s-upgrader` or `rancher-rke2-upgrader` app from imported K3s or RKE2 clusters.
+    'k3s-based-upgrader-uninstall-concurrency': Defines the maximum number of clusters in which Rancher can concurrently uninstall the legacy `rancher-k3s-upgrader` or `rancher-rke2-upgrader` app from imported or node-driver K3s or RKE2 clusters.
+    'system-agent-upgrader-install-concurrency': Defines the maximum number of clusters in which Rancher can concurrently install the resources required for upgrading system-agent.
     'imported-cluster-version-management': Enables version management for imported RKE2/K3s clusters, and the local cluster if it is an RKE2/K3s cluster. The per-cluster version management setting overrides this global setting at the cluster level. For existing clusters where the cluster-level version management is set to 'system-default', changing this flag will trigger a redeployment of the cluster agent during the next reconciliation (by default every 5 minutes, or as soon as the cluster is edited, whichever comes first).
   warnings:
     'agent-tls-mode': 'Changing this setting will cause all agents to be redeployed.'
@@ -8062,7 +8251,7 @@ advancedSettings:
       strict: 'Strict'
       system-store: 'System Store'
   provisioning:
-    header: Cluster provisioning
+    header: Cluster Provisioning
 
 featureFlags:
   label: Feature Flags

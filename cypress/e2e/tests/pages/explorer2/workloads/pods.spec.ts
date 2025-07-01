@@ -424,6 +424,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
 
     // testing https://github.com/rancher/dashboard/issues/14071
     it('should remove the correct environment variable from the workload form', () => {
+      cy.viewport(1280, 720);
       const podDetails = new PodPo();
 
       workloadsPodPage.goTo();

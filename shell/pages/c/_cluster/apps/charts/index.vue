@@ -4,7 +4,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, TAG, STATUS
+  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, SORT_BY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, TAG, STATUS
 } from '@shell/config/query-params';
 import { APP_STATUS, compatibleVersionsFor, filterAndArrangeCharts, normalizeFilterQuery } from '@shell/store/catalog';
 import { lcFirst } from '@shell/utils/string';
@@ -16,12 +16,20 @@ import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
 import { RcItemCard } from '@components/RcItemCard';
 import { get } from '@shell/utils/object';
-import { CATALOG as CATALOG_TYPES } from '@shell/config/types';
+import { CATALOG as CATALOG_TYPES, CATALOG_SORT_OPTIONS } from '@shell/config/types';
 import FilterPanel from '@shell/components/FilterPanel';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import AddRepoLink from '@shell/pages/c/_cluster/apps/charts/AddRepoLink';
 import StatusLabel from '@shell/pages/c/_cluster/apps/charts/StatusLabel';
+import Select from '@shell/components/form/Select';
+
+const createInitialFilters = () => ({
+  repos:      [],
+  categories: [],
+  statuses:   [],
+  tags:       []
+});
 
 export default {
   name:       'Charts',
@@ -32,7 +40,8 @@ export default {
     RcItemCard,
     FilterPanel,
     AppChartCardSubHeader,
-    AppChartCardFooter
+    AppChartCardFooter,
+    Select
   },
 
   async fetch() {
@@ -42,6 +51,7 @@ export default {
 
     this.searchQuery = query[SEARCH_QUERY] || '';
     this.debouncedSearchQuery = query[SEARCH_QUERY] || '';
+    this.selectedSortOption = query[SORT_BY] || CATALOG_SORT_OPTIONS.RECOMMENDED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
     this.filters.repos = normalizeFilterQuery(query[REPO]) || [];
     this.filters.categories = normalizeFilterQuery(query[CATEGORY]) || [];
@@ -57,20 +67,12 @@ export default {
       debouncedSearchQuery: null,
       showDeprecated:       null,
       showHidden:           null,
-      filters:              {
-        repos:      [],
-        categories: [],
-        statuses:   [],
-        tags:       []
-      },
-      internalFilters: { // in order to update the filter checkboxes smoothly
-        repos:      [],
-        categories: [],
-        statuses:   [],
-        tags:       []
-      },
-      installedApps: [],
-      statusOptions: [
+      filters:              createInitialFilters(),
+      // to optimize UI responsiveness by immediately updating the filter state
+      internalFilters:      createInitialFilters(),
+      isFilterUpdating:     false,
+      installedApps:        [],
+      statusOptions:        [
         {
           value: APP_STATUS.INSTALLED,
           label: {
@@ -79,7 +81,7 @@ export default {
               label:     this.t('generic.installed'),
               icon:      'icon-warning',
               iconColor: 'warning',
-              tooltip:   this.t('catalog.charts.experimentalStatus.tooltip')
+              tooltip:   this.t('catalog.charts.statusFilterCautions.installation')
             }
           }
         },
@@ -95,12 +97,20 @@ export default {
               label:     this.t('generic.upgradeable'),
               icon:      'icon-warning',
               iconColor: 'warning',
-              tooltip:   this.t('catalog.charts.experimentalStatus.tooltip')
+              tooltip:   this.t('catalog.charts.statusFilterCautions.upgradeable')
             }
           }
         }
       ],
-      appCardsCache: {},
+      appCardsCache:      {},
+      selectedSortOption: CATALOG_SORT_OPTIONS.RECOMMENDED,
+      sortOptions:        [
+        { kind: 'group', label: this.t('catalog.charts.sort.prefix') },
+        { value: CATALOG_SORT_OPTIONS.RECOMMENDED, label: this.t('catalog.charts.sort.recommended') },
+        { value: CATALOG_SORT_OPTIONS.LAST_UPDATED_DESC, label: this.t('catalog.charts.sort.lastUpdatedDesc') },
+        { value: CATALOG_SORT_OPTIONS.ALPHABETICAL_ASC, label: this.t('catalog.charts.sort.alphaAscending') },
+        { value: CATALOG_SORT_OPTIONS.ALPHABETICAL_DESC, label: this.t('catalog.charts.sort.alphaDescending') },
+      ]
     };
   },
 
@@ -171,7 +181,8 @@ export default {
         category:    categories,
         searchQuery: this.debouncedSearchQuery,
         repo:        repos,
-        tag:         tags
+        tag:         tags,
+        sort:        this.selectedSortOption
       });
 
       // status filtering is separated from other filters because "isInstalled" and "upgradeable" statuses are already calculated in models/chart.js
@@ -262,6 +273,20 @@ export default {
 
     clusterId() {
       return this.$store.getters['clusterId'];
+    },
+
+    noFiltersApplied() {
+      return Object.values(this.internalFilters).every((arr) => arr.length === 0) && !this.searchQuery;
+    },
+
+    totalMessage() {
+      const count = !this.isFilterUpdating ? this.appChartCards.length : '. . .';
+
+      if (this.noFiltersApplied) {
+        return this.t('catalog.charts.totalChartsMessage', { count });
+      } else {
+        return this.t('catalog.charts.totalMatchedChartsMessage', { count });
+      }
     }
   },
 
@@ -287,13 +312,21 @@ export default {
         this.$router.applyQuery(query);
         this.internalFilters = JSON.parse(JSON.stringify(newFilters));
       }
-    }
+    },
+
+    selectedSortOption: {
+      handler(neu) {
+        this.$router.applyQuery({ [SORT_BY]: neu || undefined });
+      },
+      immediate: false
+    },
   },
 
   methods: {
     get,
 
     onFilterChange(newFilters) {
+      this.isFilterUpdating = true;
       this.internalFilters = newFilters;
 
       this.applyFiltersDebounced(newFilters);
@@ -301,6 +334,7 @@ export default {
 
     applyFiltersDebounced: debounce(function(newFilters) {
       this.filters = newFilters;
+      this.isFilterUpdating = false;
     }, 100),
 
     selectChart(chart) {
@@ -369,7 +403,7 @@ export default {
     },
 
     filterCharts({
-      repo, category, tag, searchQuery
+      repo, category, tag, searchQuery, sort
     }) {
       const enabledCharts = (this.enabledCharts || []);
       const clusterProvider = this.currentCluster.status.provider || 'other';
@@ -384,7 +418,14 @@ export default {
         showHidden:     this.showHidden,
         hideTypes:      [CATALOG._CLUSTER_TPL],
         showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
+        sort
       });
+    },
+
+    resetAllFilters() {
+      this.internalFilters = createInitialFilters();
+      this.filters = createInitialFilters();
+      this.searchQuery = '';
     },
   },
 };
@@ -401,24 +442,34 @@ export default {
         {{ t('catalog.chart.header.charts') }}
       </h1>
       <AsyncButton
+        class="refresh-repo-button"
+        :action-label="t('catalog.charts.refreshButton.label')"
+        :waitingLabel="t('catalog.charts.refreshButton.label')"
+        :success-label="t('catalog.charts.refreshButton.label')"
+        mode="refresh"
         role="button"
         :aria-label="t('catalog.charts.refresh')"
-        :label="t('catalog.charts.refresh')"
-        class="refresh-btn"
-        mode="refresh"
+        actionColor="role-secondary"
+        successColor="bg-success"
         @click="refresh"
       />
     </div>
-    <input
-      ref="searchQuery"
-      v-model="searchQuery"
-      type="search"
-      class="input search-input"
-      :placeholder="t('catalog.charts.search')"
-      data-testid="charts-filter-input"
-      :aria-label="t('catalog.charts.search')"
-      role="textbox"
-    >
+    <div class="search-input">
+      <input
+        ref="searchQuery"
+        v-model="searchQuery"
+        type="search"
+        class="input"
+        :placeholder="t('catalog.charts.search')"
+        data-testid="charts-filter-input"
+        :aria-label="t('catalog.charts.search')"
+        role="textbox"
+      >
+      <i
+        v-if="!searchQuery"
+        class="icon icon-search"
+      />
+    </div>
     <button
       v-shortkey.once="['/']"
       class="hide"
@@ -441,44 +492,118 @@ export default {
 
       <div
         v-if="filteredCharts.length === 0"
-        class="app-chart-cards-empty-state"
+        class="charts-empty-state"
+        data-testid="charts-empty-state"
       >
-        <h1>{{ t('catalog.charts.noCharts') }}</h1>
+        <h1
+          class="empty-state-title"
+          data-testid="charts-empty-state-title"
+        >
+          {{ t('catalog.charts.noCharts.title') }}
+        </h1>
+        <div class="empty-state-tips">
+          <h4
+            v-clean-html="t('catalog.charts.noCharts.messagePart1', {}, true)"
+          />
+          <a
+            tabindex="0"
+            role="button"
+            class="empty-state-reset-filters link"
+            data-testid="charts-empty-state-reset-filters"
+            @click="resetAllFilters"
+          >
+            {{ t('catalog.charts.noCharts.messagePart2') }}
+          </a>
+          <h4
+            v-clean-html="t('catalog.charts.noCharts.messagePart3', { repositoriesUrl: `/c/${clusterId}/apps/catalog.cattle.io.clusterrepo`}, true)"
+          />
+        </div>
+        <h4
+          v-clean-html="t('catalog.charts.noCharts.messagePart4', {}, true)"
+        />
       </div>
       <div
         v-else
-        class="app-chart-cards"
-        data-testid="app-chart-cards-container"
+        class="right-section"
       >
-        <rc-item-card
-          v-for="card in appChartCards"
-          :id="card.id"
-          :key="card.id"
-          :pill="card.pill"
-          :header="card.header"
-          :image="card.image"
-          :content="card.content"
-          :value="card.rawChart"
-          variant="medium"
-          :clickable="true"
-          @card-click="selectChart"
+        <div class="total-and-sort">
+          <div class="total">
+            <p class="total-message">
+              {{ totalMessage }}
+            </p>
+            <a
+              v-if="!noFiltersApplied"
+              class="reset-filters"
+              role="button"
+              :aria-label="t('catalog.charts.resetFilters.title')"
+              @click="resetAllFilters"
+            >
+              {{ t('catalog.charts.resetFilters.title') }}
+            </a>
+          </div>
+          <Select
+            v-model:value="selectedSortOption"
+            :clearable="false"
+            :searchable="false"
+            :options="sortOptions"
+            placement="bottom"
+            class="charts-sort-select"
+          >
+            <template #selected-option="{ label }">
+              <span class="mmr-1">{{ t('catalog.charts.sort.prefix') }}:</span>{{ label }}
+            </template>
+
+            <template #option="{ label, kind }">
+              <span
+                v-if="kind === 'group'"
+                class="mml-2 mmr-2"
+              >
+                {{ label }}:
+              </span>
+              <span
+                v-else
+                class="mml-6"
+              >
+                {{ label }}
+              </span>
+            </template>
+          </Select>
+        </div>
+        <div
+          class="app-chart-cards"
+          data-testid="app-chart-cards-container"
         >
-          <template
-            v-once
-            #item-card-sub-header
+          <rc-item-card
+            v-for="card in appChartCards"
+            :id="card.id"
+            :key="card.id"
+            :pill="card.pill"
+            :header="card.header"
+            :image="card.image"
+            :content="card.content"
+            :value="card.rawChart"
+            variant="medium"
+            :class="{ 'single-card': appChartCards.length === 1 }"
+            :clickable="true"
+            @card-click="selectChart"
           >
-            <AppChartCardSubHeader :items="card.subHeaderItems" />
-          </template>
-          <template
-            v-once
-            #item-card-footer
-          >
-            <AppChartCardFooter
-              :items="card.footerItems"
-              @click:item="handleFooterItemClick"
-            />
-          </template>
-        </rc-item-card>
+            <template
+              v-once
+              #item-card-sub-header
+            >
+              <AppChartCardSubHeader :items="card.subHeaderItems" />
+            </template>
+            <template
+              v-once
+              #item-card-footer
+            >
+              <AppChartCardFooter
+                :items="card.footerItems"
+                @click:item="handleFooterItemClick"
+              />
+            </template>
+          </rc-item-card>
+        </div>
       </div>
     </div>
   </div>
@@ -491,24 +616,76 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+
+  .refresh-repo-button {
+
+    :deep(.icon) {
+      font-size: 14px;
+    }
+  }
 }
 
 .search-input {
+  position: relative;
   margin-bottom: 24px;
-}
 
-.checkbox-select {
-  .vs__search {
-    position: absolute;
-    right: 0
+  input {
+    height: 48px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
-  .vs__selected-options  {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    display: inline-block;
-    line-height: 2.4rem;
+  .icon-search {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 16px;
+  }
+}
+
+.right-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+  flex: 1;
+}
+
+.total-and-sort {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--gap-md);
+  padding: 8px 0;
+
+  .total {
+    display: flex;
+
+    .total-message {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--body-text);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .reset-filters {
+      font-size: 16px;
+      font-weight: 600;
+      margin-left: 8px;
+      cursor: pointer;
+    }
+  }
+
+  .charts-sort-select {
+    width: 300px;
+
+    // make the color of the selected item consistent with the group title when the select dropdown is open
+    :deep(.v-select.inline.vs--single.vs--open .vs__selected) {
+      opacity: 1;
+      color: var(--dropdown-disabled-text);
+    }
   }
 }
 
@@ -517,20 +694,47 @@ export default {
   gap: var(--gap-lg);
 }
 
-.app-chart-cards-empty-state {
+.charts-empty-state {
   width: 100%;
-  margin-top: 32px;
-  padding: 32px;
+  padding: 72px 0;
   text-align: center;
+
+  .empty-state-title {
+    margin-bottom: 24px;
+  }
+
+  .empty-state-tips {
+    margin-bottom: 12px;
+
+    .empty-state-reset-filters {
+      font-size: 16px;
+    }
+
+    h4 {
+      display: inline;
+    }
+  }
+
+  :deep(h4 .icon-external-link) {
+    text-decoration: underline;
+  }
+
+  :deep(h4:hover .icon-external-link) {
+    text-decoration: none;
+  }
 }
 
 .app-chart-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   grid-gap: var(--gap-md);
   width: 100%;
   height: max-content;
   overflow: hidden;
+
+  .single-card {
+    max-width: 500px;
+  }
 }
 
 </style>
