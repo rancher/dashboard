@@ -17,10 +17,10 @@ describe('function: dateTimeFormat', () => {
   } as Store<any>;
 
   it('should format date and time correctly', () => {
-    const date = new Date('2010-10-21T14:29:00Z');
+    const date = new Date('2010-10-21T04:29:00Z');
     const formattedDate = dateTimeFormat(date.toISOString(), store);
 
-    expect(formattedDate).toBe('Thu, Oct 21 2010 4:29:00 pm');
+    expect(formattedDate).toBe('Thu, Oct 21 2010 4:29:00 am');
   });
 
   it('should return empty string for undefined value', () => {
