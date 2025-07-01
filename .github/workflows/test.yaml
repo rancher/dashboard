@@ -87,7 +87,7 @@ jobs:
           ['@components'],
           ['@vai']
         ]
-    runs-on: org-9343010-amd64-k8s
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
