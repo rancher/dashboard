@@ -174,7 +174,16 @@ export default {
     },
 
     addMatchExpressions() {
-      this.clusterSelectors.push({ key: this.key++ });
+      const neu = { key: this.key++ };
+
+      this.clusterSelectors.push(neu);
+
+      // Focus first element in MatchExpression
+      this.$nextTick(() => {
+        const matchExpression = (this.$refs[`match-expression-${ neu.key }`] as HTMLElement[])?.[0];
+
+        matchExpression?.focus();
+      });
 
       this.update();
     },
@@ -367,6 +376,7 @@ export default {
           class="match-expressions-container mmt-4"
         >
           <MatchExpressions
+            :ref="`match-expression-${ selector.key }`"
             class="body"
             :value="selector"
             :mode="mode"

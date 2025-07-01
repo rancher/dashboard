@@ -269,6 +269,10 @@ export default {
           this.$emit('update:value', simplify(out));
         }
       });
+    },
+
+    focus() {
+      this.$refs['input-match-expression-key-0']?.[0]?.focus();
     }
   }
 };
@@ -339,6 +343,7 @@ export default {
         </div>
         <input
           v-else-if="!hasKeySelectOptions"
+          :ref="`input-match-expression-key-${index}`"
           v-model="row.key"
           :mode="mode"
           :data-testid="`input-match-expression-key-control-${index}`"
@@ -346,6 +351,7 @@ export default {
         >
         <LabeledSelect
           v-else
+          :ref="`input-match-expression-key-${index}`"
           v-model:value="row.key"
           :mode="mode"
           :options="keysSelectOptions"
