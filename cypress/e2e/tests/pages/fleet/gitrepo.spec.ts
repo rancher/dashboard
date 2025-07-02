@@ -59,7 +59,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       cy.intercept('POST', `/v1/secrets/${ workspace }`).as('interceptSecret');
       cy.intercept('POST', '/v1/fleet.cattle.io.gitrepos').as('interceptGitRepo');
-      cy.intercept('GET', '/v1/secrets?exclude=metadata.managedFields').as('getSecrets');
+      cy.intercept('GET', '/v1/secrets?*').as('getSecrets');
 
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
@@ -202,7 +202,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       });
     });
 
-    it('check table headers are available in list and details view', { tags: ['@vai', '@adminUser'] }, function() {
+    it('check table headers are available in list and details view', { tags: ['@noVai', '@adminUser'] }, function() {
       // go to fleet gitrepo
       listPage.goTo();
       listPage.waitForPage();

@@ -3,6 +3,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateDaemonSetsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/daemonsets/daemonsets-get';
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -63,11 +64,11 @@ describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'
     });
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     const daemonSetsListPage = new WorkloadsDaemonsetsListPagePo(localCluster);
 
     let uniqueDaemonSet = SortableTablePo.firstByDefaultName('daemonset');
-    const daemonSetNamesList = [];
+    let daemonSetNamesList = [];
     let nsName1: string;
     let nsName2: string;
     let rootResourceName: string;
@@ -77,76 +78,47 @@ describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'
         rootResourceName = root;
       });
 
-      cy.createE2EResourceName('ns1').then((ns1) => {
-        nsName1 = ns1;
-        // create namespace
-        cy.createNamespace(nsName1);
+      const createDs = (daemonSetName?: string) => {
+        return ({ ns, i }: {ns: string, i: number}) => {
+          const name = daemonSetName || Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
 
-        // create daemonsets
-        let i = 0;
-
-        while (i < 25) {
-          const daemonSetName = Cypress._.uniqueId(Date.now().toString());
-
-          cy.createRancherResource('v1', 'apps.daemonset', JSON.stringify({
+          return cy.createRancherResource('v1', 'apps.daemonset', JSON.stringify({
             apiVersion: 'apps/v1',
             kind:       'DaemonSet',
             metadata:   {
-              name:      daemonSetName,
-              namespace: nsName1
+              name,
+              namespace: ns
             },
             spec: {
-              selector: { matchLabels: { app: daemonSetName } },
+              selector: { matchLabels: { app: name } },
               template: {
-                metadata: { labels: { app: daemonSetName } },
-                spec:     {
-                  containers: [{
-                    name:  'nginx',
-                    image: 'nginx:alpine'
-                  }]
-                }
+                metadata: { labels: { app: name } },
+                spec:     { containers: [SMALL_CONTAINER] }
               }
             }
-          })).then((resp) => {
-            daemonSetNamesList.push(resp.body.metadata.name);
-          });
+          }));
+        };
+      };
 
-          i++;
-        }
-
-        cy.createE2EResourceName('ns2').then((ns2) => {
-          nsName2 = ns2;
-
-          // create namespace
-          cy.createNamespace(nsName2);
-
-          // create unique daemonset for filtering/sorting test
-          cy.createRancherResource('v1', 'apps.daemonset', JSON.stringify({
-            apiVersion: 'apps/v1',
-            kind:       'DaemonSet',
-            metadata:   {
-              name:      uniqueDaemonSet,
-              namespace: nsName2
-            },
-            spec: {
-              selector: { matchLabels: { app: uniqueDaemonSet } },
-              template: {
-                metadata: { labels: { app: uniqueDaemonSet } },
-                spec:     {
-                  containers: [{
-                    name:  'nginx',
-                    image: 'nginx:alpine'
-                  }]
-                }
-              }
-            }
-          })).then((resp) => {
-            uniqueDaemonSet = resp.body.metadata.name;
-          });
+      cy.createManyNamespacedResourced({
+        context:        'daemonsets1',
+        createResource: createDs(),
+      })
+        .then(({ ns, workloadNames }) => {
+          daemonSetNamesList = workloadNames;
+          nsName1 = ns;
+        })
+        .then(() => cy.createManyNamespacedResourced({
+          context:        'daemonsets2',
+          createResource: createDs(uniqueDaemonSet),
+          count:          1
+        }))
+        .then(({ ns, workloadNames }) => {
+          uniqueDaemonSet = workloadNames[0];
+          nsName2 = ns;
 
           cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
         });
-      });
     });
 
     it('pagination is visible and user is able to navigate through daemonsets data', () => {
@@ -343,8 +315,7 @@ describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'
       cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
 
       // delete namespace (this will also delete all daemonsets in it)
-      cy.deleteRancherResource('v1', 'namespaces', nsName1);
-      cy.deleteRancherResource('v1', 'namespaces', nsName2);
+      cy.deleteNamespace([nsName1, nsName2]);
     });
   });
 

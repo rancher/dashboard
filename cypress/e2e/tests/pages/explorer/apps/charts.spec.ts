@@ -76,7 +76,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     const appRepoList = new ReposListPagePo('local', 'apps');
 
     appRepoList.goTo();
-    appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`);
+    appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
     appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
     appRepoList.list().actionMenu('Partners').getMenuItem('Disable').click();
     // go to charts page
@@ -90,7 +90,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
 
     // re-enable the disabled repo
     appRepoList.goTo();
-    appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`);
+    appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
     appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
     appRepoList.list().actionMenu('Partners').getMenuItem('Enable').click();
   });

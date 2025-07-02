@@ -359,7 +359,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueRoleName = SortableTablePo.firstByDefaultName('role');
     const globalRolesIdsList = [];
     const rolesList = roles.list('GLOBAL');
@@ -474,7 +474,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       const count = initialCount + 26;
 
       cy.waitForRancherResources('v1', 'management.cattle.io.globalroles', count).then((resp: Cypress.Response<any>) => {
-        usersPo.goTo(); // This is needed for the @vai only world
+        usersPo.goTo(); // This is needed for the @noVai only world
         RolesPo.navTo();
         roles.waitForPage();
 
@@ -557,7 +557,10 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     after(() => {
-      globalRolesIdsList.forEach((r) => cy.deleteRancherResource('v3', 'globalRoles', r, false));
+      cy.deleteManyResources({
+        toDelete: globalRolesIdsList,
+        deleteFn: (r) => cy.deleteRancherResource('v3', 'globalRoles', r, false)
+      });
       // Ensure the default rows per page value is set after running the tests
       cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
     });

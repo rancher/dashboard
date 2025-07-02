@@ -2,7 +2,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/extensions/imported/cluster-import-generic.po';
 import { PARTIAL_SETTING_THRESHOLD } from '@/cypress/support/utils/settings-utils';
-import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '~/cypress/support/utils/exception-utils';
+import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '@/cypress/support/utils/exception-utils';
 
 const homePage = new HomePagePo();
 const homeClusterList = homePage.list();
@@ -13,8 +13,7 @@ const longClusterDescription = 'this-is-some-really-really-really-really-really-
 function goToHomePageAndSettle() {
   // Reset the home page cards pref so that everything is shown
   cy.setUserPreference({ 'home-page-cards': '{}' });
-
-  cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?exclude=metadata.managedFields', {
+  cy.intercept('GET', '/v1/provisioning.cattle.io.clusters?*', {
     statusCode: 200,
     body:       {
       count: 0,
@@ -142,7 +141,7 @@ describe('Home Page', () => {
       desc.contains(longClusterDescription);
     });
 
-    it('check table headers are visible', { tags: ['@vai', '@generic', '@adminUser'] }, () => {
+    it('check table headers are visible', { tags: ['@noVai', '@generic', '@adminUser'] }, () => {
       homePage.goTo();
       homePage.waitForPage();
 

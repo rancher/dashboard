@@ -1,4 +1,3 @@
-//
 import ReposListPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
@@ -14,7 +13,7 @@ describe('Apps', () => {
         cy.login();
 
         appRepoList.goTo();
-        appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`);
+        appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
 
         cy.createE2EResourceName('helm-repo-dupe-test').as('helmRepoDupeName');
       });

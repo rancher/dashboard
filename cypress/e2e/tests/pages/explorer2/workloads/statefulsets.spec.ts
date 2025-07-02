@@ -3,6 +3,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateStatefulSetsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/statefulsets/statefulsets-get';
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -12,9 +13,9 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueStatefulSet = SortableTablePo.firstByDefaultName('statefulset');
-    const statefulSetNamesList = [];
+    let statefulSetNamesList = [];
     let nsName1: string;
     let nsName2: string;
     let rootResourceName: string;
@@ -24,84 +25,51 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
         rootResourceName = root;
       });
 
-      cy.createE2EResourceName('ns1').then((ns1) => {
-        nsName1 = ns1;
-        // create namespace
-        cy.createNamespace(nsName1);
+      const createSs = (statefulSetName?: string) => {
+        return ({ ns, i }: {ns: string, i: number}) => {
+          const name = statefulSetName || Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
 
-        // create statefulsets
-        let i = 0;
-
-        while (i < 25) {
-          const statefulSetName = Cypress._.uniqueId(Date.now().toString());
-
-          cy.createRancherResource('v1', 'apps.statefulset', JSON.stringify({
+          return cy.createRancherResource('v1', 'apps.statefulset', JSON.stringify({
             apiVersion: 'apps/v1',
             kind:       'StatefulSet',
             metadata:   {
-              name:      statefulSetName,
-              namespace: nsName1
+              name,
+              namespace: ns
             },
             spec: {
               replicas:            1,
-              serviceName:         statefulSetName,
+              serviceName:         name,
               podManagementPolicy: 'OrderedReady',
               updateStrategy:      { type: 'RollingUpdate' },
-              selector:            { matchLabels: { app: statefulSetName } },
+              selector:            { matchLabels: { app: name } },
               template:            {
-                metadata: { labels: { app: statefulSetName } },
-                spec:     {
-                  containers: [{
-                    name:  'nginx',
-                    image: 'nginx:alpine'
-                  }]
-                }
+                metadata: { labels: { app: name } },
+                spec:     { containers: [SMALL_CONTAINER] }
               }
             }
-          })).then((resp) => {
-            statefulSetNamesList.push(resp.body.metadata.name);
-          });
+          }));
+        };
+      };
 
-          i++;
-        }
-
-        cy.createE2EResourceName('ns2').then((ns2) => {
-          nsName2 = ns2;
-
-          // create namespace
-          cy.createNamespace(nsName2);
-
-          // create unique statefulset for filtering/sorting test
-          cy.createRancherResource('v1', 'apps.statefulset', JSON.stringify({
-            apiVersion: 'apps/v1',
-            kind:       'StatefulSet',
-            metadata:   {
-              name:      uniqueStatefulSet,
-              namespace: nsName2
-            },
-            spec: {
-              replicas:            1,
-              serviceName:         uniqueStatefulSet,
-              podManagementPolicy: 'OrderedReady',
-              updateStrategy:      { type: 'RollingUpdate' },
-              selector:            { matchLabels: { app: uniqueStatefulSet } },
-              template:            {
-                metadata: { labels: { app: uniqueStatefulSet } },
-                spec:     {
-                  containers: [{
-                    name:  'nginx',
-                    image: 'nginx:alpine'
-                  }]
-                }
-              }
-            }
-          })).then((resp) => {
-            uniqueStatefulSet = resp.body.metadata.name;
-          });
+      cy.createManyNamespacedResourced({
+        context:        'statefullsets1',
+        createResource: createSs(),
+      })
+        .then(({ ns, workloadNames }) => {
+          statefulSetNamesList = workloadNames;
+          nsName1 = ns;
+        })
+        .then(() => cy.createManyNamespacedResourced({
+          context:        'statefullsets2',
+          createResource: createSs(uniqueStatefulSet),
+          count:          1
+        }))
+        .then(({ ns, workloadNames }) => {
+          uniqueStatefulSet = workloadNames[0];
+          nsName2 = ns;
 
           cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
         });
-      });
     });
 
     it('pagination is visible and user is able to navigate through statefulsets data', () => {
@@ -298,8 +266,7 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
       cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
 
       // delete namespace (this will also delete all statefulsets in it)
-      cy.deleteRancherResource('v1', 'namespaces', nsName1);
-      cy.deleteRancherResource('v1', 'namespaces', nsName2);
+      cy.deleteNamespace([nsName1, nsName2]);
     });
   });
 
