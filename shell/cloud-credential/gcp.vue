@@ -3,15 +3,19 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import FileSelector from '@shell/components/form/FileSelector';
 import FormValidation from '@shell/mixins/form-validation';
+import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 
 export default {
   emits: ['validationChanged', 'valueChanged'],
 
-  components: { LabeledInput, FileSelector },
-  mixins:     [CreateEditView, FormValidation],
+  components: {
+    LabeledInput, FileSelector, ToggleSwitch
+  },
+  mixins: [CreateEditView, FormValidation],
 
   data() {
     return {
+      toggler:        true,
       fvFormRuleSets: [
         { path: 'decodedData.authEncodedJson', rules: ['required'] }]
     };
@@ -75,8 +79,15 @@ export default {
       :label="t('generic.readFromFile')"
       @selected="onFileSelected"
     />
+
+    <ToggleSwitch
+      v-model:value="toggler"
+      name="label-system-toggle"
+      :on-label="t('cluster.credential.gcp.authEncodedJson.gke')"
+      :off-label="t('cluster.credential.gcp.authEncodedJson.gce')"
+    />
     <p
-      v-clean-html="t('cluster.credential.gcp.authEncodedJson.help', {}, true)"
+      v-clean-html="!toggler ? t('cluster.credential.gcp.authEncodedJson.helpGCE', {}, true):t('cluster.credential.gcp.authEncodedJson.helpGKE', {}, true)"
       class="text-muted"
     />
   </div>

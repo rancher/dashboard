@@ -11,6 +11,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { NORMAN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { addObject, addObjects, findBy } from '@shell/utils/array';
+import { convertStringToKV, convertKVArrayToString } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 
@@ -348,33 +349,11 @@ export default {
     },
 
     initTags() {
-      const parts = (this.value.tags || '').split(/,/);
-      const out = {};
-
-      let i = 0;
-
-      while ( i + 1 < parts.length ) {
-        const key = `${ parts[i] }`.trim();
-        const value = `${ parts[i + 1] }`.trim();
-
-        if ( key ) {
-          out[key] = value;
-        }
-
-        i += 2;
-      }
-
-      this.tags = out;
+      this.tags = convertStringToKV(this.value.tags);
     },
 
     updateTags(tags) {
-      const ary = [];
-
-      for ( const k in tags ) {
-        ary.push(k, tags[k]);
-      }
-
-      this.value['tags'] = ary.join(',');
+      this.value['tags'] = convertKVArrayToString(tags);
     },
 
     test() {

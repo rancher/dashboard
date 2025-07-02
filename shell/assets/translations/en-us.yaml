@@ -1512,7 +1512,9 @@ cluster:
       authEncodedJson:
         label: Service Account
         placeholder: Service Account private key JSON file
-        help: |-
+        gke: GKE
+        gce: GCE
+        helpGKE: |-
           <p>Create a <a href="https://console.cloud.google.com/projectselector/iam-admin/serviceaccounts" target="_blank" rel="noopener noreferrer nofollow">Service Account</a> with a JSON private key and provide the JSON here.
           These IAM roles are required:</p>
           <ul>
@@ -1522,6 +1524,15 @@ cluster:
           <li><b>Service Accounts:</b> Service Account User (roles/iam.serviceAccountUser)</li>
           </ul>
           More info on roles can be found <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/iam-integration" target="_blank" rel="noopener noreferrer nofollow">here</a>.
+        helpGCE: |-
+          <p>Create a <a href="https://console.cloud.google.com/projectselector/iam-admin/serviceaccounts" target="_blank" rel="noopener noreferrer nofollow">Service Account</a> with a JSON private key and provide the JSON here.
+          These IAM roles are required:</p>
+          <ul>
+          <li><b>Compute Engine:</b> Compute Engine Admin (roles/compute.admin)</li>
+          <li><b>Project:</b> Viewer (roles/viewer)</li>
+          <li><b>Service Accounts:</b> Service Account User (roles/iam.serviceAccountUser)</li>
+          </ul>
+          More info on roles can be found <a href="https://cloud.google.com/compute/docs/access/iam" target="_blank" rel="noopener noreferrer nofollow">here</a>.
     harvester:
       namespace: Namespace
       cpu: CPUs
@@ -1915,6 +1926,7 @@ cluster:
         label: Machine Image
         option: '{name} - {description}'
         deprecatedOption: '{name}(deprecated) - {description}'
+        tooltip: Please select Image Family to get available images
       imageProjects:
         label: Image Projects
       showDeprecated:
@@ -1952,22 +1964,14 @@ cluster:
         label: Username
         placeholder: docker-user
         tooltip: This is the username used when SSH'ing into the node, and not a username associated with the GCP account.
-      userdata:
-        label: User-data file
-        tooltip: GCE user-data file path.
-        placeholder: /Directory/of/File
-      preemptible:
-        label: Preemptible
-        tooltip: Indicates whether the GCE VM instance should be preemptible.
-      useInternalIP:
-        label: Use Internal IP
-        tooltip: Indicates whether to use the internal IP address of the GCE VM instance instead of the public one.
-      useInternalIPOnly:
-        label: Only use Internal IP
-        tooltip: Configures the GCE instance to not have an external IP address.
-      useExisting:
-        label: Use existing VM
-        tooltip: Use an existing VM instance instead of creating a new one.
+      internalFirewall:
+        label: Allow communication between cluster nodes
+        tooltip: Allows Rancher to open ports required for internal communication between nodes.
+        banner: Tags can be used to impose additional firewall rules.
+      externalFirewall:
+        label: Expose external ports
+        tooltip: Allows Rancher to open ports required for external access.
+        banner: By default, the Kubernetes API server listens on port 6443. Exposing this port on control plane machine pools is required for the Authorized Cluster Endpoint feature to work as expected.
 
   addOns:
     dependencyBanner: Add-On Configuration can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.

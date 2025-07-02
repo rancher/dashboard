@@ -527,3 +527,31 @@ export function mergeWithReplace(
     }
   });
 }
+
+export const convertKVArrayToString = (input) => {
+  const arr = [];
+
+  for ( const k in input ) {
+    arr.push(k, input[k]);
+  }
+
+  return arr.join(',');
+};
+export const convertStringToKV = (input ) => {
+  if (!input) {
+    return {};
+  }
+  const parts = (input || '').split(/,/).map((t) => `${ t }`.trim());
+  const out = {};
+
+  for ( let i = 0; i < parts.length; i += 2 ) {
+    const key = parts[i] ;
+    const value = parts[i + 1];
+
+    if ( key ) {
+      out[key] = value;
+    }
+  }
+
+  return out;
+};
