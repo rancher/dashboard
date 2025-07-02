@@ -86,9 +86,9 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
           });
         complianceList.waitForPage();
         complianceList.checkVisible();
-        const column = complianceList.firstRow().column(1);
 
-        column.get('.bg-success', LONG_TIMEOUT_OPT).should('exist');
+        complianceList.list().resourceTable().checkVisible();
+        complianceList.list().resourceTable().sortableTable().checkRowCount(false, 2);
       });
 
       after('clean up', () => {
