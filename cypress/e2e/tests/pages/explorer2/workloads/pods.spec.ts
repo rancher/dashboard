@@ -41,7 +41,6 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       createManyWorkloads({
         context:        'ns1',
         createWorkload: createPod(),
-        count:          25
       })
         .then(({ ns, workloadNames }) => {
           podNamesList = workloadNames;

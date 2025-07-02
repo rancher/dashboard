@@ -136,7 +136,6 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       createManyWorkloads({
         context:        'ns1',
         createWorkload: createJob(),
-        count:          25
       })
         .then(({ ns, workloadNames }) => {
           jobNamesList = workloadNames;

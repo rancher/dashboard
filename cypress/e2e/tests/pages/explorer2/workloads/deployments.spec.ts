@@ -249,7 +249,6 @@ describe('Deployments', { testIsolation: 'off', tags: '@explorer2' }, () => {
       createManyWorkloads({
         context:        'ns1',
         createWorkload: createDeployment(),
-        count:          25
       })
         .then(({ ns, workloadNames }) => {
           deploymentNamesList = workloadNames;

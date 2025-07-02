@@ -115,7 +115,6 @@ skipGeometric=true`;
       createManyWorkloads({
         context:        'ns1',
         createWorkload: createConfigMap(),
-        count:          25
       })
         .then(({ ns, workloadNames }) => {
           cmNamesList = workloadNames;

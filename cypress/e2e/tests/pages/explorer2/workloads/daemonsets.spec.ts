@@ -103,7 +103,6 @@ describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'
       createManyWorkloads({
         context:        'ns1',
         createWorkload: createDs(),
-        count:          25
       })
         .then(({ ns, workloadNames }) => {
           daemonSetNamesList = workloadNames;

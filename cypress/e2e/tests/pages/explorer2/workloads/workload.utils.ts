@@ -10,36 +10,30 @@ export const SMALL_CONTAINER = {
 };
 
 /**
- * Create many workloads, but don't flood
+ * Create many workloads in a new namespace, but don't flood
  *
  * There's nothing specific about workloads, so could be a command in future
  */
-export const createManyWorkloads = ({ context, createWorkload, count = 25 }: {
+export const createManyWorkloads = ({ context, createWorkload, count = 22 }: {
+  /**
+   * Used to create the namespace
+   */
   context: string,
   createWorkload: ({ ns, i }) => CypressChainable
-  count: number,
+  count?: number,
 }): Cypress.Chainable<{ ns: string, workloadNames: string[]}> => {
   return cy.createE2EResourceName(context)
     .then((ns) => {
       // create namespace
       cy.createNamespace(ns);
 
-      // get ready...
-      let i = 0;
+      // create workloads
       const workloadNames: string[] = [];
 
-      function chainCreates(i: number) {
-        return createWorkload({ ns, i })
-          .then((resp) => {
-            workloadNames.push(resp.body.metadata.name);
-          });
-      }
-
-      // create workloads
-      while (i < count) {
-        chainCreates(i);
-
-        i++;
+      for (let i = 0; i < count; i++) {
+        createWorkload({ ns, i }).then((resp) => {
+          workloadNames.push(resp.body.metadata.name);
+        });
 
         if (i % 5 === 0) {
           cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting

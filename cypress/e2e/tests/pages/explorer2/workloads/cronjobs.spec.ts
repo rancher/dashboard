@@ -60,7 +60,6 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
       createManyWorkloads({
         context:        'ns1',
         createWorkload: createCronJob(),
-        count:          25
       })
         .then(({ ns, workloadNames }) => {
           cronJobNamesList = workloadNames;

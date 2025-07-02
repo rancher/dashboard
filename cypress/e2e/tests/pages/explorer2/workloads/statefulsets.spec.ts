@@ -54,7 +54,6 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
       createManyWorkloads({
         context:        'ns1',
         createWorkload: createSs(),
-        count:          25
       })
         .then(({ ns, workloadNames }) => {
           statefulSetNamesList = workloadNames;
