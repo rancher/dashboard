@@ -2226,6 +2226,7 @@ cluster:
       server: Server compliance Profile
       agent: Compliance Profile
       override: Allow the default Pod Security Admission Configuration Template to be overridden when using a compliance profile
+      warning: If you have already started RKE2, you will need to stop RKE2 service before enabling the Compliance profile. For more information see our <a href="https://docs.rke2.io/security/hardening_guide#host-level-requirements" target="_blank" rel="noopener noreferrer nofollow">documentation</a>.
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
       option: Default - RKE2 Embedded
