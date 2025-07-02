@@ -11,7 +11,7 @@
 // const apiKeysList = accountPage.list();
 // const tokenIdsList = [];
 
-describe('Account and API Keys', { testIsolation: 'off' }, () => {
+describe('Account and API Keys', { tags: ['@userMenu', '@adminUser', '@standardUser'], testIsolation: 'off' }, () => {
   it('every file must have a test...', () => {});
 });
 

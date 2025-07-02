@@ -1199,7 +1199,7 @@ Cypress.Commands.add('createService', (namespace: string, name: string, options:
 });
 
 Cypress.Commands.add('createManyNamespacedResourced', ({
-  namespace, context, createResource, count = 22, wait = undefined
+  namespace, context, createResource, count = 22, wait = 500
 }: {
   /**
    * Used to create the namespace
@@ -1249,7 +1249,11 @@ Cypress.Commands.add('deleteNamespace', (namespaces: string[]) => {
   }
 });
 
-Cypress.Commands.add('deleteManyResources', <T = any>({ toDelete, deleteFn, wait = undefined }: { toDelete: T[], deleteFn: (arg0: T) => CypressChainable, wait?: number} ) => {
+Cypress.Commands.add('deleteManyResources', <T = any>({ toDelete, deleteFn, wait = 500 }: {
+  toDelete: T[],
+  deleteFn: (arg0: T) => CypressChainable,
+  wait?: number
+}) => {
   for (let i = 0; i < toDelete.length; i++) {
     deleteFn(toDelete[i]);
     if (wait && i % 5 === 0) {
