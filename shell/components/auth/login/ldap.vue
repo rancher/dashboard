@@ -23,6 +23,8 @@ export default {
 
   methods: {
     async login(buttonCb) {
+      // eslint-disable-next-line no-console
+      console.error('LOGGING IN WITH LDAP!!!');
       try {
         this.err = null;
         await this.$store.dispatch('auth/login', {
@@ -30,7 +32,8 @@ export default {
           body:     {
             username: this.username,
             password: this.password
-          }
+          },
+          queryParams: this.$route.query
         });
 
         await loadPlugins({

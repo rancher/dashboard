@@ -2,8 +2,8 @@ import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE } from '@shell/config/query
 import { NORMAN } from '@shell/config/types';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { addObjects, findBy, joinStringList } from '@shell/utils/array';
-import { openAuthPopup, returnTo } from '@shell/utils/auth';
-import { base64Encode } from '@shell/utils/crypto';
+import { openAuthPopup, returnTo, checkIfIsRancherAsOidcProviderLogin, generateUrlQueryParamsStringOidc } from '@shell/utils/auth';
+import { base64Encode, base64Decode } from '@shell/utils/crypto';
 import { removeEmberPage } from '@shell/utils/ember-page';
 import { randomStr } from '@shell/utils/string';
 import { addParams, parse as parseUrl, removeParam } from '@shell/utils/url';
@@ -168,6 +168,10 @@ export const actions = {
   createNonce(ctx, opt) {
     const out = { nonce: randomStr(16), to: 'vue' };
 
+    if ( opt.queryParams ) {
+      out.queryParams = opt.queryParams;
+    }
+
     if ( opt.test ) {
       out.test = true;
     }
@@ -225,10 +229,24 @@ export const actions = {
     // The base nonce that will be sent server way
     const baseNonce = opt.nonce || await dispatch('createNonce', opt);
 
+    // eslint-disable-next-line no-console
+    console.error('auth/redirectTo opt.nonce', opt.nonce);
+
+    // eslint-disable-next-line no-console
+    console.error('auth/redirectTo "createNonce STUFF"', await dispatch('createNonce', opt));
+
+    // eslint-disable-next-line no-console
+    console.error('auth/redirectTo baseNonce', baseNonce);
+
     // Save a possibly expanded nonce
     await dispatch('saveNonce', opt.persistNonce || baseNonce);
     // Convert the base nonce in to something we can transmit
     const encodedNonce = await dispatch('encodeNonce', baseNonce);
+
+    // eslint-disable-next-line no-console
+    console.error('auth/redirectTo encodedNonce', encodedNonce);
+    // eslint-disable-next-line no-console
+    console.error('auth/redirectTo decodedNonce', base64Decode(encodedNonce));
 
     const fromQuery = unescape(parseUrl(redirectUrl).query?.[GITHUB_SCOPE] || '');
     let scopes = fromQuery.split(/[, ]+/).filter((x) => !!x);
@@ -236,6 +254,9 @@ export const actions = {
     if (BASE_SCOPES[provider]) {
       addObjects(scopes, BASE_SCOPES[provider]);
     }
+
+    // eslint-disable-next-line no-console
+    console.error('auth/redirectTo fromQuery', fromQuery);
 
     // Need to merge these 2 formats preventing duplicates between code and UI, e.g.
     // [ 'openid profile email' ] from BASE_SCOPES
@@ -258,6 +279,9 @@ export const actions = {
 
     url = addParams(url, params);
 
+    // eslint-disable-next-line no-console
+    console.error('auth/redirectTo url', url);
+
     if ( opt.redirect === false ) {
       return url;
     } else {
@@ -265,9 +289,23 @@ export const actions = {
     }
   },
 
-  verifyOAuth({ dispatch }, { nonce, code, provider }) {
+  verifyOAuth({ dispatch }, {
+    nonce, code, provider, queryParams
+  }) {
     const expectJSON = this.$cookies.get(KEY, { parseJSON: false });
     let parsed;
+
+    // eslint-disable-next-line no-console
+    console.error('verifyOAuth nonce', nonce);
+
+    // eslint-disable-next-line no-console
+    console.error('verifyOAuth code', code);
+
+    // eslint-disable-next-line no-console
+    console.error('verifyOAuth provider', provider);
+
+    // eslint-disable-next-line no-console
+    console.error('verifyOAuth queryParams', queryParams);
 
     try {
       parsed = JSON.parse(expectJSON);
@@ -288,18 +326,27 @@ export const actions = {
       body.code_verifier = parsed.pkceCodeVerifier;
     }
 
+    // eslint-disable-next-line no-console
+    console.error('verifyOAuth parsed', parsed);
+
     return dispatch('login', {
       provider,
-      body
+      body,
+      queryParams
     });
   },
 
   async test({ dispatch }, { provider, body }) {
     const driver = await dispatch('getAuthConfig', provider);
 
+    // eslint-disable-next-line no-console
+    console.error('AUTH TEST CHECK', driver);
+
     try {
       // saml providers
       if (!!driver?.actions?.testAndEnable) {
+        // eslint-disable-next-line no-console
+        console.error('AUTH TEST SAML WORLD');
         const finalRedirectUrl = returnTo({ config: provider }, this);
 
         const res = await driver.doAction('testAndEnable', { finalRedirectUrl });
@@ -327,7 +374,7 @@ export const actions = {
     }
   },
 
-  async login({ dispatch }, { provider, body }) {
+  async login({ dispatch }, { provider, body, queryParams }) {
     const driver = await dispatch('getAuthProvider', provider);
 
     try {
@@ -336,6 +383,22 @@ export const actions = {
         responseType: 'cookie',
         ...body
       }, { redirectUnauthorized: false });
+
+      // eslint-disable-next-line no-console
+      console.error('LOGIN STORE ACTION!', queryParams);
+
+      if (checkIfIsRancherAsOidcProviderLogin(queryParams)) {
+        const urlParams = generateUrlQueryParamsStringOidc(queryParams);
+
+        // eslint-disable-next-line no-console
+        console.error('WE ARE ON OIDC REALM1!', urlParams);
+        // eslint-disable-next-line no-console
+        console.error('window.location.origin111', window.location.origin);
+
+        window.location.href = `${ window.location.origin }/oidc/authorize?${ urlParams }&code_challenge_method=S256`;
+
+        return Promise.reject(new Error('We are on Rancher as an OIDC provider world. Redirecting'));
+      }
 
       return res;
     } catch (err) {
@@ -361,6 +424,8 @@ export const actions = {
   },
 
   async logout({ dispatch, getters, rootState }, options = {}) {
+    // eslint-disable-next-line no-console
+    console.error('AUTH STORE logout action');
     // So, we only do this check if auth has been initialized.
     //
     // It's possible to be logged in and visit auth/logout directly instead
