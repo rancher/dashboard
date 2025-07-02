@@ -31,9 +31,12 @@ const eventHeaders = [
   },
 ];
 
+// Local storage key for the events table row count preference
 const ROWS_COUNT_PREF = 'events-row-count-pref';
+// Value to use when we want to use the user's preference from the table
+const ROWS_PREF_USE_TABLE = -1;
+// Default number of rows to show in the events table when not set in the preference
 const ROWS_COUNT_DEFAULT = 10;
-const ROWS_COUNT_OPTIONS = [10, 25, 50];
 
 export default {
   components: {
@@ -44,22 +47,17 @@ export default {
   },
 
   data() {
-    const tableRowsPref = this.$store.getters['prefs/get'](ROWS_PER_PAGE);
+    const tableRowOptions = this.$store.getters['prefs/options'](ROWS_PER_PAGE);
+
     let rowsPerPage = ROWS_COUNT_DEFAULT;
 
+    // Read the current value from localStorage if it exists
     if (window.localStorage.getItem(ROWS_COUNT_PREF)) {
-      const storedRowsCount = parseInt(window.localStorage.getItem(ROWS_COUNT_PREF));
-
-      if (ROWS_COUNT_OPTIONS.includes(storedRowsCount)) {
-        rowsPerPage = storedRowsCount;
-      } else {
-        // if the count stored is not included on the options array
-        // it means that the user probably used the table preferences count
-        // so let's stick to that
-        rowsPerPage = tableRowsPref;
+      try {
+        rowsPerPage = parseInt(window.localStorage.getItem(ROWS_COUNT_PREF));
+      } catch (e) {
+        console.error('Error parsing rows count from localStorage:', e); // eslint-disable-line no-console
       }
-    } else {
-      window.localStorage.setItem(ROWS_COUNT_PREF, ROWS_COUNT_DEFAULT);
     }
 
     return {
@@ -68,6 +66,7 @@ export default {
       events:            [],
       eventHeaders,
       paginationHeaders: null,
+      options:           tableRowOptions || [],
       allEventsLink:     {
         name:   'c-cluster-product-resource',
         params: {
@@ -112,7 +111,7 @@ export default {
     rowOptions() {
       const rowOptions = [];
 
-      ROWS_COUNT_OPTIONS.forEach((item) => rowOptions.push({
+      this.options.forEach((item) => rowOptions.push({
         label: this.t('glance.showXEvents', { count: item }),
         value: item
       }));
@@ -120,7 +119,7 @@ export default {
       if (this.userPrefRowsPerPage) {
         rowOptions.push({
           label: this.t('glance.useUserPreference', { count: this.userPrefRowsPerPage }),
-          value: this.userPrefRowsPerPage
+          value: ROWS_PREF_USE_TABLE,
         });
       }
 
@@ -186,7 +185,9 @@ export default {
             :value="item.value"
             @click.stop="updateRowsCount(item.value)"
           >
-            {{ item.label }}
+            <span :class="{ 'selected-pagesize-option': rowsPerPage === item.value }">
+              {{ item.label }}
+            </span>
           </rc-dropdown-item>
         </template>
       </rc-dropdown>
@@ -203,5 +204,9 @@ export default {
   align-self: center;
   margin-right: 10px;
   white-space: nowrap;
+}
+
+.selected-pagesize-option {
+  font-weight: bold;
 }
 </style>
