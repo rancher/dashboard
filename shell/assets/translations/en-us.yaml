@@ -2576,7 +2576,7 @@ fleet:
       description: The amount of time that agents will wait before they clean up old Helm releases. A non-existent value or 0 will result in an interval of 15 minutes.
     clusterEnqueueDelay:
       label: Cluster Enqueue Delay
-      description: "Interval to sync a repo with bunldle deployments states."
+      description: "Interval to sync a repo with bundle deployments states."
     proxy:
       label: Proxy
       description: Fleet http[s] proxy server.
