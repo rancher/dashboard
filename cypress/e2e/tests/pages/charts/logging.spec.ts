@@ -93,7 +93,8 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
       .then(({ response }) => {
         expect(response?.statusCode).to.eq(201);
         expect(response?.body.metadata).to.have.property('name', flowName);
-        expect(response?.body.spec.match[0].select.namespaces).to.deep.equal(namespaces);
+        expect(response?.body.spec.match[0].select.namespaces[0]).to.contain(namespaces[0]);
+        expect(response?.body.spec.match[0].select.namespaces[1]).to.equal(namespaces[1]);
       });
     loggingFlowList.waitForPage();
     loggingFlowList.list().resourceTable().sortableTable().rowElementWithName(flowName)

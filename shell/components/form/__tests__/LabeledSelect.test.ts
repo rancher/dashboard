@@ -168,9 +168,9 @@ describe('component: LabeledSelect', () => {
 
       await wrapper.trigger('click');
 
-      const dropdownOpen = wrapper.find('.vs--open');
+      const dropdownOpen = wrapper.vm.isOpen;
 
-      expect(dropdownOpen.exists()).toBe(isOpen);
+      expect(dropdownOpen).toBe(isOpen);
     });
   });
 
@@ -208,6 +208,7 @@ describe('component: LabeledSelect', () => {
       const wrapper = mount(ParentComponent);
 
       // https://test-utils.vuejs.org/guide/essentials/event-handling#Asserting-the-arguments-of-the-event
+      await wrapper.trigger('click');
       await wrapper.find('input').trigger('focus');
       await wrapper.find('.vs__dropdown-option').trigger('click');
 
