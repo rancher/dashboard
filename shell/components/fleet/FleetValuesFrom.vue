@@ -4,6 +4,7 @@ import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import { CONFIG_MAP, SECRET } from '@shell/config/types';
 import { PropType } from 'vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { RcButton } from '@components/RcButton';
 import ValueFromResource from '@shell/components/form/ValueFromResource.vue';
 
 type KeyRefName = 'configMapKeyRef' | 'secretKeyRef';
@@ -37,7 +38,10 @@ export default {
 
   emits: ['update:value'],
 
-  components: { ValueFromResource },
+  components: {
+    RcButton,
+    ValueFromResource
+  },
 
   props: {
     value: {
@@ -119,6 +123,8 @@ export default {
       });
 
       this.update();
+
+      (this.$refs['add-button'] as { $el: HTMLElement })?.$el?.blur();
     },
 
     updateValueFrom(id: number, value: ValuesFrom) {
@@ -245,10 +251,14 @@ export default {
     class="values-from-container"
     data-testid="fleet-values-from-list"
   >
-    <h2 v-t="'fleet.helmOp.values.valuesFrom.selectLabel'" />
+    <h2
+      v-t="'fleet.helmOp.values.valuesFrom.selectLabel'"
+      class="m-0"
+    />
     <div
       v-for="row in valuesFrom"
       :key="row.id + '-' + row?.valueFrom?.configMapKeyRef?.key + '-' + row?.valueFrom?.secretKeyRef?.key"
+      class="mmt-4"
     >
       <ValueFromResource
         :data-testid="`fleet-values-from-item-${ row.id }`"
@@ -263,16 +273,23 @@ export default {
         @update:value="updateValueFrom(row.id, $event)"
       />
     </div>
-    <button
+    <RcButton
       v-if="!isView"
-      v-t="'workload.container.command.addEnvVar'"
+      ref="add-button"
+      small
+      secondary
+      class="mmt-6"
       data-testid="fleet-values-from-add"
-      type="button"
-      class="btn role-tertiary add"
       @click="addValueFrom"
-    />
+    >
+      <i class="icon icon-add" />
+      {{ t('workload.container.command.addEnvVar') }}
+    </RcButton>
   </div>
 </template>
 
 <style lang="scss" scoped>
+  .var-row {
+    margin-bottom: 0;
+  }
 </style>
