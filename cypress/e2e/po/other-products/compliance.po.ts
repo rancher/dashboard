@@ -5,17 +5,17 @@ import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import CruResourcePo from '@/cypress/e2e/po/components/cru-resource.po';
 
-export class CisBenchmarkListPo extends PagePo {
+export class ComplianceListPo extends PagePo {
   private static createPath(clusterId: string) {
-    return `/c/${ clusterId }/cis/cis.cattle.io.clusterscan`;
+    return `/c/${ clusterId }/compliance/compliance.cattle.io.clusterscan`;
   }
 
   static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(CisBenchmarkListPo.createPath(clusterId));
+    return super.goTo(ComplianceListPo.createPath(clusterId));
   }
 
   constructor(clusterId = 'local') {
-    super(CisBenchmarkListPo.createPath(clusterId));
+    super(ComplianceListPo.createPath(clusterId));
   }
 
   masthead() {
@@ -39,11 +39,11 @@ export class CisBenchmarkListPo extends PagePo {
   }
 }
 
-export class CisBenchmarkPo extends PagePo {
+export class CompliancePo extends PagePo {
     static url: string;
 
     private static createPath( clusterId: string, name: string ) {
-      const urlStr = `/c/${ clusterId }/cis/cis.cattle.io.clusterscan/${ name }`;
+      const urlStr = `/c/${ clusterId }/compliance/compliance.cattle.io.clusterscan/${ name }`;
 
       return urlStr;
     }
@@ -53,9 +53,9 @@ export class CisBenchmarkPo extends PagePo {
     }
 
     constructor(clusterId = 'local', name = 'create') {
-      super(CisBenchmarkPo.createPath(clusterId, name));
+      super(CompliancePo.createPath(clusterId, name));
 
-      CisBenchmarkPo.url = CisBenchmarkPo.createPath(clusterId, name);
+      CompliancePo.url = CompliancePo.createPath(clusterId, name);
     }
 
     cruResource() {

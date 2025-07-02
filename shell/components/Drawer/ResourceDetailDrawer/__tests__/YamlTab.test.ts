@@ -4,13 +4,17 @@ import { createStore } from 'vuex';
 
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import { _VIEW } from '@shell/config/query-params';
-import CodeMirror from '@shell/components/CodeMirror.vue';
+import ResourceYaml from '@shell/components/ResourceYaml.vue';
 import { nextTick } from 'vue';
 
-jest.mock('@shell/components/CodeMirror.vue', () => ({
-  template: `<div>CodeMirror</div>`,
+jest.mock('@shell/components/ResourceYaml.vue', () => ({
+  template: `<div>ResourceYaml</div>`,
   props:    {
     value: {
+      type:     Object,
+      required: true
+    },
+    yaml: {
       type:     String,
       required: true
     },
@@ -46,19 +50,20 @@ describe('component: ResourceDetailDrawer/ConfigTab', () => {
     expect(component.props('name')).toStrictEqual('yaml-tab');
   });
 
-  it('should render a CodeMirror component and pass the correct props', () => {
+  it('should render a ResourceYaml component and pass the correct props', () => {
     const wrapper = mount(YamlTab, {
       props: { resource, yaml },
       global
     });
 
-    const component = wrapper.getComponent(CodeMirror);
+    const component = wrapper.getComponent(ResourceYaml);
 
-    expect(component.props('value')).toStrictEqual(yaml);
+    expect(component.props('value')).toStrictEqual(resource);
+    expect(component.props('yaml')).toStrictEqual(yaml);
     expect(component.props('mode')).toStrictEqual(_VIEW);
   });
 
-  it('should refresh yaml editor when tab is activated', async() => {
+  it('should refresh yaml editor when tab is activated, without it the editor will not resize', async() => {
     const wrapper = mount(YamlTab, {
       props: { resource, yaml },
       global
@@ -66,10 +71,10 @@ describe('component: ResourceDetailDrawer/ConfigTab', () => {
 
     const tabComponent = wrapper.getComponent(Tab);
 
-    expect(CodeMirror.methods?.refresh).toHaveBeenCalledTimes(0);
+    expect(ResourceYaml.methods?.refresh).toHaveBeenCalledTimes(0);
     tabComponent.vm.$emit('active');
     await nextTick();
 
-    expect(CodeMirror.methods?.refresh).toHaveBeenCalledTimes(1);
+    expect(ResourceYaml.methods?.refresh).toHaveBeenCalledTimes(1);
   });
 });

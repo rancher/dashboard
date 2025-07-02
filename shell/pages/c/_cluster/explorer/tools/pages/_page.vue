@@ -3,7 +3,6 @@ import EmberPage from '@shell/components/EmberPage';
 
 const PAGES = {
   monitoring: 'monitoring/cluster-setting',
-  cis:        'cis/scan',
   istio:      'istio/cluster-setting',
   snapshots:  'backups',
 };

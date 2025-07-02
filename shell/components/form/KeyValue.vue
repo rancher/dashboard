@@ -529,10 +529,16 @@ export default {
       const text = event.clipboardData.getData('text/plain');
       const lines = text.split('\n');
       const splits = lines.map((line) => {
-        const splitter = this.parserSeparators.find((sep) => line.includes(sep));
+        const separatorIndex = line.search(new RegExp(this.parserSeparators.join('|')));
 
-        return splitter ? line.split(splitter) : '';
-      }).filter((split) => split && split.length > 0);
+        if (separatorIndex === -1) {
+          return [];
+        }
+        const key = line.substring(0, separatorIndex).trim();
+        const value = line.substring(separatorIndex + 1).trim();
+
+        return [key, value];
+      }).filter((split) => split.length > 0);
 
       if (splits.length === 0 || (splits.length === 1 && splits[0].length < 2)) {
         return;
@@ -863,7 +869,7 @@ export default {
     </div>
     <div
       v-if="(addAllowed || readAllowed) && !isView"
-      class="footer mt-20"
+      class="footer mt-10"
     >
       <slot
         name="add"

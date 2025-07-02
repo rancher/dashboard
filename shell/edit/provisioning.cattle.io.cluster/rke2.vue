@@ -251,7 +251,7 @@ export default {
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
       harvesterVersionRange:                    {},
-      cisOverride:                              false,
+      complianceOverride:                       false,
       truncateLimit,
       busy:                                     false,
       machinePoolValidation:                    {}, // map of validation states for each machine pool
@@ -1926,27 +1926,27 @@ export default {
     togglePsaDefault() {
       // This option is created from the server and is guaranteed to exist #8032
       const hardcodedTemplate = 'rancher-restricted';
-      const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
+      const complianceValue = this.agentConfig?.profile || this.serverConfig?.profile;
 
-      if (!this.cisOverride) {
-        if (cisValue) {
+      if (!this.complianceOverride) {
+        if (complianceValue) {
           this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName = hardcodedTemplate;
         }
       }
     },
 
-    handleCisChange() {
+    handleComplianceChange() {
       this.togglePsaDefault();
-      this.updateCisProfile();
+      this.updateComplianceProfile();
     },
 
-    updateCisProfile() {
-      // If the user selects any Worker CIS Profile,
+    updateComplianceProfile() {
+      // If the user selects any Worker Compliance Profile,
       // protect-kernel-defaults should be set to false
       // in the RKE2 worker/agent config.
-      const selectedCisProfile = this.agentConfig?.profile;
+      const selectedComplianceProfile = this.agentConfig?.profile;
 
-      if (selectedCisProfile) {
+      if (selectedComplianceProfile) {
         this.agentConfig['protect-kernel-defaults'] = true;
       } else {
         this.agentConfig['protect-kernel-defaults'] = false;
@@ -2000,12 +2000,12 @@ export default {
       };
     },
 
-    handleCisChanged() {
-      this.handleCisChange();
+    handleComplianceChanged() {
+      this.handleComplianceChange();
     },
 
     handlePsaDefaultChanged() {
-      this.cisOverride = !this.cisOverride;
+      this.complianceOverride = !this.complianceOverride;
       this.togglePsaDefault();
     },
 
@@ -2289,7 +2289,7 @@ export default {
             :provider="provider"
             :user-chart-values="userChartValues"
             :credential="credential"
-            :cis-override="cisOverride"
+            :compliance-override="complianceOverride"
             :all-psas="allPSAs"
             :addon-versions="addonVersions"
             :show-deprecated-patch-versions="showDeprecatedPatchVersions"
@@ -2308,7 +2308,7 @@ export default {
             @cilium-values-changed="handleCiliumValuesChanged"
             @enabled-system-services-changed="handleEnabledSystemServicesChanged"
             @kubernetes-changed="handleKubernetesChange"
-            @cis-changed="handleCisChanged"
+            @compliance-changed="handleComplianceChanged"
             @psa-default-changed="handlePsaDefaultChanged"
             @show-deprecated-patch-versions-changed="handleShowDeprecatedPatchVersionsChanged"
           />

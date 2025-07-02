@@ -302,4 +302,79 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
       cy.deleteRancherResource('v1', 'namespaces', nsName2);
     });
   });
+
+  describe('Redeploy Dialog', () => {
+    const namespace = `ns-test-${ Date.now() }`;
+    const statefulSetName = `sts-test-${ Date.now() }`;
+    const apiResource = 'apps.statefulsets';
+    const redeployEndpoint = `/v1/${ apiResource }/${ namespace }/${ statefulSetName }`;
+
+    const openRedeployDialog = () => {
+      statefulSetListPage.goTo();
+      statefulSetListPage.waitForPage();
+
+      statefulSetListPage
+        .list()
+        .actionMenu(statefulSetName)
+        .getMenuItem('Redeploy')
+        .click();
+
+      return statefulSetListPage
+        .redeployDialog()
+        .shouldBeVisible()
+        .expectCancelButtonLabel('Cancel')
+        .expectApplyButtonLabel('Redeploy');
+    };
+
+    before(() => {
+      cy.createNamespace(namespace);
+
+      cy.createRancherResource('v1', apiResource, JSON.stringify({
+        apiVersion: 'apps/v1',
+        kind:       'StatefulSet',
+        metadata:   { name: statefulSetName, namespace },
+        spec:       {
+          replicas:    1,
+          serviceName: statefulSetName,
+          selector:    { matchLabels: { app: statefulSetName } },
+          template:    {
+            metadata: { labels: { app: statefulSetName } },
+            spec:     {
+              containers: [{
+                name:  'nginx',
+                image: 'nginx:alpine'
+              }]
+            }
+          }
+        }
+      }));
+    });
+
+    it('redeploys successfully after confirmation', () => {
+      const dialog = openRedeployDialog();
+
+      dialog.confirmRedeploy(redeployEndpoint);
+      dialog.shouldBeClosed();
+    });
+
+    it('does not send a request when cancelled', () => {
+      cy.intercept('PUT', redeployEndpoint).as('redeployCancelled');
+
+      const dialog = openRedeployDialog();
+
+      dialog.cancel().shouldBeClosed();
+      cy.get('@redeployCancelled.all').should('have.length', 0);
+    });
+
+    it('displays error banner on failure', () => {
+      const dialog = openRedeployDialog();
+
+      dialog.simulateRedeployError(redeployEndpoint);
+    });
+
+    after(() => {
+      cy.deleteRancherResource('v1', apiResource, `${ namespace }/${ statefulSetName }`);
+      cy.deleteRancherResource('v1', 'namespaces', namespace);
+    });
+  });
 });

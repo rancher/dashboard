@@ -80,7 +80,7 @@ interface RcItemCardProps {
   image?: Image;
 
   /** Optional actions that will be displayed inside an action-menu */
-  actions?: DropdownOption;
+  actions?: DropdownOption[];
 
   /** Text content inside the card body. A slot is available for it too #item-card-content */
   content?: Label;
@@ -149,6 +149,10 @@ const cardMeta = computed(() => ({
   <div
     ref="cardEl"
     class="item-card"
+    :class="{
+      'clickable':
+        clickable
+    }"
     :role="cardMeta.role"
     :tabindex="cardMeta.tabIndex"
     :aria-label="cardMeta.ariaLabel"
@@ -288,7 +292,7 @@ $image-medium-box-width: 48px;
   border: 1px solid var(--border);
   background: var(--body-bg);
 
-  &:hover {
+  &.clickable:hover {
     border-color: var(--primary);
   }
 
@@ -329,10 +333,11 @@ $image-medium-box-width: 48px;
 
     &-left {
       flex-grow: 1;
+      min-width: 0;
     }
 
     &-title {
-      max-width: 60%;
+      max-width: 80%;
       font-size: 18px;
       font-weight: 600;
       margin-bottom: 0px;

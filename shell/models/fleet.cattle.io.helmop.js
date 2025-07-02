@@ -57,32 +57,9 @@ export default class HelmOp extends FleetApplication {
       enabled:  !!this.links.update && !this.spec?.disablePolling
     });
 
-    insertAt(out, 4, {
-      action:     'forceUpdate',
-      label:      this.t('fleet.helmOp.actions.forceUpdate.label'),
-      icon:       'icon icon-refresh',
-      bulkable:   true,
-      bulkAction: 'forceUpdateBulk',
-      enabled:    !!this.links.update
-    });
-
     insertAt(out, 5, { divider: true });
 
     return out;
-  }
-
-  forceUpdate(resources = [this]) {
-    this.$dispatch('promptModal', {
-      componentProps: { helmOps: resources },
-      component:      'HelmOpForceUpdateDialog'
-    });
-  }
-
-  forceUpdateBulk(resources) {
-    this.$dispatch('promptModal', {
-      componentProps: { helmOps: resources },
-      component:      'HelmOpForceUpdateDialog'
-    });
   }
 
   get dashboardIcon() {
@@ -124,7 +101,6 @@ export default class HelmOp extends FleetApplication {
 
     repo = repo.replace(/.git$/, '');
     repo = repo.replace(/^https:\/\//, '');
-    repo = repo.replace(/^oci:\/\//, '');
     repo = repo.replace(/\/+$/, '');
 
     return repo;
@@ -167,9 +143,7 @@ export default class HelmOp extends FleetApplication {
       value = this.spec.helm?.repo || '';
       break;
     case SOURCE_TYPE.OCI: {
-      const parsed = parse(this.spec.helm?.chart || '');
-
-      value = parsed?.host ? `oci://${ parsed?.host }` : '';
+      value = this.spec.helm?.chart || '';
       break;
     }
     case SOURCE_TYPE.TARBALL:
@@ -177,7 +151,6 @@ export default class HelmOp extends FleetApplication {
     }
 
     const matchHttps = value.match(FleetUtils.HTTP_REGEX);
-    const matchOCI = value.match(FleetUtils.OCI_REGEX);
     const matchSSH = value.match(FleetUtils.GIT_SSH_REGEX);
 
     if (matchSSH) {
@@ -190,7 +163,7 @@ export default class HelmOp extends FleetApplication {
       value,
       display:  this.repoDisplay(value),
       icon:     'icon icon-application',
-      showLink: matchHttps || matchSSH || matchOCI
+      showLink: matchHttps || matchSSH
     };
   }
 
