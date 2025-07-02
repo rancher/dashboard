@@ -59,12 +59,13 @@ describe('Certificates', { testIsolation: 'off', tags: ['@explorer', '@adminUser
 
     certPo.checkVisible();
 
+    certPo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     certPo.list().resourceTable().sortableTable().rowElements()
       .should('have.length.gte', 2);
   });
 
   it("show correct 'expired' states", () => {
-    cy.intercept('GET', '/v1/secrets?filter=metadata.fields.1=kubernetes.io/tls&exclude=metadata.managedFields', (req) => {
+    cy.intercept('GET', /^\/v1\/secrets\?[\S]+$/, (req) => {
       req.reply((res) => {
         res.body.data.push(expiredCert);
         res.body.count += 1;

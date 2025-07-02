@@ -4,7 +4,7 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 
 const configMapPage = new ConfigMapPagePo('local');
-const cluster = 'local';
+const localCluster = 'local';
 
 describe('ConfigMap', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
@@ -87,9 +87,9 @@ skipGeometric=true`;
     configMapPo.errorBanner().should('exist').and('be.visible');
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     const uniqueConfigMap = SortableTablePo.firstByDefaultName('cm');
-    const cmNamesList = [];
+    let cmNamesList = [];
     let nsName1: string;
     let nsName2: string;
     let rootResourceName: string;
@@ -103,41 +103,37 @@ skipGeometric=true`;
         rootResourceName = root;
       });
 
-      cy.createE2EResourceName('ns1').then((ns1) => {
-        nsName1 = ns1;
-        // create namespace
-        cy.createNamespace(nsName1);
+      const createConfigMap = (cmName?: string) => {
+        return ({ ns, i }: {ns: string, i: number}) => {
+          const name = cmName || Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
 
-        // create configmaps
-        let i = 0;
+          return cy.createConfigMap(ns, name).then((name) => ({ body: { metadata: { name } } }));
+        };
+      };
 
-        while (i < 25) {
-          const cmName = Cypress._.uniqueId(Date.now().toString());
+      cy.createManyNamespacedResourced({
+        context:        'configmaps1',
+        createResource: createConfigMap(),
+      })
+        .then(({ ns, workloadNames }) => {
+          cmNamesList = workloadNames;
+          nsName1 = ns;
+        })
+        .then(() => cy.createManyNamespacedResourced({
+          context:        'configmaps2',
+          createResource: createConfigMap(uniqueConfigMap),
+          count:          1
+        }))
+        .then(({ ns, workloadNames }) => {
+          cmNamesList.push(workloadNames[0]);
+          nsName2 = ns;
 
-          cy.createConfigMap(nsName1, cmName).then((name) => {
-            cmNamesList.push(name);
-          });
-
-          i++;
-        }
-
-        cy.createE2EResourceName('ns2').then((ns2) => {
-          nsName2 = ns2;
-
-          // create namespace
-          cy.createNamespace(nsName2);
-
-          cy.createConfigMap(nsName2, uniqueConfigMap).then((name) => {
-            cmNamesList.push(name);
-          });
-
-          cy.tableRowsPerPageAndNamespaceFilter(10, cluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
+          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
         });
-      });
     });
 
     it('pagination is visible and user is able to navigate through configmaps data', () => {
-      ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { nsProject: { values: [nsName1, nsName2] } });
+      ClusterDashboardPagePo.goToAndConfirmNsValues(localCluster, { nsProject: { values: [nsName1, nsName2] } });
 
       configMapPage.goTo();
       configMapPage.waitForPage();
@@ -311,11 +307,10 @@ skipGeometric=true`;
 
     after('clean up', () => {
       // Ensure the default rows per page value is set after running the tests
-      cy.tableRowsPerPageAndNamespaceFilter(100, cluster, 'none', '{"local":["all://user"]}');
+      cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
 
       // delete namespace (this will also delete all configmaps in it)
-      cy.deleteRancherResource('v1', 'namespaces', nsName1);
-      cy.deleteRancherResource('v1', 'namespaces', nsName2);
+      cy.deleteNamespace([nsName1, nsName2]);
     });
   });
 });
