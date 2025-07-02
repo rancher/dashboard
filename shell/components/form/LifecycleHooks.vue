@@ -24,10 +24,10 @@ export default {
   },
 
   data() {
-    const { postStart, preStop } = this.value;
-
     return {
-      postStart, preStop, hookOptions: ['postStart', 'preStop']
+      postStart:   this.value.postStart,
+      preStop:     this.value.preStop,
+      hookOptions: ['postStart', 'preStop']
     };
   },
 

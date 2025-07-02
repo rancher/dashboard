@@ -1,11 +1,17 @@
 <script>
 import { mapGetters } from 'vuex';
 import Select from '@shell/components/form/Select.vue';
+import { RcDropdown, RcDropdownTrigger, RcDropdownItem } from '@components/RcDropdown';
 
 export default {
-  name: 'LocalSelector',
+  name: 'LocaleSelector',
 
-  components: { Select },
+  components: {
+    Select,
+    RcDropdown,
+    RcDropdownItem,
+    RcDropdownTrigger,
+  },
 
   props: {
     mode: {
@@ -65,71 +71,37 @@ export default {
 <template>
   <div>
     <div v-if="mode === 'login'">
-      <div
-        v-if="showLocale"
-        role="menu"
-        :aria-label="t('locale.menu')"
-        class="locale-login-container"
-        tabindex="0"
-        @click="openLocaleSelector"
-        @blur.capture="closeLocaleSelector"
-        @keyup.enter="openLocaleSelector"
-        @keyup.space="openLocaleSelector"
-      >
-        <v-dropdown
-          popperClass="localeSelector"
-          :shown="isLocaleSelectorOpen"
-          placement="top"
-          distance="8"
-          skidding="12"
-          :triggers="[]"
-          :autoHide="false"
-          :flip="false"
-          :container="false"
-          @focus.capture="openLocaleSelector"
+      <rc-dropdown v-if="showLocale">
+        <rc-dropdown-trigger
+          data-testid="locale-selector"
+          link
+          class="baseline"
+          :aria-label="t('locale.menu')"
         >
-          <a
-            data-testid="locale-selector"
-            class="locale-chooser"
+          {{ selectedLocaleLabel }}
+          <template
+            v-if="showIcon"
+            #after
           >
-            {{ selectedLocaleLabel }}
-            <i
-              v-if="showIcon"
-              class="icon icon-fw icon-sort-down"
-            />
-          </a>
-          <template #popper>
-            <ul
-              class="list-unstyled dropdown"
-              style="margin: -1px;"
-            >
-              <li
-                v-if="showNone"
-                v-t="'locale.none'"
-                class="hand"
-                tabindex="0"
-                role="menuitem"
-                @click.stop="switchLocale('none')"
-                @keyup.enter.stop="switchLocale('none')"
-                @keyup.space.stop="switchLocale('none')"
-              />
-              <li
-                v-for="(label, name) in availableLocales"
-                :key="name"
-                tabindex="0"
-                role="menuitem"
-                class="hand"
-                :lang="name"
-                @click.stop="switchLocale(name)"
-                @keyup.enter.stop="switchLocale(name)"
-                @keyup.space.stop="switchLocale(name)"
-              >
-                {{ label }}
-              </li>
-            </ul>
+            <i class="icon icon-fw icon-sort-down" />
           </template>
-        </v-dropdown>
-      </div>
+        </rc-dropdown-trigger>
+        <template #dropdownCollection>
+          <rc-dropdown-item
+            v-if="showNone"
+            v-t="'locale.none'"
+            @click="switchLocale('none')"
+          />
+          <rc-dropdown-item
+            v-for="(label, name) in availableLocales"
+            :key="name"
+            :lang="name"
+            @click.stop="switchLocale(name)"
+          >
+            {{ label }}
+          </rc-dropdown-item>
+        </template>
+      </rc-dropdown>
     </div>
     <div v-else>
       <Select
@@ -142,36 +114,8 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
-.advanced {
-  user-select: none;
-  padding: 0 5px;
-  line-height: 40px;
-  font-size: 15px;
-  font-weight: 500;
-}
-.content {
-  background: var(--nav-active);
-  padding: 10px;
-  margin-top: 6px;
-  border-radius: 4px;
-}
-
-.hand:focus-visible {
-  @include focus-outline;
-  outline-offset: 4px;
-}
-
-.locale-chooser {
-  cursor: pointer;
-
-  &:hover {
-    text-decoration: none;
+<style lang="scss">
+  .baseline {
+    align-items: baseline;
   }
-}
-
-.locale-login-container:focus-visible {
-  @include focus-outline;
-  outline-offset: 2px;
-}
 </style>

@@ -45,7 +45,6 @@ export const SETTING = {
   AUTH_TOKEN_MAX_TTL_MINUTES:                    'auth-token-max-ttl-minutes',
   KUBECONFIG_GENERATE_TOKEN:                     'kubeconfig-generate-token',
   KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES:          'kubeconfig-default-token-ttl-minutes',
-  ENGINE_URL:                                    'engine-install-url',
   ENGINE_ISO_URL:                                'engine-iso-url',
   FIRST_LOGIN:                                   'first-login',
   INGRESS_IP_DOMAIN:                             'ingress-ip-domain',
@@ -57,7 +56,6 @@ export const SETTING = {
   AUTH_USER_INFO_RESYNC_CRON:                    'auth-user-info-resync-cron',
   AUTH_LOCAL_VALIDATE_DESC:                      'auth-password-requirements-description',
   PASSWORD_MIN_LENGTH:                           'password-min-length', // CATTLE_PASSWORD_MIN_LENGTH
-  CLUSTER_TEMPLATE_ENFORCEMENT:                  'cluster-template-enforcement',
   UI_INDEX:                                      'ui-index',
   UI_DASHBOARD_INDEX:                            'ui-dashboard-index',
   UI_DASHBOARD_HARVESTER_LEGACY_PLUGIN:          'ui-dashboard-harvester-legacy-plugin',
@@ -108,6 +106,7 @@ export const SETTING = {
   DISABLE_INACTIVE_USER_AFTER:                   'disable-inactive-user-after',
   DELETE_INACTIVE_USER_AFTER:                    'delete-inactive-user-after',
   K3S_UPGRADER_UNINSTALL_CONCURRENCY:            'k3s-based-upgrader-uninstall-concurrency',
+  SYSTEM_AGENT_UPGRADER_INSTALL_CONCURRENCY:     'system-agent-upgrader-install-concurrency',
   IMPORTED_CLUSTER_VERSION_MANAGEMENT:           'imported-cluster-version-management',
   CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS:          'cluster-agent-default-priority-class',
   CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET: 'cluster-agent-default-pod-disruption-budget'
@@ -116,7 +115,6 @@ export const SETTING = {
 // These are the settings that are allowed to be edited via the UI
 export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.CA_CERTS]:            { kind: 'multiline', readOnly: true },
-  [SETTING.ENGINE_URL]:          {},
   [SETTING.ENGINE_ISO_URL]:      {},
   [SETTING.PASSWORD_MIN_LENGTH]: {
     kind:    'integer',
@@ -156,13 +154,16 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     kind:    'enum',
     options: ['dynamic', 'true', 'false']
   },
-  [SETTING.BRAND]:                        { canReset: true },
-  [SETTING.CLUSTER_TEMPLATE_ENFORCEMENT]: { kind: 'boolean' },
-  [SETTING.HIDE_LOCAL_CLUSTER]:           { kind: 'boolean' },
-  [SETTING.AGENT_TLS_MODE]:               {
+  [SETTING.BRAND]:              { canReset: true },
+  [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
+  [SETTING.AGENT_TLS_MODE]:     {
     kind:    'enum',
     options: ['strict', 'system-store'],
     warning: 'agent-tls-mode'
+  },
+  [SETTING.SYSTEM_AGENT_UPGRADER_INSTALL_CONCURRENCY]: {
+    kind:    'integer',
+    ruleSet: [{ name: 'minValue', factoryArg: 1 }]
   },
   [SETTING.K3S_UPGRADER_UNINSTALL_CONCURRENCY]: {
     kind:    'integer',
@@ -174,7 +175,20 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
 
 };
 
-export const PROVISIONING_SETTINGS = ['engine-iso-url', 'engine-install-url', 'imported-cluster-version-management', 'cluster-agent-default-priority-class', 'cluster-agent-default-pod-disruption-budget'];
+/**
+ * Show settings in a special cluster provisioning section
+ *
+ * These should probably be an option in the maps above...
+ */
+export const PROVISIONING_SETTINGS = [
+  SETTING.ENGINE_ISO_URL,
+  SETTING.RKE_METADATA_CONFIG,
+  SETTING.K3S_UPGRADER_UNINSTALL_CONCURRENCY,
+  SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT,
+  SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
+  SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET
+];
+
 /**
  * Settings on how to handle warnings returning in api responses, specifically which to show as growls
  */
@@ -200,14 +214,17 @@ export interface PerfSettingsKubeApi {
 
 export interface PerfSettings {
   inactivity: {
-      enabled: boolean;
-      threshold: number;
+    enabled: boolean;
+    threshold: number;
   };
   incrementalLoading: {
-      enabled: boolean;
-      threshold: number;
+    enabled: boolean;
+    threshold: number;
   };
-  manualRefresh: {};
+  manualRefresh: {
+    enabled: boolean;
+    threshold: number;
+  };
   disableWebsocketNotification: boolean;
   garbageCollection: GC_PREFERENCES;
   forceNsFilterV2: any;
@@ -251,8 +268,8 @@ export const DEFAULT_PERF_SETTING: PerfSettings = {
     }
   },
   serverPagination: {
-    enabled:          false,
-    useDefaultStores: true,
-    stores:           undefined,
+    useDefaultStores:          true,
+    stores:                    undefined,
+    resourceChangesDebounceMs: 4000,
   }
 };

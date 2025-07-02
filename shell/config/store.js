@@ -27,15 +27,18 @@ let store = {};
   resolveStoreModules(require('../store/growl.js'), 'growl.js');
   resolveStoreModules(require('../store/i18n.js'), 'i18n.js');
   resolveStoreModules(require('../store/linode.js'), 'linode.js');
+  resolveStoreModules(require('../store/modal.ts'), 'modal.ts');
   resolveStoreModules(require('../store/plugins.js'), 'plugins.js');
   resolveStoreModules(require('../store/pnap.js'), 'pnap.js');
   resolveStoreModules(require('../store/prefs.js'), 'prefs.js');
   resolveStoreModules(require('../store/resource-fetch.js'), 'resource-fetch.js');
+  resolveStoreModules(require('../store/slideInPanel.ts'), 'slideInPanel.ts');
   resolveStoreModules(require('../store/type-map.js'), 'type-map.js');
   resolveStoreModules(require('../store/uiplugins.ts'), 'uiplugins.ts');
   resolveStoreModules(require('../store/wm.js'), 'wm.js');
   resolveStoreModules(require('../store/customisation.js'), 'customisation.js');
   resolveStoreModules(require('../store/cru-resource.ts'), 'cru-resource.ts');
+  resolveStoreModules(require('../store/notifications.ts'), 'notifications.ts');
 
   // If the environment supports hot reloading...
 
@@ -54,15 +57,18 @@ let store = {};
       '../store/i18n.js',
       '../store/index.js',
       '../store/linode.js',
+      '../store/modal.ts',
       '../store/plugins.js',
       '../store/pnap.js',
       '../store/prefs.js',
       '../store/resource-fetch.js',
+      '../store/slideInPanel.ts',
       '../store/type-map.js',
       '../store/uiplugins.ts',
       '../store/wm.js',
       '../store/customisation.js',
       '../store/cru-resource.ts',
+      '../store/notifications.ts',
     ], () => {
       // Update `root.modules` with the latest definitions.
       updateModules();

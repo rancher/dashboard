@@ -1,4 +1,5 @@
 <script>
+import { mapState } from 'vuex';
 import Loading from '@shell/components/Loading';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import FleetSummary from '@shell/components/fleet/FleetSummary';
@@ -38,7 +39,15 @@ export default {
       allBundles:       [],
     };
   },
+
+  created() {
+    if (this.workspace !== this.value.namespace) {
+      this.$store.commit('updateWorkspace', { value: this.value.namespace, getters: this.$store.getters });
+    }
+  },
+
   computed: {
+    ...mapState(['workspace']),
     gitRepoHasClusters() {
       return this.value.status?.desiredReadyClusters;
     },
@@ -119,7 +128,7 @@ export default {
       color="info"
       class="mb-20"
     >
-      {{ t('fleet.fleetSummary.noClustersGitRepo') }}
+      {{ t('fleet.fleetSummary.noClusters.gitRepo') }}
     </Banner>
     <ResourceTabs
       :value="value"
@@ -141,7 +150,7 @@ export default {
         name="resources"
         :weight="20"
       >
-        <FleetResources :value="value" />
+        <FleetResources :rows="value.resourcesStatuses" />
       </Tab>
     </ResourceTabs>
   </div>

@@ -784,6 +784,7 @@ export default defineComponent({
             :side-tabs="true"
             :show-tabs-add-remove="mode !== 'view'"
             class="mb-20"
+            :use-hash="false"
             @addTab="addPool($event)"
             @removeTab="removePool($event)"
           >

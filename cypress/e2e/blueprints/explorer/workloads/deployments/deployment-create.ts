@@ -1,3 +1,4 @@
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../../blueprint.utils';
 
 export const createDeploymentBlueprint = {
@@ -15,7 +16,7 @@ export const createDeploymentBlueprint = {
         containers: [
           {
             name:      'nginx',
-            image:     'nginx:alpine',
+            image:     SMALL_CONTAINER.image,
             resources: {
               requests: {
                 cpu:    '200m',

@@ -68,7 +68,14 @@ jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => (key) => key }))
 // eslint-disable-next-line no-console
 jest.spyOn(console, 'warn').mockImplementation((warning) => warning.includes('[Vue warn]') ? null : console.log(warning));
 
-jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => (key) => key }));
+// jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => (key) => key }));
+jest.mock('@shell/composables/useI18n', () => {
+  return {
+    useI18n() {
+      return { t: (key, options) => `${ key }${ options ? `-${ JSON.stringify(options) }` : '' }` };
+    }
+  };
+});
 // eslint-disable-next-line no-console
 jest.spyOn(console, 'warn').mockImplementation((warning) => warning.includes('[Vue warn]') ? null : console.log(warning));
 

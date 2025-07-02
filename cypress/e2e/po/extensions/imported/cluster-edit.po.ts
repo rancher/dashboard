@@ -4,21 +4,22 @@ import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
+import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 
 /**
  * Edit page for imported cluster
  */
 export default class ClusterManagerEditImportedPagePo extends PagePo {
-  private static createPath(clusterId: string, clusterName: string) {
-    return `/c/${ clusterId }/manager/provisioning.cattle.io.cluster/fleet-default/${ clusterName }`;
+  private static createPath(clusterId: string, ns: string, clusterName: string) {
+    return `/c/${ clusterId }/manager/provisioning.cattle.io.cluster/${ ns }/${ clusterName }`;
   }
 
-  static goTo(clusterId: string, clusterName: string ): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(ClusterManagerEditImportedPagePo.createPath(clusterId, clusterName));
+  static goTo(clusterId: string, ns: string, clusterName: string ): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(ClusterManagerEditImportedPagePo.createPath(clusterId, ns, clusterName));
   }
 
-  constructor(clusterId = '_', clusterName: string) {
-    super(ClusterManagerEditImportedPagePo.createPath(clusterId, clusterName));
+  constructor(clusterId = '_', ns = 'fleet-default', clusterName: string) {
+    super(ClusterManagerEditImportedPagePo.createPath(clusterId, ns, clusterName));
   }
 
   nameNsDescription() {
@@ -29,12 +30,32 @@ export default class ClusterManagerEditImportedPagePo extends PagePo {
     return new ACE();
   }
 
-  enableNetworkAccordion() {
-    return this.self().find('[data-testid="network-accordion"]').click();
+  accordion(index: number, label: string) {
+    return this.self().find(`.accordion-container:nth-of-type(${ index })`).contains(label);
   }
 
-  enableRepositoriesAccordion() {
-    return this.self().find('[data-testid="repositories-accordion"]').click();
+  toggleAccordion(index: number, label: string) {
+    return this.accordion(index, label).click();
+  }
+
+  versionManagementBanner() {
+    return this.self().find('[data-testid="version-management-banner"]');
+  }
+
+  versionManagementRadioButton(): RadioGroupInputPo {
+    return new RadioGroupInputPo('[data-testid="imported-version-management-radio"]');
+  }
+
+  enableVersionManagement() {
+    return this.versionManagementRadioButton().set(1);
+  }
+
+  disableVersionManagement() {
+    return this.versionManagementRadioButton().set(2);
+  }
+
+  defaultVersionManagement() {
+    return this.versionManagementRadioButton().set(0);
   }
 
   privateRegistryCheckbox() {
@@ -55,5 +76,9 @@ export default class ClusterManagerEditImportedPagePo extends PagePo {
 
   save() {
     return this.resourceDetail().createEditView().save();
+  }
+
+  cancel() {
+    return this.resourceDetail().createEditView().cancel();
   }
 }

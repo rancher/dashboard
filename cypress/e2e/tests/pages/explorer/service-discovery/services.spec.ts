@@ -46,8 +46,8 @@ describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }
       servicesPagePo.createServicesForm().externalNameInput().set('my.database.example.com');
       servicesPagePo.createServicesForm().ipAddressesTab();
       servicesPagePo.createServicesForm().waitForPage(null, 'ips');
-      servicesPagePo.createServicesForm().ipAddressList().setValueAtIndex('1.1.1.1', 0);
-      servicesPagePo.createServicesForm().ipAddressList().setValueAtIndex('2.2.2.2', 1);
+      servicesPagePo.createServicesForm().ipAddressList().setValueAtIndex('1.1.1.1', 0, 'Add');
+      servicesPagePo.createServicesForm().ipAddressList().setValueAtIndex('2.2.2.2', 1, 'Add');
       servicesPagePo.createServicesForm().lablesAnnotationsTab();
       servicesPagePo.createServicesForm().waitForPage(null, 'labels-and-annotations');
       servicesPagePo.createServicesForm().lablesAnnotationsKeyValue().setKeyValueAtIndex('Add Label', 'label-key1', 'label-value1', 0, '.labels-and-annotations-container div.row:nth-of-type(2)');
@@ -144,7 +144,7 @@ describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }
     });
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before('set up', () => {
       ClusterDashboardPagePo.goToAndWait(cluster); // Ensure we're at a solid state before messing with preferences (given login/load might change them)
       cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}');

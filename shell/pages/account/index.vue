@@ -1,6 +1,5 @@
 <script>
 import BackLink from '@shell/components/BackLink';
-import PromptChangePassword from '@shell/components/PromptChangePassword';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import Loading from '@shell/components/Loading';
@@ -17,7 +16,7 @@ const API_ENDPOINT = '/v3';
 
 export default {
   components: {
-    CopyToClipboardText, BackLink, Banner, PromptChangePassword, Loading, ResourceTable, Principal, TabTitle
+    CopyToClipboardText, BackLink, Banner, Loading, ResourceTable, Principal, TabTitle
   },
   mixins: [BackRoute],
   async fetch() {
@@ -136,6 +135,15 @@ export default {
 
       return false;
     },
+    showChangePasswordDialog() {
+      this.$store.dispatch('management/promptModal', {
+        component:   'ChangePasswordDialog',
+        testId:      'change-password__modal',
+        customClass: 'change-password-modal',
+        modalWidth:  '500',
+        height:      '465'
+      });
+    }
   }
 };
 </script>
@@ -165,21 +173,23 @@ export default {
           type="button"
           class="btn role-primary"
           data-testid="account_change_password"
-          @click="$refs.promptChangePassword.show(true)"
+          @click="showChangePasswordDialog"
         >
           {{ t("accountAndKeys.account.change") }}
         </button>
       </div>
     </div>
-    <PromptChangePassword ref="promptChangePassword" />
 
-    <hr>
+    <hr role="none">
     <div class="keys-header">
       <div>
         <h2 v-t="'accountAndKeys.apiKeys.title'" />
         <div class="api-url">
           <span>{{ t("accountAndKeys.apiKeys.apiEndpoint") }}</span>
-          <CopyToClipboardText :text="apiUrl" />
+          <CopyToClipboardText
+            :aria-label="t('accountAndKeys.apiKeys.copyApiEnpoint')"
+            :text="apiUrl"
+          />
         </div>
       </div>
       <button

@@ -602,7 +602,10 @@ export default {
         />
       </div>
     </div>
-    <hr class="mt-20">
+    <hr
+      class="mt-20"
+      role="none"
+    >
     <div class="row mt-20">
       <div class="col span-6">
         <LabeledInput
@@ -668,7 +671,10 @@ export default {
           </div>
         </div>
       </div>
-      <hr class="mt-20 mb-20">
+      <hr
+        class="mt-20 mb-20"
+        role="none"
+      >
       <h2>{{ t('cluster.machineConfig.azure.sections.purchasePlan') }}</h2>
       <div class="row mt-20">
         <div class="col span-6">
@@ -681,7 +687,10 @@ export default {
           />
         </div>
       </div>
-      <hr class="mt-20">
+      <hr
+        class="mt-20"
+        role="none"
+      >
       <h2>{{ t('cluster.machineConfig.azure.sections.network') }}</h2>
       <div class="row mt-20 mb-20">
         <div class="col span-6">
@@ -803,7 +812,10 @@ export default {
           />
         </div>
       </div>
-      <hr class="mt-20 mb-20">
+      <hr
+        class="mt-20 mb-20"
+        role="none"
+      >
       <h2>{{ t('cluster.machineConfig.azure.sections.disks') }}</h2>
       <div class="row mt-20 mb-20">
         <div class="col span-6">

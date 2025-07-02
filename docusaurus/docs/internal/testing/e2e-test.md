@@ -152,9 +152,18 @@ POs all inherit a root `component.po`. Common component functionality can be add
 
 ### Best Practices
 
-#### data-testid
-When selecting an element priority should be given to the attribute `data-testid`, if this does not exist using a specific css selector can be used.
-- In some cases, including lists, the data-testid is dynamically created with a context prefix or index, so check the DOM even if it code it's not obvious
+#### `data-testid` attribute
+When locating an element priority should be given to the attribute `data-testid`.
+
+Not all elements will need a `data-testid` attribute
+- These aren't stripped in production builds and add html bloat plus DOM complexity when debugging
+- Sub elements can be found via chaining css selectors i.e. find parent element via `data-testid` attribute --> find inner element via element type or css class
+
+Components in the dashboard often have a `data-testid` attribute. If this is missing and required by a test we should add them.
+- In some cases the generic component will be prefixed with something functional i.e. `cluster-create-select-dropdown`. This helps when there are multiple of that component shown on screen
+- In cases where there are multiple inner elements with `data-testid` the value will contain a counter to ensure uniqueness i.e. `key-1`, `key-2`, etc
+- input elements might not be the topmost element in a lot of generic components, but can easily be selected by css selectors like `input` or `> input`
+
 
 #### Environment State - Pre / Post Test
 

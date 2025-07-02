@@ -68,6 +68,10 @@ export default {
     extensionParams: {
       type:    Object,
       default: null
+    },
+    useHash: {
+      type:    Boolean,
+      default: true
     }
   },
 
@@ -195,7 +199,7 @@ export default {
         pagination.filters = [];
       }
 
-      const field = `involvedObject.uid`; // Pending API Support - https://github.com/rancher/rancher/issues/48603
+      const field = `involvedObject.uid`;
 
       // of type PaginationParamFilter
       let existing = null;
@@ -232,6 +236,8 @@ export default {
   <Tabbed
     v-bind="$attrs"
     :default-tab="defaultTab"
+    :resource="value"
+    :use-hash="useHash"
     @changed="tabChange"
   >
     <slot />

@@ -39,8 +39,8 @@ export default class PagePo extends ComponentPo {
     return PagePo.goTo(`${ this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
   }
 
-  waitForPage(params?: string, fragment?: string) {
-    return cy.url().should('include', `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
+  waitForPage(params?: string, fragment?: string, options?: any) {
+    return cy.url().should('include', `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`, options);
   }
 
   waitForPageWithExactUrl(params?: string, fragment?: string) {
@@ -66,7 +66,7 @@ export default class PagePo extends ComponentPo {
   }
 
   mastheadTitle() {
-    return this.self().find('.primaryheader h1').invoke('text');
+    return this.self().find('.title-bar h1.title, .title-bar h1.title, .primaryheader h1').invoke('text');
   }
 
   waitForMastheadTitle(title: string) {

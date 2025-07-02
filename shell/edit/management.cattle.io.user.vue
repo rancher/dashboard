@@ -15,6 +15,8 @@ export default {
     ChangePassword, GlobalRoleBindings, CruResource, LabeledInput, Loading
   },
 
+  emits: ['update:mode'],
+
   mixins: [
     CreateEditView
   ],
@@ -40,6 +42,7 @@ export default {
         roles:        !showGlobalRoles,
         rolesChanged: false,
       },
+      watchOverride: false,
     };
   },
 
@@ -115,7 +118,11 @@ export default {
         this.$router.replace({ name: this.doneRoute });
         buttonDone(true);
       } catch (err) {
-        this.errors = exceptionToErrorsArray(err);
+        if (err?.message?.includes('errors due to escalation')) {
+          this.errors = [this.t('rbac.errors.escalation')];
+        } else {
+          this.errors = exceptionToErrorsArray(err);
+        }
         buttonDone(false);
       }
     },
@@ -150,7 +157,7 @@ export default {
 
       const normanUser = await this.$store.dispatch('rancher/find', {
         type: NORMAN.USER,
-        id:   this.value.id,
+        id:   this.value.id || this.user?.id,
       });
 
       // Save change of password
@@ -181,8 +188,25 @@ export default {
     },
 
     async updateRoles(userId) {
-      if (this.$refs.grb) {
+      if (!this.$refs.grb) {
+        return;
+      }
+
+      try {
         await this.$refs.grb.save(userId);
+      } catch (err) {
+        if (this.isCreate) {
+          this.watchOverride = true;
+          this.$emit(
+            'update:mode',
+            {
+              userId,
+              mode:     _EDIT,
+              resource: 'management.cattle.io.user',
+            }
+          );
+        }
+        throw err;
       }
     }
   }
@@ -255,6 +279,7 @@ export default {
         :user-id="value.id || liveValue.id"
         :mode="mode"
         :real-mode="realMode"
+        :watch-override="watchOverride"
         type="user"
         @hasChanges="validation.rolesChanged = $event"
         @canLogIn="validation.roles = $event"

@@ -19,7 +19,7 @@ import { NORMAN, MANAGEMENT, CAPI, HCI } from '@shell/config/types';
 import KeyValue from '@shell/components/form/KeyValue';
 import { Checkbox } from '@components/Form/Checkbox';
 import { NAME as HARVESTER_MANAGER } from '@shell/config/harvester-manager-types';
-import { HARVESTER as HARVESTER_FEATURE, mapFeature, SCHEDULING_CUSTOMIZATION } from '@shell/store/features';
+import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@shell/store/features';
 import { HIDE_DESC, mapPref } from '@shell/store/prefs';
 import { addObject } from '@shell/utils/array';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -30,6 +30,7 @@ import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annota
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
+import { initSchedulingCustomization } from '@shell/utils/cluster';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
@@ -92,27 +93,34 @@ export default defineComponent({
     }
     if (!this.isLocal) {
       // The rancher agent that runs on the local cluster is embedded in the rancher pods that are run in the local cluster, so this is not needed.
-      await this.initSchedulingCustomization();
+      const sc = await initSchedulingCustomization(this.normanCluster, this.features, this.$store, this.mode);
+
+      this.clusterAgentDefaultPC = sc.clusterAgentDefaultPC;
+      this.clusterAgentDefaultPDB = sc.clusterAgentDefaultPDB;
+      this.schedulingCustomizationFeatureEnabled = sc.schedulingCustomizationFeatureEnabled;
+      this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
+      this.errors = this.errors.concat(sc.errors);
     }
   },
 
   data() {
     return {
-      showPrivateRegistryInput:              false,
-      normanCluster:                         { name: '', importedConfig: { privateRegistryURL: null } },
-      loadingVersions:                       false,
-      membershipUpdate:                      {},
-      config:                                null,
-      allVersions:                           [],
-      defaultVersion:                        '',
-      versionManagementGlobalSetting:        false,
-      versionManagementOld:                  VERSION_MANAGEMENT_DEFAULT,
-      schedulingCustomizationFeatureEnabled: false,
-      clusterAgentDefaultPC:                 null,
-      clusterAgentDefaultPDB:                null,
+      showPrivateRegistryInput:                 false,
+      normanCluster:                            { name: '', importedConfig: { privateRegistryURL: null } },
+      loadingVersions:                          false,
+      membershipUpdate:                         {},
+      config:                                   null,
+      allVersions:                              [],
+      defaultVersion:                           '',
+      versionManagementGlobalSetting:           false,
+      versionManagementOld:                     VERSION_MANAGEMENT_DEFAULT,
+      schedulingCustomizationFeatureEnabled:    false,
+      schedulingCustomizationOriginallyEnabled: false,
+      clusterAgentDefaultPC:                    null,
+      clusterAgentDefaultPDB:                   null,
       // When disabling clusterAgentDeploymentCustomization, we need to replace the whole object
-      needsReplace:                          false,
-      fvFormRuleSets:                        [{
+      needsReplace:                             false,
+      fvFormRuleSets:                           [{
         path:  'name',
         rules: ['clusterNameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
       }, {
@@ -215,7 +223,9 @@ export default defineComponent({
     },
 
     showBasics() {
-      return this.isCreate || !!this.config || !!this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
+      const hasFieldsToShow = !!this.config || !!this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
+
+      return (!this.isRKE1 && hasFieldsToShow) || this.isCreate;
     },
     enableInstanceDescription() {
       return this.isLocal || this.isCreate;
@@ -237,7 +247,7 @@ export default defineComponent({
       return this.normanCluster.clusterAgentDeploymentCustomization || {};
     },
     schedulingCustomizationVisible() {
-      return !this.isLocal && (this.schedulingCustomizationFeatureEnabled || (this.isEdit && this.normanCluster.clusterAgentDeploymentCustomization?.schedulingCustomization ));
+      return !this.isLocal && (this.schedulingCustomizationFeatureEnabled || this.schedulingCustomizationOriginallyEnabled);
     },
   },
 
@@ -362,15 +372,6 @@ export default defineComponent({
       }
       this.versionManagementOld = this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
     },
-    async initSchedulingCustomization() {
-      this.schedulingCustomizationFeatureEnabled = this.features(SCHEDULING_CUSTOMIZATION);
-      this.clusterAgentDefaultPC = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS })).value) || null;
-      this.clusterAgentDefaultPDB = JSON.parse((await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET })).value) || null;
-
-      if (this.schedulingCustomizationFeatureEnabled && this.mode === _CREATE && isEmpty(this.normanCluster?.clusterAgentDeploymentCustomization?.schedulingCustomization)) {
-        set(this.normanCluster, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
-      }
-    },
     setSchedulingCustomization(val) {
       if (val) {
         this.needsReplace = false;
@@ -453,6 +454,7 @@ export default defineComponent({
           :default-version="defaultVersion"
           :loading-versions="loadingVersions"
           :show-version-management="!isRKE1"
+          :is-local="isLocal"
           :version-management-global-setting="versionManagementGlobalSetting"
           :version-management="versionManagement"
           :version-management-old="versionManagementOld"
@@ -548,7 +550,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        v-if="!isCreate && !isRKE1"
+        v-if="!isRKE1"
         class="mb-20 accordion"
         title-key="imported.accordions.registries"
         data-testid="registries-accordion"
@@ -571,7 +573,6 @@ export default defineComponent({
           v-if="showPrivateRegistryInput"
           v-model:value="normanCluster.importedConfig.privateRegistryURL"
           :mode="mode"
-          :disabled="!isEdit"
           :rules="fvGetAndReportPathRules('normanCluster.importedConfig.privateRegistryURL')"
           label-key="catalog.chart.registry.custom.inputLabel"
           data-testid="private-registry-url"

@@ -9,6 +9,9 @@ import { generateRandomAlphaString } from '@shell/utils/string';
 import LabeledSelectPagination from '@shell/components/form/labeled-select-utils/labeled-select-pagination';
 import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
 import { mapGetters } from 'vuex';
+import { _VIEW } from '@shell/config/query-params';
+import { useClickOutside } from '@shell/composables/useClickOutside';
+import { ref } from 'vue';
 
 export default {
   name: 'LabeledSelect',
@@ -114,11 +117,23 @@ export default {
     }
   },
 
+  setup() {
+    const select = ref(null);
+    const isOpen = ref(false);
+
+    useClickOutside(select, () => {
+      isOpen.value = false;
+    });
+
+    return { isOpen, select };
+  },
+
   data() {
     return {
-      selectedVisibility: 'visible',
-      shouldOpen:         true,
-      uid:                generateRandomAlphaString(10)
+      selectedVisibility:   'visible',
+      shouldOpen:           true,
+      labeledSelectLabelId: `ls-label-id-${ generateRandomAlphaString(12) }`,
+      generatedUid:         `ls-uid-${ generateRandomAlphaString(12) }`
     };
   },
 
@@ -154,28 +169,24 @@ export default {
   },
 
   methods: {
+    // Ensure we only focus on open, otherwise we re-open on close
+    clickSelect() {
+      if (this.mode === _VIEW || this.loading === true || this.disabled === true) {
+        return;
+      }
+
+      this.isOpen = !this.isOpen;
+
+      if (this.isOpen) {
+        this.focusSearch();
+      }
+    },
+
     // resizeHandler = in mixin
     focusSearch() {
       if (this.isView || this.disabled || this.loading) {
         return;
       }
-
-      // we need this override as in a "closeOnSelect" type of component
-      // if we don't have this override, it would open again
-      if (this.overridesMixinPreventDoubleTriggerKeysOpen) {
-        this.$nextTick(() => {
-          const el = this.$refs['select'];
-
-          if ( el ) {
-            el.focus();
-          }
-
-          this.overridesMixinPreventDoubleTriggerKeysOpen = false;
-        });
-
-        return;
-      }
-      this.$refs['select-input'].open = true;
 
       this.$nextTick(() => {
         const el = this.$refs['select-input']?.searchEl;
@@ -184,6 +195,10 @@ export default {
           el.focus();
         }
       });
+    },
+
+    focusWrapper() {
+      this.$refs.select.focus();
     },
 
     onFocus() {
@@ -197,12 +212,27 @@ export default {
     },
 
     onOpen() {
+      this.focusSearch();
       this.$emit('on-open');
       this.resizeHandler();
     },
 
+    closeOnSelecting(e) {
+      if (e.value === this.value) {
+        this.close();
+      }
+
+      this.$emit('selecting', e);
+    },
+
+    close() {
+      this.isOpen = false;
+      this.onClose();
+    },
+
     onClose() {
       this.$emit('on-close');
+      this.focusWrapper();
     },
 
     getOptionLabel(option) {
@@ -237,6 +267,10 @@ export default {
     },
 
     dropdownShouldOpen(instance, forceOpen = false) {
+      if (!this.isOpen) {
+        return false;
+      }
+
       const { noDrop, mutableLoading } = instance;
       const { open } = instance;
       const shouldOpen = this.shouldOpen;
@@ -279,6 +313,7 @@ export default {
 
 <template>
   <div
+    :id="hasLabel ? labeledSelectLabelId : undefined"
     ref="select"
     class="labeled-select"
     :class="[
@@ -296,10 +331,14 @@ export default {
       }
     ]"
     :tabindex="isView || disabled ? -1 : 0"
-    @click="focusSearch"
-    @keydown.enter="focusSearch"
-    @keydown.down.prevent="focusSearch"
-    @keydown.space.prevent="focusSearch"
+    role="combobox"
+    :aria-expanded="isOpen"
+    :aria-describedby="$attrs['aria-describedby'] || undefined"
+    :aria-required="requiredField"
+    @click="clickSelect"
+    @keydown.self.enter="clickSelect"
+    @keydown.self.down.prevent="clickSelect"
+    @keydown.self.space.prevent="clickSelect"
   >
     <div
       :class="{ 'labeled-container': true, raised, empty, [mode]: true }"
@@ -307,7 +346,7 @@ export default {
     >
       <label
         v-if="hasLabel"
-        :id="`labeled-select-uid-${uid}`"
+        :for="labeledSelectLabelId"
       >
         <t
           v-if="labelKey"
@@ -318,14 +357,15 @@ export default {
         <span
           v-if="requiredField"
           class="required"
+          :aria-hidden="true"
         >*</span>
       </label>
     </div>
     <v-select
       ref="select-input"
-      :aria-labelledby="hasLabel ? `labeled-select-uid-${uid}` : ''"
       v-bind="filteredAttrs"
       class="inline"
+      :close-on-select="false"
       :append-to-body="appendToBody"
       :calculate-position="positionDropdown"
       :class="{ 'no-label': !(label || '').length}"
@@ -344,15 +384,18 @@ export default {
       :modelValue="value != null && !loading ? value : ''"
       :dropdown-should-open="dropdownShouldOpen"
       :tabindex="-1"
-      role="listbox"
+      :uid="generatedUid"
+      :aria-label="'-'"
       @update:modelValue="$emit('selecting', $event); $emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
       @search="onSearch"
       @open="onOpen"
       @close="onClose"
-      @option:selecting="$emit('selecting', $event)"
+      @option:selecting="closeOnSelecting"
+      @option:selected="close"
       @option:deselecting="$emit('deselecting', $event)"
+      @keydown.enter.stop
     >
       <template #option="option">
         <template v-if="showTagPrompts">
@@ -374,7 +417,7 @@ export default {
           </div>
         </template>
         <template v-else-if="option.kind === 'divider'">
-          <hr>
+          <hr role="none">
         </template>
         <template v-else-if="option.kind === 'highlighted'">
           <div class="option-kind-highlighted">

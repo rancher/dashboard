@@ -1,6 +1,5 @@
 import { escapeHtml, ucFirst } from '@shell/utils/string';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import typeHelper from '@shell/utils/type-helpers';
 import { addObject, addObjects, findBy } from '@shell/utils/array';
 import { FLEET, MANAGEMENT } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
@@ -11,18 +10,20 @@ export default class FleetBundle extends SteveModel {
     return this.status?.conditions?.[0].lastUpdateTime;
   }
 
-  get bundleType() {
-    if (typeHelper.memberOfObject(this.spec, 'helm')) {
-      return 'helm';
-    }
-
-    return '';
-  }
-
   get repoName() {
     const labels = this.metadata?.labels || {};
 
     return labels[FLEET_ANNOTATIONS.REPO_NAME];
+  }
+
+  get helmName() {
+    const labels = this.metadata?.labels || {};
+
+    return labels[FLEET_ANNOTATIONS.HELM_NAME];
+  }
+
+  get appSourceName() {
+    return this.helmName || this.repoName;
   }
 
   get targetClusters() {

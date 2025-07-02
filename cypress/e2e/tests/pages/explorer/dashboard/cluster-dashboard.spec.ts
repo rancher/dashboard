@@ -6,9 +6,10 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
 import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import { NodesPagePo } from '@/cypress/e2e/po/pages/explorer/nodes.po';
-import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
+import { EventsPageListPo } from '@/cypress/e2e/po/pages/explorer/events.po';
 import * as path from 'path';
 import { eventsNoDataset } from '@/cypress/e2e/blueprints/explorer/cluster/events';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
 const configMapYaml = `apiVersion: v1
 kind: ConfigMap
@@ -41,7 +42,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     clusterList.goTo();
     clusterList.waitForPage();
 
-    // check if burguer menu nav is highlighted correctly for cluster manager
+    // check if burger menu nav is highlighted correctly for cluster manager
     BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Cluster Management');
 
     clusterList.list().explore('local').click();
@@ -86,7 +87,6 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     header.kubectlShell().openAndExecuteCommand('get no');
     header.kubectlShell().closeTerminal();
-    header.kubectlShell().checkNotVisible();
   });
 
   it('can download kubeconfig from header', () => {
@@ -245,25 +245,26 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // Check events
-    clusterDashboard.eventsList().resourceTable().sortableTable().rowElements()
+    clusterDashboard.eventsList().sortableTable().rowElements()
       .should('have.length.gte', 2);
 
     clusterDashboard.fullEventsLink().click();
 
-    const events = new EventsPagePo('local');
+    const events = new EventsPageListPo('local');
 
     events.waitForPage();
-    events.sortableTable().rowElements().should('have.length.gte', 2);
+    events.list().resourceTable().sortableTable().rowElements()
+      .should('have.length.gte', 2);
   });
 
-  it('can view events table empty if no events', { tags: ['@vai', '@adminUser'] }, () => {
+  it('can view events table empty if no events', { tags: ['@noVai', '@adminUser'] }, () => {
     eventsNoDataset();
     clusterDashboard.goTo();
 
     cy.wait('@eventsNoData');
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
-    clusterDashboard.eventsList().resourceTable().sortableTable().checkRowCount(true, 1);
+    clusterDashboard.eventsList().sortableTable().checkRowCount(true, 1);
 
     let expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'Date'];
 
@@ -272,10 +273,10 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
         expectedHeaders = ['Reason', 'Object', 'Message', 'Name', 'First Seen', 'Last Seen', 'Count'];
       }
 
-      clusterDashboard.eventsList().resourceTable().sortableTable().tableHeaderRow()
+      clusterDashboard.eventsList().sortableTable().tableHeaderRow()
         .self()
         .scrollIntoView();
-      clusterDashboard.eventsList().resourceTable().sortableTable().tableHeaderRow()
+      clusterDashboard.eventsList().sortableTable().tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedHeaders[i]);
@@ -283,16 +284,16 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
       clusterDashboard.fullEventsLink().click();
       cy.wait('@eventsNoData');
-      const events = new EventsPagePo('local');
+      const events = new EventsPageListPo('local');
 
       events.waitForPage();
 
-      events.eventslist().resourceTable().sortableTable().checkRowCount(true, 1);
+      events.list().resourceTable().sortableTable().checkRowCount(true, 1);
 
       const expectedFullHeaders = ['State', 'Last Seen', 'Type', 'Reason', 'Object',
         'Subobject', 'Source', 'Message', 'First Seen', 'Count', 'Name', 'Namespace'];
 
-      events.eventslist().resourceTable().sortableTable().tableHeaderRow()
+      events.list().resourceTable().sortableTable().tableHeaderRow()
         .within('.table-header-container .content')
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedFullHeaders[i]);
@@ -373,6 +374,52 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
         cy.deleteRancherResource('v3', 'users', userId);
       });
+    });
+  });
+
+  function reply(statusCode: number, body: any) {
+    return (req) => {
+      req.reply({ statusCode, body });
+    };
+  }
+
+  const forbiddenResponse = {
+    type:    'error',
+    links:   {},
+    code:    'Forbidden',
+    message: 'deployments.apps is forbidden',
+    status:  403,
+  };
+
+  describe('Cluster dashboard - Fleet agent', () => {
+    it('does not show fleet controller status if a 403 is returned by the API', () => {
+      cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-system/fleet-controller?*', reply(403, forbiddenResponse));
+      cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-local-system/fleet-agent?*', reply(403, forbiddenResponse));
+
+      HomePagePo.goToAndWaitForGet();
+      ClusterDashboardPagePo.navTo();
+      clusterDashboard.waitForPage();
+
+      clusterDashboard.fleetStatus().should('exist');
+      clusterDashboard.fleetStatus().should('be.hidden');
+      clusterDashboard.etcdStatus().should('exist');
+      clusterDashboard.schedulerStatus().should('exist');
+      clusterDashboard.controllerManagerStatus().should('exist');
+    });
+
+    it('does not show fleet controller status if a 404 is returned by the API', () => {
+      cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-system/fleet-controller?*', reply(404, {}));
+      cy.intercept('GET', '/v1/apps.deployments/cattle-fleet-local-system/fleet-agent?*', reply(404, {}));
+
+      HomePagePo.goToAndWaitForGet();
+      ClusterDashboardPagePo.navTo();
+      clusterDashboard.waitForPage();
+
+      clusterDashboard.fleetStatus().should('exist');
+      clusterDashboard.fleetStatus().should('be.hidden');
+      clusterDashboard.etcdStatus().should('exist');
+      clusterDashboard.schedulerStatus().should('exist');
+      clusterDashboard.controllerManagerStatus().should('exist');
     });
   });
 

@@ -1,10 +1,8 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import AboutPagePo from '@/cypress/e2e/po/pages/about.po';
 import DiagnosticsPagePo from '@/cypress/e2e/po/pages/diagnostics.po';
-import * as path from 'path';
 
 const aboutPage = new AboutPagePo();
-const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   before(() => {
@@ -15,6 +13,14 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
     HomePagePo.goToAndWaitForGet();
     AboutPagePo.navTo();
     aboutPage.waitForPage();
+  });
+
+  it('no Prime info when community', () => {
+    HomePagePo.goToAndWaitForGet();
+    AboutPagePo.navTo();
+    aboutPage.waitForPage();
+
+    aboutPage.rancherPrimeInfo().should('not.exist');
   });
 
   it('can navigate to Diagnostics page', () => {
@@ -80,36 +86,6 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
     });
   });
 
-  describe('Image List', () => {
-    before(() => {
-      aboutPage.goTo();
-    });
-
-    it('can download Linux Image List', () => {
-      // Download txt and verify file exists
-      const downloadedFilename = path.join(downloadsFolder, 'rancher-linux-images.txt');
-
-      aboutPage.getLinuxDownloadLink().click();
-
-      cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-        const rancherVersion = resp.body['value'];
-
-        cy.readFile(downloadedFilename).should('contain', rancherVersion);
-      });
-    });
-
-    it('can download Windows Image List', () => {
-      const downloadedFilename = path.join(downloadsFolder, 'rancher-windows-images.txt');
-
-      aboutPage.getWindowsDownloadLink().click();
-      cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-version').then((resp: Cypress.Response<any>) => {
-        const rancherVersion = resp.body['value'];
-
-        cy.readFile(downloadedFilename).should('contain', rancherVersion);
-      });
-    });
-  });
-
   describe('CLI Downloads', () => {
     // Shouldn't be needed with https://github.com/rancher/dashboard/issues/11393
     const expectedLinkStatusCode = 200;
@@ -160,6 +136,28 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
           expect(request.url).includes(windowsVersion);
         });
       });
+    });
+  });
+
+  describe('Rancher Prime', () => {
+    function interceptVersionAndSetToPrime() {
+      return cy.intercept('GET', '/rancherversion', {
+        statusCode: 200,
+        body:       {
+          Version:      '9bf6631da',
+          GitCommit:    '9bf6631da',
+          RancherPrime: 'true'
+        }
+      });
+    }
+
+    it('should show prime panel on about page', () => {
+      interceptVersionAndSetToPrime().as('rancherVersion');
+      cy.login();
+      aboutPage.goTo();
+      aboutPage.waitForPage();
+
+      aboutPage.rancherPrimeInfo().should('exist');
     });
   });
 });

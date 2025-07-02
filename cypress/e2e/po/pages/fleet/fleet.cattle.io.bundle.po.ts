@@ -1,10 +1,10 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
+import { FleetDashboardListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
-import FleetBundlesList from '@/cypress/e2e/po/lists/fleet/fleet.cattle.io.bundle.po';
 
-export class FleetBundlesListPagePo extends PagePo {
+export class FleetBundlesListPagePo extends BaseListPagePo {
   static url = `/c/_/fleet/fleet.cattle.io.bundle`
 
   constructor() {
@@ -16,28 +16,48 @@ export class FleetBundlesListPagePo extends PagePo {
   }
 
   static navTo() {
-    const fleetDashboardPage = new FleetDashboardPagePo('_');
+    const fleetDashboardPage = new FleetDashboardListPagePo('_');
 
-    FleetDashboardPagePo.navTo();
+    FleetDashboardListPagePo.navTo();
     fleetDashboardPage.waitForPage();
 
     const sideNav = new ProductNavPo();
 
-    sideNav.navToSideMenuGroupByLabel('Advanced');
+    sideNav.navToSideMenuGroupByLabel('Resources');
     sideNav.navToSideMenuEntryByLabel('Bundles');
   }
+}
 
-  bundlesList() {
-    return new FleetBundlesList('[data-testid="sortable-table-list-container"]');
+export class FleetBundlesCreateEditPo extends BaseDetailPagePo {
+  private static createPath(workspace?: string, id?: string ) {
+    const root = `/c/_/fleet/fleet.cattle.io.bundle`;
+
+    return id ? `${ root }/${ workspace }/${ id }` : `${ root }/create`;
   }
 
-  goToDetailsPage(elemName: string) {
-    const resourceTable = new ResourceTablePo(this.self());
-
-    return resourceTable.sortableTable().detailsPageLinkWithName(elemName).click();
+  static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
+    throw new Error('invalid');
   }
 
-  resourceTable() {
+  constructor(workspace?: string, id?: string) {
+    super(FleetBundlesCreateEditPo.createPath(workspace, id));
+  }
+}
+
+export class FleetBundleDetailsPo extends BaseDetailPagePo {
+  private static createPath(fleetWorkspace: string, bundleName: string) {
+    return `/c/_/fleet/fleet.cattle.io.bundle/${ fleetWorkspace }/${ bundleName }`;
+  }
+
+  static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
+    throw new Error('invalid');
+  }
+
+  constructor(fleetWorkspace: string, bundleName: string) {
+    super(FleetBundleDetailsPo.createPath(fleetWorkspace, bundleName));
+  }
+
+  resourcesList() {
     return new ResourceTablePo(this.self());
   }
 }

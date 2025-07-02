@@ -31,19 +31,18 @@ import {
 import loadPlugins from '@shell/plugins/plugin';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import TabTitle from '@shell/components/TabTitle.vue';
 
 export default {
   name:       'Login',
   components: {
-    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector, Loading
+    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector, Loading, TabTitle
   },
 
   data() {
-    const username = this.$cookies.get(USERNAME, { parseJSON: false }) || '';
-
     return {
-      username,
-      remember: !!username,
+      username: '',
+      remember: false,
       password: '',
 
       timedOut:           this.$route.query[TIMED_OUT] === _FLAGGED,
@@ -135,6 +134,11 @@ export default {
   },
 
   async fetch() {
+    const username = this.$cookies.get(USERNAME, { parseJSON: false }) || '';
+
+    this.username = username;
+    this.remember = !!username;
+
     const { firstLoginSetting } = await this.loadInitialSettings();
     const { value } = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS });
     const drivers = await this.$store.dispatch('auth/getAuthProviders');
@@ -311,10 +315,16 @@ export default {
     v-if="$fetchState.pending"
     mode="relative"
   />
-  <main
+  <div
     v-else
     class="main-layout login"
   >
+    <TabTitle
+      :show-child="false"
+      :breadcrumb="false"
+    >
+      {{ `${vendor} - ${t('login.login')}` }}
+    </TabTitle>
     <div class="row gutless mb-20">
       <div class="col span-6 p-20">
         <p class="text-center">
@@ -509,9 +519,10 @@ export default {
         class="col span-6 landscape"
         data-testid="login-landscape__img"
         file-name="login-landscape.svg"
+        :alt="t('login.landscapeAlt')"
       />
     </div>
-  </main>
+  </div>
 </template>
 
 <style lang="scss" scoped>

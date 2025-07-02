@@ -6,6 +6,9 @@ import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import { removeAt } from '@shell/utils/array';
 
+// Components shown for Network Policy --> Ingress/Egress Rules --> Rule Type are...
+// Edit Network Policy --> `PolicyRules` 1 --> M `PolicyRule` 1 --> M `PolicyRuleTarget`
+
 export default {
   components: {
     PolicyRule, Tabbed, Tab
@@ -24,18 +27,10 @@ export default {
       type:    String,
       default: 'ingress'
     },
-    allPods: {
-      type:    Array,
-      default: () => {
-        return [];
-      },
-    },
-    allNamespaces: {
-      type:    Array,
-      default: () => {
-        return [];
-      },
-    },
+    useTabbedHash: {
+      type:    Boolean,
+      default: undefined
+    }
   },
   data() {
     if (!this.value.spec[this.type]) {
@@ -65,6 +60,7 @@ export default {
         <Tabbed
           :side-tabs="true"
           :show-tabs-add-remove="mode !== 'view'"
+          :use-hash="useTabbedHash"
           @addTab="addPolicyRule"
           @removeTab="removePolicyRule"
         >
@@ -82,8 +78,6 @@ export default {
               :mode="mode"
               :type="type"
               :namespace="value.metadata.namespace"
-              :all-namespaces="allNamespaces"
-              :all-pods="allPods"
             />
           </Tab>
         </Tabbed>

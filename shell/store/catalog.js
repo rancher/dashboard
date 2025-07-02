@@ -1,4 +1,4 @@
-import { CATALOG, EXPERIMENTAL, DEPRECATED } from '@shell/config/types';
+import { CATALOG, EXPERIMENTAL, DEPRECATED, CATALOG_SORT_OPTIONS } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addParams } from '@shell/utils/url';
 import { allHash, allHashSettled } from '@shell/utils/promise';
@@ -29,6 +29,12 @@ const CERTIFIED_SORTS = {
   [CATALOG_ANNOTATIONS._EXPERIMENTAL]: 1,
   [CATALOG_ANNOTATIONS._PARTNER]:      2,
   other:                               3,
+};
+
+export const APP_STATUS = {
+  INSTALLED:   'installed',
+  DEPRECATED:  'deprecated',
+  UPGRADEABLE: 'upgradeable'
 };
 
 export const APP_UPGRADE_STATUS = {
@@ -498,35 +504,52 @@ function addChart(ctx, map, chart, repo) {
 
   if ( !obj ) {
     if ( ctx ) { }
+    const experimental = !!chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL];
+    const windowsIncompatible = !(chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || '').includes('windows');
+    const deploysOnWindows = (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows');
+    const tags = [];
+
+    if (experimental) {
+      tags.push(ctx.rootGetters['i18n/withFallback']('generic.experimental'));
+    }
+    if (windowsIncompatible) {
+      tags.push(ctx.rootGetters['i18n/withFallback']('catalog.charts.windowsIncompatible'));
+    }
+    if (deploysOnWindows) {
+      tags.push(ctx.rootGetters['i18n/withFallback']('catalog.charts.deploysOnWindows'));
+    }
+
     obj = classify(ctx, {
       key,
-      type:                'chart',
-      id:                  key,
+      type:             'chart',
+      id:               key,
       certified,
       sideLabel,
       repoType,
       repoName,
-      repoNameDisplay:     ctx.rootGetters['i18n/withFallback'](`catalog.repo.name."${ repoName }"`, null, repoName),
-      certifiedSort:       CERTIFIED_SORTS[certified] || 99,
-      icon:                chart.icon,
-      color:               repo.color,
-      chartType:           chart.annotations?.[CATALOG_ANNOTATIONS.TYPE] || CATALOG_ANNOTATIONS._APP,
-      chartName:           chart.name,
-      chartNameDisplay:    chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
-      chartDescription:    chart.description,
-      featured:            chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED],
-      repoKey:             repo._key,
-      versions:            [],
-      categories:          filterCategories(chart.keywords),
-      deprecated:          !!chart.deprecated,
-      experimental:        !!chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL],
-      hidden:              !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
-      targetNamespace:     chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
-      targetName:          chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
-      scope:               chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
-      provides:            [],
-      windowsIncompatible: !(chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || '').includes('windows'),
-      deploysOnWindows:    (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows')
+      repoNameDisplay:  ctx.rootGetters['i18n/withFallback'](`catalog.repo.name."${ repoName }"`, null, repoName),
+      certifiedSort:    CERTIFIED_SORTS[certified] || 99,
+      icon:             chart.icon,
+      color:            repo.color,
+      chartType:        chart.annotations?.[CATALOG_ANNOTATIONS.TYPE] || CATALOG_ANNOTATIONS._APP,
+      chartName:        chart.name,
+      chartNameDisplay: chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
+      chartDescription: chart.description,
+      featured:         chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED],
+      featuredIndex:    chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED] ? Number(chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED]) : Number.MAX_SAFE_INTEGER,
+      repoKey:          repo._key,
+      versions:         [],
+      categories:       filterCategories(chart.keywords),
+      deprecated:       !!chart.deprecated,
+      experimental,
+      hidden:           !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
+      targetNamespace:  chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
+      targetName:       chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
+      scope:            chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
+      provides:         [],
+      windowsIncompatible,
+      deploysOnWindows,
+      tags
     });
 
     map[key] = obj;
@@ -543,6 +566,10 @@ function addChart(ctx, map, chart, repo) {
   }
 
   obj.versions.push(chart);
+
+  if (!obj.durationSinceRelease) {
+    obj.durationSinceRelease = Date.now() - new Date(obj.versions[0].created).getTime();
+  }
 }
 
 function preferSameRepo(matching, repoType, repoName) {
@@ -582,6 +609,16 @@ function normalizeCategory(c) {
   return c.replace(/\s+/g, '').toLowerCase();
 }
 
+export function normalizeFilterQuery(value) {
+  if (Array.isArray(value)) {
+    return value.map((v) => v.toLowerCase());
+  } else if (value) {
+    return [value.toLowerCase()];
+  }
+
+  return undefined;
+}
+
 /*
 catalog.cattle.io/deplys-on-os: OS -> requires global.cattle.OS.enabled: true
   default: nothing
@@ -614,7 +651,9 @@ export function filterAndArrangeCharts(charts, {
   clusterProvider = '',
   operatingSystems,
   category,
+  tag,
   searchQuery,
+  sort,
   showDeprecated = false,
   showHidden = false,
   showPrerelease = true,
@@ -641,8 +680,13 @@ export function filterAndArrangeCharts(charts, {
       return false;
     }
 
-    if ( category && !c.categories.includes(category) ) {
+    if (category?.length && !c.categories.some((cat) => category.includes(cat.toLowerCase()))) {
       // The category filter doesn't match
+      return false;
+    }
+
+    if (tag?.length && !c.tags.some((t) => tag.includes(t.toLowerCase()))) {
+      // The tag filter doesn't match
       return false;
     }
 
@@ -661,6 +705,22 @@ export function filterAndArrangeCharts(charts, {
 
     return true;
   });
+
+  if (sort === CATALOG_SORT_OPTIONS.RECOMMENDED) {
+    return sortBy(out, ['featuredIndex', 'certifiedSort', 'repoName', 'chartNameDisplay']);
+  }
+
+  if (sort === CATALOG_SORT_OPTIONS.LAST_UPDATED_DESC) {
+    return sortBy(out, ['durationSinceRelease', 'featuredIndex', 'certifiedSort', 'repoName', 'chartNameDisplay']);
+  }
+
+  if (sort === CATALOG_SORT_OPTIONS.ALPHABETICAL_ASC) {
+    return sortBy(out, ['chartNameDisplay', 'featuredIndex', 'certifiedSort', 'repoName']);
+  }
+
+  if (sort === CATALOG_SORT_OPTIONS.ALPHABETICAL_DESC) {
+    return sortBy(out, ['chartNameDisplay'], true);
+  }
 
   return sortBy(out, ['certifiedSort', 'repoName', 'chartNameDisplay']);
 }

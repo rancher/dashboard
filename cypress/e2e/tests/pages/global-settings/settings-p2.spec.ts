@@ -14,7 +14,7 @@ const accountPage = new AccountPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const burgerMenu = new BurgerMenuPo();
 const settingsOrginal = [];
-const removeServerUrl = false;
+let removeServerUrl = false;
 
 describe('Settings', { testIsolation: 'off' }, () => {
   before(() => {
@@ -280,42 +280,6 @@ describe('Settings', { testIsolation: 'off' }, () => {
       .should('eq', rancherLogoWidth);
   });
 
-  it('can update cluster-template-enforcement', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Update setting
-    SettingsPagePo.navTo();
-    settingsPage.editSettingsByLabel('cluster-template-enforcement');
-
-    const settingsEdit = settingsPage.editSettings('local', 'cluster-template-enforcement');
-
-    settingsEdit.waitForPage();
-    settingsEdit.title().contains('Setting: cluster-template-enforcement').should('be.visible');
-    settingsEdit.settingsRadioBtn().set(0);
-    settingsEdit.saveAndWait('cluster-template-enforcement').then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['cluster-template-enforcement'].new);
-      expect(response?.body).to.have.property('value', settings['cluster-template-enforcement'].new);
-    });
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('cluster-template-enforcement').contains(settings['cluster-template-enforcement'].new);
-
-    // Reset
-    SettingsPagePo.navTo();
-    settingsPage.waitForPage();
-    settingsPage.editSettingsByLabel('cluster-template-enforcement');
-
-    settingsEdit.waitForPage();
-    settingsEdit.title().contains('Setting: cluster-template-enforcement').should('be.visible');
-    settingsEdit.useDefaultButton().click();
-    settingsEdit.saveAndWait('cluster-template-enforcement').then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['cluster-template-enforcement'].original);
-      expect(response?.body).to.have.property('value', settings['cluster-template-enforcement'].original);
-    });
-
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('cluster-template-enforcement').contains(settings['cluster-template-enforcement'].original);
-  });
-
   it('can update hide-local-cluster', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
@@ -385,6 +349,43 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('k3s-based-upgrader-uninstall-concurrency').contains(settings['k3s-based-upgrader-uninstall-concurrency'].original);
   });
 
+  // GH https://github.com/rancher/rancher/issues/50883
+  // it('can update system-agent-upgrader-install-concurrency', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  //     // Update setting
+  //     SettingsPagePo.navTo();
+  //     settingsPage.editSettingsByLabel('system-agent-upgrader-install-concurrency');
+
+  //     const settingsEdit = settingsPage.editSettings('local', 'system-agent-upgrader-install-concurrency');
+
+  //     settingsEdit.waitForPage();
+  //     settingsEdit.title().contains('Setting: system-agent-upgrader-install-concurrency').should('be.visible');
+  //     settingsEdit.settingsInput().set(settings['system-agent-upgrader-install-concurrency'].new);
+  //     settingsEdit.saveAndWait('system-agent-upgrader-install-concurrency').then(({ request, response }) => {
+  //       expect(response?.statusCode).to.eq(200);
+  //       expect(request.body).to.have.property('value', settings['system-agent-upgrader-install-concurrency'].new);
+  //       expect(response?.body).to.have.property('value', settings['system-agent-upgrader-install-concurrency'].new);
+  //     });
+  //     settingsPage.waitForPage();
+  //     settingsPage.settingsValue('system-agent-upgrader-install-concurrency').contains(settings['system-agent-upgrader-install-concurrency'].new);
+
+  //     // Reset
+  //     SettingsPagePo.navTo();
+  //     settingsPage.waitForPage();
+  //     settingsPage.editSettingsByLabel('system-agent-upgrader-install-concurrency');
+
+  //     settingsEdit.waitForPage();
+  //     settingsEdit.title().contains('Setting: system-agent-upgrader-install-concurrency').should('be.visible');
+  //     settingsEdit.useDefaultButton().click();
+  //     settingsEdit.saveAndWait('system-agent-upgrader-install-concurrency').then(({ request, response }) => {
+  //       expect(response?.statusCode).to.eq(200);
+  //       expect(request.body).to.have.property('value', settings['system-agent-upgrader-install-concurrency'].original);
+  //       expect(response?.body).to.have.property('value', settings['system-agent-upgrader-install-concurrency'].original);
+  //     });
+
+  //     settingsPage.waitForPage();
+  //     settingsPage.settingsValue('system-agent-upgrader-install-concurrency').contains(settings['system-agent-upgrader-install-concurrency'].original);
+  //   });
+
   it('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
@@ -407,7 +408,6 @@ describe('Settings', { testIsolation: 'off' }, () => {
     clusterList.createCluster();
 
     createRKE2ClusterPage.waitForPage();
-    createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
 
     createRKE2ClusterPage.selectCustom(0);
     createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-rke2-calico"]');
@@ -433,7 +433,6 @@ describe('Settings', { testIsolation: 'off' }, () => {
   it('standard user has only read access to Settings page', { tags: ['@globalSettings', '@standardUser'] }, () => {
     // verify action buttons are hidden for standard user
     SettingsPagePo.navTo();
-    settingsPage.actionButtonByLabel('engine-install-url').should('not.exist');
     settingsPage.actionButtonByLabel('password-min-length').should('not.exist');
   });
 

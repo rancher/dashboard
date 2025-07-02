@@ -26,7 +26,7 @@ export default abstract class ClusterManagerDetailPagePo extends PagePo {
   }
 
   title() {
-    return this.self().find('.primaryheader h1');
+    return this.self().find('.title-bar h1.title, .primaryheader h1');
   }
 
   logsContainer() {

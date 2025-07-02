@@ -1,5 +1,5 @@
 
-import { SCHEMA, COUNT } from '@shell/config/types';
+import { SCHEMA, COUNT, POD } from '@shell/config/types';
 
 import { matches } from '@shell/utils/selector';
 import { typeMunge, typeRef, SIMPLE_TYPES } from '@shell/utils/create-yaml';
@@ -9,7 +9,11 @@ import { keyFieldFor, normalizeType } from './normalize';
 import { lookup } from './model-loader';
 import garbageCollect from '@shell/utils/gc/gc';
 import paginationUtils from '@shell/utils/pagination-utils';
+import { labelSelectorToSelector } from '@shell/utils/selector-typed';
 
+/**
+ * opt: ActionFindPageArgs
+ */
 export const urlFor = (state, getters) => (type, id, opt) => {
   opt = opt || {};
   type = getters.normalizeType(type);
@@ -45,6 +49,33 @@ export const urlFor = (state, getters) => (type, id, opt) => {
 
   return url;
 };
+
+function resourceCount(rootGetters, getters, typeObj) {
+  let _typeObj = typeObj;
+  const { name: type, count } = _typeObj;
+
+  if (!type) {
+    throw new Error(`Resource type required to calc count: ${ JSON.stringify(typeObj) }`);
+  }
+
+  if (!count) {
+    const schema = getters.schemaFor(type);
+    const counts = getters.all(COUNT)?.[0]?.counts || {};
+    const count = counts[type];
+
+    // This object aligns with `Type.vue` `type`
+    _typeObj = {
+      count:       count ? count.summary.count || 0 : null,
+      byNamespace: count ? count.namespaces : {},
+      revision:    count ? count.revision : null,
+      namespaced:  schema?.attributes?.namespaced
+    };
+  }
+
+  const namespaces = _typeObj?.namespaced && !rootGetters.isAllNamespaces ? Object.keys(rootGetters.activeNamespaceCache || {}) : [];
+
+  return matchingCounts(_typeObj, namespaces.length ? namespaces : null);
+}
 
 /**
  * Find the number of resources given
@@ -91,12 +122,55 @@ export default {
     return state.types[type].list;
   },
 
+  /**
+   * This is a _manual_ application of the selector against whatever is in the store
+   *
+   * The store must be populated with enough resources to make this valid
+   *
+   * It's like `matching` except
+   * - it accepts a kube labelSelector object (see KubeLabelSelector)
+   * - if the store already has the selector and only the selector just return it, otherwise run through `matching`
+   */
+  matchingLabelSelector: (state, getters, rootState) => (type, labelSelector, namespace) => {
+    type = getters.normalizeType(type);
+    const selector = labelSelectorToSelector(labelSelector);
+    const page = getters['havePage'](type, selector)?.request;
+
+    // Does the store contain the result of a vai backed api request?
+    if (
+      page?.namespace === namespace &&
+      page?.pagination?.filters?.length === 0 &&
+      page?.pagination.labelSelector &&
+      selector === labelSelectorToSelector(page?.pagination.labelSelector
+      )
+    ) {
+      return getters.all(type);
+    }
+
+    // Does the store contain the result of a specific labelSelector request?
+    if (getters['haveSelector'](type, selector)) {
+      return getters.all(type);
+    }
+
+    // Does the store have all and we can pretend like it contains a result of a labelSelector?
+    if (getters['haveAll'](type)) {
+      return getters.matching( type, selector, namespace );
+    }
+
+    return [];
+  },
+
+  /**
+   * This is a _manual_ application of the selector against whatever is in the store
+   *
+   * The store must be populated with enough resources to make this valid
+   */
   matching: (state, getters, rootState) => (type, selector, namespace, config = { skipSelector: false }) => {
     let matching = getters['all'](type);
 
     // Filter first by namespace if one is provided, since this is efficient
     if (namespace && typeof namespace === 'string') {
-      matching = matching.filter((obj) => obj.namespace === namespace);
+      matching = type === POD ? getters['podsByNamespace'](namespace) : matching.filter((obj) => obj.namespace === namespace);
     }
 
     garbageCollect.gcUpdateLastAccessed({
@@ -327,6 +401,9 @@ export default {
     return state.types[type]?.haveNamespace || null;
   },
 
+  /**
+   * Returns (type: string ) => StorePagination
+   */
   havePage: (state, getters) => (type) => {
     type = getters.normalizeType(type);
 
@@ -408,30 +485,13 @@ export default {
    *
    */
   count: (state, getters, rootState, rootGetters) => (typeObj) => {
-    let _typeObj = typeObj;
-    const { name: type, count } = _typeObj;
+    const subTypes = rootGetters['type-map/optionsFor'](typeObj.name).subTypes || [];
 
-    if (!type) {
-      throw new Error(`Resource type required to calc count: ${ JSON.stringify(typeObj) }`);
+    if (subTypes.length) {
+      return subTypes.reduce((acc, type) => acc + resourceCount(rootGetters, getters, { name: type }), 0);
     }
 
-    if (!count) {
-      const schema = getters.schemaFor(type);
-      const counts = getters.all(COUNT)?.[0]?.counts || {};
-      const count = counts[type];
-
-      // This object aligns with `Type.vue` `type`
-      _typeObj = {
-        count:       count ? count.summary.count || 0 : null,
-        byNamespace: count ? count.namespaces : {},
-        revision:    count ? count.revision : null,
-        namespaced:  schema?.attributes?.namespaced
-      };
-    }
-
-    const namespaces = _typeObj?.namespaced && !rootGetters.isAllNamespaces ? Object.keys(rootGetters.activeNamespaceCache || {}) : [];
-
-    return matchingCounts(_typeObj, namespaces.length ? namespaces : null);
+    return resourceCount(rootGetters, getters, typeObj);
   },
 
   generation: (state, getters) => (type) => {
@@ -445,7 +505,17 @@ export default {
     return undefined;
   },
 
+  /**
+   * Determine if server-side pagination (SSP) is enabled
+   *
+   * If args is falsy just check the Feature Flag
+   *
+   * Otherwise args should reference a resource who's compatibility with SSP will also be checked
+   */
   paginationEnabled: (state, getters, rootState, rootGetters) => (args) => {
+    if (!args) {
+      return paginationUtils.isSteveCacheEnabled({ rootGetters });
+    }
     const id = typeof args === 'object' ? args.id : args;
     const context = typeof args === 'object' ? args.context : undefined;
 
@@ -453,5 +523,19 @@ export default {
     const resource = id || context ? { id, context } : null;
 
     return paginationUtils.isEnabled({ rootGetters }, { store, resource });
-  }
+  },
+
+  /**
+   * Is the url path a rancher steve one?
+   *
+   * Can be used to change behaviour given steve api
+   */
+  isSteveUrl: (state) => () => false,
+
+  /**
+   * Is the url path a rancher steve one AND the steve cache is enabled?
+   *
+   * Can be used to change behaviour given steve cache api functionality
+   */
+  isSteveCacheUrl: (state) => () => false,
 };

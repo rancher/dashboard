@@ -61,6 +61,11 @@ export default {
     tabsOnly: {
       type:    Boolean,
       default: false,
+    },
+
+    resource: {
+      type:    Object,
+      default: () => {}
     }
   },
 
@@ -140,17 +145,10 @@ export default {
         this.select(activeTab.name);
       }
     },
-  },
-
-  mounted() {
-    if ( this.useHash ) {
-      window.addEventListener('hashchange', this.hashChange);
-    }
-  },
-
-  unmounted() {
-    if ( this.useHash ) {
-      window.removeEventListener('hashchange', this.hashChange);
+    '$route.hash'() {
+      if ( this.useHash ) {
+        this.hashChange();
+      }
     }
   },
 
@@ -177,8 +175,9 @@ export default {
     select(name/* , event */) {
       const { sortedTabs } = this;
 
-      const selected = this.find(name);
-      const hashName = `#${ name }`;
+      const cleanName = name.replace('#', '');
+      const selected = this.find(cleanName);
+      const hashName = `#${ cleanName }`;
 
       if ( !selected || selected.disabled) {
         return;
@@ -355,6 +354,7 @@ export default {
       >
         <component
           :is="tab.component"
+          :resource="resource"
         />
       </Tab>
     </div>

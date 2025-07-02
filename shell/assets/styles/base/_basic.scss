@@ -106,6 +106,16 @@ A {
     @include focus-outline;
     outline-offset: 2px;
   }
+
+  &.secondary {
+    color: var(--body-text);
+    text-decoration: underline;
+
+    &:hover,
+    &:active {
+      text-decoration: none;
+    }
+  }
 }
 
 HR {
@@ -144,3 +154,9 @@ HR.vertical {
 .force-wrap       { @include force-wrap }
 .bordered-section { @include bordered-section }
 .section-divider  { @include section-divider }
+
+fieldset {
+  border: 0;
+  padding: 0;
+  margin-inline: 0;
+}

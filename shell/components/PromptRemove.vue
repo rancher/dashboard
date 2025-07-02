@@ -43,6 +43,7 @@ export default {
       chartsToRemoveIsApp: false,
       chartsDeleteCrd:     false,
       showModal:           false,
+      cachedDoneLocation:  null
     };
   },
   computed: {
@@ -220,6 +221,7 @@ export default {
       this.error = '';
       this.chartsDeleteCrd = false;
       this.chartsToRemoveIsApp = false;
+      this.cachedDoneLocation = null;
       this.$store.commit('action-menu/togglePromptRemove');
     },
 
@@ -227,6 +229,8 @@ export default {
       if (this.doneLocation) {
         // doneLocation will recompute to undefined when delete request completes
         this.cachedDoneLocation = { ...this.doneLocation };
+      } else {
+        this.cachedDoneLocation = null;
       }
 
       if (this.hasCustomRemove && this.$refs?.customPrompt?.remove) {
@@ -294,7 +298,7 @@ export default {
       }
     },
     done() {
-      if ( this.cachedDoneLocation && !isEmpty(this.cachedDoneLocation) ) {
+      if (!isEmpty(this.cachedDoneLocation) && this.currentRouter) {
         this.currentRouter.push(this.cachedDoneLocation);
       }
       this.close();
@@ -339,6 +343,7 @@ export default {
     :width="400"
     height="auto"
     styles="max-height: 100vh;"
+    :trigger-focus-trap="true"
     @close="close"
   >
     <Card

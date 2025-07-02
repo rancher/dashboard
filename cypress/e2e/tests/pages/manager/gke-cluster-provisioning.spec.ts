@@ -3,6 +3,7 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import ClusterManagerCreateGKEPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-gke.po';
 import { DEFAULT_GCP_ZONE } from '@/pkg/gke/util/gcp';
+import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 /******
  *  Running this test will delete all GKE cloud credentials from the target cluster
@@ -19,21 +20,20 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
   let clusterId = '';
   let clusterDescription = '';
   const base64EncodedServiceAccount = Cypress.env('gkeServiceAccount');
+  let serviceAccount: any;
   let gkeProjectId = '';
 
   // Check if the base64 string is defined and valid
   if (base64EncodedServiceAccount) {
     try {
       // Decode the base64 string into a JSON string
-      const decodedServiceAccountJson = atob(base64EncodedServiceAccount);
+      const decodedServiceAccountJson = Buffer.from(base64EncodedServiceAccount, 'base64').toString('utf-8');
 
       // Parse the decoded JSON string
-      const serviceAccount = JSON.parse(decodedServiceAccountJson);
-
+      serviceAccount = JSON.parse(decodedServiceAccountJson);
       // Now you can access the project_id
       gkeProjectId = serviceAccount.project_id;
       /* eslint-disable no-console */
-      console.log(gkeProjectId); // Check if the value is correct
     } catch (error) {
       // Handle any error that occurs during decoding or parsing
       console.error('Error decoding or parsing service account JSON:', error);
@@ -85,9 +85,13 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
     // create GKE cloud credential
     cloudCredForm.saveButton().expectToBeDisabled();
     cloudCredForm.nameNsDescription().name().set(this.gkeCloudCredentialName);
-    cloudCredForm.serviceAccount().set(Cypress.env('gkeServiceAccount'));
+    // while issue #1717 in qa-tasks is open, line 91 is duplicated as a workaround. The duplicate line needs to be removed after issue is fixed
+    cloudCredForm.serviceAccount().set(serviceAccount);
+    cloudCredForm.serviceAccount().set(serviceAccount);
     cloudCredForm.saveButton().expectToBeEnabled();
-    cy.intercept('GET', '/v1/management.cattle.io.users?exclude=metadata.managedFields').as('pageLoad');
+
+    cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('pageLoad');
+
     cloudCredForm.saveCreateForm().cruResource().saveAndWaitForRequests('POST', '/v3/cloudcredentials').then((req) => {
       expect(req.response?.statusCode).to.equal(201);
       cloudcredentialId = req.response?.body.id.replace(':', '%3A');

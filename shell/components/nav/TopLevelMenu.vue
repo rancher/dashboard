@@ -257,6 +257,13 @@ export default {
       });
 
       return appBar;
+    },
+
+    hideLocalCluster() {
+      const hideLocalSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.HIDE_LOCAL_CLUSTER) || {};
+      const value = hideLocalSetting.value || hideLocalSetting.default || 'false';
+
+      return value === 'true';
     }
   },
 
@@ -309,6 +316,9 @@ export default {
       immediate: true,
     },
 
+    hideLocalCluster() {
+      this.updateClusters(this.pinnedIds, 'slow');
+    }
   },
 
   mounted() {
@@ -317,6 +327,7 @@ export default {
 
   beforeUnmount() {
     document.removeEventListener('keyup', this.handler);
+    this.helper?.destroy();
   },
 
   methods: {
@@ -430,8 +441,7 @@ export default {
 
       return {
         content,
-        placement:     'right',
-        popperOptions: { modifiers: { preventOverflow: { enabled: false }, hide: { enabled: false } } },
+        placement: 'right',
         popperClass
       };
     },
@@ -699,7 +709,7 @@ export default {
                   v-if="clustersFiltered.length > 0"
                   class="category-title"
                 >
-                  <hr>
+                  <hr role="none">
                 </div>
               </div>
 
@@ -813,7 +823,7 @@ export default {
               <div
                 class="category-title"
               >
-                <hr>
+                <hr role="none">
                 <span>
                   {{ t('nav.categories.multiCluster') }}
                 </span>
@@ -846,7 +856,7 @@ export default {
               <div
                 class="category-title"
               >
-                <hr>
+                <hr role="none">
                 <span>
                   {{ t('nav.categories.configuration') }}
                 </span>

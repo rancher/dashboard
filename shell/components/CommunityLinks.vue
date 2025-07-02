@@ -1,6 +1,5 @@
 <script>
 import SimpleBox from '@shell/components/SimpleBox';
-import AppModal from '@shell/components/AppModal.vue';
 import Closeable from '@shell/mixins/closeable';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
@@ -9,11 +8,11 @@ import { isRancherPrime } from '@shell/config/version';
 import { fetchLinks } from '@shell/config/home-links';
 import { processLink } from '@shell/plugins/clean-html';
 
-// i18n-ignore footer.wechat.title, footer.wechat.modalText, footer.wechat.modalText2
+// i18n-ignore footer.wechat.title
 export default {
   name: 'CommunityLinks',
 
-  components: { SimpleBox, AppModal },
+  components: { SimpleBox },
 
   props: {
     linkOptions: {
@@ -87,10 +86,7 @@ export default {
   },
   methods: {
     show() {
-      this.showWeChatModal = true;
-    },
-    close() {
-      this.showWeChatModal = false;
+      this.$store.dispatch('management/promptModal', { component: 'WechatDialog' });
     }
   },
 };
@@ -140,38 +136,12 @@ export default {
           :aria-label="t('footer.wechat.title')"
           role="link"
           @click="show"
-          @keyup.enter="show"
+          @keydown.enter="show"
         >
           {{ t('footer.wechat.title') }}
         </a>
       </div>
     </SimpleBox>
-    <app-modal
-      v-if="showWeChatModal"
-      name="wechat-modal"
-      height="auto"
-      :width="640"
-      @close="close"
-    >
-      <div class="wechat-modal">
-        <h1>{{ t('footer.wechat.modalText') }}</h1>
-        <h1>{{ t('footer.wechat.modalText2') }}</h1>
-        <div class="qr-img" />
-        <div>
-          <button
-            class="btn role-primary"
-            tabindex="0"
-            :aria-label="t('generic.close')"
-            role="button"
-            @click="close"
-            @keyup.enter="close"
-            @keyup.space="close"
-          >
-            {{ t('generic.close') }}
-          </button>
-        </div>
-      </div>
-    </app-modal>
   </div>
 </template>
 
@@ -187,30 +157,5 @@ export default {
   }
   .support-link:not(:last-child) {
     margin-bottom: 15px;
-  }
-
-  .wechat-modal {
-    margin: 60px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .link {
-    cursor: pointer;
-  }
-
-  .btn {
-    margin: 20px auto 0;
-  }
-
-  .qr-img {
-    background-image: url('../assets/images/wechat-qr-code.jpg');
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center center;
-    height: 128px;
-    width: 128px;
-    margin: 15px auto 10px;
   }
 </style>

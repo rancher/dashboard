@@ -1,4 +1,5 @@
 import { MANAGEMENT } from '@shell/config/types';
+import { SCHEDULING_CUSTOMIZATION as SCHEDULING_CUSTOMIZATION_FEATURE } from '@shell/config/features';
 
 const definitions = {};
 
@@ -27,7 +28,6 @@ export const mapFeature = function(name) {
 export const MULTI_CLUSTER = create('multi-cluster-management', true);
 export const LEGACY = create('legacy', false);
 export const RKE2 = create('rke2', true);
-export const RKE1_UI = create('rke1-ui', true);
 export const UNSUPPORTED_STORAGE_DRIVERS = create('unsupported-storage-drivers', false);
 export const FLEET = create('continuous-delivery', true);
 export const HARVESTER = create('harvester', true);
@@ -36,7 +36,7 @@ export const FLEET_WORKSPACE_BACK = create('provisioningv2-fleet-workspace-back-
 export const STEVE_CACHE = create('ui-sql-cache', false);
 export const UIEXTENSION = create('uiextension', true);
 export const PROVISIONING_PRE_BOOTSTRAP = create('provisioningprebootstrap', false);
-export const SCHEDULING_CUSTOMIZATION = create('cluster-agent-scheduling-customization', false);
+export const SCHEDULING_CUSTOMIZATION = create(SCHEDULING_CUSTOMIZATION_FEATURE, false);
 
 // Not currently used.. no point defining ones we don't use
 // export const EMBEDDED_CLUSTER_API = create('embedded-cluster-api', true);

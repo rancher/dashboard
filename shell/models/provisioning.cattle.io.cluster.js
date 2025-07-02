@@ -12,6 +12,14 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import { KEV1 } from '@shell/models/management.cattle.io.kontainerdriver';
 
+const RKE1_ALLOWED_ACTIONS = [
+  'openShell',
+  'downloadKubeConfig',
+  'copyKubeConfig',
+  'download',
+  'viewInApi'
+];
+
 /**
  * Class representing Cluster resource.
  * @extends SteveModel
@@ -40,17 +48,6 @@ export default class ProvCluster extends SteveModel {
         content: this.desired,
       },
     ].filter((x) => !!x.content);
-
-    // RKE Template details
-    const rkeTemplate = this.rkeTemplate;
-
-    if (rkeTemplate) {
-      out.push({
-        label:     this.t('cluster.detail.rkeTemplate'),
-        formatter: 'RKETemplateName',
-        content:   rkeTemplate,
-      });
-    }
 
     if (!this.machineProvider) {
       out.splice(1, 1);
@@ -105,17 +102,6 @@ export default class ProvCluster extends SteveModel {
 
     const canSnapshot = ready && ((this.isRke2 && this.canUpdate) || (this.isRke1 && this.mgmt?.hasAction('backupEtcd')));
 
-    const clusterTemplatesSchema = this.$getters['schemaFor']('management.cattle.io.clustertemplate');
-    let canUpdateClusterTemplate = false;
-
-    if (clusterTemplatesSchema && (clusterTemplatesSchema.resourceMethods?.includes('blocked-PUT') || clusterTemplatesSchema.resourceMethods?.includes('PUT'))) {
-      canUpdateClusterTemplate = true;
-    }
-
-    const normanClusterSaveTemplateAction = !!this.normanCluster?.actions?.saveAsTemplate;
-
-    const canSaveRKETemplate = this.isRke1 && this.mgmt?.status?.driver === 'rancherKubernetesEngine' && !this.mgmt?.spec?.clusterTemplateName && this.hasLink('update') && canUpdateClusterTemplate && normanClusterSaveTemplateAction;
-
     const actions = [
       // Note: Actions are not supported in the Steve API, so we check
       // available actions for RKE1 clusters, but not RKE2 clusters.
@@ -158,12 +144,7 @@ export default class ProvCluster extends SteveModel {
         action:  'rotateEncryptionKey',
         label:   this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
         icon:    'icon icon-refresh',
-        enabled: canEditRKE2cluster || (this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && ready)
-      }, {
-        action:  'saveAsRKETemplate',
-        label:   this.$rootGetters['i18n/t']('nav.saveAsRKETemplate'),
-        icon:    'icon icon-folder',
-        enabled: canSaveRKETemplate,
+        enabled: canEditRKE2cluster
       }, { divider: true }];
 
     // Harvester Cluster 1:1 Harvester Cloud Cred
@@ -188,6 +169,15 @@ export default class ProvCluster extends SteveModel {
       if (edit) {
         edit.enabled = false;
       }
+    }
+
+    // If RKE1, then remove most of the actions
+    if (this.isRke1) {
+      all.forEach((action) => {
+        if (!action.divider && !RKE1_ALLOWED_ACTIONS.includes(action.action)) {
+          action.enabled = false;
+        }
+      });
     }
 
     // If we have a helper that wants to modify the available actions, let it do it
@@ -729,7 +719,7 @@ export default class ProvCluster extends SteveModel {
   async copyKubeConfig() {
     await this.mgmt?.copyKubeConfig();
 
-    this.$dispatch('growl/success', {
+    this.$dispatch('growl/info', {
       title:   this.t('cluster.copiedConfig'),
       timeout: 3000,
     }, { root: true });
@@ -746,7 +736,7 @@ export default class ProvCluster extends SteveModel {
   async snapshotAction() {
     try {
       await this.takeSnapshot();
-      this.$dispatch('growl/success', {
+      this.$dispatch('growl/info', {
         title:   this.$rootGetters['i18n/t']('cluster.snapshot.successTitle', { name: this.nameDisplay }),
         message: this.$rootGetters['i18n/t']('cluster.snapshot.successMessage', { name: this.nameDisplay })
       }, { root: true });
@@ -766,7 +756,7 @@ export default class ProvCluster extends SteveModel {
     const successful = res.filter( (x) => x.status === 'fulfilled').length;
 
     if ( successful ) {
-      this.$dispatch('growl/success', {
+      this.$dispatch('growl/info', {
         title:   this.$rootGetters['i18n/t']('cluster.snapshot.bulkSuccessTitle'),
         message: this.$rootGetters['i18n/t']('cluster.snapshot.bulkSuccessMessage', { count: successful })
       }, { root: true });
@@ -813,13 +803,6 @@ export default class ProvCluster extends SteveModel {
     this.$dispatch('promptRestore', [resource]);
   }
 
-  saveAsRKETemplate(cluster = this) {
-    this.$dispatch('promptModal', {
-      componentProps: { cluster },
-      component:      'SaveAsRKETemplateDialog'
-    });
-  }
-
   rotateCertificates(cluster = this) {
     this.$dispatch('promptModal', {
       componentProps: { cluster },
@@ -861,38 +844,9 @@ export default class ProvCluster extends SteveModel {
 
     return {
       displayName: `${ template.spec?.displayName }/${ revision.spec?.displayName }`,
-      upgrade:     this.rkeTemplateUpgrade,
       template,
       revision,
     };
-  }
-
-  get rkeTemplateUpgrade() {
-    if (!this.isRke1 || !this.mgmt) {
-      // Not an RKE! cluster or no management cluster available
-      return false;
-    }
-
-    if (!this.mgmt.spec?.clusterTemplateRevisionName) {
-      // Cluster does not use an RKE template
-      return false;
-    }
-
-    const clusterTemplateRevisionName = this.mgmt.spec.clusterTemplateRevisionName.replace(':', '/');
-
-    // Get all of the template revisions for this template
-    const revisions = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).filter((t) => t.spec.enabled && t.spec.clusterTemplateName === this.mgmt.spec.clusterTemplateName);
-
-    if (revisions.length <= 1) {
-      // Only one template revision
-      return false;
-    }
-
-    revisions.sort((a, b) => {
-      return parseInt(a.metadata.resourceVersion, 10) - parseInt(b.metadata.resourceVersion, 10);
-    }).reverse();
-
-    return revisions[0].id !== clusterTemplateRevisionName ? revisions[0].spec?.displayName : false;
   }
 
   get _stateObj() {

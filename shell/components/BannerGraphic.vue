@@ -36,6 +36,7 @@ export default {
         data-testid="banner-brand__img"
         file-name="banner.svg"
         :draggable="false"
+        :alt="t('landing.bannerImage')"
       />
     </div>
     <div

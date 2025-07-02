@@ -333,7 +333,7 @@ export default defineComponent({
     selectedLaunchTemplate: {
       get(): AWS.LaunchTemplate {
         if (this.hasRancherLaunchTemplate) {
-          return { LaunchTemplateName: this.t('eks.nodeGroups.launchTemplate.rancherManaged', { name: this.rancherTemplate }) };
+          return { LaunchTemplateId: this.rancherTemplate, LaunchTemplateName: this.t('eks.nodeGroups.launchTemplate.rancherManaged', { name: this.rancherTemplate }) };
         }
         const id = this.launchTemplate?.id;
 
@@ -356,17 +356,15 @@ export default defineComponent({
     },
 
     launchTemplateVersionOptions(): number[] {
-      if (this.selectedLaunchTemplate && this.selectedLaunchTemplate.LatestVersionNumber) {
-        const { LatestVersionNumber } = this.selectedLaunchTemplate;
-
-        return [...Array(LatestVersionNumber).keys()].map((version) => version + 1);
+      if (this.selectedLaunchTemplateInfo && this.selectedLaunchTemplateInfo?.LaunchTemplateVersions) {
+        return this.selectedLaunchTemplateInfo.LaunchTemplateVersions.map((version) => version.VersionNumber).sort();
       }
 
       return [];
     },
 
     selectedVersionInfo(): AWS.LaunchTemplateVersion | null {
-      return (this.selectedLaunchTemplateInfo?.LaunchTemplateVersions || []).find((v: any) => v.VersionNumber === this.launchTemplate.version) || null;
+      return (this.selectedLaunchTemplateInfo?.LaunchTemplateVersions || []).find((v: any) => v.VersionNumber === this.launchTemplate?.version) || null;
     },
 
     selectedVersionData(): AWS.LaunchTemplateVersionData | undefined {
@@ -455,7 +453,13 @@ export default defineComponent({
       const ec2Client = await store.dispatch('aws/ec2', { region, cloudCredentialId: amazonCredentialSecret });
 
       try {
-        this.selectedLaunchTemplateInfo = await ec2Client.describeLaunchTemplateVersions({ LaunchTemplateId: launchTemplate.LaunchTemplateId, Versions: [...this.launchTemplateVersionOptions] });
+        if (launchTemplate.LaunchTemplateName !== this.defaultTemplateOption.LaunchTemplateName) {
+          if (launchTemplate.LaunchTemplateId) {
+            this.selectedLaunchTemplateInfo = await ec2Client.describeLaunchTemplateVersions({ LaunchTemplateId: launchTemplate.LaunchTemplateId });
+          } else {
+            this.selectedLaunchTemplateInfo = await ec2Client.describeLaunchTemplateVersions({ LaunchTemplateName: launchTemplate.LaunchTemplateName });
+          }
+        }
       } catch (err) {
         this.$emit('error', err);
       }
@@ -557,6 +561,7 @@ export default defineComponent({
         <LabeledSelect
           v-model:value="displayNodeRole"
           :mode="mode"
+          data-testid="eks-noderole"
           label-key="eks.nodeGroups.nodeRole.label"
           :options="[defaultNodeRoleOption, ...ec2Roles]"
           option-label="RoleName"
@@ -636,7 +641,10 @@ export default defineComponent({
         </KeyValue>
       </div>
     </div>
-    <hr class="mb-20">
+    <hr
+      class="mb-20"
+      role="none"
+    >
     <h3>{{ t('eks.nodeGroups.templateDetails') }}</h3>
     <Banner
       v-if="clusterWillUpgrade && !poolIsUnprovisioned"

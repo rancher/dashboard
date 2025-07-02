@@ -15,6 +15,7 @@ permissions:
 
 jobs:
   fossa-scanning:
+    if: ${{ github.repository_owner == 'rancher' }}
     # For when running in EIO's provided runners. More details are available in
     # https://github.com/rancherlabs/eio/wiki/GitHub-Actions-Runners .
     runs-on: org-${{ github.repository_owner_id }}-amd64-k8s

@@ -11,6 +11,7 @@ import merge from 'lodash/merge';
 import { CATALOG } from '@shell/config/types';
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
+import { mergeWithReplace } from '@shell/utils/object';
 
 export default {
   name: 'DetailRelease',
@@ -52,7 +53,10 @@ export default {
     },
 
     valuesYaml() {
-      const combined = merge(merge({}, this.value?.chartValues || {}), this.value?.values || {});
+      const combined = mergeWithReplace(
+        merge({}, this.value?.chartValues || {}),
+        this.value?.values || {},
+      );
 
       return jsyaml.dump(combined);
     },

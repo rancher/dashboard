@@ -103,7 +103,7 @@ describe.skip('Account and API Keys', { testIsolation: 'off' }, () => {
     });
   });
 
-  describe('List', { tags: ['@vai', '@userMenu', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@userMenu', '@adminUser'] }, () => {
     const tokenDesc = 'e2e-test-description';
     const uniqueTokenDesc = 'aaa-e2e-test-description';
     let initialCount: number;
@@ -279,7 +279,11 @@ describe.skip('Account and API Keys', { testIsolation: 'off' }, () => {
     });
 
     after(() => {
-      tokenIdsList.forEach((r) => cy.deleteRancherResource('v3', 'tokens', r, false));
+      cy.deleteManyResources({
+        toDelete: tokenIdsList,
+        deleteFn: (t) => cy.deleteRancherResource('v3', 'tokens', t, false)
+      });
+
       // Ensure the default rows per page value is set after running the tests
       cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
     });

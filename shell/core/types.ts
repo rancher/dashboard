@@ -39,8 +39,19 @@ export type OnEnterLeavePackageConfig = {
 export type OnNavToPackage = (store: any, config: OnEnterLeavePackageConfig) => Promise<void>;
 export type OnNavAwayFromPackage = (store: any, config: OnEnterLeavePackageConfig) => Promise<void>;
 export type OnLogOut = (store: any) => Promise<void>;
+export type OnLogIn = (store: any) => Promise<void>;
 
-/** Enum regarding the extensionable areas/places of the UI */
+/**
+ * Navigation hooks specified as an object
+ */
+export type NavHooks = {
+  onEnter?: OnNavToPackage,
+  onLeave?: OnNavAwayFromPackage,
+  onLogout?: OnLogOut,
+  onLogin?: OnLogIn,
+}
+
+/** Enum regarding the extensible areas/places of the UI */
 export enum ExtensionPoint {
   ACTION = 'Action', // eslint-disable-line no-unused-vars
   TAB = 'Tab', // eslint-disable-line no-unused-vars
@@ -49,31 +60,32 @@ export enum ExtensionPoint {
   TABLE_COL = 'TableColumn', // eslint-disable-line no-unused-vars
 }
 
-/** Enum regarding action locations that are extensionable in the UI */
+/** Enum regarding action locations that are extensible in the UI */
 export enum ActionLocation {
   HEADER = 'header-action', // eslint-disable-line no-unused-vars
   TABLE = 'table-action', // eslint-disable-line no-unused-vars
 }
 
-/** Enum regarding panel locations that are extensionable in the UI */
+/** Enum regarding panel locations that are extensible in the UI */
 export enum PanelLocation {
+  ABOUT_TOP = 'about-top', // eslint-disable-line no-unused-vars
   DETAILS_MASTHEAD = 'details-masthead', // eslint-disable-line no-unused-vars
   DETAIL_TOP = 'detail-top', // eslint-disable-line no-unused-vars
   RESOURCE_LIST = 'resource-list', // eslint-disable-line no-unused-vars
 }
 
-/** Enum regarding tab locations that are extensionable in the UI */
+/** Enum regarding tab locations that are extensible in the UI */
 export enum TabLocation {
   RESOURCE_DETAIL = 'tab', // eslint-disable-line no-unused-vars
   CLUSTER_CREATE_RKE2 = 'cluster-create-rke2', // eslint-disable-line no-unused-vars
 }
 
-/** Enum regarding card locations that are extensionable in the UI */
+/** Enum regarding card locations that are extensible in the UI */
 export enum CardLocation {
   CLUSTER_DASHBOARD_CARD = 'cluster-dashboard-card', // eslint-disable-line no-unused-vars
 }
 
-/** Enum regarding table col locations that are extensionable in the UI */
+/** Enum regarding table col locations that are extensible in the UI */
 export enum TableColumnLocation {
   RESOURCE = 'resource-list', // eslint-disable-line no-unused-vars
 }
@@ -324,6 +336,10 @@ export interface HeaderOptions {
 
 export interface ConfigureTypeOptions {
   /**
+   * Override for the create button string on a list view
+   */
+  listCreateButtonLabelKey?: boolean;
+  /**
    * The resource can edit/show yaml
    */
   canYaml?: boolean;
@@ -372,6 +388,11 @@ export interface ConfigureTypeOptions {
    * Define where this type/page should navigate to (menu entry routing)
    */
   customRoute?: Object;
+
+  /**
+   * Custom options vary pre resource type
+   */
+  custom?: any;
 
   /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
@@ -638,8 +659,10 @@ export interface IPlugin {
   addNavHooks(
     onEnter?: OnNavToPackage,
     onLeave?: OnNavAwayFromPackage,
-    onLogOut?: OnLogOut
+    onLogOut?: OnLogOut,
+    onLogIn?: OnLogIn,
   ): void;
+  addNavHooks(hooks: NavHooks): void;
 
   /**
    * Adds a model extension

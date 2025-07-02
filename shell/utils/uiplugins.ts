@@ -44,9 +44,11 @@ export async function getLatestExtensionVersion(
  *
  * @param store Vue store
  * @param name Name of the extension
+ * @param maxRetries Number of times to check for availability
+ * @param retryWait Gap (in ms) between availability checks
  * @returns the extension object when available, null if timed out waiting for it to be available
  */
-export async function waitForUIExtension(store: any, name: string): Promise<any> {
+export async function waitForUIExtension(store: any, name: string, maxRetries = MAX_RETRIES, retryWait = RETRY_WAIT): Promise<any> {
   let tries = 0;
 
   while (true) {
@@ -69,11 +71,11 @@ export async function waitForUIExtension(store: any, name: string): Promise<any>
 
     tries++;
 
-    if (tries > MAX_RETRIES) {
+    if (tries > maxRetries) {
       return null;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, RETRY_WAIT));
+    await new Promise((resolve) => setTimeout(resolve, retryWait));
   }
 }
 
@@ -82,9 +84,11 @@ export async function waitForUIExtension(store: any, name: string): Promise<any>
  *
  * @param store Vue store
  * @param extension Extension object
+ * @param maxRetries Number of times to check for availability
+ * @param retryWait Gap (in MS) between availability checks
  * @returns true when available, false if timed out waiting for it to be available
  */
-export async function waitForUIPackage(store: any, extension: any): Promise<boolean> {
+export async function waitForUIPackage(store: any, extension: any, maxRetries = MAX_RETRIES, retryWait = RETRY_WAIT): Promise<boolean> {
   let tries = 0;
 
   const { name, version } = extension;
@@ -104,11 +108,11 @@ export async function waitForUIPackage(store: any, extension: any): Promise<bool
 
     tries++;
 
-    if (tries > MAX_RETRIES) {
+    if (tries > maxRetries) {
       return false;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, RETRY_WAIT));
+    await new Promise((resolve) => setTimeout(resolve, retryWait));
   }
 }
 
@@ -316,4 +320,26 @@ export async function getHelmChart(store: any, repository: any, chartName: strin
 
     await new Promise((resolve) => setTimeout(resolve, RETRY_WAIT));
   }
+}
+
+export async function onExtensionsReady(store: any) {
+  const alreadyReady = store.getters['uiplugins/ready'];
+
+  if (alreadyReady) {
+    return;
+  }
+
+  const extensions = store.getters['uiplugins/plugins'] || [];
+
+  for (let i = 0; i < extensions.length; i++) {
+    const ext = extensions[i];
+
+    try {
+      await ext.onLogIn(store);
+    } catch (e) {
+      console.error(`Exception caught in onReady for extension ${ ext.name }`, e); // eslint-disable-line no-console
+    }
+  }
+
+  await store.dispatch('uiplugins/setReady', true);
 }

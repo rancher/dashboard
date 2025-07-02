@@ -486,9 +486,6 @@ export default defineComponent({
     },
 
     async actuallySave(): Promise<void> {
-      if (!this.isNewOrUnprovisioned && !this.nodeGroups.length && !!this.normanCluster?.eksConfig?.nodeGroups) {
-        this.normanCluster.eksConfig['nodeGroups'] = null;
-      }
       await this.normanCluster.save();
 
       return await this.normanCluster.waitForCondition('InitialRolesPopulated');
@@ -697,6 +694,7 @@ export default defineComponent({
           class="mb-20"
           :side-tabs="true"
           :show-tabs-add-remove="mode !== VIEW"
+          :use-hash="false"
           @removeTab="removeGroup($event)"
           @addTab="addGroup()"
         >
@@ -752,6 +750,7 @@ export default defineComponent({
               :loading-launch-templates="loadingLaunchTemplates"
               :loading-ssh-key-pairs="loadingSshKeyPairs"
               :norman-cluster="normanCluster"
+              @error="errors.push($event)"
             />
           </Tab>
         </Tabbed>

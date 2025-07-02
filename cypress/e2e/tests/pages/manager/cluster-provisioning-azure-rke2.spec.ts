@@ -52,7 +52,6 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
     clusterList.createCluster();
-    createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
     createRKE2ClusterPage.selectCreate(1);
     createRKE2ClusterPage.rke2PageTitle().should('include', 'Create Azure');
     createRKE2ClusterPage.waitForPage('type=azure&rkeType=rke2');
@@ -90,7 +89,6 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
     clusterList.createCluster();
-    createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
     createRKE2ClusterPage.selectCreate(1);
     createRKE2ClusterPage.rke2PageTitle().should('include', 'Create Azure');
     createRKE2ClusterPage.waitForPage('type=azure&rkeType=rke2');
@@ -116,6 +114,23 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
     createRKE2ClusterPage.waitForPage('type=azure&rkeType=rke2', 'basic');
     createRKE2ClusterPage.nameNsDescription().name().set(this.rke2AzureClusterName);
     createRKE2ClusterPage.nameNsDescription().description().set(`${ this.rke2AzureClusterName }-description`);
+
+    // validate pool name and pool quantity inputs
+    // pool name is required
+    createRKE2ClusterPage.machinePoolTab().poolName().clear();
+    createRKE2ClusterPage.resourceDetail().createEditView().saveButtonPo().expectToBeDisabled();
+    createRKE2ClusterPage.machinePoolTab().poolName().set('pool1');
+    createRKE2ClusterPage.resourceDetail().createEditView().saveButtonPo().expectToBeEnabled();
+    // pool quantity should be a number
+    createRKE2ClusterPage.machinePoolTab().poolQuantity().set('abc');
+    createRKE2ClusterPage.resourceDetail().createEditView().saveButtonPo().expectToBeDisabled();
+    createRKE2ClusterPage.machinePoolTab().poolQuantity().set('1');
+    createRKE2ClusterPage.resourceDetail().createEditView().saveButtonPo().expectToBeEnabled();
+    // pool quantity should not be negative
+    createRKE2ClusterPage.machinePoolTab().poolQuantity().set('-1');
+    createRKE2ClusterPage.resourceDetail().createEditView().saveButtonPo().expectToBeDisabled();
+    createRKE2ClusterPage.machinePoolTab().poolQuantity().set('1');
+    createRKE2ClusterPage.resourceDetail().createEditView().saveButtonPo().expectToBeEnabled();
 
     // Get latest kubernetes version
     cy.wait('@getRke2Releases').then(({ response }) => {

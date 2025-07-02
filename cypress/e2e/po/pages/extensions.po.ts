@@ -7,7 +7,9 @@ import RepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import ChartRepositoriesCreateEditPo from '@/cypress/e2e/po/edit/chart-repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
-import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 
 export default class ExtensionsPagePo extends PagePo {
   static url = '/c/local/uiplugins'
@@ -34,6 +36,10 @@ export default class ExtensionsPagePo extends PagePo {
     return this.title().should('contain', 'Extensions');
   }
 
+  catalogsList() {
+    return new ResourceTablePo('[data-testid="sortable-table-list-container"]');
+  }
+
   loading() {
     return this.self().get('.data-loading');
   }
@@ -50,11 +56,11 @@ export default class ExtensionsPagePo extends PagePo {
    * @returns {Cypress.Chainable}
    */
   addExtensionsRepository(repo: string, branch: string, name: string): Cypress.Chainable {
-    cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields').as('getRepos');
+    cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }?*`).as('getRepos');
 
     // we should be on the extensions page
     this.waitForPage(null, 'available');
-    this.loading(MEDIUM_TIMEOUT_OPT).should('not.exist');
+    this.loading().should('not.exist');
 
     // go to app repos
     this.extensionMenuToggle();
@@ -82,7 +88,7 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoCreate.gitBranch().set(branch);
 
     // save it
-    appRepoCreate.saveAndWaitForRequests('POST', '/v1/catalog.cattle.io.clusterrepos');
+    appRepoCreate.saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
 
     appRepoList.waitForPage();
     appRepoList.list().state(name).should('contain', 'Active');
@@ -150,7 +156,7 @@ export default class ExtensionsPagePo extends PagePo {
 
   // ------------------ extension install modal ------------------
   extensionInstallModal() {
-    return this.self().get('[data-modal="installPluginDialog"]');
+    return this.self().get('[data-testid="install-extension-modal"]');
   }
 
   installModalSelectVersionLabel(label: string): Cypress.Chainable {
@@ -179,7 +185,7 @@ export default class ExtensionsPagePo extends PagePo {
 
   // ------------------ extension uninstall modal ------------------
   extensionUninstallModal() {
-    return this.self().get('[data-modal="uninstallPluginDialog"]');
+    return this.self().get('[data-testid="uninstall-extension-modal"]');
   }
 
   uninstallModalCancelClick(): Cypress.Chainable {
@@ -225,7 +231,7 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   extensionTabAllClick(): Cypress.Chainable {
-    return this.extensionTabs.clickNthTab(4);
+    return this.extensionTabs.clickTabWithName('all');
   }
 
   extensionTabBuiltinClick(): Cypress.Chainable {
@@ -267,6 +273,10 @@ export default class ExtensionsPagePo extends PagePo {
     return new ActionMenuPo(this.self()).getMenuItem('Add Rancher Repositories').click();
   }
 
+  manageExtensionCatalogsClick(): Cypress.Chainable {
+    return new ActionMenuPo(this.self()).getMenuItem('Manage Extension Catalogs').click();
+  }
+
   // ------------------ ADD RANCHER REPOSITORIES modal ------------------
   addReposModal() {
     return this.self().getId('add-extensions-repos-modal');
@@ -274,6 +284,11 @@ export default class ExtensionsPagePo extends PagePo {
 
   addReposModalAddClick(): Cypress.Chainable {
     return this.addReposModal().get('.dialog-buttons button:last-child').click();
+  }
+
+  // ------------------ Import Extension Catalog modal ------------------
+  importExtensionCatalogModal(): Cypress.Chainable {
+    return this.self().get('.plugin-install-dialog');
   }
 
   // ------------------ add a new repo (Extension Examples) ------------------

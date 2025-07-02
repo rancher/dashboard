@@ -27,7 +27,7 @@ export default {
   },
   computed: {
     machinenName() {
-      const name = this.resources.length > 0 ? this.resources[0].id.split('/')[1] : '';
+      const name = this.resources.length > 0 ? this.resources[0]?.id?.split('/')[1] : '';
 
       return name;
     },

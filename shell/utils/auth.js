@@ -8,6 +8,9 @@ import { allHash } from '@shell/utils/promise';
 import { getProductFromRoute, getResourceFromRoute } from '@shell/utils/router';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { findBy } from '@shell/utils/array';
+import { onExtensionsReady } from '@shell/utils/uiplugins';
+
+export const AUTH_BROADCAST_CHANNEL_NAME = 'rancher-auth-test-callback';
 
 export function openAuthPopup(url, provider) {
   const popup = new Popup(() => {
@@ -16,19 +19,46 @@ export function openAuthPopup(url, provider) {
       popup.reject = reject;
     });
 
+    const bc = new BroadcastChannel(AUTH_BROADCAST_CHANNEL_NAME);
+
     window.onAuthTest = (error, code) => {
       if (error) {
         popup.reject(error);
       }
 
+      bc.close();
       delete window.onAuthTest;
       popup.resolve(code);
     };
-  }, () => {
-    popup.reject(new Error('Access was not authorized'));
+
+    // Broadcast message listener for when the window can not invoke a method on the opener
+    bc.onmessage = (msgEvent) => {
+      try {
+        const obj = JSON.parse(msgEvent.data);
+        const { error, code } = obj;
+
+        window.onAuthTest(error, code);
+      } catch (e) {
+        window.onAuthTest(new Error(`Access was not authorized (invalid callback metadata)`));
+
+        console.error('Unable to process message from auth broadcast channel', e); // eslint-disable-line no-console
+      }
+    };
+  }, (e) => {
+    let detail = '';
+
+    // If there was an error and it has a message, add that to the message we send back via the promise
+    if (e?.type === 'error' && e?.message) {
+      detail = ` (${ e.message })`;
+    }
+
+    popup.reject(new Error(`Access was not authorized${ detail }`));
   });
 
-  popup.open(url, 'auth-test', popupWindowOptions());
+  // So far, only Amazon Cognito sets the origin policy that prevents us from detecting when the popup is closed
+  const doNotPollForClosure = provider === 'cognito';
+
+  popup.open(url, 'auth-test', popupWindowOptions(), doNotPollForClosure);
 
   return popup.promise;
 }
@@ -304,9 +334,15 @@ export async function tryInitialSetup(store, password = 'admin') {
 /**
  * Record in our state management that we're indeed logged in
  */
-export function isLoggedIn(store, me) {
+export async function isLoggedIn(store, userData) {
   store.commit('auth/hasAuth', true);
-  store.commit('auth/loggedInAs', me.id);
+  store.commit('auth/loggedInAs', userData.id);
+
+  // Init the notification center now that we know who the user is
+  await store.dispatch('notifications/init', userData);
+
+  // Let the extensions know that the user is logged in
+  await onExtensionsReady(store);
 }
 
 /**

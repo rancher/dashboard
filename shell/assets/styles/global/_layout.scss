@@ -6,7 +6,7 @@
   .outlet {
     display: flex;
     flex-direction: column;
-    padding: $space-m;
+    padding: 20px;
     min-height: 100%;
   }
 }
@@ -69,7 +69,6 @@ HEADER {
   display: grid;
   position: relative;
   flex: 1 1 auto;
-  overflow-y: auto;
   min-height: 0px;
 
   &.dashboard-padding-left {
