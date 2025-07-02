@@ -10,7 +10,6 @@ import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
-import { deleteManyResources } from '~/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 const globalRoleNameYaml = 'test-global-role-yaml';
 const globalRoleYaml = `apiVersion: management.cattle.io/v3

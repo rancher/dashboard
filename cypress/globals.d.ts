@@ -107,7 +107,7 @@ declare global {
          */
         context?: string,
         namespace?: string,
-        createWorkload: ({ ns, i }) => Chainable
+        createResource: ({ ns, i }) => Chainable
         count?: number,
       }): Chainable;
 

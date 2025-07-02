@@ -59,16 +59,16 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
       };
 
       cy.createManyNamespacedResourced({
-        context:        'ns1',
-        createWorkload: createCronJob(),
+        context:        'cronjobs1',
+        createResource: createCronJob(),
       })
         .then(({ ns, workloadNames }) => {
           cronJobNamesList = workloadNames;
           nsName1 = ns;
         })
         .then(() => cy.createManyNamespacedResourced({
-          context:        'ns2',
-          createWorkload: createCronJob(uniqueCronJob),
+          context:        'cronjobs2',
+          createResource: createCronJob(uniqueCronJob),
           count:          1
         }))
         .then(({ ns, workloadNames }) => {
@@ -266,11 +266,6 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
       cronJobListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
       cronJobListPage.list().resourceTable().sortableTable().pagination()
         .checkNotExists();
-    });
-
-    it('TEMP', () => {
-      cy.log('!!!!!!!!!!!!!!!!!!!!!', CYPRESS_SAFE_RESOURCE_REVISION);
-      cy.contains(Number.MAX_SAFE_INTEGER).should('exist');
     });
 
     after('clean up', () => {

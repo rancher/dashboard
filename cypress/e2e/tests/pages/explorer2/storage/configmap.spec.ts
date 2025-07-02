@@ -112,16 +112,16 @@ skipGeometric=true`;
       };
 
       cy.createManyNamespacedResourced({
-        context:        'ns1',
-        createWorkload: createConfigMap(),
+        context:        'configmaps1',
+        createResource: createConfigMap(),
       })
         .then(({ ns, workloadNames }) => {
           cmNamesList = workloadNames;
           nsName1 = ns;
         })
         .then(() => cy.createManyNamespacedResourced({
-          context:        'ns2',
-          createWorkload: createConfigMap(uniqueConfigMap),
+          context:        'configmaps2',
+          createResource: createConfigMap(uniqueConfigMap),
           count:          1
         }))
         .then(({ ns, workloadNames }) => {

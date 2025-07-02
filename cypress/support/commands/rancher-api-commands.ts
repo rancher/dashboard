@@ -1199,28 +1199,30 @@ Cypress.Commands.add('createService', (namespace: string, name: string, options:
 });
 
 Cypress.Commands.add('createManyNamespacedResourced', ({
-  namespace, context, createWorkload, count = 22
+  namespace, context, createResource, count = 22
 }: {
   /**
    * Used to create the namespace
    */
   context?: string,
   namespace?: string,
-  createWorkload: ({ ns, i }) => CypressChainable
+  createResource: ({ ns, i }) => CypressChainable
   count?: number,
 }): Cypress.Chainable<{ ns: string, workloadNames: string[]}> => {
-  const dynamicNs = namespace ? cy.wrap(namespace) : cy.createE2EResourceName(context);
+  const dynamicNs = namespace ? cy.wrap(namespace) : cy.createE2EResourceName(context).then((ns) => {
+    // create namespace
+    cy.createNamespace(ns);
+
+    return cy.wrap(ns);
+  });
 
   return dynamicNs
     .then((ns) => {
-      // create namespace
-      cy.createNamespace(ns);
-
       // create workloads
       const workloadNames: string[] = [];
 
       for (let i = 0; i < count; i++) {
-        createWorkload({ ns, i }).then((resp) => {
+        createResource({ ns, i }).then((resp) => {
           workloadNames.push(resp.body.metadata.name);
         });
 

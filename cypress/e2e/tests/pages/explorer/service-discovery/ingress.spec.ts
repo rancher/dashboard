@@ -49,11 +49,11 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
       });
 
       cy.createManyNamespacedResourced({
-        context:        'ns1',
-        createWorkload: ({ ns, i }: {ns: string, i: number}) => {
-          const name = Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
+        context:        'ingress',
+        createResource: ({ ns, i }: {ns: string, i: number}) => {
+          const name = Cypress._.uniqueId(`secret-${ Date.now().toString() }-${ i }`);
 
-          return cy.createSecret(ns, name);
+          return cy.createSecret(ns, name).then((n) => ({ body: { metadata: { name: n } } }));
         },
         count: secretsCount
       }).then(({ ns, workloadNames }) => {
@@ -61,10 +61,10 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
         namespace = ns;
       }).then(() => cy.createManyNamespacedResourced({
         namespace,
-        createWorkload: ({ ns, i }: {ns: string, i: number}) => {
-          const name = Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
+        createResource: ({ ns, i }: {ns: string, i: number}) => {
+          const name = Cypress._.uniqueId(`service-${ Date.now().toString() }-${ i }`);
 
-          return cy.createService(ns, name);
+          return cy.createService(ns, name).then((n) => ({ body: { metadata: { name: n } } }));
         },
         count: servicesCount
       })).then(({ workloadNames }) => {
@@ -75,25 +75,32 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
     it('can select rules and certificates in Create mode', () => {
       cy.viewport(1440, 900);
 
-      cy.intercept('GET', `/v1/secrets/${ namespace }?*`).as('getsSecrets');
-      cy.intercept('GET', `/v1/services/${ namespace }?*`).as('getsServices');
+      cy.log('!!!!!!!!!!!!!!!!!!', namespace);
 
       ingressListPagePo.goTo();
       ingressListPagePo.waitForPage();
       ingressListPagePo.list().resourceTable().sortableTable().checkVisible();
       ingressListPagePo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
       ingressListPagePo.baseResourceList().masthead().create();
 
       const ingressCreatePagePo = new IngressCreateEditPo();
 
-      cy.wait('@getsServices').its('response.statusCode').should('eq', 200);
-      cy.wait('@getsSecrets').its('response.statusCode').should('eq', 200);
+      cy.intercept('GET', `/v1/secrets/${ namespace }?*`).as('getsSecrets');
+      cy.intercept('GET', `/v1/services/${ namespace }?*`).as('getsServices');
 
       ingressCreatePagePo.waitForPage(null, 'rules');
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
         .set(ingressName);
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .toggle();
+      ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .clickOptionWithLabel(namespace);
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().description()
         .set(`${ ingressName } description`);
+
+      cy.wait('@getsServices').its('response.statusCode').should('eq', 200);
+      cy.wait('@getsSecrets').its('response.statusCode').should('eq', 200);
 
       // Add two rules
       ingressCreatePagePo.setRuleRequestHostValue(0, 'example1.com');
@@ -279,11 +286,11 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
         .should('be.visible');
       ingressListPagePo.list().resourceTable().sortableTable().checkRowCount(false, 2);
     });
+  });
 
-    after('clean up', () => {
-      cy.updateNamespaceFilter(cluster, 'none', '{"local":["all://user"]}');
+  after('clean up', () => {
+    cy.updateNamespaceFilter(cluster, 'none', '{"local":["all://user"]}');
 
-      cy.deleteNamespace([namespace]);
-    });
+    cy.deleteNamespace([namespace]);
   });
 });

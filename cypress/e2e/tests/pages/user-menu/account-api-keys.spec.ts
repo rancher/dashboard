@@ -4,7 +4,6 @@ import AccountPagePo from '@/cypress/e2e/po/pages/account-api-keys.po';
 import CreateKeyPagePo from '@/cypress/e2e/po/pages/account-api-keys-create_key.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { generateTokensDataSmall } from '@/cypress/e2e/blueprints/account-and-apikeys/tokens-get';
-import { deleteManyResources } from '~/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 const userMenu = new UserMenuPo();
 const accountPage = new AccountPagePo();

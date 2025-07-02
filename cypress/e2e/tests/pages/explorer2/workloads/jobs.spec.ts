@@ -134,16 +134,16 @@ describe('Jobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       };
 
       cy.createManyNamespacedResourced({
-        context:        'ns1',
-        createWorkload: createJob(),
+        context:        'jobs1',
+        createResource: createJob(),
       })
         .then(({ ns, workloadNames }) => {
           jobNamesList = workloadNames;
           nsName1 = ns;
         })
         .then(() => cy.createManyNamespacedResourced({
-          context:        'ns2',
-          createWorkload: createJob(uniqueJob),
+          context:        'jobs2',
+          createResource: createJob(uniqueJob),
           count:          1
         }))
         .then(({ ns, workloadNames }) => {

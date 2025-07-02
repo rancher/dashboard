@@ -57,16 +57,16 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
       };
 
       cy.createManyNamespacedResourced({
-        context:        'ns1',
-        createWorkload: createPod(),
+        context:        'events1',
+        createResource: createPod(),
         count:          podCount,
       })
         .then(({ ns }) => {
           nsName1 = ns;
         })
         .then(() => cy.createManyNamespacedResourced({
-          context:        'ns2',
-          createWorkload: createPod(uniquePod),
+          context:        'events2',
+          createResource: createPod(uniquePod),
           count:          1
         }))
         .then(({ ns, workloadNames }) => {
