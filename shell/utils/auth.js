@@ -8,6 +8,7 @@ import { allHash } from '@shell/utils/promise';
 import { getProductFromRoute, getResourceFromRoute } from '@shell/utils/router';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { findBy } from '@shell/utils/array';
+import { onExtensionsReady } from '@shell/utils/uiplugins';
 
 export const AUTH_BROADCAST_CHANNEL_NAME = 'rancher-auth-test-callback';
 
@@ -339,6 +340,9 @@ export async function isLoggedIn(store, userData) {
 
   // Init the notification center now that we know who the user is
   await store.dispatch('notifications/init', userData);
+
+  // Let the extensions know that the user is logged in
+  await onExtensionsReady(store);
 }
 
 /**

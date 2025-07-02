@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import {
   computed,
-  onMounted,
   ref,
-  watch
 } from 'vue';
 import { useStore } from 'vuex';
 import Notification from './Notification.vue';
@@ -13,9 +11,6 @@ import {
   RcDropdownSeparator,
   RcDropdownTrigger
 } from '@components/RcDropdown';
-import { StoredNotification } from '@shell/types/notifications';
-import { encrypt } from '@shell/utils/crypto/encryption';
-import { onExtensionsReady } from '@shell/utils/uiplugins';
 
 const store = useStore();
 const allNotifications = computed(() => store.getters['notifications/all']);
@@ -32,27 +27,6 @@ const open = (opened: boolean) => {
     store.dispatch('growl/clear');
   }
 };
-
-const localStorageKey = store.getters['notifications/localStorageKey'];
-const encryptionKey = store.getters['notifications/encryptionKey'];
-
-/**
- * When notifications are updated, write to local storage
- */
-watch(allNotifications, async(newData: StoredNotification[]) => {
-  try {
-    const data = JSON.stringify(newData);
-    const enc = await encrypt(data, encryptionKey);
-
-    window.localStorage.setItem(localStorageKey, JSON.stringify(enc));
-  } catch (e) {
-    console.error('Unable to save notifications to local storage', e); // eslint-disable-line no-console
-  }
-}, { deep: true });
-
-onMounted(async() => {
-  await onExtensionsReady(store);
-});
 </script>
 
 <template>

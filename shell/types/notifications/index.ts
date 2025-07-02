@@ -35,26 +35,31 @@ export type NotificationPreference = {
 };
 
 /**
- * Type for Notification that is sent
+ * Type for Encrypted Notification data that is stored in local storage
  */
-export type Notification = {
-  // Unique ID for the notification
-  id: string;
-  // Title to be displayed in the notification
+export type EncryptedNotification = {
   title: string;
   // Message to be shown in the notification (optional)
   message?: string;
   // Notification Level
   level: NotificationLevel;
-  // Progress (0-100) for notifications of type `Task` (optional)
-  progress?: number;
   // Primary action to be shown in the notification (optional)
   primaryAction?: NotificationAction;
   // Secondary to be shown in the notification (optional)
   secondaryAction?: NotificationAction;
+};
+
+/**
+ * Type for Notification that is sent
+ */
+export type Notification = {
+  // Unique ID for the notification
+  id: string;
+  // Progress (0-100) for notifications of type `Task` (optional)
+  progress?: number;
   // User Preference tied to the notification (optional) (the preference will be updated when the notification is marked read)
   preference?: NotificationPreference;
-};
+} & EncryptedNotification;
 
 /**
  * Type for notification that is stored
