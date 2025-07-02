@@ -300,7 +300,7 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
     margin-bottom: -20px;
     margin-top: 20px;
     padding: 10px 20px;
-    height: 60px;
+    height: $footer-height;
 
     :deep() .spacer-small {
       padding: 0;
