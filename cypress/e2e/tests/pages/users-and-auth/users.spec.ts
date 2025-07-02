@@ -9,6 +9,7 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import FixedBannerPo from '@/cypress/e2e/po/components/fixed-banner.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import { deleteManyResources } from '~/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 const usersPo = new UsersPo('_');
 const userCreate = usersPo.createEdit();
@@ -504,7 +505,11 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     after(() => {
-      userIdsList.forEach((r) => cy.deleteRancherResource('v3', 'Users', r, false));
+      cy.deleteManyResources({
+        toDelete: userIdsList,
+        deleteFn: (r) => cy.deleteRancherResource('v3', 'Users', r, false)
+      });
+
       // Ensure the default rows per page value is set after executing the tests
       cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
     });

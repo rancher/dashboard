@@ -3,7 +3,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateDaemonSetsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/daemonsets/daemonsets-get';
-import { createManyWorkloads, deleteManyWorkloadNamespaces, SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -100,7 +100,7 @@ describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'
         };
       };
 
-      createManyWorkloads({
+      cy.createManyNamespacedResourced({
         context:        'ns1',
         createWorkload: createDs(),
       })
@@ -108,7 +108,7 @@ describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'
           daemonSetNamesList = workloadNames;
           nsName1 = ns;
         })
-        .then(() => createManyWorkloads({
+        .then(() => cy.createManyNamespacedResourced({
           context:        'ns2',
           createWorkload: createDs(uniqueDaemonSet),
           count:          1
@@ -315,7 +315,7 @@ describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'
       cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
 
       // delete namespace (this will also delete all daemonsets in it)
-      deleteManyWorkloadNamespaces([nsName1, nsName2]);
+      cy.deleteNamespace([nsName1, nsName2]);
     });
   });
 });

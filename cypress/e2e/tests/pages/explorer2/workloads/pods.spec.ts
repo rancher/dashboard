@@ -7,7 +7,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { generatePodsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/pods/pods-get';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
-import { createManyWorkloads, deleteManyWorkloadNamespaces, SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 const localCluster = 'local';
 
@@ -38,7 +38,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
         };
       };
 
-      createManyWorkloads({
+      cy.createManyNamespacedResourced({
         context:        'ns1',
         createWorkload: createPod(),
       })
@@ -46,7 +46,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
           podNamesList = workloadNames;
           nsName1 = ns;
         })
-        .then(() => createManyWorkloads({
+        .then(() => cy.createManyNamespacedResourced({
           context:        'ns2',
           createWorkload: createPod(uniquePod),
           count:          1
@@ -253,7 +253,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
 
       // delete namespace (this will also delete all pods in it)
-      deleteManyWorkloadNamespaces([nsName1, nsName2]);
+      cy.deleteNamespace([nsName1, nsName2]);
     });
   });
 

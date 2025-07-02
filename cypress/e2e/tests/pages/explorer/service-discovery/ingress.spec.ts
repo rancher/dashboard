@@ -5,11 +5,11 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 const cluster = 'local';
 const ingressListPagePo = new IngressListPagePo();
 let ingressName = '';
-const secretsNamesList = [];
-const servicesNamesList = [];
+let secretsNamesList = [];
+let servicesNamesList = [];
 const secretsCount = 4;
 const servicesCount = 4;
-const namespace = 'default';
+let namespace;
 
 describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
@@ -48,26 +48,28 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
         ingressName = name;
       });
 
-      // Create secrets
-      cy.wrap(Array.from({ length: secretsCount }))
-        .each(() => {
-          const secretName = Cypress._.uniqueId(`e2e-${ Date.now().toString() }-secret`);
+      cy.createManyNamespacedResourced({
+        context:        'ns1',
+        createWorkload: ({ ns, i }: {ns: string, i: number}) => {
+          const name = Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
 
-          cy.createSecret(namespace, secretName).then((name) => {
-            secretsNamesList.push(name);
-          });
-        })
-        .then(() => {
-          // Create services
-          cy.wrap(Array.from({ length: servicesCount }))
-            .each(() => {
-              const serviceName = Cypress._.uniqueId(`e2e-${ Date.now().toString() }-service`);
+          return cy.createSecret(ns, name);
+        },
+        count: secretsCount
+      }).then(({ ns, workloadNames }) => {
+        secretsNamesList = workloadNames;
+        namespace = ns;
+      }).then(() => cy.createManyNamespacedResourced({
+        namespace,
+        createWorkload: ({ ns, i }: {ns: string, i: number}) => {
+          const name = Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
 
-              cy.createService(namespace, serviceName).then((name) => {
-                servicesNamesList.push(name);
-              });
-            });
-        });
+          return cy.createService(ns, name);
+        },
+        count: servicesCount
+      })).then(({ workloadNames }) => {
+        servicesNamesList = workloadNames;
+      });
     });
 
     it('can select rules and certificates in Create mode', () => {
@@ -281,16 +283,7 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
     after('clean up', () => {
       cy.updateNamespaceFilter(cluster, 'none', '{"local":["all://user"]}');
 
-      // clean up secrets, services and ingress
-      secretsNamesList.forEach((secretName) => {
-        cy.deleteRancherResource('v1', 'secrets', `${ namespace }/${ secretName }`);
-      });
-
-      servicesNamesList.forEach((serviceName) => {
-        cy.deleteRancherResource('v1', 'services', `${ namespace }/${ serviceName }`);
-      });
-
-      cy.deleteRancherResource('v1', 'networking.k8s.io.ingresses', `${ namespace }/${ ingressName }`);
+      cy.deleteNamespace([namespace]);
     });
   });
 });

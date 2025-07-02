@@ -4,6 +4,7 @@ import AccountPagePo from '@/cypress/e2e/po/pages/account-api-keys.po';
 import CreateKeyPagePo from '@/cypress/e2e/po/pages/account-api-keys-create_key.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { generateTokensDataSmall } from '@/cypress/e2e/blueprints/account-and-apikeys/tokens-get';
+import { deleteManyResources } from '~/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 const userMenu = new UserMenuPo();
 const accountPage = new AccountPagePo();
@@ -279,7 +280,11 @@ describe.skip('Account and API Keys', { testIsolation: 'off' }, () => {
     });
 
     after(() => {
-      tokenIdsList.forEach((r) => cy.deleteRancherResource('v3', 'tokens', r, false));
+      cy.deleteManyResources({
+        toDelete: tokenIdsList,
+        deleteFn: (t) => cy.deleteRancherResource('v3', 'tokens', t, false)
+      });
+
       // Ensure the default rows per page value is set after running the tests
       cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
     });

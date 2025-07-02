@@ -3,7 +3,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateCronJobsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/cronjobs/cronjobs-get';
-import { createManyWorkloads, deleteManyWorkloadNamespaces, SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '~/cypress/e2e/blueprints/blueprint.utils';
 
 describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
@@ -58,7 +58,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
         };
       };
 
-      createManyWorkloads({
+      cy.createManyNamespacedResourced({
         context:        'ns1',
         createWorkload: createCronJob(),
       })
@@ -66,7 +66,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
           cronJobNamesList = workloadNames;
           nsName1 = ns;
         })
-        .then(() => createManyWorkloads({
+        .then(() => cy.createManyNamespacedResourced({
           context:        'ns2',
           createWorkload: createCronJob(uniqueCronJob),
           count:          1
@@ -278,7 +278,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
       cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
 
       // delete namespace (this will also delete all cronjobs in it)
-      deleteManyWorkloadNamespaces([nsName1, nsName2]);
+      cy.deleteNamespace([nsName1, nsName2]);
     });
   });
 });

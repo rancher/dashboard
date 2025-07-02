@@ -10,6 +10,7 @@ import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import { deleteManyResources } from '~/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
 const globalRoleNameYaml = 'test-global-role-yaml';
 const globalRoleYaml = `apiVersion: management.cattle.io/v3
@@ -558,7 +559,10 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     after(() => {
-      globalRolesIdsList.forEach((r) => cy.deleteRancherResource('v3', 'globalRoles', r, false));
+      cy.deleteManyResources({
+        toDelete: globalRolesIdsList,
+        deleteFn: (r) => cy.deleteRancherResource('v3', 'globalRoles', r, false)
+      });
       // Ensure the default rows per page value is set after running the tests
       cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
     });
