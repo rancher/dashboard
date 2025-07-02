@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
-const localWorkspace = 'fleet-local';
+// const localWorkspace = 'fleet-local';
 const defaultWorkspace = 'fleet-default';
 let customTokenName = '';
 let removeToken = false;
