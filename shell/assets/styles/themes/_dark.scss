@@ -119,6 +119,8 @@
   --dropdown-group-text        : #{$lighter};
   --dropdown-highlight-text    : var(--link);
 
+  --notification-unread-bg     : var(--primary-banner-bg);
+
   --input-text                 : #{$lightest};
   --input-label                : #{$lighter};
   --input-placeholder          : #{$disabled};

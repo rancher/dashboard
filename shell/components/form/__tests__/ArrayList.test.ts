@@ -64,7 +64,7 @@ describe('the ArrayList', () => {
 
     expect(wrapper.find('[data-testid="array-list-remove-item-2"]').exists()).toBe(false);
     expect((wrapper.emitted('remove')![0][0] as any).row.value).toStrictEqual('string 1');
-    expect(wrapper.vm.rows).toStrictEqual([{ value: 'string 0' }, { value: 'string 2' }]);
+    expect(wrapper.vm.rows).toStrictEqual([{ id: '', value: 'string 0' }, { id: '', value: 'string 2' }]);
     expect(wrapper.emitted('update:value')![0][0]).toStrictEqual(['string 0', 'string 2']);
   });
 
@@ -100,7 +100,7 @@ describe('the ArrayList', () => {
     const rowRemove = wrapper.find('[data-testid="array-list-remove-item-0"]');
     const rowAdd = wrapper.find('[data-testid="array-list-button"]');
 
-    expect(wrapper.vm.rows[0]).toStrictEqual({ value: value[0] });
+    expect(wrapper.vm.rows[0]).toStrictEqual({ id: '', value: value[0] });
 
     expect(mainContainer.attributes('role')).toBe('group');
     expect(mainContainer.attributes('aria-label')).toBe('some-title');

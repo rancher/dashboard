@@ -9,7 +9,7 @@ import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/w
 
 const localCluster = 'local';
 
-describe('Deployments', { testIsolation: 'off', tags: '@explorer2' }, () => {
+describe('Deployments', { testIsolation: 'off', tags: ['@explorer2'] }, () => {
   before(() => {
     cy.login();
   });
@@ -408,6 +408,69 @@ describe('Deployments', { testIsolation: 'off', tags: '@explorer2' }, () => {
 
       // delete namespace (this will also delete all deployments in it)
       cy.deleteNamespace([nsName1, nsName2]);
+    });
+  });
+
+  describe('Redeploy Dialog', () => {
+    let volumeDeploymentId: string;
+    const { namespace } = createDeploymentBlueprint.metadata;
+    const apiResource = 'apps.deployments';
+    const deploymentsListPage = new WorkloadsDeploymentsListPagePo(localCluster);
+
+    const getRedeployEndpoint = () => `/v1/${ apiResource }/${ namespace }/${ volumeDeploymentId }`;
+    const openRedeployDialog = () => {
+      deploymentsListPage.goTo();
+      deploymentsListPage.waitForPage();
+
+      deploymentsListPage
+        .list()
+        .actionMenu(volumeDeploymentId)
+        .getMenuItem('Redeploy')
+        .click();
+
+      return deploymentsListPage
+        .redeployDialog()
+        .shouldBeVisible()
+        .expectCancelButtonLabel('Cancel')
+        .expectApplyButtonLabel('Redeploy');
+    };
+
+    before(() => {
+      cy.createE2EResourceName('volume-deployment').then((name) => {
+        volumeDeploymentId = name;
+
+        const volumeDeployment = { ...createDeploymentBlueprint };
+
+        volumeDeployment.metadata.name = name;
+
+        cy.createRancherResource('v1', apiResource, JSON.stringify(volumeDeployment));
+      });
+    });
+
+    it('redeploys successfully after confirmation', () => {
+      const dialog = openRedeployDialog();
+
+      dialog.confirmRedeploy(getRedeployEndpoint());
+      dialog.shouldBeClosed();
+    });
+
+    it('does not send a request when cancelled', () => {
+      cy.intercept('PUT', getRedeployEndpoint()).as('redeployCancelled');
+
+      const dialog = openRedeployDialog();
+
+      dialog.cancel().shouldBeClosed();
+      cy.get('@redeployCancelled.all').should('have.length', 0);
+    });
+
+    it('displays error banner on failure', () => {
+      const dialog = openRedeployDialog();
+
+      dialog.simulateRedeployError(getRedeployEndpoint());
+    });
+
+    after(() => {
+      cy.deleteRancherResource('v1', apiResource, `${ namespace }/${ volumeDeploymentId }`);
     });
   });
 });

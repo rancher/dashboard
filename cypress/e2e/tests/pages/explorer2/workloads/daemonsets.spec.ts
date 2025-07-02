@@ -318,4 +318,50 @@ describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'
       cy.deleteNamespace([nsName1, nsName2]);
     });
   });
+
+  describe('Redeploy dialog', () => {
+    const daemonsetName = 'daemonset-test';
+    const apiResource = 'apps.daemonsets';
+    const redeployEndpoint = `/v1/${ apiResource }/default/${ daemonsetName }`;
+    const daemonSetsListPage = new WorkloadsDaemonsetsListPagePo(localCluster);
+
+    const openRedeployDialog = () => {
+      daemonSetsListPage.goTo();
+      daemonSetsListPage.waitForPage();
+
+      daemonSetsListPage
+        .list()
+        .actionMenu(daemonsetName)
+        .getMenuItem('Redeploy')
+        .click();
+
+      return daemonSetsListPage
+        .redeployDialog()
+        .shouldBeVisible()
+        .expectCancelButtonLabel('Cancel')
+        .expectApplyButtonLabel('Redeploy');
+    };
+
+    it('redeploys successfully after confirmation', () => {
+      const dialog = openRedeployDialog();
+
+      dialog.confirmRedeploy(redeployEndpoint);
+      dialog.shouldBeClosed();
+    });
+
+    it('does not send a request when cancelled', () => {
+      cy.intercept('PUT', redeployEndpoint).as('redeployCancelled');
+
+      const dialog = openRedeployDialog();
+
+      dialog.cancel().shouldBeClosed();
+      cy.get('@redeployCancelled.all').should('have.length', 0);
+    });
+
+    it('displays error banner on failure', () => {
+      const dialog = openRedeployDialog();
+
+      dialog.simulateRedeployError(redeployEndpoint);
+    });
+  });
 });
