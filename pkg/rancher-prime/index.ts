@@ -41,8 +41,8 @@ export default function(plugin: IPlugin) {
         message:       t('registration.notification.message'),
         progress:      0,
         primaryAction: {
-          label:  t('registration.notification.button.primary.label'),
-          action: { route: '/c/local/settings/registration' }
+          label: t('registration.notification.button.primary.label'),
+          route: '/c/local/settings/registration'
         },
         id:         'rancher-prime-registration',
         preference: 'rancher-prime-registration'
