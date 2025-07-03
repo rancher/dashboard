@@ -109,6 +109,10 @@ declare global {
         namespace?: string,
         createResource: ({ ns, i }) => Chainable
         count?: number,
+        /**
+         * Every 5 resources cy.wait this amount of milleseconds
+         */
+        wait?: number,
       }): Chainable;
 
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
@@ -127,7 +131,14 @@ declare global {
        *
        * Note - should only be used for non-namespaced resources. otherwise create resources in a namespace and use `deleteNamespace`
        */
-      deleteManyResources<T>(args: { toDelete: T[], deleteFn: (arg0: T) => Chainable})
+      deleteManyResources<T>(args: {
+        toDelete: T[],
+        deleteFn: (arg0: T) => Chainable,
+        /**
+         * Every 5 resources cy.wait this amount of milleseconds
+         */
+        wait?: number
+      })
 
       tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string)
       tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration?: number)

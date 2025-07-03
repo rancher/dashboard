@@ -1199,7 +1199,7 @@ Cypress.Commands.add('createService', (namespace: string, name: string, options:
 });
 
 Cypress.Commands.add('createManyNamespacedResourced', ({
-  namespace, context, createResource, count = 22
+  namespace, context, createResource, count = 22, wait = 500
 }: {
   /**
    * Used to create the namespace
@@ -1208,6 +1208,7 @@ Cypress.Commands.add('createManyNamespacedResourced', ({
   namespace?: string,
   createResource: ({ ns, i }) => CypressChainable
   count?: number,
+  wait?: number,
 }): Cypress.Chainable<{ ns: string, workloadNames: string[]}> => {
   const dynamicNs = namespace ? cy.wrap(namespace) : cy.createE2EResourceName(context).then((ns) => {
     // create namespace
@@ -1226,8 +1227,8 @@ Cypress.Commands.add('createManyNamespacedResourced', ({
           workloadNames.push(resp.body.metadata.name);
         });
 
-        if (i % 5 === 0) {
-          cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
+        if (wait && i % 5 === 0) {
+          cy.wait(wait); // eslint-disable-line cypress/no-unnecessary-waiting
         }
       }
 
@@ -1248,11 +1249,15 @@ Cypress.Commands.add('deleteNamespace', (namespaces: string[]) => {
   }
 });
 
-Cypress.Commands.add('deleteManyResources', <T = any>({ toDelete, deleteFn }: { toDelete: T[], deleteFn: (arg0: T) => CypressChainable} ): CypressChainable => {
+Cypress.Commands.add('deleteManyResources', <T = any>({ toDelete, deleteFn, wait = 500 }: {
+  toDelete: T[],
+  deleteFn: (arg0: T) => CypressChainable,
+  wait?: number
+}) => {
   for (let i = 0; i < toDelete.length; i++) {
     deleteFn(toDelete[i]);
-    if (i % 5 === 0) {
-      cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
+    if (wait && i % 5 === 0) {
+      cy.wait(wait); // eslint-disable-line cypress/no-unnecessary-waiting
     }
   }
 });
