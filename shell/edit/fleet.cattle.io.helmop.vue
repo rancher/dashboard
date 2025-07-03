@@ -406,7 +406,7 @@ export default {
         break;
       case SOURCE_TYPE.OCI:
         this.fvFormRuleSets = [{
-          path:  'spec.helm.chart',
+          path:  'spec.helm.repo',
           rules: ['required', 'ociRegistry'],
         }];
         break;
@@ -544,11 +544,11 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
-              v-model:value="value.spec.helm.chart"
+              v-model:value="value.spec.helm.repo"
               :mode="mode"
               :label-key="`fleet.helmOp.source.${ sourceType }.chart.label`"
               :placeholder="t(`fleet.helmOp.source.${ sourceType }.chart.placeholder`, null, true)"
-              :rules="fvGetAndReportPathRules('spec.helm.chart')"
+              :rules="fvGetAndReportPathRules('spec.helm.repo')"
               :required="true"
             />
           </div>
