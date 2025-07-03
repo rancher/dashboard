@@ -4,10 +4,10 @@ on:
     branches:
       # - master - See https://github.com/rancher/dashboard/issues/14230
       - 'release-*'
-  pull_request:
-    branches:
-      - master
-      - 'release-*'
+  # pull_request:
+  #   branches:
+  #     - master
+  #     - 'release-*'
   workflow_dispatch:
     inputs:
       environment:
