@@ -5788,10 +5788,10 @@ secret:
   tabs:
     namespaced:
       label: Namespaced
-      create: Create Namespaced Secret
+      create: Create Secret
     projectScoped:
       label: Project Scoped
-      create: Create Project Scoped Secret
+      create: Create Project Secret
 
 selectOrCreateAuthSecret:
   label: Authentication

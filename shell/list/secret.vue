@@ -4,7 +4,7 @@ import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
-import { SCOPE as SECRET_SCOPE, SCOPED_TABS as SECRET_SCOPED_TABS } from '@shell/config/query-params';
+import { SECRET_SCOPE, SECRET_SCOPED_TABS } from '@shell/config/query-params';
 import { NAMESPACE as NAMESPACE_HEADER } from '@shell/config/table-headers';
 import { MANAGEMENT } from '@shell/config/types';
 import { UI_PROJECT_SCOPED } from '@shell/config/labels-annotations';
