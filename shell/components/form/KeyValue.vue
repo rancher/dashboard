@@ -12,6 +12,7 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { asciiLike } from '@shell/utils/string';
 import CodeMirror from '@shell/components/CodeMirror';
 import isEqual from 'lodash/isEqual';
+import { LabeledTooltip } from '@components/LabeledTooltip';
 
 export default {
   name: 'KeyValue',
@@ -22,7 +23,8 @@ export default {
     CodeMirror,
     Select,
     TextAreaAutoGrow,
-    FileSelector
+    FileSelector,
+    LabeledTooltip
   },
   props: {
     value: {
@@ -100,20 +102,6 @@ export default {
     keyPlaceholder: {
       type:    String,
       default: '',
-    },
-    /**
-     * List of keys which needs to be disabled and hidden based on toggler
-     */
-    protectedKeys: {
-      type:    Array,
-      default: () => [],
-    },
-    /**
-     * Conditionally display protected keys, if any
-     */
-    toggleFilter: {
-      type:    Boolean,
-      default: false,
     },
     separatorLabel: {
       type:    String,
@@ -250,6 +238,10 @@ export default {
       default: false,
       type:    Boolean
     },
+    keyErrors: {
+      type:    Object,
+      default: () => ({})
+    }
   },
   data() {
     const rows = this.getRows(this.value);
@@ -335,10 +327,6 @@ export default {
       if (!isEqual(neu, this.lastUpdated)) {
         this.rows = this.getRows(neu);
       }
-    },
-
-    isProtected(key) {
-      return this.protectedKeys && this.protectedKeys.includes(key);
     },
 
     getRows(value) {
@@ -691,10 +679,7 @@ export default {
         v-else
         :key="i"
       >
-        <div
-          class="rowgroup"
-          :class="{'hide': isProtected(row.key) && !toggleFilter}"
-        >
+        <div class="rowgroup">
           <div class="row">
             <!-- Key -->
             <div
@@ -702,6 +687,10 @@ export default {
               role="gridcell"
               :aria-rowindex="i+1"
               :aria-colindex="1"
+              :class="{
+                'labeled-input-key': keyErrors[row.key],
+                'v-popper--has-tooltip': keyErrors[row.key],
+              }"
             >
               <slot
                 name="key"
@@ -717,7 +706,7 @@ export default {
                   ref="key"
                   v-model:value="row[keyName]"
                   :searchable="true"
-                  :disabled="disabled || isProtected(row.key)"
+                  :disabled="disabled"
                   :clearable="false"
                   :taggable="keyTaggable"
                   :options="calculateOptions(row[keyName])"
@@ -729,13 +718,18 @@ export default {
                   v-else
                   ref="key"
                   v-model="row[keyName]"
-                  :disabled="isView || disabled || !keyEditable || isProtected(row.key)"
+                  :disabled="isView || disabled || !keyEditable"
                   :placeholder="_keyPlaceholder"
                   :data-testid="`input-kv-item-key-${i}`"
                   :aria-label="t('generic.ariaLabel.key', {index: i+1})"
                   @input="queueUpdate"
                   @paste="onPaste(i, $event)"
                 >
+                <LabeledTooltip
+                  v-if="keyErrors[row.key]"
+                  :value="keyErrors[row.key]"
+                  :hover="true"
+                />
               </slot>
             </div>
 
@@ -785,7 +779,7 @@ export default {
                     v-model:value="row[valueName]"
                     data-testid="value-multiline"
                     :class="{'conceal': valueConcealed}"
-                    :disabled="disabled || isProtected(row.key)"
+                    :disabled="disabled"
                     :mode="mode"
                     :placeholder="_valuePlaceholder"
                     :min-height="40"
@@ -796,7 +790,7 @@ export default {
                   <input
                     v-else
                     v-model="row[valueName]"
-                    :disabled="isView || disabled || isProtected(row.key)"
+                    :disabled="isView || disabled"
                     :type="valueConcealed ? 'password' : 'text'"
                     :placeholder="_valuePlaceholder"
                     autocorrect="off"
@@ -850,7 +844,7 @@ export default {
                 <button
                   type="button"
                   role="button"
-                  :disabled="isView || isProtected(row.key) || disabled"
+                  :disabled="isView || disabled"
                   :aria-label="t('generic.ariaLabel.remove', {index: i+1})"
                   class="btn role-link"
                   @click="remove(i)"
@@ -993,5 +987,12 @@ export default {
   .copy-value {
     padding: 0px 0px 0px 10px;
   }
+}
+
+.labeled-input-key {
+  position: relative;
+  display: flex;
+  border-collapse: separate;
+  z-index: 0; // Prevent label from cover other elements outside of the input
 }
 </style>
