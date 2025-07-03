@@ -42,17 +42,16 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     const loggingOutputList = new LoggingClusteroutputListPagePo();
     const loggingOutputEdit = new LoggingClusterOutputCreateEditPagePo('local');
 
+    cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
     ChartPage.navTo(null, 'Logging');
     chartPage.waitForChartHeader('Logging', { timeout: 20000 });
     chartPage.waitForPage();
     chartPage.goToInstall();
     installChartPage.nextPage();
-
-    cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
     installChartPage.installChart();
-    cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
-    kubectl.waitForTerminalStatus('Disconnected');
 
+    cy.wait('@chartInstall', { timeout: 10000 }).its('response.statusCode').should('eq', 201);
+    kubectl.waitForTerminalStatus('Disconnected');
     kubectl.closeTerminal();
 
     LoggingClusteroutputListPagePo.navTo();
