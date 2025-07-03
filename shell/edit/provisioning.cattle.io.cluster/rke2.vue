@@ -1585,18 +1585,24 @@ export default {
     },
 
     async setHarvesterChartValues() {
-      if (!this.value?.metadata?.name) {
-        const err = this.t('cluster.harvester.kubeconfigSecret.nameRequired');
-        const msg = this.t('cluster.harvester.kubeconfigSecret.error', { err });
+      const isHarvester = this.agentConfig?.['cloud-provider-name'] === HARVESTER;
 
-        this.errors.push(msg);
-        throw new Error(msg);
+      if (!isHarvester) {
+        return;
       }
       try {
         const clusterId = get(this.credential, 'decodedData.clusterId') || '';
         const isUpgrade = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
 
-        if (this.agentConfig?.['cloud-provider-name'] === HARVESTER && clusterId && (this.isCreate || isUpgrade)) {
+        if (!this.value?.metadata?.name) {
+          const err = this.t('cluster.harvester.kubeconfigSecret.nameRequired');
+          const msg = this.t('cluster.harvester.kubeconfigSecret.error', { err });
+
+          this.errors.push(msg);
+          throw new Error(msg);
+        }
+
+        if (clusterId && (this.isCreate || isUpgrade)) {
           const namespace = this.machinePools?.[0]?.config?.vmNamespace;
 
           const res = await this.$store.dispatch('management/request', {
