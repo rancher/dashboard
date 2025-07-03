@@ -148,6 +148,7 @@ export default {
         $store:        this.$store,
         inStore:       this.inStore,
         namespace:     this.value.metadata.namespace,
+        transient:     true,
       });
     }, 250, { leading: true }),
   },

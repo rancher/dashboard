@@ -328,6 +328,7 @@ export default {
                 color="warning"
               />
               <SortableTable
+                v-if="row.nodeRows.length"
                 class="sub-table"
                 :rows="row.nodeRows"
                 :headers="nodeTableHeaders"
@@ -336,6 +337,9 @@ export default {
                 :table-actions="false"
                 key-field="id"
               />
+              <span v-else>
+                {{ t('compliance.detail.subRow.noNodes') }}
+              </span>
             </td>
           </tr>
         </template>

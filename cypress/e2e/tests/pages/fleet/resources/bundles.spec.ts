@@ -138,39 +138,39 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
     });
 
     // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/13990
-    it.skip('can Edit Config', () => {
-      const fleetBundleCreateEditPage = new FleetBundlesCreateEditPo(localWorkspace, customBundleName);
+    // it.skip('can Edit Config', () => {
+    //   const fleetBundleCreateEditPage = new FleetBundlesCreateEditPo(localWorkspace, customBundleName);
 
-      cy.intercept('PUT', `/v1/fleet.cattle.io.bundles/${ localWorkspace }/${ customBundleName }`).as('editBundle');
+    //   cy.intercept('PUT', `/v1/fleet.cattle.io.bundles/${ localWorkspace }/${ customBundleName }`).as('editBundle');
 
-      fleetBundlesListPage.goTo();
-      fleetBundlesListPage.waitForPage();
-      headerPo.selectWorkspace(localWorkspace);
-      fleetBundlesListPage.list().actionMenu(customBundleName).getMenuItem('Edit YAML')
-        .click();
-      fleetBundleCreateEditPage.waitForPage('mode=edit&as=yaml');
-      fleetBundleCreateEditPage.mastheadTitle().then((title) => {
-        expect(title.replace(/\s+/g, ' ')).to.contain(`Bundle: ${ customBundleName }`);
-      });
-      fleetBundleCreateEditPage.resourceDetail().resourceYaml().codeMirror()
-        .value()
-        .then((val) => {
-          // convert yaml into json to update values
-          const json: any = jsyaml.load(val);
+    //   fleetBundlesListPage.goTo();
+    //   fleetBundlesListPage.waitForPage();
+    //   headerPo.selectWorkspace(localWorkspace);
+    //   fleetBundlesListPage.list().actionMenu(customBundleName).getMenuItem('Edit YAML')
+    //     .click();
+    //   fleetBundleCreateEditPage.waitForPage('mode=edit&as=yaml');
+    //   fleetBundleCreateEditPage.mastheadTitle().then((title) => {
+    //     expect(title.replace(/\s+/g, ' ')).to.contain(`Bundle: ${ customBundleName }`);
+    //   });
+    //   fleetBundleCreateEditPage.resourceDetail().resourceYaml().codeMirror()
+    //     .value()
+    //     .then((val) => {
+    //       // convert yaml into json to update values
+    //       const json: any = jsyaml.load(val);
 
-          json.metadata.namespace = localWorkspace;
+    //       json.metadata.namespace = localWorkspace;
 
-          fleetBundleCreateEditPage.resourceDetail().resourceYaml().codeMirror()
-            .set(jsyaml.dump(json));
-        });
-      fleetBundleCreateEditPage.resourceDetail().resourceYaml().saveOrCreate()
-        .click();
-      cy.wait('@editBundle').then(({ response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(response?.body.metadata.namespace).equals(localWorkspace);
-      });
-      fleetBundlesListPage.waitForPage();
-    });
+    //       fleetBundleCreateEditPage.resourceDetail().resourceYaml().codeMirror()
+    //         .set(jsyaml.dump(json));
+    //     });
+    //   fleetBundleCreateEditPage.resourceDetail().resourceYaml().saveOrCreate()
+    //     .click();
+    //   cy.wait('@editBundle').then(({ response }) => {
+    //     expect(response?.statusCode).to.eq(200);
+    //     expect(response?.body.metadata.namespace).equals(localWorkspace);
+    //   });
+    //   fleetBundlesListPage.waitForPage();
+    // });
 
     it('can clone a bundle', () => {
       const fleetBundleCreateEditPage = new FleetBundlesCreateEditPo(localWorkspace, customBundleName);

@@ -23,7 +23,7 @@ class PaginationUtils {
   /**
    * In places where we're using paginated features but not in a page... this is what the max results should be
    */
-  readonly defaultPageSize = 10000;
+  readonly defaultPageSize = 100000;
   /**
    * When a ns filter isn't one or more projects/namespaces... what are the valid values?
    *

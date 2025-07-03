@@ -1373,6 +1373,9 @@ compliance:
   testsSkipped: Tests Skipped
   testsToSkip: Tests to Skip
   alerting: Alerting
+  detail:
+    subRow:
+      noNodes: No Additional Information
 
 cluster:
   jwtAuthentication:
@@ -2998,6 +3001,10 @@ fleet:
         empty: empty
       valuesFrom:
         selectLabel: Values From
+        options:
+          configMapKeyRef: ConfigMap Key
+          secretKeyRef: Secret key
+        loading: Loading ConfigMaps and Secrets
     serviceAccount:
       label: Service Account Name
       placeholder: "Optional: Use a service account in the target clusters"
@@ -4455,11 +4462,11 @@ networkpolicy:
       invalidCidr: "Invalid CIDR"
       invalidExceptionCidrs: "Invalid Exceptions: "
     podSelector:
-      label: Pod Selector
+      label: Pod Label Selector
     namespaceSelector:
-      label: Namespace Selector
+      label: Namespace Label Selector
     namespaceAndPodSelector:
-      label: Namespace/Pod Selector
+      label: Namespace/Pod Label Selector
   config:
     label: Configuration
   selectors:
