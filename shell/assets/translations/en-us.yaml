@@ -2967,6 +2967,7 @@ labels:
   addTag: Add Tag
   addTaint: Add Taint
   addAnnotation: Add Annotation
+  protectedWarning: This key is protected and will be discarded
   labels:
     title: Labels
     description: Key/value pairs that are attached to objects which specify identifying attributes.
