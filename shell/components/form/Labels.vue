@@ -1,6 +1,74 @@
-<script>
-import KeyValue from '@shell/components/form/KeyValue';
+<script lang="ts">
+import { pickBy, omitBy, mapValues } from 'lodash';
+import { matchesSomeRegex } from '@shell/utils/string';
+import { LABELS_TO_IGNORE_REGEX, ANNOTATIONS_TO_IGNORE_REGEX } from '@shell/config/labels-annotations';
+import KeyValue from '@shell/components/form/KeyValue.vue';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
+import { _VIEW } from '@shell/config/query-params';
+
+export class Factory {
+  private protectedKeys: string[] = [];
+  private protectedRegexes: RegExp[] = [];
+  private protectedWarning = '';
+
+  private isProtected(key: string) {
+    return this.protectedKeys.includes(key) || matchesSomeRegex(key, this.protectedRegexes);
+  }
+
+  private omitProtected(obj: object) {
+    return omitBy(obj, (_, key) => this.isProtected(key));
+  }
+
+  private pickProtected(obj: object) {
+    return pickBy(obj, (_, key) => this.isProtected(key));
+  }
+
+  private keyErrorMap(elems: object) {
+    return mapValues(this.pickProtected(elems), () => this.protectedWarning);
+  }
+
+  constructor(protectedKeys: string[], protectedRegexes: RegExp[], msg: string, initValue: object) {
+    // Init privates
+    this.protectedKeys = protectedKeys || [];
+    this.protectedRegexes = protectedRegexes || [];
+    this.protectedWarning = msg || '';
+
+    this.initValue = initValue || {};
+    this.value = this.omitProtected(this.initValue);
+    this.keyErrors = this.keyErrorMap(this.value);
+    this.hasProtectedKeys = protectedKeys?.length > 0;
+  }
+
+  initValue: object = {};
+  value: object = {};
+  keyErrors: object = {};
+  hasProtectedKeys = false;
+
+  /**
+   * Updates resource's model and discard new protected keys
+   * Old protected keys remain untouched on edit
+   *
+   * @param value edited labels/annotations
+   * @param callbackFn function to set model's labels/annotations
+   */
+  update(value: Record<string, string>, callbackFn: (value: object) => void) {
+    const neu = value || {};
+
+    callbackFn({
+      ...this.omitProtected(neu),
+      ...this.pickProtected(this.initValue),
+    });
+
+    this.value = neu;
+    this.keyErrors = this.keyErrorMap(neu);
+  }
+}
+
+interface DataType {
+  labels: Factory,
+  annotations: Factory,
+  toggler: boolean,
+}
 
 export default {
   components: {
@@ -60,8 +128,14 @@ export default {
     },
   },
 
-  data() {
-    return { toggler: false };
+  data(): DataType {
+    const protectedWarning = this.t('labels.protectedWarning');
+
+    return {
+      labels:      new Factory(this.value.systemLabels, LABELS_TO_IGNORE_REGEX, protectedWarning, this.value.labels),
+      annotations: new Factory(this.value.systemAnnotations, ANNOTATIONS_TO_IGNORE_REGEX, protectedWarning, this.value.annotations),
+      toggler:     false
+    };
   },
 
   computed: {
@@ -75,6 +149,10 @@ export default {
 
     columnsClass() {
       return `${ this.displaySideBySide ? 'col span-6' : 'row' }`.trim();
+    },
+
+    showToggler() {
+      return this.mode === _VIEW && (this.labels.hasProtectedKeys || this.annotations.hasProtectedKeys);
     }
   }
 };
@@ -88,7 +166,7 @@ export default {
             <t k="labels.labels.title" />
           </h3>
           <ToggleSwitch
-            v-if="value.hasSystemLabels"
+            v-if="showToggler"
             v-model:value="toggler"
             name="label-system-toggle"
             :on-label="t('labels.labels.show')"
@@ -98,21 +176,17 @@ export default {
           <t k="labels.labels.description" />
         </p>
         <div :class="columnsClass">
-          <slot
-            name="labels"
-            :toggler="toggler"
-          >
+          <slot name="labels">
             <KeyValue
               key="labels"
-              :value="value.labels"
-              :protected-keys="value.systemLabels || []"
-              :toggle-filter="toggler"
+              :value="toggler ? labels.initValue : labels.value"
               :add-label="t('labels.addLabel')"
               :add-icon="addIcon"
               :mode="mode"
               :read-allowed="false"
               :value-can-be-empty="true"
-              @update:value="value.setLabels($event)"
+              :key-errors="labels.keyErrors"
+              @update:value="labels.update($event, (x) => value.setLabels(x))"
             />
           </slot>
         </div>
@@ -125,17 +199,16 @@ export default {
     >
       <KeyValue
         key="annotations"
-        :value="value.annotations"
+        :value="toggler ? annotations.initValue : annotations.value"
         :add-label="t('labels.addAnnotation')"
         :add-icon="addIcon"
         :mode="mode"
-        :protected-keys="value.systemAnnotations || []"
-        :toggle-filter="toggler"
         :title="t('labels.annotations.title')"
         :title-protip="annotationTitleTooltip"
         :read-allowed="false"
         :value-can-be-empty="true"
-        @update:value="value.setAnnotations($event)"
+        :key-errors="annotations.keyErrors"
+        @update:value="annotations.update($event, (x) => value.setAnnotations(x))"
       />
     </div>
   </div>
