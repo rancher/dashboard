@@ -2,7 +2,6 @@
 import { onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
-import { useRouter } from 'vue-router';
 
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
@@ -15,7 +14,6 @@ import { usePrimeRegistration } from './registration.composable';
 import Loading from '@shell/components/Loading.vue';
 
 const store = useStore();
-const router = useRouter();
 const { t } = useI18n(store);
 const {
   downloadOfflineRequest,
