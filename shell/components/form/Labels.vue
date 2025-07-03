@@ -6,7 +6,7 @@ import KeyValue from '@shell/components/form/KeyValue.vue';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 import { _VIEW } from '@shell/config/query-params';
 
-class Factory {
+export class Factory {
   private protectedKeys: string[] = [];
   private protectedRegexes: RegExp[] = [];
   private protectedWarning = '';
