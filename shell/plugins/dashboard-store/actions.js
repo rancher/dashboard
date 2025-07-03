@@ -412,6 +412,7 @@ export default {
   async findPage(ctx, { type, opt }) {
     const { getters, commit, dispatch } = ctx;
 
+    // of type @ActionFindPageArgs
     opt = opt || {};
 
     if (!opt.pagination) {
@@ -443,7 +444,7 @@ export default {
       return findAllGetter(getters, type, opt);
     }
 
-    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Size: ${ opt.pagination.pageSize }`); // eslint-disable-line no-console
+    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Size: ${ opt.pagination.pageSize }. Sort: ${ opt.pagination.sort.map((s) => s.field).join(', ') }`); // eslint-disable-line no-console
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
 

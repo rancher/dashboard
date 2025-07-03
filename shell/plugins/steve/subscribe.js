@@ -752,6 +752,7 @@ const defaultActions = {
       if (mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
         // Other findX use options (id/ns/selector) from the messages received over socket.
         // However paginated requests have more complex params so grab them from store from the store.
+        // of type @StorePagination
         const storePagination = getters['havePage'](resourceType);
 
         if (!!storePagination) {
