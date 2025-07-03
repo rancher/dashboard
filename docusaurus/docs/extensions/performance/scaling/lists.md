@@ -20,7 +20,7 @@ Due to pagination happening server-side the UI can no-longer sort and filter on 
 
 To override existing non-compatible server-side pagination headers
 - if headers are supplied by product configuration, supply a second array to `headers(<resourcetype>, <non server-side pagination compatible headers>)`
-  - this is the recommended way to customise the columns in lists
+  - this is the recommended way to customize the columns in lists
 - if headers are supplied to the component, also set `:pagination-headers="..."`
   - this can be used if there is a situation where the default, global columns cannot be used
 
@@ -66,7 +66,24 @@ For more information on fetching resources see the [Update Requests](./requests.
   - The `persistentvolume` list requires `persistentvolumeclaim`s to show PVCs connected to the PV
     - Only the PVC's associated with the page of PVs are fetched
     - This is used when server-side pagination is ENABLED
-  
+
+### Additional filtering
+
+By default `PaginatedResourceTable` will fetch all of the resource type (given the namespace filter). Sometimes lists require additional filtering. This can be done in two ways
+
+- To support enabled Server-Side Pagination
+  - Supply a method `:api-filter="..."` to the component
+  - this will apply additional filters to the http requests used to fetch resources
+- To support disabled Server-Side Pagination
+  - Supply a method `:local-filter="..."` to the component
+  - this will run every time the collection changes
+
+*Examples*
+
+- rancher/dashboard `shell/list/catalog.cattle.io.clusterrepo.vue`
+  - The list of Apps / Repos is filtered by a specific annotation
+- rancher/dashboard `shell/components/form/ResourceTabs/index.vue`
+  - When viewing a specific resource, the `Events` tab shows a list of events filtered to show events related to that specific resource
 
 ### Checklist
 
@@ -78,4 +95,5 @@ For more information on fetching resources see the [Update Requests](./requests.
    - Secondary resources are fetched via functions `fetchSecondaryResources` and/or `fetchPageSecondaryResources` passed into `PaginatedResourceTable`
    - `fetchSecondaryResources` and `fetchPageSecondaryResources` should can use `findAll` when server-side pagination is disabled
    - `fetchSecondaryResources` and `fetchPageSecondaryResources` should cannot use `findAll` and should use `findPage` when server-side pagination is disabled
-1. List has been validated when Server-Side Pagination is enabled via the `ui-sql-cache` Feature Flag   
+1. If lists do not show all of a resource and required additional filtering both `api-filter` and `local-filter` have been passed into `PaginatedResourceTable`  
+1. Changes have been validated when Server-Side Pagination is enabled and disabled via the `ui-sql-cache` Feature Flag

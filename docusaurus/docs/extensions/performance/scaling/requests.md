@@ -46,7 +46,7 @@ The `findPage` action unlocks a number of different filtering options. For detai
 
 ### Uncached Resources
 
-The `findX` set of filters will populate the local cache with a result set and keep it updated. The cache is 1:1 with type. There are scenarios where you might want to keep the cached results but also make another request to fetch resources of the same type. To avoid overwriting the cache the helper `PaginationWrapper` can be used. This will handle making the request and hooks to act upon when that changes.
+The `findX` set of filters will populate the local cache with a result set and keep it updated. The cache is 1:1 with type. There are scenarios where you might want to keep the cached results but also make another request to fetch resources of the same type. To avoid overwriting the cache the helper `PaginationWrapper` can be used. This will handle making the request and hooks to act upon when that changes. Therefore both the store cache and multiple other contexts can handle requests to the same resource type
 
 *Examples*
 - rancher/dashboard `shell/components/nav/TopLevelMenu.helper.ts`
@@ -86,11 +86,11 @@ The old `matching` function simply takes an array and applies the labelSelector.
   - Under the hood it now gets those resources via `shell/utils/selector-typed.ts` `matching`
 
 ## Checklists
-- For resources that are globally cached
-  - With server-side pagination disabled requests continue as before and can use `findAll`
-  - With server-side pagination enabled requests use the new `findPage` to find a smaller subset of resources
-- For resources that are not globally cached
-  - With server-side pagination disabled requests continue as before and can use `findAll`
-  - With server-side pagination enabled requests use the new `PaginationWrapper` wrapper to find a transient subset of resources
-- Locations that previously used `findMatching` or local application of the `labelSelector` are updated to use `findLabelSelector` and the new `matching` helper
-- Changes has been validated when Server-Side Pagination is enabled via the `ui-sql-cache` Feature Flag
+1. For resources that are globally cached
+   - With server-side pagination disabled requests continue as before and can use `findAll`
+   - With server-side pagination enabled requests use the new `findPage` to find a smaller subset of resources
+1. For resources that are not globally cached
+   - With server-side pagination disabled requests continue as before and can use `findAll`
+   - With server-side pagination enabled requests use the new `PaginationWrapper` wrapper to find a transient subset of resources
+1. Locations that previously used `findMatching` or local application of the `labelSelector` are updated to use `findLabelSelector` and the new `matching` helper
+1. Changes have been validated when Server-Side Pagination is enabled and disabled via the `ui-sql-cache` Feature Flag
