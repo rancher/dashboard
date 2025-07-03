@@ -1,7 +1,7 @@
 <script>
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 import {
-  SCOPE as SECRET_SCOPE, SCOPED_TABS as SECRET_SCOPED_TABS,
+  SECRET_SCOPE, SECRET_SCOPED_TABS,
   CLOUD_CREDENTIAL, _CLONE, _CREATE, _EDIT, _FLAGGED
 } from '@shell/config/query-params';
 import { MANAGEMENT, NAMESPACE, DEFAULT_WORKSPACE } from '@shell/config/types';

@@ -81,10 +81,10 @@ export const PROJECT_ID = 'projectId';
 export const FLAT_VIEW = 'flatView';
 
 // Secrets
-export const SCOPED_TABS = {
+export const SECRET_SCOPED_TABS = {
   NAMESPACED:     'namespaced',
   PROJECT_SCOPED: 'project-scoped'
 };
-export const SCOPE = 'scope';
+export const SECRET_SCOPE = 'scope';
 // RANCHER OIDC CLIENT
 export const RANCHER_AS_OIDC_QUERY_PARAMS = ['scope', 'client_id', 'redirect_uri', 'response_type'];
