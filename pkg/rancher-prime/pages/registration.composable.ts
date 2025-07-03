@@ -211,15 +211,17 @@ export const usePrimeRegistration = () => {
         opt:  { force: true }
       });
     } catch (error) {
-      const newNamespace = await store.dispatch('cluster/create', {
-        type:     'namespace',
-        metadata: { name: REGISTRATION_NAMESPACE }
-      });
+      try {
+        const newNamespace = await store.dispatch('cluster/create', {
+          type:     'namespace',
+          metadata: { name: REGISTRATION_NAMESPACE }
+        });
 
-      if (!newNamespace) {
+        if (newNamespace) {
+          newNamespace.save();
+        }
+      } catch (error) {
         onError(error);
-      } else {
-        newNamespace.save();
       }
     }
   };
