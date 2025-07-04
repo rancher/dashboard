@@ -23,7 +23,7 @@ const GKE_NONE_OPTION = 'none';
 
 const DEFAULT_MIN_DISK = 10;
 
-const defaultConfig = {
+const defaultConfig = Object.freeze({
   zone:                          'us-central1-a',
   machineImage:                  '',
   diskType:                      'pd-standard',
@@ -38,7 +38,7 @@ const defaultConfig = {
   vmLabels:                      '',
   setInternalFirewallRulePrefix: false,
   setExternalFirewallRulePrefix: false
-};
+});
 
 export default {
   emits: ['expandAdvanced', 'error', 'validationChanged'],
@@ -110,6 +110,7 @@ export default {
       useIpAliases:        false,
       minDisk:             DEFAULT_MIN_DISK,
       imageAreaValid:      true,
+      originalOpenPort:    this.value.openPort || [],
       fvFormRuleSets:      [
         { path: 'diskType', rules: ['required'] },
         { path: 'diskSize', rules: ['required', 'isPositive', 'minDiskSize'] },
@@ -155,6 +156,8 @@ export default {
         this.value.openPort = [];
       } else if (this.isCreate) {
         this.value.openPort.push('6443');
+      } else {
+        this.value.openPort = this.originalOpenPort.length > 0 ? this.originalOpenPort : ['6443'];
       }
     },
 
@@ -370,7 +373,7 @@ export default {
     },
     closeError(index) {
       this.errors = this.errors.filter((_, i) => i !== index);
-    },
+    }
   }
 };
 </script>
@@ -532,7 +535,7 @@ export default {
             data-testid="gce-internal-firewall-banner"
           />
           <ArrayList
-            :value="tags"
+            v-model:value="tags"
             :mode="mode"
             :title="t('gke.tags.label')"
             :add-label="t('gke.tags.add')"

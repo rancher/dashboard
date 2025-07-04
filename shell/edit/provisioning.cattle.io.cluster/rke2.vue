@@ -1324,7 +1324,7 @@ export default {
         // metadata defined by the latest backend value. This is primarily used to ensure the resourceVersion is up to date.
         delete clonedCurrentConfig.metadata;
 
-        if (this.provider === VMWARE_VSPHERE) {
+        if (this.provider === VMWARE_VSPHERE || this.provider === GOOGLE) {
           machinePool.config = mergeWithReplace(clonedLatestConfig, clonedCurrentConfig, { mutateOriginal: true });
         } else {
           machinePool.config = merge(clonedLatestConfig, clonedCurrentConfig);
