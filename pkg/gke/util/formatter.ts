@@ -1,5 +1,5 @@
-import { getGKENetworksResponse, GKESubnetwork, GKENetwork } from '../types/gcp';
-import { GKENetworkOption, GKESubnetworkOption, GKESecondaryRangeOption } from 'types';
+import { GKESubnetwork, GKENetwork } from '../types/gcp';
+import { GKENetworkOption, GKESubnetworkOption } from 'types';
 import { Translation } from '@shell/types/t';
 
 const GKE_NONE_OPTION = 'none';

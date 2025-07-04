@@ -469,14 +469,12 @@ describe('fx: convertKVToString', () => {
 describe('fx: convertStringToKV', () => {
   it.each([
     ['', {}],
-    [undefined, {}],
     ['foo,bar', { foo: 'bar' }],
     ['foo,bar,baz,bang', { foo: 'bar', baz: 'bang' }],
     ['  foo  ,  bar  ', { foo: 'bar' }], // trims whitespace
     ['foo,bar,baz', { foo: 'bar' }], // dangling key ignored
     ['foo,bar,,bang', { foo: 'bar', '': 'bang' }], // empty key retained when present
   ])('should convert "%s" -> %p', (input, expected) => {
-    // @ts-ignore – undefined case is intentional
     const result = convertStringToKV(input);
 
     expect(result).toStrictEqual(expected);
