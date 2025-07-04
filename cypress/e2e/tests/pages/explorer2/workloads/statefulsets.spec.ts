@@ -51,7 +51,7 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
         };
       };
 
-      cy.createManyNamespacedResourced({
+      cy.createManyNamespacedResources({
         context:        'statefullsets1',
         createResource: createSs(),
       })
@@ -59,7 +59,7 @@ describe('StatefulSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUse
           statefulSetNamesList = workloadNames;
           nsName1 = ns;
         })
-        .then(() => cy.createManyNamespacedResourced({
+        .then(() => cy.createManyNamespacedResources({
           context:        'statefullsets2',
           createResource: createSs(uniqueStatefulSet),
           count:          1

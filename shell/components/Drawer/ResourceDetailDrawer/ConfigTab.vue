@@ -31,6 +31,7 @@ const i18n = useI18n(store);
         :real-mode="_VIEW"
         :initial-value="props.resource"
         :use-tabbed-hash="false /* Have to disable hashing on child components or it modifies the url and closes the drawer */"
+        as="config"
       />
     </div>
   </Tab>
@@ -44,6 +45,13 @@ const i18n = useI18n(store);
     padding: 16px;
     max-width: 100%;
     width: 100%;
+    position: relative;
+  }
+
+  // Handle the loading indicator
+  :deep() .overlay-content-mode {
+    left: 0;
+    top: 0;
   }
 
   :deep() .cru-resource-footer {
