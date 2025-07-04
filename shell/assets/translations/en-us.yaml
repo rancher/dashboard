@@ -3004,7 +3004,7 @@ fleet:
         selectLabel: Values From
         options:
           configMapKeyRef: ConfigMap Key
-          secretKeyRef: Secret key
+          secretKeyRef: Secret Key
         loading: Loading ConfigMaps and Secrets
     serviceAccount:
       label: Service Account Name
