@@ -4,6 +4,7 @@ import { installDocHandler } from './docs';
 
 import routing from './routing/index';
 import { useI18n } from '@shell/composables/useI18n';
+import { usePrimeRegistration } from './pages/registration.composable';
 
 // Init the package
 export default function(plugin: IPlugin) {
@@ -34,21 +35,30 @@ export default function(plugin: IPlugin) {
 
   plugin.addNavHooks({
     onLogin: async(store: any) => {
-      const { t } = useI18n(store);
-      const notification = {
-        level:         'error',
-        title:         t('registration.notification.title'),
-        message:       t('registration.notification.message'),
-        progress:      0,
-        primaryAction: {
-          label: t('registration.notification.button.primary.label'),
-          route: '/c/local/settings/registration'
-        },
-        id:         'rancher-prime-registration',
-        preference: 'rancher-prime-registration'
-      };
+      const {
+        registrationStatus,
+        initRegistration,
+      } = usePrimeRegistration(store);
 
-      await store.dispatch('notifications/add', notification);
+      initRegistration().then(() => {
+        if (registrationStatus.value === null) {
+          const { t } = useI18n(store);
+          const notification = {
+            level:         'error',
+            title:         t('registration.notification.title'),
+            message:       t('registration.notification.message'),
+            progress:      0,
+            primaryAction: {
+              label: t('registration.notification.button.primary.label'),
+              route: '/c/local/settings/registration'
+            },
+            id:         'rancher-prime-registration',
+            preference: 'rancher-prime-registration'
+          };
+
+          store.dispatch('notifications/add', notification);
+        }
+      });
     }
   });
 }
