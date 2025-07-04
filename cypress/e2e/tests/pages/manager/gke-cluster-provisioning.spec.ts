@@ -2,7 +2,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import ClusterManagerCreateGKEPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-gke.po';
-import { DEFAULT_GCP_ZONE } from '@/pkg/gke/util/gcp';
+import { DEFAULT_GCP_ZONE } from '@shell/components/google/util/gcp';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 /******

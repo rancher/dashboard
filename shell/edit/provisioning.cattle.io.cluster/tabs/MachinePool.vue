@@ -45,6 +45,10 @@ export default {
       type:    String,
       default: null
     },
+    projectId: {
+      type:    String,
+      default: null
+    },
 
     mode: {
       type:    String,
@@ -306,6 +310,7 @@ export default {
       :value="value.config"
       :provider="provider"
       :credential-id="credentialId"
+      :project-id="projectId"
       :pool-index="idx"
       :pool-id="poolId"
       :pool-create-mode="value.create"

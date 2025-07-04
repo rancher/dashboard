@@ -20,8 +20,8 @@ import Banner from '@components/Banner/Banner.vue';
 import Loading from '@shell/components/Loading.vue';
 
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
-import type { GKEConfig, GKENodePool } from '../types';
-import AccountAccess from './AccountAccess.vue';
+import type { GKEConfig, GKENodePool } from '@shell/components/google/types';
+import AccountAccess from '@shell/components/google/AccountAccess.vue';
 import AdvancedOptions from './AdvancedOptions.vue';
 import Networking from './Networking.vue';
 import GKENodePoolComponent from './GKENodePool.vue';
@@ -30,9 +30,9 @@ import Import from './Import.vue';
 
 import {
   DEFAULT_GCP_ZONE, DEFAULT_GCP_SERVICE_ACCOUNT, GKEImageTypes, getGKEMachineTypes, getGKEServiceAccounts
-} from '../util/gcp';
-import type { getGKEMachineTypesResponse, getGKEServiceAccountsResponse } from '../types/gcp.d.ts';
-import type { GKEMachineTypeOption } from '../types/index.d.ts';
+} from '@shell/components/google/util/gcp';
+import type { getGKEMachineTypesResponse, getGKEServiceAccountsResponse } from '@shell/components/google/types/gcp.d.ts';
+import type { GKEMachineTypeOption } from '@shell/components/google/types/index.d.ts';
 import debounce from 'lodash/debounce';
 import {
   clusterNameChars, clusterNameStartEnd, requiredInCluster, ipv4WithCidr, ipv4oripv6WithCidr, GKEInitialCount

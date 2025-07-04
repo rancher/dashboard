@@ -20,6 +20,10 @@ interface GKENetwork {
   subnetworks: string[]
 }
 
+interface GKEImage {
+    id: string,
+}
+
 export interface GKESubnetwork{
   creationTimestamp?: string,
   fingerprint?: string,
@@ -127,3 +131,6 @@ export interface getGKEZonesResponse {
 export interface getGKEServiceAccountsResponse {
   accounts: GKEServiceAccount[]
 }
+export interface getGKEImageFamiliesResponse {
+    images: GKEImage[]
+  }
