@@ -336,7 +336,7 @@ export default {
             <RcButton
               v-if="!isView"
               small
-              tertiary
+              link
               @click="removePaths(i)"
             >
               <i class="icon icon-x" />
@@ -403,6 +403,9 @@ export default {
   .row-container {
     display: flex;
     flex-direction: column;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius);
 
     .header {
       display: flex;
@@ -457,7 +460,7 @@ export default {
 
         // Customize Remove rows button
         :deep(.footer) {
-          margin-top: 5px !important;
+          margin-top: 0px !important;
           margin-left: 30px;
         }
       }
