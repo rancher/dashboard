@@ -91,7 +91,7 @@ describe('page: Registration', () => {
     it('should prevent to type the registration code', () => {
       const registerOnlineInput = wrapper.find('[data-testid="registration-code-input"]');
 
-      expect(registerOnlineInput.attributes().disabled).toStrictEqual('true');
+      expect(registerOnlineInput.isDisabled()).toStrictEqual(true);
     });
 
     it('should prevent to download registration request', () => {
@@ -173,7 +173,7 @@ describe('page: Registration', () => {
     });
   });
 
-  describe('while de-registering a online case', () => {
+  describe('while registered', () => {
     beforeEach(() => {
       wrapper.vm.registrationStatus = 'registered';
     });
@@ -187,31 +187,7 @@ describe('page: Registration', () => {
     it('should prevent to type the registration code', () => {
       const registerOnlineInput = wrapper.find('[data-testid="registration-code-input"]');
 
-      expect(registerOnlineInput.attributes().disabled).toStrictEqual('true');
-    });
-
-    it('should prevent new offline request', () => {
-      const registerOfflineButton = wrapper.find('[data-testid="registration-offline-cta"]');
-
-      expect(registerOfflineButton.isDisabled()).toStrictEqual(true);
-    });
-  });
-
-  describe('while de-registering a offline case', () => {
-    beforeEach(() => {
-      wrapper.vm.registrationStatus = 'registered';
-    });
-
-    it('should prevent new online request', () => {
-      const registerOnlineButton = wrapper.find('[data-testid="registration-online-cta"]');
-
-      expect(registerOnlineButton.isDisabled()).toStrictEqual(true);
-    });
-
-    it('should prevent to type the registration code', () => {
-      const registerOnlineInput = wrapper.find('[data-testid="registration-code-input"]');
-
-      expect(registerOnlineInput.attributes().disabled).toStrictEqual('true');
+      expect(registerOnlineInput.isDisabled()).toStrictEqual(true);
     });
 
     it('should prevent new offline request', () => {
