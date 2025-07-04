@@ -88,6 +88,8 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       harvesterPo.harvesterLogo().should('not.exist');
       harvesterPo.harvesterTagline().should('not.exist');
 
+      // #14285: Should be able to edit cluster here
+      harvesterPo.list().actionMenu(harvesterClusterName).getMenuItem('Edit Config').should('exist');
       // delete cluster
       cy.deleteRancherResource('v1', 'provisioning.cattle.io.clusters', `fleet-default/${ harvesterClusterId }`);
     });
