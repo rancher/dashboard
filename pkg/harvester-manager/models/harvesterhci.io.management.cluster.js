@@ -46,7 +46,9 @@ export default class HciCluster extends ProvCluster {
     const out = super._availableActions;
     const edit = out.find((action) => action.action === 'goToEdit');
 
-    edit.enabled = this.canCustomEdit;
+    if (edit) {
+      edit.enabled = this.canCustomEdit;
+    }
 
     return out;
   }
