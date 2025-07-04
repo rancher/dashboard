@@ -1,5 +1,5 @@
 import { computed, ref, Ref } from 'vue';
-import { useStore } from 'vuex';
+import { type Store, useStore } from 'vuex';
 
 import { downloadFile } from '@shell/utils/download';
 import { REGISTRATION_NAMESPACE, REGISTRATION_SECRET, REGISTRATION_RESOURCE_NAME, REGISTRATION_LABEL } from '../config/constants';
@@ -91,8 +91,8 @@ const registrationBannerCases = {
   }
 };
 
-export const usePrimeRegistration = () => {
-  const store = useStore();
+export const usePrimeRegistration = (storeArg?: Store<any>) => {
+  const store = storeArg ?? useStore();
 
   /**
    * Registration from CRD
