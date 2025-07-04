@@ -36,7 +36,7 @@ export class Factory {
     this.initValue = initValue || {};
     this.value = this.omitProtected(this.initValue);
     this.keyErrors = this.keyErrorMap(this.value);
-    this.hasProtectedKeys = protectedKeys?.length > 0;
+    this.hasProtectedKeys = Object.keys(this.pickProtected(this.initValue)).length > 0;
   }
 
   initValue: object = {};

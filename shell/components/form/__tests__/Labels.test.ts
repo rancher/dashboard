@@ -34,7 +34,7 @@ describe('class: Factory', () => {
 
     expect((factory as any).protectedRegexes.map((r: RegExp) => r.source)).toStrictEqual(['^key']);
     expect(factory.value).toStrictEqual({ other: 'value2' });
-    expect(factory.hasProtectedKeys).toBe(false); // hasProtectedKeys is based only on the protectedKeys array
+    expect(factory.hasProtectedKeys).toBe(true);
   });
 
   it('should omit protected keys from value but keep them in initValue', () => {
