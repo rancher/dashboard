@@ -5,7 +5,7 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import AsyncButton from '@shell/components/AsyncButton.vue';
 import { mapGetters, Store } from 'vuex';
-import { getGKEZones } from '../util/gcp';
+import { getGKEZones } from '@shell/components/google/util/gcp';
 
 export default defineComponent({
   name: 'GKEAccountAccess',

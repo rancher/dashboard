@@ -1,4 +1,4 @@
-import { GKEMachineType, GKENetwork, GKESubnetwork } from 'types/gcp';
+import { GKEMachineType, GKENetwork, GKESubnetwork } from '@shell/components/google/types/gcp';
 
 export interface GKENodePool {
   autoscaling: {

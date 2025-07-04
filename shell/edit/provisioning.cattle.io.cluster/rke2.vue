@@ -6,7 +6,7 @@ import merge from 'lodash/merge';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import { normalizeName } from '@shell/utils/kube';
-import AccountAccess from '@pkg/gke/components/AccountAccess.vue';
+import AccountAccess from '@shell/components/google/AccountAccess.vue';
 
 import {
   CAPI,
@@ -2304,6 +2304,7 @@ export default {
         <Tabbed
           :side-tabs="true"
           class="min-height"
+          :use-hash="useTabbedHash"
           @changed="handleTabChange"
         >
           <Tab
@@ -2321,7 +2322,7 @@ export default {
               :provider="provider"
               :user-chart-values="userChartValues"
               :credential="credential"
-              :cis-override="cisOverride"
+              :compliance-override="complianceOverride"
               :all-psas="allPSAs"
               :addon-versions="addonVersions"
               :show-deprecated-patch-versions="showDeprecatedPatchVersions"
@@ -2340,7 +2341,7 @@ export default {
               @cilium-values-changed="handleCiliumValuesChanged"
               @enabled-system-services-changed="handleEnabledSystemServicesChanged"
               @kubernetes-changed="handleKubernetesChange"
-              @cis-changed="handleCisChanged"
+              @compliance-changed="handleComplianceChanged"
               @psa-default-changed="handlePsaDefaultChanged"
               @show-deprecated-patch-versions-changed="handleShowDeprecatedPatchVersionsChanged"
             />

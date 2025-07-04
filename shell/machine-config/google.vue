@@ -15,8 +15,8 @@ import { convertStringToKV, convertKVToString } from '@shell/utils/object';
 import KeyValue from '@shell/components/form/KeyValue';
 import {
   getGKEZones, getGKEDiskTypes, getGKENetworks, getGKEMachineTypes, getGKESubnetworks, getGKESharedSubnetworks
-} from '@pkg/gke/util/gcp';
-import { formatSharedNetworks, formatNetworkOptions, formatSubnetworkOptions } from '@pkg/gke/util/formatter';
+} from '@shell/components/google/util/gcp';
+import { formatSharedNetworks, formatNetworkOptions, formatSubnetworkOptions } from '@shell/components/google/util/formatter';
 import { mapGetters } from 'vuex';
 import { sortBy, sortableNumericSuffix } from '@shell/utils/sort';
 const GKE_NONE_OPTION = 'none';

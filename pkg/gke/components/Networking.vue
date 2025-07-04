@@ -8,13 +8,14 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 
-import { getGKENetworks, getGKESubnetworks, getGKESharedSubnetworks } from '../util/gcp';
-import type { getGKESubnetworksResponse, getGKESharedSubnetworksResponse } from '../types/gcp';
+import { getGKENetworks, getGKESubnetworks, getGKESharedSubnetworks } from '@shell/components/google/util/gcp';
+import type {
+  getGKESubnetworksResponse, getGKESharedSubnetworksResponse, getGKENetworksResponse, GKESubnetwork, GKENetwork
+} from '@shell/components/google/types/gcp';
 import debounce from 'lodash/debounce';
-import { getGKENetworksResponse, GKESubnetwork, GKENetwork } from '../types/gcp';
 import Banner from '@components/Banner/Banner.vue';
-import { GKENetworkOption, GKESubnetworkOption, GKESecondaryRangeOption } from 'types';
-import { formatSharedNetworks, formatNetworkOptions, formatSubnetworkOptions } from '../util/formatter';
+import { GKENetworkOption, GKESubnetworkOption, GKESecondaryRangeOption } from '@shell/components/google/types';
+import { formatSharedNetworks, formatNetworkOptions, formatSubnetworkOptions } from '@shell/components/google/util/formatter';
 
 const GKE_NONE_OPTION = 'none';
 

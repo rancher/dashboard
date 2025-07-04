@@ -37,7 +37,7 @@ const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
   };
 };
 
-jest.mock('@pkg/gke/util/gcp');
+jest.mock('@shell/components/google/util/gcp');
 jest.mock('lodash/debounce', () => jest.fn((fn) => fn));
 
 describe('gke Config', () => {
