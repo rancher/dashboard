@@ -5,6 +5,57 @@ import { installDocHandler } from './docs';
 import routing from './routing/index';
 import { useI18n } from '@shell/composables/useI18n';
 import { usePrimeRegistration } from './pages/registration.composable';
+import { type Store } from 'vuex';
+
+/**
+ * Trigger notification on plugin loaded and no active registration is found.
+ * @param store
+ */
+const setNotification = (store: Store<any>) => {
+  const {
+    registration,
+    initRegistration,
+  } = usePrimeRegistration(store);
+
+  initRegistration().then(() => {
+    if (!registration.value.active) {
+      const { t } = useI18n(store);
+
+      const notification = {
+        level:         'error',
+        title:         t('registration.notification.title'),
+        message:       t('registration.notification.message'),
+        progress:      0,
+        primaryAction: {
+          label: t('registration.notification.button.primary.label'),
+          route: '/c/local/settings/registration'
+        },
+        id:         'rancher-prime-registration',
+        preference: 'rancher-prime-registration'
+      };
+
+      store.dispatch('notifications/add', notification);
+    }
+  });
+};
+
+/**
+ * Pool managementReady till true, then notify the user if no active registration is found
+ * @param store
+ */
+const poolRegistration = (store: Store<any>) => {
+  let attempts = 10;
+  const id = setInterval(() => {
+    if (attempts <= 0) {
+      clearInterval(id);
+    }
+    if (store.state['managementReady']) {
+      setNotification(store);
+      clearInterval(id);
+    }
+    attempts -= 1;
+  }, 1000);
+};
 
 // Init the package
 export default function(plugin: IPlugin) {
@@ -35,30 +86,7 @@ export default function(plugin: IPlugin) {
 
   plugin.addNavHooks({
     onLogin: async(store: any) => {
-      const {
-        registrationStatus,
-        initRegistration,
-      } = usePrimeRegistration(store);
-
-      initRegistration().then(() => {
-        if (registrationStatus.value === null) {
-          const { t } = useI18n(store);
-          const notification = {
-            level:         'error',
-            title:         t('registration.notification.title'),
-            message:       t('registration.notification.message'),
-            progress:      0,
-            primaryAction: {
-              label: t('registration.notification.button.primary.label'),
-              route: '/c/local/settings/registration'
-            },
-            id:         'rancher-prime-registration',
-            preference: 'rancher-prime-registration'
-          };
-
-          store.dispatch('notifications/add', notification);
-        }
-      });
+      poolRegistration(store);
     }
   });
 }
