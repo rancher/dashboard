@@ -1198,7 +1198,7 @@ Cypress.Commands.add('createService', (namespace: string, name: string, options:
   });
 });
 
-Cypress.Commands.add('createManyNamespacedResourced', ({
+Cypress.Commands.add('createManyNamespacedResources', ({
   namespace, context, createResource, count = 22, wait = 500
 }: {
   /**

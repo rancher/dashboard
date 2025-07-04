@@ -57,7 +57,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
         };
       };
 
-      cy.createManyNamespacedResourced({
+      cy.createManyNamespacedResources({
         context:        'cronjobs1',
         createResource: createCronJob(),
       })
@@ -65,7 +65,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
           cronJobNamesList = workloadNames;
           nsName1 = ns;
         })
-        .then(() => cy.createManyNamespacedResourced({
+        .then(() => cy.createManyNamespacedResources({
           context:        'cronjobs2',
           createResource: createCronJob(uniqueCronJob),
           count:          1

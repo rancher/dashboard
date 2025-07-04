@@ -99,9 +99,9 @@ declare global {
       createConfigMap(namespace: string, name: string, options?: { metadata?: any; data?: any }): Chainable;
       createService(namespace: string, name: string, options?: { type?: string; ports?: any[]; spec?: any; metadata?: any }): Chainable;
       /**
-       * Create many workloads in a new namespace, but don't flood
+       * Optionally create a namespace and then create resources in a performant way (avoiding spam)
        */
-      createManyNamespacedResourced(args: {
+      createManyNamespacedResources(args: {
         /**
          * Used to create the namespace
          */
@@ -110,7 +110,7 @@ declare global {
         createResource: ({ ns, i }) => Chainable
         count?: number,
         /**
-         * Every 5 resources cy.wait this amount of milleseconds
+         * Every 5 resources cy.wait this amount of milliseconds
          */
         wait?: number,
       }): Chainable;
@@ -123,11 +123,11 @@ declare global {
       deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
       deleteNodeTemplate(nodeTemplateId: string, timeout?: number, failOnStatusCode?: boolean)
       /**
-       * Delete a namespace and wait for it to 404. helpful when the ns contains many resources
+       * Delete a namespace and wait for it to 404. Helpful when the ns contains many resources
        */
       deleteNamespace(namespaces: string[]): Chainable;
       /**
-       * Delete many resources in a performant way
+       * Delete many resources in a performant way (avoiding spam)
        *
        * Note - should only be used for non-namespaced resources. otherwise create resources in a namespace and use `deleteNamespace`
        */
@@ -135,7 +135,7 @@ declare global {
         toDelete: T[],
         deleteFn: (arg0: T) => Chainable,
         /**
-         * Every 5 resources cy.wait this amount of milleseconds
+         * Every 5 resources cy.wait this amount of milliseconds
          */
         wait?: number
       })
