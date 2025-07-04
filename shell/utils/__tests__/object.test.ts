@@ -1,6 +1,6 @@
 import { reactive, isReactive } from 'vue';
 import {
-  clone, get, getter, isEmpty, toDictionary, remove, diff, definedKeys, deepToRaw, mergeWithReplace
+  clone, get, getter, isEmpty, toDictionary, remove, diff, definedKeys, deepToRaw, mergeWithReplace, convertKVToString, convertStringToKV
 } from '@shell/utils/object';
 
 describe('fx: get', () => {
@@ -439,5 +439,60 @@ describe('fx: mergeWithReplace', () => {
     const result = mergeWithReplace(left, right, { replaceObjectProps: true });
 
     expect(result).toStrictEqual(expected);
+  });
+});
+
+describe('fx: convertKVToString', () => {
+  it.each([
+    [{}, ''],
+    [{ foo: 'bar' }, 'foo,bar'],
+    [{ foo: 'bar', baz: 'bang' }, 'foo,bar,baz,bang'],
+    [{ foo: 'bar', baz: null }, 'foo,bar,baz,null'],
+    [{ ' spaced ': ' value ' }, ' spaced , value '], // preserves raw keys/values
+    [{ 0: 42, truthy: true }, '0,42,truthy,true'],
+  ])('should convert %p -> "%s"', (input, expected) => {
+    const result = convertKVToString(input);
+
+    expect(result).toBe(expected);
+  });
+
+  it('should produce a string with an even number of comma-separated parts', () => {
+    const str = convertKVToString({
+      a: 1, b: 2, c: 3
+    });
+    const parts = str.split(',');
+
+    expect(parts.length % 2).toBe(0);
+  });
+});
+
+describe('fx: convertStringToKV', () => {
+  it.each([
+    ['', {}],
+    [undefined, {}],
+    ['foo,bar', { foo: 'bar' }],
+    ['foo,bar,baz,bang', { foo: 'bar', baz: 'bang' }],
+    ['  foo  ,  bar  ', { foo: 'bar' }], // trims whitespace
+    ['foo,bar,baz', { foo: 'bar' }], // dangling key ignored
+    ['foo,bar,,bang', { foo: 'bar', '': 'bang' }], // empty key retained when present
+  ])('should convert "%s" -> %p', (input, expected) => {
+    // @ts-ignore – undefined case is intentional
+    const result = convertStringToKV(input);
+
+    expect(result).toStrictEqual(expected);
+  });
+});
+
+describe('fx: convertStringToKV to convertKVToString and back (round-trip)', () => {
+  it.each([
+    '',
+    'foo,bar',
+    'foo,bar,baz,bang',
+    'answer,42,truthy,true,falsy,false',
+  ])('should round-trip %p without loss', (input) => {
+    const asObj = convertStringToKV(input);
+    const backToString = convertKVToString(asObj);
+
+    expect(backToString).toStrictEqual(input);
   });
 });

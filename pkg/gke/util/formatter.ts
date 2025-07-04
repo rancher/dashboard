@@ -24,7 +24,7 @@ export function formatSharedNetworks(allSharedSubnetworks: GKESubnetwork[]): {[k
 
 export function formatNetworkOptions(t: Translation, networks: GKENetwork[], subnetworks: GKESubnetwork[], sharedNetworks: { [key: string]: GKESubnetwork[]; }): GKENetworkOption[] {
   const out: GKENetworkOption[] = [];
-  const unshared = (networks).map((n) => {
+  const unshared = (networks || []).map((n) => {
     const subnetworksAvailable = subnetworks.find((s) => s.network === n.selfLink);
 
     return { ...n, label: subnetworksAvailable ? `${ n.name } (${ t('gke.network.subnetworksAvailable') })` : n.name };

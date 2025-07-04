@@ -2,70 +2,49 @@
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
-import { _CREATE, _VIEW, _EDIT } from '@shell/config/query-params';
-import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
+import { _CREATE, _VIEW } from '@shell/config/query-params';
+import { stringify } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
 import merge from 'lodash/merge';
-import isEmpty from 'lodash/isEmpty';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import ArrayList from '@shell/components/form/ArrayList';
 
 import { NORMAN } from '@shell/config/types';
-import { findBy } from '@shell/utils/array';
+import { convertStringToKV, convertKVToString } from '@shell/utils/object';
 import KeyValue from '@shell/components/form/KeyValue';
-
 import {
   getGKEZones, getGKEImageFamilies, getGKEFamiliesFromProject, getGKEDiskTypes, getGKENetworks, getGKEMachineTypes, getGKESubnetworks, getGKESharedSubnetworks
 } from '@pkg/gke/util/gcp';
-import InputWithSelect from '@shell/components/form/InputWithSelect';
-import { machine } from 'os';
 import { formatSharedNetworks, formatNetworkOptions, formatSubnetworkOptions } from '@pkg/gke/util/formatter';
 import { mapGetters } from 'vuex';
 import { sortBy, sortableNumericSuffix } from '@shell/utils/sort';
+import debounce from 'lodash/debounce';
+const GKE_NONE_OPTION = 'none';
+const DEFAULT_PROJECTS = 'suse-cloud, ubuntu-os-cloud';
 
-// TODO VALIDATION
-// TODO ERROR HANDLING
+const DEFAULT_MIN_DISK = 10;
 
 const defaultConfig = {
-  zone:              'us-central1-a',
-  machineImage:      'ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20250313',
-  diskType:          'pd-standard',
-  network:           'eva-network', // 'default',
-  subnetwork:        '',
-  // TODO convert scopes into string before saving
-  scopes:            'https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/monitoring.write', // https://www.googleapis.com/auth/logging,
-  machineType:       'n1-standard-2',
-  // username:     'docker-user',
-  project:           'ei-container-ui-ux',
-  // cloudCredentialId:          'cattle-global-data:cc-wmlgj',
-  diskSize:          '50',
-  tags:              '',
-  address:           '',
-  preemptible:       false, // TODO maybe remove
-  useInternalIp:     false,
-  useInternalIpOnly: false,
-  useExisting:       false,
-  openPort:          [],
-  userData:          '',
-  labels:            ''
-  // internalFirewallRulePrefix: 'eva-test-6',
-  // externalFirewallRulePrefix: 'eva-6-1'
-
-  //   subnetwork:                 null,
-  //   address:                    null,
-  //   tags:                       '',
-  //   openPort:                   null,
-  //   userdata:                   null,
-  //   externalFirewallRulePrefix: null,
-  //   internalFirewallRulePrefix: null,
-  // labels: {},
+  zone:                          'us-central1-a',
+  machineImage:                  '',
+  diskType:                      'pd-standard',
+  network:                       '',
+  subnetwork:                    '',
+  scopes:                        'https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write',
+  machineType:                   'n1-standard-2',
+  diskSize:                      '50',
+  tags:                          '',
+  address:                       '',
+  openPort:                      [],
+  vmLabels:                      '',
+  setInternalFirewallRulePrefix: false,
+  setExternalFirewallRulePrefix: false
 };
-// const DEFAULT_USERNAME = 'docker-user';
 
 export default {
-  emits: ['expandAdvanced', 'error'],
+  emits: ['expandAdvanced', 'error', 'validationChanged'],
 
   components: {
     ArrayList,
@@ -90,20 +69,23 @@ export default {
     },
     mode: {
       type:    String,
-      default: 'create',
+      default: _CREATE,
     },
     uuid: {
+      type:     String,
+      required: true,
+    },
+    poolId: {
       type:     String,
       required: true,
     },
     disabled: {
       type:    Boolean,
       default: false
-    },
+    }
   },
 
   async fetch() {
-    this.errors = [];
     if ( !this.credentialId ) {
       return;
     }
@@ -115,84 +97,63 @@ export default {
     } catch (e) {
       this.credential = null;
     }
-    console.log(this.value);
 
     for (const key in this.defaultConfig) {
       if (this.value[key] === undefined && !!this.defaultConfig[key]) {
         this.value[key] = this.defaultConfig[key];
       }
     }
-
-    try {
-      const res = await getGKEZones(this.$store, this.credentialId, this.project, {});
-
-      // TODO Should consider moving this to the util function and check if we need regions similar to GKE
-      this.zones = sortBy((res.items || []).map((z) => {
-        z.disabled = z?.status?.toLowerCase() !== 'up';
-        z.sortName = sortableNumericSuffix(z.name);
-
-        return z;
-      }), 'sortName', false);
-      await this.getDiskTypes();
-      await this.getMachineTypes();
-      await this.getNetworks();
-      this.getSubnetworks();
-      this.getSharedSubnetworks();
-      // await this.getImages();
-      await this.getFamilies();
-      //   const machineImage = this.images['ubuntu-os-cloud'][0];
-
-    //   this.machineImage = {
-    //     name:     machineImage.name,
-    //     selfLink: machineImage.selfLink,
-    //     diskSize: machineImage.diskSizeGb
-    //   };
-    } catch (e) {
-      this.$emit('error', e);
-      this.zones = [];
-    }
+    await this.getZones();
+    await this.getOptions();
   },
 
   data() {
     return {
       defaultConfig,
-      // storageTypes,
-      credential:            null,
-      locationOptions:       [],
-      images:                {},
-      loading:               false,
-      loadingZones:          false,
-      loadingDiskTypes:      false,
-      loadingNetworks:       false,
-      loadingImages:         false,
-      loadingMachineTypes:   false,
-      loadingFamilies:       false,
-      useAvailabilitySet:    false,
-      vmSizes:               [],
-      valueCopy:             this.value,
-      zones:                 [],
-      families:              [],
-      machineImages:         [],
-      diskTypes:             [],
-      networks:              [],
-      subnetworks:           [],
-      sharedSubnetworks:     [],
-      machineTypes:          [],
-      loadedCredentialIdFor: null,
-      imageProjects1:        ['suse-cloud', 'ubuntu-os-cloud'],
-      imageProjects:         'suse-cloud, ubuntu-os-cloud',
-      // imageProject:          '',
-      showDeprecated:        true,
-      // minimumDiskSize:       10,
-      family:                null,
-      machineImage:          this.value?.machineImage ? this.value?.machineImage : '',
-      // scopes:                ['https://www.googleapis.com/auth/devstorage.read_only', 'https://www.googleapis.com/auth/monitoring.write'], // convert on save
-      // labels:                [], // convert on save
-      useIpAliases:          false // TODO check if needed
+      credential:          null,
+      images:              {},
+      // loading:               false,
+      loadingZones:        false,
+      loadingDiskTypes:    false,
+      loadingNetworks:     false,
+      loadingImages:       false,
+      loadingMachineTypes: false,
+      loadingFamilies:     false,
+      zones:               [],
+      families:            {},
+      machineImages:       [],
+      diskTypes:           [],
+      networks:            [],
+      subnetworks:         [],
+      sharedSubnetworks:   [],
+      machineTypes:        [],
+      imageProjects:       DEFAULT_PROJECTS,
+      showDeprecated:      false,
+      family:              null,
+      useIpAliases:        false,
+      minDisk:             DEFAULT_MIN_DISK,
+      defaultProjects:     DEFAULT_PROJECTS,
+      fvFormRuleSets:      [
+        {
+          path: 'imageProjects', rootObject: this, rules: ['required', 'projects']
+        },
+        {
+          path: 'family', rootObject: this, rules: ['required']
+        },
+        {
+          path: 'machineImage', rootObject: this, rules: ['required']
+        },
+        { path: 'diskType', rules: ['required'] },
+        { path: 'diskSize', rules: ['required', 'isPositive', 'minDiskSize'] },
+        { path: 'machineType', rules: ['required'] },
+        { path: 'network', rules: ['required'] },
+      ]
     };
   },
   created() {
+    this.debouncedLoadFamilies = debounce(this.getFamilies, 500);
     if (this.mode === _CREATE) {
+      this.$emit('validationChanged', false);
       this.value.project = this.projectId;
       for (const key in this.defaultConfig) {
         if (this.value[key] === undefined && !!this.defaultConfig[key]) {
@@ -201,7 +162,9 @@ export default {
       }
       merge(this.value, this.defaultConfig);
     } else {
-      this.imageProjects = this.getProjectFromImage();
+      this.value.setInternalFirewallRulePrefix = !!this.value.internalFirewallRulePrefix;
+      this.value.setExternalFirewallRulePrefix = !!this.value.externalFirewallRulePrefix;
+      this.imageProjects = `${ this.getProjectFromImage() }`;
     }
   },
 
@@ -209,40 +172,70 @@ export default {
     credentialId() {
       this.$fetch();
     },
+    fvFormIsValid(newValue) {
+      this.$emit('validationChanged', !!newValue);
+    },
 
     'value.zone'() {
-      this.$fetch();
+      this.getOptions();
     },
-    family(neu) {
-      this.getImages(neu);
-    },
-
     'value.availabilityZone'(neu) {
       if (neu && (!this.value.managedDisks || !this.value.enablePublicIpStandardSku || !this.value.staticPublicIp)) {
         this.$emit('expandAdvanced');
       }
     },
+    'value.setExternalFirewallRulePrefix'(neu) {
+      if (!neu) {
+        this.value.openPort = [];
+      } else if (this.isCreate) {
+        this.value.openPort.push('6443');
+      }
+    },
+    family(neu) {
+      this.getImages(neu);
+    },
+
     'imageProjects'() {
+      this.debouncedLoadFamilies();
+    },
+
+    showDeprecated() {
       this.getFamilies();
     },
-    machineImage(neu) {
-      this.setMachineImage(neu);
-    },
-    showDeprecated(neu) {
-      this.family = null;
-      this.getFamilies();
-      this.machineImages = [];
-      this.machineImage = '';
+    networkOptions(neu) {
+      if (neu && neu.length && !this.value.network) {
+        const defaultNetwork = neu.find((network) => network?.name === 'default');
+
+        if (defaultNetwork) {
+          this.value.network = defaultNetwork.name;
+        } else {
+          const firstnetwork = neu.find((network) => network.kind !== 'group');
+
+          this.value.network = firstnetwork.name;
+        }
+      }
     }
   },
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
-    // defaultUsername() {
-    //   return DEFAULT_USERNAME;
-    // },
+    fvExtraRules() {
+      return {
+        projects: (val) => {
+          return val && !val.match(/^[a-zA-Z0-9 ,.-]*$/) ? this.t('cluster.machineConfig.gce.error.projects') : undefined;
+        },
+
+        minDiskSize: (val) => {
+          return val && val < this.minDisk ? this.t('cluster.machineConfig.gce.error.diskSize', { diskSize: this.minDisk }) : undefined;
+        }
+
+      };
+    },
     isView() {
       return this.mode === _VIEW;
+    },
+    isCreate() {
+      return this.mode === _CREATE;
     },
     location() {
       return { zone: this.value.zone };
@@ -250,7 +243,7 @@ export default {
     project() {
       return this.value.project;
     },
-    familyOption() {
+    familyOptions() {
       const out = [];
 
       Object.keys(this.families).forEach((groupLabel) => {
@@ -329,17 +322,100 @@ export default {
     subnetworkOptions() {
       return formatSubnetworkOptions(this.t, this.value.network, this.subnetworks, this.sharedNetworks, this.useIpAliases);
     },
-    tags() {
-      return this.value?.tags ? this.value.tags.split(',') : [];
+    machineImage: {
+      get() {
+        return this.value?.machineImage ? this.getImageNameFromImage() : '';
+      },
+      set(neu) {
+        this.setMachineImage(neu);
+        this.diskSize = neu?.diskSize ? neu.diskSize : 10;
+      }
     },
-    scopes() {
-      return this.value?.tags ? this.value.scopes.split(',') : [];
+    selectedNetwork: {
+      get() {
+        const { network } = this.value;
+
+        if (this.isView) {
+          return network;
+        }
+        if (!network) {
+          return undefined;
+        }
+
+        return this.networkOptions.find((n) => n.name === network);
+      },
+      set(neu) {
+        this.value.network = neu.name;
+      }
     },
-    labels() { // TODO
-      return this.value?.labels ? [] : [];
+
+    selectedSubnetwork: {
+      get() {
+        const { subnetwork } = this.value;
+
+        if (this.isView) {
+          return subnetwork;
+        }
+        if (!subnetwork || subnetwork === '') {
+          return { label: this.t('gke.subnetwork.auto'), name: GKE_NONE_OPTION };
+        }
+
+        return this.subnetworkOptions.find((n) => n.name === subnetwork);
+      },
+      set(neu) {
+        if (neu.name === GKE_NONE_OPTION) {
+          this.value.subnetwork = '';
+        } else {
+          this.value.subnetwork = neu.name;
+        }
+      }
+    },
+    tags: {
+      get() {
+        return this.value?.tags ? this.value.tags.split(',') : [];
+      },
+      set(neu) {
+        this.value.tags = neu.toString();
+      }
+    },
+    scopes: {
+      get() {
+        return this.value?.scopes ? this.value.scopes.split(',') : [];
+      },
+      set(neu) {
+        this.value.scopes = neu.toString();
+      }
+    },
+    labels: {
+      get() {
+        const labels = this.value.vmLabels || '';
+
+        return convertStringToKV(labels);
+      },
+      set(neu) {
+        this.value.vmLabels = convertKVToString(neu);
+      }
     }
   },
   methods: {
+    stringify,
+    async getZones() {
+      try {
+        const res = await getGKEZones(this.$store, this.credentialId, this.project, {});
+
+        // TODO Should consider moving this to the util function and check if we need regions similar to GKE
+        this.zones = sortBy((res.items || []).map((z) => {
+          z.disabled = z?.status?.toLowerCase() !== 'up';
+          z.sortName = sortableNumericSuffix(z.name);
+
+          return z.name;
+        }), 'sortName', false);
+      } catch (e) {
+        this.errors.push(e.data);
+
+        return '';
+      }
+    },
     getProjectFromImage() {
       if (!!this.value?.machineImage) {
         return this.value.machineImage.split('/')[0];
@@ -350,44 +426,67 @@ export default {
         return this.value.machineImage.split('/')[3];
       }
     },
-    // TODO: error handling
+
     async getFamilies() {
       this.loadingFamilies = true;
-      const projects = this.imageProjects.replace(/ /g, '');
-      const out = await getGKEFamiliesFromProject(this.$store, this.credentialId, this.value.project, this.location, projects, false);
+      let out = {};
 
-      if (!!this.showDeprecated) {
-        const deprecatedResponse = await getGKEFamiliesFromProject(this.$store, this.credentialId, this.project, this.location, projects, true);
+      if (this.imageProjects) {
+        try {
+          let projects = this.imageProjects.replace(/ /g, '');
 
-        Object.keys(deprecatedResponse).forEach((family) => {
-          if ( !out[family]) {
-            out[family] = family;
-          } else {
-            out[family] = [...new Set([...out[family], ...deprecatedResponse[family]])];
+          if (projects.endsWith(',')) {
+            projects = projects.substring(0, projects.length - 1 );
           }
-        });
+
+          if (!!projects) {
+            out = await getGKEFamiliesFromProject(this.$store, this.credentialId, this.value.project, this.location, projects, false) || {};
+
+            if (!!this.showDeprecated) {
+              const deprecatedResponse = await getGKEFamiliesFromProject(this.$store, this.credentialId, this.project, this.location, projects, true);
+
+              Object.keys(deprecatedResponse).forEach((family) => {
+                if ( !out[family]) {
+                  out[family] = family;
+                } else {
+                  out[family] = [...new Set([...out[family], ...deprecatedResponse[family]])];
+                }
+              });
+            }
+          }
+        } catch (e) {
+          // This fails often if user mistypes, so it's better to swallow the error instead of spamming with errors
+          this.errors.push(e.data);
+
+          return '';
+        }
       }
       this.families = out;
 
-      if (!!this.machineImage) {
+      // When editing existing cluster, we need to find corresponding family
+      if (!!this.value.machineImage) {
         let found = false;
 
         const project = this.getProjectFromImage();
-        const family = out[project] || [];
+        const families = out[project] || [];
         const imageName = this.getImageNameFromImage();
 
         let count = 0;
 
-        while (!found && count < family.length) {
-          const images = await this.getImagesInProject({ family: family[count], project }, true );
+        while (!found && count < families.length) {
+          const images = await this.getImagesInProject({ family: families[count], project }, true );
           const filtered = images.filter((image) => image.name === imageName);
 
           if (filtered.length > 0) {
             found = true;
-            this.family = filtered[0].family;
+            this.family = { family: filtered[0].family, project };
           }
           count += 1;
         }
+      }
+      // If we had to reload list of families, we need to reset selected family if it is no longer in the list
+      if ( !!this.family?.project && !this.families[this.family.project]) {
+        this.family = null;
       }
 
       this.loadingFamilies = false;
@@ -396,8 +495,12 @@ export default {
     async getImagesInProject(val, showDeprecated) {
       let imagesInProject = [];
 
-      if (val?.family) {
-        imagesInProject = await getGKEImageFamilies(this.$store, this.credentialId, this.project, location, val.family, val.project, showDeprecated);
+      try {
+        if (val?.family) {
+          imagesInProject = await getGKEImageFamilies(this.$store, this.credentialId, this.project, location, val.family, val.project, showDeprecated);
+        }
+      } catch (e) {
+        this.errors.push(e.data);
       }
 
       return imagesInProject;
@@ -405,8 +508,15 @@ export default {
 
     async getImages(val) {
       this.loadingImages = true;
-
-      this.machineImages = await this.getImagesInProject(val, this.showDeprecated);
+      try {
+        this.machineImages = await this.getImagesInProject(val, this.showDeprecated);
+        // If we had to reload list of images, we need to reset selected image if it is no longer in the list
+        if ( !!this.machineImage && this.machineImages.filter((image) => image.name === this.machineImage).length === 0) {
+          this.machineImage = '';
+        }
+      } catch (e) {
+        this.errors.push(e.data);
+      }
 
       this.loadingImages = false;
     },
@@ -417,10 +527,10 @@ export default {
         const res = await getGKEDiskTypes(this.$store, this.credentialId, this.project, this.location);
 
         this.diskTypes = res.items.map((type) => {
-          return { name: type.name };
+          return type.name;
         });
       } catch (e) {
-        this.$emit('error', e);
+        this.errors.push(e.data);
       }
 
       this.loadingDiskTypes = false;
@@ -431,8 +541,8 @@ export default {
         const res = await getGKENetworks(this.$store, this.credentialId, this.project, this.location);
 
         this.networks = res?.items;
-      } catch (err) {
-        this.$emit('error', err);
+      } catch (e) {
+        this.errors.push(e.data);
       }
       this.loadingNetworks = false;
     },
@@ -441,8 +551,8 @@ export default {
         const res = await getGKESharedSubnetworks(this.$store, this.credentialId, this.project, this.location);
 
         this.sharedSubnetworks = res?.subnetworks || [];
-      } catch (err) {
-        this.$emit('error', err);
+      } catch (e) {
+        this.errors.push(e.data);
       }
     },
     async getSubnetworks() {
@@ -452,8 +562,8 @@ export default {
         const res = await getGKESubnetworks(this.$store, this.credentialId, this.project, { region });
 
         this.subnetworks = res?.items || [];
-      } catch (err) {
-        this.$emit('error', err);
+      } catch (e) {
+        this.errors.push(e.data);
       }
     },
     async getMachineTypes() {
@@ -461,9 +571,11 @@ export default {
       try {
         const res = await getGKEMachineTypes(this.$store, this.credentialId, this.project, this.location);
 
-        this.machineTypes = res?.items;
-      } catch (err) {
-        this.$emit('error', err);
+        this.machineTypes = res?.items.map((type) => {
+          return type.name;
+        });
+      } catch (e) {
+        this.errors.push(e.data);
       }
       this.loadingMachineTypes = false;
     },
@@ -482,17 +594,19 @@ export default {
 
       return image?.substring(index + '/projects/'.length);
     },
-    setTags(val) {
-      this.value.tags = val.toString();
+
+    async getOptions() {
+      await this.getDiskTypes();
+      await this.getMachineTypes();
+      await this.getNetworks();
+      await this.getFamilies();
+      // These can finish loading later
+      this.getSubnetworks();
+      this.getSharedSubnetworks();
     },
-    setScopes(val) {
-      this.value.scopes = val.toString();
+    closeError(index) {
+      this.errors = this.errors.filter((_, i) => i !== index);
     },
-    // TODO
-    setLabels(val) {
-      console.log(val);
-      this.value.labels = '';// val.toString();
-    }
   }
 };
 </script>
@@ -502,18 +616,21 @@ export default {
     v-if="$fetchState.pending"
     :delayed="true"
   />
-  <div v-else-if="errors.length">
-    <div
-      v-for="(err, idx) in errors"
-      :key="idx"
-    >
-      <Banner
-        color="error"
-        :label="stringify(err)"
-      />
-    </div>
-  </div>
+
   <div v-else>
+    <div v-if="errors.length">
+      <div
+        v-for="(err, idx) in errors"
+        :key="idx"
+      >
+        <Banner
+          color="error"
+          :label="stringify(err)"
+          :closable="true"
+          @close="closeError(idx)"
+        />
+      </div>
+    </div>
     <div>
       <div class="col span-6">
         <LabeledSelect
@@ -521,8 +638,7 @@ export default {
           label-key="cluster.machineConfig.gce.location.zone.label"
           :mode="mode"
           :options="zones"
-          option-key="name"
-          option-label="name"
+
           :loading="loadingZones"
           data-testid="gke-zone-select"
           class="span-3 mr-10"
@@ -535,9 +651,10 @@ export default {
             v-model:value="imageProjects"
             :mode="mode"
             label-key="cluster.machineConfig.gce.imageProjects.label"
-            :placeholder="50"
+            :placeholder="defaultProjects"
             data-testid="gce-disk-size"
             required
+            :rules="fvGetAndReportPathRules('imageProjects')"
           />
         </div>
         <div>
@@ -554,12 +671,13 @@ export default {
           v-model:value="family"
           label-key="cluster.machineConfig.gce.family.label"
           :mode="mode"
-          :options="familyOption"
+          :options="familyOptions"
           option-key="value"
           option-label="label"
           :loading="loadingZones"
           data-testid="gke-zone-select"
           class="span-3 mr-10"
+          :rules="fvGetAndReportPathRules('family')"
         />
 
         <LabeledSelect
@@ -571,9 +689,10 @@ export default {
           option-label="label"
           :loading="loadingImages"
           data-testid="gce-disk-type"
-          class="span-3 mr-10"
+          class="span-3"
+          :tooltip="t('cluster.machineConfig.gce.machineImage.tooltip')"
           required
-          @update:value="setMachineImage"
+          :rules="fvGetAndReportPathRules('machineImage')"
         />
       </div>
       <div class="row mt-20">
@@ -582,12 +701,11 @@ export default {
           label-key="cluster.machineConfig.gce.diskType.label"
           :mode="mode"
           :options="diskTypes"
-          option-key="name"
-          option-label="name"
           :loading="loadingDiskTypes"
           data-testid="gce-disk-type"
           required
           class="span-3 mr-10"
+          :rules="fvGetAndReportPathRules('diskType')"
         />
         <LabeledInput
           v-model:value="value.diskSize"
@@ -597,37 +715,40 @@ export default {
           data-testid="gce-disk-size"
           class="span-3 mr-10"
           required
+          :rules="fvGetAndReportPathRules('diskSize')"
         />
         <LabeledSelect
           v-model:value="value.machineType"
           label-key="cluster.machineConfig.gce.machineType.label"
           :mode="mode"
           :options="machineTypes"
-          option-key="name"
-          option-label="name"
           :loading="loadingMachineTypes"
           data-testid="gke-zone-select"
           required
+          :rules="fvGetAndReportPathRules('machineType')"
         />
       </div>
       <div class="row mt-20">
         <LabeledSelect
-          v-model:value="value.network"
+          v-model:value="selectedNetwork"
           label-key="cluster.machineConfig.gce.network.label"
           :mode="mode"
           :options="networkOptions"
+          :disabled="!isCreate"
           option-key="name"
-          option-label="name"
+          option-label="label"
           :loading="loadingNetworks"
           data-testid="gke-zone-select"
           class="span-3 mr-10"
           required
+          :rules="fvGetAndReportPathRules('network')"
         />
         <LabeledSelect
-          v-model:value="value.subnetwork"
+          v-model:value="selectedSubnetwork"
           label-key="cluster.machineConfig.gce.subnetwork.label"
           :mode="mode"
           :options="subnetworkOptions"
+          :disabled="!isCreate"
           option-key="name"
           option-label="name"
           :loading="loadingNetworks"
@@ -654,106 +775,77 @@ export default {
           :placeholder="t('cluster.machineConfig.gce.address.placeholder')"
           :tooltip="t('cluster.machineConfig.gce.address.tooltip')"
           data-testid="gce-disk-size"
-          class="span-3 mr-10"
+          class="span-3"
         />
-        <LabeledInput
-          v-model:value="value.userData"
-          :mode="mode"
-          label-key="cluster.machineConfig.gce.userdata.label"
-          :placeholder="t('cluster.machineConfig.gce.userdata.placeholder')"
-          :tooltip="t('cluster.machineConfig.gce.userdata.tooltip')"
-          data-testid="gce-disk-size"
-        />
-      </div>
-      <div class="row mt-20">
-        <div class="col span-6 advanced-checkboxes">
-          <Checkbox
-            v-model:value="value.preemptible"
-            :mode="mode"
-            :label="t('cluster.machineConfig.gce.preemptible.label')"
-            :tooltip="t('cluster.machineConfig.gce.preemptible.tooltip')"
-          />
-          <Checkbox
-            v-model:value="value.useInternalIp"
-            :mode="mode"
-            :label="t('cluster.machineConfig.gce.useInternalIP.label')"
-            :tooltip="t('cluster.machineConfig.gce.useInternalIP.tooltip')"
-          />
-          <Checkbox
-            v-model:value="value.useInternalIpOnly"
-            :mode="mode"
-            :label="t('cluster.machineConfig.gce.useInternalIPOnly.label')"
-            :tooltip="t('cluster.machineConfig.gce.useInternalIPOnly.tooltip')"
-          />
-          <Checkbox
-            v-model:value="value.useExisting"
-            :mode="mode"
-            :label="t('cluster.machineConfig.gce.useExisting.label')"
-            :tooltip="t('cluster.machineConfig.gce.useExisting.tooltip')"
-          />
-        </div>
       </div>
 
       <ArrayList
-        :value="scopes"
+        v-model:value="scopes"
         table-class="fixed"
         :mode="mode"
         :title="t('cluster.machineConfig.gce.scopes.label')"
         :add-label="t('cluster.machineConfig.gce.scopes.add')"
         :disabled="disabled"
         class="col mt-20 span-10"
-        @update:value="setScopes"
       />
+      <h3 class="mt-20">
+        {{ t('cluster.machineConfig.gce.firewall.header') }}
+      </h3>
       <div class="row mt-20 span-12">
-        <ArrayList
-          :value="tags"
-          :mode="mode"
-          :title="t('gke.tags.label')"
-          :add-label="t('gke.tags.add')"
-          class="col span-6 mr-10"
-          @update:value="setTags"
-        />
-        <ArrayList
-          v-model:value="value.openPort"
-          :mode="mode"
-          :title="t('cluster.machineConfig.gce.openPort.label')"
-          :add-label="t('cluster.machineConfig.gce.openPort.add')"
-          class="col span-6"
-        />
+        <div class="col span-6">
+          <Checkbox
+            v-model:value="value.setInternalFirewallRulePrefix"
+            :mode="mode"
+            :label="t('cluster.machineConfig.gce.internalFirewall.label')"
+            :tooltip="t('cluster.machineConfig.gce.internalFirewall.tooltip')"
+          />
+          <Banner
+            color="info"
+            label-key="cluster.machineConfig.gce.internalFirewall.banner"
+          />
+          <ArrayList
+            :value="tags"
+            :mode="mode"
+            :title="t('gke.tags.label')"
+            :add-label="t('gke.tags.add')"
+            class="col span-6 mr-10"
+          />
+        </div>
+        <div class="col span-6">
+          <Checkbox
+            v-model:value="value.setExternalFirewallRulePrefix"
+            :mode="mode"
+            :label="t('cluster.machineConfig.gce.externalFirewall.label')"
+            :tooltip="t('cluster.machineConfig.gce.externalFirewall.tooltip')"
+          />
+          <div v-if="!!value.setExternalFirewallRulePrefix">
+            <Banner
+              color="info"
+              label-key="cluster.machineConfig.gce.externalFirewall.banner"
+            />
+            <ArrayList
+              v-model:value="value.openPort"
+              :mode="mode"
+              :title="t('cluster.machineConfig.gce.openPort.label')"
+              :add-label="t('cluster.machineConfig.gce.openPort.add')"
+              class="col span-6"
+            />
+          </div>
+        </div>
       </div>
       <div class="mt-20">
         <h3>
           <t k="labels.labels.title" />
         </h3>
-        <!-- <KeyValue
+        <KeyValue
           v-model:value="labels"
           :mode="mode"
           :value-can-be-empty="true"
           :add-label="t('aks.nodePools.labels.add')"
           :read-allowed="false"
           data-testid="aks-node-labels-input"
-        /> -->
+        />
       </div>
     </portal>
   </div>
 </template>
-
-<style scoped>
-.inline-banner-container {
-    position: relative;
-}
-
-.inline-error-banner {
-    position: absolute;
-    width: 100%
-}
-
-.advanced-checkboxes {
-  display: flex;
-  flex-direction: column;
-  &>*{
-    margin-bottom: 10px;
-  }
-}
-
-</style>

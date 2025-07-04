@@ -119,16 +119,6 @@ export function getGKEImageFamilies(store: Store<any>, cloudCredentialId: string
 export function getGKEDiskTypes(store: Store<any>, cloudCredentialId: string, projectId: string, location: {zone?: string, region?: string}): Promise<getGKEServiceAccountsResponse> {
   return getGKEOptions('gkeDiskTypes', store, cloudCredentialId, projectId, location);
 }
-//   const params: QueryParams = { cloudCredentialId, imageFamilies };
-
-//   const url = addParams(`/meta/gkeImageFamilies`, params);
-
-//   return store.dispatch('management/request', {
-//     url,
-//     method:               'POST',
-//     redirectUnauthorized: false,
-//   });
-// }
 
 /** The Ember logic around image types is more complicated; it includes docker variants and windows SAC, with version-dependent availability
  * the gke versions supporting those options are well outside the versions that will be supported in rancher 2.9

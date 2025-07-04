@@ -67,6 +67,7 @@ import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
 import { mapGetters } from 'vuex';
 const HARVESTER = 'harvester';
+const GOOGLE = 'google';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 const NETBIOS_TRUNCATION_LENGTH = 15;
 
@@ -267,7 +268,7 @@ export default {
       clusterAgentDefaultPC:                    null,
       clusterAgentDefaultPDB:                   null,
       activeTab:                                null,
-      isAuthenticated:                          this.provider !== 'google' || this.mode === _EDIT,
+      isAuthenticated:                          this.provider !== GOOGLE || this.mode === _EDIT,
       projectId:                                null,
       REGISTRIES_TAB_NAME,
       labelForAddon
@@ -1374,12 +1375,30 @@ export default {
 
         // Capitals and such aren't allowed;
         entry.pool.name = normalizeName(entry.pool.name) || 'pool';
+        const prefix = `${ this.value.metadata.name }-${ entry.pool.name }`;
 
-        const prefix = `${ this.value.metadata.name }-${ entry.pool.name }`.substr(0, 50).toLowerCase();
+        const prefixFormatted = prefix.substr(0, 50).toLowerCase();
+
+        // For Google, we need to set internal and external firewall prefixes if enabled,
+        // but it is better to track it here since cluster and pool names are guaranteed to be set by now.
+        if (this.provider === GOOGLE) {
+          if (!!entry.config.setInternalFirewallRulePrefix) {
+            entry.config.internalFirewallRulePrefix = `${ this.value.metadata.name }`;
+          } else if (!!entry.config.internalFirewallRulePrefix) {
+            delete entry.config.internalFirewallRulePrefix;
+          }
+          if (!!entry.config.setExternalFirewallRulePrefix) {
+            entry.config.externalFirewallRulePrefix = prefix;
+          } else if (!!entry.config.externalFirewallRulePrefix) {
+            delete entry.config.externalFirewallRulePrefix;
+          }
+          delete entry.config.setInternalFirewallRulePrefix;
+          delete entry.config.setExternalFirewallRulePrefix;
+        }
 
         if (entry.create) {
           if (!entry.config.metadata?.name) {
-            entry.config.metadata.generateName = `nc-${ prefix }-`;
+            entry.config.metadata.generateName = `nc-${ prefixFormatted }-`;
           }
 
           const neu = await entry.config.save();
@@ -1394,7 +1413,7 @@ export default {
 
         // Ensure Elemental clusters have a hostname prefix
         if (this.isElementalCluster && !entry.pool.hostnamePrefix) {
-          entry.pool.hostnamePrefix = `${ prefix }-`;
+          entry.pool.hostnamePrefix = `${ prefixFormatted }-`;
         }
 
         finalPools.push(entry.pool);
