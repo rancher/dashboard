@@ -1,4 +1,4 @@
-// Text indent, margins, and paddings from 4-40px in 4px increments
+// Text indent, margins, and paddings from 4-80px in 4px increments
 // e.g. pp-1 - {padding: 4px}
 // e.g. mmt-2 - {margin-top: 8px}
 $spacing-property-map: (
@@ -19,7 +19,7 @@ $spacing-property-map: (
         #{$property}: 0;
     }
 
-    @for $size from 1 through 10 {
+    @for $size from 1 through 20 {
         $val: $size * 4;
 
         .#{$keyword}-#{$size} {
