@@ -103,7 +103,6 @@ export default {
 
   data() {
     return {
-      createRoute:     { name: 'c-cluster-fleet-application-create' },
       permissions:     {},
       FLEET,
       [FLEET.REPO]:    [],
@@ -155,6 +154,10 @@ export default {
 
     repoSchema() {
       return this.$store.getters['management/schemaFor'](FLEET.GIT_REPO);
+    },
+
+    createRoute() {
+      return { name: 'c-cluster-fleet-application-create' };
     },
 
     workspaces() {
@@ -294,6 +297,15 @@ export default {
       const val = count - this.CARDS_MIN < 0 ? this.CARDS_MIN : count - this.CARDS_SIZE;
 
       this.cardsCount[workspace][state] = val;
+    },
+
+    createResource(workspace) {
+      this.$store.dispatch('showWorkspaceSwitcher', true);
+
+      this.$nextTick(() => {
+        this.$store.commit('updateWorkspace', { value: workspace, getters: this.$store.getters });
+        this.$router.push(this.createRoute);
+      });
     },
 
     showResourceDetails(value, statePanel, workspace, selected) {
@@ -593,12 +605,12 @@ export default {
               v-if="permissions.gitRepos || permissions.helmOps"
               class="create-button"
             >
-              <router-link
-                :to="createRoute"
-                class="btn role-primary"
+              <RcButton
+                small
+                @click="createResource(workspace.id)"
               >
                 {{ t('fleet.application.intro.add') }}
-              </router-link>
+              </RcButton>
             </div>
           </div>
           <div

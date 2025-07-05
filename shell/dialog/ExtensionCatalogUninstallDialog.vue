@@ -127,21 +127,24 @@ export default {
         const hash = await allHash({
           deployment: this.$store.dispatch('management/findLabelSelector', {
             type:     WORKLOAD_TYPES.DEPLOYMENT,
-            matching: { namespace, labelSelector }
+            matching: { namespace, labelSelector },
+            opt:      { transient: true }
           }),
           service: this.$store.dispatch('management/findLabelSelector', {
             type:     SERVICE,
-            matching: { namespace, labelSelector }
+            matching: { namespace, labelSelector },
+            opt:      { transient: true }
           }),
           repo: this.$store.dispatch('management/findLabelSelector', {
             type:     CATALOG.CLUSTER_REPO,
-            matching: { labelSelector }
+            matching: { labelSelector },
+            opt:      { transient: true }
           })
         });
 
         for ( const resource of Object.keys(hash) ) {
           if ( hash[resource] ) {
-            hash[resource].forEach((r) => r.remove());
+            hash[resource].data.forEach((r) => r.remove());
           }
         }
       }

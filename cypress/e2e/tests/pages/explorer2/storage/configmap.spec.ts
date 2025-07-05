@@ -111,7 +111,7 @@ skipGeometric=true`;
         };
       };
 
-      cy.createManyNamespacedResourced({
+      cy.createManyNamespacedResources({
         context:        'configmaps1',
         createResource: createConfigMap(),
       })
@@ -119,7 +119,7 @@ skipGeometric=true`;
           cmNamesList = workloadNames;
           nsName1 = ns;
         })
-        .then(() => cy.createManyNamespacedResourced({
+        .then(() => cy.createManyNamespacedResources({
           context:        'configmaps2',
           createResource: createConfigMap(uniqueConfigMap),
           count:          1

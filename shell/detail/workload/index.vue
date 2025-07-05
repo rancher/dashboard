@@ -89,6 +89,12 @@ export default {
     this.findMatchingIngresses();
   },
 
+  async unmounted() {
+    if (this.podSchema) {
+      await this.value.unWatchPods();
+    }
+  },
+
   data() {
     return {
       servicesInNamespace:             [],

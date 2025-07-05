@@ -34,7 +34,7 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
     networkPolicyPage.createEditNetworkPolicyForm().newNetworkPolicyRuleAddBtn().click();
     networkPolicyPage.createEditNetworkPolicyForm().addAllowedTrafficSourceButton().click();
     networkPolicyPage.createEditNetworkPolicyForm().policyRuleTargetSelect(0).toggle();
-    networkPolicyPage.createEditNetworkPolicyForm().policyRuleTargetSelect(0).clickOptionWithLabel('Namespace Selector');
+    networkPolicyPage.createEditNetworkPolicyForm().policyRuleTargetSelect(0).clickOptionWithLabel('Namespace Label Selector');
 
     cy.getRancherResource('v1', 'namespaces').then((resp: Cypress.Response<any>) => {
       cy.wrap(resp.body.count).as('namespaceCount');
@@ -45,7 +45,7 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
       // Add a second rule a key to match none of the namespaces
       networkPolicyPage.createEditNetworkPolicyForm().addAllowedTrafficSourceButton().click();
       networkPolicyPage.createEditNetworkPolicyForm().policyRuleTargetSelect(1).toggle();
-      networkPolicyPage.createEditNetworkPolicyForm().policyRuleTargetSelect(1).clickOptionWithLabel('Namespace Selector');
+      networkPolicyPage.createEditNetworkPolicyForm().policyRuleTargetSelect(1).clickOptionWithLabel('Namespace Label Selector');
       networkPolicyPage.createEditNetworkPolicyForm().policyRuleKeyInput(1).focus().type('something-with-no-matching-namespaces');
       networkPolicyPage.createEditNetworkPolicyForm().policyRuleTargetSelect(1).self().scrollIntoView();
       networkPolicyPage.createEditNetworkPolicyForm().matchingNamespacesMessage(1).should('contain.text', `Matches 0 of ${ count }`);

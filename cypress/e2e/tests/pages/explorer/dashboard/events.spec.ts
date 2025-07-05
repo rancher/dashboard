@@ -56,7 +56,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
         };
       };
 
-      cy.createManyNamespacedResourced({
+      cy.createManyNamespacedResources({
         context:        'events1',
         createResource: createPod(),
         count:          podCount,
@@ -64,7 +64,7 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
         .then(({ ns }) => {
           nsName1 = ns;
         })
-        .then(() => cy.createManyNamespacedResourced({
+        .then(() => cy.createManyNamespacedResources({
           context:        'events2',
           createResource: createPod(uniquePod),
           count:          1

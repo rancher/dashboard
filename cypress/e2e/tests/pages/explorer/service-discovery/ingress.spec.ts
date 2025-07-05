@@ -48,7 +48,7 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
         ingressName = name;
       });
 
-      cy.createManyNamespacedResourced({
+      cy.createManyNamespacedResources({
         context:        'ingress',
         createResource: ({ ns, i }: {ns: string, i: number}) => {
           const name = Cypress._.uniqueId(`secret-${ Date.now().toString() }-${ i }`);
@@ -59,7 +59,7 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
       }).then(({ ns, workloadNames }) => {
         secretsNamesList = workloadNames;
         namespace = ns;
-      }).then(() => cy.createManyNamespacedResourced({
+      }).then(() => cy.createManyNamespacedResources({
         namespace,
         createResource: ({ ns, i }: {ns: string, i: number}) => {
           const name = Cypress._.uniqueId(`service-${ Date.now().toString() }-${ i }`);

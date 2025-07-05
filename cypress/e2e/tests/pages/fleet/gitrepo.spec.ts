@@ -60,6 +60,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       cy.intercept('POST', `/v1/secrets/${ workspace }`).as('interceptSecret');
       cy.intercept('POST', '/v1/fleet.cattle.io.gitrepos').as('interceptGitRepo');
       cy.intercept('GET', '/v1/secrets?*').as('getSecrets');
+      cy.intercept('GET', '/v1/secrets?*').as('getSecretsInitialLoad');
 
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
@@ -91,6 +92,9 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       gitRepoCreatePage.targetCluster().clickLabel(fakeProvClusterId);
 
       gitRepoCreatePage.resourceDetail().createEditView().nextPage();
+
+      // Wait for secrets fetch to initialize Secret selectors
+      cy.wait('@getSecretsInitialLoad').its('response.statusCode').should('eq', 200);
 
       // Advanced info step
       gitRepoCreatePage.gitAuthSelectOrCreate().createSSHAuth('test1', 'test1', 'KNOWN_HOSTS');

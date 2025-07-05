@@ -454,7 +454,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
     // First check in our hardcoded list of supported filters
     if (
-      process.env.NODE_ENV === 'dev' &&
       !!schema &&
       [
         StevePaginationUtils.VALID_FIELDS[''], // Global
