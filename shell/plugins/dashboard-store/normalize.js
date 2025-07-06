@@ -33,7 +33,10 @@ export async function handleConflict(initialValue, value, liveValue, store, stor
   console.log('User Change', userChange); // eslint-disable-line no-console
   console.log('Conflicts', actualConflicts); // eslint-disable-line no-console
 
-  value.metadata.resourceVersion = liveValue.metadata.resourceVersion;
+  if (value.metadata?.resourceVersion) {
+    value.metadata.resourceVersion = liveValue.metadata?.resourceVersion;
+  }
+
   applyChangeset(value, bgChange);
 
   if ( actualConflicts.length ) {
