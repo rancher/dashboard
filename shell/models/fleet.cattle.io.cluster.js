@@ -212,8 +212,8 @@ export default class FleetCluster extends SteveModel {
     return parsedLabels;
   }
 
-  async saveYaml(yaml) {
-    await this._saveYaml(yaml);
+  async saveYaml(yaml, initialYaml) {
+    await this._saveYaml(yaml, initialYaml);
 
     const parsed = jsyaml.load(yaml);
 

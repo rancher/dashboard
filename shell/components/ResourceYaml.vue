@@ -229,7 +229,7 @@ export default {
         }
 
         try {
-          await this.value.saveYaml(yaml);
+          await this.value.saveYaml(yaml, this.initialYaml);
         } catch (err) {
           return onError.call(this, err);
         }
