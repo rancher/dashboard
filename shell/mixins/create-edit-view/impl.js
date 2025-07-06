@@ -117,7 +117,16 @@ export default {
     // If they are resolved, return a false-y value
     // Else they can't be resolved, return an array of errors to show to the user.
     async conflict() {
-      return await handleConflict(this.initialValue.toJSON(), this.value, this.liveValue, this.$store.getters, this.$store, this.storeOverride || this.$store.getters['currentStore'](this.value.type));
+      return await handleConflict(
+        this.initialValue,
+        this.value,
+        this.liveValue,
+        {
+          dispatch: this.$store.dispatch,
+          getters:  this.$store.getters
+        },
+        this.storeOverride || this.$store.getters['currentStore'](this.value.type)
+      );
     },
 
     async save(buttonDone, url, depth = 0) {

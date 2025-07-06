@@ -1333,7 +1333,16 @@ export default {
 
         // if there's the initial machine pool config, we are in a good position to apply the handleConflict function
         // to deal with out-of-sync data between machinePools configs. This also mutates the data inside machinePool.config through object reference
-        const conflict = await handleConflict(initialMachinePoolValue.toJSON(), machinePool.config, latestConfig, this.$store.getters, this.$store, 'management');
+        const conflict = await handleConflict(
+          initialMachinePoolValue,
+          machinePool.config,
+          latestConfig,
+          {
+            dispatch: this.$store.dispatch,
+            getters: this.$store.getters
+          },
+          'management'
+        );
 
         // if there's conflicts, throw Error stops save process and surfaces error to user
         if (conflict) {
