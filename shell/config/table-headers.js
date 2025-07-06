@@ -1145,3 +1145,9 @@ export const UI_PLUGIN_CATALOG = [
     value:    'repo.metadata.name'
   }
 ];
+
+// SECRETS
+export const PROJECT = {
+  name:     'project',
+  labelKey: 'tableHeaders.project',
+};

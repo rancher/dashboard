@@ -58,6 +58,11 @@ export default defineComponent({
       default: null,
     },
 
+    inStore: {
+      type:    String,
+      default: 'cluster',
+    },
+
     /**
      * Information may be required from resources other than the primary one shown per row
      *
@@ -116,7 +121,7 @@ export default defineComponent({
       :alt-loading="canPaginate && !isFirstLoad"
       :loading="loading"
       :groupable="groupable"
-
+      :in-store="inStore"
       :headers="safeHeaders"
       :namespaced="namespaced"
 

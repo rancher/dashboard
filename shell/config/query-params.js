@@ -81,7 +81,7 @@ export const PROJECT_ID = 'projectId';
 export const FLAT_VIEW = 'flatView';
 
 // Secrets
-export const SECRET_SCOPED_TABS = {
+export const SECRET_TABS = {
   NAMESPACED:     'namespaced',
   PROJECT_SCOPED: 'project-scoped'
 };

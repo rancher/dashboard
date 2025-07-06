@@ -499,6 +499,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // Check if the API supports filtering by this field
               this.validateField(validateFields, schema, field.field);
 
+              if (field.exists) {
+                return field.field;
+              }
               const encodedValue = encodeURIComponent(field.value);
 
               // = exact match (equals + exact)
@@ -674,6 +677,7 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
           // { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
           // { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
           { resource: CATALOG.APP, context: ['branding'] },
+          SECRET
         ],
         generic: false,
       }

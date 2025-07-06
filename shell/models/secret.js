@@ -1,5 +1,5 @@
 import r from 'jsrsasign';
-import { CERTMANAGER, KUBERNETES } from '@shell/config/labels-annotations';
+import { CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { removeObjects } from '@shell/utils/array';
 import { SERVICE_ACCOUNT } from '@shell/config/types';
@@ -32,6 +32,24 @@ const certExpiringPeriod = 1000 * 60 * 60 * 24 * 8;
 
 export default class Secret extends SteveModel {
   _cachedCertInfo;
+
+  get _availableActions() {
+    const out = super._availableActions;
+
+    if (this.isProjectSecretCopy) {
+      const removeAction = out.find((action) => action.action === 'promptRemove');
+
+      if (removeAction) {
+        removeAction.enabled = false;
+      }
+    }
+
+    return out;
+  }
+
+  get isProjectSecretCopy() {
+    return this.metadata?.annotations?.[UI_PROJECT_SECRET_COPY] === 'true';
+  }
 
   get hasSensitiveData() {
     return true;

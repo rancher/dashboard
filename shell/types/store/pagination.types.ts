@@ -65,7 +65,7 @@ export class PaginationFilterField {
   /**
    * Value of field within the object to filter by for example the y of x=y
    */
-  value: string;
+  value?: string;
   /**
    * Equality field within the object to filter by for example the `=` or `!=` of x=y
    */
@@ -79,16 +79,20 @@ export class PaginationFilterField {
    */
   exact: boolean;
 
+  // TODO
+  exists: boolean;
+
   constructor(
     {
-      field, value, equals = true, exact = true
+      field, value = '', equals = true, exact = true, exists = false
     }:
-    { field?: string; value: string; equals?: boolean; exact?: boolean;}
+    { field?: string; value?: string; equals?: boolean; exact?: boolean; exists?:boolean;}
   ) {
     this.field = field;
     this.value = value;
     this.equals = equals;
     this.exact = exact;
+    this.exists = exists;
   }
 }
 
@@ -228,7 +232,7 @@ export class PaginationParamFilter extends PaginationParam {
   /**
    * Convenience method when you just want an instance of {@link PaginationParamFilter} with a simple `filter=x=y` param
    */
-  static createSingleField(field: { field?: string; value: string; equals?: boolean; exact?: boolean }): PaginationParam {
+  static createSingleField(field: { field?: string; value?: string; equals?: boolean; exact?: boolean, exists?: false }): PaginationParam {
     return new PaginationParamFilter({ fields: [new PaginationFilterField(field)] });
   }
 
