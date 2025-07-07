@@ -28,7 +28,10 @@ export default {
       return this.t(`typeLabel."${ FLEET.CLUSTER_GROUP }"`, { count: this.value.counts.clusterGroup });
     },
     gitRepoLabel() {
-      return this.t(`typeLabel."${ FLEET.GIT_REPO }"`, { count: this.value.counts.gitRepo });
+      return this.t(`typeLabel."${ FLEET.GIT_REPO }"`, { count: this.value.counts.gitRepos });
+    },
+    helmOpsLabel() {
+      return this.t(`typeLabel."${ FLEET.HELM_OP }"`, { count: this.value.counts.helmOps });
     },
 
     SCOPE_NAMESPACE() {
@@ -50,21 +53,28 @@ export default {
   <div>
     <div class="mb-20">
       <div class="row">
-        <div class="col span-4">
+        <div class="col span-3">
           <CountBox
             :count="value.counts.gitRepos"
             :name="gitRepoLabel"
             :primary-color-var="'--sizzle-3'"
           />
         </div>
-        <div class="col span-4">
+        <div class="col span-3">
+          <CountBox
+            :count="value.counts.helmOps"
+            :name="helmOpsLabel"
+            :primary-color-var="'--sizzle-3'"
+          />
+        </div>
+        <div class="col span-3">
           <CountBox
             :count="value.counts.clusters"
             :name="clustersLabel"
             :primary-color-var="'--sizzle-1'"
           />
         </div>
-        <div class="col span-4">
+        <div class="col span-3">
           <CountBox
             :count="value.counts.clusterGroups"
             :name="clusterGroupsLabel"
