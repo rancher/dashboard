@@ -343,7 +343,7 @@ export default {
     <div v-if="canEdit">
       <AsyncButton
         class="pull-right mt-30"
-        mode="apply"
+        :action-label="t(`${ labelKeyPrefix }.apply`)"
         @click="save"
       />
     </div>
