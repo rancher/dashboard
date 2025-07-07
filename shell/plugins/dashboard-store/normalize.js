@@ -20,10 +20,10 @@ export function normalizeType(type) {
 // Detect and resolve conflicts from a 409 response.
 // If they are resolved, return a false-y value
 // Else they can't be resolved, return an array of errors to show to the user.
-export async function handleConflict(initialValueJSON, value, liveValue, rootGetters, store, storeNamespace) {
-  const orig = await store.dispatch(`${ storeNamespace }/cleanForDiff`, initialValueJSON, { root: true });
-  const user = await store.dispatch(`${ storeNamespace }/cleanForDiff`, value.toJSON(), { root: true });
-  const cur = await store.dispatch(`${ storeNamespace }/cleanForDiff`, liveValue.toJSON(), { root: true });
+export async function handleConflict(initialValue, value, liveValue, store, storeNamespace, toJSON = (x) => x.toJSON()) {
+  const orig = await store.dispatch(`${ storeNamespace }/cleanForDiff`, toJSON(initialValue), { root: true });
+  const user = await store.dispatch(`${ storeNamespace }/cleanForDiff`, toJSON(value), { root: true });
+  const cur = await store.dispatch(`${ storeNamespace }/cleanForDiff`, toJSON(liveValue), { root: true });
 
   const bgChange = changeset(orig, cur);
   const userChange = changeset(orig, user);
@@ -38,7 +38,7 @@ export async function handleConflict(initialValueJSON, value, liveValue, rootGet
 
   if ( actualConflicts.length ) {
     // Stop the save and let the user inspect and continue editing
-    const out = [rootGetters['i18n/t']('validation.conflict', { fields: actualConflicts.join(', '), fieldCount: actualConflicts.length })];
+    const out = [store.getters['i18n/t']('validation.conflict', { fields: actualConflicts.join(', '), fieldCount: actualConflicts.length })];
 
     return out;
   } else {
