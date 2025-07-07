@@ -781,6 +781,7 @@ export default {
       align-items: center;
 
       .workspace-title {
+        min-width: 150px;
         margin: 0 32px 0 0;
         display: flex;
         flex-direction: column;
@@ -790,7 +791,6 @@ export default {
           font-weight: normal;
           display: flex;
           align-items: center;
-          min-width: 150px;
           margin: 0 0 2px 0;
   
           .icon {
