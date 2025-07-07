@@ -509,7 +509,7 @@ export default {
             <h2 class="workspace-title">
               <span class="workspace-label label-secondary">
                 <i class="icon icon-folder" />
-                <span>{{ t('fleet.dashboard.workspace') }} : &nbsp;</span>                
+                <span>{{ t('fleet.dashboard.workspace') }} : &nbsp;</span>
               </span>
               <router-link
                 class="name"
@@ -792,7 +792,7 @@ export default {
           display: flex;
           align-items: center;
           margin: 0 0 2px 0;
-  
+
           .icon {
             margin-right: 5px;
           }
