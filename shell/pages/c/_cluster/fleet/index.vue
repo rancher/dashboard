@@ -564,8 +564,8 @@ export default {
               >
                 <i
                   :class="{
-                    ['icon icon-lg icon-chevron-right']: isWorkspaceCollapsed[workspace.id],
-                    ['icon icon-lg icon-chevron-down']: !isWorkspaceCollapsed[workspace.id],
+                    ['icon icon-lg icon-chevron-down']: isWorkspaceCollapsed[workspace.id],
+                    ['icon icon-lg icon-chevron-up']: !isWorkspaceCollapsed[workspace.id],
                   }"
                   aria-hidden="true"
                 />
