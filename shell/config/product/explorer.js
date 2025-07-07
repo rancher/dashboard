@@ -21,7 +21,9 @@ import {
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
   ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, LAST_USED, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
   DURATION, MESSAGE, REASON, EVENT_TYPE, OBJECT, ROLE, ROLES, VERSION, INTERNAL_EXTERNAL_IP, KUBE_NODE_OS, CPU, RAM, SECRET_DATA,
-  EVENT_LAST_SEEN_TIME
+  EVENT_LAST_SEEN_TIME,
+  SECRET_CLONE,
+  SECRET_PROJECT_SCOPED
 } from '@shell/config/table-headers';
 
 import { DSL } from '@shell/store/type-map';
@@ -32,7 +34,7 @@ import {
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 import { STEVE_CACHE } from '@shell/store/features';
 import { configureConditionalDepaginate } from '@shell/store/type-map.utils';
-import { CATTLE_PUBLIC_ENDPOINTS, STORAGE } from '@shell/config/labels-annotations';
+import { CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET } from '@shell/config/labels-annotations';
 
 export const NAME = 'explorer';
 
@@ -94,6 +96,7 @@ export function init(store) {
     PVC,
     STORAGE_CLASS,
     SECRET,
+    VIRTUAL_TYPES.PROJECT_SECRETS,
     CONFIG_MAP
   ], 'storage');
   basicType([
@@ -188,7 +191,12 @@ export function init(store) {
   configureType(NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, { depaginate: dePaginateNormanBindings });
   configureType(SNAPSHOT, { depaginate: true });
   configureType(NORMAN.ETCD_BACKUP, { depaginate: true });
+
   configureType(SECRET, { showListMasthead: false });
+  weightType(SECRET, 1, false);
+
+  configureType(VIRTUAL_TYPES.PROJECT_SECRETS, { showListMasthead: false });
+  weightType(VIRTUAL_TYPES.PROJECT_SECRETS, 2, false);
 
   configureType(EVENT, { limit: 500 });
   weightType(EVENT, -1, true);
@@ -624,6 +632,34 @@ export function init(store) {
     route:            { name: 'c-cluster-product-namespaces' },
     exact:            true,
   });
+
+  virtualType({
+    label:            store.getters['i18n/t'](`typeLabel.${ VIRTUAL_TYPES.PROJECT_SECRETS }`, { count: 2 }),
+    group:            'storage',
+    icon:             'globe',
+    namespaced:       false,
+    ifRancherCluster: true,
+    name:             VIRTUAL_TYPES.PROJECT_SECRETS,
+    weight:           -1,
+    route:            {
+      name:   'c-cluster-product-resource',
+      params: { resource: VIRTUAL_TYPES.PROJECT_SECRETS }
+    },
+    exact:      true,
+    ifHaveType: [{
+      store: 'management',
+      type:  SECRET
+    }],
+  });
+
+  // TODO: RC Tests
+  // Vai on/off
+  //   - Create / View / Edit / Delete
+  //   - User does not have permissions to see projects
+  //   - isRancherCluster is false
+  // Vai off - incremental loading and manual refresh
+
+  // TODO: RC new detail page of secrets is broken - it does not respect storeOverride / currentStore (cody investigating, as also broken for harvester)
 
   // Ignore these types as they are managed through the settings product
   ignoreType(MANAGEMENT.FEATURE);

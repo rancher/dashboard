@@ -1,8 +1,8 @@
 import r from 'jsrsasign';
-import { CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
+import { CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { removeObjects } from '@shell/utils/array';
-import { SERVICE_ACCOUNT } from '@shell/config/types';
+import { MANAGEMENT, SECRET, SERVICE_ACCOUNT, VIRTUAL_TYPES } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -10,6 +10,7 @@ import { colorForState, stateDisplay, STATES_ENUM } from '@shell/plugins/dashboa
 import { diffFrom } from '@shell/utils/time';
 import day from 'dayjs';
 import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
+import { STORE } from '@shell/store/store-types';
 
 export const TYPES = {
   OPAQUE:           'Opaque',
@@ -32,24 +33,6 @@ const certExpiringPeriod = 1000 * 60 * 60 * 24 * 8;
 
 export default class Secret extends SteveModel {
   _cachedCertInfo;
-
-  get _availableActions() {
-    const out = super._availableActions;
-
-    if (this.isProjectSecretCopy) {
-      const removeAction = out.find((action) => action.action === 'promptRemove');
-
-      if (removeAction) {
-        removeAction.enabled = false;
-      }
-    }
-
-    return out;
-  }
-
-  get isProjectSecretCopy() {
-    return this.metadata?.annotations?.[UI_PROJECT_SECRET_COPY] === 'true';
-  }
 
   get hasSensitiveData() {
     return true;
@@ -177,6 +160,10 @@ export default class Secret extends SteveModel {
   }
 
   get canUpdate() {
+    if (this.isProjectSecretCopy) {
+      return false;
+    }
+
     if ( !this.hasLink('update') ) {
       return false;
     }
@@ -186,6 +173,18 @@ export default class Secret extends SteveModel {
     }
 
     return this.$rootGetters['type-map/optionsFor'](this.type).isEditable;
+  }
+
+  get canDelete() { // TODO: RC debatable, it'll come back
+    return this.isProjectSecretCopy ? false : super.canDelete;
+  }
+
+  get canCreate() {
+    return this.isProjectSecretCopy ? false : super.canCreate;
+  }
+
+  get canEditYaml() {
+    return this.isProjectSecretCopy ? false : super.canEditYaml;
   }
 
   get keysDisplay() {
@@ -487,5 +486,85 @@ export default class Secret extends SteveModel {
     // ref: https://kubernetes.io/docs/concepts/configuration/secret/#secret-types
 
     return steveCleanForDownload(yaml, { rootKeys: ['id', 'links', 'actions'] });
+  }
+
+  /**
+   * is this a project scoped secret .... or also a cloned project scoped secret
+   */
+  get isProjectScopedRelated() {
+    return !!this.metadata.labels?.[UI_PROJECT_SECRET];
+  }
+
+  /**
+   * is this a project scoped secret
+   */
+  get isProjectScoped() {
+    return this.isProjectScopedRelated && !this.isProjectSecretCopy;
+  }
+
+  get projectScopedClusterId() {
+    if (!this.projectScopedProjectId) {
+      return undefined;
+    }
+
+    const clusterId = this.metadata.namespace.replace(`-${ this.projectScopedProjectId }`, '');
+
+    return clusterId;
+  }
+
+  get projectScopedProjectId() {
+    return this.metadata.labels?.[UI_PROJECT_SECRET];
+  }
+
+  get isProjectSecretCopy() {
+    return this.metadata?.annotations?.[UI_PROJECT_SECRET_COPY] === 'true';
+  }
+
+  get projectCluster() {
+    if (!this.projectScopedClusterId || !this.$rootGetters['isRancher'] ) {
+      return undefined;
+    }
+
+    console.warn(this.projectScopedClusterId);
+
+    return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.CLUSTER, this.projectScopedClusterId);
+  }
+
+  /**
+   * If this is a project scoped secret, return it
+   */
+  get project() {
+    if (!this.projectScopedProjectId || !this.$rootGetters['isRancher'] ) {
+      return undefined;
+    }
+
+    return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, `${ this.projectScopedClusterId }/${ this.projectScopedProjectId }`);
+  }
+
+  get clusterAndProjectLabel() {
+    if (this.projectCluster?.nameDisplay && this.project?.nameDisplay) {
+      return `${ this.projectCluster?.nameDisplay } / ${ this.project?.nameDisplay }`;
+    }
+
+    return '';
+  }
+
+  get detailLocation() {
+    if (this.isProjectScoped && !!this.projectScopedClusterId) {
+      const id = this.id?.replace(/.*\//, '');
+
+      return {
+        name:   `c-cluster-product-${ VIRTUAL_TYPES.PROJECT_SECRETS }-namespace-id`,
+        params: {
+          product:   this.$rootGetters['productId'],
+          cluster:   this.$rootGetters['clusterId'],
+          namespace: this.metadata?.namespace,
+          resource:  SECRET,
+          id,
+        }
+      };
+    }
+
+    return this._detailLocation;
   }
 }

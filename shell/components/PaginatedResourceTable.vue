@@ -36,6 +36,24 @@ export default defineComponent({
       default: null,
     },
 
+    groupTooltip: {
+      type:    String,
+      default: 'resourceTable.groupBy.namespace',
+    },
+
+    groupBy: {
+      type:    String,
+      default: null,
+    },
+
+    /**
+     * Override any product based group options
+     */
+    groupOptions: {
+      type:    Array,
+      default: null
+    },
+
     groupable: {
       type:    Boolean,
       default: null, // Null: auto based on namespaced and type custom groupings
@@ -58,9 +76,9 @@ export default defineComponent({
       default: null,
     },
 
-    inStore: {
+    overrideInStore: {
       type:    String,
-      default: 'cluster',
+      default: undefined,
     },
 
     /**
@@ -84,7 +102,7 @@ export default defineComponent({
 
   async fetch() {
     const promises = [
-      this.$fetchType(this.resource, [], this.inStore),
+      this.$fetchType(this.resource, [], this.overrideInStore),
     ];
 
     if (this.fetchSecondaryResources) {
@@ -120,13 +138,20 @@ export default defineComponent({
       :rows="rows"
       :alt-loading="canPaginate && !isFirstLoad"
       :loading="loading"
+
+      :group-by="groupBy"
       :groupable="groupable"
-      :in-store="inStore"
+      :groupTooltip="groupTooltip"
+      :groupOptions="groupOptions"
+
+      :override-in-store="overrideInStore"
+
       :headers="safeHeaders"
       :namespaced="namespaced"
 
       :external-pagination-enabled="canPaginate"
       :external-pagination-result="paginationResult"
+
       @pagination-changed="paginationChanged"
     >
       <!-- Pass down templates provided by the caller -->

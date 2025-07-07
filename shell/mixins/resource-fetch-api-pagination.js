@@ -125,7 +125,7 @@ export default {
         context: this.context,
       };
 
-      return this.$store.getters[`${ this.inStore }/paginationEnabled`]?.(args);
+      return this.$store.getters[`${ this.overrideInStore || this.inStore }/paginationEnabled`]?.(args);
     }
   },
 
@@ -200,7 +200,7 @@ export default {
         return;
       }
 
-      return this.$store.getters[`${ this.inStore }/havePage`](this.resource);
+      return this.$store.getters[`${ this.overrideInStore || this.inStore }/havePage`](this.resource);
     },
 
     /**
@@ -360,7 +360,7 @@ export default {
         mode: STEVE_WATCH_MODE.RESOURCE_CHANGES,
       };
 
-      this.$store.dispatch(`${ this.inStore }/forgetType`, this.resource, (watchParams) => {
+      this.$store.dispatch(`${ this.overrideInStore || this.inStore }/forgetType`, this.resource, (watchParams) => {
         return watchParams.type === watchArgs.type &&
         watchParams.mode === watchArgs.type.mode;
       });

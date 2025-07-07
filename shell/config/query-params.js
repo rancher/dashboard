@@ -80,8 +80,12 @@ export const CLOUD_CREDENTIAL = 'cloud';
 export const PROJECT_ID = 'projectId';
 export const FLAT_VIEW = 'flatView';
 
-// Secrets
-export const SECRET_TABS = {
+/**
+ * Used on the secret create/edit page to determine
+ * 1. if the user is created a normal secret, or a project scoped secret
+ * 2. where to return the user on cancel/save
+ */
+export const SECRET_QUERY_PARAMS = {
   NAMESPACED:     'namespaced',
   PROJECT_SCOPED: 'project-scoped'
 };

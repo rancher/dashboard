@@ -316,6 +316,7 @@ export const VIRTUAL_TYPES = {
   CLUSTER_MEMBERS:    'cluster-members',
   PROJECT_NAMESPACES: 'projects-namespaces',
   NAMESPACES:         'namespaces',
+  PROJECT_SECRETS:    'projectsecret',
   JWT_AUTHENTICATION: 'jwt.authentication'
 };
 

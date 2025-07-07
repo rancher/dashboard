@@ -499,6 +499,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // Check if the API supports filtering by this field
               this.validateField(validateFields, schema, field.field);
 
+              // we're just checking that the field exists, so there's no value
               if (field.exists) {
                 return field.field;
               }

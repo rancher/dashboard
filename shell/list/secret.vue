@@ -1,30 +1,24 @@
 <script lang="ts">
 import Masthead from '@shell/components/ResourceList/Masthead';
-import Loading from '@shell/components/Loading';
+import { SECRET_SCOPE, SECRET_QUERY_PARAMS } from '@shell/config/query-params';
+import { MANAGEMENT, SECRET } from '@shell/config/types';
+import { STORE } from '@shell/store/store-types';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
-import Tabbed from '@shell/components/Tabbed';
-import Tab from '@shell/components/Tabbed/Tab';
-import { SECRET_SCOPE, SECRET_TABS } from '@shell/config/query-params';
-import { NAMESPACE as NAMESPACE_HEADER, PROJECT } from '@shell/config/table-headers';
-import { MANAGEMENT } from '@shell/config/types';
-import { UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
-import { mapPref, GROUP_RESOURCES } from '@shell/store/prefs';
-import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
-
-// TODO
-const IS_COPY_COL = {
-  name: 'isCopy',
-  sort: 'isCopy'
-};
-const ORIGIN_PROJECT_COL = {
-  name: 'originProject',
-  sort: 'originProject'
-};
+import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import Secret from '@shell/models/secret';
+import { TableColumn } from '@shell/types/store/type-map';
+import ResourceFetch from '@shell/mixins/resource-fetch';
+import { mapGetters } from 'vuex';
+import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
+import { PagTableFetchPageSecondaryResourcesOpts } from '@shell/types/components/paginatedResourceTable';
+import { SECRET_CLONE, SECRET_PROJECT_SCOPED } from '@shell/config/table-headers';
 
 export default {
-  name:       'Secret',
+  name: 'ListSecret',
+
   components: {
-    PaginatedResourceTable, Tabbed, Tab, Masthead, Loading
+    Masthead,
+    PaginatedResourceTable
   },
   props: {
     resource: {
@@ -43,241 +37,108 @@ export default {
     }
   },
 
+  mixins: [ResourceFetch],
+
   data() {
     return {
-      canViewProjects: false,
-      allProjects:     new Map(),
-      activeTab:       SECRET_TABS.NAMESPACED,
-      SECRET_TABS,
-      // TODO
-      // projectSecretsGroupOptions: [
-      //   {
-      //     icon:       'icon-list-flat',
-      //     value:      'none',
-      //     tooltipKey: 'resourceTable.groupBy.none',
-      //   },
-      //   {
-      //     tooltipKey: 'resourceTable.groupBy.project',
-      //     icon:       'icon-folder',
-      //     hideColumn: 'project',
-      //     value: 'project',
-      //     field: 'project',
-      //     // groupLabelKey: 'groupByLabel' create one in secret model?
-      //   }
-      // ]
+      canViewProjects:  false,
+      activeTab:        SECRET_QUERY_PARAMS.NAMESPACED,
+      SECRET_TABS:      SECRET_QUERY_PARAMS,
+      managementSchema: undefined,
+
+      STORE,
+
+      namespacedHeaders:    [] as TableColumn[],
+      namespacedHeadersSsp: [] as TableColumn[],
     };
   },
 
   async created() {
-    const canViewProjects = this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT);
+    this.canViewProjects = this.$store.getters[`${ STORE.MANAGEMENT }/schemaFor`](MANAGEMENT.PROJECT);
+    this.managementSchema = this.$store.getters[`${ STORE.MANAGEMENT }/schemaFor`](SECRET);
+    this.namespacedHeaders = this.$store.getters['type-map/headersFor'](this.schema, false) as TableColumn[];
+    this.namespacedHeadersSsp = this.$store.getters['type-map/headersFor'](this.schema, true) as TableColumn[];
 
-    this.canViewProjects = canViewProjects;
+    const columnsToInsert = [];
 
-    if (canViewProjects) {
-      const findAll = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } });
-
-      findAll.forEach((p) => {
-        const [clusterId, projectId] = p.id.split('/');
-
-        this.allProjects.set(projectId, {
-          clusterId,
-          projectId,
-          projectName: p.spec.displayName
-        });
-      });
+    if (this.canViewProjects) {
+      // if the user can see projects, add a column to let them know if it's a secret from a project scoped secret
+      columnsToInsert.push(SECRET_CLONE);
+      if (this.currentCluster.isLocal) {
+        // if the user is on the local cluster, add a column to let them know if it's a project scoped secret (from another cluster)
+        columnsToInsert.push(SECRET_PROJECT_SCOPED);
+      }
     }
+
+    this.namespacedHeaders.splice(this.namespacedHeaders.length - 1, 0, ...columnsToInsert);
+    this.namespacedHeadersSsp.splice(this.namespacedHeadersSsp.length - 1, 0, ...columnsToInsert);
   },
 
   computed: {
-    groupPreference: mapPref(GROUP_RESOURCES),
-
-    projectgroupBy() {
-      // TODO
-      return this.groupPreference === 'none' ? null : 'project';
-    },
-
-    projectScopedHeaders() {
-      return this.namespacedHeaders.map((h) => {
-        // replace namespace col with project
-        if (h.name === NAMESPACE_HEADER.name) {
-          return {
-            ...PROJECT,
-            value: (row: any) => this.getProjectName(row),
-            sort:  'project',
-          };
-        }
-
-        return h;
-      }) // removing unnessesary columns e.g. 'isCopy' and 'origin project'
-        .filter((col) => col.name !== IS_COPY_COL.name && col.name !== ORIGIN_PROJECT_COL.name);
-    },
-
     createLocation() {
       return {
         name:  'c-cluster-product-resource-create',
-        query: { [SECRET_SCOPE]: this.activeTab }
+        query: { [SECRET_SCOPE]: SECRET_QUERY_PARAMS.NAMESPACED }
       };
     },
 
-    createLabel() {
-      if (!this.canViewProjects) {
-        return this.t('generic.create');
-      } else if (this.activeTab === SECRET_TABS.NAMESPACED) {
-        return this.t('secret.tabs.namespaced.create');
-      } else if (this.activeTab === SECRET_TABS.PROJECT_SCOPED) {
-        return this.t('secret.tabs.projectScoped.create');
-      }
-
-      return this.t('generic.create');
-    },
-
-    namespacedHeaders() {
-      const headers = [...this.$store.getters['type-map/headersFor'](this.schema, false)];
-
-      if (this.canViewProjects) {
-        headers.splice(headers.length - 1, 0, {
-          name:  IS_COPY_COL.name,
-          value: 'isProjectSecretCopy',
-          sort:  IS_COPY_COL.sort,
-        }, {
-          name:  ORIGIN_PROJECT_COL.name,
-          value: (row: any) => {
-            if (row.isProjectSecretCopy) {
-              return this.getProjectName(row);
-            }
-          },
-          sort: ORIGIN_PROJECT_COL.sort,
-        });
-      }
-
-      return headers;
-    },
+    ...mapGetters(['currentCluster']),
   },
 
   methods: {
-    getProjectName(row) {
-      const projectId = row.metadata?.labels?.[UI_PROJECT_SECRET];
+    /**
+     * of type PagTableFetchSecondaryResources
+     */
+    async fetchSecondaryResources({ canPaginate }: { canPaginate: boolean}) {
+      if (canPaginate || !this.canViewProjects) {
+        return;
+      }
+      // only force if we're in local and need projects from other clusters
+      await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: this.currentCluster.isLocal } });
+    },
 
-      if (!projectId) {
+    /**
+     * fetch projects associated with this page
+     *
+     * of type PagTableFetchPageSecondaryResources
+     */
+    async fetchPageSecondaryResources({ canPaginate, force, page }: PagTableFetchPageSecondaryResourcesOpts) {
+      // Fetch projects associated with this page
+      if (!canPaginate || !page?.length || !this.canViewProjects) {
         return;
       }
 
-      return this.allProjects.get(projectId)?.projectName || this.t('generic.unknown');
+      const opt: ActionFindPageArgs = {
+        force,
+        pagination: new FilterArgs({
+          filters: PaginationParamFilter.createMultipleFields(page
+            .filter((r: Secret) => r.projectScopedClusterId && r.projectScopedProjectId)
+            .map((r: Secret) => new PaginationFilterField({
+              field: 'id',
+              value: `${ r.projectScopedClusterId }/${ r.projectScopedProjectId }`
+            }))),
+        })
+      };
+
+      this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.PROJECT, opt });
     },
-
-    handleTabChange(data) {
-      this.activeTab = data.selectedName;
-    },
-
-    /**
-     * Filter out secrets that are not project-scoped
-     */
-    filterRowsLocal(rows) {
-      // TODO:
-      // when displaying the project secrets for the local cluster, this filtering logic to only show the original project secrets makes sense
-      // but for the downstream clusters you only have the project secret copies, so this will filter everything out, as a result you will always display an empty list
-      return rows.filter((r) => !!r.metadata.labels?.[UI_PROJECT_SECRET] && (!r.metadata?.annotations || r.metadata?.annotations?.[UI_PROJECT_SECRET_COPY] !== 'true') );
-    },
-
-    /**
-     * TODO
-     */
-    filterRowsApi(pagination: PaginationArgs): PaginationArgs {
-      if (!pagination.filters) {
-        pagination.filters = [];
-      }
-
-      const field = `metadata.labels[${ UI_PROJECT_SECRET }]`;
-      // const field2 = `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]`;
-
-      let existing: PaginationParamFilter | null = null;
-
-      for (let i = 0; i < pagination.filters.length; i++) {
-        const filter = pagination.filters[i];
-
-        if (!!filter.fields.find((f) => f.field === field)) {
-          existing = filter;
-          break;
-        }
-      }
-
-      const required = PaginationParamFilter.createSingleField({
-        field,
-        exists: true
-      });
-
-      // TODO - getting 500 error for multiple:
-      // "message": "existence tests are valid only for labels; not valid for field 'true'",
-      // const required = PaginationParamFilter.createMultipleFields([
-      // new PaginationFilterField(
-      //   {
-      //     field,
-      //     exists: true
-      //   }),
-      //   new PaginationFilterField(
-      //   {
-      //     field2,
-      //     value:  'true',
-      //     equals: false,
-      //   })
-      // ]);
-
-      if (!!existing) {
-        Object.assign(existing, required);
-      } else {
-        pagination.filters.push(required);
-      }
-
-      return pagination;
-    }
   }
 };
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div>
     <Masthead
       component-testid="secrets-list"
       :schema="schema"
       :resource="resource"
       :create-location="createLocation"
-      :create-button-label="createLabel"
-      :is-creatable="true"
     />
-    <Tabbed
-      hideSingleTab
-      @changed="handleTabChange"
-    >
-      <Tab
-        label-key="secret.tabs.namespaced.label"
-        :name="SECRET_TABS.NAMESPACED"
-        :weight="1"
-      >
-        <PaginatedResourceTable
-          :schema="schema"
-          :headers="namespacedHeaders"
-          :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-        />
-      </Tab>
-      <Tab
-        v-if="canViewProjects"
-        label-key="secret.tabs.projectScoped.label"
-        :name="SECRET_TABS.PROJECT_SCOPED"
-      >
-        <!-- TODO -->
-        <!-- :group-options="projectSecretsGroupOptions" -->
-        <PaginatedResourceTable
-          :groupable="false"
-          :group-by="projectgroupBy"
-          :schema="schema"
-          :headers="projectScopedHeaders"
-          :local-filter="filterRowsLocal"
-          :api-filter="filterRowsApi"
-          :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-          in-store="management"
-        />
-      </Tab>
-    </Tabbed>
+    <PaginatedResourceTable
+      :schema="schema"
+      :headers="namespacedHeaders"
+      :pagination-headers="namespacedHeadersSsp"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    />
   </div>
 </template>

@@ -1,10 +1,10 @@
 <script>
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 import {
-  SECRET_SCOPE, SECRET_TABS,
+  SECRET_SCOPE, SECRET_QUERY_PARAMS,
   CLOUD_CREDENTIAL, _CLONE, _CREATE, _EDIT, _FLAGGED
 } from '@shell/config/query-params';
-import { MANAGEMENT, NAMESPACE, DEFAULT_WORKSPACE } from '@shell/config/types';
+import { MANAGEMENT, NAMESPACE, DEFAULT_WORKSPACE, VIRTUAL_TYPES } from '@shell/config/types';
 import { CAPI, UI_PROJECT_SECRET } from '@shell/config/labels-annotations';
 import FormValidation from '@shell/mixins/form-validation';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -54,8 +54,9 @@ export default {
       this.nodeDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
     }
 
+    // TODO: RC validate isProjectScoped logic is still correct
     const projectScopedLabel = this.value.metadata?.labels?.[UI_PROJECT_SECRET];
-    const isProjectScoped = !!projectScopedLabel || (this.isCreate && this.$route.query[SECRET_SCOPE] === SECRET_TABS.PROJECT_SCOPED);
+    const isProjectScoped = !!projectScopedLabel || (this.isCreate && this.$route.query[SECRET_SCOPE] === SECRET_QUERY_PARAMS.PROJECT_SCOPED);
 
     this.isProjectScoped = isProjectScoped;
 
@@ -272,13 +273,14 @@ export default {
     },
 
     doneLocationOverride() {
-      const doneLocation = this.value.listLocation;
-
       if (this.isProjectScoped) {
-        doneLocation.hash = `#${ SECRET_TABS.PROJECT_SCOPED }`;
+        return {
+          ...this.value.listLocation,
+          params: { resource: VIRTUAL_TYPES.PROJECT_SECRETS }
+        };
       }
 
-      return doneLocation;
+      return this.value.listLocation;
     },
   },
 
