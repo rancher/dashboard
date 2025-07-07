@@ -6386,6 +6386,7 @@ tableHeaders:
   flow: Flow
   fingerprint: Fingerprint
   gitRepos: Git Repos
+  helmOps: Helm Ops
   groups: Groups
   groupName: Group Name
   groupRoleNames: Group Role Names
