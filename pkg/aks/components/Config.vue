@@ -134,10 +134,6 @@ export default defineComponent({
       touchedVmSize:         false,
       touchedVirtualNetwork: false,
 
-      networkPluginOptions: [
-        { value: 'kubenet', label: t('aks.networkPlugin.options.kubenet') }, { value: 'azure', label: t('aks.networkPlugin.options.azure') }
-      ],
-
       loadingVersions:        false,
       loadingVmSizes:         false,
       loadingVirtualNetworks: false,
@@ -255,6 +251,7 @@ export default defineComponent({
         locationRequired:        requiredInCluster(this, 'aks.location.label', 'config.location'),
         resourceGroupRequired:   requiredInCluster(this, 'aks.clusterResourceGroup.label', 'config.resourceGroup'),
         dnsPrefixRequired:       requiredInCluster(this, 'aks.dnsPrefix.label', 'config.dnsPrefix'),
+        virtualNetworkRequired:  requiredInCluster(this, 'aks.virtualNetwork.label', 'config.virtualNetwork'),
         resourceGroupChars:      resourceGroupChars(this, 'aks.clusterResourceGroup.label', 'config.resourceGroup'),
         nodeResourceGroupChars:  resourceGroupChars(this, 'aks.nodeResourceGroup.label', 'config.nodeResourceGroup'),
         resourceGroupLength:     resourceGroupLength(this, 'aks.clusterResourceGroup.label', 'config.resourceGroup'),
@@ -521,6 +518,20 @@ export default defineComponent({
       ];
     },
 
+    networkPluginOptions(): Array<any> {
+      return [
+        {
+          value:    'kubenet',
+          label:    this.t('aks.networkPlugin.options.kubenet'),
+          disabled: this.isUserDefinedRouting
+        },
+        {
+          value: 'azure',
+          label: this.t('aks.networkPlugin.options.azure')
+        }
+      ];
+    },
+
     // in the labeledselect, networks will be shown as 'groups' with their subnets as selectable options
     // it is possible for a virtual network to have no subnets defined - they will be excluded from this list
     virtualNetworkOptions() {
@@ -602,6 +613,10 @@ export default defineComponent({
 
     canEnableNetworkPolicy(): Boolean {
       return this.networkPolicy !== 'none';
+    },
+
+    isUserDefinedRouting(): Boolean {
+      return this.config?.outboundType === 'UserDefinedRouting';
     },
 
     CREATE(): string {
@@ -714,6 +729,22 @@ export default defineComponent({
       if (!neu) {
         this.config['logAnalyticsWorkspaceGroup'] = null;
         this.config['logAnalyticsWorkspaceName'] = null;
+      }
+    },
+
+    isUserDefinedRouting(neu: boolean) {
+      if (neu) {
+        this.config.networkPlugin = 'azure';
+        // add a required fv rule to the existing virtual network validators
+
+        const rule = this.fvFormRuleSets.find((r: {path: string, rules: string[]}) => r.path === 'networkPolicy') || { rules: [] };
+
+        rule.rules.push('virtualNetworkRequired');
+      } else {
+        // remove required fv rule
+        const rule = this.fvFormRuleSets.find((r:{path: string, rules: string[]}) => r.path === 'networkPolicy') || { rules: [] };
+
+        rule.rules.splice(rule.rules.indexOf('virtualNetworkRequired'), 1);
       }
     }
   },
@@ -1051,11 +1082,12 @@ export default defineComponent({
             <LabeledSelect
               v-model:value="config.outboundType"
               :mode="mode"
-              label-key="aks.dns.label"
+              label-key="aks.outboundType.label"
               :disabled="!isNewOrUnprovisioned"
               :rules="fvGetAndReportPathRules('outboundType')"
               :options="outboundTypeOptions"
               :tooltip="t('aks.outboundType.tooltip')"
+              data-testid="aks-outbound-type-select"
             />
           </div>
         </div>
@@ -1067,6 +1099,7 @@ export default defineComponent({
               :options="networkPluginOptions"
               label-key="aks.networkPlugin.label"
               :disabled="!isNewOrUnprovisioned"
+              data-testid="aks-network-plugin-select"
             />
           </div>
           <div class="col span-3">
@@ -1094,6 +1127,8 @@ export default defineComponent({
               option-key="key"
               :disabled="!isNewOrUnprovisioned"
               :rules="fvGetAndReportPathRules('networkPolicy')"
+              :required="isUserDefinedRouting"
+              :require-dirty="false"
               data-testid="aks-virtual-network-select"
               @selecting="(e)=>virtualNetwork = e"
             />
