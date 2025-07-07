@@ -2,11 +2,14 @@ import { computed, ref, Ref } from 'vue';
 import { type Store, useStore } from 'vuex';
 
 import { downloadFile } from '@shell/utils/download';
-import { REGISTRATION_NAMESPACE, REGISTRATION_SECRET, REGISTRATION_RESOURCE_NAME, REGISTRATION_LABEL } from '../config/constants';
+import {
+  REGISTRATION_REQUEST_PREFIX, REGISTRATION_NAMESPACE, REGISTRATION_SECRET, REGISTRATION_RESOURCE_NAME, REGISTRATION_LABEL,
+  REGISTRATION_REQUEST_FILENAME
+} from '../config/constants';
 import { SECRET } from '@shell/config/types';
 import { dateTimeFormat } from '@shell/utils/time';
 
-type RegistrationStatus = 'loading' | 'registering-online' | 'registering-offline' | 'registered' | null;
+type RegistrationStatus = 'loading' | 'registering-online' | 'registration-request' | 'registering-offline' | 'registered' | null;
 type AsyncButtonFunction = (val: boolean) => void;
 interface RegistrationDashboard {
   active: boolean;
@@ -59,8 +62,9 @@ interface PartialSecret {
     name: string;
   };
   data: {
-    regCode: string;
-    registrationType: string;
+    regCode?: string;
+    registrationType?: string;
+    request?: string; // only for offline requests
   };
   remove: () => Promise<void>;
   save: () => Promise<void>;
@@ -171,7 +175,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * @param type 'online' | 'offline' | 'deregister'
    * @param asyncButtonResolution Async button callback
    */
-  const changeRegistration = async(type: 'online' | 'offline' | 'deregister', asyncButtonResolution: AsyncButtonFunction) => {
+  const changeRegistration = async(type: 'online' | 'offline' | 'download' | 'deregister', asyncButtonResolution: AsyncButtonFunction) => {
     errors.value = [];
     await ensureNamespace();
     await deleteSecret();
@@ -183,6 +187,11 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
       offlineRegistrationCertificate.value = null;
       registration.value = await poolRegistration(secret.value?.metadata?.labels?.[REGISTRATION_LABEL]);
       registrationStatus.value = registration.value ? 'registered' : null;
+      asyncButtonResolution(true);
+      break;
+    case 'download':
+      secret.value = await createSecret('offline'); // Generate secret to trigger offline registration request
+      registrationCode.value = null;
       asyncButtonResolution(true);
       break;
     case 'offline':
@@ -261,16 +270,20 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   };
 
   /**
-   * Handle download offline registration request
+   * Download is also on its own a form of registration as it uses the same secret
    * @param asyncButtonResolution Async button callback
    */
-  const downloadOfflineRequest = (asyncButtonResolution: (status: boolean) => void) => {
-    const fileName = 'rancher-offline-registration-request.json';
-    const data = '';
+  const downloadOfflineRequest = async(asyncButtonResolution: (status: boolean) => void) => {
+    registrationStatus.value = 'registration-request';
+    await changeRegistration('download', asyncButtonResolution);
+    const data = await poolOfflineRequest(secret.value?.metadata?.labels?.[REGISTRATION_LABEL], 500, 10000);
 
-    downloadFile(fileName, JSON.stringify(data), 'application/json')
+    downloadFile(REGISTRATION_REQUEST_FILENAME, JSON.stringify(data), 'application/json')
       .then(() => asyncButtonResolution(true))
-      .catch(() => asyncButtonResolution(false));
+      .catch(() => {
+        asyncButtonResolution(false);
+        onError(new Error('Registration request download not found'));
+      });
   };
 
   /**
@@ -282,6 +295,18 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === hash);
 
     return registration;
+  };
+
+  /**
+   * Get offline request secret matching the hash and name prefix
+   * @param hash current registration hash
+   */
+  const findOfflineRequest = async(hash: string | undefined): Promise<PartialSecret | null> => {
+    const secrets: PartialSecret[] = await store.dispatch('management/findAll', { type: SECRET });
+    const request = secrets.find((secret) => secret.metadata?.namespace === REGISTRATION_NAMESPACE &&
+      secret.metadata?.name.startsWith(REGISTRATION_REQUEST_PREFIX)) ?? null;
+
+    return request;
   };
 
   /**
@@ -357,7 +382,9 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * @param code
    * @returns
    */
-  const createSecret = async(type: string, code: string): Promise<PartialSecret | null> => {
+  const createSecret = async(type: string, code?: string): Promise<PartialSecret | null> => {
+    const code64 = code ? { regCode: btoa(code) } : {};
+
     try {
       const secret = await store.dispatch('management/create', {
         type:     SECRET,
@@ -366,7 +393,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
           name:      REGISTRATION_SECRET,
         },
         data: {
-          regCode:          btoa(code),
+          ...code64,
           registrationType: btoa(type)
         }
       });
@@ -405,6 +432,35 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
         if ((originalHash && !newHash) || (!originalHash && newHash) || (originalHash && newHash && originalHash !== newHash)) {
           clearInterval(interval);
           resolve(mapRegistration(registration));
+        }
+      }, frequency);
+    });
+  };
+
+  /**
+   * Fetch periodically till an offline request for given hash and name is found or the timeout is reached
+   * @param originalHash current request hash
+   * @param frequency Frequency in milliseconds to check the request status
+   */
+  const poolOfflineRequest = async(originalHash: string | undefined, frequency = 500, timeout = 10000) => {
+    return new Promise<string | undefined>((resolve, reject) => {
+      const startTime = Date.now();
+
+      const interval = setInterval(async() => {
+        if (Date.now() - startTime > timeout) {
+          clearInterval(interval);
+          reject(new Error('Timeout reached while waiting for registration request'));
+
+          return;
+        }
+
+        const hash = secret.value?.metadata?.labels?.[REGISTRATION_LABEL];
+        const offlineRequest = await findOfflineRequest(hash);
+        const newHash = offlineRequest?.metadata?.labels[REGISTRATION_LABEL];
+
+        if ((originalHash && !newHash) || (!originalHash && newHash) || (originalHash && newHash && originalHash !== newHash)) {
+          clearInterval(interval);
+          resolve(offlineRequest?.data?.request);
         }
       }, frequency);
     });
