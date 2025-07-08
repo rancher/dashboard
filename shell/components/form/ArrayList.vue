@@ -164,21 +164,29 @@ export default {
       { deep: true }
     );
 
+    /**
+     * Watching props.value helps to maintain internal state when slots are used
+     */
     watch(
       () => props.value,
-      (newVal) => {
+      (newVal, oldVal) => {
         lastUpdateWasFromValue.value = true;
-        const newRows = (newVal || []).map((value) => {
-          const existingRow = rows.value.find((row) => row.value === value);
 
-          if (existingRow) {
-            return { value, id: existingRow.id };
-          } else {
-            return { value, id: randomStr() };
-          }
+        // find member of the array that has been modified
+        const modifiedIdx = newVal.findIndex((current, idx) => {
+          return current !== oldVal[idx];
         });
 
-        rows.value = newRows;
+        // a member has been added or removed
+        if (newVal.length !== oldVal.length || modifiedIdx < 0) {
+          rows.value = (newVal || []).map((value) => {
+            return { value, id: randomStr() };
+          });
+
+          return;
+        }
+
+        rows.value[modifiedIdx].value = newVal[modifiedIdx];
       },
       { deep: true }
     );
