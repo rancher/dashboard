@@ -190,17 +190,11 @@ export default {
         const routeHash = currentRoute.hash;
 
         if (this.useHash && routeHash !== hashName) {
-          const emptyRouteHash = { ...currentRoute };
-          const newRouteHash = { ...currentRoute };
+          const kurrentRoute = { ...currentRoute };
 
-          emptyRouteHash.hash = '';
-          newRouteHash.hash = hashName;
+          kurrentRoute.hash = hashName;
 
-          // Temporarily disable hash
-          this.$router.replace(emptyRouteHash);
-
-          // Re-add hash but prevent scroll
-          this.$router.replace(newRouteHash);
+          this.$router.replace(kurrentRoute);
         }
       }
 
