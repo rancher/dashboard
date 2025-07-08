@@ -807,7 +807,7 @@ export default {
         display: flex;
         justify-content: flex-start;
         flex-wrap: wrap;
-        gap: 16px;
+        gap: 24px;
 
         .spacer {
           border-left: 1px solid var(--border);
