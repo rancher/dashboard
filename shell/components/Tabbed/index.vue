@@ -177,25 +177,9 @@ export default {
 
       const cleanName = name.replace('#', '');
       const selected = this.find(cleanName);
-      const hashName = `#${ cleanName }`;
 
       if ( !selected || selected.disabled) {
         return;
-      }
-      /**
-       * Exclude logic with URL anchor (hash) for projects without routing logic (vue-router)
-       */
-      if ( this.useHash ) {
-        const currentRoute = this.$router.currentRoute._value;
-        const routeHash = currentRoute.hash;
-
-        if (this.useHash && routeHash !== hashName) {
-          const kurrentRoute = { ...currentRoute };
-
-          kurrentRoute.hash = hashName;
-
-          this.$router.replace(kurrentRoute);
-        }
       }
 
       for ( const tab of sortedTabs ) {
