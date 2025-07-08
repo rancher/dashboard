@@ -38,7 +38,7 @@ export default defineComponent({
      * The HTML tag to use for the root element.
      */
     tag: {
-      type:    [String, Object],
+      type:    String,
       default: 'span'
     },
   },
@@ -50,7 +50,7 @@ export default defineComponent({
       const rawStr = store.getters['i18n/t'](props.k, {}, true);
 
       if (!rawStr || typeof rawStr !== 'string') {
-        return h(props.tag as string, {}, [rawStr]);
+        return h(props.tag, {}, [rawStr]);
       }
 
       // This regex splits the string by the custom tags, keeping the tags in the resulting array.
@@ -110,7 +110,7 @@ export default defineComponent({
       }
 
       // Render the root element with the processed children.
-      return h(props.tag as string, {}, children);
+      return h(props.tag, {}, children);
     };
   }
 });
