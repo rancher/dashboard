@@ -483,8 +483,8 @@ export default {
             <template #after>
               <i
                 :class="{
-                  ['icon icon-chevron-right']: !allCardsExpanded,
-                  ['icon icon-chevron-down']: allCardsExpanded,
+                  ['icon icon-chevron-down']: !allCardsExpanded,
+                  ['icon icon-chevron-up']: allCardsExpanded,
                 }"
                 aria-hidden="true"
               />
@@ -506,11 +506,11 @@ export default {
             class="card-panel-main-details"
             :class="{ expand: !isWorkspaceCollapsed[workspace.id] }"
           >
-            <div class="title">
-              <h3 class="label label-secondary">
+            <h2 class="workspace-title">
+              <span class="workspace-label label-secondary">
                 <i class="icon icon-folder" />
                 <span>{{ t('fleet.dashboard.workspace') }} : &nbsp;</span>
-              </h3>
+              </span>
               <router-link
                 class="name"
                 role="link"
@@ -520,7 +520,7 @@ export default {
               >
                 {{ workspace.nameDisplay }}
               </router-link>
-            </div>
+            </h2>
             <div class="body">
               <ResourcePanel
                 v-if="workspace.repos?.length || workspace.helmOps?.length"
@@ -564,8 +564,8 @@ export default {
               >
                 <i
                   :class="{
-                    ['icon icon-lg icon-chevron-right']: isWorkspaceCollapsed[workspace.id],
-                    ['icon icon-lg icon-chevron-down']: !isWorkspaceCollapsed[workspace.id],
+                    ['icon icon-lg icon-chevron-down']: isWorkspaceCollapsed[workspace.id],
+                    ['icon icon-lg icon-chevron-up']: !isWorkspaceCollapsed[workspace.id],
                   }"
                   aria-hidden="true"
                 />
@@ -642,16 +642,19 @@ export default {
                   />
                   <i
                     v-if="state.statePanel.id !== 'success'"
-                    class="ml-5 state-icon"
+                    class="state-icon"
                     :class="state.statePanel.icon"
                     :style="{ color: state.statePanel.color }"
                   />
-                  <div class="label">
-                    <span class="partial">
-                      {{ state.stateDisplay }}&nbsp;&nbsp;{{ cardResources[workspace.id]?.[state.stateDisplay]?.length }}
+                  <h3 class="state-title">
+                    <span class="state-label">
+                      {{ state.stateDisplay }}
+                    </span>
+                    <span class="state-amount">
+                      {{ cardResources[workspace.id]?.[state.stateDisplay]?.length }}
                     </span>
                     <span class="total label-secondary">/{{ [ ...workspace.repos, ...workspace.helmOps ].length }}</span>
-                  </div>
+                  </h3>
                 </div>
                 <div
                   v-if="!isStateCollapsed[workspace.id]?.[state.stateDisplay]"
@@ -726,7 +729,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: end;
-  gap: 15px;
+  gap: 16px;
 
   .collapse-all-btn {
     width: 105px;
@@ -777,22 +780,26 @@ export default {
       display: flex;
       align-items: center;
 
-      .title {
-        margin: 0 20px 0 0;
+      .workspace-title {
+        min-width: 150px;
+        margin: 0 32px 0 0;
+        display: flex;
+        flex-direction: column;
 
-        .name {
-          font-size: 25px;
-        }
-
-        .label {
+        .workspace-label {
+          font-size: 16px;
+          font-weight: normal;
           display: flex;
           align-items: center;
-          min-width: 150px;
-          margin: 0 0 5px 0;
+          margin: 0 0 2px 0;
 
           .icon {
             margin-right: 5px;
           }
+        }
+
+        .name {
+          font-size: 21px;
         }
       }
 
@@ -800,7 +807,7 @@ export default {
         display: flex;
         justify-content: flex-start;
         flex-wrap: wrap;
-        gap: 15px;
+        gap: 24px;
 
         .spacer {
           border-left: 1px solid var(--border);
@@ -859,28 +866,40 @@ export default {
 
     .cards-panel {
       .card-panel {
-        margin-top: 32px;
+        margin-top: 24px;
 
         .title {
           display: flex;
           align-items: center;
           cursor: pointer;
           width: fit-content;
-          margin-bottom: 16px;
+          margin-bottom: 12px;
 
           .icon {
-            margin-right: 5px;
+            margin-right: 8px;
           }
 
-          .label {
+          .state-icon,
+          .state-title {
+            font-size: 21px;
+          }
+
+          .state-icon {
+            margin-top: 1px;
+          }
+
+          .state-title {
             display: flex;
             align-items: baseline;
-            margin-left: 2px;
+            margin: 0;
 
-            .partial {
-              margin: 0;
-              margin-right: 2px;
-              font-size: 22px;
+            .state-amount {
+              margin-left: 4px
+            }
+
+            .total {
+              margin-left: 4px;
+              font-size: 16px;
             }
 
             p {
@@ -890,10 +909,6 @@ export default {
                 line-height: -1px;
               }
             }
-          }
-
-          .state-icon {
-            font-size: 1.75em;
           }
         }
 

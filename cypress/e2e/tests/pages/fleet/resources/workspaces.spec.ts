@@ -39,7 +39,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
         .checkRowCount(false, 1);
 
       // check table headers
-      const expectedHeaders = ['State', 'Name', 'Git Repos', 'Clusters', 'Cluster Groups', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Git Repos', 'Helm Ops', 'Clusters', 'Cluster Groups', 'Age'];
 
       fleetWorkspacesListPage.list().resourceTable().sortableTable()
         .tableHeaderRow()

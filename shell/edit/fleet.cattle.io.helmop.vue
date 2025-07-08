@@ -401,7 +401,7 @@ export default {
           rules: ['required', 'urlRepository'],
         }, {
           path:  'spec.helm.chart',
-          rules: ['required', 'alphanumeric'],
+          rules: ['required'],
         }];
         break;
       case SOURCE_TYPE.OCI:
@@ -633,7 +633,7 @@ export default {
         @created="targetsCreated=$event"
       />
 
-      <h3 class="mt-40">
+      <h3 class="mmt-16">
         {{ t('fleet.helmOp.target.additionalOptions') }}
       </h3>
       <div class="row mt-20">

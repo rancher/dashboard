@@ -116,6 +116,13 @@ export function init(store) {
       formatter: 'Number',
     },
     {
+      name:      'helmOps',
+      labelKey:  'tableHeaders.helmOps',
+      value:     'counts.helmOps',
+      sort:      'counts.helmOps',
+      formatter: 'Number',
+    },
+    {
       name:      'clusters',
       labelKey:  'tableHeaders.clusters',
       value:     'counts.clusters',

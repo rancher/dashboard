@@ -41,7 +41,7 @@ export default {
               id:          type,
               label,
               description: `fleet.application.subTypes.'${ type }'.description`,
-              icon:        FleetUtils.resourceIcons[type],
+              icon:        FleetUtils.dashboardIcons[type],
               disabled:    !canCreate,
               tooltip:     canCreate ? null : this.t('fleet.application.noPermissions', { label }, true),
             }
