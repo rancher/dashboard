@@ -313,6 +313,20 @@ export default [
             component: () => interopDefault(import('@shell/pages/c/_cluster/apps/charts/install.vue')),
             name:      'c-cluster-apps-charts-install',
           },
+          {
+            path: '/c/:cluster/apps/catalog.cattle.io.clusterrepo',
+            name: 'c-cluster-apps-catalog-repo',
+            redirect(to) {
+              return {
+                name:   'c-cluster-product-resource',
+                params: {
+                  ...to.params,
+                  product:  APPS,
+                  resource: 'catalog.cattle.io.clusterrepo',
+                }
+              };
+            },
+          },
         ]
       },
       {

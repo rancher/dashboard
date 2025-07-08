@@ -22,6 +22,7 @@ import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartC
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import AddRepoLink from '@shell/pages/c/_cluster/apps/charts/AddRepoLink';
 import StatusLabel from '@shell/pages/c/_cluster/apps/charts/StatusLabel';
+import RichTranslation from '@shell/components/RichTranslation.vue';
 import Select from '@shell/components/form/Select';
 
 const createInitialFilters = () => ({
@@ -41,7 +42,8 @@ export default {
     FilterPanel,
     AppChartCardSubHeader,
     AppChartCardFooter,
-    Select
+    Select,
+    RichTranslation
   },
 
   async fetch() {
@@ -502,25 +504,39 @@ export default {
           {{ t('catalog.charts.noCharts.title') }}
         </h1>
         <div class="empty-state-tips">
-          <h4
-            v-clean-html="t('catalog.charts.noCharts.messagePart1', {}, true)"
-          />
-          <a
-            tabindex="0"
-            role="button"
-            class="empty-state-reset-filters link"
-            data-testid="charts-empty-state-reset-filters"
-            @click="resetAllFilters"
+          <RichTranslation
+            k="catalog.charts.noCharts.message"
+            :raw="true"
           >
-            {{ t('catalog.charts.noCharts.messagePart2') }}
-          </a>
-          <h4
-            v-clean-html="t('catalog.charts.noCharts.messagePart3', { repositoriesUrl: `/c/${clusterId}/apps/catalog.cattle.io.clusterrepo`}, true)"
-          />
+            <template #resetAllFilters="{ content }">
+              <a
+                tabindex="0"
+                role="button"
+                class="link"
+                data-testid="charts-empty-state-reset-filters"
+                @click="resetAllFilters"
+                @keyup.enter="resetAllFilters"
+                @keyup.space="resetAllFilters"
+              >{{ content }}</a>
+            </template>
+            <template #repositoriesUrl="{ content }">
+              <router-link :to="{ name: 'c-cluster-apps-catalog-repo'}">
+                {{ content }}
+              </router-link>
+            </template>
+            <template #documentationUrl="{ content }">
+              <a
+                tabindex="0"
+                :href="`${docsBase}/how-to-guides/new-user-guides/helm-charts-in-rancher`"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                class="secondary-text-link"
+              >
+                {{ content }} <i class="icon icon-external-link" />
+              </a>
+            </template>
+          </RichTranslation>
         </div>
-        <h4
-          v-clean-html="t('catalog.charts.noCharts.messagePart4', {}, true)"
-        />
       </div>
       <div
         v-else
@@ -705,22 +721,8 @@ export default {
 
   .empty-state-tips {
     margin-bottom: 12px;
-
-    .empty-state-reset-filters {
-      font-size: 16px;
-    }
-
-    h4 {
-      display: inline;
-    }
-  }
-
-  :deep(h4 .icon-external-link) {
-    text-decoration: underline;
-  }
-
-  :deep(h4:hover .icon-external-link) {
-    text-decoration: none;
+    font-size: 16px;
+    line-height: 32px;
   }
 }
 
