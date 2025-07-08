@@ -3,6 +3,8 @@ import { defineComponent, h, VNode } from 'vue';
 import { useStore } from 'vuex';
 import { escapeHtml } from '@shell/utils/string';
 
+const ALLOWED_TAGS = ['b', 'i', 'span', 'a']; // Add more as needed
+
 /**
  * A component for rendering translated strings with embedded HTML and custom Vue components.
  *
@@ -61,7 +63,7 @@ export default defineComponent({
       while ((match = regex.exec(rawStr)) !== null) {
       // Add the text before the current match as a plain text node.
         if (match.index > lastIndex) {
-          children.push(h('span', { innerHTML: rawStr.substring(lastIndex, match.index) }));
+          children.push(h('span', { innerHTML: escapeHtml(rawStr.substring(lastIndex, match.index)) }));
         }
 
         const selfClosingTagName = match[3]; // Captures the tag name for self-closing tags (e.g., 'anotherTag' from <anotherTag/>)
@@ -75,6 +77,9 @@ export default defineComponent({
           if (slots[tagName]) {
           // If a slot is provided for this tag, render the slot with the content.
             children.push(slots[tagName]({ content }));
+          } else if (ALLOWED_TAGS.includes(tagName.toLowerCase())) {
+          // If it's an allowed HTML tag, render it directly.
+            children.push(h(tagName, { innerHTML: content }));
           } else {
           // Otherwise, render the tag and its content as plain HTML.
             children.push(h('span', { innerHTML: escapeHtml(match[0]) }));
@@ -86,6 +91,9 @@ export default defineComponent({
           if (slots[tagName]) {
           // If a slot is provided for this tag, render the slot.
             children.push(slots[tagName]({ content: '' }));
+          } else if (ALLOWED_TAGS.includes(tagName.toLowerCase())) {
+          // If it's an allowed HTML tag, render it directly.
+            children.push(h(tagName));
           } else {
           // Otherwise, render the tag as plain HTML.
             children.push(h('span', { innerHTML: escapeHtml(match[0]) }));
@@ -98,7 +106,7 @@ export default defineComponent({
 
       // Add any remaining text after the last match.
       if (lastIndex < rawStr.length) {
-        children.push(h('span', { innerHTML: rawStr.substring(lastIndex) }));
+        children.push(h('span', { innerHTML: escapeHtml(rawStr.substring(lastIndex)) }));
       }
 
       // Render the root element with the processed children.

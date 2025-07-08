@@ -37,7 +37,7 @@ describe('richTranslation', () => {
       global: { plugins: [mockI18nStore] },
     });
 
-    expect(wrapper.html()).toContain('<span>This is </span><span><b>bold</b></span><span> and </span><span><i>italic</i></span><span>.</span>');
+    expect(wrapper.html()).toContain('<span><span>This is </span><b>bold</b><span> and </span><i>italic</i><span>.</span></span>');
     expect(wrapper.find('b').exists()).toBe(true);
     expect(wrapper.find('i').exists()).toBe(true);
   });
@@ -105,8 +105,7 @@ describe('richTranslation', () => {
 
   it('falls back to raw tag content if slot is not provided for enclosing tag', () => {
     const wrapper = mount(RichTranslation, {
-      props: { k: 'test.custom', // Contains <customLink> and <anotherTag/>
-      },
+      props:  { k: 'test.custom' }, // Contains <customLink> and <anotherTag/>
       // No slots provided
       global: { plugins: [mockI18nStore] },
     });
@@ -117,8 +116,7 @@ describe('richTranslation', () => {
 
   it('falls back to raw tag content if slot is not provided for self-closing tag', () => {
     const wrapper = mount(RichTranslation, {
-      props: { k: 'test.custom', // Contains <customLink> and <anotherTag/>
-      },
+      props:  { k: 'test.custom' }, // Contains <customLink> and <anotherTag/>
       // No slots provided
       global: { plugins: [mockI18nStore] },
     });
