@@ -401,7 +401,7 @@ export default {
           rules: ['required', 'urlRepository'],
         }, {
           path:  'spec.helm.chart',
-          rules: ['required', 'alphanumeric'],
+          rules: ['required'],
         }];
         break;
       case SOURCE_TYPE.OCI:
