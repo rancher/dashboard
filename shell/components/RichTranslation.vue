@@ -103,7 +103,7 @@ export default defineComponent({
       }
 
       // Render the root element with the processed children.
-      return h(props.tag as string, {}, children);
+      return h('span', {}, children);
     };
   }
 });
