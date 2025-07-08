@@ -307,8 +307,6 @@ export default {
     }
 
     .details {
-      padding: 5px;
-
       .description {
         .count {
           font-size: 25px;
