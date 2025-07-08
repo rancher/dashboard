@@ -1,5 +1,7 @@
 <script lang="ts">
 import { defineComponent, h, VNode } from 'vue';
+import { useStore } from 'vuex';
+import { escapeHtml } from '@shell/utils/string';
 
 /**
  * A component for rendering translated strings with embedded HTML and custom Vue components.
@@ -16,12 +18,12 @@ import { defineComponent, h, VNode } from 'vue';
  * // In your Vue component:
  * <RichTranslation k="my.translation.key">
  *   <template #customLink="{ content }">
- *     <router-link to="/some/path">{{ content }}</router-link>
+ *     <router-link to="{ name: 'some-path }">{{ content }}</router-link>
  *   </template>
  * </RichTranslation>
  */
 export default defineComponent({
-  name: 'RichTranslation',
+  name:  'RichTranslation',
   props: {
     /**
      * The translation key for the message.
@@ -38,65 +40,70 @@ export default defineComponent({
       default: 'span'
     },
   },
-  render() {
+  setup(props, { slots }) {
+    const store = useStore();
+
+    return () => {
     // Get the raw translation string, without any processing.
-    const rawStr = this.$store.getters['i18n/t'](this.k, {}, true);
+      const rawStr = store.getters['i18n/t'](props.k, {}, true);
 
-    if (!rawStr || typeof rawStr !== 'string') {
-      return h(this.tag as string, {}, [rawStr]);
-    }
+      if (!rawStr || typeof rawStr !== 'string') {
+        return h(props.tag as string, {}, [rawStr]);
+      }
 
-    // This regex splits the string by the custom tags, keeping the tags in the resulting array.
-    const regex = /<([a-zA-Z0-9]+)>(.*?)<\/\1>|<([a-zA-Z0-9]+)\/>/g;
-    const children: (VNode | string)[] = [];
-    let lastIndex = 0;
-    let match;
+      // This regex splits the string by the custom tags, keeping the tags in the resulting array.
+      const regex = /<([a-zA-Z0-9]+)>(.*?)<\/\1>|<([a-zA-Z0-9]+)\/>/g;
+      const children: (VNode | string)[] = [];
+      let lastIndex = 0;
+      let match;
 
-    // Iterate over all matches of the regex.
-    while ((match = regex.exec(rawStr)) !== null) {
+      // Iterate over all matches of the regex.
+      while ((match = regex.exec(rawStr)) !== null) {
       // Add the text before the current match as a plain text node.
-      if (match.index > lastIndex) {
-        children.push(h('span', { innerHTML: rawStr.substring(lastIndex, match.index) }));
-      }
+        if (match.index > lastIndex) {
+          children.push(h('span', { innerHTML: rawStr.substring(lastIndex, match.index) }));
+        }
 
-      const selfClosingTagName = match[3];
-      const enclosingTagName = match[1];
+        const selfClosingTagName = match[3]; // Captures the tag name for self-closing tags (e.g., 'anotherTag' from <anotherTag/>)
+        const enclosingTagName = match[1]; // Captures the tag name for enclosing tags (e.g., 'customLink' from <customLink>...</customLink>)
 
-      if (enclosingTagName) {
+        if (enclosingTagName) {
         // This is an enclosing tag, like <tag>content</tag>.
-        const tagName = enclosingTagName;
-        const content = match[2];
+          const tagName = enclosingTagName;
+          const content = match[2];
 
-        if (this.$slots[tagName]) {
+          if (slots[tagName]) {
           // If a slot is provided for this tag, render the slot with the content.
-          children.push(this.$slots[tagName]({ content }));
-        } else {
+            children.push(slots[tagName]({ content }));
+          } else {
           // Otherwise, render the tag and its content as plain HTML.
-          children.push(h('span', { innerHTML: match[0] }));
-        }
-      } else if (selfClosingTagName) {
+            children.push(h('span', { innerHTML: escapeHtml(match[0]) }));
+          }
+        } else if (selfClosingTagName) {
         // This is a self-closing tag, like <tag/>.
-        const tagName = selfClosingTagName;
+          const tagName = selfClosingTagName;
 
-        if (this.$slots[tagName]) {
+          if (slots[tagName]) {
           // If a slot is provided for this tag, render the slot.
-          children.push(this.$slots[tagName]({ content: '' }));
-        } else {
+            children.push(slots[tagName]({ content: '' }));
+          } else {
           // Otherwise, render the tag as plain HTML.
-          children.push(h('span', { innerHTML: match[0] }));
+            children.push(h('span', { innerHTML: escapeHtml(match[0]) }));
+          }
         }
+
+        // Update the last index to continue searching after the current match
+        lastIndex = regex.lastIndex;
       }
-      
-      lastIndex = regex.lastIndex;
-    }
 
-    // Add any remaining text after the last match.
-    if (lastIndex < rawStr.length) {
-      children.push(h('span', { innerHTML: rawStr.substring(lastIndex) }));
-    }
+      // Add any remaining text after the last match.
+      if (lastIndex < rawStr.length) {
+        children.push(h('span', { innerHTML: rawStr.substring(lastIndex) }));
+      }
 
-    // Render the root element with the processed children.
-    return h(this.tag as string, {}, children);
+      // Render the root element with the processed children.
+      return h(props.tag as string, {}, children);
+    };
   }
 });
 </script>
