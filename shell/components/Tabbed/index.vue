@@ -157,7 +157,7 @@ export default {
       return tab.displayAlertIcon || (tab.error && !tab.active);
     },
     hashChange() {
-      if (!this.scrollOnChange) {
+      if (this.scrollOnChange) {
         const scrollable = document.getElementsByTagName('main')[0];
 
         if (scrollable) {
@@ -177,9 +177,31 @@ export default {
 
       const cleanName = name.replace('#', '');
       const selected = this.find(cleanName);
+      const hashName = `#${ cleanName }`;
 
       if ( !selected || selected.disabled) {
         return;
+      }
+      /**
+       * Exclude logic with URL anchor (hash) for projects without routing logic (vue-router)
+       */
+      if ( this.useHash ) {
+        const currentRoute = this.$router.currentRoute._value;
+        const routeHash = currentRoute.hash;
+
+        if (this.useHash && routeHash !== hashName) {
+          const emptyRouteHash = { ...currentRoute };
+          const newRouteHash = { ...currentRoute };
+
+          emptyRouteHash.hash = '';
+          newRouteHash.hash = hashName;
+
+          // Temporarily disable hash
+          this.$router.replace(emptyRouteHash);
+
+          // Re-add hash but prevent scroll
+          this.$router.replace(newRouteHash);
+        }
       }
 
       for ( const tab of sortedTabs ) {
