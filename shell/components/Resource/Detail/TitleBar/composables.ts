@@ -25,6 +25,7 @@ export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: Ref<str
         resource:  resourceValue.type
       }
     };
+    const hasGraph = !!store.getters['type-map/hasGraph'](resourceValue.type);
 
     return {
       resourceTypeLabel,
@@ -36,6 +37,7 @@ export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: Ref<str
         label: resourceValue.stateDisplay
       },
       description:         resourceValue.description,
+      showViewOptions:     hasGraph,
       onShowConfiguration: (returnFocusSelector: string) => openResourceDetailDrawer(resourceValue, returnFocusSelector)
     };
   });

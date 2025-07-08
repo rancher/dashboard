@@ -4,7 +4,10 @@ import { useRoute } from 'vue-router';
 
 const mockStore = {
   getters: {
-    'type-map/labelFor': jest.fn(), currentStore: jest.fn(), 'cluster/schemaFor': jest.fn()
+    'type-map/labelFor': jest.fn(),
+    'type-map/hasGraph': jest.fn(),
+    currentStore:        jest.fn(),
+    'cluster/schemaFor': jest.fn()
   }
 };
 const mockRoute = { params: { cluster: 'CLUSTER' } };
@@ -25,6 +28,7 @@ describe('composables: TitleBar', () => {
   };
   const labelFor = 'LABEL_FOR';
   const schema = { type: 'SCHEMA' };
+  const hasGraph = true;
 
   it('should return the appropriate values based on input', async() => {
     const route = useRoute();
@@ -32,11 +36,13 @@ describe('composables: TitleBar', () => {
     mockStore.getters['currentStore'].mockImplementation(() => 'cluster');
     mockStore.getters['cluster/schemaFor'].mockImplementation(() => schema);
     mockStore.getters['type-map/labelFor'].mockImplementation(() => labelFor);
+    mockStore.getters['type-map/hasGraph'].mockImplementation(() => hasGraph);
 
     const props = useDefaultTitleBarProps(resource, ref(undefined));
 
     expect(props.value.resourceTypeLabel).toStrictEqual(labelFor);
     expect(mockStore.getters['type-map/labelFor']).toHaveBeenLastCalledWith(schema);
+    expect(mockStore.getters['type-map/hasGraph']).toHaveBeenLastCalledWith(resource.type);
     expect(mockStore.getters['currentStore']).toHaveBeenLastCalledWith(resource.type);
     expect(mockStore.getters['cluster/schemaFor']).toHaveBeenLastCalledWith(resource.type);
     expect(props.value.resourceTo?.params.product).toStrictEqual('explorer');
@@ -49,8 +55,9 @@ describe('composables: TitleBar', () => {
     expect(props.value.badge?.color).toStrictEqual(resource.stateBackground);
     expect(props.value.badge?.label).toStrictEqual(resource.stateDisplay);
     expect(props.value.description).toStrictEqual(resource.description);
+    expect(props.value.showViewOptions).toStrictEqual(hasGraph);
 
-    props.value.onShowConfiguration?.();
+    props.value.onShowConfiguration?.('callback');
     expect(mockDrawer.openResourceDetailDrawer).toHaveBeenCalledTimes(1);
   });
 });

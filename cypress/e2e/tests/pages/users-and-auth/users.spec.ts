@@ -272,7 +272,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueUserName = SortableTablePo.firstByDefaultName('user');
 
     const userIdsList = [];
@@ -310,7 +310,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     it('pagination is visible and user is able to navigate through users data', () => {
-      usersPo.goTo(); // This is needed for the @vai only world
+      usersPo.goTo(); // This is needed for the @noVai only world
       usersPo.waitForPage();
       const count = initialCount + 26;
 
@@ -504,7 +504,11 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     after(() => {
-      userIdsList.forEach((r) => cy.deleteRancherResource('v3', 'Users', r, false));
+      cy.deleteManyResources({
+        toDelete: userIdsList,
+        deleteFn: (r) => cy.deleteRancherResource('v3', 'Users', r, false)
+      });
+
       // Ensure the default rows per page value is set after executing the tests
       cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
     });

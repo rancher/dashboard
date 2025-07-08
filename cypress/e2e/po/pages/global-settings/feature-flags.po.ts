@@ -4,7 +4,7 @@ import CardPo from '@/cypress/e2e/po/components/card.po';
 import { CypressChainable } from '@/cypress/e2e/po/po.types';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { RESTART_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class FeatureFlagsPagePo extends RootClusterPage {
   private static createPath(clusterId: string) {
@@ -97,7 +97,7 @@ export class FeatureFlagsPagePo extends RootClusterPage {
     if (config.waitForModal) {
       const card = new CardPo();
 
-      card.checkNotExists(EXTRA_LONG_TIMEOUT_OPT);
+      card.checkNotExists(RESTART_TIMEOUT_OPT);
     }
   }
 

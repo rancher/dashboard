@@ -26,16 +26,16 @@ export class ComplianceListPo extends PagePo {
     return this.masthead().create();
   }
 
-  listElementWithName(name:string) {
-    const baseResourceList = new BaseResourceList(this.self());
+  list() {
+    return new BaseResourceList(this.self());
+  }
 
-    return baseResourceList.resourceTable().sortableTable().rowElementWithName(name);
+  listElementWithName(name:string) {
+    return this.list().resourceTable().sortableTable().rowElementWithName(name);
   }
 
   firstRow() {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().row(0);
+    return this.list().resourceTable().sortableTable().row(0);
   }
 }
 

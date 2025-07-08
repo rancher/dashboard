@@ -106,6 +106,7 @@ export const SETTING = {
   DISABLE_INACTIVE_USER_AFTER:                   'disable-inactive-user-after',
   DELETE_INACTIVE_USER_AFTER:                    'delete-inactive-user-after',
   K3S_UPGRADER_UNINSTALL_CONCURRENCY:            'k3s-based-upgrader-uninstall-concurrency',
+  SYSTEM_AGENT_UPGRADER_INSTALL_CONCURRENCY:     'system-agent-upgrader-install-concurrency',
   IMPORTED_CLUSTER_VERSION_MANAGEMENT:           'imported-cluster-version-management',
   CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS:          'cluster-agent-default-priority-class',
   CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET: 'cluster-agent-default-pod-disruption-budget'
@@ -159,6 +160,10 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     kind:    'enum',
     options: ['strict', 'system-store'],
     warning: 'agent-tls-mode'
+  },
+  [SETTING.SYSTEM_AGENT_UPGRADER_INSTALL_CONCURRENCY]: {
+    kind:    'integer',
+    ruleSet: [{ name: 'minValue', factoryArg: 1 }]
   },
   [SETTING.K3S_UPGRADER_UNINSTALL_CONCURRENCY]: {
     kind:    'integer',

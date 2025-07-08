@@ -144,7 +144,7 @@ describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }
     });
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before('set up', () => {
       ClusterDashboardPagePo.goToAndWait(cluster); // Ensure we're at a solid state before messing with preferences (given login/load might change them)
       cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}');

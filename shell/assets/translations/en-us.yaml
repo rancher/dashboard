@@ -1373,6 +1373,9 @@ compliance:
   testsSkipped: Tests Skipped
   testsToSkip: Tests to Skip
   alerting: Alerting
+  detail:
+    subRow:
+      noNodes: No Additional Information
 
 cluster:
   jwtAuthentication:
@@ -2552,6 +2555,7 @@ fleet:
     label: Fleet
     title: Fleet Settings
     info: Rancher will reboot Fleet agent and controller on settings change.
+    apply: Apply changes
     noPermissions: You have no permissions to modify Fleet Settings
     parseError: 'Cannot parse values from "{ path }" in "{ id }" ConfigMap'
     fields:
@@ -2572,7 +2576,7 @@ fleet:
       description: The amount of time that agents will wait before they clean up old Helm releases. A non-existent value or 0 will result in an interval of 15 minutes.
     clusterEnqueueDelay:
       label: Cluster Enqueue Delay
-      description: "Interval to sync a repo with bunldle deployments states."
+      description: "Interval to sync a repo with bundle deployments states."
     proxy:
       label: Proxy
       description: Fleet http[s] proxy server.
@@ -2725,6 +2729,7 @@ fleet:
     rules:
       title: Select by labels
       addSelector: Add cluster selector
+      labelKey: Label
       matching:
         title: Selected clusters
         placeholder: Select clusters by name or labels
@@ -2799,7 +2804,7 @@ fleet:
       enableBundles: Manually specify config files subpaths (Fleet won't scan subfolders recursively to find fleet.yaml files)
       subpaths:
         addLabel: Add Subpath
-        protipValue: "The name of a fleet YAML file in the folder"
+        protipValue: 'Only necessary if the filename differs from "fleet.yaml"'
         props:
           base: Subpath
           options: Fleet YAML file (optional)
@@ -2997,6 +3002,10 @@ fleet:
         empty: empty
       valuesFrom:
         selectLabel: Values From
+        options:
+          configMapKeyRef: ConfigMap Key
+          secretKeyRef: Secret Key
+        loading: Loading ConfigMaps and Secrets
     serviceAccount:
       label: Service Account Name
       placeholder: "Optional: Use a service account in the target clusters"
@@ -3564,6 +3573,7 @@ labels:
   addTag: Add Tag
   addTaint: Add Taint
   addAnnotation: Add Annotation
+  protectedWarning: This key is protected and will be discarded
   labels:
     title: Labels
     description: Key/value pairs that are attached to objects which specify identifying attributes.
@@ -4454,11 +4464,11 @@ networkpolicy:
       invalidCidr: "Invalid CIDR"
       invalidExceptionCidrs: "Invalid Exceptions: "
     podSelector:
-      label: Pod Selector
+      label: Pod Label Selector
     namespaceSelector:
-      label: Namespace Selector
+      label: Namespace Label Selector
     namespaceAndPodSelector:
-      label: Namespace/Pod Selector
+      label: Namespace/Pod Label Selector
   config:
     label: Configuration
   selectors:
@@ -6376,6 +6386,7 @@ tableHeaders:
   flow: Flow
   fingerprint: Fingerprint
   gitRepos: Git Repos
+  helmOps: Helm Ops
   groups: Groups
   groupName: Group Name
   groupRoleNames: Group Role Names
@@ -8224,7 +8235,8 @@ advancedSettings:
     'brand': Folder name for an alternative theme defined in '/assets/brand'
     'hide-local-cluster': Hide the local cluster
     'agent-tls-mode': "Rancher Certificate Verification. In `strict` mode the agents (system, cluster, fleet, etc) will only trust Rancher installations which are using a certificate signed by the CABundle in the `cacerts` setting. When the mode is system-store, the agents will trust any certificate signed by a CABundle in the operating system’s trust store."
-    'k3s-based-upgrader-uninstall-concurrency': Defines the maximum number of clusters in which Rancher can concurrently uninstall the legacy `rancher-k3s-upgrader` or `rancher-rke2-upgrader` app from imported K3s or RKE2 clusters.
+    'k3s-based-upgrader-uninstall-concurrency': Defines the maximum number of clusters in which Rancher can concurrently uninstall the legacy `rancher-k3s-upgrader` or `rancher-rke2-upgrader` app from imported or node-driver K3s or RKE2 clusters.
+    'system-agent-upgrader-install-concurrency': Defines the maximum number of clusters in which Rancher can concurrently install the resources required for upgrading system-agent.
     'imported-cluster-version-management': Enables version management for imported RKE2/K3s clusters, and the local cluster if it is an RKE2/K3s cluster. The per-cluster version management setting overrides this global setting at the cluster level. For existing clusters where the cluster-level version management is set to 'system-default', changing this flag will trigger a redeployment of the cluster agent during the next reconciliation (by default every 5 minutes, or as soon as the cluster is edited, whichever comes first).
   warnings:
     'agent-tls-mode': 'Changing this setting will cause all agents to be redeployed.'

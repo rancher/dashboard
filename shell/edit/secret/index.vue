@@ -399,6 +399,7 @@ export default {
       :errors="errors"
       :subtypes="secretSubTypes"
       :cancel-event="true"
+      :done-route="doneLocationOverride"
       @finish="saveSecret"
       @select-type="selectType"
       @error="e=>errors = e"

@@ -101,7 +101,6 @@ export default class HelmOp extends FleetApplication {
 
     repo = repo.replace(/.git$/, '');
     repo = repo.replace(/^https:\/\//, '');
-    repo = repo.replace(/^oci:\/\//, '');
     repo = repo.replace(/\/+$/, '');
 
     return repo;
@@ -117,16 +116,16 @@ export default class HelmOp extends FleetApplication {
    *    chart: fleet-agent
    *    version: 0.12.1-beta.2
    *  oci:
-   *    chart: oci://ghcr.io/rancher/fleet-test-configmap-chart
+   *    repo: oci://ghcr.io/rancher/fleet-test-configmap-chart
    *    version: the-tag
    */
   get sourceType() {
-    if (this.spec.helm?.repo && this.spec.helm?.chart) {
-      return SOURCE_TYPE.REPO;
+    if (this.spec.helm?.repo?.startsWith('oci://')) {
+      return SOURCE_TYPE.OCI;
     }
 
-    if (this.spec.helm?.chart?.startsWith('oci://')) {
-      return SOURCE_TYPE.OCI;
+    if (this.spec.helm?.repo && this.spec.helm?.chart) {
+      return SOURCE_TYPE.REPO;
     }
 
     if (this.spec.helm?.chart) {
@@ -141,20 +140,14 @@ export default class HelmOp extends FleetApplication {
 
     switch (this.sourceType) {
     case SOURCE_TYPE.REPO:
+    case SOURCE_TYPE.OCI:
       value = this.spec.helm?.repo || '';
       break;
-    case SOURCE_TYPE.OCI: {
-      const parsed = parse(this.spec.helm?.chart || '');
-
-      value = parsed?.host ? `oci://${ parsed?.host }` : '';
-      break;
-    }
     case SOURCE_TYPE.TARBALL:
-      value = this.spec.helm?.chart || ''; // TODO ellipsis and tooltip
+      value = this.spec.helm?.chart || '';
     }
 
     const matchHttps = value.match(FleetUtils.HTTP_REGEX);
-    const matchOCI = value.match(FleetUtils.OCI_REGEX);
     const matchSSH = value.match(FleetUtils.GIT_SSH_REGEX);
 
     if (matchSSH) {
@@ -167,7 +160,7 @@ export default class HelmOp extends FleetApplication {
       value,
       display:  this.repoDisplay(value),
       icon:     'icon icon-application',
-      showLink: matchHttps || matchSSH || matchOCI
+      showLink: matchHttps || matchSSH
     };
   }
 
@@ -180,7 +173,7 @@ export default class HelmOp extends FleetApplication {
       chart = this.spec.helm.chart || '';
       break;
     case SOURCE_TYPE.OCI: {
-      const parsed = parse(this.spec.helm.chart || '');
+      const parsed = parse(this.spec.helm.repo || '');
 
       chart = parsed?.path ? parsed?.path.substring(1) : '';
       break;
