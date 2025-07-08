@@ -48,7 +48,7 @@ export default {
     </span>
     <span
       v-if="!names.length"
-      class="text-muted"
+      class="text-label"
     >
       {{ emptyLabel || t('fleet.clusterTargets.rules.matching.empty') }}
     </span>
@@ -58,5 +58,8 @@ export default {
 <style lang="scss" scoped>
   .targets-list {
     height: 100%;
+    border-radius: 4px;
+    padding: 16px;
+    background-color: var(--tabbed-sidebar-bg);
   }
 </style>

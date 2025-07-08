@@ -1,5 +1,5 @@
 import { computed, ref, Ref } from 'vue';
-import { useStore } from 'vuex';
+import { type Store, useStore } from 'vuex';
 
 import { downloadFile } from '@shell/utils/download';
 import { REGISTRATION_NAMESPACE, REGISTRATION_SECRET, REGISTRATION_RESOURCE_NAME, REGISTRATION_LABEL } from '../config/constants';
@@ -91,8 +91,8 @@ const registrationBannerCases = {
   }
 };
 
-export const usePrimeRegistration = () => {
-  const store = useStore();
+export const usePrimeRegistration = (storeArg?: Store<any>) => {
+  const store = storeArg ?? useStore();
 
   /**
    * Registration from CRD
@@ -205,14 +205,14 @@ export const usePrimeRegistration = () => {
    */
   const ensureNamespace = async() => {
     try {
-      await store.dispatch('cluster/find', {
+      await store.dispatch('management/find', {
         type: 'namespace',
         id:   REGISTRATION_NAMESPACE,
         opt:  { force: true }
       });
     } catch (error) {
       try {
-        const newNamespace = await store.dispatch('cluster/create', {
+        const newNamespace = await store.dispatch('management/create', {
           type:     'namespace',
           metadata: { name: REGISTRATION_NAMESPACE }
         });
@@ -334,7 +334,7 @@ export const usePrimeRegistration = () => {
    * Get unique secret code with hardcoded namespace and name
    */
   const getSecret = async(): Promise<PartialSecret | null> => {
-    const secrets: PartialSecret[] = await store.dispatch('cluster/findAll', { type: SECRET });
+    const secrets: PartialSecret[] = await store.dispatch('management/findAll', { type: SECRET });
 
     return secrets.find((secret) => secret.metadata?.namespace === REGISTRATION_NAMESPACE &&
       secret.metadata?.name === REGISTRATION_SECRET) ?? null;
@@ -359,7 +359,7 @@ export const usePrimeRegistration = () => {
    */
   const createSecret = async(type: string, code: string): Promise<PartialSecret | null> => {
     try {
-      const secret = await store.dispatch('cluster/create', {
+      const secret = await store.dispatch('management/create', {
         type:     SECRET,
         metadata: {
           namespace: REGISTRATION_NAMESPACE,

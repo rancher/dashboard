@@ -246,7 +246,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2'] }, () => {
         };
       };
 
-      cy.createManyNamespacedResourced({
+      cy.createManyNamespacedResources({
         context:        'deployments1',
         createResource: createDeployment(),
       })
@@ -254,7 +254,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2'] }, () => {
           deploymentNamesList = workloadNames;
           nsName1 = ns;
         })
-        .then(() => cy.createManyNamespacedResourced({
+        .then(() => cy.createManyNamespacedResources({
           context:        'deployments2',
           createResource: createDeployment(uniqueDeployment),
           count:          1

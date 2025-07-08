@@ -2556,6 +2556,7 @@ fleet:
     label: Fleet
     title: Fleet Settings
     info: Rancher will reboot Fleet agent and controller on settings change.
+    apply: Apply changes
     noPermissions: You have no permissions to modify Fleet Settings
     parseError: 'Cannot parse values from "{ path }" in "{ id }" ConfigMap'
     fields:
@@ -2576,7 +2577,7 @@ fleet:
       description: The amount of time that agents will wait before they clean up old Helm releases. A non-existent value or 0 will result in an interval of 15 minutes.
     clusterEnqueueDelay:
       label: Cluster Enqueue Delay
-      description: "Interval to sync a repo with bunldle deployments states."
+      description: "Interval to sync a repo with bundle deployments states."
     proxy:
       label: Proxy
       description: Fleet http[s] proxy server.
@@ -2729,6 +2730,7 @@ fleet:
     rules:
       title: Select by labels
       addSelector: Add cluster selector
+      labelKey: Label
       matching:
         title: Selected clusters
         placeholder: Select clusters by name or labels
@@ -2803,7 +2805,7 @@ fleet:
       enableBundles: Manually specify config files subpaths (Fleet won't scan subfolders recursively to find fleet.yaml files)
       subpaths:
         addLabel: Add Subpath
-        protipValue: "The name of a fleet YAML file in the folder"
+        protipValue: 'Only necessary if the filename differs from "fleet.yaml"'
         props:
           base: Subpath
           options: Fleet YAML file (optional)
@@ -3003,7 +3005,7 @@ fleet:
         selectLabel: Values From
         options:
           configMapKeyRef: ConfigMap Key
-          secretKeyRef: Secret key
+          secretKeyRef: Secret Key
         loading: Loading ConfigMaps and Secrets
     serviceAccount:
       label: Service Account Name
@@ -3572,6 +3574,7 @@ labels:
   addTag: Add Tag
   addTaint: Add Taint
   addAnnotation: Add Annotation
+  protectedWarning: This key is protected and will be discarded
   labels:
     title: Labels
     description: Key/value pairs that are attached to objects which specify identifying attributes.
@@ -6384,6 +6387,7 @@ tableHeaders:
   flow: Flow
   fingerprint: Fingerprint
   gitRepos: Git Repos
+  helmOps: Helm Ops
   groups: Groups
   groupName: Group Name
   groupRoleNames: Group Role Names

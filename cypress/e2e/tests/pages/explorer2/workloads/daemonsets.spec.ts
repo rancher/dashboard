@@ -100,7 +100,7 @@ describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'
         };
       };
 
-      cy.createManyNamespacedResourced({
+      cy.createManyNamespacedResources({
         context:        'daemonsets1',
         createResource: createDs(),
       })
@@ -108,7 +108,7 @@ describe('DaemonSets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'
           daemonSetNamesList = workloadNames;
           nsName1 = ns;
         })
-        .then(() => cy.createManyNamespacedResourced({
+        .then(() => cy.createManyNamespacedResources({
           context:        'daemonsets2',
           createResource: createDs(uniqueDaemonSet),
           count:          1

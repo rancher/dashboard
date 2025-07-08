@@ -19,7 +19,7 @@ describe('registration composable', () => {
 
       await registerOnline((val: boolean) => true);
 
-      expect(dispatchSpy).toHaveBeenCalledWith('cluster/find', namespaceRequest);
+      expect(dispatchSpy).toHaveBeenCalledWith('management/find', namespaceRequest);
     });
 
     it('should create a new namespace if missing', async() => {
@@ -31,7 +31,7 @@ describe('registration composable', () => {
       await registerOnline((val: boolean) => true);
 
       expect(dispatchSpy).toHaveBeenCalledTimes(2);
-      expect(dispatchSpy).toHaveBeenCalledWith('cluster/find', namespaceRequest);
+      expect(dispatchSpy).toHaveBeenCalledWith('management/find', namespaceRequest);
     });
 
     it('should delete any existing secret', async() => {
@@ -39,7 +39,7 @@ describe('registration composable', () => {
 
       await registerOnline((val: boolean) => true);
 
-      expect(dispatchSpy).toHaveBeenCalledWith('cluster/find', namespaceRequest);
+      expect(dispatchSpy).toHaveBeenCalledWith('management/find', namespaceRequest);
     });
   });
 
@@ -96,8 +96,8 @@ describe('registration composable', () => {
 
       await registerOnline((val: boolean) => true);
 
-      expect(dispatchSpy).toHaveBeenCalledWith('cluster/find', namespaceRequest);
-      expect(dispatchSpy).toHaveBeenCalledWith('cluster/create', secret);
+      expect(dispatchSpy).toHaveBeenCalledWith('management/find', namespaceRequest);
+      expect(dispatchSpy).toHaveBeenCalledWith('management/create', secret);
       expect(registration.value).toStrictEqual(expectation);
     });
   });

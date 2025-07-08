@@ -2,6 +2,13 @@ registration:
   navigation:
     label: Registration
 
+  notification:
+    title: Rancher Prime Registration
+    message: Register your SUSE Rancher Manager Prime Suite to receive the latest updates and support.
+    button:
+      primary:
+        label: Register Now
+
   title: Product Registration
   banner:
     status:
@@ -20,12 +27,15 @@ registration:
 
   offline:
     title: Offline Registration
-    stepone: '<b>Step 1:</b> To register Rancher Manager offline, you must download the registration request file below and visit the SUSE Customer Center (SCC) offline registration tool <a tabindex="0" target="_blank" href="https://scc.suse.com/register-offline/rancher">https://scc.suse.com/register-offline/rancher</a>.' 
-    steptwo: '<b>Step 2:</b> Once logged in to SCC, follow the instructions to get your registration certificate provided by SCC. Once retrieved, upload the file below to register your product.'
+    stepone: '<b>Step 1:</b> To register Rancher Manager offline, you must download the registration request file below' 
+    steptwo: '<b>Step 2:</b> Visit the SUSE Customer Center (SCC) offline registration tool.'
+    stepthree: '<b>Step 3:</b> Once logged in to SCC, follow the instructions to get your registration certificate provided by SCC. Once retrieved, upload the file below to register your product.'
     button:
       download: 
         label: Download registration request
         progress: Downloading
+      visit: 
+        label: Visit SCC
       register:
         label: Upload certificate and register
         progress: Registering
