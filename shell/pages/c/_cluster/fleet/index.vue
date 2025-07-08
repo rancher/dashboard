@@ -729,7 +729,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: end;
-  gap: 15px;
+  gap: 16px;
 
   .collapse-all-btn {
     width: 105px;
@@ -807,7 +807,7 @@ export default {
         display: flex;
         justify-content: flex-start;
         flex-wrap: wrap;
-        gap: 15px;
+        gap: 16px;
 
         .spacer {
           border-left: 1px solid var(--border);
@@ -916,7 +916,7 @@ export default {
           .resource-cards-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 8px;
+            gap: 16px;
             min-height: 100%;
 
             .resource-card {
