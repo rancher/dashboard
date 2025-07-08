@@ -170,43 +170,12 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   };
 
   /**
-   * Update registration to defined case
-   * Reset other inputs and errors, set current state then patch the registration
-   * @param type 'online' | 'offline' | 'deregister'
-   * @param asyncButtonResolution Async button callback
+   * Common operations required before registration
    */
-  const changeRegistration = async(type: 'online' | 'offline' | 'download' | 'deregister', asyncButtonResolution: AsyncButtonFunction) => {
+  const preRegistration = async() => {
     errors.value = [];
     await ensureNamespace();
     await deleteSecret();
-
-    switch (type) {
-    case 'online':
-      if (!registrationCode.value) break;
-      secret.value = await createSecret('online', registrationCode.value);
-      offlineRegistrationCertificate.value = null;
-      registration.value = await poolRegistration(secret.value?.metadata?.labels?.[REGISTRATION_LABEL]);
-      registrationStatus.value = registration.value ? 'registered' : null;
-      asyncButtonResolution(true);
-      break;
-    case 'download':
-      secret.value = await createSecret('offline'); // Generate secret to trigger offline registration request
-      registrationCode.value = null;
-      asyncButtonResolution(true);
-      break;
-    case 'offline':
-      if (!registrationCode.value) break;
-      secret.value = await createSecret('offline', registrationCode.value);
-      registrationCode.value = null;
-      registration.value = await poolRegistration(secret.value?.metadata?.labels?.[REGISTRATION_LABEL]);
-      registrationStatus.value = registration.value ? 'registered' : null;
-      asyncButtonResolution(true);
-      break;
-    case 'deregister':
-      resetRegistration();
-      asyncButtonResolution(true);
-      break;
-    }
   };
 
   /**
@@ -248,7 +217,15 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const registerOnline = async(asyncButtonResolution: AsyncButtonFunction) => {
     registrationStatus.value = 'registering-online';
-    await changeRegistration('online', asyncButtonResolution);
+    await preRegistration();
+
+    if (!registrationCode.value) return;
+
+    secret.value = await createSecret('online', registrationCode.value);
+    offlineRegistrationCertificate.value = null;
+    registration.value = await poolRegistration(secret.value?.metadata?.labels?.[REGISTRATION_LABEL]);
+    registrationStatus.value = registration.value ? 'registered' : null;
+    asyncButtonResolution(true);
   };
 
   /**
@@ -258,7 +235,14 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   const registerOffline = async(certificate: string) => {
     registrationStatus.value = 'registering-offline';
     offlineRegistrationCertificate.value = certificate;
-    await changeRegistration('offline', () => {});
+    await preRegistration();
+
+    if (!registrationCode.value) return;
+    secret.value = await createSecret('offline', registrationCode.value);
+    registrationCode.value = null;
+    registration.value = await poolRegistration(secret.value?.metadata?.labels?.[REGISTRATION_LABEL]);
+    registrationStatus.value = registration.value ? 'registered' : null;
+    // asyncButtonResolution(true);
   };
 
   /**
@@ -266,7 +250,9 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * @param asyncButtonResolution Async button callback
    */
   const deregister = async(asyncButtonResolution: AsyncButtonFunction) => {
-    await changeRegistration('deregister', asyncButtonResolution);
+    await preRegistration();
+    resetRegistration();
+    asyncButtonResolution(true);
   };
 
   /**
@@ -275,15 +261,18 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const downloadOfflineRequest = async(asyncButtonResolution: (status: boolean) => void) => {
     registrationStatus.value = 'registration-request';
-    await changeRegistration('download', asyncButtonResolution);
+    await preRegistration();
+
+    secret.value = await createSecret('offline'); // Generate secret to trigger offline registration request
+    registrationCode.value = null;
     const data = await poolOfflineRequest(secret.value?.metadata?.labels?.[REGISTRATION_LABEL], 500, 10000);
 
-    downloadFile(REGISTRATION_REQUEST_FILENAME, JSON.stringify(data), 'application/json')
-      .then(() => asyncButtonResolution(true))
+    await downloadFile(REGISTRATION_REQUEST_FILENAME, JSON.stringify(data), 'application/json')
       .catch(() => {
         asyncButtonResolution(false);
         onError(new Error('Registration request download not found'));
       });
+    asyncButtonResolution(true);
   };
 
   /**
