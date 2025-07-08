@@ -524,18 +524,8 @@ export default {
                 {{ content }}
               </router-link>
             </template>
-            <template #documentationUrl="{ content }">
-              <a
-                tabindex="0"
-                :href="`${docsBase}/how-to-guides/new-user-guides/helm-charts-in-rancher`"
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-                class="secondary-text-link"
-              >
-                {{ content }} <i class="icon icon-external-link" />
-              </a>
-            </template>
           </RichTranslation>
+          <h4 v-clean-html="t('catalog.charts.noCharts.docsMessage', {}, true)" />
         </div>
       </div>
       <div
@@ -712,7 +702,7 @@ export default {
 
 .charts-empty-state {
   width: 100%;
-  padding: 72px 0;
+  padding: 72px 120px;
   text-align: center;
 
   .empty-state-title {
