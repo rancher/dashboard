@@ -33,14 +33,7 @@ export default defineComponent({
     k: {
       type:     String,
       required: true,
-    },
-    /**
-     * The HTML tag to use for the root element.
-     */
-    tag: {
-      type:    [String, Object],
-      default: 'span'
-    },
+    }
   },
   setup(props, { slots }) {
     const store = useStore();
