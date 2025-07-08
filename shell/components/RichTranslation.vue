@@ -43,7 +43,7 @@ export default defineComponent({
       const rawStr = store.getters['i18n/t'](props.k, {}, true);
 
       if (!rawStr || typeof rawStr !== 'string') {
-        return h(props.tag as string, {}, [rawStr]);
+        return h('span', {}, [rawStr]);
       }
 
       // This regex splits the string by the custom tags, keeping the tags in the resulting array.
