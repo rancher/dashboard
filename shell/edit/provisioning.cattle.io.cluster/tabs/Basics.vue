@@ -120,7 +120,10 @@ export default {
   },
 
   data() {
-    return { showEnablingComplianceWarning: false };
+    return {
+      showEnablingComplianceWarning: false,
+      initialAgentProfile:           this.value.agentConfig?.profile || ''
+    };
   },
 
   watch: {
@@ -132,7 +135,7 @@ export default {
     },
 
     'agentConfig.profile'(newValue) {
-      this.showEnablingComplianceWarning = this.provider === 'custom' && this.mode === _EDIT && !!newValue;
+      this.showEnablingComplianceWarning = this.provider === 'custom' && this.mode === _EDIT && !!newValue && newValue !== this.initialAgentProfile;
     }
   },
 
