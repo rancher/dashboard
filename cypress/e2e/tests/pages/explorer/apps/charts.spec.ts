@@ -17,7 +17,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   it('Charts have expected icons', () => {
     chartsPage.resetAllFilters();
     chartsPage.checkChartGenericIcon('Alerting Driver', false);
-    chartsPage.checkChartGenericIcon('CIS Benchmark', false);
+    chartsPage.checkChartGenericIcon('Rancher Compliance', false);
     chartsPage.checkChartGenericIcon('Logging', false);
   });
 
