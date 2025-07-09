@@ -170,7 +170,7 @@ onMounted(async() => {
             :action-label="t('registration.offline.button.register.label')"
             data-testid="registration-offline-cta"
             :disabled="isRegistered || isRegistering"
-            :currentPhase="'waiting'"
+            :currentPhase="isRegisteringOffline ? 'waiting' : 'success'"
           />
         </div>
 
