@@ -1392,6 +1392,7 @@ export default {
           } else if (!!entry.config.externalFirewallRulePrefix) {
             delete entry.config.externalFirewallRulePrefix;
           }
+          // These have to be removed regardless of their value because they are not part of the object we are sending
           delete entry.config.setInternalFirewallRulePrefix;
           delete entry.config.setExternalFirewallRulePrefix;
         }

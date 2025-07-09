@@ -25,7 +25,7 @@ export function formatSharedNetworks(allSharedSubnetworks: GKESubnetwork[]): {[k
 export function formatNetworkOptions(t: Translation, networks: GKENetwork[], subnetworks: GKESubnetwork[], sharedNetworks: { [key: string]: GKESubnetwork[]; }): GKENetworkOption[] {
   const out: GKENetworkOption[] = [];
   const unshared = (networks || []).map((n) => {
-    const subnetworksAvailable = subnetworks.find((s) => s.network === n.selfLink);
+    const subnetworksAvailable = subnetworks?.find((s) => s?.network === n?.selfLink);
 
     return { ...n, label: subnetworksAvailable ? `${ n.name } (${ t('gke.network.subnetworksAvailable') })` : n.name };
   });
@@ -63,7 +63,7 @@ export function formatSubnetworkOptions(t: Translation, network: string, subnetw
   if (isShared) {
     out.push(...sharedNetworks[network]);
   } else {
-    out.push(...(subnetworks.filter((s) => s.network.split('/').pop() === network) || []));
+    out.push(...(subnetworks.filter((s) => s?.network?.split('/')?.pop() === network) || []));
   }
 
   const labeled: GKESubnetworkOption[] = out.map((sn: GKESubnetwork) => {

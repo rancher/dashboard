@@ -36,6 +36,7 @@ const defaultConfig = Object.freeze({
   address:                       '',
   openPort:                      [],
   vmLabels:                      '',
+  username:                      'docker-user',
   setInternalFirewallRulePrefix: false,
   setExternalFirewallRulePrefix: false
 });
@@ -90,30 +91,31 @@ export default {
         this.value[key] = this.defaultConfig[key];
       }
     }
-    await this.getZones();
-    await this.getOptions();
+    await Promise.all([this.getZones(), this.getOptions()]);
   },
 
   data() {
     return {
       defaultConfig,
-      loadingZones:        false,
-      loadingDiskTypes:    false,
-      loadingNetworks:     false,
-      loadingMachineTypes: false,
-      zones:               [],
-      diskTypes:           [],
-      networks:            [],
-      subnetworks:         [],
-      sharedSubnetworks:   [],
-      machineTypes:        [],
-      useIpAliases:        false,
-      minDisk:             DEFAULT_MIN_DISK,
-      imageAreaValid:      true,
-      originalOpenPort:    this.value.openPort || [],
-      fvFormRuleSets:      [
+      loadingZones:                 false,
+      loadingDiskTypes:             false,
+      loadingNetworks:              false,
+      loadingMachineTypes:          false,
+      zones:                        [],
+      diskTypes:                    [],
+      networks:                     [],
+      subnetworks:                  [],
+      sharedSubnetworks:            [],
+      machineTypes:                 [],
+      useIpAliases:                 false,
+      minDiskFromImage:             DEFAULT_MIN_DISK,
+      originalOpenPort:             this.value.openPort || [],
+      originalMachineImage:         this.value.machineImage,
+      diskSizeRequirementsFromType: null,
+      fvFormRuleSets:               [
+        { path: 'machineImage', rules: ['required'] },
         { path: 'diskType', rules: ['required'] },
-        { path: 'diskSize', rules: ['required', 'isPositive', 'minDiskSize'] },
+        { path: 'diskSize', rules: ['required', 'isPositive', 'minDiskFromImageSize'] },
         { path: 'machineType', rules: ['required'] },
         { path: 'network', rules: ['required'] },
       ]
@@ -139,7 +141,7 @@ export default {
     credentialId() {
       this.$fetch();
     },
-    validationProperties(newVal) {
+    fvFormIsValid(newVal) {
       this.$emit('validationChanged', !!newVal);
     },
 
@@ -180,30 +182,36 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
     fvExtraRules() {
       return {
-        projects: (val) => {
-          return val && !val.match(/^[a-zA-Z0-9 ,.-]*$/) ? this.t('cluster.machineConfig.gce.error.projects') : undefined;
-        },
+        minDiskFromImageSize: (val) => {
+          let minTotal = Number(this.minDiskFromImage);
+          let maxTotal = null;
+          const valAsNumber = Number(val || 0);
 
-        minDiskSize: (val) => {
-          return val && val < this.minDisk ? this.t('cluster.machineConfig.gce.error.diskSize', { diskSize: this.minDisk }) : undefined;
+          if ( !!this.diskSizeRequirementsFromType) {
+            const vals = this.diskSizeRequirementsFromType.split('-');
+            const minFromType = vals[0]?.substring(0, vals[0]?.length - 2);
+            const maxFromType = vals[1]?.substring(0, vals[1]?.length - 2);
+
+            minTotal = minFromType > minTotal ? Number(minFromType) : minTotal;
+            maxTotal = Number(maxFromType);
+          }
+          const valLessThanMin = valAsNumber < minTotal;
+          const valMoreThanMax = !!maxTotal && valAsNumber > maxTotal;
+
+          if (!maxTotal) {
+            return val && valLessThanMin ? this.t('cluster.machineConfig.gce.error.diskSizeWithoutMax', { diskSizeMin: minTotal }) : undefined;
+          } else {
+            return val && (valLessThanMin || valMoreThanMax) ? this.t('cluster.machineConfig.gce.error.diskSizeWithMax', { diskSizeMin: minTotal, diskSizeMax: maxTotal }) : undefined;
+          }
         }
 
       };
-    },
-    isView() {
-      return this.mode === _VIEW;
-    },
-    isCreate() {
-      return this.mode === _CREATE;
     },
     location() {
       return { zone: this.value.zone };
     },
     project() {
       return this.value.project;
-    },
-    validationProperties() {
-      return this.fvFormIsValid && this.imageAreaValid;
     },
 
     sharedNetworks() {
@@ -258,6 +266,15 @@ export default {
         }
       }
     },
+    diskType: {
+      get() {
+        return this.value?.diskType || '';
+      },
+      set(neu) {
+        this.value.diskType = neu.name;
+        this.diskSizeRequirementsFromType = neu.validDiskSize;
+      }
+    },
     tags: {
       get() {
         return this.value?.tags ? this.value.tags.split(',') : [];
@@ -310,8 +327,18 @@ export default {
         const res = await getGKEDiskTypes(this.$store, this.credentialId, this.project, this.location);
 
         this.diskTypes = res.items.map((type) => {
-          return type.name;
+          return { name: type.name, validDiskSize: type.validDiskSize };
         });
+        const cur = this.diskTypes.find((el) => el.name === this.value.diskType);
+
+        if (!cur ) {
+          // If default is not actually available, reset
+          if (this.isCreate) {
+            this.value.diskType = '';
+          }
+        } else {
+          this.diskSizeRequirementsFromType = cur.validDiskSize;
+        }
       } catch (e) {
         this.errors.push(e.data);
       }
@@ -417,19 +444,23 @@ export default {
         v-model:value="value.machineImage"
         :credentialId="credentialId"
         :projectId="value.project"
+        :originalMachineImage="originalMachineImage"
         :mode="mode"
         :location="location"
+        :rules="{machineImage: fvGetAndReportPathRules('machineImage')}"
+        @min-disk-changed="(val)=>minDiskFromImage=val"
         @error="(val)=>errors.push(val)"
-        @validationChanged="(val)=>imageAreaValid=val"
       />
 
       <div class="row mt-20">
         <LabeledSelect
-          v-model:value="value.diskType"
+          v-model:value="diskType"
           label-key="cluster.machineConfig.gce.diskType.label"
           :mode="mode"
           :options="diskTypes"
           :loading="loadingDiskTypes"
+          option-key="name"
+          option-label="name"
           data-testid="gce-disk-type-select"
           required
           class="span-3 mr-10"
@@ -539,7 +570,7 @@ export default {
             :mode="mode"
             :title="t('gke.tags.label')"
             :add-label="t('gke.tags.add')"
-            class="col span-6 mr-10"
+            class="col mr-10"
             data-testid="gce-tags-array"
           />
         </div>
@@ -562,7 +593,7 @@ export default {
               :mode="mode"
               :title="t('cluster.machineConfig.gce.openPort.label')"
               :add-label="t('cluster.machineConfig.gce.openPort.add')"
-              class="col span-6"
+              class="col"
               data-testid="gce-ports-array"
             />
           </div>

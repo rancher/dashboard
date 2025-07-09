@@ -24,6 +24,7 @@ export const DEFAULT_GCP_SERVICE_ACCOUNT = 'Compute Engine default service accou
  * @param cloudCredentialId gcp credential id - will be in the form cattle-global-data:<random string>
  * @param projectId gcp project in which to make the request
  * @param location object containing either gcp region or zone in which to make the request - defaults to DEFAULT_GCP_ZONE if both zone and region are undefined. region preempts zone
+ * @param extraParams any additional parameters required by requests
  * @returns
  */
 function getGKEOptions(resource: string, store: any, cloudCredentialId: string, projectId: string, location: {zone?: string, region?: string}, clusterId?:string, extraParams?: object ) {

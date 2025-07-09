@@ -9,9 +9,10 @@ import debounce from 'lodash/debounce';
 import { mapGetters } from 'vuex';
 
 const DEFAULT_PROJECTS = 'suse-cloud, ubuntu-os-cloud';
+const DEFAULT_MIN_DISK = 10;
 
 export default {
-  emits: ['update:value', 'error', 'validationChanged'],
+  emits: ['update:value', 'error', 'min-disk-changed'],
 
   components: {
     Checkbox,
@@ -25,6 +26,10 @@ export default {
     value: {
       type:     String,
       required: true
+    },
+    originalMachineImage: {
+      type:    String,
+      default: ''
     },
     credentialId: {
       type:     String,
@@ -41,6 +46,12 @@ export default {
     location: {
       type:     Object,
       required: true
+    },
+    rules: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
 
@@ -60,6 +71,8 @@ export default {
       family:          null,
       loadingFamilies: false,
       loadingImages:   false,
+      // We want to help guide user if these fields are invalid, but it should not prevent saving
+      // because these values aren't part of the request
       fvFormRuleSets:  [
         {
           path: 'imageProjects', rootObject: this, rules: ['required', 'projects']
@@ -67,23 +80,16 @@ export default {
         {
           path: 'family', rootObject: this, rules: ['required']
         },
-        {
-          path: 'machineImage', rootObject: this, rules: ['required']
-        }]
+      ]
     };
   },
   created() {
     this.debouncedLoadFamilies = debounce(this.getFamilies, 500);
     if (this.mode !== _CREATE) {
       this.imageProjects = `${ this.getProjectFromImage() }`;
-    } else {
-      this.$emit('validationChanged', false);
     }
   },
   watch: {
-    fvFormIsValid(newValue) {
-      this.$emit('validationChanged', !!newValue);
-    },
     family(neu) {
       this.getImages(neu);
     },
@@ -105,6 +111,9 @@ export default {
 
       };
     },
+    isCreate() {
+      return this.mode === _CREATE;
+    },
     project() {
       return this.value.project;
     },
@@ -114,7 +123,10 @@ export default {
       },
       set(neu) {
         this.setMachineImage(neu);
-        this.diskSize = neu?.diskSize ? neu.diskSize : 10;
+
+        const diskSize = neu?.diskSize ? neu.diskSize : DEFAULT_MIN_DISK;
+
+        this.$emit('min-disk-changed', diskSize);
       }
     },
     familyOptions() {
@@ -141,56 +153,42 @@ export default {
     imageOptions() {
       let out = [];
 
-      if (!this.showDeprecated) {
-        out = this.machineImages.map((image) => {
-          const value = {
-            name:     image.name,
-            selfLink: image.selfLink,
-            diskSize: image.diskSizeGb
-          };
-          const deprecated = !!image?.deprecated;
+      const deprecatedImages = [];
+      const activeImages = [];
 
-          return {
+      this.machineImages.forEach((image) => {
+        const value = {
+          name:     image.name,
+          selfLink: image.selfLink,
+          diskSize: image.diskSizeGb
+        };
+        const deprecated = !!image?.deprecated;
+
+        if (!deprecated) {
+          activeImages.push({
             value,
-            label: !deprecated ? this.t('cluster.machineConfig.gce.machineImage.option', { name: image.name, description: image.description }) : this.t('cluster.machineConfig.gce.machineImage.deprecatedOption', { name: image.name, description: image.description }),
-          };
-        });
-      } else {
-        const deprecatedImages = [];
-        const activeImages = [];
-
-        this.machineImages.forEach((image) => {
-          const value = {
-            name:     image.name,
-            selfLink: image.selfLink,
-            diskSize: image.diskSizeGb
-          };
-          const deprecated = !!image?.deprecated;
-
-          if (!deprecated) {
-            activeImages.push({
-              value,
-              label: !deprecated ? this.t('cluster.machineConfig.gce.machineImage.option', { name: image.name, description: image.description }) : this.t('cluster.machineConfig.gce.machineImage.deprecatedOption', { name: image.name, description: image.description }),
-            });
-          } else {
+            label: this.t('cluster.machineConfig.gce.machineImage.option', { name: image.name, description: image.description }),
+          });
+        } else {
+          if (this.showDeprecated) {
             deprecatedImages.push({
               value,
               label: !deprecated ? this.t('cluster.machineConfig.gce.machineImage.option', { name: image.name, description: image.description }) : this.t('cluster.machineConfig.gce.machineImage.deprecatedOption', { name: image.name, description: image.description }),
             });
           }
-          out = [...activeImages, ...deprecatedImages];
-        });
-      }
+        }
+        out = [...activeImages, ...deprecatedImages];
+      });
 
       return out;
     },
   },
   methods: {
     async getFamilies() {
-      this.loadingFamilies = true;
       let out = {};
 
       if (this.imageProjects) {
+        this.loadingFamilies = true;
         try {
           let projects = this.imageProjects.replace(/ /g, '');
 
@@ -215,38 +213,22 @@ export default {
           }
         } catch (e) {
           // This fails often if user mistypes, so it's better to swallow the error instead of spamming with errors
+
           return '';
+        } finally {
+          this.loadingFamilies = false;
         }
       }
       this.families = out;
 
       // When editing existing cluster, we need to find corresponding family
       if (!!this.value) {
-        let found = false;
-
-        const project = this.getProjectFromImage();
-        const families = out[project] || [];
-        const imageName = this.getImageNameFromImage();
-
-        let count = 0;
-
-        while (!found && count < families.length) {
-          const images = await this.getImagesInProject({ family: families[count], project }, true );
-          const filtered = images.filter((image) => image.name === imageName);
-
-          if (filtered.length > 0) {
-            found = true;
-            this.family = { family: filtered[0].family, project };
-          }
-          count += 1;
-        }
+        await this.getFamilyFromImage();
       }
       // If we had to reload list of families, we need to reset selected family if it is no longer in the list
       if ( !!this.family?.project && !this.families[this.family.project]) {
         this.family = null;
       }
-
-      this.loadingFamilies = false;
     },
     getProjectFromImage() {
       if (!!this.value) {
@@ -256,6 +238,32 @@ export default {
     getImageNameFromImage() {
       if (!!this.value) {
         return this.value.split('/')[3];
+      }
+    },
+    async getFamilyFromImage() {
+      this.loadingFamilies = true;
+      try {
+        const project = this.getProjectFromImage();
+        const families = this.families[project] || [];
+        const imageName = this.getImageNameFromImage();
+
+        if (!families.length || !imageName) return;
+
+        const firstMatch = await Promise.any(
+          families.map((family) => this.getImagesInProject({ family, project }, true)
+            .then((images) => {
+              const match = images.find((image) => image.name === imageName);
+
+              if (match) return { family: match.family, project };
+              throw new Error('not-found');
+            })
+          )
+        );
+
+        this.family = !!firstMatch ? firstMatch : null;
+      } catch (e) {
+      } finally {
+        this.loadingFamilies = false;
       }
     },
 
@@ -276,9 +284,12 @@ export default {
     async getImages(val) {
       this.loadingImages = true;
       try {
+        const isOriginal = !this.isCreate && this.machineImage === this.getImageNameFromImage(this.originalMachineImage);
+
         this.machineImages = await this.getImagesInProject(val, this.showDeprecated);
-        // If we had to reload list of images, we need to reset selected image if it is no longer in the list
-        if ( !!this.machineImage && this.machineImages.filter((image) => image.name === this.machineImage).length === 0) {
+        // If we had to reload list of images, we need to reset selected image if it is no longer in the list,
+        // except if we are editing and this is the original image. ie the image became deprecated is no longer available
+        if ( !isOriginal && (!!this.machineImage && this.machineImages.filter((image) => image.name === this.machineImage).length === 0)) {
           this.machineImage = '';
         }
       } catch (e) {
@@ -357,7 +368,7 @@ export default {
       class="span-3"
       :tooltip="t('cluster.machineConfig.gce.machineImage.tooltip')"
       required
-      :rules="fvGetAndReportPathRules('machineImage')"
+      :rules="rules.machineImage"
     />
   </div>
 </template>

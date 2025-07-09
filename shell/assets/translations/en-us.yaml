@@ -2016,7 +2016,8 @@ cluster:
         tooltip: Allows Rancher to open ports required for external access.
         banner: By default, the Kubernetes API server listens on port 6443. Exposing this port on control plane machine pools is required for the Authorized Cluster Endpoint feature to work as expected.
       error:
-        diskSize: Disk size has to be greater than {diskSize} for this image.
+        diskSizeWithoutMax: Disk size has to be greater than {diskSizeMin} based on this image and disk type.
+        diskSizeWithMax: Disk size has to be between {diskSizeMin} and {diskSizeMax} based on this image and disk type.
         projects: Image projects should be a comma separated list of alphanumeric string which may contain '-' and '.'
   addOns:
     dependencyBanner: Add-On Configuration can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.

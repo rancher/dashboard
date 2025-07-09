@@ -120,7 +120,7 @@ export default defineComponent({
           :value="project"
           label-key="gke.project.label"
           required
-          @update:value="$emit('update:project', $event)"
+          @update:value="(val) => $emit('update:project', val.trim())"
         />
       </div>
       <div
