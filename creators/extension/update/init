@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const { spawnSync } = require('child_process');
 
-const scriptFolder = path.resolve(__dirname, '..');
+const baseFolder = path.resolve(path.join(__dirname, '..'));
 const dest = path.resolve('.');
 
 // Remove first two args
@@ -27,12 +27,8 @@ let rawdata = fs.readFileSync(path.join(dest, 'package.json'));
 const appPackage = JSON.parse(rawdata);
 
 // Read the package.json from the app creator
-rawdata = fs.readFileSync(path.join(scriptFolder, 'app', 'package.json'));
+rawdata = fs.readFileSync(path.join(baseFolder, 'app', 'package.json'));
 const latestPackage = JSON.parse(rawdata);
-
-// Read the package.json from the upgrade creator
-rawdata = fs.readFileSync(path.join(scriptFolder, 'package.json'));
-const upgradePackage = JSON.parse(rawdata);
 
 // Update dependency versions to match the latest from the creator
 if ( latestPackage.dependencies ) {
@@ -48,7 +44,7 @@ appPackage.resolutions = appPackage.resolutions || {};
 appPackage.resolutions['**/webpack'] = '4';
 
 // Update the version of @rancher/shell
-const shellVersion = upgradePackage.version;
+const shellVersion = args[0];
 
 appPackage.dependencies['@rancher/shell'] = shellVersion;
 

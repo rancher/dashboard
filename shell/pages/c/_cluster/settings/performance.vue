@@ -10,14 +10,14 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import UnitInput from '@shell/components/form/UnitInput';
 import { STEVE_CACHE } from '@shell/store/features';
 import { NAME as SETTING_PRODUCT } from '@shell/config/product/settings';
+import paginationUtils from '@shell/utils/pagination-utils';
+import Collapse from '@shell/components/Collapse';
 
 const incompatible = {
-  incrementalLoading: ['forceNsFilterV2', 'serverPagination'],
-  manualRefresh:      ['forceNsFilterV2', 'serverPagination'],
+  incrementalLoading: ['forceNsFilterV2'],
+  manualRefresh:      ['forceNsFilterV2'],
   forceNsFilterV2:    ['incrementalLoading', 'manualRefresh'],
-  serverPagination:   ['incrementalLoading', 'manualRefresh'],
 };
-
 const l10n = {
   incrementalLoading: 'incrementalLoad',
   manualRefresh:      'manualRefresh',
@@ -32,7 +32,8 @@ export default {
     AsyncButton,
     Banner,
     LabeledInput,
-    UnitInput
+    UnitInput,
+    Collapse,
   },
 
   async fetch() {
@@ -74,7 +75,8 @@ export default {
           product:  SETTING_PRODUCT,
           resource: MANAGEMENT.FEATURE
         }
-      }).href
+      }).href,
+      ssPApplicableTypesOpen: false,
     };
   },
 
@@ -93,27 +95,28 @@ export default {
       return this.$store.getters['features/get'](STEVE_CACHE);
     },
 
-    steveCacheApplicableResources() {
+    sspApplicableResources() {
       const storeResources = [];
+      const stores = paginationUtils.getStoreSettings(this.value.serverPagination);
 
-      Object.entries(this.value.serverPagination.stores).forEach(([store, settings]) => {
+      Object.entries(stores).forEach(([store, settings]) => {
         const resources = [];
 
         if (settings.resources.enableAll) {
           resources.push(this.t('performance.serverPagination.resources.all'));
         } else {
           settings.resources.enableSome.enabled.forEach((resource) => {
-            resources.push(resource);
+            resources.push(!!resource.length ? resource : `${ resource.resource } (${ resource.context })`);
           });
           if (settings.resources.enableSome.generic) {
             resources.push(this.t('performance.serverPagination.resources.generic', {}, true));
           }
         }
 
-        storeResources.push(`${ store }: ${ resources.join(', ') }`);
+        storeResources.push(`Resources in store '${ store }': ${ resources.join(', ') }`);
       });
 
-      return storeResources.join('. ');
+      return storeResources.join('<br><br>');
     }
   },
 
@@ -173,7 +176,7 @@ export default {
       this.$store.dispatch('cluster/promptModal', {
         component:      'GenericPrompt',
         componentProps: {
-          applyMode: 'enable',
+          applyMode: 'continue',
           confirm:   (confirmed) => {
             this.value[property].enabled = confirmed;
           },
@@ -187,7 +190,7 @@ export default {
           body:  this.t(`performance.${ l10n[property] }.incompatibleDescription`, {}, true),
         },
       });
-    }
+    },
   },
 };
 </script>
@@ -200,35 +203,6 @@ export default {
     </h1>
     <div>
       <div class="ui-perf-setting">
-        <!-- Server Side Pagination -->
-        <div class="mt-40">
-          <h2>{{ t('performance.serverPagination.label') }}</h2>
-          <p>{{ t('performance.serverPagination.description') }}</p>
-          <Banner
-            color="error"
-            label-key="performance.experimental"
-          />
-          <Banner
-            v-if="!steveCacheEnabled"
-            v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)"
-            color="warning"
-          />
-          <Checkbox
-            v-model:value="value.serverPagination.enabled"
-            :mode="mode"
-            :label="t('performance.serverPagination.checkboxLabel')"
-            class="mt-10 mb-20"
-            :primary="true"
-            :disabled="(!steveCacheEnabled && !value.serverPagination.enabled)"
-            @update:value="compatibleWarning('serverPagination', $event)"
-          />
-          <p :class="{ 'text-muted': !value.serverPagination.enabled }">
-            {{ t('performance.serverPagination.applicable') }}
-          </p>
-          <p :class="{ 'text-muted': !value.serverPagination.enabled }">
-            {{ steveCacheApplicableResources }}
-          </p>
-        </div>
         <!-- Inactivity -->
         <div class="mt-20">
           <h2>{{ t('performance.inactivity.title') }}</h2>
@@ -270,9 +244,37 @@ export default {
             :primary="true"
           />
         </div>
+        <!-- Server Side Pagination -->
+        <div class="mt-20">
+          <h2 id="ssp-setting">
+            {{ t('performance.serverPagination.label') }}
+          </h2>
+          <p>{{ t('performance.serverPagination.description') }}</p>
+          <Banner
+            color="warning"
+          >
+            <div v-clean-html="t(`performance.serverPagination.featureFlag`, { ffUrl }, true)" />
+          </Banner>
+          <Collapse
+            :title="t('performance.serverPagination.applicable')"
+            :open="steveCacheEnabled && ssPApplicableTypesOpen"
+            :isDisabled="!steveCacheEnabled"
+            @update:open="ssPApplicableTypesOpen = !ssPApplicableTypesOpen"
+          >
+            <p
+              v-clean-html="sspApplicableResources"
+              :class="{ 'text-muted': !value.serverPagination.enabled }"
+            />
+          </Collapse>
+        </div>
         <!-- Incremental Loading -->
-        <div class="mt-40">
+        <div class="mt-20">
           <h2>{{ t('performance.incrementalLoad.label') }}</h2>
+          <Banner
+            color="warning"
+          >
+            <span v-clean-html="t(`performance.deprecatedForSSP`, { setting: t('performance.incrementalLoad.label') }, true)" />
+          </Banner>
           <p>{{ t('performance.incrementalLoad.description') }}</p>
           <Checkbox
             :value="value.incrementalLoading.enabled"
@@ -300,11 +302,12 @@ export default {
         <!-- Enable manual refresh list views -->
         <div class="mt-40">
           <h2 v-t="'performance.manualRefresh.label'" />
-          <p>{{ t('performance.manualRefresh.description') }}</p>
           <Banner
-            color="error"
-            label-key="performance.experimental"
-          />
+            color="warning"
+          >
+            <span v-clean-html="t(`performance.deprecatedForSSP`, { setting: t('performance.manualRefresh.label') }, true)" />
+          </Banner>
+          <p>{{ t('performance.manualRefresh.description') }}</p>
           <Checkbox
             :value="value.manualRefresh.enabled"
             :mode="mode"
@@ -331,11 +334,12 @@ export default {
         <!-- Enable GC of resources from store -->
         <div class="mt-40">
           <h2 v-t="'performance.gc.label'" />
-          <p>{{ t('performance.gc.description') }}</p>
           <Banner
-            color="error"
-            label-key="performance.experimental"
-          />
+            color="warning"
+          >
+            <span v-clean-html="t(`performance.deprecatedForSSP`, { setting: t('performance.gc.label') }, true)" />
+          </Banner>
+          <p>{{ t('performance.gc.description') }}</p>
           <Checkbox
             v-model:value="value.garbageCollection.enabled"
             :mode="mode"
@@ -411,11 +415,12 @@ export default {
         <!-- Force NS filter -->
         <div class="mt-40">
           <h2>{{ t('performance.nsFiltering.label') }}</h2>
-          <p>{{ t('performance.nsFiltering.description') }}</p>
           <Banner
-            color="error"
-            label-key="performance.experimental"
-          />
+            color="warning"
+          >
+            <span v-clean-html="t(`performance.deprecatedForSSP`, { setting: t('performance.nsFiltering.label') }, true)" />
+          </Banner>
+          <p>{{ t('performance.nsFiltering.description') }}</p>
           <Checkbox
             :value="value.forceNsFilterV2.enabled"
             :mode="mode"
@@ -426,13 +431,14 @@ export default {
           />
         </div>
         <!-- Advanced Websocket Worker -->
-        <div class="mt-40">
+        <div class="mt-20">
           <h2>{{ t('performance.advancedWorker.label') }}</h2>
-          <p>{{ t('performance.advancedWorker.description') }}</p>
           <Banner
-            color="error"
-            label-key="performance.experimental"
-          />
+            color="warning"
+          >
+            <span v-clean-html="t(`performance.deprecatedForSSP`, { setting: t('performance.advancedWorker.label') }, true)" />
+          </Banner>
+          <p>{{ t('performance.advancedWorker.description') }}</p>
           <Checkbox
             v-model:value="value.advancedWorker.enabled"
             :mode="mode"

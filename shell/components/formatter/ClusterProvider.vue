@@ -25,11 +25,11 @@ export default {
         {{ row.machineProviderDisplay }}
       </span>
     </template>
-    <template v-else-if="row.isCustom">
-      {{ t('cluster.provider.custom') }}
-    </template>
     <template v-else-if="row.isImported">
       {{ t('cluster.provider.imported') }}
+    </template>
+    <template v-else-if="row.isCustom">
+      {{ t('cluster.provider.custom') }}
     </template>
     <div class="text-muted">
       {{ row.provisionerDisplay }}

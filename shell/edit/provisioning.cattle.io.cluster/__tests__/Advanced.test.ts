@@ -45,8 +45,6 @@ describe('component: Advanced', () => {
         mountOptions
       );
 
-      // eslint-disable-next-line no-console
-      console.log(wrapper.html());
       const inputElem = wrapper.find('[data-testid="array-list-box0"]');
 
       expect(inputElem.exists()).toBe(false);
@@ -178,7 +176,7 @@ describe('component: Advanced', () => {
           const selectorContainer = wrapper.find('[data-testid="selector-kubelet-arg"]');
 
           const globalInputElem = globalContainer;
-          const selectorInputElem = selectorContainer.find('[data-testid="input-0"]').element as HTMLInputElement;
+          const selectorInputElem = selectorContainer.find('[data-testid="array-list-input-0"]').element as HTMLInputElement;
 
           expect(globalInputElem.exists()).toBe(false);
           expect(selectorInputElem.value).toContain('config-from-machineSelectorConfig');
@@ -201,7 +199,7 @@ describe('component: Advanced', () => {
           const selectorContainer = wrapper.find('[data-testid="selector-kubelet-arg"]');
 
           const selectorInputElem = selectorContainer;
-          const globalInputElem = globalContainer.find('[data-testid="input-0"]').element as HTMLInputElement;
+          const globalInputElem = globalContainer.find('[data-testid="array-list-input-0"]').element as HTMLInputElement;
 
           expect(selectorInputElem.exists()).toBe(false);
           expect(globalInputElem.value).toContain('config-from-machineGlobalConfig');
@@ -224,8 +222,8 @@ describe('component: Advanced', () => {
           const globalContainer = wrapper.find('[data-testid="global-kubelet-arg"]');
           const selectorContainer = wrapper.find('[data-testid="selector-kubelet-arg"]');
 
-          const selectorInputElem = selectorContainer.find('[data-testid="input-0"]').element as HTMLInputElement;
-          const globalInputElem = globalContainer.find('[data-testid="input-0"]').element as HTMLInputElement;
+          const selectorInputElem = selectorContainer.find('[data-testid="array-list-input-0"]').element as HTMLInputElement;
+          const globalInputElem = globalContainer.find('[data-testid="array-list-input-0"]').element as HTMLInputElement;
 
           expect(selectorInputElem.value).toContain('config-from-machineSelectorConfig');
           expect(globalInputElem.value).toContain('config-from-machineGlobalConfig');
@@ -249,8 +247,8 @@ describe('component: Advanced', () => {
         const globalContainer = wrapper.find('[data-testid="global-kubelet-arg"]');
         const selectorContainer = wrapper.find('[data-testid="selector-kubelet-arg"]');
 
-        const selectorInputElem = selectorContainer.find('[data-testid="input-0"]');
-        const globalInputElem = globalContainer.find('[data-testid="input-0"]');
+        const selectorInputElem = selectorContainer.find('[data-testid="array-list-input-0"]');
+        const globalInputElem = globalContainer.find('[data-testid="array-list-input-0"]');
 
         const emptyCharacter = wrapper.find('.info-box').find('.text-muted').element;
 
@@ -284,8 +282,8 @@ describe('component: Advanced', () => {
         const globalContainer = wrapper.find('[data-testid="global-kubelet-arg"]');
         const selectorContainer = wrapper.find('[data-testid="selector-kubelet-arg"]');
 
-        const selectorInputElem = selectorContainer.find('[data-testid="input-0"]');
-        const globalInputElem = globalContainer.find('[data-testid="input-0"]');
+        const selectorInputElem = selectorContainer.find('[data-testid="array-list-input-0"]');
+        const globalInputElem = globalContainer.find('[data-testid="array-list-input-0"]');
 
         const emptyCharacter = wrapper.find('.info-box').find('.text-muted');
 

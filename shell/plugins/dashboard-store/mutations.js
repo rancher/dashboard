@@ -1,4 +1,4 @@
-import { markRaw, reactive } from 'vue';
+import { reactive } from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
 import { SCHEMA, COUNT } from '@shell/config/types';
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
@@ -36,7 +36,7 @@ function registerType(state, type) {
       loadCounter:   0,
 
       // Not enumerable so they don't get sent back to the client for SSR
-      map: markRaw(new Map()),
+      map: new Map(),
     };
 
     state.types[type] = cache;
@@ -86,8 +86,16 @@ export function createLoadArgs(ctx, dataType) {
   };
 }
 
+/**
+ * Add or update the given resource in the store
+ *
+ * invalidatePageCache
+ * - if something calls `load` then the cache no longer has a page so we invalidate it
+ * - however on resource create or remove this can lead to lists showing nothing... before the new page is fetched
+ * - for those cases avoid invaliding the page cache
+ */
 export function load(state, {
-  data, ctx, existing, cachedArgs
+  data, ctx, existing, cachedArgs, invalidatePageCache = true,
 }) {
   const { getters } = ctx;
   // Optimisation. This can run once per resource loaded.., so pass in from parent
@@ -130,8 +138,12 @@ export function load(state, {
     }
   } else {
     if (inMap) {
+      // In theory cached `entry` should match provided `existing`, so changes merged from `data` into `entry` should be reflected in `existing`.
+      // However.. there's a disconnect happening somewhere so merge data into `existing` before merging into `entry`
+      const latestEntry = existing && entry !== existing ? replaceResource(existing, data, getters) : data;
+
       // There's already an entry in the store, so merge changes into it. The list entry is a reference to the map (and vice versa)
-      entry = replaceResource(entry, data, getters);
+      entry = replaceResource(entry, latestEntry, getters);
     } else {
       // There's no entry, make a new proxy
       entry = reactive(classify(ctx, data));
@@ -163,6 +175,9 @@ export function load(state, {
       cache.map.set(id, entry);
     }
   }
+
+  // see `invalidatePageCache` description above
+  cache.havePage = invalidatePageCache ? false : cache.havePage;
 
   return entry;
 }
@@ -411,13 +426,18 @@ export default {
   loadSelector(state, {
     type, entries, ctx, selector, revision
   }) {
+    const keyField = ctx.getters.keyFieldForType(type);
     const cache = registerType(state, type);
-    const cachedArgs = createLoadArgs(ctx, entries?.[0]?.type);
+    const proxies = reactive(entries.map((x) => classify(ctx, x)));
 
-    for ( const data of entries ) {
-      load(state, {
-        data, ctx, cachedArgs
-      });
+    clear(cache.list);
+    cache.map.clear();
+    cache.generation++;
+
+    addObjects(cache.list, proxies);
+
+    for ( let i = 0 ; i < proxies.length ; i++ ) {
+      cache.map.set(proxies[i][keyField], proxies[i]);
     }
 
     cache.haveSelector[selector] = true;
@@ -469,29 +489,60 @@ export default {
     data,
     ctx,
     pagination,
+    revision
   }) {
     if (!data) {
       return;
     }
+    // We loop over data three times in this mutator, which is bad
+    // However we're only dealing with pageSize worth of data and splitting out into three loops improves legibility
 
     const keyField = ctx.getters.keyFieldForType(type);
-    const proxies = reactive(data.map((x) => classify(ctx, x)));
+
+    // Why don't we just replace the map? Because we
+    // 1. nav to list, subscribe to changes
+    // 2. nav to resource in list
+    // 3. update to page comes over
+    // 4. need to update the reference the detail list uses
+    const proxiesMap = {};
+    const proxies = reactive(data.map((x) => {
+      proxiesMap[x[keyField]] = true;
+
+      return classify(ctx, x);
+    }));
     const cache = registerType(state, type);
 
-    clear(cache.list);
-    cache.map.clear();
     cache.generation++;
 
+    // Update list
+    clear(cache.list);
     addObjects(cache.list, proxies);
 
+    // Update Map (remove stale)
+    cache.map.forEach((value, key) => {
+      if (!proxiesMap[value[keyField]]) {
+        cache.map.delete(key);
+      }
+    });
+
+    // Update Map (update existing / add latest)
     for ( let i = 0 ; i < proxies.length ; i++ ) {
-      cache.map.set(proxies[i][keyField], proxies[i]);
+      // This could probably be merged with the first loop above
+      const existing = cache.map.get(proxies[i][keyField]);
+      const latest = proxies[i];
+
+      if (existing) {
+        replaceResource(existing, latest, ctx.getters);
+      } else {
+        cache.map.set(latest[keyField], latest);
+      }
     }
 
     // havePage is of type `StorePagination`
     cache.havePage = pagination;
     cache.haveNamespace = undefined;
     cache.haveAll = undefined;
+    cache.revision = revision;
 
     return proxies;
   },

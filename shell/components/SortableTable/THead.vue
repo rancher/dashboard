@@ -162,6 +162,14 @@ export default {
       return col.name === this.sortBy;
     },
 
+    ariaSort(col) {
+      if (this.isCurrent(col)) {
+        return this.descending ? this.t('generic.descending') : this.t('generic.ascending');
+      }
+
+      return this.t('generic.none');
+    },
+
     tableColsOptionsClick(ev) {
       // set menu position
       const menu = document.querySelector('.table-options-container');
@@ -222,6 +230,7 @@ export default {
           data-testid="sortable-table_check_select_all"
           :indeterminate="isIndeterminate"
           :disabled="noRows || noResults"
+          :alternate-label="t('sortableTable.genericGroupCheckbox')"
         />
       </th>
       <th
@@ -235,7 +244,12 @@ export default {
         :align="col.align || 'left'"
         :width="col.width"
         :class="{ sortable: col.sort, [col.breakpoint]: !!col.breakpoint}"
+        :tabindex="col.sort ? 0 : -1"
+        class="sortable-table-head-element"
+        :aria-sort="ariaSort(col)"
         @click.prevent="changeSort($event, col)"
+        @keyup.enter="changeSort($event, col)"
+        @keyup.space="changeSort($event, col)"
       >
         <div
           class="table-header-container"
@@ -245,10 +259,13 @@ export default {
             v-clean-tooltip="tooltip(col)"
             class="content"
           >
-            <span v-clean-html="labelFor(col)" />
+            <span
+              v-clean-html="labelFor(col)"
+              class="text-no-break"
+            />
             <span
               v-if="col.subLabel"
-              class="text-muted"
+              class="text-muted text-no-break"
             >
               {{ col.subLabel }}
             </span>
@@ -256,6 +273,7 @@ export default {
           <div
             v-if="col.sort"
             class="sort"
+            aria-hidden="true"
           >
             <i
               v-show="hasAdvancedFiltering && !col.isFilter"
@@ -267,10 +285,12 @@ export default {
               <i
                 v-if="isCurrent(col) && !descending"
                 class="icon icon-sort-down icon-stack-1x"
+                :alt="t('sortableTable.alt.sortingIconDesc')"
               />
               <i
                 v-if="isCurrent(col) && descending"
                 class="icon icon-sort-up icon-stack-1x"
+                :alt="t('sortableTable.alt.sortingIconAsc')"
               />
             </span>
           </div>
@@ -415,10 +435,7 @@ export default {
         background-color: var(--sortable-table-header-bg);
         color: var(--body-text);
         text-align: left;
-
-        &:not(.loading) {
-          border-bottom: 1px solid var(--sortable-table-top-divider);
-        }
+        border-bottom: 1px solid var(--sortable-table-top-divider);
       }
     }
 
@@ -428,8 +445,13 @@ export default {
       border: 0;
       color: var(--body-text);
 
+      &.sortable-table-head-element:focus-visible {
+        @include focus-outline;
+        outline-offset: -4px;
+      }
+
       .table-header-container {
-        display: flex;
+        display: inline-flex;
 
         .content {
           display: flex;

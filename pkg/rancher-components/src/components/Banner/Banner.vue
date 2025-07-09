@@ -1,7 +1,20 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { nlToBr } from '@shell/utils/string';
+import { nlToBr, generateRandomAlphaString } from '@shell/utils/string';
 import { stringify } from '@shell/utils/error';
+
+/**
+ * These should eventually be used when making this component use the composable api but I need the props elsewhere so I'm defining them here.
+ */
+export interface Props {
+  color?: string;
+  label?: string | Error | Object;
+  labelKey?: string;
+  icon?: string;
+  closable?: boolean;
+  stacked?: boolean;
+  disabled?: boolean;
+}
 
 export default defineComponent({
   props: {
@@ -47,7 +60,18 @@ export default defineComponent({
     stacked: {
       type:    Boolean,
       default: false
-    }
+    },
+    /**
+     * Disabled banner - banner is shown greyed out
+     */
+    disabled: {
+      type:    Boolean,
+      default: false
+    },
+  },
+  emits: ['close'],
+  data() {
+    return { labelledbyId: `banner-labelledby-${ generateRandomAlphaString(12) }` };
   },
   computed: {
     /**
@@ -55,7 +79,7 @@ export default defineComponent({
      */
     messageLabel(): string | void {
       return !(typeof this.label === 'string') ? stringify(this.label) : undefined;
-    }
+    },
   },
   methods: { nlToBr }
 });
@@ -65,7 +89,11 @@ export default defineComponent({
     class="banner"
     :class="{
       [color]: true,
+      'banner-disabled': disabled
     }"
+    role="region"
+    :aria-labelledby="labelledbyId"
+    tabindex="0"
   >
     <div
       v-if="icon"
@@ -75,9 +103,11 @@ export default defineComponent({
       <i
         class="icon icon-2x"
         :class="icon"
+        :alt="t('generic.banners.bannerIcon')"
       />
     </div>
     <div
+      :id="labelledbyId"
       class="banner__content"
       data-testid="banner-content"
       :class="{
@@ -92,7 +122,9 @@ export default defineComponent({
           :k="labelKey"
           :raw="true"
         />
-        <span v-else-if="messageLabel">{{ messageLabel }}</span>
+        <span
+          v-else-if="messageLabel"
+        >{{ messageLabel }}</span>
         <span
           v-else
           v-clean-html="nlToBr(label)"
@@ -101,11 +133,17 @@ export default defineComponent({
       <div
         v-if="closable"
         class="banner__content__closer"
+        tabindex="0"
+        role="button"
+        :aria-label="t('generic.close')"
         @click="$emit('close')"
+        @keyup.enter="$emit('close')"
+        @keyup.space="$emit('close')"
       >
         <i
           data-testid="banner-close"
           class="icon icon-close closer-icon"
+          :alt="t('generic.banners.altCloseBanner')"
         />
       </div>
     </div>
@@ -155,6 +193,10 @@ $icon-size: 24px;
       background: var(--error);
       color: var(--primary-text);
     }
+  }
+
+  &.banner-disabled {
+    filter: grayscale(1);
   }
 
   &__content {
@@ -225,6 +267,7 @@ $icon-size: 24px;
       width: $icon-size;
       line-height: $icon-size;
       text-align: center;
+      outline: none;
 
       .closer-icon {
         opacity: 0.7;
@@ -233,6 +276,11 @@ $icon-size: 24px;
           opacity: 1;
           color: var(--link);
         }
+      }
+
+      &:focus-visible i {
+        @include focus-outline;
+        outline-offset: 2px;
       }
     }
 

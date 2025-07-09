@@ -36,6 +36,7 @@ export const _LIST = 'list';
 export const _CLONE = 'clone';
 export const _STAGE = 'stage';
 export const _IMPORT = 'import';
+export const LEGACY = 'legacy';
 
 export const AS = 'as';
 export const _DETAIL = 'detail';
@@ -63,7 +64,8 @@ export const NAME = 'name';
 export const NAMESPACE = 'namespace';
 export const DESCRIPTION = 'description';
 export const CATEGORY = 'category';
-export const OPERATING_SYSTEM = 'os';
+export const TAG = 'tag';
+export const STATUS = 'status';
 export const DEPRECATED = 'deprecated';
 export const HIDDEN = 'hidden';
 export const FROM_TOOLS = 'tools';
@@ -77,3 +79,6 @@ export const CLOUD_CREDENTIAL = 'cloud';
 // NAMESPACE/PROJECT
 export const PROJECT_ID = 'projectId';
 export const FLAT_VIEW = 'flatView';
+
+// RANCHER OIDC CLIENT
+export const RANCHER_AS_OIDC_QUERY_PARAMS = ['scope', 'client_id', 'redirect_uri', 'response_type'];

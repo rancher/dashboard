@@ -16,7 +16,7 @@ import { _CREATE, _EDIT } from '@shell/config/query-params';
 const HARVESTER = 'harvester';
 
 export default {
-  emits: ['enabled-system-services-changed', 'cilium-values-changed', 'kubernetes-changed', 'show-deprecated-patch-versions-changed', 'cis-changed', 'psa-default-changed'],
+  emits: ['enabled-system-services-changed', 'cilium-values-changed', 'kubernetes-changed', 'show-deprecated-patch-versions-changed', 'compliance-changed', 'psa-default-changed'],
 
   components: {
     Banner,
@@ -53,7 +53,7 @@ export default {
       type:     Object,
       required: true
     },
-    cisOverride: {
+    complianceOverride: {
       type:     Boolean,
       required: true
     },
@@ -157,7 +157,7 @@ export default {
       });
 
       out.unshift({
-        label: this.$store.getters['i18n/t']('cluster.rke2.cisProfile.option'),
+        label: this.$store.getters['i18n/t']('cluster.rke2.complianceProfile.option'),
         value: ''
       });
 
@@ -167,19 +167,19 @@ export default {
     /**
      * Allow to display override if PSA is needed and profile is set
      */
-    hasCisOverride() {
+    hasComplianceOverride() {
       return (this.serverConfig?.profile || this.agentConfig?.profile) &&
         // Also check other cases on when to display the override
-        this.showCisProfile && this.isCisSupported;
+        this.showComplianceProfile && this.isComplianceSupported;
     },
 
     /**
-     * Disable PSA if CIS hardening is enabled, except override
+     * Disable PSA if Compliance hardening is enabled, except override
      */
     isPsaDisabled() {
-      const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
+      const complianceValue = this.agentConfig?.profile || this.serverConfig?.profile;
 
-      return !(!cisValue || this.cisOverride) && this.isCisSupported;
+      return !(!complianceValue || this.complianceOverride) && this.isComplianceSupported;
     },
 
     /**
@@ -218,12 +218,12 @@ export default {
     },
 
     /**
-     * Check if current CIS profile is required and listed in the options
+     * Check if current compliance profile is required and listed in the options
      */
-    isCisSupported() {
-      const cisProfile = this.serverConfig?.profile || this.agentConfig?.profile;
+    isComplianceSupported() {
+      const complianceProfile = this.serverConfig?.profile || this.agentConfig?.profile;
 
-      return !cisProfile || this.profileOptions.map((option) => option.value).includes(cisProfile);
+      return !complianceProfile || this.profileOptions.map((option) => option.value).includes(complianceProfile);
     },
 
     disableOptions() {
@@ -252,7 +252,7 @@ export default {
       return this.selectedVersion?.charts || {};
     },
 
-    showCisProfile() {
+    showComplianceProfile() {
       return (this.provider === 'custom' || this.isElementalCluster) && ( this.serverArgs?.profile || this.agentArgs?.profile );
     },
 
@@ -300,7 +300,7 @@ export default {
       return name === 'rancher-vsphere';
     },
 
-    showk8s21LegacyWarning() {
+    showk8sLegacyWarning() {
       const isLegacyEnabled = this.features(LEGACY);
 
       if (!isLegacyEnabled) {
@@ -437,7 +437,7 @@ export default {
       :label="t('cluster.banner.haveArgInfo')"
     />
     <Banner
-      v-if="showk8s21LegacyWarning"
+      v-if="showk8sLegacyWarning"
       color="warning"
       :label="t('cluster.legacyWarning')"
     />
@@ -573,15 +573,15 @@ export default {
     </h3>
 
     <Banner
-      v-if="showCisProfile && !isCisSupported && isEdit"
+      v-if="showComplianceProfile && !isComplianceSupported && isEdit"
       color="info"
     >
-      <p v-clean-html="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)" />
+      <p v-clean-html="t('cluster.rke2.banner.complianceUnsupported', {profile: serverConfig.profile || agentConfig.profile}, true)" />
     </Banner>
 
     <div class="row mb-10">
       <div
-        v-if="showCisProfile"
+        v-if="showComplianceProfile"
         class="col span-6"
       >
         <LabeledSelect
@@ -589,36 +589,36 @@ export default {
           v-model:value="serverConfig.profile"
           :mode="mode"
           :options="profileOptions"
-          :label="t('cluster.rke2.cis.sever')"
-          @update:value="$emit('cis-changed')"
+          :label="t('cluster.rke2.compliance.sever')"
+          @update:value="$emit('compliance-changed')"
         />
         <LabeledSelect
           v-else-if="agentArgs && agentArgs.profile && agentConfig"
           v-model:value="agentConfig.profile"
-          data-testid="rke2-custom-edit-cis-agent"
+          data-testid="rke2-custom-edit-compliance-agent"
           :mode="mode"
           :options="profileOptions"
-          :label="t('cluster.rke2.cis.agent')"
-          @update:value="$emit('cis-changed')"
+          :label="t('cluster.rke2.compliance.agent')"
+          @update:value="$emit('compliance-changed')"
         />
       </div>
     </div>
 
-    <template v-if="hasCisOverride">
+    <template v-if="hasComplianceOverride">
       <Checkbox
-        :value="cisOverride"
+        :value="complianceOverride"
         :mode="mode"
-        :label="t('cluster.rke2.cis.override')"
+        :label="t('cluster.rke2.compliance.override')"
         @update:value="$emit('psa-default-changed')"
       />
 
       <Banner
-        v-if="cisOverride"
+        v-if="complianceOverride"
         color="warning"
-        :label="t('cluster.rke2.banner.cisOverride')"
+        :label="t('cluster.rke2.banner.complianceOverride')"
       />
       <Banner
-        v-if="!cisOverride"
+        v-if="!complianceOverride"
         color="info"
         :label="t('cluster.rke2.banner.psaChange')"
       />

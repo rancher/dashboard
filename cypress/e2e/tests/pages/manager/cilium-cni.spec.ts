@@ -33,7 +33,7 @@ function reply(statusCode: number, body: any): any {
   };
 }
 
-describe.skip('[Vue3 Skip]: RKE2 Cilium CNI', () => {
+describe('RKE2 Cilium CNI', () => {
   beforeEach(() => {
     cy.login();
   });
@@ -49,7 +49,6 @@ describe.skip('[Vue3 Skip]: RKE2 Cilium CNI', () => {
     clusterList.checkIsCurrentPage();
     clusterList.createCluster();
 
-    createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
     createRKE2ClusterPage.goToDigitalOceanCreation('_');
     createRKE2ClusterPage.waitForPage();
     createRKE2ClusterPage.nameNsDescription().name().set(clusterName);
@@ -105,7 +104,6 @@ describe.skip('[Vue3 Skip]: RKE2 Cilium CNI', () => {
     clusterList.checkIsCurrentPage();
     clusterList.createCluster();
 
-    createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
     createRKE2ClusterPage.goToDigitalOceanCreation('_');
     createRKE2ClusterPage.waitForPage();
     createRKE2ClusterPage.nameNsDescription().name().set(clusterName);

@@ -82,7 +82,7 @@ export const EFFECT = {
 export const STORAGE_CLASS_PROVISIONER = {
   name:     'storage_class_provisioner',
   labelKey: 'tableHeaders.storage_class_provisioner',
-  value:    'provisionerDisplay',
+  value:    'provisionerListDisplay',
   sort:     ['provisioner'],
 };
 
@@ -94,6 +94,9 @@ export const STORAGE_CLASS_DEFAULT = {
   formatter: 'Checked',
 };
 
+/**
+ * spec.csi.driver OR spec[known driver type]
+ */
 export const PERSISTENT_VOLUME_SOURCE = {
   name:     'persistent_volume_source',
   labelKey: 'tableHeaders.persistentVolumeSource',
@@ -101,13 +104,16 @@ export const PERSISTENT_VOLUME_SOURCE = {
   sort:     ['provisioner'],
 };
 
+/**
+ * Link to the PVC associated with PV
+ */
 export const PERSISTENT_VOLUME_CLAIM = {
   name:          'persistent-volume-claim',
   labelKey:      'tableHeaders.persistentVolumeClaim',
-  sort:          ['nameSort'],
+  sort:          ['claimName'],
   value:         'claimName',
   formatter:     'LinkDetail',
-  formatterOpts: { reference: 'claim.detailLocation' },
+  formatterOpts: { reference: 'claim.detailLocation' }
 };
 
 export const OUTPUT = {
@@ -260,11 +266,28 @@ export const CREATION_DATE = {
 };
 
 export const DESCRIPTION = {
-  name:     'description',
-  labelKey: 'tableHeaders.description',
-  align:    'left',
-  sort:     ['description'],
-  width:    300,
+  name:      'description',
+  labelKey:  'tableHeaders.description',
+  align:     'left',
+  value:     'description',
+  sort:      ['description'],
+  formatter: 'Description',
+  width:     300,
+};
+
+export const NS_SNAPSHOT_QUOTA = {
+  name:          'NamespaceSnapshotQuota',
+  labelKey:      'harvester.tableHeaders.totalSnapshotQuota',
+  value:         'snapshotSizeQuota',
+  sort:          'snapshotSizeQuota',
+  align:         'center',
+  formatter:     'Si',
+  formatterOpts: {
+    opts: {
+      increment: 1024, addSuffix: true, suffix: 'i',
+    },
+    needParseSi: false
+  },
 };
 
 export const DURATION = {
@@ -303,15 +326,6 @@ export const POD_RESTARTS = {
   // This column is expensive to compute, so don't make it searchable
   search:       false,
   liveUpdates:  true
-};
-
-export const ENDPOINTS = {
-  name:      'endpoint',
-  labelKey:  'tableHeaders.endpoints',
-  value:     'status.endpoints',
-  formatter: 'Endpoints',
-  width:     60,
-  align:     'center',
 };
 
 export const SCALE = {
@@ -503,6 +517,12 @@ export const LAST_SEEN_TIME = {
   sort:     'lastTimestamp:desc',
   tooltip:  'tableHeaders.lastSeenTooltip'
 };
+
+export const EVENT_LAST_SEEN_TIME = {
+  ...LAST_SEEN_TIME,
+  defaultSort: true,
+};
+
 export const LAST_HEARTBEAT_TIME = {
   name:      'lastHeartbeatTime',
   labelKey:  'tableHeaders.lastSeen',
@@ -642,8 +662,8 @@ export const TARGET_PORT = {
   formatter: 'ServiceTargets',
   labelKey:  'tableHeaders.targetPort',
   name:      'targetPort',
-  sort:      `$['spec']['targetPort']`,
-  value:     `$['spec']['targetPort']`,
+  sort:      false,
+  value:     false,
 };
 
 export const SELECTOR = {
@@ -733,6 +753,52 @@ export const WORKLOAD_HEALTH_SCALE = {
 export const FLEET_SUMMARY = {
   name:      'summary',
   labelKey:  'tableHeaders.resources',
+  value:     'status.resourceCounts',
+  sort:      false,
+  search:    false,
+  formatter: 'FleetSummaryGraph',
+  align:     'center',
+  width:     100,
+};
+
+export const FLEET_APPLICATION_TYPE = {
+  name:     'applicationType',
+  labelKey: 'fleet.tableHeaders.applicationType',
+  value:    'kind',
+  sort:     'kind',
+  search:   false,
+  align:    'center',
+  width:    100,
+};
+
+export const FLEET_APPLICATION_SOURCE = {
+  name:      'applicationSource',
+  labelKey:  'fleet.tableHeaders.applicationSource',
+  value:     'source.value',
+  formatter: 'FleetApplicationSource',
+  sort:      'source.value',
+  search:    ['source.value', 'sourceSub.value'],
+};
+
+export const FLEET_APPLICATION_TARGET = {
+  name:     'applicationTarget',
+  labelKey: 'fleet.tableHeaders.applicationTarget',
+  value:    'targetInfo.modeDisplay',
+  sort:     ['targetInfo.modeDisplay'],
+};
+
+export const FLEET_APPLICATION_CLUSTERS_READY = {
+  name:      'applicationClustersReady',
+  labelKey:  'fleet.tableHeaders.applicationClustersReady',
+  value:     'readyClusters',
+  formatter: 'FleetApplicationClustersReady',
+  sort:      'readyClusters',
+  search:    false,
+};
+
+export const FLEET_APPLICATION_RESOURCES_SUMMARY = {
+  name:      'applicationResourcesSummary',
+  labelKey:  'fleet.tableHeaders.applicationResourcesSummary',
   value:     'status.resourceCounts',
   sort:      false,
   search:    false,
@@ -948,13 +1014,24 @@ export const EXPIRES = {
   formatter: 'LiveExpiryDate'
 };
 
+export const LAST_USED = {
+  name:          'lastUsed',
+  value:         'lastUsedAt',
+  labelKey:      'tableHeaders.lastUsed',
+  align:         'left',
+  sort:          ['lastUsedAt'],
+  width:         200,
+  formatter:     'LiveExpiryDate',
+  formatterOpts: { missingKey: 'generic.unknown' },
+};
+
 export const RESTART = {
   name:      'restart',
   labelKey:  'tableHeaders.restart',
   value:     'restartRequired',
   sort:      ['restartRequired', 'nameSort'],
   formatter: 'Checked',
-  width:     75,
+  width:     125,
   align:     'center'
 };
 
@@ -1021,36 +1098,20 @@ export const FLEET_BUNDLE_LAST_UPDATED = {
   sort:          ['lastUpdateTime']
 };
 
-export const FLEET_BUNDLE_TYPE = {
-  name:     'bundleType',
-  labelKey: 'tableHeaders.fleetBundleType',
-  value:    'bundleType',
-  sort:     ['bundleType'],
-  width:    100,
-};
-
-export const FLEET_REPO_CLUSTERS_READY = {
-  name:     'clustersReady',
-  labelKey: 'tableHeaders.clustersReady',
-  value:    'status.readyClusters',
-  sort:     'status.readyClusters',
-  search:   false,
-};
-
 export const FLEET_REPO_TARGET = {
   name:     'target',
   labelKey: 'tableHeaders.target',
   value:    'targetInfo.modeDisplay',
-  sort:     ['targetInfo.modeDisplay', 'targetInfo.cluster', 'targetInfo.clusterGroup'],
-
+  sort:     ['targetInfo.modeDisplay'],
 };
 
 export const FLEET_REPO = {
-  name:     'repo',
-  labelKey: 'tableHeaders.repo',
-  value:    'repoDisplay',
-  sort:     'repoDisplay',
-  search:   ['spec.repo', 'status.commit'],
+  name:      'repo',
+  labelKey:  'tableHeaders.repo',
+  value:     'source.value',
+  formatter: 'FleetApplicationSource',
+  sort:      'source.value',
+  search:    ['source.value', 'sourceSub.value'],
 };
 
 export const UI_PLUGIN_CATALOG = [

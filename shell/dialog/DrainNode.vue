@@ -137,7 +137,7 @@ export default {
           {{ t('drainNode.titleMultiple', { count: kubeNodes.length }) }}
         </template>
         <template v-else>
-          {{ t('drainNode.titleOne', { name: kubeNodes[0].name }, true) }}
+          {{ t('drainNode.titleOne', { name: kubeNodes[0]?.name }, true) }}
         </template>
       </h4>
     </template>
@@ -146,7 +146,7 @@ export default {
       <div class="pl-10 pr-10">
         <div>
           <RadioGroup
-            v-model="body.deleteLocalData"
+            v-model:value="body.deleteLocalData"
             name="deleteLocalData"
             :options="radioOptions"
             :row="true"
@@ -157,7 +157,7 @@ export default {
             </template>
           </RadioGroup>
           <RadioGroup
-            v-model="body.force"
+            v-model:value="body.force"
             name="force"
             :options="radioOptions"
             :row="true"
@@ -168,7 +168,7 @@ export default {
             </template>
           </RadioGroup>
           <RadioGroup
-            v-model="gracePeriod"
+            v-model:value="gracePeriod"
             name="gracePeriod"
             :options="gracePeriodOptions"
             class="mb-15"
@@ -178,7 +178,7 @@ export default {
             </template>
           </RadioGroup>
           <UnitInput
-            v-model="body.gracePeriod"
+            v-model:value="body.gracePeriod"
             :mode="gracePeriod ? EDIT : VIEW"
             type="number"
             min="1"
@@ -187,7 +187,7 @@ export default {
             class="mb-10"
           />
           <RadioGroup
-            v-model="timeout"
+            v-model:value="timeout"
             name="timeout"
             :options="timeoutOptions"
             class="mb-15"
@@ -197,7 +197,7 @@ export default {
             </template>
           </RadioGroup>
           <UnitInput
-            v-model="body.timeout"
+            v-model:value="body.timeout"
             :mode="timeout ? EDIT : VIEW"
             type="number"
             min="1"

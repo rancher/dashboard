@@ -14,6 +14,7 @@ import Socket, {
   EVENT_CONNECT_ERROR,
 } from '@shell/utils/socket';
 import Window from './Window';
+import dayjs from 'dayjs';
 
 const commands = {
   linux: [
@@ -73,22 +74,24 @@ export default {
 
   data() {
     return {
-      container:      this.initialContainer || this.pod?.defaultContainerName,
-      socket:         null,
-      terminal:       null,
-      fitAddon:       null,
-      searchAddon:    null,
-      webglAddon:     null,
-      canvasAddon:    null,
-      isOpen:         false,
-      isOpening:      false,
-      backlog:        [],
-      node:           null,
-      keepAliveTimer: null,
-      errorMsg:       '',
-      backupShells:   ['linux', 'windows'],
-      os:             undefined,
-      retries:        0
+      container:         this.initialContainer || this.pod?.defaultContainerName,
+      socket:            null,
+      terminal:          null,
+      fitAddon:          null,
+      searchAddon:       null,
+      webglAddon:        null,
+      canvasAddon:       null,
+      isOpen:            false,
+      isOpening:         false,
+      backlog:           [],
+      node:              null,
+      keepAliveTimer:    null,
+      errorMsg:          '',
+      backupShells:      ['linux', 'windows'],
+      os:                undefined,
+      retries:           0,
+      currFocusedElem:   undefined,
+      xtermContainerRef: undefined
     };
   },
 
@@ -105,7 +108,20 @@ export default {
     containerChoices() {
       return this.pod?.spec?.containers?.map((x) => x.name) || [];
     },
-    ...mapGetters({ t: 'i18n/t' })
+
+    ...mapGetters({ t: 'i18n/t' }),
+
+    isXtermFocused() {
+      return this.currFocusedElem === this.terminal?.textarea;
+    },
+
+    isXtermContainerFocused() {
+      return this.currFocusedElem === this.xtermContainerRef;
+    },
+
+    xTermContainerTabIndex() {
+      return this.isXtermFocused ? 0 : -1;
+    }
   },
 
   watch: {
@@ -120,14 +136,33 @@ export default {
     width() {
       this.fit();
     },
+
+    isXtermContainerFocused: {
+      handler(neu) {
+        const shellEl = this.terminal?.textarea;
+
+        if (shellEl) {
+          shellEl.tabIndex = neu ? -1 : 0;
+        }
+      },
+      immediate: true
+    }
   },
 
   beforeUnmount() {
+    document.removeEventListener('keyup', this.handleKeyPress);
+    this.$refs?.containerShell?.$el?.removeEventListener('focusin', this.focusInHandler);
+    this.$refs?.xterm.removeEventListener('focusout', this.focusOutHandler);
+
     clearInterval(this.keepAliveTimer);
     this.cleanup();
   },
 
   async mounted() {
+    document.addEventListener('keyup', this.handleKeyPress);
+    this.$refs?.containerShell?.$el?.addEventListener('focusin', this.focusInHandler);
+    this.$refs?.xterm.addEventListener('focusout', this.focusOutHandler);
+
     const nodeId = this.pod.spec?.nodeName;
 
     try {
@@ -145,9 +180,36 @@ export default {
     this.keepAliveTimer = setInterval(() => {
       this.fit();
     }, 60 * 1000);
+
+    this.xtermContainerRef = this.$refs?.xterm;
   },
 
   methods: {
+    focusInHandler(ev) {
+      this.currFocusedElem = ev.target;
+    },
+
+    focusOutHandler(ev) {
+      this.currFocusedElem = undefined;
+    },
+
+    handleKeyPress(ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      // make focus leave the shell for it's parent container so that we can tab
+      const didPressEscapeSequence = ev.shiftKey && ev.code === 'Escape';
+
+      if (this.isXtermFocused && didPressEscapeSequence) {
+        this.$refs.xterm.focus();
+      }
+
+      // if parent container is focused and we press a trigger, focus goes to the shell inside
+      if (this.isXtermContainerFocused && (ev.code === 'Enter' || ev.code === 'Space')) {
+        this.terminal?.textarea?.focus();
+      }
+    },
+
     async setupTerminal() {
       const docStyle = getComputedStyle(document.querySelector('body'));
       const xterm = await import(/* webpackChunkName: "xterm" */ 'xterm');
@@ -287,7 +349,7 @@ export default {
 
         // If we had an error message, try connecting with the next command
         if (this.errorMsg) {
-          this.terminal.write(this.errorMsg);
+          this.terminal.writeln(this.errorMsg);
           if (this.backupShells.length && this.retries < 2) {
             this.retries++;
             // we're not really counting on this being a reactive change so there's no need to fire the whole action
@@ -299,7 +361,9 @@ export default {
             this.connect();
           } else {
             // Output an message to let he user know none of the shell commands worked
-            this.terminal.write(this.t('wm.containerShell.failed'));
+            const timestamp = dayjs().format('YYYY-MM-DD HH:mm:ss');
+
+            this.terminal.writeln(`[${ timestamp }] ${ this.t('wm.containerShell.logLevel.info') }: ${ this.t('wm.containerShell.failed') }`);
           }
         }
       });
@@ -317,10 +381,16 @@ export default {
           }
           this.terminal.write(msg);
         } else {
-          console.error(msg); // eslint-disable-line no-console
+          const timestamp = dayjs().format('YYYY-MM-DD HH:mm:ss');
+          let customError = `[${ timestamp }] ${ this.t('wm.containerShell.logLevel.error') }: ${ this.container }: ${ msg }`;
+
+          if (msg.includes('stat /bin/sh: no such file or directory')) {
+            customError = `[${ timestamp }] ${ this.t('wm.containerShell.logMessage.containerError', { logLevel: this.t('wm.containerShell.logLevel.error') }) }: ${ msg }`;
+          }
+          console.error(customError); // eslint-disable-line no-console
 
           if (`${ type }` === '3') {
-            this.errorMsg = msg;
+            this.errorMsg = customError;
           }
         }
       });
@@ -379,6 +449,7 @@ export default {
 
 <template>
   <Window
+    ref="containerShell"
     :active="active"
     :before-close="cleanup"
     class="container-shell"
@@ -403,7 +474,9 @@ export default {
       </Select>
       <div class="pull-left ml-5">
         <button
-          class="btn btn-sm bg-primary"
+          class="btn btn-sm role-primary"
+          role="button"
+          :aria-label="t('wm.containerShell.clear')"
           @click="clear"
         >
           <t
@@ -430,6 +503,12 @@ export default {
           class="text-error"
           data-testid="shell-status-disconnected"
         />
+        <span
+          v-show="isXtermFocused"
+          class="escape-text"
+          role="alert"
+          :aria-describedby="t('wm.containerShell.escapeText')"
+        >{{ t('wm.containerShell.escapeText') }}</span>
       </div>
     </template>
     <template #body>
@@ -439,6 +518,7 @@ export default {
       >
         <div
           ref="xterm"
+          :tabindex="xTermContainerTabIndex"
           class="shell-body"
         />
         <resize-observer @notify="fit" />
@@ -455,6 +535,11 @@ export default {
 .container-shell {
   .text-warning {
     animation: flasher 2.5s linear infinite;
+  }
+
+  .escape-text {
+    font-size: 12px;
+    margin-left: 20px;
   }
 
   @keyframes flasher {
@@ -474,6 +559,11 @@ export default {
   .shell-body {
     padding: calc(2 * var(--outline-width));
     height: 100%;
+
+    &:focus-visible, &:focus {
+      @include focus-outline;
+      outline-offset: -2px;
+    }
   }
 
   .containerPicker.unlabeled-select {

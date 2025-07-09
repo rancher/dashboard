@@ -12,6 +12,7 @@
   --primary-border             : #{$primary};
   --primary-banner-bg          : #{rgba($primary, 0.15)};
   --primary-light-bg           : #{rgba($primary, 0.05)};
+  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
 
   --info                    : #{$info};
   --info-text               : #{contrast-color($info)};

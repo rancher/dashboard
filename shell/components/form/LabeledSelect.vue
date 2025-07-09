@@ -5,10 +5,13 @@ import { get } from '@shell/utils/object';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
+import { generateRandomAlphaString } from '@shell/utils/string';
 import LabeledSelectPagination from '@shell/components/form/labeled-select-utils/labeled-select-pagination';
 import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
-
-// In theory this would be nicer as LabeledSelect/index.vue, however that would break a lot of places where we import this (which includes extensions)
+import { mapGetters } from 'vuex';
+import { _VIEW } from '@shell/config/query-params';
+import { useClickOutside } from '@shell/composables/useClickOutside';
+import { ref } from 'vue';
 
 export default {
   name: 'LabeledSelect',
@@ -23,7 +26,7 @@ export default {
     LabeledSelectPagination
   ],
 
-  emits: ['on-open', 'on-close', 'selecting', 'update:validation', 'update:value'],
+  emits: ['on-open', 'on-close', 'selecting', 'deselecting', 'search', 'update:validation', 'update:value'],
 
   props: {
     appendToBody: {
@@ -114,14 +117,28 @@ export default {
     }
   },
 
+  setup() {
+    const select = ref(null);
+    const isOpen = ref(false);
+
+    useClickOutside(select, () => {
+      isOpen.value = false;
+    });
+
+    return { isOpen, select };
+  },
+
   data() {
     return {
-      selectedVisibility: 'visible',
-      shouldOpen:         true
+      selectedVisibility:   'visible',
+      shouldOpen:           true,
+      labeledSelectLabelId: `ls-label-id-${ generateRandomAlphaString(12) }`,
+      generatedUid:         `ls-uid-${ generateRandomAlphaString(12) }`
     };
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
     hasLabel() {
       return this.isCompact ? false : !!this.label || !!this.labelKey || !!this.$slots.label;
     },
@@ -144,14 +161,30 @@ export default {
 
       return rest;
     },
+
+    // update placeholder text to inform user they can add their own opts when none are found
+    showTagPrompts() {
+      return !this.options.length && this.$attrs.taggable && this.isSearchable;
+    }
   },
 
   methods: {
+    // Ensure we only focus on open, otherwise we re-open on close
+    clickSelect() {
+      if (this.mode === _VIEW || this.loading === true || this.disabled === true) {
+        return;
+      }
+
+      this.isOpen = !this.isOpen;
+
+      if (this.isOpen) {
+        this.focusSearch();
+      }
+    },
+
     // resizeHandler = in mixin
     focusSearch() {
-      const blurredAgo = Date.now() - this.blurred;
-
-      if (!this.focused && blurredAgo < 250) {
+      if (this.isView || this.disabled || this.loading) {
         return;
       }
 
@@ -162,6 +195,10 @@ export default {
           el.focus();
         }
       });
+    },
+
+    focusWrapper() {
+      this.$refs.select.focus();
     },
 
     onFocus() {
@@ -175,12 +212,27 @@ export default {
     },
 
     onOpen() {
+      this.focusSearch();
       this.$emit('on-open');
       this.resizeHandler();
     },
 
+    closeOnSelecting(e) {
+      if (e.value === this.value) {
+        this.close();
+      }
+
+      this.$emit('selecting', e);
+    },
+
+    close() {
+      this.isOpen = false;
+      this.onClose();
+    },
+
     onClose() {
       this.$emit('on-close');
+      this.focusWrapper();
     },
 
     getOptionLabel(option) {
@@ -215,6 +267,10 @@ export default {
     },
 
     dropdownShouldOpen(instance, forceOpen = false) {
+      if (!this.isOpen) {
+        return false;
+      }
+
       const { noDrop, mutableLoading } = instance;
       const { open } = instance;
       const shouldOpen = this.shouldOpen;
@@ -233,7 +289,7 @@ export default {
       return noDrop ? false : open && shouldOpen && !mutableLoading;
     },
 
-    onSearch(newSearchString) {
+    onSearch(newSearchString, loading) {
       if (this.canPaginate) {
         this.setPaginationFilter(newSearchString);
       } else {
@@ -241,6 +297,7 @@ export default {
           this.dropdownShouldOpen(this.$refs['select-input'], true);
         }
       }
+      this.$emit('search', newSearchString, loading);
     },
 
     getOptionKey(opt) {
@@ -256,6 +313,7 @@ export default {
 
 <template>
   <div
+    :id="hasLabel ? labeledSelectLabelId : undefined"
     ref="select"
     class="labeled-select"
     :class="[
@@ -272,14 +330,24 @@ export default {
         'no-label': !hasLabel
       }
     ]"
-    @click="focusSearch"
-    @focus="focusSearch"
+    :tabindex="isView || disabled ? -1 : 0"
+    role="combobox"
+    :aria-expanded="isOpen"
+    :aria-describedby="$attrs['aria-describedby'] || undefined"
+    :aria-required="requiredField"
+    @click="clickSelect"
+    @keydown.self.enter="clickSelect"
+    @keydown.self.down.prevent="clickSelect"
+    @keydown.self.space.prevent="clickSelect"
   >
     <div
       :class="{ 'labeled-container': true, raised, empty, [mode]: true }"
       :style="{ border: 'none' }"
     >
-      <label v-if="hasLabel">
+      <label
+        v-if="hasLabel"
+        :for="labeledSelectLabelId"
+      >
         <t
           v-if="labelKey"
           :k="labelKey"
@@ -289,6 +357,7 @@ export default {
         <span
           v-if="requiredField"
           class="required"
+          :aria-hidden="true"
         >*</span>
       </label>
     </div>
@@ -296,6 +365,7 @@ export default {
       ref="select-input"
       v-bind="filteredAttrs"
       class="inline"
+      :close-on-select="false"
       :append-to-body="appendToBody"
       :calculate-position="positionDropdown"
       :class="{ 'no-label': !(label || '').length}"
@@ -313,17 +383,27 @@ export default {
       :selectable="selectable"
       :modelValue="value != null && !loading ? value : ''"
       :dropdown-should-open="dropdownShouldOpen"
-
+      :tabindex="-1"
+      :uid="generatedUid"
+      :aria-label="'-'"
       @update:modelValue="$emit('selecting', $event); $emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
       @search="onSearch"
       @open="onOpen"
       @close="onClose"
-      @option:selected="$emit('selecting', $event)"
+      @option:selecting="closeOnSelecting"
+      @option:selected="close"
+      @option:deselecting="$emit('deselecting', $event)"
+      @keydown.enter.stop
     >
       <template #option="option">
-        <template v-if="option.kind === 'group'">
+        <template v-if="showTagPrompts">
+          <div class="only-user-opts">
+            {{ t('labeledSelect.pressEnter', {input:getOptionLabel(option.label)}) }}
+          </div>
+        </template>
+        <template v-else-if="option.kind === 'group'">
           <div class="vs__option-kind-group">
             <i
               v-if="option.icon"
@@ -337,7 +417,7 @@ export default {
           </div>
         </template>
         <template v-else-if="option.kind === 'divider'">
-          <hr>
+          <hr role="none">
         </template>
         <template v-else-if="option.kind === 'highlighted'">
           <div class="option-kind-highlighted">
@@ -372,7 +452,7 @@ export default {
 
       <template #list-footer>
         <div
-          v-if="canPaginate && totalResults"
+          v-if="canPaginate && totalResults && pages > 1"
           class="pagination-slot"
         >
           <div class="load-more">
@@ -395,8 +475,11 @@ export default {
       </template>
       <template #no-options="{ search }">
         <div class="no-options-slot">
+          <template v-if="showTagPrompts">
+            <span v-if="!searching">{{ t('labeledSelect.startTyping') }}</span>
+          </template>
           <div
-            v-if="paginating"
+            v-else-if="paginating"
             class="paginating"
           >
             <i class="icon icon-spinner icon-spin" />
@@ -674,4 +757,10 @@ $icon-size: 18px;
   }
 }
 
+.vs__dropdown-menu .vs__dropdown-option .only-user-opts{
+    color: var(--dropdown-text);
+    background-color: var(--dropdown-bg);
+    margin: 0px calc(-#{$input-padding-sm}/2);
+    padding: 3px 20px;
+}
 </style>

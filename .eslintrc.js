@@ -1,5 +1,8 @@
 module.exports = {
-  env:     { jest: true },
+  env: {
+    jest:                        true,
+    'vue/setup-compiler-macros': true,
+  },
   extends: [
     '.eslintrc.default.js'
   ],
@@ -59,7 +62,8 @@ module.exports = {
     '@typescript-eslint/no-var-requires':         'off',
     'vue/one-component-per-file':                 'off',
     'vue/no-deprecated-slot-attribute':           'off',
-    'vue/v-on-event-hyphenation':                 'off'
+    'vue/v-on-event-hyphenation':                 'off',
+    'jest/no-hooks':                              'off',
   },
   overrides: [
     {

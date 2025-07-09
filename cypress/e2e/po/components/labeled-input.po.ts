@@ -24,7 +24,7 @@ export default class LabeledInputPo extends ComponentPo {
    * @param secret Pass in true to hide sensitive data from logs
    * @returns
    */
-  set(value: string, secret?: boolean): Cypress.Chainable {
+  set(value: any, secret?: boolean): Cypress.Chainable {
     this.input().should('be.visible');
     this.input().focus();
     this.input().clear();
@@ -48,6 +48,14 @@ export default class LabeledInputPo extends ComponentPo {
     return this.input().then(($element) => {
       return $element.prop('value');
     });
+  }
+
+  expectToBeDisabled(): Cypress.Chainable {
+    return this.self().should('have.attr', 'disabled', 'disabled');
+  }
+
+  expectToBeEnabled(): Cypress.Chainable {
+    return this.self().should('not.have.attr', 'disabled');
   }
 
   /**

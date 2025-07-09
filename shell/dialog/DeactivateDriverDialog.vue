@@ -31,15 +31,15 @@ export default {
   },
   computed: {
     formattedText() {
-      const namesSliced = this.drivers.map((obj) => obj.nameDisplay).slice(0, 5);
-      const remaining = this.drivers.length - namesSliced.length;
+      const driverNames = this.drivers.map((obj) => obj.nameDisplay);
+      const count = driverNames.length;
+      const remaining = driverNames.length > 5 ? driverNames.length - 5 : 0;
 
       const plusMore = this.t('drivers.deactivate.andOthers', { count: remaining });
-      const names = resourceNames(namesSliced, plusMore, this.t);
-      const count = remaining || namesSliced.length;
+      const names = resourceNames(driverNames, plusMore, this.t, false);
       const warningDrivers = this.t('drivers.deactivate.warningDrivers', { names, count });
 
-      return this.t('drivers.deactivate.warning', { warningDrivers, count: namesSliced.length });
+      return this.t('drivers.deactivate.warning', { warningDrivers, count });
     },
     ...mapGetters({ t: 'i18n/t' }),
   },
@@ -91,6 +91,7 @@ export default {
           :key="i"
           color="error"
           :label="err"
+          data-testid="deactivate-driver-error-banner"
         />
       </div>
     </template>

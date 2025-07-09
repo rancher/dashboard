@@ -1,4 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 export default class ClusterToolsPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -13,6 +14,12 @@ export default class ClusterToolsPagePo extends PagePo {
     super(ClusterToolsPagePo.createPath(clusterId));
   }
 
+  static navTo() {
+    const sideNav = new ProductNavPo();
+
+    sideNav.navToSideMenuEntryByLabel('Tools');
+  }
+
   featureChartCards(): Cypress.Chainable {
     return cy.get('.grid > .item');
   }
@@ -21,12 +28,16 @@ export default class ClusterToolsPagePo extends PagePo {
     return this.featureChartCards().eq(index);
   }
 
+  getCardByName(name: string): Cypress.Chainable {
+    return this.featureChartCards().get(`[data-testid="cluster-tools-app-cluster/rancher-charts/${ name }"]`);
+  }
+
   goToInstall(index: number) {
     return this.getCardByIndex(index).find('.btn').contains('Install').click();
   }
 
-  deleteChart(index: number) {
-    return this.getCardByIndex(index).find('.action .btn').eq(0).click();
+  deleteChart(name: string) {
+    return this.getCardByName(name).find('.action .btn').eq(0).click();
   }
 
   editChart(index: number) {

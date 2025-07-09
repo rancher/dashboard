@@ -34,6 +34,10 @@
 
   $drag-over: #DCDEE7;
 
+  $slate: #4B4F6B;
+
+  --slate: #{$slate};
+
   --default                    : #{$dark};
   --default-text               : #{$light};
   --default-hover-bg           : #{darken($dark, 10%)};
@@ -66,7 +70,7 @@
   --banner-text-color          : #{$lightest};
 
   --nav-bg                     : #{$darkest};
-  --nav-active                 : var(--primary-active-bg);
+  --nav-active                 : #333;
   --nav-border                 : #{$medium};
   --nav-hover                  : var(--primary);
   --nav-expander-hover         : var(--primary-banner-bg);
@@ -109,11 +113,13 @@
   --dropdown-active-text       : #{$lightest};
   --dropdown-active-bg         : #{$light};
   --dropdown-hover-text        : #{$lightest};
-  --dropdown-hover-bg          : var(--link);
+  --dropdown-hover-bg          : #{$slate};
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-disabled-text     : #{$disabled};
-  --dropdown-group-text        : #{$disabled};
+  --dropdown-group-text        : #{$lighter};
   --dropdown-highlight-text    : var(--link);
+
+  --notification-unread-bg     : var(--primary-banner-bg);
 
   --input-text                 : #{$lightest};
   --input-label                : #{$lighter};
@@ -130,6 +136,8 @@
   --input-disabled-placeholder : #{darken($disabled, 10%)};
   --input-addon-bg             : #{$darker};
 
+  --label-secondary           : #{$lighter};
+
   --progress-bg                : #{$medium};
   --progress-divider           : #{$lightest};
 
@@ -144,7 +152,7 @@
   --tag-primary                : #{$lightest};
   --tag-bg                     : #{$medium};
 
-  --popover-bg                 : var(--body-bg);
+  --popover-bg                 : #{$darker};
   --popover-border             : var(--border);
   --popover-text               : var(--body-text);
 
@@ -159,6 +167,7 @@
   --tabbed-container-bg        : #{mix($medium, $dark, 20%)};
 
   --yaml-editor-bg             : #{$darkest};
+  --drawer-body-bg             : #{$darkest};
 
   --diff-border                : var(--border);
   --diff-header-bg             : var(--nav-bg);
@@ -217,4 +226,35 @@
 
   --product-icon               : #{$lighter};
   --product-icon-active        : #{$lightest};
+
+  --badge-state-disabled-text  : #{$desc-light};
+  --badge-state-disabled-bg    : #{$medium};
+  --badge-state-disabled-border: #{$lighter};
+
+  --click-badge-error          : #{$lightest};
+  --click-badge-error-bg       : #F43434;
+  --click-badge-error-border   : #FF8080;
+
+  --click-badge-warning        : #662E00;
+  --click-badge-warning-bg     : #FFCA4D;
+  --click-badge-warning-border : #F2870D;
+
+  --click-badge-success        : #00FF32;
+  --click-badge-success-bg     : #354240;
+  --click-badge-success-border : #4DFF70;
+  
+  --click-badge-info           : #{$lightest};
+  --click-badge-info-bg        : #{$info};
+  --click-badge-info-border    : #ACD2EC;
+  --bubble-bg                  : #{$darkest};
+
+  $slate: #4B4F6B;
+
+  --slate: #{$slate};
+
+  --link-text-secondary: #{$secondary};
+
+  .secondary-text-link {
+    color: var(--link-text-secondary);
+  }
 }

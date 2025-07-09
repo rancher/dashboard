@@ -1,4 +1,3 @@
-import ToggleSwitchPo from '@/cypress/e2e/po/components/toggle-switch.po';
 import ClusterManagerCreateImportPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/cluster-create-import.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 
@@ -22,24 +21,16 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
     super(ClusterManagerCreatePagePo.createPath(clusterId, queryParams));
   }
 
-  rke1PageTitle(): Cypress.Chainable<string> {
-    return cy.iFrame().find('.header h1').invoke('text');
-  }
-
   rke2PageTitle(): Cypress.Chainable<string> {
-    return this.self().find('.primaryheader h1').invoke('text');
-  }
-
-  rkeToggle() {
-    return new ToggleSwitchPo('.toggle-container', this.self());
-  }
-
-  rkeToggleExistance(assertion: string) {
-    this.self().find('.toggle-container').should(assertion);
+    return this.self().find('.title-bar h1.title, .primaryheader h1').invoke('text');
   }
 
   gridElementExistanceByName(name: string, assertion: string) {
     return this.self().contains('.grid .name', name, { timeout: 10000 }).should(assertion);
+  }
+
+  gridElementGroupTitles() {
+    return this.self().find('.subtypes-container > div > h4');
   }
 
   selectKubeProvider(index: number) {
@@ -68,5 +59,9 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
 
   credentialsBanner() {
     return new BannersPo(this.self().find('.banner').contains(`Ok, Let's create a new credential`));
+  }
+
+  errorsBanner() {
+    return new BannersPo('.banner.error', this.self());
   }
 }

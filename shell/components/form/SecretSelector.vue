@@ -70,7 +70,7 @@ export default {
       secrets:            null,
       SECRET,
       allSecretsSettings: {
-        mapResult: (secrets) => {
+        updateResources: (secrets) => {
           const allSecretsInNamespace = secrets.filter((secret) => this.types.includes(secret._type) && secret.namespace === this.namespace);
           const mappedSecrets = this.mapSecrets(allSecretsInNamespace.sort((a, b) => a.name.localeCompare(b.name)));
 
@@ -81,7 +81,7 @@ export default {
       },
       paginateSecretsSetting: {
         requestSettings: this.paginatePageOptions,
-        mapResult:       (secrets) => {
+        updateResources: (secrets) => {
           const mappedSecrets = this.mapSecrets(secrets);
 
           this.secrets = secrets; // We need the key from the selected secret. When paginating we won't touch the store, so just pass back here
@@ -173,11 +173,18 @@ export default {
     paginatePageOptions(opts) {
       const { opts: { filter } } = opts;
 
-      const filters = !!filter ? [PaginationParamFilter.createSingleField({ field: 'metadata.name', value: filter })] : [];
+      const filters = !!filter ? [PaginationParamFilter.createSingleField({
+        field: 'metadata.name', value: filter, exact: false, equals: true
+      })] : [];
 
       filters.push(
         PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: this.namespace }),
-        PaginationParamFilter.createSingleField({ field: 'metadata.fields.1', value: this.types.join(',') })
+        PaginationParamFilter.createMultipleFields(this.types.map((t) => ({
+          field:  'metadata.fields.1',
+          equals: true,
+          exact:  true,
+          value:  t
+        })))
       );
 
       return {

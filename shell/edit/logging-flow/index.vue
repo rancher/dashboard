@@ -18,7 +18,13 @@ import { clone } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { exceptionToErrorsArray } from '@shell/utils/error';
+import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 import Match from './Match';
+
+const FLOW_LOGGING = 'Logging';
+const FLOW_AUDIT = 'Audit';
+const FLOW_EVENT = 'Event';
+const FLOW_TYPE = [FLOW_LOGGING, FLOW_AUDIT, FLOW_EVENT];
 
 function emptyMatch(include = true) {
   const rule = {
@@ -53,19 +59,23 @@ export default {
   inheritAttrs: false,
 
   async fetch() {
-    const hasAccessToClusterOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.CLUSTER_OUTPUT);
-    const hasAccessToOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.OUTPUT);
+    const currentCluster = this.$store.getters['currentCluster'];
+    const inStore = currentCluster.isHarvester ? VIRTUAL : 'cluster';
+    const hasAccessToClusterOutputs = this.$store.getters[`${ inStore }/schemaFor`](LOGGING.CLUSTER_OUTPUT);
+    const hasAccessToOutputs = this.$store.getters[`${ inStore }/schemaFor`](LOGGING.OUTPUT);
     const hasAccessToNamespaces = this.$store.getters[`cluster/schemaFor`](NAMESPACE);
-    const hasAccessToNodes = this.$store.getters[`cluster/schemaFor`](NODE);
+    const hasAccessToNodes = this.$store.getters[`${ inStore }/schemaFor`](NODE);
     const isFlow = this.value.type === LOGGING.FLOW;
 
     const getAllOrDefault = (type, hasAccess) => {
-      return hasAccess ? this.$store.dispatch('cluster/findAll', { type }) : Promise.resolve([]);
+      return hasAccess ? this.$store.dispatch(`${ inStore }/findAll`, { type }) : Promise.resolve([]);
     };
 
     const hash = await allHash({
       allOutputs:        getAllOrDefault(LOGGING.OUTPUT, isFlow && hasAccessToOutputs),
       allClusterOutputs: getAllOrDefault(LOGGING.CLUSTER_OUTPUT, hasAccessToClusterOutputs),
+      // Can't remove allNamespaces yet given https://github.com/harvester/harvester/issues/7342 and
+      // https://github.com/harvester/harvester-ui-extension/blob/main/pkg/harvester/edit/harvesterhci.io.logging.clusteroutput.vue
       allNamespaces:     getAllOrDefault(NAMESPACE, hasAccessToNamespaces),
       allNodes:          getAllOrDefault(NODE, hasAccessToNodes),
     });
@@ -76,7 +86,9 @@ export default {
   },
 
   data() {
-    const schemas = this.$store.getters['cluster/all'](SCHEMA);
+    const currentCluster = this.$store.getters['currentCluster'];
+    const inStore = currentCluster.isHarvester ? VIRTUAL : 'cluster';
+    const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
     let filtersYaml;
 
     this.value.spec = this.value.spec || {};
@@ -120,11 +132,11 @@ export default {
       allClusterOutputs:  null,
       allNamespaces:      null,
       allNodes:           null,
-      allPods:            null,
       filtersYaml,
       initialFiltersYaml: filtersYaml,
       globalOutputRefs,
-      localOutputRefs
+      localOutputRefs,
+      loggingType:        clone(this.value.loggingType || FLOW_LOGGING)
     };
   },
 
@@ -150,7 +162,17 @@ export default {
           return true;
         }
 
-        return output.namespace === this.value.namespace;
+        const isEqualNs = output.namespace === this.value.namespace;
+
+        if (!this.isHarvester) {
+          return isEqualNs;
+        }
+
+        if (this.loggingType === FLOW_AUDIT) {
+          return output.loggingType === FLOW_AUDIT && isEqualNs;
+        }
+
+        return output.loggingType !== FLOW_AUDIT && isEqualNs;
       }).map((x) => {
         return { label: x.metadata.name, value: x.metadata.name };
       });
@@ -165,7 +187,17 @@ export default {
 
       return this.allClusterOutputs
         .filter((clusterOutput) => {
-          return clusterOutput.namespace === 'cattle-logging-system';
+          const isEqualNs = clusterOutput.namespace === 'cattle-logging-system';
+
+          if (!this.isHarvester) {
+            return isEqualNs;
+          }
+
+          if (this.loggingType === FLOW_AUDIT) {
+            return clusterOutput.loggingType === FLOW_AUDIT && isEqualNs;
+          }
+
+          return clusterOutput.loggingType !== FLOW_AUDIT && isEqualNs;
         })
         .map((clusterOutput) => {
           return { label: clusterOutput.metadata.name, value: clusterOutput.metadata.name };
@@ -204,6 +236,13 @@ export default {
       return out;
     },
 
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === VIRTUAL;
+    },
+
+    flowTypeOptions() {
+      return FLOW_TYPE;
+    },
   },
 
   watch: {
@@ -312,6 +351,20 @@ export default {
       if (this.value.spec.match && this.isMatchEmpty(this.value.spec.match)) {
         delete this.value.spec['match'];
       }
+
+      if (this.loggingType === FLOW_AUDIT) {
+        this.value.spec['loggingRef'] = 'harvester-kube-audit-log-ref';
+      }
+
+      if (this.loggingType === FLOW_EVENT) {
+        const eventSelector = { select: { labels: { 'app.kubernetes.io/name': 'event-tailer' } } };
+
+        if (!this.value.spec.match) {
+          this.value.spec['match'] = [eventSelector];
+        } else {
+          this.value.spec.match.push(eventSelector);
+        }
+      }
     },
     onYamlEditorReady(cm) {
       cm.getMode().fold = 'yamlcomments';
@@ -351,6 +404,7 @@ export default {
 
     <Tabbed
       :side-tabs="true"
+      :use-hash="useTabbedHash"
       @changed="tabChanged($event)"
     >
       <Tab
@@ -359,10 +413,21 @@ export default {
         :weight="3"
       >
         <Banner
+          v-if="!isHarvester"
           color="info"
           class="mt-0"
           :label="t('logging.flow.matches.banner')"
         />
+        <div v-if="isHarvester">
+          <LabeledSelect
+            v-model:value="loggingType"
+            class="mb-20"
+            :options="flowTypeOptions"
+            :mode="mode"
+            :disabled="!isCreate"
+            :label="t('generic.type')"
+          />
+        </div>
         <ArrayListGrouped
           v-model:value="matches"
           :add-label="t('ingress.rules.addRule')"

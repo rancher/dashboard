@@ -44,25 +44,9 @@ export default {
   },
 
   data() {
-    const rows = clone(this.value || []).map((row) => {
-      row._showHost = false;
-      row._serviceType = row._serviceType || '';
-      row._name = row.name ? `${ row.name }` : `${ row.containerPort }${ row.protocol.toLowerCase() }${ row.hostPort || row._listeningPort || '' }`;
-      if (row.hostPort || row.hostIP) {
-        row._showHost = true;
-      }
-
-      row._ipam = '';
-
-      return row;
-    });
-
-    // show host port column if existing port data has any host ports defined
-    const showHostPorts = !!rows.some((row) => !!row.hostPort);
-
     return {
-      rows,
-      showHostPorts,
+      rows:                [],
+      showHostPorts:       false,
       workloadPortOptions: ['TCP', 'UDP']
     };
   },
@@ -168,6 +152,22 @@ export default {
   },
 
   created() {
+    const rows = clone(this.value || []).map((row) => {
+      row._showHost = false;
+      row._serviceType = row._serviceType || '';
+      row._name = row.name ? `${ row.name }` : `${ row.containerPort }${ row.protocol.toLowerCase() }${ row.hostPort || row._listeningPort || '' }`;
+      if (row.hostPort || row.hostIP) {
+        row._showHost = true;
+      }
+
+      row._ipam = '';
+
+      return row;
+    });
+
+    this.rows = rows;
+    // show host port column if existing port data has any host ports defined
+    this.showHostPorts = !!rows.some((row) => !!row.hostPort);
     this.queueUpdate = debounce(this.update, 500);
     this.rows.map((row) => {
       this.setServiceType(row);

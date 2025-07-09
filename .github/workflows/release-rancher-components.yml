@@ -7,12 +7,13 @@ on:
 
 jobs:
   build:
+    if: ${{ github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         persist-credentials: false

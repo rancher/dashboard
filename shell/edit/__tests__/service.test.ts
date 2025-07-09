@@ -61,7 +61,8 @@ describe('service edit', () => {
             $store: {
               getters: {
                 'management/all': jest.fn(),
-                'i18n/t':         jest.fn()
+                'i18n/t':         jest.fn(),
+                currentStore:     () => 'cluster',
               }
             }
           },

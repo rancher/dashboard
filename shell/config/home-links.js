@@ -13,7 +13,7 @@ const DEFAULT_LINKS = [
   },
   {
     key:     'forums',
-    value:   'https://forums.rancher.com/',
+    value:   'https://forums.suse.com/',
     enabled: true,
   },
   {
@@ -33,9 +33,11 @@ const DEFAULT_LINKS = [
   },
 ];
 
-const COLLECTIVE_LINK = {
-  key:     'suseCollective',
-  value:   'https://susecollective.suse.com/join/prime',
+const COLLECTIVE_LINK_ID = 'suseCollective';
+
+const APP_COLLECTION_LINK = {
+  key:     'appCo',
+  value:   'https://apps.rancher.io/',
   enabled: true,
 };
 
@@ -55,8 +57,11 @@ const CN_FORUMS_LINK = {
 // We add a version attribute to the setting so we know what has been migrated and which version of the setting we have
 export const CUSTOM_LINKS_VERSION = 'v1';
 
-// Version with collective added (Prime)
+// Version with SUSE Collective link added (Prime)
 export const CUSTOM_LINKS_COLLECTIVE_VERSION = 'v1.1';
+
+// Version with Application Collective added (Prime)
+export const CUSTOM_LINKS_APP_CO_VERSION = 'v1.2';
 
 // Fetch the settings required for the links, taking into account legacy settings if we have not migrated
 export async function fetchLinks(store, hasSupport, isSupportPage, t) {
@@ -75,23 +80,26 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
 
   // If uiLinks is set and has the correct version, then we are okay, otherwise we need to migrate from the old settings
   if (uiLinks?.version?.startsWith(CUSTOM_LINKS_VERSION)) {
-    // v1 > v1.1 migration
-    if (uiLinks?.version === CUSTOM_LINKS_VERSION) {
-      uiLinks.version = CUSTOM_LINKS_COLLECTIVE_VERSION;
+    // v1 or v1.1 > v1.2 migration
+    if (uiLinks?.version === CUSTOM_LINKS_VERSION || uiLinks?.version === CUSTOM_LINKS_COLLECTIVE_VERSION) {
+      uiLinks.version = CUSTOM_LINKS_APP_CO_VERSION;
 
       // Add collective link so that it is enabled by default
-      if (!uiLinks.defaults.includes(COLLECTIVE_LINK.key)) {
-        uiLinks.defaults.push(COLLECTIVE_LINK.key);
+      if (!uiLinks.defaults.includes(APP_COLLECTION_LINK.key)) {
+        uiLinks.defaults.push(APP_COLLECTION_LINK.key);
       }
+
+      // Delete the SUSE Collective link if it is there since it has been removed
+      uiLinks.defaults = uiLinks.defaults.filter((link) => link !== COLLECTIVE_LINK_ID);
     }
 
     // Map out the default settings, as we only store keys of the ones to show
     if (uiLinks.defaults) {
       const defaults = [...DEFAULT_LINKS];
 
-      // Add prime link if necessary
+      // Add Prime link if necessary
       if (isRancherPrime()) {
-        defaults.push(COLLECTIVE_LINK);
+        defaults.push(APP_COLLECTION_LINK);
       }
 
       // Map the link name stored to the default link, if it exists
@@ -115,9 +123,9 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
     custom:   []
   };
 
-  // Add prime link if necessary
+  // Add prime link (application collection) if necessary
   if (isRancherPrime()) {
-    links.defaults.push(COLLECTIVE_LINK);
+    links.defaults.push(APP_COLLECTION_LINK);
   }
 
   // There are two legacy settings:

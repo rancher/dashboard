@@ -30,7 +30,19 @@ export default {
     effectValues: {
       type:    Object,
       default: () => DEFAULT_EFFECT_VALUES
-    }
+    },
+    title: {
+      type:    String,
+      default: ''
+    },
+    addIcon: {
+      type:    String,
+      default: '',
+    },
+    addClass: {
+      type:    String,
+      default: '',
+    },
   },
 
   data() {
@@ -38,6 +50,10 @@ export default {
   },
 
   computed: {
+    _title() {
+      return this.title || this.t('tableHeaders.taints');
+    },
+
     localValue: {
       get() {
         return this.value;
@@ -60,7 +76,7 @@ export default {
     <KeyValue
       :value="value"
       data-testid="taints-keyvalue"
-      :title="t('tableHeaders.taints')"
+      :title="_title"
       :mode="mode"
       :as-map="false"
       :read-allowed="false"
@@ -70,8 +86,10 @@ export default {
       :extra-columns="['effect']"
       :preserve-keys="['effect']"
       :add-label="t('labels.addTaint')"
+      :add-icon="addIcon"
+      :add-class="addClass"
       :disabled="disabled"
-      @update:value="$emit('input', $event)"
+      @update:value="(e) => $emit('update:value', e)"
     >
       <template #label:effect>
         {{ t('tableHeaders.effect') }}
@@ -82,6 +100,7 @@ export default {
           v-model:value="row.effect"
           :data-testid="`taints-effect-row-${i}`"
           :options="effectOptions"
+          :mode="mode"
           :disabled="disabled"
           class="compact-select"
           @update:value="queueUpdate"

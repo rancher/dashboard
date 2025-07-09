@@ -1,4 +1,5 @@
 import { NAMESPACE_FILTER_NS_FULL_PREFIX, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
+import { KubeLabelSelector } from '@shell/types/kube/kube-api';
 
 // Pagination Typing
 // These structures are designed to offer both convenience and flexibility based on a common structure and are
@@ -304,7 +305,7 @@ export class PaginationArgs {
    */
   sort: PaginationSort[];
   /**
-   * A collection of `filter` params
+   * A collection of traditional `filter` params covering logic such as x is y, x is like y, x is not y
    *
    * For more info see {@link PaginationParamFilter}
    */
@@ -317,6 +318,11 @@ export class PaginationArgs {
   projectsOrNamespaces: PaginationParamProjectOrNamespace[];
 
   /**
+   * Traditional Kube labelSelector consisting of matchLabels and matchExpressions
+   */
+  labelSelector?: KubeLabelSelector;
+
+  /**
    * Creates an instance of PaginationArgs.
    *
    * Contains defaults to avoid creating complex json objects all the time
@@ -327,6 +333,7 @@ export class PaginationArgs {
     sort = [],
     filters = [],
     projectsOrNamespaces = [],
+    labelSelector = undefined,
   }:
   // This would be neater as just Partial<PaginationArgs> but we lose all jsdoc
   {
@@ -354,6 +361,10 @@ export class PaginationArgs {
      * For definition see {@link PaginationArgs} `projectsOrNamespaces`
      */
     projectsOrNamespaces?: PaginationParamProjectOrNamespace | PaginationParamProjectOrNamespace[],
+    /**
+     * Traditional Kube labelSelector consisting of matchLabels and matchExpressions
+     */
+    labelSelector?: KubeLabelSelector,
   }) {
     this.page = page;
     this.pageSize = pageSize;
@@ -368,6 +379,7 @@ export class PaginationArgs {
     } else {
       this.projectsOrNamespaces = [];
     }
+    this.labelSelector = labelSelector;
   }
 }
 
@@ -386,6 +398,7 @@ export class FilterArgs extends PaginationArgs {
     sort = [],
     filters = [],
     projectsOrNamespaces = [],
+    labelSelector = undefined,
   }:
   // This would be neater as just Partial<PaginationArgs> but we lose all jsdoc
   {
@@ -405,9 +418,13 @@ export class FilterArgs extends PaginationArgs {
      * For definition see {@link PaginationArgs} `projectsOrNamespaces`
      */
     projectsOrNamespaces?: PaginationParamProjectOrNamespace | PaginationParamProjectOrNamespace[],
+    /**
+     * Traditional Kube labelSelector consisting of matchLabels and matchExpressions
+     */
+    labelSelector?: KubeLabelSelector
   }) {
     super({
-      page: null, pageSize: null, sort, filters, projectsOrNamespaces
+      page: null, pageSize: null, sort, filters, projectsOrNamespaces, labelSelector
     });
   }
 }
@@ -434,7 +451,12 @@ export interface StorePaginationRequest {
   /**
    * The set of pagination args used to create the request
    */
-  pagination: PaginationArgs
+  pagination: PaginationArgs,
+
+  /**
+   * Does this request stem from a list with manual refresh?
+   */
+  hasManualRefresh?: boolean,
 }
 
 /**
@@ -454,4 +476,17 @@ export interface StorePagination {
    * Information in the response outside of the actual resources returned
    */
   result: StorePaginationResult
+}
+
+/**
+ * The resource and context that the pagination request will be used
+ *
+ * Used to determine if the request is supported
+*/
+export interface PaginationResourceContext {
+  store: string,
+  resource?: {
+    id: string,
+    context?: string,
+  }
 }

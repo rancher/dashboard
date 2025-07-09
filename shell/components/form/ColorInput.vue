@@ -4,6 +4,8 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 export default {
   emits: ['update:value'],
 
+  inheritAttrs: false,
+
   props: {
     value: {
       type:    String,
@@ -67,13 +69,44 @@ export default {
       const disabled = this.disabled;
 
       return this.mode !== this.editMode || disabled;
+    },
+
+    ariaLabel() {
+      // We allow override with $attrs['aria-label'] for more control
+      if (this.$attrs['aria-label']) {
+        return this.$attrs['aria-label'];
+      } else if (this.labelKey) {
+        return this.t(this.labelKey);
+      } else if (this.label) {
+        return this.label;
+      } else {
+        return this.t('generic.colorPicker');
+      }
+    },
+
+    ariaDescribedBy() {
+      return this.$attrs['aria-describedby'] || undefined;
     }
   },
 
   mounted() {
     // Ensures that if the default value is used, the model is updated with it
     this.$emit('update:value', this.inputValue);
-  }
+  },
+
+  methods: {
+    handleKeyup(ev) {
+      if (this.isDisabled) {
+        return '';
+      }
+
+      return this.$refs.input.click(ev);
+    }
+  },
+
+  // according to https://www.w3.org/TR/html-aria/
+  // input type="color" has no applicable role
+  // and only aria-label and aria-disabled
 };
 </script>
 
@@ -82,12 +115,24 @@ export default {
     class="color-input"
     :class="{[mode]:mode, disabled: isDisabled}"
     :data-testid="componentTestid + '-color-input'"
+    :tabindex="isDisabled ? -1 : 0"
+    @keydown.space.prevent
+    @keyup.enter.space.stop="handleKeyup($event)"
   >
-    <label class="text-label"><t
-      v-if="labelKey"
-      :k="labelKey"
-      :raw="true"
-    />{{ label }}</label>
+    <!-- let make "label" not to be picked up by screen readers -->
+    <!-- because it's already included in aria-label (sr's announced it twice) -->
+    <label
+      v-if="labelKey || label"
+      class="text-label"
+      aria-hidden="true"
+    >
+      <t
+        v-if="labelKey"
+        :k="labelKey"
+        :raw="true"
+      />
+      <template v-else-if="label">{{ label }}</template>
+    </label>
     <div
       :data-testid="componentTestid + '-color-input_preview-container'"
       class="preview-container"
@@ -99,8 +144,12 @@ export default {
       >
         <input
           ref="input"
+          :aria-disabled="isDisabled ? 'true' : 'false'"
+          :aria-label="ariaLabel"
+          :aria-describedby="ariaDescribedBy"
           type="color"
           :disabled="isDisabled"
+          tabindex="-1"
           :value="inputValue"
           @input="$emit('update:value', $event.target.value)"
         >
@@ -115,6 +164,10 @@ export default {
   border: 1px solid var(--border);
   border-radius: var(--border-radius);
   padding: 10px;
+
+  &:focus-visible {
+    @include focus-outline;
+  }
 
   &.disabled, &.disabled .selected, &[disabled], &[disabled]:hover {
     color: var(--input-disabled-text);

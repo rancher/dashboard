@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../../blueprint.utils';
+
 // GET /v1/autoscaling.horizontalpodautoscalers - return empty horizontalpodautoscalers data
 const horizontalpodautoscalerGetResponseEmpty = {
   type:         'collection',
@@ -5,7 +7,7 @@ const horizontalpodautoscalerGetResponseEmpty = {
   createTypes:  { 'autoscaling.horizontalpodautoscaler': 'https://yonasb29head.qa.rancher.space/v1/autoscaling.horizontalpodautoscalers' },
   actions:      {},
   resourceType: 'autoscaling.horizontalpodautoscaler',
-  revision:     '123',
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        0,
   data:         []
 };
@@ -17,7 +19,7 @@ const horizontalpodautoscalerGetResponseSmallSet = {
   createTypes:  { 'autoscaling.horizontalpodautoscaler': 'https://yonasb29head.qa.rancher.space/v1/autoscaling.horizontalpodautoscalers' },
   actions:      {},
   resourceType: 'autoscaling.horizontalpodautoscaler',
-  revision:     '123',
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        1,
   data:         [
     {

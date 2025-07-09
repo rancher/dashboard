@@ -99,6 +99,11 @@ export default {
     },
 
     groupSelected() {
+      // Can not click on groups that are fixed open
+      if (this.fixedOpen) {
+        return;
+      }
+
       // Don't auto-select first group entry if we're already expanded and contain the currently-selected nav item
       if (this.hasActiveRoute() && this.isExpanded) {
         return;
@@ -158,6 +163,17 @@ export default {
         items = this.group;
       }
 
+      let parentPath = '';
+      const cluster = this.$route.params?.cluster;
+
+      // Where we use nested route configuration, consider the parent route when trying to identify the nav location
+      if (this.$route.matched.length > 1) {
+        const parentRoute = this.$route.matched[this.$route.matched.length - 2];
+
+        parentPath = parentRoute.path.replace(':cluster', cluster);
+        parentPath = parentPath === '/' ? undefined : parentPath;
+      }
+
       for (const item of items.children) {
         if (item.children && this.hasActiveRoute(item)) {
           return true;
@@ -166,8 +182,11 @@ export default {
           const matchesNavLevel = navLevels.filter((param) => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
           const withoutHash = this.$route.hash ? this.$route.fullPath.slice(0, this.$route.fullPath.indexOf(this.$route.hash)) : this.$route.fullPath;
           const withoutQuery = withoutHash.split('?')[0];
+          const itemFullPath = this.$router.resolve(item.route).fullPath;
 
-          if (matchesNavLevel || this.$router.resolve(item.route).fullPath === withoutQuery) {
+          if (matchesNavLevel || itemFullPath === withoutQuery) {
+            return true;
+          } else if (parentPath && itemFullPath === parentPath) {
             return true;
           }
         }
@@ -205,32 +224,46 @@ export default {
 <template>
   <div
     class="accordion"
-    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': isGroupActive}"
+    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': isGroupActive }"
   >
     <div
       v-if="showHeader"
       class="header"
-      :class="{'active': isOverview, 'noHover': !canCollapse}"
+      :class="{'active': isOverview, 'noHover': !canCollapse || fixedOpen}"
+      role="button"
+      :tabindex="fixedOpen ? -1 : 0"
+      :aria-label="group.labelDisplay || group.label || ''"
       @click="groupSelected()"
+      @keyup.enter="groupSelected()"
+      @keyup.space="groupSelected()"
     >
       <slot name="header">
         <router-link
           v-if="hasOverview"
           :to="group.children[0].route"
           :exact="group.children[0].exact"
+          :tabindex="-1"
         >
-          <h6 v-clean-html="group.labelDisplay || group.label" />
+          <h6>
+            <span v-clean-html="group.labelDisplay || group.label" />
+          </h6>
         </router-link>
         <h6
           v-else
-          v-clean-html="group.labelDisplay || group.label"
-        />
+        >
+          <span v-clean-html="group.labelDisplay || group.label" />
+        </h6>
       </slot>
       <i
         v-if="!onlyHasOverview && canCollapse"
-        class="icon toggle"
+        class="icon toggle toggle-accordion"
         :class="{'icon-chevron-right': !isExpanded, 'icon-chevron-down': isExpanded}"
+        role="button"
+        tabindex="0"
+        :aria-label="t('nav.ariaLabel.collapseExpand')"
         @click="peek($event, true)"
+        @keyup.enter="peek($event, true)"
+        @keyup.space="peek($event, true)"
       />
     </div>
     <ul
@@ -246,7 +279,7 @@ export default {
           v-if="child.divider"
           :key="idx"
         >
-          <hr>
+          <hr role="none">
         </li>
         <!-- <div v-else-if="child[childrenKey] && hideGroup(child[childrenKey])" :key="child.name">
           HIDDEN
@@ -288,6 +321,7 @@ export default {
     cursor: pointer;
     color: var(--body-text);
     height: 33px;
+    outline: none;
 
     H6 {
       color: var(--body-text);
@@ -315,6 +349,17 @@ export default {
 
   .accordion {
     .header {
+      &:focus-visible {
+        h6 span {
+          @include focus-outline;
+          outline-offset: 2px;
+        }
+      }
+      .toggle-accordion:focus-visible {
+        @include focus-outline;
+        outline-offset: -6px;
+      }
+
       &.active {
         color: var(--primary-hover-text);
         background-color: var(--primary-hover-bg);
@@ -331,6 +376,9 @@ export default {
       }
       &:hover:not(.active) {
         background-color: var(--nav-hover);
+      }
+      &:hover:not(.active).noHover {
+        background-color: inherit;
       }
     }
   }
@@ -376,6 +424,10 @@ export default {
         > I {
           padding: 10px 7px 9px 7px !important;
         }
+      }
+
+      &:deep() .type-link > .label {
+        padding-left: 10px;
       }
     }
 

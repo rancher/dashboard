@@ -1,6 +1,7 @@
 import find from 'lodash/find';
 import { POD } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { parse } from '@shell/utils/selector';
 
 // i18n-uses servicesPage.serviceTypes.clusterIp.*, servicesPage.serviceTypes.externalName.*, servicesPage.serviceTypes.headless.*
 // i18n-uses servicesPage.serviceTypes.loadBalancer.*, servicesPage.serviceTypes.nodePort.*
@@ -49,7 +50,7 @@ export const CLUSTERIP = (() => {
   return clusterIp.id;
 })();
 
-export default class extends SteveModel {
+export default class Service extends SteveModel {
   get customValidationRules() {
     return [
       {
@@ -137,17 +138,36 @@ export default class extends SteveModel {
   }
 
   async fetchPods() {
-    if (this.podRelationship) {
-      await this.$dispatch('cluster/findMatching', {
-        type:      POD,
-        selector:  this.podRelationship.selector,
-        namespace: this.namespace
-      }, { root: true });
+    if (!this.podRelationship) {
+      // If empty or not present, the service is assumed to have an external process managing its endpoints
+      return [];
     }
+
+    return await this.$dispatch('findLabelSelector', {
+      type:     POD,
+      matching: {
+        namespace:     this.metadata.namespace,
+        labelSelector: { matchExpressions: parse(this.podRelationship?.selector) },
+      }
+    });
   }
 
+  async unWatchPods() {
+    return await this.$dispatch('unwatch', { type: POD, all: true });
+  }
+
+  /**
+   * This getter expects a superset of workload pods to have been fetched already
+   *
+   * It assumes fetchPods has been called and should be used instead of the response of fetchPods
+   * (findAll --> findLabelSelector world results won't trigger change detection)
+   */
   get pods() {
-    return this.podRelationship ? this.$getters.matching( POD, this.podRelationship.selector, this.namespace ) : [];
+    if (this.podRelationship?.selector) {
+      return this.$getters['matchingLabelSelector'](POD, { matchExpressions: parse(this.podRelationship?.selector) }, this.metadata.namespace);
+    } else {
+      return [];
+    }
   }
 
   get serviceType() {

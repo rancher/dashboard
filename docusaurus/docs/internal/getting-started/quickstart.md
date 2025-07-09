@@ -6,7 +6,7 @@ To get started running the UI for development:
 
 Prerequisites:
 
-* Node 16 (later versions are currently not supported)
+* Node 20 (later versions are currently not supported)
 
 * yarn:
   ```npm install --global yarn```

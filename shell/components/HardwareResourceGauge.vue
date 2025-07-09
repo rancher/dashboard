@@ -20,8 +20,18 @@ export default {
       default: null
     },
 
+    usedTitle: {
+      type:    String,
+      default: null
+    },
+
     reserved: {
       type:    Object,
+      default: null
+    },
+
+    reservedTitle: {
+      type:    String,
       default: null
     }
   },
@@ -78,7 +88,7 @@ export default {
         >
           <template #title>
             <span>
-              {{ t('clusterIndexPage.hardwareResourceGauge.reserved') }}
+              {{ reservedTitle ?? t('clusterIndexPage.hardwareResourceGauge.reserved') }}
               <span class="values text-muted">
                 <span v-if="reserved.formattedUseful">
                   {{ reserved.formattedUseful }}
@@ -112,7 +122,7 @@ export default {
         >
           <template #title>
             <span>
-              {{ t('clusterIndexPage.hardwareResourceGauge.used') }}
+              {{ usedTitle ?? t('clusterIndexPage.hardwareResourceGauge.used') }}
               <span class="values text-muted">
                 <span v-if="used.formattedUseful">
                   {{ used.formattedUseful }}

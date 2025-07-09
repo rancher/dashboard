@@ -1,65 +1,219 @@
-import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
-// import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
-// import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-// import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { FleetDashboardListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
+import { FleetApplicationCreatePo, FleetGitRepoCreateEditPo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
+import FleetApplicationDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.application.po';
 
-describe.skip('[Vue3 Skip]: Fleet Dashboard', { tags: ['@fleet', '@adminUser'] }, () => {
-  let fleetDashboardPage: FleetDashboardPagePo;
-  // const repoName = 'fleet-e2e-test-dashboard';
+describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () => {
+  const fleetDashboardPage = new FleetDashboardListPagePo('_');
+  const appBundleCreatePage = new FleetApplicationCreatePo();
+  const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
-  // Note - The 'describe` previously had `.only`, which ironically meant this was not tested in our CI (probably something to so with grep tags)
-  // Enabling the test results results in consistent failures (bundle does not become ready). For the short term comment these out
+  let repoName;
+  const gitRepoUrl = 'https://github.com/rancher/fleet-test-data';
+  const branch = 'master';
+  const paths = 'qa-test-apps/nginx-app';
+  const localWorkspace = 'fleet-local';
+  // const defaultWorkspace = 'fleet-default';
+  let removeGitRepo = false;
+  const reposToDelete = [];
 
   beforeEach(() => {
     cy.login();
-    fleetDashboardPage = new FleetDashboardPagePo('_');
-    fleetDashboardPage.goTo();
+    cy.createE2EResourceName('git-repo').then((name) => {
+      repoName = name;
+    });
   });
 
-  it('has the correct title', () => {
-    cy.get('.fleet-empty-dashboard').should('be.visible');
+  it('Has the correct title', () => {
+    fleetDashboardPage.goTo();
+    fleetDashboardPage.waitForPage();
+
+    fleetDashboardPage.fleetDashboardEmptyState().should('be.visible');
 
     cy.title().should('eq', 'Rancher - Continuous Delivery - Dashboard');
   });
 
-  // before(() => {
-  //   cy.login();
+  it('Get Started button takes you to the correct page', () => {
+    fleetDashboardPage.goTo();
+    fleetDashboardPage.waitForPage();
 
-  //   const gitRepoCreatePage = new GitRepoCreatePo('_');
+    fleetDashboardPage.fleetDashboardEmptyState().should('be.visible');
+    fleetDashboardPage.getStartedButton().click();
 
-  //   gitRepoCreatePage.goTo();
+    appBundleCreatePage.waitForPage();
+    appBundleCreatePage.createGitRepo();
 
-  //   gitRepoCreatePage.setRepoName(repoName);
-  //   gitRepoCreatePage.selectWorkspace('fleet-local');
-  //   gitRepoCreatePage.setGitRepoUrl('https://github.com/rancher/fleet-test-data.git');
-  //   gitRepoCreatePage.setBranchName();
-  //   // NB - This step is here because DOM may not be ready
-  //   gitRepoCreatePage.goToNext();
-  //   gitRepoCreatePage.create();
-  // });
+    gitRepoCreatePage.waitForPage();
+    gitRepoCreatePage.mastheadTitle().then((title) => {
+      expect(title.replace(/\s+/g, ' ')).to.contain('App Bundle: Create');
+    });
+  });
 
-  // it('Should display cluster status', () => {
-  //   // check if burguer menu nav is highlighted correctly for Fleet
-  //   BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Continuous Delivery');
+  it('Should display workspace cards', () => {
+    // create gitrepo
+    cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(localWorkspace, repoName, gitRepoUrl, branch, paths)).then(() => {
+      removeGitRepo = true;
+      reposToDelete.push(`${ localWorkspace }/${ repoName }`);
+    });
 
-  //   const row = fleetDashboardPage.sortableTable('fleet-local').row(0);
+    fleetDashboardPage.goTo();
+    fleetDashboardPage.waitForPage();
 
-  //   row.get('.bg-success[data-testid="clusters-ready"]', LONG_TIMEOUT_OPT).should('exist');
-  //   row.get('.bg-success[data-testid="clusters-ready"] span').should('have.text', '1/1');
+    // check if burguer menu nav is highlighted correctly for Fleet
+    BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Continuous Delivery');
 
-  //   row.get('.bg-success[data-testid="bundles-ready"]').should('exist');
-  //   row.get('.bg-success[data-testid="bundles-ready"] span').should('have.text', '1/1');
+    fleetDashboardPage.viewModeButton().checkVisible();
 
-  //   row.get('.bg-success[data-testid="resources-ready"]').should('exist');
-  //   row.get('.bg-success[data-testid="resources-ready"] span').should('have.text', '1/1');
-  // });
+    const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
 
-  // after(() => {
-  //   fleetDashboardPage = new FleetDashboardPagePo('_');
-  //   fleetDashboardPage.goTo();
+    workspaceCard.expandButton().should('be.visible');
 
-  //   const fleetLocalResourceTable = fleetDashboardPage.resourceTable('fleet-local');
+    const applicationsPanel = workspaceCard.resourcePanel('applications');
 
-  //   fleetLocalResourceTable.sortableTable().deleteItemWithUI(repoName);
-  // });
+    applicationsPanel.chart().should('exist');
+    applicationsPanel.stateBadge('success').should('exist');
+    applicationsPanel.description().should('contain', '1');
+
+    const clustersPanel = workspaceCard.resourcePanel('clusters');
+
+    clustersPanel.chart().should('exist');
+    clustersPanel.stateBadge('success').should('exist');
+    clustersPanel.description().should('contain', '1');
+
+    const clusterGroupsPanel = workspaceCard.resourcePanel('cluster-groups');
+
+    clusterGroupsPanel.self().should('exist');
+    clusterGroupsPanel.chart().should('not.exist');
+    clusterGroupsPanel.stateBadge('success').should('exist');
+    clusterGroupsPanel.description().should('contain', '1');
+  });
+
+  it('Should show workspace cards panel when expanded', () => {
+    fleetDashboardPage.goTo();
+    fleetDashboardPage.waitForPage();
+
+    const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
+
+    const expandButton = workspaceCard.expandButton();
+
+    expandButton.should('be.visible');
+    expandButton.click();
+
+    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
+
+    cardsPanel.self().should('be.visible');
+
+    cardsPanel.gitReposFilter().checkVisible();
+    cardsPanel.gitReposFilter().isChecked();
+
+    cardsPanel.helmOpsFilter().checkVisible();
+    cardsPanel.helmOpsFilter().isChecked();
+
+    const activeStatePanel = cardsPanel.statePanel('Active');
+
+    activeStatePanel.title().should('contain.text', 'Active');
+    activeStatePanel.title().should('contain.text', '1');
+    activeStatePanel.title().should('contain.text', '/1');
+    activeStatePanel.title().click();
+
+    const card = activeStatePanel.card(repoName);
+
+    card.should('be.visible');
+    card.find('.title').should('contain.text', repoName);
+  });
+
+  it('Should filter by GitRepo type', () => {
+    fleetDashboardPage.goTo();
+    fleetDashboardPage.waitForPage();
+
+    const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
+    const expandButton = workspaceCard.expandButton();
+
+    expandButton.click();
+
+    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
+
+    cardsPanel.gitReposFilter().set();
+    const activeStatePanel = cardsPanel.statePanel('Active');
+
+    activeStatePanel.self().should('not.be.visible');
+  });
+
+  it('Should change ViewMode', () => {
+    fleetDashboardPage.goTo();
+    fleetDashboardPage.waitForPage();
+
+    const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
+    const expandButton = workspaceCard.expandButton();
+
+    expandButton.click();
+
+    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
+
+    cardsPanel.checkExists();
+
+    // click 'card' mode
+    fleetDashboardPage.viewModeButton().self().find('[data-testid="button-group-child-0"]').click();
+
+    cardsPanel.checkNotExists();
+
+    const tablePanel = workspaceCard.expandedPanel().tablePanel();
+
+    tablePanel.checkExists();
+  });
+
+  it('Should open slide-in panel', () => {
+    fleetDashboardPage.goTo();
+    fleetDashboardPage.waitForPage();
+
+    const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
+    const expandButton = workspaceCard.expandButton();
+
+    expandButton.click();
+
+    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
+
+    const activeStatePanel = cardsPanel.statePanel('Active');
+
+    activeStatePanel.title().click();
+
+    activeStatePanel.card(repoName).click();
+
+    const details = fleetDashboardPage.slideInPanel();
+
+    details.should('be.visible');
+    details.should('contain.text', repoName);
+  });
+
+  it('Should navigate to App Bundles details page from Fleet Dashboard', () => {
+    const appDetails = new FleetApplicationDetailsPo(localWorkspace, repoName, 'fleet.cattle.io.gitrepo');
+
+    fleetDashboardPage.goTo();
+    fleetDashboardPage.waitForPage();
+
+    const workspaceCard = fleetDashboardPage.workspaceCard(localWorkspace);
+    const expandButton = workspaceCard.expandButton();
+
+    expandButton.click();
+
+    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
+
+    const activeStatePanel = cardsPanel.statePanel('Active');
+
+    activeStatePanel.title().click();
+
+    const card = activeStatePanel.card(repoName);
+
+    card.find('.title a').click();
+
+    appDetails.waitForPage(null, 'bundles');
+  });
+
+  after(() => {
+    if (removeGitRepo) {
+      // delete gitrepo
+      reposToDelete.forEach((r) => cy.deleteRancherResource('v1', 'fleet.cattle.io.gitrepo', r));
+    }
+  });
 });

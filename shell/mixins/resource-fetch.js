@@ -3,6 +3,7 @@ import { COUNT, MANAGEMENT } from '@shell/config/types';
 import { SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
 import ResourceFetchNamespaced from '@shell/mixins/resource-fetch-namespaced';
 import ResourceFetchApiPagination from '@shell/mixins/resource-fetch-api-pagination';
+import perfSettingsUtils from '@shell/utils/perf-setting.utils';
 
 // Number of pages to fetch when loading incrementally
 const PAGES = 4;
@@ -31,11 +32,18 @@ export default {
       perfConfig = DEFAULT_PERF_SETTING;
     }
 
+    // Normally owner components supply `resource` and `inStore` as part of their data, however these are needed here before parent data runs
+    // So set up both here
+    const params = { ...this.$route.params };
+    const resource = params.resource || this.schema?.id; // Resource can either be on a page showing single list, or a page of a resource showing a list of another resource
+    const inStore = this.$store.getters['currentStore'](resource);
+
     return {
+      inStore,
       perfConfig,
       init:                       false,
       multipleResources:          [],
-      loadResources:              [this.resource],
+      loadResources:              [resource],
       // manual refresh vars
       hasManualRefresh:           false,
       watch:                      true,
@@ -45,6 +53,7 @@ export default {
       incremental:                false,
       fetchedResourceType:        [],
       paginating:                 null,
+      isFirstLoad:                true,
     };
   },
 
@@ -60,20 +69,50 @@ export default {
     }
   },
 
+  props: {
+    /**
+     * Add additional filtering to the rows
+     *
+     * Should only be used when we have all results, otherwise we're filtering a page which already has been filtered...
+     */
+    localFilter: {
+      type:    Function,
+      default: null,
+    },
+
+    /**
+     * Add additional filtering to the pagination api request
+     */
+    apiFilter: {
+      type:    Function,
+      default: null,
+    },
+  },
+
   computed: {
     ...mapGetters({ refreshFlag: 'resource-fetch/refreshFlag' }),
+
     rows() {
       const currResource = this.fetchedResourceType.find((item) => item.type === this.resource);
 
       if (currResource) {
-        return this.$store.getters[`${ currResource.currStore }/all`](this.resource);
-      } else {
-        return [];
+        const rows = this.$store.getters[`${ currResource.currStore }/all`](this.resource);
+
+        if (this.canPaginate) {
+          if (this.havePaginated) {
+            return rows;
+          }
+        } else {
+          return this.localFilter ? this.localFilter(rows) : rows;
+        }
       }
+
+      return [];
     },
+
     loading() {
       if (this.canPaginate) {
-        return this.paginating;
+        return this.paginating === null ? true : this.paginating;
       }
 
       return this.rows.length ? false : this.$fetchState.pending;
@@ -85,9 +124,20 @@ export default {
       // this is where the data assignment will trigger the update of the list view...
       if (this.init && neu) {
         await this.$fetch();
-        if (this.canPaginate && this.fetchPageSecondaryResources) {
-          this.fetchPageSecondaryResources(true);
+        if (this.clearSelection) {
+          this.clearSelection();
         }
+        if (this.canPaginate && this.fetchPageSecondaryResources) {
+          this.fetchPageSecondaryResources({
+            canPaginate: this.canPaginate, force: true, page: this.rows, pagResult: this.paginationResult
+          });
+        }
+      }
+    },
+
+    loading(newValue, oldValue) {
+      if (oldValue && !newValue) {
+        this.isFirstLoad = false;
       }
     }
   },
@@ -140,6 +190,10 @@ export default {
           force:            this.paginating !== null // Fix for manual refresh (before ripped out).
         };
 
+        if (this.apiFilter) {
+          opt.paginating = this.apiFilter(opt.pagination);
+        }
+
         this['paginating'] = true;
 
         const that = this;
@@ -151,15 +205,20 @@ export default {
           .finally(() => (that['paginating'] = false));
       }
 
-      let incremental = 0;
+      let incremental = null;
 
       if (this.incremental) {
         const resourceCount = this.__getCountForResources([type], this.namespaceFilter, currStore);
 
-        incremental = Math.ceil(resourceCount / PAGES);
+        incremental = {
+          quickLoadCount:        100,
+          resourcesPerIncrement: Math.ceil(resourceCount / PAGES),
+          increments:            PAGES,
+          pageByNumber:          this.$store.getters[`${ this.inStore }/paginationEnabled`]?.()
+        };
       }
 
-      const opt = {
+      const opt = { // Of type ActionFindAllArgs
         incremental,
         watch:            this.watch,
         force:            this.force,
@@ -194,11 +253,11 @@ export default {
       this.init = true;
 
       // manual refresh settings config
-      const manualDataRefreshEnabled = this.perfConfig?.manualRefresh?.enabled;
+      const manualDataRefreshEnabled = perfSettingsUtils.manualRefreshUtils.isEnabled(this.calcCanPaginate(), this.perfConfig);
       const manualDataRefreshThreshold = parseInt(this.perfConfig?.manualRefresh?.threshold || '0', 10);
 
       // incremental loading settings config
-      const incrementalLoadingEnabled = this.perfConfig?.incrementalLoading?.enabled;
+      const incrementalLoadingEnabled = perfSettingsUtils.incrementalLoadingUtils.isEnabled(this.calcCanPaginate(), this.perfConfig);
       const incrementalLoadingThreshold = parseInt(this.perfConfig?.incrementalLoading?.threshold || '0', 10);
 
       // other vars
@@ -221,7 +280,7 @@ export default {
       if (manualDataRefreshEnabled && resourceCount >= manualDataRefreshThreshold) {
         watch = false;
         isTooManyItemsToAutoUpdate = true;
-      } else if (this.canPaginate) {
+      } else if (this.canPaginate && this.isPaginationManualRefreshEnabled) {
         isTooManyItemsToAutoUpdate = true;
       }
 

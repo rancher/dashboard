@@ -47,17 +47,22 @@ export default {
     } catch {}
 
     const hash = {
-      // See https://github.com/rancher/dashboard/issues/10417, all pods bad, come from a locally applied selector in the workload model
-      allPods:      this.$store.dispatch('cluster/findAll', { type: POD }),
-      allServices:  this.$store.dispatch('cluster/findAll', { type: SERVICE }),
       allIngresses: this.$store.dispatch('cluster/findAll', { type: INGRESS }),
       // Nodes should be fetched because they may be referenced in the target
       // column of a service list item.
       allNodes:     hasNodes ? this.$store.dispatch('cluster/findAll', { type: NODE }) : []
     };
 
+    if (this.podSchema) {
+      hash.pods = this.value.fetchPods();
+    }
+
+    if (this.serviceSchema) {
+      hash.servicesInNamespace = this.$store.dispatch('cluster/findAll', { type: SERVICE, opt: { namespaced: this.value.metadata.namespace } });
+    }
+
     if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
-      hash.allJobs = this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB });
+      hash.jobs = this.value.matchingJobs();
     }
     const res = await allHash(hash);
 
@@ -84,14 +89,18 @@ export default {
     this.findMatchingIngresses();
   },
 
+  async unmounted() {
+    if (this.podSchema) {
+      await this.value.unWatchPods();
+    }
+  },
+
   data() {
     return {
-      allPods:                         [],
-      allServices:                     [],
+      servicesInNamespace:             [],
       allIngresses:                    [],
       matchingServices:                [],
       matchingIngresses:               [],
-      allJobs:                         [],
       allNodes:                        [],
       WORKLOAD_METRICS_DETAIL_URL,
       WORKLOAD_METRICS_SUMMARY_URL,
@@ -180,22 +189,6 @@ export default {
       }, 0);
     },
 
-    podRestarts() {
-      return this.value.pods.reduce((total, pod) => {
-        const { status:{ containerStatuses = [] } } = pod;
-
-        if (containerStatuses.length) {
-          total += containerStatuses.reduce((tot, container) => {
-            tot += container.restartCount;
-
-            return tot;
-          }, 0);
-        }
-
-        return total;
-      }, 0);
-    },
-
     podHeaders() {
       return this.$store.getters['type-map/headersFor'](this.podSchema).filter((h) => !h.name || h.name !== NAMESPACE_COL.name);
     },
@@ -213,10 +206,14 @@ export default {
     },
 
     showPodGaugeCircles() {
-      const podGauges = Object.values(this.value.podGauges);
+      const podGauges = Object.values(this.podGauges);
       const total = this.value.pods.length;
 
       return !podGauges.find((pg) => pg.count === total);
+    },
+
+    podGauges() {
+      return this.value.calcPodGauges(this.value.pods);
     },
 
     showJobGaugeCircles() {
@@ -230,6 +227,7 @@ export default {
       return !!SCALABLE_TYPES.includes(this.value.type) && this.value.canUpdate;
     },
   },
+
   methods: {
     async scale(isUp) {
       try {
@@ -256,15 +254,13 @@ export default {
       if (!this.serviceSchema) {
         return [];
       }
-      const matchingPods = this.value.pods;
 
-      // Find Services that have selectors that match this
-      // workload's Pod(s).
-      const matchingServices = this.allServices.filter((service) => {
+      // Find Services that have selectors that match this workload's Pod(s).
+      this.matchingServices = this.servicesInNamespace.filter((service) => {
         const selector = service.spec.selector;
 
-        for (let i = 0; i < matchingPods.length; i++) {
-          const pod = matchingPods[i];
+        for (let i = 0; i < this.value.pods.length; i++) {
+          const pod = this.value.pods[i];
 
           if (service.metadata?.namespace === this.value.metadata?.namespace && matches(pod, selector)) {
             return true;
@@ -273,8 +269,6 @@ export default {
 
         return false;
       });
-
-      this.matchingServices = matchingServices;
     },
     findMatchingIngresses() {
       if (!this.ingressSchema) {
@@ -358,7 +352,7 @@ export default {
       </template>
       <template v-else>
         <CountGauge
-          v-for="(group, key) in value.podGauges"
+          v-for="(group, key) in podGauges"
           :key="key"
           :total="value.pods.length"
           :useful="group.count || 0"
@@ -387,13 +381,12 @@ export default {
         />
       </Tab>
       <Tab
-        v-else
+        v-else-if="value.podMatchExpression"
         name="pods"
         :label="t('tableHeaders.pods')"
         :weight="4"
       >
         <ResourceTable
-          v-if="value.pods"
           :rows="value.pods"
           :headers="podHeaders"
           key-field="id"
@@ -414,7 +407,7 @@ export default {
             :detail-url="WORKLOAD_METRICS_DETAIL_URL"
             :summary-url="WORKLOAD_METRICS_SUMMARY_URL"
             :vars="graphVars"
-            graph-height="550px"
+            graph-height="600px"
           />
         </template>
       </Tab>
@@ -430,7 +423,7 @@ export default {
             :detail-url="WORKLOAD_PROJECT_METRICS_DETAIL_URL"
             :summary-url="WORKLOAD_PROJECT_METRICS_SUMMARY_URL"
             :vars="graphVars"
-            graph-height="550px"
+            graph-height="600px"
           />
         </template>
       </Tab>

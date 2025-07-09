@@ -24,7 +24,15 @@ export class ChartPage extends PagePo {
     const chartsPage = new ChartsPage(clusterId);
 
     ChartsPage.navTo();
-    chartsPage.charts().select(chartName);
+    chartsPage.clickChart(chartName);
+  }
+
+  chartHeader(options?: any) {
+    return this.self().find('.name-logo h1', options).invoke('text');
+  }
+
+  waitForChartHeader(title: string, options?: any) {
+    return this.chartHeader(options).should('contain', title);
   }
 
   goToInstall() {

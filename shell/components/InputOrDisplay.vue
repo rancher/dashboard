@@ -39,10 +39,14 @@ export default {
     class="label"
   >
     <div class="text-label">
-      {{ $slots.name || name }}
+      <slot name="name">
+        {{ name }}
+      </slot>
     </div>
     <div class="value">
-      {{ $slots.value || displayValue }}
+      <slot name="value">
+        {{ displayValue }}
+      </slot>
     </div>
   </div>
   <slot v-else />

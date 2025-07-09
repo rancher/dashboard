@@ -9,6 +9,7 @@ import { ResourceListComponentName } from './resource-list.config';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import { sameContents } from '@shell/utils/array';
+import perfSettingsUtils from '@shell/utils/perf-setting.utils';
 
 export default {
   name: ResourceListComponentName,
@@ -54,8 +55,10 @@ export default {
         this.customTypeDisplay = component.typeDisplay.apply(this);
       }
 
-      // If your list page has a fetch then it's responsible for populating rows itself
-      if ( component?.fetch ) {
+      // Is the custom component responsible fetching the resources?
+      // - Component has a fetch method - legacy method. fetch will handle the requests
+      // - Component contains the PaginatedResourceTable component - go forward method. PaginatedResourceTable owns fetching the resources
+      if ( component?.fetch || component?.components?.['PaginatedResourceTable']) {
         this.componentWillFetch = true;
       }
 
@@ -96,7 +99,6 @@ export default {
     const showMasthead = getters[`type-map/optionsFor`](resource).showListMasthead;
 
     return {
-      inStore,
       schema,
       hasListComponent,
       showMasthead:                     showMasthead === undefined ? true : showMasthead,
@@ -137,7 +139,7 @@ export default {
     },
 
     showIncrementalLoadingIndicator() {
-      return this.perfConfig?.incrementalLoading?.enabled;
+      return perfSettingsUtils.incrementalLoadingUtils.isEnabled(this.calcCanPaginate(), this.perfConfig);
     },
 
   },
@@ -270,7 +272,7 @@ export default {
       v-else
       :schema="schema"
       :rows="rows"
-      :alt-loading="canPaginate"
+      :alt-loading="canPaginate && !isFirstLoad"
       :loading="loading"
       :headers="headers"
       :group-by="groupBy"

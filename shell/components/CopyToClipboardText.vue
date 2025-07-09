@@ -46,19 +46,27 @@ export default {
 
 <template>
   <a
+    v-if="text"
     class="copy-to-clipboard-text"
+    role="button"
     :class="{ 'copied': copied, 'plain': plain}"
     href="#"
+    :aria-label="t('generic.copyToClipboard')"
+    v-bind="$attrs"
     @click="clicked"
+    @keyup.space="clicked"
   >
-    {{ text }} <i
+    {{ text }}
+    <i
       class="icon"
       :class="{ 'icon-copy': !copied, 'icon-checkmark': copied}"
+      :alt="!copied ? t('generic.copyToClipboard') : t('generic.copiedToClipboard')"
     />
   </a>
 </template>
 <style lang="scss" scoped>
   .copy-to-clipboard-text {
+    white-space: nowrap;
     &.plain {
       color: var(--body-text);
 

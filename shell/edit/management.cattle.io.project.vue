@@ -52,7 +52,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(['currentCluster']),
+    ...mapGetters(['currentCluster', 'isStandaloneHarvester']),
 
     canViewMembers() {
       return canViewProjectMembershipEditor(this.$store);
@@ -132,7 +132,7 @@ export default {
             });
           }
 
-          // // we allow users with permissions for projectroletemplatebindings to be able to manage members on projects
+          // We allow users with permissions for projectroletemplatebindings to be able to manage members on projects
           if (this.membershipUpdate.save) {
             const norman = await this.value.norman;
 
@@ -195,7 +195,10 @@ export default {
       :rules="{ name: fvGetAndReportPathRules('spec.displayName'), namespace: [], description: [] }"
       @update:value="$emit('input', $event)"
     />
-    <Tabbed :side-tabs="true">
+    <Tabbed
+      :side-tabs="true"
+      :use-hash="useTabbedHash"
+    >
       <Tab
         v-if="canViewMembers"
         name="members"
@@ -222,7 +225,7 @@ export default {
         <ResourceQuota
           :value="value"
           :mode="canEditTabElements"
-          :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
+          :types="isStandaloneHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
           @remove="removeQuota"
         />
       </Tab>

@@ -43,24 +43,29 @@ export default {
       activeItemId:            0,
       autoScroll:              true,
       autoScrollSlideInterval: null,
+      isTransitionning:        false, // prevents showing empty spaces caused by aggressive clicking
+      shouldDisableTransition: false // smoothes the move from the first/last slides to the previous/next slide
     };
   },
 
   computed: {
     ...mapGetters(['clusterId']),
     trackStyle() {
-      let sliderItem = ( this.activeItemId + 1) * 100 / (this.slider.length + 2);
-      const width = 60 * (this.slider.length + 2);
-
       if (this.slider.length === 1) {
-        sliderItem = 0;
+        return `
+          width: 100%;
+          left: 0%;
+        `;
       }
 
-      return `transform: translateX(-${ sliderItem }%); width: ${ width }%`;
-    },
+      const width = 60 * (this.slider.length + 2);
+      const left = -(40 + this.activeItemId * 60);
 
-    test() {
-      return 'test';
+      return `
+        width: ${ width }%;
+        left: ${ left }%;
+        transition: ${ this.shouldDisableTransition ? 'none' : '700ms ease-in-out' };
+      `;
     }
   },
 
@@ -77,10 +82,14 @@ export default {
     },
 
     nextPrev(direction) {
-      this.autoScroll = false;
-      const slideTrack = document.getElementById('slide-track');
+      if (this.isTransitionning) {
+        return;
+      }
 
-      slideTrack.style.transition = `transform 450ms ease-in-out`;
+      this.isTransitionning = true;
+      this.autoScroll = false;
+      this.shouldDisableTransition = false;
+      const slideTrack = this.$refs.slider;
 
       direction !== 'prev' ? (this.activeItemId++) : (this.activeItemId--);
 
@@ -88,21 +97,27 @@ export default {
     },
 
     slideTransition() {
-      const slideTrack = document.getElementById('slide-track');
       const slidesArray = this.slider.length + 2;
 
       if (this.activeItemId === -1) {
-        slideTrack.style.transition = 'none';
+        this.shouldDisableTransition = true;
         this.activeItemId = this.slider.length - 1;
       }
+
       if (this.activeItemId === slidesArray - 2) {
-        slideTrack.style.transition = 'none';
+        this.shouldDisableTransition = true;
         this.activeItemId = 0;
       }
+
+      this.isTransitionning = false;
     },
 
     autoScrollSlide() {
-      if (this.activeItemId < (this.slider.length + 1) && this.autoScroll ) {
+      if (!this.autoScroll) {
+        return;
+      }
+
+      if (this.activeItemId < (this.slider.length + 1)) {
         this.activeItemId++;
       }
 
@@ -120,23 +135,21 @@ export default {
   },
 
   mounted() {
-    const slideTrack = document.getElementById('slide-track');
+    const slideTrack = this.$refs.slider;
 
-    if (this.slider.length === 1) {
-      slideTrack.style = 'transform:translateX(0%); width:100%; left:0';
-    } else {
-      const node = document.getElementById('slide0');
+    if (this.slider.length > 1) {
+      const firstSlide = this.$refs['slide0']?.[0];
 
-      if (node) {
-        const clone = node.cloneNode(true);
+      if (firstSlide) {
+        const clone = firstSlide.cloneNode(true);
 
         slideTrack.appendChild(clone);
       }
 
-      const nodeLast = document.getElementById(`slide${ this.slider.length - 1 }`);
+      const lastSlide = this.$refs[`slide${ this.slider.length - 1 }`]?.[0];
 
-      if (nodeLast) {
-        const cloneLast = nodeLast.cloneNode(true);
+      if (lastSlide) {
+        const cloneLast = lastSlide.cloneNode(true);
 
         slideTrack.insertBefore(cloneLast, slideTrack.children[0]);
       }
@@ -159,7 +172,7 @@ export default {
 <template>
   <div
     class="slider"
-    :class="{'disable': sliders.length === 1}"
+    :class="{'disabled': sliders.length === 1}"
   >
     <div
       id="slide-track"
@@ -170,8 +183,8 @@ export default {
       <component
         :is="asLink ? 'a' : 'div'"
         v-for="(slide, i) in sliders"
-        :id="`slide` + i"
-        ref="slide"
+        :id="`slide${i}`"
+        :ref="`slide${i}`"
         :key="get(slide, keyField)"
         class="slide"
         :class="{'singleSlide': sliders.length === 1}"
@@ -187,7 +200,7 @@ export default {
           <div class="slide-content-right">
             <BadgeState
               :label="slide.repoName"
-              color="slider-badge mb-20"
+              color="slide-badge mb-20"
             />
             <h1>{{ slide.chartNameDisplay }}</h1>
             <p>{{ slide.chartDescription }}</p>
@@ -196,32 +209,48 @@ export default {
       </component>
     </div>
     <div
+      role="button"
+      class="prev"
+      :aria-label="t('carousel.previous')"
+      :aria-disabled="sliders.length === 1"
+      :class="{'disabled': sliders.length === 1}"
+      tabindex="0"
+      @click="nextPrev('prev')"
+      @keyup.enter.space="nextPrev('prev')"
+    >
+      <i
+        class="icon icon-chevron-left icon-4x"
+      />
+    </div>
+    <div
+      role="button"
+      class="next"
+      :aria-label="t('carousel.next')"
+      :aria-disabled="sliders.length === 1"
+      :class="{'disabled': sliders.length === 1}"
+      tabindex="0"
+      @click="nextPrev('next')"
+      @keyup.enter.space="nextPrev('next')"
+    >
+      <i
+        class="icon icon-chevron-right icon-4x"
+      />
+    </div>
+    <div
+      v-if="sliders.length > 1"
       class="controls"
-      :class="{'disable': sliders.length === 1}"
     >
       <div
         v-for="(slide, i) in slider"
         :key="i"
         class="control-item"
         :class="{'active': activeItemId === i}"
+        role="button"
+        tabindex="0"
+        :aria-label="t('carousel.controlItem', { number: i+1 })"
         @click="scrollSlide(i, slider.length)"
+        @keyup.enter.space="scrollSlide(i, slider.length)"
       />
-    </div>
-    <div
-      ref="prev"
-      class="prev"
-      :class="{'disable': sliders.length === 1}"
-      @click="nextPrev('prev')"
-    >
-      <i class="icon icon-chevron-left icon-4x" />
-    </div>
-    <div
-      ref="next"
-      class="next"
-      :class="{'disable': sliders.length === 1}"
-      @click="nextPrev('next')"
-    >
-      <i class="icon icon-chevron-right icon-4x" />
     </div>
   </div>
 </template>
@@ -234,37 +263,21 @@ export default {
   place-items: center;
   overflow: hidden;
   margin-bottom: 30px;
-  // min-width: 700px;
+  height: 245px;
 
-  &.disable::before,
-  &.disable::after {
+  &.disabled::before,
+  &.disabled::after {
     display: none;
-  }
-
-  &.disable:hover {
-    .prev,
-    .next {
-      display: none;
-    }
-  }
-
-  &:hover {
-    .prev,
-    .next {
-      display: block;
-    }
   }
 }
 
 .slide-track {
   display: flex;
-  animation: scrolls 10s ;
-  position: relative;
-  transition: 1s ease-in-out;
-  left: 21%;
+  position: absolute;
+  top: 0;
 }
 
-.slider-badge {
+.slide-badge {
   background: var(--app-partner-accent);
   color: var(--body-bg);
 }
@@ -329,7 +342,7 @@ export default {
 .slider::before {
   left: 0;
   top: 0;
-  &.disable {
+  &.disabled {
     display: none;
   }
 }
@@ -340,14 +353,12 @@ export default {
 }
 
 .controls {
+  position: absolute;
+  bottom: 0;
   width: 100%;
   display: flex;
   justify-content: center;
   margin-top: 10px;
-
-  &.disable {
-    display: none;
-  }
 
   .control-item {
     width: 10px;
@@ -367,12 +378,15 @@ export default {
   position: absolute;
   z-index: 20;
   top: 90px;
-  display: none;
   cursor: pointer;
 
   &.disabled .icon {
     color: var(--disabled-bg);
     cursor: not-allowed;
+  }
+
+  .icon:focus-visible {
+    @include focus-outline;
   }
 }
 

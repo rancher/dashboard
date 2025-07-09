@@ -1,5 +1,5 @@
 import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
-import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
+import ActionMenuPo from '@/cypress/e2e/po/components/action-menu-shell.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import ListRowPo from '@/cypress/e2e/po/components/list-row.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
@@ -7,6 +7,12 @@ import PaginationPo from '@/cypress/e2e/po/components/pagination.po';
 import HeaderRowPo from '@/cypress/e2e/po/components/header-row.po';
 
 export default class SortableTablePo extends ComponentPo {
+  /**
+   * Create a name that should, when sorted by name, by default appear first
+   */
+  static firstByDefaultName(context = 'resource'): string {
+    return `11111-first-in-list-unique-${ context }`;
+  }
   //
   // sortable-table-header
   //
@@ -16,6 +22,15 @@ export default class SortableTablePo extends ComponentPo {
    */
   detailsPageLinkWithName(name: string) {
     return this.rowElementWithName(name).find('td.col-link-detail a');
+  }
+
+  /**
+   * Get the bulk action button
+   * @param label
+   * @returns
+   */
+  bulkActionButton(label: string) {
+    return this.self().find(`.fixed-header-actions .bulk button`).contains(label);
   }
 
   /**
@@ -37,7 +52,7 @@ export default class SortableTablePo extends ComponentPo {
    * @returns
    */
   bulkActionDropDownPopOver() {
-    return this.bulkActionDropDown().find(`.v-popper .v-popper__inner`);
+    return cy.get('body').find('[dropdown-menu-collection]');
   }
 
   /**
@@ -48,7 +63,7 @@ export default class SortableTablePo extends ComponentPo {
 
     popOver.should('be.visible');
 
-    return popOver.find('li').contains(name);
+    return popOver.find('[dropdown-menu-item]').contains(name);
   }
 
   /**
@@ -159,8 +174,8 @@ export default class SortableTablePo extends ComponentPo {
   /**
    * Get rows names. To avoid the 'no rows' on first load use `noRowsShouldNotExist`
    */
-  rowNames(rowNameSelector = 'td:nth-of-type(3)') {
-    return this.rowElements().find(rowNameSelector).then(($els: any) => {
+  rowNames(rowNameSelector = 'td:nth-of-type(3)', options?: any) {
+    return this.rowElements(options).find(rowNameSelector).then(($els: any) => {
       return (
         Cypress.$.makeArray<string>($els).map((el: any) => el.innerText as string)
       );
@@ -222,6 +237,7 @@ export default class SortableTablePo extends ComponentPo {
     return new CheckboxInputPo(this.rowWithName(clusterName).column(0));
   }
 
+  // FIXME: resource / context specific functionality shouldn't be in generic components
   rowWithClusterName(clusterName: string) {
     return this.rowWithName(clusterName).column(2);
   }
@@ -257,5 +273,19 @@ export default class SortableTablePo extends ComponentPo {
   // pagination
   pagination() {
     return new PaginationPo();
+  }
+
+  waitForListItemRemoval(rowNameSelector = '.col-link-detail', name: string, options?: GetOptions) {
+    return this.rowNames(rowNameSelector)
+      .then((rowNames: string[]) => {
+        rowNames.forEach((name, index) => cy.log(`Row ${ index }: ${ name }`));
+
+        if (rowNames.includes(name)) {
+          cy.log(`${ name } found. Waiting for it to be removed...`);
+          cy.contains(rowNameSelector, name, options).should('not.exist');
+        } else {
+          cy.log(`${ name } already removed.`);
+        }
+      });
   }
 }

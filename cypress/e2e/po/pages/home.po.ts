@@ -5,6 +5,7 @@ import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
 import HomeClusterListPo from '@/cypress/e2e/po/lists/home-cluster-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import NotificationsCenterPo from '@/cypress/e2e/po/components/notification-center.po';
 
 const burgerMenu = new BurgerMenuPo();
 
@@ -45,20 +46,16 @@ export default class HomePagePo extends PagePo {
     return cy.getId('banner-title').invoke('text');
   }
 
-  prefPageLink(): Cypress.Chainable {
-    return this.getLoginPageBanner().self().find('a');
-  }
-
   whatsNewBannerLink(): Cypress.Chainable {
     return this.changelog().self().find('a');
   }
 
-  restoreAndWait() {
+  toggleBanner() {
     const pageActionsPo = new PageActions();
 
-    cy.intercept('PUT', 'v1/userpreferences/*').as('restoreBanners');
-    pageActionsPo.restoreLink().click();
-    cy.wait(['@restoreBanners', '@restoreBanners']);
+    cy.intercept('PUT', 'v1/userpreferences/*').as('toggleBanner');
+    pageActionsPo.toggleBanner().click();
+    cy.wait('@toggleBanner');
   }
 
   list(): HomeClusterListPo {
@@ -83,6 +80,10 @@ export default class HomePagePo extends PagePo {
     return simpleBox.simpleBox().find('.support-link > a').should('be.visible');
   }
 
+  notificationsCenter() {
+    return new NotificationsCenterPo();
+  }
+
   bannerGraphic() {
     return new BannerGraphicPo();
   }
@@ -95,12 +96,8 @@ export default class HomePagePo extends PagePo {
     return new BannersPo(cy.getId('changelog-banner'));
   }
 
-  /**
-   * Get set login page banner
-   * @returns
-   */
-  getLoginPageBanner() {
-    return new BannersPo(cy.getId('set-login-page-banner'));
+  changelogElement() {
+    return cy.getId('changelog-banner');
   }
 
   /**

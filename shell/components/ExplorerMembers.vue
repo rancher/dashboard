@@ -11,6 +11,7 @@ import SortableTable from '@shell/components/SortableTable';
 import { mapGetters } from 'vuex';
 import { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
 import { allHash } from '@shell/utils/promise';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 
 /**
  * Explorer members page.
@@ -62,7 +63,7 @@ export default {
     }
 
     if (projectRoleTemplateBindingSchema) {
-      this.$store.dispatch('rancher/findAll', { type: NORMAN.PROJECT_ROLE_TEMPLATE_BINDING }, { root: true })
+      this.$store.dispatch('rancher/findAll', { type: NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, opt: { force: true } }, { root: true })
         .then((bindings) => {
           this['projectRoleTemplateBindings'] = bindings;
           this.loadingProjectBindings = false;
@@ -227,6 +228,9 @@ export default {
     canEditClusterMembers() {
       return this.normanClusterRTBSchema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === HARVESTER;
+    },
   },
   methods: {
     getMgmtProjectId(group) {
@@ -324,7 +328,7 @@ export default {
         />
       </Tab>
       <Tab
-        v-if="canManageProjectMembers"
+        v-if="canManageProjectMembers && !isHarvester"
         name="project-membership"
         :label="t('members.projectMembership')"
       >
@@ -351,7 +355,8 @@ export default {
                 <button
                   v-if="canEditProjectMembers"
                   type="button"
-                  class="create-namespace btn btn-sm role-secondary mr-10 right"
+                  class="btn btn-sm role-secondary mr-10 right"
+                  :data-testid="`add-project-member-${getProjectLabel(group).replace(' ', '').toLowerCase()}`"
                   @click="addProjectMember(group)"
                 >
                   {{ t('members.createActionLabel') }}

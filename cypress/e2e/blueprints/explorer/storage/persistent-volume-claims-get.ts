@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../blueprint.utils';
+
 // GET /v1/persistentvolumeclaim- return empty persistentvolumeclaims data
 const persistentvolumeclaimsGetResponseEmpty = {
   type:         'collection',
@@ -5,7 +7,7 @@ const persistentvolumeclaimsGetResponseEmpty = {
   createTypes:  { persistentvolumeclaim: 'https://yonasb29head.qa.rancher.space/v1/persistentvolumeclaims' },
   actions:      {},
   resourceType: 'persistentvolumeclaim',
-  revision:     '123',
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        0,
   data:         []
 };
@@ -17,7 +19,7 @@ const persistentvolumeclaimsResponseSmallSet = {
   createTypes:  { persistentvolumeclaim: 'https://yonasb29head.qa.rancher.space/v1/persistentvolumeclaims' },
   actions:      {},
   resourceType: 'persistentvolumeclaim',
-  revision:     '123',
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        1,
   data:         [{
     id:    'cattle-system/test',
@@ -56,10 +58,10 @@ function reply(statusCode: number, body: any) {
   };
 }
 
-export function persistentVolumeClaimsNoData(): Cypress.Chainable<Response> {
-  return cy.intercept('GET', '/v1/persistentvolumeclaims?*', reply(200, persistentvolumeclaimsGetResponseEmpty)).as('persistentvolumeclaimsNoData');
+export function persistentVolumeClaimsNoData(tag: string): Cypress.Chainable<Response> {
+  return cy.intercept('GET', '/v1/persistentvolumeclaims?*', reply(200, persistentvolumeclaimsGetResponseEmpty)).as(tag);
 }
 
-export function generatePersistentVolumeClaimsDataSmall(): Cypress.Chainable<Response> {
-  return cy.intercept('GET', '/v1/persistentvolumeclaims?*', reply(200, persistentvolumeclaimsResponseSmallSet)).as('persistentvolumeclaimsDataSmall');
+export function generatePersistentVolumeClaimsDataSmall(tag: string): Cypress.Chainable<Response> {
+  return cy.intercept('GET', '/v1/persistentvolumeclaims?*', reply(200, persistentvolumeclaimsResponseSmallSet)).as(tag);
 }

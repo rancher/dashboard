@@ -1,5 +1,4 @@
 import * as validators from '@pkg/aks/util/validators';
-import { set } from '@shell/utils/object';
 import { AKSNodePool } from 'types';
 
 validators.requiredTranslation = (ctx, label) => `${ label } is required.`;
@@ -11,12 +10,11 @@ const MOCK_TRANSLATION = 'abc';
 const mockCtx = {
   normanCluster: { },
   t:             () => MOCK_TRANSLATION,
-  $set:          set
 };
 
 describe('fx: requiredInCluster', () => {
   it('returns an error message containing the field label if field is not defined in cluster', () => {
-    const mockCtx = { normanCluster: {} };
+    const mockCtx = { };
     const testLabel = 'test-label';
 
     const validator = validators.requiredInCluster(mockCtx, testLabel, 'spec');
@@ -25,7 +23,7 @@ describe('fx: requiredInCluster', () => {
   });
 
   it('returns undefined if field is defined in cluster', () => {
-    const mockCtx = { normanCluster: { spec: 'abc' } };
+    const mockCtx = { spec: 'abc' } ;
     const testLabel = 'test-label';
 
     const validator = validators.requiredInCluster(mockCtx, testLabel, 'spec');
@@ -70,9 +68,9 @@ describe('fx: resourceGroupChars', () => {
     ['rancher-test-rancher-test-rancher-test-rancher-test-rancher-test-rancher-test-ra!', MOCK_TRANSLATION],
     ['test-####-test', MOCK_TRANSLATION],
   ])('returns an error message if node resource group includes invalid characters', (nodeGroupName, validatorMsg) => {
-    const ctx = { ...mockCtx, normanCluster: { aksConfig: { nodeGroupName } } };
+    const ctx = { ...mockCtx, config: { nodeGroupName } };
 
-    const validator = validators.resourceGroupChars(ctx, '', 'aksConfig.nodeGroupName');
+    const validator = validators.resourceGroupChars(ctx, '', 'config.nodeGroupName');
 
     expect(validator()).toStrictEqual(validatorMsg);
   });
@@ -89,9 +87,9 @@ describe('fx: privateDnsZone', () => {
     ['privatelink.azmk8s.io', MOCK_TRANSLATION],
     ['privatelink.eastus2.azmk8s.io', MOCK_TRANSLATION]
   ])('returns an error message if the private dns zone does not match privatelink.REGION.azmk8s.io, SUBZONE.privatelink.REGION.azmk8s.io, private.REGION.azmk8s.io, or SUBZONE.private.REGION.azmk8s.io', (privateDnsZone, validatorMsg) => {
-    const ctx = { ...mockCtx, normanCluster: { aksConfig: { privateDnsZone } } };
+    const ctx = { ...mockCtx, config: { privateDnsZone } };
 
-    const validator = validators.privateDnsZone(ctx, '', 'aksConfig.privateDnsZone');
+    const validator = validators.privateDnsZone(ctx, '', 'config.privateDnsZone');
 
     expect(validator()).toStrictEqual(validatorMsg);
   });
@@ -142,19 +140,24 @@ describe('fx: nodePoolNames', () => {
 
 describe('fx: nodePoolCount', () => {
   // AksNodePool unit tests check that the second arg is passed in as expected
-  it('validates that count is at least 1 when second arg is false', () => {
+  it('validates that count is at least 1 and at most 1000 when second arg is false', () => {
     const validator = validators.nodePoolCount(mockCtx);
 
     expect(validator(1, false)).toBeUndefined();
     expect(validator(0, false)).toStrictEqual(MOCK_TRANSLATION);
+    expect(validator(1000, false)).toBeUndefined();
+    expect(validator(1001, false)).toStrictEqual(MOCK_TRANSLATION);
   });
 
-  it('validates that count is at least 0 when second arg is true', () => {
+  it('validates that count is at least 0 and at most 1000 when second arg is true', () => {
     const validator = validators.nodePoolCount(mockCtx);
 
     expect(validator(1, true)).toBeUndefined();
     expect(validator(0, true)).toBeUndefined();
+    expect(validator(1000, true)).toBeUndefined();
+
     expect(validator(-1, true)).toStrictEqual(MOCK_TRANSLATION);
+    expect(validator(1001, true)).toStrictEqual(MOCK_TRANSLATION);
   });
 
   it('validates each node pool in the provided context when not passed a count value', () => {
@@ -172,6 +175,12 @@ describe('fx: nodePoolCount', () => {
         },
         {
           name: 'klm', _validation: {}, mode: 'User', count: -1
+        },
+        {
+          name: 'nop', _validation: {}, mode: 'User', count: 1001
+        },
+        {
+          name: 'qrs', _validation: {}, mode: 'System', count: 1001
         }
       ] as unknown as AKSNodePool[]
     };
@@ -182,5 +191,7 @@ describe('fx: nodePoolCount', () => {
     expect(ctx.nodePools[1]?._validation?._validCount).toStrictEqual(true);
     expect(ctx.nodePools[2]?._validation?._validCount).toStrictEqual(true);
     expect(ctx.nodePools[3]?._validation?._validCount).toStrictEqual(false);
+    expect(ctx.nodePools[4]?._validation?._validCount).toStrictEqual(false);
+    expect(ctx.nodePools[5]?._validation?._validCount).toStrictEqual(false);
   });
 });

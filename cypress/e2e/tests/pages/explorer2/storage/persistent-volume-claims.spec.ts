@@ -1,6 +1,8 @@
 import { generatePersistentVolumeClaimsDataSmall, persistentVolumeClaimsNoData } from '@/cypress/e2e/blueprints/explorer/storage/persistent-volume-claims-get';
 import { PersistentVolumeClaimsPagePo } from '@/cypress/e2e/po/pages/explorer/persistent-volume-claims.po';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 
+const cluster = 'local';
 const persistentVolumeClaimsPage = new PersistentVolumeClaimsPagePo();
 
 describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
@@ -8,16 +10,20 @@ describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', 
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
     });
 
     it('validate persistent volume claims table in empty state', () => {
-      persistentVolumeClaimsNoData();
-      persistentVolumeClaimsPage.goTo();
+      ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { all: { is: true } } );
+
+      const tag = 'persistentvolumeclaimsNoData';
+
+      persistentVolumeClaimsNoData(tag);
+      PersistentVolumeClaimsPagePo.navTo();
       persistentVolumeClaimsPage.waitForPage();
-      cy.wait('@persistentvolumeclaimsNoData');
+      cy.wait(`@${ tag }`);
 
       const expectedHeaders = ['State', 'Name', 'Namespace', 'Status', 'Volume', 'Capacity', 'Access Modes', 'Storage Class', 'VolumeAttributesClass', 'Volume Mode', 'Age'];
 
@@ -31,10 +37,12 @@ describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', 
     });
 
     it('flat list: validate persistent volume claims table', () => {
-      generatePersistentVolumeClaimsDataSmall();
+      const tag = 'persistentvolumeclaimsDataSmall';
+
+      generatePersistentVolumeClaimsDataSmall(tag);
       persistentVolumeClaimsPage.goTo();
       persistentVolumeClaimsPage.waitForPage();
-      cy.wait('@persistentvolumeclaimsDataSmall');
+      cy.wait(`@${ tag }`);
 
       // check table headers are visible
       const expectedHeaders = ['State', 'Name', 'Namespace', 'Status', 'Volume', 'Capacity', 'Access Modes', 'Storage Class', 'VolumeAttributesClass', 'Volume Mode', 'Age'];
@@ -51,11 +59,14 @@ describe('PersistentVolumeClaims', { testIsolation: 'off', tags: ['@explorer2', 
       persistentVolumeClaimsPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
     });
 
+    // storage/persistent-volume-claims.spec.ts
     it('group by namespace: validate persistent volume claims table', () => {
-      generatePersistentVolumeClaimsDataSmall();
+      const tag = 'persistentvolumeclaimsDataSmall';
+
+      generatePersistentVolumeClaimsDataSmall(tag);
       persistentVolumeClaimsPage.goTo();
       persistentVolumeClaimsPage.waitForPage();
-      cy.wait('@persistentvolumeclaimsDataSmall');
+      cy.wait(`@${ tag }`);
 
       // group by namespace
       persistentVolumeClaimsPage.list().resourceTable().sortableTable().groupByButtons(1)

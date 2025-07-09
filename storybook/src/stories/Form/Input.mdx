@@ -1,0 +1,56 @@
+import { Meta, Canvas, Story } from '@storybook/blocks';
+import * as LabeledInput from './Input.stories';
+
+<Meta of={LabeledInput} />
+
+# Text input
+
+Input elements with type ‘text’ allow users to enter any combination of letters, numbers, or symbols. A text box only allows for a single line of input.
+
+### Description
+
+- Always associate a label to every text field for good accessibility. Do not include a colon at the end of the label.
+- Use the appropriate length for the text input. The length of the input text field provides a hint to users as to how much text is expected.
+- An input text field only allows for a single line of input.
+
+### Input
+
+<Canvas of={LabeledInput.Default} />
+
+### Different status of Input
+
+#### Info
+
+<Canvas of={LabeledInput.Info} />
+
+#### Success
+
+<Canvas of={LabeledInput.Success} />
+
+#### Warning
+
+<Canvas of={LabeledInput.Warning} />
+
+#### Error
+
+<Canvas of={LabeledInput.Error} />
+
+#### SubLabel
+
+Addition information can be added to the input field using the `subLabel` prop.
+
+<Canvas of={LabeledInput.SubLabel} />
+
+#### Cron Type
+
+The `cron` prop can be used to add [Cron language](https://en.wikipedia.org/wiki/Cron) hints.
+
+<Canvas of={LabeledInput.CronType} />
+
+<Canvas of={LabeledInput.CronTypeDaily} />
+
+<Canvas of={LabeledInput.CronTypeError} />
+
+#### Multiline Type
+
+<Canvas of={LabeledInput.MultilineType} />

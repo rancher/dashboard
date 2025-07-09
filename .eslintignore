@@ -17,8 +17,6 @@ utils/dynamic-importer.js
 shell/assets/fonts
 assets/fonts
 shell/pkg/import.js
-pkg/rancher-components/
-shell/rancher-components/
 shell/types/shell/index.d.ts
 dist/
 coverage/
@@ -27,3 +25,5 @@ public/
 pkg/**/node_modules
 elemental-ui/
 kubewarden-ui/
+styleguide/src/stories/Example/
+storybook/src/stories/Example/

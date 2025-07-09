@@ -1,406 +1,489 @@
-import { FleetClusterListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.cluster.po';
+import { FleetClusterListPagePo, FleetClusterDetailsPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.cluster.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import { MenuActions } from '@/cypress/support/types/menu-actions';
 import { gitRepoTargetAllClustersRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
-import { FleetGitRepoListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.gitrepo.po';
-import FleetClusterDetailsPo from '@/cypress/e2e/po/detail/fleet/fleet.cattle.io.cluster.po';
+import { FleetApplicationListPagePo, FleetGitRepoCreateEditPo, FleetApplicationCreatePo } from '~/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
 
-describe('Fleet Clusters', { tags: ['@fleet', '@adminUser'] }, () => {
-  const fleetClusterListPage = new FleetClusterListPagePo();
-  const fleetGitRepoListPage = new FleetGitRepoListPagePo();
-  const clusterList = new ClusterManagerListPagePo();
-  const headerPo = new HeaderPo();
-  const gitRepoUrl = 'https://github.com/rancher/fleet-examples.git';
-  const branch = 'master';
-  const paths = 'simple';
-  const downloadsFolder = Cypress.config('downloadsFolder');
+const fleetClusterListPage = new FleetClusterListPagePo();
+const fleetAppBundlesListPage = new FleetApplicationListPagePo();
+const appBundleCreatePage = new FleetApplicationCreatePo();
+const clusterList = new ClusterManagerListPagePo();
+const featureFlagsPage = new FeatureFlagsPagePo();
+const headerPo = new HeaderPo();
+const gitRepoUrl = 'https://github.com/rancher/fleet-test-data';
+const branch = 'master';
+const paths = 'qa-test-apps/nginx-app';
+const downloadsFolder = Cypress.config('downloadsFolder');
 
-  describe('bundle manifests are deployed from the BundleDeployment into the downstream cluster', { testIsolation: 'off', tags: ['@fleet', '@adminUser', '@jenkins'] }, () => {
-    const region = 'us-west-1';
-    const namespace = 'fleet-default';
-    let removeCluster = false;
-    let removeGitRepo = false;
+describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployment into the downstream cluster', { testIsolation: 'off', tags: ['@fleet', '@adminUser', '@jenkins'] }, () => {
+  const region = 'us-west-1';
+  const namespace = 'fleet-default';
+  let removeCluster = false;
+  let removeGitRepo = false;
+  let removeWorkspace = false;
+  let disableFeature = false;
+  let clusterId = '';
+  let clusterName = '';
+  let gitRepo = '';
+  let customWorkspace = '';
+  const feature = 'provisioningv2-fleet-workspace-back-population';
 
-    before(() => {
-      cy.login();
-      cy.createE2EResourceName('rke2cluster').as('rke2Ec2ClusterName');
-      cy.createE2EResourceName('git-repo').as('gitRepo');
-
-      cy.get<string>('@rke2Ec2ClusterName').then((name) => {
-        // create real cluster
-        cy.createAmazonRke2Cluster({
-          machineConfig: {
-            instanceType: 't3a.medium',
-            region,
-            vpcId:        'vpc-081cec85dbe35e9bd',
-            zone:         'a',
-            type:         'rke-machine-config.cattle.io.amazonec2config',
-            clusterName:  name,
-            namespace
-          },
-          cloudCredentialsAmazon: {
-            workspace: namespace,
-            name,
-            region,
-            accessKey: Cypress.env('awsAccessKey'),
-            secretKey: Cypress.env('awsSecretKey')
-          },
-          rke2ClusterAmazon: {
-            clusterName: name,
-            namespace,
-          }
-        }).then(() => {
-          removeCluster = true;
-        });
-      });
+  before(() => {
+    cy.login();
+    cy.createE2EResourceName('fleet-workspace').then((name) => {
+      customWorkspace = name;
     });
 
-    beforeEach(() => {
+    cy.createE2EResourceName('git-repo').then((name) => {
+      gitRepo = name;
+    });
+
+    cy.createE2EResourceName('rke2cluster').then((name) => {
+      clusterName = name;
+
+      // create real cluster
+      cy.createAmazonRke2Cluster({
+        machineConfig: {
+          instanceType: 't3a.medium',
+          region,
+          vpcId:        'vpc-081cec85dbe35e9bd',
+          zone:         'a',
+          type:         'rke-machine-config.cattle.io.amazonec2config',
+          clusterName:  name,
+          namespace
+        },
+        cloudCredentialsAmazon: {
+          workspace: namespace,
+          name,
+          region,
+          accessKey: Cypress.env('awsAccessKey'),
+          secretKey: Cypress.env('awsSecretKey')
+        },
+        rke2ClusterAmazon: {
+          clusterName: name,
+          namespace,
+        },
+        metadata: { labels: { foo: 'bar' } }
+      }).then(() => {
+        removeCluster = true;
+      });
+
       // get clusterId
-      cy.createE2EResourceName('rke2cluster').as('rke2Ec2ClusterName');
-      cy.get<string>('@rke2Ec2ClusterName').then((name) => {
-        cy.getRancherResource('v3', 'clusters').then((resp: Cypress.Response<any>) => {
-          const body = resp.body;
+      cy.getRancherResource('v3', 'clusters').then((resp: Cypress.Response<any>) => {
+        const body = resp.body;
 
-          body.data.forEach((item: any) => {
-            if (item['name'] === name) {
-              cy.wrap(item.id).as('clusterId');
-            }
-          });
-        });
-      });
-    });
-
-    it('data is populated in fleet cluster list and detail view', function() {
-      ClusterManagerListPagePo.navTo();
-      clusterList.waitForPage();
-      clusterList.list().state(this.rke2Ec2ClusterName).contains('Active', { timeout: 700000 });
-
-      // create gitrepo
-      cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(namespace, this.gitRepo, gitRepoUrl, branch, paths)).then(() => {
-        removeGitRepo = true;
-      });
-
-      // go to fleet gitrepo and wait until git repo is in active state
-      fleetGitRepoListPage.navTo();
-      fleetGitRepoListPage.waitForPage();
-      headerPo.selectWorkspace(namespace);
-      fleetGitRepoListPage.repoList().details(this.gitRepo, 1).contains('Active', { timeout: 600000 });
-
-      // go to fleet clusters
-      FleetClusterListPagePo.navTo();
-      fleetClusterListPage.waitForPage();
-      headerPo.selectWorkspace(namespace);
-      fleetClusterListPage.sortableTable().checkLoadingIndicatorNotVisible();
-
-      // get cluster state
-      fleetClusterListPage.clusterList().details(this.rke2Ec2ClusterName, 1).invoke('text').then((clusterState) => {
-        const states = ['Wait Check-In', 'Not Ready', 'Err Applied'];
-
-        for (const i in states) {
-          if (clusterState.trim() === states[i]) {
-            // In reality these states resolve themselved after some time, using force update here to quickly get Active state
-            cy.intercept('PUT', `v1/fleet.cattle.io.clusters/${ namespace }/${ this.rke2Ec2ClusterName }`).as('forceUpdate');
-            fleetClusterListPage.clusterList().actionMenu(this.rke2Ec2ClusterName).getMenuItem('Force Update').click();
-            cy.wait('@forceUpdate').its('response.statusCode').should('eq', 200);
+        body.data.forEach((item: any) => {
+          if (item['name'] === name) {
+            clusterId = item.id;
           }
-        }
-      });
-
-      // check name
-      fleetClusterListPage.clusterList().details(this.rke2Ec2ClusterName, 2).should('be.visible');
-      // check cluster state in fleet
-      fleetClusterListPage.clusterList().details(this.rke2Ec2ClusterName, 1).contains('Active', { timeout: 180000 });
-      // check bundles ready
-      fleetClusterListPage.clusterList().details(this.rke2Ec2ClusterName, 3).should('have.text', '4');
-      // check repos ready
-      fleetClusterListPage.clusterList().details(this.rke2Ec2ClusterName, 4).should('have.text', '1');
-      // check resources: testing https://github.com/rancher/dashboard/issues/11154
-      fleetClusterListPage.clusterList().details(this.rke2Ec2ClusterName, 5).should('have.text', ' 6 ');
-
-      const fleetClusterDetailsPage = new FleetClusterDetailsPo(namespace, this.rke2Ec2ClusterName);
-
-      // go to cluster details in fleet
-      fleetClusterListPage.clusterList().details(this.rke2Ec2ClusterName, 2).find('a').click();
-      fleetClusterDetailsPage.waitForPage(null, 'repos');
-      fleetClusterDetailsPage.clusterTabs().clickTabWithSelector('[data-testid="btn-repos"]');
-
-      // check state
-      fleetClusterDetailsPage.gitReposList().details(this.gitRepo, 1).contains('Ready');
-      // check name
-      fleetClusterDetailsPage.gitReposList().details(this.gitRepo, 2).should('be.visible');
-      // check repo
-      fleetClusterDetailsPage.gitReposList().details(this.gitRepo, 3).contains('rancher/fleet-examples master');
-      // check target
-      fleetClusterDetailsPage.gitReposList().details(this.gitRepo, 4).contains('Advanced');
-      // check cluster resources
-      fleetClusterDetailsPage.gitReposList().details(this.gitRepo, 5).should('have.text', ' 6 ');
-    });
-
-    it('check all tabs are available in the details view', function() {
-      // testing https://github.com/rancher/dashboard/issues/11155
-      const fleetClusterDetailsPage = new FleetClusterDetailsPo(namespace, this.rke2Ec2ClusterName);
-
-      // go to fleet clusters
-      FleetClusterListPagePo.navTo();
-      fleetClusterListPage.waitForPage();
-      headerPo.selectWorkspace(namespace);
-      fleetClusterListPage.clusterList().details(this.rke2Ec2ClusterName, 2).find('a').click();
-      fleetClusterDetailsPage.waitForPage(null, 'repos');
-      fleetClusterDetailsPage.clusterTabs().allTabs().should('have.length', 4, { timeout: 10000 });
-      const tabs = ['Git Repos', 'Conditions', 'Recent Events', 'Related Resources'];
-
-      fleetClusterDetailsPage.clusterTabs().tabNames().each((el, i) => {
-        expect(el).to.eq(tabs[i]);
-      });
-    });
-
-    it('Git Repos Tab Add Repository button takes you to the correct page', function() {
-      const fleetClusterDetailsPage = new FleetClusterDetailsPo(namespace, this.rke2Ec2ClusterName);
-
-      fleetClusterDetailsPage.waitForPage(null, 'repos');
-      fleetClusterDetailsPage.gitReposTab().addRepostoryButton().click();
-
-      cy.url().should('include', `${ Cypress.config().baseUrl }/c/_/fleet/fleet.cattle.io.gitrepo/create`);
-    });
-
-    it('adding git repo should add bundles on downstream cluster (deployments added)', function() {
-      const deploymentsList = new WorkloadsDeploymentsListPagePo(this.clusterId);
-
-      deploymentsList.goTo();
-      deploymentsList.waitForPage();
-
-      const deployments = ['frontend', 'redis-master', 'redis-slave'];
-
-      for (const i in deployments) {
-        deploymentsList.details(deployments[i], 1).contains('Active', { timeout: 15000 });
-      }
-    });
-
-    it('can Pause/Unpause', function() {
-      // go to fleet clusters
-      FleetClusterListPagePo.navTo();
-      fleetClusterListPage.waitForPage();
-      headerPo.selectWorkspace(namespace);
-
-      cy.intercept('PUT', `v1/fleet.cattle.io.clusters/${ namespace }/${ this.rke2Ec2ClusterName }`).as('pauseAndUnpause');
-
-      // pause
-      fleetClusterListPage.clusterList().actionMenu(this.rke2Ec2ClusterName).getMenuItem('Pause').click();
-      cy.wait('@pauseAndUnpause').then(({ response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(response?.body).to.have.property('kind', 'Cluster');
-        expect(response?.body.metadata).to.have.property('name', this.rke2Ec2ClusterName);
-        expect(response?.body.spec).to.have.property('paused', true);
-      });
-
-      // check cluster state
-      fleetClusterListPage.clusterList().details(this.rke2Ec2ClusterName, 1).contains('Paused', { timeout: 60000 });
-
-      // unpause
-      fleetClusterListPage.clusterList().actionMenu(this.rke2Ec2ClusterName).getMenuItem('Unpause').click();
-      cy.wait('@pauseAndUnpause').then(({ response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(response?.body).to.have.property('kind', 'Cluster');
-        expect(response?.body.metadata).to.have.property('name', this.rke2Ec2ClusterName);
-        expect(response?.body.spec).to.have.property('paused', false);
-      });
-
-      // check cluster state
-      fleetClusterListPage.clusterList().details(this.rke2Ec2ClusterName, 1).contains('Active', { timeout: 120000 });
-    });
-
-    it('can Edit Config', function() {
-      // go to fleet clusters
-      FleetClusterListPagePo.navTo();
-      fleetClusterListPage.waitForPage();
-      headerPo.selectWorkspace(namespace);
-      fleetClusterListPage.clusterList().actionMenu(this.rke2Ec2ClusterName).getMenuItem('Edit Config').click();
-
-      const editFleetCluster = fleetClusterListPage.editFleetCluster(undefined, this.rke2Ec2ClusterName);
-
-      editFleetCluster.waitForPage('mode=edit');
-      editFleetCluster.nameNsDescription().description().set(`${ this.rke2Ec2ClusterName }-fleet-desc`);
-      editFleetCluster.saveCreateForm().cruResource().saveAndWaitForRequests('PUT', `v1/fleet.cattle.io.clusters/${ namespace }/${ this.rke2Ec2ClusterName }`)
-        .then(({ response }) => {
-          expect(response?.statusCode).to.eq(200);
-          expect(response?.body.metadata).to.have.property('name', this.rke2Ec2ClusterName);
-          expect(response?.body.metadata.annotations).to.have.property('field.cattle.io/description', `${ this.rke2Ec2ClusterName }-fleet-desc`);
         });
-      fleetClusterListPage.waitForPage();
-    });
-
-    it('can Download YAML', function() {
-      cy.deleteDownloadsFolder();
-
-      FleetClusterListPagePo.navTo();
-      fleetClusterListPage.waitForPage();
-      headerPo.selectWorkspace(namespace);
-      fleetClusterListPage.clusterList().actionMenu(this.rke2Ec2ClusterName).getMenuItem('Download YAML').click();
-
-      const downloadedFilename = path.join(downloadsFolder, `${ this.rke2Ec2ClusterName }.yaml`);
-
-      cy.readFile(downloadedFilename).then((buffer) => {
-        const obj: any = jsyaml.load(buffer);
-
-        // Basic checks on the downloaded YAML
-        expect(obj.kind).to.equal('Cluster');
-        expect(obj.metadata.annotations['objectset.rio.cattle.io/id']).to.equal('fleet-cluster');
-        expect(obj.metadata.annotations['objectset.rio.cattle.io/owner-name']).to.equal(this.rke2Ec2ClusterName);
-        expect(obj.metadata.annotations['objectset.rio.cattle.io/owner-namespace']).to.equal(namespace);
       });
     });
 
-    it('removing git repo should remove bundles on downstream cluster (deployments removed)', function() {
-      const deploymentsList = new WorkloadsDeploymentsListPagePo(this.clusterId);
+    cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+  });
 
-      // delete gitrepo
-      cy.deleteRancherResource('v1', `fleet.cattle.io.gitrepos/${ namespace }`, this.gitRepo).then(() => {
-        removeGitRepo = false;
-      });
+  it('data is populated in fleet cluster list and detail view', () => {
+    ClusterManagerListPagePo.navTo();
+    clusterList.waitForPage();
+    clusterList.list().state(clusterName).contains('Active', { timeout: 700000 });
 
-      deploymentsList.goTo();
-      deploymentsList.waitForPage();
-      deploymentsList.sortableTable().checkLoadingIndicatorNotVisible();
-      deploymentsList.sortableTable().checkRowCount(true, 1);
+    // create gitrepo
+    cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(namespace, gitRepo, gitRepoUrl, branch, paths)).then(() => {
+      removeGitRepo = true;
     });
 
-    it('cluster should be removed from fleet cluster list once deleted', () => {
-      if (removeCluster) {
-        //  delete cluster
-        cy.get<string>('@rke2Ec2ClusterName').then((name) => {
-          cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, name);
-          removeCluster = false;
-        });
-      }
+    // go to fleet gitrepo and wait until git repo is in active state
+    fleetAppBundlesListPage.navTo();
+    fleetAppBundlesListPage.waitForPage();
+    headerPo.selectWorkspace(namespace);
+    fleetAppBundlesListPage.resourceTableDetails(gitRepo, 1).contains('Active', LONG_TIMEOUT_OPT);
 
-      FleetClusterListPagePo.navTo();
-      fleetClusterListPage.waitForPage();
-      headerPo.selectWorkspace(namespace);
-      fleetClusterListPage.sortableTable().checkLoadingIndicatorNotVisible();
-      fleetClusterListPage.sortableTable().checkRowCount(true, 1);
-    });
+    // go to fleet clusters
+    FleetClusterListPagePo.navTo();
+    fleetClusterListPage.waitForPage();
+    headerPo.selectWorkspace(namespace);
+    fleetClusterListPage.list().resourceTable().sortableTable()
+      .checkLoadingIndicatorNotVisible();
 
-    after('clean up', () => {
-      if (removeCluster) {
-        //  delete cluster
-        cy.get<string>('@rke2Ec2ClusterName').then((name) => {
-          cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, name);
-        });
-      }
-      if (removeGitRepo) {
-        // delete gitrepo
-        cy.get<string>('@gitRepo').then((name) => {
-          cy.deleteRancherResource('v1', `fleet.cattle.io.gitrepos/${ namespace }`, name);
-        });
-      }
+    // check name
+    fleetClusterListPage.resourceTableDetails(clusterName, 2).should('be.visible');
+    // check cluster state in fleet
+    fleetClusterListPage.resourceTableDetails(clusterName, 1).contains('Not Ready', MEDIUM_TIMEOUT_OPT);
+    fleetClusterListPage.resourceTableDetails(clusterName, 1).contains('Active', LONG_TIMEOUT_OPT);
+    // check bundles ready
+    fleetClusterListPage.resourceTableDetails(clusterName, 3).should('have.text', '4');
+    // check repos ready
+    fleetClusterListPage.resourceTableDetails(clusterName, 4).should('have.text', '1');
+    // check resources: testing https://github.com/rancher/dashboard/issues/11154
+    fleetClusterListPage.resourceTableDetails(clusterName, 5).contains( ' 15 ', MEDIUM_TIMEOUT_OPT);
+    // check cluster labels
+    fleetClusterListPage.list().resourceTable().sortableTable()
+      .subRows()
+      .should('contain.text', 'foo=bar');
+
+    const fleetClusterDetailsPage = new FleetClusterDetailsPo(namespace, clusterName);
+
+    // go to cluster details in fleet
+    fleetClusterListPage.goToDetailsPage(clusterName);
+    fleetClusterDetailsPage.waitForPage(null, 'applications');
+    fleetClusterDetailsPage.clusterTabs().clickTabWithSelector('[data-testid="btn-repos"]');
+
+    // check state
+    fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 1).contains('Ready');
+    // check name
+    fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 2).should('be.visible');
+    // check repo
+    fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 3).contains('rancher/fleet-test-data master');
+    // check target
+    fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 4).contains('Advanced');
+    // check cluster resources
+    fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 5).should('have.text', ' 1 ');
+  });
+
+  it('check all tabs are available in the details view', () => {
+    // testing https://github.com/rancher/dashboard/issues/11155
+    const fleetClusterDetailsPage = new FleetClusterDetailsPo(namespace, clusterName);
+
+    // go to fleet clusters
+    FleetClusterListPagePo.navTo();
+    fleetClusterListPage.waitForPage();
+    headerPo.selectWorkspace(namespace);
+    fleetClusterListPage.goToDetailsPage(clusterName);
+    fleetClusterDetailsPage.waitForPage(null, 'applications');
+    fleetClusterDetailsPage.clusterTabs().allTabs().should('have.length', 4, { timeout: 10000 });
+    const tabs = ['App Bundles', 'Conditions', 'Recent Events', 'Related Resources'];
+
+    fleetClusterDetailsPage.clusterTabs().tabNames().each((el, i) => {
+      expect(el).to.eq(tabs[i]);
     });
   });
 
-  describe('List', { tags: ['@fleet', '@adminUser'] }, () => {
-    const fleetClusterListPage = new FleetClusterListPagePo();
-    let removeGitRepo = false;
-    const workspace = 'fleet-local';
+  it('adding git repo should add bundles on downstream cluster (deployments added)', () => {
+    const deploymentsList = new WorkloadsDeploymentsListPagePo(clusterId);
+    const deployments = 'nginx-keep';
 
-    beforeEach(() => {
-      cy.login();
-      fleetClusterListPage.goTo();
+    deploymentsList.goTo();
+    deploymentsList.waitForPage();
 
-      // NB: No additional clusters are provisioned
-      // Look only at the local clusters
-      headerPo.selectWorkspace(workspace);
+    deploymentsList.details(deployments, 1).contains('Active', { timeout: 15000 });
+  });
+
+  it('can Pause', () => {
+    // go to fleet clusters
+    FleetClusterListPagePo.navTo();
+    fleetClusterListPage.waitForPage();
+    headerPo.selectWorkspace(namespace);
+
+    cy.intercept('PUT', `v1/fleet.cattle.io.clusters/${ namespace }/${ clusterName }`).as('pause');
+
+    // pause
+    fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Pause')
+      .click();
+    cy.wait('@pause').then(({ response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(response?.body).to.have.property('kind', 'Cluster');
+      expect(response?.body.metadata).to.have.property('name', clusterName);
+      expect(response?.body.spec).to.have.property('paused', true);
     });
 
-    it('should be able to list clusters in local workspace', () => {
-      fleetClusterListPage.checkRowCount(false, 1);
+    // check cluster state
+    fleetClusterListPage.resourceTableDetails(clusterName, 1).contains('Paused', LONG_TIMEOUT_OPT);
+  });
+
+  it('can Unpause', () => {
+    // go to fleet clusters
+    FleetClusterListPagePo.navTo();
+    fleetClusterListPage.waitForPage();
+    headerPo.selectWorkspace(namespace);
+
+    cy.intercept('PUT', `v1/fleet.cattle.io.clusters/${ namespace }/${ clusterName }`).as('unpause');
+
+    // unpause
+    fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Unpause')
+      .click();
+    cy.wait('@unpause').then(({ response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(response?.body).to.have.property('kind', 'Cluster');
+      expect(response?.body.metadata).to.have.property('name', clusterName);
+      expect(response?.body.spec).to.have.property('paused', false);
     });
 
-    it('should only display action menu with allowed actions only', () => {
-      fleetClusterListPage.goTo();
-      headerPo.selectWorkspace(workspace);
+    // check cluster state
+    fleetClusterListPage.resourceTableDetails(clusterName, 1).contains('Active', LONG_TIMEOUT_OPT);
+  });
 
-      const constActionMenu = fleetClusterListPage.rowActionMenuOpen('local');
+  it('can Edit Config', () => {
+    // go to fleet clusters
+    FleetClusterListPagePo.navTo();
+    fleetClusterListPage.waitForPage();
+    headerPo.selectWorkspace(namespace);
+    fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Edit Config')
+      .click();
 
-      const allowedActions: MenuActions[] = [
-        MenuActions.Pause,
-        MenuActions.ForceUpdate,
-        MenuActions.EditYaml,
-        MenuActions.EditConfig,
+    const editFleetCluster = fleetClusterListPage.editFleetCluster(undefined, clusterName);
+
+    editFleetCluster.waitForPage('mode=edit');
+    editFleetCluster.resourceDetail().createEditView().nameNsDescription()
+      .description()
+      .set(`${ clusterName }-fleet-desc`);
+    editFleetCluster.resourceDetail().cruResource().saveAndWaitForRequests('PUT', `v1/fleet.cattle.io.clusters/${ namespace }/${ clusterName }`)
+      .then(({ response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(response?.body.metadata).to.have.property('name', clusterName);
+        expect(response?.body.metadata.annotations).to.have.property('field.cattle.io/description', `${ clusterName }-fleet-desc`);
+      });
+    fleetClusterListPage.waitForPage();
+  });
+
+  it('can Download YAML', () => {
+    cy.deleteDownloadsFolder();
+
+    FleetClusterListPagePo.navTo();
+    fleetClusterListPage.waitForPage();
+    headerPo.selectWorkspace(namespace);
+    fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Download YAML')
+      .click();
+
+    const downloadedFilename = path.join(downloadsFolder, `${ clusterName }.yaml`);
+
+    cy.readFile(downloadedFilename).then((buffer) => {
+      const obj: any = jsyaml.load(buffer);
+
+      // Basic checks on the downloaded YAML
+      expect(obj.kind).to.equal('Cluster');
+      expect(obj.metadata.annotations['objectset.rio.cattle.io/id']).to.equal('fleet-cluster');
+      expect(obj.metadata.annotations['objectset.rio.cattle.io/owner-name']).to.equal(clusterName);
+      expect(obj.metadata.annotations['objectset.rio.cattle.io/owner-namespace']).to.equal(namespace);
+    });
+  });
+
+  it('can assign cluster to different fleet workspaces', () => {
+    // create workspace
+    cy.createRancherResource('v3', 'fleetworkspaces', `{"type":"fleetworkspace","name":"${ customWorkspace }","annotations":{},"labels":{}}`).then(() => {
+      removeWorkspace = true;
+    });
+
+    // enable feature: provisioningv2-fleet-workspace-back-population
+    FeatureFlagsPagePo.navTo();
+    featureFlagsPage.waitForPage();
+    featureFlagsPage.list().details(feature, 0).should('include.text', 'Disabled');
+    featureFlagsPage.list().clickRowActionMenuItem(feature, 'Activate');
+    featureFlagsPage.clickCardActionButtonAndWait('Activate', feature, true, { waitForModal: true, waitForRequest: true });
+    featureFlagsPage.list().details(feature, 0).should('include.text', 'Active').then(() => {
+      disableFeature = true;
+    });
+
+    // go to fleet clusters
+    fleetClusterListPage.goTo();
+    fleetClusterListPage.waitForPage();
+    headerPo.selectWorkspace(namespace);
+
+    cy.intercept('PUT', '/v1/userpreferences/*').as('changeWorkspace');
+    fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Change workspace')
+      .click();
+    fleetClusterListPage.changeWorkspaceForm().workspaceSelect().toggle();
+    fleetClusterListPage.changeWorkspaceForm().workspaceSelect().clickOptionWithLabel(customWorkspace);
+    fleetClusterListPage.changeWorkspaceForm().applyAndWait('v3/clusters/*');
+    fleetClusterListPage.list().resourceTable().sortableTable()
+      .checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
+
+    FleetClusterListPagePo.navTo();
+    fleetClusterListPage.waitForPage();
+    headerPo.selectWorkspace(customWorkspace);
+    cy.wait('@changeWorkspace');
+    fleetClusterListPage.resourceTableDetails(clusterName, 2).isVisible();
+
+    // restore
+    fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Change workspace')
+      .click();
+    fleetClusterListPage.changeWorkspaceForm().workspaceSelect().toggle();
+    fleetClusterListPage.changeWorkspaceForm().workspaceSelect().clickOptionWithLabel(namespace);
+    fleetClusterListPage.changeWorkspaceForm().applyAndWait('v3/clusters/*');
+    fleetClusterListPage.list().resourceTable().sortableTable()
+      .checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
+
+    FleetClusterListPagePo.navTo();
+    fleetClusterListPage.waitForPage();
+    headerPo.selectWorkspace(namespace);
+    cy.wait('@changeWorkspace');
+    fleetClusterListPage.resourceTableDetails(clusterName, 2).isVisible();
+  });
+
+  it('removing git repo should remove bundles on downstream cluster (deployments removed)', () => {
+    const deploymentsList = new WorkloadsDeploymentsListPagePo(clusterId);
+
+    // delete gitrepo
+    cy.deleteRancherResource('v1', `fleet.cattle.io.gitrepos/${ namespace }`, gitRepo).then(() => {
+      removeGitRepo = false;
+    });
+
+    deploymentsList.goTo();
+    deploymentsList.waitForPage();
+    deploymentsList.sortableTable().checkLoadingIndicatorNotVisible();
+    deploymentsList.sortableTable().checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
+  });
+
+  it('cluster should be removed from fleet cluster list once deleted', () => {
+    if (removeCluster) {
+      //  delete cluster
+      cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, clusterName);
+      removeCluster = false;
+    }
+
+    FleetClusterListPagePo.navTo();
+    fleetClusterListPage.waitForPage();
+    headerPo.selectWorkspace(namespace);
+    fleetClusterListPage.list().resourceTable().sortableTable()
+      .checkLoadingIndicatorNotVisible();
+    fleetClusterListPage.list().resourceTable().sortableTable()
+      .checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
+  });
+
+  after('clean up', () => {
+    if (removeCluster) {
+      // delete cluster
+      cy.deleteRancherResource('v1', `provisioning.cattle.io.clusters/${ namespace }`, clusterName, false);
+    }
+    if (removeGitRepo) {
+      // delete gitrepo
+      cy.deleteRancherResource('v1', `fleet.cattle.io.gitrepos/${ namespace }`, gitRepo, false);
+    }
+    if (removeWorkspace) {
+      // delete workspace
+      cy.deleteRancherResource('v3', 'fleetWorkspaces', customWorkspace, false);
+    }
+
+    if (disableFeature) {
+      // disable feature: provisioningv2-fleet-workspace-back-population
+      FeatureFlagsPagePo.navTo();
+      featureFlagsPage.waitForPage();
+      featureFlagsPage.list().details(feature, 0).should('include.text', 'Active');
+      featureFlagsPage.list().clickRowActionMenuItem(feature, 'Deactivate');
+      featureFlagsPage.clickCardActionButtonAndWait('Deactivate', feature, false, { waitForModal: true, waitForRequest: true });
+      featureFlagsPage.list().details(feature, 0).should('include.text', 'Disabled');
+    }
+  });
+});
+
+describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, () => {
+  let toRemove = '';
+  const workspace = 'fleet-local';
+
+  beforeEach(() => {
+    cy.login();
+    fleetClusterListPage.goTo();
+    headerPo.selectWorkspace(workspace);
+  });
+
+  it('should be able to list clusters in local workspace', () => {
+    fleetClusterListPage.list().resourceTable().sortableTable()
+      .checkRowCount(false, 1);
+  });
+
+  it('Git Repos Tab Add Repository button takes you to the correct page', () => {
+    // testing https://github.com/rancher/dashboard/issues/11198
+    const fleetClusterDetailsPage = new FleetClusterDetailsPo(workspace, 'local');
+    const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
+
+    fleetClusterListPage.list().resourceTable().sortableTable()
+      .checkLoadingIndicatorNotVisible();
+    fleetClusterListPage.goToDetailsPage('local');
+    fleetClusterDetailsPage.waitForPage(null, 'applications');
+    fleetClusterDetailsPage.addAppButton().click();
+    appBundleCreatePage.waitForPage();
+
+    appBundleCreatePage.createGitRepo();
+    gitRepoCreatePage.waitForPage();
+    gitRepoCreatePage.mastheadTitle().then((title) => {
+      expect(title.replace(/\s+/g, ' ')).to.contain('App Bundle: Create');
+    });
+  });
+
+  it('should only display action menu with allowed actions only', () => {
+    const constActionMenu = fleetClusterListPage.list().resourceTable().sortableTable()
+      .rowActionMenuOpen('local');
+
+    const allowedActions: MenuActions[] = [
+      MenuActions.Pause,
+      MenuActions.ForceUpdate,
+      MenuActions.EditYaml,
+      MenuActions.EditConfig,
       // MenuActions.ViewInApi, // TODO: #10095: Review API menu case
-      ];
+    ];
 
-      const disabledActions: MenuActions[] = [MenuActions.ChangeWorkspace];
+    const disabledActions: MenuActions[] = [MenuActions.ChangeWorkspace];
 
-      allowedActions.forEach((action) => {
-        constActionMenu.getMenuItem(action).should('exist');
-      });
-
-      // Disabled actions should not exist
-      disabledActions.forEach((action) => {
-        constActionMenu.getMenuItem(action).should('not.exist');
-      });
+    allowedActions.forEach((action) => {
+      constActionMenu.getMenuItem(action).should('exist');
     });
 
-    it('check table headers are available in list and details view', { tags: ['@vai', '@adminUser'] }, () => {
-      const clusterName = 'local';
+    // Disabled actions should not exist
+    disabledActions.forEach((action) => {
+      constActionMenu.getMenuItem(action).should('not.exist');
+    });
+  });
 
-      // create gitrepo
-      cy.createE2EResourceName('git-repo').as('gitRepo');
+  it('check table headers are available in list and details view', { tags: ['@noVai', '@adminUser'] }, () => {
+    const clusterName = 'local';
 
-      cy.get<string>('@gitRepo').then((repoName) => {
-        cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(workspace, repoName, gitRepoUrl, branch, paths)).then(() => {
-          removeGitRepo = true;
-        });
+    // create gitrepo
+    cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(workspace, '', gitRepoUrl, branch, paths)).then((res) => {
+      toRemove = res.body.id.replaceAll(`${ workspace }/`, '');
+    });
 
-        // go to fleet gitrepo and wait until git repo is in active state
-        fleetGitRepoListPage.navTo();
-        fleetGitRepoListPage.waitForPage();
-        headerPo.selectWorkspace(workspace);
-        fleetGitRepoListPage.repoList().rowWithName(repoName).checkVisible();
+    // go to fleet applications
+    fleetAppBundlesListPage.goTo();
+    fleetAppBundlesListPage.waitForPage();
+    headerPo.selectWorkspace(workspace);
+    fleetAppBundlesListPage.list().rowWithName(toRemove).checkVisible();
 
-        // go to fleet cluster list
-        FleetClusterListPagePo.navTo();
-        fleetClusterListPage.waitForPage();
+    // go to fleet cluster list
+    FleetClusterListPagePo.navTo();
+    fleetClusterListPage.waitForPage();
 
-        // check table headers
-        const expectedHeaders = ['State', 'Name', 'Bundles Ready', 'Repos Ready', 'Resources', 'Last Seen', 'Age'];
+    // check table headers
+    const expectedHeaders = ['State', 'Name', 'Bundles Ready', 'Repos Ready', 'Resources', 'Last Seen', 'Age'];
 
-        fleetClusterListPage.clusterList().resourceTable().sortableTable().tableHeaderRow()
-          .within('.table-header-container .content')
-          .each((el, i) => {
-            expect(el.text().trim()).to.eq(expectedHeaders[i]);
-          });
-
-        // go to fleet cluster details
-        fleetClusterListPage.clusterList().details(clusterName, 2).find('a').click();
-
-        const fleetClusterDetailsPage = new FleetClusterDetailsPo(workspace, clusterName);
-
-        fleetClusterDetailsPage.waitForPage(null, 'repos');
-
-        // check table headers
-        const expectedHeadersDetailsView = ['Cluster State', 'Name', 'Repo', 'Target', 'Cluster Resources', 'Age'];
-
-        fleetClusterDetailsPage.gitReposTab().list().resourceTable().sortableTable()
-          .tableHeaderRow()
-          .within('.table-header-container .content')
-          .each((el, i) => {
-            expect(el.text().trim()).to.eq(expectedHeadersDetailsView[i]);
-          });
+    headerPo.selectWorkspace(workspace);
+    fleetClusterListPage.list().resourceTable().sortableTable()
+      .tableHeaderRow()
+      .within('.table-header-container .content')
+      .each((el, i) => {
+        expect(el.text().trim()).to.eq(expectedHeaders[i]);
       });
-    });
 
-    after('clean up', () => {
-      if (removeGitRepo) {
-        // delete gitrepo
-        cy.get<string>('@gitRepo').then((name) => {
-          cy.deleteRancherResource('v1', `fleet.cattle.io.gitrepos/${ workspace }`, name);
-        });
-      }
-    });
+    const fleetClusterDetailsPage = new FleetClusterDetailsPo(workspace, clusterName);
+
+    fleetClusterListPage.goToDetailsPage(clusterName);
+    fleetClusterDetailsPage.waitForPage(null, 'applications');
+
+    // check table headers
+    const expectedHeadersDetailsView = ['State', 'Name', 'Type', 'Source', 'Target', 'Clusters Ready', 'Resources', 'Age'];
+
+    headerPo.selectWorkspace(workspace);
+
+    // Select flat list
+    fleetClusterDetailsPage.appBundlesList().sortableTable().groupByButtons(0).click();
+
+    fleetClusterDetailsPage.appBundlesList().sortableTable()
+      .tableHeaderRow()
+      .within('.table-header-container .content')
+      .each((el, i) => {
+        expect(el.text().trim()).to.eq(expectedHeadersDetailsView[i]);
+      });
+  });
+
+  after('clean up', () => {
+    if (toRemove) {
+      // delete gitrepo
+      cy.deleteRancherResource('v1', `fleet.cattle.io.gitrepos/${ workspace }`, toRemove);
+    }
   });
 });

@@ -134,6 +134,14 @@ export const CATALOG = {
   REPO:         'catalog.cattle.io.repo',
 };
 
+// Charts/Apps
+export const CATALOG_SORT_OPTIONS = {
+  RECOMMENDED:       'recommended',
+  LAST_UPDATED_DESC: 'lastupdatedDescending',
+  ALPHABETICAL_ASC:  'alphaAscending',
+  ALPHABETICAL_DESC: 'alphaDescending'
+};
+
 // UI Plugin type
 export const UI_PLUGIN = 'catalog.cattle.io.uiplugin';
 
@@ -172,6 +180,8 @@ export const LONGHORN = {
 };
 
 export const LONGHORN_DRIVER = 'driver.longhorn.io';
+export const LONGHORN_VERSION_V1 = 'LonghornV1';
+export const LONGHORN_VERSION_V2 = 'LonghornV2';
 
 export const SNAPSHOT = 'rke.cattle.io.etcdsnapshot';
 
@@ -209,7 +219,8 @@ export const MANAGEMENT = {
   GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider',
   RKE_TEMPLATE:                  'management.cattle.io.clustertemplate',
   RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
-  CLUSTER_PROXY_CONFIG:          'management.cattle.io.clusterproxyconfig'
+  CLUSTER_PROXY_CONFIG:          'management.cattle.io.clusterproxyconfig',
+  OIDC_CLIENT:                   'management.cattle.io.oidcclient'
 };
 
 export const CAPI = {
@@ -227,12 +238,14 @@ export const CAPI = {
 // Base: /k8s/clusters/<id>/v1/
 
 export const FLEET = {
+  APPLICATION:              'fleet.cattle.io.application',
   BUNDLE:                   'fleet.cattle.io.bundle',
   BUNDLE_DEPLOYMENT:        'fleet.cattle.io.bundledeployment',
   CLUSTER:                  'fleet.cattle.io.cluster',
   CLUSTER_GROUP:            'fleet.cattle.io.clustergroup',
   DASHBOARD:                'fleet.cattle.io.dashboard',
   GIT_REPO:                 'fleet.cattle.io.gitrepo',
+  HELM_OP:                  'fleet.cattle.io.helmop',
   WORKSPACE:                'management.cattle.io.fleetworkspace',
   TOKEN:                    'fleet.cattle.io.clusterregistrationtoken',
   BUNDLE_NAMESPACE_MAPPING: 'fleet.cattle.io.bundlenamespacemapping',
@@ -290,11 +303,11 @@ export const BACKUP_RESTORE = {
   RESTORE:      'resources.cattle.io.restore',
 };
 
-export const CIS = {
-  CLUSTER_SCAN:         'cis.cattle.io.clusterscan',
-  CLUSTER_SCAN_PROFILE: 'cis.cattle.io.clusterscanprofile',
-  BENCHMARK:            'cis.cattle.io.clusterscanbenchmark',
-  REPORT:               'cis.cattle.io.clusterscanreport'
+export const COMPLIANCE = {
+  CLUSTER_SCAN:         'compliance.cattle.io.clusterscan',
+  CLUSTER_SCAN_PROFILE: 'compliance.cattle.io.clusterscanprofile',
+  BENCHMARK:            'compliance.cattle.io.clusterscanbenchmark',
+  REPORT:               'compliance.cattle.io.clusterscanreport'
 };
 
 export const UI = { NAV_LINK: 'ui.cattle.io.navlink' };
@@ -313,6 +326,7 @@ export const HCI = {
   IMAGE:            'harvesterhci.io.virtualmachineimage',
   VGPU_DEVICE:      'devices.harvesterhci.io.vgpudevice',
   SETTING:          'harvesterhci.io.setting',
+  RESOURCE_QUOTA:   'harvesterhci.io.resourcequota',
   HARVESTER_CONFIG: 'rke-machine-config.cattle.io.harvesterconfig',
 };
 
@@ -330,7 +344,8 @@ export const AUTH_TYPE = {
   _NONE:  '_none',
   _BASIC: '_basic',
   _SSH:   '_ssh',
-  _S3:    '_S3'
+  _S3:    '_S3',
+  _RKE:   '_RKE',
 };
 
 export const LOCAL_CLUSTER = 'local';

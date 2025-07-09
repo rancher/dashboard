@@ -1,11 +1,10 @@
 <script>
-import ResourceTable from '@shell/components/ResourceTable';
-import ResourceFetch from '@shell/mixins/resource-fetch';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
+import { APP_UPGRADE_STATUS } from '@shell/store/catalog';
 
 export default {
   name:       'ListApps',
-  components: { ResourceTable },
-  mixins:     [ResourceFetch],
+  components: { PaginatedResourceTable },
 
   props: {
     resource: {
@@ -23,40 +22,51 @@ export default {
     }
   },
 
+  data() {
+    return { APP_UPGRADE_STATUS };
+  },
+
   async fetch() {
     await this.$store.dispatch('catalog/load');
-
-    await this.$fetchType(this.resource);
   },
 };
 </script>
 
 <template>
-  <ResourceTable
+  <PaginatedResourceTable
     class="apps"
     :schema="schema"
-    :rows="rows"
-    :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     data-testid="installed-app-catalog-list"
   >
     <template #cell:upgrade="{row}">
       <span
-        v-if="row.upgradeAvailable"
+        v-if="row.upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE"
         class="badge-state bg-warning hand"
-        @click="row.goToUpgrade(row.upgradeAvailable)"
+        @click="row.goToUpgrade(row.upgradeAvailableVersion)"
       >
-        {{ row.upgradeAvailable }}
+        {{ row.upgradeAvailableVersion }}
         <i class="icon icon-upload" />
       </span>
       <span
-        v-else-if="row.upgradeAvailable === false"
+        v-else-if="row.upgradeAvailable === APP_UPGRADE_STATUS.NOT_APPLICABLE"
         v-t="'catalog.app.managed'"
         class="text-muted"
       />
+      <span
+        v-else-if="row.upgradeAvailable === APP_UPGRADE_STATUS.NO_UPGRADE"
+        class="text-muted"
+      />
+      <span
+        v-else-if="row.upgradeAvailable === APP_UPGRADE_STATUS.MULTIPLE_UPGRADES"
+      >
+        <i
+          v-clean-tooltip="t('catalog.app.upgrade.uncertainUpgradeWarningTooltip')"
+          class="icon icon-info"
+        />
+      </span>
     </template>
-  </ResourceTable>
+  </PaginatedResourceTable>
 </template>
 
 <style scoped>

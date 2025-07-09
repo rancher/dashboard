@@ -1,4 +1,4 @@
-import { SchemaAttribute, SchemaAttributeColumn } from '@shell/plugins/steve/schema';
+import { Schema, SchemaAttribute, SchemaAttributeColumn } from '@shell/plugins/steve/schema';
 import { TableColumn } from '@shell/types/store/type-map';
 import { VuexStoreGetters } from '@shell/types/store/vuex';
 import { findBy, insertAt, removeObject } from '@shell/utils/array';
@@ -62,12 +62,12 @@ export function createHeaders(
   } = columns;
   const { rootGetters } = ctx;
   const out = typeOptions.showState ? [stateColumn] : [];
-  const attributes = (schema.attributes as SchemaAttribute) || {};
-  const columnsFromSchema = attributes.columns || [];
+  const attributes = (schema?.attributes as SchemaAttribute) || {};
+  const columnsFromSchema = attributes?.columns || [];
 
   // A specific list has been provided
-  if ( headers?.[schema.id]?.length ) {
-    return headers[schema.id].map((entry: any) => {
+  if ( headers?.[schema?.id]?.length ) {
+    return headers[schema?.id].map((entry: any) => {
       if ( typeof entry === 'string' ) {
         const col = findBy(columnsFromSchema, 'name', entry);
 
@@ -100,7 +100,7 @@ export function createHeaders(
 
   // Always try to have an identifier
   if ( !hasName ) {
-    insertAt(out, 1, idColumn || nameColumn);
+    insertAt(out, 1, nameColumn || idColumn );
     if ( namespaced ) {
       insertAt(out, 2, namespaceColumn);
     }
@@ -117,6 +117,23 @@ export function createHeaders(
   }
 
   return out;
+}
+
+/**
+ * Given a schema's attribute.column value create a header
+ */
+export function headerFromSchemaColString(colName: string, schema: Schema, rootGetters: VuexStoreGetters, pagination: boolean, ageColumn: TableColumn): TableColumn {
+  if (!schema) {
+    throw new Error(`Unable to create header for column '${ colName }' from schema: schema is missing`);
+  }
+
+  const col = schema.attributes.columns.find((c) => c.name === colName);
+
+  if (!col) {
+    throw new Error(`Unable to find column '${ colName }' in schema '${ schema.id }'`);
+  }
+
+  return headerFromSchemaCol(col, rootGetters, pagination, ageColumn);
 }
 
 /**
@@ -164,6 +181,49 @@ export function headerFromSchemaCol(col: SchemaAttributeColumn, rootGetters: Vue
   };
 }
 
+/**
+ * Rewrite a JSON Path expression, so that it is compatible with the library we use.
+ * Specifically, ensure we can handle path keys that contain an escaped '.' character (\.)
+ *
+ * For example, this function re-writes the expression:
+ *   $.metadata.labels.topology\.kubernetes\.io/zone
+ * to:
+ *   $.metadata.labels.["topology.kubernetes.io/zone"]
+ *
+ * @param path JSON Path expression
+ * @returns Re-written JSON Path expression
+ */
+function rewriteJsonPath(path: any): any {
+  // Check if we should re-write, otherwise just return the input expression as is
+  if (typeof path === 'string' && path.startsWith('$') && path.includes('\\.')) {
+    const parts = path.split('.');
+    let inField = false;
+    let res = '';
+
+    parts.forEach((part) => {
+      let prefix = res.length ? '.' : '';
+
+      if (part.endsWith('\\')) {
+        if (!inField) {
+          inField = true;
+          prefix = `${ prefix }["`;
+        }
+
+        res = `${ res }${ prefix }${ part.substr(0, part.length - 1) }`;
+      } else {
+        const postfix = inField ? '"]' : '';
+
+        res += `${ prefix }${ part }${ postfix }`;
+        inField = false;
+      }
+    });
+
+    return res;
+  }
+
+  return path;
+}
+
 export function rowValueGetter(col: SchemaAttributeColumn, asFn = true): string | ((row: any) => string) {
   // 'field' comes from the schema - typically it is of the form $.metadata.field[N]
   // We will use JsonPath to look up this value, which is costly - so if we can detect this format
@@ -181,7 +241,7 @@ export function rowValueGetter(col: SchemaAttributeColumn, asFn = true): string 
     return `metadata.fields.${ fieldIndex }`;
   }
 
-  return value;
+  return rewriteJsonPath(value);
 }
 
 type conditionalDepaginateArgs ={

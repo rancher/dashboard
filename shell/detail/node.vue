@@ -49,23 +49,25 @@ export default {
   },
 
   async fetch() {
-    this.filterByApi = this.$store.getters[`cluster/paginationEnabled`](POD);
+    if (this.podSchema) {
+      this.filterByApi = this.$store.getters[`cluster/paginationEnabled`](POD);
 
-    if (this.filterByApi) {
-      // Only get pods associated with this node. The actual values used are from a get all in node model `pods` getter (this works as it just gets all...)
-      const opt = { // Of type ActionFindPageArgs
-        pagination: new FilterArgs({
-          sort:    [{ field: 'metadata.name', asc: true }],
-          filters: PaginationParamFilter.createSingleField({
-            field: 'spec.nodeName',
-            value: this.value.id,
+      if (this.filterByApi) {
+        // Only get pods associated with this node. The actual values used are from a get all in node model `pods` getter (this works as it just gets all...)
+        const opt = { // Of type ActionFindPageArgs
+          pagination: new FilterArgs({
+            sort:    [{ field: 'metadata.name', asc: true }],
+            filters: PaginationParamFilter.createSingleField({
+              field: 'spec.nodeName',
+              value: this.value.id,
+            })
           })
-        })
-      };
+        };
 
-      this.$store.dispatch(`cluster/findPage`, { type: POD, opt });
-    } else {
-      this.$store.dispatch('cluster/findAll', { type: POD });
+        this.$store.dispatch(`cluster/findPage`, { type: POD, opt });
+      } else {
+        this.$store.dispatch('cluster/findAll', { type: POD });
+      }
     }
 
     this.showMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [NODE_METRICS_DETAIL_URL, NODE_METRICS_SUMMARY_URL]);
@@ -97,6 +99,7 @@ export default {
         VALUE,
         EFFECT
       ],
+      podSchema,
       podTableHeaders: this.$store.getters['type-map/headersFor'](podSchema),
       NODE_METRICS_DETAIL_URL,
       NODE_METRICS_SUMMARY_URL,
@@ -241,6 +244,7 @@ export default {
       @update:value="$emit('input', $event)"
     >
       <Tab
+        v-if="podSchema"
         name="pods"
         :label="t('node.detail.tab.pods')"
         :weight="4"
@@ -266,7 +270,7 @@ export default {
             :detail-url="NODE_METRICS_DETAIL_URL"
             :summary-url="NODE_METRICS_SUMMARY_URL"
             :vars="graphVars"
-            graph-height="825px"
+            graph-height="875px"
           />
         </template>
       </Tab>

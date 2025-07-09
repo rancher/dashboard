@@ -1,16 +1,16 @@
 <script>
-import { FLEET } from '@shell/config/types';
-import FleetBundleResources from '@shell/components/fleet/FleetBundleResources.vue';
-import SortableTable from '@shell/components/SortableTable';
+import { FLEET, MANAGEMENT } from '@shell/config/types';
+import FleetResources from '@shell/components/fleet/FleetResources';
+import FleetUtils from '@shell/utils/fleet';
+import { checkSchemasForFindAllHash } from '@shell/utils/auth';
+import Loading from '@shell/components/Loading.vue';
+import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 export default {
   name: 'FleetBundleDetail',
 
-  components: {
-    FleetBundleResources,
-    SortableTable,
-  },
-  props: {
+  components: { Loading, FleetResources },
+  props:      {
     value: {
       type:     Object,
       required: true,
@@ -18,60 +18,77 @@ export default {
   },
 
   data() {
-    return { repo: null };
+    return { allBundleDeployments: [] };
   },
 
   async fetch() {
-    const { namespace, labels } = this.value.metadata;
-    const repoName = `${ namespace }/${ labels['fleet.cattle.io/repo-name'] }`;
+    const allDispatches = await checkSchemasForFindAllHash({
+      allBundleDeployments: {
+        inStoreType: 'management',
+        type:        FLEET.BUNDLE_DEPLOYMENT,
+      },
 
-    if (this.hasRepoLabel) {
-      this.repo = await this.$store.dispatch('management/find', { type: FLEET.GIT_REPO, id: repoName });
+      // must be loaded for bundle.targetClusters to work
+      allFleetClusters: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER
+      },
+      clusterGroups: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER_GROUP
+      }
+    }, this.$store);
+
+    if (this.value.authorId && this.$store.getters['management/schemaFor'](MANAGEMENT.USER)) {
+      await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER }, { root: true });
     }
+
+    this.allBundleDeployments = allDispatches.allBundleDeployments || [];
   },
 
   computed: {
-    hasRepoLabel() {
-      return !!(this.value?.metadata?.labels && this.value?.metadata?.labels['fleet.cattle.io/repo-name']);
-    },
     bundleResources() {
-      if (this.hasRepoLabel) {
-        const bundleResourceIds = this.bundleResourceIds;
-
-        return this.repo?.status?.resources?.filter((resource) => {
-          return bundleResourceIds.includes(resource.name);
-        });
-      } else if (this.value?.spec?.resources?.length) {
-        return this.value?.spec?.resources.map((item) => {
-          return {
-            content: item.content,
-            name:    item.name.includes('.') ? item.name.split('.')[0] : item.name
-          };
-        });
+      if (!this.allBundleDeployments) {
+        return [];
       }
 
-      return [];
-    },
-    resourceHeaders() {
-      return [
-        {
-          name:     'name',
-          value:    'name',
-          sort:     ['name'],
-          labelKey: 'tableHeaders.name',
-        },
-      ];
+      const bundleDeploymentsByClusterId = this.allBundleDeployments
+        .reduce((res, bd) => {
+          if (this.value.id === FleetUtils.bundleIdFromBundleDeploymentLabels(bd.metadata?.labels)) {
+            res[FleetUtils.clusterIdFromBundleDeploymentLabels(bd.metadata?.labels)] = bd;
+          }
+
+          return res;
+        }, {});
+
+      return this.value.targetClusters.reduce((res, cluster) => {
+        const bd = bundleDeploymentsByClusterId[cluster.id];
+
+        if (bd) {
+          FleetUtils.resourcesFromBundleDeploymentStatus(bd.status)
+            .forEach((r) => {
+              const type = FleetUtils.resourceType(r);
+              const key = `${ cluster.id }-${ type }-${ r.namespace }-${ r.name }`;
+
+              res.push({
+                ...r,
+                key,
+                type,
+                id:          FleetUtils.resourceId(r),
+                clusterId:   cluster.id,
+                clusterName: cluster.nameDisplay,
+
+                detailLocation: FleetUtils.detailLocation(r, cluster.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME]),
+              });
+            });
+        }
+
+        return res;
+      }, []);
     },
     resourceCount() {
-      return (this.bundleResources && this.bundleResources.length) || this.value?.spec?.resources?.length;
+      return this.bundleResources.length;
     },
-    bundleResourceIds() {
-      if (this.value.status?.resourceKey) {
-        return this.value?.status?.resourceKey.map((item) => item.name);
-      }
-
-      return [];
-    }
   }
 };
 
@@ -83,19 +100,10 @@ export default {
       <h2>{{ t('fleet.bundles.resources') }}</h2>
       <span>{{ resourceCount }}</span>
     </div>
-    <FleetBundleResources
-      v-if="hasRepoLabel"
-      :value="bundleResources"
-    />
-    <SortableTable
+    <Loading v-if="$fetchState.pending" />
+    <FleetResources
       v-else
       :rows="bundleResources"
-      :headers="resourceHeaders"
-      :table-actions="false"
-      :row-actions="false"
-      key-field="tableKey"
-      default-sort-by="state"
-      :paged="true"
     />
   </div>
 </template>

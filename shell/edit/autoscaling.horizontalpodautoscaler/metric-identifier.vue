@@ -65,14 +65,17 @@ export default {
     </div>
     <div class="row">
       <div class="col span-12">
-        <h3>Metric Selector</h3>
         <MatchExpressions
           :mode="mode"
           :value="matchExpressions"
           :label="t('hpa.metricIdentifier.selector.label')"
           :show-remove="false"
           @input="matchChanged($event)"
-        />
+        >
+          <template #header>
+            <h3>{{ t('hpa.metricIdentifier.selector.header') }}</h3>
+          </template>
+        </MatchExpressions>
       </div>
     </div>
   </div>

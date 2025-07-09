@@ -6,9 +6,9 @@ import { nextTick } from 'vue';
 describe('component: MatchExpressions', () => {
   it('should display all the inputs', () => {
     const wrapper = mount(MatchExpressions, {
-      props: { mode: _CREATE },
-      data:  () => ({
-        rules: [
+      props: {
+        mode:  _CREATE,
+        value: [
           {
             id:       '123',
             key:      '123',
@@ -16,7 +16,7 @@ describe('component: MatchExpressions', () => {
             values:   '123'
           }
         ]
-      })
+      },
     });
 
     const inputWraps = wrapper.findAll('[data-testid^=input-match-expression-]');
@@ -29,9 +29,9 @@ describe('component: MatchExpressions', () => {
     'values',
   ])('should emit an update on %p input', async(field) => {
     const wrapper = mount(MatchExpressions, {
-      props: { mode: _CREATE },
-      data:  () => ({
-        rules: [
+      props: {
+        mode:  _CREATE,
+        value: [
           {
             id:       '123',
             key:      '123',
@@ -39,7 +39,7 @@ describe('component: MatchExpressions', () => {
             values:   '123'
           }
         ]
-      })
+      },
     });
     const input = wrapper.find(`[data-testid="input-match-expression-${ field }-0"]`).find('input');
     const newValue = 123;
@@ -53,19 +53,22 @@ describe('component: MatchExpressions', () => {
   it.each([
     'operator',
   ])('should emit an update on %p selection change', async(field) => {
-    const wrapper = mount(MatchExpressions, {
-      props: { mode: _CREATE },
-      data:  () => ({
-        rules: [
-          {
-            id:       '123',
-            key:      '123',
-            operator: 'anything',
-            values:   '123'
-          }
-        ]
-      })
-    });
+    const wrapper = mount(
+      MatchExpressions,
+      {
+        attachTo: document.body,
+        props:    {
+          mode:  _CREATE,
+          value: [
+            {
+              id:       '123',
+              key:      '123',
+              operator: 'anything',
+              values:   '123'
+            }
+          ]
+        },
+      });
 
     const select = wrapper.find(`[data-testid="input-match-expression-${ field }-0"]`);
 

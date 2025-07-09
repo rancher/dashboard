@@ -1,11 +1,10 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import PodsListPo from '@/cypress/e2e/po/lists/pods-list.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-
 import { WorkloadsCreatePageBasePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads.po';
 
-export class WorkloadsPodsListPagePo extends PagePo {
+export class WorkloadsPodsListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/explorer/pod`;
   }
@@ -22,18 +21,9 @@ export class WorkloadsPodsListPagePo extends PagePo {
     const burgerMenu = new BurgerMenuPo();
     const sideNav = new ProductNavPo();
 
-    BurgerMenuPo.toggle();
-    burgerMenu.clusters().contains(clusterId).click();
+    burgerMenu.goToCluster(clusterId);
     sideNav.navToSideMenuGroupByLabel('Workloads');
     sideNav.navToSideMenuEntryByLabel('Pods');
-  }
-
-  list(): PodsListPo {
-    return new PodsListPo('[data-testid="sortable-table-list-container"]');
-  }
-
-  sortableTable() {
-    return this.list().resourceTable().sortableTable();
   }
 
   createPod() {
@@ -42,7 +32,7 @@ export class WorkloadsPodsListPagePo extends PagePo {
   }
 }
 
-export class WorkLoadsPodDetailsPagePo extends PagePo {
+export class WorkLoadsPodDetailsPagePo extends BaseDetailPagePo {
   static url: string;
 
   private static createPath(podId: string, clusterId: string, namespaceId: string, queryParams?: Record<string, string>) {
@@ -70,5 +60,22 @@ export class WorkLoadsPodDetailsPagePo extends PagePo {
 export class WorkloadsPodsCreatePagePo extends WorkloadsCreatePageBasePo {
   constructor(protected clusterId: string = 'local', workloadType = 'pod', queryParams?: Record<string, string>) {
     super(clusterId, workloadType, queryParams);
+  }
+}
+export class WorkLoadsPodEditPagePo extends BaseDetailPagePo {
+  private static createPath(podId: string, clusterId: string, namespaceId: string) {
+    return `/c/${ clusterId }/explorer/pod/${ namespaceId }/${ podId }`;
+  }
+
+  urlPath(podId: string, clusterId = 'local', namespaceId = 'default') {
+    return WorkLoadsPodEditPagePo.createPath(podId, clusterId, namespaceId);
+  }
+
+  static goTo(podId: string, clusterId: string, namespaceId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(WorkLoadsPodEditPagePo.createPath(podId, clusterId, namespaceId));
+  }
+
+  constructor(podId: string, clusterId = 'local', namespaceId = 'default') {
+    super(WorkLoadsPodEditPagePo.createPath(podId, clusterId, namespaceId));
   }
 }

@@ -5,6 +5,10 @@ import * as jsyaml from 'js-yaml';
 import * as path from 'path';
 import { generateUsersDataSmall } from '@/cypress/e2e/blueprints/users/users-get';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import FixedBannerPo from '@/cypress/e2e/po/components/fixed-banner.po';
+import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 const usersPo = new UsersPo('_');
 const userCreate = usersPo.createEdit();
@@ -40,25 +44,11 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
   });
 
-  it('can create Restricted Admin', () => {
-    const restrictedAdminUsername = `${ runPrefix }-restrictedAdmin-user`;
-    const restrictedAdminPassword = 'restrictedAdmin-password';
-
-    usersPo.goTo();
-    usersPo.list().create();
-
-    userCreate.waitForPage();
-    userCreate.username().set(restrictedAdminUsername);
-    userCreate.newPass().set(restrictedAdminPassword);
-    userCreate.confirmNewPass().set(restrictedAdminPassword);
-    userCreate.selectCheckbox('Restricted Administrator').set();
-    userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
-  });
-
   it('can create User-Base', () => {
     const userBasePassword = 'userBase-password';
 
     usersPo.goTo();
+    usersPo.waitForPage();
     usersPo.list().create();
 
     userCreate.waitForPage();
@@ -74,6 +64,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
   it('can create Standard User and view their details', () => {
     usersPo.goTo();
+    usersPo.waitForPage();
     usersPo.list().create();
 
     userCreate.username().set(standardUsername);
@@ -115,23 +106,24 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     usersPo.goTo();
+    usersPo.waitForPage();
     usersPo.list().create();
     userCreate.waitForPage();
 
     const mgmtUserEditPo = new MgmtUserEditPo();
 
     mgmtUserEditPo.globalRoleBindings().globalOptions().then((list) => {
-      expect(list.length).to.eq(4);
+      expect(list.length).to.eq(3);
       expect(list[0]).to.eq('Administrator');
-      expect(list[1]).to.eq('Restricted Administrator');
-      expect(list[2]).to.eq('Standard User');
-      expect(list[3]).to.eq('User-Base');
+      expect(list[1]).to.eq('Standard User');
+      expect(list[2]).to.eq('User-Base');
     });
   });
 
   it('can Refresh Group Memberships', () => {
     // Refresh Group Membership and verify request is made
     usersPo.goTo();
+    usersPo.waitForPage();
     cy.intercept('POST', '/v3/users?action=refreshauthprovideraccess').as('refreshGroup');
     usersPo.list().refreshGroupMembership().click();
     cy.wait('@refreshGroup').its('response.statusCode').should('eq', 200);
@@ -139,13 +131,26 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
   describe('Action Menu', () => {
     it('can Deactivate and Activate user', () => {
-      // Deactivate user and check state is Inactive
+      cy.intercept('GET', '/v3/users?limit=0').as('getUsers');
       usersPo.goTo();
-      usersPo.list().clickRowActionMenuItem(standardUsername, 'Disable');
+      usersPo.waitForPage();
+      cy.wait('@getUsers');
+
+      let menu = usersPo.list().actionMenu(standardUsername);
+
+      // Deactivate user and check state is Inactive
+      menu.checkVisible();
+      menu.getMenuItem('Disable').click();
+      menu.checkNotExists();
+
       usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-xmark');
 
       // Activate user and check state is Active
-      usersPo.list().clickRowActionMenuItem(standardUsername, 'Enable');
+      menu = usersPo.list().actionMenu(standardUsername);
+      menu.checkVisible();
+      menu.getMenuItem('Enable').click();
+      menu.checkNotExists();
+
       usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-check');
     });
 
@@ -181,6 +186,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       const viewYaml = usersPo.createEdit(userId);
 
       usersPo.goTo();
+      usersPo.waitForPage();
       usersPo.list().clickRowActionMenuItem(standardUsername, 'View YAML');
       cy.url().should('include', `?mode=view&as=yaml`);
       viewYaml.mastheadTitle().should('contain', standardUsername);
@@ -191,6 +197,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       const downloadedFilename = path.join(downloadsFolder, `${ standardUsername }.yaml`);
 
       usersPo.goTo();
+      usersPo.waitForPage();
       usersPo.list().clickRowActionMenuItem(standardUsername, 'Download YAML');
       cy.readFile(downloadedFilename).should('exist').then((buffer) => {
         const obj: any = jsyaml.load(buffer);
@@ -205,6 +212,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     it('can Delete user', () => {
       // Delete user and verify user is removed from list
       usersPo.goTo();
+      usersPo.waitForPage();
       usersPo.list().clickRowActionMenuItem(standardUsername, 'Delete');
 
       const promptRemove = new PromptRemove();
@@ -240,7 +248,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.list().selectAll().set();
       usersPo.list().openBulkActionDropdown();
 
-      cy.intercept('GET', '/v1/management.cattle.io.users/*').as('downloadYaml');
+      cy.intercept('GET', `${ USERS_BASE_URL }/*`).as('downloadYaml');
       usersPo.list().bulkActionButton('Download YAML').click({ force: true });
       cy.wait('@downloadYaml', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
       const downloadedFilename = path.join(downloadsFolder, 'resources.zip');
@@ -264,8 +272,9 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
-    const uniqueUserName = 'aaa-e2e-test-name';
+  describe('List', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
+    let uniqueUserName = SortableTablePo.firstByDefaultName('user');
+
     const userIdsList = [];
     let initialCount;
 
@@ -280,7 +289,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       let i = 0;
 
       while (i < 25) {
-        const userName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
+        const userName = Cypress._.uniqueId(Date.now().toString());
 
         cy.createUser({ username: userName }).then((resp: Cypress.Response<any>) => {
           const userId = resp.body.id;
@@ -292,15 +301,16 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       }
 
       // create one more for sorting test
-      cy.createUser({ username: uniqueUserName }).then((resp: Cypress.Response<any>) => {
+      cy.createUser({ username: uniqueUserName }, { createNameOptions: { prefixContext: true } }).then((resp: Cypress.Response<any>) => {
         const userId = resp.body.id;
 
+        uniqueUserName = resp.body.username;
         userIdsList.push(userId);
       });
     });
 
     it('pagination is visible and user is able to navigate through users data', () => {
-      usersPo.goTo(); // This is needed for the @vai only world
+      usersPo.goTo(); // This is needed for the @noVai only world
       usersPo.waitForPage();
       const count = initialCount + 26;
 
@@ -372,6 +382,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         // navigate to last page - end button
         usersPo.list().resourceTable().sortableTable().pagination()
           .endButton()
+          .scrollIntoView()
           .click();
 
         // row count on last page
@@ -439,12 +450,17 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         .checkSortOrder(3, 'down');
 
       // user name should be visible on first page (sorted in ASC order)
+      usersPo.list().resourceTable().sortableTable().tableHeaderRow()
+        .self()
+        .scrollIntoView();
       usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
+        .scrollIntoView()
         .should('be.visible');
 
       // navigate to last page
       usersPo.list().resourceTable().sortableTable().pagination()
         .endButton()
+        .scrollIntoView()
         .click();
 
       // user name should NOT be visible on last page (sorted in ASC order)
@@ -464,6 +480,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       // navigate to last page
       usersPo.list().resourceTable().sortableTable().pagination()
         .endButton()
+        .scrollIntoView()
         .click();
 
       // user name should be visible on last page (sorted in DESC order)
@@ -487,9 +504,75 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     after(() => {
-      userIdsList.forEach((r) => cy.deleteRancherResource('v3', 'Users', r, false));
+      cy.deleteManyResources({
+        toDelete: userIdsList,
+        deleteFn: (r) => cy.deleteRancherResource('v3', 'Users', r, false)
+      });
+
       // Ensure the default rows per page value is set after executing the tests
       cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
+    });
+  });
+
+  describe('Create admin user with standard user', () => {
+    before(() => {
+      cy.login();
+    });
+
+    it('User creation should complete after admin user fails to create for Standard user with Manage Users Role', () => {
+      // create standard user
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().create();
+
+      userCreate.username().set(standardUsername);
+      userCreate.newPass().set(standardPassword);
+      userCreate.confirmNewPass().set(standardPassword);
+      userCreate.selectCheckbox('Manage Users').set();
+      userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings', true);
+
+      // check that the user is on the list view before attempting to login
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().elementWithName(standardUsername).should('exist');
+
+      // logout admin
+      cy.logout();
+
+      // login as standard user
+      cy.login(standardUsername, standardPassword);
+
+      // navigate to the users page and attempt to create an admin user
+      HomePagePo.goToAndWaitForGet();
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().create();
+
+      const runTimestamp = +new Date();
+      const runPrefix = `e2e-test-${ runTimestamp }`;
+      const adminUsername = `${ runPrefix }-admin-user`;
+      const adminPassword = 'admin-password';
+
+      userCreate.username().set(adminUsername);
+      userCreate.newPass().set(adminPassword);
+      userCreate.confirmNewPass().set(adminPassword);
+      userCreate.selectCheckbox('Administrator').set();
+      userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
+
+      // the error banner should be displayed
+      const banner = new FixedBannerPo('#cru-errors');
+
+      banner.checkExists();
+      banner.text().should('eq', 'You cannot assign Global Permissions that are higher than your own. Please verify the permissions you are attempting to assign.');
+
+      // update the Global Permissions
+      userCreate.selectCheckbox('User-Base').set();
+      userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
+
+      // save and assert that the new user exists
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().elementWithName(adminUsername).should('exist');
     });
   });
 });

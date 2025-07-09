@@ -13,7 +13,7 @@ export const EDITOR_MODES = {
 };
 
 export default {
-  emits: ['update:value', 'newObject', 'onInput', 'onReady', 'onChanges'],
+  emits: ['update:value', 'newObject', 'onInput', 'onReady', 'onChanges', 'validationChanged'],
 
   components: {
     CodeMirror,
@@ -26,6 +26,11 @@ export default {
       validator(value) {
         return Object.values(EDITOR_MODES).includes(value);
       }
+    },
+
+    mode: {
+      type:    String,
+      default: '',
     },
 
     asObject: {
@@ -126,6 +131,7 @@ export default {
             cm.indentSelection('subtract');
           }
         },
+        screenReaderLabel: this.t('import.editor.label'),
         // @TODO find a better way to display the outline
         // foldOptions: {
         //   widget: (from, to) => {
@@ -197,7 +203,7 @@ export default {
 
     updateValue(value) {
       this.curValue = value;
-      this.$refs.cm.updateValue(value);
+      this.$refs.cm?.updateValue(value);
     }
   }
 };
@@ -212,17 +218,21 @@ export default {
         class="btn-group btn-sm diff-mode"
       >
         <button
+          role="button"
+          :aria-label="t('generic.unified')"
           type="button"
           class="btn btn-sm bg-default"
           :class="{'active': diffMode !== 'split'}"
           @click="diffMode='unified'"
-        >Unified</button>
+        >{{ t('generic.unified') }}</button>
         <button
+          role="button"
+          :aria-label="t('generic.split')"
           type="button"
           class="btn btn-sm bg-default"
           :class="{'active': diffMode === 'split'}"
           @click="diffMode='split'"
-        >Split</button>
+        >{{ t('generic.split') }}</button>
       </span>
     </div>
     <CodeMirror
@@ -233,9 +243,11 @@ export default {
       :options="codeMirrorOptions"
       :showKeyMapBox="true"
       :data-testid="componentTestid + '-code-mirror'"
+      :mode="mode"
       @onInput="onInput"
       @onReady="onReady"
       @onChanges="onChanges"
+      @validationChanged="$emit('validationChanged', $event)"
     />
     <FileDiff
       v-else

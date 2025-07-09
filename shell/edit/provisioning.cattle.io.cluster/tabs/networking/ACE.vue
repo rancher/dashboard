@@ -2,13 +2,13 @@
 import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import FileSelector, { createOnSelected } from '@shell/components/form/FileSelector';
-import { set } from '@shell/utils/object';
-import isEmpty from 'lodash/isEmpty';
 
 export default {
   components: {
     RadioGroup, LabeledInput, FileSelector
   },
+
+  emits: ['fqdn-changed', 'ca-certs-changed', 'local-cluster-auth-endpoint-changed'],
 
   props: {
     mode: {
@@ -22,57 +22,43 @@ export default {
     },
   },
 
-  data() {
-    if ( isEmpty(this.value?.spec?.localClusterAuthEndpoint) ) {
-      set(this.value, 'spec.localClusterAuthEndpoint', {
-        enabled: false,
-        caCerts: '',
-        fqdn:    '',
-      });
-    }
-
-    return {};
-  },
-
-  computed: {
-    config() {
-      return this.value.spec.localClusterAuthEndpoint;
-    },
-  },
-
-  methods: { onCertSelected: createOnSelected('config.caCerts') }
+  methods: { onCertSelected: createOnSelected('value.caCerts') }
 };
 </script>
 
 <template>
   <div>
-    <h3 v-t="'cluster.tabs.ace'" />
-
     <RadioGroup
-      v-model:value="config.enabled"
+      v-model:value="value.enabled"
       name="enabled"
+      data-testid="ace-enabled-radio-input"
       :options="[false, true]"
       :labels="[t('generic.disabled'), t('generic.enabled')]"
       :mode="mode"
+      @update:value="$emit('local-cluster-auth-endpoint-changed', $event)"
     />
 
-    <template v-if="config.enabled">
+    <template v-if="value.enabled">
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledInput
-            v-model:value="config.fqdn"
+            :value="value.fqdn"
             :mode="mode"
-            label="FQDN"
+            :label="t('cluster.rke2.address.fqdn.label')"
+            data-testid="ace-fqdn-input"
             :tooltip="t('cluster.rke2.address.fqdn.toolTip')"
+            @update:value="$emit('fqdn-changed', $event)"
           />
         </div>
         <div class="col span-6">
           <LabeledInput
-            v-model:value="config.caCerts"
+            :value="value.caCerts"
             :mode="mode"
             :label="t('cluster.rke2.address.caCerts.label')"
             type="multiline"
+            data-testid="ace-cacerts-input"
             :tooltip="t('cluster.rke2.address.caCerts.toolTip')"
+            @update:value="$emit('ca-certs-changed', $event)"
           />
           <FileSelector
             :mode="mode"

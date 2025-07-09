@@ -56,6 +56,14 @@ export default class AccountPagePo extends PagePo {
     return this.applyButton().click();
   }
 
+  cancel(): Cypress.Chainable {
+    return this.self().get('button[type="reset"]').click();
+  }
+
+  changePasswordModal() {
+    return cy.getId('change-password__modal');
+  }
+
   currentPassword(): PasswordPo {
     return new PasswordPo('[data-testid="account__current_password"]');
   }

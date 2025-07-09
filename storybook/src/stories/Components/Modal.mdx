@@ -1,0 +1,14 @@
+import { Meta, Canvas, Story } from '@storybook/blocks';
+import * as ModalStories from './Modal.stories';
+
+<Meta of={ModalStories} />
+
+# Modal 
+
+The <code>AppModal</code> component is a reusable Vue modal component that provides a simple way to display content in a modal overlay.
+
+### Description
+
+<strong>Note:</strong> AppModal renders modal content outside of the control of Vue, via <code>&lt;div id="modals" /&gt;</code> located within <code>index.html</code>. This allows Dashboard to position the modal as the very last node in the page's <code>body</code>, making styling and positioning much easier and less error-prone. 
+
+<Canvas of={ModalStories.Default} />

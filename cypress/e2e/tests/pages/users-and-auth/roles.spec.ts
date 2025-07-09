@@ -7,6 +7,63 @@ import * as jsyaml from 'js-yaml';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { generateGlobalRolesDataSmall } from '@/cypress/e2e/blueprints/roles/global-roles-get';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
+
+const globalRoleNameYaml = 'test-global-role-yaml';
+const globalRoleYaml = `apiVersion: management.cattle.io/v3
+kind: GlobalRole
+displayName: ${ globalRoleNameYaml }
+description: Base user + Read-only on all downstream clusters
+metadata:
+  name: ${ globalRoleNameYaml }
+inheritedClusterRoles:
+  - projects-view
+rules:
+- apiGroups:
+  - management.cattle.io
+  resources:
+  - preferences
+  verbs:
+  - '*'
+- apiGroups:
+  - management.cattle.io
+  resources:
+  - settings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - management.cattle.io
+  resources:
+  - features
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - project.cattle.io
+  resources:
+  - sourcecodecredentials
+  verbs:
+  - '*'
+- apiGroups:
+  - project.cattle.io
+  resources:
+  - sourcecoderepositories
+  verbs:
+  - '*'
+- apiGroups:
+  - management.cattle.io
+  resources:
+  - rancherusernotifications
+  verbs:
+  - get
+  - list
+  - watch
+`;
 
 const roles = new RolesPo(BLANK_CLUSTER);
 const usersPo = new UsersPo(BLANK_CLUSTER);
@@ -239,7 +296,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       const actionMenu = detailPage.detail().openMastheadActionMenu();
 
-      actionMenu.clickMenuItem(5);
+      actionMenu.clickMenuItem(4);
 
       const promptRemove = new PromptRemove();
 
@@ -260,13 +317,51 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       roles.list('GLOBAL').elementWithName(globalRoleName).should('not.exist');
     });
 
+    it('Cloning a Global Role with "inheritedClusterRoles" should pass the property correctly', () => {
+      const clusterDashboard = new ClusterDashboardPagePo('local');
+      const header = new HeaderPo();
+
+      // import YAML for test
+      clusterDashboard.goTo();
+      clusterDashboard.waitForPage();
+
+      header.importYamlHeaderAction().click();
+      header.importYaml().importYamlEditor().set(globalRoleYaml);
+      header.importYaml().importYamlImportClick();
+
+      header.importYaml().importYamlSuccessTitleCheck();
+      header.importYaml().importYamlCloseClick();
+
+      roleTemplatesToDelete.push(globalRoleNameYaml);
+
+      // clone role
+      roles.goTo(undefined, 'GLOBAL');
+      roles.waitForPage(undefined, 'GLOBAL');
+      roles.list('GLOBAL').elementWithName(globalRoleNameYaml).click();
+      roles.list('GLOBAL').rowCloneYamlClick(globalRoleNameYaml);
+
+      cy.intercept('POST', '/v3/globalroles').as('cloneYamlRole');
+
+      const clusterRoleName = 'cloned-global-role';
+      const editGlobalRole = roles.createRole();
+
+      editGlobalRole.name().set(clusterRoleName);
+      editGlobalRole.saveCreateForm().click();
+
+      // check property exists
+      cy.wait('@cloneYamlRole', { requestTimeout: 15000 }).then(({ response }) => {
+        expect(response?.statusCode).to.eq(201);
+        expect('projects-view').to.be.oneOf(response?.body?.inheritedClusterRoles);
+      });
+    });
+
     after(() => {
       roleTemplatesToDelete.forEach((r) => cy.deleteRancherResource('v3', 'roleTemplates', r, false));
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
-    const uniqueRoleName = 'aaa-e2e-test-name';
+  describe('List', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
+    let uniqueRoleName = SortableTablePo.firstByDefaultName('role');
     const globalRolesIdsList = [];
     const rolesList = roles.list('GLOBAL');
     const paginatedRoleTab = roles.paginatedTab('GLOBAL');
@@ -282,9 +377,9 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       let i = 0;
 
       while (i < 25) {
-        const globalRoleName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
+        const globalRoleName = Cypress._.uniqueId(Date.now().toString());
 
-        cy.createGlobalRole(globalRoleName, ['events.k8s.io'], [], ['events'], ['get'], false, false).then((resp: Cypress.Response<any>) => {
+        cy.createGlobalRole(globalRoleName, ['events.k8s.io'], [], ['events'], ['get'], false, false, { createNameOptions: { prefixContext: true } }).then((resp: Cypress.Response<any>) => {
           const roleId = resp.body.id;
 
           globalRolesIdsList.push(roleId);
@@ -294,8 +389,10 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       }
 
       // create one more for sorting test
-      cy.createGlobalRole(uniqueRoleName, ['events.k8s.io'], [], ['events'], ['get'], false).then((resp: Cypress.Response<any>) => {
+      cy.createGlobalRole(uniqueRoleName, ['events.k8s.io'], [], ['events'], ['get'], false, true, { createNameOptions: { prefixContext: true } }).then((resp: Cypress.Response<any>) => {
         const roleId = resp.body.id;
+
+        uniqueRoleName = resp.body.name;
 
         globalRolesIdsList.push(roleId);
       });
@@ -333,6 +430,8 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       roles.waitForPage();
 
       // check table is sorted by name in ASC order by default
+      rolesList.resourceTable().sortableTable().tableHeaderRow().self()
+        .scrollIntoView();
       rolesList.resourceTable().sortableTable().tableHeaderRow()
         .checkSortOrder(3, 'down');
 
@@ -347,7 +446,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         .should('be.visible');
 
       // navigate to last page
-      paginatedRoleTab.endButton().click();
+      paginatedRoleTab.endButton().scrollIntoView().click();
 
       // global role should NOT be visible on last page (sorted in ASC order)
       rolesList.resourceTable().sortableTable().rowElementWithName(uniqueRoleName)
@@ -364,7 +463,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         .should('not.exist');
 
       // navigate to last page
-      paginatedRoleTab.endButton().click();
+      paginatedRoleTab.endButton().scrollIntoView().click();
 
       // global role should be visible on last page (sorted in DESC order)
       rolesList.resourceTable().sortableTable().rowElementWithName(uniqueRoleName)
@@ -376,7 +475,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       const count = initialCount + 26;
 
       cy.waitForRancherResources('v1', 'management.cattle.io.globalroles', count).then((resp: Cypress.Response<any>) => {
-        usersPo.goTo(); // This is needed for the @vai only world
+        usersPo.goTo(); // This is needed for the @noVai only world
         RolesPo.navTo();
         roles.waitForPage();
 
@@ -417,7 +516,7 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
         paginatedRoleTab.leftButton().isDisabled();
 
         // navigate to last page - end button
-        paginatedRoleTab.endButton().click();
+        paginatedRoleTab.endButton().scrollIntoView().click();
 
         // row count on last page
         let lastPageCount = count % 10;
@@ -459,7 +558,10 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     after(() => {
-      globalRolesIdsList.forEach((r) => cy.deleteRancherResource('v3', 'globalRoles', r, false));
+      cy.deleteManyResources({
+        toDelete: globalRolesIdsList,
+        deleteFn: (r) => cy.deleteRancherResource('v3', 'globalRoles', r, false)
+      });
       // Ensure the default rows per page value is set after running the tests
       cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
     });

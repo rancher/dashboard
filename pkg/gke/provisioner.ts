@@ -1,7 +1,8 @@
 import { IClusterProvisioner, ClusterProvisionerContext } from '@shell/core/types';
 import CruGKE from './components/CruGKE.vue';
 import { mapDriver } from '@shell/store/plugins';
-import { Component } from 'vue/types/umd';
+import { Component } from 'vue';
+import { MANAGEMENT } from '@shell/config/types';
 
 export class GKEProvisioner implements IClusterProvisioner {
   static ID = 'googlegke'
@@ -30,6 +31,12 @@ export class GKEProvisioner implements IClusterProvisioner {
     return CruGKE;
   }
 
+  get hidden(): boolean {
+    const kontainerDriver = this.context.getters['management/byId'](MANAGEMENT.KONTAINER_DRIVER, 'googlekubernetesengine');
+
+    return !kontainerDriver?.spec?.active;
+  }
+
   get detailTabs(): any {
     return {
       machines:     false,
@@ -40,5 +47,9 @@ export class GKEProvisioner implements IClusterProvisioner {
       events:       false,
       conditions:   false,
     };
+  }
+
+  get showImport(): boolean {
+    return true;
   }
 }

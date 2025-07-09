@@ -1,59 +1,8 @@
 <script>
-import { STATES, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import { clone } from '@shell/utils/object';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import FleetStatus from '@shell/components/fleet/FleetStatus';
-
-const getResourceDefaultState = (labelGetter, stateKey) => {
-  return {
-    ready: {
-      count:  0,
-      color:  STATES[STATES_ENUM.READY].color,
-      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.READY }`, null, STATES[STATES_ENUM.READY].label ),
-      status: STATES_ENUM.READY
-    },
-    info: {
-      count:  0,
-      color:  STATES[STATES_ENUM.INFO].color,
-      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.INFO }`, null, STATES[STATES_ENUM.INFO].label ),
-      status: STATES_ENUM.INFO
-    },
-    warning: {
-      count:  0,
-      color:  STATES[STATES_ENUM.WARNING].color,
-      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.WARNING }`, null, STATES[STATES_ENUM.WARNING].label ),
-      status: STATES_ENUM.WARNING
-    },
-    notready: {
-      count:  0,
-      color:  STATES[STATES_ENUM.NOT_READY].color,
-      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.NOT_READY }`, null, STATES[STATES_ENUM.NOT_READY].label ),
-      status: STATES_ENUM.NOT_READY
-    },
-    error: {
-      count:  0,
-      color:  STATES[STATES_ENUM.ERROR].color,
-      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.ERROR }`, null, STATES[STATES_ENUM.ERROR].label ),
-      status: STATES_ENUM.ERROR
-    },
-    errapplied: {
-      count:  0,
-      color:  STATES[STATES_ENUM.ERR_APPLIED].color,
-      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.ERR_APPLIED }`, null, STATES[STATES_ENUM.ERR_APPLIED].label ),
-      status: STATES_ENUM.ERR_APPLIED,
-    },
-    waitapplied: {
-      count:  0,
-      color:  STATES[STATES_ENUM.WAIT_APPLIED].color,
-      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.WAIT_APPLIED }`, null, STATES[STATES_ENUM.WAIT_APPLIED].label ),
-      status: STATES_ENUM.WAIT_APPLIED
-    },
-    unknown: {
-      count:  0,
-      color:  STATES[STATES_ENUM.UNKNOWN].color,
-      label:  labelGetter(`${ stateKey }.${ STATES_ENUM.UNKNOWN }`, null, STATES[STATES_ENUM.UNKNOWN].label ),
-      status: STATES_ENUM.UNKNOWN
-    }
-  };
-};
+import FleetUtils from '@shell/utils/fleet';
 
 export default {
 
@@ -77,20 +26,39 @@ export default {
     },
   },
 
+  data() {
+    let bundlesDefaultStates; let resourcesDefaultStates = {};
+
+    try {
+      bundlesDefaultStates = FleetUtils.getBundlesDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey);
+      resourcesDefaultStates = FleetUtils.getResourcesDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey);
+    } catch (error) {
+    }
+
+    return {
+      bundlesDefaultStates,
+      resourcesDefaultStates,
+    };
+  },
+
   computed: {
 
-    repoName() {
+    resourceName() {
       return this.value.metadata.name;
     },
 
+    resourceNamespace() {
+      return this.value.metadata.namespace;
+    },
+
     bundleCounts() {
-      const resources = this.bundles.filter((item) => item.repoName === this.repoName);
+      const resources = this.bundles.filter((item) => item.namespace === this.resourceNamespace && item.appSourceName === this.resourceName);
 
       if (!resources.length) {
         return [];
       }
 
-      const out = { ...getResourceDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
+      const out = clone(this.bundlesDefaultStates);
 
       resources.forEach(({ status, metadata }) => {
         if (!status) {
@@ -99,7 +67,7 @@ export default {
           return;
         }
 
-        const k = status?.summary.ready > 0 && status?.summary.desiredReady === status.summary.ready;
+        const k = status?.summary?.ready > 0 && status?.summary.desiredReady === status?.summary?.ready;
 
         if (k) {
           out.ready.count += 1;
@@ -155,19 +123,21 @@ export default {
     },
 
     resourceCounts() {
-      const resources = this.value.status.resources || [];
-      const out = { ...getResourceDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
+      const out = clone(this.resourcesDefaultStates);
 
-      resources.forEach(({ state }) => {
-        const k = state?.toLowerCase();
+      const resourceStatuses = this.value.allResourceStatuses;
 
-        if (out[k]) {
-          out[k].count += 1;
+      Object.entries(resourceStatuses.states)
+        .filter(([_, count]) => count > 0)
+        .forEach(([state, count]) => {
+          const k = state?.toLowerCase();
 
-          return;
-        }
-        out.unknown.count += 1;
-      });
+          if (out[k]) {
+            out[k].count += count;
+          } else {
+            out.unknown.count += count;
+          }
+        });
 
       return Object.values(out).map((item) => {
         item.value = item.count;
@@ -188,13 +158,13 @@ export default {
       title="Bundles"
       :values="bundleCounts"
       value-key="count"
-      data-testid="gitrepo-bundle-summary"
+      data-testid="resource-bundle-summary"
     />
     <FleetStatus
       title="Resources"
       :values="resourceCounts"
       value-key="count"
-      data-testid="gitrepo-deployment-summary"
+      data-testid="resource-deployment-summary"
     />
   </div>
 </template>

@@ -2,6 +2,7 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
 import Login from '@shell/mixins/login';
+import loadPlugins from '@shell/plugins/plugin';
 
 export default {
   emits: ['error', 'showInputs'],
@@ -32,6 +33,12 @@ export default {
           }
         });
 
+        await loadPlugins({
+          app:     this.$store.app,
+          store:   this.$store,
+          $plugin: this.$store.$plugin
+        });
+
         buttonCb(true);
         this.$router.replace('/');
       } catch (err) {
@@ -47,7 +54,7 @@ export default {
 </script>
 
 <template>
-  <form>
+  <form @submit.prevent>
     <template v-if="open">
       <div class="span-6 offset-3">
         <div class="mb-20">

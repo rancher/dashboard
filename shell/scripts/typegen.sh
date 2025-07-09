@@ -21,23 +21,29 @@ ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/query-params.js --declarat
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/table-headers.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/types.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/labels-annotations.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/config/version.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
 
 # # store
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/features.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/prefs.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/plugins.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
 
 # # plugins
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/normalize.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/resource-class.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/classify.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/actions.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/steve/steve-class.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/steve/ > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/steve/hybrid-class.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/steve/ > /dev/null
 
 # # mixins
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/mixins/create-edit-view/index.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/mixins/create-edit-view > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/mixins/resource-fetch.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/mixins > /dev/null
 
 # # models
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/models/namespace.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/models/ > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/models/networking.k8s.io.ingress.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/models/ > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/models/catalog.cattle.io.clusterrepo.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/models/ > /dev/null
 
 #./node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store
 
@@ -57,10 +63,8 @@ rm -rf ${INDEX}
 echo "// Auto-generated type definitions for shell" > ${INDEX}
 echo "// Do not modify this file as changes will get overwritten" >> ${INDEX}
 
-# Copy in the vue shim type definitions
-if [ -f "$BASE_DIR/shell/types/vue-shim.d" ]; then
-  cat "$BASE_DIR/shell/types/vue-shim.d" >> ${INDEX}
-fi
+echo "/// <reference types=\"@rancher/shell/types/vue-shim\" />" >> ${INDEX}
+echo "/// <reference types=\"@rancher/shell/types/global-vue\" />" >> ${INDEX}
 
 function processDir() {
   local dir=$1

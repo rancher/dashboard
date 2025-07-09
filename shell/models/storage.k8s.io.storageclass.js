@@ -82,6 +82,10 @@ export const PROVISIONER_OPTIONS = [
 ];
 
 export default class extends SteveModel {
+  get provisionerListDisplay() {
+    return `${ this.provisioner } (${ this.provisionerDisplay })`;
+  }
+
   get provisionerDisplay() {
     const option = PROVISIONER_OPTIONS.find((o) => o.value === this.provisioner);
     const fallback = `${ this.provisioner } ${ this.t('persistentVolume.csi.suffix') }`;
@@ -112,16 +116,21 @@ export default class extends SteveModel {
     return this.patch(data, {}, true, true);
   }
 
-  setDefault() {
-    const allStorageClasses = this.$rootGetters['cluster/all'](STORAGE_CLASS) || [];
+  async setDefault() {
+    const inStore = this.$rootGetters['currentProduct'].inStore;
+    const allStorageClasses = this.$rootGetters[`${ inStore }/all`](STORAGE_CLASS) || [];
+
+    for (const storageClass of allStorageClasses) {
+      await storageClass.resetDefault();
+    }
 
     allStorageClasses.forEach((storageClass) => storageClass.resetDefault());
     this.updateDefault(true);
   }
 
-  resetDefault() {
+  async resetDefault() {
     if (this.isDefault) {
-      this.updateDefault(false);
+      await this.updateDefault(false);
     }
   }
 
@@ -145,5 +154,11 @@ export default class extends SteveModel {
     }
 
     return out;
+  }
+
+  cleanForNew() {
+    this.$dispatch(`cleanForNew`, this);
+
+    delete this?.metadata?.annotations?.[STORAGE.DEFAULT_STORAGE_CLASS];
   }
 }

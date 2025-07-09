@@ -90,6 +90,19 @@ export default {
 
       return out.filter((obj) => obj.percent);
     },
+    ariaLabelText() {
+      if (Array.isArray(this.values) && this.values.length) {
+        let ariaLabel = '';
+
+        this.values.forEach((val) => {
+          ariaLabel += `${ val.value } ${ val.value === 1 ? 'item' : 'items' } ${ val.label }`;
+        });
+
+        return ariaLabel;
+      }
+
+      return '';
+    }
   }
 };
 
@@ -108,6 +121,7 @@ function toPercent(value, min, max) {
   <div
     v-trim-whitespace
     :class="{progress: true, multi: pieces.length > 1}"
+    :aria-label="ariaLabelText"
   >
     <div
       v-for="(piece, idx) of pieces"

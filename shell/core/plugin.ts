@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { RouteRecordRaw } from 'vue-router';
 import { DSL as STORE_DSL } from '@shell/store/type-map';
+import { _DETAIL } from '@shell/config/query-params';
 import {
   CoreStoreInit,
   Action,
@@ -11,11 +12,21 @@ import {
   IPlugin,
   LocationConfig,
   ExtensionPoint,
-
-  PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
+  TabLocation,
+  ModelExtensionConstructor,
+  PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig,
+  NavHooks, OnNavToPackage, OnNavAwayFromPackage, OnLogIn, OnLogOut,
+  ExtensionEnvironment
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import { defineAsyncComponent, markRaw, Component } from 'vue';
+import { getVersionData, CURRENT_RANCHER_VERSION } from '@shell/config/version';
+
+// Registration IDs used for different extension points in the extensions catalog
+export const EXT_IDS = {
+  MODELS:          'models',
+  MODEL_EXTENSION: 'model-extension',
+};
 
 export type ProductFunction = (plugin: IPlugin, store: any) => void;
 
@@ -24,6 +35,7 @@ export class Plugin implements IPlugin {
   public name: string;
   public types: any = {};
   public l10n: { [key: string]: Function[] } = {};
+  public modelExtensions: { [key: string]: Function[] } = {};
   public locales: { locale: string, label: string}[] = [];
   public products: ProductFunction[] = [];
   public productNames: string[] = [];
@@ -32,6 +44,7 @@ export class Plugin implements IPlugin {
   public onEnter: OnNavToPackage = () => Promise.resolve();
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
   public _onLogOut: OnLogOut = () => Promise.resolve();
+  public onLogIn: OnLogIn = () => Promise.resolve();
 
   public uiConfig: { [key: string]: any } = {};
 
@@ -54,6 +67,17 @@ export class Plugin implements IPlugin {
     Object.values(ExtensionPoint).forEach((v) => {
       this.uiConfig[v] = {};
     });
+  }
+
+  get environment(): ExtensionEnvironment {
+    const versionData = getVersionData();
+
+    return {
+      version:     versionData.Version,
+      commit:      versionData.GitCommit,
+      isPrime:     versionData.RancherPrime === 'true',
+      docsVersion: `v${ CURRENT_RANCHER_VERSION }`
+    };
   }
 
   get metadata() {
@@ -162,6 +186,12 @@ export class Plugin implements IPlugin {
    * Adds a tab to the UI
    */
   addTab(where: string, when: LocationConfig | string, tab: Tab): void {
+    // tackling https://github.com/rancher/dashboard/issues/11122, we don't want the tab to added in _EDIT view, unless overriden
+    // on extensions side we won't document the mode param for this extension point
+    if (where === TabLocation.RESOURCE_DETAIL && (typeof when === 'object' && !when.mode)) {
+      when.mode = [_DETAIL];
+    }
+
     this._addUIConfig(ExtensionPoint.TAB, where, when, this._createAsyncComponent(tab));
   }
 
@@ -177,6 +207,17 @@ export class Plugin implements IPlugin {
    */
   addCard( where: string, when: LocationConfig | string, card: Card): void {
     this._addUIConfig(ExtensionPoint.CARD, where, when, this._createAsyncComponent(card));
+  }
+
+  /**
+   * Adds a model extension
+   * @experimental May change or be removed in the future
+   *
+   * @param type Model type
+   * @param clz  Class for the model extension (constructor)
+   */
+  addModelExtension(type: string, clz: ModelExtensionConstructor): void {
+    this.register(EXT_IDS.MODEL_EXTENSION, type, clz);
   }
 
   /**
@@ -275,13 +316,36 @@ export class Plugin implements IPlugin {
   }
 
   public addNavHooks(
-    onEnter: OnNavToPackage = () => Promise.resolve(),
-    onLeave: OnNavAwayFromPackage = () => Promise.resolve(),
-    onLogOut: OnLogOut = () => Promise.resolve(),
+    onEnter?: OnNavToPackage | NavHooks,
+    onLeave?: OnNavAwayFromPackage,
+    onLogOut?: OnLogOut,
+    onLogIn?: OnLogIn,
   ): void {
-    this.onEnter = onEnter;
-    this.onLeave = onLeave;
-    this._onLogOut = onLogOut;
+    if (typeof onEnter === 'object') {
+      const hooks = onEnter as NavHooks;
+
+      if (hooks.onEnter) {
+        this.onEnter = hooks.onEnter;
+      }
+
+      if (hooks.onLeave) {
+        this.onLeave = hooks.onLeave;
+      }
+
+      if (hooks.onLogout) {
+        this._onLogOut = hooks.onLogout;
+      }
+
+      if (hooks.onLogin) {
+        this.onLogIn = hooks.onLogin;
+      }
+    } else {
+      // No first arg, or first arg is not an object, so this is the legacy invocation
+      this.onEnter = (onEnter as OnNavToPackage) || (() => Promise.resolve());
+      this.onLeave = onLeave || (() => Promise.resolve());
+      this._onLogOut = onLogOut || (() => Promise.resolve());
+      this.onLogIn = onLogIn || (() => Promise.resolve());
+    }
   }
 
   public async onLogOut(store: any) {
@@ -310,10 +374,18 @@ export class Plugin implements IPlugin {
       }
 
       this.l10n[name].push(fn);
+
+    // Accumulate model extensions
+    } else if (type === EXT_IDS.MODEL_EXTENSION) {
+      if (!this.modelExtensions[name]) {
+        this.modelExtensions[name] = [];
+      }
+      this.modelExtensions[name].push(fn);
     } else {
       if (!this.types[type]) {
         this.types[type] = {};
       }
+
       this.types[type][name] = fn;
     }
   }

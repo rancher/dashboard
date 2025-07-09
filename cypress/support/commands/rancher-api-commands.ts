@@ -1,6 +1,7 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2ClusterWithoutMachineConfigParams } from '@/cypress/globals';
 import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
+import { CypressChainable } from '~/cypress/e2e/po/po.types';
 
 // This file contains commands which makes API requests to the rancher API.
 // It includes the `login` command to store the `token` to use
@@ -14,15 +15,24 @@ Cypress.Commands.add('login', (
   username = Cypress.env('username'),
   password = Cypress.env('password'),
   cacheSession = true,
+  skipNavigation = false,
+  acceptConfirmation = '', // Use when we expect the confirmation dialog to be present (expected button text)
 ) => {
   const login = () => {
     cy.intercept('POST', '/v3-public/localProviders/local*').as('loginReq');
 
-    LoginPagePo.goTo(); // Needs to happen before the page element is created/located
+    if (!skipNavigation) {
+      LoginPagePo.goTo(); // Needs to happen before the page element is created/located
+    }
     const loginPage = new LoginPagePo();
 
     loginPage
-      .checkIsCurrentPage();
+      .checkIsCurrentPage(!skipNavigation);
+
+    if (!!acceptConfirmation) {
+      loginPage.confirmationAcceptButton().shouldContainText(acceptConfirmation);
+      loginPage.confirmationAcceptButton().self().click();
+    }
 
     loginPage.switchToLocal();
 
@@ -64,27 +74,30 @@ Cypress.Commands.add('login', (
 /**
  * Create user via api request
  */
-Cypress.Commands.add('createUser', (params: CreateUserParams) => {
+Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => {
   const {
-    username, globalRole, clusterRole, projectRole
+    username, globalRole, clusterRole, projectRole, password
   } = params;
 
-  return cy.request({
-    method:           'POST',
-    url:              `${ Cypress.env('api') }/v3/users`,
-    failOnStatusCode: false,
-    headers:          {
-      'x-api-csrf': token.value,
-      Accept:       'application/json'
-    },
-    body: {
-      type:               'user',
-      enabled:            true,
-      mustChangePassword: false,
-      username,
-      password:           Cypress.env('password')
-    }
-  })
+  return cy.createE2EResourceName(username, options?.createNameOptions)
+    .then((e2eName) => {
+      return cy.request({
+        method:           'POST',
+        url:              `${ Cypress.env('api') }/v3/users`,
+        failOnStatusCode: false,
+        headers:          {
+          'x-api-csrf': token.value,
+          Accept:       'application/json'
+        },
+        body: {
+          type:               'user',
+          enabled:            true,
+          mustChangePassword: false,
+          username:           e2eName,
+          password:           password || Cypress.env('password')
+        }
+      });
+    })
     .then((resp) => {
       if (resp.status === 422 && resp.body.message === 'Username is already in use.') {
         cy.log('User already exists. Skipping user creation');
@@ -110,6 +123,10 @@ Cypress.Commands.add('createUser', (params: CreateUserParams) => {
 
                 return cy.setProjectRoleBinding(clusterId, userPrincipalId, projectName, role);
               }
+            })
+            .then(() => {
+              // return response of original user
+              return resp;
             });
         }
       }
@@ -295,36 +312,41 @@ Cypress.Commands.add('createNamespace', (nsName) => {
 /**
  * Create pod
  */
-Cypress.Commands.add('createPod', (nsName, podName, image, failOnStatusCode = true) => {
-  return cy.request({
-    method:  'POST',
-    url:     `${ Cypress.env('api') }/v1/pods`,
-    headers: {
-      'x-api-csrf': token.value,
-      Accept:       'application/json'
-    },
-    failOnStatusCode,
-    body: {
-      type:     'pod',
-      metadata: {
-        namespace: nsName, labels: { 'workload.user.cattle.io/workloadselector': `pod-${ nsName }-pod-${ podName }` }, name: `pod-${ podName }`, annotations: {}
-      },
-      spec: {
-        selector:   { matchLabels: { 'workload.user.cattle.io/workloadselector': `pod-${ nsName }-pod-${ podName }` } },
-        containers: [{
-          imagePullPolicy: 'Always', name: 'container-0', _init: false, volumeMounts: [], env: [], envFrom: [], image: `${ image }`, __active: true
-        }],
-        initContainers:   [],
-        imagePullSecrets: [],
-        volumes:          [],
-        affinity:         {}
-      }
-    }
-  })
+Cypress.Commands.add('createPod', (nsName, podName, image, failOnStatusCode = true, options = { }) => {
+  return cy.createE2EResourceName(podName, options?.createNameOptions)
+    .then((e2eName) => {
+      return cy.request({
+        method:  'POST',
+        url:     `${ Cypress.env('api') }/v1/pods`,
+        headers: {
+          'x-api-csrf': token.value,
+          Accept:       'application/json'
+        },
+        failOnStatusCode,
+        body: {
+          type:     'pod',
+          metadata: {
+            namespace: nsName, labels: { 'workload.user.cattle.io/workloadselector': `${ e2eName }` }, name: `${ e2eName }`, annotations: {}
+          },
+          spec: {
+            selector:   { matchLabels: { 'workload.user.cattle.io/workloadselector': `${ e2eName }` } },
+            containers: [{
+              imagePullPolicy: 'Always', name: 'container-0', _init: false, volumeMounts: [], env: [], envFrom: [], image: `${ image }`, __active: true
+            }],
+            initContainers:   [],
+            imagePullSecrets: [],
+            volumes:          [],
+            affinity:         {}
+          }
+        }
+      });
+    })
     .then((resp) => {
       if (failOnStatusCode) {
         expect(resp.status).to.eq(201);
       }
+
+      return resp;
     });
 });
 
@@ -446,6 +468,8 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
   })
     .then((resp) => {
       expect(resp.status).to.eq(200);
+
+      return resp;
     });
 });
 
@@ -472,7 +496,7 @@ Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId,
 /**
  * create a v3 / v1 resource
  */
-Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
+Cypress.Commands.add('createRancherResource', (prefix, resourceType, body, failOnStatusCode = true) => {
   return cy.request({
     method:  'POST',
     url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }`,
@@ -480,15 +504,51 @@ Cypress.Commands.add('createRancherResource', (prefix, resourceType, body) => {
       'x-api-csrf': token.value,
       Accept:       'application/json'
     },
-    body
+    body,
+    failOnStatusCode
   })
     .then((resp) => {
-      // Expect 201, Created HTTP status code
-      expect(resp.status).to.eq(201);
+      if (failOnStatusCode) {
+      // Expect 200 or 201, Created HTTP status code
+        expect(resp.status).to.be.oneOf([200, 201]);
+      }
     });
 });
 
-Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedResourcesTotal) => {
+Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId, testFn, retries = 20, config) => {
+  const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`;
+
+  const retry = () => {
+    cy.request({
+      method:  'GET',
+      url,
+      headers: {
+        'x-api-csrf': token.value,
+        Accept:       'application/json'
+      },
+      failOnStatusCode: config?.failOnStatusCode === undefined ? true : !!config?.failOnStatusCode,
+    })
+      .then((resp) => {
+        if (!testFn(resp)) {
+          retries = retries - 1;
+          if (retries === 0) {
+            cy.log(`waitForRancherResource: Failed to wait for updated state for ${ url }`);
+
+            return Promise.resolve(false);
+          }
+          cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting
+
+          return retry();
+        }
+
+        return Promise.resolve(true);
+      });
+  };
+
+  return retry();
+});
+
+Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedResourcesTotal, greaterThan = undefined) => {
   const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }`;
   let retries = 20;
 
@@ -502,14 +562,19 @@ Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedR
       },
     })
       .then((resp) => {
-        if (resp.body.count === expectedResourcesTotal) return resp;
-        else {
-          retries = retries - 1;
-          if (retries === 0) return resp;
-          // eslint-disable-next-line cypress/no-unnecessary-waiting
-          cy.wait(3000);
-          retry();
+        if (greaterThan) {
+          if (resp.body.count > expectedResourcesTotal) {
+            return resp;
+          }
+        } else if (resp.body.count === expectedResourcesTotal) {
+          return resp;
         }
+
+        retries = retries - 1;
+        if (retries === 0) return resp;
+        // eslint-disable-next-line cypress/no-unnecessary-waiting
+        cy.wait(1000);
+        retry();
       });
   };
 
@@ -551,7 +616,9 @@ Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId, timeout = 30000, fai
  * Create RKE2 cluster with Amazon EC2 cloud provider
  */
 Cypress.Commands.add('createAmazonRke2Cluster', (params: CreateAmazonRke2ClusterParams) => {
-  const { machineConfig, rke2ClusterAmazon, cloudCredentialsAmazon } = params;
+  const {
+    machineConfig, rke2ClusterAmazon, cloudCredentialsAmazon, metadata
+  } = params;
 
   return cy.createAwsCloudCredentials(cloudCredentialsAmazon.workspace, cloudCredentialsAmazon.name, cloudCredentialsAmazon.region, cloudCredentialsAmazon.accessKey, cloudCredentialsAmazon.secretKey)
     .then((resp: Cypress.Response<any>) => {
@@ -574,8 +641,12 @@ Cypress.Commands.add('createAmazonRke2Cluster', (params: CreateAmazonRke2Cluster
               type:     'provisioning.cattle.io.cluster',
               metadata: {
                 namespace:   rke2ClusterAmazon.namespace,
-                annotations: { 'field.cattle.io/description': `${ rke2ClusterAmazon.clusterName }-description` },
-                name:        rke2ClusterAmazon.clusterName
+                annotations: {
+                  'field.cattle.io/description': `${ rke2ClusterAmazon.clusterName }-description`,
+                  ...(metadata?.annotations || {}),
+                },
+                labels: metadata?.labels || {},
+                name:   rke2ClusterAmazon.clusterName
               },
               spec: {
                 rkeConfig: {
@@ -807,13 +878,65 @@ Cypress.Commands.add('createAmazonMachineConfig', (instanceType, region, vpcId, 
 });
 
 // update resource list view preference
-Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string) => {
+Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string, iteration = 0) => {
   return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
     const userId = resp.body.data[0].id.trim();
 
-    cy.setRancherResource('v1', 'userpreferences', userId, groupByPayload(userId, clusterName, groupBy, namespaceFilter));
+    const payload = groupByPayload(userId, clusterName, groupBy, namespaceFilter);
+
+    cy.log(`updateNamespaceFilter: /v1/userpreferences/${ userId }. Payload: ${ JSON.stringify(payload) }`);
+
+    cy.setRancherResource('v1', 'userpreferences', userId, payload).then(() => {
+      return cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => compare(resp?.body, payload), 5)
+        .then((res) => {
+          if (res) {
+            cy.log(`updateNamespaceFilter: Success!`);
+          } else {
+            if (iteration < 3) {
+              cy.log(`updateNamespaceFilter: Failed! Going to retry...`);
+
+              return cy.updateNamespaceFilter(clusterName, groupBy, namespaceFilter, iteration + 1);
+            }
+
+            cy.log(`updateNamespaceFilter: Failed! Giving up...`);
+
+            return Promise.reject(new Error('updateNamespaceFilter failed'));
+          }
+        });
+    });
   });
 });
+
+const compare = (core, subset) => {
+  const entries = Object.entries(subset);
+  let result = true;
+
+  for (let i = 0; i < entries.length; i++) {
+    const [key, subsetValue] = entries[i];
+    const coreValue = core[key];
+
+    if (typeof subsetValue === 'object') {
+      if (!compare(coreValue, subsetValue)) {
+        cy.log(`Compare Failed: Key: "${ key }"`);
+
+        result = false;
+        break;
+      }
+    } else if (subsetValue !== coreValue) {
+      cy.log(`Compare Failed: Key: "${ key }". Comparison "${ subsetValue }" !== "` + `${ coreValue }"`);
+
+      result = false;
+      break;
+    }
+  }
+
+  if (!result) {
+    cy.log(`Compare Failed: Result: Actual State ${ JSON.stringify(core) }`);
+    cy.log(`Compare Failed: Result: Expected Sub-state ${ JSON.stringify(subset) }`);
+  }
+
+  return result;
+};
 
 /**
  * Create token (API Keys)
@@ -839,63 +962,75 @@ Cypress.Commands.add('createToken', (description: string, ttl = 3600000, failOnS
       if (failOnStatusCode) {
         expect(resp.status).to.eq(201);
       }
+
+      return resp;
     });
 });
 
 /**
  * Create global role
  */
-Cypress.Commands.add('createGlobalRole', (name, apiGroups: string[], resourceNames: string[], resources: string[], verbs: string[], newUserDefault = false, failOnStatusCode = true) => {
-  return cy.request({
-    method:  'POST',
-    url:     `${ Cypress.env('api') }/v3/globalroles`,
-    headers: {
-      'x-api-csrf': token.value,
-      Accept:       'application/json'
-    },
-    failOnStatusCode,
-    body: {
-      type:  'globalRole',
-      name,
-      rules: [{
-        apiGroups,
-        resourceNames,
-        resources,
-        verbs
-      }],
-      newUserDefault
-    }
-  })
+Cypress.Commands.add('createGlobalRole', (name, apiGroups: string[], resourceNames: string[], resources: string[], verbs: string[], newUserDefault = false, failOnStatusCode = true, options = { }) => {
+  return cy.createE2EResourceName(name, options?.createNameOptions)
+    .then((e2eName) => {
+      return cy.request({
+        method:  'POST',
+        url:     `${ Cypress.env('api') }/v3/globalroles`,
+        headers: {
+          'x-api-csrf': token.value,
+          Accept:       'application/json'
+        },
+        failOnStatusCode,
+        body: {
+          type:  'globalRole',
+          name:  e2eName,
+          rules: [{
+            apiGroups,
+            resourceNames,
+            resources,
+            verbs
+          }],
+          newUserDefault
+        }
+      });
+    })
     .then((resp) => {
       if (failOnStatusCode) {
         expect(resp.status).to.eq(201);
       }
+
+      return resp;
     });
 });
 
 /**
 * Create fleet workspace
 */
-Cypress.Commands.add('createFleetWorkspace', (name: string, description?: string, failOnStatusCode = true) => {
-  return cy.request({
-    method:  'POST',
-    url:     `${ Cypress.env('api') }/v3/fleetworkspaces`,
-    headers: {
-      'x-api-csrf': token.value,
-      Accept:       'application/json'
-    },
-    failOnStatusCode,
-    body: {
-      type:        'fleetworkspace',
-      name,
-      annotations: { 'field.cattle.io/description': description },
-      labels:      {}
-    }
-  })
+Cypress.Commands.add('createFleetWorkspace', (name: string, description?: string, failOnStatusCode = true, options = { }) => {
+  return cy.createE2EResourceName(name, options?.createNameOptions)
+    .then((e2eName) => {
+      return cy.request({
+        method:  'POST',
+        url:     `${ Cypress.env('api') }/v3/fleetworkspaces`,
+        headers: {
+          'x-api-csrf': token.value,
+          Accept:       'application/json'
+        },
+        failOnStatusCode,
+        body: {
+          type:        'fleetworkspace',
+          name:        e2eName,
+          annotations: { 'field.cattle.io/description': description },
+          labels:      {}
+        }
+      });
+    })
     .then((resp) => {
       if (failOnStatusCode) {
         expect(resp.status).to.eq(201);
       }
+
+      return resp;
     });
 });
 
@@ -909,19 +1044,220 @@ Cypress.Commands.add('fetchRevision', () => {
     });
 });
 
-Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string) => {
+/**
+ * Check if the vai FF is enabled
+ */
+Cypress.Commands.add('isVaiCacheEnabled', () => {
+  return cy.getRancherResource('v1', 'management.cattle.io.features', 'ui-sql-cache', 200)
+    .then((res) => {
+      // copy of shell/models/management.cattle.io.feature.js enabled
+
+      if (res.body.status.lockedValue !== null) {
+        return res.body.status.lockedValue;
+      }
+
+      return (res.body.spec.value !== null) ? res.body.spec.value : res.body.status.default;
+    });
+});
+
+Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration = 0) => {
+  const {
+    clusterName, groupBy, namespaceFilter, allNamespaces
+  } = preferences;
+
   return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
     const userId = resp.body.data[0].id.trim();
-
-    cy.setRancherResource('v1', `userpreferences`, userId, {
+    const payload = {
       id:   `${ userId }`,
       type: 'userpreference',
       data: {
-        cluster:         clusterName,
-        'per-page':      `${ rows }`,
-        'group-by':      groupBy,
-        'ns-by-cluster': namespaceFilter
+        cluster:          clusterName,
+        'per-page':       `${ rows }`,
+        'group-by':       groupBy,
+        'ns-by-cluster':  namespaceFilter,
+        'all-namespaces': allNamespaces,
       }
+    };
+
+    cy.log(`tableRowsPerPageAndPreferences: /v1/userpreferences/${ userId }. Payload: ${ JSON.stringify(payload) }`);
+
+    cy.setRancherResource('v1', 'userpreferences', userId, payload).then(() => {
+      return cy.waitForRancherResource('v1', 'userpreferences', userId, (resp: any) => compare(resp?.body, payload))
+        .then((res) => {
+          if (res) {
+            cy.log(`tableRowsPerPageAndPreferences: Success!`);
+          } else {
+            if (iteration < 3) {
+              cy.log(`tableRowsPerPageAndPreferences: Failed! Going to retry...`);
+
+              return cy.tableRowsPerPageAndPreferences(rows, preferences, iteration + 1);
+            }
+
+            cy.log(`tableRowsPerPageAndPreferences: Failed! Giving up...`);
+
+            return Promise.reject(new Error('tableRowsPerPageAndPreferences failed'));
+          }
+        });
     });
   });
+});
+
+Cypress.Commands.add('tableRowsPerPageAndNamespaceFilter', (rows: number, clusterName: string, groupBy: string, namespaceFilter: string) => {
+  return cy.tableRowsPerPageAndPreferences(rows, {
+    clusterName, groupBy, namespaceFilter
+  });
+});
+
+// Update the user preferences by over-writing the given preference
+Cypress.Commands.add('setUserPreference', (prefs: any) => {
+  return cy.getRancherResource('v1', 'userpreferences').then((resp: Cypress.Response<any>) => {
+    const update = resp.body.data[0];
+
+    update.data = {
+      ...update.data,
+      ...prefs
+    };
+
+    delete update.links;
+
+    return cy.setRancherResource('v1', 'userpreferences', update.id, update);
+  });
+});
+
+/**
+ * Create a secret via api request
+ */
+Cypress.Commands.add('createSecret', (namespace: string, name: string, options: { type?: string; metadata?: any; data?: any } = {}) => {
+  const defaultData = {
+    'tls.crt': Buffer.from('MOCKCERT').toString('base64'),
+    'tls.key': Buffer.from('MOCKPRIVATEKEY').toString('base64')
+  };
+
+  const body = {
+    type:     options.type || 'kubernetes.io/tls',
+    metadata: {
+      namespace,
+      name,
+      ...(options.metadata || {})
+    },
+    data: options.data || defaultData
+  };
+
+  return cy.createRancherResource('v1', 'secrets', body).then((resp) => {
+    return resp.body.metadata.name;
+  });
+});
+
+/**
+ * Create a configmap via api request
+ */
+Cypress.Commands.add('createConfigMap', (namespace: string, name: string, options: { metadata?: any; data?: any } = {}) => {
+  const defaultData = { foo: 'bar' };
+
+  const body = {
+    metadata: {
+      namespace,
+      name,
+      ...(options.metadata || {})
+    },
+    data: options.data || defaultData
+  };
+
+  return cy.createRancherResource('v1', 'configmaps', body).then((resp) => {
+    return resp.body.metadata.name;
+  });
+});
+
+/**
+ * Create a service via api request
+ */
+Cypress.Commands.add('createService', (namespace: string, name: string, options: { type?: string; ports?: any[]; spec?: any; metadata?: any } = {}) => {
+  const defaultSpec = {
+    ports: options.ports || [{
+      name:       'myport',
+      port:       8080,
+      protocol:   'TCP',
+      targetPort: 80
+    }],
+    sessionAffinity: 'None',
+    type:            options.type || 'ClusterIP'
+  };
+
+  const body = {
+    type:     'service',
+    metadata: {
+      namespace,
+      name,
+      ...(options.metadata || {})
+    },
+    spec: options.spec || defaultSpec
+  };
+
+  return cy.createRancherResource('v1', 'services', body).then((resp) => {
+    return resp.body.metadata.name;
+  });
+});
+
+Cypress.Commands.add('createManyNamespacedResources', ({
+  namespace, context, createResource, count = 22, wait = 500
+}: {
+  /**
+   * Used to create the namespace
+   */
+  context?: string,
+  namespace?: string,
+  createResource: ({ ns, i }) => CypressChainable
+  count?: number,
+  wait?: number,
+}): Cypress.Chainable<{ ns: string, workloadNames: string[]}> => {
+  const dynamicNs = namespace ? cy.wrap(namespace) : cy.createE2EResourceName(context).then((ns) => {
+    // create namespace
+    cy.createNamespace(ns);
+
+    return cy.wrap(ns);
+  });
+
+  return dynamicNs
+    .then((ns) => {
+      // create workloads
+      const workloadNames: string[] = [];
+
+      for (let i = 0; i < count; i++) {
+        createResource({ ns, i }).then((resp) => {
+          workloadNames.push(resp.body.metadata.name);
+        });
+
+        if (wait && i % 5 === 0) {
+          cy.wait(wait); // eslint-disable-line cypress/no-unnecessary-waiting
+        }
+      }
+
+      // finish off with result
+      return cy.wrap({
+        ns,
+        workloadNames
+      });
+    });
+});
+
+Cypress.Commands.add('deleteNamespace', (namespaces: string[]) => {
+  for (let i = 0; i < namespaces.length; i++) {
+    const ns = namespaces[i];
+
+    cy.deleteRancherResource('v1', 'namespaces', ns);
+    cy.waitForRancherResource('v1', 'namespaces', ns, (resp) => resp.status === 404, 20, { failOnStatusCode: false });
+  }
+});
+
+Cypress.Commands.add('deleteManyResources', <T = any>({ toDelete, deleteFn, wait = 500 }: {
+  toDelete: T[],
+  deleteFn: (arg0: T) => CypressChainable,
+  wait?: number
+}) => {
+  for (let i = 0; i < toDelete.length; i++) {
+    deleteFn(toDelete[i]);
+    if (wait && i % 5 === 0) {
+      cy.wait(wait); // eslint-disable-line cypress/no-unnecessary-waiting
+    }
+  }
 });

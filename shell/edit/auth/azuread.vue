@@ -363,7 +363,7 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr>
+        <hr role="none">
 
         <AllowedPrincipals
           provider="azuread"
@@ -388,6 +388,7 @@ export default {
           <label class="reply-url">{{ t('authConfig.azuread.reply.label') }} </label>
           <CopyToClipboardText
             :plain="true"
+            :aria-label="t('authConfig.azuread.reply.ariaLabel')"
             :text="replyUrl"
           />
         </InfoBox>

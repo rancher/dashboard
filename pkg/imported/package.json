@@ -1,0 +1,28 @@
+{
+  "name": "imported",
+  "description": "Edit imported clusters in Rancher",
+  "version": "1.0.0",
+  "private": false,
+  "rancher": {
+    "annotations": {
+      "catalog.cattle.io/display-name": "Edit imported cluster"
+    }
+  },
+  "scripts": {
+    "dev": "./node_modules/.bin/nuxt dev",
+    "nuxt": "./node_modules/.bin/nuxt"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/cli-plugin-typescript": "~5.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

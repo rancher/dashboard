@@ -1,0 +1,28 @@
+import { Meta, Canvas, Story } from '@storybook/blocks';
+import * as EditorStories from './Editor.stories';
+
+<Meta of={EditorStories} />
+
+# Editor
+
+YAML editor for Rancher based on CodeMirror library.
+
+### Description
+
+- Simple version for input editing
+- It can display diff
+
+<br/>
+
+#### YAML Editor
+
+Code Mirror is used mainly as YAML editor for all the K8S configurations.
+
+<Canvas of={EditorStories.Yaml} />
+
+#### Textarea Input
+
+The input version is used mainly for cases where is necessary to display line breaks, e.g. ConfigMap chomping.
+
+<Canvas of={EditorStories.Textarea} />
+

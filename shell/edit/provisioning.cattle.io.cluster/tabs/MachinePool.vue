@@ -8,6 +8,8 @@ import AdvancedSection from '@shell/components/AdvancedSection.vue';
 import { Banner } from '@components/Banner';
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import { randomStr } from '@shell/utils/string';
+import FormValidation from '@shell/mixins/form-validation';
+import { MACHINE_POOL_VALIDATION } from '@shell/utils/validators/machine-pool';
 
 export default {
 
@@ -24,6 +26,8 @@ export default {
     Banner,
     UnitInput
   },
+
+  mixins: [FormValidation],
 
   props: {
     value: {
@@ -122,6 +126,12 @@ export default {
       uuid: randomStr(),
 
       unhealthyNodeTimeoutInteger: this.value.pool.unhealthyNodeTimeout ? parseDuration(this.value.pool.unhealthyNodeTimeout) : 0,
+
+      validationErrors: [],
+
+      MACHINE_POOL_VALIDATION,
+
+      fvFormRuleSets: MACHINE_POOL_VALIDATION.RULESETS,
     };
   },
 
@@ -136,7 +146,7 @@ export default {
 
     isWindows() {
       return this.value?.config?.os === 'windows';
-    },
+    }
   },
 
   watch: {
@@ -148,6 +158,20 @@ export default {
       } else {
         this.value.pool.machineOS = 'linux';
       }
+    },
+
+    validationErrors: {
+      handler(newValue) {
+        this.$emit('validationChanged', newValue.length === 0);
+      },
+      deep: true
+    },
+
+    fvFormIsValid: {
+      handler(newValue) {
+        this.$emit('validationChanged', newValue);
+      },
+      deep: true
     }
   },
 
@@ -227,6 +251,8 @@ export default {
           :label="t('cluster.machinePool.name.label')"
           :required="true"
           :disabled="!value.config || !!value.config.id || busy"
+          :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.NAME)"
+          data-testid="machine-pool-name-input"
         />
       </div>
       <div class="col span-4">
@@ -238,6 +264,8 @@ export default {
           type="number"
           min="0"
           :required="true"
+          :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.QUANTITY)"
+          data-testid="machine-pool-quantity-input"
         />
       </div>
       <div class="col span-4 pt-5">
@@ -264,7 +292,10 @@ export default {
         />
       </div>
     </div>
-    <hr class="mt-10">
+    <hr
+      class="mt-10"
+      role="none"
+    >
     <component
       :is="configComponent"
       v-if="value.config && configComponent"

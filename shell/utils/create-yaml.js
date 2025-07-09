@@ -176,7 +176,7 @@ export function createYaml(
   }
 
   // ACTIVELY_REMOVE are fields that should be removed even if they are defined in data
-  for ( const entry of ACTIVELY_REMOVE ) {
+  for ( const entry of (dataOptions.activelyRemove || ACTIVELY_REMOVE) ) {
     const parts = entry.split(/\./);
     const key = parts[parts.length - 1];
     const prefix = parts.slice(0, -1).join('.');

@@ -16,29 +16,39 @@ export default {
       default: () => {}
     },
   },
-  data() {
-    const { row } = this;
-    let cloned = this.value.toLowerCase();
 
-    if (this.value === 'ClusterIP' && row?.spec?.clusterIP === 'None') {
-      cloned = 'headless';
+  computed: {
+    translated() {
+      const value = this.value;
+
+      return this.getLabel(value.toLocaleLowerCase());
+    },
+    clusterIp() {
+      return this.row?.spec?.clusterIP;
+    },
+    headless() {
+      return this.value === 'ClusterIP' && this.clusterIp === 'None' ? this.getLabel('headless') : undefined;
     }
-
-    const match = DEFAULT_SERVICE_TYPES.find((s) => s.id.toLowerCase() === cloned);
-    const translationLabel = match?.label;
-    let translated;
-
-    if (translationLabel && this.$store.getters['i18n/exists'](translationLabel)) {
-      translated = this.$store.getters['i18n/t'](translationLabel);
-    } else {
-      translated = this.value;
-    }
-
-    return { translated };
   },
+
+  methods: {
+    getLabel(type) {
+      const match = DEFAULT_SERVICE_TYPES.find((s) => s.id.toLowerCase() === type);
+      const translationLabel = match?.label;
+      let translated;
+
+      if (translationLabel && this.$store.getters['i18n/exists'](translationLabel)) {
+        translated = this.$store.getters['i18n/t'](translationLabel);
+      } else {
+        translated = this.value;
+      }
+
+      return translated;
+    }
+  }
 };
-</script>>
+</script>
 
 <template>
-  <span>{{ translated }}</span>
+  <span>{{ translated }}{{ headless ? ` (${headless})` : '' }}</span>
 </template>

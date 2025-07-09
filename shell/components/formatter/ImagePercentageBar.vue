@@ -38,7 +38,7 @@ export default {
     },
 
     completed() {
-      return Number.parseFloat(this.value) === 100 && !this.failed;
+      return Number.parseFloat(this.value) === 100;
     },
   },
 };

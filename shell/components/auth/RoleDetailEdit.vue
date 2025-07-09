@@ -1,5 +1,4 @@
 <script>
-import { mapGetters } from 'vuex';
 import { MANAGEMENT, RBAC } from '@shell/config/types';
 import CruResource from '@shell/components/CruResource';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -15,11 +14,11 @@ import { ucFirst } from '@shell/utils/string';
 import SortableTable from '@shell/components/SortableTable';
 import { _CLONE, _DETAIL } from '@shell/config/query-params';
 import { SCOPED_RESOURCES, SCOPED_RESOURCE_GROUPS } from '@shell/config/roles';
-import { Banner } from '@components/Banner';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 
 import { SUBTYPE_MAPPING, VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import Loading from '@shell/components/Loading';
+import Banner from '@components/Banner/Banner.vue';
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 const CLUSTER = SUBTYPE_MAPPING.CLUSTER.key;
@@ -66,8 +65,8 @@ export default {
     SortableTable,
     Loading,
     Error,
+    LabeledInput,
     Banner,
-    LabeledInput
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -163,12 +162,6 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['releaseNotesUrl']),
-
-    showRestrictedAdminDeprecationBanner() {
-      return this.value.subtype === GLOBAL && this.value.id === 'restricted-admin';
-    },
-
     label() {
       return this.t(`rbac.roletemplate.subtypes.${ this.value.subtype }.label`);
     },
@@ -506,7 +499,8 @@ export default {
           index:           i,
           apiGroups:       rule.apiGroups || [''],
           resources:       rule.resources || [],
-          nonResourceURLs: rule.nonResourceURLs || []
+          nonResourceURLs: rule.nonResourceURLs || [],
+          verbs:           rule.verbs,
         };
 
         VERBS.forEach((verb) => {
@@ -540,6 +534,13 @@ export default {
 
       return res;
     },
+
+    showPsaWarning(grant) {
+      return this.value.subtype === NAMESPACE &&
+        grant.verbs?.includes('updatepsa') &&
+        grant.resources?.includes('projects') &&
+        grant.apiGroups?.includes('management.cattle.io');
+    }
   }
 };
 </script>
@@ -559,13 +560,6 @@ export default {
     @finish="save"
     @cancel="cancel"
   >
-    <Banner
-      v-if="showRestrictedAdminDeprecationBanner"
-      color="warning"
-      class="mb-20"
-    >
-      <span v-clean-html="t('rbac.globalRoles.role.restricted-admin.deprecation', { releaseNotesUrl }, true)" />
-    </Banner>
     <template v-if="isDetail">
       <SortableTable
         key-field="index"
@@ -574,7 +568,28 @@ export default {
         :table-actions="false"
         :row-actions="false"
         :search="false"
-      />
+        :sub-rows="true"
+      >
+        <template #sub-row="{row, fullColspan, onRowMouseEnter, onRowMouseLeave}">
+          <tr
+
+            class="sub-row"
+            @mouseenter="onRowMouseEnter"
+            @mouseleave="onRowMouseLeave"
+          >
+            <td
+              v-if="showPsaWarning(row)"
+              :colspan="fullColspan"
+            >
+              <Banner
+                style="margin: 0px"
+                label-key="rbac.roletemplate.tabs.grantResources.psaWarning"
+                color="warning"
+              />
+            </td>
+          </tr>
+        </template>
+      </SortableTable>
       <div
         v-for="(inherited, index) of inheritedRules"
         :key="index"
@@ -746,6 +761,17 @@ export default {
                     @input="setRule('nonResourceURLs', props.row.value, $event.target.value)"
                   />
                 </div>
+              </div>
+            </template>
+            <template #value-sub-row="{row}">
+              <div
+                v-if="showPsaWarning(row.value)"
+                class="mr-20"
+              >
+                <Banner
+                  label-key="rbac.roletemplate.tabs.grantResources.psaWarning"
+                  color="warning"
+                />
               </div>
             </template>
           </ArrayList>

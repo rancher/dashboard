@@ -1,6 +1,6 @@
 .labeled-input {
   position: relative;
-  display: table;
+  display: flex;
   border-collapse: separate;
   min-height: $input-height;
   z-index: 0; // Prevent label from cover other elements outside of the input
@@ -82,7 +82,7 @@
     }
   }
 
-  &.view>DIV:not(.addon) {
+  &.view>DIV:not(.addon, .sub-label) {
     font-size: 14px;
     padding: $input-padding-lg 0 0 0;
 
@@ -97,9 +97,9 @@
 
     .addon,
     .addon.btn {
-      display: table-cell;
-      vertical-align: middle;
-      width: 1%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       white-space: nowrap;
       vertical-align: middle;
       color: #{$secondary};
@@ -117,14 +117,6 @@
 
   &.suffix INPUT {
     padding-right: 8px;
-  }
-
-  &.suffix.v-popper--has-tooltip INPUT {
-    width: calc(100% - 30px);
-  }
-
-  &.suffix.v-popper--has-tooltip INPUT {
-    width: calc(100% - 30px);
   }
 
   .cron-label,

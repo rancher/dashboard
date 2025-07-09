@@ -1,15 +1,22 @@
-import { EKSConfig, EKSNodeGroup } from 'types';
+import { set } from '@shell/utils/object';
+import { EKSConfig, EKSNodeGroup, NormanCluster } from 'types';
 
 export interface CruEKSContext {
-  $set: Function,
   t: Function,
   config: EKSConfig,
   nodeGroups: EKSNodeGroup[],
+  normanCluster: NormanCluster
 }
+
+const displayNameRequired = (ctx: CruEKSContext) => {
+  return (): string | null => {
+    return !ctx.config.displayName ? ctx.t('validation.required', { key: ctx.t('eks.clusterName.label') }) : null;
+  };
+};
 
 const clusterNameRequired = (ctx: CruEKSContext) => {
   return (): string | null => {
-    return !ctx.config.displayName ? ctx.t('validation.required', { key: ctx.t('nameNsDescription.name.label') }) : null;
+    return !ctx.normanCluster?.name ? ctx.t('validation.required', { key: ctx.t('eks.clusterName.label') }) : null;
   };
 };
 
@@ -38,7 +45,7 @@ const nodeGroupNamesUnique = (ctx: CruEKSContext) => {
       const name = group.nodegroupName;
 
       if (names.filter((n) => n === name).length > 1) {
-        ctx.$set(group, '__nameUnique', false);
+        set(group, '__nameUnique', false);
         if (!out) {
           out = ctx.t('eks.errors.nodeGroups.nameUnique');
         }
@@ -170,6 +177,7 @@ const nodeGroupsRequired = (ctx: CruEKSContext) => {
 };
 
 export default {
+  displayNameRequired,
   clusterNameRequired,
   nodeGroupNamesRequired,
   nodeGroupNamesUnique,

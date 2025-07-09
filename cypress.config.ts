@@ -2,6 +2,9 @@
 import { defineConfig } from 'cypress';
 import { removeDirectory } from 'cypress-delete-downloads-folder';
 import { getSpecPattern } from '@/scripts/cypress';
+import websocketTasks from './cypress/support/utils/webSocket-utils';
+import path from 'path';
+
 // Required for env vars to be available in cypress
 require('dotenv').config();
 
@@ -9,12 +12,16 @@ require('dotenv').config();
  * VARIABLES
  */
 const hasCoverage = (process.env.TEST_INSTRUMENT === 'true') || false; // Add coverage if instrumented
-const testDirs = ['priority', 'components', 'setup', 'pages', 'navigation', 'global-ui', 'features', 'extensions'];
+let testDirs = ['priority', 'components', 'setup', 'pages', 'navigation', 'global-ui', 'features', 'extensions'];
 const skipSetup = process.env.TEST_SKIP?.includes('setup');
 const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
 const DEFAULT_USERNAME = 'admin';
 const username = process.env.TEST_USERNAME || DEFAULT_USERNAME;
 const apiUrl = process.env.API || (baseUrl.endsWith('/dashboard') ? baseUrl.split('/').slice(0, -1).join('/') : baseUrl);
+
+if (process.env.TEST_A11Y) {
+  testDirs = ['accessibility'];
+}
 
 /**
  * LOGS:
@@ -87,6 +94,7 @@ export default defineConfig({
     password:            process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword:   process.env.CATTLE_BOOTSTRAP_PASSWORD,
     grepTags:            process.env.GREP_TAGS,
+    VAI_ENABLED:         process.env.VAI_ENABLED,
     // the below env vars are only available to tests that run in Jenkins
     awsAccessKey:        process.env.AWS_ACCESS_KEY_ID,
     awsSecretKey:        process.env.AWS_SECRET_ACCESS_KEY,
@@ -94,7 +102,10 @@ export default defineConfig({
     azureClientId:       process.env.AZURE_CLIENT_ID,
     azureClientSecret:   process.env.AZURE_CLIENT_SECRET,
     customNodeIp:        process.env.CUSTOM_NODE_IP,
-    customNodeKey:       process.env.CUSTOM_NODE_KEY
+    customNodeKey:       process.env.CUSTOM_NODE_KEY,
+    accessibility:       !!process.env.TEST_A11Y, // Are we running accessibility tests?
+    a11yFolder:          path.join('.', 'cypress', 'accessibility'),
+    gkeServiceAccount:   process.env.GKE_SERVICE_ACCOUNT,
   },
   e2e: {
     fixturesFolder: 'cypress/e2e/blueprints',
@@ -103,7 +114,14 @@ export default defineConfig({
       require('@cypress/code-coverage/task')(on, config);
       require('@cypress/grep/src/plugin')(config);
       // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
+
+      // Load Accessibility plugin if configured
+      if (process.env.TEST_A11Y) {
+        require('./cypress/support/plugins/accessibility').default(on, config);
+      }
+
       on('task', { removeDirectory });
+      websocketTasks(on, config);
 
       return config;
     },

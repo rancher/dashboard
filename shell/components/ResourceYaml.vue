@@ -73,6 +73,11 @@ export default {
       default: true
     },
 
+    showErrors: {
+      type:    Boolean,
+      default: true
+    },
+
     applyHooks: {
       type:    Function,
       default: null,
@@ -205,58 +210,6 @@ export default {
       cm.getMode().fold = saved;
     },
 
-    onChanges(cm, changes) {
-      if ( changes.length !== 1 ) {
-        return;
-      }
-
-      const change = changes[0];
-
-      if ( change.from.line !== change.to.line ) {
-        return;
-      }
-
-      let line = change.from.line;
-      let str = cm.getLine(line);
-      let maxIndent = indentChars(str);
-
-      if ( maxIndent === null ) {
-        return;
-      }
-
-      cm.replaceRange('', { line, ch: 0 }, { line, ch: 1 }, '+input');
-
-      while ( line > 0 ) {
-        line--;
-        str = cm.getLine(line);
-        const indent = indentChars(str);
-
-        if ( indent === null ) {
-          break;
-        }
-
-        if ( indent < maxIndent ) {
-          cm.replaceRange('', { line, ch: 0 }, { line, ch: 1 }, '+input');
-
-          if ( indent === 0 ) {
-            break;
-          }
-
-          maxIndent = indent;
-        }
-      }
-
-      function indentChars(str) {
-        const match = str.match(/^#(\s+)/);
-
-        if ( match ) {
-          return match[1].length;
-        }
-
-        return null;
-      }
-    },
-
     updateValue(value) {
       this.$refs.yamleditor.updateValue(value);
     },
@@ -341,20 +294,27 @@ export default {
       }
     },
 
+    refresh() {
+      this.$refs.yamleditor.refresh();
+    },
+
+    closeError(index) {
+      this.errors = (this.errors || []).filter((_, i) => i !== index);
+    },
   }
 };
 </script>
 
 <template>
-  <div class="root resource-yaml">
+  <div class="root resource-yaml flex-content">
     <YamlEditor
       ref="yamleditor"
       v-model:value="currentYaml"
+      :mode="mode"
       :initial-yaml-values="initialYaml"
       class="yaml-editor flex-content"
       :editor-mode="editorMode"
       @onReady="onReady"
-      @onChanges="onChanges"
     />
     <slot
       name="yamlFooter"
@@ -370,7 +330,8 @@ export default {
         class="footer"
         :class="{ 'edit': !isView }"
         :mode="mode"
-        :errors="errors"
+        :errors="showErrors ? errors : []"
+        @close-error="closeError"
         @save="save"
         @done="done"
       >

@@ -12,6 +12,7 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { asciiLike } from '@shell/utils/string';
 import CodeMirror from '@shell/components/CodeMirror';
 import isEqual from 'lodash/isEqual';
+import { LabeledTooltip } from '@components/LabeledTooltip';
 
 export default {
   name: 'KeyValue',
@@ -22,7 +23,8 @@ export default {
     CodeMirror,
     Select,
     TextAreaAutoGrow,
-    FileSelector
+    FileSelector,
+    LabeledTooltip
   },
   props: {
     value: {
@@ -64,6 +66,12 @@ export default {
       type:    [String, Boolean],
       default: '',
     },
+
+    protipValue: {
+      type:    [String, Boolean],
+      default: '',
+    },
+
     // For asMap=false, the name of the field that goes into the row objects
     keyName: {
       type:    String,
@@ -94,20 +102,6 @@ export default {
     keyPlaceholder: {
       type:    String,
       default: '',
-    },
-    /**
-     * List of keys which needs to be disabled and hidden based on toggler
-     */
-    protectedKeys: {
-      type:    Array,
-      default: () => [],
-    },
-    /**
-     * Conditionally display protected keys, if any
-     */
-    toggleFilter: {
-      type:    Boolean,
-      default: false,
     },
     separatorLabel: {
       type:    String,
@@ -182,7 +176,11 @@ export default {
     },
     addIcon: {
       type:    String,
-      default: 'icon-plus',
+      default: '',
+    },
+    addClass: {
+      type:    String,
+      default: '',
     },
     addAllowed: {
       type:    Boolean,
@@ -210,7 +208,7 @@ export default {
     },
     removeIcon: {
       type:    String,
-      default: 'icon-minus',
+      default: '',
     },
     removeAllowed: {
       type:    Boolean,
@@ -240,6 +238,10 @@ export default {
       default: false,
       type:    Boolean
     },
+    keyErrors: {
+      type:    Object,
+      default: () => ({})
+    }
   },
   data() {
     const rows = this.getRows(this.value);
@@ -252,6 +254,10 @@ export default {
   },
   computed: {
     _protip() {
+      if (this.protip === false) {
+        return null;
+      }
+
       return this.protip || this.t('keyValue.protip', null, true);
     },
     _keyLabel() {
@@ -295,12 +301,6 @@ export default {
      */
     canRemove() {
       return !this.isView && this.removeAllowed;
-    },
-    /**
-     * Filter rows based on toggler, keeping to still emit all the values
-     */
-    filteredRows() {
-      return this.rows.filter((row) => !(this.isProtected(row.key) && !this.toggleFilter));
     }
   },
   created() {
@@ -327,10 +327,6 @@ export default {
       if (!isEqual(neu, this.lastUpdated)) {
         this.rows = this.getRows(neu);
       }
-    },
-
-    isProtected(key) {
-      return this.protectedKeys && this.protectedKeys.includes(key);
     },
 
     getRows(value) {
@@ -521,10 +517,16 @@ export default {
       const text = event.clipboardData.getData('text/plain');
       const lines = text.split('\n');
       const splits = lines.map((line) => {
-        const splitter = this.parserSeparators.find((sep) => line.includes(sep));
+        const separatorIndex = line.search(new RegExp(this.parserSeparators.join('|')));
 
-        return splitter ? line.split(splitter) : '';
-      }).filter((split) => split && split.length > 0);
+        if (separatorIndex === -1) {
+          return [];
+        }
+        const key = line.substring(0, separatorIndex).trim();
+        const value = line.substring(separatorIndex + 1).trim();
+
+        return [key, value];
+      }).filter((split) => split.length > 0);
 
       if (splits.length === 0 || (splits.length === 1 && splits[0].length < 2)) {
         return;
@@ -603,192 +605,265 @@ export default {
     </div>
     <div
       class="kv-container"
+      role="grid"
+      :aria-label="title || t('generic.ariaLabel.keyValue')"
+      :aria-rowcount="rows.length"
+      :aria-colcount="extraColumns.length + 2"
       :style="containerStyle"
     >
       <template v-if="rows.length || isView">
-        <label class="text-label">
-          {{ _keyLabel }}
-          <i
-            v-if="_protip && !isView && addAllowed"
-            v-clean-tooltip="_protip"
-            class="icon icon-info"
-          />
-        </label>
-        <label class="text-label">
-          {{ _valueLabel }}
-        </label>
-        <label
-          v-for="(c, i) in extraColumns"
-          :key="i"
-        >
-          <slot :name="'label:'+c">{{ c }}</slot>
-        </label>
-        <slot
-          v-if="canRemove"
-          name="remove"
-        >
-          <span />
-        </slot>
+        <div class="rowgroup">
+          <div class="row">
+            <label
+              class="text-label"
+              role="columnheader"
+            >
+              {{ _keyLabel }}
+              <i
+                v-if="_protip && !isView && addAllowed"
+                v-clean-tooltip="{content: _protip, triggers: ['hover', 'touch', 'focus'] }"
+                v-stripped-aria-label="_protip"
+                class="icon icon-info"
+                tabindex="0"
+              />
+            </label>
+            <label
+              class="text-label"
+              role="columnheader"
+            >
+              {{ _valueLabel }}
+              <i
+                v-if="protipValue && !isView && addAllowed"
+                v-clean-tooltip="{content: protipValue, triggers: ['hover', 'touch', 'focus'] }"
+                v-stripped-aria-label="protipValue"
+                class="icon icon-info"
+                tabindex="0"
+              />
+            </label>
+            <label
+              v-for="(c, i) in extraColumns"
+              :key="i"
+              role="columnheader"
+            >
+              <slot :name="'label:'+c">{{ c }}</slot>
+            </label>
+            <slot
+              v-if="canRemove"
+              name="remove"
+            >
+              <span />
+            </slot>
+          </div>
+        </div>
       </template>
       <template v-if="!rows.length && isView">
-        <div class="kv-item key text-muted">
-          &mdash;
-        </div>
-        <div class="kv-item key text-muted">
-          &mdash;
+        <div class="rowgroup">
+          <div class="row">
+            <div
+              class="kv-item key text-muted"
+              role="gridcell"
+            >
+              &mdash;
+            </div>
+            <div
+              class="kv-item key text-muted"
+              role="gridcell"
+            >
+              &mdash;
+            </div>
+          </div>
         </div>
       </template>
       <template
-        v-for="(row,i) in filteredRows"
+        v-for="(row,i) in rows"
         v-else
         :key="i"
       >
-        <!-- Key -->
-        <div
-          class="kv-item key"
-        >
-          <slot
-            name="key"
-            :row="row"
-            :mode="mode"
-            :keyName="keyName"
-            :valueName="valueName"
-            :queueUpdate="queueUpdate"
-            :disabled="disabled"
-          >
-            <Select
-              v-if="keyOptions"
-              ref="key"
-              v-model:value="row[keyName]"
-              :searchable="true"
-              :disabled="disabled || isProtected(row.key)"
-              :clearable="false"
-              :taggable="keyTaggable"
-              :options="calculateOptions(row[keyName])"
-              :data-testid="`select-kv-item-key-${i}`"
-              @update:value="queueUpdate"
-            />
-            <input
-              v-else
-              ref="key"
-              v-model="row[keyName]"
-              :disabled="isView || disabled || !keyEditable || isProtected(row.key)"
-              :placeholder="_keyPlaceholder"
-              :data-testid="`input-kv-item-key-${i}`"
-              @input="queueUpdate"
-              @paste="onPaste(i, $event)"
+        <div class="rowgroup">
+          <div class="row">
+            <!-- Key -->
+            <div
+              class="kv-item key"
+              role="gridcell"
+              :aria-rowindex="i+1"
+              :aria-colindex="1"
+              :class="{
+                'labeled-input-key': keyErrors[row.key],
+                'v-popper--has-tooltip': keyErrors[row.key],
+              }"
             >
-          </slot>
-        </div>
-
-        <!-- Value -->
-        <div
-          :data-testid="`kv-item-value-${i}`"
-          class="kv-item value"
-        >
-          <slot
-            name="value"
-            :row="row"
-            :mode="mode"
-            :keyName="keyName"
-            :valueName="valueName"
-            :queueUpdate="queueUpdate"
-          >
-            <div v-if="!row.supported">
-              {{ t('detailText.unsupported', null, true) }}
+              <slot
+                name="key"
+                :row="row"
+                :mode="mode"
+                :keyName="keyName"
+                :valueName="valueName"
+                :queueUpdate="queueUpdate"
+                :disabled="disabled"
+              >
+                <Select
+                  v-if="keyOptions"
+                  ref="key"
+                  v-model:value="row[keyName]"
+                  :searchable="true"
+                  :disabled="disabled"
+                  :clearable="false"
+                  :taggable="keyTaggable"
+                  :options="calculateOptions(row[keyName])"
+                  :data-testid="`select-kv-item-key-${i}`"
+                  :aria-label="t('generic.ariaLabel.key', {index: i+1})"
+                  @update:value="queueUpdate"
+                />
+                <input
+                  v-else
+                  ref="key"
+                  v-model="row[keyName]"
+                  :disabled="isView || disabled || !keyEditable"
+                  :placeholder="_keyPlaceholder"
+                  :data-testid="`input-kv-item-key-${i}`"
+                  :aria-label="t('generic.ariaLabel.key', {index: i+1})"
+                  @input="queueUpdate"
+                  @paste="onPaste(i, $event)"
+                >
+                <LabeledTooltip
+                  v-if="keyErrors[row.key]"
+                  :value="keyErrors[row.key]"
+                  :hover="true"
+                />
+              </slot>
             </div>
-            <div v-else-if="row.binary">
-              {{ binaryTextSize(row.value) }}
+
+            <!-- Value -->
+            <div
+              :data-testid="`kv-item-value-${i}`"
+              class="kv-item value"
+              role="gridcell"
+              :aria-rowindex="i+1"
+              :aria-colindex="2"
+            >
+              <slot
+                name="value"
+                :row="row"
+                :mode="mode"
+                :keyName="keyName"
+                :valueName="valueName"
+                :queueUpdate="queueUpdate"
+              >
+                <div v-if="!row.supported">
+                  {{ t('detailText.unsupported', null, true) }}
+                </div>
+                <div v-else-if="row.binary">
+                  {{ binaryTextSize(row.value) }}
+                </div>
+                <div
+                  v-else
+                  class="value-container"
+                  :class="{ 'upload-button': parseValueFromFile }"
+                >
+                  <CodeMirror
+                    v-if="valueMarkdownMultiline"
+                    ref="cm"
+                    data-testid="code-mirror-multiline-field"
+                    :class="{['focus']: codeMirrorFocus[i]}"
+                    :value="row[valueName]"
+                    :as-text-area="true"
+                    :mode="mode"
+                    :options="{
+                      screenReaderLabel: t('generic.ariaLabel.value', { index: i })
+                    }"
+                    @onInput="onInputMarkdownMultiline(i, $event)"
+                    @onFocus="onFocusMarkdownMultiline(i, $event)"
+                  />
+                  <TextAreaAutoGrow
+                    v-else-if="valueMultiline && row[valueName] !== undefined"
+                    v-model:value="row[valueName]"
+                    data-testid="value-multiline"
+                    :class="{'conceal': valueConcealed}"
+                    :disabled="disabled"
+                    :mode="mode"
+                    :placeholder="_valuePlaceholder"
+                    :min-height="40"
+                    :spellcheck="false"
+                    :aria-label="t('generic.ariaLabel.value', {index: i+1})"
+                    @update:value="queueUpdate"
+                  />
+                  <input
+                    v-else
+                    v-model="row[valueName]"
+                    :disabled="isView || disabled"
+                    :type="valueConcealed ? 'password' : 'text'"
+                    :placeholder="_valuePlaceholder"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    :data-testid="`input-kv-item-value-${i}`"
+                    :aria-label="t('generic.ariaLabel.value', {index: i+1})"
+                    @input="queueUpdate"
+                  >
+                  <FileSelector
+                    v-if="parseValueFromFile && readAllowed && !isView && isValueFieldEmpty(row[valueName])"
+                    class="btn btn-sm role-secondary file-selector"
+                    :label="t('generic.upload')"
+                    :include-file-name="true"
+                    :aria-label="t('generic.ariaLabel.value', {index: i+1})"
+                    @selected="onValueFileSelected(i, $event)"
+                  />
+                </div>
+              </slot>
             </div>
             <div
-              v-else
-              class="value-container"
-              :class="{ 'upload-button': parseValueFromFile }"
+              v-for="(c, j) in extraColumns"
+              :key="`${i}-${j}`"
+              class="kv-item extra"
+              role="gridcell"
+              :aria-rowindex="i+1"
+              :aria-colindex="j+3"
             >
-              <CodeMirror
-                v-if="valueMarkdownMultiline"
-                ref="cm"
-                data-testid="code-mirror-multiline-field"
-                :class="{['focus']: codeMirrorFocus[i]}"
-                :value="row[valueName]"
-                :as-text-area="true"
-                :mode="mode"
-                @onInput="onInputMarkdownMultiline(i, $event)"
-                @onFocus="onFocusMarkdownMultiline(i, $event)"
-              />
-              <TextAreaAutoGrow
-                v-else-if="valueMultiline"
-                v-model:value="row[valueName]"
-                data-testid="value-multiline"
-                :class="{'conceal': valueConcealed}"
-                :disabled="disabled || isProtected(row.key)"
-                :mode="mode"
-                :placeholder="_valuePlaceholder"
-                :min-height="40"
-                :spellcheck="false"
-                @update:value="queueUpdate"
-              />
-              <input
-                v-else
-                v-model="row[valueName]"
-                :disabled="isView || disabled || isProtected(row.key)"
-                :type="valueConcealed ? 'password' : 'text'"
-                :placeholder="_valuePlaceholder"
-                autocorrect="off"
-                autocapitalize="off"
-                spellcheck="false"
-                :data-testid="`input-kv-item-value-${i}`"
-                @input="queueUpdate"
-              >
-              <FileSelector
-                v-if="parseValueFromFile && readAllowed && !isView && isValueFieldEmpty(row[valueName])"
-                class="btn btn-sm role-secondary file-selector"
-                :label="t('generic.upload')"
-                :include-file-name="true"
-                @selected="onValueFileSelected(i, $event)"
+              <slot
+                :name="'col:' + c"
+                :row="row"
+                :queue-update="queueUpdate"
+                :i="i"
               />
             </div>
-          </slot>
-        </div>
-        <div
-          v-for="(c, j) in extraColumns"
-          :key="`${i}-${j}`"
-          class="kv-item extra"
-        >
-          <slot
-            :name="'col:' + c"
-            :row="row"
-            :queue-update="queueUpdate"
-            :i="i"
-          />
-        </div>
-        <div
-          v-if="canRemove"
-          :key="i"
-          class="kv-item remove"
-          :data-testid="`remove-column-${i}`"
-        >
-          <slot
-            name="removeButton"
-            :remove="remove"
-            :row="row"
-            :i="i"
-          >
-            <button
-              type="button"
-              :disabled="isView || isProtected(row.key) || disabled"
-              class="btn role-link"
-              @click="remove(i)"
+            <div
+              v-if="canRemove"
+              :key="i"
+              class="kv-item remove"
+              role="gridcell"
+              :aria-rowindex="i+1"
+              :aria-colindex="extraColumns.length+3"
+              :data-testid="`remove-column-${i}`"
             >
-              {{ removeLabel || t('generic.remove') }}
-            </button>
-          </slot>
+              <slot
+                name="removeButton"
+                :remove="remove"
+                :row="row"
+                :i="i"
+              >
+                <button
+                  type="button"
+                  role="button"
+                  :disabled="isView || disabled"
+                  :aria-label="t('generic.ariaLabel.remove', {index: i+1})"
+                  class="btn role-link"
+                  @click="remove(i)"
+                >
+                  {{ removeLabel || t('generic.remove') }}
+                  <i
+                    v-if="removeIcon"
+                    :class="[removeIcon]"
+                  />
+                </button>
+              </slot>
+            </div>
+          </div>
         </div>
       </template>
     </div>
     <div
       v-if="(addAllowed || readAllowed) && !isView"
-      class="footer mt-20"
+      class="footer mt-10"
     >
       <slot
         name="add"
@@ -797,22 +872,27 @@ export default {
         <button
           v-if="addAllowed"
           type="button"
+          role="button"
           class="btn role-tertiary add"
-          data-testid="add_link_button"
+          :class="[addClass]"
+          data-testid="add_row_item_button"
           :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
+          :aria-label="t('generic.ariaLabel.addKeyValue')"
           @click="add()"
         >
           <i
-            v-if="loading"
-            class="mr-5 icon icon-spinner icon-spin icon-lg"
+            class="mr-5 icon"
+            :class="loading ? ['icon-lg', 'icon-spinner','icon-spin']: [addIcon]"
           /> {{ _addLabel }}
         </button>
         <FileSelector
           v-if="readAllowed"
+          :aria-label="t('generic.ariaLabel.readKeyValue')"
           :disabled="isView"
           class="role-tertiary"
           :label="t('generic.readFromFile')"
           :include-file-name="true"
+          data-testid="read_all_key_value_button"
           @selected="onFileSelected"
         />
       </slot>
@@ -861,6 +941,24 @@ export default {
       }
     }
   }
+
+  .rowgroup {
+    display: grid;
+    grid-column-start: 1;
+    grid-column-end: span end;
+    grid-template-columns: subgrid;
+  }
+
+  .row {
+    &::before {
+      display: none;
+    }
+    display: grid;
+    grid-column-start: 1;
+    grid-column-end: span end;
+    grid-template-columns: subgrid;
+  }
+
   .remove {
     text-align: center;
     BUTTON {
@@ -889,5 +987,12 @@ export default {
   .copy-value {
     padding: 0px 0px 0px 10px;
   }
+}
+
+.labeled-input-key {
+  position: relative;
+  display: flex;
+  border-collapse: separate;
+  z-index: 0; // Prevent label from cover other elements outside of the input
 }
 </style>

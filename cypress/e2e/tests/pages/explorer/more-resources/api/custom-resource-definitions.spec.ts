@@ -2,8 +2,10 @@ import { CustomResourceDefinitionsPagePo } from '@/cypress/e2e/po/pages/explorer
 import { generateCrdsDataSmall } from '@/cypress/e2e/blueprints/explorer/more-resources/api/custom-resource-definition-get';
 import * as jsyaml from 'js-yaml';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 
-const crdsPage = new CustomResourceDefinitionsPagePo('local');
+const cluster = 'local';
+const crdsPage = new CustomResourceDefinitionsPagePo(cluster);
 const crdName = `e2etests.${ +new Date() }.example.com`;
 const crdGroup = `${ +new Date() }.example.com`;
 
@@ -12,13 +14,16 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before(() => {
-      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
+      ClusterDashboardPagePo.goToAndWait(cluster); // Ensure we're at a solid state before messing with preferences (given login/load might change them)
+      cy.tableRowsPerPageAndNamespaceFilter(10, cluster, 'none', '{\"local\":[]}');
     });
 
     it('can create a crd and see it in list view', () => {
-      crdsPage.goTo();
+      ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { all: { is: true } } );
+
+      CustomResourceDefinitionsPagePo.navTo();
       crdsPage.waitForPage();
       crdsPage.create();
 
@@ -73,17 +78,23 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
         crdsPage.sortableTable().pagination().endButton().isEnabled();
 
         // check text before navigation
-        crdsPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } CustomResourceDefinitions`);
-        });
+        crdsPage.sortableTable().pagination().checkPaginationText(
+          crdsPage.productNav(), {
+            sideNameLabel: 'CustomResourceDefinitions',
+            expectedText:  (count: number) => `1 - 10 of ${ count } CustomResourceDefinitions`
+          }
+        );
 
         // navigate to next page - right button
         crdsPage.sortableTable().pagination().rightButton().click();
 
         // check text and buttons after navigation
-        crdsPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`11 - 20 of ${ count } CustomResourceDefinitions`);
-        });
+        crdsPage.sortableTable().pagination().checkPaginationText(
+          crdsPage.productNav(), {
+            sideNameLabel: 'CustomResourceDefinitions',
+            expectedText:  (count: number) => `11 - 20 of ${ count } CustomResourceDefinitions`
+          }
+        );
         crdsPage.sortableTable().pagination().beginningButton().isEnabled();
         crdsPage.sortableTable().pagination().leftButton().isEnabled();
 
@@ -91,14 +102,19 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
         crdsPage.sortableTable().pagination().leftButton().click();
 
         // check text and buttons after navigation
-        crdsPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } CustomResourceDefinitions`);
-        });
+        crdsPage.sortableTable().pagination().checkPaginationText(
+          crdsPage.productNav(), {
+            sideNameLabel: 'CustomResourceDefinitions',
+            expectedText:  (count: number) => `1 - 10 of ${ count } CustomResourceDefinitions`
+          }
+        );
+
         crdsPage.sortableTable().pagination().beginningButton().isDisabled();
         crdsPage.sortableTable().pagination().leftButton().isDisabled();
 
         // navigate to last page - end button
-        crdsPage.sortableTable().pagination().endButton().click();
+        crdsPage.sortableTable().pagination().endButton().scrollIntoView()
+          .click();
 
         // row count on last page
         let lastPageCount = count % 10;
@@ -108,17 +124,23 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
         }
 
         // check text after navigation
-        crdsPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.contain(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } CustomResourceDefinitions`);
-        });
+        crdsPage.sortableTable().pagination().checkPaginationText(
+          crdsPage.productNav(), {
+            sideNameLabel: 'CustomResourceDefinitions',
+            expectedText:  (count: number) => `${ count - (lastPageCount) + 1 } - ${ count } of ${ count } CustomResourceDefinitions`
+          }
+        );
 
         // navigate to first page - beginning button
         crdsPage.sortableTable().pagination().beginningButton().click();
 
         // check text and buttons after navigation
-        crdsPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } CustomResourceDefinitions`);
-        });
+        crdsPage.sortableTable().pagination().checkPaginationText(
+          crdsPage.productNav(), {
+            sideNameLabel: 'CustomResourceDefinitions',
+            expectedText:  (count: number) => `1 - 10 of ${ count } CustomResourceDefinitions`
+          }
+        );
         crdsPage.sortableTable().pagination().beginningButton().isDisabled();
         crdsPage.sortableTable().pagination().leftButton().isDisabled();
       });

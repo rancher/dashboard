@@ -7,6 +7,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import ResourceYamlEditorPagePo from '@/cypress/e2e/po/pages/explorer/yaml-editor.po';
+import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 
@@ -16,8 +17,8 @@ const repoListPage = new RepositoriesPagePo('_', 'manager');
 const repoList = repoListPage.list();
 // const clusterManagerPage = new ClusterManagerListPagePo('_');
 
-const VIM = 'Vim';
-const NORMAL_HUMAN = 'Normal human';
+// const VIM = 'Vim';
+// const NORMAL_HUMAN = 'Normal human';
 
 const RESOURCE_FOR_CREATE_YAML = 'resourcequota';
 
@@ -102,59 +103,6 @@ describe('User can update their preferences', () => {
       });
       prefPage.themeButtons().isSelected(key);
     }
-  });
-
-  it.skip('[Vue3 Skip]: Can select login landing page', { tags: ['@userMenu', '@adminUser'] }, () => {
-    /*
-    Select each radio button and verify its highlighted
-    Validate http request's payload & response contain correct values per selection
-    Verify user is landing on correct page after login
-    Verify selection is preserved after logout/login
-    */
-
-    const landingPageOptions = [
-      {
-        index: '0', value: '"home"', page: '/home'
-      },
-      {
-        index: '1', value: '"last-visited"', page: 'c/_/manager/provisioning.cattle.io.cluster'
-      },
-      { // This option only works when there is an existing local cluster
-        index: '2', value: '{\"name\":\"c-cluster\",\"params\":{\"cluster\":\"local\"}}', page: '/explore'
-      },
-    ];
-
-    prefPage.goTo();
-    prefPage.landingPageRadioBtn().checkVisible();
-    landingPageOptions.forEach((key) => {
-      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key.value }`);
-      prefPage.landingPageRadioBtn().set(parseInt(key.index));
-      cy.wait(`@prefUpdate${ key.value }`).then(({ request, response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(request.body.data).to.have.property('after-login-route', key.value);
-        expect(response?.body.data).to.have.property('after-login-route', key.value);
-      });
-      prefPage.landingPageRadioBtn().isChecked(parseInt(key.index));
-
-      // NOTE: Ideally we'd like to verify user is landing on correct page after login however there are issues with the login command
-
-      // if key is 1, navigate to cluster manager page and then do validations, else just do validations
-      // if (parseInt(key.index) === 1) {
-      //   cy.intercept('PUT', 'v1/userpreferences/*').as('userPref');
-      //   clusterManagerPage.goTo();
-      //   clusterManagerPage.list().checkVisible();
-      //   cy.wait('@userPref').its('response.statusCode').should('eq', 200);
-      // }
-
-    // userMenu.toggle();
-    // userMenu.isOpen();
-    // userMenu.clickMenuItem('Log Out');
-    // cy.login();
-    // cy.visit(`${ Cypress.config().baseUrl }`);
-    // cy.url().should('include', value[1]);
-    // prefPage.goTo();
-    // prefPage.landingPageRadioBtn().isChecked(key);
-    });
   });
 
   it('Can select date format', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
@@ -291,7 +239,8 @@ describe('User can update their preferences', () => {
     });
     prefPage.viewInApiCheckbox().isChecked();
 
-    repoListPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
+    repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
+
     repoList.actionMenu('Partners').getMenuItem('View in API').should('exist');
 
     prefPage.goTo();
@@ -305,7 +254,8 @@ describe('User can update their preferences', () => {
     });
     prefPage.viewInApiCheckbox().isUnchecked();
 
-    repoListPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
+    repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
+
     repoList.actionMenu('Partners').getMenuItem('View in API').should('not.exist');
   });
 
@@ -374,7 +324,7 @@ describe('User can update their preferences', () => {
     cy.wait('@prefUpdate').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isChecked();
 
-    repoListPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
+    repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
     banners.self().should('not.exist');
 
     prefPage.goTo();
@@ -384,7 +334,7 @@ describe('User can update their preferences', () => {
     cy.wait('@prefUpdate2').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isUnchecked();
 
-    repoListPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
+    repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
     banners.self().should('exist');
   });
 
@@ -413,45 +363,43 @@ describe('User can update their preferences', () => {
     }
   });
 
-  describe('Check keyboard mapping on YAML Editor', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
-    it('does not show any indicator for default keyboard mapping', () => {
-      prefPage.goTo();
-      prefPage.keymapButtons().checkVisible();
+  it('YAML Editor does not show any indicator for default keyboard mapping', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+    prefPage.goTo();
+    prefPage.keymapButtons().checkVisible();
 
-      const yamlEditor = new ResourceYamlEditorPagePo(RESOURCE_FOR_CREATE_YAML);
+    const yamlEditor = new ResourceYamlEditorPagePo(RESOURCE_FOR_CREATE_YAML);
 
-      yamlEditor.goTo();
-      yamlEditor.waitForPage();
+    yamlEditor.goTo();
+    yamlEditor.waitForPage();
 
-      yamlEditor.keyboardMappingIndicator().checkNotExists();
-    });
-
-    it.skip('[Vue3 Skip]: does show any indicator for non-default keyboard mapping', () => {
-      prefPage.goTo();
-      prefPage.keymapButtons().checkVisible();
-
-      prefPage.keymapButtons().set(VIM);
-      prefPage.keymapButtons().isSelected(VIM);
-
-      const yamlEditor = new ResourceYamlEditorPagePo(RESOURCE_FOR_CREATE_YAML);
-
-      yamlEditor.goTo();
-      yamlEditor.waitForPage();
-
-      yamlEditor.keyboardMappingIndicator().checkExists();
-      yamlEditor.keyboardMappingIndicator().checkVisible();
-
-      yamlEditor.keyboardMappingIndicator().showTooltip();
-      yamlEditor.keyboardMappingIndicator().getTooltipContent().should('be.visible');
-      yamlEditor.keyboardMappingIndicator().getTooltipContent().contains('Key mapping: Vim');
-
-      // Reset keyboard mapping
-      prefPage.goTo();
-      prefPage.keymapButtons().checkVisible();
-
-      prefPage.keymapButtons().set(NORMAL_HUMAN);
-    });
+    yamlEditor.keyboardMappingIndicator().checkNotExists();
   });
+
+  // it.skip('[Vue3 Skip]: YAML Editor does show any indicator for non-default keyboard mapping', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
+  //   prefPage.goTo();
+  //   prefPage.keymapButtons().checkVisible();
+
+  //   prefPage.keymapButtons().set(VIM);
+  //   prefPage.keymapButtons().isSelected(VIM);
+
+  //   const yamlEditor = new ResourceYamlEditorPagePo(RESOURCE_FOR_CREATE_YAML);
+
+  //   yamlEditor.goTo();
+  //   yamlEditor.waitForPage();
+
+  //   yamlEditor.keyboardMappingIndicator().checkExists();
+  //   yamlEditor.keyboardMappingIndicator().checkVisible();
+
+  //   yamlEditor.keyboardMappingIndicator().showTooltip();
+  //   yamlEditor.keyboardMappingIndicator().getTooltipContent().should('be.visible');
+  //   yamlEditor.keyboardMappingIndicator().getTooltipContent().contains('Key mapping: Vim');
+
+  //   // Reset keyboard mapping
+  //   prefPage.goTo();
+  //   prefPage.keymapButtons().checkVisible();
+
+  //   prefPage.keymapButtons().set(NORMAL_HUMAN);
+  // });
 
   it('Can select a Helm Charts option', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {
     /*
@@ -475,5 +423,67 @@ describe('User can update their preferences', () => {
       });
       prefPage.helmButtons().isSelected(key);
     }
+  });
+
+  // You want this to be last, there's some issues with logging in and logging out without sessions
+
+  function testLandingPageOption(key: { index: string, value: string, page: string}) {
+    /*
+    Select each radio button and verify its highlighted
+    Validate http request's payload & response contain correct values per selection
+    Verify user is landing on correct page after login
+    Verify selection is preserved after logout/login
+    */
+
+    prefPage.goTo();
+    prefPage.landingPageRadioBtn().checkVisible();
+    cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key.value }`);
+    prefPage.landingPageRadioBtn().set(parseInt(key.index));
+    cy.wait(`@prefUpdate${ key.value }`).then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('after-login-route', key.value);
+      expect(response?.body.data).to.have.property('after-login-route', key.value);
+    });
+    prefPage.landingPageRadioBtn().isChecked(parseInt(key.index));
+
+    // Verify that an auth redirect works (a user visits a page while not authorized and will be redirect to that page after loggin in, only active when "Take me to the area I last visited" is selected)
+    if (key.index === '1') {
+      userMenu.clickMenuItem('Log Out');
+      cy.url().should('contain', 'auth/login?logged-out');
+
+      const redirectUrl = '/c/local/explorer/node';
+
+      cy.visit(redirectUrl);
+      cy.url().should('contain', 'auth/login?timed-out');
+
+      cy.login(undefined, undefined, false, true);
+      cy.url().should('contain', redirectUrl);
+      prefPage.goTo();
+      prefPage.landingPageRadioBtn().checkVisible();
+    }
+
+    // Verify the option functions after a login
+    userMenu.clickMenuItem('Log Out');
+    cy.url().should('contain', 'auth/login?logged-out');
+    cy.login(undefined, undefined, false);
+    cy.url().should('contain', key.page);
+  }
+
+  it('Can select login landing page - home page', { tags: ['@userMenu', '@adminUser'] }, () => {
+    testLandingPageOption({
+      index: '0', value: '"home"', page: '/home'
+    });
+  });
+
+  it('Can select login landing page - last visited', { tags: ['@userMenu', '@adminUser'] }, () => {
+    testLandingPageOption( {
+      index: '1', value: '"last-visited"', page: '/prefs'
+    });
+  });
+
+  it('Can select login landing page - specific cluster', { tags: ['@userMenu', '@adminUser'] }, () => {
+    testLandingPageOption({ // This option only works when there is an existing local cluster
+      index: '2', value: '{\"name\":\"c-cluster\",\"params\":{\"cluster\":\"local\"}}', page: '/explore'
+    });
   });
 });

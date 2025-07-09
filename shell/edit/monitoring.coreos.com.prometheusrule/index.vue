@@ -13,7 +13,7 @@ import { _CREATE, _VIEW } from '@shell/config/query-params';
 import isString from 'lodash/isString';
 import isEmpty from 'lodash/isEmpty';
 import GroupRules from './GroupRules';
-import { toMilliseconds } from './duration.js';
+import { toSeconds } from '@shell/utils/duration';
 
 export default {
   components: {
@@ -118,7 +118,10 @@ export default {
 
     getGroupInterval(interval) {
       if (![null, undefined].includes(interval)) {
-        return Math.floor(toMilliseconds(interval) / 1000);
+        // see:
+        // https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/#rule
+        // https://prometheus.io/docs/prometheus/latest/configuration/configuration/#duration
+        return toSeconds(interval);
       }
     }
   },
@@ -151,6 +154,7 @@ export default {
         v-if="filteredGroups.length > 0"
         :side-tabs="true"
         :show-tabs-add-remove="mode !== 'view'"
+        :use-hash="useTabbedHash"
         @addTab="addRuleGroup"
         @removeTab="removeGroupRule"
       >

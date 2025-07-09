@@ -106,6 +106,13 @@ function printLog() {
   }
 }
 
+function printCompletion() {
+  if (!isSuggest || !isDry) {
+    console.log('\nMigration completed.\n');
+    console.log(`You will need to reinstall the dependencies, run the following command:\n\n\tyarn install\n`);
+  }
+}
+
 function replaceCases(fileType, files, replacementCases, printText, params) {
   files.forEach((file) => {
     const originalContent = fs.readFileSync(file, 'utf8');
@@ -161,5 +168,6 @@ module.exports = {
   escapeRegExp,
   setParams,
   printLog,
+  printCompletion,
   replaceCases
 };

@@ -1,11 +1,12 @@
 import { DSL } from '@shell/store/type-map';
-import { MANAGEMENT, HELM } from '@shell/config/types';
+import { FLEET, MANAGEMENT, HELM } from '@shell/config/types';
 import {
   STATE,
   FEATURE_DESCRIPTION,
   RESTART,
   NAME_UNLINKED,
 } from '@shell/config/table-headers';
+import { getVendor } from '@shell/config/private-label';
 
 export const NAME = 'settings';
 
@@ -34,7 +35,7 @@ export function init(store) {
     labelKey:   'advancedSettings.label',
     name:       'settings',
     namespaced: false,
-    weight:     100,
+    weight:     101,
     icon:       'folder',
     route:      {
       name:   'c-cluster-product-resource',
@@ -50,7 +51,7 @@ export function init(store) {
     labelKey:   'featureFlags.label',
     name:       'features',
     namespaced: false,
-    weight:     99,
+    weight:     100,
     icon:       'folder',
     route:      {
       name:   'c-cluster-product-resource',
@@ -63,22 +64,22 @@ export function init(store) {
 
   virtualType({
     ifHaveType: MANAGEMENT.SETTING,
+    labelKey:   'banner.settingName',
+    name:       'banners',
+    namespaced: false,
+    weight:     99,
+    icon:       'folder',
+    route:      { name: 'c-cluster-settings-banners' }
+  });
+
+  virtualType({
+    ifHaveType: MANAGEMENT.SETTING,
     labelKey:   'branding.label',
     name:       'brand',
     namespaced: false,
     weight:     98,
     icon:       'folder',
     route:      { name: 'c-cluster-settings-brand' }
-  });
-
-  virtualType({
-    ifHaveType: MANAGEMENT.SETTING,
-    labelKey:   'banner.settingName',
-    name:       'banners',
-    namespaced: false,
-    weight:     98,
-    icon:       'folder',
-    route:      { name: 'c-cluster-settings-banners' }
   });
 
   virtualType({
@@ -101,13 +102,24 @@ export function init(store) {
     route:      { name: 'c-cluster-settings-links' }
   });
 
+  virtualType({
+    ifHaveType: FLEET.GIT_REPO,
+    labelKey:   'fleet.settings.label',
+    name:       'fleet-settings',
+    namespaced: false,
+    weight:     95,
+    icon:       'folder',
+    route:      { name: 'c-cluster-settings-fleet' }
+  });
+
   basicType([
     'settings',
     'features',
     'brand',
     'banners',
     'performance',
-    'links'
+    'links',
+    'fleet-settings'
   ]);
 
   configureType(MANAGEMENT.SETTING, {
@@ -142,11 +154,18 @@ export function init(store) {
     canYaml:     true,
   });
 
+  // Change the restart header to 'Restart <VENDOR>' so that it is clearer what is being restarted
+  const t = store.getters['i18n/t'];
+
   headers(MANAGEMENT.FEATURE, [
     STATE,
     NAME_UNLINKED,
     FEATURE_DESCRIPTION,
-    RESTART,
+    {
+      ...RESTART,
+      labelKey: undefined,
+      label:    t('tableHeaders.restartSystem', { vendor: getVendor() })
+    }
   ]);
 
   hideBulkActions(MANAGEMENT.FEATURE, true);

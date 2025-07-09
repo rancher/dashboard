@@ -42,31 +42,18 @@ export default {
   data() {
     // VolumeNodeAffinity only has 'required' field
     if (this.value.required) {
-      return { nodeSelectorTerms: this.value.required.nodeSelectorTerms };
     } else {
-      const { preferredDuringSchedulingIgnoredDuringExecution = [], requiredDuringSchedulingIgnoredDuringExecution = {} } = this.value;
-      const { nodeSelectorTerms = [] } = requiredDuringSchedulingIgnoredDuringExecution;
-      const allSelectorTerms = [...preferredDuringSchedulingIgnoredDuringExecution, ...nodeSelectorTerms].map((term) => {
-        const neu = clone(term);
-
-        neu._id = randomStr(4);
-        if (term.preference) {
-          Object.assign(neu, term.preference);
-          delete neu.preference;
-        }
-
-        return neu;
-      });
-
-      return {
-        allSelectorTerms,
-        weightedNodeSelectorTerms: preferredDuringSchedulingIgnoredDuringExecution,
-        defaultWeight:             1,
-        // rules in MatchExpressions.vue can not catch changes what happens on parent component
-        // we need re-render it via key changing
-        rerenderNums:              randomStr(4)
-      };
     }
+
+    return {
+      nodeSelectorTerms:         null,
+      allSelectorTerms:          null,
+      weightedNodeSelectorTerms: null,
+      defaultWeight:             1,
+      // rules in MatchExpressions.vue can not catch changes what happens on parent component
+      // we need re-render it via key changing
+      rerenderNums:              randomStr(4)
+    };
   },
 
   computed: {
@@ -88,6 +75,27 @@ export default {
   },
 
   created() {
+    if (this.value.required) {
+      this.nodeSelectorTerms = this.value.required.nodeSelectorTerms;
+    } else {
+      const { preferredDuringSchedulingIgnoredDuringExecution = [], requiredDuringSchedulingIgnoredDuringExecution = {} } = this.value;
+      const { nodeSelectorTerms = [] } = requiredDuringSchedulingIgnoredDuringExecution;
+      const allSelectorTerms = [...preferredDuringSchedulingIgnoredDuringExecution, ...nodeSelectorTerms].map((term) => {
+        const neu = clone(term);
+
+        neu._id = randomStr(4);
+        if (term.preference) {
+          Object.assign(neu, term.preference);
+          delete neu.preference;
+        }
+
+        return neu;
+      });
+
+      this.allSelectorTerms = allSelectorTerms;
+      this.weightedNodeSelectorTerms = preferredDuringSchedulingIgnoredDuringExecution;
+    }
+
     this.queueUpdate = debounce(this.update, 500);
   },
 

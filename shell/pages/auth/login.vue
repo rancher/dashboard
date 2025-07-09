@@ -30,20 +30,19 @@ import {
 } from '@shell/config/private-label';
 import loadPlugins from '@shell/plugins/plugin';
 import Loading from '@shell/components/Loading';
-import { getGlobalBannerFontSizes } from '@shell/utils/banners';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import TabTitle from '@shell/components/TabTitle.vue';
 
 export default {
   name:       'Login',
   components: {
-    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector, Loading
+    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector, Loading, TabTitle
   },
 
   data() {
-    const username = this.$cookies.get(USERNAME, { parseJSON: false }) || '';
-
     return {
-      username,
-      remember: !!username,
+      username: '',
+      remember: false,
       password: '',
 
       timedOut:           this.$route.query[TIMED_OUT] === _FLAGGED,
@@ -64,7 +63,8 @@ export default {
   },
 
   computed: {
-    ...mapGetters({ t: 'i18n/t' }),
+    ...mapGetters(['isSingleProduct']),
+    ...mapGetters({ t: 'i18n/t', hasMultipleLocales: 'i18n/hasMultipleLocales' }),
 
     loggedOutSuccessMsg() {
       if (this.isSlo) {
@@ -74,6 +74,10 @@ export default {
       }
 
       return this.t('login.loggedOut');
+    },
+
+    isHarvester() {
+      return this.isSingleProduct?.productName === HARVESTER;
     },
 
     singleProvider() {
@@ -99,6 +103,10 @@ export default {
         return this.t('login.clientError');
       } else if (this.err === LOGIN_ERRORS.CLIENT || this.err === LOGIN_ERRORS.SERVER) {
         return this.t('login.error');
+      } else if (this.err === LOGIN_ERRORS.NONCE) {
+        return this.t('login.invalidResponseError');
+      } else if (this.err === LOGIN_ERRORS.USER_UNAUTHORIZED) {
+        return this.t('login.userUnauthorized');
       }
 
       return this.err?.length ? this.t('login.specificError', { msg: this.err }) : '';
@@ -123,16 +131,14 @@ export default {
     hasLoginMessage() {
       return this.errorToDisplay || this.loggedOut || this.timedOut;
     },
-
-    // Apply bottom margin so that the locale secletor control lifts up to avoid the footer fixed banner, if it is shown
-    localeSelectorStyle() {
-      const globalBannerSettings = getGlobalBannerFontSizes(this.$store);
-
-      return { marginBottom: globalBannerSettings?.footerFont };
-    }
   },
 
   async fetch() {
+    const username = this.$cookies.get(USERNAME, { parseJSON: false }) || '';
+
+    this.username = username;
+    this.remember = !!username;
+
     const { firstLoginSetting } = await this.loadInitialSettings();
     const { value } = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS });
     const drivers = await this.$store.dispatch('auth/getAuthProviders');
@@ -309,10 +315,16 @@ export default {
     v-if="$fetchState.pending"
     mode="relative"
   />
-  <main
+  <div
     v-else
     class="main-layout login"
   >
+    <TabTitle
+      :show-child="false"
+      :breadcrumb="false"
+    >
+      {{ `${vendor} - ${t('login.login')}` }}
+    </TabTitle>
     <div class="row gutless mb-20">
       <div class="col span-6 p-20">
         <p class="text-center">
@@ -427,7 +439,6 @@ export default {
               <div class="mb-20">
                 <LabeledInput
                   v-if="!firstLogin"
-                  id="username"
                   ref="username"
                   v-model:value.trim="username"
                   data-testid="local-login-username"
@@ -437,7 +448,6 @@ export default {
               </div>
               <div class="">
                 <Password
-                  id="password"
                   ref="password"
                   v-model:value="password"
                   data-testid="local-login-password"
@@ -497,11 +507,10 @@ export default {
           </div>
         </template>
         <div
-          v-if="showLocaleSelector"
+          v-if="showLocaleSelector && hasMultipleLocales && !isHarvester"
           class="locale-selector"
         >
           <LocaleSelector
-            :style="localeSelectorStyle"
             mode="login"
           />
         </div>
@@ -510,14 +519,16 @@ export default {
         class="col span-6 landscape"
         data-testid="login-landscape__img"
         file-name="login-landscape.svg"
+        :alt="t('login.landscapeAlt')"
       />
     </div>
-  </main>
+  </div>
 </template>
 
 <style lang="scss" scoped>
   .login {
     overflow: hidden;
+    position: relative;  // Used to keep the locale selector positioned correctly
 
     .row {
       align-items: center;

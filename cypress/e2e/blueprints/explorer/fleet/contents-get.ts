@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../blueprint.utils';
+
 // GET /v1/fleet.cattle.io.contents - return empty contents data
 const fleetContentsGetResponseEmpty = {
   type:         'collection',
@@ -5,7 +7,7 @@ const fleetContentsGetResponseEmpty = {
   createTypes:  { 'fleet.cattle.io.content': 'https://yonasb29head.qa.rancher.space/v1/fleet.cattle.io.contents' },
   actions:      {},
   resourceType: 'fleet.cattle.io.content',
-  revision:     '123',
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        0,
   data:         []
 };
@@ -17,7 +19,7 @@ const fleetContentsResponseSmallSet = {
   createTypes:  { 'fleet.cattle.io.content': 'https://yonasb29head.qa.rancher.space/v1/fleet.cattle.io.contents' },
   actions:      {},
   resourceType: 'fleet.cattle.io.content',
-  revision:     '123',
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION,
   count:        2,
   data:         [
     {
@@ -41,7 +43,7 @@ const fleetContentsResponseSmallSet = {
         generation:      1,
         name:            's-65075fe21d0e5087693027a2fdbb5ed559295ed1ffeb5957f98d77decb4a5',
         relationships:   null,
-        resourceVersion: '4380255',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',
@@ -73,7 +75,7 @@ const fleetContentsResponseSmallSet = {
         generation:      1,
         name:            's-807cc7bcb0de2dae39c913c375f676238d021519258d34913ccc842519c63',
         relationships:   null,
-        resourceVersion: '8041',
+        resourceVersion: CYPRESS_SAFE_RESOURCE_REVISION,
         state:           {
           error:         false,
           message:       'Resource is current',

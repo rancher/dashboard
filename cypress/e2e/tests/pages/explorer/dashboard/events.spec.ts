@@ -1,176 +1,319 @@
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
-import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
+import { EventsPageListPo } from '@/cypress/e2e/po/pages/explorer/events.po';
 import { generateEventsDataSmall } from '@/cypress/e2e/blueprints/explorer/cluster/events';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
+import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
-const clusterDashboard = new ClusterDashboardPagePo('local');
-const events = new EventsPagePo('local');
+const cluster = 'local';
+const clusterDashboard = new ClusterDashboardPagePo(cluster);
+const events = new EventsPageListPo(cluster);
+const pageSize = 10;
+// Should be enough to create at least 3 pages of events
+const podCount = 15;
+
+const countHelper = {
+  setupCount: (vaiCacheEnabled: boolean, initialCount: number) => {
+    if (vaiCacheEnabled) {
+      cy.intercept('GET', '/v1/events?*').as('getCount');
+    } else {
+      cy.wrap(initialCount).as('count');
+    }
+  },
+  handleCount: (vaiCacheEnabled) => {
+    if (vaiCacheEnabled) {
+      cy.wait('@getCount').then((interception) => {
+        cy.wrap(interception.response.body.count).as('count');
+      });
+    }
+  },
+  getCount: () => cy.get('@count').then((count) => count as any as number),
+};
 
 describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
-    const uniquePod = 'aaa-e2e-test-pod-name';
-    const podNamesList = [];
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+    let uniquePod = SortableTablePo.firstByDefaultName('pod');
     let nsName1: string;
     let nsName2: string;
 
     before('set up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}');
-
-      cy.createE2EResourceName('ns1').then((ns1) => {
-        nsName1 = ns1;
-        // create namespace
-        cy.createNamespace(nsName1);
-
-        // create pods
-        let i = 0;
-
-        while (i < 125) {
-          const podName = `e2e-${ Cypress._.uniqueId(Date.now().toString()) }`;
-
-          cy.createPod(nsName1, podName, 'nginx:latest', false).then(() => {
-            podNamesList.push(`pod-${ podName }`);
-          });
-
-          i++;
-        }
+      cy.tableRowsPerPageAndPreferences(pageSize, {
+        clusterName:     cluster,
+        groupBy:         'none',
+        namespaceFilter: '{\"local\":[]}',
+        allNamespaces:   'true',
       });
 
-      cy.createE2EResourceName('ns2').then((ns2) => {
-        nsName2 = ns2;
+      const createPod = (podName?: string) => {
+        return ({ ns, i }: {ns: string, i: number}) => {
+          const name = podName || Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
 
-        // create namespace
-        cy.createNamespace(nsName2);
+          return cy.createPod(ns, name, SMALL_CONTAINER.image, false, { createNameOptions: { prefixContext: true } });
+        };
+      };
 
-        // create unique pod for filtering/sorting test
-        cy.createPod(nsName2, uniquePod, 'nginx:latest');
-      });
+      cy.createManyNamespacedResources({
+        context:        'events1',
+        createResource: createPod(),
+        count:          podCount,
+      })
+        .then(({ ns }) => {
+          nsName1 = ns;
+        })
+        .then(() => cy.createManyNamespacedResources({
+          context:        'events2',
+          createResource: createPod(uniquePod),
+          count:          1
+        }))
+        .then(({ ns, workloadNames }) => {
+          uniquePod = workloadNames[0];
+          nsName2 = ns;
+        });
+
+      // I'm loathed to do this, but the events created from the pods need to settle before we start
+      cy.wait(20000); // eslint-disable-line cypress/no-unnecessary-waiting
     });
 
     it('pagination is visible and user is able to navigate through events data', () => {
-      ClusterDashboardPagePo.navTo();
+      ClusterDashboardPagePo.goToAndConfirmNsValues(cluster, { all: { is: true } });
+
       clusterDashboard.waitForPage(undefined, 'cluster-events');
-      EventsPagePo.navTo();
+      EventsPageListPo.navTo();
       events.waitForPage();
 
-      const count = 500;
+      let vaiCacheEnabled = false;
 
-      // pagination is visible
-      events.sortableTable().pagination().checkVisible();
+      cy.isVaiCacheEnabled()
+        .then((isVaiCacheEnabled) => {
+          vaiCacheEnabled = isVaiCacheEnabled;
 
-      const loadingPo = new LoadingPo('.title .resource-loading-indicator');
+          return cy.getRancherResource('v1', 'events');
+        })
+        .then((resp: Cypress.Response<any>) => {
+          let initialCount = resp.body.count;
 
-      loadingPo.checkNotExists();
+          if (!vaiCacheEnabled && resp.body.count > 500) {
+            // Why 500? there's a hardcoded figure to stops ui from storing more than 500 events ...
+            initialCount = 500;
+          }
 
-      // basic checks on navigation buttons
-      events.sortableTable().pagination().beginningButton().isDisabled();
-      events.sortableTable().pagination().leftButton().isDisabled();
-      events.sortableTable().pagination().rightButton().isEnabled();
-      events.sortableTable().pagination().endButton().isEnabled();
+          // Test break down if less than 3 pages...
+          expect(initialCount).to.be.greaterThan(3 * pageSize);
 
-      // check text before navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
-      });
+          // pagination is visible
+          events.list().resourceTable().sortableTable().pagination()
+            .checkVisible();
 
-      // navigate to next page - right button
-      events.sortableTable().pagination().rightButton().click();
+          const loadingPo = new LoadingPo('.title .resource-loading-indicator');
 
-      // check text and buttons after navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq(`101 - 200 of ${ count } Events`);
-      });
-      events.sortableTable().pagination().beginningButton().isEnabled();
-      events.sortableTable().pagination().leftButton().isEnabled();
+          loadingPo.checkNotExists();
 
-      // navigate to first page - left button
-      events.sortableTable().pagination().leftButton().click();
+          // basic checks on navigation buttons
+          events.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          events.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+          events.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .isEnabled();
+          events.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .isEnabled();
 
-      // check text and buttons after navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
-      });
-      events.sortableTable().pagination().beginningButton().isDisabled();
-      events.sortableTable().pagination().leftButton().isDisabled();
+          // check text before navigation
+          events.list().resourceTable().sortableTable().pagination()
+            .self()
+            .scrollIntoView();
+          events.list().resourceTable().sortableTable().pagination()
+            .paginationText()
+            .then((el) => {
+              expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ initialCount } Events`);
+            });
 
-      // navigate to last page - end button
-      events.sortableTable().pagination().endButton().click();
+          // navigate to next page - right button
+          countHelper.setupCount(vaiCacheEnabled, initialCount);
+          events.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .click();
+          countHelper.handleCount(vaiCacheEnabled);
 
-      // check row count on last page
-      events.sortableTable().checkRowCount(false, 100);
+          // check text and buttons after navigation
+          events.list().resourceTable().sortableTable().pagination()
+            .self()
+            .scrollIntoView();
+          countHelper.getCount().then((count) => {
+            return events.list().resourceTable().sortableTable().pagination()
+              .paginationText()
+              .then((el) => {
+                expect(el.trim()).to.eq(`${ pageSize + 1 } - ${ 2 * pageSize } of ${ count } Events`);
+              });
+          });
+          events.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isEnabled();
+          events.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isEnabled();
 
-      // check text after navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq(`401 - ${ count } of ${ count } Events`);
-      });
+          // navigate to first page - left button
+          countHelper.setupCount(vaiCacheEnabled, initialCount);
+          events.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .click();
+          countHelper.handleCount(vaiCacheEnabled);
 
-      // navigate to first page - beginning button
-      events.sortableTable().pagination().beginningButton().click();
+          // check text and buttons after navigation
+          events.list().resourceTable().sortableTable().pagination()
+            .self()
+            .scrollIntoView();
+          countHelper.getCount().then((count) => {
+            return events.list().resourceTable().sortableTable().pagination()
+              .paginationText()
+              .then((el) => {
+                expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ count } Events`);
+              });
+          });
 
-      // check text and buttons after navigation
-      events.sortableTable().pagination().paginationText().then((el) => {
-        expect(el.trim()).to.eq(`1 - 100 of ${ count } Events`);
-      });
-      events.sortableTable().pagination().beginningButton().isDisabled();
-      events.sortableTable().pagination().leftButton().isDisabled();
+          events.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          events.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+
+          // navigate to last page - end button
+          countHelper.setupCount(vaiCacheEnabled, initialCount);
+          events.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .scrollIntoView()
+            .click();
+          countHelper.handleCount(vaiCacheEnabled);
+
+          // check text after navigation
+          events.list().resourceTable().sortableTable().pagination()
+            .self()
+            .scrollIntoView();
+          countHelper.getCount().then((count) => {
+            return events.list().resourceTable().sortableTable().pagination()
+              .paginationText()
+              .then((el) => {
+                let pages = Math.floor(count / pageSize);
+
+                if (count % pageSize === 0) {
+                  pages--;
+                }
+                const from = (pages * pageSize) + 1;
+                const to = count;
+
+                expect(el.trim()).to.eq(`${ from } - ${ to } of ${ to } Events`);
+              });
+          });
+
+          // navigate to first page - beginning button
+          countHelper.setupCount(vaiCacheEnabled, initialCount);
+          events.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .click();
+          countHelper.handleCount(vaiCacheEnabled);
+
+          // check text and buttons after navigation
+          events.list().resourceTable().sortableTable().pagination()
+            .self()
+            .scrollIntoView();
+          countHelper.getCount().then((count) => {
+            events.list().resourceTable().sortableTable().pagination()
+              .paginationText()
+              .then((el) => {
+                expect(el.trim()).to.eq(`1 - ${ pageSize } of ${ count } Events`);
+              });
+          });
+
+          events.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          events.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+        });
     });
 
     it('filter events', () => {
       ClusterDashboardPagePo.navTo();
       clusterDashboard.waitForPage(undefined, 'cluster-events');
-      EventsPagePo.navTo();
+      EventsPageListPo.navTo();
       events.waitForPage();
 
-      events.sortableTable().checkVisible();
-      events.sortableTable().checkLoadingIndicatorNotVisible();
-      events.sortableTable().checkRowCount(false, 100);
+      events.list().resourceTable().sortableTable().checkVisible();
+      events.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      events.list().resourceTable().sortableTable().checkRowCount(false, pageSize);
 
       // filter by namespace
-      events.sortableTable().filter(nsName2);
+      events.list().resourceTable().sortableTable().filter(nsName2);
       events.waitForPage(`q=${ nsName2 }`);
-      events.eventslist().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
+      events.list().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
         .should('have.length.lte', 5);
-      events.sortableTable().rowElementWithPartialName(uniquePod).should('be.visible');
+      events.list().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
+        .should('be.visible');
 
       // filter by name
-      events.sortableTable().filter(uniquePod);
+      events.list().resourceTable().sortableTable().filter(uniquePod);
       events.waitForPage(`q=${ uniquePod }`);
-      events.eventslist().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
+      events.list().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
         .should('have.length.lte', 5);
-      events.sortableTable().rowElementWithPartialName(uniquePod).should('be.visible');
+      events.list().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
+        .should('be.visible');
 
-      events.sortableTable().resetFilter();
+      events.list().resourceTable().sortableTable().resetFilter();
     });
 
     it('sorting changes the order of paginated events data', () => {
-      EventsPagePo.navTo();
+      EventsPageListPo.navTo();
       events.waitForPage();
 
       // check table is sorted by `last seen` in ASC order by default
-      events.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');
+      events.list().resourceTable().sortableTable().tableHeaderRow()
+        .checkSortOrder(2, 'down');
 
       // sort by name in ASC order
-      events.sortableTable().sort(11).click();
-      events.sortableTable().tableHeaderRow().checkSortOrder(11, 'down');
+      events.list().resourceTable().sortableTable().sort(11)
+        .click();
+      events.list().resourceTable().sortableTable().tableHeaderRow()
+        .checkSortOrder(11, 'down');
 
       // event name should be visible on first page (sorted in ASC order)
-      events.sortableTable().rowElementWithPartialName(uniquePod).scrollIntoView().should('be.visible');
+      events.list().resourceTable().sortableTable().tableHeaderRow()
+        .self()
+        .scrollIntoView();
+      events.list().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
+        .scrollIntoView()
+        .should('be.visible');
 
       // sort by name in DESC order
-      events.sortableTable().sort(11).click();
-      events.sortableTable().tableHeaderRow().checkSortOrder(11, 'up');
+      events.list().resourceTable().sortableTable().sort(11)
+        .click();
+      events.list().resourceTable().sortableTable().tableHeaderRow()
+        .checkSortOrder(11, 'up');
 
       // event name should be NOT visible on first page (sorted in DESC order)
-      events.sortableTable().rowElementWithPartialName(uniquePod).should('not.exist');
+      events.list().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
+        .should('not.exist');
 
       // navigate to last page
-      events.sortableTable().pagination().endButton().click();
+      events.list().resourceTable().sortableTable().pagination()
+        .endButton()
+        .scrollIntoView()
+        .click();
 
       // event name should be visible on last page (sorted in DESC order)
-      events.sortableTable().rowElementWithPartialName(uniquePod).scrollIntoView().should('be.visible');
+      events.list().resourceTable().sortableTable().rowElementWithPartialName(uniquePod)
+        .scrollIntoView()
+        .should('be.visible');
     });
 
     it('pagination is hidden', () => {
@@ -180,18 +323,23 @@ describe('Events', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, 
       events.waitForPage();
       cy.wait('@eventsDataSmall');
 
-      events.sortableTable().checkVisible();
-      events.sortableTable().checkLoadingIndicatorNotVisible();
-      events.sortableTable().checkRowCount(false, 3);
-      events.sortableTable().pagination().checkNotExists();
+      events.list().resourceTable().sortableTable().checkVisible();
+      events.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      events.list().resourceTable().sortableTable().checkRowCount(false, 3);
+      events.list().resourceTable().sortableTable().pagination()
+        .checkNotExists();
     });
 
     after('clean up', () => {
-      cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+      cy.tableRowsPerPageAndPreferences(100, {
+        clusterName:     cluster,
+        groupBy:         'none',
+        namespaceFilter: '{"local":["all://user"]}',
+        allNamespaces:   'false',
+      });
 
       // delete namespace (this will also delete all pods in it)
-      cy.deleteRancherResource('v1', 'namespaces', nsName1);
-      cy.deleteRancherResource('v1', 'namespaces', nsName2);
+      cy.deleteNamespace([nsName1, nsName2]);
     });
   });
 });

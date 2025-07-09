@@ -40,6 +40,11 @@ export default {
     scalingDownPrompt: mapPref(SCALE_POOL_PROMPT),
 
     ...mapGetters(['isSingleProduct']),
+    ...mapGetters({ hasMultipleLocales: 'i18n/hasMultipleLocales' }),
+
+    isHarvester() {
+      return this.isSingleProduct?.productName === 'harvester';
+    },
 
     theme: {
       get() {
@@ -182,19 +187,25 @@ export default {
     </h1>
 
     <!-- Language -->
-    <div class="mt-10 mb-10">
-      <h4 v-t="'prefs.language'" />
+    <div
+      v-if="hasMultipleLocales && !isHarvester"
+      class="mt-10 mb-10"
+    >
+      <h4
+        id="prefs-language"
+        v-t="'prefs.language'"
+      />
       <div class="row">
         <div class="col span-4">
           <LocaleSelector
             data-testid="prefs__languageSelector"
+            aria-labelledby="prefs-language"
           />
         </div>
       </div>
     </div>
     <!-- Theme -->
     <div class="mt-10 mb-10">
-      <hr>
       <h4 v-t="'prefs.theme.label'" />
       <ButtonGroup
         v-model:value="theme"
@@ -214,7 +225,7 @@ export default {
       v-if="!isSingleProduct"
       class="mt-10 mb-10"
     >
-      <hr>
+      <hr role="none">
       <h4 v-t="'prefs.landing.label'" />
       <LandingPagePreference
         data-testid="prefs__landingPagePreference"
@@ -222,7 +233,7 @@ export default {
     </div>
     <!-- Display Settings -->
     <div class="mt-10 mb-10">
-      <hr>
+      <hr role="none">
       <h4 v-t="'prefs.displaySettings.title'" />
       <p class="set-landing-leadin">
         {{ t('prefs.displaySettings.detail', {}, raw=true) }}
@@ -262,8 +273,11 @@ export default {
       </div>
     </div>
     <!-- Confirmation setting -->
-    <div class="col adv-features mt-10 mb-10">
-      <hr>
+    <div
+      v-if="!isSingleProduct"
+      class="col adv-features mt-10 mb-10"
+    >
+      <hr role="none">
       <h4 v-t="'prefs.confirmationSetting.title'" />
       <Checkbox
         v-model:value="scalingDownPrompt"
@@ -274,7 +288,7 @@ export default {
     </div>
     <!-- Advanced Features -->
     <div class="col adv-features mt-10 mb-10">
-      <hr>
+      <hr role="none">
       <h4 v-t="'prefs.advFeatures.title'" />
       <Checkbox
         v-model:value="viewInApi"
@@ -282,13 +296,15 @@ export default {
         :label="t('prefs.advFeatures.viewInApi', {}, true)"
         class="mt-10"
       />
-      <br>
-      <Checkbox
-        v-model:value="allNamespaces"
-        data-testid="prefs__allNamespaces"
-        :label="t('prefs.advFeatures.allNamespaces', {}, true)"
-        class="mt-20"
-      />
+      <template v-if="!isHarvester">
+        <br>
+        <Checkbox
+          v-model:value="allNamespaces"
+          data-testid="prefs__allNamespaces"
+          :label="t('prefs.advFeatures.allNamespaces', {}, true)"
+          class="mt-20"
+        />
+      </template>
       <br>
       <Checkbox
         v-model:value="themeShortcut"
@@ -309,13 +325,14 @@ export default {
         <Checkbox
           v-model:value="pluginDeveloper"
           :label="t('prefs.advFeatures.pluginDeveloper', {}, true)"
+          :tooltip="t('prefs.advFeatures.pluginDeveloperTooltip')"
           class="mt-20"
         />
       </template>
     </div>
     <!-- YAML editor key mapping -->
     <div class="col mt-10 mb-10">
-      <hr>
+      <hr role="none">
       <h4 v-t="'prefs.keymap.label'" />
       <ButtonGroup
         v-model:value="keymap"
@@ -328,7 +345,7 @@ export default {
       v-if="!isSingleProduct"
       class="col mt-10 mb-40"
     >
-      <hr>
+      <hr role="none">
       <h4 v-t="'prefs.helm.label'" />
       <ButtonGroup
         v-model:value="showPreRelease"

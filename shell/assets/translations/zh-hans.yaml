@@ -48,7 +48,7 @@ generic:
       info: 信息
       warning: 警告
       error: 错误
-  ok: OK
+  ok: 确定
   overview: 概述
   plusMore: "+ {n} 更多"
   readFromFile: 从文件读取
@@ -112,6 +112,10 @@ generic:
           other {匹配 {total, number} 中的 {matched, number} 个，包括 "{sample}"}
         }
 
+graph:
+  loading: 正在加载 Chart 数据...
+  rendering: 正在渲染 Chart...
+
 locale:
   en-us: English
   zh-hans: 简体中文
@@ -137,7 +141,6 @@ nav:
   restoreSnapshot: 还原快照
   rotateCertificates: 轮换证书
   rotateEncryptionKeys: 轮换加密密钥
-  saveAsRKETemplate: 保存为 RKE 模板
   takeSnapshot: 拍摄快照
   group:
     cluster: 集群
@@ -210,7 +213,7 @@ product:
   apps: 应用
   auth: 用户 & 认证
   backup: Rancher 备份
-  cis: CIS Benchmark
+  compliance: Compliance
   ecm: Cluster Manager
   explorer: 集群浏览器
   fleet: 持续交付
@@ -863,7 +866,6 @@ catalog:
     windowsIncompatible: 仅 Linux
     versionWindowsIncompatible: 仅限 Linux 版本
     header: Chart
-    featuredCharts: 精选 Chart
     noCharts: '没有可用的 Chart，你有添加仓库吗？'
     noWindows: 你的应用商店没有能够部署在具有 Windows 节点的集群的 Chart。
     noWindowsAndLinux: 你的应用商店没有能部署在具有 Windows 和 Linux Worker 节点的集群的 Chart。
@@ -1043,10 +1045,10 @@ chartHeading:
   overview: 概述
   poweredBy: "Powered by:"
 
-cis:
+compliance:
   addTest: 添加测试 ID
   alertNeeded: |-
-    必须在 CIS Chart values.yaml 中开启告警。
+    必须在 Compliance Chart values.yaml 中开启告警。
     这要求<a tabindex="0" href="{link}"> {vendor} 的 Monitoring 与 Alerting 应用</a>已经安装
     ，而且接收器和路由<a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/how-to-guides/advanced-user-guides/monitoring-v2-configuration-guides/advanced-configuration/alertmanager'>已配置告警发送</a>。
   alertOnComplete: 扫描完成告警
@@ -1669,7 +1671,6 @@ cluster:
     rke2-k3-reprovisioning: '更改集群配置可能导致节点重新配置。详情请参见 <a target="blank" href="{docsBase}/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences#cluster-api" target="_blank" rel="noopener nofollow">文档</a>。'
     desiredNodeGroupWarning: 没有可用于运行 Cluster Agent 的节点。要让集群变为 Active 状态，至少需要有 1 个可用的节点。
     haveArgInfo: 所选 Kubernetes 版本的配置信息不可用。此屏幕中可用的选项将受到限制，你可能需要使用 YAML 编辑器。
-  rkeTemplateUpgrade: 模板修订版 {name} 可用于升级
 
   availabilityWarnings:
     node: 节点 {name} 处于非活动状态
@@ -1751,7 +1752,7 @@ cluster:
   privateRegistry:
     label: 为 Rancher 系统容器镜像启用集群级别的容器镜像仓库
     description: "如果启用，Rancher 将在集群配置期间从该镜像仓库中拉取容器镜像。默认情况下，Rancher 在安装 Rancher 的官方 Helm Chart 应用程序时也会使用此镜像仓库。如果集群级别的镜像仓库被禁用，将从全局设置中的系统默认镜像仓库中拉取系统镜像。"
-    docsLinkRke2: "如需配置私有镜像仓库 mirror 的帮助，请参阅 RKE2 <a href=\"https://docs.rke2.io/install/containerd_registry_configuration\" target=\"_blank\">文档</a>。"
+    docsLinkRke2: "如需配置私有镜像仓库 mirror 的帮助，请参阅 RKE2 <a href=\"https://docs.rke2.io/install/private_registry\" target=\"_blank\">文档</a>。"
     docsLinkK3s: "如需配置私有镜像仓库 mirror 的帮助，请参阅 K3s <a href=\"https://docs.k3s.io/installation/private-registry\" target=\"_blank\">文档</a>。"
   provider:
     aliyunecs: Aliyun ECS
@@ -1773,6 +1774,7 @@ cluster:
     docker: Docker
     eks: Amazon EKS
     exoscale: Exoscale
+    sks: Exoscale SKS
     gcp: Google
     google: Google GCE
     googlegke: Google GKE
@@ -2089,7 +2091,7 @@ fleet:
     gitOpsScale: 大规模 GitOps。
     learnMore: 了解更多。
     learnMoreLink: https://fleet.rancher.io
-    noRepo: "工作区中没有任何 Git 仓库"
+    noApplications: "工作区中没有任何 Git 仓库"
     getStarted: 开始使用
     thereIsMore: |-
       {count, plural,
@@ -2121,7 +2123,9 @@ fleet:
       other {# 个 Bundle 未显示，因为它属于不能与持续交付一起使用的 Harvester 集群。}
       }
   fleetSummary:
-    noClustersGitRepo: 这个 Git 仓库不针对任何集群
+    noClusters:
+      gitRepo: 这个 Git 仓库不针对任何集群
+      helmOp: ''
     state:
       ready: '就绪'
       info: '转换中'
@@ -2131,7 +2135,6 @@ fleet:
       notReady: 未就绪
       waitApplied: 等待应用
   gitRepo:
-    createLocalBanner: 将 Git 仓库部署到本地工作区时，你无法定位任何集群或集群组
     tabs:
       resources: 资源
       unready: 未就绪
@@ -2153,13 +2156,12 @@ fleet:
       addRepo: 添加仓库
       noRepos: 未添加任何仓库
       noWorkspaces: 没有工作空间。<br/>请在添加仓库之前创建一个工作空间
-      protocolBanner: 输入指向 git 仓库的有效 HTTPS 或 SSH URL。
     resources:
       label: '资源处理'
       keepResources: 永远保留资源
-      keepResourcesBanner: 启用时，删除 GitRepo 或 Bundle 后将保留资源，只会删除 Helm Release Secret。
+      keepResourcesTooltip: 启用时，删除 GitRepo 或 Bundle 后将保留资源，只会删除 Helm Release Secret。
       correctDrift: 启用自我修复
-      correctDriftBanner: 启用后，Fleet 将确保集群资源与 Git 仓库保持同步。在 ecluster 上进行的所有资源更改都将丢失。
+      correctDriftTooltip: 启用后，Fleet 将确保集群资源与 Git 仓库保持同步。在 ecluster 上进行的所有资源更改都将丢失。
     add:
       steps:
         repoInfo:
@@ -2222,8 +2224,6 @@ fleet:
           other {现有{total, number}个集群，与其中的{matched, number}个匹配，包括"{sample}"}
         }
   fdc:
-    loadingChart: 正在加载 Chart 数据...
-    renderingChart: 正在渲染 Chart...
     id: ID
     type: 类型
     state: 状态
@@ -2722,8 +2722,6 @@ landing:
       other {核}}
     cpuUsed: 已用 CPU
     memoryUsed: 已用内存
-  seeWhatsNew: 点击右侧链接，了解此版本的新功能和优化。
-  whatsNewLink: "2.8 的新功能"
   learnMore: 了解更多
   support: 支持
   community:
@@ -2734,8 +2732,6 @@ landing:
     title: 商业支持
     body: 了解商业支持
   landingPrefs:
-    title: 更改登录后显示的页面：
-    userPrefs: 偏好设置
     body: "登录后显示："
     options:
       homePage: 主页
@@ -4450,12 +4446,6 @@ promptRollback:
   multipleWorkloadError: "一次只能回滚一个工作负载。"
   singleRevisionBanner: 没有可用于回滚的修订版本。
 
-promptSaveAsRKETemplate:
-  title: 将 {cluster} 转换为新的 RKE 模板
-  name: 集群模板名称
-  description: 创建新的集群模板，并使用当前集群配置发起修改。
-  warning: 此操作将对集群进行修改，即把新创建的集群模板和修改应用到集群中。此操作不能撤销。
-
 promptRotateEncryptionKey:
   title: 轮换加密密钥
   description: 上次备份 {name} 的备份时间为 {date}
@@ -4556,9 +4546,6 @@ rbac:
       admin:
         label: 管理员
         description: 管理员可以完全控制整个安装以及所有集群中的所有资源。
-      restricted-admin:
-        label: 受限管理员
-        description: 受限管理员可以完全控制所有下游集群的所有资源，但不能访问本地集群。
       user:
         label: 普通用户
         description: 普通用户可以创建集群，并管理其授权访问的集群和项目。
@@ -4967,7 +4954,6 @@ setup:
     skip: 跳过
     tip: 此 {vendor} 安装应使用什么 URL？集群中的所有节点都需要能访问该 URL。
   setPassword: 请为默认用户 <code>{username}</code>设置强密码。建议使用生成的随机密码。你也可以自行设置。
-  telemetry: 允许收集<a href="{docsBase}/faq/telemetry" target="_blank" rel="noopener noreferrer nofollow">匿名统计数据</a>，以帮我们改进 {name}。
   useManual: 设置密码
   useRandom: 使用随机生成的密码
   welcome: 欢迎使用 {vendor}！
@@ -5362,7 +5348,6 @@ tableHeaders:
   effect: 效果
   endpoints: 端点
   firstSeen: 首次出现时间
-  fleetBundleType: 类型
   flow: Flow
   fingerprint: 唯一标识
   gitRepos: Git 仓库
@@ -7014,7 +6999,6 @@ advancedSettings:
     'ui-dashboard-index': '{appName} UI 的 HTML 索引位置。'
     'ui-offline-preferred': '控制 UI 资产是由服务器容器在本地提供，还是从 ui-index 和 ui-dashboard-index 设置中定义的远程 URL 提供。`动态` 选项将在 {appName} 的生产版本中使用本地资产。'
     'ui-pl': '自有品牌公司名称。'
-    'telemetry-opt': '遥测报告加入。'
     'auth-user-info-max-age-seconds': '在同步验证提供程序组成员之前，用户验证 Token 的最长存活时间。'
     'auth-user-info-resync-cron': '重新同步验证提供程序组成员的默认 cron 调度。'
     'cluster-template-enforcement': '非管理员只能通过预先批准的 RKE 模板启动集群。'
@@ -7035,10 +7019,6 @@ advancedSettings:
     'ui-default-landing':
       ember: Cluster Manager
       vue: 集群浏览器
-    'telemetry-opt':
-      prompt: 提示
-      in: 加入遥测
-      out: 退出遥测
     'ui-offline-preferred':
       dynamic: 动态
       true: 本地
@@ -7144,9 +7124,9 @@ performance:
 banner:
   label: 固定横幅
   settingName: 横幅
-  headerBanner: 标题横幅
-  footerBanner: 页脚横幅
-  loginScreenBanner: 登录屏幕横幅
+  bannerHeader: 标题横幅
+  bannerFooter: 页脚横幅
+  bannerConsent: 登录屏幕横幅
   text: 文本
   buttonText: 同意按钮文本
   textColor: 文本颜色
@@ -7319,7 +7299,7 @@ support:
       text: 我们的开发人员会快速解决问题，因此你可以放心使用 SUSE Rancher 的产品。
     three:
       title: 故障排除
-      text: 无论你使用的 Rancher Labs 产品、Kubernetes、Docker 还是底层基础架构出现问题，我们都会努力找到问题的根本原因。
+      text: 无论你使用的 SUSE 产品、Kubernetes、Docker 还是底层基础架构出现问题，我们都会努力找到问题的根本原因。
     four:
       title: 自由创新
       text: 基于我们与众多 Kubernetes 供应商、操作系统和开源软件认证的兼容性，实现自主创新。

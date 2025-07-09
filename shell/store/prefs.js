@@ -74,7 +74,6 @@ export const HIDE_REPOS = create('hide-repos', [], { parseJSON });
 export const HIDE_DESC = create('hide-desc', [], { parseJSON });
 export const HIDE_SENSITIVE = create('hide-sensitive', true, { options: [true, false], parseJSON });
 export const SHOW_PRE_RELEASE = create('show-pre-release', false, { options: [false, true], parseJSON });
-export const SHOW_CHART_MODE = create('chart-mode', 'featured', { parseJSON });
 
 export const DATE_FORMAT = create('date-format', 'ddd, MMM D YYYY', {
   options: [
@@ -130,6 +129,7 @@ export const state = function() {
     cookiesLoaded: false,
     data:          {},
     definitions,
+    authRedirect:  null
   };
 };
 
@@ -215,6 +215,9 @@ export const getters = {
     case (afterLoginRoutePref === 'home'):
       return { name: 'home' };
     case (afterLoginRoutePref === 'last-visited'): {
+      if (state.authRedirect) {
+        return state.authRedirect;
+      }
       const lastVisitedPref = getters['get'](LAST_VISITED);
 
       if (lastVisitedPref) {
@@ -232,6 +235,14 @@ export const getters = {
     }
     default:
       return { name: afterLoginRoutePref };
+    }
+  },
+
+  dev: (state, getters) => {
+    try {
+      return getters['get'](PLUGIN_DEVELOPER);
+    } catch {
+      return getters['get'](DEV);
     }
   }
 };
@@ -257,6 +268,10 @@ export const mutations = {
   setDefinition(state, { name, definition = {} }) {
     state.definitions[name] = definition;
   },
+
+  setAuthRedirect(state, route) {
+    state.authRedirect = route;
+  }
 };
 
 export const actions = {
@@ -483,9 +498,7 @@ export const actions = {
       return;
     }
 
-    const toSave = getLoginRoute(route);
-
-    return dispatch('set', { key: LAST_VISITED, value: toSave });
+    return dispatch('set', { key: LAST_VISITED, value: route });
   },
 
   toggleTheme({ getters, dispatch }) {
@@ -515,28 +528,3 @@ export const actions = {
     }
   }
 };
-
-function getLoginRoute(route) {
-  let parts = route.name?.split('-') || [];
-  const params = {};
-  const routeParams = route.params || {};
-
-  // Find the 'resource' part of the route, if it is there
-  const index = parts.findIndex((p) => p === 'resource');
-
-  if (index >= 0) {
-    parts = parts.slice(0, index);
-  }
-
-  // Just keep the params that are needed
-  parts.forEach((param) => {
-    if (routeParams[param]) {
-      params[param] = routeParams[param];
-    }
-  });
-
-  return {
-    name: parts.join('-'),
-    params
-  };
-}

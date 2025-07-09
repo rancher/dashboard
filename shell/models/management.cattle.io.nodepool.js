@@ -3,12 +3,25 @@ import { sortBy } from '@shell/utils/sort';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 
-export default class MgmtNodePool extends HybridModel {
-  get nodeTemplate() {
-    const id = (this.spec?.nodeTemplateName || '').replace(/:/, '/');
-    const template = this.$getters['byId'](MANAGEMENT.NODE_TEMPLATE, id);
+const RKE1_ALLOWED_ACTIONS = [
+  'goToViewYaml',
+  'download',
+  'viewInApi'
+];
 
-    return template;
+export default class MgmtNodePool extends HybridModel {
+  get _availableActions() {
+    const out = super._availableActions;
+
+    return out.filter((a) => a.divider || RKE1_ALLOWED_ACTIONS.includes(a.action));
+  }
+
+  get nodeTemplateId() {
+    return (this.spec?.nodeTemplateName || '').replace(/:/, '/');
+  }
+
+  get nodeTemplate() {
+    return this.$getters['byId'](MANAGEMENT.NODE_TEMPLATE, this.nodeTemplateId);
   }
 
   get provider() {

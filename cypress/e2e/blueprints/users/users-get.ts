@@ -1,3 +1,5 @@
+import { CYPRESS_SAFE_RESOURCE_REVISION } from '../blueprint.utils';
+
 // GET /v3/users - small set of users data
 const usersGetResponseSmallSet = {
   type:        'collection',
@@ -43,7 +45,7 @@ const usersGetResponseSmallSet = {
     uuid:                 null
   },
   resourceType: 'user',
-  revision:     Number.MAX_VALUE, // The UI will use this point in history to start watching for changes from. If it's too low (than the global system revision) we will spam with requests
+  revision:     CYPRESS_SAFE_RESOURCE_REVISION, // The UI will use this point in history to start watching for changes from. If it's too low (than the global system revision) we will spam with requests
   data:         [
     {
       actions: {

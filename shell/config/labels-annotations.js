@@ -16,6 +16,7 @@ export const RESOURCE_QUOTA = 'field.cattle.io/resourceQuota';
 export const AZURE_MIGRATED = 'auth.cattle.io/azuread-endpoint-migrated';
 export const WORKSPACE_ANNOTATION = 'objectset.rio.cattle.io/id';
 export const NODE_ARCHITECTURE = 'kubernetes.io/arch';
+export const IMPORTED_CLUSTER_VERSION_MANAGEMENT = 'rancher.io/imported-cluster-version-management';
 
 export const KUBERNETES = {
   SERVICE_ACCOUNT_UID:  'kubernetes.io/service-account.uid',
@@ -55,6 +56,12 @@ export const CAPI = {
   MACHINE_NAME:         'cluster.x-k8s.io/machine',
   DELETE_MACHINE:       'cluster.x-k8s.io/delete-machine',
   PROVIDER:             'provider.cattle.io',
+  /**
+   * RKE2 - metadata.name is human name
+   * RKE1 and some others - metadata.name is v1 mgmt id and it's the v1 mgmt cluster that contains human name
+   * This label ensures something is in the v1 prov cluster that can be sorted/filtered on
+   */
+  HUMAN_NAME:           'provisioning.cattle.io/management-cluster-display-name',
   SECRET_AUTH:          'v2prov-secret-authorized-for-cluster',
   SECRET_WILL_DELETE:   'v2prov-authorized-secret-deletes-on-cluster-removal',
   /**
@@ -109,11 +116,20 @@ export const CATALOG = {
 };
 
 export const FLEET = {
-  CLUSTER_DISPLAY_NAME: 'management.cattle.io/cluster-display-name',
-  CLUSTER_NAME:         'management.cattle.io/cluster-name',
-  BUNDLE_ID:            'fleet.cattle.io/bundle-id',
-  MANAGED:              'fleet.cattle.io/managed',
-  CLUSTER:              'fleet.cattle.io/cluster'
+  REPO_NAME:                    'fleet.cattle.io/repo-name',
+  HELM_NAME:                    'fleet.cattle.io/fleet-helm-name',
+  CLUSTER_DISPLAY_NAME:         'management.cattle.io/cluster-display-name',
+  CLUSTER_NAME:                 'management.cattle.io/cluster-name',
+  BUNDLE_ID:                    'fleet.cattle.io/bundle-id',
+  BUNDLE_NAME:                  'fleet.cattle.io/bundle-name',
+  BUNDLE_NAMESPACE:             'fleet.cattle.io/bundle-namespace',
+  MANAGED:                      'fleet.cattle.io/managed',
+  CLUSTER_NAMESPACE:            'fleet.cattle.io/cluster-namespace',
+  CLUSTER:                      'fleet.cattle.io/cluster',
+  CREATED_BY_USER_ID:           'fleet.cattle.io/created-by-user-id',
+  CREATED_BY_USER_NAME:         'fleet.cattle.io/created-by-display-name',
+  OCI_STORAGE_SECRET_DEFAULT:   'ui-default-oci-registry',
+  OCI_STORAGE_SECRET_GENERATED: 'fleet.cattle.io/bundle-internal-secret',
 };
 
 export const RBAC = { PRODUCT: 'management.cattle.io/ui-product' };
@@ -145,6 +161,7 @@ export const HCI = {
   NETWORK_ROUTE:       'network.harvesterhci.io/route',
   IMAGE_NAME:          'harvesterhci.io/image-name',
   NETWORK_TYPE:        'network.harvesterhci.io/type',
+  CLUSTER_NETWORK:     'network.harvesterhci.io/clusternetwork',
   PRIMARY_SERVICE:     'cloudprovider.harvesterhci.io/primary-service',
 };
 
@@ -176,3 +193,9 @@ export const SYSTEM_LABELS = [
 ];
 
 export const CLOUD_CREDENTIALS = { EXPIRATION: 'rancher.io/expiration-timestamp' };
+
+export const OIDC_CLIENT_SECRET_ANNOTATIONS = {
+  CREATE: 'cattle.io/oidc-client-secret-create',
+  REGEN:  'cattle.io/oidc-client-secret-regenerate',
+  REMOVE: 'cattle.io/oidc-client-secret-remove',
+};

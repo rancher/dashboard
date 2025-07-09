@@ -53,6 +53,7 @@ BODY, .theme-light {
   --primary-border             : #{$primary};
   --primary-banner-bg          : #{rgba($primary, 0.15)};
   --primary-light-bg           : #{rgba($primary, 0.05)};
+  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
 
 
   .text-primary {
@@ -77,6 +78,7 @@ BODY, .theme-light {
 
   --link                    : #{$link};
   --link-text               : #{contrast-color($link)};
+  --link-text-secondary     : #{$darker};
   --link-hover-bg           : #{darken($link, 10%)};
   --link-hover-text         : #{saturate($lightest, 20%)};
   --link-active-bg          : #{darken($link, 25%)};
@@ -89,6 +91,19 @@ BODY, .theme-light {
 
   .text-link {
     color: var(--link) !important;
+
+    &.disabled {
+      color: var(--disabled-text) !important;
+    }
+  }
+
+  .secondary-text-link {
+    color: var(--link-text-secondary);
+    text-decoration: underline;
+
+    &:hover {
+      text-decoration: none;
+    }
   }
 
   .bg-link {
@@ -302,6 +317,37 @@ BODY, .theme-light {
       }
   }
 
+  --disabled : #{$disabled};
+  --disabled-text : #{contrast-color($disabled)};
+  --disabled-hover-bg : #{darken($disabled, 10%)};
+  --disabled-hover-text : #{saturate($lightest, 20%)};
+  --disabled-active-bg : #{darken($disabled, 25%)};
+  --disabled-active-text : #{contrast-color(darken($disabled, 25%))};
+  --disabled-border : #{$disabled};
+  --disabled-banner-bg : #{rgba($disabled, 0.15)};
+  --disabled-light-bg : #{rgba($disabled, 0.05)};
+
+
+  .text-disabled {
+    color: var(--disabled) !important;
+  }
+
+  .bg-disabled {
+    background-color: var(--disabled);
+    color: var(--disabled-text);
+
+    &.btn:hover {
+      color: var(--disabled-hover-text);
+      background: var(--disabled-hover-bg);
+      transition: all 0.3s ease;
+    }
+
+    &.btn:active {
+      color: var(--disabled-active-text);
+      background: var(--disabled-active-bg);
+    }
+  }
+
 
   --body-bg                    : #{$lightest};
   --body-text                  : #{$darkest};
@@ -345,6 +391,8 @@ BODY, .theme-light {
   --border                     : #{$medium};
   --border-width               : 1px;
   --border-radius              : 4px;
+  --border-radius-md           : 6px;
+  --border-radius-lg           : 8px;
   --outline                    : var(--primary);
   --outline-width              : 1px;
 
@@ -372,12 +420,14 @@ BODY, .theme-light {
   --dropdown-text              : #{$darkest};
   --dropdown-active-text       : #{$lightest};
   --dropdown-active-bg         : #{$dark};
-  --dropdown-hover-text        : #{$lightest};
-  --dropdown-hover-bg          : var(--link);
+  --dropdown-hover-text        : var(--body-text);
+  --dropdown-hover-bg          : #{$light};
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-group-text        : #{$darker};
   --dropdown-highlight-text    : var(--link);
+
+  --notification-unread-bg     : var(--primary-banner-bg);
 
   --card-badge-text            : #ffffff;
 
@@ -399,6 +449,8 @@ BODY, .theme-light {
   --input-disabled-placeholder : #{darken($medium, 15%)};
   --input-addon-bg             : #{$darker};
   --input-hover-border         : #{darken($medium, 25%)};
+
+  --label-secondary           : #{$darker};
 
   --progress-bg                : #{$medium};
   --progress-divider           : #{$medium};
@@ -433,6 +485,7 @@ BODY, .theme-light {
   --tabbed-container-bg        : #{mix($light, $lighter, 15%)};
 
   --yaml-editor-bg             : #{$lighter};
+  --drawer-body-bg             : #{$lighter};
 
   --diff-border                : var(--border);
   --diff-header-bg             : var(--nav-bg);
@@ -542,4 +595,29 @@ BODY, .theme-light {
 
   --product-icon               : #{$darker};
   --product-icon-active        : #{$darkest};
+
+  --badge-state-disabled-text  : #{$darker};
+  --badge-state-disabled-bg    : #{$lighter};
+  --badge-state-disabled-border: #{$medium};
+
+  --gap                        : 8px;
+  --gap-md                     : 16px;
+  --gap-lg                     : 24px;
+
+  --click-badge-error          : #{$lightest};
+  --click-badge-error-bg       : #B13333;
+  --click-badge-error-border   : #7C0015;
+
+  --click-badge-warning        : #473900;
+  --click-badge-warning-bg     : #FFE47A;
+  --click-badge-warning-border : #E5A200;
+
+  --click-badge-success        : #007032;
+  --click-badge-success-bg     : #CEE4D7;
+  --click-badge-success-border : #1F7043;
+
+  --click-badge-info           : #{$lightest};
+  --click-badge-info-bg        : #{$info};
+  --click-badge-info-border    : #2673A6;
+  --bubble-bg                : #{$lighter};
 }

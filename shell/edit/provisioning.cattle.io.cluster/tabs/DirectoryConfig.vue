@@ -1,8 +1,9 @@
 
 <script>
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+import { Banner } from '@components/Banner';
 
 export const DATA_DIR_RADIO_OPTIONS = {
   DEFAULT: 'defaultDataDir',
@@ -23,7 +24,8 @@ export default {
   name:       'DirectoryConfig',
   components: {
     LabeledInput,
-    RadioGroup
+    RadioGroup,
+    Banner
   },
   props: {
     mode: {
@@ -50,9 +52,7 @@ export default {
     }
 
     if (this.mode !== _CREATE) {
-      if (this.value?.systemAgent?.length || this.value?.provisioning?.length || this.value?.k8sDistro?.length) {
-        dataConfigRadioValue = DATA_DIR_RADIO_OPTIONS.CUSTOM;
-      }
+      dataConfigRadioValue = DATA_DIR_RADIO_OPTIONS.CUSTOM;
     }
 
     return {
@@ -78,13 +78,16 @@ export default {
           this.k8sDistroSubDir = DEFAULT_SUBDIRS.K8S_DISTRO_RKE2;
         }
 
-        if (this.value.k8sDistro) {
-          this.value.k8sDistro = `${ neu }/${ this.k8sDistroSubDir }`;
+        if (this.dataConfigRadioValue === DATA_DIR_RADIO_OPTIONS.COMMON && this.commonConfig) {
+          this.value.k8sDistro = `${ this.commonConfig }/${ this.k8sDistroSubDir }`;
         }
       }
     }
   },
   computed: {
+    isDisabled() {
+      return this.mode === _EDIT;
+    },
     dataConfigRadioOptions() {
       const defaultDataDirOption = {
         value: DATA_DIR_RADIO_OPTIONS.DEFAULT,
@@ -126,9 +129,11 @@ export default {
         this.commonConfig = DEFAULT_COMMON_BASE_PATH;
 
         this.dataConfigRadioValue = DATA_DIR_RADIO_OPTIONS.COMMON;
+
+        // individual data for each field is set on the watcher for commonConfig a bit further above
         break;
-      // default is custom config
       default:
+        // switch "default" is for the "custom" config
         if (this.mode === _CREATE) {
           this.commonConfig = '';
         }
@@ -148,10 +153,17 @@ export default {
 <template>
   <div class="row">
     <div class="col span-8">
-      <h3 class="mb-20">
+      <h3>
         {{ t('cluster.directoryConfig.title') }}
       </h3>
+      <Banner
+        class="mb-20"
+        :closable="false"
+        color="info"
+        label-key="cluster.directoryConfig.banner"
+      />
       <RadioGroup
+        v-show="!isDisabled"
         :value="dataConfigRadioValue"
         class="mb-10"
         :mode="mode"
@@ -167,6 +179,7 @@ export default {
         :mode="mode"
         :label="t('cluster.directoryConfig.common.label')"
         :tooltip="t('cluster.directoryConfig.common.tooltip')"
+        :disabled="isDisabled"
         data-testid="rke2-directory-config-common-data-dir"
       />
       <div v-if="dataConfigRadioValue === DATA_DIR_RADIO_OPTIONS.CUSTOM">
@@ -176,6 +189,7 @@ export default {
           :mode="mode"
           :label="t('cluster.directoryConfig.systemAgent.label')"
           :tooltip="t('cluster.directoryConfig.systemAgent.tooltip')"
+          :disabled="isDisabled"
           data-testid="rke2-directory-config-systemAgent-data-dir"
         />
         <LabeledInput
@@ -184,6 +198,7 @@ export default {
           :mode="mode"
           :label="t('cluster.directoryConfig.provisioning.label')"
           :tooltip="t('cluster.directoryConfig.provisioning.tooltip')"
+          :disabled="isDisabled"
           data-testid="rke2-directory-config-provisioning-data-dir"
         />
         <LabeledInput
@@ -192,6 +207,7 @@ export default {
           :mode="mode"
           :label="t('cluster.directoryConfig.k8sDistro.label')"
           :tooltip="t('cluster.directoryConfig.k8sDistro.tooltip')"
+          :disabled="isDisabled"
           data-testid="rke2-directory-config-k8sDistro-data-dir"
         />
       </div>

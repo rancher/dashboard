@@ -1,7 +1,9 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
+import { useBasicSetupFocusTrap } from '@shell/composables/focusTrap';
 
 export default defineComponent({
+
   name:  'Card',
   props: {
     /**
@@ -50,12 +52,30 @@ export default defineComponent({
       type:    Boolean,
       default: false,
     },
+    triggerFocusTrap: {
+      type:    Boolean,
+      default: false,
+    },
+  },
+  setup(props) {
+    if (props.triggerFocusTrap) {
+      useBasicSetupFocusTrap('#focus-trap-card-container-element', {
+        // needs to be false because of import YAML modal from header
+        // where the YAML editor itself is a focus trap
+        // and we can't have it superseed the "escape key" to blur that UI element
+        // In this case the focus trap moves the focus out of the modal
+        // correctly once it closes because of the "onBeforeUnmount" trigger
+        escapeDeactivates: false,
+        allowOutsideClick: true,
+      });
+    }
   }
 });
 </script>
 
 <template>
   <div
+    id="focus-trap-card-container-element"
     class="card-container"
     :class="{'highlight-border': showHighlightBorder, 'card-sticky': sticky}"
     data-testid="card"
@@ -69,7 +89,7 @@ export default defineComponent({
           {{ title }}
         </slot>
       </div>
-      <hr>
+      <hr role="none">
       <div
         class="card-body"
         data-testid="card-body-slot"

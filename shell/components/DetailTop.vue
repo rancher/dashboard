@@ -94,7 +94,7 @@ export default {
     },
 
     labels() {
-      if (!this.showFilteredSystemLabels) {
+      if (this.showAllLabels || !this.showFilteredSystemLabels) {
         return this.value?.labels || {};
       }
 

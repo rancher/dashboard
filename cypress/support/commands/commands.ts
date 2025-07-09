@@ -61,13 +61,24 @@ Cypress.Commands.add('iFrame', () => {
     .then((body) => cy.wrap(body));
 });
 
+const runTimestamp = +new Date();
+
+/**
+ * Get root resource name
+ */
+Cypress.Commands.add('getRootE2EResourceName', () => {
+  return cy.wrap(`e2e-test-${ runTimestamp }`);
+});
+
 /**
  * Create resource name
  */
-const runTimestamp = +new Date();
+Cypress.Commands.add('createE2EResourceName', (context, options = { prefixContext: false, onlyContext: false }) => {
+  if (options?.onlyContext) {
+    return cy.wrap(context);
+  }
 
-Cypress.Commands.add('createE2EResourceName', (context) => {
-  return cy.wrap(`e2e-test-${ runTimestamp }-${ context }`);
+  return cy.getRootE2EResourceName().then((root) => options?.prefixContext ? `${ context }-${ root }` : `${ root }-${ context }`);
 });
 
 // See: https://stackoverflow.com/questions/74785083/how-can-i-get-a-custom-css-variable-from-any-element-cypress
@@ -86,4 +97,7 @@ Cypress.Commands.add('shouldHaveCssVar', { prevSubject: true }, (subject, styleN
       .then(($el) => window.getComputedStyle($el[0]).getPropertyValue(styleName).trim())
       .should('eq', evaluatedStyle);
   });
+});
+Cypress.Commands.add('hideElementBySelector', (selector:string) => {
+  cy.get(selector).invoke('css', 'opacity', '0');
 });

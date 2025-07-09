@@ -22,7 +22,7 @@ export default {
 
     value: {
       type:    String,
-      default: null,
+      default: '',
     },
 
     maxLength: {
@@ -36,6 +36,12 @@ export default {
     },
 
     conceal: {
+      type:    Boolean,
+      default: false
+    },
+
+    // Will manage it's own state around showing or hiding sensitive data
+    concealStandAlone: {
       type:    Boolean,
       default: false
     },
@@ -54,10 +60,14 @@ export default {
   data() {
     const expanded = this.value.length <= this.maxLength;
 
-    return { expanded };
+    return { expanded, standAloneHide: true };
   },
 
   computed: {
+    itemLabel() {
+      return this.labelKey ? this.t(this.labelKey) : this.label ? this.label : this.t('labels.annotations.singular');
+    },
+
     isBinary() {
       if ( this.binary === null ) {
         return typeof this.value === 'string' && !asciiLike(this.value);
@@ -123,11 +133,23 @@ export default {
     },
 
     hideSensitiveData() {
+      if (this.concealStandAlone) {
+        return this.standAloneHide;
+      }
+
       return this.$store.getters['prefs/get'](HIDE_SENSITIVE);
     },
 
     concealed() {
       return this.conceal && this.hideSensitiveData && !this.isBinary;
+    },
+
+    sensitiveIcon() {
+      return this.standAloneHide ? 'icon-show' : 'icon-hide';
+    },
+
+    sensitiveAria() {
+      return this.standAloneHide ? this.t('detailText.sensitive.show') : this.t('detailText.sensitive.hide');
     },
 
     ...mapGetters({ t: 'i18n/t' })
@@ -165,6 +187,7 @@ export default {
       :options="{mode:{name:'javascript', json:true}, lineNumbers:false, foldGutter:false, readOnly:true}"
       :value="jsonStr"
       :class="{'conceal': concealed}"
+      aria-live="polite"
     />
 
     <span
@@ -172,6 +195,7 @@ export default {
       v-clean-html="bodyHtml"
       data-testid="detail-top_html"
       :class="{'conceal': concealed, 'monospace': monospace && !isBinary}"
+      aria-live="polite"
     />
 
     <template v-if="!isBinary && !jsonStr && isLong && !expanded">
@@ -181,12 +205,27 @@ export default {
       >{{ plusMore }}</a>
     </template>
 
-    <CopyToClipboard
-      v-if="copy && !isBinary"
-      :text="value"
-      class="role-tertiary"
-      action-color=""
-    />
+    <div class="action-group">
+      <button
+        v-if="conceal && concealStandAlone"
+        class="sensitive btn ready-for-action role-tertiary"
+        :aria-label="sensitiveAria"
+        @click="standAloneHide = !standAloneHide"
+      >
+        <i
+          class="icon icon-lg"
+          :class="sensitiveIcon"
+          :alt="sensitiveAria"
+        />
+      </button>
+      <CopyToClipboard
+        v-if="copy && !isBinary"
+        :text="value"
+        class="role-tertiary"
+        action-color=""
+        :aria-label="t('detailText.copyAriaLabel', {item: itemLabel })"
+      />
+    </div>
   </div>
 </template>
 
@@ -200,11 +239,27 @@ export default {
   border-radius: var(--border-radius);
   border: solid var(--border-width) var(--input-border);
 
-  > button {
+  .action-group {
     position: absolute;
     top: -1px;
     right: -1px;
-    border-radius: 0 0 0 var(--border-radius);
+    white-space-collapse:collapse;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+
+    button{
+      border-radius: 0;
+
+      &:first-of-type {
+        border-radius: 0 0 0 var(--border-radius);
+      }
+
+      &.sensitive {
+        margin-right: -1px;
+        padding: 12px 16px;
+      }
+    }
   }
 }
 

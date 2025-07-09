@@ -10,7 +10,7 @@ export default class PageActionsPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   static open(): Cypress.Chainable {
-    return cy.getId('page-actions-menu').should('be.visible').click();
+    return cy.getId('page-actions-menu-action-button').should('be.visible').click();
   }
 
   /**
@@ -32,7 +32,7 @@ export default class PageActionsPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   private static pageActionsMenu(): Cypress.Chainable {
-    return cy.get('body').getId('page-actions-dropdown');
+    return cy.get('body').find('[dropdown-menu-collection]');
   }
 
   /**
@@ -41,7 +41,7 @@ export default class PageActionsPo extends ComponentPo {
    */
   links(): Cypress.Chainable {
     return PageActionsPo.open().then(() => {
-      PageActionsPo.pageActionsMenu().find('.user-menu-item');
+      PageActionsPo.pageActionsMenu().find('[dropdown-menu-item]');
     });
   }
 
@@ -51,5 +51,13 @@ export default class PageActionsPo extends ComponentPo {
    */
   restoreLink(): Cypress.Chainable {
     return this.links().last();
+  }
+
+  /**
+   * Get show/hide banner button link
+   * @returns {Cypress.Chainable}
+   */
+  toggleBanner(): Cypress.Chainable {
+    return this.links().contains('Show/Hide Banner');
   }
 }

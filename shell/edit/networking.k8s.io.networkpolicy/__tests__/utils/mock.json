@@ -154,5 +154,21 @@
         }
       }
     }
-  ]
+  ],
+  "counts": [{
+    "counts": {
+      "namespace": {
+        "summary": {
+          "count": 1
+        }
+      },
+      "pod": {
+        "namespaces": {
+          "default": {
+            "count": 1
+          }
+        }
+      }
+    }
+  }]
 }

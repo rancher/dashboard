@@ -32,7 +32,9 @@ import {
 import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@shell/config/labels-annotations';
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { clone, diff, get, set } from '@shell/utils/object';
+import {
+  clone, diff, get, mergeWithReplace, set
+} from '@shell/utils/object';
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import { saferDump } from '@shell/utils/create-yaml';
@@ -43,6 +45,22 @@ const VALUES_STATE = {
   FORM: 'FORM',
   YAML: 'YAML',
   DIFF: 'DIFF'
+};
+
+/**
+ * Helm CLI options that are not persisted on the back end,
+ * but are used for the final install/upgrade operation.
+ */
+const defaultCmdOpts = {
+  cleanupOnFail: false,
+  crds:          true,
+  hooks:         true,
+  force:         false,
+  resetValues:   false,
+  openApi:       true,
+  wait:          true,
+  timeout:       600,
+  historyMax:    5,
 };
 
 function isPlainLayout(query) {
@@ -312,15 +330,10 @@ export default {
       */
       this.removeGlobalValuesFrom(userValues);
 
-      /*
-        The merge() method is used to merge two or more objects
-        starting with the left-most to the right-most to create a
-        parent mapping object. When two keys are the same, the
-        generated object will have value for the rightmost key.
-        In this case, any values in userValues override any
-        matching values in versionInfo.
-      */
-      this.chartValues = merge(merge({}, this.versionInfo?.values || {}), userValues);
+      this.chartValues = mergeWithReplace(
+        merge({}, this.versionInfo?.values || {}),
+        userValues,
+      );
 
       if (this.showCustomRegistry) {
         /**
@@ -359,20 +372,6 @@ export default {
   },
 
   data() {
-    /* Helm CLI options that are not persisted on the back end,
-    but are used for the final install/upgrade operation. */
-    const defaultCmdOpts = {
-      cleanupOnFail: false,
-      crds:          true,
-      hooks:         true,
-      force:         false,
-      resetValues:   false,
-      openApi:       true,
-      wait:          true,
-      timeout:       600,
-      historyMax:    5,
-    };
-
     return {
       defaultRegistrySetting: '',
       customRegistrySetting:  '',
@@ -502,7 +501,7 @@ export default {
     },
 
     charts() {
-      const current = this.existing?.matchingChart(true);
+      const current = this.existing?.matchingCharts(true)[0];
 
       const out = this.$store.getters['catalog/charts'].filter((x) => {
         if ( x.key === current?.key || x.chartName === current?.chartName ) {
@@ -1386,7 +1385,7 @@ export default {
               >
                 <template v-slot:option="opt">
                   <template v-if="opt.kind === 'divider'">
-                    <hr>
+                    <hr role="none">
                   </template>
                   <template v-else-if="opt.kind === 'label'">
                     <b style="position: relative; left: -2.5px;">{{ opt.label }}</b>
@@ -1858,7 +1857,7 @@ export default {
       }
 
       .namespace-create-banner {
-        margin-bottom: 70px;
+        margin-bottom: calc($footer-height + 10px);
       }
     }
     &__values {

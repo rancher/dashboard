@@ -8,7 +8,7 @@ import { convert, simplify } from '@shell/utils/selector';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
-  emits: ['update:value', 'remove'],
+  emits: ['update:value', 'add', 'remove'],
 
   components: { Select, LabeledSelect },
   props:      {
@@ -25,7 +25,11 @@ export default {
       default: 'edit'
     },
 
-    // pod/node affinity types have different operator options
+    /**
+     * pod/node affinity types have different operator options
+     *
+     * Note - This prop should just be isNode
+     */
     type: {
       type:    String,
       default: NODE
@@ -50,6 +54,26 @@ export default {
       default: true
     },
 
+    labelKey: {
+      type:    String,
+      default: '',
+    },
+
+    addLabel: {
+      type:    String,
+      default: '',
+    },
+
+    addIcon: {
+      type:    String,
+      default: '',
+    },
+
+    addClass: {
+      type:    String,
+      default: '',
+    },
+
     // whether or not to show remove rule button right side of the rule
     showRemoveButton: {
       type:    Boolean,
@@ -70,6 +94,14 @@ export default {
   },
 
   data() {
+    return {
+      ops:    [],
+      rules:  [],
+      custom: []
+    };
+  },
+
+  created() {
     const t = this.$store.getters['i18n/t'];
 
     const podOptions = [
@@ -87,8 +119,6 @@ export default {
       { label: t('workload.scheduling.affinity.matchExpressions.lessThan'), value: 'Lt' },
       { label: t('workload.scheduling.affinity.matchExpressions.greaterThan'), value: 'Gt' },
     ];
-
-    const ops = this.type === NODE ? nodeOptions : podOptions;
 
     let rules;
 
@@ -127,16 +157,17 @@ export default {
       rules.push(newRule);
     }
 
-    return {
-      ops,
-      rules,
-      custom: []
-    };
+    this.rules = rules;
+    this.ops = this.type === NODE ? nodeOptions : podOptions;
   },
 
   computed: {
     isView() {
       return this.mode === 'view';
+    },
+
+    _addLabel() {
+      return this.addLabel || this.t('workload.scheduling.affinity.matchExpressions.addRule');
     },
 
     node() {
@@ -205,12 +236,21 @@ export default {
       }
 
       this.rules.push(newRule);
+
+      this.$nextTick(() => {
+        this.focus(this.rules.length - 1);
+
+        this.$emit('add');
+      });
     },
 
     update() {
       this.$nextTick(() => {
         const out = this.rules.map((rule) => {
-          const expression = { key: rule.key, operator: rule.operator };
+          const expression = {
+            key:      rule.key.trim(),
+            operator: rule.operator
+          };
 
           if (this.matchingSelectorDisplay) {
             expression.matching = rule.matching;
@@ -235,6 +275,10 @@ export default {
           this.$emit('update:value', simplify(out));
         }
       });
+    },
+
+    focus(index = 0) {
+      this.$refs[`input-match-expression-key-${ index }`]?.[0]?.focus();
     }
   }
 };
@@ -242,6 +286,10 @@ export default {
 
 <template>
   <div>
+    <slot
+      v-if="rules.length"
+      name="header"
+    />
     <button
       v-if="showRemove && !isView"
       type="button"
@@ -260,7 +308,7 @@ export default {
         {{ t('workload.scheduling.affinity.matchExpressions.matchType') }}
       </label>
       <label>
-        {{ t('workload.scheduling.affinity.matchExpressions.key') }}
+        {{ labelKey || t('workload.scheduling.affinity.matchExpressions.key') }}
       </label>
       <label>
         {{ t('workload.scheduling.affinity.matchExpressions.operator') }}
@@ -301,6 +349,7 @@ export default {
         </div>
         <input
           v-else-if="!hasKeySelectOptions"
+          :ref="`input-match-expression-key-${index}`"
           v-model="row.key"
           :mode="mode"
           :data-testid="`input-match-expression-key-control-${index}`"
@@ -308,6 +357,7 @@ export default {
         >
         <LabeledSelect
           v-else
+          :ref="`input-match-expression-key-${index}`"
           v-model:value="row.key"
           :mode="mode"
           :options="keysSelectOptions"
@@ -375,15 +425,20 @@ export default {
     </div>
     <div
       v-if="!isView && showAddButton"
-      class="mt-20"
+      class="mmt-4"
     >
       <button
         type="button"
         class="btn role-tertiary add"
-        :data-testid="`input-match-expression-add-rule`"
+        :class="[addClass]"
+        data-testid="input-match-expression-add-rule"
         @click="addRule"
       >
-        <t k="workload.scheduling.affinity.matchExpressions.addRule" />
+        <i
+          v-if="addIcon"
+          class="mr-5 icon"
+          :class="[addIcon]"
+        /> {{ _addLabel }}
       </button>
     </div>
   </div>

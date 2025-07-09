@@ -9,7 +9,8 @@ module.exports = {
   },
   plugins: [
     'jest',
-    '@typescript-eslint'
+    '@typescript-eslint',
+    'local-rules'
   ],
   extends: [
     'standard',
@@ -18,7 +19,8 @@ module.exports = {
     '@vue/standard',
     '@vue/typescript/recommended',
     'plugin:vue/vue3-recommended',
-    'plugin:cypress/recommended'
+    'plugin:cypress/recommended',
+    'plugin:local-rules/all'
   ],
   rules: {
     'semi-spacing':          'off',
@@ -190,7 +192,7 @@ module.exports = {
     'vue/one-component-per-file':       'off',
     'vue/no-deprecated-slot-attribute': 'off',
     'vue/require-explicit-emits':       'error',
-    'vue/v-on-event-hyphenation':       'off'
+    'vue/v-on-event-hyphenation':       'off',
   },
   overrides: [
     {
@@ -199,7 +201,8 @@ module.exports = {
       ],
       rules: {
         '@typescript-eslint/no-empty-function': 'off',
-        '@typescript-eslint/ban-types':         'off'
+        '@typescript-eslint/ban-types':         'off',
+        'vue/require-toggle-inside-transition': 'off', // Introduced with new linting version 9.32.0
       }
     },
     {

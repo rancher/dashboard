@@ -2,11 +2,15 @@
 import { get } from '@shell/utils/object';
 import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
+import { generateRandomAlphaString } from '@shell/utils/string';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
+import { _VIEW } from '@shell/config/query-params';
+import { useClickOutside } from '@shell/composables/useClickOutside';
+import { ref } from 'vue';
 
 export default {
-  emits: ['update:value', 'createdListItem'],
+  emits: ['update:value', 'createdListItem', 'on-open', 'on-close'],
 
   components: { LabeledTooltip },
   mixins:     [
@@ -80,15 +84,31 @@ export default {
     },
     closeOnSelect: {
       type:    Boolean,
-      default: true
+      default: true,
     },
 
     compact: {
       type:    Boolean,
       default: null
     },
+    isLangSelect: {
+      type:    Boolean,
+      default: false
+    }
   },
+  setup() {
+    const select = ref(null);
+    const isOpen = ref(false);
 
+    useClickOutside(select, () => {
+      isOpen.value = false;
+    });
+
+    return { isOpen, select };
+  },
+  data() {
+    return { generatedUid: `s-uid-${ generateRandomAlphaString(12) }` };
+  },
   methods: {
     // resizeHandler = in mixin
     getOptionLabel(option) {
@@ -114,8 +134,17 @@ export default {
       calculatePosition(dropdownList, component, width, this.placement);
     },
 
-    focus() {
-      this.focusSearch();
+    // Ensure we only focus on open, otherwise we re-open on close
+    clickSelect(ev) {
+      if (this.mode === _VIEW || this.loading === true || this.disabled === true) {
+        return;
+      }
+
+      this.isOpen = !this.isOpen;
+
+      if (this.isOpen) {
+        this.focusSearch(ev);
+      }
     },
 
     focusSearch() {
@@ -126,6 +155,10 @@ export default {
           el.focus();
         }
       });
+    },
+
+    focusWrapper() {
+      this.$refs.select.focus();
     },
 
     get,
@@ -174,9 +207,43 @@ export default {
         return Math.random(100000);
       }
     },
+
     report(e) {
       alert(e);
-    }
+    },
+
+    handleDropdownOpen(args) {
+      if (!this.isOpen) {
+        return false;
+      }
+
+      // function that prevents the "opening dropdown on focus"
+      // default behaviour of v-select
+      return args.noDrop || args.disabled ? false : args.open;
+    },
+    onOpen() {
+      this.focusSearch();
+      this.$emit('on-open');
+      this.resizeHandler();
+    },
+
+    closeOnSelecting() {
+      if (!this.closeOnSelect) {
+        return;
+      }
+
+      this.close();
+    },
+
+    close() {
+      this.isOpen = false;
+      this.onClose();
+    },
+
+    onClose() {
+      this.$emit('on-close');
+      this.focusWrapper();
+    },
   },
   computed: {
     requiredField() {
@@ -227,7 +294,7 @@ export default {
     ref="select"
     class="unlabeled-select"
     :class="{
-      disabled: disabled && !isView,
+      disabled: disabled || isView,
       focused,
       [mode]: true,
       [status]: status,
@@ -236,7 +303,15 @@ export default {
       'compact-input': compact,
       [$attrs.class]: $attrs.class
     }"
-    @focus="focusSearch"
+    :tabindex="disabled || isView ? -1 : 0"
+    role="combobox"
+    :aria-expanded="isOpen"
+    :aria-label="$attrs['aria-label'] || undefined"
+    :aria-describedby="$attrs['aria-describedby'] || undefined"
+    @click="clickSelect"
+    @keydown.self.enter="clickSelect"
+    @keydown.self.down.prevent="clickSelect"
+    @keydown.self.space.prevent="clickSelect"
   >
     <v-select
       ref="select-input"
@@ -251,22 +326,35 @@ export default {
       :get-option-label="(opt) => getOptionLabel(opt)"
       :label="optionLabel"
       :options="options"
-      :close-on-select="closeOnSelect"
+      :close-on-select="false"
       :map-keydown="mappedKeys"
       :placeholder="placeholder"
       :reduce="(x) => reduce(x)"
       :searchable="isSearchable"
       :selectable="selectable"
       :modelValue="value != null ? value : ''"
-
+      :dropdownShouldOpen="handleDropdownOpen"
+      :tabindex="-1"
+      role="listitem"
+      :uid="generatedUid"
+      :aria-label="'-'"
       @update:modelValue="$emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
-      @open="resizeHandler"
+      @open="onOpen"
+      @close="onClose"
       @option:created="(e) => $emit('createdListItem', e)"
+      @option:selecting="closeOnSelecting"
+      @option:selected="closeOnSelect && close"
+      @keydown.enter.stop
     >
-      <template #option="option">
-        <div @mousedown="(e) => onClickOption(option, e)">
+      <template
+        #option="option"
+      >
+        <div
+          :lang="isLangSelect ? option.value : undefined"
+          @mousedown="(e) => onClickOption(option, e)"
+        >
           {{ getOptionLabel(option.label) }}
         </div>
       </template>

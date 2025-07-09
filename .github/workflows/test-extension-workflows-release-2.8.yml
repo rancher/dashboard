@@ -1,0 +1,119 @@
+name: Test Extension workflows - Release 2.8 (1.x)
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./
+
+jobs:
+  retrieve-tags-release-2-dot-8:
+    if: ${{ github.repository_owner == 'rancher' }}
+    runs-on: ubuntu-latest
+    outputs:
+      SHELL_TAG: ${{ steps.retrieve-data.outputs.SHELL_TAG }}
+      CREATORS_TAG: ${{ steps.retrieve-data.outputs.CREATORS_TAG }}
+      ECI_TAG: ${{ steps.retrieve-data.outputs.ECI_TAG }}
+      EXTENSION_TAG: ${{ steps.retrieve-data.outputs.EXTENSION_TAG }}
+      CURR_JOB_ID: ${{ github.job }}
+      tags-job-status: ${{ job.status }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: release-2.8
+
+      - name: Retrieve Shell and Creators versions
+        run: source ./.github/workflows/scripts/retrieve-versions.sh
+        id: retrieve-data
+        shell: bash
+  test-build-extension-charts-release-2-dot-8:
+    needs: retrieve-tags-release-2-dot-8
+    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@release-2.8
+    permissions:
+      actions: write
+      contents: write
+      deployments: write
+      pages: write
+    with:
+      target_branch: 'gh-pages'
+      tagged_release:  ${{ needs.retrieve-tags-release-2-dot-8.outputs.EXTENSION_TAG }}
+      is_test:  'true'
+      test_ext_repo: 'elemental-ui'
+      test_ext_branch:  'release-2.8.x'
+  test-build-extension-catalog-release-2-dot-8:
+    needs: retrieve-tags-release-2-dot-8
+    uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@release-2.8
+    permissions:
+      actions: write
+      contents: read
+      packages: write
+    with:
+      registry_target: ghcr.io
+      registry_user: ${{ github.actor }}
+      tagged_release: ${{ needs.retrieve-tags-release-2-dot-8.outputs.ECI_TAG }}
+      is_test:  'true'
+      test_ext_repo: 'elemental-ui'
+      test_ext_branch:  'release-2.8.x'
+    secrets: 
+      registry_token: ${{ secrets.GITHUB_TOKEN }}
+  test-release-shell-pkg-release-2-dot-8:
+    needs: retrieve-tags-release-2-dot-8
+    uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@release-2.8
+    with:
+      is_test:  'true'
+      test_branch:  'release-2.8'
+      tag: ${{ needs.retrieve-tags-release-2-dot-8.outputs.SHELL_TAG }}
+  test-release-creators-pkg-release-2-dot-8:
+    needs: retrieve-tags-release-2-dot-8
+    uses: rancher/dashboard/.github/workflows/release-shell-pkg.yaml@release-2.8
+    with:
+      is_test: 'true'
+      test_branch: 'release-2.8'
+      tag: ${{ needs.retrieve-tags-release-2-dot-8.outputs.CREATORS_TAG }}
+
+  slack-message:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    needs: [retrieve-tags-release-2-dot-8, test-build-extension-charts-release-2-dot-8, test-build-extension-catalog-release-2-dot-8, test-release-shell-pkg-release-2-dot-8, test-release-creators-pkg-release-2-dot-8]
+    steps: 
+      - name: Slack message for workflow
+        if: always()
+        shell: bash
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL_EXT_WFS }}
+        run: |
+          OUTPUT_ARRAY=("${{ needs.retrieve-tags-release-2-dot-8.outputs.tags-job-status }}" "${{ needs.test-build-extension-charts-release-2-dot-8.outputs.build-job-status }}" "${{ needs.test-build-extension-catalog-release-2-dot-8.outputs.build-extension-catalog-job-status }}" "${{ needs.test-release-shell-pkg-release-2-dot-8.outputs.build-release-shell-creators-status }}" "${{ needs.test-release-creators-pkg-release-2-dot-8.outputs.build-release-shell-creators-status }}")
+          JOB_NAME_ARRAY=("retrieve-tags-release-2-dot-8" "test-build-extension-charts-release-2-dot-8" "test-build-extension-catalog-release-2-dot-8" "test-release-shell-pkg-release-2-dot-8" "test-release-creators-pkg-release-2-dot-8")
+
+          if [[ ${OUTPUT_ARRAY[@]} =~ "failure" ]]; then
+            MSG_PREFIX="\nWorkflows testing for extensions failed! ❌"
+          elif [[ ${OUTPUT_ARRAY[@]} =~ (^|[[:space:]])""($|[[:space:]]) ]]; then
+            MSG_PREFIX="\nSomething went wrong during the workflows testing! ⭕"
+          else
+            MSG_PREFIX="\nWorkflows testing for extensions succedded! ✅"
+          fi
+
+          echo "message prefix ::: $MSG_PREFIX"
+
+          MSG="$MSG_PREFIX"
+
+          for index in "${!OUTPUT_ARRAY[@]}"
+          do
+            if [[ ${OUTPUT_ARRAY[$index]} == "failure" ]]; then
+              EMOJI="❌"
+            elif [[ ${OUTPUT_ARRAY[$index]} == "" ]]; then
+              EMOJI="NO JOB STATUS! ⭕"
+            else
+              EMOJI="✅"
+            fi
+            MSG="$MSG \n::: Status for ${JOB_NAME_ARRAY[$index]} job => ${OUTPUT_ARRAY[$index]} $EMOJI"
+          done
+
+          echo "message sent: $MSG"
+
+          curl -X POST -H 'Content-type: application/json; charset=utf-8' \
+          --data "{\"branch\": \"release-2.8\", \"message\": \"$MSG\", \"workflow_run\": ${{ github.run_id }} }" $SLACK_WEBHOOK

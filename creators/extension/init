@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 
-const { execSync } = require('child_process');
+const { execSync, spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const creatorPkg = require('./package.json');
@@ -152,7 +152,14 @@ try {
   if (updateOnly) {
     // Run the update script directly
     console.log('Updating applications...');
-    execSync(`node ${ path.join(updatePath, 'init') }`, { stdio: 'inherit' });
+    const updateInitPath = path.join(updatePath, 'init');
+    const updateArgs = [updateInitPath, shellVersion, tagUsed, ...args];
+
+    const result = spawnSync('node', updateArgs, { stdio: 'inherit' });
+
+    if (result.status !== 0) {
+      throw new Error('Failed to create skeleton application.');
+    }
 
     console.log('Update completed successfully.');
     process.exit(0);
@@ -167,7 +174,14 @@ try {
   if (!isInsideSkeleton && !skeletonExists) {
     console.log(`Creating skeleton application: ${ appName }...`);
     // Pass all arguments to the app/init script
-    execSync(`node ${ path.join(__dirname, 'app', 'init') } ${ appName }  ${ shellVersion } ${ args.join(' ') }`, { stdio: 'inherit' });
+    const appInitPath = path.join(__dirname, 'app', 'init');
+    const appArgs = [appInitPath, appName, shellVersion, ...args];
+
+    const result = spawnSync('node', appArgs, { stdio: 'inherit' });
+
+    if (result.status !== 0) {
+      throw new Error('Failed to create skeleton application.');
+    }
 
     // Ensure the skeleton path directory is created before attempting to change directory
     if (!fs.existsSync(skeletonPath)) {
@@ -193,16 +207,30 @@ try {
   // Check for package existence and create it if necessary
   if (!pkgExists) {
     console.log(`Creating package: ${ extensionName }...`);
-    execSync(`node ${ path.join(__dirname, 'pkg', 'init') } ${ extensionName } ${ shellVersion } ${ args.join(' ') }`, { stdio: 'inherit' });
+    const pkgInitPath = path.join(__dirname, 'pkg', 'init');
+    const pkgArgs = [pkgInitPath, extensionName, shellVersion, ...args];
+
+    const result = spawnSync('node', pkgArgs, { stdio: 'inherit' });
+
+    if (result.status !== 0) {
+      throw new Error('Failed to create package.');
+    }
   }
 
   if (args.includes('--update') || args.includes('-u')) {
     // Run the update script
     console.log('Updating applications...');
-    execSync(`node ${ path.join(updatePath, 'init') } ${ extensionName }`, { stdio: 'inherit' });
+    const updatePath = path.join(__dirname, 'update');
+    const updateArgs = [updatePath, ...args];
+
+    const result = spawnSync('node', updateArgs, { stdio: 'inherit' });
+
+    if (result.status !== 0) {
+      throw new Error('Failed to update applications.');
+    }
   }
 
-  console.log('Extension created successfully.');
+  // console.log('Extension created successfully.');
 
   if (skeletonOnly || !isInsideSkeleton) {
     console.log(`To begin, run: \n\n\tcd ${ appName } && yarn install\n`);

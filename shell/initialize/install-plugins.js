@@ -15,7 +15,6 @@ import axios from '@shell/utils/axios';
 import cookieUniversal from '@shell/utils/cookie-universal';
 import config from '@shell/utils/config';
 import axiosShell from '@shell/plugins/axios';
-import backButton from '@shell/plugins/back-button';
 import codeMirror from '@shell/plugins/codemirror-loader';
 import { InstallCodeMirror } from 'codemirror-editor-vue3';
 import * as intNumber from '@shell/directives/int-number';
@@ -27,6 +26,7 @@ import replaceAll from '@shell/plugins/replaceall';
 import steveCreateWorker from '@shell/plugins/steve-create-worker';
 import emberCookie from '@shell/plugins/ember-cookie';
 import ShortKey from '@shell/plugins/shortkey';
+import internalApiPlugin from '@shell/plugins/internal-api';
 
 import 'floating-vue/dist/style.css';
 import { floatingVueOptions } from '@shell/plugins/floating-vue';
@@ -36,13 +36,18 @@ export async function installPlugins(vueApp) {
   vueApp.use(PortalVue);
   vueApp.use(Vue3Resize);
   vueApp.use(FloatingVue, floatingVueOptions);
-  vueApp.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
+  vueApp.use(
+    ShortKey,
+    {
+      prevent:          ['input', 'textarea', 'select'],
+      preventContainer: ['#modal-container-element']
+    });
   vueApp.use(InstallCodeMirror);
   vueApp.component('v-select', vSelect);
 }
 
 export async function installInjectedPlugins(app, vueApp) {
-  const pluginDefinitions = [config, cookieUniversal, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, backButton, plugin, steveCreateWorker, emberCookie];
+  const pluginDefinitions = [config, cookieUniversal, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, plugin, steveCreateWorker, emberCookie, internalApiPlugin];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
     if (typeof pluginDefinition === 'function') {

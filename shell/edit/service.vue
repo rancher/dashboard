@@ -21,7 +21,7 @@ import Labels from '@shell/components/form/Labels';
 import HarvesterServiceAddOnConfig from '@shell/components/HarvesterServiceAddOnConfig';
 import { clone } from '@shell/utils/object';
 import { POD, CAPI, HCI } from '@shell/config/types';
-import { matching } from '@shell/utils/selector';
+import { matching } from '@shell/utils/selector-typed';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { allHash } from '@shell/utils/promise';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
@@ -98,7 +98,6 @@ export default {
 
     return {
       matchingPods,
-      allPods:                     [],
       defaultServiceTypes:         DEFAULT_SERVICE_TYPES,
       saving:                      false,
       sessionAffinityActionLabels: Object.values(SESSION_AFFINITY_ACTION_LABELS)
@@ -109,7 +108,8 @@ export default {
       ),
       fvFormRuleSets:            [],
       fvReportedValidationPaths: ['spec'],
-      closedErrorMessages:       []
+      closedErrorMessages:       [],
+      inStore:                   this.$store.getters['currentStore'](POD),
     };
   },
 
@@ -257,43 +257,27 @@ export default {
   },
 
   methods: {
-    updateMatchingPods: throttle(function() {
+    updateMatchingPods: throttle(async function() {
+      // https://kubernetes.io/docs/reference/kubernetes-api/service-resources/service-v1/#ServiceSpec
       const { value: { spec: { selector = { } } } } = this;
-      // See https://github.com/rancher/dashboard/issues/10417, all pods bad, need to replace local selector somehow
-      const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value?.metadata?.namespace);
 
-      if (isEmpty(selector)) {
-        this.matchingPods = {
-          matched: 0,
-          total:   allInNamespace.length,
-          none:    true,
-          sample:  null,
-        };
-      } else {
-        const match = matching(allInNamespace, selector);
-
-        this.matchingPods = {
-          matched: match.length,
-          total:   allInNamespace.length,
-          none:    match.length === 0,
-          sample:  match[0] ? match[0].nameDisplay : null,
-        };
-      }
+      this.matchingPods = await matching({
+        labelSelector: { matchLabels: selector },
+        type:          POD,
+        $store:        this.$store,
+        inStore:       this.inStore,
+        namespace:     this.value?.metadata?.namespace,
+      });
     }, 250, { leading: true }),
 
     async loadPods() {
       try {
-        const inStore = this.$store.getters['currentStore'](POD);
-
         const hash = {
           provClusters:     this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-          pods:             this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
           harvesterConfigs: this.$store.dispatch(`management/findAll`, { type: HCI.HARVESTER_CONFIG }),
         };
 
-        const res = await allHash(hash);
-
-        this.allPods = res.pods;
+        await allHash(hash);
         this.updateMatchingPods();
       } catch (e) { }
     },
@@ -360,7 +344,10 @@ export default {
       :rules="{ name: fvGetAndReportPathRules('metadata.name'), namespace: [], description: [] }"
     />
 
-    <Tabbed :side-tabs="true">
+    <Tabbed
+      :side-tabs="true"
+      :use-hash="useTabbedHash"
+    >
       <Tab
         v-if="checkTypeIs('ExternalName')"
         name="define-external-name"
@@ -522,9 +509,6 @@ export default {
               "
               :label="t('servicesPage.affinity.timeout.label')"
               :placeholder="t('servicesPage.affinity.timeout.placeholder')"
-              @input="
-                (e) => value.spec.sessionAffinityConfig.clientIP.timeoutSeconds = e
-              "
             />
           </div>
         </div>

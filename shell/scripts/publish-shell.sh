@@ -6,7 +6,6 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 BASE_DIR="$(cd $SCRIPT_DIR && cd ../.. && pwd)"
 SHELL_DIR=$BASE_DIR/shell/
 CREATORS_DIR=$BASE_DIR/creators/extension
-PUBLISH_ARGS="--no-git-tag-version --access public --registry $NPM_REGISTRY $NPM_TAG"
 FORCE_PUBLISH_TO_NPM="false"
 DEFAULT_NPM_REGISTRY="https://registry.npmjs.org"
 
@@ -31,6 +30,8 @@ if [ "$FORCE_PUBLISH_TO_NPM" == "true" ]; then
   export NPM_REGISTRY=$DEFAULT_NPM_REGISTRY
 fi
 
+PUBLISH_ARGS="--no-git-tag-version --access public --registry $NPM_REGISTRY"
+
 pushd ${SHELL_DIR} >/dev/null
 
 function publish() {
@@ -47,8 +48,15 @@ function publish() {
 
   # if the PKG_VERSION has a - it means it will be a pre-release
   if [[ $PKG_VERSION == *"-"* ]]; then
-    PUBLISH_ARGS="--no-git-tag-version --access public --registry $NPM_REGISTRY --tag pre-release"
+    PUBLISH_ARGS="$PUBLISH_ARGS --tag pre-release"
   fi
+
+  # when testing the workflow, we don't want to actually do an npm publish but only a dry run
+  if [ ${DRY_RUN} == "true" ]; then
+    PUBLISH_ARGS="$PUBLISH_ARGS --dry-run"
+  fi
+
+  echo "Publish to NPM - arguments ::: ${PUBLISH_ARGS}"
 
   echo "Publishing ${NAME} from ${FOLDER}"
   pushd ${FOLDER} >/dev/null

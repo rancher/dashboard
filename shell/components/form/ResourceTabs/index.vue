@@ -8,12 +8,14 @@ import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Conditions from '@shell/components/form/Conditions';
 import { EVENT } from '@shell/config/types';
-import SortableTable from '@shell/components/SortableTable';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { _VIEW } from '@shell/config/query-params';
 import RelatedResources from '@shell/components/RelatedResources';
-import { ExtensionPoint, TabLocation } from '@shell/core/types';
-import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { isConditionReadyAndWaiting } from '@shell/plugins/dashboard-store/resource-class';
+import { PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { MESSAGE, REASON } from '@shell/config/table-headers';
+import { STEVE_EVENT_LAST_SEEN, STEVE_EVENT_TYPE, STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
+import { headerFromSchemaColString } from '@shell/store/type-map.utils';
 
 export default {
 
@@ -23,7 +25,7 @@ export default {
     Tabbed,
     Tab,
     Conditions,
-    SortableTable,
+    PaginatedResourceTable,
     RelatedResources,
   },
 
@@ -66,20 +68,36 @@ export default {
     extensionParams: {
       type:    Object,
       default: null
+    },
+    useHash: {
+      type:    Boolean,
+      default: true
     }
   },
 
   data() {
     const inStore = this.$store.getters['currentStore'](EVENT);
+    const eventSchema = this.$store.getters[`${ inStore }/schemaFor`](EVENT); // @TODO be smarter about which resources actually ever have events
+
+    const paginationHeaders = eventSchema ? [
+      STEVE_EVENT_LAST_SEEN,
+      STEVE_EVENT_TYPE,
+      REASON,
+      headerFromSchemaColString('Subobject', eventSchema, this.$store.getters, true),
+      headerFromSchemaColString('Source', eventSchema, this.$store.getters, true),
+      MESSAGE,
+      headerFromSchemaColString('First Seen', eventSchema, this.$store.getters, true),
+      headerFromSchemaColString('Count', eventSchema, this.$store.getters, true),
+      STEVE_NAME_COL,
+    ] : [];
 
     return {
-      hasEvents:      this.$store.getters[`${ inStore }/schemaFor`](EVENT), // @TODO be smarter about which resources actually ever have events
-      allEvents:      [],
+      eventSchema,
+      EVENT,
       selectedTab:    this.defaultTab,
-      didLoadEvents:  false,
-      extensionTabs:  getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams),
       inStore,
       showConditions: false,
+      paginationHeaders
     };
   },
 
@@ -95,7 +113,7 @@ export default {
 
   computed: {
     showEvents() {
-      return this.isView && this.needEvents && this.hasEvents;
+      return this.isView && this.needEvents && this.eventSchema;
     },
     showRelated() {
       return this.isView && this.needRelated;
@@ -131,18 +149,6 @@ export default {
         },
       ];
     },
-    events() {
-      return this.allEvents.filter((event) => {
-        return event.involvedObject?.uid === this.value?.metadata?.uid;
-      }).map((event) => {
-        return {
-          reason:    (`${ event.reason || this.t('generic.unknown') }${ event.count > 1 ? ` (${ event.count })` : '' }`).trim(),
-          message:   event.message || this.t('generic.unknown'),
-          date:      event.lastTimestamp || event.firstTimestamp || event.metadata.creationTimestamp,
-          eventType: event.eventType
-        };
-      });
-    },
     conditionsHaveIssues() {
       if (this.showConditions) {
         return this.value.status?.conditions?.filter((cond) => !isConditionReadyAndWaiting(cond)).some((cond) => cond.error);
@@ -156,15 +162,6 @@ export default {
     // Ensures we only fetch events and show the table when the events tab has been activated
     tabChange(neu) {
       this.selectedTab = neu?.selectedName;
-
-      if (!this.didLoadEvents && this.selectedTab === 'events') {
-        const inStore = this.$store.getters['currentStore'](EVENT);
-
-        this.$store.dispatch(`${ inStore }/findAll`, { type: EVENT }).then((events) => {
-          this.allEvents = events;
-          this.didLoadEvents = true;
-        });
-      }
     },
 
     /**
@@ -183,6 +180,54 @@ export default {
         this.showConditions = this.$store.getters[`${ this.inStore }/pathExistsInSchema`](this.value.type, 'status.conditions');
       }
     },
+
+    /**
+     * Filter out hidden repos from list of all repos
+     */
+    filterEventsLocal(rows) {
+      return rows.filter((event) => event.involvedObject?.uid === this.value?.metadata?.uid);
+    },
+
+    /**
+     * Filter out hidden repos via api
+     *
+     * pagination: PaginationArgs
+     * returns: PaginationArgs
+     */
+    filterEventsApi(pagination) {
+      if (!pagination.filters) {
+        pagination.filters = [];
+      }
+
+      const field = `involvedObject.uid`;
+
+      // of type PaginationParamFilter
+      let existing = null;
+
+      for (let i = 0; i < pagination.filters.length; i++) {
+        const filter = pagination.filters[i];
+
+        if (!!filter.fields.find((f) => f.field === field)) {
+          existing = filter;
+          break;
+        }
+      }
+
+      const required = PaginationParamFilter.createSingleField({
+        field,
+        exact:  true,
+        value:  this.value.metadata.uid,
+        equals: true
+      });
+
+      if (!!existing) {
+        Object.assign(existing, required);
+      } else {
+        pagination.filters.push(required);
+      }
+
+      return pagination;
+    }
   }
 };
 </script>
@@ -191,6 +236,8 @@ export default {
   <Tabbed
     v-bind="$attrs"
     :default-tab="defaultTab"
+    :resource="value"
+    :use-hash="useHash"
     @changed="tabChange"
   >
     <slot />
@@ -211,15 +258,16 @@ export default {
       name="events"
       :weight="-2"
     >
-      <SortableTable
+      <!-- namespaced: false given we don't want the default handling of namespaced resource (apply header filter)  -->
+      <PaginatedResourceTable
         v-if="selectedTab === 'events'"
-        :rows="events"
+        :schema="eventSchema"
+        :local-filter="filterEventsLocal"
+        :api-filter="filterEventsApi"
+        :use-query-params-for-simple-filtering="false"
         :headers="eventHeaders"
-        key-field="id"
-        :search="false"
-        :table-actions="false"
-        :row-actions="false"
-        default-sort-by="date"
+        :paginationHeaders="paginationHeaders"
+        :namespaced="false"
       />
     </Tab>
 
@@ -244,26 +292,6 @@ export default {
         :ignore-types="[value.type]"
         :value="value"
         direction="to"
-      />
-    </Tab>
-
-    <!-- Extension tabs -->
-    <Tab
-      v-for="tab, i in extensionTabs"
-      :key="`${tab.name}${i}`"
-      :name="tab.name"
-      :label="tab.label"
-      :label-key="tab.labelKey"
-      :weight="tab.weight"
-      :tooltip="tab.tooltip"
-      :show-header="tab.showHeader"
-      :display-alert-icon="tab.displayAlertIcon"
-      :error="tab.error"
-      :badge="tab.badge"
-    >
-      <component
-        :is="tab.component"
-        :resource="value"
       />
     </Tab>
   </Tabbed>

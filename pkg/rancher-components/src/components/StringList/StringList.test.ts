@@ -297,7 +297,7 @@ describe('stringList.vue', () => {
       await inputField.trigger('keydown.enter');
       await wrapper.vm.$nextTick();
 
-      const emitted = (wrapper.emitted('change') || [])[1][0][0];
+      const emitted = (wrapper.emitted('change') || [])[0][0][0];
 
       expect(emitted).toBe(validItem.trim());
     });
@@ -318,7 +318,7 @@ describe('stringList.vue', () => {
       await inputField.trigger('keydown.enter');
       await wrapper.vm.$nextTick();
 
-      const emitted = (wrapper.emitted('change') || [])[1][0][0];
+      const emitted = (wrapper.emitted('change') || [])[0][0][0];
 
       expect(emitted).toBe(validItem.trim());
     });
@@ -336,7 +336,7 @@ describe('stringList.vue', () => {
       await inputField.trigger('keydown.enter');
       await wrapper.vm.$nextTick();
 
-      expect(wrapper.emitted('change')[1]).toBeFalsy();
+      expect(wrapper.emitted('change')).toBeFalsy();
     });
 
     it('reject a new item in create mode when item name is duplicate', async() => {
@@ -356,7 +356,7 @@ describe('stringList.vue', () => {
       await inputField.trigger('keydown.enter');
       await wrapper.vm.$nextTick();
 
-      expect(wrapper.emitted('change')[1]).toBeFalsy();
+      expect(wrapper.emitted('change')).toBeFalsy();
     });
 
     it('reject an item in edit mode when item name is empty', async() => {
@@ -375,7 +375,7 @@ describe('stringList.vue', () => {
       await inputField.trigger('keydown.enter');
       await wrapper.vm.$nextTick();
 
-      expect(wrapper.emitted('change')[1]).toBeFalsy();
+      expect(wrapper.emitted('change')).toBeFalsy();
     });
 
     it('reject an item in edit mode when item name is duplicate', async() => {
@@ -394,7 +394,7 @@ describe('stringList.vue', () => {
       await inputField.trigger('keydown.enter');
       await wrapper.vm.$nextTick();
 
-      expect(wrapper.emitted('change')[1]).toBeFalsy();
+      expect(wrapper.emitted('change')).toBeFalsy();
     });
   });
 
@@ -428,7 +428,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[1][0];
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -485,7 +485,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[1][0];
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -504,7 +504,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[1][0];
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -523,7 +523,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[1][0];
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -555,7 +555,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[1][0];
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -607,7 +607,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[1][0];
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -625,7 +625,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[1][0];
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -643,7 +643,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[1][0];
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });
@@ -661,7 +661,7 @@ describe('stringList.vue', () => {
         await inputField.trigger('keydown.enter');
         await wrapper.vm.$nextTick();
 
-        const itemsResult = (wrapper.emitted('change') || [])[1][0];
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
 
         expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
       });

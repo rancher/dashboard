@@ -9,7 +9,13 @@ describe('view: PersistentVolume', () => {
     };
     const resource = 'PersistentVolume';
     const wrapper = mount(PersistentVolume as ExtendedVue<Vue, {}, {}, {}, PersistentVolume>, {
-      props: { value: { spec: { } } },
+      props: {
+        value: {
+          setAnnotation: jest.fn(),
+          spec:          {},
+          metadata:      {},
+        }
+      },
 
       global: {
         mocks: {
@@ -54,7 +60,13 @@ describe('view: PersistentVolume', () => {
     const plugin = 'csi';
     const resource = 'PersistentVolume';
     const wrapper = mount(PersistentVolume as ExtendedVue<Vue, {}, {}, {}, PersistentVolume>, {
-      props:  { value: { spec: { [plugin]: { value: plugin } } } },
+      props: {
+        value: {
+          setAnnotation: jest.fn(),
+          spec:          { [plugin]: { value: plugin } },
+          metadata:      {},
+        }
+      },
       global: {
         mocks: {
           $store: {

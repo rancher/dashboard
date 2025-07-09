@@ -64,7 +64,9 @@ export default defineComponent({
       v-if="icon"
       class="icon"
       :class="{[icon]: true, 'mr-5': !!msg}"
-    />{{ msg }}
+    />
+    <span class="msg">{{ msg }}</span>
+    <slot name="content-right" />
   </span>
 </template>
 
@@ -93,6 +95,13 @@ export default defineComponent({
       color: var(--success);
       background: transparent;
       border-color: var(--success);
+    }
+
+    // Added badge-disabled instead of bg-disabled since bg-disabled is used in other places with !important styling, an investigation is needed to make the naming consistent
+    &.badge-disabled {
+      color: var(--badge-state-disabled-text);
+      background-color: var( --badge-state-disabled-bg);
+      border: 1px solid var(--badge-state-disabled-border);
     }
   }
 </style>

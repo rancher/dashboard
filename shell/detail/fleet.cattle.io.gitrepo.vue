@@ -1,14 +1,14 @@
 <script>
+import { mapState } from 'vuex';
 import Loading from '@shell/components/Loading';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import FleetSummary from '@shell/components/fleet/FleetSummary';
 import { Banner } from '@components/Banner';
 import FleetResources from '@shell/components/fleet/FleetResources';
 import Tab from '@shell/components/Tabbed/Tab';
-import { FLEET } from '@shell/config/types';
+import { FLEET, MANAGEMENT } from '@shell/config/types';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import FleetBundles from '@shell/components/fleet/FleetBundles.vue';
-import { resourceCounts } from '@shell/components/ResourceSummary.vue';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 export default {
@@ -35,14 +35,21 @@ export default {
 
   data() {
     return {
-      allFleetClusters:     [],
-      allBundles:           [],
-      allBundleDeployments: [],
+      allFleetClusters: [],
+      allBundles:       [],
     };
   },
+
+  created() {
+    if (this.workspace !== this.value.namespace) {
+      this.$store.commit('updateWorkspace', { value: this.value.namespace, getters: this.$store.getters });
+    }
+  },
+
   computed: {
+    ...mapState(['workspace']),
     gitRepoHasClusters() {
-      return this.value.status.desiredReadyClusters;
+      return this.value.status?.desiredReadyClusters;
     },
     clusterSchema() {
       return this.$store.getters['management/schemaFor'](FLEET.CLUSTER);
@@ -57,9 +64,6 @@ export default {
       });
 
       return harvester;
-    },
-    bundleCounts() {
-      return resourceCounts(this.$store, FLEET.BUNDLE);
     },
     bundles() {
       const harvester = this.harvesterClusters;
@@ -82,12 +86,8 @@ export default {
     const allDispatches = await checkSchemasForFindAllHash({
       allBundles: {
         inStoreType: 'management',
-        type:        FLEET.BUNDLE
-      },
-
-      allBundleDeployments: {
-        inStoreType: 'management',
-        type:        FLEET.BUNDLE_DEPLOYMENT
+        type:        FLEET.BUNDLE,
+        opt:         { excludeFields: ['metadata.managedFields', 'spec.resources'] },
       },
 
       allFleetClusters: {
@@ -100,7 +100,10 @@ export default {
       }
     }, this.$store);
 
-    this.allBundleDeployments = allDispatches.allBundleDeployments || [];
+    if (this.value.authorId && this.$store.getters['management/schemaFor'](MANAGEMENT.USER)) {
+      await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER }, { root: true });
+    }
+
     this.allBundles = allDispatches.allBundles || [];
     this.allFleetClusters = allDispatches.allFleetClusters || [];
   },
@@ -125,7 +128,7 @@ export default {
       color="info"
       class="mb-20"
     >
-      {{ t('fleet.fleetSummary.noClustersGitRepo') }}
+      {{ t('fleet.fleetSummary.noClusters.gitRepo') }}
     </Banner>
     <ResourceTabs
       :value="value"
@@ -147,7 +150,7 @@ export default {
         name="resources"
         :weight="20"
       >
-        <FleetResources :value="value" />
+        <FleetResources :rows="value.resourcesStatuses" />
       </Tab>
     </ResourceTabs>
   </div>

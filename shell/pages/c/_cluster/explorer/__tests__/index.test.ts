@@ -3,6 +3,7 @@ import Dashboard from '@shell/pages/c/_cluster/explorer/index.vue';
 import { shallowMount } from '@vue/test-utils';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
+import { WORKLOAD_TYPES } from '@shell/config/types';
 
 describe('page: cluster dashboard', () => {
   const mountOptions = {
@@ -70,7 +71,7 @@ describe('page: cluster dashboard', () => {
   });
 
   describe.each([
-    ['local', 'fleet', true, ['fleetDeployment', 'fleetStatefulSet'], [
+    ['local', 'fleet', true, ['fleetControllerResource', 'fleetAgentResource'], [
       [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, '', 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, false, [{ status: 'False' }], 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, true, [{ status: 'True' }], 0, 0],
@@ -79,7 +80,7 @@ describe('page: cluster dashboard', () => {
       [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 1],
       [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, false, [{ status: 'True' }], 1, 0],
     ]],
-    ['downstream RKE2', 'fleet', false, ['fleetStatefulSet'], [
+    ['downstream RKE2', 'fleet', false, ['fleetAgentResource'], [
       [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, '', 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, false, [{ status: 'False' }], 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, true, [{ status: 'True' }], 0, 0],
@@ -88,7 +89,7 @@ describe('page: cluster dashboard', () => {
       [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 1],
       [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, false, [{ status: 'True' }], 1, 0],
     ]],
-    ['downstream RKE2', 'cattle', false, ['cattleDeployment'], [
+    ['downstream RKE2', 'cattle', false, ['cattleAgentResource'], [
       [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, '', 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, false, false, [{ status: 'False' }], 0, 0],
       [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, [{ status: 'True' }], 0, 0],
@@ -97,11 +98,87 @@ describe('page: cluster dashboard', () => {
       [STATES_ENUM.WARNING, 'icon-warning', true, false, false, [{ status: 'True' }], 0, 1],
       [STATES_ENUM.HEALTHY, 'icon-checkmark', true, false, false, [{ status: 'True' }], 1, 0],
     ]]
-  ])('%p cluster - %p agent health box', (_, agentId, isLocal, agentResources, statuses) => {
-    it.each(statuses)('should show %p status', (status, iconClass, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas) => {
+  ])('%p cluster - %p agent health box :', (_, agentId, isLocal, agentResources, statuses) => {
+    it.each(statuses)('should NOT show %p status due to missing canList permissions', (status, iconClass, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas) => {
       const options = clone(mountOptions);
 
       options.global.mocks.$store.getters.currentCluster.isLocal = isLocal;
+
+      const resources = agentResources.reduce((acc, r) => {
+        const agent = {
+          metadata: { state: { error } },
+          spec:     { replicas: 1 },
+          status:   {
+            readyReplicas,
+            unavailableReplicas,
+            conditions
+          }
+        };
+
+        return isLoaded ? {
+          ...acc,
+          [r]: agent
+        } : 'loading';
+      }, {});
+
+      const wrapper = shallowMount(Dashboard, {
+        ...options,
+        data: () => ({
+          ...resources,
+          disconnected,
+          canViewAgents: true
+        })
+      });
+
+      const box = wrapper.find(`[data-testid="k8s-service-${ agentId }"]`);
+
+      expect(box.exists()).toBe(false);
+    });
+  });
+
+  describe.each([
+    ['local', 'fleet', true, ['fleetControllerResource', 'fleetAgentResource'], [
+      [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, false, '', 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, false, [{ status: 'False' }], 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, true, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, true, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, false, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, false, false, [{ status: 'True' }], 0, 1],
+      [STATES_ENUM.HEALTHY, 'icon-checkmark', false, true, false, false, [{ status: 'True' }], 1, 0],
+    ]],
+    ['downstream RKE2', 'fleet', false, ['fleetAgentResource'], [
+      [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, false, '', 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, false, [{ status: 'False' }], 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, true, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, true, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, false, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, false, false, [{ status: 'True' }], 0, 1],
+      [STATES_ENUM.HEALTHY, 'icon-checkmark', false, true, false, false, [{ status: 'True' }], 1, 0],
+    ]],
+    ['downstream RKE2', 'cattle', false, ['cattleAgentResource'], [
+      [STATES_ENUM.IN_PROGRESS, 'icon-spinner', false, false, false, false, '', 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, false, [{ status: 'False' }], 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, true, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.UNHEALTHY, 'icon-warning', true, true, false, true, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, false, false, [{ status: 'True' }], 0, 0],
+      [STATES_ENUM.WARNING, 'icon-warning', true, true, false, false, [{ status: 'True' }], 0, 1],
+      [STATES_ENUM.HEALTHY, 'icon-checkmark', false, true, false, false, [{ status: 'True' }], 1, 0],
+    ]]
+  ])('%p cluster - %p agent health box ::', (_, agentId, isLocal, agentResources, statuses) => {
+    it.each(statuses)('should show %p status', async(status, iconClass, clickable, isLoaded, disconnected, error, conditions, readyReplicas, unavailableReplicas) => {
+      let agentRoute = null;
+
+      const options = clone(mountOptions);
+
+      options.global.mocks.$store.getters.currentCluster.isLocal = isLocal;
+
+      options.global.mocks.$store.getters['cluster/canList'] = (type: string) => !!(type === WORKLOAD_TYPES.DEPLOYMENT) || !!(type === WORKLOAD_TYPES.STATEFUL_SET);
+
+      options.global.mocks.$router = {
+        push: (route: any) => {
+          agentRoute = route;
+        }
+      };
 
       const resources = agentResources.reduce((acc, r) => {
         const agent = {
@@ -134,7 +211,12 @@ describe('page: cluster dashboard', () => {
 
       expect(box.element).toBeDefined();
       expect(box.element.classList).toContain(status);
+      expect(!!(box.element as any).$_popper).toBe(clickable);
       expect(icon.element.classList).toContain(iconClass);
+
+      await box.trigger('click');
+
+      expect(!!agentRoute).toBe(clickable);
     });
   });
 
@@ -146,9 +228,9 @@ describe('page: cluster dashboard', () => {
     const wrapper = shallowMount(Dashboard, {
       ...options,
       data: () => ({
-        cattleDeployment: 'loading',
-        disconnected:     false,
-        canViewAgents:    true
+        cattleAgentResource: 'loading',
+        disconnected:        false,
+        canViewAgents:       true
       })
     });
 

@@ -1,3 +1,5 @@
+process.env.TZ = 'UTC';
+
 module.exports = {
   preset:             'ts-jest',
   testEnvironment:    'jsdom',
@@ -37,12 +39,14 @@ module.exports = {
   transform: {
     '^.+\\.js$':   '<rootDir>/node_modules/babel-jest', // process js with `babel-jest`
     '.*\\.(vue)$': '<rootDir>/node_modules/@vue/vue3-jest', // process `*.vue` files with `vue-jest`
+    '^.+\\.vue$':  './vue3JestRegisterTs.js', // point to a  different transformer than vue-jest and call registerTs before exporting vue-jest
     '^.+\\.tsx?$': 'ts-jest', // process `*.ts` files with `ts-jest`
     '^.+\\.svg$':  '<rootDir>/svgTransform.js' // to mock `*.svg` files
   },
   snapshotSerializers: ['<rootDir>/node_modules/jest-serializer-vue'],
 
   // Coverage
+  coverageProvider:    'v8',
   coverageDirectory:   '<rootDir>/coverage/unit',
   coverageReporters:   ['json', 'text-summary'],
   collectCoverage:     false,

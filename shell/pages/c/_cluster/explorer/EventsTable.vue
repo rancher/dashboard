@@ -1,45 +1,74 @@
 <script>
 
-import SortableTable from '@shell/components/SortableTable';
 import { MESSAGE, NAME, OBJECT, REASON } from '@shell/config/table-headers';
 import { EVENT } from '@shell/config/types';
-import { fetchClusterResources } from './explorer-utils';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
+import { STEVE_EVENT_OBJECT, STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
+import { headerFromSchemaColString } from '@shell/store/type-map.utils';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
+
+const reason = {
+  ...REASON,
+  ...{ canBeVariable: true },
+  width: 130,
+};
+
+const eventHeaders = [
+  reason,
+  OBJECT,
+  MESSAGE,
+  NAME, {
+    name:        'date',
+    label:       'Date',
+    labelKey:    'clusterIndexPage.sections.events.date.label',
+    value:       'timestamp',
+    sort:        'timestamp:desc',
+    formatter:   'Date',
+    width:       220,
+    defaultSort: true,
+  },
+];
 
 export default {
-  components: { SortableTable },
-
-  async fetch() {
-    this.events = await fetchClusterResources(this.$store, EVENT);
-  },
+  components: { PaginatedResourceTable },
 
   data() {
-    const reason = {
-      ...REASON,
-      ...{ canBeVariable: true },
-      width: 130,
+    return {
+      schema:            null,
+      events:            [],
+      eventHeaders,
+      paginationHeaders: null,
+      allEventsLink:     {
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  EXPLORER,
+          resource: EVENT,
+        }
+      }
     };
+  },
 
-    const eventHeaders = [
+  beforeMount() {
+    const schema = this.$store.getters['cluster/schemaFor'](EVENT);
+
+    const paginationHeaders = schema ? [
       reason,
-      OBJECT,
+      STEVE_EVENT_OBJECT,
       MESSAGE,
-      NAME,
       {
-        name:        'date',
-        label:       'Date',
-        labelKey:    'clusterIndexPage.sections.events.date.label',
-        value:       'timestamp',
-        sort:        'timestamp:desc',
-        formatter:   'Date',
-        width:       220,
+        ...STEVE_NAME_COL,
+        defaultSort: false,
+      },
+      headerFromSchemaColString('First Seen', schema, this.$store.getters, true),
+      {
+        ...headerFromSchemaColString('Last Seen', schema, this.$store.getters, true),
         defaultSort: true,
       },
-    ];
+      headerFromSchemaColString('Count', schema, this.$store.getters, true),
+    ] : [];
 
-    return {
-      events: [],
-      eventHeaders,
-    };
+    this.schema = schema;
+    this.paginationHeaders = paginationHeaders;
   },
 
   mounted() {
@@ -63,16 +92,35 @@ export default {
 </script>
 
 <template>
-  <SortableTable
-    :loading="$fetchState.pending"
-    :rows="events"
+  <PaginatedResourceTable
+    v-if="!!schema"
+    :schema="schema"
     :headers="eventHeaders"
+    :pagination-headers="paginationHeaders"
+
     key-field="id"
     :search="false"
     :table-actions="false"
     :row-actions="false"
-    :paging="true"
+    :groupable="false"
     :rows-per-page="10"
-    default-sort-by="date"
-  />
+  >
+    <template v-slot:header-right>
+      <router-link
+        data-testid="events-link"
+        :to="allEventsLink"
+        class="events-link"
+      >
+        <span>{{ t('glance.eventsTable') }}</span>
+      </router-link>
+    </template>
+  </PaginatedResourceTable>
 </template>
+
+<style lang="scss" scoped>
+.events-link {
+  align-self: center;
+  padding-right: 20px;
+  white-space: nowrap;
+}
+</style>

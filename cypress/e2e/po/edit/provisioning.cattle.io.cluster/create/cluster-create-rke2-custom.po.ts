@@ -4,6 +4,7 @@ import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattl
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import RegistriesTabPo from '@/cypress/e2e/po/components/registries-tab.po';
 import NetworkTabPo from '@/cypress/e2e/po/components/network-tab.po';
+import AddonConfigPo from '@/cypress/e2e/po/components/addon-config.po';
 
 /**
  * Create page for an RKE2 custom cluster
@@ -26,7 +27,7 @@ export default class ClusterManagerCreateRke2CustomPagePo extends ClusterManager
   }
 
   title(): Cypress.Chainable<string> {
-    return this.self().find('.primaryheader h1').invoke('text');
+    return this.self().find('.title-bar h1.title, .primaryheader h1').invoke('text');
   }
 
   clusterConfigurationTabs(): TabbedPo {
@@ -43,5 +44,9 @@ export default class ClusterManagerCreateRke2CustomPagePo extends ClusterManager
 
   network(): NetworkTabPo {
     return new NetworkTabPo();
+  }
+
+  calicoAddonConfig(): AddonConfigPo {
+    return new AddonConfigPo();
   }
 }

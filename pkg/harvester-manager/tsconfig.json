@@ -44,7 +44,8 @@
     "**/*.ts",
     "**/*.tsx",
     "**/*.vue",
-    "../../shell/core/types.ts"
+    "../../shell/core/types.ts",
+    "../../shell/types/vue-shim.d.ts"
   ],
   "exclude": [
     "node_modules"

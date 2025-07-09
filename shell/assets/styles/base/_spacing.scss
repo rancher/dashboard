@@ -1,0 +1,29 @@
+// Text indent, margins, and paddings from 4-80px in 4px increments
+// e.g. pp-1 - {padding: 4px}
+// e.g. mmt-2 - {margin-top: 8px}
+$spacing-property-map: (
+    mm: margin,
+    mmt: margin-top,
+    mmr: margin-right,
+    mml: margin-left,
+    mmb: margin-bottom,
+    pp: padding,
+    ppt: padding-top,
+    ppb: padding-bottom,
+    ppl: padding-left,
+    ppr: padding-right,
+);
+
+@each $keyword, $property in $spacing-property-map {
+    .#{$keyword}-0 {
+        #{$property}: 0;
+    }
+
+    @for $size from 1 through 20 {
+        $val: $size * 4;
+
+        .#{$keyword}-#{$size} {
+            #{$property}: $val * 1px;
+        }
+    }
+}

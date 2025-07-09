@@ -22,7 +22,7 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
   });
 
   it('can create a Machine', function() {
-    MachinesPagePo.navTo();
+    MachinesPagePo.goTo();
     machinesPage.waitForPage();
     machinesPage.create();
 
@@ -44,7 +44,6 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
     machinesPage.createEditMachines().saveCreateForm().resourceYaml().saveOrCreate()
       .click();
     cy.wait('@createMachine').then((req) => {
-      resourceVersion = req.response?.body.metadata.resourceVersion;
       creationTimestamp = req.response?.body.metadata.creationTimestamp;
       time = req.response?.body.metadata.managedFields[0].time;
       uid = req.response?.body.metadata.uid;
@@ -58,6 +57,11 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
     machinesPage.waitForPage();
     machinesPage.list().actionMenu(this.machineName).getMenuItem('Edit YAML').click();
     machinesPage.createEditMachines(nsName, this.machineName).waitForPage('mode=edit&as=yaml');
+
+    cy.getRancherResource('v1', 'cluster.x-k8s.io.machines', `${ nsName }/${ this.machineName }`, 200).then((resp) => {
+      // Resource gets updated post create (finalizer added). So refetch it to get the correct resourceVersion
+      resourceVersion = resp.body.metadata.resourceVersion;
+    });
 
     cy.readFile('cypress/e2e/blueprints/cluster_management/machines-edit.yml').then((machineDoc) => {
       // convert yaml into json to update values
@@ -107,11 +111,21 @@ describe('Machines', { testIsolation: 'off', tags: ['@manager', '@adminUser'] },
 
     const promptRemove = new PromptRemove();
 
-    cy.intercept('DELETE', `v1/cluster.x-k8s.io.machines/${ nsName }/${ this.machineName }`).as('deleteCloudCred');
+    const machineName = `${ nsName }/${ this.machineName }`;
+
+    cy.intercept('DELETE', `v1/cluster.x-k8s.io.machines/${ machineName }`).as('deleteCloudCred');
 
     promptRemove.remove();
     cy.wait('@deleteCloudCred');
     machinesPage.waitForPage();
+
+    cy.getRancherResource('v1', 'cluster.x-k8s.io.machines', `${ machineName }`, 200).then((resp) => {
+      // Resource gets updated post create (finalizer added). So refetch it to get the correct resourceVersion
+      const resource = resp.body;
+
+      delete resource.metadata.finalizers;
+      cy.setRancherResource('v1', 'cluster.x-k8s.io.machines', `${ machineName }`, resource);
+    });
 
     // check list details
     cy.contains(this.machineName).should('not.exist');

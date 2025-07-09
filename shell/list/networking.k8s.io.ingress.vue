@@ -1,9 +1,8 @@
 <script>
-import ResourceTable from '@shell/components/ResourceTable';
-import ResourceFetch from '@shell/mixins/resource-fetch';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
+
 export default {
-  components: { ResourceTable },
-  mixins:     [ResourceFetch],
+  components: { PaginatedResourceTable },
   props:      {
     resource: {
       type:     String,
@@ -18,19 +17,23 @@ export default {
       default: false
     }
   },
-  async fetch() {
-    // pathExistsInSchema requires schema networking.k8s.io.ingress to have resources fields via schema definition but none were found. has the schema 'fetchResourceFields' been called?
-    await Promise.all([this.schema.fetchResourceFields(), this.$fetchType(this.resource)]);
+
+  methods: {
+    /**
+     * of type PagTableFetchSecondaryResources
+     */
+    async fetchSecondaryResources(opts) {
+      // pathExistsInSchema requires schema networking.k8s.io.ingress to have resources fields via schema definition but none were found. has the schema 'fetchResourceFields' been called?
+      await this.schema.fetchResourceFields();
+    }
   }
 };
 </script>
 
 <template>
-  <ResourceTable
+  <PaginatedResourceTable
     :schema="schema"
-    :rows="rows"
-    :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+    :fetchSecondaryResources="fetchSecondaryResources"
   />
 </template>

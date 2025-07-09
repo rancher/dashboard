@@ -1,6 +1,7 @@
 import { COUNT, FLEET, NORMAN } from '@shell/config/types';
 import { filterBy } from '@shell/utils/array';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 export default class Workspace extends HybridModel {
   get isLocal() {
@@ -14,7 +15,8 @@ export default class Workspace extends HybridModel {
     const out = {
       clusterGroups: summary[FLEET.CLUSTER_GROUP]?.namespaces?.[name]?.count || 0,
       clusters:      summary[FLEET.CLUSTER]?.namespaces?.[name]?.count || 0,
-      gitRepos:      summary[FLEET.GIT_REPO]?.namespaces?.[name]?.count || 0
+      gitRepos:      summary[FLEET.GIT_REPO]?.namespaces?.[name]?.count || 0,
+      helmOps:       summary[FLEET.HELM_OP]?.namespaces?.[name]?.count || 0
     };
 
     return out;
@@ -36,6 +38,13 @@ export default class Workspace extends HybridModel {
 
   get repos() {
     const all = this.$getters['all'](FLEET.GIT_REPO);
+    const forWorkspace = filterBy(all, 'namespace', this.id);
+
+    return forWorkspace;
+  }
+
+  get helmOps() {
+    const all = this.$getters['all'](FLEET.HELM_OP);
     const forWorkspace = filterBy(all, 'namespace', this.id);
 
     return forWorkspace;
@@ -82,5 +91,13 @@ export default class Workspace extends HybridModel {
     const norman = await this.norman;
 
     await norman.remove();
+  }
+
+  get confirmRemove() {
+    return true;
+  }
+
+  get systemAnnotations() {
+    return [FLEET_ANNOTATIONS.OCI_STORAGE_SECRET_DEFAULT];
   }
 }

@@ -93,6 +93,8 @@ corral config vars set azure_subscription_id "${AZURE_AKS_SUBSCRIPTION_ID}"
 corral config vars set azure_client_id "${AZURE_CLIENT_ID}"
 corral config vars set azure_client_secret "${AZURE_CLIENT_SECRET}"
 corral config vars set create_initial_clusters "${CREATE_INITIAL_CLUSTERS}"
+corral config vars set gke_service_account "${GKE_SERVICE_ACCOUNT}"
+corral config vars set percy_token "${PERCY_TOKEN}"
 
 create_initial_clusters() {
   shopt -u nocasematch
@@ -175,11 +177,19 @@ create_initial_clusters() {
   corral config vars set aws_hostname_prefix "jenkins-${prefix_random}-c"
   corral config vars delete instance_type
   corral config vars set bastion_ip ""
+
+  echo "Custom Node for RKE2 Cluster"
   corral create --skip-cleanup --recreate --debug customnode \
     "dist/aws-t3a.xlarge"
   corral config vars set custom_node_ip "$(corral vars customnode first_node_ip)"
   corral config vars set custom_node_key "$(corral vars customnode corral_private_key | base64 -w 0)"
 
+  echo "Custom Node for RKE1 Cluster"
+  corral create --skip-cleanup --recreate --debug customnoderke1 \
+    "dist/aws-t3a.xlarge"
+  corral config vars set custom_node_ip_rke1 "$(corral vars customnoderke1 first_node_ip)"
+  corral config vars set custom_node_key_rke1 "$(corral vars customnoderke1 corral_private_key | base64 -w 0)"
+  
   corral config vars set instance_type "${AWS_INSTANCE_TYPE}"
   corral config vars set aws_hostname_prefix "jenkins-${prefix_random}"
   echo "Corral Package string: ${K3S_KUBERNETES_VERSION}-${RANCHER_VERSION//v}-${CERT_MANAGER_VERSION}"
@@ -213,8 +223,7 @@ fi
 
 echo "Rancher type: ${RANCHER_TYPE}"
 
-override_node=$(semver lt "${RANCHER_VERSION}" "2.9.99")
-if [[ ${override_node} -eq 0 && "${RANCHER_IMAGE_TAG}" != "head" ]]; then NODEJS_VERSION="16.20.2"; fi
+if semver lt "${RANCHER_VERSION}" "2.9.99" && [[ "${RANCHER_IMAGE_TAG}" != "head" ]]; then NODEJS_VERSION="16.20.2"; fi
 
 corral config vars set rancher_type "${RANCHER_TYPE}"
 corral config vars set nodejs_version "${NODEJS_VERSION}"
@@ -224,7 +233,7 @@ corral config vars set dashboard_branch "${DASHBOARD_BRANCH}"
 # Disable vai where it doesn't exist or is turn off by default
 case "${RANCHER_IMAGE_TAG}" in
     "v2.7-head" | "v2.8-head" | "v2.9-head" )
-        CYPRESS_TAGS="${CYPRESS_TAGS}+-@vai"
+        CYPRESS_TAGS="${CYPRESS_TAGS}+-@noVai"
         ;;
     *)
 esac

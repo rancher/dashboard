@@ -163,6 +163,7 @@ export default {
         :show-tabs-add-remove="true"
         :default-tab="defaultTab"
         :flat="true"
+        :use-hash="useTabbedHash"
         data-testid="workload-horizontal-tabs"
         @changed="changed"
       >
@@ -178,6 +179,7 @@ export default {
             :side-tabs="true"
             :weight="99"
             :data-testid="`workload-container-tabs-${i}`"
+            :use-hash="useTabbedHash"
           >
             <Tab
               :label="t('workload.container.titles.general')"
@@ -262,8 +264,10 @@ export default {
                 <h3>
                   {{ t('workload.container.ports.expose') }}
                   <i
-                    v-clean-tooltip="t('workload.container.ports.toolTip')"
+                    v-clean-tooltip="{content: t('workload.container.ports.toolTip'), triggers: ['hover', 'touch', 'focus'] }"
+                    v-stripped-aria-label="t('workload.container.ports.toolTip')"
                     class="icon icon-info"
+                    tabindex="0"
                   />
                 </h3>
                 <p class="padded">
@@ -371,6 +375,7 @@ export default {
           <Tabbed
             data-testid="workload-general-tabs"
             :side-tabs="true"
+            :use-hash="useTabbedHash"
           >
             <Tab
               name="labels"
@@ -412,10 +417,11 @@ export default {
           <Tabbed
             data-testid="workload-pod-tabs"
             :side-tabs="true"
+            :use-hash="useTabbedHash"
           >
             <Tab
               :label="t('workload.storage.title')"
-              name="storage"
+              name="storage-pod"
               :weight="tabWeightMap['storage']"
               @active="$refs.storage.refresh()"
             >
@@ -597,6 +603,7 @@ export default {
               v-if="!isView"
               type="button"
               class="btn-sm role-link"
+              data-testid="workload-button-add-container"
               @click="addContainerBtn"
             >
               <i class="icon icon-plus pr-5" /> {{ t('workload.container.addContainer') }}

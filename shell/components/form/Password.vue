@@ -3,6 +3,7 @@ import { mapGetters } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { CHARSET, randomStr } from '@shell/utils/string';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
+import { _CREATE } from '@shell/config/query-params';
 
 export default {
   emits: ['update:value', 'blur'],
@@ -36,6 +37,10 @@ export default {
     ignorePasswordManagers: {
       default: false,
       type:    Boolean,
+    },
+    mode: {
+      type:    String,
+      default: _CREATE,
     }
   },
   data() {
@@ -63,6 +68,9 @@ export default {
       }
 
       return attributes;
+    },
+    hideShowLabel() {
+      return this.reveal ? this.t('action.hide') : this.t('action.show');
     }
   },
   watch: {
@@ -87,6 +95,9 @@ export default {
     },
     focus() {
       this.$refs.input.$refs.value.focus();
+    },
+    hideShowFn() {
+      this.reveal ? this.reveal = false : this.reveal = true;
     }
   }
 };
@@ -104,6 +115,7 @@ export default {
       :required="required"
       :disabled="isRandom"
       :ignore-password-managers="ignorePasswordManagers"
+      :mode="mode"
       @blur="$emit('blur', $event)"
     >
       <template #suffix>
@@ -121,17 +133,16 @@ export default {
           class="addon"
         >
           <a
-            v-if="reveal"
-            tabindex="-1"
             href="#"
-            @click.prevent.stop="reveal = false"
-          >{{ t('action.hide') }}</a>
-          <a
-            v-else
-            tabindex="-1"
-            href="#"
-            @click.prevent.stop="reveal=true"
-          >{{ t('action.show') }}</a>
+            tabindex="0"
+            class="hide-show"
+            role="button"
+            :aria-label="reveal ? t('action.ariaLabel.hidePass', { area: label }) : t('action.ariaLabel.showPass', { area: label })"
+            @click.prevent.stop="hideShowFn"
+            @keyup.space.prevent.stop="hideShowFn"
+          >
+            {{ hideShowLabel }}
+          </a>
         </div>
       </template>
     </LabeledInput>
@@ -151,10 +162,19 @@ export default {
   .password {
     display: flex;
     flex-direction: column;
+
     .labeled-input {
       .addon {
-          padding-left: 12px;
-          min-width: 65px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-left: 12px;
+        min-width: 65px;
+
+        .hide-show:focus-visible {
+          @include focus-outline;
+          outline-offset: 4px;
+        }
       }
     }
     .genPassword {

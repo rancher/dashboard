@@ -117,6 +117,7 @@ export default class GlobalRole extends SteveDescriptionModel {
       norman.id = this.id;
       norman.name = this.displayName;
       norman.description = this.description;
+      norman.inheritedClusterRoles = this.inheritedClusterRoles;
 
       return norman;
     })();

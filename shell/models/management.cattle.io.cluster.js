@@ -90,10 +90,6 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get provisioner() {
-    if (this.status?.provider ) {
-      return this.status.provider;
-    }
-
     // For imported K3s clusters, this.status.driver is 'k3s.'
     return this.status?.driver ? this.status.driver : 'imported';
   }
@@ -110,17 +106,14 @@ export default class MgmtCluster extends SteveModel {
     return null;
   }
 
-  get rkeTemplateVersion() {
-    return this.spec?.clusterTemplateRevisionName;
-  }
-
   get providerForEmberParam() {
     // Ember wants one word called provider to tell what component to show, but has much indirect mapping to figure out what it is.
     let provider;
-    // Provisioner is the "<something>Config" in the model
+
+    //  provisioner is status.driver
     const provisioner = KONTAINER_TO_DRIVER[(this.provisioner || '').toLowerCase()] || this.provisioner;
 
-    if ( provisioner === 'rancherKubernetesEngine' || provisioner === 'rke') {
+    if ( provisioner === 'rancherKubernetesEngine') {
       // Look for a cloud provider in one of the node templates
       if ( this.machinePools?.[0] ) {
         provider = this.machinePools[0]?.nodeTemplate?.spec?.driver || null;
@@ -139,14 +132,6 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get emberEditPath() {
-    let clusterTemplateRevision;
-
-    // If the RKE1 cluster is created from an RKE template, we need
-    // to get the template version to pass into the Ember UI for
-    // the iFramed edit cluster form
-    if (this.rkeTemplateVersion) {
-      clusterTemplateRevision = this.rkeTemplateVersion;
-    }
     const provider = this.providerForEmberParam;
 
     // Avoid passing falsy values as query parameters
@@ -154,10 +139,6 @@ export default class MgmtCluster extends SteveModel {
 
     if (provider) {
       qp['provider'] = provider;
-    }
-
-    if (clusterTemplateRevision) {
-      qp['clusterTemplateRevision'] = clusterTemplateRevision;
     }
 
     // Copied out of https://github.com/rancher/ui/blob/20f56dc54c4fc09b5f911e533cb751c13609adaf/app/models/cluster.js#L844
@@ -169,10 +150,6 @@ export default class MgmtCluster extends SteveModel {
        // || something for aks v2
     ) {
       qp.importProvider = KONTAINER_TO_DRIVER[provider];
-    }
-
-    if ( this.clusterTemplateRevisionId ) {
-      qp.clusterTemplateRevision = this.clusterTemplateRevisionId;
     }
 
     const path = addParams(`/c/${ escape(this.id) }/edit`, qp);
@@ -299,6 +276,11 @@ export default class MgmtCluster extends SteveModel {
     return this.providerLogo;
   }
 
+  // Color to use as the underline for the icon in the app bar
+  get iconColor() {
+    return this.metadata?.annotations[CLUSTER_BADGE.COLOR];
+  }
+
   // Custom badge to show for the Cluster (if the appropriate annotations are set)
   get badge() {
     const icon = this.metadata?.annotations?.[CLUSTER_BADGE.ICON_TEXT];
@@ -308,7 +290,7 @@ export default class MgmtCluster extends SteveModel {
       return undefined;
     }
 
-    let color = this.metadata?.annotations[CLUSTER_BADGE.COLOR] || DEFAULT_BADGE_COLOR;
+    let color = this.iconColor || DEFAULT_BADGE_COLOR;
     const iconText = this.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || '';
     let foregroundColor;
 

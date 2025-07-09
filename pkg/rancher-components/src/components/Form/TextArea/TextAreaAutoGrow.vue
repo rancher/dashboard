@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent, inject, PropType } from 'vue';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 interface NonReactiveProps {
@@ -79,6 +79,8 @@ export default defineComponent({
       default: false
     }
   },
+
+  emits: ['update:value', 'paste', 'focus', 'blur'],
 
   setup() {
     const queueResize = inject('queueResize', provideProps.queueResize);

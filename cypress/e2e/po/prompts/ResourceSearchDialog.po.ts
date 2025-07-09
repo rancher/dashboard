@@ -15,7 +15,7 @@ const CMD_K_KEY = {
 
 export default class ResourceSearchDialog extends ComponentPo {
   constructor() {
-    super('[data-modal="searchModal"]');
+    super('[data-testid="search-modal"]');
   }
 
   open() {
@@ -32,5 +32,21 @@ export default class ResourceSearchDialog extends ComponentPo {
 
   results() {
     return this.self().get('.results li.child .label');
+  }
+
+  /**
+   * Use the resource search dialog to go to a specific resource page
+   */
+  static goToResource(name: string) {
+    const dialog = new ResourceSearchDialog();
+
+    dialog.open();
+    dialog.checkExists();
+    dialog.checkVisible();
+
+    dialog.searchBox().type(name);
+    dialog.results().should('have.length', 1);
+    dialog.results().first().should('have.text', name);
+    dialog.results().first().click();
   }
 }

@@ -379,7 +379,7 @@ export default defineComponent({
         <div class="text-label">
           {{ t('aks.nodePools.taints.label') }}
           <i
-            v-tooltip="t('aks.nodePools.taints.tooltip')"
+            v-clean-tooltip="t('aks.nodePools.taints.tooltip')"
             class="icon icon-info"
           />
         </div>
@@ -387,26 +387,28 @@ export default defineComponent({
           v-if="(taints && taints.length) || isView"
           class="taints"
         >
-          <tr>
-            <th>
-              <label class="text-label">
-                {{ t('aks.nodePools.taints.key') }}
-                <span class="text-error">*</span>
-              </label>
-            </th>
-            <th>
-              <label class="text-label">
-                {{ t('aks.nodePools.taints.value') }}
-                <span class="text-error">*</span>
-              </label>
-            </th>
-            <th>
-              <label class="text-label">
-                {{ t('aks.nodePools.taints.effect') }}
-              </label>
-            </th>
-            <th />
-          </tr>
+          <thead>
+            <tr>
+              <th>
+                <label class="text-label">
+                  {{ t('aks.nodePools.taints.key') }}
+                  <span class="text-error">*</span>
+                </label>
+              </th>
+              <th>
+                <label class="text-label">
+                  {{ t('aks.nodePools.taints.value') }}
+                  <span class="text-error">*</span>
+                </label>
+              </th>
+              <th>
+                <label class="text-label">
+                  {{ t('aks.nodePools.taints.effect') }}
+                </label>
+              </th>
+              <th />
+            </tr>
+          </thead>
           <template v-if="taints && taints.length">
             <Taint
               v-for="(keyedTaint, i) in taints"
@@ -455,7 +457,7 @@ export default defineComponent({
         <div class="text-label">
           {{ t('labels.labels.title') }}
           <i
-            v-tooltip="t('aks.nodePools.labels.tooltip')"
+            v-clean-tooltip="t('aks.nodePools.labels.tooltip')"
             class="icon icon-info"
           />
         </div>

@@ -141,6 +141,9 @@ export default {
       const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
 
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
+    },
+    customLinkColor() {
+      return { color: this.uiLinkColor };
     }
   },
 
@@ -564,7 +567,7 @@ export default {
           component-testid="link"
         />
         <span class="col link-example">
-          <a>
+          <a :style="customLinkColor">
             {{ t('branding.linkColor.example') }}
           </a>
         </span>

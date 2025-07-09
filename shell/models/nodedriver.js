@@ -3,7 +3,10 @@ import Driver from '@shell/models/driver';
 /**
  * Overrides for spec.addCloudCredential
  */
-export const CLOUD_CREDENTIAL_OVERRIDE = { nutanix: true };
+export const CLOUD_CREDENTIAL_OVERRIDE = {
+  nutanix: true,
+  oci:     true
+};
 
 export default class NodeDriver extends Driver {
   get doneRoute() {
@@ -18,7 +21,7 @@ export default class NodeDriver extends Driver {
         icon:       'icon icon-play',
         bulkable:   true,
         bulkAction: 'activateBulk',
-        enabled:    !!this.actions.activate && this.state === 'inactive',
+        enabled:    !!this.actions?.activate && this.state === 'inactive',
       },
       {
         action:     'deactivate',
@@ -26,7 +29,7 @@ export default class NodeDriver extends Driver {
         icon:       'icon icon-pause',
         bulkable:   true,
         bulkAction: 'deactivateBulk',
-        enabled:    !!this.actions.deactivate && this.state === 'active',
+        enabled:    !!this.actions?.deactivate && this.state === 'active',
         weight:     -1,
       },
       { divider: true },
@@ -77,14 +80,17 @@ export default class NodeDriver extends Driver {
     return this.$dispatch('rancher/request', {
       url:    `v3/nodeDrivers/${ escape(this.id) }?action=activate`,
       method: 'post',
-    }, { root: true });
+    }, { root: true }).catch((err) => {
+      this.$dispatch('growl/fromError', { title: this.t('drivers.error.activate', { name: this.nameDisplay }), err }, { root: true });
+    });
   }
 
   async activateBulk(resources) {
     await Promise.all(resources.map((resource) => this.$dispatch('rancher/request', {
       url:    `v3/nodeDrivers/${ escape(resource.id) }?action=activate`,
       method: 'post',
-    }, { root: true }
-    )));
+    }, { root: true }).catch((err) => {
+      this.$dispatch('growl/fromError', { title: this.t('drivers.error.activate', { name: resource.nameDisplay }), err }, { root: true });
+    })));
   }
 }

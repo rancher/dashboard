@@ -5,7 +5,7 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 export default {
   name: 'CodeMirror',
 
-  emits: ['onReady', 'onInput', 'onChanges', 'onFocus'],
+  emits: ['onReady', 'onInput', 'onChanges', 'onFocus', 'validationChanged'],
 
   props: {
     /**
@@ -36,9 +36,13 @@ export default {
 
   data() {
     return {
-      codeMirrorRef:   null,
-      loaded:          false,
-      removeKeyMapBox: false,
+      codeMirrorRef:          null,
+      loaded:                 false,
+      removeKeyMapBox:        false,
+      hasLintErrors:          false,
+      currFocusedElem:        undefined,
+      isCodeMirrorFocused:    false,
+      codeMirrorContainerRef: undefined
     };
   },
 
@@ -65,6 +69,7 @@ export default {
         foldGutter:              true,
         styleSelectedText:       true,
         showCursorWhenSelecting: true,
+        autocorrect:             false,
       };
 
       if (this.asTextArea) {
@@ -75,6 +80,15 @@ export default {
       }
 
       Object.assign(out, this.options);
+
+      // parent components control lint with a boolean; if linting is enabled, we need to override that boolean with a custom error handler to wire lint errors into dashboard validation
+      if (this.options?.lint) {
+        out.lint = { onUpdateLinting: this.handleLintErrors };
+      }
+
+      // fixes https://github.com/rancher/dashboard/issues/13653
+      // we can't use the inert HTML prop on the parent because it disables all interaction
+      out.readOnly = !!this.isDisabled;
 
       return out;
     },
@@ -91,6 +105,14 @@ export default {
 
     isNonDefaultKeyMap() {
       return this.combinedOptions?.keyMap !== 'sublime';
+    },
+
+    isCodeMirrorContainerFocused() {
+      return this.currFocusedElem === this.codeMirrorContainerRef;
+    },
+
+    codeMirrorContainerTabIndex() {
+      return this.isCodeMirrorFocused ? 0 : -1;
     }
   },
 
@@ -104,7 +126,76 @@ export default {
     }
   },
 
+  async mounted() {
+    const el = this.$refs.codeMirrorContainer;
+
+    el.addEventListener('keydown', this.handleKeyPress);
+    this.codeMirrorContainerRef = this.$refs.codeMirrorContainer;
+  },
+
+  beforeUnmount() {
+    const el = this.$refs.codeMirrorContainer;
+
+    el.removeEventListener('keydown', this.handleKeyPress);
+  },
+
+  watch: {
+    hasLintErrors(neu) {
+      this.$emit('validationChanged', !neu);
+    },
+
+    isCodeMirrorContainerFocused: {
+      handler(neu) {
+        const codeMirrorEl = this.codeMirrorRef?.getInputField();
+
+        if (codeMirrorEl) {
+          codeMirrorEl.tabIndex = neu ? -1 : 0;
+        }
+      },
+      immediate: true
+    }
+  },
+
   methods: {
+    focusChanged(ev, isBlurred = false) {
+      if (isBlurred) {
+        this.currFocusedElem = undefined;
+      } else {
+        this.currFocusedElem = ev.target;
+      }
+    },
+
+    handleKeyPress(ev) {
+      // allows pressing escape in the editor, useful for modal editing with vim
+      if (this.isCodeMirrorFocused && ev.code === 'Escape') {
+        ev.preventDefault();
+        ev.stopPropagation();
+      }
+
+      // make focus leave the editor for it's parent container so that we can tab
+      const didPressEscapeSequence = ev.shiftKey && ev.code === 'Escape';
+
+      if (this.isCodeMirrorFocused && didPressEscapeSequence) {
+        this.$refs?.codeMirrorContainer?.focus();
+      }
+
+      // if parent container is focused and we press a trigger, focus goes to the editor inside
+      if (this.isCodeMirrorContainerFocused && (ev.code === 'Enter' || ev.code === 'Space')) {
+        this.codeMirrorRef.focus();
+      }
+    },
+    /**
+     * Codemirror yaml linting uses js-yaml parse
+     * it does not distinguish between warnings and errors so we will treat all yaml lint messages as errors
+     * other codemirror linters (eg json) will report from, to, severity where severity may be 'warning' or 'error'
+     * only 'error' level linting will trigger a validation event from this component
+    */
+    handleLintErrors(diagnostics = []) {
+      const hasLintErrors = diagnostics.filter((d) => !d.severity || d.severity === 'error').length > 0;
+
+      this.hasLintErrors = hasLintErrors;
+    },
+
     focus() {
       if ( this.$refs.codeMirrorRef ) {
         this.$refs.codeMirrorRef.cminstance.focus();
@@ -118,6 +209,8 @@ export default {
     },
 
     onReady(codeMirrorRef) {
+      this.$emit('validationChanged', true);
+
       this.$nextTick(() => {
         codeMirrorRef.refresh();
         this.codeMirrorRef = codeMirrorRef;
@@ -134,10 +227,12 @@ export default {
     },
 
     onFocus() {
-      this.$emit('onFocus', true);
+      this.isCodeMirrorFocused = true;
+      this.$emit('onFocus', this.isCodeMirrorFocused);
     },
 
     onBlur() {
+      this.isCodeMirrorFocused = false;
       this.$emit('onFocus', false);
     },
 
@@ -156,8 +251,12 @@ export default {
 
 <template>
   <div
-    class="code-mirror"
+    ref="codeMirrorContainer"
+    :tabindex="codeMirrorContainerTabIndex"
+    class="code-mirror code-mirror-container"
     :class="{['as-text-area']: asTextArea}"
+    @focusin="focusChanged"
+    @blur="focusChanged($event, true)"
   >
     <div v-if="loaded">
       <div
@@ -177,6 +276,7 @@ export default {
         </div>
       </div>
       <Codemirror
+        id="code-mirror-el"
         ref="codeMirrorRef"
         :value="value"
         :options="combinedOptions"
@@ -188,6 +288,12 @@ export default {
         @focus="onFocus"
         @blur="onBlur"
       />
+      <span
+        v-show="isCodeMirrorFocused"
+        class="escape-text"
+        role="alert"
+        :aria-describedby="t('wm.containerShell.escapeText')"
+      >{{ t('codeMirror.escapeText') }}</span>
     </div>
     <div v-else>
       Loading...
@@ -199,6 +305,10 @@ export default {
   $code-mirror-animation-time: 0.1s;
 
   .code-mirror {
+    &.code-mirror-container:focus-visible {
+      @include focus-outline;
+    }
+
     &.as-text-area .codemirror-container{
       min-height: 40px;
       position: relative;
@@ -294,6 +404,14 @@ export default {
 
   .code-mirror {
     position: relative;
+    margin-bottom: 20px;
+
+    .escape-text {
+      font-size: 12px;
+      position: absolute;
+      bottom: -20px;
+      left: 0;
+    }
 
     .codemirror-container {
       z-index: 0;

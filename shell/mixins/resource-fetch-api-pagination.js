@@ -7,11 +7,27 @@ import paginationUtils from '@shell/utils/pagination-utils';
 import debounce from 'lodash/debounce';
 import { PaginationParamFilter, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
+import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 
 /**
  * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace
  */
 export default {
+
+  props: {
+    namespaced: {
+      type:    Boolean,
+      default: null, // Automatic from schema
+    },
+
+    /**
+     * Where in the ui this mixin is used. For instance the home page cluster list would be `home`
+     */
+    context: {
+      type:    String,
+      default: null,
+    },
+  },
 
   data() {
     return {
@@ -30,6 +46,10 @@ export default {
         filters:              [],
         projectsOrNamespaces: [],
       },
+
+      paginationFromList: null,
+
+      isPaginationManualRefreshEnabled: paginationUtils.isListManualRefreshEnabled({ rootGetters: this.$store.getters }),
     };
   },
 
@@ -43,19 +63,30 @@ export default {
       }
     },
 
+    /**
+     * Primary point that handles changes from either a table or the namespace filter
+     */
     paginationChanged(event) {
-      const searchFilters = event.filter.searchQuery ? event.filter.searchFields.map((field) => new PaginationFilterField({
+      if (!event) {
+        return;
+      }
+
+      this.paginationFromList = event;
+      const {
+        page, perPage, filter, sort, descending
+      } = event;
+      const searchFilters = filter.searchQuery ? filter.searchFields.map((field) => new PaginationFilterField({
         field,
-        value: event.filter.searchQuery,
+        value: filter.searchQuery,
         exact: false,
       })) : [];
 
       const pagination = new PaginationArgs({
-        page:     event.page,
-        pageSize: event.perPage,
-        sort:     event.sort?.map((field) => ({
+        page,
+        pageSize: perPage,
+        sort:     sort?.map((field) => ({
           field,
-          asc: !event.descending
+          asc: !descending
         })),
         projectsOrNamespaces: this.requestFilters.projectsOrNamespaces,
         filters:              [
@@ -65,32 +96,6 @@ export default {
       });
 
       this.debouncedSetPagination(pagination);
-    },
-
-    namespaceFilterChanged(neu) {
-      if (!this.canPaginate || !this.schema?.attributes?.namespaced) {
-        return;
-      }
-
-      const {
-        projectsOrNamespaces,
-        filters
-      } = stevePaginationUtils.createParamsFromNsFilter({
-        allNamespaces:                this.$store.getters[`${ this.currentProduct?.inStore }/all`](NAMESPACE),
-        selection:                    neu,
-        isAllNamespaces:              this.isAllNamespaces,
-        isLocalCluster:               this.$store.getters['currentCluster'].isLocal,
-        showDynamicRancherNamespaces: this.showDynamicRancherNamespaces,
-        productHidesSystemNamespaces: this.productHidesSystemNamespaces,
-      });
-
-      this.requestFilters.filters = filters;
-      this.requestFilters.projectsOrNamespaces = projectsOrNamespaces;
-
-      // Kick off a change
-      if (this.pPagination) {
-        this.debouncedSetPagination({ ...this.pPagination });
-      }
     },
 
     /**
@@ -108,6 +113,19 @@ export default {
       }
 
       return false;
+    },
+
+    calcCanPaginate() {
+      if (!this.resource) {
+        return false;
+      }
+
+      const args = {
+        id:      this.resource.id || this.resource,
+        context: this.context,
+      };
+
+      return this.$store.getters[`${ this.inStore }/paginationEnabled`]?.(args);
     }
   },
 
@@ -166,7 +184,7 @@ export default {
         return;
       }
 
-      return this.resource && this.$store.getters[`${ this.currentProduct?.inStore }/paginationEnabled`]?.(this.resource.id || this.resource);
+      return this.calcCanPaginate();
     },
 
     paginationResult() {
@@ -182,7 +200,7 @@ export default {
         return;
       }
 
-      return this.$store.getters[`${ this.currentProduct?.inStore }/havePage`](this.resource);
+      return this.$store.getters[`${ this.inStore }/havePage`](this.resource);
     },
 
     /**
@@ -197,6 +215,15 @@ export default {
       */
     showDynamicRancherNamespaces() {
       return this.$store.getters['prefs/get'](ALL_NAMESPACES);
+    },
+
+    isNamespaced() {
+      if (this.namespaced !== null) { // null is the default value
+        // This is an override, but only if it's set
+        return !!this.namespaced;
+      }
+
+      return this.schema?.attributes?.namespaced;
     }
   },
 
@@ -221,7 +248,7 @@ export default {
     namespaceFilters: {
       immediate: true,
       async handler(neu, old) {
-        if (!this.canPaginate || !this.schema?.attributes?.namespaced) {
+        if (!this.canPaginate || !this.isNamespaced) {
           return;
         }
 
@@ -249,8 +276,29 @@ export default {
           }
         }
 
-        this.namespaceFilterChanged(neu);
+        const {
+          projectsOrNamespaces,
+          filters
+        } = stevePaginationUtils.createParamsFromNsFilter({
+          allNamespaces:                this.$store.getters[`${ this.currentProduct?.inStore }/all`](NAMESPACE),
+          selection:                    neu,
+          isAllNamespaces:              this.isAllNamespaces,
+          isLocalCluster:               this.$store.getters['currentCluster'].isLocal,
+          showDynamicRancherNamespaces: this.showDynamicRancherNamespaces,
+          productHidesSystemNamespaces: this.productHidesSystemNamespaces,
+        });
+
+        this.requestFilters.filters = filters;
+        this.requestFilters.projectsOrNamespaces = projectsOrNamespaces;
       }
+    },
+
+    'requestFilters.filters'() {
+      this.paginationChanged(this.paginationFromList);
+    },
+
+    'requestFilters.projectsOrNamespaces'() {
+      this.paginationChanged(this.paginationFromList);
     },
 
     /**
@@ -298,7 +346,24 @@ export default {
         return;
       }
 
-      await this.fetchPageSecondaryResources();
+      await this.fetchPageSecondaryResources({
+        canPaginate: this.canPaginate, force: false, page: this.rows, pagResult: this.paginationResult
+      });
     }
   },
+
+  unmounted() {
+    if (this.havePaginated) {
+      // of type @STEVE_WATCH_PARAMS
+      const watchArgs = {
+        type: this.resource,
+        mode: STEVE_WATCH_MODE.RESOURCE_CHANGES,
+      };
+
+      this.$store.dispatch(`${ this.inStore }/forgetType`, this.resource, (watchParams) => {
+        return watchParams.type === watchArgs.type &&
+        watchParams.mode === watchArgs.type.mode;
+      });
+    }
+  }
 };

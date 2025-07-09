@@ -19,10 +19,11 @@ env:
 
 jobs:
   build-and-upload-hosted:
+    if: ${{ github.repository_owner == 'rancher' }}
     name: Build & Upload Hosted
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
@@ -69,7 +70,7 @@ jobs:
     name: Build & Upload Embedded
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
 

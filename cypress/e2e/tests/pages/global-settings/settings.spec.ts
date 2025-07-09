@@ -7,11 +7,14 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { settings } from '@/cypress/e2e/blueprints/global_settings/settings-data';
+import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 
 const settingsPage = new SettingsPagePo('local');
 const accountPage = new AccountPagePo();
 const createKeyPage = new CreateKeyPagePo();
 const clusterList = new ClusterManagerListPagePo();
+const userMenu = new UserMenuPo();
+const BANNER_TEXT = "Typical users will not need to change these. Proceed with caution, incorrect values can break your Explorer installation. Settings which have been customized from default settings are tagged 'Modified'.";
 
 describe('Settings', { testIsolation: 'off' }, () => {
   before(() => {
@@ -23,6 +26,12 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
 
     cy.title().should('eq', 'Rancher - Global Settings - Settings');
+  });
+
+  it('has the correct banner text', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    SettingsPagePo.navTo();
+
+    settingsPage.settingBanner().banner().contains(BANNER_TEXT);
   });
 
   it('can update engine-iso-url', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -42,6 +51,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
     });
     settingsPage.waitForPage();
     settingsPage.settingsValue('engine-iso-url').contains(settings['engine-iso-url'].new);
+    // Scroll to the setting
+    cy.get('.main-layout').scrollTo('bottom');
     settingsPage.modifiedLabel('engine-iso-url').should('be.visible'); // modified label should display after update
 
     // Reset
@@ -223,6 +234,9 @@ describe('Settings', { testIsolation: 'off' }, () => {
   });
 
   it('can update auth-token-max-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    userMenu.getMenuItem('Account & API Keys').should('be.visible'); // Flaky test. Check required menu item visible (and not hidden later on due to content of test)
+    userMenu.self().click();
+
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-token-max-ttl-minutes');

@@ -37,12 +37,29 @@ export default class ProductNavPo extends ComponentPo {
     return cy.get('.side-nav', LONG_TIMEOUT_OPT).should('exist').contains('.accordion.has-children', label, LONG_TIMEOUT_OPT).click();
   }
 
+  sideMenuEntryByLabelCount(label: string): Cypress.Chainable {
+    return this.sideMenuEntryByLabel(label).parent().find('.count').should('exist')
+      .invoke('text');
+  }
+
+  sideMenuEntryByLabel(label: string): Cypress.Chainable {
+    // The main chain below doesn't pick up additions, this is a workaround
+    cy.contains(label).should('exist', LONG_TIMEOUT_OPT);
+
+    return this.self().should('exist', LONG_TIMEOUT_OPT)
+      .find('.child.nav-type a .label')
+      .filter(`:contains("${ label }")`)
+      .filter((index, element) => {
+        // Only match exact text, not partial matches
+        return element.textContent.trim() === label;
+      });
+  }
+
   /**
    * Navigate to a side menu entry by label
    */
   navToSideMenuEntryByLabel(label: string): Cypress.Chainable {
-    return this.self().should('exist', LONG_TIMEOUT_OPT).find('.child.nav-type a .label').contains(label)
-      .click({ force: true });
+    return this.sideMenuEntryByLabel(label).click({ force: true });
   }
 
   /**
@@ -72,5 +89,13 @@ export default class ProductNavPo extends ComponentPo {
    */
   version() {
     return new VersionNumberPo('.side-menu .version');
+  }
+
+  /**
+   * Active navigation item
+   */
+  activeNavItem() {
+    return this.groups().get('.router-link-active').should('exist').invoke('text')
+      .then((s) => s.trim());
   }
 }

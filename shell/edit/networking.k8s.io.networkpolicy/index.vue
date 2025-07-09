@@ -7,14 +7,15 @@ import Tabbed from '@shell/components/Tabbed';
 import CruResource from '@shell/components/CruResource';
 import { Banner } from '@components/Banner';
 import Labels from '@shell/components/form/Labels';
-import { NAMESPACE, POD } from '@shell/config/types';
-import { convert, matching, simplify } from '@shell/utils/selector';
+import { POD } from '@shell/config/types';
+import { convert, simplify } from '@shell/utils/selector';
+import { matching } from '@shell/utils/selector-typed';
+
 import { Checkbox } from '@components/Form/Checkbox';
 import { addObject, removeObject } from '@shell/utils/array';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import PolicyRules from '@shell/edit/networking.k8s.io.networkpolicy/PolicyRules';
 import ResourceTable from '@shell/components/ResourceTable';
-import { allHash } from '@shell/utils/promise';
 
 const POLICY_TYPES = {
   INGRESS: 'Ingress',
@@ -42,14 +43,6 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    const hash = await allHash({
-      allPods:       this.$store.dispatch('cluster/findAll', { type: POD }),
-      allNamespaces: this.$store.dispatch('cluster/findAll', { type: NAMESPACE }),
-    });
-
-    this.allPods = hash.allPods;
-    this.allNamespaces = hash.allNamespaces;
-
     this.updateMatchingPods();
   },
 
@@ -75,11 +68,10 @@ export default {
     return {
       POD,
       matchingPods,
-      allPods:         [],
-      allNamespaces:   [],
       podTableHeaders: this.$store.getters['type-map/headersFor'](
         this.$store.getters['cluster/schemaFor'](POD)
       ),
+      inStore: this.$store.getters['currentProduct'].inStore,
     };
   },
 
@@ -127,6 +119,9 @@ export default {
         this.value.spec['policyTypes'] = policyTypes;
       }
     },
+    /**
+     * of type matchExpression aka `KubeLabelSelectorExpression[]`
+     */
     podSelectorExpressions: {
       get() {
         return convert(
@@ -146,20 +141,15 @@ export default {
   },
 
   methods: {
-    updateMatchingPods: throttle(function() {
-      // See https://github.com/rancher/dashboard/issues/10417, all pods bad, need to replace local selector somehow
-      const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value.metadata.namespace);
-      const match = matching(allInNamespace, this.podSelectorExpressions);
-      const matched = match.length || 0;
-      const sample = match[0]?.nameDisplay;
-
-      this.matchingPods = {
-        matched,
-        matches: match,
-        none:    matched === 0,
-        sample,
-        total:   allInNamespace.length,
-      };
+    updateMatchingPods: throttle(async function() {
+      this.matchingPods = await matching({
+        labelSelector: { matchExpressions: this.podSelectorExpressions },
+        type:          POD,
+        $store:        this.$store,
+        inStore:       this.inStore,
+        namespace:     this.value.metadata.namespace,
+        transient:     true,
+      });
     }, 250, { leading: true }),
   },
 };
@@ -185,7 +175,10 @@ export default {
 
     <div class="row mb-40">
       <div class="col span-12">
-        <Tabbed :side-tabs="true">
+        <Tabbed
+          :side-tabs="true"
+          :use-hash="useTabbedHash"
+        >
           <Tab
             name="ingress"
             label-key="networkpolicy.ingress.label"
@@ -207,8 +200,7 @@ export default {
               :value="value"
               type="ingress"
               :mode="mode"
-              :all-namespaces="allNamespaces"
-              :all-pods="allPods"
+              :use-tabbed-hash="useTabbedHash"
               @update:value="$emit('input', $event)"
             />
           </Tab>
@@ -232,8 +224,7 @@ export default {
               :value="value"
               type="egress"
               :mode="mode"
-              :all-namespaces="allNamespaces"
-              :all-pods="allPods"
+
               @update:value="$emit('input', $event)"
             />
           </Tab>

@@ -1,29 +1,34 @@
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, useStore } from 'vuex';
 import ResourceTable, { defaultTableSortGenerationFn } from '@shell/components/ResourceTable';
-import { STATE, AGE, NAME } from '@shell/config/table-headers';
+import {
+  STATE, AGE, NAME, NS_SNAPSHOT_QUOTA, DESCRIPTION
+} from '@shell/config/table-headers';
 import { uniq } from '@shell/utils/array';
-import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES } from '@shell/config/types';
+import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES, HCI } from '@shell/config/types';
 import { PROJECT_ID, FLAT_VIEW } from '@shell/config/query-params';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import Masthead from '@shell/components/ResourceList/Masthead';
-import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES } from '@shell/store/prefs';
-import MoveModal from '@shell/components/MoveModal';
+import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES, DEV } from '@shell/store/prefs';
 import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
-
+import { escapeHtml } from '@shell/utils/string';
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import DOMPurify from 'dompurify';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import perfSettingsUtils from '@shell/utils/perf-setting.utils';
+import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 
 export default {
   name:       'ListProjectNamespace',
   components: {
     ExtensionPanel,
     Masthead,
-    MoveModal,
     ResourceTable,
     ButtonMultiAction,
+    ActionMenu,
   },
   mixins: [ResourceFetch],
 
@@ -42,6 +47,7 @@ export default {
   async fetch() {
     const inStore = this.$store.getters['currentStore'](NAMESPACE);
 
+    this.harvesterResourceQuotaSchema = this.$store.getters[`${ inStore }/schemaFor`](HCI.RESOURCE_QUOTA);
     this.schema = this.$store.getters[`${ inStore }/schemaFor`](NAMESPACE);
     this.projectSchema = this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT);
 
@@ -56,10 +62,18 @@ export default {
     this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } });
   },
 
+  setup() {
+    const store = useStore();
+    const { featureDropdownMenu } = useRuntimeFlag(store);
+
+    return { featureDropdownMenu };
+  },
+
   data() {
     return {
       loadResources:                [NAMESPACE],
       loadIndeterminate:            true,
+      harvesterResourceQuotaSchema: null,
       schema:                       null,
       projects:                     [],
       projectSchema:                null,
@@ -76,9 +90,20 @@ export default {
       }
     };
   },
-
+  watch: {
+    actionCb: {
+      handler(neu) {
+        if (neu?.moveNamespaceCb) {
+          this.clearSelection();
+          this.$store.dispatch('action-menu/clearCallbackData');
+        }
+      },
+      immediate: true
+    }
+  },
   computed: {
     ...mapGetters(['currentCluster', 'currentProduct']),
+    ...mapGetters({ actionCb: 'action-menu/performCallbackData' }),
     namespaces() {
       const inStore = this.$store.getters['currentStore'](NAMESPACE);
 
@@ -88,25 +113,39 @@ export default {
       return !this.currentCluster || this.namespaces.length ? false : this.$fetchState.pending;
     },
     showIncrementalLoadingIndicator() {
-      return this.perfConfig?.incrementalLoading?.enabled;
+      return perfSettingsUtils.incrementalLoadingUtils.isEnabled(this.calcCanPaginate(), this.perfConfig);
     },
     isNamespaceCreatable() {
       return (this.schema?.collectionMethods || []).includes('POST');
     },
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === HARVESTER;
+    },
     headers() {
-      const project = {
-        name:  'project',
-        label: this.t('tableHeaders.project'),
-        value: 'project.nameDisplay',
-        sort:  ['projectNameSort', 'nameSort'],
-      };
-
-      return [
+      const headers = [
         STATE,
         NAME,
-        this.groupPreference === 'none' ? project : null,
-        AGE
-      ].filter((h) => h);
+        DESCRIPTION
+      ];
+
+      if (this.groupPreference === 'none') {
+        const projectHeader = {
+          name:  'project',
+          label: this.t('tableHeaders.project'),
+          value: 'project.nameDisplay',
+          sort:  ['projectNameSort', 'nameSort'],
+        };
+
+        headers.push(projectHeader);
+      }
+
+      if (this.isHarvester && this.harvesterResourceQuotaSchema) {
+        headers.push(NS_SNAPSHOT_QUOTA);
+      }
+
+      headers.push(AGE);
+
+      return headers;
     },
     projectIdsWithNamespaces() {
       const ids = this.rows
@@ -139,7 +178,7 @@ export default {
     rowsWithFakeNamespaces() {
       const fakeRows = this.projectsWithoutNamespaces.map((project) => {
         return {
-          groupByLabel:     `${ ('resourceTable.groupLabel.notInAProject') }-${ project.id }`,
+          groupById:        `${ ('resourceTable.groupLabel.notInAProject') }-${ project.id }`,
           isFake:           true,
           mainRowKey:       project.id,
           nameDisplay:      project.spec?.displayName, // Enable filtering by the project name
@@ -150,8 +189,8 @@ export default {
 
       if (this.showMockNotInProjectGroup) {
         fakeRows.push( {
-          groupByLabel: this.t('resourceTable.groupLabel.notInAProject'), // Same as the groupByLabel for the namespace model
-          mainRowKey:   'fake-empty',
+          groupById:  this.t('resourceTable.groupLabel.notInAProject'),
+          mainRowKey: 'fake-empty',
         });
       }
 
@@ -211,7 +250,15 @@ export default {
       return this.groupPreference === 'none' ? this.rows : this.rowsWithFakeNamespaces;
     },
     rows() {
-      if (this.$store.getters['prefs/get'](ALL_NAMESPACES)) {
+      let isDev;
+
+      try {
+        isDev = this.$store.getters['prefs/get'](ALL_NAMESPACES);
+      } catch {
+        isDev = this.$store.getters['prefs/get'](DEV);
+      }
+
+      if (isDev) {
         // If all namespaces options are turned on in the user preferences,
         // return all namespaces including system namespaces and RBAC
         // management namespaces.
@@ -249,6 +296,9 @@ export default {
     },
     showCreateNsButton() {
       return this.groupPreference !== 'namespace';
+    },
+    projectGroupBy() {
+      return this.groupPreference === 'none' ? null : 'groupById';
     }
   },
   methods: {
@@ -312,6 +362,10 @@ export default {
       return location;
     },
 
+    getProjectActions(group) {
+      return group.rows[0].project;
+    },
+
     showProjectAction(event, group) {
       const project = group.rows[0].project;
 
@@ -335,13 +389,25 @@ export default {
         );
       }
 
-      return row.groupByLabel;
+      if ( row.groupById === this.notInProjectKey) {
+        return this.t('resourceTable.groupLabel.notInAProject');
+      }
+
+      const project = row.project?.nameDisplay || row.project?.id || '';
+
+      return this.t('resourceTable.groupLabel.project', { name: escapeHtml(project) }, true);
     },
 
     projectDescription(group) {
       const project = group.rows[0].project;
 
       return project?.description;
+    },
+
+    projectResource(group) {
+      const row = group.rows[0];
+
+      return row.nameDisplay || row.id || '';
     },
 
     clearSelection() {
@@ -401,6 +467,7 @@ export default {
       :schema="schema"
       :headers="headers"
       :rows="filteredRows"
+      :group-by="projectGroupBy"
       :groupable="true"
       :sort-generation-fn="sortGenerationFn"
       :loading="loading"
@@ -427,7 +494,7 @@ export default {
               {{ projectDescription(group.group) }}
             </div>
           </div>
-          <div class="right">
+          <div class="right mr-10">
             <router-link
               v-if="isNamespaceCreatable && (canSeeProjectlessNamespaces || group.group.key !== notInProjectKey)"
               class="create-namespace btn btn-sm role-secondary mr-5"
@@ -435,12 +502,27 @@ export default {
             >
               {{ t('projectNamespaces.createNamespace') }}
             </router-link>
-            <ButtonMultiAction
-              class="project-action mr-10"
-              :borderless="true"
-              :invisible="!showProjectActionButton(group.group)"
-              @click="showProjectAction($event, group.group)"
-            />
+            <template v-if="featureDropdownMenu">
+              <ActionMenu
+                v-if="showProjectActionButton(group.group)"
+                :resource="getProjectActions(group.group)"
+                data-testid="action-button"
+                :button-aria-label="t('projectNamespaces.tableActionsLabel', { resource: projectResource(group.group) })"
+              />
+              <div
+                v-else
+                class="invisible"
+              />
+            </template>
+            <template v-else>
+              <ButtonMultiAction
+                class="project-action"
+                :borderless="true"
+                :aria-label="t('projectNamespaces.tableActionsLabel', { resource: projectResource(group.group) })"
+                :invisible="!showProjectActionButton(group.group)"
+                @click="showProjectAction($event, group.group)"
+              />
+            </template>
           </div>
         </div>
       </template>
@@ -501,10 +583,14 @@ export default {
         </tr>
       </template>
     </ResourceTable>
-    <MoveModal @moving="clearSelection" />
   </div>
 </template>
 <style lang="scss" scoped>
+.invisible {
+  display: inline-block;
+  min-width: 28px;
+}
+
 .project-namespaces {
   & :deep() {
     .project-namespaces-table table {

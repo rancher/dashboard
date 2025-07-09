@@ -4,6 +4,8 @@ import { EKSConfig, AWS } from '../types';
 import { _EDIT, _VIEW, _CREATE } from '@shell/config/query-params';
 import semver from 'semver';
 import { Store, mapGetters } from 'vuex';
+import { sortable } from '@shell/utils/version';
+import { sortBy } from '@shell/utils/sort';
 
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
@@ -104,7 +106,7 @@ export default defineComponent({
     const t = store.getters['i18n/t'];
 
     return {
-      kmsInfo:               {} as {Keys:AWS.KmsKey[]},
+      kmsKeys:               [] as AWS.KmsKey[],
       canReadKms:            false,
       supportedVersionRange,
       customServiceRole:     !!this.serviceRole && !!this.serviceRole.length,
@@ -180,7 +182,7 @@ export default defineComponent({
       return this.versionOptions.filter((opt) => !opt.disabled).length > 1;
     },
 
-    versionOptions(): {value: string, label: string, disabled?:boolean}[] {
+    versionOptions(): {value: string, label: string, sort?: string, disabled?:boolean}[] {
       return this.allKubernetesVersions.reduce((versions, v: string) => {
         const coerced = semver.coerce(v);
 
@@ -201,12 +203,17 @@ export default defineComponent({
           }
         }
 
-        return versions;
-      }, [] as {value: string, label: string, disabled?:boolean}[]);
+        // Generate sort field for each version
+        versions.forEach((v) => {
+          v.sort = sortable(v.value);
+        });
+
+        return sortBy(versions, 'sort', true);
+      }, [] as {value: string, label: string, sort?: string, disabled?:boolean}[]);
     },
 
     kmsOptions(): string[] {
-      return (this.kmsInfo?.Keys || []).map((k) => k.KeyArn);
+      return (this.kmsKeys || []).map((k) => k.KeyArn);
     }
   },
 
@@ -221,9 +228,7 @@ export default defineComponent({
       this.loadingVersions = true;
       try {
         const eksClient = await this.$store.dispatch('aws/eks', { region: this.config.region, cloudCredentialId: this.config.amazonCredentialSecret });
-
-        const res = await eksClient.describeAddonVersions({});
-        const addons = res?.addons;
+        const addons = await this.$store.dispatch('aws/depaginateList', { client: eksClient, cmd: 'describeAddonVersions' });
 
         if (!addons) {
           return;
@@ -257,7 +262,8 @@ export default defineComponent({
       const kmsClient = await store.dispatch('aws/kms', { region, cloudCredentialId: amazonCredentialSecret });
 
       try {
-        this.kmsInfo = await kmsClient.listKeys({});
+        this.kmsKeys = await this.$store.dispatch('aws/depaginateList', { client: kmsClient, cmd: 'listKeys' });
+
         this.canReadKms = true;
       } catch (e) {
         this.canReadKms = false;
@@ -388,17 +394,16 @@ export default defineComponent({
       </div>
     </div>
 
-    <div class="col span-6">
+    <div class="col span-6 mt-20">
       <KeyValue
         :value="tags"
         :mode="mode"
-        :title="t('eks.tags.label')"
         :as-map="true"
         :read-allowed="false"
         @update:value="$emit('update:tags', $event)"
       >
         <template #title>
-          <label class="text-label">{{ t('eks.tags.label') }}</label>
+          <h3 v-t="'eks.tags.label'" />
         </template>
       </KeyValue>
     </div>
