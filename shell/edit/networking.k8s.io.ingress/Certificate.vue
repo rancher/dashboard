@@ -35,12 +35,15 @@ export default {
       defaultCert,
       hosts,
       secretName,
+      secretVal: DEFAULT_CERT_VALUE,
     };
   },
   watch: {
     value(newVal) {
       this.hosts = newVal.hosts;
-    }
+      this.secretName = newVal.secretName;
+      this.secretVal = this.secretName === null ? DEFAULT_CERT_VALUE : this.secretName;
+    },
   },
   computed: {
     certsWithDefault() {
@@ -64,7 +67,7 @@ export default {
     update() {
       const out = { hosts: this.hosts };
 
-      out.secretName = this.secretName;
+      out.secretName = this.secretVal;
 
       if (out.secretName === DEFAULT_CERT_VALUE) {
         out.secretName = null;
@@ -73,7 +76,7 @@ export default {
       this.$emit('update:value', out);
     },
     onSecretInput(e) {
-      this.secretName = e && typeof e === 'object' ? e.label : e;
+      this.secretVal = e && typeof e === 'object' ? e.label : e;
       this.update();
     },
     onHostsInput(e) {
@@ -91,7 +94,7 @@ export default {
   >
     <div class="col span-6">
       <LabeledSelect
-        v-model:value="secretName"
+        v-model:value="secretVal"
         class="secret-name"
         :options="certsWithDefault"
         :label="t('ingress.certificates.certificate.label')"
