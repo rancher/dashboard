@@ -37,6 +37,11 @@ export default {
       secretName,
     };
   },
+  watch: {
+    value(newVal) {
+      this.hosts = newVal.hosts;
+    }
+  },
   computed: {
     certsWithDefault() {
       return [this.defaultCert, ...this.certs.map((c) => ({ label: c, value: c }))];
