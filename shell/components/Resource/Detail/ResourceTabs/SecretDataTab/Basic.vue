@@ -4,8 +4,8 @@ import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 
 export interface Row {
-    key: string;
-    value: string;
+    key?: string;
+    value?: string;
 }
 
 export interface Props {
