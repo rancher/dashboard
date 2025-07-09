@@ -257,7 +257,7 @@ export default defineComponent({
         nodeResourceGroupLength: resourceGroupLength(this, 'aks.nodeResourceGroup.label', 'config.nodeResourceGroup'),
         resourceGroupEnd:        resourceGroupEnd(this, 'aks.clusterResourceGroup.label', 'config.resourceGroup'),
         nodeResourceGroupEnd:    resourceGroupEnd(this, 'aks.nodeResourceGroup.label', 'config.nodeResourceGroup'),
-        ipv4WithOrWithoutCidr:   ipv4WithOrWithoutCidr(this, 'aks.authorizedIpRanges.label', 'config.authorizedIpRanges'),
+        ipv4WithOrWithoutCidr:   ipv4WithOrWithoutCidr(this),
         serviceCidr:             ipv4WithCidr(this, 'aks.serviceCidr.label', 'config.serviceCidr'),
         podCidr:                 ipv4WithCidr(this, 'aks.podCidr.label', 'config.podCidr'),
         dockerBridgeCidr:        ipv4WithCidr(this, 'aks.dockerBridgeCidr.label', 'config.dockerBridgeCidr'),
