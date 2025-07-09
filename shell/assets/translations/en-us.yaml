@@ -5795,13 +5795,6 @@ secret:
     'kubernetes.io/tls':
       description: Store a certificate and key for TLS
       docLink: https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
-  tabs:
-    namespaced:
-      label: Namespaced
-      create: Create Namespaced Secret
-    projectScoped:
-      label: Project Scoped
-      create: Create Project Scoped Secret
 
 selectOrCreateAuthSecret:
   label: Authentication
