@@ -28,6 +28,8 @@ SHELL_PROFILE="$HOME/.bashrc"
 echo "export PATH=\"$YARN_BIN_PATH:\$PATH\"" >> "$SHELL_PROFILE"
 source $SHELL_PROFILE
 
+echo $YARN_BIN_PATH >> $GITHUB_PATH
+
 if command_exists yarn; then
   echo "yarn installed"
   yarn --version
