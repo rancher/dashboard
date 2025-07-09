@@ -1,7 +1,6 @@
 <script lang="ts">
 import { defineComponent, h, VNode } from 'vue';
 import { useStore } from 'vuex';
-import { escapeHtml } from '@shell/utils/string';
 import { purifyHTML } from '@shell/plugins/clean-html';
 
 const ALLOWED_TAGS = ['b', 'i', 'span', 'a']; // Add more as needed
@@ -64,7 +63,7 @@ export default defineComponent({
       while ((match = regex.exec(rawStr)) !== null) {
         // Add the text before the current match as a plain text node.
         if (match.index > lastIndex) {
-          children.push(h('span', { innerHTML: escapeHtml(rawStr.substring(lastIndex, match.index)) }));
+          children.push(h('span', { innerHTML: purifyHTML(rawStr.substring(lastIndex, match.index)) }));
         }
 
         const enclosingTagName = match[1]; // Captures the tag name for enclosing tags (e.g., 'customLink' from <customLink>...</customLink>)
@@ -86,7 +85,7 @@ export default defineComponent({
             }
           } else {
             // Otherwise, render the tag and its content as plain HTML.
-            children.push(h('span', { innerHTML: escapeHtml(match[0]) }));
+            children.push(h('span', { innerHTML: purifyHTML(match[0]) }));
           }
         }
 
@@ -96,7 +95,7 @@ export default defineComponent({
 
       // Add any remaining text after the last match.
       if (lastIndex < rawStr.length) {
-        children.push(h('span', { innerHTML: escapeHtml(rawStr.substring(lastIndex)) }));
+        children.push(h('span', { innerHTML: purifyHTML(rawStr.substring(lastIndex)) }));
       }
 
       // Render the root element with the processed children.

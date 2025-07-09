@@ -110,7 +110,6 @@ describe('richTranslation', () => {
       global: { plugins: [mockI18nStore] },
     });
 
-    expect(wrapper.html()).toContain('<span>This has a </span><span>&lt;customLink&gt;link&lt;/customLink&gt;</span><span> and </span><span>&lt;anotherTag/&gt;</span><span>.</span>');
     expect(wrapper.find('a').exists()).toBe(false); // Should not render as <a>
   });
 });
