@@ -190,9 +190,8 @@ function closePanel() {
   width: 100vw;
 }
 .slide-in-glass-open {
-  background-color: var(--body-bg);
+  background: var(--overlay-bg);
   display: block;
-  opacity: 0.5;
 }
 
 .slide-in {
