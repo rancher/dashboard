@@ -495,7 +495,7 @@ export default {
       <div
         v-for="(workspace, i) in workspaces"
         :key="i"
-        class="card-container m-0 mt-20"
+        class="workspace-card-container m-0 mt-20"
         :data-testid="`fleet-dashboard-workspace-card-${ workspace.id }`"
         :show-actions="false"
         :show-separator="false"
@@ -755,7 +755,7 @@ export default {
   }
 }
 
-.card-container {
+.workspace-card-container {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);

@@ -3,8 +3,8 @@
 import { _EDIT } from '@shell/config/query-params';
 import { defineComponent } from 'vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import { getGKEClusters } from '../util/gcp';
-import type { getGKEClustersResponse } from '../types/gcp.d.ts';
+import { getGKEClusters } from '@shell/components/google/util/gcp';
+import type { getGKEClustersResponse } from '@shell/components/google/types/gcp.d.ts';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 

@@ -2,7 +2,6 @@
 import RulePath from '@shell/edit/networking.k8s.io.ingress/RulePath';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { random32 } from '@shell/utils/string';
-import debounce from 'lodash/debounce';
 
 export default {
   emits:      ['update:value', 'remove'],
@@ -41,19 +40,6 @@ export default {
       paths,
       ruleMode: this.value.asDefault ? 'asDefault' : 'setHost',
     };
-  },
-  watch: {
-    host: {
-      handler: debounce(function() {
-        this.update();
-      }, 500),
-    },
-    paths: {
-      handler: debounce(function() {
-        this.update();
-      }, 500),
-      deep: true
-    }
   },
   methods: {
     update() {
@@ -96,6 +82,7 @@ export default {
 
           path.focus();
         }
+        this.update();
       });
     },
     removePath(idx) {
@@ -103,6 +90,7 @@ export default {
 
       neu.splice(idx, 1);
       this.paths = neu;
+      this.update();
     },
     removeRule() {
       this.$emit('remove');
@@ -130,6 +118,7 @@ export default {
           :label="t('ingress.rules.requestHost.label')"
           :placeholder="t('ingress.rules.requestHost.placeholder')"
           :rules="rules.requestHost"
+          @update:value="update"
         />
       </div>
       <div
@@ -172,6 +161,7 @@ export default {
         :ingress="ingress"
         :rules="{path: rules.path, port: rules.port, target: rules.target}"
         @remove="(e) => removePath(i)"
+        @update:value="update"
       />
     </template>
     <button
