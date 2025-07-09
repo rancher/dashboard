@@ -200,6 +200,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
       - name: Setup env
         uses: ./.github/actions/setup
 
@@ -303,11 +304,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Node
-        uses: ./.github/actions/setup-node
-      
-      - name: Install packages
-        run: yarn install:ci
+
+      - name: Setup env
+        uses: ./.github/actions/setup
       
       - name: Run i18n string check
         run: |
@@ -321,11 +320,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Node
-        uses: ./.github/actions/setup-node
-      
-      - name: Install packages
-        run: yarn install:ci
+
+      - name: Setup env
+        uses: ./.github/actions/setup
       
       - name: Run check of all http links in the i18n files (broken link check)
         run: |
