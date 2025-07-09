@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-kubectl logs <pod−name> −c <container−name>
-
-
 DEPLOYMENT_NAME="$1"
 NAMESPACE="${2:-default}" # Default to 'default' namespace if not provided
 
