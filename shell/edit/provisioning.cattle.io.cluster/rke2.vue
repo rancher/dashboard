@@ -1596,10 +1596,8 @@ export default {
 
         if (!this.value?.metadata?.name) {
           const err = this.t('cluster.harvester.kubeconfigSecret.nameRequired');
-          const msg = this.t('cluster.harvester.kubeconfigSecret.error', { err });
 
-          this.errors.push(msg);
-          throw new Error(msg);
+          throw new Error(err);
         }
 
         if (clusterId && (this.isCreate || isUpgrade)) {
@@ -1634,7 +1632,8 @@ export default {
           set(this.userChartValues, `'${ harvesterCloudProviderKey }'.cloudConfigPath`, `${ distroRoot }/etc/config-files/cloud-provider-config`);
         }
       } catch (e) {
-        const msg = this.t('cluster.harvester.kubeconfigSecret.error', { err: [e?.errors || []].join('; ') });
+        const cause = e.errors ? e.errors.join('; ') : e?.message;
+        const msg = this.t('cluster.harvester.kubeconfigSecret.error', { err: cause });
 
         this.errors.push(msg);
         throw new Error(msg);
