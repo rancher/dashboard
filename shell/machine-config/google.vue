@@ -37,7 +37,7 @@ const defaultConfig = Object.freeze({
   openPort:                      [],
   vmLabels:                      '',
   username:                      'docker-user',
-  setInternalFirewallRulePrefix: false,
+  setInternalFirewallRulePrefix: true,
   setExternalFirewallRulePrefix: false
 });
 
