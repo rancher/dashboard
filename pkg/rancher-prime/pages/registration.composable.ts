@@ -318,7 +318,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * Get the registration request from the secret data
    * @param request PartialSecret containing the request data
    */
-  const getRegistrationRequest = (request: PartialSecret | null): string | null => request?.data?.request ?? null;
+  const getRegistrationRequest = (request: PartialSecret | null): string | null => request?.data?.request ? atob(request?.data?.request) : null;
 
   /**
    * Map registration to the displayed format
