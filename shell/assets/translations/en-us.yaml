@@ -3038,7 +3038,7 @@ fleet:
       pollingInterval:
         label: Polling Interval
         tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
-        minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
+        minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with HelmOps that contain a large amount of resources please consider increasing this value.
     tls:
       insecure: Accept any certificate (insecure)
     auth:
