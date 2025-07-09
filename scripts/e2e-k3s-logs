@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-DEPLOYMENT_NAME="$1"
-NAMESPACE="${2:-default}" # Default to 'default' namespace if not provided
-
+DEPLOYMENT_NAME="rancher"
+NAMESPACE="cattle-system"
 
 POD_NAMES=$(kubectl get pods -n "$NAMESPACE" -l app="$DEPLOYMENT_NAME" -o jsonpath='{.items[*].metadata.name}')
 
