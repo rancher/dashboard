@@ -76,7 +76,7 @@ describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
     cy.intercept('POST', `${ CLUSTER_APPS_BASE_URL }/default/rancher-alerting-drivers?action=uninstall`).as('chartUninstall');
     promptRemove.remove();
     cy.wait('@chartUninstall').its('response.statusCode').should('eq', 201);
-    kubectl.waitForTerminalStatus('Connected');
+    // kubectl.waitForTerminalStatus('Connected'); // the socket can open and disconnect quicker than we can show the window and connected state
     kubectl.waitForTerminalStatus('Disconnected');
   });
 });

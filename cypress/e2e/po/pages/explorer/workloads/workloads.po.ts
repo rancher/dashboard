@@ -10,7 +10,7 @@ import WorkloadPodStoragePo from '@/cypress/e2e/po/components/workloads/pod-stor
 import ContainerMountPathPo from '@/cypress/e2e/po/components/workloads/container-mount-paths.po';
 import { WorkloadType } from '@shell/types/fleet';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class WorkloadDetailsPageBasePo extends BaseDetailPagePo {
   static url: string;

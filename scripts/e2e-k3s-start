@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 
 # K3S_VERSION=v1.33.1+k3s1 // Can only install rc1, which has a max of 1.33
 K3S_VERSION=v1.32.6+k3s1
