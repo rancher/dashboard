@@ -4,6 +4,10 @@ set -x
 # if we have yarn, no op
 # if no yarn, install (probably running in non-containerized runners)
 
+
+# below stopped working, switch to something with more validation / easier to debug
+# yarn || curl -fsSL -o ~/bin/yarn https://github.com/yarnpkg/yarn/releases/download/v1.22.17/yarn-1.22.18.js && chmod +x ~/bin/yarn && echo "~/bin" >> $GITHUB_PATH
+
 command_exists () {
   command -v "$1" >/dev/null 2>&1
 }
@@ -14,9 +18,15 @@ if command_exists yarn; then
   exit 0
 fi
 
-curl -fsSL -o ~/bin/yarn https://github.com/yarnpkg/yarn/releases/download/v1.22.17/yarn-1.22.17.js
-chmod +x ~/bin/yarn
-echo "~/bin" >> $GITHUB_PATH
+echo Installing yarn
+
+curl -o- -L https://yarnpkg.com/install.sh | bash
+
+YARN_BIN_PATH="$HOME/.yarn/bin"
+SHELL_PROFILE="$HOME/.bashrc"
+
+echo "export PATH=\"$YARN_BIN_PATH:\$PATH\"" >> "$SHELL_PROFILE"
+source $SHELL_PROFILE
 
 if command_exists yarn; then
   echo "yarn installed"
