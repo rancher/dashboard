@@ -192,8 +192,4 @@ export default {
     -webkit-line-clamp: 5;
     -webkit-box-orient: vertical;
   }
-
-  .fixed-height {
-    height: 80px;
-  }
 </style>
