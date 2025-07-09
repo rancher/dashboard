@@ -154,7 +154,8 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
 
       if (hash) {
         registration.value = mapRegistration(await findRegistration(hash));
-        if (registration.value) {
+        // Empty registrations are still displayed but not as registered
+        if (registration.value.status !== 'none') {
           return 'registered';
         }
       }
@@ -281,12 +282,22 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   };
 
   /**
+   * Exclude these types of registrations "in progress" due offline activation logic
+   * @param registration
+   * @returns
+   */
+  const isRegistrationOfflineException = (registration: PartialRegistration): boolean => registration.spec?.mode === 'offline' &&
+    registration.status.activationStatus.activated === false;
+
+  /**
    * Get registration CRD matching secret label
    * @param hash current registration hash
    */
   const findRegistration = async(hash: string | null): Promise<PartialRegistration | undefined> => {
     const registrations: PartialRegistration[] = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME });
-    const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === hash);
+    const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === hash &&
+      !isRegistrationOfflineException(registration)
+    );
 
     return registration;
   };
