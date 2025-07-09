@@ -44,14 +44,17 @@ helm install cert-manager jetstack/cert-manager \
 echo "Cert manager pods should be up"
 kubectl get pods --namespace cert-manager
 
+# rancher-latest --devel will have rc's
+HELM_REPO=rancher-alpha
+
 echo "Setting up Rancher Repo.........."
-helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
+helm repo add $HELM_REPO https://releases.rancher.com/server-charts/latest
 helm repo update
-helm search repo rancher-latest --devel
+helm search repo $HELM_REPO --devel
 
 echo "Installing Rancher.........."
 kubectl create ns $NAMESPACE
-helm install rancher rancher-latest/rancher \
+helm install rancher $HELM_REPO/rancher \
   --namespace cattle-system \
   --devel \
   --set hostname=$DASHBOARD_URL \
@@ -129,7 +132,7 @@ fi
 
 echo "Dashboard UI is ready"
 
-echo "Waiting for webhook to be running..."
+echo "Waiting for rancher-webhook to be running..."
 okay=0
 while [ $okay -lt 30 ] ; do
   if kubectl -n cattle-system get po -l app=rancher-webhook | grep -q '1/1.*Running' ; then
@@ -140,4 +143,17 @@ while [ $okay -lt 30 ] ; do
     sleep 10
   fi
 done
+
+echo "Waiting for capi-webhook-service to exist..."
+okay=0
+while [ $okay -lt 30 ] ; do
+  if kubectl -n cattle-provisioning-capi-system get service capi-webhook-service | grep '443/TCP' ; then
+    break
+  else
+    echo "capi-webhook-service does not exist, checking again in 10s..."
+    okay=$((okay+1))
+    sleep 10
+  fi
+done
+
 echo "Rancher is ready"
