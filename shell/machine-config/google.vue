@@ -2,7 +2,7 @@
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
-import { _CREATE, _VIEW } from '@shell/config/query-params';
+import { _CREATE } from '@shell/config/query-params';
 import { stringify } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
 import merge from 'lodash/merge';
