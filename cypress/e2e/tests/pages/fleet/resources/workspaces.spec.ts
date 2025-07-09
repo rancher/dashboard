@@ -7,8 +7,6 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { ociSecretCreateRequest } from '@/cypress/e2e/blueprints/explorer/storage/secret';
-import AboutPagePo from '~/cypress/e2e/po/pages/about.po';
-import { SettingsPagePo } from '~/cypress/e2e/po/pages/global-settings/settings.po';
 
 const defaultWorkspace = 'fleet-default';
 const workspaceNameList = [];

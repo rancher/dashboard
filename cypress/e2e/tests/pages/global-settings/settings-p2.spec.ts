@@ -22,7 +22,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     HomePagePo.goTo();
 
     // get settings server-url response data
-    cy.getRancherResource('v1', 'management.cattle.io.settings', 'server-url', null).then((resp: Cypress.Response<any>) => {
+    cy.getRancherResource('v1', 'management.cattle.io.settings', undefined, null).then((resp: Cypress.Response<any>) => {
       const body = resp.body;
 
       body.data.forEach((s) => {
