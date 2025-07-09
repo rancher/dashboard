@@ -7,6 +7,8 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { ociSecretCreateRequest } from '@/cypress/e2e/blueprints/explorer/storage/secret';
+import AboutPagePo from '~/cypress/e2e/po/pages/about.po';
+import { SettingsPagePo } from '~/cypress/e2e/po/pages/global-settings/settings.po';
 
 const defaultWorkspace = 'fleet-default';
 const workspaceNameList = [];
@@ -506,6 +508,25 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
             .rowNames('.col-link-detail')
             .should('not.contain', customWorkspace);
         });
+    });
+  });
+
+  describe('TEMP', () => {
+    it('aaaa', () => {
+      const about = new AboutPagePo();
+
+      about.goTo();
+
+      cy.contains('sdfdsfdsfsd'); // make if fail
+    });
+
+    it('bbbb', () => {
+      const settings = new SettingsPagePo();
+
+      settings.goTo();
+      settings.settingsValue('ui-dashboard-index').scrollIntoView();
+
+      cy.contains('sdfdsfdsfsd'); // make if fail
     });
   });
 });
