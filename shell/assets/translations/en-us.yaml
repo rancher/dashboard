@@ -1553,16 +1553,27 @@ cluster:
       authEncodedJson:
         label: Service Account
         placeholder: Service Account private key JSON file
-        help: |-
-          <p>Create a <a href="https://console.cloud.google.com/projectselector/iam-admin/serviceaccounts" target="_blank" rel="noopener noreferrer nofollow">Service Account</a> with a JSON private key and provide the JSON here.
-          These IAM roles are required:</p>
-          <ul>
-          <li><b>Compute Engine:</b> Compute Viewer (roles/compute.viewer)</li>
-          <li><b>Project:</b> Viewer (roles/viewer)</li>
-          <li><b>Kubernetes Engine:</b> Kubernetes Engine Admin (roles/container.admin)</li>
-          <li><b>Service Accounts:</b> Service Account User (roles/iam.serviceAccountUser)</li>
-          </ul>
-          More info on roles can be found <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/iam-integration" target="_blank" rel="noopener noreferrer nofollow">here</a>.
+        gke: GKE
+        gce: GCE
+        help: 
+          shared: <p>Create a <a href="https://console.cloud.google.com/projectselector/iam-admin/serviceaccounts" target="_blank" rel="noopener noreferrer nofollow">Service Account</a> with a JSON private key and provide the JSON here.</p>
+          gke: |-
+            <p>These IAM roles are required for GKE:</p>
+            <ul>
+            <li><b>Compute Engine:</b> Compute Viewer (roles/compute.viewer)</li>
+            <li><b>Project:</b> Viewer (roles/viewer)</li>
+            <li><b>Kubernetes Engine:</b> Kubernetes Engine Admin (roles/container.admin)</li>
+            <li><b>Service Accounts:</b> Service Account User (roles/iam.serviceAccountUser)</li>
+            </ul>
+            More info on roles can be found <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/iam-integration" target="_blank" rel="noopener noreferrer nofollow">here</a>.
+          gce: |-
+            <p>These IAM roles are required for GCE:</p>
+            <ul>
+            <li><b>Compute Engine:</b> Compute Engine Admin (roles/compute.admin)</li>
+            <li><b>Project:</b> Viewer (roles/viewer)</li>
+            <li><b>Service Accounts:</b> Service Account User (roles/iam.serviceAccountUser)</li>
+            </ul>
+            More info on roles can be found <a href="https://cloud.google.com/compute/docs/access/iam" target="_blank" rel="noopener noreferrer nofollow">here</a>.
     harvester:
       namespace: Namespace
       cpu: CPUs
@@ -1951,6 +1962,63 @@ cluster:
         label: Network
       serverOs:
         label: OS
+    gce:
+      machineImage:
+        label: Machine Image
+        option: '{name} - {description}'
+        deprecatedOption: '{name}(deprecated) - {description}'
+        tooltip: Please select Image Family to get available images
+      imageProjects:
+        label: Image Projects
+      firewall:
+        header: Firewall Configuration
+      showDeprecated:
+        label: Show Deprecated
+        tooltip: Includes deprecated images
+      diskType:
+        label: Disk Type
+      diskSize:
+        label: Disk Size
+      network:
+        label: Network
+      subnetwork:
+        label: Subnetwork
+      machineType:
+        label: Machine Type
+      family:
+        label: Image Family
+      location:
+        zone:
+          label: Zone
+      scopes:
+        add: Add scope
+        label: Scopes
+      tags:
+        add: Add tags
+        label: Tags
+      openPort:
+        add: Add port
+        label: Open Ports
+      address:
+        label: External Address
+        placeholder: '10.0.0.0/14'
+        tooltip: External IP address for the GCE VM instance.
+      username:
+        label: Username
+        placeholder: docker-user
+        tooltip: This is the username used when SSH'ing into the node, and not a username associated with the GCP account.
+      internalFirewall:
+        label: Allow communication between cluster nodes
+        tooltip: Allows Rancher to open ports required for internal communication between nodes.
+        banner: Tags can be used to impose additional firewall rules.
+      externalFirewall:
+        label: Expose external ports
+        tooltip: Allows Rancher to open ports required for external access.
+        banner: By default, the Kubernetes API server listens on port 6443. Exposing this port on control plane machine pools is required for the Authorized Cluster Endpoint feature to work as expected.
+      error:
+        diskSizeWithoutMax: Disk size has to be greater than {diskSizeMin} based on this image and disk type.
+        diskSizeWithMax: Disk size has to be between {diskSizeMin} and {diskSizeMax} based on this image and disk type.
+        projects: Image projects should be a comma separated list of alphanumeric string which may contain '-' and '.'
   addOns:
     dependencyBanner: Add-On Configuration can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.
     additionalManifest:
