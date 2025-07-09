@@ -549,8 +549,12 @@ export default class Secret extends SteveModel {
     return '';
   }
 
+  get useProjectScopedVersion() {
+    return this.isProjectScoped && !!this.projectScopedClusterId;
+  }
+
   get detailLocation() {
-    if (this.isProjectScoped && !!this.projectScopedClusterId) {
+    if (this.useProjectScopedVersion) {
       const id = this.id?.replace(/.*\//, '');
 
       return {
@@ -566,5 +570,26 @@ export default class Secret extends SteveModel {
     }
 
     return this._detailLocation;
+  }
+
+  get listLocation() {
+    if (this.useProjectScopedVersion) {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  this.$rootGetters['productId'],
+          cluster:  this.$rootGetters['clusterId'],
+          resource: VIRTUAL_TYPES.PROJECT_SECRETS,
+        }
+      };
+    }
+
+    return this._listLocation;
+  }
+
+  get parentNameOverride() {
+    const type = this.useProjectScopedVersion ? VIRTUAL_TYPES.PROJECT_SECRETS : SECRET;
+
+    return this.$rootGetters['i18n/t'](`typeLabel."${ type }"`, { count: 1 }).trim();
   }
 }

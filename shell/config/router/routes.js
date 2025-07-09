@@ -494,17 +494,15 @@ export default [
         path:      '/c/:cluster/:product/:resource/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_id.vue')),
         name:      'c-cluster-product-resource-id',
-        meta:      { asyncSetup: true }
       }, {
         path:      `/c/:cluster/:product/${ VIRTUAL_TYPES.PROJECT_SECRETS }/:namespace/:id`,
         component: () => interopDefault(import(`@shell/pages/c/_cluster/explorer/${ VIRTUAL_TYPES.PROJECT_SECRETS }.vue`)),
         name:      `c-cluster-product-${ VIRTUAL_TYPES.PROJECT_SECRETS }-namespace-id`,
-        meta:      { asyncSetup: true }
+        meta:      { resource: 'projectsecret' },
       }, {
         path:      '/c/:cluster/:product/:resource/:namespace/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_namespace/_id.vue')),
         name:      'c-cluster-product-resource-namespace-id',
-        meta:      { asyncSetup: true }
       }]
   },
   {

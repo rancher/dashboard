@@ -132,10 +132,8 @@ export default {
      */
     filterRowsLocal(rows: Secret[]) {
       return rows.filter((r: Secret) => {
-        const metadata = r.metadata as RancherKubeMetadata; // Secrets will always have metadata, but hybrid-class does nasty things which breaks typing
-
         // TODO: RC test
-        return r.isProjectScoped && metadata.namespace.startsWith(this.currentCluster.id);
+        return r.isProjectScoped;
       });
     },
 

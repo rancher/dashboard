@@ -2,7 +2,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import { computed, ComputedRef, markRaw, toValue } from 'vue';
 import Additional from '@shell/components/Resource/Detail/Additional.vue';
 import { useStore } from 'vuex';
-import { NAMESPACE, FLEET, SERVICE_ACCOUNT } from '@shell/config/types';
+import { NAMESPACE, FLEET, SERVICE_ACCOUNT, SECRET } from '@shell/config/types';
 import { Row } from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/index.vue';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 import { useRoute } from 'vue-router';
@@ -113,7 +113,7 @@ export const useProject = (resource: any): ComputedRef<Row> | undefined => {
   const i18n = useI18n(store);
   const resourceValue = toValue(resource);
 
-  if (resource.type !== NAMESPACE || !resourceValue.project) {
+  if ((resource.type !== NAMESPACE && resource.type !== SECRET) || !resourceValue.project) {
     return;
   }
 
