@@ -135,7 +135,7 @@ export default {
     },
 
     'agentConfig.profile'(newValue) {
-      this.showEnablingComplianceWarning = this.provider === 'custom' && this.mode === _EDIT && !!newValue && newValue !== this.initialAgentProfile;
+      this.showEnablingComplianceWarning = this.provider === 'custom' && this.isEdit && !!newValue && newValue !== this.initialAgentProfile;
     }
   },
 
