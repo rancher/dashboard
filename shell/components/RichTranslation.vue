@@ -2,6 +2,7 @@
 import { defineComponent, h, VNode } from 'vue';
 import { useStore } from 'vuex';
 import { escapeHtml } from '@shell/utils/string';
+import { purifyHTML } from '@shell/plugins/clean-html';
 
 const ALLOWED_TAGS = ['b', 'i', 'span', 'a']; // Add more as needed
 
@@ -20,7 +21,7 @@ const ALLOWED_TAGS = ['b', 'i', 'span', 'a']; // Add more as needed
  * // In your Vue component:
  * <RichTranslation k="my.translation.key">
  *   <template #customLink="{ content }">
- *     <router-link to="{ name: 'some-path }">{{ content }}</router-link>
+ *     <router-link to="{ name: 'some-path' }">{{ content }}</router-link>
  *   </template>
  * </RichTranslation>
  */
@@ -75,11 +76,11 @@ export default defineComponent({
 
           if (slots[tagName]) {
             // If a slot is provided for this tag, render the slot with the content.
-            children.push(slots[tagName]({ content }));
+            children.push(slots[tagName]({ content: purifyHTML(content) }));
           } else if (ALLOWED_TAGS.includes(tagName.toLowerCase())) {
             // If it's an allowed HTML tag, render it directly.
             if (content) {
-              children.push(h(tagName, { innerHTML: content }));
+              children.push(h(tagName, { innerHTML: purifyHTML(content, { ALLOWED_TAGS }) }));
             } else {
               children.push(h(tagName));
             }
