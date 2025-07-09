@@ -6,6 +6,7 @@ import { Banner } from '@components/Banner';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, SORT_BY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, TAG, STATUS
 } from '@shell/config/query-params';
+import { DOCS_BASE } from '@shell/config/private-label';
 import { APP_STATUS, compatibleVersionsFor, filterAndArrangeCharts, normalizeFilterQuery } from '@shell/store/catalog';
 import { lcFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
@@ -65,6 +66,7 @@ export default {
 
   data() {
     return {
+      DOCS_BASE,
       searchQuery:          null,
       debouncedSearchQuery: null,
       showDeprecated:       null,
@@ -525,7 +527,24 @@ export default {
               </router-link>
             </template>
           </RichTranslation>
-          <h4 v-clean-html="t('catalog.charts.noCharts.docsMessage', {}, true)" />
+          <RichTranslation
+            k="catalog.charts.noCharts.docsMessage"
+            tag="div"
+            :raw="true"
+          >
+            <template #docsUrl="{ content }">
+              <a
+                :href="`${DOCS_BASE}/how-to-guides/new-user-guides/helm-charts-in-rancher`"
+                class="secondary-text-link"
+                tabindex="0"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
+                <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
+                {{ content }} <i class="icon icon-external-link" />
+              </a>
+            </template>
+          </RichTranslation>
         </div>
       </div>
       <div
