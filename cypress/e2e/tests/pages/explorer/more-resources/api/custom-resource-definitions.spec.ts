@@ -166,7 +166,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
       crdsPage.waitForPage();
       crdsPage.sortableTable().checkVisible();
       crdsPage.sortableTable().checkNoRowsNotVisible();
-      crdsPage.sortableTable().filter('apps');
+      crdsPage.sortableTable().filter('catalog.cattle.io');
 
       let indexBeforeSort: number;
 

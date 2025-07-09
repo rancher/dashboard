@@ -10,8 +10,9 @@ import WorkloadPodStoragePo from '@/cypress/e2e/po/components/workloads/pod-stor
 import ContainerMountPathPo from '@/cypress/e2e/po/components/workloads/container-mount-paths.po';
 import { WorkloadType } from '@shell/types/fleet';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
-export class workloadDetailsPageBasePo extends BaseDetailPagePo {
+export class WorkloadDetailsPageBasePo extends BaseDetailPagePo {
   static url: string;
 
   private static createPath(
@@ -37,9 +38,9 @@ export class workloadDetailsPageBasePo extends BaseDetailPagePo {
   }
 
   constructor(workloadId: string, clusterId: string, workloadType: WorkloadType, queryParams?: Record<string, string>, namespaceId = 'default') {
-    super(workloadDetailsPageBasePo.createPath(workloadId, clusterId, workloadType, namespaceId, queryParams));
+    super(WorkloadDetailsPageBasePo.createPath(workloadId, clusterId, workloadType, namespaceId, queryParams));
 
-    workloadDetailsPageBasePo.url = workloadDetailsPageBasePo.createPath(
+    WorkloadDetailsPageBasePo.url = WorkloadDetailsPageBasePo.createPath(
       workloadId,
       clusterId,
       workloadType,
@@ -134,7 +135,7 @@ export class WorkloadsListPageBasePo extends BaseListPagePo {
     return cy.wait('@deleteDeployment');
   }
 
-  createWithKubectl(blueprintJson: string | Object, wait = 6000, timeout = { timeout: 10000 }) {
+  createWithKubectl(blueprintJson: string | Object, wait = MEDIUM_TIMEOUT_OPT.timeout, timeout = MEDIUM_TIMEOUT_OPT) {
     this.workload().createWithKubectl(blueprintJson, wait, timeout);
   }
 

@@ -67,8 +67,11 @@ helm install rancher rancher-latest/rancher \
   --set-string extraEnv\[2\].value="password" \
   --set extraEnv\[3\].name="CATTLE_PASSWORD_MIN_LENGTH" \
   --set-string extraEnv\[3\].value="3" \
-  --set extraEnv\[4\].name="CATTLE_FEATURES" \
-  --set-string extraEnv\[4\].value="oidc-provider=true" \
+  --set 'extraEnv[4].name=CATTLE_FEATURES' \
+  --set 'extraEnv[4].value=oidc-provider=true'
+
+#  --set extraEnv\[4\].name="CATTLE_FEATURES" \
+#  --set-string extraEnv\[4\].value="oidc-provider=true" \
 
 echo "Waiting for Rancher to come up.........."
 kubectl -n cattle-system rollout status deploy/rancher
