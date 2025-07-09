@@ -2,8 +2,8 @@
 import DetailText from '@shell/components/DetailText.vue';
 
 export interface Props {
-    crt: string;
-    token: string;
+    crt?: string;
+    token?: string;
 }
 </script>
 

@@ -21,7 +21,36 @@ const sidebars = {
         },
         'support-matrix',
         'extensions-getting-started',
-        'extensions-configuration',
+        'folder-structure',
+        'configuration',
+        {
+          type:  'category',
+          label: 'Performance',
+          items: [
+            'performance/overview',
+            {
+              type:  'category',
+              label: 'Resource Scaling',
+              items: [
+                'performance/scaling/overview',
+                {
+                  type:  'doc',
+                  id:    'performance/scaling/lists',
+                  label: 'Update Lists',
+                },
+                {
+                  type:  'doc',
+                  id:    'performance/scaling/selects',
+                  label: 'Update Select Components',
+                },
+                {
+                  type:  'doc',
+                  id:    'performance/scaling/requests',
+                  label: 'Update Requests',
+                },
+              ],
+            }],
+        },
         {
           type:  'category',
           label: 'Extensions API',

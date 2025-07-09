@@ -49,7 +49,6 @@ export default {
           required
           :label="t('secret.basic.username')"
           :mode="mode"
-          data-testid="secret-basic-username"
         />
       </div>
       <div class="col span-6">
