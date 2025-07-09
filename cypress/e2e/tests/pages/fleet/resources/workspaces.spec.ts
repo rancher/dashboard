@@ -511,7 +511,7 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
     });
   });
 
-  describe('TEMP', () => {
+  describe('TEMP', { tags: ['@noVai', '@adminUser'] }, () => {
     it('aaaa', () => {
       const about = new AboutPagePo();
 

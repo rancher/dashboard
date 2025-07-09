@@ -10,8 +10,6 @@ if [ -z "$POD_NAMES" ]; then
   exit 0
 fi
 
-touch 
-
 for POD in $POD_NAMES; do
   echo "Logs for pod: $POD "
 
