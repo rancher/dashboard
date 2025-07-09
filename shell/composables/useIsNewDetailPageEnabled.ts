@@ -2,7 +2,7 @@ import { useRoute } from 'vue-router';
 import { LEGACY } from '@shell/config/query-params';
 import { computed } from 'vue';
 
-const enabledByDefault = true;
+const enabledByDefault = false;
 
 export const useIsNewDetailPageEnabled = () => {
   const route = useRoute();
