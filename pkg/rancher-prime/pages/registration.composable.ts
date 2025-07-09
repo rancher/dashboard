@@ -11,10 +11,11 @@ import { dateTimeFormat } from '@shell/utils/time';
 
 type RegistrationStatus = 'loading' | 'registering-online' | 'registration-request' | 'registering-offline' | 'registered' | null;
 type AsyncButtonFunction = (val: boolean) => void;
+type RegistrationMode = 'online' | 'offline';
 interface RegistrationDashboard {
   active: boolean;
   product: string;
-  mode: 'online' | 'offline' | '--';
+  mode: RegistrationMode | '--';
   expiration: string;
   color: 'error' | 'success';
   message: string;
@@ -36,7 +37,7 @@ interface PartialRegistration {
     view: string;
   };
   spec: {
-    mode: 'online' | 'offline';
+    mode: RegistrationMode;
   };
   status: {
     registeredProduct: string;
@@ -48,6 +49,7 @@ interface PartialRegistration {
     conditions: Array<{
       reason?: string;
       message?: string;
+      type: string;
     }>
   };
 }
@@ -62,9 +64,10 @@ interface PartialSecret {
     name: string;
   };
   data: {
-    regCode?: string;
+    regCode?: string; // only for online registrations
+    certificate?: string; // only for offline registrations
     registrationType?: string;
-    request?: string; // only for offline requests
+    request?: string; // only for offline registration requests (file download)
   };
   remove: () => Promise<void>;
   save: () => Promise<void>;
@@ -153,7 +156,9 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
       const hash = secret.value.metadata?.labels?.[REGISTRATION_LABEL];
 
       if (hash) {
-        registration.value = mapRegistration(await findRegistration(hash));
+        const registrationData = await findRegistration(hash);
+
+        registration.value = mapRegistration(registrationData);
         // Empty registrations are still displayed but not as registered
         if (registration.value.status !== 'none') {
           return 'registered';
@@ -178,10 +183,12 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   /**
    * Common operations required before registration
    */
-  const preRegistration = async() => {
+  const preRegistration = async(secret?: true) => {
     errors.value = [];
     await ensureNamespace();
-    await deleteSecret();
+    if (!secret) {
+      await deleteSecret();
+    }
   };
 
   /**
@@ -239,16 +246,17 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * @param certificate base64 encoded certificate from SCC
    */
   const registerOffline = async(certificate: string) => {
-    registrationStatus.value = 'registering-offline';
-    offlineRegistrationCertificate.value = certificate;
-    await preRegistration();
-
-    if (!registrationCode.value) return;
-    secret.value = await createSecret('offline', registrationCode.value);
     registrationCode.value = null;
-    registration.value = await pollResource(findRegistration, mapRegistration);
-    registrationStatus.value = registration.value ? 'registered' : null;
-    // asyncButtonResolution(true);
+    registrationStatus.value = 'registering-offline';
+    offlineRegistrationCertificate.value = certificate ? atob(certificate) : null;
+    await preRegistration(true);
+    try {
+      updateSecret(secret.value, offlineRegistrationCertificate.value);
+      registration.value = await pollResource(findRegistration, mapRegistration);
+      registrationStatus.value = registration.value ? 'registered' : null;
+    } catch (error) {
+      onError(error);
+    }
   };
 
   /**
@@ -286,8 +294,13 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * @param registration
    * @returns
    */
-  const isRegistrationOfflineException = (registration: PartialRegistration): boolean => registration.spec?.mode === 'offline' &&
-    registration.status.activationStatus.activated === false;
+  const isRegistrationOfflineException = (registration: PartialRegistration): boolean => {
+    const isOffline = registration.spec?.mode === 'offline';
+    const isInProgress = registration.status?.conditions[0]?.type === 'Progressing';
+    const isActive = registration.status.activationStatus.activated === true;
+
+    return isOffline && !isActive && isInProgress;
+  };
 
   /**
    * Get registration CRD matching secret label
@@ -389,11 +402,11 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
 
   /**
    * Create secret to trigger registration
-   * @param type 'online' | 'offline'
+   * @param mode 'online' | 'offline'
    * @param code
    * @returns
    */
-  const createSecret = async(type: string, code?: string): Promise<PartialSecret | null> => {
+  const createSecret = async(mode: string, code?: string): Promise<PartialSecret | null> => {
     const code64 = code ? { regCode: btoa(code) } : {};
 
     try {
@@ -405,7 +418,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
         },
         data: {
           ...code64,
-          registrationType: btoa(type)
+          registrationType: btoa(mode)
         }
       });
 
@@ -417,6 +430,19 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
 
       return null;
     }
+  };
+
+  /**
+   * Update secret model and append certificate
+   * @param secret
+   * @param certificate
+   * @returns
+   */
+  const updateSecret = async(secret: PartialSecret | null, certificate: string | null) => {
+    if (!secret || !certificate) return;
+    delete secret.data.request;
+    secret.data.certificate = btoa(certificate);
+    await secret.save();
   };
 
   /**
@@ -466,9 +492,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const initRegistration = async() => {
     secret.value = await getSecret();
-    if (secret.value?.data?.registrationType && atob(secret.value.data.registrationType) === 'online') {
-      registrationCode.value = regCode.value;
-    }
+    registrationCode.value = regCode.value;
     registrationStatus.value = await getRegistration();
   };
 
