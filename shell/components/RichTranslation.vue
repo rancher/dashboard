@@ -61,41 +61,30 @@ export default defineComponent({
 
       // Iterate over all matches of the regex.
       while ((match = regex.exec(rawStr)) !== null) {
-      // Add the text before the current match as a plain text node.
+        // Add the text before the current match as a plain text node.
         if (match.index > lastIndex) {
           children.push(h('span', { innerHTML: escapeHtml(rawStr.substring(lastIndex, match.index)) }));
         }
 
-        const selfClosingTagName = match[3]; // Captures the tag name for self-closing tags (e.g., 'anotherTag' from <anotherTag/>)
         const enclosingTagName = match[1]; // Captures the tag name for enclosing tags (e.g., 'customLink' from <customLink>...</customLink>)
+        const selfClosingTagName = match[3]; // Captures the tag name for self-closing tags (e.g., 'anotherTag' from <anotherTag/>)
+        const tagName = enclosingTagName || selfClosingTagName;
 
-        if (enclosingTagName) {
-        // This is an enclosing tag, like <tag>content</tag>.
-          const tagName = enclosingTagName;
-          const content = match[2];
+        if (tagName) {
+          const content = enclosingTagName ? match[2] : '';
 
           if (slots[tagName]) {
-          // If a slot is provided for this tag, render the slot with the content.
+            // If a slot is provided for this tag, render the slot with the content.
             children.push(slots[tagName]({ content }));
           } else if (ALLOWED_TAGS.includes(tagName.toLowerCase())) {
-          // If it's an allowed HTML tag, render it directly.
-            children.push(h(tagName, { innerHTML: content }));
+            // If it's an allowed HTML tag, render it directly.
+            if (content) {
+              children.push(h(tagName, { innerHTML: content }));
+            } else {
+              children.push(h(tagName));
+            }
           } else {
-          // Otherwise, render the tag and its content as plain HTML.
-            children.push(h('span', { innerHTML: escapeHtml(match[0]) }));
-          }
-        } else if (selfClosingTagName) {
-        // This is a self-closing tag, like <tag/>.
-          const tagName = selfClosingTagName;
-
-          if (slots[tagName]) {
-          // If a slot is provided for this tag, render the slot.
-            children.push(slots[tagName]({ content: '' }));
-          } else if (ALLOWED_TAGS.includes(tagName.toLowerCase())) {
-          // If it's an allowed HTML tag, render it directly.
-            children.push(h(tagName));
-          } else {
-          // Otherwise, render the tag as plain HTML.
+            // Otherwise, render the tag and its content as plain HTML.
             children.push(h('span', { innerHTML: escapeHtml(match[0]) }));
           }
         }
