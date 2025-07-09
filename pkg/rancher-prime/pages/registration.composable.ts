@@ -109,6 +109,11 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   const secret: Ref<PartialSecret | null> = ref(null);
 
   /**
+   * Label from the secret used to find the registration
+   */
+  const secretHash = computed(() => (secret.value?.metadata?.labels || {})[REGISTRATION_LABEL] || null);
+
+  /**
    * Single source for the registration status, used to define other computed properties
    */
   const registrationStatus = ref('loading' as RegistrationStatus);
@@ -223,7 +228,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
 
     secret.value = await createSecret('online', registrationCode.value);
     offlineRegistrationCertificate.value = null;
-    registration.value = await poolRegistration(secret.value?.metadata?.labels?.[REGISTRATION_LABEL]);
+    registration.value = await pollResource(findRegistration, mapRegistration);
     registrationStatus.value = registration.value ? 'registered' : null;
     asyncButtonResolution(true);
   };
@@ -240,7 +245,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     if (!registrationCode.value) return;
     secret.value = await createSecret('offline', registrationCode.value);
     registrationCode.value = null;
-    registration.value = await poolRegistration(secret.value?.metadata?.labels?.[REGISTRATION_LABEL]);
+    registration.value = await pollResource(findRegistration, mapRegistration);
     registrationStatus.value = registration.value ? 'registered' : null;
     // asyncButtonResolution(true);
   };
@@ -265,7 +270,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
 
     secret.value = await createSecret('offline'); // Generate secret to trigger offline registration request
     registrationCode.value = null;
-    const data = await poolOfflineRequest(secret.value?.metadata?.labels?.[REGISTRATION_LABEL], 500, 10000);
+    const data = await pollResource(findOfflineRequest, getRegistrationRequest);
 
     await downloadFile(REGISTRATION_REQUEST_FILENAME, JSON.stringify(data), 'application/json')
       .catch(() => {
@@ -279,7 +284,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * Get registration CRD matching secret label
    * @param hash current registration hash
    */
-  const findRegistration = async(hash: string | undefined): Promise<PartialRegistration | undefined> => {
+  const findRegistration = async(hash: string | null): Promise<PartialRegistration | undefined> => {
     const registrations: PartialRegistration[] = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME });
     const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === hash);
 
@@ -290,13 +295,19 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * Get offline request secret matching the hash and name prefix
    * @param hash current registration hash
    */
-  const findOfflineRequest = async(hash: string | undefined): Promise<PartialSecret | null> => {
+  const findOfflineRequest = async(hash: string | null): Promise<PartialSecret | null> => {
     const secrets: PartialSecret[] = await store.dispatch('management/findAll', { type: SECRET });
     const request = secrets.find((secret) => secret.metadata?.namespace === REGISTRATION_NAMESPACE &&
       secret.metadata?.name.startsWith(REGISTRATION_REQUEST_PREFIX)) ?? null;
 
     return request;
   };
+
+  /**
+   * Get the registration request from the secret data
+   * @param request PartialSecret containing the request data
+   */
+  const getRegistrationRequest = (request: PartialSecret | null): string | null => request?.data?.request ?? null;
 
   /**
    * Map registration to the displayed format
@@ -398,58 +409,42 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   };
 
   /**
-   * Fetch periodically till a registration for given hash is found or the timeout is reached
-   * @param hash current registration hash
-   * @param frequency Frequency in milliseconds to check the registration status
-   */
-  const poolRegistration = async(originalHash: string | undefined, frequency = 500, timeout = 10000) => {
-    return new Promise<RegistrationDashboard>((resolve, reject) => {
+ * Polls periodically until a condition is met or timeout is reached.
+ * @param fetchFn Function to fetch the resource (e.g., findRegistration or findOfflineRequest)
+ * @param mapResult Function to map the result before resolving
+ * @param frequency Polling frequency in ms
+ * @param timeout Timeout in ms
+ */
+  const pollResource = async<T>(
+    fetchFn: (hash: string | null) => Promise<any>,
+    mapResult: (resource: any) => T,
+    frequency = 500,
+    timeout = 10000
+  ): Promise<T> => {
+    const originalHash = secretHash.value;
+
+    return new Promise<T>((resolve, reject) => {
       const startTime = Date.now();
 
       const interval = setInterval(async() => {
         if (Date.now() - startTime > timeout) {
           clearInterval(interval);
-          reject(new Error('Timeout reached while waiting for registration'));
+          reject(new Error('Timeout reached while waiting for resource'));
 
           return;
         }
 
-        const hash = secret.value?.metadata?.labels?.[REGISTRATION_LABEL];
-        const registration = await findRegistration(hash);
-        const newHash = registration?.metadata?.labels[REGISTRATION_LABEL];
+        const hash = secretHash.value;
+        const resource = await fetchFn(hash);
+        const newHash = resource?.metadata?.labels[REGISTRATION_LABEL];
 
-        if ((originalHash && !newHash) || (!originalHash && newHash) || (originalHash && newHash && originalHash !== newHash)) {
+        if (
+          (originalHash && !newHash) ||
+          (!originalHash && newHash) ||
+          (originalHash && newHash && originalHash !== newHash)
+        ) {
           clearInterval(interval);
-          resolve(mapRegistration(registration));
-        }
-      }, frequency);
-    });
-  };
-
-  /**
-   * Fetch periodically till an offline request for given hash and name is found or the timeout is reached
-   * @param originalHash current request hash
-   * @param frequency Frequency in milliseconds to check the request status
-   */
-  const poolOfflineRequest = async(originalHash: string | undefined, frequency = 500, timeout = 10000) => {
-    return new Promise<string | undefined>((resolve, reject) => {
-      const startTime = Date.now();
-
-      const interval = setInterval(async() => {
-        if (Date.now() - startTime > timeout) {
-          clearInterval(interval);
-          reject(new Error('Timeout reached while waiting for registration request'));
-
-          return;
-        }
-
-        const hash = secret.value?.metadata?.labels?.[REGISTRATION_LABEL];
-        const offlineRequest = await findOfflineRequest(hash);
-        const newHash = offlineRequest?.metadata?.labels[REGISTRATION_LABEL];
-
-        if ((originalHash && !newHash) || (!originalHash && newHash) || (originalHash && newHash && originalHash !== newHash)) {
-          clearInterval(interval);
-          resolve(offlineRequest?.data?.request);
+          resolve(mapResult(resource));
         }
       }, frequency);
     });
