@@ -270,7 +270,7 @@ export default {
             :detail-url="NODE_METRICS_DETAIL_URL"
             :summary-url="NODE_METRICS_SUMMARY_URL"
             :vars="graphVars"
-            graph-height="825px"
+            graph-height="875px"
           />
         </template>
       </Tab>
