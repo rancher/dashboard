@@ -466,8 +466,9 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const initRegistration = async() => {
     secret.value = await getSecret();
-    registrationCode.value = regCode.value;
-
+    if (secret.value?.data?.registrationType && atob(secret.value.data.registrationType) === 'online') {
+      registrationCode.value = regCode.value;
+    }
     registrationStatus.value = await getRegistration();
   };
 
