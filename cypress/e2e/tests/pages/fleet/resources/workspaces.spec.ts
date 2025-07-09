@@ -510,23 +510,4 @@ describe('Workspaces', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] },
         });
     });
   });
-
-  describe('TEMP', { tags: ['@noVai', '@adminUser'] }, () => {
-    it('aaaa', () => {
-      const about = new AboutPagePo();
-
-      about.goTo();
-
-      cy.contains('sdfdsfdsfsd'); // make if fail
-    });
-
-    it('bbbb', () => {
-      const settings = new SettingsPagePo();
-
-      settings.goTo();
-      settings.settingsValue('ui-dashboard-index').scrollIntoView();
-
-      cy.contains('sdfdsfdsfsd'); // make if fail
-    });
-  });
 });

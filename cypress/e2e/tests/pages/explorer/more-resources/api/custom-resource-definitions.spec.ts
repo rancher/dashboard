@@ -170,7 +170,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
       crdsPage.sortableTable().checkVisible();
       crdsPage.sortableTable().checkNoRowsNotVisible();
       crdsPage.sortableTable().filter(filter);
-      crdsPage.waitForPage(`q=${ crdName }`);
+      crdsPage.waitForPage(`q=${ filter }`);
 
       let indexBeforeSort: number;
 
