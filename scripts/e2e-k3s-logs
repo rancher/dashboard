@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+kubectl logs <pod−name> −c <container−name>
+
+
+DEPLOYMENT_NAME="$1"
+NAMESPACE="${2:-default}" # Default to 'default' namespace if not provided
+
+
+POD_NAMES=$(kubectl get pods -n "$NAMESPACE" -l app="$DEPLOYMENT_NAME" -o jsonpath='{.items[*].metadata.name}')
+
+if [ -z "$POD_NAMES" ]; then
+  echo "No pods found!"
+  exit 0
+fi
+
+touch 
+
+for POD in $POD_NAMES; do
+  echo "Logs for pod: $POD "
+
+  echo $POD > $E2E_RANCHER_LOG
+  kubectl logs "$POD" -n "$NAMESPACE" --all-containers=true --prefix > "$E2E_RANCHER_LOG" 2>&1
+
+  # Add a separator for clarity between different pods' logs
+  echo ""
+  echo "---------------------------------------------------------------------"
+  echo "End of logs for pod: $POD"
+  echo "---------------------------------------------------------------------"
+  echo ""
+done

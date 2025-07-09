@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
-K3S_VERSION=v1.28.8+k3s1
+K3S_VERSION=v1.33.1+k3s1
 
 # Image version
-# RANCHER_IMG_VERSION=v2.9-c9be13b09329bbee60a5f6419d500198f83c44d1-head
-RANCHER_IMG_VERSION=v2.9-head
+RANCHER_IMG_VERSION=head
 
 # check if script invoke contains any argument. If so, adjust RANCHER_IMG_VERSION
 if [ $# -eq 1 ]; then
@@ -121,3 +120,16 @@ if [ "$STATUS" != "200" ]; then
 fi
 
 echo "Dashboard UI is ready"
+
+echo "Waiting for webhook to be running..."
+okay=0
+while [ $okay -lt 30 ] ; do
+  if kubectl -n cattle-system get po -l app=rancher-webhook | grep -q '1/1.*Running' ; then
+    break
+  else
+    echo "Webhook not ready, checking again in 10s..."
+    okay=$((okay+1))
+    sleep 10
+  fi
+done
+echo "Rancher is ready"
