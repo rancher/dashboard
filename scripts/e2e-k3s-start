@@ -46,12 +46,13 @@ kubectl get pods --namespace cert-manager
 echo "Setting up Rancher Repo.........."
 helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
 helm repo update
+helm search repo rancher-latest --devel
 
 echo "Installing Rancher.........."
 kubectl create ns $NAMESPACE
 helm install rancher rancher-latest/rancher \
-  --devel \
   --namespace cattle-system \
+  --devel \
   --set hostname=$DASHBOARD_URL \
   --set replicas="1" \
   --set rancherImage="rancher/rancher" \
