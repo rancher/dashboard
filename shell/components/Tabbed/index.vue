@@ -157,7 +157,7 @@ export default {
       return tab.displayAlertIcon || (tab.error && !tab.active);
     },
     hashChange() {
-      if (!this.scrollOnChange) {
+      if (this.scrollOnChange) {
         const scrollable = document.getElementsByTagName('main')[0];
 
         if (scrollable) {
