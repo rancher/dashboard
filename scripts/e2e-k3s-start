@@ -50,6 +50,7 @@ helm repo update
 echo "Installing Rancher.........."
 kubectl create ns $NAMESPACE
 helm install rancher rancher-latest/rancher \
+  --devel \
   --namespace cattle-system \
   --set hostname=$DASHBOARD_URL \
   --set replicas="1" \
