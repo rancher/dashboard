@@ -16,13 +16,7 @@ describe('Global UI', { tags: ['@generic', '@adminUser', '@standardUser'] }, () 
         .should('have.attr', 'href', '/favicon.png');
 
       cy.fixture('global/favicons/favicon.png', 'base64').then((expectedBase64) => {
-        cy.requestBase64Image('/favicon.png').then((base64Icon) => {
-          expect(expectedBase64).to.eq(base64Icon);
-        });
-      });
-
-      cy.fixture('global/favicons/favicon.png', 'base64').then((expectedBase64) => {
-        cy.requestBase64Image('/favicon.png').then((base64Icon) => {
+        cy.requestBase64Image(`${ Cypress.env('baseUrl') }/favicon.png`).then((base64Icon) => {
           expect(expectedBase64).to.eq(base64Icon);
         });
       });
