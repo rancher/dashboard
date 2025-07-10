@@ -17,7 +17,7 @@ import { useStore } from 'vuex';
 const store = useStore();
 
 const { id, schema } = useResourceIdentifiers(SECRET);
-const secret = await useFetchResourceWithId(SECRET, id);
+const secret = await useFetchResourceWithId(SECRET, id, 'management');
 
 // We need to request the project associated with the secret to display the metadata for it.
 // We probably shouldn't use findall but there appeared to be something odd going on with the model not finding the id when I used management/find.

@@ -20,11 +20,13 @@ export const useResourceIdentifiers = (type: ResourceType) => {
   };
 };
 
-export const useFetchResourceWithId = async(type: ResourceType, id: IdType) => {
+export type TargetStore = 'cluster' | 'management';
+
+export const useFetchResourceWithId = async(type: ResourceType, id: IdType, targetStore: TargetStore = 'cluster') => {
   const store = useStore();
 
   const typeValue = toValue(type);
   const idValue = toValue(id);
 
-  return await store.dispatch('cluster/find', { type: typeValue, id: idValue });
+  return await store.dispatch(`${ targetStore }/find`, { type: typeValue, id: idValue });
 };
