@@ -57,6 +57,8 @@ export default class HomePagePo extends PagePo {
     actionMenuPo.getMenuItem('Show/Hide Banner').click();
 
     cy.wait('@toggleBanner');
+
+    actionMenuPo.waitForClose(); // wait for drop down to close... just in case we want to toggle it open again....
   }
 
   list(): HomeClusterListPo {

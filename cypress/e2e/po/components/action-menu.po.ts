@@ -12,6 +12,12 @@ export default class ActionMenuPo extends ComponentPo {
     return new ActionMenuPo();
   }
 
+  waitForClose() {
+    // same as open
+    cy.wait(500);// eslint-disable-line cypress/no-unnecessary-waiting
+    this.checkNotExists();
+  }
+
   clickMenuItem(index: number) {
     return this.self().find('[dropdown-menu-item]').eq(index).click();
   }
