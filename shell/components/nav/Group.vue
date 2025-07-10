@@ -226,7 +226,10 @@ export default {
     class="accordion"
     :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': isGroupActive }"
   >
-    <div class="accordion-item">
+    <div
+      v-if="showHeader || (!onlyHasOverview && canCollapse)"
+      class="accordion-item"
+    >
       <div
         v-if="showHeader"
         class="header"
