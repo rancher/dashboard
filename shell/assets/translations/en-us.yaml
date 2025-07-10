@@ -850,13 +850,13 @@ asyncButton:
     success: Generated
     waiting: Generating&hellip;
 
-backupRestoreOperator: 
+backupRestoreOperator:
   backup:
     label: Resource Set
     description: The Resource Set determines which resources the backup-restore-operator collects in a backup
     enableEncryptionWarning: 'Enabling encryption is highly recommended when using <b><i>Full Rancher backup resource set</i></b>, otherwise sensitive information will be backed up as plain-text. <a target="_blank" rel="noopener noreferrer nofollow" href="https://ranchermanager.docs.rancher.com/reference-guides/backup-restore-configuration/backup-configuration#resourcesets">Read more</a>.'
     missingResourceSetWarning: The <b><i>{resourceSet}</i></b> resource set doesn't exist, it's possible it has been deleted. Please select a different option.
-    resourceSetOptions: 
+    resourceSetOptions:
       'rancher-resource-set-basic': 'Basic Rancher backup resource set'
       'rancher-resource-set-full': 'Full Rancher backup resource set'
       custom: Custom
@@ -1344,7 +1344,7 @@ cluster:
     registrationCommand:
       label: Registration Command
       linuxDetail: Run this command on each of the existing Linux machines you want to register.
-      windowsDetail: Run this command in PowerShell on each of the existing Windows machines you want to register. 
+      windowsDetail: Run this command in PowerShell on each of the existing Windows machines you want to register.
       windowsWorkersOnly: <b>Windows nodes can only be workers.</b>
       windowsNotReady: The cluster must be up and running with Linux etcd, control plane, and worker nodes before the registration command for adding Windows workers will display.<br /> <br /><b>Windows nodes can only be workers.</b>
       windowsWarning: Workload pods, including some deployed by Rancher charts, will be scheduled on both Linux and Windows nodes by default. Edit NodeSelector in the chart to direct them to be placed onto a compatible node.
@@ -1862,11 +1862,11 @@ cluster:
     subGroups:
       podAffinityAnti: Pod Affinity/Anti-Affinity
       nodeAffinity: Node Affinity
-      schedulingCustomization: 
+      schedulingCustomization:
         label: Prevent Rancher cluster agent pod eviction
         description: This ensures that the cluster agent pod is not evicted due to node pressure, resource constraints or scheduler policies.
         banner: This feature has been enabled with settings that are different from the global default settings.
-        innerCheckbox: Apply global settings for Priority Class and Pod Disruption Budget  
+        innerCheckbox: Apply global settings for Priority Class and Pod Disruption Budget
     banners:
       advanced: These are advanced configuration options. Generally, they should be left as-is.
       tolerations: Additional Pod Tolerations will be added to the default Tolerations applied by Rancher.
@@ -2193,7 +2193,7 @@ cluster:
       snapshotScheduleCron:
         label: Cron Schedule
       snapshotRetention:
-        label: Snapshot retention count 
+        label: Snapshot retention count
         tooltip: Each backup records 1 snapshot per etcd node. If you specify 3 snapshots and you have 3 etcd nodes you will only retain 1 full backup.
       exportMetric:
         label: Metrics
@@ -5107,6 +5107,8 @@ rbac:
         label: Login Access
       clustertemplaterevisions-create:
         label: Create RKE Template Revisions
+  errors:
+    escalation: You cannot assign Global Permissions that are higher than your own. Please verify the permissions you are attempting to assign.
 
 resourceDetail:
   detailTop:
