@@ -383,7 +383,6 @@ about:
     component: Component
     version: Version
     cli: CLI
-    helm: Helm
     machine: Machine
     rancher: Rancher
     releaseNotes: 'View release notes'

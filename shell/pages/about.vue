@@ -38,9 +38,6 @@ export default {
     cliVersion() {
       return this.settings.find((s) => s.id === SETTING.VERSION_CLI);
     },
-    helmVersion() {
-      return this.settings.find((s) => s.id === SETTING.VERSION_HELM);
-    },
     dockerMachineVersion() {
       return this.settings.find((s) => s.id === SETTING.VERSION_MACHINE);
     },
@@ -151,19 +148,6 @@ export default {
             {{ appName }} {{ t("about.versions.cli") }}
           </a>
         </td><td>{{ cliVersion.value }}</td>
-      </tr>
-      <tr v-if="helmVersion">
-        <td>
-          <a
-            href="https://github.com/rancher/helm"
-            target="_blank"
-            rel="nofollow noopener noreferrer"
-            role="link"
-            :aria-label="t('about.versions.githubRepo', {name: t(`about.versions.helm`) })"
-          >
-            {{ t("about.versions.helm") }}
-          </a>
-        </td><td>{{ helmVersion.value }}</td>
       </tr>
       <tr v-if="dockerMachineVersion">
         <td>
