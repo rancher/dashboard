@@ -208,7 +208,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(response?.body).to.have.property('value', 'false');
     });
     settingsPage.waitForPage();
-    settingsPage.settingsValue('ui-offline-preferred').contains(settings['ui-offline-preferred'].new2);
+    settingsPage.settingsValue('ui-offline-preferred').contains(settings['ui-offline-preferred'].new);
 
     // Reset: Dynamic
     SettingsPagePo.navTo();
@@ -350,8 +350,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('k3s-based-upgrader-uninstall-concurrency').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settingsOriginal['k3s-based-upgrader-uninstall-concurrency']);
-      expect(response?.body).to.have.property('value', settingsOriginal['k3s-based-upgrader-uninstall-concurrency']);
+      expect(request.body).to.have.property('value', settingsOriginal['k3s-based-upgrader-uninstall-concurrency'].default);
+      expect(response?.body).to.have.property('value', settingsOriginal['k3s-based-upgrader-uninstall-concurrency'].default);
     });
 
     settingsPage.waitForPage();
@@ -462,7 +462,13 @@ describe('Settings', { testIsolation: 'off' }, () => {
     }
 
     resetSettings.forEach((s, i) => {
-      cy.setRancherResource('v1', 'management.cattle.io.settings', s, settingsOriginal[s]);
+      const resource = settingsOriginal[s];
+
+      cy.getRancherResource('v1', 'management.cattle.io.settings', s).then((res) => {
+        resource.metadata.resourceVersion = res.body.metadata.resourceVersion;
+        cy.setRancherResource('v1', 'management.cattle.io.settings', s, resource );
+      });
+
       if (i % 5) {
         cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
       }
