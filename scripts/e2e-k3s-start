@@ -6,8 +6,8 @@ K3S_VERSION=v1.32.6+k3s1
 
 # Image version
 RANCHER_IMG_REPO=tlebreux/rancher
-RANCHER_IMG_TAG=sha256:5e865d79249db99713858d3e216c71ad434605aef5242c508153a8bebef0ca56
-RANCHER_AGENT_IMG=tlebreux/rancher@sha256:6de928745e75b2fb53535b27d255c1f0448ce29e9f7b2f86ebb410be9e4c8bdf
+RANCHER_IMG_TAG=gh-40773-head
+RANCHER_AGENT_IMG=tlebreux/rancher@gh-40773-head
 
 # check if script invoke contains any argument. If so, adjust RANCHER_IMG_TAG
 if [ $# -eq 1 ]; then
