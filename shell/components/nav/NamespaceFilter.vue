@@ -711,6 +711,7 @@ export default {
     :aria-activedescendant="containerId"
     class="ns-filter"
     data-testid="namespaces-filter"
+    :aria-label="t('generic.namespaceFilter')"
     tabindex="0"
     @mousedown.prevent
     @keydown.self.down.enter.space.prevent="open"

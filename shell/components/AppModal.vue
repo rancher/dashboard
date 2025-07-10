@@ -202,6 +202,8 @@ export default defineComponent({
           :class="customClass"
           class="modal-container"
           :style="modalStyles"
+          role="dialog"
+          aria-modal="true"
           @click.stop
         >
           <slot><!--Empty content--></slot>

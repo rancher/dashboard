@@ -162,8 +162,8 @@ export default class ProvCluster extends SteveModel {
 
     const all = actions.concat(out);
 
-    // If the cluster is a KEV1 cluster then prevent edit
-    if (this.isKev1) {
+    // If the cluster is a KEV1 cluster or Harvester cluster then prevent edit
+    if (this.isKev1 || this.isHarvester) {
       const edit = all.find((action) => action.action === 'goToEdit');
 
       if (edit) {

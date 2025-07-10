@@ -136,6 +136,17 @@ export default class FleetCluster extends SteveModel {
     };
   }
 
+  get helmOpsInfo() {
+    const ready = this.status?.readyHelmOps || 0;
+    const total = this.status?.desiredReadyHelmOps || 0;
+
+    return {
+      ready,
+      unready: total - ready,
+      total,
+    };
+  }
+
   get bundleInfo() {
     const bundlesData = {
       ready: 0,

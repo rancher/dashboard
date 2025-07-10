@@ -7,6 +7,7 @@ generic:
   userMenu: user menu
   actionMenu: action menu
   namespaceFilter: namespace filter menu
+  imageAlt: Generic Rancher image alt
   banners:
     altCloseBanner: Close banner icon
     bannerIcon: Banner icon
@@ -157,6 +158,10 @@ generic:
   showLess: Show less
   showMore: Show more
   opensInNewTab: Opens in a new tab
+  
+tabs:
+  addItem: Add a new tab item
+  removeItem: Remove selected tab item
 
 graph:
   noPermissions: You do not have permission to Graph view
@@ -1647,6 +1652,9 @@ cluster:
       sshUser:
         placeholder: e.g. ubuntu
         toolTip: SSH user to login with the selected OS image.
+    kubeconfigSecret:
+        nameRequired: Cluster name is required.
+        error: 'Error generating Harvester kubeconfig secret: {err}'
   haveOneOwner: There must be at least one member with the Owner role.
   import:
     warningBanner: 'You should not import a cluster which has already been connected to another instance of Rancher as it will lead to data corruption.'
@@ -6450,6 +6458,7 @@ tableHeaders:
   groupName: Group Name
   groupRoleNames: Group Role Names
   global-Default: Global-Default
+  helmOpsReady: Helm Ops Ready
   host: Host
   hostIp: Host IP
   holder: Holder
@@ -6543,7 +6552,7 @@ tableHeaders:
   repo: Repo
   repositories: Repositories
   repoName: Repository Name
-  reposReady: Repos Ready
+  reposReady: Git Repos Ready
   replicas: Replicas
   reqRate: Req Rate
   resource: Resource
