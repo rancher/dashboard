@@ -92,7 +92,12 @@ export default {
       }
 
       this.errors = [];
-      this.$store.commit('action-menu/togglePromptModal', data);
+
+      // Guard against events that can be implicitly passed by components
+      const modalData = data instanceof Event ? undefined : data;
+
+      this.$store.commit('action-menu/togglePromptModal', modalData);
+
       if (this.backgroundClosing) {
         this.backgroundClosing();
       }
