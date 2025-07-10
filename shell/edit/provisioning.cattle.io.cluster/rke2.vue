@@ -6,11 +6,8 @@ import merge from 'lodash/merge';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import { normalizeName } from '@shell/utils/kube';
-<<<<<<< HEAD
 import AccountAccess from '@shell/components/google/AccountAccess.vue';
-=======
 import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
->>>>>>> c272e49089 (replace mergeWithReplace and merge with handleConflict function on machine pools sync mechanism)
 
 import {
   CAPI,
