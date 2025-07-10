@@ -79,7 +79,7 @@ export default {
     },
 
     isDarkTheme() {
-      return this.theme === 'dark' || this.theme === 'dark-modern';
+      return this.theme === 'dark';
     },
 
     pathToBrandedImage() {
