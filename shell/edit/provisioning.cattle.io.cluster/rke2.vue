@@ -946,6 +946,7 @@ export default {
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
     this.registerBeforeHook(this.handleVsphereCpiSecret, 'sync-vsphere-cpi');
     this.registerBeforeHook(this.handleVsphereCsiSecret, 'sync-vsphere-csi');
+    this.registerBeforeHook(this.setHarvesterChartValues, 'set-harvester-chart-values');
     this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
 
@@ -1536,41 +1537,7 @@ export default {
       }
 
       try {
-        const clusterId = get(this.credential, 'decodedData.clusterId') || '';
-
         this.applyChartValues(this.value.spec.rkeConfig);
-
-        const isUpgrade = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
-
-        if (this.agentConfig?.['cloud-provider-name'] === HARVESTER && clusterId && (this.isCreate || isUpgrade)) {
-          const namespace = this.machinePools?.[0]?.config?.vmNamespace;
-
-          const res = await this.$store.dispatch('management/request', {
-            url:    `/k8s/clusters/${ clusterId }/v1/harvester/kubeconfig`,
-            method: 'POST',
-            data:   {
-              csiClusterRoleName: 'harvesterhci.io:csi-driver',
-              clusterRoleName:    'harvesterhci.io:cloudprovider',
-              namespace,
-              serviceAccountName: this.value.metadata.name,
-            },
-          });
-
-          const kubeconfig = res.data;
-
-          const harvesterKubeconfigSecret = await this.createKubeconfigSecret(kubeconfig);
-
-          this.agentConfig['cloud-provider-config'] = `secret://fleet-default:${ harvesterKubeconfigSecret?.metadata?.name }`;
-
-          if (this.isCreate) {
-            set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.global.cattle.clusterName`, this.value.metadata.name);
-          }
-
-          const distroSubdir = this.value?.spec?.kubernetesVersion?.includes('k3s') ? DEFAULT_SUBDIRS.K8S_DISTRO_K3S : DEFAULT_SUBDIRS.K8S_DISTRO_RKE2;
-          const distroRoot = this.value?.spec?.rkeConfig?.dataDirectories?.k8sDistro?.length ? this.value?.spec?.rkeConfig?.dataDirectories?.k8sDistro : `${ DEFAULT_COMMON_BASE_PATH }/${ distroSubdir }`;
-
-          set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`, `${ distroRoot }/etc/config-files/cloud-provider-config`);
-        }
       } catch (err) {
         this.errors.push(err);
 
@@ -1614,6 +1581,62 @@ export default {
         }
       } else {
         await this.value.save();
+      }
+    },
+
+    async setHarvesterChartValues() {
+      const isHarvester = this.agentConfig?.['cloud-provider-name'] === HARVESTER;
+
+      if (!isHarvester) {
+        return;
+      }
+      try {
+        const clusterId = get(this.credential, 'decodedData.clusterId') || '';
+        const isUpgrade = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
+
+        if (!this.value?.metadata?.name) {
+          const err = this.t('cluster.harvester.kubeconfigSecret.nameRequired');
+
+          throw new Error(err);
+        }
+
+        if (clusterId && (this.isCreate || isUpgrade)) {
+          const namespace = this.machinePools?.[0]?.config?.vmNamespace;
+
+          const res = await this.$store.dispatch('management/request', {
+            url:    `/k8s/clusters/${ clusterId }/v1/harvester/kubeconfig`,
+            method: 'POST',
+            data:   {
+              csiClusterRoleName: 'harvesterhci.io:csi-driver',
+              clusterRoleName:    'harvesterhci.io:cloudprovider',
+              namespace,
+              serviceAccountName: this.value.metadata.name,
+            },
+          });
+
+          const kubeconfig = res.data;
+
+          const harvesterKubeconfigSecret = await this.createKubeconfigSecret(kubeconfig);
+
+          this.agentConfig['cloud-provider-config'] = `secret://fleet-default:${ harvesterKubeconfigSecret?.metadata?.name }`;
+
+          const harvesterCloudProviderKey = this.chartVersionKey(HARVESTER_CLOUD_PROVIDER);
+
+          if (this.isCreate) {
+            set(this.userChartValues, `'${ harvesterCloudProviderKey }'.global.cattle.clusterName`, this.value.metadata.name);
+          }
+
+          const distroSubdir = this.value?.spec?.kubernetesVersion?.includes('k3s') ? DEFAULT_SUBDIRS.K8S_DISTRO_K3S : DEFAULT_SUBDIRS.K8S_DISTRO_RKE2;
+          const distroRoot = this.value?.spec?.rkeConfig?.dataDirectories?.k8sDistro?.length ? this.value?.spec?.rkeConfig?.dataDirectories?.k8sDistro : `${ DEFAULT_COMMON_BASE_PATH }/${ distroSubdir }`;
+
+          set(this.userChartValues, `'${ harvesterCloudProviderKey }'.cloudConfigPath`, `${ distroRoot }/etc/config-files/cloud-provider-config`);
+        }
+      } catch (e) {
+        const cause = e.errors ? e.errors.join('; ') : e?.message;
+        const msg = this.t('cluster.harvester.kubeconfigSecret.error', { err: cause });
+
+        this.errors.push(msg);
+        throw new Error(msg);
       }
     },
 
@@ -1893,6 +1916,7 @@ export default {
 
       charts.forEach((name) => {
         const key = this.chartVersionKey(name);
+
         const userValues = this.userChartValues[key];
 
         if (userValues) {

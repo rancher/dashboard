@@ -1654,6 +1654,9 @@ cluster:
       sshUser:
         placeholder: e.g. ubuntu
         toolTip: SSH user to login with the selected OS image.
+    kubeconfigSecret:
+        nameRequired: Cluster name is required.
+        error: 'Error generating Harvester kubeconfig secret: {err}'
   haveOneOwner: There must be at least one member with the Owner role.
   import:
     warningBanner: 'You should not import a cluster which has already been connected to another instance of Rancher as it will lead to data corruption.'
