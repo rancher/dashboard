@@ -16,6 +16,7 @@ const clusterList = new ClusterManagerListPagePo();
 const userMenu = new UserMenuPo();
 const BANNER_TEXT = "Typical users will not need to change these. Proceed with caution, incorrect values can break your Explorer installation. Settings which have been customized from default settings are tagged 'Modified'.";
 const settingsOriginal = {};
+const resetSettings = [];
 
 describe('Settings', { testIsolation: 'off' }, () => {
   before(() => {
@@ -27,7 +28,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       const body = resp.body;
 
       body.data.forEach((s) => {
-        settingsOriginal[s.id] = s.value || s.default;
+        settingsOriginal[s.id] = s;
       });
     });
   });
@@ -75,13 +76,15 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('engine-iso-url').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settingsOriginal['engine-iso-url']);
-      expect(response?.body).to.have.property('value', settingsOriginal['engine-iso-url']);
+      expect(request.body).to.have.property('value', settingsOriginal['engine-iso-url'].default);
+      expect(response?.body).to.have.property('value', settingsOriginal['engine-iso-url'].default);
     });
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('engine-iso-url').contains(settingsOriginal['engine-iso-url']);
+    settingsPage.settingsValue('engine-iso-url').contains(settingsOriginal['engine-iso-url'].default);
     settingsPage.modifiedLabel('engine-iso-url').should('not.exist'); // modified label should not display after reset
+
+    resetSettings.push('engine-iso-url');
   });
 
   it('can update password-min-length', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -132,7 +135,9 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.saveAndWait('password-min-length');
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('password-min-length').contains(settingsOriginal['password-min-length']);
+    settingsPage.settingsValue('password-min-length').contains(settingsOriginal['password-min-length'].default);
+
+    resetSettings.push('password-min-length');
   });
 
   it('can update ingress-ip-domain', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -163,12 +168,14 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('ingress-ip-domain').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settingsOriginal['ingress-ip-domain']);
-      expect(response?.body).to.have.property('value', settingsOriginal['ingress-ip-domain']);
+      expect(request.body).to.have.property('value', settingsOriginal['ingress-ip-domain'].default);
+      expect(response?.body).to.have.property('value', settingsOriginal['ingress-ip-domain'].default);
     });
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('ingress-ip-domain').contains(settingsOriginal['ingress-ip-domain']);
+    settingsPage.settingsValue('ingress-ip-domain').contains(settingsOriginal['ingress-ip-domain'].default);
+
+    resetSettings.push('ingress-ip-domain');
   });
 
   it('can update auth-user-info-max-age-seconds', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -199,12 +206,14 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('auth-user-info-max-age-seconds').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settingsOriginal['auth-user-info-max-age-seconds']);
-      expect(response?.body).to.have.property('value', settingsOriginal['auth-user-info-max-age-seconds']);
+      expect(request.body).to.have.property('value', settingsOriginal['auth-user-info-max-age-seconds'].default);
+      expect(response?.body).to.have.property('value', settingsOriginal['auth-user-info-max-age-seconds'].default);
     });
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('auth-user-info-max-age-seconds').contains(settingsOriginal['auth-user-info-max-age-seconds']);
+    settingsPage.settingsValue('auth-user-info-max-age-seconds').contains(settingsOriginal['auth-user-info-max-age-seconds'].default);
+
+    resetSettings.push('auth-user-info-max-age-seconds');
   });
 
   it('can update auth-user-session-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -235,12 +244,14 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('auth-user-session-ttl-minutes').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['auth-user-session-ttl-minutes']);
-      expect(response?.body).to.have.property('value', settings['auth-user-session-ttl-minutes']);
+      expect(request.body).to.have.property('value', settingsOriginal['auth-user-session-ttl-minutes'].default);
+      expect(response?.body).to.have.property('value', settingsOriginal['auth-user-session-ttl-minutes'].default);
     });
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('auth-user-session-ttl-minutes').contains(settings['auth-user-session-ttl-minutes']);
+    settingsPage.settingsValue('auth-user-session-ttl-minutes').contains(settingsOriginal['auth-user-session-ttl-minutes'].default);
+
+    resetSettings.push('auth-user-session-ttl-minutes');
   });
 
   it('can update auth-token-max-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -279,7 +290,9 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.saveAndWait('auth-token-max-ttl-minutes');
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('auth-token-max-ttl-minutes').contains(settingsOriginal['auth-token-max-ttl-minutes']);
+    settingsPage.settingsValue('auth-token-max-ttl-minutes').contains(settingsOriginal['auth-token-max-ttl-minutes'].default);
+
+    resetSettings.push('auth-token-max-ttl-minutes');
   });
 
   it('can update agent-tls-mode', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -308,6 +321,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     settingsPage.waitForPage();
     settingsPage.settingsValue('agent-tls-mode').contains('Strict');
+
+    resetSettings.push('agent-tls-mode');
   });
 
   it('can update kubeconfig-default-token-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -338,12 +353,14 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('kubeconfig-default-token-ttl-minutes').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settingsOriginal['kubeconfig-default-token-ttl-minutes']);
-      expect(response?.body).to.have.property('value', settingsOriginal['kubeconfig-default-token-ttl-minutes']);
+      expect(request.body).to.have.property('value', settingsOriginal['kubeconfig-default-token-ttl-minutes'].default);
+      expect(response?.body).to.have.property('value', settingsOriginal['kubeconfig-default-token-ttl-minutes'].default);
     });
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('kubeconfig-default-token-ttl-minutes').contains(settingsOriginal['kubeconfig-default-token-ttl-minutes']);
+    settingsPage.settingsValue('kubeconfig-default-token-ttl-minutes').contains(settingsOriginal['kubeconfig-default-token-ttl-minutes'].default);
+
+    resetSettings.push('kubeconfig-default-token-ttl-minutes');
   });
 
   it('can update auth-user-info-resync-cron', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -374,12 +391,14 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('auth-user-info-resync-cron').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settingsOriginal['auth-user-info-resync-cron']);
-      expect(response?.body).to.have.property('value', settingsOriginal['auth-user-info-resync-cron']);
+      expect(request.body).to.have.property('value', settingsOriginal['auth-user-info-resync-cron'].default);
+      expect(response?.body).to.have.property('value', settingsOriginal['auth-user-info-resync-cron'].default);
     });
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('auth-user-info-resync-cron').contains(settingsOriginal['auth-user-info-resync-cron']);
+    settingsPage.settingsValue('auth-user-info-resync-cron').contains(settingsOriginal['auth-user-info-resync-cron'].default);
+
+    resetSettings.push('auth-user-info-resync-cron');
   });
 
   it('can update kubeconfig-generate-token', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -407,7 +426,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.saveAndWait('kubeconfig-generate-token');
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('kubeconfig-generate-token').contains(settingsOriginal['kubeconfig-generate-token']);
+    settingsPage.settingsValue('kubeconfig-generate-token').contains(settingsOriginal['kubeconfig-generate-token'].default);
 
     // Check kubeconfig file
     const downloadsFolder = Cypress.config('downloadsFolder');
@@ -426,6 +445,17 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(obj.users[0].user.token).to.have.length.gt(0);
       expect(obj.apiVersion).to.equal('v1');
       expect(obj.kind).to.equal('Config');
+    });
+
+    resetSettings.push('kubeconfig-generate-token');
+  });
+
+  after(() => {
+    resetSettings.forEach((s, i) => {
+      cy.setRancherResource('v1', 'management.cattle.io.settings', s, settingsOriginal[s]);
+      if (i % 5) {
+        cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
+      }
     });
   });
 });

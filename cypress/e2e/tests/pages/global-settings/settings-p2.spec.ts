@@ -15,6 +15,7 @@ const clusterList = new ClusterManagerListPagePo();
 const burgerMenu = new BurgerMenuPo();
 const settingsOriginal = {};
 let removeServerUrl = false;
+const resetSettings = [];
 
 describe('Settings', { testIsolation: 'off' }, () => {
   before(() => {
@@ -103,77 +104,77 @@ describe('Settings', { testIsolation: 'off' }, () => {
   it('can update ui-index', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
-    settingsPage.settingsValue('ui-index').invoke('text').then((originalValue:any) => {
-      settingsPage.editSettingsByLabel('ui-index');
+    settingsPage.editSettingsByLabel('ui-index');
 
-      const settingsEdit = settingsPage.editSettings('local', 'ui-index');
+    const settingsEdit = settingsPage.editSettings('local', 'ui-index');
 
-      settingsEdit.waitForPage();
-      settingsEdit.title().contains('Setting: ui-index').should('be.visible');
-      settingsEdit.settingsInput().set(settings['ui-index'].new);
-      settingsEdit.saveAndWait('ui-index', settings['ui-index'].new).then(({ request, response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(request.body).to.have.property('value', settings['ui-index'].new);
-        expect(response?.body).to.have.property('value', settings['ui-index'].new);
-      });
-      settingsPage.waitForPage();
-      settingsPage.settingsValue('ui-index').contains(settings['ui-index'].new);
-
-      // Reset
-      SettingsPagePo.navTo();
-      settingsPage.waitForPage();
-      settingsPage.editSettingsByLabel('ui-index');
-
-      settingsEdit.waitForPage();
-      settingsEdit.title().contains('Setting: ui-index').should('be.visible');
-      settingsEdit.useDefaultButton().click();
-      settingsEdit.saveAndWait('ui-index', originalValue).then(({ request, response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(request.body).to.have.property('value', originalValue);
-        expect(response?.body).to.have.property('value', originalValue);
-      });
-
-      settingsPage.waitForPage();
-      settingsPage.settingsValue('ui-index').contains(originalValue);
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: ui-index').should('be.visible');
+    settingsEdit.settingsInput().set(settings['ui-index'].new);
+    settingsEdit.saveAndWait('ui-index', settings['ui-index'].new).then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value', settings['ui-index'].new);
+      expect(response?.body).to.have.property('value', settings['ui-index'].new);
     });
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('ui-index').contains(settings['ui-index'].new);
+
+    // Reset
+    SettingsPagePo.navTo();
+    settingsPage.waitForPage();
+    settingsPage.editSettingsByLabel('ui-index');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: ui-index').should('be.visible');
+    settingsEdit.useDefaultButton().click();
+    settingsEdit.saveAndWait('ui-index', settingsOriginal['ui-index'].default).then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value', settingsOriginal['ui-index'].default);
+      expect(response?.body).to.have.property('value', settingsOriginal['ui-index'].default);
+    });
+
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('ui-index').contains(settingsOriginal['ui-index'].default);
+
+    resetSettings.push('ui-index');
   });
 
   it('can update ui-dashboard-index', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Update setting
     SettingsPagePo.navTo();
-    settingsPage.settingsValue('ui-dashboard-index').invoke('text').then((originalValue:any) => {
-      settingsPage.editSettingsByLabel('ui-dashboard-index');
+    settingsPage.editSettingsByLabel('ui-dashboard-index');
 
-      const settingsEdit = settingsPage.editSettings('local', 'ui-dashboard-index');
+    const settingsEdit = settingsPage.editSettings('local', 'ui-dashboard-index');
 
-      settingsEdit.waitForPage();
-      settingsEdit.title().contains('Setting: ui-dashboard-index').should('be.visible');
-      settingsEdit.settingsInput().set(settings['ui-dashboard-index'].new);
-      settingsEdit.saveAndWait('ui-dashboard-index', settings['ui-dashboard-index'].new).then(({ request, response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(request.body).to.have.property('value', settings['ui-dashboard-index'].new);
-        expect(response?.body).to.have.property('value', settings['ui-dashboard-index'].new);
-      });
-      settingsPage.waitForPage();
-      settingsPage.settingsValue('ui-dashboard-index').contains(settings['ui-dashboard-index'].new);
-
-      // Reset
-      SettingsPagePo.navTo();
-      settingsPage.waitForPage();
-      settingsPage.editSettingsByLabel('ui-dashboard-index');
-
-      settingsEdit.waitForPage();
-      settingsEdit.title().contains('Setting: ui-dashboard-index').should('be.visible');
-      settingsEdit.useDefaultButton().click();
-      settingsEdit.saveAndWait('ui-dashboard-index', originalValue).then(({ request, response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(request.body).to.have.property('value', originalValue);
-        expect(response?.body).to.have.property('value', originalValue);
-      });
-
-      settingsPage.waitForPage();
-      settingsPage.settingsValue('ui-dashboard-index').contains(originalValue);
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: ui-dashboard-index').should('be.visible');
+    settingsEdit.settingsInput().set(settings['ui-dashboard-index'].new);
+    settingsEdit.saveAndWait('ui-dashboard-index', settings['ui-dashboard-index'].new).then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value', settings['ui-dashboard-index'].new);
+      expect(response?.body).to.have.property('value', settings['ui-dashboard-index'].new);
     });
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('ui-dashboard-index').contains(settings['ui-dashboard-index'].new);
+
+    // Reset
+    SettingsPagePo.navTo();
+    settingsPage.waitForPage();
+    settingsPage.editSettingsByLabel('ui-dashboard-index');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: ui-dashboard-index').should('be.visible');
+    settingsEdit.useDefaultButton().click();
+    settingsEdit.saveAndWait('ui-dashboard-index', settingsOriginal['ui-dashboard-index'].default).then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value', settingsOriginal['ui-dashboard-index'].default);
+      expect(response?.body).to.have.property('value', settingsOriginal['ui-dashboard-index'].default);
+    });
+
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('ui-dashboard-index').contains(settingsOriginal['ui-dashboard-index'].default);
+
+    resetSettings.push('ui-dashboard-index');
   });
 
   it('can update ui-offline-preferred', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -224,6 +225,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
     });
     settingsPage.waitForPage();
     settingsPage.settingsValue('ui-offline-preferred').contains(settingsOriginal['ui-offline-preferred'].default);
+
+    resetSettings.push('ui-offline-preferred');
   });
 
   it('can update ui-brand', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -280,6 +283,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
     BurgerMenuPo.toggle();
     burgerMenu.brandLogoImage().should('be.visible').invoke('outerWidth').then((str) => parseInt(str))
       .should('eq', rancherLogoWidth);
+
+    resetSettings.push('ui-brand');
   });
 
   it('can update hide-local-cluster', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -313,6 +318,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     settingsPage.waitForPage();
     settingsPage.settingsValue('hide-local-cluster').contains(settingsOriginal['hide-local-cluster'].default);
+
+    resetSettings.push('hide-local-cluster');
   });
 
   it('can update k3s-based-upgrader-uninstall-concurrency', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -343,12 +350,14 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('k3s-based-upgrader-uninstall-concurrency').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settingsOriginal['k3s-based-upgrader-uninstall-concurrency'].default);
-      expect(response?.body).to.have.property('value', settingsOriginal['k3s-based-upgrader-uninstall-concurrency'].default);
+      expect(request.body).to.have.property('value', settingsOriginal['k3s-based-upgrader-uninstall-concurrency']);
+      expect(response?.body).to.have.property('value', settingsOriginal['k3s-based-upgrader-uninstall-concurrency']);
     });
 
     settingsPage.waitForPage();
     settingsPage.settingsValue('k3s-based-upgrader-uninstall-concurrency').contains(settingsOriginal['k3s-based-upgrader-uninstall-concurrency'].default);
+
+    resetSettings.push('k3s-based-upgrader-uninstall-concurrency');
   });
 
   // GH https://github.com/rancher/rancher/issues/50883
@@ -380,12 +389,12 @@ describe('Settings', { testIsolation: 'off' }, () => {
   //     settingsEdit.useDefaultButton().click();
   //     settingsEdit.saveAndWait('system-agent-upgrader-install-concurrency').then(({ request, response }) => {
   //       expect(response?.statusCode).to.eq(200);
-  //       expect(request.body).to.have.property('value', settings['system-agent-upgrader-install-concurrency'].default);
-  //       expect(response?.body).to.have.property('value', settings['system-agent-upgrader-install-concurrency'].default);
+  //       expect(request.body).to.have.property('value', settings['system-agent-upgrader-install-concurrency']);
+  //       expect(response?.body).to.have.property('value', settings['system-agent-upgrader-install-concurrency']);
   //     });
 
   //     settingsPage.waitForPage();
-  //     settingsPage.settingsValue('system-agent-upgrader-install-concurrency').contains(settings['system-agent-upgrader-install-concurrency'].default);
+  //     settingsPage.settingsValue('system-agent-upgrader-install-concurrency').contains(settings['system-agent-upgrader-install-concurrency']);
   //   });
 
   it('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -430,6 +439,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     settingsPageBlank.waitForPage();
     settingsPageBlank.settingsValue('system-default-registry').contains(settingsOriginal['system-default-registry'].default);
+
+    resetSettings.push('system-default-registry');
   });
 
   it('standard user has only read access to Settings page', { tags: ['@globalSettings', '@standardUser'] }, () => {
@@ -449,5 +460,12 @@ describe('Settings', { testIsolation: 'off' }, () => {
         cy.setRancherResource('v1', 'management.cattle.io.settings', 'server-url', settingsOriginal['server-url']);
       });
     }
+
+    resetSettings.forEach((s, i) => {
+      cy.setRancherResource('v1', 'management.cattle.io.settings', s, settingsOriginal[s]);
+      if (i % 5) {
+        cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
+      }
+    });
   });
 });
