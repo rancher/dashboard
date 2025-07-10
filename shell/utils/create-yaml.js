@@ -292,7 +292,7 @@ export function createYaml(
       if ( SIMPLE_TYPES.includes(mapOf) ) {
         out += `#  key: ${ mapOf }`;
       } else {
-        // If not a simple type ie some sort of object/array, recusively build out commented fields (note data = null here) per the type's (mapOf's) schema
+        // If not a simple type ie some sort of object/array, recursively build out commented fields (note data = null here) per the type's (mapOf's) schema
         const chunk = createYaml(schemas, mapOf, null, processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType, dataOptions, commentFieldsOptions);
         let indented = indent(chunk);
 
