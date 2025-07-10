@@ -6,6 +6,7 @@ import { Banner } from '@components/Banner';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, SORT_BY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, TAG, STATUS
 } from '@shell/config/query-params';
+import { DOCS_BASE } from '@shell/config/private-label';
 import { APP_STATUS, compatibleVersionsFor, filterAndArrangeCharts, normalizeFilterQuery } from '@shell/store/catalog';
 import { lcFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
@@ -22,6 +23,7 @@ import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartC
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import AddRepoLink from '@shell/pages/c/_cluster/apps/charts/AddRepoLink';
 import StatusLabel from '@shell/pages/c/_cluster/apps/charts/StatusLabel';
+import RichTranslation from '@shell/components/RichTranslation.vue';
 import Select from '@shell/components/form/Select';
 
 const createInitialFilters = () => ({
@@ -41,7 +43,8 @@ export default {
     FilterPanel,
     AppChartCardSubHeader,
     AppChartCardFooter,
-    Select
+    Select,
+    RichTranslation
   },
 
   async fetch() {
@@ -63,6 +66,7 @@ export default {
 
   data() {
     return {
+      DOCS_BASE,
       searchQuery:          null,
       debouncedSearchQuery: null,
       showDeprecated:       null,
@@ -502,25 +506,46 @@ export default {
           {{ t('catalog.charts.noCharts.title') }}
         </h1>
         <div class="empty-state-tips">
-          <h4
-            v-clean-html="t('catalog.charts.noCharts.messagePart1', {}, true)"
-          />
-          <a
-            tabindex="0"
-            role="button"
-            class="empty-state-reset-filters link"
-            data-testid="charts-empty-state-reset-filters"
-            @click="resetAllFilters"
+          <RichTranslation
+            k="catalog.charts.noCharts.message"
+            :raw="true"
           >
-            {{ t('catalog.charts.noCharts.messagePart2') }}
-          </a>
-          <h4
-            v-clean-html="t('catalog.charts.noCharts.messagePart3', { repositoriesUrl: `/c/${clusterId}/apps/catalog.cattle.io.clusterrepo`}, true)"
-          />
+            <template #resetAllFilters="{ content }">
+              <a
+                tabindex="0"
+                role="button"
+                class="link"
+                data-testid="charts-empty-state-reset-filters"
+                @click="resetAllFilters"
+                @keyup.enter="resetAllFilters"
+                @keyup.space="resetAllFilters"
+              >{{ content }}</a>
+            </template>
+            <template #repositoriesUrl="{ content }">
+              <router-link :to="{ name: 'c-cluster-apps-catalog-repo'}">
+                {{ content }}
+              </router-link>
+            </template>
+          </RichTranslation>
+          <RichTranslation
+            k="catalog.charts.noCharts.docsMessage"
+            tag="div"
+            :raw="true"
+          >
+            <template #docsUrl="{ content }">
+              <a
+                :href="`${DOCS_BASE}/how-to-guides/new-user-guides/helm-charts-in-rancher`"
+                class="secondary-text-link"
+                tabindex="0"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
+                <span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
+                {{ content }} <i class="icon icon-external-link" />
+              </a>
+            </template>
+          </RichTranslation>
         </div>
-        <h4
-          v-clean-html="t('catalog.charts.noCharts.messagePart4', {}, true)"
-        />
       </div>
       <div
         v-else
@@ -696,7 +721,7 @@ export default {
 
 .charts-empty-state {
   width: 100%;
-  padding: 72px 0;
+  padding: 72px 120px;
   text-align: center;
 
   .empty-state-title {
@@ -705,22 +730,8 @@ export default {
 
   .empty-state-tips {
     margin-bottom: 12px;
-
-    .empty-state-reset-filters {
-      font-size: 16px;
-    }
-
-    h4 {
-      display: inline;
-    }
-  }
-
-  :deep(h4 .icon-external-link) {
-    text-decoration: underline;
-  }
-
-  :deep(h4:hover .icon-external-link) {
-    text-decoration: none;
+    font-size: 16px;
+    line-height: 32px;
   }
 }
 

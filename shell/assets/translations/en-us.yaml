@@ -1074,10 +1074,8 @@ catalog:
     header: Charts
     noCharts:
       title: No charts to show
-      messagePart1: <b>Tips:</b> undo the last filter you applied or
-      messagePart2: clear all filters
-      messagePart3: ', and ensure you have the right <a tabindex="0" href={repositoriesUrl} rel="noopener noreferrer nofollow">repositories</a> in place.'
-      messagePart4: 'Want to learn more about Helm Charts and Apps? Read our <a tabindex="0" href="{docsBase}/how-to-guides/new-user-guides/helm-charts-in-rancher" target="_blank" class="secondary-text-link">documentation <i class="icon icon-external-link"></i></a>.'
+      message: '<b>Tips:</b> undo the last filter you applied or <resetAllFilters>clear all filters</resetAllFilters>, and ensure you have the right <repositoriesUrl>repositories</repositoriesUrl> in place.'
+      docsMessage: 'Want to learn more about Helm Charts and Apps? Read our <docsUrl>documentation</docsUrl>.'
     noWindows: Your repos do not contain any charts capable of being deployed on a cluster with Windows nodes.
     noWindowsAndLinux: Your repos do not contain any charts capable of being deployed on a cluster with both Windows and Linux worker nodes.
     operatingSystems:
