@@ -15,11 +15,21 @@ const createKeyPage = new CreateKeyPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const userMenu = new UserMenuPo();
 const BANNER_TEXT = "Typical users will not need to change these. Proceed with caution, incorrect values can break your Explorer installation. Settings which have been customized from default settings are tagged 'Modified'.";
+const settingsOriginal = {};
 
 describe('Settings', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();
+
+    // get settings server-url response data
+    cy.getRancherResource('v1', 'management.cattle.io.settings', undefined, null).then((resp: Cypress.Response<any>) => {
+      const body = resp.body;
+
+      body.data.forEach((s) => {
+        settingsOriginal[s.id] = s.value || s.default;
+      });
+    });
   });
 
   it('has the correct title', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -65,12 +75,12 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('engine-iso-url').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['engine-iso-url'].original);
-      expect(response?.body).to.have.property('value', settings['engine-iso-url'].original);
+      expect(request.body).to.have.property('value', settingsOriginal['engine-iso-url']);
+      expect(response?.body).to.have.property('value', settingsOriginal['engine-iso-url']);
     });
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('engine-iso-url').contains(settings['engine-iso-url'].original);
+    settingsPage.settingsValue('engine-iso-url').contains(settingsOriginal['engine-iso-url']);
     settingsPage.modifiedLabel('engine-iso-url').should('not.exist'); // modified label should not display after reset
   });
 
@@ -122,7 +132,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.saveAndWait('password-min-length');
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('password-min-length').contains(settings['password-min-length'].original);
+    settingsPage.settingsValue('password-min-length').contains(settingsOriginal['password-min-length']);
   });
 
   it('can update ingress-ip-domain', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -153,12 +163,12 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('ingress-ip-domain').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['ingress-ip-domain'].original);
-      expect(response?.body).to.have.property('value', settings['ingress-ip-domain'].original);
+      expect(request.body).to.have.property('value', settingsOriginal['ingress-ip-domain']);
+      expect(response?.body).to.have.property('value', settingsOriginal['ingress-ip-domain']);
     });
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('ingress-ip-domain').contains(settings['ingress-ip-domain'].original);
+    settingsPage.settingsValue('ingress-ip-domain').contains(settingsOriginal['ingress-ip-domain']);
   });
 
   it('can update auth-user-info-max-age-seconds', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -189,12 +199,12 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('auth-user-info-max-age-seconds').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['auth-user-info-max-age-seconds'].original);
-      expect(response?.body).to.have.property('value', settings['auth-user-info-max-age-seconds'].original);
+      expect(request.body).to.have.property('value', settingsOriginal['auth-user-info-max-age-seconds']);
+      expect(response?.body).to.have.property('value', settingsOriginal['auth-user-info-max-age-seconds']);
     });
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('auth-user-info-max-age-seconds').contains(settings['auth-user-info-max-age-seconds'].original);
+    settingsPage.settingsValue('auth-user-info-max-age-seconds').contains(settingsOriginal['auth-user-info-max-age-seconds']);
   });
 
   it('can update auth-user-session-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -225,12 +235,12 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('auth-user-session-ttl-minutes').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['auth-user-session-ttl-minutes'].original);
-      expect(response?.body).to.have.property('value', settings['auth-user-session-ttl-minutes'].original);
+      expect(request.body).to.have.property('value', settings['auth-user-session-ttl-minutes']);
+      expect(response?.body).to.have.property('value', settings['auth-user-session-ttl-minutes']);
     });
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('auth-user-session-ttl-minutes').contains(settings['auth-user-session-ttl-minutes'].original);
+    settingsPage.settingsValue('auth-user-session-ttl-minutes').contains(settings['auth-user-session-ttl-minutes']);
   });
 
   it('can update auth-token-max-ttl-minutes', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -269,7 +279,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.saveAndWait('auth-token-max-ttl-minutes');
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('auth-token-max-ttl-minutes').contains(settings['auth-token-max-ttl-minutes'].original);
+    settingsPage.settingsValue('auth-token-max-ttl-minutes').contains(settingsOriginal['auth-token-max-ttl-minutes']);
   });
 
   it('can update agent-tls-mode', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -328,12 +338,12 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('kubeconfig-default-token-ttl-minutes').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['kubeconfig-default-token-ttl-minutes'].original);
-      expect(response?.body).to.have.property('value', settings['kubeconfig-default-token-ttl-minutes'].original);
+      expect(request.body).to.have.property('value', settingsOriginal['kubeconfig-default-token-ttl-minutes']);
+      expect(response?.body).to.have.property('value', settingsOriginal['kubeconfig-default-token-ttl-minutes']);
     });
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('kubeconfig-default-token-ttl-minutes').contains(settings['kubeconfig-default-token-ttl-minutes'].original);
+    settingsPage.settingsValue('kubeconfig-default-token-ttl-minutes').contains(settingsOriginal['kubeconfig-default-token-ttl-minutes']);
   });
 
   it('can update auth-user-info-resync-cron', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -364,12 +374,12 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('auth-user-info-resync-cron').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['auth-user-info-resync-cron'].original);
-      expect(response?.body).to.have.property('value', settings['auth-user-info-resync-cron'].original);
+      expect(request.body).to.have.property('value', settingsOriginal['auth-user-info-resync-cron']);
+      expect(response?.body).to.have.property('value', settingsOriginal['auth-user-info-resync-cron']);
     });
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('auth-user-info-resync-cron').contains(settings['auth-user-info-resync-cron'].original);
+    settingsPage.settingsValue('auth-user-info-resync-cron').contains(settingsOriginal['auth-user-info-resync-cron']);
   });
 
   it('can update kubeconfig-generate-token', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -397,7 +407,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.saveAndWait('kubeconfig-generate-token');
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('kubeconfig-generate-token').contains(settings['kubeconfig-generate-token'].original);
+    settingsPage.settingsValue('kubeconfig-generate-token').contains(settingsOriginal['kubeconfig-generate-token']);
 
     // Check kubeconfig file
     const downloadsFolder = Cypress.config('downloadsFolder');

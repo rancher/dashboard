@@ -172,6 +172,10 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
       crdsPage.sortableTable().filter(filter);
       crdsPage.waitForPage(`q=${ filter }`);
 
+      // Wait for the filter to apply (vai on -- http request -- populate results)
+      // This is brittle, we should wait for the response for the page to be received
+      crdsPage.sortableTable().checkRowCount(false, 20);
+
       let indexBeforeSort: number;
 
       crdsPage.sortableTable().rowNames().then((rows) => {
