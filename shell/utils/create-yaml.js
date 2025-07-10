@@ -452,14 +452,17 @@ export function createYaml(
     return out;
   }
 
-  function addCommentSubFieldsOptions(commentFieldsOptions, data, path, key) {
-    if (!!commentFieldsOptions) {
-      if ( Array.isArray(commentFieldsOptions) && commentFieldsOptions.length ) {
+  /**
+   * Extends original commentFieldsOptions to cover nested objects
+   */
+  function addCommentSubFieldsOptions(options, data, path, key) {
+    if (!!options) {
+      if ( Array.isArray(options) && options.length ) {
         const currentPath = path ? `${ path }.${ key }` : key;
 
-        if ( commentFieldsOptions.some((option) => `${ option.path }.${ option.key }` === currentPath) ) {
-          commentFieldsOptions = [
-            ...commentFieldsOptions,
+        if ( options.some((option) => `${ option.path }.${ option.key }` === currentPath) ) {
+          options = [
+            ...options,
             ...Object.keys(data[key]).map((k) => ({
               path: `${ path }.${ key }`,
               key:  k
@@ -469,7 +472,7 @@ export function createYaml(
       }
     }
 
-    return commentFieldsOptions;
+    return options;
   }
 }
 
