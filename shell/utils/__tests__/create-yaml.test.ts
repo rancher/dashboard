@@ -556,7 +556,13 @@ describe('fx: createYaml', () => {
           nullable: true,
           create:   true,
           update:   true
-        }
+        },
+        foo: {
+          type:     'array[string]',
+          nullable: true,
+          create:   true,
+          update:   true
+        },
       }
     },
     {
@@ -616,7 +622,7 @@ describe('fx: createYaml', () => {
   ];
 
   it('should comment out fields when specific properties are defined on the model with commentFieldsOptions', () => {
-    const data = {
+    const obj = {
       type:     'provisioning.cattle.io.cluster',
       metadata: {
         namespace:   'fleet-default',
@@ -639,6 +645,31 @@ describe('fx: createYaml', () => {
           },
           chartValues: {}
         },
+        foo: [
+          'bar',
+          'bar2'
+        ],
+      },
+      apiVersion: 'provisioning.cattle.io/v1',
+      kind:       'Cluster'
+    };
+
+    const objResult = {
+      metadata: {
+        namespace:   'fleet-default',
+        annotations: { someannotation: 'test' },
+        labels:      {}
+      },
+      __clone: true,
+      spec:    {
+        rkeConfig: {
+          machineGlobalConfig: {
+            cni:                   'calico',
+            'disable-kube-proxy':  false,
+            'etcd-expose-metrics': false,
+          },
+          chartValues: {}
+        },
       },
       apiVersion: 'provisioning.cattle.io/v1',
       kind:       'Cluster'
@@ -647,7 +678,8 @@ describe('fx: createYaml', () => {
     const type = 'provisioning.cattle.io.cluster';
     const commentFieldsOptions: CommentFieldsOption[] = [
       { path: 'spec.rkeConfig.machineGlobalConfig', key: 'profile' },
-      { path: 'spec', key: 'localClusterAuthEndpoint' }
+      { path: 'spec', key: 'localClusterAuthEndpoint' },
+      { path: 'spec', key: 'foo' },
     ];
 
     // Define the expected YAML output as a string, adjusted for correct spacing
@@ -664,9 +696,9 @@ metadata:
   namespace: fleet-default
 spec:
 #  localClusterAuthEndpoint:
-    caCerts: ''
-    enabled: false
-    fqdn: ''
+#    caCerts: ''
+#    enabled: false
+#    fqdn: ''
   rkeConfig:
     chartValues:
       {}
@@ -676,10 +708,18 @@ spec:
       etcd-expose-metrics: false
 #       profile: null
 #    additionalManifest: string
+#  foo:
+#    - bar
+#    - bar2
+#    - string
 __clone: true`.trim();
 
-    const result = createYaml(schemas, type, data, true, 0, '', null, {}, commentFieldsOptions as any);
+    const result = createYaml(schemas, type, obj, true, 0, '', null, {}, commentFieldsOptions as any);
 
+    // Check if result is a valid YAML
+    expect(jsyaml.load(result.trim())).toStrictEqual(objResult);
+
+    // Check if properties are commented out
     expect(result.trim()).toStrictEqual(expectedYaml);
   });
 });

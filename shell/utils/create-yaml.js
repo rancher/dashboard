@@ -236,6 +236,8 @@ export function createYaml(
       out = 'type:';
     }
 
+    commentFieldsOptions = addCommentSubFieldsOptions(commentFieldsOptions, data, path, key);
+
     // If commentFieldOptions is defined on the model and the currentPath matches the path and key
     // defined in one of the options, then comment out that line.
     if ( Array.isArray(commentFieldsOptions) && commentFieldsOptions.length ) {
@@ -312,7 +314,34 @@ export function createYaml(
           if ( cleaned?.[key] ) {
             const parsedData = jsyaml.dump(cleaned[key]);
 
-            out += `\n${ indent(parsedData.trim()) }`;
+            let chunk;
+
+            // If commentFieldOptions is defined on the model and the array has the property (`key`)
+            // defined in one of the options, then comment out that line.
+            if ( Array.isArray(commentFieldsOptions) && commentFieldsOptions.length ) {
+              let lines = parsedData.split('\n');
+
+              commentFieldsOptions.forEach((option) => {
+                // Assuming the path for the current array matches the option's path
+                // and the specific key to comment out exists in the array
+                if ( `${ path }.${ key }` === option.path && data[key][option.key] !== undefined ) {
+                  // Comment out the line containing the target line
+                  lines = lines.map((line, i) => {
+                    if ( i === Number(option.key) ) {
+                      return `#${ line }`;
+                    }
+
+                    return line;
+                  });
+                }
+              });
+
+              chunk = lines.join('\n').trim();
+            } else {
+              chunk = parsedData.trim();
+            }
+
+            out += `\n${ indent(chunk) }`;
           }
         } catch (e) {
           console.error(`Error: Unable to parse array data for yaml of type: ${ type }`, e); // eslint-disable-line no-console
@@ -421,6 +450,26 @@ export function createYaml(
     }
 
     return out;
+  }
+
+  function addCommentSubFieldsOptions(commentFieldsOptions, data, path, key) {
+    if (!!commentFieldsOptions) {
+      if ( Array.isArray(commentFieldsOptions) && commentFieldsOptions.length ) {
+        const currentPath = path ? `${ path }.${ key }` : key;
+
+        if ( commentFieldsOptions.some((option) => `${ option.path }.${ option.key }` === currentPath) ) {
+          commentFieldsOptions = [
+            ...commentFieldsOptions,
+            ...Object.keys(data[key]).map((k) => ({
+              path: `${ path }.${ key }`,
+              key:  k
+            }))
+          ];
+        }
+      }
+    }
+
+    return commentFieldsOptions;
   }
 }
 
