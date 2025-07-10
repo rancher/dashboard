@@ -5,11 +5,13 @@ set -x
 K3S_VERSION=v1.32.6+k3s1
 
 # Image version
-RANCHER_IMG_VERSION=head
+RANCHER_IMG_REPO=tlebreux/rancher
+RANCHER_IMG_TAG=sha256:5e865d79249db99713858d3e216c71ad434605aef5242c508153a8bebef0ca56
+RANCHER_AGENT_IMG=tlebreux/rancher@sha256:6de928745e75b2fb53535b27d255c1f0448ce29e9f7b2f86ebb410be9e4c8bdf
 
-# check if script invoke contains any argument. If so, adjust RANCHER_IMG_VERSION
+# check if script invoke contains any argument. If so, adjust RANCHER_IMG_TAG
 if [ $# -eq 1 ]; then
-  RANCHER_IMG_VERSION=$1
+  RANCHER_IMG_TAG=$1
 fi
 
 DASHBOARD_URL="${TEST_BASE_URL#https://}"
@@ -60,11 +62,11 @@ helm install rancher $HELM_REPO/rancher \
   --devel \
   --set hostname=$DASHBOARD_URL \
   --set replicas="1" \
-  --set rancherImage="rancher/rancher" \
-  --set rancherImageTag="$RANCHER_IMG_VERSION" \
+  --set rancherImage="$RANCHER_IMG_REPO" \
+  --set rancherImageTag="$RANCHER_IMG_TAG" \
   --set rancherImagePullPolicy="Always" \
   --set extraEnv\[0\].name="CATTLE_AGENT_IMAGE" \
-  --set-string extraEnv\[0\].value="rancher/rancher:$RANCHER_IMG_VERSION" \
+  --set-string extraEnv\[0\].value="$RANCHER_AGENT_IMG" \
   --set extraEnv\[1\].name="CATTLE_UI_OFFLINE_PREFERRED" \
   --set-string extraEnv\[1\].value="true" \
   --set extraEnv\[2\].name="CATTLE_BOOTSTRAP_PASSWORD" \

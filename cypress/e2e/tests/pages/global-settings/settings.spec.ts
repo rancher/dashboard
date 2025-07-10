@@ -1,6 +1,5 @@
 import { SettingsPagePo } from '@/cypress/e2e/po/pages/global-settings/settings.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import CreateKeyPagePo from '@/cypress/e2e/po/pages/account-api-keys-create_key.po';
 import AccountPagePo from '@/cypress/e2e/po/pages/account-api-keys.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
