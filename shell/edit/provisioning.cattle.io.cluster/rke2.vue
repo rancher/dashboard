@@ -1339,7 +1339,7 @@ export default {
           latestConfig,
           {
             dispatch: this.$store.dispatch,
-            getters: this.$store.getters
+            getters:  this.$store.getters
           },
           'management'
         );
