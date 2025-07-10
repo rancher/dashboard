@@ -160,7 +160,7 @@ describe('Cluster Groups', { testIsolation: 'off', tags: ['@fleet', '@adminUser'
     fleetClusterGroupDetailsPage.waitForPage(null, 'clusters');
 
     // check table headers
-    const expectedHeadersDetailsView = ['State', 'Name', 'Bundles Ready', 'Repos Ready', 'Resources', 'Last Seen', 'Age'];
+    const expectedHeadersDetailsView = ['State', 'Name', 'Git Repos Ready', 'Helm Ops Ready', 'Bundles Ready', 'Resources', 'Last Seen', 'Age'];
 
     fleetClusterGroupDetailsPage.clusterList().sortableTable()
       .tableHeaderRow()

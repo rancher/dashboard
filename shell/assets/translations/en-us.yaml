@@ -6457,6 +6457,7 @@ tableHeaders:
   groupName: Group Name
   groupRoleNames: Group Role Names
   global-Default: Global-Default
+  helmOpsReady: Helm Ops Ready
   host: Host
   hostIp: Host IP
   holder: Holder
@@ -6550,7 +6551,7 @@ tableHeaders:
   repo: Repo
   repositories: Repositories
   repoName: Repository Name
-  reposReady: Repos Ready
+  reposReady: Git Repos Ready
   replicas: Replicas
   reqRate: Req Rate
   resource: Resource
