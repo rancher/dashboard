@@ -7,6 +7,7 @@ generic:
   userMenu: user menu
   actionMenu: action menu
   namespaceFilter: namespace filter menu
+  imageAlt: Generic Rancher image alt
   banners:
     altCloseBanner: Close banner icon
     bannerIcon: Banner icon
@@ -157,6 +158,10 @@ generic:
   showLess: Show less
   showMore: Show more
   opensInNewTab: Opens in a new tab
+  
+tabs:
+  addItem: Add a new tab item
+  removeItem: Remove selected tab item
 
 graph:
   noPermissions: You do not have permission to Graph view

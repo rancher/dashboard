@@ -268,6 +268,7 @@ export default {
                     v-stripped-aria-label="t('workload.container.ports.toolTip')"
                     class="icon icon-info"
                     tabindex="0"
+                    role="tooltip"
                   />
                 </h3>
                 <p class="padded">
