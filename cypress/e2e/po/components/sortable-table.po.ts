@@ -1,5 +1,5 @@
 import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
-import ActionMenuPo from '@/cypress/e2e/po/components/action-menu-shell.po';
+import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import ListRowPo from '@/cypress/e2e/po/components/list-row.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';

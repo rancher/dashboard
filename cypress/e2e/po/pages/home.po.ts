@@ -51,10 +51,9 @@ export default class HomePagePo extends PagePo {
   }
 
   toggleBanner() {
-    const actionMenuPo = new HeaderPageActionPo(undefined);
+    const actionMenuPo = HeaderPageActionPo.open('[data-testid="page-actions-menu-action-button"]');
 
     cy.intercept('PUT', 'v1/userpreferences/*').as('toggleBanner');
-    actionMenuPo.open();
     actionMenuPo.getMenuItem('Show/Hide Banner').click();
 
     cy.wait('@toggleBanner');
