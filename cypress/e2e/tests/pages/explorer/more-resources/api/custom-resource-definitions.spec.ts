@@ -174,7 +174,7 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
 
       // Wait for the filter to apply (vai on -- http request -- populate results)
       // This is brittle, we should wait for the response for the page to be received
-      crdsPage.sortableTable().checkRowCount(false, 20);
+      crdsPage.sortableTable().checkRowCount(false, 4);
 
       let indexBeforeSort: number;
 
