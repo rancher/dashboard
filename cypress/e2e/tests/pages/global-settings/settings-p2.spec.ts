@@ -14,7 +14,7 @@ const accountPage = new AccountPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const burgerMenu = new BurgerMenuPo();
 const settingsOriginal = {};
-let removeServerUrl = false;
+const removeServerUrl = false;
 const resetSettings = [];
 
 describe('Settings', { testIsolation: 'off' }, () => {
@@ -26,7 +26,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     cy.getRancherResource('v1', 'management.cattle.io.settings', undefined, null).then((resp: Cypress.Response<any>) => {
       const body = resp.body;
 
-      body.data.forEach((s) => {
+      body.data.forEach((s: any) => {
         settingsOriginal[s.id] = s;
       });
     });
@@ -186,7 +186,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: ui-offline-preferred').should('be.visible');
-    settingsEdit.selectSettingsByLabel('Local');
+    settingsEdit.selectSettingsByLabel(settings['ui-offline-preferred'].new);
     settingsEdit.saveAndWait('ui-offline-preferred', 'Local').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(request.body).to.have.property('value', 'true');
@@ -201,16 +201,31 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: ui-offline-preferred').should('be.visible');
-    settingsEdit.selectSettingsByLabel('Remote');
+    settingsEdit.selectSettingsByLabel(settings['ui-offline-preferred'].new2);
     settingsEdit.saveAndWait('ui-offline-preferred', 'Remote').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(request.body).to.have.property('value', 'false');
       expect(response?.body).to.have.property('value', 'false');
     });
     settingsPage.waitForPage();
-    settingsPage.settingsValue('ui-offline-preferred').contains(settings['ui-offline-preferred'].new);
+    settingsPage.settingsValue('ui-offline-preferred').contains(settings['ui-offline-preferred'].new2);
 
-    // Reset: Dynamic
+    // Update settings: Dynamic
+    SettingsPagePo.navTo();
+    settingsPage.editSettingsByLabel('ui-offline-preferred');
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains('Setting: ui-offline-preferred').should('be.visible');
+    settingsEdit.selectSettingsByLabel(settings['ui-offline-preferred'].new3);
+    settingsEdit.saveAndWait('ui-offline-preferred', 'dynamic').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value', 'dynamic');
+      expect(response?.body).to.have.property('value', 'dynamic');
+    });
+    settingsPage.waitForPage();
+    settingsPage.settingsValue('ui-offline-preferred').contains(settings['ui-offline-preferred'].new3);
+
+    // Reset
     SettingsPagePo.navTo();
     settingsPage.waitForPage();
     settingsPage.editSettingsByLabel('ui-offline-preferred');
@@ -218,13 +233,25 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: ui-offline-preferred').should('be.visible');
     settingsEdit.useDefaultButton().click();
-    settingsEdit.saveAndWait('ui-offline-preferred', 'dynamic').then(({ request, response }) => {
+    settingsEdit.saveAndWait('ui-offline-preferred', settingsOriginal['ui-offline-preferred'].default).then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', 'dynamic');
-      expect(response?.body).to.have.property('value', 'dynamic');
+      expect(request.body).to.have.property('value', settingsOriginal['ui-offline-preferred'].default);
+      expect(response?.body).to.have.property('value', settingsOriginal['ui-offline-preferred'].default);
     });
     settingsPage.waitForPage();
-    settingsPage.settingsValue('ui-offline-preferred').contains(settingsOriginal['ui-offline-preferred'].default);
+
+    // This should be used above...
+    let visualDefault = 'Dynamic';
+
+    switch (settingsOriginal['ui-offline-preferred'].default) {
+    case 'true':
+      visualDefault = 'Local';
+      break;
+    case 'false':
+      visualDefault = 'Remote';
+      break;
+    }
+    settingsPage.settingsValue('ui-offline-preferred').contains(visualDefault);
 
     resetSettings.push('ui-offline-preferred');
   });
@@ -273,7 +300,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.saveAndWait('ui-brand');
 
     settingsPage.waitForPage();
-    settingsPage.settingsValue('ui-brand').contains(settingsOriginal['ui-brand'].default);
+    // settingsPage.settingsValue('ui-brand'). .contains(settingsOriginal['ui-brand'].default); .. empty value
 
     // Check logos in top-level navigation header for updated logo
     HomePagePo.navTo();
@@ -438,7 +465,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEditBlank.saveAndWait('system-default-registry');
 
     settingsPageBlank.waitForPage();
-    settingsPageBlank.settingsValue('system-default-registry').contains(settingsOriginal['system-default-registry'].default);
+    // settingsPageBlank.settingsValue('system-default-registry').contains(settingsOriginal['system-default-registry'].default); // .. empty value
 
     resetSettings.push('system-default-registry');
   });

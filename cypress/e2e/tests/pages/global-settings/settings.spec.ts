@@ -27,7 +27,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     cy.getRancherResource('v1', 'management.cattle.io.settings', undefined, null).then((resp: Cypress.Response<any>) => {
       const body = resp.body;
 
-      body.data.forEach((s) => {
+      body.data.forEach((s: any) => {
         settingsOriginal[s.id] = s;
       });
     });

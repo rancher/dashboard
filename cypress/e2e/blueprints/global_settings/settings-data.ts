@@ -14,7 +14,8 @@ export const settings = {
   'ui-dashboard-index':                   { new: 'https://e2e-test.html' },
   'ui-offline-preferred':                 {
     new:  'Local',
-    new2: 'Remote'
+    new2: 'Remote',
+    new3: 'Dynamic',
   },
   'ui-brand':                                  { new: 'suse' },
   'cluster-template-enforcement':              { new: 'true' },
