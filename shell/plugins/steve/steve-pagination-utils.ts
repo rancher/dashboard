@@ -509,7 +509,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               if (field.exists) {
                 return field.field;
               }
-              const encodedValue = encodeURIComponent(field.value);
+              const encodedValue = encodeURIComponent(field.value || '');
 
               // = exact match (equals + exact)
               // ~ partial match (equals + !exact)
@@ -518,7 +518,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               const operator = `${ field.equals ? '' : '!' }${ field.exact ? '=' : '~' }`;
               let safeValue;
 
-              if (StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(field.value)) {
+              if (StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(field.value || '')) {
                 // Does not contain any protected characters, send as is
                 safeValue = encodedValue;
               } else {
