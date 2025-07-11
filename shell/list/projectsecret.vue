@@ -7,7 +7,6 @@ import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 import { FilterArgs, PaginationArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import Secret from '@shell/models/secret';
 import { TableColumn } from '@shell/types/store/type-map';
-import ResourceFetch from '@shell/mixins/resource-fetch';
 import { mapGetters } from 'vuex';
 import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
 import { UI_PROJECT_SECRET } from '@shell/config/labels-annotations';
@@ -35,8 +34,6 @@ export default {
     }
   },
 
-  mixins: [ResourceFetch],
-
   data() {
     return {
       escapeHtml,
@@ -62,6 +59,12 @@ export default {
         groupLabelKey: 'groupByProject',
         tooltipKey:    'resourceTable.groupBy.project'
       }],
+
+      // these are the fields that sort will be applied on, either remotely by vai, or locally
+      sortFields: {
+        local: `metadata.labels."${ UI_PROJECT_SECRET }"`,
+        vai:   `metadata.labels[${ UI_PROJECT_SECRET }]`,
+      }
     };
   },
 
@@ -118,8 +121,7 @@ export default {
     groupPreference: mapPref(GROUP_RESOURCES),
 
     groupSort() {
-      // this is the field that sort will be applied on, either via vai, or locally
-      return this.canPaginate ? `metadata.labels[${ UI_PROJECT_SECRET }]` : `metadata.labels."${ UI_PROJECT_SECRET }"`;
+      return this.sortFields.local;
     },
 
     groupBy() {
@@ -149,6 +151,12 @@ export default {
      * - not in current cluster (mgmt secrets are global)
      */
     filterRowsApi(pagination: PaginationArgs): PaginationArgs {
+      const sort = pagination.sort.find((s) => s.field === this.sortFields.local);
+
+      if (sort) {
+        sort.field = this.sortFields.vai;
+      }
+
       if (!pagination.filters) {
         pagination.filters = [];
       }

@@ -53,7 +53,7 @@ export default defineComponent({
      * Field to order groups by, defaults to groupBy
      */
     groupSort: {
-      type:    Array,
+      type:    String,
       default: null
     },
 
