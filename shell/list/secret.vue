@@ -4,13 +4,9 @@ import { SECRET_SCOPE, SECRET_QUERY_PARAMS } from '@shell/config/query-params';
 import { MANAGEMENT, SECRET } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
-import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
-import Secret from '@shell/models/secret';
 import { TableColumn } from '@shell/types/store/type-map';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { mapGetters } from 'vuex';
-import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
-import { PagTableFetchPageSecondaryResourcesOpts } from '@shell/types/components/paginatedResourceTable';
 import { SECRET_CLONE, SECRET_PROJECT_SCOPED } from '@shell/config/table-headers';
 import { STEVE_SECRET_CLONE } from '@shell/config/pagination-table-headers';
 
