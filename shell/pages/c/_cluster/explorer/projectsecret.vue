@@ -1,6 +1,6 @@
 <script>
 import ResourceDetail from '@shell/components/ResourceDetail';
-import { _EDIT, MODE } from '@shell/config/query-params';
+import { _CLONE, _EDIT, MODE } from '@shell/config/query-params';
 import { SECRET, VIRTUAL_TYPES } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
 
@@ -13,7 +13,7 @@ export default {
   computed: {
     // Because we want to use the normal secret for editing and we want to use the project_secret for detail we had to change the override based on mode
     resourceOverride() {
-      const isEdit = this.$route.query[MODE] === _EDIT;
+      const isEdit = [_EDIT, _CLONE].includes(this.$route.query[MODE]);
 
       return isEdit ? SECRET : VIRTUAL_TYPES.PROJECT_SECRETS;
     }

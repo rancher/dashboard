@@ -512,7 +512,8 @@ export default class Secret extends SteveModel {
 
     const clusterId = this.metadata.namespace.replace(`-${ this.projectScopedProjectId }`, '');
 
-    return clusterId;
+    // default and system pss don't follow the patter of <cluster>-<project>, so if they match assume its one of them
+    return clusterId === this.metadata.namespace ? 'local' : clusterId;
   }
 
   get projectScopedProjectId() {
