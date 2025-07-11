@@ -1,11 +1,11 @@
 <script>
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 import {
-  SCOPE as SECRET_SCOPE, SCOPED_TABS as SECRET_SCOPED_TABS,
+  SECRET_SCOPE, SECRET_QUERY_PARAMS,
   CLOUD_CREDENTIAL, _CLONE, _CREATE, _EDIT, _FLAGGED
 } from '@shell/config/query-params';
-import { MANAGEMENT, NAMESPACE, DEFAULT_WORKSPACE } from '@shell/config/types';
-import { CAPI, UI_PROJECT_SCOPED } from '@shell/config/labels-annotations';
+import { MANAGEMENT, NAMESPACE, DEFAULT_WORKSPACE, VIRTUAL_TYPES } from '@shell/config/types';
+import { CAPI, UI_PROJECT_SECRET } from '@shell/config/labels-annotations';
 import FormValidation from '@shell/mixins/form-validation';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -54,12 +54,14 @@ export default {
       this.nodeDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
     }
 
-    const projectScopedLabel = this.value.metadata?.labels?.[UI_PROJECT_SCOPED];
-    const isProjectScoped = !!projectScopedLabel || (this.isCreate && this.$route.query[SECRET_SCOPE] === SECRET_SCOPED_TABS.PROJECT_SCOPED);
+    const projectScopedLabel = this.value.metadata?.labels?.[UI_PROJECT_SECRET];
+    const isProjectScoped = !!projectScopedLabel || (this.isCreate && this.$route.query[SECRET_SCOPE] === SECRET_QUERY_PARAMS.PROJECT_SCOPED);
 
     this.isProjectScoped = isProjectScoped;
 
     if (isProjectScoped) {
+      // If ssp is enabled the store not have all projects. ensure we have them all
+      await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
       if (this.isCreate) {
         // Pick first project as default
         this.projectName = this.filteredProjects[0].metadata.name;
@@ -68,7 +70,7 @@ export default {
 
         // Set namespace and project-scoped label
         this.value.metadata.namespace = this.filteredProjects[0].status.backingNamespace;
-        this.value.metadata.labels[UI_PROJECT_SCOPED] = this.filteredProjects[0].metadata.name;
+        this.value.metadata.labels[UI_PROJECT_SECRET] = this.filteredProjects[0].metadata.name;
       } else {
         this.projectName = this.filteredProjects.find((p) => p.metadata.name === projectScopedLabel).metadata.name;
       }
@@ -272,13 +274,14 @@ export default {
     },
 
     doneLocationOverride() {
-      const doneLocation = this.value.listLocation;
-
       if (this.isProjectScoped) {
-        doneLocation.hash = `#${ SECRET_SCOPED_TABS.PROJECT_SCOPED }`;
+        return {
+          ...this.value.listLocation,
+          params: { resource: VIRTUAL_TYPES.PROJECT_SECRETS }
+        };
       }
 
-      return doneLocation;
+      return this.value.listLocation;
     },
   },
 
@@ -312,7 +315,9 @@ export default {
 
       if (this.isProjectScoped) {
         // Always create project-scoped secrets in the upstream local cluster
-        return this.save(btnCb, '/k8s/clusters/local/v1/secrets');
+        const url = this.$store.getters['management/urlFor'](this.value.type, this.value.id);
+
+        return this.save(btnCb, url);
       }
 
       return this.save(btnCb);
@@ -376,7 +381,7 @@ export default {
     projectName(neu) {
       if (this.isCreate && neu) {
         this.value.metadata.labels = this.value.metadata.labels || {};
-        this.value.metadata.labels[UI_PROJECT_SCOPED] = neu;
+        this.value.metadata.labels[UI_PROJECT_SECRET] = neu;
 
         const projectScopedNamespace = this.filteredProjects.find((p) => p.metadata.name === neu).status.backingNamespace;
 

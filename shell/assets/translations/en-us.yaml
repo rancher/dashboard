@@ -5875,10 +5875,10 @@ secret:
   tabs:
     namespaced:
       label: Namespaced
-      create: Create Namespaced Secret
+      create: Create Secret
     projectScoped:
       label: Project Scoped
-      create: Create Project Scoped Secret
+      create: Create Project Secret
 
 selectOrCreateAuthSecret:
   label: Authentication
@@ -6581,6 +6581,11 @@ tableHeaders:
   scope: Scope
   selector: Selector
   secrets: Secrets
+  secret:
+    project-clone: Created by Project Secret
+    project-clone-tooltip: A Project Scoped Secret created this Secret in this Namespace
+    project-scoped: Project Secret
+    project-scoped-tooltip: Namespaces in this project (and cluster) will contain this secret
   schedule: Schedule
   service: Service
   serviceAccounts: Service Accounts
@@ -7865,6 +7870,11 @@ typeLabel:
     {count, plural,
       one { Secret }
       other { Secrets }
+    }
+  projectsecret: |-
+    {count, plural,
+      one { Project Secret }
+      other { Project Secrets }
     }
   apiregistration.k8s.io.apiservice: |-
     {count, plural,

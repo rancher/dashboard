@@ -100,6 +100,7 @@ export default {
 
     return {
       schema,
+      overrideInStore:                  false,
       hasListComponent,
       showMasthead:                     showMasthead === undefined ? true : showMasthead,
       resource,

@@ -15,7 +15,9 @@ import {
   HPA,
   SECRET
 } from '@shell/config/types';
-import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE } from '@shell/config/labels-annotations';
+import {
+  CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY
+} from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 import { PaginationSettingsStore } from '@shell/types/resources/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
@@ -183,6 +185,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     ],
     [CONFIG_MAP]: [
       { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
+    ],
+    [SECRET]: [
+      { field: `metadata.labels[${ UI_PROJECT_SECRET }]` },
+      { field: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]` },
     ],
     [NAMESPACE]: [
       { field: 'metadata.labels[field.cattle.io/projectId]' }
@@ -499,6 +505,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // Check if the API supports filtering by this field
               this.validateField(validateFields, schema, field.field);
 
+              // we're just checking that the field exists, so there's no value
+              if (field.exists) {
+                return field.field;
+              }
               const encodedValue = encodeURIComponent(field.value);
 
               // = exact match (equals + exact)
@@ -674,6 +684,7 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
           // { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
           // { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
           { resource: CATALOG.APP, context: ['branding'] },
+          SECRET
         ],
         generic: false,
       }
