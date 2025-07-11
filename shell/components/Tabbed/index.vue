@@ -66,6 +66,11 @@ export default {
     resource: {
       type:    Object,
       default: () => {}
+    },
+
+    showExtensionTabs: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -92,7 +97,7 @@ export default {
   },
 
   data() {
-    const extensionTabs = getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams) || [];
+    const extensionTabs = this.showExtensionTabs ? getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams) || [] : [];
 
     const parsedExtTabs = extensionTabs.map((item) => {
       return {
