@@ -54,13 +54,14 @@ export default {
       this.nodeDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
     }
 
-    // TODO: RC validate isProjectScoped logic is still correct
     const projectScopedLabel = this.value.metadata?.labels?.[UI_PROJECT_SECRET];
     const isProjectScoped = !!projectScopedLabel || (this.isCreate && this.$route.query[SECRET_SCOPE] === SECRET_QUERY_PARAMS.PROJECT_SCOPED);
 
     this.isProjectScoped = isProjectScoped;
 
     if (isProjectScoped) {
+      // If ssp is enabled the store not have all projects. ensure we have them all
+      await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
       if (this.isCreate) {
         // Pick first project as default
         this.projectName = this.filteredProjects[0].metadata.name;

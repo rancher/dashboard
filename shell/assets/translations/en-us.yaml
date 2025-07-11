@@ -6501,10 +6501,10 @@ tableHeaders:
   selector: Selector
   secrets: Secrets
   secret:
-    project-clone: Synced from Project
-    project-clone-tooltip: Namespace is in a Project containing a Project Scoped Secret
-    project-scoped: Project Scoped
-    project-scoped-tooltip: Namespaces in this cluster / project will contain this secret
+    project-clone: Created by Project Secret
+    project-clone-tooltip: A Project Scoped Secret created this Secret in this Namespace
+    project-scoped: Project Secret
+    project-scoped-tooltip: Namespaces in this project (and cluster) will contain this secret
   schedule: Schedule
   service: Service
   serviceAccounts: Service Accounts

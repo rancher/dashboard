@@ -2,7 +2,7 @@ import r from 'jsrsasign';
 import { CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { removeObjects } from '@shell/utils/array';
-import { MANAGEMENT, SECRET, SERVICE_ACCOUNT, VIRTUAL_TYPES } from '@shell/config/types';
+import { MANAGEMENT, SERVICE_ACCOUNT, VIRTUAL_TYPES } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -11,6 +11,7 @@ import { diffFrom } from '@shell/utils/time';
 import day from 'dayjs';
 import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
 import { STORE } from '@shell/store/store-types';
+import { escapeHtml } from '@shell/utils/string';
 
 export const TYPES = {
   OPAQUE:           'Opaque',
@@ -175,7 +176,9 @@ export default class Secret extends SteveModel {
     return this.$rootGetters['type-map/optionsFor'](this.type).isEditable;
   }
 
-  get canDelete() { // TODO: RC debatable, it'll come back
+  get canDelete() {
+    // Deleting a copy / synced secret that was created in a namespace in a project that has a project scoped secret
+    // will only be temporary (the parent project scoped secret will recreate it)
     return this.isProjectSecretCopy ? false : super.canDelete;
   }
 
@@ -499,7 +502,7 @@ export default class Secret extends SteveModel {
    * is this a project scoped secret
    */
   get isProjectScoped() {
-    return this.isProjectScopedRelated && !this.isProjectSecretCopy;
+    return this.isProjectScopedRelated && !this.isProjectSecretCopy && this.$rootGetters['isRancher'];
   }
 
   get projectScopedClusterId() {
@@ -521,11 +524,9 @@ export default class Secret extends SteveModel {
   }
 
   get projectCluster() {
-    if (!this.projectScopedClusterId || !this.$rootGetters['isRancher'] ) {
+    if (!this.isProjectScoped) {
       return undefined;
     }
-
-    console.warn(this.projectScopedClusterId);
 
     return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.CLUSTER, this.projectScopedClusterId);
   }
@@ -534,7 +535,15 @@ export default class Secret extends SteveModel {
    * If this is a project scoped secret, return it
    */
   get project() {
-    if (!this.projectScopedProjectId || !this.$rootGetters['isRancher'] ) {
+    if (!this.isProjectScoped ) {
+      return undefined;
+    }
+
+    return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, `${ this.projectScopedClusterId }/${ this.projectScopedProjectId }`);
+  }
+
+  get projectScopedSecretCluster() {
+    if (!this.isProjectScoped ) {
       return undefined;
     }
 
@@ -543,14 +552,14 @@ export default class Secret extends SteveModel {
 
   get clusterAndProjectLabel() {
     if (this.projectCluster?.nameDisplay && this.project?.nameDisplay) {
-      return `${ this.projectCluster?.nameDisplay } / ${ this.project?.nameDisplay }`;
+      return `${ this.project?.nameDisplay } (${ this.projectCluster?.nameDisplay })`;
     }
 
     return '';
   }
 
   get detailLocation() {
-    if (this.isProjectScoped && !!this.projectScopedClusterId) {
+    if (this.isProjectScoped) {
       const id = this.id?.replace(/.*\//, '');
 
       return {
@@ -559,12 +568,51 @@ export default class Secret extends SteveModel {
           product:   this.$rootGetters['productId'],
           cluster:   this.$rootGetters['clusterId'],
           namespace: this.metadata?.namespace,
-          resource:  SECRET,
+          resource:  VIRTUAL_TYPES.PROJECT_SECRETS,
           id,
         }
       };
     }
 
     return this._detailLocation;
+  }
+
+  get listLocation() {
+    if (!this.isProjectScoped) {
+      return super.listLocation;
+    }
+
+    return {
+      name:   'c-cluster-product-resource',
+      params: {
+        product:  this.$rootGetters['productId'],
+        cluster:  this.$rootGetters['clusterId'],
+        resource: VIRTUAL_TYPES.PROJECT_SECRETS,
+      }
+    };
+  }
+
+  get parentNameOverride() {
+    if (!this.isProjectScoped) {
+      return super.parentNameOverride;
+    }
+
+    return this.$rootGetters['i18n/t'](`typeLabel."${ VIRTUAL_TYPES.PROJECT_SECRETS }"`, { count: 1 })?.trim();
+  }
+
+  get parentLocationOverride() {
+    if (!this.isProjectScoped) {
+      return super.parentNameOverride;
+    }
+
+    return this.listLocation;
+  }
+
+  get groupByProject() {
+    if (!this.isProjectScoped) {
+      return undefined;
+    }
+
+    return this.t('resourceTable.groupLabel.project', { name: escapeHtml(this?.project?.nameDisplay || '') }, true);
   }
 }

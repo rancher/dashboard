@@ -280,12 +280,12 @@ export default {
           projectsOrNamespaces,
           filters
         } = stevePaginationUtils.createParamsFromNsFilter({
-          allNamespaces:                this.$store.getters[`${ this.currentProduct?.inStore }/all`](NAMESPACE),
-          selection:                    neu,
-          isAllNamespaces:              this.isAllNamespaces,
-          isLocalCluster:               this.$store.getters['currentCluster'].isLocal,
-          showDynamicRancherNamespaces: this.showDynamicRancherNamespaces,
-          productHidesSystemNamespaces: this.productHidesSystemNamespaces,
+          allNamespaces:                 this.$store.getters[`${ this.currentProduct?.inStore }/all`](NAMESPACE),
+          selection:                     neu,
+          isAllNamespaces:               this.isAllNamespaces,
+          isLocalCluster:                this.$store.getters['currentCluster'].isLocal,
+          showReservedRancherNamespaces: this.showDynamicRancherNamespaces,
+          productHidesSystemNamespaces:  this.productHidesSystemNamespaces,
         });
 
         this.requestFilters.filters = filters;

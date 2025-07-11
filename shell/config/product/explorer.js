@@ -22,8 +22,6 @@ import {
   ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, LAST_USED, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
   DURATION, MESSAGE, REASON, EVENT_TYPE, OBJECT, ROLE, ROLES, VERSION, INTERNAL_EXTERNAL_IP, KUBE_NODE_OS, CPU, RAM, SECRET_DATA,
   EVENT_LAST_SEEN_TIME,
-  SECRET_CLONE,
-  SECRET_PROJECT_SCOPED
 } from '@shell/config/table-headers';
 
 import { DSL } from '@shell/store/type-map';
@@ -34,7 +32,7 @@ import {
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 import { STEVE_CACHE } from '@shell/store/features';
 import { configureConditionalDepaginate } from '@shell/store/type-map.utils';
-import { CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET } from '@shell/config/labels-annotations';
+import { CATTLE_PUBLIC_ENDPOINTS, STORAGE } from '@shell/config/labels-annotations';
 
 export const NAME = 'explorer';
 
@@ -651,15 +649,6 @@ export function init(store) {
       type:  SECRET
     }],
   });
-
-  // TODO: RC Tests
-  // Vai on/off
-  //   - Create / View / Edit / Delete
-  //   - User does not have permissions to see projects
-  //   - isRancherCluster is false
-  // Vai off - incremental loading and manual refresh
-
-  // TODO: RC new detail page of secrets is broken - it does not respect storeOverride / currentStore (cody investigating, as also broken for harvester)
 
   // Ignore these types as they are managed through the settings product
   ignoreType(MANAGEMENT.FEATURE);
