@@ -69,13 +69,17 @@ button,
 }
 
 //btn roles
-.role-primary {
+BUTTON.role-primary {
   background: var(--primary);
   color: var(--primary-text);
 
   &:hover, &._hover {
     background-color: var(--primary-hover, var(--primary-hover-bg));
     color: var(--primary-text);
+
+    &[disabled] {
+      background-color: var(--primary);
+    }
   }
 
   &:focus, &.focused {
@@ -83,7 +87,7 @@ button,
   }
 }
 
-.role-secondary {
+BUTTON.role-secondary {
   background: var(--secondary, transparent);
   color: var(--on-secondary, var(--primary));
 
@@ -93,6 +97,10 @@ button,
   &:hover, &._hover {
     background: var(--secondary-hover);
     color: var(--on-secondary, var(--lightest));
+
+    &[disabled] {
+      background-color: var(--secondary);
+    }
   }
 
   &:focus, &.focused {
