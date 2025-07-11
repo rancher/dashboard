@@ -10,9 +10,23 @@ jobs:
     runs-on: ubuntu-latest
     if: (startsWith(github.event.comment.body, '/backport') || startsWith(github.event.comment.body, '/forwardport')) && github.event.issue.pull_request
     steps:
+      - name: Read secrets
+        uses: rancher-eio/read-vault-secrets@main
+        with:
+          secrets: |
+            secret/data/github/repo/rancher/${{ github.repository }}/github/app-credentials appId | APPID;
+            secret/data/github/repo/rancher/${{ github.repository }}/github/app-credentials privateKey | PRIVATEKEY
+
+      - name: Generate Token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ env.APPID }}
+          private-key: ${{ env.PRIVATEKEY }}
+
       - name: Check org membership
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
           if gh api orgs/${GITHUB_REPOSITORY_OWNER}/members --paginate | jq -e --arg GITHUB_ACTOR "$GITHUB_ACTOR" '.[] | select(.login == $GITHUB_ACTOR)' > /dev/null; then
               echo "${GITHUB_ACTOR} is a member"
@@ -21,10 +35,11 @@ jobs:
               echo "${GITHUB_ACTOR} is not a member" >> $GITHUB_STEP_SUMMARY
               echo "is_member=false" >> $GITHUB_ENV
           fi
+
       - name: Check milestone
         if: ${{ env.is_member == 'true' }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
           ORIGINAL_ISSUE_NUMBER: ${{ github.event.issue.number }}
           COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
@@ -40,34 +55,37 @@ jobs:
               gh issue comment -R ${GITHUB_REPOSITORY} ${ORIGINAL_ISSUE_NUMBER} --body "Not creating port issue, milestone ${MILESTONE} does not exist or is not an open milestone"
               echo "milestone_exists=false" >> $GITHUB_ENV
            fi
+
       - name: Get target branch
         if: ${{ env.is_member == 'true' }} && ${{ env.milestone_exists == 'true' }}
         env:
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
           COMMENT_BODY: ${{ github.event.comment.body }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TYPE=$(echo "${COMMENT_BODY}" | awk '{ print $1 }' | sed -e 's_/__')
           echo "Type: ${TYPE}" >> $GITHUB_STEP_SUMMARY
           echo "type=${TYPE}" >> $GITHUB_ENV
           TARGET_BRANCH=$(echo "${COMMENT_BODY}" | awk '{ print $3 }')
-          echo "Target brach: ${TARGET_BRANCH}" >> $GITHUB_STEP_SUMMARY
+          echo "Target branch: ${TARGET_BRANCH}" >> $GITHUB_STEP_SUMMARY
           echo "target_branch=${TARGET_BRANCH}" >> $GITHUB_ENV
           if gh api repos/${GITHUB_REPOSITORY}/branches --paginate | jq -e --arg TARGET_BRANCH "$TARGET_BRANCH" '.[] | select(.name == $TARGET_BRANCH)' > /dev/null; then
               echo "target_branch_exists=true" >> $GITHUB_ENV
           else
               echo "target_branch_exists=false" >> $GITHUB_ENV
           fi
+
       - name: Checkout
         if: ${{ env.is_member == 'true' }} && ${{ env.milestone_exists == 'true' }} && ${{ env.target_branch_exists == 'true' }}
         uses: actions/checkout@v4
         with:
           ref: ${{ env.target_branch }}
           fetch-depth: '0'
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.generate-token.outputs.token }}
+
       - name: Port PR
         if: ${{ env.is_member == 'true' }} && ${{ env.milestone_exists == 'true' }} && ${{ env.target_branch_exists == 'true' }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
           ORIGINAL_ISSUE_NUMBER: ${{ github.event.issue.number }}
           TYPE: ${{ env.type }}
           TARGET_BRANCH: ${{ env.target_branch }}
