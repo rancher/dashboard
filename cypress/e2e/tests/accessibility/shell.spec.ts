@@ -394,7 +394,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
 
           SecretsListPagePo.navTo();
           secretsListPage.waitForPage();
-          secretsListPage.baseResourceList().masthead().create();
+          secretsListPage.createButton().click();
           secretsCreatePage.waitForPage();
           secretsCreatePage.mastheadTitle().then((title) => {
             expect(title.replace(/\s+/g, ' ')).to.contain('Secret: Create');

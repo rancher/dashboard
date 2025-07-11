@@ -80,5 +80,11 @@ export const CLOUD_CREDENTIAL = 'cloud';
 export const PROJECT_ID = 'projectId';
 export const FLAT_VIEW = 'flatView';
 
+// Secrets
+export const SCOPED_TABS = {
+  NAMESPACED:     'namespaced',
+  PROJECT_SCOPED: 'project-scoped'
+};
+export const SCOPE = 'scope';
 // RANCHER OIDC CLIENT
 export const RANCHER_AS_OIDC_QUERY_PARAMS = ['scope', 'client_id', 'redirect_uri', 'response_type'];
