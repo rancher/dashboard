@@ -83,10 +83,7 @@ export default {
 </script>
 
 <template>
-  <div
-    class="cert row"
-    @update:value="update"
-  >
+  <div class="cert row">
     <div class="col span-6">
       <LabeledSelect
         v-model:value="secretVal"
