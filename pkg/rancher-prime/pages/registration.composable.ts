@@ -50,6 +50,7 @@ interface PartialRegistration {
       reason?: string;
       message?: string;
       type: string;
+      status: 'True' | 'False';
     }>
   };
 }
@@ -230,12 +231,12 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const registerOnline = async(asyncButtonResolution: AsyncButtonFunction) => {
     registrationStatus.value = 'registering-online';
+    offlineRegistrationCertificate.value = null;
     await preRegistration();
 
     if (!registrationCode.value) return;
 
     secret.value = await createSecret('online', registrationCode.value);
-    offlineRegistrationCertificate.value = null;
     registration.value = await pollResource(findRegistration, mapRegistration);
     registrationStatus.value = registration.value ? 'registered' : null;
     asyncButtonResolution(true);
@@ -246,10 +247,11 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * @param certificate base64 encoded certificate from SCC
    */
   const registerOffline = async(certificate: string) => {
-    registrationCode.value = null;
     registrationStatus.value = 'registering-offline';
-    offlineRegistrationCertificate.value = certificate ? atob(certificate) : null;
+    registrationCode.value = null;
     await preRegistration(true);
+    offlineRegistrationCertificate.value = certificate ? atob(certificate) : null;
+
     try {
       updateSecret(secret.value, offlineRegistrationCertificate.value);
       registration.value = await pollResource(findRegistration, mapRegistration);
@@ -303,13 +305,26 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   };
 
   /**
+   * Exclude any case of registration which has not been completed
+   * @param registration
+   * @returns
+   */
+  const isCompleteException = (registration: PartialRegistration): boolean => {
+    const lastCondition = registration.status?.conditions[registration.status?.conditions.length - 1];
+
+    return (lastCondition.type === 'RegistrationActivated' && lastCondition.status === 'False') ||
+      (lastCondition.type === 'Done' && lastCondition.status === 'True');
+  };
+
+  /**
    * Get registration CRD matching secret label
    * @param hash current registration hash
    */
   const findRegistration = async(hash: string | null): Promise<PartialRegistration | undefined> => {
     const registrations: PartialRegistration[] = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME });
     const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === hash &&
-      !isRegistrationOfflineException(registration)
+      !isRegistrationOfflineException(registration) &&
+      isCompleteException(registration)
     );
 
     return registration;
