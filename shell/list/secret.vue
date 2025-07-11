@@ -92,44 +92,6 @@ export default {
     ...mapGetters(['currentCluster']),
   },
 
-  methods: {
-    /**
-     * of type PagTableFetchSecondaryResources
-     */
-    async fetchSecondaryResources({ canPaginate }: { canPaginate: boolean}) {
-      if (canPaginate || !this.canViewProjects) {
-        return;
-      }
-      // only force if we're in local and need projects from other clusters
-      await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: this.currentCluster.isLocal } });
-    },
-
-    /**
-     * fetch projects associated with this page
-     *
-     * of type PagTableFetchPageSecondaryResources
-     */
-    async fetchPageSecondaryResources({ canPaginate, force, page }: PagTableFetchPageSecondaryResourcesOpts) {
-      // Fetch projects associated with this page
-      if (!canPaginate || !page?.length || !this.canViewProjects) {
-        return;
-      }
-
-      const opt: ActionFindPageArgs = {
-        force,
-        pagination: new FilterArgs({
-          filters: PaginationParamFilter.createMultipleFields(page
-            .filter((r: Secret) => r.projectScopedClusterId && r.projectScopedProjectId)
-            .map((r: Secret) => new PaginationFilterField({
-              field: 'id',
-              value: `${ r.projectScopedClusterId }/${ r.projectScopedProjectId }`
-            }))),
-        })
-      };
-
-      this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.PROJECT, opt });
-    },
-  }
 };
 </script>
 
@@ -145,8 +107,6 @@ export default {
       :schema="schema"
       :headers="namespacedHeaders"
       :pagination-headers="namespacedHeadersSsp"
-      :fetchSecondaryResources="fetchSecondaryResources"
-      :fetchPageSecondaryResources="fetchPageSecondaryResources"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     />
   </div>

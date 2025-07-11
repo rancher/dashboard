@@ -4,7 +4,7 @@ import { SECRET_SCOPE, SECRET_QUERY_PARAMS } from '@shell/config/query-params';
 import { MANAGEMENT, SECRET, VIRTUAL_TYPES } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
-import { FilterArgs, PaginationArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { PaginationArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import Secret from '@shell/models/secret';
 import { TableColumn } from '@shell/types/store/type-map';
 import { mapGetters } from 'vuex';
@@ -16,8 +16,6 @@ import {
 } from '@shell/config/table-headers';
 import { STEVE_AGE_COL, STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
 import { escapeHtml } from '@shell/utils/string';
-import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
-import { PagTableFetchPageSecondaryResourcesOpts } from '@shell/types/components/paginatedResourceTable';
 
 const findSystemDefaultProjects = (projects: any[], currentClusterId: string): { systemProject?: any, defaultProject?: any } => {
   let systemProject;
@@ -206,7 +204,7 @@ export default {
         }
 
         // Filter in if upstream and default/system
-        if (this.currentCluster.isLocal && (r.project.isSystem || r.project.isDefault)) {
+        if (this.currentCluster.isLocal && (r.project?.isSystem || r.project?.isDefault)) {
           return true;
         }
 
@@ -315,42 +313,6 @@ export default {
       return pagination;
     },
 
-    /**
-     * of type PagTableFetchSecondaryResources
-     */
-    async fetchSecondaryResources({ canPaginate }: { canPaginate: boolean}) {
-      if (canPaginate) {
-        return;
-      }
-      // only force if we're in local and need projects from other clusters
-      await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: this.currentCluster.isLocal } });
-    },
-
-    /**
-     * fetch projects associated with this page
-     *
-     * of type PagTableFetchPageSecondaryResources
-     */
-    async fetchPageSecondaryResources({ canPaginate, force, page }: PagTableFetchPageSecondaryResourcesOpts) {
-      // Fetch projects associated with this page
-      if (!canPaginate || !page?.length) {
-        return;
-      }
-
-      const opt: ActionFindPageArgs = {
-        force,
-        pagination: new FilterArgs({
-          filters: PaginationParamFilter.createMultipleFields(page
-            .filter((r: Secret) => r.projectScopedClusterId && r.projectScopedProjectId)
-            .map((r: Secret) => new PaginationFilterField({
-              field: 'id',
-              value: `${ r.projectScopedClusterId }/${ r.projectScopedProjectId }`
-            }))),
-        })
-      };
-
-      this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.PROJECT, opt });
-    },
   }
 };
 </script>
@@ -376,8 +338,6 @@ export default {
       :pagination-headers="projectedScopedHeadersSsp"
       :local-filter="filterRowsLocal"
       :api-filter="filterRowsApi"
-      :fetchSecondaryResources="fetchSecondaryResources"
-      :fetchPageSecondaryResources="fetchPageSecondaryResources"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :overrideInStore="STORE.MANAGEMENT"
     />
