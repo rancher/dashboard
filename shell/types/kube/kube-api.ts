@@ -20,3 +20,15 @@ export interface KubeLabelSelector {
    */
   matchLabels?: { [key: string]: string }
 }
+
+/**
+ * https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#objectmeta-v1-meta
+ */
+export interface KubeMetadata {
+  labels?: { [key: string]: string },
+  annotations?: { [key: string]: string },
+}
+
+export interface RancherKubeMetadata extends KubeMetadata {
+  namespace: string,
+}

@@ -21,7 +21,7 @@ export const useResourceIdentifiers = (type: ResourceType) => {
   };
 };
 
-export const useFetchResourceWithId = async(type: ResourceType, id: IdType) => {
+export const useFetchResourceWithId = async(type: ResourceType, id: IdType, inStore = 'cluster') => {
   const store = useStore();
   const i18n = useI18n(store);
 
@@ -29,7 +29,7 @@ export const useFetchResourceWithId = async(type: ResourceType, id: IdType) => {
   const idValue = toValue(id);
 
   try {
-    return await store.dispatch('cluster/find', { type: typeValue, id: idValue });
+    return await store.dispatch(`${ inStore }/find`, { type: typeValue, id: idValue });
   } catch (ex: any) {
     if (ex.status === 404 || ex.status === 403) {
       store.dispatch('loadingError', new Error(i18n.t('nav.failWhale.resourceIdNotFound', { resource: type, fqid: id }, true)));
