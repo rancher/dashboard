@@ -1,0 +1,85 @@
+.classic {
+  --primary                    : #{$primary};
+  --primary-text               : #{contrast-color($primary)};
+  --primary-hover-bg           : #{darken($primary, 10%)};
+  --primary-hover-text         : #{saturate($lightest, 20%)};
+  --primary-active-bg          : #{darken($primary, 25%)};
+  --primary-active-text        : #{contrast-color(darken($primary, 25%))};
+  --primary-border             : #{$primary};
+  --primary-banner-bg          : #{rgba($primary, 0.15)};
+  --primary-light-bg           : #{rgba($primary, 0.05)};
+  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
+
+  --link                    : #{$link};
+  --link-text               : #{contrast-color($link)};
+  --link-text-secondary     : #{$darker};
+  --link-hover-bg           : #{darken($link, 10%)};
+  --link-hover-text         : #{saturate($lightest, 20%)};
+  --link-active-bg          : #{darken($link, 25%)};
+  --link-active-text        : #{contrast-color(darken($link, 25%))};
+  --link-border             : #{$link};
+  --link-banner-bg          : #{rgba($link, 0.15)};
+  --link-light-bg           : #{rgba($link, 0.05)};
+
+  --darker                    : #{$darker};
+  --darker-text               : #{contrast-color($darker)};
+  --darker-hover-bg           : #{darken($darker, 10%)};
+  --darker-hover-text         : #{saturate($lightest, 20%)};
+  --darker-active-bg          : #{darken($darker, 25%)};
+  --darker-active-text        : #{contrast-color(darken($darker, 25%))};
+  --darker-border             : #{$darker};
+  --darker-banner-bg          : #{rgba($darker, 0.15)};
+  --darker-light-bg           : #{rgba($darker, 0.05)};
+
+  --success                    : #{$success};
+  --success-text               : #{contrast-color($success)};
+  --success-hover-bg           : #{darken($success, 10%)};
+  --success-hover-text         : #{saturate($lightest, 20%)};
+  --success-active-bg          : #{darken($success, 25%)};
+  --success-active-text        : #{contrast-color(darken($success, 25%))};
+  --success-border             : #{$success};
+  --success-banner-bg          : #{rgba($success, 0.15)};
+  --success-light-bg           : #{rgba($success, 0.05)};
+
+  --disabled-hover-bg : #{darken($disabled, 10%)};
+
+  --info                    : #{$info};
+  --info-text               : #{contrast-color($info)};
+  --info-hover-bg           : #{darken($info, 10%)};
+  --info-hover-text         : #{saturate($lightest, 20%)};
+  --info-active-bg          : #{darken($info, 25%)};
+  --info-active-text        : #{contrast-color(darken($info, 25%))};
+  --info-border             : #{$info};
+  --info-banner-bg          : #{rgba($info, 0.15)};
+  --info-light-bg           : #{rgba($info, 0.05)};
+
+  --warning                    : #{$warning};
+  --warning-text               : #{contrast-color($warning)};
+  --warning-hover-bg           : #{darken($warning, 10%)};
+  --warning-hover-text         : #{saturate($lightest, 20%)};
+  --warning-active-bg          : #{darken($warning, 25%)};
+  --warning-active-text        : #{contrast-color(darken($warning, 25%))};
+  --warning-border             : #{$warning};
+  --warning-banner-bg          : #{rgba($warning, 0.15)};
+  --warning-light-bg           : #{rgba($warning, 0.05)};
+
+  --error                    : #{$error};
+  --error-text               : #{contrast-color($error)};
+  --error-hover-bg           : #{darken($error, 10%)};
+  --error-hover-text         : #{saturate($lightest, 20%)};
+  --error-active-bg          : #{darken($error, 25%)};
+  --error-active-text        : #{contrast-color(darken($error, 25%))};
+  --error-border             : #{$error};
+  --error-banner-bg          : #{rgba($error, 0.15)};
+  --error-light-bg           : #{rgba($error, 0.05)};
+
+  --active        : var(--primary);
+  --on-active     : #{$grey-0};
+  --active-hover  : var(--primary-hover-bg);
+
+  --toggle-OFF-bg      : var(--disabled-bg);
+  --toggle-OFF-color   : var(--body-text);
+  --toggle-ON-bg       : var(--primary);
+  --toggle-ON-color    : var(--on-active);
+  --toggle-OFF-hover    : var(--disabled-bg);
+}

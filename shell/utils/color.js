@@ -4,7 +4,7 @@ Primary color classes from _light.scss
   --primary                    : #{$primary};
   --primary-text               : #{contrast-color($primary)};
   --primary-hover-bg           : #{darken($primary, 10%)};
-  --primary-hover-text         : #{saturate($lightest, 20%)};
+  --primary-hover-text         : #{saturate($grey-0, 20%)};
   --primary-active-bg          : #{darken($primary, 25%)};
   --primary-active-text        : #{contrast-color(darken($primary, 25%))};
   --primary-border             : #($primary);
@@ -47,10 +47,10 @@ function opacity(color, val) {
 /*
 light theme
 $contrasted-dark: $darkest !default;   #141419;
-$contrasted-light: $lightest !default;  #FFFFFF
+$contrasted-light: $grey-0 !default;  #FFFFFF
 
 dark theme
-$contrasted-dark: $lightest !default;  #ffffff;
+$contrasted-dark: $grey-0 !default;  #ffffff;
 $contrasted-light: $darkest !default; #141419
 */
 const LIGHT_CONTRAST_COLORS = {
@@ -122,14 +122,19 @@ export function rgbToRgb(rgb) {
 }
 
 export function colorToRgb(color) {
+  let colorMut = color;
   let value;
 
-  if (color.startsWith('rgb(')) {
-    value = rgbToRgb(color);
-  } else if (color.startsWith('#')) {
-    value = hexToRgb(color);
+  if (colorMut.startsWith('hsl(')) {
+    colorMut = Color(colorMut).hex();
+  }
+
+  if (colorMut.startsWith('rgb(')) {
+    value = rgbToRgb(colorMut);
+  } else if (colorMut.startsWith('#')) {
+    value = hexToRgb(colorMut);
   } else {
-    console.warn(`Unable to parse color: ${ color }`); // eslint-disable-line no-console
+    console.warn(`Unable to parse color: ${ colorMut }`); // eslint-disable-line no-console
   }
 
   return value || {

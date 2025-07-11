@@ -67,17 +67,8 @@ defineExpose({ focus });
 
 <style lang="scss" scoped>
 button {
-  &.role-link {
-    &:focus, &.focused {
-      @include focus-outline;
-      outline-offset: -2px;
-    }
-
-    &:hover {
-      background-color: var(--accent-btn);
-      box-shadow: none;
-    }
-  }
+  display: flex;
+  gap: 0.25rem;
 
   &.role-ghost {
     padding: 0;
