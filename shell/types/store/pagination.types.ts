@@ -83,6 +83,8 @@ export class PaginationFilterField {
 
   /**
    * Check if the field/property exists, regardless of value
+   *
+   * If this is false it does not flip the expectation, just doesn't add the field
    */
   exists?: boolean;
 

@@ -11,8 +11,8 @@
 // const username = 'test';
 
 describe('Secrets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
-  it('skipped - see https://github.com/rancher/dashboard/issues/14773', () => {})
-}
+  it('skipped - see https://github.com/rancher/dashboard/issues/14773', () => {});
+});
 
 // https://github.com/rancher/dashboard/issues/14773
 // describe('Secrets', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {

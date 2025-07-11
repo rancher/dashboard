@@ -13,7 +13,7 @@ import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
 import { UI_PROJECT_SECRET } from '@shell/config/labels-annotations';
 import { RancherKubeMetadata } from '@shell/types/kube/kube-api';
 import {
-  AGE, SECRET_DATA, STATE, SUB_TYPE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL,
+  AGE, SECRET_DATA, STATE, SUB_TYPE, NAME as NAME_COL,
 } from '@shell/config/table-headers';
 import { STEVE_AGE_COL, STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
 import { escapeHtml } from '@shell/utils/string';
