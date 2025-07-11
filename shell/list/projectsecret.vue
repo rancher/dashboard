@@ -1,17 +1,16 @@
 <script lang="ts">
-import Masthead from '@shell/components/ResourceList/Masthead';
+import Masthead from '@shell/components/ResourceList/Masthead.vue';
 import { SECRET_SCOPE, SECRET_QUERY_PARAMS } from '@shell/config/query-params';
 import { SECRET } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
-import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import Secret from '@shell/models/secret';
 import { TableColumn } from '@shell/types/store/type-map';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { mapGetters } from 'vuex';
 import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
-import { UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
-import { KubeMetadata, RancherKubeMetadata } from '@shell/types/kube/kube-api';
+import { UI_PROJECT_SECRET } from '@shell/config/labels-annotations';
 import {
   AGE, SECRET_DATA, STATE, SUB_TYPE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL,
 } from '@shell/config/table-headers';

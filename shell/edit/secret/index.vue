@@ -61,6 +61,7 @@ export default {
     this.isProjectScoped = isProjectScoped;
 
     if (isProjectScoped) {
+      await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
       if (this.isCreate) {
         // Pick first project as default
         this.projectName = this.filteredProjects[0].metadata.name;
@@ -71,7 +72,7 @@ export default {
         this.value.metadata.namespace = this.filteredProjects[0].status.backingNamespace;
         this.value.metadata.labels[UI_PROJECT_SECRET] = this.filteredProjects[0].metadata.name;
       } else {
-        this.projectName = this.filteredProjects.find((p) => p.metadata.name === projectScopedLabel).metadata.name;
+        this.projectName = this.filteredProjects.find((p) => p.metadata.name === projectScopedLabel)?.metadata?.name;
       }
     }
   },

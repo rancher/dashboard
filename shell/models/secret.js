@@ -530,6 +530,14 @@ export default class Secret extends SteveModel {
     return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.CLUSTER, this.projectScopedClusterId);
   }
 
+  get projectId() {
+    if (!this.projectScopedProjectId || !this.$rootGetters['isRancher'] ) {
+      return undefined;
+    }
+
+    return `${ this.projectScopedClusterId }/${ this.projectScopedProjectId }`;
+  }
+
   /**
    * If this is a project scoped secret, return it
    */
@@ -538,7 +546,7 @@ export default class Secret extends SteveModel {
       return undefined;
     }
 
-    return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, `${ this.projectScopedClusterId }/${ this.projectScopedProjectId }`);
+    return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, this.projectId);
   }
 
   get clusterAndProjectLabel() {

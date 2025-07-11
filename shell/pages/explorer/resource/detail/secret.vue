@@ -3,8 +3,8 @@ import DetailPage from '@shell/components/Resource/Detail/Page.vue';
 import TitleBar from '@shell/components/Resource/Detail/TitleBar/index.vue';
 import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
 import Metadata from '@shell/components/Resource/Detail/Metadata/index.vue';
-import { useDefaultMetadataProps } from '@shell/components/Resource/Detail/Metadata/composables';
-import { SECRET } from '@shell/config/types';
+import { useBasicMetadata } from '@shell/components/Resource/Detail/Metadata/composables';
+import { MANAGEMENT, SECRET } from '@shell/config/types';
 import { useFetchResourceWithId, useResourceIdentifiers } from '@shell/composables/resources';
 import ResourceTabs from '@shell/components/form/ResourceTabs/index.vue';
 import SecretDataTab from '@shell/components/Resource/Detail/ResourceTabs/SecretDataTab/index.vue';
@@ -12,12 +12,26 @@ import KnownHostsTab from '@shell/components/Resource/Detail/ResourceTabs/KnownH
 import { useGetKnownHostsTabProps } from '@shell/components/Resource/Detail/ResourceTabs/KnownHostsTab/composables';
 import { useSecretDataTabDefaultProps } from '@shell/components/Resource/Detail/ResourceTabs/SecretDataTab/composeables';
 import { useSecretIdentifyingInformation } from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/composable';
+import { useStore } from 'vuex';
+
+export interface Props {
+  isProjectSecret?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), { isProjectSecret: false });
+const store = useStore();
 
 const { id, schema } = useResourceIdentifiers(SECRET);
-const secret = await useFetchResourceWithId(SECRET, id);
+const targetStore = props.isProjectSecret ? 'management' : 'cluster';
+const secret = await useFetchResourceWithId(SECRET, id, targetStore);
+
+if (props.isProjectSecret) {
+  await store.dispatch('management/find', { id: secret.projectId, type: MANAGEMENT.PROJECT });
+}
+
 const titleBarProps = useDefaultTitleBarProps(secret);
-const additionalIdentifyingInformation = useSecretIdentifyingInformation(secret);
-const metaDataProps = useDefaultMetadataProps(secret, additionalIdentifyingInformation);
+const identifyingInformation = useSecretIdentifyingInformation(secret, props.isProjectSecret);
+const metaDataProps = useBasicMetadata(secret);
 const knownHostsTabProps = useGetKnownHostsTabProps(secret);
 const secretDataTabProps = useSecretDataTabDefaultProps(secret);
 </script>
@@ -28,6 +42,7 @@ const secretDataTabProps = useSecretDataTabDefaultProps(secret);
       <Metadata
         class="mmt-6"
         v-bind="metaDataProps"
+        :identifyingInformation="identifyingInformation"
       />
     </template>
     <template #bottom-area>

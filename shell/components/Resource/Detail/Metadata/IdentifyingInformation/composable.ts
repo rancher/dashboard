@@ -21,7 +21,10 @@ export const useDefaultIdentifyingInformation = (resource: any): ComputedRef<Row
   });
 };
 
-export const useSecretIdentifyingInformation = (resource: any): ComputedRef<Row[]> => {
+export const useSecretIdentifyingInformation = (resource: any, isProjectSecret: boolean): ComputedRef<Row[]> => {
+  const namespace = isProjectSecret ? undefined : useNamespace(resource);
+  const project = isProjectSecret ? useProject(resource) : undefined;
+  const age = useLiveDate(resource);
   const secretType = useSecretType(resource);
   const serviceAccount = useServiceAccount(resource);
   const certificate = useCertificate(resource);
@@ -30,27 +33,8 @@ export const useSecretIdentifyingInformation = (resource: any): ComputedRef<Row[
 
   return computed(() => {
     const rows = [
-      secretType?.value,
-      serviceAccount?.value,
-      certificate?.value,
-      issuer?.value,
-      expires?.value,
-    ];
-
-    return rows.filter((r) => typeof r !== 'undefined');
-  });
-};
-
-export const useProjectSecretIdentifyingInformation = (resource: any): ComputedRef<Row[]> => {
-  const project = useProject(resource);
-  const secretType = useSecretType(resource);
-  const serviceAccount = useServiceAccount(resource);
-  const certificate = useCertificate(resource);
-  const issuer = useIssuer(resource);
-  const expires = useExpires(resource);
-
-  return computed(() => {
-    const rows = [
+      age?.value,
+      namespace?.value,
       project?.value,
       secretType?.value,
       serviceAccount?.value,

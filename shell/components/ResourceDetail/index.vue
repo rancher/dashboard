@@ -49,8 +49,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const currentResourceName = computed(() => {
-  const metaResource: string = route?.meta?.resource as string;
-  const resource = route?.params?.resource || metaResource;
+  const resource = props.resourceOverride || route?.params?.resource;
 
   if (!resource) {
     return;
@@ -63,6 +62,7 @@ const currentResourceName = computed(() => {
   // This should never occur, just satisfying the types
   return resource[0];
 });
+
 const mode = computed(() => route?.query?.[MODE]);
 const isView = computed(() => route?.params?.id && (!mode.value || mode.value === _VIEW));
 // We're defaulting to legacy being on, we'll switch this once we want to enable the new detail page by default
