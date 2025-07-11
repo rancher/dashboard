@@ -55,6 +55,7 @@ export default {
       }, {
         icon:          'icon-folder',
         value:         'project',
+        field:         'groupByProject',
         hideColumn:    'project',
         groupLabelKey: 'groupByProject',
         tooltipKey:    'resourceTable.groupBy.project'
@@ -62,7 +63,7 @@ export default {
 
       // these are the fields that sort will be applied on, either remotely by vai, or locally
       sortFields: {
-        local: `metadata.labels."${ UI_PROJECT_SECRET }"`,
+        local: `groupByProject`, // would be nicer to user '`metadata.labels."${ UI_PROJECT_SECRET }"`', but that's invalid for ssp
         vai:   `metadata.labels[${ UI_PROJECT_SECRET }]`,
       }
     };
@@ -122,11 +123,6 @@ export default {
 
     groupSort() {
       return this.sortFields.local;
-    },
-
-    groupBy() {
-      // this is the field that is used locally to find the value
-      return this.groupPreference === 'none' ? null : `metadata.labels."${ UI_PROJECT_SECRET }"`;
     },
 
   },
@@ -252,7 +248,6 @@ export default {
       :isCreatable="true"
     />
     <PaginatedResourceTable
-      :groupBy="groupBy"
       :groupSort="groupSort"
       :groupable="true"
       :groupOptions="groupOptions"
