@@ -6,6 +6,7 @@ import CertificatesPo from '@/cypress/e2e/po/components/certificates.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import ResourceTablePo from '~/cypress/e2e/po/components/resource-table.po';
+import ActionMenuPo from '@/cypress/e2e/po/components/action-menu-shell.po';
 
 export default class ClusterDashboardPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -46,6 +47,14 @@ export default class ClusterDashboardPagePo extends PagePo {
     this.tabs().self().scrollIntoView();
 
     return this.tabs().clickNthTab(2);
+  }
+
+  eventsRowCountMenuToggle() {
+    return cy.get('[data-testid="events-list-row-count-menu-toggle"]').click();
+  }
+
+  eventsRowCountMenu() {
+    return new ActionMenuPo();
   }
 
   tabs() {
