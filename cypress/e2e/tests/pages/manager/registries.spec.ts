@@ -149,8 +149,7 @@ describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
       expect(req.request?.body?.spec.rkeConfig.registries).to.deep.equal(
         registriesWithSecretPayload(
           registryHost,
-          registrySecret,
-          true
+          registrySecret
         ));
     });
   });
