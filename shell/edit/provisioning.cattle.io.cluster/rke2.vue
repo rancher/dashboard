@@ -1838,12 +1838,12 @@ export default {
 
       const hasMirrorsOrAuthConfig = Object.keys(regs.configs).length > 0 || Object.keys(regs.mirrors).length > 0;
 
-      if (this.registryHost || registrySecret || hasMirrorsOrAuthConfig) {
+      if (this.registryHost || registrySecret) {
         this.showCustomRegistryInput = true;
+      }
 
-        if (hasMirrorsOrAuthConfig) {
-          this.showCustomRegistryAdvancedInput = true;
-        }
+      if (hasMirrorsOrAuthConfig) {
+        this.showCustomRegistryAdvancedInput = true;
       }
     },
 
