@@ -59,11 +59,6 @@ export default {
     },
   },
   methods: {
-    addHost(ev) {
-      ev.preventDefault();
-      this.hosts.push('');
-      this.update();
-    },
     update() {
       const out = { hosts: this.hosts };
 
