@@ -25,17 +25,14 @@ export default {
     }
   },
   data() {
-    const defaultCert = {
-      label: this.t('ingress.certificates.defaultCertLabel'),
-      value: DEFAULT_CERT_VALUE,
-    };
-    const { hosts = [''], secretName = defaultCert.value } = this.value;
-
     return {
-      defaultCert,
-      hosts,
-      secretName,
-      secretVal: this.value.secretName ?? DEFAULT_CERT_VALUE,
+      defaultCert: {
+        label: this.t('ingress.certificates.defaultCertLabel'),
+        value: DEFAULT_CERT_VALUE,
+      },
+      hosts:      this.value?.hosts ?? [''],
+      secretName: this.value?.secretName ?? DEFAULT_CERT_VALUE,
+      secretVal:  this.value?.secretName ?? DEFAULT_CERT_VALUE,
     };
   },
   watch: {
