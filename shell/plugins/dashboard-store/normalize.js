@@ -20,18 +20,18 @@ export function normalizeType(type) {
 /**
  * Detect and resolve conflicts from a 409 response.
  *
- * @param {*} initialValueJSON the initial value before changes
+ * @param {*} initialValue the initial value before changes
  * @param {*} userValue the value containing the local changes. this function will intentionally mutate this to contain changes made from the server
  * @param {*} serverValue the very latest value from the server
  * @returns If `value` has been successfully updated return a false-y value. Else they can't be resolved, return an array of errors to show the user.
  */
-export async function handleConflict(initialValueJSON, userValue, serverValue, rootGetters, store, storeNamespace) {
+export async function handleConflict(initialValue, userValue, serverValue, store, storeNamespace, toJSON = (x) => x.toJSON()) {
   // initial value
-  const initial = await store.dispatch(`${ storeNamespace }/cleanForDiff`, initialValueJSON, { root: true });
+  const initial = await store.dispatch(`${ storeNamespace }/cleanForDiff`, toJSON(initialValue), { root: true });
   // changed value (user edits)
-  const user = await store.dispatch(`${ storeNamespace }/cleanForDiff`, userValue.toJSON(), { root: true });
+  const user = await store.dispatch(`${ storeNamespace }/cleanForDiff`, toJSON(userValue), { root: true });
   // server value
-  const server = await store.dispatch(`${ storeNamespace }/cleanForDiff`, serverValue.toJSON(), { root: true });
+  const server = await store.dispatch(`${ storeNamespace }/cleanForDiff`, toJSON(serverValue), { root: true });
 
   // changes made to the server value
   const serverChanges = changeset(initial, server);
@@ -50,7 +50,7 @@ export async function handleConflict(initialValueJSON, userValue, serverValue, r
 
   if ( actualConflicts.length ) {
     // Stop the save and let the user inspect and continue editing
-    const out = [rootGetters['i18n/t']('validation.conflict', { fields: actualConflicts.join(', '), fieldCount: actualConflicts.length })];
+    const out = [store.getters['i18n/t']('validation.conflict', { fields: actualConflicts.join(', '), fieldCount: actualConflicts.length })];
 
     return out;
   } else {
