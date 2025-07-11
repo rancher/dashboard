@@ -35,7 +35,7 @@ export default {
       defaultCert,
       hosts,
       secretName,
-      secretVal: DEFAULT_CERT_VALUE,
+      secretVal: this.value.secretName ?? DEFAULT_CERT_VALUE,
     };
   },
   watch: {
