@@ -41,9 +41,20 @@ export default defineComponent({
       default: 'resourceTable.groupBy.namespace',
     },
 
+    /**
+     * Field to group rows by, row[groupBy] must be something that can be a map key (or also use groupSort)
+     */
     groupBy: {
       type:    String,
       default: null,
+    },
+
+    /**
+     * Field to order groups by, defaults to groupBy
+     */
+    groupSort: {
+      type:    Array,
+      default: null
     },
 
     /**
@@ -76,6 +87,9 @@ export default defineComponent({
       default: null,
     },
 
+    /**
+     * Use this store instead of the store `inStore` getters
+     */
     overrideInStore: {
       type:    String,
       default: undefined,
@@ -102,7 +116,7 @@ export default defineComponent({
 
   async fetch() {
     const promises = [
-      this.$fetchType(this.resource, [], this.overrideInStore),
+      this.$fetchType(this.resource, [], this.overrideInStore || this.inStore),
     ];
 
     if (this.fetchSecondaryResources) {
@@ -140,6 +154,7 @@ export default defineComponent({
       :loading="loading"
 
       :group-by="groupBy"
+      :group-sort="groupSort"
       :groupable="groupable"
       :groupTooltip="groupTooltip"
       :groupOptions="groupOptions"

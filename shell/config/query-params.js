@@ -82,7 +82,7 @@ export const FLAT_VIEW = 'flatView';
 
 /**
  * Used on the secret create/edit page to determine
- * 1. if the user is created a normal secret, or a project scoped secret
+ * 1. if the user is creating a normal secret, or a project scoped secret
  * 2. where to return the user on cancel/save
  */
 export const SECRET_QUERY_PARAMS = {

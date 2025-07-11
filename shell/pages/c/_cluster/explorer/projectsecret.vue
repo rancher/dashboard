@@ -18,7 +18,6 @@ export default {
       return isEdit ? SECRET : VIRTUAL_TYPES.PROJECT_SECRETS;
     }
   }
-  // TODO: RC CI - pss - create - highlights secret, shows secret as type, links back to secret
 
 };
 </script>
