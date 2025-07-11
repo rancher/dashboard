@@ -162,8 +162,8 @@ export default class ProvCluster extends SteveModel {
 
     const all = actions.concat(out);
 
-    // If the cluster is a KEV1 cluster then prevent edit
-    if (this.isKev1) {
+    // If the cluster is a KEV1 cluster or Harvester cluster then prevent edit
+    if (this.isKev1 || this.isHarvester) {
       const edit = all.find((action) => action.action === 'goToEdit');
 
       if (edit) {
@@ -1006,6 +1006,28 @@ export default class ProvCluster extends SteveModel {
           id:       this.namespace
         }
       };
+    }
+
+    return null;
+  }
+
+  /**
+   * Gets the options for fields that should be commented out in the YAML representation
+   * of the model. This is particularly useful for conditionally commenting out certain
+   * fields based on the model's configuration.
+   *
+   * @returns {null | Array.<{path: string, key: string}>}
+   * - `path`: A dot-separated string indicating the path to the object containing the key.
+   * - `key`: The specific key within the object at the given path that should be commented out.
+   */
+  get commentFieldsOptions() {
+    if ( this.isRke2 ) {
+      return [
+        {
+          path: 'spec.rkeConfig.machineGlobalConfig',
+          key:  'profile'
+        }
+      ];
     }
 
     return null;

@@ -104,7 +104,7 @@ export default {
 
         configs[h] = {
           ...entry,
-          caBundle: base64Encode(entry.caBundle)
+          caBundle: entry.caBundle ? base64Encode(entry.caBundle) : null
         };
 
         delete configs[h].hostname;

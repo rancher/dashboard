@@ -240,11 +240,12 @@ describe('component: rke2', () => {
 
     // we need to mock the "save" method from the create-edit-view-mixin
     // otherwise we get console errors
-    jest.spyOn(wrapper.vm, 'save').mockImplementation();
+    // jest.spyOn(wrapper.vm, 'save').mockImplementation();
 
     await wrapper.vm._doSaveOverride(jest.fn());
+    const chartKey = wrapper.vm.chartVersionKey(HARVESTER_CLOUD_PROVIDER);
 
-    const cloudConfigPath = get(wrapper.vm.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`);
+    const cloudConfigPath = get(wrapper.vm.userChartValues, `${ chartKey }.cloudConfigPath`);
 
     expect(cloudConfigPath).toStrictEqual('my-k8s-distro-path/etc/config-files/cloud-provider-config');
   });
