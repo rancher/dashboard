@@ -187,7 +187,6 @@ export function init(store) {
   configureType(NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING, { depaginate: dePaginateNormanBindings });
   configureType(NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, { depaginate: dePaginateNormanBindings });
   configureType(SNAPSHOT, { depaginate: true });
-  configureType(NORMAN.ETCD_BACKUP, { depaginate: true });
 
   configureType(EVENT, { limit: 500 });
   weightType(EVENT, -1, true);

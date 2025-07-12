@@ -13,6 +13,7 @@ import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/label
 import { KEV1 } from '@shell/models/management.cattle.io.kontainerdriver';
 
 const RKE1_ALLOWED_ACTIONS = [
+  'promptRemove',
   'openShell',
   'downloadKubeConfig',
   'copyKubeConfig',
@@ -100,7 +101,7 @@ export default class ProvCluster extends SteveModel {
 
     const canEditRKE2cluster = this.isRke2 && ready && this.canUpdate;
 
-    const canSnapshot = ready && ((this.isRke2 && this.canUpdate) || (this.isRke1 && this.mgmt?.hasAction('backupEtcd')));
+    const canSnapshot = ready && this.isRke2 && this.canUpdate;
 
     const actions = [
       // Note: Actions are not supported in the Steve API, so we check
@@ -820,33 +821,6 @@ export default class ProvCluster extends SteveModel {
 
   get stateObj() {
     return this._stateObj;
-  }
-
-  get rkeTemplate() {
-    if (!this.isRke1 || !this.mgmt) {
-      // Not an RKE! cluster or no management cluster available
-      return false;
-    }
-
-    if (!this.mgmt.spec?.clusterTemplateRevisionName) {
-      // Cluster does not use an RKE template
-      return false;
-    }
-
-    const clusterTemplateName = this.mgmt.spec.clusterTemplateName.replace(':', '/');
-    const clusterTemplateRevisionName = this.mgmt.spec.clusterTemplateRevisionName.replace(':', '/');
-    const template = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE).find((t) => t.id === clusterTemplateName);
-    const revision = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).find((t) => t.spec.enabled && t.id === clusterTemplateRevisionName);
-
-    if (!template || !revision) {
-      return false;
-    }
-
-    return {
-      displayName: `${ template.spec?.displayName }/${ revision.spec?.displayName }`,
-      template,
-      revision,
-    };
   }
 
   get _stateObj() {
