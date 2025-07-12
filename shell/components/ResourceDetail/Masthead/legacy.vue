@@ -645,10 +645,10 @@ export default {
 
     h1 {
       margin: 0 0 0 -5px;
-      overflow-x: hidden;
       display: flex;
       flex-direction: row;
       align-items: center;
+      overflow: hidden;
 
       .masthead-resource-title {
         text-overflow: ellipsis;
