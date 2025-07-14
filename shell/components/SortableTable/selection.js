@@ -344,7 +344,6 @@ export default {
         return;
       }
 
-      e.preventDefault();
       e.stopPropagation();
 
       this.prevNode = node;
