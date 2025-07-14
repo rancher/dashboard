@@ -143,13 +143,6 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   const registrationBanner = computed(() => registration.value.status === 'valid' ? registrationBannerCases.valid : registrationBannerCases.none);
 
   /**
-   * Reg code contained within the encoded secret
-   */
-  const regCode = computed(() => {
-    return secret.value?.data?.regCode ? atob(secret.value.data.regCode) : '';
-  });
-
-  /**
    * Retrieve and set registration related values based on the current secret
    */
   const getRegistration = async(): Promise<RegistrationStatus> => {
@@ -283,7 +276,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     registrationCode.value = null;
     const data = await pollResource(findOfflineRequest, getRegistrationRequest);
 
-    await downloadFile(REGISTRATION_REQUEST_FILENAME, JSON.stringify(data), 'application/json')
+    await downloadFile(REGISTRATION_REQUEST_FILENAME, data ? btoa(data) : data, 'application/json')
       .catch(() => {
         asyncButtonResolution(false);
         onError(new Error('Registration request download not found'));
@@ -296,7 +289,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * @param registration
    * @returns
    */
-  const isRegistrationOfflineException = (registration: PartialRegistration): boolean => {
+  const isRegistrationOfflineProgress = (registration: PartialRegistration): boolean => {
     const isOffline = registration.spec?.mode === 'offline';
     const isInProgress = registration.status?.conditions[0]?.type === 'Progressing';
     const isActive = registration.status.activationStatus.activated === true;
@@ -305,17 +298,19 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   };
 
   /**
-   * Exclude any case of registration which has not been completed
+   * Return only registrations with ended process, based on conditions
    * @param registration
    * @returns
    */
   const isRegistrationCompleted = (registration: PartialRegistration): boolean => {
+    const mode = registration.spec?.mode;
     const lastCondition = registration.status?.conditions[registration.status?.conditions.length - 1];
     const isError = lastCondition.type === 'RegistrationActivated' && lastCondition.status === 'False';
     const isError2 = lastCondition.type === 'Failure' && lastCondition.status === 'True';
-    const isComplete = lastCondition.type === 'Done' && lastCondition.status === 'True';
+    const isCompleteOnline = mode === 'online' && lastCondition.type === 'Done' && lastCondition.status === 'True';
+    const isCompleteOffline = mode === 'offline' && lastCondition.type === 'OfflineActivationDone' && lastCondition.status === 'True';
 
-    return isError || isError2 || isComplete;
+    return isError || isError2 || isCompleteOnline || isCompleteOffline;
   };
 
   /**
@@ -325,7 +320,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   const findRegistration = async(hash: string | null): Promise<PartialRegistration | undefined> => {
     const registrations: PartialRegistration[] = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME });
     const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === hash &&
-      !isRegistrationOfflineException(registration) &&
+      !isRegistrationOfflineProgress(registration) &&
       isRegistrationCompleted(registration)
     );
 
@@ -346,9 +341,9 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
 
   /**
    * Get the registration request from the secret data
-   * @param request PartialSecret containing the request data
+   * @param secret PartialSecret containing the request data
    */
-  const getRegistrationRequest = (request: PartialSecret | null): string | null => request?.data?.request ? atob(request?.data?.request) : null;
+  const getRegistrationRequest = (secret: PartialSecret | null): string | null => secret?.data?.request ? atob(secret?.data?.request) : null;
 
   /**
    * Map registration to the displayed format
@@ -468,10 +463,13 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
  * @param mapResult Function to map the result before resolving
  * @param frequency Polling frequency in ms
  * @param timeout Timeout in ms
+ * @param extraConditionFn Optional function to apply additional conditions on the resource; it must return true to resolve
+ * @return Promise that resolves with the mapped result
  */
   const pollResource = async<T>(
     fetchFn: (hash: string | null) => Promise<any>,
     mapResult: (resource: any) => T,
+    extraConditionFn?: (resource: any) => boolean,
     frequency = 500,
     timeout = 10000
   ): Promise<T> => {
@@ -488,14 +486,18 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
           return;
         }
 
+        // Get resource with matching hash
         const hash = secretHash.value;
         const resource = await fetchFn(hash);
         const newHash = resource?.metadata?.labels[REGISTRATION_LABEL];
 
         if (
-          (originalHash && !newHash) ||
+          // Run further conditions, default none
+          (!extraConditionFn || extraConditionFn(resource)) &&
+          // Ensure hash has changed
+          ((originalHash && !newHash) ||
           (!originalHash && newHash) ||
-          (originalHash && newHash && originalHash !== newHash)
+          (originalHash && newHash && originalHash !== newHash))
         ) {
           clearInterval(interval);
           resolve(mapResult(resource));
@@ -509,7 +511,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const initRegistration = async() => {
     secret.value = await getSecret();
-    registrationCode.value = regCode.value;
+    registrationCode.value = secret.value?.data?.regCode ? atob(secret.value.data.regCode) : ''; // Get registration code from secret
     registrationStatus.value = await getRegistration();
   };
 
