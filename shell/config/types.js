@@ -14,7 +14,6 @@ export const STEVE = {
 export const NORMAN = {
   APP:                           'app',
   AUTH_CONFIG:                   'authconfig',
-  ETCD_BACKUP:                   'etcdbackup',
   CLUSTER:                       'cluster',
   CLUSTER_TOKEN:                 'clusterregistrationtoken',
   CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterroletemplatebinding',
