@@ -6583,9 +6583,9 @@ tableHeaders:
   secrets: Secrets
   secret:
     project-clone: Created by Project Secret
-    project-clone-tooltip: A Project Scoped Secret created this Secret in this Namespace
+    project-clone-tooltip: Has a Project Scoped Secret created this Secret in this Namespace
     project-scoped: Project Secret
-    project-scoped-tooltip: Namespaces in this project (and cluster) will contain this secret
+    project-scoped-tooltip: This Project Scoped Secret will create matching Secrets in the Namespaces it contains
   schedule: Schedule
   service: Service
   serviceAccounts: Service Accounts
