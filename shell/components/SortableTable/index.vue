@@ -3,7 +3,7 @@ import { mapGetters, useStore } from 'vuex';
 import { defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
 import day from 'dayjs';
 import isEmpty from 'lodash/isEmpty';
-import { dasherize, ucFirst } from '@shell/utils/string';
+import { dasherize, ucFirst, randomStr } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
@@ -735,7 +735,7 @@ export default {
         grp.rows.forEach((row) => {
           const rowData = {
             row,
-            key:                        this.get(row, this.keyField),
+            key:                        this.get(row, this.keyField) ?? randomStr(),
             showSubRow:                 this.showSubRow(row, this.keyField),
             canRunBulkActionOfInterest: this.canRunBulkActionOfInterest(row),
             columns:                    []
@@ -1398,7 +1398,7 @@ export default {
         </slot>
         <template
           v-for="(row, i) in groupedRows.rows"
-          :key="i"
+          :key="row.key"
         >
           <slot
             name="main-row"
