@@ -148,7 +148,7 @@ jobs:
         name: Commit Changes and push to a branch
         run: |
           git checkout -b sync-${{ env.NOW }}
-          git add ./{assets,charts,extensions,icons,index.yaml}
+          git add ./{assets,charts,extensions,index.yaml}
           git commit -a -m "Sync extensions ${{ env.NOW }}"
           git push origin sync-${{ env.NOW }}
 
