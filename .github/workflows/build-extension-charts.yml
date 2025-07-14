@@ -12,6 +12,9 @@ on:
       is_test:
         required: false
         type: string
+      create_pr:
+        required: false
+        type: string
       test_ext_repo:
         required: false
         type: string
@@ -136,7 +139,40 @@ jobs:
         with:
           name: charts
 
-      - name: Commit build
+      # this is if we want to create a PR instead of push directly to a branch
+      - if: inputs.create_pr == 'true'
+        name: Generate branch name based on date and time
+        run: echo "NOW=$(date +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_ENV
+
+      - if: inputs.create_pr == 'true'
+        name: Commit Changes and push to a branch
+        run: |
+          git checkout -b sync-${{ env.NOW }}
+          git add ./{assets,charts,extensions,icons,index.yaml}
+          git commit -a -m "Sync extensions ${{ env.NOW }}"
+          git push origin sync-${{ env.NOW }}
+
+      - if: inputs.create_pr == 'true'
+        name: Create Pull Request
+        run: |
+          # Create the PR using the GitHub CLI
+          pr_number=$(gh pr create \
+            --title "Create PR for extension sync: ${{ env.NOW }}" \
+            --body "This PR was automatically created by a GitHub Action." \
+            --base main \
+            --head sync-${{ env.NOW }} \
+            --fill \
+            --repo ${{ github.repository }} | awk '{print $NF}') # Get the PR URL and Extract the last element (the PR number)
+
+          # Check if pr_number is empty (creation failed)
+          if [ -z "$pr_number" ]; then
+            echo "Failed to create PR."
+            exit 1
+          fi
+      # end of PR creation
+
+      - if: inputs.create_pr != 'true'
+        name: Commit build
         run: |
           git add ./{assets,charts,extensions,index.yaml}
           git commit -a -m "${{ env.CI_COMMIT_MESSAGE }}"
