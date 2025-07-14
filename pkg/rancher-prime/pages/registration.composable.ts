@@ -309,11 +309,13 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * @param registration
    * @returns
    */
-  const isCompleteException = (registration: PartialRegistration): boolean => {
+  const isRegistrationCompleted = (registration: PartialRegistration): boolean => {
     const lastCondition = registration.status?.conditions[registration.status?.conditions.length - 1];
+    const isError = lastCondition.type === 'RegistrationActivated' && lastCondition.status === 'False';
+    const isError2 = lastCondition.type === 'Failure' && lastCondition.status === 'True';
+    const isComplete = lastCondition.type === 'Done' && lastCondition.status === 'True';
 
-    return (lastCondition.type === 'RegistrationActivated' && lastCondition.status === 'False') ||
-      (lastCondition.type === 'Done' && lastCondition.status === 'True');
+    return isError || isError2 || isComplete;
   };
 
   /**
@@ -324,7 +326,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     const registrations: PartialRegistration[] = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME });
     const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === hash &&
       !isRegistrationOfflineException(registration) &&
-      isCompleteException(registration)
+      isRegistrationCompleted(registration)
     );
 
     return registration;
