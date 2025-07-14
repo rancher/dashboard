@@ -184,6 +184,7 @@
     "cypress-delete-downloads-folder": "0.0.4",
     "cypress-mochawesome-reporter": "3.8.2",
     "cypress-real-events": "1.14.0",
+    "cypress-terminal-report": "^7.2.0",
     "eslint": "7.32.0",
     "eslint-config-standard": "16.0.3",
     "eslint-import-resolver-node": "0.3.9",

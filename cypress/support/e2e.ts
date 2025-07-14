@@ -21,3 +21,5 @@ Cypress.on('uncaught:exception', (err, runnable) => {
     return false;
   }
 });
+
+require('cypress-terminal-report/src/installLogsCollector')({ collectTypes: ['cons:log', 'cons:info', 'cons:warn', 'cons:error', 'cy:log'] });
