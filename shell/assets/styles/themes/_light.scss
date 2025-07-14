@@ -156,9 +156,14 @@ BODY, .theme-light {
   }
 
   --muted                      : #{$dark};
+  --deemphasized               : #717179;
 
   .text-muted {
     color: var(--muted) !important;
+  }
+
+  .text-deemphasized {
+    color: var(--deemphasized);
   }
 
   --darker                    : #{$darker};
@@ -402,7 +407,7 @@ BODY, .theme-light {
 
   --modal-bg                   : #{$lightest};
   --modal-border               : #{$dark};
-  --overlay-bg                 : #{rgba($lighter, 0.75)};
+  --overlay-bg                 : rgba(38, 42, 64, 0.35);
   --shadow                     : #{rgba($medium, 0.85)};
 
   --checkbox-tick              : #{$lightest};
@@ -468,7 +473,7 @@ BODY, .theme-light {
   --sortable-table-group-label : #{$secondary};
 
   --tag-primary                : #{$darkest};
-  --tag-bg                     : #{$medium};
+  --tag-bg                     : #EEEFF5;
 
   --popover-bg                 : var(--body-bg);
   --popover-border             : var(--border);

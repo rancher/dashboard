@@ -34,7 +34,7 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
       :data-testid="row.dataTestid"
     >
       <label
-        class="label text-muted"
+        class="label text-deemphasized"
         :for="getRowValueId(row)"
       >
         {{ row.label }}
@@ -95,6 +95,13 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
         display: flex;
         flex-direction: row;
         align-items: center;
+
+        &, & * {
+          max-width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
       }
 
       .label {
