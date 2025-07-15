@@ -5,9 +5,12 @@ set -x
 K3S_VERSION=v1.32.6+k3s1
 
 # Image version
-RANCHER_IMG_REPO=tlebreux/rancher
-RANCHER_IMG_TAG=gh-40773-head
-RANCHER_AGENT_IMG=tlebreux/rancher@gh-40773-head
+# RANCHER_IMG_REPO=tlebreux/rancher
+# RANCHER_IMG_TAG=gh-40773-head
+# RANCHER_AGENT_IMG=tlebreux/rancher@gh-40773-head
+RANCHER_IMG_REPO=rancher/rancher
+RANCHER_IMG_TAG=head
+RANCHER_AGENT_IMG=rancher/rancher:head # eh
 
 # check if script invoke contains any argument. If so, adjust RANCHER_IMG_TAG
 if [ $# -eq 1 ]; then
