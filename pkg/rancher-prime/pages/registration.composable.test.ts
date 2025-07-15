@@ -4,13 +4,13 @@ import {
 import { usePrimeRegistration } from './registration.composable';
 
 let dispatchSpy = jest.fn();
-const downloadSpy = jest.fn();
+const downloadSpy = jest.fn().mockReturnValue(Promise.resolve());
 const namespaceRequest = {
   id: 'cattle-scc-system', opt: { force: true }, type: 'namespace'
 };
 
 jest.mock('vuex', () => ({ useStore: () => ({ dispatch: dispatchSpy }) }));
-jest.mock('@shell/utils/download', () => ({ downloadFile: downloadSpy }));
+jest.mock('@shell/utils/download', () => ({ downloadFile: (...args: any) => downloadSpy(...args) }));
 
 describe('registration composable', () => {
   beforeEach(() => {
@@ -20,6 +20,7 @@ describe('registration composable', () => {
   describe('when initialized', () => {
     it('should retrieve the registration secret and current registration', async() => {
       const value = 'whatever';
+      const hash = 'anything';
 
       dispatchSpy = jest.fn()
         .mockReturnValueOnce(Promise.resolve([
@@ -28,21 +29,35 @@ describe('registration composable', () => {
           {
             metadata: {
               namespace: REGISTRATION_NAMESPACE,
-              name:      REGISTRATION_SECRET
+              name:      REGISTRATION_SECRET,
+              labels:    { [REGISTRATION_LABEL]: hash }
             },
-            value: { data: { regCode: value } }
+            data: { regCode: btoa(value) }
           },
         ]))
-        .mockReturnValue(Promise.resolve([{ metadata: { labels: { [REGISTRATION_LABEL]: 'whatever' } } }]));
+        .mockReturnValue(Promise.resolve([{
+          spec:     { mode: 'online' },
+          metadata: { labels: { [REGISTRATION_LABEL]: hash } },
+          links:    { view: '123' },
+          status:   {
+            activationStatus: { activated: true },
+            conditions:       [{
+              type:   'Done',
+              status: 'True',
+            }]
+          },
+        }]));
       const store = { state: {}, dispatch: dispatchSpy } as any;
       const {
         initRegistration, registrationCode, registration, registrationStatus
       } = usePrimeRegistration(store);
 
       await initRegistration();
+      jest.setTimeout(0);
 
-      expect(registrationCode).toStrictEqual(value);
+      expect(registrationCode.value).toStrictEqual(value);
       expect(registration.value.active).toStrictEqual(true);
+      expect(registration.value.resourceLink).toStrictEqual('123');
       expect(registrationStatus.value).toStrictEqual('registered');
     });
   });
@@ -50,23 +65,42 @@ describe('registration composable', () => {
   describe('downloading the registration certificate', () => {
     it('should retrieve and start download process', async() => {
       const expectation = 'whatever';
+      const hash = 'anything';
 
       dispatchSpy = jest.fn()
+        .mockReturnValueOnce(Promise.resolve()) // ensure namespace
+        // Create secret
+        .mockReturnValueOnce(Promise.resolve())
+        // Get secrets
         .mockReturnValueOnce(Promise.resolve([
-          { metadata: { namespace: 'not me' } },
-          { metadata: { name: 'also not me' } },
           {
             metadata: {
               namespace: REGISTRATION_NAMESPACE,
-              name:      `${ REGISTRATION_REQUEST_PREFIX }whatever`
+              name:      `${ REGISTRATION_REQUEST_PREFIX }whatever`,
+              labels:    { [REGISTRATION_LABEL]: hash }
             },
-            value: { data: { request: expectation } }
+            data: { request: expectation },
+            save: () => {},
           },
-        ]));
+        ]))
+        // Get registrations
+        .mockReturnValue(Promise.resolve([{
+          spec:     { mode: 'online' },
+          metadata: { labels: { [REGISTRATION_LABEL]: hash } },
+          links:    { view: '123' },
+          status:   {
+            activationStatus: { activated: true },
+            conditions:       [{
+              type:   'Done',
+              status: 'True',
+            }]
+          },
+        }]));
       const store = { state: {}, dispatch: dispatchSpy } as any;
       const { downloadOfflineRequest } = usePrimeRegistration(store);
 
       await downloadOfflineRequest(() => { });
+      jest.setTimeout(0);
 
       expect(downloadSpy).toHaveBeenCalledWith(REGISTRATION_REQUEST_FILENAME, expectation, 'application/json');
     });
@@ -125,7 +159,7 @@ describe('registration composable', () => {
       expect(offlineRegistrationCertificate.value).toBeNull();
     });
 
-    it.skip('should create a new registration', async() => {
+    it('should create a new registration', async() => {
       dispatchSpy = jest.fn()
         .mockReturnValueOnce(Promise.resolve([{ metadata: { labels: { [REGISTRATION_LABEL]: 'whatever' } } }]))
         .mockReturnValueOnce(Promise.resolve([{ metadata: { labels: { [REGISTRATION_LABEL]: 'whatever' } } }]));

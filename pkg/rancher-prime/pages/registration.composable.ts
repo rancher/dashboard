@@ -103,7 +103,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   const store = storeArg ?? useStore();
 
   /**
-   * Registration from CRD
+   * Registration mapped value used in the UI
    */
   const registration = ref(emptyRegistration);
 
@@ -118,7 +118,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   const secretHash = computed(() => (secret.value?.metadata?.labels || {})[REGISTRATION_LABEL] || null);
 
   /**
-   * Single source for the registration status, used to define other computed properties
+   * Single source for the registration status, used to define process state of the UI
    */
   const registrationStatus = ref('loading' as RegistrationStatus);
 
@@ -177,10 +177,10 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   /**
    * Common operations required before registration
    */
-  const preRegistration = async(secret?: true) => {
+  const preRegistration = async(needSecret?: true) => {
     errors.value = [];
     await ensureNamespace();
-    if (!secret) {
+    if (!needSecret) {
       await deleteSecret();
     }
   };
@@ -470,7 +470,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     fetchFn: (hash: string | null) => Promise<any>,
     mapResult: (resource: any) => T,
     extraConditionFn?: (resource: any) => boolean,
-    frequency = 500,
+    frequency = 250,
     timeout = 10000
   ): Promise<T> => {
     const originalHash = secretHash.value;
@@ -491,14 +491,12 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
         const resource = await fetchFn(hash);
         const newHash = resource?.metadata?.labels[REGISTRATION_LABEL];
 
-        if (
-          // Run further conditions, default none
-          (!extraConditionFn || extraConditionFn(resource)) &&
-          // Ensure hash has changed
-          ((originalHash && !newHash) ||
+        const passExtraConditions = (!extraConditionFn || extraConditionFn(resource)); // Run further conditions, default none
+        const isHashChanged = ((originalHash && !newHash) ||
           (!originalHash && newHash) ||
-          (originalHash && newHash && originalHash !== newHash))
-        ) {
+          (originalHash && newHash && originalHash !== newHash)); // Ensure hash has changed
+
+        if (passExtraConditions && isHashChanged) {
           clearInterval(interval);
           resolve(mapResult(resource));
         }
@@ -511,7 +509,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const initRegistration = async() => {
     secret.value = await getSecret();
-    registrationCode.value = secret.value?.data?.regCode ? atob(secret.value.data.regCode) : ''; // Get registration code from secret
+    registrationCode.value = secret.value?.data?.regCode ? atob(secret.value.data.regCode) : null; // Get registration code from secret
     registrationStatus.value = await getRegistration();
   };
 
