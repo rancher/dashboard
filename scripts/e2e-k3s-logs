@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 DEPLOYMENT_NAME="rancher"
-NAMESPACE="cattle-system"
+RANCHER_NAMESPACE="cattle-system"
 
-POD_NAMES=$(kubectl get pods -n "$NAMESPACE" -l app="$DEPLOYMENT_NAME" -o jsonpath='{.items[*].metadata.name}')
+POD_NAMES=$(kubectl get pods -n "$RANCHER_NAMESPACE" -l app="$DEPLOYMENT_NAME" -o jsonpath='{.items[*].metadata.name}')
 
 if [ -z "$POD_NAMES" ]; then
   echo "No pods found!"
@@ -11,10 +11,14 @@ if [ -z "$POD_NAMES" ]; then
 fi
 
 for POD in $POD_NAMES; do
-  echo "Logs for pod: $POD "
+  echo ""
+  echo "---------------------------------------------------------------------"
+  echo "Logs for pod: $POD"
+  echo "---------------------------------------------------------------------"
+  echo ""
 
   echo $POD > $E2E_RANCHER_LOG
-  kubectl logs "$POD" -n "$NAMESPACE" --all-containers=true --prefix > "$E2E_RANCHER_LOG" 2>&1
+  kubectl logs "$POD" -n "$RANCHER_NAMESPACE" --all-containers=true --prefix > "$E2E_RANCHER_LOG" 2>&1
 
   # Add a separator for clarity between different pods' logs
   echo ""

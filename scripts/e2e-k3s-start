@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -x
 
+# --------------------------------------
+# ----------------------- Setup Env Vars
+# --------------------------------------
+
 # K3S_VERSION=v1.32.6+k3s1 // when using the 'latest' repo it can only (atm) install rc1 which has a max of 1.33
 K3S_VERSION=v1.33.1+k3s1
 
@@ -26,13 +30,22 @@ if [ $# -eq 1 ]; then
 fi
 
 DASHBOARD_URL="${TEST_BASE_URL#https://}"
-NAMESPACE=cattle-system
+RANCHER_NAMESPACE=cattle-system
 
 DIR=$(cd $(dirname $0)/..; pwd)
 
 # See `script/build-e2e`. This is the ui builds we wish to test
 DASHBOARD_DIST=${DIR}/dist
 EMBER_DIST=${DIR}/dist_ember
+
+# - See https://ranchermanager.docs.rancher.com/how-to-guides/advanced-user-guides/enable-api-audit-log (0 off, 3 everything)
+# - logs sent to side-car container in rancher pod
+# - e2e-k2s-logs captures logs in all containers in all rancher pods
+RANCHER_AUDIT_LOG_LEVEL=1
+
+# ---------------------------------
+# ----------------------- Setup Env
+# ---------------------------------
 
 
 echo "Installing k3s (with kubectl).........."
@@ -65,8 +78,12 @@ helm repo add $RANCHER_HELM_REPO_NAME $RANCHER_HELM_REPO_URL
 helm repo update
 helm search repo $RANCHER_HELM_REPO_NAME --devel
 
+# ---------------------------------------
+# ----------------------- Install Rancher
+# ---------------------------------------
+
 echo "Installing Rancher.........."
-kubectl create ns $NAMESPACE
+kubectl create ns $RANCHER_NAMESPACE
 helm install rancher $RANCHER_HELM_REPO_NAME/rancher \
   --namespace cattle-system \
   --devel \
@@ -84,7 +101,13 @@ helm install rancher $RANCHER_HELM_REPO_NAME/rancher \
   --set extraEnv\[3\].name="CATTLE_PASSWORD_MIN_LENGTH" \
   --set-string extraEnv\[3\].value="3" \
   --set 'extraEnv[4].name=CATTLE_FEATURES' \
-  --set 'extraEnv[4].value=oidc-provider=true'
+  --set 'extraEnv[4].value=oidc-provider=true' \
+  --set auditLog.level=$RANCHER_AUDIT_LOG_LEVEL
+
+# ----------------------------------------------------
+# ----------------------- Wait for Rancher to be ready
+# ----------------------------------------------------
+
 
 echo "Waiting for Rancher to come up.........."
 kubectl -n cattle-system rollout status deploy/rancher
@@ -114,7 +137,7 @@ fi
 
 echo "Updating UI within Rancher container.........."
 # Note - these will pick the first container within the pod, so replicas=1 above is important
-POD_NAME=$(kubectl get pods --selector=app=rancher -n $NAMESPACE | tail -n 1 | cut -d ' ' -f1)
+POD_NAME=$(kubectl get pods --selector=app=rancher -n $RANCHER_NAMESPACE | tail -n 1 | cut -d ' ' -f1)
 echo "POD NAME: $POD_NAME"
 if [ "$POD_NAME" == "" ]; then
   echo "Failed to find rancher pod"
@@ -122,14 +145,14 @@ if [ "$POD_NAME" == "" ]; then
 fi
 
 # Remove root folders that container UIs
-kubectl exec $POD_NAME -n $NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui-dashboard/dashboard'
-kubectl exec $POD_NAME -n $NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui'
+kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui-dashboard/dashboard'
+kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui'
 
 # Copy local builds to root folders that should contain UIs
 mv $DASHBOARD_DIST dashboard
 mv $EMBER_DIST ui
-kubectl cp dashboard $POD_NAME:/usr/share/rancher/ui-dashboard -n $NAMESPACE
-kubectl cp ui $POD_NAME:/usr/share/rancher -n $NAMESPACE
+kubectl cp dashboard $POD_NAME:/usr/share/rancher/ui-dashboard -n $RANCHER_NAMESPACE
+kubectl cp ui $POD_NAME:/usr/share/rancher -n $RANCHER_NAMESPACE
 
 # Final validation
 STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')
