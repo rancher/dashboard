@@ -73,8 +73,10 @@ jobs:
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
-    # Cannot run container (rancher) in container (runner), so run in non-container runner
-    runs-on: runs-on,runner=8cpu-linux-x64,run-id=${{ github.run_id }}
+    # Cannot run containers within containers (k3s/docker in a gh container), so run in non-container runner
+    # ,ram=8
+    # ,runner=16cpu-linux-x64
+    runs-on: runs-on,runner=16cpu-linux-x64,ram=16,run-id=${{ github.run_id }}
     strategy:
       fail-fast: false
       matrix:

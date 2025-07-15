@@ -64,7 +64,7 @@ helm install rancher $HELM_REPO/rancher \
   --namespace cattle-system \
   --devel \
   --set hostname=$DASHBOARD_URL \
-  --set replicas="1" \
+  --set replicas="3" \
   --set rancherImage="$RANCHER_IMG_REPO" \
   --set rancherImageTag="$RANCHER_IMG_TAG" \
   --set rancherImagePullPolicy="Always" \
