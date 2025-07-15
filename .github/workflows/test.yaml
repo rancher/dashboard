@@ -27,7 +27,7 @@ env:
   CYPRESS_API_URL: http://139.59.134.103:1234/
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
-  BUILD_DASHBOARD: true
+  BUILD_DASHBOARD: false
 
   E2E_RANCHER_LOG: rancher.log
   E2E_BUILD_DIST_NAME: dist
@@ -38,13 +38,19 @@ env:
 jobs:
   e2e-ui-build:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: Setup env
         uses: ./.github/actions/setup
+      - name: Ensure repo dir is accepted as safe by git
+        # in bci user who runs git commands and repo folder owner is different
+        shell: bash
+        run: |
+          git config --global --add safe.directory $PWD
       - name: Build e2e
         run: yarn e2e:build
       - name: Upload e2e build
@@ -67,11 +73,13 @@ jobs:
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
+    # Cannot run container (rancher) in container (runner), so run in non-container runner
+    runs-on: runs-on,runner=8cpu-linux-x64,run-id=${{ github.run_id }}
     strategy:
       fail-fast: false
       matrix:
         role: [
-          { username: 'admin', tag: '@adminUser' }, 
+          { username: 'admin', tag: '@adminUser' },
           { username: 'standard_user', tag: '@standardUser' }
         ]
         features:  [
@@ -86,23 +94,50 @@ jobs:
           ['@components'],
           ['@noVai']
         ]
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
       - name: Setup env
         uses: ./.github/actions/setup
 
       # Installing fixed version of Chrome since latest version does not work (128 didn't work)
       # Leaving this here again in case we need to pin to a specific Chrome version in the future
-      # - name: Install Chrome 127
+      # - name: Install Chrome 127 v1
       #   run: |
       #     sudo apt-get install -y wget libu2f-udev
       #     cd /tmp
       #     wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_127.0.6533.72-1_amd64.deb
       #     sudo dpkg -i google-chrome-stable_127.0.6533.72-1_amd64.deb
       #     sudo apt-get install -y --allow-downgrades ./google-chrome-stable_127.0.6533.72-1_amd64.deb
+      #     google-chrome --version
+      # - name: Install Chrome 127 v2
+      #   run: |
+      #     echo "OS Info"
+      #     cat /etc/os-release
+
+      #     echo "Chrome installed by default"
+      #     google-chrome --version
+
+      #     echo "uninstal chrome"
+      #     # sudo apt-get remove google-chrome-stable
+      #     sudo dpkg -r google-chrome-stable
+
+      #     echo "install wget"
+      #     sudo apt-get install -y wget
+
+      #     echo "download target chrome"
+      #     cd /tmp
+      #     wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_129.0.6668.100-1_amd64.deb
+      #     # sudo apt-get install -y --allow-downgrades ./google-chrome-stable_129.0.6668.100-1_amd64.deb || true
+      #     # sudo apt --fix-broken install
+
+      #     echo "install target chrome"
+      #     sudo dpkg -i google-chrome-stable_129.0.6668.100-1_amd64.deb
+      #     # sudo apt install --assume-yes --fix-broken
+
+      #     echo "check target chrome"
       #     google-chrome --version
 
       - name: Download e2e build
@@ -122,7 +157,7 @@ jobs:
       - name: Setup Rancher and user
         run: |
           yarn e2e:prod
-        env: 
+        env:
           GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: admin
           TEST_ONLY: setup
@@ -130,7 +165,7 @@ jobs:
         run: |
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
-        env: 
+        env:
           TEST_SKIP: setup
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
@@ -175,6 +210,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
       - name: Setup env
         uses: ./.github/actions/setup
 
@@ -227,7 +263,8 @@ jobs:
           path: cypress/accessibility
         
   unit-test:
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
@@ -249,7 +286,8 @@ jobs:
           path: coverage-artifacts/**/*
 
   i18n:
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
@@ -259,7 +297,8 @@ jobs:
         uses: ./.github/actions/i18n-lint
 
   lint:
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
@@ -269,17 +308,15 @@ jobs:
         uses: ./.github/actions/lint
       
   check-i18n:
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-      
-      - name: Install packages
-        run: yarn install:ci
+
+      - name: Setup env
+        uses: ./.github/actions/setup
       
       - name: Run i18n string check
         run: |
@@ -287,17 +324,15 @@ jobs:
           ./scripts/check-i18n -s -x
 
   check-i18n-links:
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-      
-      - name: Install packages
-        run: yarn install:ci
+
+      - name: Setup env
+        uses: ./.github/actions/setup
       
       - name: Run check of all http links in the i18n files (broken link check)
         run: |
@@ -328,7 +363,8 @@ jobs:
   #       run: ./codecov --verbose upload-process -t ${{ secrets.CODECOV_TOKEN }} -n ${{github.run_number}}-${{github.run_attempt}}-coverage -F unit -f ./coverage/coverage-unit.json
 
   check-e2e-tags:
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
         with:

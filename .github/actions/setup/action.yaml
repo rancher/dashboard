@@ -1,13 +1,11 @@
 name: Setup UI Env
-description: Setup node, python and call bootstrap script
+description: Setup node, yarn install
 
 runs:
   using: 'composite'
   steps:
-    - uses: actions/setup-node@v4
-      with:
-        node-version-file: '.nvmrc'
-        cache: 'yarn'
+    - name: Setup Node
+      uses: ./.github/actions/setup-node
 
     - name: Install packages
       shell: bash
