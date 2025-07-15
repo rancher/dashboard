@@ -1,10 +1,21 @@
 #!/usr/bin/env bash
 set -x
 
-# K3S_VERSION=v1.33.1+k3s1 // Can only install rc1, which has a max of 1.33
-K3S_VERSION=v1.32.6+k3s1
+# K3S_VERSION=v1.32.6+k3s1 // when using the 'latest' repo it can only (atm) install rc1 which has a max of 1.33
+K3S_VERSION=v1.33.1+k3s1
 
-# Image version
+# rancher-latest --devel will have rc's and released versions. rancher-alpha will have alpha
+RANCHER_HELM_REPO_NAME=rancher
+
+# Helm Repo Info
+# rancher-latest will have released versions (--devel rc's)
+# RANCHER_HELM_REPO_URL=https://releases.rancher.com/server-charts/latest
+# rancher-alpha will have alphas (--devel required)
+# charts.optimus.rancher.io/server-charts/$RANCHER_RELEASE will have the latest and greatest chart
+RANCHER_RELEASE=release-2.12
+RANCHER_HELM_REPO_URL=https://charts.optimus.rancher.io/server-charts/$RANCHER_RELEASE
+
+# Helm Image version
 RANCHER_IMG_REPO=tlebreux/rancher
 RANCHER_IMG_TAG=gh-40773-head
 RANCHER_AGENT_IMG=tlebreux/rancher@gh-40773-head
@@ -23,7 +34,9 @@ DIR=$(cd $(dirname $0)/..; pwd)
 DASHBOARD_DIST=${DIR}/dist
 EMBER_DIST=${DIR}/dist_ember
 
+
 echo "Installing k3s (with kubectl).........."
+# FIXME: cache this in gh
 curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="$K3S_VERSION" sh -
 export KUBECONFIG=~/.kube/config
 mkdir ~/.kube 2> /dev/null
@@ -47,17 +60,14 @@ helm install cert-manager jetstack/cert-manager \
 echo "Cert manager pods should be up"
 kubectl get pods --namespace cert-manager
 
-# rancher-latest --devel will have rc's
-HELM_REPO=rancher-alpha
-
 echo "Setting up Rancher Repo.........."
-helm repo add $HELM_REPO https://releases.rancher.com/server-charts/latest
+helm repo add $RANCHER_HELM_REPO_NAME $RANCHER_HELM_REPO_URL
 helm repo update
-helm search repo $HELM_REPO --devel
+helm search repo $RANCHER_HELM_REPO_NAME --devel
 
 echo "Installing Rancher.........."
 kubectl create ns $NAMESPACE
-helm install rancher $HELM_REPO/rancher \
+helm install rancher $RANCHER_HELM_REPO_NAME/rancher \
   --namespace cattle-system \
   --devel \
   --set hostname=$DASHBOARD_URL \
@@ -75,9 +85,6 @@ helm install rancher $HELM_REPO/rancher \
   --set-string extraEnv\[3\].value="3" \
   --set 'extraEnv[4].name=CATTLE_FEATURES' \
   --set 'extraEnv[4].value=oidc-provider=true'
-
-#  --set extraEnv\[4\].name="CATTLE_FEATURES" \
-#  --set-string extraEnv\[4\].value="oidc-provider=true" \
 
 echo "Waiting for Rancher to come up.........."
 kubectl -n cattle-system rollout status deploy/rancher
