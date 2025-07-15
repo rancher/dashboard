@@ -92,6 +92,7 @@ helm install rancher $RANCHER_HELM_REPO_NAME/rancher \
   --set rancherImage="$RANCHER_IMG_REPO" \
   --set rancherImageTag="$RANCHER_IMG_TAG" \
   --set rancherImagePullPolicy="Always" \
+  --set auditLog.level=$RANCHER_AUDIT_LOG_LEVEL \
   --set extraEnv\[0\].name="CATTLE_AGENT_IMAGE" \
   --set-string extraEnv\[0\].value="$RANCHER_AGENT_IMG" \
   --set extraEnv\[1\].name="CATTLE_UI_OFFLINE_PREFERRED" \
@@ -101,8 +102,7 @@ helm install rancher $RANCHER_HELM_REPO_NAME/rancher \
   --set extraEnv\[3\].name="CATTLE_PASSWORD_MIN_LENGTH" \
   --set-string extraEnv\[3\].value="3" \
   --set 'extraEnv[4].name=CATTLE_FEATURES' \
-  --set 'extraEnv[4].value=oidc-provider=true' \
-  --set auditLog.level=$RANCHER_AUDIT_LOG_LEVEL
+  --set 'extraEnv[4].value=oidc-provider=true'
 
 # ----------------------------------------------------
 # ----------------------- Wait for Rancher to be ready

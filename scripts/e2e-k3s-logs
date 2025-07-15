@@ -14,15 +14,13 @@ fi
 echo "It begins..." > "$E2E_RANCHER_LOG"
 
 for POD in $POD_NAMES; do
-  echo "Logs for pod: $POD"
+  echo "Inserting logs for pod: $POD"
   echo "---------------------------------------------------------------------" >> "$E2E_RANCHER_LOG"
   echo "Logs for pod: $POD" >> "$E2E_RANCHER_LOG"
   echo "---------------------------------------------------------------------" >> "$E2E_RANCHER_LOG"
 
-  echo $POD >> $E2E_RANCHER_LOG
   kubectl logs "$POD" -n "$RANCHER_NAMESPACE" --all-containers=true --prefix >> "$E2E_RANCHER_LOG" 2>&1
 
-  echo "Containers for pod: $POD"
-  kubectl get pod "$POD" -n "$RANCHER_NAMESPACE" -o jsonpath='{.spec.containers[*].name}'
-
+  CONTAINER_NAMES=$(kubectl get pod "$POD" -n "$RANCHER_NAMESPACE" -o jsonpath='{.spec.containers[*].name}')
+  echo "Containers in pod $POD: $CONTAINER_NAMES"
 done
