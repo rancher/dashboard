@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 
 DEPLOYMENT_NAME="rancher"
 RANCHER_NAMESPACE="cattle-system"
@@ -11,19 +12,15 @@ if [ -z "$POD_NAMES" ]; then
 fi
 
 for POD in $POD_NAMES; do
-  echo ""
-  echo "---------------------------------------------------------------------"
   echo "Logs for pod: $POD"
-  echo "---------------------------------------------------------------------"
-  echo ""
+  echo "---------------------------------------------------------------------" > "$E2E_RANCHER_LOG"
+  echo "Logs for pod: $POD" > "$E2E_RANCHER_LOG"
+  echo "---------------------------------------------------------------------" > "$E2E_RANCHER_LOG"
 
   echo $POD > $E2E_RANCHER_LOG
   kubectl logs "$POD" -n "$RANCHER_NAMESPACE" --all-containers=true --prefix > "$E2E_RANCHER_LOG" 2>&1
 
-  # Add a separator for clarity between different pods' logs
-  echo ""
-  echo "---------------------------------------------------------------------"
-  echo "End of logs for pod: $POD"
-  echo "---------------------------------------------------------------------"
-  echo ""
+  echo "Containers for pod: $POD" > "$E2E_RANCHER_LOG"
+  kubectl get pod "$POD" -n "$RANCHER_NAMESPACE" -o jsonpath='{.spec.containers[*].name}'
+
 done
