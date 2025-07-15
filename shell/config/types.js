@@ -14,7 +14,6 @@ export const STEVE = {
 export const NORMAN = {
   APP:                           'app',
   AUTH_CONFIG:                   'authconfig',
-  ETCD_BACKUP:                   'etcdbackup',
   CLUSTER:                       'cluster',
   CLUSTER_TOKEN:                 'clusterregistrationtoken',
   CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterroletemplatebinding',
@@ -316,6 +315,7 @@ export const VIRTUAL_TYPES = {
   CLUSTER_MEMBERS:    'cluster-members',
   PROJECT_NAMESPACES: 'projects-namespaces',
   NAMESPACES:         'namespaces',
+  PROJECT_SECRETS:    'projectsecret',
   JWT_AUTHENTICATION: 'jwt.authentication'
 };
 

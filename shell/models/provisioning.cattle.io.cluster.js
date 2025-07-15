@@ -13,6 +13,7 @@ import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/label
 import { KEV1 } from '@shell/models/management.cattle.io.kontainerdriver';
 
 const RKE1_ALLOWED_ACTIONS = [
+  'promptRemove',
   'openShell',
   'downloadKubeConfig',
   'copyKubeConfig',
@@ -100,7 +101,7 @@ export default class ProvCluster extends SteveModel {
 
     const canEditRKE2cluster = this.isRke2 && ready && this.canUpdate;
 
-    const canSnapshot = ready && ((this.isRke2 && this.canUpdate) || (this.isRke1 && this.mgmt?.hasAction('backupEtcd')));
+    const canSnapshot = ready && this.isRke2 && this.canUpdate;
 
     const actions = [
       // Note: Actions are not supported in the Steve API, so we check
@@ -162,8 +163,8 @@ export default class ProvCluster extends SteveModel {
 
     const all = actions.concat(out);
 
-    // If the cluster is a KEV1 cluster then prevent edit
-    if (this.isKev1) {
+    // If the cluster is a KEV1 cluster or Harvester cluster then prevent edit
+    if (this.isKev1 || this.isHarvester) {
       const edit = all.find((action) => action.action === 'goToEdit');
 
       if (edit) {
@@ -822,33 +823,6 @@ export default class ProvCluster extends SteveModel {
     return this._stateObj;
   }
 
-  get rkeTemplate() {
-    if (!this.isRke1 || !this.mgmt) {
-      // Not an RKE! cluster or no management cluster available
-      return false;
-    }
-
-    if (!this.mgmt.spec?.clusterTemplateRevisionName) {
-      // Cluster does not use an RKE template
-      return false;
-    }
-
-    const clusterTemplateName = this.mgmt.spec.clusterTemplateName.replace(':', '/');
-    const clusterTemplateRevisionName = this.mgmt.spec.clusterTemplateRevisionName.replace(':', '/');
-    const template = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE).find((t) => t.id === clusterTemplateName);
-    const revision = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).find((t) => t.spec.enabled && t.id === clusterTemplateRevisionName);
-
-    if (!template || !revision) {
-      return false;
-    }
-
-    return {
-      displayName: `${ template.spec?.displayName }/${ revision.spec?.displayName }`,
-      template,
-      revision,
-    };
-  }
-
   get _stateObj() {
     if (!this.isRke2) {
       return this.mgmt?.stateObj || this.metadata?.state;
@@ -1006,6 +980,28 @@ export default class ProvCluster extends SteveModel {
           id:       this.namespace
         }
       };
+    }
+
+    return null;
+  }
+
+  /**
+   * Gets the options for fields that should be commented out in the YAML representation
+   * of the model. This is particularly useful for conditionally commenting out certain
+   * fields based on the model's configuration.
+   *
+   * @returns {null | Array.<{path: string, key: string}>}
+   * - `path`: A dot-separated string indicating the path to the object containing the key.
+   * - `key`: The specific key within the object at the given path that should be commented out.
+   */
+  get commentFieldsOptions() {
+    if ( this.isRke2 ) {
+      return [
+        {
+          path: 'spec.rkeConfig.machineGlobalConfig',
+          key:  'profile'
+        }
+      ];
     }
 
     return null;

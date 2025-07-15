@@ -38,16 +38,23 @@ export default {
         STATE,
         NAME,
         {
-          name:     'bundlesReady',
-          labelKey: 'tableHeaders.bundlesReady',
-          value:    'status.display.readyBundles',
+          name:     'reposReady',
+          labelKey: 'tableHeaders.reposReady',
+          value:    'status.readyGitRepos',
           sort:     'status.summary.ready',
           search:   false,
         },
         {
-          name:     'reposReady',
-          labelKey: 'tableHeaders.reposReady',
-          value:    'status.readyGitRepos',
+          name:     'helmOpsReady',
+          labelKey: 'tableHeaders.helmOpsReady',
+          value:    'status.readyHelmOps',
+          sort:     'status.summary.ready',
+          search:   false,
+        },
+        {
+          name:     'bundlesReady',
+          labelKey: 'tableHeaders.bundlesReady',
+          value:    'status.display.readyBundles',
           sort:     'status.summary.ready',
           search:   false,
         },
@@ -115,6 +122,18 @@ export default {
         class="text-warning"
       >{{ row.repoInfo.ready }}/{{ row.repoInfo.total }}</span>
       <span v-else>{{ row.repoInfo.total }}</span>
+    </template>
+
+    <template #cell:helmOpsReady="{row}">
+      <span
+        v-if="!row.helmOpsInfo"
+        class="text-muted"
+      >&mdash;</span>
+      <span
+        v-else-if="row.helmOpsInfo.unready"
+        class="text-warning"
+      >{{ row.helmOpsInfo.ready }}/{{ row.helmOpsInfo.total }}</span>
+      <span v-else>{{ row.helmOpsInfo.total }}</span>
     </template>
 
     <template #cell:bundlesReady="{row}">

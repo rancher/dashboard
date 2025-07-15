@@ -54,12 +54,12 @@ const showConfigurationMoreFocusSelector = computed(() => `[data-testid="${ show
 <template>
   <div class="key-value">
     <div class="heading">
-      <span class="title text-muted">{{ propertyName }}</span>
+      <span class="title text-deemphasized">{{ propertyName }}</span>
       <span class="count">{{ rows.length }}</span>
     </div>
     <div
       v-if="visibleRows.length === 0"
-      class="empty mmt-2 text-muted"
+      class="empty mmt-2 text-deemphasized"
     >
       <div class="no-rows">
         {{ i18n.t('component.resource.detail.metadata.keyValue.noRows', {propertyName: lowercasePropertyName}) }}
@@ -67,7 +67,7 @@ const showConfigurationMoreFocusSelector = computed(() => `[data-testid="${ show
       <div class="show-configuration mmt-1">
         <a
           :data-testid="showConfigurationEmptyDataTestId"
-          class="secondary text-muted"
+          class="secondary text-deemphasized"
           href="#"
           @click="(ev: MouseEvent) => {ev.preventDefault(); emit('show-configuration', showConfigurationEmptyFocusSelector);}"
         >
@@ -91,7 +91,7 @@ const showConfigurationMoreFocusSelector = computed(() => `[data-testid="${ show
       v-if="showShowAllButton"
       :data-testid="showConfigurationMoreDataTestId"
       href="#"
-      class="show-all secondary"
+      class="show-all"
       @click="(ev: MouseEvent) => {ev.preventDefault(); emit('show-configuration', showConfigurationMoreFocusSelector);}"
     >
       {{ showAllLabel }}
@@ -110,18 +110,15 @@ const showConfigurationMoreFocusSelector = computed(() => `[data-testid="${ show
     }
 
     .heading {
-        margin-bottom: 4px;
+        margin-bottom: 8px;
     }
 
     .row {
+        display: block;
         width: 100%;
 
-        &:not(:first-of-type) {
+        &:not(:nth-child(2)) {
             margin-top: 4px;
-        }
-
-        & {
-            margin-top: 8px;
         }
     }
     .show-all {
@@ -129,10 +126,15 @@ const showConfigurationMoreFocusSelector = computed(() => `[data-testid="${ show
     }
 
     .rectangle {
+      display: inline-block;
       max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .no-rows {
+      line-height: 21px;
     }
 }
 </style>

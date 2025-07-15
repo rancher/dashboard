@@ -71,7 +71,12 @@ export default {
 <template>
   <div>
     <div v-if="mode === 'login'">
-      <rc-dropdown v-if="showLocale">
+      <rc-dropdown
+        v-if="showLocale"
+        :aria-label="$attrs['aria-label'] || undefined"
+        :aria-labelledby="$attrs['aria-labelledby'] || undefined"
+        :aria-describedby="$attrs['aria-describedby'] || undefined"
+      >
         <rc-dropdown-trigger
           data-testid="locale-selector"
           link
@@ -105,6 +110,9 @@ export default {
     </div>
     <div v-else>
       <Select
+        :aria-label="$attrs['aria-label'] || undefined"
+        :aria-labelledby="$attrs['aria-labelledby'] || undefined"
+        :aria-describedby="$attrs['aria-describedby'] || undefined"
         :value="selectedOption"
         :options="localesOptions"
         :is-lang-select="true"

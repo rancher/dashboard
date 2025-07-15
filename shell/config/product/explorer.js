@@ -21,7 +21,7 @@ import {
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
   ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, LAST_USED, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
   DURATION, MESSAGE, REASON, EVENT_TYPE, OBJECT, ROLE, ROLES, VERSION, INTERNAL_EXTERNAL_IP, KUBE_NODE_OS, CPU, RAM, SECRET_DATA,
-  EVENT_LAST_SEEN_TIME
+  EVENT_LAST_SEEN_TIME,
 } from '@shell/config/table-headers';
 
 import { DSL } from '@shell/store/type-map';
@@ -94,6 +94,7 @@ export function init(store) {
     PVC,
     STORAGE_CLASS,
     SECRET,
+    VIRTUAL_TYPES.PROJECT_SECRETS,
     CONFIG_MAP
   ], 'storage');
   basicType([
@@ -187,7 +188,12 @@ export function init(store) {
   configureType(NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING, { depaginate: dePaginateNormanBindings });
   configureType(NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, { depaginate: dePaginateNormanBindings });
   configureType(SNAPSHOT, { depaginate: true });
-  configureType(NORMAN.ETCD_BACKUP, { depaginate: true });
+
+  configureType(SECRET, { showListMasthead: false });
+  weightType(SECRET, 1, false);
+
+  configureType(VIRTUAL_TYPES.PROJECT_SECRETS, { showListMasthead: false });
+  weightType(VIRTUAL_TYPES.PROJECT_SECRETS, 2, false);
 
   configureType(EVENT, { limit: 500 });
   weightType(EVENT, -1, true);
@@ -622,6 +628,25 @@ export function init(store) {
     weight:           98,
     route:            { name: 'c-cluster-product-namespaces' },
     exact:            true,
+  });
+
+  virtualType({
+    label:            store.getters['i18n/t'](`typeLabel.${ VIRTUAL_TYPES.PROJECT_SECRETS }`, { count: 2 }),
+    group:            'storage',
+    icon:             'globe',
+    namespaced:       false,
+    ifRancherCluster: true,
+    name:             VIRTUAL_TYPES.PROJECT_SECRETS,
+    weight:           -1,
+    route:            {
+      name:   'c-cluster-product-resource',
+      params: { resource: VIRTUAL_TYPES.PROJECT_SECRETS }
+    },
+    exact:      true,
+    ifHaveType: [{
+      store: 'management',
+      type:  SECRET
+    }],
   });
 
   // Ignore these types as they are managed through the settings product

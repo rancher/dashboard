@@ -32,6 +32,7 @@ import isFunction from 'lodash/isFunction';
 import isString from 'lodash/isString';
 import { markRaw } from 'vue';
 
+import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
@@ -1343,9 +1344,7 @@ export default class Resource {
     this.currentRouter().push(location);
   }
 
-  goToEdit(moreQuery = {}) {
-    const location = this.detailLocation;
-
+  goToEdit(moreQuery = {}, location = this.detailLocation) {
     location.query = {
       ...location.query,
       [MODE]: _EDIT,
@@ -1528,11 +1527,11 @@ export default class Resource {
     }
   }
 
-  async saveYaml(yaml) {
-    await this._saveYaml(yaml);
+  async saveYaml(yaml, initialYaml) {
+    await this._saveYaml(yaml, initialYaml);
   }
 
-  async _saveYaml(yaml) {
+  async _saveYaml(yaml, initialYaml, depth = 0) {
     /* Multipart support, but need to know the right cluster and work for management store
       and "apply" seems to only work for create, not update.
 
@@ -1570,20 +1569,56 @@ export default class Resource {
         data:   yaml
       });
     } else {
-      res = await this.followLink('update', {
-        method: 'PUT',
-        headers,
-        data:   yaml
-      });
+      try {
+        res = await this.followLink('update', {
+          method: 'PUT',
+          headers,
+          data:   yaml
+        });
+      } catch (err) {
+        const IS_ERR_409 = err.status === 409 || err._status === 409;
+
+        // Conflict, the resource being edited has changed since starting editing
+        if (IS_ERR_409 && depth === 0 && initialYaml) {
+          const inStore = this.$rootGetters['currentStore'](this.type);
+
+          const initialValue = jsyaml.load(initialYaml);
+          const value = jsyaml.load(yaml);
+          const liveValue = this.$rootGetters[`${ inStore }/byId`](this.type, this.id);
+
+          const handledConflictErr = await handleConflict(
+            initialValue,
+            value,
+            liveValue,
+            {
+              dispatch: this.$dispatch,
+              getters:  this.$rootGetters
+            },
+            this.$rootGetters['currentStore'](this.type),
+            (v) => v.toJSON ? v.toJSON() : v
+          );
+
+          if (handledConflictErr === false) {
+            // It was automatically figured out, save again
+            await this._saveYaml(jsyaml.dump(value), null, depth + 1);
+          } else {
+            throw handledConflictErr;
+          }
+        } else {
+          throw err;
+        }
+      }
     }
 
-    await this.$dispatch(`load`, {
-      data:     res,
-      existing: (isCreate ? this : undefined)
-    });
+    if (res) {
+      await this.$dispatch(`load`, {
+        data:     res,
+        existing: (isCreate ? this : undefined)
+      });
 
-    if (this.isSpoofed) {
-      await this.$dispatch('cluster/findAll', { type: this.type, opt: { force: true } }, { root: true });
+      if (this.isSpoofed) {
+        await this.$dispatch('cluster/findAll', { type: this.type, opt: { force: true } }, { root: true });
+      }
     }
   }
 

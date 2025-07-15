@@ -7,6 +7,7 @@ generic:
   userMenu: user menu
   actionMenu: action menu
   namespaceFilter: namespace filter menu
+  imageAlt: Generic Rancher image alt
   banners:
     altCloseBanner: Close banner icon
     bannerIcon: Banner icon
@@ -157,6 +158,10 @@ generic:
   showLess: Show less
   showMore: Show more
   opensInNewTab: Opens in a new tab
+  
+tabs:
+  addItem: Add a new tab item
+  removeItem: Remove selected tab item
 
 graph:
   noPermissions: You do not have permission to Graph view
@@ -602,6 +607,9 @@ authConfig:
     starttls:
       label: Start TLS
       tip: Upgrades non-encrypted connections by wrapping with TLS during the connection process. Can not be used in conjunction with TLS.
+    searchUsingServiceAccount: 
+      label: Enable Service Account Search
+      tip: When enabled, Rancher will use the service account instead of the user account to search for users and groups.
     tls: TLS
     userEnabledAttribute: User Enabled Attribute
     userMemberAttribute: User Member Attribute
@@ -1069,10 +1077,8 @@ catalog:
     header: Charts
     noCharts:
       title: No charts to show
-      messagePart1: <b>Tips:</b> undo the last filter you applied or
-      messagePart2: clear all filters
-      messagePart3: ', and ensure you have the right <a tabindex="0" href={repositoriesUrl} rel="noopener noreferrer nofollow">repositories</a> in place.'
-      messagePart4: 'Want to learn more about Helm Charts and Apps? Read our <a tabindex="0" href="{docsBase}/how-to-guides/new-user-guides/helm-charts-in-rancher" target="_blank" class="secondary-text-link">documentation <i class="icon icon-external-link"></i></a>.'
+      message: '<b>Tips:</b> undo the last filter you applied or <resetAllFilters>clear all filters</resetAllFilters>, and ensure you have the right <repositoriesUrl>repositories</repositoriesUrl> in place.'
+      docsMessage: 'Want to learn more about Helm Charts and Apps? Read our <docsUrl>documentation</docsUrl>.'
     noWindows: Your repos do not contain any charts capable of being deployed on a cluster with Windows nodes.
     noWindowsAndLinux: Your repos do not contain any charts capable of being deployed on a cluster with both Windows and Linux worker nodes.
     operatingSystems:
@@ -1553,16 +1559,27 @@ cluster:
       authEncodedJson:
         label: Service Account
         placeholder: Service Account private key JSON file
-        help: |-
-          <p>Create a <a href="https://console.cloud.google.com/projectselector/iam-admin/serviceaccounts" target="_blank" rel="noopener noreferrer nofollow">Service Account</a> with a JSON private key and provide the JSON here.
-          These IAM roles are required:</p>
-          <ul>
-          <li><b>Compute Engine:</b> Compute Viewer (roles/compute.viewer)</li>
-          <li><b>Project:</b> Viewer (roles/viewer)</li>
-          <li><b>Kubernetes Engine:</b> Kubernetes Engine Admin (roles/container.admin)</li>
-          <li><b>Service Accounts:</b> Service Account User (roles/iam.serviceAccountUser)</li>
-          </ul>
-          More info on roles can be found <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/iam-integration" target="_blank" rel="noopener noreferrer nofollow">here</a>.
+        gke: GKE
+        gce: GCE
+        help: 
+          shared: <p>Create a <a href="https://console.cloud.google.com/projectselector/iam-admin/serviceaccounts" target="_blank" rel="noopener noreferrer nofollow">Service Account</a> with a JSON private key and provide the JSON here.</p>
+          gke: |-
+            <p>These IAM roles are required for GKE:</p>
+            <ul>
+            <li><b>Compute Engine:</b> Compute Viewer (roles/compute.viewer)</li>
+            <li><b>Project:</b> Viewer (roles/viewer)</li>
+            <li><b>Kubernetes Engine:</b> Kubernetes Engine Admin (roles/container.admin)</li>
+            <li><b>Service Accounts:</b> Service Account User (roles/iam.serviceAccountUser)</li>
+            </ul>
+            More info on roles can be found <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/iam-integration" target="_blank" rel="noopener noreferrer nofollow">here</a>.
+          gce: |-
+            <p>These IAM roles are required for GCE:</p>
+            <ul>
+            <li><b>Compute Engine:</b> Compute Engine Admin (roles/compute.admin)</li>
+            <li><b>Project:</b> Viewer (roles/viewer)</li>
+            <li><b>Service Accounts:</b> Service Account User (roles/iam.serviceAccountUser)</li>
+            </ul>
+            More info on roles can be found <a href="https://cloud.google.com/compute/docs/access/iam" target="_blank" rel="noopener noreferrer nofollow">here</a>.
     harvester:
       namespace: Namespace
       cpu: CPUs
@@ -1638,6 +1655,9 @@ cluster:
       sshUser:
         placeholder: e.g. ubuntu
         toolTip: SSH user to login with the selected OS image.
+    kubeconfigSecret:
+        nameRequired: Cluster name is required.
+        error: 'Error generating Harvester kubeconfig secret: {err}'
   haveOneOwner: There must be at least one member with the Owner role.
   import:
     warningBanner: 'You should not import a cluster which has already been connected to another instance of Rancher as it will lead to data corruption.'
@@ -1951,6 +1971,63 @@ cluster:
         label: Network
       serverOs:
         label: OS
+    gce:
+      machineImage:
+        label: Machine Image
+        option: '{name} - {description}'
+        deprecatedOption: '{name}(deprecated) - {description}'
+        tooltip: Please select Image Family to get available images
+      imageProjects:
+        label: Image Projects
+      firewall:
+        header: Firewall Configuration
+      showDeprecated:
+        label: Show Deprecated
+        tooltip: Includes deprecated images
+      diskType:
+        label: Disk Type
+      diskSize:
+        label: Disk Size
+      network:
+        label: Network
+      subnetwork:
+        label: Subnetwork
+      machineType:
+        label: Machine Type
+      family:
+        label: Image Family
+      location:
+        zone:
+          label: Zone
+      scopes:
+        add: Add scope
+        label: Scopes
+      tags:
+        add: Add tags
+        label: Tags
+      openPort:
+        add: Add port
+        label: Open Ports
+      address:
+        label: External Address
+        placeholder: '10.0.0.0/14'
+        tooltip: External IP address for the GCE VM instance.
+      username:
+        label: Username
+        placeholder: docker-user
+        tooltip: This is the username used when SSH'ing into the node, and not a username associated with the GCP account.
+      internalFirewall:
+        label: Allow communication between cluster nodes
+        tooltip: Allows Rancher to open ports required for internal communication between nodes.
+        banner: Tags can be used to impose additional firewall rules.
+      externalFirewall:
+        label: Expose external ports
+        tooltip: Allows Rancher to open ports required for external access.
+        banner: By default, the Kubernetes API server listens on port 6443. Exposing this port on control plane machine pools is required for the Authorized Cluster Endpoint feature to work as expected.
+      error:
+        diskSizeWithoutMax: Disk size has to be greater than {diskSizeMin} based on this image and disk type.
+        diskSizeWithMax: Disk size has to be between {diskSizeMin} and {diskSizeMax} based on this image and disk type.
+        projects: Image projects should be a comma separated list of alphanumeric string which may contain '-' and '.'
   addOns:
     dependencyBanner: Add-On Configuration can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.
     additionalManifest:
@@ -2229,6 +2306,7 @@ cluster:
       server: Server compliance Profile
       agent: Compliance Profile
       override: Allow the default Pod Security Admission Configuration Template to be overridden when using a compliance profile
+      warning: After saving changes, and if this cluster has already been provisioned, please restart the rke2-server service on all nodes to ensure etcd file permissions are correct
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
       option: Default - RKE2 Embedded
@@ -3038,7 +3116,7 @@ fleet:
       pollingInterval:
         label: Polling Interval
         tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
-        minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
+        minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with HelmOps that contain a large amount of resources please consider increasing this value.
     tls:
       insecure: Accept any certificate (insecure)
     auth:
@@ -5795,6 +5873,13 @@ secret:
     'kubernetes.io/tls':
       description: Store a certificate and key for TLS
       docLink: https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
+  tabs:
+    namespaced:
+      label: Namespaced
+      create: Create Secret
+    projectScoped:
+      label: Project Scoped
+      create: Create Project Secret
 
 selectOrCreateAuthSecret:
   label: Authentication
@@ -6384,6 +6469,7 @@ tableHeaders:
   groupName: Group Name
   groupRoleNames: Group Role Names
   global-Default: Global-Default
+  helmOpsReady: Helm Ops Ready
   host: Host
   hostIp: Host IP
   holder: Holder
@@ -6477,7 +6563,7 @@ tableHeaders:
   repo: Repo
   repositories: Repositories
   repoName: Repository Name
-  reposReady: Repos Ready
+  reposReady: Git Repos Ready
   replicas: Replicas
   reqRate: Req Rate
   resource: Resource
@@ -6496,6 +6582,11 @@ tableHeaders:
   scope: Scope
   selector: Selector
   secrets: Secrets
+  secret:
+    project-clone: Created by Project Secret
+    project-clone-tooltip: Has a Project Scoped Secret created this Secret in this Namespace
+    project-scoped: Project Secret
+    project-scoped-tooltip: This Project Scoped Secret will create matching Secrets in the Namespaces it contains
   schedule: Schedule
   service: Service
   serviceAccounts: Service Accounts
@@ -7780,6 +7871,11 @@ typeLabel:
     {count, plural,
       one { Secret }
       other { Secrets }
+    }
+  projectsecret: |-
+    {count, plural,
+      one { Project Secret }
+      other { Project Secrets }
     }
   apiregistration.k8s.io.apiservice: |-
     {count, plural,

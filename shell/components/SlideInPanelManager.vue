@@ -141,7 +141,7 @@ function closePanel() {
         }"
         @click="closePanel"
       />
-      <div
+      <aside
         class="slide-in"
         :class="{ 'slide-in-open': isOpen }"
         :style="{
@@ -175,7 +175,7 @@ function closePanel() {
             class="dynamic-panel-content"
           />
         </div>
-      </div>
+      </aside>
     </div>
   </Teleport>
 </template>
@@ -190,9 +190,8 @@ function closePanel() {
   width: 100vw;
 }
 .slide-in-glass-open {
-  background-color: var(--body-bg);
+  background: var(--overlay-bg);
   display: block;
-  opacity: 0.5;
 }
 
 .slide-in {

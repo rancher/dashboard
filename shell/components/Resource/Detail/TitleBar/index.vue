@@ -140,7 +140,7 @@ watch(
     </Top>
     <div
       v-if="description"
-      class="bottom description"
+      class="bottom description text-deemphasized"
     >
       {{ description }}
     </div>
@@ -153,7 +153,7 @@ watch(
 
   .badge-state {
     font-size: 16px;
-    margin-left: 4px;
+    margin-left: 12px;
     position: relative;
   }
 

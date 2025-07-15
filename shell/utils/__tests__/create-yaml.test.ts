@@ -488,3 +488,238 @@ __clone: true
     expect(actual).toStrictEqual(expected);
   });
 });
+
+describe('fx: createYaml', () => {
+  interface CommentFieldsOption {
+    path: string;
+    key: string;
+  }
+
+  const schemas = [
+    {
+      id:             'provisioning.cattle.io.cluster',
+      resourceFields: {
+        apiVersion: {
+          type:   'string',
+          create: false,
+          update: false
+        },
+        kind: {
+          type:   'string',
+          create: false,
+          update: false
+        },
+        metadata: {
+          type:   'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+          create: true,
+          update: true
+        },
+        spec: {
+          type:     'provisioning.cattle.io.v1.cluster.spec',
+          nullable: true,
+          create:   true,
+          update:   true
+        }
+      }
+    },
+    {
+      id:             'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+      resourceFields: {
+        annotations: {
+          type:   'map[string]',
+          create: true,
+          update: true
+        },
+        labels: {
+          type:   'map[string]',
+          create: true,
+          update: true
+        },
+        namespace: {
+          type:   'string',
+          create: true,
+          update: true
+        }
+      }
+    },
+    {
+      id:             'provisioning.cattle.io.v1.cluster.spec',
+      resourceFields: {
+        localClusterAuthEndpoint: {
+          type:     'provisioning.cattle.io.v1.cluster.spec.localClusterAuthEndpoint',
+          nullable: true,
+          create:   true,
+          update:   true
+        },
+        rkeConfig: {
+          type:     'provisioning.cattle.io.v1.cluster.spec.rkeConfig',
+          nullable: true,
+          create:   true,
+          update:   true
+        },
+        foo: {
+          type:     'array[string]',
+          nullable: true,
+          create:   true,
+          update:   true
+        },
+      }
+    },
+    {
+      id:             'provisioning.cattle.io.v1.cluster.spec.localClusterAuthEndpoint',
+      resourceFields: {
+        caCerts: {
+          type:     'string',
+          nullable: true,
+          create:   true,
+          update:   true
+        },
+        enabled: {
+          type:     'boolean',
+          nullable: true,
+          create:   true,
+          update:   true
+        },
+        fqdn: {
+          type:     'string',
+          nullable: true,
+          create:   true,
+          update:   true
+        }
+      }
+    },
+    {
+      id:             'provisioning.cattle.io.v1.cluster.spec.rkeConfig',
+      resourceFields: {
+        additionalManifest: {
+          type:     'string',
+          nullable: true,
+          create:   true,
+          update:   true
+        },
+        chartValues: {
+          type:     'provisioning.cattle.io.v1.cluster.spec.rkeConfig.chartValues',
+          nullable: true,
+          create:   true,
+          update:   true
+        },
+        machineGlobalConfig: {
+          type:     'provisioning.cattle.io.v1.cluster.spec.rkeConfig.machineGlobalConfig',
+          nullable: true,
+          create:   true,
+          update:   true
+        }
+      }
+    },
+    {
+      id:             'provisioning.cattle.io.v1.cluster.spec.rkeConfig.chartValues',
+      resourceFields: {}
+    },
+    {
+      id:             'provisioning.cattle.io.v1.cluster.spec.rkeConfig.machineGlobalConfig',
+      resourceFields: {}
+    }
+  ];
+
+  it('should comment out fields when specific properties are defined on the model with commentFieldsOptions', () => {
+    const obj = {
+      type:     'provisioning.cattle.io.cluster',
+      metadata: {
+        namespace:   'fleet-default',
+        annotations: { someannotation: 'test' },
+        labels:      {}
+      },
+      __clone: true,
+      spec:    {
+        localClusterAuthEndpoint: {
+          caCerts: '',
+          enabled: false,
+          fqdn:    ''
+        },
+        rkeConfig: {
+          machineGlobalConfig: {
+            cni:                   'calico',
+            'disable-kube-proxy':  false,
+            'etcd-expose-metrics': false,
+            profile:               null
+          },
+          chartValues: {}
+        },
+        foo: [
+          'bar',
+          'bar2'
+        ],
+      },
+      apiVersion: 'provisioning.cattle.io/v1',
+      kind:       'Cluster'
+    };
+
+    const objResult = {
+      metadata: {
+        namespace:   'fleet-default',
+        annotations: { someannotation: 'test' },
+        labels:      {}
+      },
+      __clone: true,
+      spec:    {
+        rkeConfig: {
+          machineGlobalConfig: {
+            cni:                   'calico',
+            'disable-kube-proxy':  false,
+            'etcd-expose-metrics': false,
+          },
+          chartValues: {}
+        },
+      },
+      apiVersion: 'provisioning.cattle.io/v1',
+      kind:       'Cluster'
+    };
+
+    const type = 'provisioning.cattle.io.cluster';
+    const commentFieldsOptions: CommentFieldsOption[] = [
+      { path: 'spec.rkeConfig.machineGlobalConfig', key: 'profile' },
+      { path: 'spec', key: 'localClusterAuthEndpoint' },
+      { path: 'spec', key: 'foo' },
+    ];
+
+    // Define the expected YAML output as a string, adjusted for correct spacing
+    const expectedYaml = `
+apiVersion: provisioning.cattle.io/v1
+kind: Cluster
+metadata:
+  annotations:
+    someannotation: test
+    #  key: string
+  labels:
+    {}
+    #  key: string
+  namespace: fleet-default
+spec:
+#  localClusterAuthEndpoint:
+#    caCerts: ''
+#    enabled: false
+#    fqdn: ''
+  rkeConfig:
+    chartValues:
+      {}
+    machineGlobalConfig:
+      cni: calico
+      disable-kube-proxy: false
+      etcd-expose-metrics: false
+#       profile: null
+#    additionalManifest: string
+#  foo:
+#    - bar
+#    - bar2
+#    - string
+__clone: true`.trim();
+
+    const result = createYaml(schemas, type, obj, true, 0, '', null, {}, commentFieldsOptions as any);
+
+    // Check if result is a valid YAML
+    expect(jsyaml.load(result.trim())).toStrictEqual(objResult);
+
+    // Check if properties are commented out
+    expect(result.trim()).toStrictEqual(expectedYaml);
+  });
+});

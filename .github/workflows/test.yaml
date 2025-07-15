@@ -157,6 +157,16 @@ jobs:
           retention-days: 5
           compression-level: 9
 
+      - name: Upload Cypress Logs
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-browser-logs-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
+          path: browser-logs/out.html
+          if-no-files-found: error
+          retention-days: 5
+          compression-level: 9
+
   a11y-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
