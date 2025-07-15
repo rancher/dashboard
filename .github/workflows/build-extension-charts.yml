@@ -149,7 +149,7 @@ jobs:
         run: |
           git checkout -b sync-${{ env.NOW }}
           git add ./{assets,charts,extensions,index.yaml}
-          git commit -a -m "Sync extensions ${{ env.NOW }}"
+          git commit -a -m "Merging extension ${{ inputs.tagged_release }} ${{ env.NOW }}"
           git push origin sync-${{ env.NOW }}
 
       - if: inputs.create_pr == 'true'
@@ -157,7 +157,7 @@ jobs:
         run: |
           # Create the PR using the GitHub CLI
           pr_number=$(gh pr create \
-            --title "Create PR for extension sync: ${{ env.NOW }}" \
+            --title "Create PR for extension ${{ inputs.tagged_release }} merge: ${{ env.NOW }}" \
             --body "This PR was automatically created by a GitHub Action." \
             --base main \
             --head sync-${{ env.NOW }} \
