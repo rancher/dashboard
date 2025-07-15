@@ -92,6 +92,7 @@ helm install rancher $RANCHER_HELM_REPO_NAME/rancher \
   --set rancherImage="$RANCHER_IMG_REPO" \
   --set rancherImageTag="$RANCHER_IMG_TAG" \
   --set rancherImagePullPolicy="Always" \
+  --set auditLog.enabled=true \
   --set auditLog.level=$RANCHER_AUDIT_LOG_LEVEL \
   --set extraEnv\[0\].name="CATTLE_AGENT_IMAGE" \
   --set-string extraEnv\[0\].value="$RANCHER_AGENT_IMG" \
