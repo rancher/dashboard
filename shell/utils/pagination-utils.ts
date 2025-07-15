@@ -15,6 +15,7 @@ import { isEqual } from '@shell/utils/object';
 import { STEVE_CACHE } from '@shell/store/features';
 import { getPerformanceSetting } from '@shell/utils/settings';
 import { PAGINATION_SETTINGS_STORE_DEFAULTS } from '@shell/plugins/steve/steve-pagination-utils';
+import { MANAGEMENT } from '@shell/config/types';
 
 /**
  * Helper functions for server side pagination
@@ -52,6 +53,23 @@ class PaginationUtils {
   isSteveCacheEnabled({ rootGetters }: any): boolean {
     // We always get Feature flags as part of start up (see `dispatch('features/loadServer')` in loadManagement)
     return rootGetters['features/get']?.(STEVE_CACHE);
+  }
+
+  /**
+   * Determine if the downstream cluster has vai enabled
+   *
+   * Almost all the time the downstream cluster vai state will align with upstream (it manages it)
+   * ... unless it's harvester then weird things happen
+   */
+  async isDownstreamSteveCacheEnabled({ dispatch }: any, clusterId: string): Promise<boolean> {
+    const url = `/k8s/clusters/${ clusterId }/v1/${ MANAGEMENT.FEATURE }s/${ STEVE_CACHE }`;
+    const entry = await dispatch('cluster/request', { url });
+
+    if (entry.status.lockedValue !== null) {
+      return entry.status.lockedValue;
+    }
+
+    return (entry.spec.value !== null) ? entry.spec.value : entry.status.default;
   }
 
   /**
