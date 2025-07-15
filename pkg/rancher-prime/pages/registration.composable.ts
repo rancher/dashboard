@@ -489,12 +489,12 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
         // Get resource with matching hash
         const hash = secretHash.value;
         const resource = await fetchFn(hash);
-        const newHash = resource?.metadata?.labels[REGISTRATION_LABEL];
+        const newHash: string = resource?.metadata?.labels[REGISTRATION_LABEL];
 
         const passExtraConditions = (!extraConditionFn || extraConditionFn(resource)); // Run further conditions, default none
-        const isHashChanged = ((originalHash && !newHash) ||
-          (!originalHash && newHash) ||
-          (originalHash && newHash && originalHash !== newHash)); // Ensure hash has changed
+        const isHashChanged: boolean = (!!originalHash && !newHash) ||
+          (!originalHash && !!newHash) ||
+          (!!originalHash && !!newHash && originalHash !== newHash); // Ensure hash has changed
 
         if (passExtraConditions && isHashChanged) {
           clearInterval(interval);
