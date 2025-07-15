@@ -228,9 +228,10 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     await preRegistration();
 
     if (!registrationCode.value) return;
+    const originalHash = secretHash.value;
 
     secret.value = await createSecret('online', registrationCode.value);
-    registration.value = await pollResource(findRegistration, mapRegistration);
+    registration.value = await pollResource(originalHash, findRegistration, mapRegistration);
     registrationStatus.value = registration.value ? 'registered' : null;
     asyncButtonResolution(true);
   };
@@ -246,8 +247,10 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     offlineRegistrationCertificate.value = certificate ? atob(certificate) : null;
 
     try {
+      const originalHash = secretHash.value;
+
       updateSecret(secret.value, offlineRegistrationCertificate.value);
-      registration.value = await pollResource(findRegistration, mapRegistration);
+      registration.value = await pollResource(originalHash, findRegistration, mapRegistration);
       registrationStatus.value = registration.value ? 'registered' : null;
     } catch (error) {
       onError(error);
@@ -271,10 +274,11 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   const downloadOfflineRequest = async(asyncButtonResolution: (status: boolean) => void) => {
     registrationStatus.value = 'registration-request';
     await preRegistration();
+    const originalHash = secretHash.value;
 
     secret.value = await createSecret('offline'); // Generate secret to trigger offline registration request
     registrationCode.value = null;
-    const data = await pollResource(findOfflineRequest, getRegistrationRequest);
+    const data = await pollResource(originalHash, findOfflineRequest, getRegistrationRequest);
 
     await downloadFile(REGISTRATION_REQUEST_FILENAME, data ? btoa(data) : data, 'application/json')
       .catch(() => {
@@ -467,14 +471,13 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
  * @return Promise that resolves with the mapped result
  */
   const pollResource = async<T>(
+    originalHash: string | null,
     fetchFn: (hash: string | null) => Promise<any>,
     mapResult: (resource: any) => T,
     extraConditionFn?: (resource: any) => boolean,
     frequency = 250,
     timeout = 10000
   ): Promise<T> => {
-    const originalHash = secretHash.value;
-
     return new Promise<T>((resolve, reject) => {
       const startTime = Date.now();
 
