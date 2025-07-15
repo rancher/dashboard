@@ -5873,6 +5873,13 @@ secret:
     'kubernetes.io/tls':
       description: Store a certificate and key for TLS
       docLink: https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
+  tabs:
+    namespaced:
+      label: Namespaced
+      create: Create Secret
+    projectScoped:
+      label: Project Scoped
+      create: Create Project Secret
 
 selectOrCreateAuthSecret:
   label: Authentication
@@ -6575,6 +6582,11 @@ tableHeaders:
   scope: Scope
   selector: Selector
   secrets: Secrets
+  secret:
+    project-clone: Created by Project Secret
+    project-clone-tooltip: Has a Project Scoped Secret created this Secret in this Namespace
+    project-scoped: Project Secret
+    project-scoped-tooltip: This Project Scoped Secret will create matching Secrets in the Namespaces it contains
   schedule: Schedule
   service: Service
   serviceAccounts: Service Accounts
@@ -7859,6 +7871,11 @@ typeLabel:
     {count, plural,
       one { Secret }
       other { Secrets }
+    }
+  projectsecret: |-
+    {count, plural,
+      one { Project Secret }
+      other { Project Secrets }
     }
   apiregistration.k8s.io.apiservice: |-
     {count, plural,

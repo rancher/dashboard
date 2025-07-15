@@ -1344,9 +1344,7 @@ export default class Resource {
     this.currentRouter().push(location);
   }
 
-  goToEdit(moreQuery = {}) {
-    const location = this.detailLocation;
-
+  goToEdit(moreQuery = {}, location = this.detailLocation) {
     location.query = {
       ...location.query,
       [MODE]: _EDIT,

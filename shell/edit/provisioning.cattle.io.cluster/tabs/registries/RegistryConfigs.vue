@@ -172,7 +172,7 @@ export default {
               :mode="mode"
               generate-name="registryconfig-auth-"
               :data-testid="`registry-auth-select-or-create-${i}`"
-              :cache-secrets="true"
+              :cache-secrets="false"
               @update:value="update"
             />
           </div>

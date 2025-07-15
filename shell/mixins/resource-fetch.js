@@ -242,7 +242,9 @@ export default {
     },
 
     __getCountForResource(resourceName, namespace, storeType) {
-      const resourceCounts = this.$store.getters[`${ storeType }/all`](COUNT)[0]?.counts[`${ resourceName }`]; // NB `rancher` store behaves differently, lacks counts but has resource
+      const currStore = storeType || this.$store.getters['currentStore']();
+
+      const resourceCounts = this.$store.getters[`${ currStore }/all`](COUNT)[0]?.counts[`${ resourceName }`]; // NB `rancher` store behaves differently, lacks counts but has resource
       const resourceCount = namespace && resourceCounts?.namespaces ? resourceCounts?.namespaces[namespace]?.count : resourceCounts?.summary?.count;
 
       return resourceCount || 0;

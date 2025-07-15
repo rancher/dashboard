@@ -130,7 +130,7 @@ export default {
     },
     groupSort: {
       // Field to order groups by, defaults to groupBy
-      type:    Array,
+      type:    String,
       default: null
     },
 
