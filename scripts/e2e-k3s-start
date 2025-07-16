@@ -139,7 +139,7 @@ if [ "$STATUS" != "200" ]; then
   exit 1
 fi
 
-echo "Updating UI within Rancher container.........."
+echo "Updating UI from PR in Rancher containers.........."
 
 PODS=$(kubectl get pods --selector=app=rancher -n "$RANCHER_NAMESPACE" -o jsonpath='{.items[*].metadata.name}')
 
@@ -148,10 +148,8 @@ if [ -z "$PODS" ]; then
   exit 1
 fi
 
-echo updating pods...
-
 for POD_NAME in $PODS; do
-  echo "...$POD_NAME"
+  echo "Updating pod $POD_NAME with new UI"
 
   # Remove root folders that container UIs
   kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui-dashboard/dashboard'

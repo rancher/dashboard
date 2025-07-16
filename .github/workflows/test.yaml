@@ -77,27 +77,27 @@ jobs:
     # ,ram=8
     # ,runner=16cpu-linux-x64
 
-    runs-on: runs-on,runner=16cpu-linux-x64,run-id=${{ github.run_id }}
-    # runs-on: runs-on,runner=16cpu-linux-x64,ram=32,run-id=${{ github.run_id }} # chunk load error in ALL tests
+    # runs-on: runs-on,runner=16cpu-linux-x64,run-id=${{ github.run_id }}
+    runs-on: runs-on,runner=16cpu-linux-x64,ram=32,run-id=${{ github.run_id }}
     # runs-on: runs-on,runner=16cpu-linux-x64,ram=16,run-id=${{ github.run_id }} # does not work (tests hang)
     strategy:
       fail-fast: false
       matrix:
         role: [
           { username: 'admin', tag: '@adminUser' }, 
-          # { username: 'standard_user', tag: '@standardUser' }
+          { username: 'standard_user', tag: '@standardUser' }
         ]
         features:  [
-          # ['@navigation', '@extensions'],
+          ['@navigation', '@extensions'],
           ['@charts'],
-          # ['@explorer'],
+          ['@explorer'],
           ['@explorer2'],
-          # ['@virtualizationMgmt', '@fleet'],
-          # ['@generic', '@globalSettings'],
+          ['@virtualizationMgmt', '@fleet'],
+          ['@generic', '@globalSettings'],
           ['@manager'],
-          # ['@userMenu', '@usersAndAuths'],
-          # ['@components'],
-          # ['@noVai']
+          ['@userMenu', '@usersAndAuths'],
+          ['@components'],
+          ['@noVai']
         ]
     steps:
       - uses: actions/checkout@v4
