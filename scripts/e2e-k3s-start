@@ -20,9 +20,12 @@ RANCHER_RELEASE=release-2.12
 RANCHER_HELM_REPO_URL=https://charts.optimus.rancher.io/server-charts/$RANCHER_RELEASE
 
 # Helm Image version
-RANCHER_IMG_REPO=tlebreux/rancher
-RANCHER_IMG_TAG=gh-40773-head
-RANCHER_AGENT_IMG=tlebreux/rancher@gh-40773-head
+# RANCHER_IMG_REPO=tlebreux/rancher
+# RANCHER_IMG_TAG=gh-40773-head
+# RANCHER_AGENT_IMG=tlebreux/rancher@gh-40773-head
+RANCHER_IMG_REPO=rancher/rancher
+RANCHER_IMG_TAG=head
+RANCHER_AGENT_IMG=rancher/rancher:head # eh
 
 # check if script invoke contains any argument. If so, adjust RANCHER_IMG_TAG
 if [ $# -eq 1 ]; then
