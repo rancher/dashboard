@@ -182,6 +182,8 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     await ensureNamespace();
     if (!needSecret) {
       await deleteSecret();
+    } else {
+      secret.value = await getSecret();
     }
   };
 
@@ -243,12 +245,12 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   const registerOffline = async(certificate: string) => {
     registrationStatus.value = 'registering-offline';
     registrationCode.value = null;
+    const originalHash = secretHash.value;
+
     await preRegistration(true);
     offlineRegistrationCertificate.value = certificate ? atob(certificate) : null;
 
     try {
-      const originalHash = secretHash.value;
-
       updateSecret(secret.value, offlineRegistrationCertificate.value);
       registration.value = await pollResource(originalHash, findRegistration, mapRegistration);
       registrationStatus.value = registration.value ? 'registered' : null;
