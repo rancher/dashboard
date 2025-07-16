@@ -170,7 +170,7 @@ onMounted(async() => {
             :action-label="t('registration.offline.button.register.label')"
             data-testid="registration-offline-cta"
             :disabled="isRegistered || isRegistering"
-            :currentPhase="'waiting'"
+            :currentPhase="isRegisteringOffline ? 'waiting' : 'success'"
           />
         </div>
 
@@ -180,6 +180,7 @@ onMounted(async() => {
             class="role-primary mt-20"
             :label="t('registration.offline.button.register.label')"
             :disabled="isRegistered || isRegistering"
+            accept="image/*,.cert"
             data-testid="registration-offline-cta"
             @selected="registerOffline"
           />
