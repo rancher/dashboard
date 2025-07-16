@@ -12,10 +12,10 @@ K3S_VERSION=v1.33.1+k3s1
 RANCHER_HELM_REPO_NAME=rancher
 
 # Helm Repo Info
-# rancher-latest will have released versions (--devel rc's)
-# RANCHER_HELM_REPO_URL=https://releases.rancher.com/server-charts/latest
-# rancher-alpha will have alphas (--devel required)
-# charts.optimus.rancher.io/server-charts/$RANCHER_RELEASE will have the latest and greatest chart
+# - rancher-latest will have released versions (--devel rc's)
+#   - RANCHER_HELM_REPO_URL=https://releases.rancher.com/server-charts/latest
+# - rancher-alpha will have alphas (--devel required)
+# - charts.optimus.rancher.io/server-charts/$RANCHER_RELEASE will have the latest and greatest chart
 RANCHER_RELEASE=release-2.12
 RANCHER_HELM_REPO_URL=https://charts.optimus.rancher.io/server-charts/$RANCHER_RELEASE
 
