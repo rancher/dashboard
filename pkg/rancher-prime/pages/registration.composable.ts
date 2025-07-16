@@ -297,7 +297,8 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const isRegistrationOfflineProgress = (registration: PartialRegistration): boolean => {
     const isOffline = registration.spec?.mode === 'offline';
-    const isInProgress = registration.status?.conditions[0]?.type === 'Progressing';
+    const lastCondition = registration.status?.conditions[registration.status?.conditions.length - 1];
+    const isInProgress = lastCondition.type === 'OfflineRequestReady';
     const isActive = registration.status.activationStatus.activated === true;
 
     return isOffline && !isActive && isInProgress;
@@ -314,7 +315,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     const isError = lastCondition.type === 'RegistrationActivated' && lastCondition.status === 'False';
     const isError2 = lastCondition.type === 'Failure' && lastCondition.status === 'True';
     const isCompleteOnline = mode === 'online' && lastCondition.type === 'Done' && lastCondition.status === 'True';
-    const isCompleteOffline = mode === 'offline' && registration.status?.conditions.length > 3 && lastCondition.type === 'OfflineActivationDone' && lastCondition.status === 'True';
+    const isCompleteOffline = mode === 'offline' && lastCondition.type === 'OfflineActivationDone' && lastCondition.status === 'True';
 
     return isError || isError2 || isCompleteOnline || isCompleteOffline;
   };

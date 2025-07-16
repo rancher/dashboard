@@ -249,9 +249,7 @@ describe('registration composable', () => {
         status:   {
           activationStatus: { activated: true },
           conditions:       [
-            {},
-            {},
-            {},
+            { type: 'OfflineRequestReady' },
             {
               type:   'OfflineActivationDone',
               status: 'True',
