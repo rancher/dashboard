@@ -77,7 +77,8 @@ jobs:
     # ,ram=8
     # ,runner=16cpu-linux-x64
 
-    runs-on: runs-on,runner=16cpu-linux-x64,ram=32,run-id=${{ github.run_id }}
+    runs-on: runs-on,runner=16cpu-linux-x64,run-id=${{ github.run_id }}
+    # runs-on: runs-on,runner=16cpu-linux-x64,ram=32,run-id=${{ github.run_id }} # chunk load error in ALL tests
     # runs-on: runs-on,runner=16cpu-linux-x64,ram=16,run-id=${{ github.run_id }} # does not work (tests hang)
     strategy:
       fail-fast: false
