@@ -230,16 +230,51 @@ describe('registration composable', () => {
       expect(registrationStatus.value).toStrictEqual('registering-offline');
     });
 
-    it.skip('should create a new registration', async() => {
-      const expectation = {};
+    it('should update existing registration', async() => {
+      const hash = 'whatever';
+      const certificate = 'the certificate';
+      const secrets = [{
+        metadata: {
+          namespace: REGISTRATION_NAMESPACE,
+          name:      REGISTRATION_SECRET,
+          labels:    { [REGISTRATION_LABEL]: hash }
+        },
+        data: {},
+        save: () => {},
+      }];
+      const registrations = [{
+        spec:     { mode: 'offline' },
+        metadata: { labels: { [REGISTRATION_LABEL]: hash } },
+        links:    { view: '123' },
+        status:   {
+          activationStatus: { activated: true },
+          conditions:       [
+            {},
+            {},
+            {},
+            {
+              type:   'OfflineActivationDone',
+              status: 'True',
+            },
+          ]
+        },
+      }];
+
+      dispatchSpy = jest.fn()
+        .mockReturnValueOnce(Promise.resolve(/** Ensure namespace */))
+        .mockReturnValueOnce(Promise.resolve(secrets))
+        .mockReturnValueOnce(Promise.resolve(registrations));
       const {
         registerOffline,
         registration,
       } = usePrimeRegistration();
 
-      await registerOffline('');
+      await registerOffline(certificate);
 
-      expect(registration.value).toStrictEqual(expectation);
+      expect(dispatchSpy).toHaveBeenCalledTimes(3);
+      expect(dispatchSpy).toHaveBeenCalledWith('management/find', namespaceRequest);
+      expect(dispatchSpy).toHaveBeenCalledWith('management/findAll', { type: 'scc.cattle.io.registration' });
+      expect(registration.value.active).toStrictEqual(true);
     });
 
     it.skip('should reset registrationCode', async() => {
