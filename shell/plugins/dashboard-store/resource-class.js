@@ -36,6 +36,7 @@ import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
+import { importDrawer } from '@shell/utils/dynamic-importer';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -898,6 +899,26 @@ export default class Resource {
     return out;
   }
 
+  showConfiguration(returnFocusSelector) {
+    const onClose = () => this.$ctx.commit('slideInPanel/close', undefined, { root: true });
+
+    this.$ctx.commit('slideInPanel/open', {
+      component:      importDrawer('ResourceDetailDrawer'),
+      componentProps: {
+        resource:           this,
+        onClose,
+        width:              '73%',
+        // We want this to be full viewport height top to bottom
+        height:             '100vh',
+        top:                '0',
+        'z-index':          101, // We want this to be above the main side menu
+        closeOnRouteChange: ['name', 'params', 'query'], // We want to ignore hash changes, tables in extensions can trigger the drawer to close while opening
+        triggerFocusTrap:   true,
+        returnFocusSelector
+      }
+    }, { root: true });
+  }
+
   // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
   get _availableActions() {
     // get menu actions available by plugins configuration
@@ -905,6 +926,12 @@ export default class Resource {
     const extensionMenuActions = getApplicableExtensionEnhancements(this.$rootState, ExtensionPoint.ACTION, ActionLocation.TABLE, currentRoute, this);
 
     const all = [
+      {
+        action:  'showConfiguration',
+        label:   this.t('action.showConfiguration'),
+        icon:    'icon icon-document',
+        enabled: this.disableResourceDetailDrawer !== true && (this.canCustomEdit || this.canYaml), // If the resource can't show an edit or a yaml we don't want to show the configuration drawer
+      },
       { divider: true },
       {
         action:  this.canUpdate ? 'goToEdit' : 'goToViewConfig',
