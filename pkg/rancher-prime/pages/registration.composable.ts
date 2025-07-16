@@ -314,7 +314,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     const isError = lastCondition.type === 'RegistrationActivated' && lastCondition.status === 'False';
     const isError2 = lastCondition.type === 'Failure' && lastCondition.status === 'True';
     const isCompleteOnline = mode === 'online' && lastCondition.type === 'Done' && lastCondition.status === 'True';
-    const isCompleteOffline = mode === 'offline' && lastCondition.type === 'OfflineActivationDone' && lastCondition.status === 'True';
+    const isCompleteOffline = mode === 'offline' && registration.status?.conditions.length > 3 && lastCondition.type === 'OfflineActivationDone' && lastCondition.status === 'True';
 
     return isError || isError2 || isCompleteOnline || isCompleteOffline;
   };
@@ -497,8 +497,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
         const newHash: string = resource?.metadata?.labels[REGISTRATION_LABEL];
 
         const passExtraConditions = (!extraConditionFn || extraConditionFn(resource)); // Run further conditions, default none
-        const isHashChanged: boolean = (!!originalHash && !newHash) ||
-          (!originalHash && !!newHash) ||
+        const isHashChanged: boolean = (!originalHash && !!newHash) ||
           (!!originalHash && !!newHash && originalHash !== newHash); // Ensure hash has changed
 
         if (passExtraConditions && isHashChanged) {
