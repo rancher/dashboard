@@ -175,7 +175,7 @@ jobs:
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
           VAI_ENABLED: ${{ (matrix.features[0] != '@noVai') && 'true' || 'false' }}
-          
+
       - name: Fetch Rancher Logs
         if: ${{ failure() }}
         run: yarn k3s:local:logs
