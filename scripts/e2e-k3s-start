@@ -43,7 +43,7 @@ EMBER_DIST=${DIR}/dist_ember
 
 # - See https://ranchermanager.docs.rancher.com/how-to-guides/advanced-user-guides/enable-api-audit-log (0 off, 3 everything)
 # - logs sent to side-car container in rancher pod
-# - e2e-k2s-logs captures logs in all containers in all rancher pods
+# - e2e-k3s-logs package task will capture logs in all containers in all rancher pods
 RANCHER_AUDIT_LOG_LEVEL=3
 
 # ---------------------------------
