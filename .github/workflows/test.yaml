@@ -75,16 +75,16 @@ jobs:
           # { username: 'standard_user', tag: '@standardUser' }
         ]
         features:  [
-          # ['@navigation', '@extensions'],
+          ['@navigation', '@extensions'],
           ['@charts'],
-          # ['@explorer'],
+          ['@explorer'],
           ['@explorer2'],
-          # ['@virtualizationMgmt', '@fleet'],
-          # ['@generic', '@globalSettings'],
+          ['@virtualizationMgmt', '@fleet'],
+          ['@generic', '@globalSettings'],
           ['@manager'],
-          # ['@userMenu', '@usersAndAuths'],
-          # ['@components'],
-          # ['@noVai']
+          ['@userMenu', '@usersAndAuths'],
+          ['@components'],
+          ['@noVai']
         ]
     runs-on: ubuntu-latest
     steps:
