@@ -8,9 +8,6 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import { mapStateToEnum, primaryDisplayStatusFromCount, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import FleetUtils from '@shell/utils/fleet';
 
-export const MINIMUM_POLLING_INTERVAL = 15;
-export const DEFAULT_POLLING_INTERVAL = 60;
-
 function normalizeStateCounts(data) {
   if (isEmpty(data)) {
     return {
