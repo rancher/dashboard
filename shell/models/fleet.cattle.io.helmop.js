@@ -41,22 +41,6 @@ export default class HelmOp extends FleetApplication {
       enabled:  !!this.links.update && this.spec?.paused === true
     });
 
-    insertAt(out, 2, {
-      action:   'enablePollingAction',
-      label:    this.t('fleet.helmOp.actions.enablePolling.label'),
-      icon:     'icon icon-endpoints_connected',
-      bulkable: true,
-      enabled:  !!this.links.update && !!this.spec?.disablePolling
-    });
-
-    insertAt(out, 3, {
-      action:   'disablePollingAction',
-      label:    this.t('fleet.helmOp.actions.disablePolling.label'),
-      icon:     'icon icon-endpoints_disconnected',
-      bulkable: true,
-      enabled:  !!this.links.update && !this.spec?.disablePolling
-    });
-
     insertAt(out, 5, { divider: true });
 
     return out;
