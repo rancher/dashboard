@@ -2207,17 +2207,15 @@ export default {
         <span v-clean-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
       </Banner>
     </div>
-    <div v-if="!isAuthenticated">
-      <AccountAccess
-
-        v-model:credential="credential"
-        v-model:project="projectId"
-        v-model:is-authenticated="isAuthenticated"
-        :mode="mode"
-        @error="e=>errors.push(e)"
-        @cancel-credential="cancelCredential"
-      />
-    </div>
+    <AccountAccess
+      v-if="!isAuthenticated"
+      v-model:credential="credential"
+      v-model:project="projectId"
+      v-model:is-authenticated="isAuthenticated"
+      :mode="mode"
+      @error="e=>errors.push(e)"
+      @cancel-credential="cancelCredential"
+    />
     <div v-else>
       <SelectCredential
         v-if="needCredential"
