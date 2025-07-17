@@ -186,7 +186,7 @@ jobs:
           mkdir artifacts
           cp -r cypress/screenshots artifacts
           cp ${{ env.E2E_RANCHER_LOG }} artifacts/rancher.logs
-          cp browser-logs/out.html artifacts/browser.logs
+          cp browser-logs/out.html artifacts/browser-logs.html
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
