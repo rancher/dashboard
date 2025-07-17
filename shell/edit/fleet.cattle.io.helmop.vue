@@ -669,6 +669,7 @@ export default {
         v-if="!isView"
         color="info"
         label-key="fleet.helmOp.add.steps.advanced.info"
+        data-testid="helmOp-advanced-info"
       />
 
       <h2 v-t="'fleet.helmOp.auth.title'" />
@@ -727,6 +728,7 @@ export default {
               :value="isPollingEnabled"
               type="checkbox"
               label-key="fleet.helmOp.polling.enable"
+              data-testid="helmOp-enablePolling-checkbox"
               :tooltip="enablePollingTooltip"
               :mode="mode"
               :disabled="isNullOrStaticVersion"
@@ -739,12 +741,14 @@ export default {
                 v-if="showPollingIntervalMinValueWarning"
                 color="warning"
                 label-key="fleet.helmOp.polling.pollingInterval.minimumValueWarning"
+                data-testid="helmOp-pollingInterval-minimumValueWarning"
               />
             </div>
             <div class="col span-6">
               <UnitInput
                 v-model:value="pollingInterval"
                 min="1"
+                data-testid="helmOp-pollingInterval-input"
                 :suffix="t('suffix.seconds', { count: pollingInterval })"
                 :label="t('fleet.helmOp.polling.pollingInterval.label')"
                 :mode="mode"
