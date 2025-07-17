@@ -72,7 +72,7 @@ jobs:
       matrix:
         role: [
           { username: 'admin', tag: '@adminUser' }, 
-          # { username: 'standard_user', tag: '@standardUser' }
+          { username: 'standard_user', tag: '@standardUser' }
         ]
         features:  [
           ['@navigation', '@extensions'],

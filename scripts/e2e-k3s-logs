@@ -4,33 +4,4 @@ set -x
 DEPLOYMENT_NAME="rancher"
 RANCHER_NAMESPACE="cattle-system"
 
-
 kubectl logs deployment/$DEPLOYMENT_NAME -n "$RANCHER_NAMESPACE" --all-pods=true --all-containers=true --prefix >> "$E2E_RANCHER_LOG" 2>&1
-
-
-
-
-# POD_NAMES=$(kubectl get pods -n "$RANCHER_NAMESPACE" -l app="$DEPLOYMENT_NAME" -o jsonpath='{.items[*].metadata.name}')
-
-# if [ -z "$POD_NAMES" ]; then
-#   echo "No pods found!"
-#   exit 0
-# fi
-
-# echo "It begins..." > "$E2E_RANCHER_LOG"
-
-# for POD in $POD_NAMES; do
-#   echo "Inserting logs for pod: $POD"
-#   echo "---------------------------------------------------------------------" >> "$E2E_RANCHER_LOG"
-#   echo "Logs for pod: $POD" >> "$E2E_RANCHER_LOG"
-#   echo "---------------------------------------------------------------------" >> "$E2E_RANCHER_LOG"
-
-#   # Note - ideally we need logs from all pods and containers, including any previously terminated containers
-#   # However adding `--previous` to get terminated container logs. so will error if they haven't restarted
-#   # `Error from server (BadRequest): previous terminated container "rancher" in pod "rancher-6469bd49b9-vt55m" not found`
-#   kubectl logs "$POD" -n "$RANCHER_NAMESPACE" --all-containers=true --prefix >> "$E2E_RANCHER_LOG" 2>&1
-
-#   CONTAINER_NAMES=$(kubectl get pod "$POD" -n "$RANCHER_NAMESPACE" -o jsonpath='{.spec.containers[*].name}')
-#   echo "Containers in pod $POD: $CONTAINER_NAMES"
-# done
-
