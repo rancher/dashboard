@@ -19,8 +19,12 @@ for POD in $POD_NAMES; do
   echo "Logs for pod: $POD" >> "$E2E_RANCHER_LOG"
   echo "---------------------------------------------------------------------" >> "$E2E_RANCHER_LOG"
 
-  kubectl logs "$POD" -n "$RANCHER_NAMESPACE" --all-containers=true --prefix >> "$E2E_RANCHER_LOG" 2>&1
+  kubectl logs "$POD" -n "$RANCHER_NAMESPACE" --all-containers=true --prefix --previous >> "$E2E_RANCHER_LOG" 2>&1
 
   CONTAINER_NAMES=$(kubectl get pod "$POD" -n "$RANCHER_NAMESPACE" -o jsonpath='{.spec.containers[*].name}')
   echo "Containers in pod $POD: $CONTAINER_NAMES"
 done
+
+# # could replace with kubectl logs deployment/nginx --all-pods=true --all-containers=true ?
+# kubectl logs deployment/rancher -n cattle-system --all-pods=true --all-containers=true --prefix --previous
+# kubectl logs deployment/rancher -n cattle-system --all-pods=true --all-containers=true --prefix
