@@ -46,16 +46,6 @@ export default class FleetApplication extends SteveModel {
     this.save();
   }
 
-  enablePollingAction() {
-    this.spec.disablePolling = false;
-    this.save();
-  }
-
-  disablePollingAction() {
-    this.spec.disablePolling = true;
-    this.save();
-  }
-
   goToClone() {
     if (this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID]) {
       delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
@@ -66,10 +56,6 @@ export default class FleetApplication extends SteveModel {
     }
 
     super.goToClone();
-  }
-
-  get isPollingEnabled() {
-    return !this.spec.disablePolling;
   }
 
   get state() {
