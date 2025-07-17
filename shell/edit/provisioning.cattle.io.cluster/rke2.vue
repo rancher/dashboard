@@ -858,6 +858,9 @@ export default {
       set(newValue) {
         this.$emit('update:value', newValue);
       }
+    },
+    hideFooter() {
+      return this.needCredential && !this.credential;
     }
   },
 
@@ -2216,7 +2219,10 @@ export default {
       @error="e=>errors.push(e)"
       @cancel-credential="cancelCredential"
     />
-    <div v-else>
+    <div
+      v-else
+      class="authenticated"
+    >
       <SelectCredential
         v-if="needCredential"
         v-model:value="credentialId"
@@ -2610,7 +2616,7 @@ export default {
       />
     </div>
     <template
-      v-if="needCredential && !credentialId"
+      v-if="hideFooter"
       #form-footer
     >
       <div><!-- Hide the outer footer --></div>
@@ -2619,6 +2625,12 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.authenticated {
+    display:flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
 .min-height {
   min-height: 40em;
 }
