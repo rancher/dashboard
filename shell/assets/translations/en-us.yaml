@@ -1999,6 +1999,9 @@ cluster:
       location:
         zone:
           label: Zone
+      preemptible:
+        label: Preemptible
+        tooltip: Indicates whether the GCE VM instance should be preemptible.
       scopes:
         add: Add scope
         label: Scopes
