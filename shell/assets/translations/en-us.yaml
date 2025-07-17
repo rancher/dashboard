@@ -2000,7 +2000,7 @@ cluster:
         zone:
           label: Zone
       preemptible:
-        label: Preemptible
+        label: Make VM instance preemptible
         tooltip: Indicates whether the GCE VM instance should be preemptible.
       scopes:
         add: Add scope
