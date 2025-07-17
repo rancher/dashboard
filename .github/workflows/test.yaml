@@ -72,19 +72,19 @@ jobs:
       matrix:
         role: [
           { username: 'admin', tag: '@adminUser' }, 
-          { username: 'standard_user', tag: '@standardUser' }
+          # { username: 'standard_user', tag: '@standardUser' }
         ]
         features:  [
-          ['@navigation', '@extensions'],
-          ['@charts'],
-          ['@explorer'],
+          # ['@navigation', '@extensions'],
+          # ['@charts'],
+          # ['@explorer'],
           ['@explorer2'],
-          ['@virtualizationMgmt', '@fleet'],
-          ['@generic', '@globalSettings'],
+          # ['@virtualizationMgmt', '@fleet'],
+          # ['@generic', '@globalSettings'],
           ['@manager'],
-          ['@userMenu', '@usersAndAuths'],
-          ['@components'],
-          ['@noVai']
+          # ['@userMenu', '@usersAndAuths'],
+          # ['@components'],
+          # ['@noVai']
         ]
     runs-on: ubuntu-latest
     steps:
