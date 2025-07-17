@@ -1,25 +1,27 @@
 #!/usr/bin/env bash
+set -x
 
 DEPLOYMENT_NAME="rancher"
-NAMESPACE="cattle-system"
+RANCHER_NAMESPACE="cattle-system"
 
-POD_NAMES=$(kubectl get pods -n "$NAMESPACE" -l app="$DEPLOYMENT_NAME" -o jsonpath='{.items[*].metadata.name}')
+POD_NAMES=$(kubectl get pods -n "$RANCHER_NAMESPACE" -l app="$DEPLOYMENT_NAME" -o jsonpath='{.items[*].metadata.name}')
 
 if [ -z "$POD_NAMES" ]; then
   echo "No pods found!"
   exit 0
 fi
 
+echo "It begins..." > "$E2E_RANCHER_LOG"
+
+# could replace with kubectl logs deployment/nginx --all-pods=true --all-containers=true ?
 for POD in $POD_NAMES; do
-  echo "Logs for pod: $POD "
+  echo "Inserting logs for pod: $POD"
+  echo "---------------------------------------------------------------------" >> "$E2E_RANCHER_LOG"
+  echo "Logs for pod: $POD" >> "$E2E_RANCHER_LOG"
+  echo "---------------------------------------------------------------------" >> "$E2E_RANCHER_LOG"
 
-  echo $POD > $E2E_RANCHER_LOG
-  kubectl logs "$POD" -n "$NAMESPACE" --all-containers=true --prefix > "$E2E_RANCHER_LOG" 2>&1
+  kubectl logs "$POD" -n "$RANCHER_NAMESPACE" --all-containers=true --prefix --previous >> "$E2E_RANCHER_LOG" 2>&1
 
-  # Add a separator for clarity between different pods' logs
-  echo ""
-  echo "---------------------------------------------------------------------"
-  echo "End of logs for pod: $POD"
-  echo "---------------------------------------------------------------------"
-  echo ""
+  CONTAINER_NAMES=$(kubectl get pod "$POD" -n "$RANCHER_NAMESPACE" -o jsonpath='{.spec.containers[*].name}')
+  echo "Containers in pod $POD: $CONTAINER_NAMES"
 done
