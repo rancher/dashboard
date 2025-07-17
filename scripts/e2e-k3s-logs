@@ -1,7 +1,60 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -x
 
 DEPLOYMENT_NAME="rancher"
 RANCHER_NAMESPACE="cattle-system"
 
-kubectl logs deployment/$DEPLOYMENT_NAME -n "$RANCHER_NAMESPACE" --all-pods=true --all-containers=true --prefix >> "$E2E_RANCHER_LOG" 2>&1
+echo "Fetching pods for deployment '$DEPLOYMENT_NAME' in namespace '$NAMESPACE'..."
+
+# Get the selector from the deployment
+SELECTOR=$(kubectl get deployment "$DEPLOYMENT_NAME" -n "$NAMESPACE" -o jsonpath='{.spec.selector.matchLabels}' | jq -r 'to_entries | map("\(.key)=\(.value)") | join(",")')
+
+if [ -z "$SELECTOR" ]; then
+    echo "Error: Could not determine selector for deployment '$DEPLOYMENT_NAME'. Please ensure the deployment exists and has a selector."
+    exit 1
+fi
+
+echo "Using selector: $SELECTOR"
+
+# Get all pod names using the selector
+POD_NAMES=$(kubectl get pods -n "$NAMESPACE" -l "$SELECTOR" -o jsonpath='{.items[*].metadata.name}')
+
+if [ -z "$POD_NAMES" ]; then
+  echo "No pods found for deployment '$DEPLOYMENT_NAME' with selector '$SELECTOR' in namespace '$NAMESPACE'."
+  exit 0
+fi
+
+for POD in $POD_NAMES; do
+  echo "----------------------------------------------------"
+  echo "Processing pod: $POD"
+
+  # Get all container names within the pod
+  CONTAINER_NAMES=$(kubectl get pod "$POD" -n "$NAMESPACE" -o jsonpath='{.spec.containers[*].name}')
+
+  for CONTAINER in $CONTAINER_NAMES; do
+    echo "  Container: $CONTAINER"
+
+    # Check if the container has restarted by looking at its restartCount
+    RESTART_COUNT=$(kubectl get pod "$POD" -n "$NAMESPACE" -o jsonpath="{.status.containerStatuses[?(@.name=='$CONTAINER')].restartCount}")
+
+    if [ -n "$RESTART_COUNT" ] && [ "$RESTART_COUNT" -gt 0 ]; then
+      echo "    Container '$CONTAINER' has restarted ($RESTART_COUNT times). Fetching previous logs..."
+      kubectl logs "$POD" -c "$CONTAINER" -n "$NAMESPACE" --previous
+      if [ $? -ne 0 ]; then
+        echo "    Warning: Could not retrieve previous logs for container '$CONTAINER' in pod '$POD'."
+      fi
+    else
+      echo "    Container '$CONTAINER' has not restarted. Skipping previous logs."
+    fi
+
+    echo "    Fetching current logs for container '$CONTAINER'..."
+    kubectl logs "$POD" -c "$CONTAINER" -n "$NAMESPACE"
+    if [ $? -ne 0 ]; then
+      echo "    Warning: Could not retrieve current logs for container '$CONTAINER' in pod '$POD'."
+    fi
+
+  done
+  echo "----------------------------------------------------"
+done
+
+echo "Script completed."
