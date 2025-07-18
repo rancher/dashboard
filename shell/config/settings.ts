@@ -31,7 +31,6 @@ export const SETTING = {
   VERSION_RANCHER: 'server-version',
   VERSION_CLI:     'cli-version',
   VERSION_MACHINE: 'machine-version',
-  VERSION_HELM:    'helm-version',
   CLI_URL:         {
     DARWIN:  'cli-url-darwin',
     WINDOWS: 'cli-url-windows',
