@@ -88,7 +88,7 @@ export default class HelmOp extends FleetApplication {
     return false;
   }
 
-  repoDisplay(repo) {
+  sourceDisplay(repo) {
     if (!repo) {
       return null;
     }
@@ -140,9 +140,14 @@ export default class HelmOp extends FleetApplication {
 
     switch (this.sourceType) {
     case SOURCE_TYPE.REPO:
-    case SOURCE_TYPE.OCI:
       value = this.spec.helm?.repo || '';
       break;
+    case SOURCE_TYPE.OCI: {
+      const parsed = parse(this.spec.helm?.repo || '');
+
+      value = parsed?.host ? `oci://${ parsed.host }` : '';
+      break;
+    }
     case SOURCE_TYPE.TARBALL:
       value = this.spec.helm?.chart || '';
     }
@@ -158,7 +163,7 @@ export default class HelmOp extends FleetApplication {
 
     return {
       value,
-      display:  this.repoDisplay(value),
+      display:  this.sourceDisplay(value),
       icon:     'icon icon-application',
       showLink: matchHttps || matchSSH
     };
@@ -171,7 +176,7 @@ export default class HelmOp extends FleetApplication {
 
     let labelVersion = semanticVersion || installedVersion || '';
 
-    if (semanticVersion && installedVersion) {
+    if (semanticVersion && installedVersion && semanticVersion !== installedVersion) {
       labelVersion = `${ semanticVersion } -> ${ installedVersion }`;
     }
 
@@ -191,7 +196,11 @@ export default class HelmOp extends FleetApplication {
     }
 
     // Concat chart label and version label
-    const value = chart && labelVersion ? `${ chart } : ${ labelVersion }` : chart;
+    let value = chart || labelVersion || '';
+
+    if (chart && labelVersion) {
+      value = `${ chart } : ${ labelVersion }`;
+    }
 
     return {
       value,
