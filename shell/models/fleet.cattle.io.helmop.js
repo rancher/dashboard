@@ -165,8 +165,18 @@ export default class HelmOp extends FleetApplication {
   }
 
   get sourceSub() {
+    // Version label
+    const semanticVersion = this.spec.helm?.version || '';
+    const installedVersion = this.status?.version || '';
+
+    let labelVersion = semanticVersion || installedVersion || '';
+
+    if (semanticVersion && installedVersion) {
+      labelVersion = `${ semanticVersion } -> ${ installedVersion }`;
+    }
+
+    // Chart label
     let chart = '';
-    const version = this.spec.helm.version || '';
 
     switch (this.sourceType) {
     case SOURCE_TYPE.REPO:
@@ -180,7 +190,8 @@ export default class HelmOp extends FleetApplication {
     }
     }
 
-    const value = chart && version ? chart.concat(':', version) : chart;
+    // Concat chart label and version label
+    const value = chart && labelVersion ? `${ chart } : ${ labelVersion }` : chart;
 
     return {
       value,
