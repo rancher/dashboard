@@ -185,7 +185,7 @@ export default class GitRepo extends FleetApplication {
       value,
       display:  this.repoDisplay,
       icon:     this.resourceIcon,
-      showLink: matchHttps || matchSSH
+      showLink: !!(matchHttps || matchSSH)
     };
   }
 
