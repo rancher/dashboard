@@ -68,6 +68,14 @@ export function importDialog(name) {
   return defineAsyncComponent(() => import(/* webpackChunkName: "dialog" */ `@shell/dialog/${name}`));
 }
 
+export function importDrawer(name) {
+  if ( !name ) {
+    throw new Error('Name required');
+  }
+
+  return defineAsyncComponent(() => import(/* webpackChunkName: "drawer" */ `@shell/components/Drawer/${name}`));
+}
+
 export function importWindowComponent(name) {
   if ( !name ) {
     throw new Error('Name required');
