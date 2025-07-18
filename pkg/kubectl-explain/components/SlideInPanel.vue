@@ -446,7 +446,6 @@ export default {
     flex-direction: column;
     position: fixed;
     top: 0;
-    z-index: 2000;
     width: $slidein-width;
     background-color: var(--body-bg);
     right: -$slidein-width;
@@ -474,7 +473,6 @@ export default {
       background-color: var(--body-bg);
       display: block;
       opacity: 0.5;
-      z-index: 1000;
     }
   }
 

@@ -45,12 +45,14 @@ $z-indexes: (
   modalOverlay: 20,
   modalContent: 21,
 
-  tooltip: 30,
-
   dropdownOverlay: 40,
   dropdownContent: 41,
 
-  loadingMain: 51
+  loadingMain: 51,
+
+  slide-in: 52,
+
+  tooltip: 53,
 );
 
 // Usage Example:
