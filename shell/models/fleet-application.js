@@ -8,9 +8,6 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import { mapStateToEnum, primaryDisplayStatusFromCount, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import FleetUtils from '@shell/utils/fleet';
 
-export const MINIMUM_POLLING_INTERVAL = 15;
-export const DEFAULT_POLLING_INTERVAL = 60;
-
 function normalizeStateCounts(data) {
   if (isEmpty(data)) {
     return {
@@ -46,16 +43,6 @@ export default class FleetApplication extends SteveModel {
     this.save();
   }
 
-  enablePollingAction() {
-    this.spec.disablePolling = false;
-    this.save();
-  }
-
-  disablePollingAction() {
-    this.spec.disablePolling = true;
-    this.save();
-  }
-
   goToClone() {
     if (this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID]) {
       delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
@@ -66,10 +53,6 @@ export default class FleetApplication extends SteveModel {
     }
 
     super.goToClone();
-  }
-
-  get isPollingEnabled() {
-    return !this.spec.disablePolling;
   }
 
   get state() {
