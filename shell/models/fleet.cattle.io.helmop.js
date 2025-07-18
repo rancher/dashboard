@@ -165,7 +165,7 @@ export default class HelmOp extends FleetApplication {
       value,
       display:  this.sourceDisplay(value),
       icon:     'icon icon-application',
-      showLink: matchHttps || matchSSH
+      showLink: !!(matchHttps || matchSSH)
     };
   }
 
