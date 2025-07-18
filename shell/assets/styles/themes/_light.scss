@@ -626,4 +626,13 @@ BODY, .theme-light {
   --click-badge-info-bg        : #{$info};
   --click-badge-info-border    : #2673A6;
   --bubble-bg                : #{$lighter};
+
+
+  // These are meant to be the colors used within rancher-components. They will eventually be removed from shell once we have theming working in the components
+  --rc-info: #1F67DB;
+  --rc-success: #007032;
+  --rc-warning: #FFE47A;
+  --rc-error: #B13333;
+  --rc-unknown: #EDEFF3;
+  --rc-none: #DCDEE4;
 }
