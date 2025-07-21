@@ -2750,6 +2750,7 @@ fleet:
       filters:
         gitRepos: Show Git Repos
         helmOps: Show Helm Ops
+      search: Filter
       resourceSummary:
         part1: in
         part2: |-
