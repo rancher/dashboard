@@ -1,4 +1,5 @@
 <script>
+import debounce from 'lodash/debounce';
 import { getVersionData } from '@shell/config/version';
 import { mapState, mapGetters } from 'vuex';
 import { isEmpty } from '@shell/utils/object';
@@ -137,6 +138,10 @@ export default {
 
   created() {
     this.$store.dispatch('showWorkspaceSwitcher', false);
+
+    this.debouncedUpdateSearchFilter = debounce((workspace, value) => {
+      this.searchFilter[workspace] = value;
+    }, 300);
   },
 
   mounted() {
@@ -606,13 +611,14 @@ export default {
                 class="search-filter"
               >
                 <input
-                  v-model="searchFilter[workspace.id]"
+                  :value="searchFilter[workspace.id]"
                   type="search"
                   role="textbox"
                   class="input"
                   data-testid="fleet-dashboard-search-input"
                   :aria-label="t('fleet.dashboard.cards.search')"
                   :placeholder="t('fleet.dashboard.cards.search')"
+                  @input="debouncedUpdateSearchFilter(workspace.id, $event.target.value)"
                 >
               </div>
               <div class="type-filter">
