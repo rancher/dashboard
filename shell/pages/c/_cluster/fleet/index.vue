@@ -129,6 +129,7 @@ export default {
       isStateCollapsed:     {},
       typeFilter:           {},
       stateFilter:          {},
+      searchFilter:         {},
       selectedCard:         null,
       presetVersion:        getVersionData()?.Version,
     };
@@ -358,7 +359,8 @@ export default {
 
     _filterResources(state) {
       return state.resources.filter((item) => this._decodeTypeFilter(item.namespace, item.type) &&
-        this._decodeStateFilter(item.namespace, state)
+        this._decodeStateFilter(item.namespace, state) &&
+        this._decodeSearchFilter(item.namespace, item.nameDisplay)
       );
     },
 
@@ -398,6 +400,19 @@ export default {
 
       return this.typeFilter[workspace]?.[type];
     },
+
+    _decodeSearchFilter(workspace, name) {
+      if (isEmpty(this.searchFilter)) {
+        return true;
+      }
+
+      if (this.viewMode !== VIEW_MODE.CARDS) {
+        return true;
+      }
+
+      const search = this.searchFilter[workspace];
+
+      return !search || name?.includes(search);
     },
 
     _cleanStateFilter(workspace) {
@@ -433,12 +448,15 @@ export default {
           };
 
           this.stateFilter[ws.id] = {};
+
+          this.searchFilter[ws.id] = '';
         });
 
         this.preset('isWorkspaceCollapsed', 'object');
         this.preset('isStateCollapsed', 'object');
         this.preset('typeFilter', 'object');
         this.preset('stateFilter', 'object');
+        this.preset('searchFilter', 'object');
       }
     }
   }
@@ -582,27 +600,43 @@ export default {
           :data-testid="`fleet-dashboard-expanded-panel-${ workspace.id }`"
         >
           <div class="actions">
-            <div class="type-filters">
-              <Checkbox
-                :data-testid="'fleet-dashboard-filter-git-repos'"
-                :value="typeFilter[workspace.id]?.[FLEET.GIT_REPO]"
-                @update:value="selectType(workspace.id, FLEET.GIT_REPO, $event)"
+            <div class="resource-filters">
+              <div
+                v-if="viewMode === VIEW_MODE.CARDS"
+                class="search-filter"
               >
-                <template #label>
-                  <i class="icon icon-lg icon-git mr-5" />
-                  <span class="label">{{ t('fleet.dashboard.cards.filters.gitRepos') }}</span>
-                </template>
-              </Checkbox>
-              <Checkbox
-                :data-testid="'fleet-dashboard-filter-helm-ops'"
-                :value="typeFilter[workspace.id]?.[FLEET.HELM_OP]"
-                @update:value="selectType(workspace.id, FLEET.HELM_OP, $event)"
-              >
-                <template #label>
-                  <i class="icon icon-lg icon-helm mr-5" />
-                  <span class="label">{{ t('fleet.dashboard.cards.filters.helmOps') }}</span>
-                </template>
-              </Checkbox>
+                <input
+                  v-model="searchFilter[workspace.id]"
+                  type="search"
+                  role="textbox"
+                  class="input"
+                  data-testid="fleet-dashboard-search-input"
+                  :aria-label="t('fleet.dashboard.cards.search')"
+                  :placeholder="t('fleet.dashboard.cards.search')"
+                >
+              </div>
+              <div class="type-filter">
+                <Checkbox
+                  :data-testid="'fleet-dashboard-filter-git-repos'"
+                  :value="typeFilter[workspace.id]?.[FLEET.GIT_REPO]"
+                  @update:value="selectType(workspace.id, FLEET.GIT_REPO, $event)"
+                >
+                  <template #label>
+                    <i class="icon icon-lg icon-git mr-5" />
+                    <span class="label">{{ t('fleet.dashboard.cards.filters.gitRepos') }}</span>
+                  </template>
+                </Checkbox>
+                <Checkbox
+                  :data-testid="'fleet-dashboard-filter-helm-ops'"
+                  :value="typeFilter[workspace.id]?.[FLEET.HELM_OP]"
+                  @update:value="selectType(workspace.id, FLEET.HELM_OP, $event)"
+                >
+                  <template #label>
+                    <i class="icon icon-lg icon-helm mr-5" />
+                    <span class="label">{{ t('fleet.dashboard.cards.filters.helmOps') }}</span>
+                  </template>
+                </Checkbox>
+              </div>
             </div>
             <div
               v-if="permissions.gitRepos || permissions.helmOps"
@@ -846,23 +880,38 @@ export default {
       align-items: center;
       justify-content: space-between;
 
-      .type-filters {
+      .resource-filters {
         display: flex;
-        flex-direction: column;
-        margin-top: 5px;
+        flex-direction: row;
+        align-items: center;
 
-        .checkbox-outer-container {
-          width: fit-content;
+        .type-filter {
+          display: flex;
+          flex-direction: column;
+          margin-top: 5px;
+
+          .checkbox-outer-container {
+            width: fit-content;
+          }
+
+          .label {
+            margin-top: 2px;
+            line-height: 20px;
+          }
+
+          .icon {
+            padding: 2px;
+            font-size: 25px;
+          }
         }
 
-        .label {
+        .search-filter {
           margin-top: 2px;
-          line-height: 20px;
-        }
+          margin-right: 16px;
 
-        .icon {
-          padding: 2px;
-          font-size: 25px;
+          input {
+            width: 190px;
+          }
         }
       }
     }
