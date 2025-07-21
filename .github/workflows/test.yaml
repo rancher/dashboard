@@ -117,7 +117,7 @@ jobs:
          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
       
       - name: Run Rancher
-        run: yarn e2e:k3s
+        run: yarn e2e:docker
       
       - name: Setup Rancher and user
         run: |
@@ -138,7 +138,7 @@ jobs:
 
       - name: Fetch Rancher Logs
         if: ${{ failure() }}
-        run: yarn k3s:local:logs
+        run: yarn docker:local:logs
 
       - name: Create Artifacts Folder
         if: ${{ failure() }}
