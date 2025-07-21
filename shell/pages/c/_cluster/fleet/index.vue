@@ -384,17 +384,20 @@ export default {
         return true;
       }
 
-      if (this.stateFilter[workspace][state.statePanel.id]) {
-        return true;
-      }
-
-      return false;
+      return this.stateFilter[workspace]?.[state.statePanel.id];
     },
 
     _decodeTypeFilter(workspace, type) {
-      const emptyFilter = isEmpty(this.typeFilter) || !this.viewMode;
+      if (isEmpty(this.typeFilter)) {
+        return true;
+      }
 
-      return emptyFilter || this.typeFilter[workspace]?.[type];
+      if (!this.viewMode) {
+        return true;
+      }
+
+      return this.typeFilter[workspace]?.[type];
+    },
     },
 
     _cleanStateFilter(workspace) {
@@ -614,7 +617,7 @@ export default {
             </div>
           </div>
           <div
-            v-if="viewMode === 'cards'"
+            v-if="viewMode === VIEW_MODE.CARDS"
             class="cards-panel"
           >
             <div
