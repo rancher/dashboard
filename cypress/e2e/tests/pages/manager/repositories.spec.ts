@@ -303,7 +303,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     // refresh should be displayed for an enabled repo
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').should('be.visible');
     // close action menu
-    repositoriesPage.list().closeActionMenu();
+    repositoriesPage.list().actionMenu(this.repoName).waitForClose();
 
     // disable repo
     // eslint-disable-next-line cypress/no-unnecessary-waiting
@@ -315,7 +315,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     // refresh should NOT be displayed for a disabled repo
     repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').should('not.exist');
     // close action menu
-    repositoriesPage.list().closeActionMenu();
+    repositoriesPage.list().actionMenu(this.repoName).waitForClose();
 
     // enable repo
     // eslint-disable-next-line cypress/no-unnecessary-waiting

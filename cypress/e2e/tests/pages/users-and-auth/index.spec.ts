@@ -2,13 +2,11 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import UserRetentionPo from '@/cypress/e2e/po/pages/users-and-auth/user.retention.po';
 
-function updateUserRetentionSetting(settingId, newValue) {
-  cy.getRancherResource('v1', 'management.cattle.io.settings').then((data: any) => {
-    const retentionSetting = data.body.data.find((setting) => setting.id === settingId);
+function updateUserRetentionSetting(settingId: string, newValue: string) {
+  cy.getRancherResource('v1', 'management.cattle.io.settings', settingId).then((data: any) => {
+    data.body.value = newValue;
 
-    retentionSetting.value = newValue;
-
-    cy.setRancherResource('v1', 'management.cattle.io.settings', settingId, retentionSetting);
+    cy.setRancherResource('v1', 'management.cattle.io.settings', settingId, data.body);
   });
 }
 
