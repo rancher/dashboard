@@ -132,7 +132,7 @@ $logo: 60px;
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: var(--overlay-bg);
+      background-color: var(--subtle-overlay-bg);
     }
 
   }
