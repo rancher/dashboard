@@ -914,7 +914,7 @@ export default {
 
         .search-filter {
           margin-top: 2px;
-          margin-right: 16px;
+          margin-right: 32px;
 
           input {
             width: 190px;
