@@ -140,8 +140,8 @@ export default {
           const pagination = new FilterArgs({
             filters: [
               PaginationParamFilter.createMultipleFields([
-                new PaginationFilterField({ field: `metadata.label["${ HCI_ANNOTATIONS.CLOUD_INIT }"]`, value: 'user' }),
-                new PaginationFilterField({ field: `metadata.label["${ HCI_ANNOTATIONS.CLOUD_INIT }"]`, value: 'network' })
+                new PaginationFilterField({ field: `metadata.labels[${ HCI_ANNOTATIONS.CLOUD_INIT }]`, value: 'user' }),
+                new PaginationFilterField({ field: `metadata.labels[${ HCI_ANNOTATIONS.CLOUD_INIT }]`, value: 'network' })
               ])
             ]
           });
