@@ -104,13 +104,13 @@ export default {
 
   data() {
     return {
-      permissions:     {},
+      permissions:      {},
       FLEET,
-      [FLEET.REPO]:    [],
-      [FLEET.HELM_OP]: [],
-      fleetWorkspaces: [],
+      [FLEET.GIT_REPO]: [],
+      [FLEET.HELM_OP]:  [],
+      fleetWorkspaces:  [],
       VIEW_MODE,
-      viewModeOptions: [
+      viewModeOptions:  [
         {
           tooltipKey: 'fleet.dashboard.viewMode.table',
           icon:       'icon-list-flat',
@@ -377,7 +377,7 @@ export default {
     },
 
     _stateExistsInWorkspace(workspace, state) {
-      return !!this.applicationStates[workspace].find((s) => s.statePanel.id === state);
+      return !!this.applicationStates[workspace]?.find((s) => s.statePanel.id === state);
     },
 
     _decodeStateFilter(workspace, state) {
@@ -391,7 +391,7 @@ export default {
         return true;
       }
 
-      return this.stateFilter[workspace]?.[state.statePanel.id];
+      return !!this.stateFilter[workspace]?.[state.statePanel.id];
     },
 
     _decodeTypeFilter(workspace, type) {
@@ -403,7 +403,7 @@ export default {
         return true;
       }
 
-      return this.typeFilter[workspace]?.[type];
+      return !!this.typeFilter[workspace]?.[type];
     },
 
     _decodeSearchFilter(workspace, name) {
@@ -586,6 +586,7 @@ export default {
                 small
                 ghost
                 :aria-label="`workspace-expand-btn-${ workspace.id }`"
+                :data-testid="`workspace-expand-btn-${ workspace.id }`"
                 @click="toggleCard(workspace.id)"
               >
                 <i
@@ -615,7 +616,7 @@ export default {
                   type="search"
                   role="textbox"
                   class="input"
-                  data-testid="fleet-dashboard-search-input"
+                  :data-testid="`fleet-dashboard-search-input-${ workspace.id }`"
                   :aria-label="t('fleet.dashboard.cards.search')"
                   :placeholder="t('fleet.dashboard.cards.search')"
                   @input="debouncedUpdateSearchFilter(workspace.id, $event.target.value)"
