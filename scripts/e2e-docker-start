@@ -7,7 +7,7 @@ DASHBOARD_DIST=${DIR}/dist
 EMBER_DIST=${DIR}/dist_ember
 
 # Image version
-RANCHER_IMG_VERSION=head
+RANCHER_IMG_VERSION=v2.12-head
 # RANCHER_IMG_VERSION=v2.12-8bf56b046af7879386aa5928f50eee678f84b057-head - breaking commit
 # RANCHER_IMG_VERSION=v2.12-146a265b2d3e50d789ae55ad13daec8a1416c5fb-head - commit before - works
 
