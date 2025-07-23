@@ -340,9 +340,15 @@ export default {
 
     gracefulShutdownTimeout: integerString('value.gracefulShutdownTimeout'),
 
+    // as of 2.10.0 Rancher uses network MOID instead of network name
+    // if users have a vsphere cluster using network names instead of MOID, the UI should still display both name and MOID in the network dropdown
+    // this getter will check each value in network and, if it matches a network name (ie is not a MOID), will find the associated MOID and return that instead
+    // this does not automatically update the cluster spec to use MOID instead of name, just the display
     network: {
       get() {
-        return this.value.network || [];
+        const selectedNetworks = this.value.network || [];
+
+        return selectedNetworks.map((n) => this.networks.find((nw) => nw.name === n)?.value || n);
       },
       set(newValue) {
         set(this.value, 'network', newValue);
@@ -558,7 +564,6 @@ export default {
       this.resetValueIfNecessary('network', content, options, true);
 
       set(this, 'networksResults', content);
-      this.syncNetworkValueForLegacyLabels();
       this.vappMode = this.getInitialVappMode(this.value);
     },
 
@@ -667,21 +672,6 @@ export default {
         }
       } else {
         this.manageErrors(errorActions.DELETE, key);
-      }
-    },
-
-    // Network labels have been updated to include the MOID.
-    // To ensure previously selected networks remain consistent with this change,
-    // we update the current network value to allow correct selection from the network list.
-    syncNetworkValueForLegacyLabels() {
-      const currentNetwork = this.value.network[0];
-
-      if (this.mode !== _CREATE && currentNetwork) {
-        const networkMatch = this.networks.find((network) => currentNetwork === network.name && currentNetwork !== network.label);
-
-        if (networkMatch) {
-          this.value.network = [networkMatch.value];
-        }
       }
     },
 
