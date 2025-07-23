@@ -390,7 +390,7 @@ export default {
           class="chart-body__info-section"
         >
           <h4>{{ t('catalog.chart.info.repository') }}</h4>
-          <router-link :to="{ name: 'c-cluster-apps-catalog-repo' }">
+          <router-link :to="repo.detailLocation">
             {{ chart.repoNameDisplay }}
           </router-link>
         </div>
