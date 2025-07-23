@@ -184,7 +184,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <main v-else>
     <Banner
       v-if="versionInfoError"
       color="error"
@@ -306,30 +306,30 @@ export default {
       </Banner>
     </div>
 
-    <div class="chart-content">
+    <div class="chart-body">
       <ChartReadme
         v-if="hasReadme"
         :version-info="versionInfo"
-        :showAppReadme="false"
-        :hideReadmeFirstTitle="false"
-        class="chart-content__tabs"
+        :show-app-readme="false"
+        :hide-readme-first-title="false"
+        class="chart-body__readme"
       />
       <div
         v-else
-        class="chart-content__tabs"
+        class="chart-body__readme"
       >
         {{ t('catalog.install.appReadmeMissing', {}, true) }}
       </div>
       <div
         v-if="version"
-        class="chart-content__right-bar"
+        class="chart-body__info"
       >
-        <div class="chart-content__right-bar__section">
+        <div class="chart-body__info-section">
           <h4>{{ t('catalog.chart.info.chartVersions.label') }}</h4>
           <div
             v-for="vers of versions"
             :key="vers.id"
-            class="chart-content__right-bar__section--cVersion"
+            class="chart-body__info-section--version"
           >
             <b
               v-if="vers.originalVersion === version.version"
@@ -380,14 +380,14 @@ export default {
         </div>
         <div
           v-if="appVersion"
-          class="chart-content__right-bar__section"
+          class="chart-body__info-section"
         >
           <h4>{{ t('catalog.chart.info.appVersion') }}</h4>
           {{ appVersion }}
         </div>
         <div
           v-if="repo"
-          class="chart-content__right-bar__section"
+          class="chart-body__info-section"
         >
           <h4>{{ t('catalog.chart.info.repository') }}</h4>
           <router-link :to="{ name: 'c-cluster-apps-catalog-repo' }">
@@ -396,7 +396,7 @@ export default {
         </div>
         <div
           v-if="home"
-          class="chart-content__right-bar__section"
+          class="chart-body__info-section"
         >
           <h4>{{ t('catalog.chart.info.home') }}</h4>
           <a
@@ -407,7 +407,7 @@ export default {
         </div>
         <div
           v-if="maintainers.length"
-          class="chart-content__right-bar__section"
+          class="chart-body__info-section"
         >
           <h4>{{ t('catalog.chart.info.maintainers') }}</h4>
           <a
@@ -420,7 +420,7 @@ export default {
         </div>
         <div
           v-if="version.sources"
-          class="chart-content__right-bar__section"
+          class="chart-body__info-section"
         >
           <h4>{{ t('catalog.chart.info.related') }}</h4>
           <a
@@ -433,7 +433,7 @@ export default {
         </div>
         <div
           v-if="version.urls"
-          class="chart-content__right-bar__section"
+          class="chart-body__info-section"
         >
           <h4>{{ t('catalog.chart.info.chartUrls') }}</h4>
           <a
@@ -446,7 +446,7 @@ export default {
         </div>
         <div
           v-if="version.keywords"
-          class="chart-content__right-bar__section chart-content__right-bar__section--keywords"
+          class="chart-body__info-section chart-body__info-section--keywords"
         >
           <h4>{{ t('catalog.chart.info.keywords') }}</h4>
           <div class="keyword-links">
@@ -463,7 +463,7 @@ export default {
         </div>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <style lang="scss" scoped>
@@ -567,14 +567,14 @@ export default {
     }
   }
 
-  .chart-content {
+  .chart-body {
     display: flex;
-    &__tabs {
+    &__readme {
       flex: 1;
       min-width: 400px;
       padding: 12px 24px;
     }
-    &__right-bar {
+    &__info {
       min-width: 300px;
       max-width: 300px;
       height: max-content;
@@ -583,7 +583,7 @@ export default {
       border-radius: 8px;
       margin-left: 24px;
 
-      &__section {
+      &-section {
         display: flex;
         flex-direction: column;
         padding-bottom: 24px;
@@ -602,7 +602,7 @@ export default {
           }
         }
 
-        &--cVersion{
+        &--version{
           display: flex;
           justify-content: space-between;
           margin-bottom: 4px;
@@ -641,7 +641,6 @@ export default {
             }
           }
         }
-
       }
     }
   }
