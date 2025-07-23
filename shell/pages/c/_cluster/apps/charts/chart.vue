@@ -237,6 +237,8 @@ export default {
                 v-clean-tooltip="t(status.tooltip.key)"
                 :class="['icon', status.icon, status.color]"
                 :style="{color: status.customColor}"
+                role="img"
+                :aria-label="t(status.tooltip.key)"
               />
             </div>
           </div>
@@ -320,7 +322,7 @@ export default {
       >
         {{ t('catalog.install.appReadmeMissing', {}, true) }}
       </div>
-      <div
+      <aside
         v-if="version"
         class="chart-body__info"
       >
@@ -353,6 +355,8 @@ export default {
             >
               <a
                 v-clean-tooltip="vers.label"
+                href="#"
+                role="button"
                 class="ellipsis"
                 @click.prevent="selectVersion(vers)"
               >
@@ -369,14 +373,15 @@ export default {
               {{ formatVersionDate(vers.created) }}
             </p>
           </div>
-          <div
+          <a
             v-if="mappedVersions.length > showLastVersions"
-            class="mmt-1 secondary-text-link"
+            href="#"
             role="button"
-            @click="showMoreVersions = !showMoreVersions"
+            class="mmt-1 secondary-text-link"
+            @click.prevent="showMoreVersions = !showMoreVersions"
           >
             {{ t(`catalog.chart.info.chartVersions.${showMoreVersions ? 'showLess' : 'showMore'}`) }}
-          </div>
+          </a>
         </div>
         <div
           v-if="appVersion"
@@ -403,7 +408,7 @@ export default {
             :href="home"
             rel="nofollow noopener noreferrer"
             target="_blank"
-          >{{ home }}<i class="icon icon-external-link" /></a>
+          >{{ home }}<i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
         </div>
         <div
           v-if="maintainers.length"
@@ -416,7 +421,7 @@ export default {
             :href="m.url"
             rel="nofollow noopener noreferrer"
             target="_blank"
-          >{{ m.text }}</a>
+          >{{ m.text }}<span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
         </div>
         <div
           v-if="version.sources"
@@ -429,7 +434,7 @@ export default {
             :href="s"
             rel="nofollow noopener noreferrer"
             target="_blank"
-          >{{ s }}<i class="icon icon-external-link" /></a>
+          >{{ s }}<i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
         </div>
         <div
           v-if="version.urls"
@@ -442,7 +447,7 @@ export default {
             :href="url"
             rel="nofollow noopener noreferrer"
             target="_blank"
-          >{{ version.urls.length === 1 ? 'Download': url }}</a>
+          >{{ version.urls.length === 1 ? 'Download': url }}<span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
         </div>
         <div
           v-if="version.keywords"
@@ -461,7 +466,7 @@ export default {
             </router-link>
           </div>
         </div>
-      </div>
+      </aside>
     </div>
   </main>
 </template>
