@@ -331,7 +331,7 @@ export default {
           <div
             v-for="vers of versions"
             :key="vers.id"
-            class="chart-body__info-section--version"
+            class="chart-body__info-section--versions"
             data-testid="chart-version"
           >
             <b
@@ -359,6 +359,7 @@ export default {
                 href="#"
                 role="button"
                 class="ellipsis"
+                data-testid="chart-version-link"
                 @click.prevent="selectVersion(vers)"
               >
                 {{ vers.originalVersion === currentVersion ? currentVersion : vers.originalVersion }}
@@ -379,6 +380,7 @@ export default {
             href="#"
             role="button"
             class="mmt-1 secondary-text-link"
+            data-testid="chart-show-more-versions"
             @click.prevent="showMoreVersions = !showMoreVersions"
           >
             {{ t(`catalog.chart.info.chartVersions.${showMoreVersions ? 'showLess' : 'showMore'}`) }}
@@ -396,7 +398,10 @@ export default {
           class="chart-body__info-section"
         >
           <h4>{{ t('catalog.chart.info.repository') }}</h4>
-          <router-link :to="repo.detailLocation">
+          <router-link
+            :to="repo.detailLocation"
+            data-testid="chart-repo-link"
+          >
             {{ chart.repoNameDisplay }}
           </router-link>
         </div>
@@ -409,6 +414,7 @@ export default {
             :href="home"
             rel="nofollow noopener noreferrer"
             target="_blank"
+            data-testid="chart-home-link"
           >{{ home }}<i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
         </div>
         <div
@@ -461,6 +467,7 @@ export default {
               :key="i"
               v-clean-tooltip="t('catalog.chart.info.keywordsTooltip')"
               :to="{ name: 'c-cluster-apps-charts', query: { [SEARCH_QUERY]: keyword } }"
+              data-testid="chart-keyword-link"
             >
               {{ keyword }}
               <span v-if="version.keywords.length > 1 && i !== version.keywords.length - 1">,</span>
@@ -608,7 +615,7 @@ export default {
           }
         }
 
-        &--version{
+        &--versions{
           display: flex;
           justify-content: space-between;
           margin-bottom: 4px;

@@ -48,6 +48,22 @@ export class ChartPage extends PagePo {
   }
 
   selectVersion(version: string) {
-    return this.self().find('[data-testid="chart-version"]').contains(version).click();
+    return this.self().find('[data-testid="chart-version-link"]').contains(version).click();
+  }
+
+  versions() {
+    return this.self().find('[data-testid="chart-versions"]');
+  }
+
+  showMoreVersions() {
+    return this.self().find('[data-testid="chart-show-more-versions"]');
+  }
+
+  repoLink() {
+    return this.self().find('[data-testid="chart-repo-link"]');
+  }
+
+  keywords() {
+    return this.self().find('[data-testid="chart-keyword-link"]');
   }
 }
