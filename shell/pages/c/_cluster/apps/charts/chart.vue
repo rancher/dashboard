@@ -4,22 +4,25 @@ import ChartMixin from '@shell/mixins/chart';
 import { Banner } from '@components/Banner';
 import ChartReadme from '@shell/components/ChartReadme';
 import LazyImage from '@shell/components/LazyImage';
-import DateFormatter from '@shell/components/formatter/Date';
 import isEqual from 'lodash/isEqual';
-import { CHART, REPO, REPO_TYPE, VERSION } from '@shell/config/query-params';
-import { ZERO_TIME } from '@shell/config/types';
+import {
+  CHART, REPO, REPO_TYPE, VERSION, SEARCH_QUERY, CATEGORY, TAG
+} from '@shell/config/query-params';
+import { ZERO_TIME, CATALOG as CATALOG_TYPES } from '@shell/config/types';
 import { mapGetters } from 'vuex';
 import { compatibleVersionsFor } from '@shell/store/catalog';
-import TypeDescription from '@shell/components/TypeDescription';
+import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
+import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
+import day from 'dayjs';
 
 export default {
   components: {
     Banner,
     ChartReadme,
-    DateFormatter,
     LazyImage,
     Loading,
-    TypeDescription
+    AppChartCardSubHeader,
+    AppChartCardFooter
   },
 
   mixins: [
@@ -32,14 +35,19 @@ export default {
 
   data() {
     return {
+      SEARCH_QUERY,
       ZERO_TIME,
-      showLastVersions: 10,
+      showLastVersions: 7,
       showMoreVersions: false,
     };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
+
+    headerContent() {
+      return this.chart.cardContent;
+    },
 
     versions() {
       return this.showMoreVersions ? this.mappedVersions : this.mappedVersions.slice(0, this.showLastVersions);
@@ -139,7 +147,37 @@ export default {
         }
       });
     },
+    handleHeaderItemClick(type, value) {
+      const params = {
+        cluster: this.$route.params.cluster,
+        product: this.$store.getters['productId'],
+      };
 
+      let queryValue;
+
+      if (type === REPO) {
+        const repos = this.$store.getters['catalog/repos'];
+
+        queryValue = repos.find((r) => r.nameDisplay === value)?.metadata?.uid;
+      } else if (type === CATEGORY || type === TAG) {
+        queryValue = value.toLowerCase();
+      }
+
+      if (queryValue) {
+        this.$router.push({
+          name:  'c-cluster-apps-charts',
+          params,
+          query: { [type]: queryValue },
+        });
+      }
+    },
+    formatVersionDate(date) {
+      if (date === ZERO_TIME) {
+        return this.t('generic.na');
+      }
+
+      return day(date).format('MMM D, YYYY');
+    }
   },
 };
 </script>
@@ -147,103 +185,133 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <TypeDescription resource="chart" />
     <Banner
       v-if="versionInfoError"
       color="error"
       :label="versionInfoError"
     />
+    <Banner
+      v-if="warningMessage"
+      color="warning"
+      :label="warningMessage"
+      data-testid="deprecation-and-experimental-banner"
+    />
     <div
       v-if="chart"
       class="chart-header"
     >
-      <Banner
-        v-if="warningMessage"
-        color="warning"
-        :label="warningMessage"
-        data-testid="deprecation-and-experimental-banner"
-      />
-      <div class="name-logo-install">
-        <div class="name-logo">
-          <div class="logo-bg">
-            <LazyImage
-              :src="chart.icon"
-              class="logo"
-              :alt="t('catalog.charts.iconAlt', { app: chart.chartNameDisplay })"
-            />
-          </div>
-          <h1>
+      <div class="logo-container">
+        <div class="logo-box">
+          <LazyImage
+            :src="chart.icon"
+            class="logo"
+            :alt="t('catalog.charts.iconAlt', { app: chart.chartNameDisplay })"
+          />
+        </div>
+        <div
+          v-if="chart.featured"
+          v-clean-tooltip="t('generic.featured')"
+          class="featured-pill"
+        >
+          {{ t('generic.shortFeatured') }}
+        </div>
+      </div>
+      <div class="header-body">
+        <div class="header-top">
+          <h1 class="title">
             <router-link :to="{ name: 'c-cluster-apps-charts' }">
               {{ t('catalog.chart.header.charts') }}:
             </router-link>
-            {{ chart.chartNameDisplay }} ({{ targetVersion }})
+            {{ chart.chartNameDisplay }}
           </h1>
+          <div
+            v-if="headerContent.statuses.length"
+            class="statuses"
+          >
+            <div
+              v-for="(status, i) in headerContent.statuses"
+              :key="i"
+              class="status"
+            >
+              <i
+                v-clean-tooltip="t(status.tooltip.key)"
+                :class="['icon', status.icon, status.color]"
+                :style="{color: status.customColor}"
+              />
+            </div>
+          </div>
         </div>
-        <button
-          v-if="!requires.length"
-          type="button"
-          data-testid="btn-chart-install"
-          class="btn role-primary"
-          @click.prevent="install"
-        >
-          {{ t(`asyncButton.${action}.action` ) }}
-        </button>
+        <div class="header-sub-top">
+          <AppChartCardSubHeader :items="headerContent.subHeaderItems" />
+        </div>
+        <div class="header-middle">
+          <div
+            v-if="version && version.description"
+            class="description"
+          >
+            <p>{{ version.description }}</p>
+          </div>
+        </div>
+        <div class="header-bottom">
+          <AppChartCardFooter
+            :items="headerContent.footerItems"
+            @click:item="handleHeaderItemClick"
+          />
+        </div>
       </div>
-      <div
-        v-if="chart.windowsIncompatible"
-        class="mt-5"
+      <button
+        v-if="!requires.length"
+        type="button"
+        data-testid="btn-chart-install"
+        class="btn role-primary"
+        @click.prevent="install"
       >
-        <label class="os-label">{{ t('catalog.charts.windowsIncompatible') }}</label>
-      </div>
-      <div
-        v-if="requires.length || warnings.length || targetedAppWarning || osWarning"
-        class="mt-20"
-      >
-        <Banner
-          v-if="osWarning"
-          color="error"
-        >
-          <span v-clean-html="osWarning" />
-        </Banner>
-        <Banner
-          v-for="(msg, i) in requires"
-          :key="i"
-          color="error"
-        >
-          <span v-clean-html="msg" />
-        </Banner>
-
-        <Banner
-          v-for="(msg, i) in warnings"
-          :key="i"
-          color="warning"
-        >
-          <span v-clean-html="msg" />
-        </Banner>
-
-        <Banner
-          v-if="targetedAppWarning"
-          color="warning"
-        >
-          <span v-clean-html="targetedAppWarning" />
-        </Banner>
-      </div>
-      <div
-        v-else-if="version && version.description"
-        class="description mt-10"
-      >
-        <p>
-          {{ version.description }}
-        </p>
-      </div>
+        {{ t(`asyncButton.${action}.action` ) }}
+      </button>
     </div>
 
-    <div class="spacer" />
+    <div class="dashed-spacer" />
+
+    <div
+      v-if="requires.length || warnings.length || targetedAppWarning || osWarning"
+      class="chart-banners"
+    >
+      <Banner
+        v-if="osWarning"
+        color="error"
+      >
+        <span v-clean-html="osWarning" />
+      </Banner>
+      <Banner
+        v-for="(msg, i) in requires"
+        :key="i"
+        color="error"
+      >
+        <span v-clean-html="msg" />
+      </Banner>
+
+      <Banner
+        v-for="(msg, i) in warnings"
+        :key="i"
+        color="warning"
+      >
+        <span v-clean-html="msg" />
+      </Banner>
+
+      <Banner
+        v-if="targetedAppWarning"
+        color="warning"
+      >
+        <span v-clean-html="targetedAppWarning" />
+      </Banner>
+    </div>
 
     <div class="chart-content">
       <ChartReadme
         v-if="hasReadme"
         :version-info="versionInfo"
+        :showAppReadme="false"
+        :hideReadmeFirstTitle="false"
         class="chart-content__tabs"
       />
       <div
@@ -254,67 +322,94 @@ export default {
       </div>
       <div
         v-if="version"
-        class="chart-content__right-bar ml-20"
+        class="chart-content__right-bar"
       >
         <div class="chart-content__right-bar__section">
-          <h3>
-            {{ t('catalog.chart.info.chartVersions.label') }}
-          </h3>
+          <h4>{{ t('catalog.chart.info.chartVersions.label') }}</h4>
           <div
             v-for="vers of versions"
             :key="vers.id"
             class="chart-content__right-bar__section--cVersion"
           >
-            <b v-if="vers.originalVersion === version.version">{{ vers.originalVersion === currentVersion ? t('catalog.install.versions.current', { ver: currentVersion }): vers.shortLabel }}</b>
-            <a
+            <b
+              v-if="vers.originalVersion === version.version"
+              v-clean-tooltip="vers.label"
+              class="current-version"
+            >
+              <template v-if="vers.originalVersion === currentVersion">
+                <span class="ellipsis">{{ currentVersion }}</span>
+                <i class="icon icon-confirmation-alt" />
+              </template>
+              <span
+                v-else
+                class="ellipsis"
+              >
+                {{ vers.originalVersion }}
+              </span>
+            </b>
+            <div
               v-else
-              v-clean-tooltip="vers.label.length > 16 ? vers.label : null"
-              @click.prevent="selectVersion(vers)"
+              class="current-version"
             >
-              {{ vers.originalVersion === currentVersion ? t('catalog.install.versions.current', { ver: currentVersion }): vers.shortLabel }}
-            </a>
-            <DateFormatter
-              v-if="vers.created !== ZERO_TIME"
-              :value="vers.created"
-              :show-time="false"
-            />
+              <a
+                v-clean-tooltip="vers.label"
+                class="ellipsis"
+                @click.prevent="selectVersion(vers)"
+              >
+                {{ vers.originalVersion === currentVersion ? currentVersion : vers.originalVersion }}
+              </a>
+              <i
+                v-if="vers.originalVersion === currentVersion"
+                class="icon icon-confirmation-alt"
+              />
+            </div>
+            <p
+              class="version-date"
+            >
+              {{ formatVersionDate(vers.created) }}
+            </p>
           </div>
-          <div class="mt-10 chart-content__right-bar__section--showMore">
-            <button
-              v-if="mappedVersions.length > showLastVersions"
-              type="button"
-              class="btn btn-sm role-link"
-              @click="showMoreVersions = !showMoreVersions"
-            >
-              {{ t(`catalog.chart.info.chartVersions.${showMoreVersions ? 'showLess' : 'showMore'}`) }}
-            </button>
+          <div
+            v-if="mappedVersions.length > showLastVersions"
+            class="mmt-1 secondary-text-link"
+            role="button"
+            @click="showMoreVersions = !showMoreVersions"
+          >
+            {{ t(`catalog.chart.info.chartVersions.${showMoreVersions ? 'showLess' : 'showMore'}`) }}
           </div>
         </div>
         <div
           v-if="appVersion"
           class="chart-content__right-bar__section"
         >
-          <h3 t>
-            {{ t('catalog.chart.info.appVersion') }}
-          </h3>
+          <h4>{{ t('catalog.chart.info.appVersion') }}</h4>
           {{ appVersion }}
+        </div>
+        <div
+          v-if="repo"
+          class="chart-content__right-bar__section"
+        >
+          <h4>{{ t('catalog.chart.info.repository') }}</h4>
+          <router-link :to="{ name: 'c-cluster-apps-catalog-repo' }">
+            {{ chart.repoNameDisplay }}
+          </router-link>
         </div>
         <div
           v-if="home"
           class="chart-content__right-bar__section"
         >
-          <h3>{{ t('catalog.chart.info.home') }}</h3>
+          <h4>{{ t('catalog.chart.info.home') }}</h4>
           <a
             :href="home"
             rel="nofollow noopener noreferrer"
             target="_blank"
-          >{{ home }}</a>
+          >{{ home }}<i class="icon icon-external-link" /></a>
         </div>
         <div
           v-if="maintainers.length"
           class="chart-content__right-bar__section"
         >
-          <h3>{{ t('catalog.chart.info.maintainers') }}</h3>
+          <h4>{{ t('catalog.chart.info.maintainers') }}</h4>
           <a
             v-for="m of maintainers"
             :key="m.id"
@@ -327,20 +422,20 @@ export default {
           v-if="version.sources"
           class="chart-content__right-bar__section"
         >
-          <h3>{{ t('catalog.chart.info.related') }}</h3>
+          <h4>{{ t('catalog.chart.info.related') }}</h4>
           <a
             v-for="s of version.sources"
             :key="s"
             :href="s"
             rel="nofollow noopener noreferrer"
             target="_blank"
-          >{{ s }}</a>
+          >{{ s }}<i class="icon icon-external-link" /></a>
         </div>
         <div
           v-if="version.urls"
           class="chart-content__right-bar__section"
         >
-          <h3>{{ t('catalog.chart.info.chartUrls') }}</h3>
+          <h4>{{ t('catalog.chart.info.chartUrls') }}</h4>
           <a
             v-for="url of version.urls"
             :key="url"
@@ -353,8 +448,18 @@ export default {
           v-if="version.keywords"
           class="chart-content__right-bar__section chart-content__right-bar__section--keywords"
         >
-          <h3>{{ t('catalog.chart.info.keywords') }}</h3>
-          {{ version.keywords.join(', ') }}
+          <h4>{{ t('catalog.chart.info.keywords') }}</h4>
+          <div class="keyword-links">
+            <router-link
+              v-for="(keyword, i) in version.keywords"
+              :key="i"
+              v-clean-tooltip="t('catalog.chart.info.keywordsTooltip')"
+              :to="{ name: 'c-cluster-apps-charts', query: { [SEARCH_QUERY]: keyword } }"
+            >
+              {{ keyword }}
+              <span v-if="version.keywords.length > 1 && i !== version.keywords.length - 1">,</span>
+            </router-link>
+          </div>
         </div>
       </div>
     </div>
@@ -362,60 +467,103 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  $logo-box-width: 60px;
   $name-height: 50px;
   $padding: 5px;
 
   .chart-header {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: var(--gap-lg);
 
-    .name-logo-install {
+    .logo-container {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: space-between;
-      height: $name-height;
+      gap: 12px;
+
+      .logo-box {
+        width: $logo-box-width;
+        height: $logo-box-width;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #fff;
+        border-radius: var(--border-radius);
+
+        .logo {
+          width: 48px;
+          height: 48px;
+          object-fit: contain;
+        }
+      }
+
+      .featured-pill {
+        display: flex;
+        width: $logo-box-width;
+        padding: 4px 8px;
+        justify-content: center;
+        align-items: center;
+        border-radius: var(--border-radius);
+        background: var(--default);
+        text-transform: uppercase;
+        color: var(--disabled-text);
+        font-size: 10px;
+        font-weight: 600;
+      }
     }
 
-    .name-logo {
+    .header-body {
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--gap);
 
-      .logo-bg {
-        height: $name-height;
-        width: $name-height;
-        background-color: white;
-        border: $padding solid white;
-        border-radius: calc( 3 * var(--border-radius));
-        position: relative;
+      .header-top {
+        display: flex;
+
+        .title {
+          margin: 0 12px 0 0;
+        }
+
+        .statuses {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+
+          .status {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .icon {
+              font-size: 23px;
+              &.error    { color: var(--error); }
+              &.info     { color: var(--info); }
+              &.success  { color: var(--success); }
+            }
+          }
+        }
       }
-
-      .logo {
-        max-height: $name-height - 2 * $padding;
-        max-width: $name-height - 2 * $padding;
-        position: absolute;
-        width: auto;
-        height: auto;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        margin: auto;
-      }
-
-      h1 {
-        margin: 0 20px;
-      }
-    }
-
-    .os-label{
-      background-color: var(--warning-banner-bg);
-      color: var(--warning);
     }
 
     .btn {
-      height: 30px;
+      margin-left: auto;
+      height: 40px;
     }
 
     .description {
-      margin-right: 80px;
+      line-height: 21px;
+    }
+  }
+
+  .chart-banners {
+    .banner {
+      margin-top: 0;
+      margin-bottom: 24px;
     }
   }
 
@@ -424,26 +572,74 @@ export default {
     &__tabs {
       flex: 1;
       min-width: 400px;
+      padding: 12px 24px;
     }
     &__right-bar {
-      min-width: 260px;
-      max-width: 260px;
+      min-width: 300px;
+      max-width: 300px;
+      height: max-content;
+      background: var(--sortable-table-header-bg);
+      padding: 16px;
+      border-radius: 8px;
+      margin-left: 24px;
 
       &__section {
         display: flex;
         flex-direction: column;
-        padding-bottom: 20px;
+        padding-bottom: 24px;
         word-break: break-all;
+        line-height: 21px;
+
+        h4 {
+          font-weight: bold;
+        }
+
         a {
           cursor: pointer;
+
+          .icon-external-link {
+            margin-left: 8px;
+          }
         }
+
         &--cVersion{
           display: flex;
           justify-content: space-between;
+          margin-bottom: 4px;
+
+          .version-date {
+            color: var(--link-text-secondary);
+          }
+
+          .current-version {
+            display: flex;
+            align-items: center;
+
+            .ellipsis {
+              display: block;
+              max-width: 140px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+
+            .icon-confirmation-alt {
+              color: var(--success);
+              margin-left: 12px;
+              font-size: 19px;
+            }
+          }
         }
 
         &--keywords{
-         word-break: break-word;
+          word-break: break-word;
+          color: var(--link-text-secondary);
+
+          .keyword-links {
+            a {
+              margin-right: 8px;
+            }
+          }
         }
 
       }

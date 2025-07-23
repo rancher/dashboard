@@ -100,6 +100,7 @@ BODY, .theme-light {
   .secondary-text-link {
     color: var(--link-text-secondary);
     text-decoration: underline;
+    cursor: pointer;
 
     &:hover {
       text-decoration: none;
