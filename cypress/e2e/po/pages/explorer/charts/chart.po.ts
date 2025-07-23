@@ -48,6 +48,6 @@ export class ChartPage extends PagePo {
   }
 
   selectVersion(version: string) {
-    return this.self().find('.chart-content__right-bar__section--cVersion').contains(version).click();
+    return this.self().find('[data-testid="chart-version"]').contains(version).click();
   }
 }

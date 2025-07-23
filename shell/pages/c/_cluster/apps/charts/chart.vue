@@ -8,7 +8,7 @@ import isEqual from 'lodash/isEqual';
 import {
   CHART, REPO, REPO_TYPE, VERSION, SEARCH_QUERY, CATEGORY, TAG
 } from '@shell/config/query-params';
-import { ZERO_TIME, CATALOG as CATALOG_TYPES } from '@shell/config/types';
+import { ZERO_TIME } from '@shell/config/types';
 import { mapGetters } from 'vuex';
 import { compatibleVersionsFor } from '@shell/store/catalog';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
@@ -332,6 +332,7 @@ export default {
             v-for="vers of versions"
             :key="vers.id"
             class="chart-body__info-section--version"
+            data-testid="chart-version"
           >
             <b
               v-if="vers.originalVersion === version.version"
