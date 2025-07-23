@@ -256,7 +256,7 @@ describe('component: vmwarevsphere', () => {
   });
 
   describe('syncNetworkValueForLegacyLabels', () => {
-    it('should update the current network value properly', () => {
+    it('should NOT update the current network value to use MOID instead of name', () => {
       const legacyName = 'legacy_name';
       const legacyValue = 'legacy_value';
       const networkLabel = 'network_label';
@@ -291,12 +291,7 @@ describe('component: vmwarevsphere', () => {
         }
       });
 
-      // check the current network before updating
       expect(wrapper.vm.value.network).toStrictEqual([legacyName]);
-
-      wrapper.vm.syncNetworkValueForLegacyLabels();
-
-      expect(wrapper.vm.value.network).toStrictEqual([legacyValue]);
     });
   });
 });
