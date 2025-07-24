@@ -7,6 +7,8 @@ There are currently two options for building and publishing a extensions:
 
 As discussed in the [Getting Started](./extensions-getting-started#creating-a-release) section, we have established a [workflow](https://github.com/rancher/dashboard/tree/master/creators/extension/app/files/.github/workflows) using [Github reusable workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows), that automatically handles the build and publication of both the Helm charts and ECI into the Extension's GitHub repository. However, this workflow can be omitted for a more hands-on approach to publishing Extensions.
 
+> **WARNING:** When using the provided Github workflows, the base development app name (Found in the root level `package.json`) ___MUST___ be unique when compared with any extension packages found in `./pkg/*`. If an extension package name matches the base skeleton name the workflow will fail due to the "Parse Extension Name" step found in both the ["Build and Release Extension Charts"](https://github.com/rancher/dashboard/blob/422823e2b6868191b9bb33470e99e69ff058b72b/.github/workflows/build-extension-charts.yml#L59-L65) and ["Build and release Extension Catalog Image to registry"](https://github.com/rancher/dashboard/blob/422823e2b6868191b9bb33470e99e69ff058b72b/.github/workflows/build-extension-catalog.yml#L64-L70) workflows.
+
 > Note: An explanation on the workflow files can be found in the [Additional Release Configuration](#additional-release-configuration) section.
 
 ## Publishing an Extension as a Helm Chart
@@ -42,7 +44,7 @@ In order to have a Helm repository you will need to enable Github Pages on your 
 
 </div>
 
-### Automated Approach
+### Helm Chart Automated Approach
 
 > **WARNING:** When using the provided Github workflows, the base skeleton application name (Found in the root level `package.json`) ___MUST___ be unique when compared with any extension packages found in `./pkg/*`. If an extension package name matches the base skeleton name the workflow will fail due to the "Parse Extension Name" step found in the ["Build and Release Extension Charts"](https://github.com/rancher/dashboard/blob/422823e2b6868191b9bb33470e99e69ff058b72b/.github/workflows/build-extension-charts.yml#L59-L65) workflow.
 
@@ -171,7 +173,7 @@ Once the URL has been added to the repository list, the extension should appear 
 
 ## Publishing an Extension Catalog Image
 
-### Automated Approach
+### ECI Automated Approach
 
 > **WARNING:** When using the provided Github workflows, the base skeleton application name (Found in the root level `package.json`) ___MUST___ be unique when compared with any extension packages found in `./pkg/*`. If an extension package name matches the base skeleton name the workflow will fail due to the "Parse Extension Name" step found in ["Build and release Extension Catalog Image to registry"](https://github.com/rancher/dashboard/blob/422823e2b6868191b9bb33470e99e69ff058b72b/.github/workflows/build-extension-catalog.yml#L64-L70) workflow.
 
@@ -275,7 +277,7 @@ Depending on your use case, there are multiple options on building and creating 
   - An ECI contains the Helm charts and assets within the image, and is determined by the main Extension `version` property found in `./package.json`
   - Find the reusable workflow file [here](https://github.com/rancher/dashboard/blob/master/.github/workflows/build-extension-catalog.yml)
 
-By default, both of these actions are triggered by pushing into the `main` branch. This may not be your disired flow, and so you can modify the workflow file to fit your needs.
+By default, both of these actions are triggered by pushing into the `main` branch. This may not be your desired flow, and so you can modify the workflow file to fit your needs.
 
 > Note: Addition configuration information on the workflows can be found in the [Workflow Configuration](./advanced/workflow-configuration.md) section.
 
