@@ -126,13 +126,20 @@ export default class Chart extends SteveModel {
           icon:        'icon-version-alt',
           iconTooltip: { key: 'tableHeaders.version' },
           label:       this.versions[0].version
-        },
-        {
-          icon:        'icon-refresh-alt',
-          iconTooltip: { key: 'tableHeaders.lastUpdated' },
-          label:       day(this.versions[0].created).format('MMM D, YYYY')
         }
       ];
+
+      // To hide the date for cases like AppCo that don't provide a meaningful date
+      if (this.versions[0].created !== '0001-01-01T00:00:00Z') {
+        subHeaderItems.push(
+          {
+            icon:        'icon-refresh-alt',
+            iconTooltip: { key: 'tableHeaders.lastUpdated' },
+            label:       day(this.versions[0].created).format('MMM D, YYYY')
+          }
+        );
+      }
+
       const footerItems = [
         {
           type:        REPO,
