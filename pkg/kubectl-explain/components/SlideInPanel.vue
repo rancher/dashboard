@@ -451,6 +451,8 @@ export default {
     right: -$slidein-width;
     transition: right 0.5s;
     border-left: 1px solid var(--border);
+
+    z-index: calc(z-index('slide-in') + 1);
   }
 
   .slide-in-open {
@@ -468,6 +470,8 @@ export default {
       left: 0;
       height :100vh;
       width: 100vw;
+
+      z-index: z-index('slide-in');
 
     &.slide-in-glass-open {
       background-color: var(--body-bg);
