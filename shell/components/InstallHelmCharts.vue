@@ -278,7 +278,6 @@ export default {
           return;
         }
 
-        await nextTick();
         this.throttledRefreshCharts();
       } catch (e) {
         this.$store.dispatch('growl/fromError', { err: e });
@@ -323,9 +322,6 @@ export default {
 
     // once a chart is located fetch installation info from the repo
     async fetchVersionInfo() {
-      if (!this.doingButtonAction) {
-        return;
-      }
       try {
         // assume we want the latest non-prerelease version
         const targetVersion = (this.chart?.versions || []).find((v) => v.version && !isPrerelease(v.version))?.version;
@@ -399,12 +395,13 @@ export default {
         this.installCmd.charts[0].values = {
           ...this.getGlobalValues(), ...this.extraValues, ...this.userValues
         };
-
         res = await this.targetRepo.doAction('install', this.installCmd);
       } catch (err) {
         this.btnCb(false);
         this.errors.push(err);
         this.doingButtonAction = false;
+
+        return;
       }
 
       this.installOperationName = res.operationName;
