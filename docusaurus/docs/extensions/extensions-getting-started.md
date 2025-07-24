@@ -436,41 +436,11 @@ We have created [workflows](https://github.com/rancher/dashboard/tree/master/cre
 
 ### Release Prerequisites
 
-In order to have a Helm repository you will need to enable Github Pages on your Github repository. Just follow these steps:
-
-1. Create a branch called `gh-pages` on your Github repository for the extension
-
-2. Go to the repository of the extension and click the `Settings` tab in the top navigation bar.
-
-<div style={{textAlign: 'center'}}>
-
-![Repo Settings Tab](./screenshots/repo-settings-tab.png)
-
-</div>
-
-3. Then on the left navigation bar of the settings page click the `Pages` tab.
-
-<div style={{textAlign: 'center'}}>
-
-![Repo Pages Tab](./screenshots/repo-pages-tab.png)
-
-</div>
-
-4. Lastly, select `GitHub Actions` from the `Source` dropdown.
-
-<div style={{textAlign: 'center'}}>
-
-![Repo Pages Dropdown](./screenshots/repo-pages-dropdown.png)
-
-</div>
+Check all the release prerequisites information [here](./publishing#release-prerequisites).
 
 ### Consuming the Helm chart
 
-After releasing the Helm chart you will be able to consume this from the Rancher UI by adding your Helm repository's URL to the App -> Repository list. If you used the automated workflow to release the Helm chart, you can find the URL within your Github repository under the "github-pages" Environment.
-
-The URL should be listed as: `https://<organization>.github.io/<repository>`
-
-Once the URL has been added to the repository list, the extension should appear within the Extensions page.
+Check all the information on how to consume the generated Helm Chart on Rancher [here](./publishing#consuming-the-helm-chart).
 
 ## Wrap-up
 
