@@ -3,18 +3,18 @@ import { PropType } from 'vue';
 import { FLEET } from '@shell/config/types';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import FleetResources from '@shell/components/fleet/FleetResources.vue';
-import { RcButton } from '@components/RcButton';
 import { FleetDashboardState } from '@shell/types/fleet';
 import FleetApplicationSource from '@shell/components/formatter/FleetApplicationSource.vue';
+import Drawer from '@shell/components/Drawer/Chrome.vue';
 
 export default {
   name: 'FleetDashboardResourceDetails',
 
   components: {
+    Drawer,
     LabeledSelect,
     FleetResources,
     FleetApplicationSource,
-    RcButton,
   },
 
   props: {
@@ -71,86 +71,81 @@ export default {
 </script>
 
 <template>
-  <div class="details-panel">
-    <div
-      class="header"
-      :data-testid="'fleet-dashboard-resource-details-header'"
-    >
-      <h3 class="title">
-        <i :class="value.dashboardIcon" />
-        <router-link
-          class="label"
-          :to="detailLocation"
-        >
-          {{ value.id }}
-        </router-link>
-        <i
-          v-if="statePanel.id !== 'success'"
-          class="ml-5 state-icon"
-          :class="statePanel.icon"
-          :style="{ color: statePanel.color }"
-        />
-      </h3>
-      <RcButton
-        small
-        ghost
-        data-testid="slide-in-close"
-        :aria-label="'slide-in-close'"
-        tabindex="0"
-        @click="closePanel"
-        @keydown.space.enter.stop.prevent="closePanel"
-      >
-        <i class="icon icon-close" />
-      </RcButton>
-    </div>
-
-    <h4>
-      {{ t('fleet.dashboard.source') }}
-    </h4>
-    <div class="mb-15">
-      <FleetApplicationSource
-        v-if="value.source.value"
-        :row="value"
-      />
+  <Drawer
+    class="details-panel"
+    :ariaTarget="value.id"
+    @close="closePanel"
+  >
+    <template #title>
       <div
-        v-else
-        class="text-muted"
+        class="header"
+        :data-testid="'fleet-dashboard-resource-details-header'"
       >
-        &mdash;
+        <h3 class="title">
+          <i :class="value.dashboardIcon" />
+          <router-link
+            class="label"
+            :to="detailLocation"
+          >
+            {{ value.id }}
+          </router-link>
+          <i
+            v-if="statePanel.id !== 'success'"
+            class="ml-5 state-icon"
+            :class="statePanel.icon"
+            :style="{ color: statePanel.color }"
+          />
+        </h3>
       </div>
-    </div>
-
-    <h4>
-      {{ t('fleet.dashboard.resources') }}
-    </h4>
-    <FleetResources
-      :rows="value.resourcesStatuses"
-      :cluster-id="clusterId"
-      :search="!noResources"
-    >
-      <template
-        v-if="!noResources"
-        #header-left
-      >
-        <div class="row">
-          <div class="col span-10">
-            <LabeledSelect
-              v-model:value="clusterId"
-              :label="t('fleet.cluster.label')"
-              :options="clusters"
-              :mode="'edit'"
-              :disabled="workspace.id === 'fleet-local'"
-            />
-          </div>
+    </template>
+    <template #body>
+      <h4>
+        {{ t('fleet.dashboard.source') }}
+      </h4>
+      <div class="mb-15">
+        <FleetApplicationSource
+          v-if="value.source.value"
+          :row="value"
+        />
+        <div
+          v-else
+          class="text-muted"
+        >
+          &mdash;
         </div>
-      </template>
-    </FleetResources>
-  </div>
+      </div>
+
+      <h4>
+        {{ t('fleet.dashboard.resources') }}
+      </h4>
+      <FleetResources
+        :rows="value.resourcesStatuses"
+        :cluster-id="clusterId"
+        :search="!noResources"
+      >
+        <template
+          v-if="!noResources"
+          #header-left
+        >
+          <div class="row">
+            <div class="col span-10">
+              <LabeledSelect
+                v-model:value="clusterId"
+                :label="t('fleet.cluster.label')"
+                :options="clusters"
+                :mode="'edit'"
+                :disabled="workspace.id === 'fleet-local'"
+              />
+            </div>
+          </div>
+        </template>
+      </FleetResources>
+    </template>
+  </Drawer>
 </template>
 
 <style lang="scss">
   .details-panel {
-    padding: 10px;
 
     .sortable-table-header {
       .fixed-header-actions {
@@ -161,8 +156,6 @@ export default {
     .header {
       display: flex;
       align-items: center;
-      padding: 0;
-      margin: 0 0 20px 0;
 
       .title {
         display: flex;

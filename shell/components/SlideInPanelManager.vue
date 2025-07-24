@@ -8,32 +8,14 @@ import {
 import { isEqual } from 'lodash';
 import { useRouter } from 'vue-router';
 
-const HEADER_HEIGHT = 55;
-
 const store = useStore();
 const isOpen = computed(() => store.getters['slideInPanel/isOpen']);
 const isClosing = computed(() => store.getters['slideInPanel/isClosing']);
 const currentComponent = computed(() => store.getters['slideInPanel/component']);
 const currentProps = computed(() => store.getters['slideInPanel/componentProps']);
 
-const panelTop = computed(() => {
-  // Some components like the ResourceDetailDrawer are designed to take up the full height of the viewport so we want to be able to specify the top.
-  if (currentProps?.value?.top) {
-    return currentProps?.value?.top;
-  }
-
-  const banner = document.getElementById('banner-header');
-  let height = HEADER_HEIGHT;
-
-  if (banner) {
-    height += banner.clientHeight;
-  }
-
-  return `${ height }px`;
-});
-
-// Some components like the ResourceDetailDrawer are designed to take up the full height of the viewport so we want to be able to specify the height.
-const panelHeight = computed(() => (currentProps?.value?.height) ? (currentProps?.value?.height) : `calc(100vh - ${ panelTop?.value })`);
+const panelTop = computed(() => currentProps?.value?.top || 0);
+const panelHeight = computed(() => currentProps?.value?.height || '100vh');
 const panelWidth = computed(() => currentProps?.value?.width || '33%');
 const panelRight = computed(() => (isOpen?.value ? '0' : `-${ panelWidth?.value }`));
 

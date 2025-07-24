@@ -1,6 +1,6 @@
 import { importTypes } from '@rancher/auto-import';
 import { ActionLocation, IPlugin, IInternal } from '@shell/core/types';
-import { explain } from './slide-in';
+import Panel from './components/SlideInPanel.vue';
 
 // Init the package
 export default function(plugin: IPlugin, internal: IInternal): void {
@@ -9,8 +9,6 @@ export default function(plugin: IPlugin, internal: IInternal): void {
 
   // Provide plugin metadata from package.json
   plugin.metadata = require('./package.json');
-
-  const store = internal.store;
 
   plugin.addAction(ActionLocation.HEADER, {
     resource: ['*'],
@@ -26,7 +24,14 @@ export default function(plugin: IPlugin, internal: IInternal): void {
     tooltipKey: 'kubectl-explain.tooltip',
     svg:        require('./explain.svg'),
     invoke:     (opts, res, globals) => {
-      explain(store, globals.$route);
+      internal.app.$shell.slideInPanel({
+        component:      Panel,
+        componentProps: {
+          width:               '530px',
+          triggerFocusTrap:    true,
+          returnFocusSelector: `[data-testid="extension-header-action-kubectl-explain.action"]`
+        }
+      });
     }
   });
 }
