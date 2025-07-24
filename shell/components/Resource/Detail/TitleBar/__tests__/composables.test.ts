@@ -11,20 +11,19 @@ const mockStore = {
   }
 };
 const mockRoute = { params: { cluster: 'CLUSTER' } };
-const mockDrawer = { openResourceDetailDrawer: jest.fn() };
 
 jest.mock('vuex', () => ({ useStore: () => mockStore }));
 jest.mock('vue-router', () => ({ useRoute: () => mockRoute }));
-jest.mock('@shell/components/Drawer/ResourceDetailDrawer/composables', () => ({ useResourceDetailDrawer: () => mockDrawer }));
 
 describe('composables: TitleBar', () => {
   const resource = {
-    nameDisplay:     'RESOURCE_NAME',
-    namespace:       'RESOURCE_NAMESPACE',
-    type:            'RESOURCE_TYPE',
-    stateBackground: 'RESOURCE_STATE_BACKGROUND',
-    stateDisplay:    'RESOURCE_STATE_DISPLAY',
-    description:     'RESOURCE_DESCRIPTION',
+    nameDisplay:       'RESOURCE_NAME',
+    namespace:         'RESOURCE_NAMESPACE',
+    type:              'RESOURCE_TYPE',
+    stateBackground:   'RESOURCE_STATE_BACKGROUND',
+    stateDisplay:      'RESOURCE_STATE_DISPLAY',
+    description:       'RESOURCE_DESCRIPTION',
+    showConfiguration: jest.fn(),
   };
   const labelFor = 'LABEL_FOR';
   const schema = { type: 'SCHEMA' };
@@ -58,6 +57,6 @@ describe('composables: TitleBar', () => {
     expect(props.value.showViewOptions).toStrictEqual(hasGraph);
 
     props.value.onShowConfiguration?.('callback');
-    expect(mockDrawer.openResourceDetailDrawer).toHaveBeenCalledTimes(1);
+    expect(resource.showConfiguration).toHaveBeenCalledTimes(1);
   });
 });

@@ -2,16 +2,7 @@ import { useDefaultMetadataForLegacyPagesProps } from '@shell/components/Resourc
 import * as IdentifyingFields from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/identifying-fields';
 import { computed } from 'vue';
 
-const mockDrawer = { openResourceDetailDrawer: jest.fn() };
-
 jest.mock('@shell/components/Resource/Detail/Metadata/IdentifyingInformation/identifying-fields');
-jest.mock('@shell/components/Drawer/ResourceDetailDrawer/composables', () => {
-  return {
-    useResourceDetailDrawer() {
-      return mockDrawer;
-    }
-  };
-});
 
 describe('composables: Metadata/composables', () => {
   beforeEach(() => {
@@ -28,9 +19,10 @@ describe('composables: Metadata/composables', () => {
 
     it('should filter out undefined identifyingInformation', () => {
       const resource = {
-        type:        'RESOURCE',
-        annotations: { annotation: 'ANNOTATION' },
-        labels:      { label: 'LABEL' }
+        type:              'RESOURCE',
+        annotations:       { annotation: 'ANNOTATION' },
+        labels:            { label: 'LABEL' },
+        showConfiguration: jest.fn()
       };
       const result = useDefaultMetadataForLegacyPagesProps(resource);
 
@@ -39,7 +31,7 @@ describe('composables: Metadata/composables', () => {
       expect(result.value.annotations).toStrictEqual([{ key: 'annotation', value: resource.annotations.annotation }]);
       expect(result.value.labels).toStrictEqual([{ key: 'label', value: resource.labels.label }]);
       expect(result.value.identifyingInformation).toHaveLength(0);
-      expect(mockDrawer.openResourceDetailDrawer).toHaveBeenCalledTimes(1);
+      expect(resource.showConfiguration).toHaveBeenCalledTimes(1);
     });
 
     it('should fill identifyingInformation', () => {
@@ -51,9 +43,10 @@ describe('composables: Metadata/composables', () => {
       useResourceDetailsSpy.mockReturnValue(computed(() => [{ label: 'RESOURCE_DETAILS' }]));
 
       const resource = {
-        type:        'RESOURCE',
-        annotations: { annotation: 'ANNOTATION' },
-        labels:      { label: 'LABEL' }
+        type:              'RESOURCE',
+        annotations:       { annotation: 'ANNOTATION' },
+        labels:            { label: 'LABEL' },
+        showConfiguration: jest.fn()
       };
       const result = useDefaultMetadataForLegacyPagesProps(resource);
 
@@ -69,7 +62,7 @@ describe('composables: Metadata/composables', () => {
         { label: 'CREATED_BY' },
         { label: 'RESOURCE_DETAILS' }
       ]);
-      expect(mockDrawer.openResourceDetailDrawer).toHaveBeenCalledTimes(1);
+      expect(resource.showConfiguration).toHaveBeenCalledTimes(1);
     });
   });
 });
