@@ -36,7 +36,8 @@ describe('component: LazyImage.vue', () => {
 
     const callback = window.IntersectionObserver.mock.calls[0][0];
 
-    callback(null, [{ isIntersecting: false }]);
+    // eslint-disable-next-line node/no-callback-literal
+    callback([{ isIntersecting: false }]);
     await wrapper.vm.$nextTick();
 
     const img = wrapper.find('img');
@@ -56,7 +57,8 @@ describe('component: LazyImage.vue', () => {
     // Manually trigger the intersection observer
     const callback = window.IntersectionObserver.mock.calls[0][0];
 
-    callback(null, [{ isIntersecting: true }]);
+    // eslint-disable-next-line node/no-callback-literal
+    callback([{ isIntersecting: true }]);
 
     await wrapper.vm.$nextTick();
 
@@ -77,7 +79,8 @@ describe('component: LazyImage.vue', () => {
     // Manually trigger the intersection observer
     const callback = window.IntersectionObserver.mock.calls[0][0];
 
-    callback(null, [{ isIntersecting: true }]);
+    // eslint-disable-next-line node/no-callback-literal
+    callback([{ isIntersecting: true }]);
 
     await wrapper.vm.$nextTick();
 
@@ -102,7 +105,8 @@ describe('component: LazyImage.vue', () => {
     // Manually trigger the intersection observer
     const callback = window.IntersectionObserver.mock.calls[0][0];
 
-    callback(null, [{ isIntersecting: true }]);
+    // eslint-disable-next-line node/no-callback-literal
+    callback([{ isIntersecting: true }]);
 
     await wrapper.vm.$nextTick();
 
