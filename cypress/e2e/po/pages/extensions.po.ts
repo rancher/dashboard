@@ -10,6 +10,7 @@ import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.cluste
 import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
+import { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 export default class ExtensionsPagePo extends PagePo {
   static url = '/c/local/uiplugins'
@@ -243,8 +244,8 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   // ------------------ extension reload banner ------------------
-  extensionReloadBanner() {
-    return this.self().getId('extension-reload-banner');
+  extensionReloadBanner(options: GetOptions = LONG_TIMEOUT_OPT) {
+    return this.self().get(`[data-testid="extension-reload-banner"]`, options);
   }
 
   extensionReloadClick(): Cypress.Chainable {
