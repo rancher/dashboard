@@ -148,19 +148,6 @@ export default class ProvCluster extends SteveModel {
         enabled: canEditRKE2cluster
       }, { divider: true }];
 
-    // Harvester Cluster 1:1 Harvester Cloud Cred
-    if (this.cloudCredential?.canRenew || this.cloudCredential?.canBulkRenew) {
-      out.splice(0, 0, { divider: true });
-      out.splice(0, 0, {
-        action:     'renew',
-        enabled:    this.cloudCredential?.canRenew,
-        bulkable:   this.cloudCredential?.canBulkRenew,
-        bulkAction: 'renewBulk',
-        icon:       'icon icon-fw icon-refresh',
-        label:      this.$rootGetters['i18n/t']('cluster.cloudCredentials.renew'),
-      });
-    }
-
     const all = actions.concat(out);
 
     // If the cluster is a KEV1 cluster or Harvester cluster then prevent edit
@@ -1016,26 +1003,5 @@ export default class ProvCluster extends SteveModel {
 
   get description() {
     return super.description || this.mgmt?.description;
-  }
-
-  renew() {
-    return this.cloudCredential?.renew();
-  }
-
-  renewBulk(clusters = []) {
-    // In theory we don't need to filter by cloudCred, but do so for safety
-    const cloudCredentials = clusters.filter((c) => c.cloudCredential).map((c) => c.cloudCredential);
-
-    return this.cloudCredential?.renewBulk(cloudCredentials);
-  }
-
-  get cloudCredential() {
-    return this.$rootGetters['rancher/all'](NORMAN.CLOUD_CREDENTIAL).find((cc) => cc.id === this.spec.cloudCredentialSecretName);
-  }
-
-  get cloudCredentialWarning() {
-    const expireData = this.cloudCredential?.expireData;
-
-    return expireData?.expired || expireData?.expiring;
   }
 }
