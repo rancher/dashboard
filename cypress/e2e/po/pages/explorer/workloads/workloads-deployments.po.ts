@@ -1,9 +1,9 @@
-import { WorkloadsListPageBasePo, WorkloadsCreatePageBasePo, workloadDetailsPageBasePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads.po';
+import { WorkloadsListPageBasePo, WorkloadsCreatePageBasePo, WorkloadDetailsPageBasePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import RedeployDialogPo from '@/cypress/e2e/po/components/workloads/redeploy-dialog.po';
 
-export class WorkloadsDeploymentsDetailsPagePo extends workloadDetailsPageBasePo {
+export class WorkloadsDeploymentsDetailsPagePo extends WorkloadDetailsPageBasePo {
   constructor(workloadId: string, protected clusterId: string = 'local', workloadType = 'apps.deployment', namespaceId = 'default', queryParams?: Record<string, string>) {
     super(workloadId, clusterId, workloadType, queryParams, namespaceId);
   }
