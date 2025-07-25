@@ -116,17 +116,20 @@ export const CATALOG = {
 };
 
 export const FLEET = {
-  REPO_NAME:            'fleet.cattle.io/repo-name',
-  CLUSTER_DISPLAY_NAME: 'management.cattle.io/cluster-display-name',
-  CLUSTER_NAME:         'management.cattle.io/cluster-name',
-  BUNDLE_ID:            'fleet.cattle.io/bundle-id',
-  BUNDLE_NAME:          'fleet.cattle.io/bundle-name',
-  BUNDLE_NAMESPACE:     'fleet.cattle.io/bundle-namespace',
-  MANAGED:              'fleet.cattle.io/managed',
-  CLUSTER_NAMESPACE:    'fleet.cattle.io/cluster-namespace',
-  CLUSTER:              'fleet.cattle.io/cluster',
-  CREATED_BY_USER_ID:   'fleet.cattle.io/created-by-user-id',
-  CREATED_BY_USER_NAME: 'fleet.cattle.io/created-by-display-name',
+  REPO_NAME:                    'fleet.cattle.io/repo-name',
+  HELM_NAME:                    'fleet.cattle.io/fleet-helm-name',
+  CLUSTER_DISPLAY_NAME:         'management.cattle.io/cluster-display-name',
+  CLUSTER_NAME:                 'management.cattle.io/cluster-name',
+  BUNDLE_ID:                    'fleet.cattle.io/bundle-id',
+  BUNDLE_NAME:                  'fleet.cattle.io/bundle-name',
+  BUNDLE_NAMESPACE:             'fleet.cattle.io/bundle-namespace',
+  MANAGED:                      'fleet.cattle.io/managed',
+  CLUSTER_NAMESPACE:            'fleet.cattle.io/cluster-namespace',
+  CLUSTER:                      'fleet.cattle.io/cluster',
+  CREATED_BY_USER_ID:           'fleet.cattle.io/created-by-user-id',
+  CREATED_BY_USER_NAME:         'fleet.cattle.io/created-by-display-name',
+  OCI_STORAGE_SECRET_DEFAULT:   'ui-default-oci-registry',
+  OCI_STORAGE_SECRET_GENERATED: 'fleet.cattle.io/bundle-internal-secret',
 };
 
 export const RBAC = { PRODUCT: 'management.cattle.io/ui-product' };

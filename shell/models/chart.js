@@ -1,6 +1,6 @@
 import { compatibleVersionsFor, APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, _FLAGGED, HIDE_SIDE_NAV
+  REPO_TYPE, REPO, CHART, VERSION, _FLAGGED, HIDE_SIDE_NAV, CATEGORY, TAG
 } from '@shell/config/query-params';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -135,6 +135,7 @@ export default class Chart extends SteveModel {
       ];
       const footerItems = [
         {
+          type:        REPO,
           icon:        'icon-repository-alt',
           iconTooltip: { key: 'tableHeaders.repoName' },
           labels:      [this.repoNameDisplay]
@@ -143,6 +144,7 @@ export default class Chart extends SteveModel {
 
       if (this.categories.length) {
         footerItems.push( {
+          type:        CATEGORY,
           icon:        'icon-category-alt',
           iconTooltip: { key: 'generic.category' },
           labels:      this.categories
@@ -151,6 +153,7 @@ export default class Chart extends SteveModel {
 
       if (this.tags.length) {
         footerItems.push({
+          type:        TAG,
           icon:        'icon-tag-alt',
           iconTooltip: { key: 'generic.tags' },
           labels:      this.tags

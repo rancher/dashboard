@@ -22,7 +22,7 @@ export class FleetClusterRegistrationTokenListPagePo extends BaseListPagePo {
 
     const sideNav = new ProductNavPo();
 
-    sideNav.navToSideMenuGroupByLabel('Advanced');
+    sideNav.navToSideMenuGroupByLabel('Resources');
     sideNav.navToSideMenuEntryByLabel('Cluster Registration Tokens');
   }
 }

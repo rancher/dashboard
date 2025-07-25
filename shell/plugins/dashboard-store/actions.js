@@ -796,9 +796,9 @@ export default {
 
   // Forget a type in the store
   // Remove all entries for that type and stop watching it
-  forgetType({ commit, dispatch, state }, type) {
+  forgetType({ commit, dispatch, state }, type, compareWatches) {
     state.started
-      .filter((entry) => entry.type === type)
+      .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type)
       .forEach((entry) => dispatch('unwatch', entry));
 
     commit('forgetType', type);

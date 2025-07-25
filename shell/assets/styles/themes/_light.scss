@@ -483,6 +483,7 @@ BODY, .theme-light {
   --tabbed-container-bg        : #{mix($light, $lighter, 15%)};
 
   --yaml-editor-bg             : #{$lighter};
+  --drawer-body-bg             : #{$lighter};
 
   --diff-border                : var(--border);
   --diff-header-bg             : var(--nav-bg);

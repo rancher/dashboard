@@ -289,6 +289,9 @@ export default {
       }
     },
 
+    refresh() {
+      this.$refs.yamleditor.refresh();
+    }
   }
 };
 </script>

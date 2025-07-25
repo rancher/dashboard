@@ -13,7 +13,7 @@ export default defineComponent({
      * The checkbox value.
      */
     value: {
-      type:    [Boolean, Array, String] as PropType<boolean | boolean[] | string>,
+      type:    [Boolean, Array, String] as PropType<boolean | boolean[] | string | string[]>,
       default: false
     },
 
@@ -245,7 +245,7 @@ export default defineComponent({
     /**
      * Determines if there are multiple values for the checkbox.
      */
-    isMulti(value: boolean | boolean[] | string): value is boolean[] {
+    isMulti(value: boolean | boolean[] | string | string[]): value is boolean[] {
       return Array.isArray(value);
     },
 

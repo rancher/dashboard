@@ -68,6 +68,10 @@ export default {
     extensionParams: {
       type:    Object,
       default: null
+    },
+    useHash: {
+      type:    Boolean,
+      default: true
     }
   },
 
@@ -233,6 +237,7 @@ export default {
     v-bind="$attrs"
     :default-tab="defaultTab"
     :resource="value"
+    :use-hash="useHash"
     @changed="tabChange"
   >
     <slot />

@@ -5,6 +5,20 @@ export function install(router, context) {
   router.beforeEach(async(to, from, next) => await authenticate(to, from, next, context));
 }
 
+/**
+ * Generate an object that includes both the v3User and the me data
+ * @param {*} v3User V3 user information
+ * @param {*} me Me user data
+ * @returns User info to be passed to `isLoggedIn`
+ */
+function getUserObject(v3User, me) {
+  return {
+    id: me.id,
+    me,
+    v3User,
+  };
+}
+
 export async function authenticate(to, from, next, { store }) {
   if (!routeRequiresAuthentication(to)) {
     return next();
@@ -28,7 +42,7 @@ export async function authenticate(to, from, next, { store }) {
     } else if ( fromHeader === 'true' ) {
       const me = await findMe(store);
 
-      isLoggedIn(store, me);
+      await isLoggedIn(store, getUserObject(v3User, me));
     } else if ( fromHeader === 'false' ) {
       notLoggedIn(store, next, to);
 
@@ -38,7 +52,7 @@ export async function authenticate(to, from, next, { store }) {
       try {
         const me = await findMe(store);
 
-        isLoggedIn(store, me);
+        await isLoggedIn(store, getUserObject(v3User, me));
       } catch (e) {
         const status = e?._status;
 

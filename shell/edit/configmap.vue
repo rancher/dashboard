@@ -105,7 +105,10 @@ export default {
       :register-before-hook="registerBeforeHook"
     />
 
-    <Tabbed :side-tabs="true">
+    <Tabbed
+      :side-tabs="true"
+      :use-hash="useTabbedHash"
+    >
       <Tab
         name="data"
         :label="t('configmap.tabs.data.label')"

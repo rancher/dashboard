@@ -44,5 +44,10 @@ export default defineComponent({
       type:    Boolean,
       default: false,
     },
+
+    useTabbedHash: {
+      type:    Boolean,
+      default: true
+    }
   },
 });

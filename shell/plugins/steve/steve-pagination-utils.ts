@@ -500,16 +500,25 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // Check if the API supports filtering by this field
               this.validateField(validateFields, schema, field.field);
 
-              const value = encodeURIComponent(field.value);
+              const encodedValue = encodeURIComponent(field.value);
 
               // = exact match (equals + exact)
               // ~ partial match (equals + !exact)
               // != not exact match (!equals + exact)
               // !~ not partial match (!equals + !exact)
               const operator = `${ field.equals ? '' : '!' }${ field.exact ? '=' : '~' }`;
-              const quotedValue = StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(value) ? value : `"${ value }"`;
+              let safeValue;
 
-              return `${ this.convertArrayPath(field.field) }${ operator }${ quotedValue }`;
+              if (StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(field.value)) {
+                // Does not contain any protected characters, send as is
+                safeValue = encodedValue;
+              } else {
+                // Contains protected characters, wrap in quotes to ensure backend doesn't fail
+                // - replace reserver `"`/`%22` with empty string - see https://github.com/rancher/dashboard/issues/14549 for improvement
+                safeValue = `"${ encodedValue.replaceAll('%22', '') }"`;
+              }
+
+              return `${ this.convertArrayPath(field.field) }${ operator }${ safeValue }`;
             }
 
             return field.value;
@@ -658,19 +667,19 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
       }
     }
   },
-  // Disabled due to https://github.com/rancher/dashboard/issues/14493
-  // management: {
-  //   resources: {
-  //     enableAll:  false,
-  //     enableSome: {
-  //       enabled: [
-  //         { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] },
-  //         { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
-  //       ],
-  //       generic: false,
-  //     }
-  //   }
-  // }
+  management: {
+    resources: {
+      enableAll:  false,
+      enableSome: {
+        enabled: [
+          // { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
+          // { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
+          { resource: CATALOG.APP, context: ['branding'] },
+        ],
+        generic: false,
+      }
+    }
+  }
 };
 
 export default new StevePaginationUtils();

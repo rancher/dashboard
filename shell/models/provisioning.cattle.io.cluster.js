@@ -719,7 +719,7 @@ export default class ProvCluster extends SteveModel {
   async copyKubeConfig() {
     await this.mgmt?.copyKubeConfig();
 
-    this.$dispatch('growl/success', {
+    this.$dispatch('growl/info', {
       title:   this.t('cluster.copiedConfig'),
       timeout: 3000,
     }, { root: true });
@@ -736,7 +736,7 @@ export default class ProvCluster extends SteveModel {
   async snapshotAction() {
     try {
       await this.takeSnapshot();
-      this.$dispatch('growl/success', {
+      this.$dispatch('growl/info', {
         title:   this.$rootGetters['i18n/t']('cluster.snapshot.successTitle', { name: this.nameDisplay }),
         message: this.$rootGetters['i18n/t']('cluster.snapshot.successMessage', { name: this.nameDisplay })
       }, { root: true });
@@ -756,7 +756,7 @@ export default class ProvCluster extends SteveModel {
     const successful = res.filter( (x) => x.status === 'fulfilled').length;
 
     if ( successful ) {
-      this.$dispatch('growl/success', {
+      this.$dispatch('growl/info', {
         title:   this.$rootGetters['i18n/t']('cluster.snapshot.bulkSuccessTitle'),
         message: this.$rootGetters['i18n/t']('cluster.snapshot.bulkSuccessMessage', { count: successful })
       }, { root: true });

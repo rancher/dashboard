@@ -49,6 +49,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    addClass: {
+      type:    String,
+      default: '',
+    },
     addIcon: {
       type:    String,
       default: '',
@@ -410,6 +414,7 @@ export default {
           <button
             type="button"
             class="btn role-tertiary add"
+            :class="[addClass]"
             :disabled="loading || disableAdd"
             :data-testid="`${componentTestid}-button`"
             :aria-label="_addLabel"

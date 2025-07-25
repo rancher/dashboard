@@ -128,7 +128,7 @@ export default {
       color="info"
       class="mb-20"
     >
-      {{ t('fleet.fleetSummary.noClustersGitRepo') }}
+      {{ t('fleet.fleetSummary.noClusters.gitRepo') }}
     </Banner>
     <ResourceTabs
       :value="value"

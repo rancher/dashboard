@@ -1,10 +1,9 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import SelectPo from '@/cypress/e2e/po/components/select.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import RcItemCardPo from '@/cypress/e2e/po/components/rc-item-card.po';
-import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
+import FilterPanelPo from '@/cypress/e2e/po/components/filter-panel.po';
 
 export class ChartsPage extends PagePo {
   private static createPath(clusterId: string) {
@@ -27,28 +26,23 @@ export class ChartsPage extends PagePo {
     sideNav.navToSideMenuGroupByLabel('Apps');
   }
 
-  chartsCarousel() {
-    return this.self().find('[data-testid="charts-carousel"]');
-  }
-
-  chartsCarouselSlides() {
-    return this.chartsCarousel().get('[id="slide-track"] > div');
-  }
-
-  chartsFilterInput() {
+  chartsSearchFilterInput() {
     return this.self().find('[data-testid="charts-filter-input"]');
   }
 
-  chartsFilterCategoriesSelect() {
-    return new SelectPo(this.self().find('[data-testid="charts-filter-category"]'));
+  getFilterOptionByName(name: string) {
+    return new FilterPanelPo(this.self()).getFilterByName(name);
   }
 
-  chartsFilterReposSelect() {
-    return new SelectPo(this.self().find('[data-testid="charts-filter-repos"]'));
+  getAllOptionsByGroupName(name: string) {
+    return new FilterPanelPo(this.self()).getFiltersByGroupName(name);
   }
 
-  chartsShowDeprecatedFilterCheckbox() {
-    return new CheckboxInputPo(this.self().find('[data-testid="charts-show-deprecated-filter"]'));
+  resetAllFilters() {
+    const filterPanel = new FilterPanelPo(this.self());
+
+    filterPanel.assertAllCheckboxesUnchecked();
+    this.chartsSearchFilterInput().clear();
   }
 
   getChartByName(name: string): RcItemCardPo {

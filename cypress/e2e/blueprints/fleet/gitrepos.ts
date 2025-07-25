@@ -9,6 +9,7 @@ export const gitRepoCreateRequest = {
     repo:         'https://github.com/rancher/fleet-test-data.git',
     branch:       'dashboard-e2e-basic',
     paths:        ['simple'],
+    bundles:      [],
     correctDrift: { enabled: false },
     targets:      [
       { clusterName: 'some-fake-cluster-id' }

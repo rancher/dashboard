@@ -63,7 +63,7 @@
     "@aws-sdk/client-kms": "3.8.1",
     "@novnc/novnc": "1.2.0",
     "@popperjs/core": "2.11.8",
-    "@rancher/icons": "2.0.36",
+    "@rancher/icons": "2.0.37",
     "@vee-validate/zod": "4.15.0",
     "ansi_up": "5.0.0",
     "axios": "1.9.0",
