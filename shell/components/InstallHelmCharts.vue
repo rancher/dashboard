@@ -11,7 +11,6 @@ import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
 
 import { isPrerelease } from '@shell/utils/version';
-import { nextTick } from 'vue';
 import { set } from '@shell/utils/object';
 import { defaultCmdOpts as defaultOpts } from '@shell/pages/c/_cluster/apps/charts/install.vue';
 
