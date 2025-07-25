@@ -41,8 +41,6 @@ export default {
       mgmtClusters:    this.$fetchType(MANAGEMENT.CLUSTER),
     };
 
-    // this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
-
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
       hash.etcdSnapshots = this.$fetchType(SNAPSHOT);
     }
