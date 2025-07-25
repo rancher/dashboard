@@ -3,12 +3,14 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 import { mapGetters } from 'vuex';
+import { Form } from 'vee-validate';
 
 export default {
-  name:   'Workload',
-  emits:  ['input'],
-  mixins: [CreateEditView, FormValidation, WorkLoadMixin], // The order here is important since WorkLoadMixin contains some FormValidation configuration
-  props:  {
+  name:       'Workload',
+  emits:      ['input'],
+  components: { Form },
+  mixins:     [CreateEditView, FormValidation, WorkLoadMixin], // The order here is important since WorkLoadMixin contains some FormValidation configuration
+  props:      {
     value: {
       type:     Object,
       required: true,
@@ -85,8 +87,9 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <form
+  <Form
     v-else
+    v-slot="{ errors: asd, meta: asd2 }"
     class="filled-height"
   >
     <CruResource
@@ -231,6 +234,7 @@ export default {
                       :label="t('workload.container.image')"
                       :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
                       :rules="fvGetAndReportPathRules('image')"
+                      :veerules="(value) => value && value.trim() ? true : 'This is required'"
                     />
                   </div>
                   <div class="col span-6">
@@ -613,7 +617,7 @@ export default {
         </template>
       </Tabbed>
     </CruResource>
-  </form>
+  </Form>
 </template>
 
 <style lang='scss'>
