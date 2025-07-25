@@ -38,7 +38,8 @@ const defaultConfig = Object.freeze({
   vmLabels:                      '',
   username:                      'docker-user',
   setInternalFirewallRulePrefix: true,
-  setExternalFirewallRulePrefix: false
+  setExternalFirewallRulePrefix: false,
+  preemptible:                   false
 });
 
 export default {
@@ -537,6 +538,13 @@ export default {
           class="span-3"
         />
       </div>
+      <Checkbox
+        v-model:value="value.preemptible"
+        :mode="mode"
+        :label="t('cluster.machineConfig.gce.preemptible.label')"
+        :tooltip="t('cluster.machineConfig.gce.preemptible.tooltip')"
+        class="mt-20"
+      />
 
       <ArrayList
         v-model:value="scopes"
