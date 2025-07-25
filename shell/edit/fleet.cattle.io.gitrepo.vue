@@ -23,7 +23,9 @@ import FleetClusterTargets from '@shell/components/fleet/FleetClusterTargets/ind
 import { toSeconds } from '@shell/utils/duration';
 import FleetGitRepoPaths from '@shell/components/fleet/FleetGitRepoPaths.vue';
 import FleetOCIStorageSecret from '@shell/components/fleet/FleetOCIStorageSecret.vue';
-import { DEFAULT_POLLING_INTERVAL, MINIMUM_POLLING_INTERVAL } from '@shell/models/fleet-application';
+
+const MINIMUM_POLLING_INTERVAL = 15;
+const DEFAULT_POLLING_INTERVAL = 60;
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
@@ -636,7 +638,7 @@ export default {
             <Banner
               v-if="showPollingIntervalWarning"
               color="warning"
-              label-key="fleet.gitRepo.polling.pollingInterval.minimumValuewarning"
+              label-key="fleet.gitRepo.polling.pollingInterval.minimumValueWarning"
               data-testid="gitRepo-pollingInterval-minimumValueWarning"
             />
             <Banner
