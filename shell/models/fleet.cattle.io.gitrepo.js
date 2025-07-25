@@ -305,11 +305,7 @@ export default class GitRepo extends SteveModel {
   }
 
   get bundles() {
-    const all = this.$getters['all'](FLEET.BUNDLE);
-
-    return all.filter((bundle) => bundle.repoName === this.name &&
-      bundle.namespace === this.namespace &&
-      bundle.namespacedName.startsWith(`${ this.namespace }:${ this.name }`));
+    return this.$getters['matching'](FLEET.BUNDLE, { 'fleet.cattle.io/repo-name': this.name }, this.namespace);
   }
 
   /**
