@@ -34,11 +34,16 @@ export default {
     }
   },
   data() {
+    return {
+      serviceName: '',
+      servicePort: '',
+    };
+  },
+  created() {
     const backend = get(this.value.spec, this.value.defaultBackendPath);
-    const serviceName = get(backend, this.value.serviceNamePath) || '';
-    const servicePort = get(backend, this.value.servicePortPath) || '';
 
-    return { serviceName, servicePort };
+    this.serviceName = get(backend, this.value.serviceNamePath) || '';
+    this.servicePort = get(backend, this.value.servicePortPath) || '';
   },
   computed: {
     isView() {
