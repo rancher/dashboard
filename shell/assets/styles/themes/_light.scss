@@ -408,6 +408,7 @@ BODY, .theme-light {
 
   --modal-bg                   : #{$lightest};
   --modal-border               : #{$dark};
+  --subtle-overlay-bg          : #{rgba($lighter, 0.75)};
   --overlay-bg                 : rgba(38, 42, 64, 0.35);
   --shadow                     : #{rgba($medium, 0.85)};
 

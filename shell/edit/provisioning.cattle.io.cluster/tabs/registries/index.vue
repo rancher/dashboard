@@ -78,7 +78,6 @@ export default {
     <div class="row">
       <Checkbox
         :value="showCustomRegistryInput"
-        class="mb-20"
         :label="t('cluster.privateRegistry.label')"
         data-testid="registries-enable-checkbox"
         @update:value="$emit('custom-registry-changed', $event)"
@@ -86,7 +85,7 @@ export default {
     </div>
     <div
       v-if="showCustomRegistryInput"
-      class="row"
+      class="row mt-20"
     >
       <div class="col span-6">
         <LabeledInput
@@ -114,7 +113,6 @@ export default {
       </div>
     </div>
     <div
-      v-if="showCustomRegistryInput"
       class="row"
     >
       <AdvancedSection
