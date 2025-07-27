@@ -158,6 +158,7 @@ generic:
   showLess: Show less
   showMore: Show more
   opensInNewTab: Opens in a new tab
+  missingInfoMessage: The info is missing
   
 tabs:
   addItem: Add a new tab item

@@ -177,6 +177,13 @@ export default {
       }
 
       return day(date).format('MMM D, YYYY');
+    },
+    versionDateTooltip(date) {
+      if (date === ZERO_TIME) {
+        return this.t('generic.missingInfoMessage');
+      }
+
+      return null;
     }
   },
 };
@@ -370,6 +377,7 @@ export default {
               />
             </div>
             <p
+              v-clean-tooltip="versionDateTooltip(vers.created)"
               class="version-date"
             >
               {{ formatVersionDate(vers.created) }}
