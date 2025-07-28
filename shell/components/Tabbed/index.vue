@@ -253,7 +253,11 @@ export default {
 
 <template>
   <div
-    :class="{'side-tabs': !!sideTabs, 'tabs-only': tabsOnly }"
+    class="tabbed-container"
+    :class="{
+      'side-tabs': !!sideTabs,
+      'tabs-only': tabsOnly
+    }"
     data-testid="tabbed"
   >
     <ul
@@ -369,6 +373,10 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.tabbed-container {
+  min-width: fit-content;
+}
+
 .tabs {
   list-style-type: none;
   margin: 0;
