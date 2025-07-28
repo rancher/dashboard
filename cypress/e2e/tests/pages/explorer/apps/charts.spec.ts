@@ -40,7 +40,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     // Set up intercept for the network request triggered by $fetch
     cy.intercept('GET', `**${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartDataAfterSelect');
 
-    chartPage.selectVersion('106.0.2+up4.10.0-rancher.6');
+    chartPage.selectVersion('105.2.1+up4.10.0');
 
     cy.wait('@fetchChartDataAfterSelect').its('response.statusCode').should('eq', 200);
   });
