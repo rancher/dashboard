@@ -27,13 +27,15 @@ export default {
       type:    String,
       default: 'ingress'
     },
+    useTabbedHash: {
+      type:    Boolean,
+      default: undefined
+    }
   },
-  data() {
+  created() {
     if (!this.value.spec[this.type]) {
       this.value.spec[this.type] = [];
     }
-
-    return {};
   },
   methods: {
     addPolicyRule() {
@@ -42,7 +44,7 @@ export default {
     removePolicyRule(idx) {
       removeAt(this.value.spec[this.type], idx);
     },
-    policyRouleLabel(idx) {
+    policyRuleLabel(idx) {
       return this.t('networkpolicy.rules.ruleLabel', { index: idx + 1 });
     }
   }
@@ -56,6 +58,7 @@ export default {
         <Tabbed
           :side-tabs="true"
           :show-tabs-add-remove="mode !== 'view'"
+          :use-hash="useTabbedHash"
           @addTab="addPolicyRule"
           @removeTab="removePolicyRule"
         >
@@ -63,7 +66,7 @@ export default {
             v-for="(policyRule, idx) in value.spec[type]"
             :key="idx"
             :name="'rule-' + type + idx"
-            :label="policyRouleLabel(idx)"
+            :label="policyRuleLabel(idx)"
             :show-header="false"
             class="container-group"
           >

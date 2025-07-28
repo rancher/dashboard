@@ -319,7 +319,7 @@ export default {
     }
 
     if (props.descriptionKey) {
-      description.value = get(v, props.descriptionKey);
+      description.value = get(v.value, props.descriptionKey);
     } else {
       description.value = metadata?.annotations?.[DESCRIPTION];
     }
@@ -429,6 +429,7 @@ export default {
 
 <template>
   <div class="row mb-20">
+    <slot name="project-selector" />
     <div
       v-if="namespaced && !nameNsHidden && createNamespace"
       :data-testid="componentTestid + '-namespace-create'"

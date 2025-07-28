@@ -7,6 +7,7 @@ import paginationUtils from '@shell/utils/pagination-utils';
 import debounce from 'lodash/debounce';
 import { PaginationParamFilter, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
+import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 
 /**
  * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace
@@ -124,7 +125,7 @@ export default {
         context: this.context,
       };
 
-      return this.$store.getters[`${ this.inStore }/paginationEnabled`]?.(args);
+      return this.$store.getters[`${ this.overrideInStore || this.inStore }/paginationEnabled`]?.(args);
     }
   },
 
@@ -199,7 +200,7 @@ export default {
         return;
       }
 
-      return this.$store.getters[`${ this.inStore }/havePage`](this.resource);
+      return this.$store.getters[`${ this.overrideInStore || this.inStore }/havePage`](this.resource);
     },
 
     /**
@@ -279,12 +280,12 @@ export default {
           projectsOrNamespaces,
           filters
         } = stevePaginationUtils.createParamsFromNsFilter({
-          allNamespaces:                this.$store.getters[`${ this.currentProduct?.inStore }/all`](NAMESPACE),
-          selection:                    neu,
-          isAllNamespaces:              this.isAllNamespaces,
-          isLocalCluster:               this.$store.getters['currentCluster'].isLocal,
-          showDynamicRancherNamespaces: this.showDynamicRancherNamespaces,
-          productHidesSystemNamespaces: this.productHidesSystemNamespaces,
+          allNamespaces:                 this.$store.getters[`${ this.currentProduct?.inStore }/all`](NAMESPACE),
+          selection:                     neu,
+          isAllNamespaces:               this.isAllNamespaces,
+          isLocalCluster:                this.$store.getters['currentCluster'].isLocal,
+          showReservedRancherNamespaces: this.showDynamicRancherNamespaces,
+          productHidesSystemNamespaces:  this.productHidesSystemNamespaces,
         });
 
         this.requestFilters.filters = filters;
@@ -350,4 +351,19 @@ export default {
       });
     }
   },
+
+  unmounted() {
+    if (this.havePaginated) {
+      // of type @STEVE_WATCH_PARAMS
+      const watchArgs = {
+        type: this.resource,
+        mode: STEVE_WATCH_MODE.RESOURCE_CHANGES,
+      };
+
+      this.$store.dispatch(`${ this.overrideInStore || this.inStore }/forgetType`, this.resource, (watchParams) => {
+        return watchParams.type === watchArgs.type &&
+        watchParams.mode === watchArgs.type.mode;
+      });
+    }
+  }
 };

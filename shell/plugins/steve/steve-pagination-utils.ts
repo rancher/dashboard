@@ -15,7 +15,9 @@ import {
   HPA,
   SECRET
 } from '@shell/config/types';
-import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE } from '@shell/config/labels-annotations';
+import {
+  CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY
+} from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 import { PaginationSettingsStore } from '@shell/types/resources/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
@@ -183,6 +185,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     ],
     [CONFIG_MAP]: [
       { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
+    ],
+    [SECRET]: [
+      { field: `metadata.labels[${ UI_PROJECT_SECRET }]` },
+      { field: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]` },
     ],
     [NAMESPACE]: [
       { field: 'metadata.labels[field.cattle.io/projectId]' }
@@ -454,7 +460,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
     // First check in our hardcoded list of supported filters
     if (
-      process.env.NODE_ENV === 'dev' &&
       !!schema &&
       [
         StevePaginationUtils.VALID_FIELDS[''], // Global
@@ -500,16 +505,29 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // Check if the API supports filtering by this field
               this.validateField(validateFields, schema, field.field);
 
-              const value = encodeURIComponent(field.value);
+              // we're just checking that the field exists, so there's no value
+              if (field.exists) {
+                return field.field;
+              }
+              const encodedValue = encodeURIComponent(field.value || '');
 
               // = exact match (equals + exact)
               // ~ partial match (equals + !exact)
               // != not exact match (!equals + exact)
               // !~ not partial match (!equals + !exact)
               const operator = `${ field.equals ? '' : '!' }${ field.exact ? '=' : '~' }`;
-              const quotedValue = StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(value) ? value : `"${ value }"`;
+              let safeValue;
 
-              return `${ this.convertArrayPath(field.field) }${ operator }${ quotedValue }`;
+              if (StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(field.value || '')) {
+                // Does not contain any protected characters, send as is
+                safeValue = encodedValue;
+              } else {
+                // Contains protected characters, wrap in quotes to ensure backend doesn't fail
+                // - replace reserver `"`/`%22` with empty string - see https://github.com/rancher/dashboard/issues/14549 for improvement
+                safeValue = `"${ encodedValue.replaceAll('%22', '') }"`;
+              }
+
+              return `${ this.convertArrayPath(field.field) }${ operator }${ safeValue }`;
             }
 
             return field.value;
@@ -658,19 +676,20 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
       }
     }
   },
-  // Disabled due to https://github.com/rancher/dashboard/issues/14493
-  // management: {
-  //   resources: {
-  //     enableAll:  false,
-  //     enableSome: {
-  //       enabled: [
-  //         { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] },
-  //         { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
-  //       ],
-  //       generic: false,
-  //     }
-  //   }
-  // }
+  management: {
+    resources: {
+      enableAll:  false,
+      enableSome: {
+        enabled: [
+          // { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
+          // { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
+          { resource: CATALOG.APP, context: ['branding'] },
+          SECRET
+        ],
+        generic: false,
+      }
+    }
+  }
 };
 
 export default new StevePaginationUtils();

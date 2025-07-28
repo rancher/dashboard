@@ -344,7 +344,10 @@ export default {
       :rules="{ name: fvGetAndReportPathRules('metadata.name'), namespace: [], description: [] }"
     />
 
-    <Tabbed :side-tabs="true">
+    <Tabbed
+      :side-tabs="true"
+      :use-hash="useTabbedHash"
+    >
       <Tab
         v-if="checkTypeIs('ExternalName')"
         name="define-external-name"

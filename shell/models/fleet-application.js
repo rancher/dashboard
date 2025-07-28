@@ -1,5 +1,4 @@
-import { convert, matching, convertSelectorObj } from '@shell/utils/selector';
-import jsyaml from 'js-yaml';
+import { matching, convertSelectorObj } from '@shell/utils/selector';
 import isEmpty from 'lodash/isEmpty';
 import { escapeHtml } from '@shell/utils/string';
 import { FLEET, MANAGEMENT } from '@shell/config/types';
@@ -54,20 +53,6 @@ export default class FleetApplication extends SteveModel {
     }
 
     super.goToClone();
-  }
-
-  forceUpdate(resources = [this]) {
-    this.$dispatch('promptModal', {
-      componentProps: { repositories: resources },
-      component:      'GitRepoForceUpdateDialog'
-    });
-  }
-
-  forceUpdateBulk(resources) {
-    this.$dispatch('promptModal', {
-      componentProps: { repositories: resources },
-      component:      'GitRepoForceUpdateDialog'
-    });
   }
 
   get state() {
@@ -136,85 +121,11 @@ export default class FleetApplication extends SteveModel {
   }
 
   get targetInfo() {
-    let mode = null;
-    let cluster = null;
-    let clusterGroup = null;
-    let advanced = null;
-
-    const targets = this.spec.targets || [];
-
-    advanced = jsyaml.dump(targets);
-
-    if (advanced === '[]\n') {
-      advanced = `# - name:
-#  clusterSelector:
-#    matchLabels:
-#     foo: bar
-#    matchExpressions:
-#     - key: foo
-#       op: In
-#       values: [bar, baz]
-#  clusterGroup: foo
-#  clusterGroupSelector:
-#    matchLabels:
-#     foo: bar
-#    matchExpressions:
-#     - key: foo
-#       op: In
-#       values: [bar, baz]
-`;
-    }
-
-    if (this.metadata.namespace === 'fleet-local') {
-      mode = 'local';
-    } else if (!targets.length) {
-      mode = 'none';
-    } else if (targets.length === 1) {
-      const target = targets[0];
-
-      if (Object.keys(target).length > 1) {
-        // There are multiple properties in a single target, so use the 'advanced' mode
-        // (otherwise any existing content is nuked for what we provide)
-        mode = 'advanced';
-      } else if (target.clusterGroup) {
-        clusterGroup = target.clusterGroup;
-
-        if (!mode) {
-          mode = 'clusterGroup';
-        }
-      } else if (target.clusterName) {
-        mode = 'cluster';
-        cluster = target.clusterName;
-      } else if (target.clusterSelector) {
-        if (Object.keys(target.clusterSelector).length === 0) {
-          mode = 'all';
-        } else {
-          const expressions = convert(target.clusterSelector.matchLabels, target.clusterSelector.matchExpressions);
-
-          if (expressions.length === 1 &&
-            expressions[0].key === FLEET_ANNOTATIONS.CLUSTER_NAME &&
-            expressions[0].operator === 'In' &&
-            expressions[0].values.length === 1
-          ) {
-            cluster = expressions[0].values[0];
-            if (!mode) {
-              mode = 'cluster';
-            }
-          }
-        }
-      }
-    }
-
-    if (!mode) {
-      mode = 'advanced';
-    }
+    const mode = FleetUtils.Application.getTargetMode(this.spec.targets || [], this.metadata.namespace);
 
     return {
       mode,
       modeDisplay: this.t(`fleet.gitRepo.targetDisplay."${ mode }"`),
-      cluster,
-      clusterGroup,
-      advanced
     };
   }
 
@@ -250,6 +161,7 @@ export default class FleetApplication extends SteveModel {
 
       return res;
     }, {});
+
     const resources = this.status?.resources?.reduce((acc, resourceInfo) => {
       const { perClusterState, ...resource } = resourceInfo;
 
@@ -312,10 +224,6 @@ export default class FleetApplication extends SteveModel {
     return primaryDisplayStatusFromCount(resourceCounts) || STATES_ENUM.ACTIVE;
   }
 
-  get clustersList() {
-    return this.$getters['all'](FLEET.CLUSTER);
-  }
-
   get authorId() {
     return this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
   }
@@ -351,5 +259,39 @@ export default class FleetApplication extends SteveModel {
 
   get showCreatedBy() {
     return !!this.createdBy;
+  }
+
+  get clustersList() {
+    return this.$getters['all'](FLEET.CLUSTER);
+  }
+
+  get readyClusters() {
+    return this.status?.readyClusters || 0;
+  }
+
+  get meta() {
+    return this.currentRoute()?.meta || {};
+  }
+
+  get _detailLocation() {
+    return {
+      ...super._detailLocation,
+      name: this.meta.detailLocation || super._detailLocation.name
+    };
+  }
+
+  get doneOverride() {
+    return {
+      ...super.listLocation,
+      name: this.meta.doneOverride || super.listLocation.name
+    };
+  }
+
+  get doneRoute() {
+    return this.doneOverride?.name;
+  }
+
+  get parentNameOverride() {
+    return this.$rootGetters['i18n/t'](`typeLabel."${ FLEET.APPLICATION }"`, { count: 1 })?.trim();
   }
 }

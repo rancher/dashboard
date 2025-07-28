@@ -22,6 +22,7 @@ import IconOrSvg from '@shell/components/IconOrSvg';
 import { wait } from '@shell/utils/async';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
 import HeaderPageActionMenu from './HeaderPageActionMenu.vue';
+import NotificationCenter from './NotificationCenter';
 import {
   RcDropdown,
   RcDropdownItem,
@@ -40,6 +41,7 @@ export default {
     ClusterProviderIcon,
     IconOrSvg,
     AppModal,
+    NotificationCenter,
     HeaderPageActionMenu,
     RcDropdown,
     RcDropdownItem,
@@ -645,7 +647,7 @@ export default {
           :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
           role="button"
           tabindex="0"
-          :aria-label="action.label"
+          :aria-label="action.labelKey ? t(action.labelKey) : action.label"
           @shortkey="handleExtensionAction(action, $event)"
           @click="handleExtensionAction(action, $event)"
         >
@@ -653,6 +655,7 @@ export default {
             class="icon icon-lg"
             :icon="action.icon"
             :src="action.svg"
+            :img-alt="action.tooltipKey ? t(action.tooltipKey) : action.labelKey ? t(action.labelKey) : action.label ? action.label : t('generic.imageAlt')"
             color="header"
           />
         </button>
@@ -660,6 +663,7 @@ export default {
 
       <div class="center-self">
         <header-page-action-menu v-if="showPageActions" />
+        <NotificationCenter />
         <rc-dropdown
           v-if="showUserMenu"
           :aria-label="t('nav.userMenu.label')"

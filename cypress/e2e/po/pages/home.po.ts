@@ -5,6 +5,7 @@ import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
 import HomeClusterListPo from '@/cypress/e2e/po/lists/home-cluster-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import NotificationsCenterPo from '@/cypress/e2e/po/components/notification-center.po';
 
 const burgerMenu = new BurgerMenuPo();
 
@@ -49,14 +50,6 @@ export default class HomePagePo extends PagePo {
     return this.changelog().self().find('a');
   }
 
-  restoreAndWait() {
-    const pageActionsPo = new PageActions();
-
-    cy.intercept('PUT', 'v1/userpreferences/*').as('restoreBanners');
-    pageActionsPo.restoreLink().click();
-    cy.wait(['@restoreBanners', '@restoreBanners']);
-  }
-
   toggleBanner() {
     const pageActionsPo = new PageActions();
 
@@ -85,6 +78,10 @@ export default class HomePagePo extends PagePo {
     const simpleBox = new SimpleBoxPo();
 
     return simpleBox.simpleBox().find('.support-link > a').should('be.visible');
+  }
+
+  notificationsCenter() {
+    return new NotificationsCenterPo();
   }
 
   bannerGraphic() {

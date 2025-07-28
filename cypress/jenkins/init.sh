@@ -233,7 +233,7 @@ corral config vars set dashboard_branch "${DASHBOARD_BRANCH}"
 # Disable vai where it doesn't exist or is turn off by default
 case "${RANCHER_IMAGE_TAG}" in
     "v2.7-head" | "v2.8-head" | "v2.9-head" )
-        CYPRESS_TAGS="${CYPRESS_TAGS}+-@vai"
+        CYPRESS_TAGS="${CYPRESS_TAGS}+-@noVai"
         ;;
     *)
 esac

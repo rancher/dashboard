@@ -37,7 +37,7 @@ const requiredSetup = () => {
   };
 };
 
-jest.mock('@pkg/gke/util/gcp');
+jest.mock('@shell/components/google/util/gcp');
 
 describe('gke node pool', () => {
   it('should offer a dropdown of service account options defaulting to null opt', async() => {

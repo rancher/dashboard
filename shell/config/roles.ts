@@ -57,6 +57,7 @@ export const SCOPED_RESOURCES = {
         'Contents',
         'GitRepos',
         'GitRepoRestrictions',
+        'HelmOps',
       ],
     },
     'gitjob.cattle.io': {
@@ -263,7 +264,7 @@ export const SCOPED_RESOURCES = {
         'Jobs',
       ]
     },
-    'cis.cattle.io': {
+    'compliance.cattle.io': {
       resources: [
         'ClusterScans',
         'ClusterScanReports'

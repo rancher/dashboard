@@ -62,6 +62,10 @@ export const settings = {
   'k3s-based-upgrader-uninstall-concurrency': {
     original: '5',
     new:      '10'
+  },
+  'system-agent-upgrader-install-concurrency': {
+    original: '5',
+    new:      '6'
   }
 };
 export const serverUrlLocalhostCases = [

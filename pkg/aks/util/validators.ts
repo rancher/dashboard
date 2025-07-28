@@ -118,7 +118,7 @@ export const ipv4WithCidr = (ctx: any, labelKey: string, clusterPath: string) =>
 export const outboundTypeUserDefined = (ctx: any, labelKey: string, clusterPath: string) => {
   return () :string | undefined => {
     const outboundType = get(ctx, clusterPath) as OutboundType;
-    const loadBalancerSku = get(ctx, 'aksConfig.loadBalancerSku') as LoadBalancerSku;
+    const loadBalancerSku = get(ctx, 'config.loadBalancerSku') as LoadBalancerSku;
 
     if (loadBalancerSku !== 'Standard' && outboundType === 'UserDefinedRouting') {
       return ctx.t('aks.errors.outboundType');

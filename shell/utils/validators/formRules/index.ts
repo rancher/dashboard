@@ -170,17 +170,25 @@ export default function(
 
   const url: Validator = (val: string) => val && !isUrl(val) ? t('validation.setting.serverUrl.url') : undefined;
 
-  const gitRepository: Validator = (url: string) => {
+  const genericUrl: Validator = (val: string) => val && !isUrl(val) ? t('validation.genericUrl') : undefined;
+
+  const urlRepository: Validator = (url: string) => {
     const regexPart1 = /^((http|git|ssh|http(s)|file|\/?)|(git@[\w\.]+))(:(\/\/)?)/gm;
     const regexPart2 = /^([\w\.@\:\/\-]+)([\d\/\w.-]+?)(.git){0,1}(\/)?$/gm;
 
     if (url) {
       const urlPart2 = url.replaceAll(regexPart1, '');
 
-      return !urlPart2 || url === urlPart2 || !regexPart2.test(urlPart2.replaceAll('%20', '')) ? t('validation.git.repository') : undefined;
+      return !urlPart2 || url === urlPart2 || !regexPart2.test(urlPart2.replaceAll('%20', '')) ? t('validation.git.url') : undefined;
     }
 
     return undefined;
+  };
+
+  const ociRegistry: Validator = (url: string) => {
+    const regex = /^oci:\/\/\S+$/gm;
+
+    return !regex.test(url) ? t('validation.oci.url') : undefined;
   };
 
   const alphanumeric: Validator = (val: string) => val && !/^[a-zA-Z0-9]+$/.test(val) ? t('validation.alphanumeric', { key }) : undefined;
@@ -527,7 +535,7 @@ export default function(
     dnsLabelRestricted,
     externalName,
     fileRequired,
-    gitRepository,
+    urlRepository,
     groupsAreValid,
     hostname,
     imageUrl,
@@ -536,12 +544,14 @@ export default function(
     localhost,
     trailingForwardSlash,
     url,
+    genericUrl,
     matching,
     maxLength,
     maxValue,
     minLength,
     minValue,
     noUpperCase,
+    ociRegistry,
     portNumber,
     registryUrl,
     required,

@@ -32,8 +32,6 @@ export const Protected: Story = {
       bar:       'foo',
       something: 'else'
     },
-    protectedKeys: ['foo', 'bar'],
-    toggleFilter:  true,
   },
 };
 
@@ -50,9 +48,7 @@ this is third line`,
       test2: 'this is disabled',
       test3: 'this is disabled',
     },
-    toggleFilter:   true,
     valueMultiline: true,
-    protectedKeys:  ['test1', 'test2', 'test3'],
   },
 };
 
@@ -64,8 +60,7 @@ export const ProtectedSuggestions: Story = {
       bar:   'foo',
       test1: 'this is disabled, try to add a new one with suggestion',
     },
-    toggleFilter:  true,
-    keyOptions:    ['test which will be disabled'],
-    protectedKeys: ['test1', 'test which will be disabled'],
+    keyOptions: ['test which will be disabled'],
+    keyErrors:  { foo: 'Warning' }
   },
 };

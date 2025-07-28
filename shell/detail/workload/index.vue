@@ -89,6 +89,12 @@ export default {
     this.findMatchingIngresses();
   },
 
+  async unmounted() {
+    if (this.podSchema) {
+      await this.value.unWatchPods();
+    }
+  },
+
   data() {
     return {
       servicesInNamespace:             [],
@@ -401,7 +407,7 @@ export default {
             :detail-url="WORKLOAD_METRICS_DETAIL_URL"
             :summary-url="WORKLOAD_METRICS_SUMMARY_URL"
             :vars="graphVars"
-            graph-height="550px"
+            graph-height="600px"
           />
         </template>
       </Tab>
@@ -417,7 +423,7 @@ export default {
             :detail-url="WORKLOAD_PROJECT_METRICS_DETAIL_URL"
             :summary-url="WORKLOAD_PROJECT_METRICS_SUMMARY_URL"
             :vars="graphVars"
-            graph-height="550px"
+            graph-height="600px"
           />
         </template>
       </Tab>

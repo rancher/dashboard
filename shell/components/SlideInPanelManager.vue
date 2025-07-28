@@ -1,10 +1,12 @@
 <script lang="ts" setup>
-import { computed, watch } from 'vue';
+import { computed, onBeforeUnmount, watch } from 'vue';
 import { useStore } from 'vuex';
 import {
   DEFAULT_FOCUS_TRAP_OPTS,
   useWatcherBasedSetupFocusTrapWithDestroyIncluded
 } from '@shell/composables/focusTrap';
+import { isEqual } from 'lodash';
+import { useRouter } from 'vue-router';
 
 const HEADER_HEIGHT = 55;
 
@@ -15,6 +17,11 @@ const currentComponent = computed(() => store.getters['slideInPanel/component'])
 const currentProps = computed(() => store.getters['slideInPanel/componentProps']);
 
 const panelTop = computed(() => {
+  // Some components like the ResourceDetailDrawer are designed to take up the full height of the viewport so we want to be able to specify the top.
+  if (currentProps?.value?.top) {
+    return currentProps?.value?.top;
+  }
+
   const banner = document.getElementById('banner-header');
   let height = HEADER_HEIGHT;
 
@@ -25,13 +32,23 @@ const panelTop = computed(() => {
   return `${ height }px`;
 });
 
-const panelHeight = computed(() => `calc(100vh - ${ panelTop?.value })`);
+// Some components like the ResourceDetailDrawer are designed to take up the full height of the viewport so we want to be able to specify the height.
+const panelHeight = computed(() => (currentProps?.value?.height) ? (currentProps?.value?.height) : `calc(100vh - ${ panelTop?.value })`);
 const panelWidth = computed(() => currentProps?.value?.width || '33%');
 const panelRight = computed(() => (isOpen?.value ? '0' : `-${ panelWidth?.value }`));
-const panelZIndex = computed(() => `${ (isOpen?.value ? 1 : 2) * (currentProps?.value?.zIndex ?? 1000) }`);
 
 const showHeader = computed(() => currentProps?.value?.showHeader ?? true);
 const panelTitle = showHeader.value ? computed(() => currentProps?.value?.title || 'Details') : null;
+const closeOnRouteChange = computed(() => {
+  const propsCloseOnRouteChange = currentProps?.value.closeOnRouteChange;
+
+  if (!propsCloseOnRouteChange) {
+    return ['name', 'params', 'hash', 'query'];
+  }
+
+  return propsCloseOnRouteChange;
+});
+const router = useRouter();
 
 watch(
   /**
@@ -75,14 +92,32 @@ watch(
 );
 
 watch(
-  () => (store as any).$router?.currentRoute,
-  () => {
-    if (isOpen?.value && currentProps?.value.closeOnRouteChange !== false) {
+  () => router?.currentRoute?.value,
+  (newValue, oldValue) => {
+    if (!isOpen?.value) {
+      return;
+    }
+
+    if (closeOnRouteChange.value.includes('name') && !isEqual(newValue?.name, oldValue?.name)) {
+      closePanel();
+    }
+
+    if (closeOnRouteChange.value.includes('params') && !isEqual(newValue?.params, oldValue?.params)) {
+      closePanel();
+    }
+
+    if (closeOnRouteChange.value.includes('hash') && !isEqual(newValue?.hash, oldValue?.hash)) {
+      closePanel();
+    }
+
+    if (closeOnRouteChange.value.includes('query') && !isEqual(newValue?.query, oldValue?.query)) {
       closePanel();
     }
   },
   { deep: true }
 );
+
+onBeforeUnmount(closePanel);
 
 function closePanel() {
   store.commit('slideInPanel/close');
@@ -102,7 +137,7 @@ function closePanel() {
         :class="{ 'slide-in-glass-open': isOpen }"
         @click="closePanel"
       />
-      <div
+      <aside
         class="slide-in"
         :class="{ 'slide-in-open': isOpen }"
         :style="{
@@ -110,7 +145,6 @@ function closePanel() {
           right: panelRight,
           top: panelTop,
           height: panelHeight,
-          ['z-index']: panelZIndex
         }"
       >
         <div
@@ -136,7 +170,7 @@ function closePanel() {
             class="dynamic-panel-content"
           />
         </div>
-      </div>
+      </aside>
     </div>
   </Teleport>
 </template>
@@ -149,11 +183,11 @@ function closePanel() {
   left: 0;
   height: 100vh;
   width: 100vw;
+  z-index: z-index('slide-in');
 }
 .slide-in-glass-open {
-  background-color: var(--body-bg);
+  background: var(--overlay-bg);
   display: block;
-  opacity: 0.5;
 }
 
 .slide-in {
@@ -164,6 +198,7 @@ function closePanel() {
   transition: right 0.5s ease;
   border-left: 1px solid var(--border);
   background-color: var(--body-bg);
+  z-index: calc(z-index('slide-in') + 1);
 }
 
 .slide-in-open {

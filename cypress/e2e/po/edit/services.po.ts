@@ -27,7 +27,7 @@ export default class ServicesCreateEditPo extends PagePo {
   }
 
   title() {
-    return this.self().get('.title .primaryheader  h1');
+    return this.self().get('.title-bar h1.title, .primaryheader h1');
   }
 
   nameNsDescription() {

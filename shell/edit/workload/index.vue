@@ -20,19 +20,10 @@ export default {
     },
   },
   data() {
-    return { selectedName: null, closedErrorMessages: [] };
+    return { selectedName: null, errors: [] };
   },
-  computed: {
-    ...mapGetters({ t: 'i18n/t' }),
-    errorMessages() {
-      if (!this.type) {
-        return [];
-      }
-
-      return this.fvUnreportedValidationErrors.filter((e) => !this.closedErrorMessages.includes(e));
-    }
-  },
-  methods: {
+  computed: { ...mapGetters({ t: 'i18n/t' }) },
+  methods:  {
     changed(tab) {
       const key = this.idKey;
 
@@ -94,7 +85,7 @@ export default {
       :selected-subtype="type"
       :resource="value"
       :mode="mode"
-      :errors="errorMessages"
+      :errors="errors"
       :done-route="doneRoute"
       :subtypes="workloadSubTypes"
       :apply-hooks="applyHooks"
@@ -102,7 +93,7 @@ export default {
       :errors-map="getErrorsMap(fvUnreportedValidationErrors)"
       @finish="save"
       @select-type="selectType"
-      @error="(_, closedError) => closedErrorMessages.push(closedError)"
+      @error="e=>errors = e"
     >
       <NameNsDescription
         :value="value"
@@ -163,6 +154,7 @@ export default {
         :show-tabs-add-remove="true"
         :default-tab="defaultTab"
         :flat="true"
+        :use-hash="useTabbedHash"
         data-testid="workload-horizontal-tabs"
         @changed="changed"
       >
@@ -178,6 +170,7 @@ export default {
             :side-tabs="true"
             :weight="99"
             :data-testid="`workload-container-tabs-${i}`"
+            :use-hash="useTabbedHash"
           >
             <Tab
               :label="t('workload.container.titles.general')"
@@ -266,6 +259,7 @@ export default {
                     v-stripped-aria-label="t('workload.container.ports.toolTip')"
                     class="icon icon-info"
                     tabindex="0"
+                    role="tooltip"
                   />
                 </h3>
                 <p class="padded">
@@ -373,6 +367,7 @@ export default {
           <Tabbed
             data-testid="workload-general-tabs"
             :side-tabs="true"
+            :use-hash="useTabbedHash"
           >
             <Tab
               name="labels"
@@ -414,6 +409,7 @@ export default {
           <Tabbed
             data-testid="workload-pod-tabs"
             :side-tabs="true"
+            :use-hash="useTabbedHash"
           >
             <Tab
               :label="t('workload.storage.title')"

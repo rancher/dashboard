@@ -269,6 +269,7 @@ export default {
       </div>
       <Tabbed
         :side-tabs="true"
+        :use-hash="useTabbedHash"
         @changed="onTabChanged"
       >
         <Tab

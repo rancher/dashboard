@@ -1,5 +1,5 @@
 import { findBy, insertAt } from '@shell/utils/array';
-import { TIMESTAMP, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
+import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
 import { get, set } from '@shell/utils/object';
 import day from 'dayjs';
@@ -48,11 +48,12 @@ export default class Workload extends WorkloadService {
       });
 
       insertAt(out, 0, {
-        action:   'redeploy',
-        label:    this.t('action.redeploy'),
-        icon:     'icon icon-refresh',
-        enabled:  !!this.links.update,
-        bulkable: true,
+        action:     'redeploy',
+        label:      this.t('action.redeploy'),
+        icon:       'icon icon-refresh',
+        enabled:    !!this.links.update,
+        bulkable:   true,
+        bulkAction: 'redeploy'
       });
 
       insertAt(out, 0, {
@@ -444,19 +445,14 @@ export default class Workload extends WorkloadService {
     return out;
   }
 
-  redeploy() {
-    const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
+  redeploy(resources = this) {
+    const workloads = Array.isArray(resources) ? resources : [resources];
 
-    if ( !this.spec.template.metadata ) {
-      set(this.spec.template, 'metadata', {});
-    }
-
-    const annotations = this.spec.template.metadata.annotations || {};
-
-    annotations[TIMESTAMP] = now;
-    set(this.spec.template.metadata, 'annotations', annotations);
-
-    this.save();
+    this.$dispatch('promptModal', {
+      modalWidth:     '500px',
+      componentProps: { workloads },
+      component:      'RedeployWorkloadDialog'
+    });
   }
 
   // match existing container ports with services created for this workload
@@ -569,6 +565,10 @@ export default class Workload extends WorkloadService {
     }
 
     return undefined;
+  }
+
+  async unWatchPods() {
+    return await this.$dispatch('unwatch', { type: POD, all: true });
   }
 
   /**
@@ -707,6 +707,7 @@ export default class Workload extends WorkloadService {
       $store:        this.$store || { getters: this.$rootGetters, dispatch: (action, args) => this.$dispatch(action.split('/')[1], args) },
       inStore:       this.$rootGetters['currentProduct'].inStore,
       namespace:     this.metadata.namespace,
+      transient:     true,
     });
 
     return matchInfo.matches;

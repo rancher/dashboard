@@ -1,3 +1,5 @@
+process.env.TZ = 'UTC';
+
 module.exports = {
   preset:             'ts-jest',
   testEnvironment:    'jsdom',
@@ -44,6 +46,7 @@ module.exports = {
   snapshotSerializers: ['<rootDir>/node_modules/jest-serializer-vue'],
 
   // Coverage
+  coverageProvider:    'v8',
   coverageDirectory:   '<rootDir>/coverage/unit',
   coverageReporters:   ['json', 'text-summary'],
   collectCoverage:     false,

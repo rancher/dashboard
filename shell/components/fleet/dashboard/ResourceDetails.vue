@@ -3,18 +3,18 @@ import { PropType } from 'vue';
 import { FLEET } from '@shell/config/types';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import FleetResources from '@shell/components/fleet/FleetResources.vue';
-import FleetRepo from '@shell/components/formatter/FleetRepo.vue';
 import { RcButton } from '@components/RcButton';
-import { FleetDashboardState } from '@shell/utils/fleet-types';
+import { FleetDashboardState } from '@shell/types/fleet';
+import FleetApplicationSource from '@shell/components/formatter/FleetApplicationSource.vue';
 
 export default {
   name: 'FleetDashboardResourceDetails',
 
   components: {
     LabeledSelect,
-    FleetRepo,
     FleetResources,
-    RcButton
+    FleetApplicationSource,
+    RcButton,
   },
 
   props: {
@@ -37,7 +37,11 @@ export default {
   data() {
     return {
       FLEET,
-      clusterId: ''
+      clusterId:      '',
+      detailLocation: {
+        ...this.value._detailLocation,
+        name: 'c-cluster-fleet-application-resource-namespace-id'
+      }
     };
   },
 
@@ -72,11 +76,11 @@ export default {
       class="header"
       :data-testid="'fleet-dashboard-resource-details-header'"
     >
-      <div class="title">
+      <h3 class="title">
         <i :class="value.dashboardIcon" />
         <router-link
           class="label"
-          :to="value.detailLocation"
+          :to="detailLocation"
         >
           {{ value.id }}
         </router-link>
@@ -86,7 +90,7 @@ export default {
           :class="statePanel.icon"
           :style="{ color: statePanel.color }"
         />
-      </div>
+      </h3>
       <RcButton
         small
         ghost
@@ -100,18 +104,25 @@ export default {
       </RcButton>
     </div>
 
-    <template v-if="value.type === FLEET.GIT_REPO">
-      <h3>
-        {{ t('fleet.dashboard.source') }}
-      </h3>
-      <div class="mb-15">
-        <FleetRepo :row="value" />
+    <h4>
+      {{ t('fleet.dashboard.source') }}
+    </h4>
+    <div class="mb-15">
+      <FleetApplicationSource
+        v-if="value.source.value"
+        :row="value"
+      />
+      <div
+        v-else
+        class="text-muted"
+      >
+        &mdash;
       </div>
-    </template>
+    </div>
 
-    <h3>
+    <h4>
       {{ t('fleet.dashboard.resources') }}
-    </h3>
+    </h4>
     <FleetResources
       :rows="value.resourcesStatuses"
       :cluster-id="clusterId"
@@ -125,7 +136,7 @@ export default {
           <div class="col span-10">
             <LabeledSelect
               v-model:value="clusterId"
-              :label="'Cluster'"
+              :label="t('fleet.cluster.label')"
               :options="clusters"
               :mode="'edit'"
               :disabled="workspace.id === 'fleet-local'"
@@ -157,9 +168,7 @@ export default {
         display: flex;
         align-items: center;
         flex: 1;
-        font-style: normal;
-        font-weight: 600;
-        font-size: 18px;
+        margin-bottom: 0;
 
         .icon {
           font-size: 2em;

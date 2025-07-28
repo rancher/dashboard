@@ -44,6 +44,10 @@ export default {
       type:    String,
       default: () => undefined,
     },
+    imgAlt: {
+      type:    String,
+      default: () => undefined,
+    },
     color: {
       type:    String,
       default: () => 'primary',
@@ -61,41 +65,16 @@ export default {
   },
 
   methods: {
+    getComputedStyleFor(cssVar) {
+      return normalizeHex(mapStandardColors((window.getComputedStyle(document.body).getPropertyValue(cssVar)).trim()));
+    },
+
     setColor() {
-      const currTheme = this.$store.getters['prefs/theme'];
-      let uiColor, hoverColor;
+      const uiColor = this.getComputedStyleFor(colors[this.color].color);
+      const hoverColor = this.getComputedStyleFor(colors[this.color].hover);
 
-      // grab css vars values based on the actual stylesheets, depending on the theme applied
-      // use for loops to minimize computation
-      for (let i = 0; i < Object.keys(document.styleSheets).length; i++) {
-        let found = false;
-        const stylesheet = document.styleSheets[i];
-
-        if (stylesheet && stylesheet.cssRules) {
-          for (let x = 0; x < Object.keys(stylesheet.cssRules).length; x++) {
-            const cssRules = stylesheet.cssRules[x];
-
-            if (cssRules.selectorText && ((currTheme === 'light' && (cssRules.selectorText.includes('body') || cssRules.selectorText.includes('BODY')) &&
-              cssRules.selectorText.includes('.theme-light') && cssRules.style.cssText.includes('--link:')) ||
-              (currTheme === 'dark' && cssRules.selectorText.includes('.theme-dark')))) {
-              // grab the colors to be used on the icon from the css rules
-              uiColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].color).trim());
-              hoverColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].hover).trim());
-
-              // normalize hex colors (#xxx to #xxxxxx)
-              uiColor = normalizeHex(uiColor);
-              hoverColor = normalizeHex(hoverColor);
-
-              found = true;
-              break;
-            }
-          }
-        }
-        if (found) {
-          break;
-        } else {
-          continue;
-        }
+      if (!uiColor || !hoverColor) {
+        return;
       }
 
       const uiColorRGB = colorToRgb(uiColor);
@@ -142,7 +121,11 @@ export default {
           }
           a.option:hover > img.${ className } {
             ${ hoverFilter };
-          }      `;
+          }
+          a.option.active-menu-link > img.${ className } {
+            ${ hoverFilter };
+          }
+        `;
 
         const styleSheet = document.createElement('style');
 
@@ -164,6 +147,7 @@ export default {
     :src="src"
     class="svg-icon"
     :class="className"
+    :alt="imgAlt"
   >
   <i
     v-else-if="icon"
