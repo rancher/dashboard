@@ -2657,6 +2657,12 @@ export default {
           </Tab>
         </Tabbed>
       </div>
+
+      <Banner
+        v-if="unsupportedSelectorConfig"
+        color="warning"
+        :label="t('cluster.banner.warning')"
+      />
     </div>
     <template
       v-if="hideFooter"
