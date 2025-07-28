@@ -1,7 +1,6 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { Banner } from '@components/Banner';
 
 import { get, set } from '@shell/utils/object';
 import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
@@ -9,7 +8,7 @@ import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 export default {
   emits: ['validationChanged'],
 
-  components: { LabeledSelect, Banner },
+  components: { LabeledSelect },
   mixins:     [CreateEditView],
 
   async fetch() {
@@ -100,13 +99,6 @@ export default {
 
 <template>
   <div>
-    <div class="row mb-10">
-      <Banner
-        color="warning"
-        label-key="cluster.credential.harvester.tokenExpirationWarning"
-        data-testid="harvester-token-expiration-warning-banner"
-      />
-    </div>
     <div class="row mb-10">
       <div
         class="col span-6"
