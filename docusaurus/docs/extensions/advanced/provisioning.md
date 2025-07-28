@@ -106,6 +106,34 @@ When clicking on a created cluster in the UI the user is shown details for the c
 
 Note we use the new `context` property to allow us to target the tab only when the cluster is of our provider type.
 
+
+### Hiding custom Provisioner card on driver deactivation
+
+On `Cluster Management`, `Drivers`, `Cluster Drivers` an administrator/user (depending on permissions) can deactivate your custom cluster driver. 
+
+![Cluster Drivers list](../screenshots/cluster-driver-list.png)
+
+If that happens, then by default your custom Provisioner card will still appear on the Rancher UI
+
+![Cluster Create cards](../screenshots/create-c.png)
+
+In order to hide it when the custom Provisioner is deactivated, you will need to add the following property to the [Provisioner Class](#provisioner-class) created before:
+
+```
+import { MANAGEMENT } from '@shell/config/types';
+
+.....
+export class ExampleProvisioner implements IClusterProvisioner {
+  ....
+
+  get hidden(): boolean {
+    const kontainerDriver = this.context.getters['management/byId'](MANAGEMENT.KONTAINER_DRIVER, 'my-provisioner');
+
+    return !kontainerDriver?.spec?.active;
+  }
+}
+```
+
 ### Localisation
 
 The custom cluster type's label is defined as per any other extension text in `l10n/en-us.yaml` as `cluster.provider.<provider name>`.

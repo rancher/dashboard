@@ -2103,13 +2103,6 @@ cluster:
       }
     rke1DeprecationMessage: 'Rancher Kubernetes Engine (RKE / RKE1) has reached end of life and these clusters are no longer supported. We recommend replatforming RKE1 clusters to RKE2 to ensure continued support and security updates. Learn more about the transition <a href="https://www.suse.com/support/kb/doc/?id=000021518" target="_blank" rel="noopener noreferrer nofollow">here</a>.'
   rke1Unsupported: RKE1 Clusters are no longer supported
-  cloudCredentials:
-    renew: Renew Cloud Credentials
-    expired: Cloud Credential expired, please Renew Cloud Credentials
-    expiring: Cloud Credential will expire on { expires }, please Renew Cloud Credentials
-    banners:
-      expiring: "{count} {count, plural, =1 { Cluster has a Cloud Credential that expires soon} other { Clusters have Cloud Credentials that expire soon}}, please Renew Cloud {count, plural, =1 { Credential} other { Credentials}}"
-      expired: "{count} {count, plural, =1 { Cluster has a Cloud Credential that has expired} other { Clusters have Cloud Credentials that have expired}}, please Renew Cloud {count, plural, =1 { Credential} other { Credentials}}"
 
   architecture:
     label:
@@ -2753,6 +2746,7 @@ fleet:
       filters:
         gitRepos: Show Git Repos
         helmOps: Show Helm Ops
+      search: Filter
       resourceSummary:
         part1: in
         part2: |-
@@ -2912,7 +2906,7 @@ fleet:
         label: Polling Interval
         tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
         webhookWarning: A webhook is configured in Rancher to reconcile Git updates and GitRepo resources. The Polling Interval will automatically be adjusted to 1 hour.
-        minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
+        minimumValueWarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
     ociStorageSecret:
       title: OCI Registry
       label: OCI Storage Secret
@@ -3119,7 +3113,8 @@ fleet:
       pollingInterval:
         label: Polling Interval
         tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
-        minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with HelmOps that contain a large amount of resources please consider increasing this value.
+        minimumValueWarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with HelmOps that contain a large amount of resources please consider increasing this value.
+        versionTooltip: Polling can be enabled only if version is a valid semantic versioning constraint (e.g. 2.x.x, < 1.0).
     tls:
       insecure: Accept any certificate (insecure)
     auth:
@@ -8663,11 +8658,6 @@ volumeClaimTemplate:
 manager:
   cloudCredentials:
     label: Cloud Credentials
-    renew: Renew
-    expired: Expired
-    banners:
-      expiring: "{count} Cloud {count, plural, =1 { Credential expires soon} other { Credentials expire soon}}, please Renew"
-      expired: "{count} Cloud {count, plural, =1 { Credential has expired} other { Credentials have expired}}, please Renew"
   drivers:
     label: Drivers
   rkeTemplates:
