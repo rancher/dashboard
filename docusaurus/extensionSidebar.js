@@ -70,6 +70,7 @@ const sidebars = {
                 'api/nav/resource-page',
                 'api/nav/side-menu',
                 'api/nav/routing',
+                'api/nav/templates',
               ]
             },
             'api/actions',
@@ -113,6 +114,7 @@ const sidebars = {
           type:  'category',
           label: 'Advanced',
           items: [
+            'advanced/create-page-in-an-existing-product',
             'advanced/air-gapped-environments',
             // 'advanced/fix-annotations-published-extensions',
             'advanced/provisioning',

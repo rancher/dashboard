@@ -1,4 +1,33 @@
 # Extension as a top-level product
+
+## What is a top-level product
+What is a "top-level product" inside the Rancher UI?
+
+When you register a `product` using the example below:
+
+```
+// registering a top-level product
+product({
+  icon: 'gear',
+  inStore: 'management',
+  weight: 100,
+  to: {
+    name: `${ YOUR_PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
+    params: {
+      product: YOUR_PRODUCT_NAME,
+      cluster: BLANK_CLUSTER
+    }
+  }
+});
+```
+
+You will be registering a new app/product that is global to the whole Rancher UI, much like `Fleet` or `Cluster Management`, and an icon will appear on the main side bar of Rancher:
+
+![Top Level Product](../screenshots/top-level-prod.png)
+
+All the pages that you register inside this product will appear as links on it's dedicated sub-menu providing that all the correct functions are used.
+
+## Top-level product full code example
 As a full example of an Extension as top-level product, let's start with the definition of `product.ts` config:
 
 ```ts
