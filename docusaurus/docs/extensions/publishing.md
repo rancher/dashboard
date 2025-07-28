@@ -165,11 +165,13 @@ Once the files are accessible on Github, add the repository within the Rancher "
 
 ### Consuming the Helm chart
 
-After releasing the Helm chart you will be able to consume this from the Rancher UI by adding your Helm repository's URL to the App -> Repository list. If you used the automated workflow to release the Helm chart, you can find the URL within your Github repository under the "github-pages" Environment.
+After releasing the Helm chart you will be able to consume this from the Rancher UI by adding your Helm repository's URL to the `Apps` -> `Repositories` list. If you used the automated workflow to release the Helm chart, you can find the URL within your Github repository under the `gh-pages` branch.
 
 The URL should be listed as: `https://<organization>.github.io/<repository>`
 
 Once the URL has been added to the repository list, the extension should appear within the Extensions page.
+
+![Apps Repositories Creation](./screenshots/app-repos.png)
 
 ## Publishing an Extension Catalog Image
 

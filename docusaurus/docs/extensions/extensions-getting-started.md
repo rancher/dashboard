@@ -51,7 +51,7 @@ npm init @rancher/extension another-extension
 
 > NOTE: the `npm init` command must always use the same tag as the one that generated it. Also check examples below.
 
-### Usage for legacy version
+### Usage for `legacy` versions
 
 > Note: The documentation for these legacy versions 
 
@@ -87,7 +87,7 @@ npm init @rancher/extension@legacy-v2 another-extension
 
 In both legacy cases, ensure you are using Node.js version `v16` during development and testing.
 
-### **_Extension Options_**
+### _Extension Options_
 
 There are a few options available to be passed as an argument to the `@rancher/extension` script:
 
@@ -132,7 +132,7 @@ This flexibility allows you to structure your development environment based on y
 As stated before, when you generate/support multiple extensions fom the same development app please make sure that all packages and the development app share the same tag. The Node.js version required depends on the tag, as outlined in the prerequisites section. Matching tags and Node.js versions is critical to avoid compatibility issues.
 
 
-### How to run the Development app
+## Running the Development app
 
 After you've generated your development app and You can run the app with:
 
