@@ -225,7 +225,10 @@ export default {
       </div>
       <div class="header-body">
         <div class="header-top">
-          <h1 class="title">
+          <h1
+            class="title"
+            data-testid="chart-header-title"
+          >
             <router-link :to="{ name: 'c-cluster-apps-charts' }">
               {{ t('catalog.chart.header.charts') }}:
             </router-link>

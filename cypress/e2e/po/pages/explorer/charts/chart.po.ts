@@ -28,7 +28,7 @@ export class ChartPage extends PagePo {
   }
 
   chartHeader(options?: any) {
-    return this.self().find('.name-logo h1', options).invoke('text');
+    return this.self().find('[data-testid="chart-header-title"]', options).invoke('text');
   }
 
   waitForChartHeader(title: string, options?: any) {
