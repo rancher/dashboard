@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
-const localWorkspace = 'fleet-local';
+// const localWorkspace = 'fleet-local';
 const defaultWorkspace = 'fleet-default';
 let customTokenName = '';
 let removeToken = false;
@@ -64,38 +64,38 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
     });
 
     // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/13990
-    it.skip('can Edit Config', () => {
-      const fleetTokenCreateEditPage = new FleetTokensCreateEditPo(defaultWorkspace, customTokenName);
+    // it.skip('can Edit Config', () => {
+    //   const fleetTokenCreateEditPage = new FleetTokensCreateEditPo(defaultWorkspace, customTokenName);
 
-      cy.intercept('PUT', `/v1/fleet.cattle.io.clusterregistrationtokens/${ defaultWorkspace }/${ customTokenName }`).as('editToken');
+    //   cy.intercept('PUT', `/v1/fleet.cattle.io.clusterregistrationtokens/${ defaultWorkspace }/${ customTokenName }`).as('editToken');
 
-      fleetTokensListPage.goTo();
-      fleetTokensListPage.waitForPage();
-      fleetTokensListPage.list().actionMenu(customTokenName).getMenuItem('Edit YAML')
-        .click();
-      fleetTokenCreateEditPage.waitForPage('mode=edit&as=yaml');
-      fleetTokenCreateEditPage.mastheadTitle().then((title) => {
-        expect(title.replace(/\s+/g, ' ')).to.contain(`Cluster Registration Token: ${ customTokenName }`);
-      });
-      fleetTokenCreateEditPage.resourceDetail().resourceYaml().codeMirror()
-        .value()
-        .then((val) => {
-          // convert yaml into json to update values
-          const json: any = jsyaml.load(val);
+    //   fleetTokensListPage.goTo();
+    //   fleetTokensListPage.waitForPage();
+    //   fleetTokensListPage.list().actionMenu(customTokenName).getMenuItem('Edit YAML')
+    //     .click();
+    //   fleetTokenCreateEditPage.waitForPage('mode=edit&as=yaml');
+    //   fleetTokenCreateEditPage.mastheadTitle().then((title) => {
+    //     expect(title.replace(/\s+/g, ' ')).to.contain(`Cluster Registration Token: ${ customTokenName }`);
+    //   });
+    //   fleetTokenCreateEditPage.resourceDetail().resourceYaml().codeMirror()
+    //     .value()
+    //     .then((val) => {
+    //       // convert yaml into json to update values
+    //       const json: any = jsyaml.load(val);
 
-          json.metadata.namespace = localWorkspace;
+    //       json.metadata.namespace = localWorkspace;
 
-          fleetTokenCreateEditPage.resourceDetail().resourceYaml().codeMirror()
-            .set(jsyaml.dump(json));
-        });
-      fleetTokenCreateEditPage.resourceDetail().resourceYaml().saveOrCreate()
-        .click();
-      cy.wait('@editToken').then(({ response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(response?.body.metadata.namespace).equals(localWorkspace);
-      });
-      fleetTokensListPage.waitForPage();
-    });
+    //       fleetTokenCreateEditPage.resourceDetail().resourceYaml().codeMirror()
+    //         .set(jsyaml.dump(json));
+    //     });
+    //   fleetTokenCreateEditPage.resourceDetail().resourceYaml().saveOrCreate()
+    //     .click();
+    //   cy.wait('@editToken').then(({ response }) => {
+    //     expect(response?.statusCode).to.eq(200);
+    //     expect(response?.body.metadata.namespace).equals(localWorkspace);
+    //   });
+    //   fleetTokensListPage.waitForPage();
+    // });
 
     it('can clone a cluster registration token', () => {
       const fleetTokenCreateEditPage = new FleetTokensCreateEditPo(defaultWorkspace, customTokenName);
@@ -180,7 +180,7 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
     });
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before(() => {
       cy.login();
     });

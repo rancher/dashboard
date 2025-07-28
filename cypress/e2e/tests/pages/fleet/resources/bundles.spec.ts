@@ -3,7 +3,7 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-// import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const bundle = 'fleet-agent-local';
 const localWorkspace = 'fleet-local';
@@ -17,7 +17,7 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
   const fleetBundlesListPage = new FleetBundlesListPagePo();
   const headerPo = new HeaderPo();
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     before(() => {
       cy.login();
     });
@@ -133,44 +133,43 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       });
       fleetBundlesListPage.waitForPage();
       fleetBundlesListPage.list().rowWithName(customBundleName).checkVisible();
-      // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/14146
-      // fleetBundlesListPage.resourceTableDetails(customBundleName, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
+      fleetBundlesListPage.resourceTableDetails(customBundleName, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
     });
 
     // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/13990
-    it.skip('can Edit Config', () => {
-      const fleetBundleCreateEditPage = new FleetBundlesCreateEditPo(localWorkspace, customBundleName);
+    // it.skip('can Edit Config', () => {
+    //   const fleetBundleCreateEditPage = new FleetBundlesCreateEditPo(localWorkspace, customBundleName);
 
-      cy.intercept('PUT', `/v1/fleet.cattle.io.bundles/${ localWorkspace }/${ customBundleName }`).as('editBundle');
+    //   cy.intercept('PUT', `/v1/fleet.cattle.io.bundles/${ localWorkspace }/${ customBundleName }`).as('editBundle');
 
-      fleetBundlesListPage.goTo();
-      fleetBundlesListPage.waitForPage();
-      headerPo.selectWorkspace(localWorkspace);
-      fleetBundlesListPage.list().actionMenu(customBundleName).getMenuItem('Edit YAML')
-        .click();
-      fleetBundleCreateEditPage.waitForPage('mode=edit&as=yaml');
-      fleetBundleCreateEditPage.mastheadTitle().then((title) => {
-        expect(title.replace(/\s+/g, ' ')).to.contain(`Bundle: ${ customBundleName }`);
-      });
-      fleetBundleCreateEditPage.resourceDetail().resourceYaml().codeMirror()
-        .value()
-        .then((val) => {
-          // convert yaml into json to update values
-          const json: any = jsyaml.load(val);
+    //   fleetBundlesListPage.goTo();
+    //   fleetBundlesListPage.waitForPage();
+    //   headerPo.selectWorkspace(localWorkspace);
+    //   fleetBundlesListPage.list().actionMenu(customBundleName).getMenuItem('Edit YAML')
+    //     .click();
+    //   fleetBundleCreateEditPage.waitForPage('mode=edit&as=yaml');
+    //   fleetBundleCreateEditPage.mastheadTitle().then((title) => {
+    //     expect(title.replace(/\s+/g, ' ')).to.contain(`Bundle: ${ customBundleName }`);
+    //   });
+    //   fleetBundleCreateEditPage.resourceDetail().resourceYaml().codeMirror()
+    //     .value()
+    //     .then((val) => {
+    //       // convert yaml into json to update values
+    //       const json: any = jsyaml.load(val);
 
-          json.metadata.namespace = localWorkspace;
+    //       json.metadata.namespace = localWorkspace;
 
-          fleetBundleCreateEditPage.resourceDetail().resourceYaml().codeMirror()
-            .set(jsyaml.dump(json));
-        });
-      fleetBundleCreateEditPage.resourceDetail().resourceYaml().saveOrCreate()
-        .click();
-      cy.wait('@editBundle').then(({ response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(response?.body.metadata.namespace).equals(localWorkspace);
-      });
-      fleetBundlesListPage.waitForPage();
-    });
+    //       fleetBundleCreateEditPage.resourceDetail().resourceYaml().codeMirror()
+    //         .set(jsyaml.dump(json));
+    //     });
+    //   fleetBundleCreateEditPage.resourceDetail().resourceYaml().saveOrCreate()
+    //     .click();
+    //   cy.wait('@editBundle').then(({ response }) => {
+    //     expect(response?.statusCode).to.eq(200);
+    //     expect(response?.body.metadata.namespace).equals(localWorkspace);
+    //   });
+    //   fleetBundlesListPage.waitForPage();
+    // });
 
     it('can clone a bundle', () => {
       const fleetBundleCreateEditPage = new FleetBundlesCreateEditPo(localWorkspace, customBundleName);
@@ -205,8 +204,7 @@ describe('Bundles', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, ()
       });
       fleetBundlesListPage.waitForPage();
       fleetBundlesListPage.list().rowWithName(`${ customBundleName }-clone`).checkVisible();
-      // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/14146
-      // fleetBundlesListPage.resourceTableDetails(`${ customBundleName }-clone`, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
+      fleetBundlesListPage.resourceTableDetails(`${ customBundleName }-clone`, 3 ).contains(/^1$/, EXTRA_LONG_TIMEOUT_OPT);
     });
 
     it('can Download YAML', () => {

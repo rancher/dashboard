@@ -156,11 +156,18 @@ export default {
     paginatePageOptions(opts) {
       const { opts: { filter } } = opts;
 
-      const filters = !!filter ? [PaginationParamFilter.createSingleField({ field: 'metadata.name', value: filter })] : [];
+      const filters = !!filter ? [PaginationParamFilter.createSingleField({
+        field: 'metadata.name', value: filter, exact: false, equals: true
+      })] : [];
 
       filters.push(
         PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: this.namespace }),
-        PaginationParamFilter.createSingleField({ field: 'metadata.fields.1', value: this.types.join(',') })
+        PaginationParamFilter.createMultipleFields(this.types.map((t) => ({
+          field:  'metadata.fields.1',
+          equals: true,
+          exact:  true,
+          value:  t
+        })))
       );
 
       return {

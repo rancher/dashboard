@@ -34,7 +34,7 @@ export async function matching({
   $store,
   inScopeCount = undefined,
   namespace = undefined,
-  transient = false,
+  transient = true,
 }: {
   /**
    * Standard kube label selector object.
@@ -101,7 +101,12 @@ export async function matching({
   const filterByNamespaceButNoNamespace = isNamespaced && !!namespace && (!safeNamespaces || safeNamespaces.length === 0);
   const explicityNullLabelSelector = labelSelector === null || (labelSelector?.matchLabels === null && !labelSelector.matchExpressions === null);
 
-  if (noCandidates || filterByNamespaceButNoNamespace || explicityNullLabelSelector) {
+  // If we have matchLabels or matchExpression entries they must have a key
+  const matchLabelKeys = Object.keys(labelSelector.matchLabels || {});
+  const invalidMatchLabelKeys = matchLabelKeys.length && matchLabelKeys.filter((k) => !k).length;
+  const invalidMatchExpressionKeys = labelSelector?.matchExpressions?.length && labelSelector.matchExpressions.filter((me) => !me.key).length;
+
+  if (noCandidates || filterByNamespaceButNoNamespace || explicityNullLabelSelector || invalidMatchLabelKeys || invalidMatchExpressionKeys) {
     return generateMatchingResponse([], inScopeCount || 0);
   }
 

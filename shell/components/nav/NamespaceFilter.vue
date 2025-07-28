@@ -63,6 +63,9 @@ export default {
       return this.$store.getters[`${ this.currentProduct.inStore }/paginationEnabled`](this.$route.params?.resource) ? paginationUtils.validNsProjectFilters : null;
     },
 
+    /**
+     * Create visible options (filtered version of `options`)
+     */
     filtered() {
       let out = this.options;
 
@@ -142,6 +145,9 @@ export default {
       return createNamespaceFilterKey(this.$store.getters['clusterId'], this.currentProduct);
     },
 
+    /**
+     * Create options (see `filtered` for visible collection)
+     */
     options() {
       const t = this.$store.getters['i18n/t'];
       let out = [];
@@ -341,6 +347,11 @@ export default {
           })
           .filter((x) => !!x);
 
+        if (filters.length !== values.length) {
+          // filter has changed, ensure we persist these to store
+          this.value = filters;
+        }
+
         return filters;
       },
 
@@ -401,7 +412,7 @@ export default {
      *
      * This is caused by churn of the filtered and options computed properties causing multiple renders for each action.
      *
-     * To break this multiple-render per cycle behaviour detatch `filtered` from the value used in `v-for`.
+     * To break this multiple-render per cycle behaviour detach `filtered` from the value used in `v-for`.
      *
      */
     filtered(neu) {
@@ -700,6 +711,7 @@ export default {
     :aria-activedescendant="containerId"
     class="ns-filter"
     data-testid="namespaces-filter"
+    :aria-label="t('generic.namespaceFilter')"
     tabindex="0"
     @mousedown.prevent
     @keydown.self.down.enter.space.prevent="open"

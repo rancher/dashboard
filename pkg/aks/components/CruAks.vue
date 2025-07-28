@@ -55,7 +55,7 @@ export const defaultNodePool = {
   osDiskSizeGB:          128,
   osDiskType:            'Managed' as AKSDiskType,
   osType:                'Linux',
-  vmSize:                'Standard_DS2_v2',
+  vmSize:                'Standard_D2d_v4',
   _isNewOrUnprovisioned: true,
   _validation:           {}
 };

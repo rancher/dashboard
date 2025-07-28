@@ -305,12 +305,15 @@ export default defineComponent({
         :class="{ 'checkbox-primary': primary }"
       >
         <slot name="label">
-          <t
+          <span
             v-if="labelKey"
             :id="idForLabel"
-            :k="labelKey"
-            :raw="true"
-          />
+          >
+            <t
+              :k="labelKey"
+              :raw="true"
+            />
+          </span>
           <span
             v-else-if="label"
             :id="idForLabel"
@@ -322,6 +325,7 @@ export default defineComponent({
             class="checkbox-info icon icon-info icon-lg"
             :data-testid="componentTestid + '-info-icon'"
             :tabindex="isDisabled ? -1 : 0"
+            role="tooltip"
           />
           <i
             v-else-if="tooltip"
@@ -330,6 +334,7 @@ export default defineComponent({
             class="checkbox-info icon icon-info icon-lg"
             :data-testid="componentTestid + '-info-icon'"
             :tabindex="isDisabled ? -1 : 0"
+            role="tooltip"
           />
         </slot>
       </span>

@@ -2727,6 +2727,13 @@ export function generateFakeClusterDataAndIntercepts(fakeProvClusterId = 'some-p
         body:       { data: fakeNavClusterData.fakeSecretsReply },
       });
     }).as('secretsReply');
+
+    cy.intercept('GET', `/v1/secrets/fleet-default?*`, (req) => {
+      req.reply({
+        statusCode: 200,
+        body:       { data: fakeNavClusterData.fakeSecretsReply },
+      });
+    }).as('secretsReply2');
   }
 
   return fakeNavClusterData;

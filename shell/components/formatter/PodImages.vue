@@ -56,7 +56,7 @@ export default {
 
 <template>
   <span class="formatter-pod-images">
-    <span>{{ mainImage }}</span><br>
+    <span v-clean-tooltip.bottom="mainImage">{{ mainImage }}</span><br>
     <span
       v-if="images.length-1>0"
       v-clean-tooltip.bottom="imageLabels"

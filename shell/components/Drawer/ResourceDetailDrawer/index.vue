@@ -68,6 +68,7 @@ const action = computed(() => {
       <Tabbed
         class="tabbed"
         :useHash="false"
+        :showExtensionTabs="false"
         @changed="({selectedName}) => {activeTab = selectedName;}"
       >
         <ConfigTab

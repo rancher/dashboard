@@ -833,7 +833,7 @@ export default {
             v-if="props.active"
             :detail-url="CLUSTER_METRICS_DETAIL_URL"
             :summary-url="CLUSTER_METRICS_SUMMARY_URL"
-            graph-height="825px"
+            graph-height="875px"
           />
         </template>
       </Tab>
@@ -848,7 +848,7 @@ export default {
             v-if="props.active"
             :detail-url="K8S_METRICS_DETAIL_URL"
             :summary-url="K8S_METRICS_SUMMARY_URL"
-            graph-height="550px"
+            graph-height="600px"
           />
         </template>
       </Tab>
@@ -864,7 +864,7 @@ export default {
             class="etcd-metrics"
             :detail-url="ETCD_METRICS_DETAIL_URL"
             :summary-url="ETCD_METRICS_SUMMARY_URL"
-            graph-height="550px"
+            graph-height="600px"
           >
             <EtcdInfoBanner />
           </DashboardMetrics>

@@ -59,7 +59,8 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
 
       cy.intercept('POST', `/v1/secrets/${ workspace }`).as('interceptSecret');
       cy.intercept('POST', '/v1/fleet.cattle.io.gitrepos').as('interceptGitRepo');
-      cy.intercept('GET', '/v1/secrets?exclude=metadata.managedFields').as('getSecrets');
+      cy.intercept('GET', '/v1/secrets?*').as('getSecrets');
+      cy.intercept('GET', '/v1/secrets?*').as('getSecretsInitialLoad');
 
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.waitForPage();
@@ -91,6 +92,9 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       gitRepoCreatePage.targetCluster().clickLabel(fakeProvClusterId);
 
       gitRepoCreatePage.resourceDetail().createEditView().nextPage();
+
+      // Wait for secrets fetch to initialize Secret selectors
+      cy.wait('@getSecretsInitialLoad').its('response.statusCode').should('eq', 200);
 
       // Advanced info step
       gitRepoCreatePage.gitAuthSelectOrCreate().createSSHAuth('test1', 'test1', 'KNOWN_HOSTS');
@@ -202,7 +206,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       });
     });
 
-    it('check table headers are available in list and details view', { tags: ['@vai', '@adminUser'] }, function() {
+    it('check table headers are available in list and details view', { tags: ['@noVai', '@adminUser'] }, function() {
       // go to fleet gitrepo
       listPage.goTo();
       listPage.waitForPage();
@@ -303,19 +307,20 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
     //   gitRepoDetails.bundlesCount().should('contain', '1');
     // });
 
-    it('check if graph is visible', function() {
-      const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
+    // We no longer have the button group on the detail pages but we still need to discuss where it's moving to
+    // it('check if graph is visible', function() {
+    //   const gitRepoDetails = new FleetGitRepoDetailsPo(workspace, this.gitRepo);
 
-      listPage.goTo();
-      listPage.waitForPage();
-      headerPo.selectWorkspace(workspace);
-      listPage.goToDetailsPage(this.gitRepo);
+    //   listPage.goTo();
+    //   listPage.waitForPage();
+    //   headerPo.selectWorkspace(workspace);
+    //   listPage.goToDetailsPage(this.gitRepo);
 
-      gitRepoDetails.waitForPage(null, 'bundles');
+    //   gitRepoDetails.waitForPage(null, 'bundles');
 
-      gitRepoDetails.showGraph();
-      gitRepoDetails.graph().should('contain', this.gitRepo);
-    });
+    //   gitRepoDetails.showGraph();
+    //   gitRepoDetails.graph().should('contain', this.gitRepo);
+    // });
   });
 
   describe('Edit', () => {

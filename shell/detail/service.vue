@@ -37,7 +37,15 @@ export default {
   },
 
   async fetch() {
-    await this.value.fetchPods();
+    if (this.podSchema) {
+      await this.value.fetchPods();
+    }
+  },
+
+  async unmounted() {
+    if (this.podSchema) {
+      await this.value.unWatchPods();
+    }
   },
 
   data() {
@@ -149,6 +157,7 @@ export default {
     @input="$emit('input', $event)"
   >
     <Tab
+      v-if="podSchema"
       name="pods"
       :label="t('servicesPage.pods.label')"
       :weight="4"

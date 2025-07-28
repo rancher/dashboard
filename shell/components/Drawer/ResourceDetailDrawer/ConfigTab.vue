@@ -7,6 +7,7 @@ import Tab from '@shell/components/Tabbed/Tab.vue';
 export interface Props {
   resource: any;
   component: any;
+  resourceType: string;
 }
 </script>
 <script setup lang="ts">
@@ -23,10 +24,14 @@ const i18n = useI18n(store);
     <div class="container">
       <component
         :is="props.component"
-        v-model:value="props.resource"
+        :value="props.resource"
+        :liveValue="props.resource"
+        :resourceType="props.resourceType"
         :mode="_VIEW"
+        :real-mode="_VIEW"
         :initial-value="props.resource"
         :use-tabbed-hash="false /* Have to disable hashing on child components or it modifies the url and closes the drawer */"
+        as="config"
       />
     </div>
   </Tab>
@@ -40,6 +45,13 @@ const i18n = useI18n(store);
     padding: 16px;
     max-width: 100%;
     width: 100%;
+    position: relative;
+  }
+
+  // Handle the loading indicator
+  :deep() .overlay-content-mode {
+    left: 0;
+    top: 0;
   }
 
   :deep() .cru-resource-footer {

@@ -170,6 +170,7 @@ export default {
 <style lang="scss" scoped>
   .dashboard-resource-card {
     margin: 1px;
+    height: 100%;
   }
 
   .icon-lg {

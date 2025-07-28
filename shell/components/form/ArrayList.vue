@@ -304,6 +304,7 @@ export default {
           :key="idx"
           :data-testid="`${componentTestid}-box${ idx }`"
           class="box"
+          :class="{'hide-remove-is-view': isView}"
           role="group"
         >
           <slot
@@ -362,7 +363,7 @@ export default {
             </div>
           </slot>
           <div
-            v-if="showRemove"
+            v-if="showRemove && !isView"
             class="remove"
           >
             <slot
@@ -404,7 +405,7 @@ export default {
       </div>
       <div
         v-if="showAdd && !isView"
-        class="footer mt-20"
+        class="footer mmt-6"
       >
         <slot
           v-if="showAdd"
@@ -454,6 +455,11 @@ export default {
       }
     }
   }
+
+  .box.hide-remove-is-view {
+    grid-template-columns: auto;
+  }
+
   .remove {
     text-align: right;
   }

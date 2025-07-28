@@ -1,7 +1,9 @@
+import { UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import {
   STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, OBJECT,
   EVENT_LAST_SEEN_TIME,
-  EVENT_TYPE
+  EVENT_TYPE,
+  SECRET_CLONE
 } from '@shell/config/table-headers';
 
 // This file contains table headers
@@ -78,3 +80,8 @@ export const STEVE_LIST_GROUPS = [{
   tooltipKey:    'resourceTable.groupBy.namespace',
   groupLabelKey: 'groupByLabel',
 }];
+
+export const STEVE_SECRET_CLONE = {
+  ...SECRET_CLONE,
+  sort: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]`,
+};

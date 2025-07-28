@@ -73,6 +73,7 @@ export default defineComponent({
         class="icon status-icon"
         tabindex="0"
         :data-testid="componentTestid"
+        role="tooltip"
       />
     </template>
     <template v-else>

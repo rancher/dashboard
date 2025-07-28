@@ -41,4 +41,18 @@ describe('lDAP config', () => {
     expect(userLoginFilter.element.value).toBe(expectedValue);
     expect(wrapper.vm.model.userLoginFilter).toBeUndefined();
   });
+
+  it.each([
+    'openldap', 'freeipa'
+  ])('should display searchUsingServiceAccount checkbox if type %p', (type) => {
+    const wrapper = mount(LDAPConfig, {
+      propsData: {
+        value: {},
+        type,
+      }
+    });
+    const checkbox = wrapper.find('[data-testid="searchUsingServiceAccount"]');
+
+    expect(checkbox).toBeDefined();
+  });
 });

@@ -567,6 +567,10 @@ export default class Workload extends WorkloadService {
     return undefined;
   }
 
+  async unWatchPods() {
+    return await this.$dispatch('unwatch', { type: POD, all: true });
+  }
+
   /**
    * This getter expects a superset of workload pods to have been fetched already
    *
@@ -703,6 +707,7 @@ export default class Workload extends WorkloadService {
       $store:        this.$store || { getters: this.$rootGetters, dispatch: (action, args) => this.$dispatch(action.split('/')[1], args) },
       inStore:       this.$rootGetters['currentProduct'].inStore,
       namespace:     this.metadata.namespace,
+      transient:     true,
     });
 
     return matchInfo.matches;

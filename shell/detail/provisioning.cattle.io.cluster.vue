@@ -9,7 +9,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 import { allHash } from '@shell/utils/promise';
 import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@shell/config/types';
 import {
-  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, INTERNAL_EXTERNAL_IP, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME,
+  STATE, NAME as NAME_COL, AGE, INTERNAL_EXTERNAL_IP, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME,
 } from '@shell/config/table-headers';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import CustomCommand from '@shell/edit/provisioning.cattle.io.cluster/CustomCommand';
@@ -137,8 +137,6 @@ export default {
     }
 
     if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
-      fetchOne.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
-
       fetchOne.normanNodePools = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
     }
 
@@ -149,7 +147,6 @@ export default {
     this.haveMachines = !!fetchOneRes.machines;
     this.haveDeployments = !!fetchOneRes.machineDeployments;
     this.clusterToken = fetchOneRes.clusterToken;
-    this.etcdBackups = fetchOneRes.etcdBackups;
 
     if (fetchOneRes.normanClusters) {
       // Does the user have access to the local cluster? Need to in order to be able to show the 'Related Resources' tab
@@ -267,7 +264,6 @@ export default {
       machineSchema:  this.$store.getters[`management/schemaFor`](CAPI.MACHINE),
 
       clusterToken: null,
-      etcdBackups:  null,
 
       logOpen:   false,
       logSocket: null,
@@ -529,48 +525,8 @@ export default {
       return headers;
     },
 
-    rke1Snapshots() {
-      const mgmtId = this.value.mgmt?.id;
-
-      if ( !mgmtId ) {
-        return [];
-      }
-
-      return (this.etcdBackups || []).filter((x) => x.clusterId === mgmtId);
-    },
-
     rke2Snapshots() {
       return this.value.etcdSnapshots;
-    },
-
-    rke1SnapshotHeaders() {
-      return [
-        STATE_NORMAN,
-        {
-          name:          'name',
-          labelKey:      'tableHeaders.name',
-          value:         'nameDisplay',
-          sort:          ['nameSort'],
-          canBeVariable: true,
-        },
-        {
-          name:     'version',
-          labelKey: 'tableHeaders.version',
-          value:    'status.kubernetesVersion',
-          sort:     'status.kubernetesVersion',
-          width:    150,
-        },
-        { ...AGE_NORMAN, canBeVariable: true },
-        {
-          name:      'manual',
-          labelKey:  'tableHeaders.manual',
-          value:     'manual',
-          formatter: 'Checked',
-          sort:      ['manual'],
-          align:     'center',
-          width:     50,
-        },
-      ];
     },
 
     rke2SnapshotHeaders() {
@@ -1113,10 +1069,10 @@ export default {
         <SortableTable
           class="snapshots"
           :data-testid="'cluster-snapshots-list'"
-          :headers="value.isRke1 ? rke1SnapshotHeaders : rke2SnapshotHeaders"
+          :headers="rke2SnapshotHeaders"
           default-sort-by="age"
           :table-actions="value.isRke1"
-          :rows="value.isRke1 ? rke1Snapshots : rke2Snapshots"
+          :rows="rke2Snapshots"
           :search="false"
           :groupable="true"
           :group-by="snapshotsGroupBy"

@@ -7,7 +7,7 @@ import Date from '@shell/components/formatter/Date.vue';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { CAPI, NORMAN, SNAPSHOT } from '@shell/config/types';
+import { CAPI, SNAPSHOT } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import ChildHook, { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
@@ -47,14 +47,13 @@ export default {
   },
 
   computed: {
-    // toRestore can be a provisioning.cattle.io.cluster or a rke.cattle.io.etcdsnapshot or an etcdBackup resource
+    // toRestore can be a provisioning.cattle.io.cluster or a rke.cattle.io.etcdsnapshot resource
     ...mapState('action-menu', ['showPromptRestore', 'toRestore']),
     ...mapGetters({ t: 'i18n/t' }),
 
     // Was the dialog opened to restore a specific snapshot, or opened on a cluster to choose
     isCluster() {
-      const isSnapshot = this.toRestore[0]?.type.toLowerCase() === NORMAN.ETCD_BACKUP ||
-      this.toRestore[0]?.type.toLowerCase() === SNAPSHOT;
+      const isSnapshot = this.toRestore[0]?.type.toLowerCase() === SNAPSHOT;
 
       return !isSnapshot;
     },
@@ -79,9 +78,7 @@ export default {
       }
     },
     restoreModeOptions() {
-      const etcdOption = this.isRke2 ? 'none' : 'etcd';
-
-      return [etcdOption, 'kubernetesVersion', 'all'];
+      return ['none', 'kubernetesVersion', 'all'];
     }
   },
 
@@ -112,20 +109,12 @@ export default {
       }
 
       const cluster = this.toRestore?.[0];
-      let promise;
+      const promise = this.$store.dispatch('management/findAll', { type: SNAPSHOT }).then((snapshots) => {
+        const toRestoreClusterName = cluster?.clusterName || cluster?.metadata?.name;
 
-      if (!cluster?.isRke2) {
-        promise = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP }).then((snapshots) => {
-          return snapshots.filter((s) => s.state === STATES_ENUM.ACTIVE && s.clusterId === cluster.metadata.name);
-        });
-      } else {
-        promise = this.$store.dispatch('management/findAll', { type: SNAPSHOT }).then((snapshots) => {
-          const toRestoreClusterName = cluster?.clusterName || cluster?.metadata?.name;
-
-          return snapshots.filter((s) => s?.snapshotFile?.status === STATES_ENUM.SUCCESSFUL && s.clusterName === toRestoreClusterName
-          );
-        });
-      }
+        return snapshots.filter((s) => s?.snapshotFile?.status === STATES_ENUM.SUCCESSFUL && s.clusterName === toRestoreClusterName
+        );
+      });
 
       // Map of snapshots by name
       const allSnapshots = await promise.then((snapshots) => {
@@ -154,30 +143,19 @@ export default {
 
     async apply(buttonDone) {
       try {
-        if ( this.isRke2 ) {
-          const cluster = this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, this.snapshot.clusterId);
+        const cluster = this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, this.snapshot.clusterId);
 
-          await this.applyHooks(BEFORE_SAVE_HOOKS);
+        await this.applyHooks(BEFORE_SAVE_HOOKS);
 
-          const now = cluster.spec?.rkeConfig?.etcdSnapshotRestore?.generation || 0;
+        const now = cluster.spec?.rkeConfig?.etcdSnapshotRestore?.generation || 0;
 
-          set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', {
-            generation:       now + 1,
-            name:             this.snapshot.name,
-            restoreRKEConfig: this.restoreMode,
-          });
+        set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', {
+          generation:       now + 1,
+          name:             this.snapshot.name,
+          restoreRKEConfig: this.restoreMode,
+        });
 
-          await cluster.save();
-        } else {
-          await this.$store.dispatch('rancher/request', {
-            url:    `/v3/clusters/${ escape(this.snapshot.clusterId) }?action=restoreFromEtcdBackup`,
-            method: 'post',
-            data:   {
-              etcdBackupId:     this.snapshot.id,
-              restoreRkeConfig: this.restoreMode,
-            },
-          });
-        }
+        await cluster.save();
 
         this.$store.dispatch('growl/success', {
           title:   this.t('promptRestore.notification.title'),

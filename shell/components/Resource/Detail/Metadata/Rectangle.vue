@@ -23,7 +23,9 @@ const props = withDefaults(
 .rectangle {
     border: 1px solid var(--tag-bg);
     border-radius: 4px;
-    padding: 4px;
+    padding: 0 8px;
+    height: 23px;
+    line-height: 23px;
 
     &:not(.outline) {
         background-color: var(--tag-bg);

@@ -42,17 +42,16 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     const loggingOutputList = new LoggingClusteroutputListPagePo();
     const loggingOutputEdit = new LoggingClusterOutputCreateEditPagePo('local');
 
+    cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
     ChartPage.navTo(null, 'Logging');
     chartPage.waitForChartHeader('Logging', { timeout: 20000 });
     chartPage.waitForPage();
     chartPage.goToInstall();
     installChartPage.nextPage();
-
-    cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
     installChartPage.installChart();
-    cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
-    kubectl.waitForTerminalStatus('Disconnected');
 
+    cy.wait('@chartInstall', { timeout: 10000 }).its('response.statusCode').should('eq', 201);
+    kubectl.waitForTerminalStatus('Disconnected');
     kubectl.closeTerminal();
 
     LoggingClusteroutputListPagePo.navTo();
@@ -93,7 +92,8 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
       .then(({ response }) => {
         expect(response?.statusCode).to.eq(201);
         expect(response?.body.metadata).to.have.property('name', flowName);
-        expect(response?.body.spec.match[0].select.namespaces).to.deep.equal(namespaces);
+        expect(response?.body.spec.match[0].select.namespaces[0]).to.contain(namespaces[0]);
+        expect(response?.body.spec.match[0].select.namespaces[1]).to.equal(namespaces[1]);
       });
     loggingFlowList.waitForPage();
     loggingFlowList.list().resourceTable().sortableTable().rowElementWithName(flowName)

@@ -8,7 +8,7 @@ describe('ClusterRoles', { testIsolation: 'off', tags: ['@explorer', '@adminUser
     cy.login();
   });
 
-  describe('List', { tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     it('validate cluster roles table in empty state', () => {
       clusterRolesNoData();
       clusterRolesPage.goTo();

@@ -43,6 +43,9 @@ export default class ProductNavPo extends ComponentPo {
   }
 
   sideMenuEntryByLabel(label: string): Cypress.Chainable {
+    // The main chain below doesn't pick up additions, this is a workaround
+    cy.contains(label).should('exist', LONG_TIMEOUT_OPT);
+
     return this.self().should('exist', LONG_TIMEOUT_OPT)
       .find('.child.nav-type a .label')
       .filter(`:contains("${ label }")`)

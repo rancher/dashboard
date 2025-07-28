@@ -1,6 +1,7 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2ClusterWithoutMachineConfigParams } from '@/cypress/globals';
 import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
+import { CypressChainable } from '~/cypress/e2e/po/po.types';
 
 // This file contains commands which makes API requests to the rancher API.
 // It includes the `login` command to store the `token` to use
@@ -547,7 +548,7 @@ Cypress.Commands.add('waitForRancherResource', (prefix, resourceType, resourceId
   return retry();
 });
 
-Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedResourcesTotal, greaterThan) => {
+Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedResourcesTotal, greaterThan = undefined) => {
   const url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }`;
   let retries = 20;
 
@@ -1048,7 +1049,15 @@ Cypress.Commands.add('fetchRevision', () => {
  */
 Cypress.Commands.add('isVaiCacheEnabled', () => {
   return cy.getRancherResource('v1', 'management.cattle.io.features', 'ui-sql-cache', 200)
-    .then((res) => res.body.spec.value === true || res.body.spec.value === 'true');
+    .then((res) => {
+      // copy of shell/models/management.cattle.io.feature.js enabled
+
+      if (res.body.status.lockedValue !== null) {
+        return res.body.status.lockedValue;
+      }
+
+      return (res.body.spec.value !== null) ? res.body.spec.value : res.body.status.default;
+    });
 });
 
 Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration = 0) => {
@@ -1140,6 +1149,26 @@ Cypress.Commands.add('createSecret', (namespace: string, name: string, options: 
 });
 
 /**
+ * Create a configmap via api request
+ */
+Cypress.Commands.add('createConfigMap', (namespace: string, name: string, options: { metadata?: any; data?: any } = {}) => {
+  const defaultData = { foo: 'bar' };
+
+  const body = {
+    metadata: {
+      namespace,
+      name,
+      ...(options.metadata || {})
+    },
+    data: options.data || defaultData
+  };
+
+  return cy.createRancherResource('v1', 'configmaps', body).then((resp) => {
+    return resp.body.metadata.name;
+  });
+});
+
+/**
  * Create a service via api request
  */
 Cypress.Commands.add('createService', (namespace: string, name: string, options: { type?: string; ports?: any[]; spec?: any; metadata?: any } = {}) => {
@@ -1167,4 +1196,68 @@ Cypress.Commands.add('createService', (namespace: string, name: string, options:
   return cy.createRancherResource('v1', 'services', body).then((resp) => {
     return resp.body.metadata.name;
   });
+});
+
+Cypress.Commands.add('createManyNamespacedResources', ({
+  namespace, context, createResource, count = 22, wait = 500
+}: {
+  /**
+   * Used to create the namespace
+   */
+  context?: string,
+  namespace?: string,
+  createResource: ({ ns, i }) => CypressChainable
+  count?: number,
+  wait?: number,
+}): Cypress.Chainable<{ ns: string, workloadNames: string[]}> => {
+  const dynamicNs = namespace ? cy.wrap(namespace) : cy.createE2EResourceName(context).then((ns) => {
+    // create namespace
+    cy.createNamespace(ns);
+
+    return cy.wrap(ns);
+  });
+
+  return dynamicNs
+    .then((ns) => {
+      // create workloads
+      const workloadNames: string[] = [];
+
+      for (let i = 0; i < count; i++) {
+        createResource({ ns, i }).then((resp) => {
+          workloadNames.push(resp.body.metadata.name);
+        });
+
+        if (wait && i % 5 === 0) {
+          cy.wait(wait); // eslint-disable-line cypress/no-unnecessary-waiting
+        }
+      }
+
+      // finish off with result
+      return cy.wrap({
+        ns,
+        workloadNames
+      });
+    });
+});
+
+Cypress.Commands.add('deleteNamespace', (namespaces: string[]) => {
+  for (let i = 0; i < namespaces.length; i++) {
+    const ns = namespaces[i];
+
+    cy.deleteRancherResource('v1', 'namespaces', ns);
+    cy.waitForRancherResource('v1', 'namespaces', ns, (resp) => resp.status === 404, 20, { failOnStatusCode: false });
+  }
+});
+
+Cypress.Commands.add('deleteManyResources', <T = any>({ toDelete, deleteFn, wait = 500 }: {
+  toDelete: T[],
+  deleteFn: (arg0: T) => CypressChainable,
+  wait?: number
+}) => {
+  for (let i = 0; i < toDelete.length; i++) {
+    deleteFn(toDelete[i]);
+    if (wait && i % 5 === 0) {
+      cy.wait(wait); // eslint-disable-line cypress/no-unnecessary-waiting
+    }
+  }
 });

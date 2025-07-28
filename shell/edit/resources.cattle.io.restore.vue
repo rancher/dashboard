@@ -48,7 +48,7 @@ export default {
   async fetch() {
     const hash = await allHash({
       catalog:     this.$store.dispatch('catalog/load'),
-      resourceSet: this.$store.dispatch('cluster/find', { type: BACKUP_RESTORE.RESOURCE_SET, id: this.value?.spec?.resourceSetName || 'rancher-resource-set' }),
+      resourceSet: this.$store.dispatch('cluster/find', { type: BACKUP_RESTORE.RESOURCE_SET, id: this.value?.spec?.resourceSetName || 'rancher-resource-set-full' }),
       apps:        this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
     });
 

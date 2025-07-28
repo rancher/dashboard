@@ -1,11 +1,11 @@
 import { mount, type VueWrapper } from '@vue/test-utils';
-import cisEditor from '@shell/edit/cis.cattle.io.clusterscan.vue';
+import complianceEditor from '@shell/edit/compliance.cattle.io.clusterscan.vue';
 
-describe('view: cisEditor', () => {
+describe('view: complianceEditor', () => {
   let wrapper: VueWrapper<any, any>;
 
   beforeEach(() => {
-    wrapper = mount(cisEditor, {
+    wrapper = mount(complianceEditor, {
       props: {
         value: {
           spec:           { scanProfileName: null, canBeScheduled: () => true },

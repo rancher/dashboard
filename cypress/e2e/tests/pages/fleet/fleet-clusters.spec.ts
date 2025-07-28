@@ -117,12 +117,14 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
     // check cluster state in fleet
     fleetClusterListPage.resourceTableDetails(clusterName, 1).contains('Not Ready', MEDIUM_TIMEOUT_OPT);
     fleetClusterListPage.resourceTableDetails(clusterName, 1).contains('Active', LONG_TIMEOUT_OPT);
-    // check bundles ready
-    fleetClusterListPage.resourceTableDetails(clusterName, 3).should('have.text', '4');
-    // check repos ready
-    fleetClusterListPage.resourceTableDetails(clusterName, 4).should('have.text', '1');
+    // check Git Repos ready
+    fleetClusterListPage.resourceTableDetails(clusterName, 3).should('have.text', '1');
+    // check Helm Ops ready
+    fleetClusterListPage.resourceTableDetails(clusterName, 4).should('have.text', '0');
+    // check Bundles ready
+    fleetClusterListPage.resourceTableDetails(clusterName, 5).should('have.text', '4');
     // check resources: testing https://github.com/rancher/dashboard/issues/11154
-    fleetClusterListPage.resourceTableDetails(clusterName, 5).contains( ' 15 ', MEDIUM_TIMEOUT_OPT);
+    fleetClusterListPage.resourceTableDetails(clusterName, 6).contains( ' 15 ', MEDIUM_TIMEOUT_OPT);
     // check cluster labels
     fleetClusterListPage.list().resourceTable().sortableTable()
       .subRows()
@@ -430,7 +432,7 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
     });
   });
 
-  it('check table headers are available in list and details view', { tags: ['@vai', '@adminUser'] }, () => {
+  it('check table headers are available in list and details view', { tags: ['@noVai', '@adminUser'] }, () => {
     const clusterName = 'local';
 
     // create gitrepo
@@ -449,7 +451,7 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
     fleetClusterListPage.waitForPage();
 
     // check table headers
-    const expectedHeaders = ['State', 'Name', 'Bundles Ready', 'Repos Ready', 'Resources', 'Last Seen', 'Age'];
+    const expectedHeaders = ['State', 'Name', 'Git Repos Ready', 'Helm Ops Ready', 'Bundles Ready', 'Resources', 'Last Seen', 'Age'];
 
     headerPo.selectWorkspace(workspace);
     fleetClusterListPage.list().resourceTable().sortableTable()

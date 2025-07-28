@@ -9,6 +9,7 @@ import { Plugin } from '@shell/core/plugin';
 interface UIPluginState {
   plugins: Plugin[],
   errors: any,
+  ready: boolean,
 }
 
 interface LoadError {
@@ -20,6 +21,7 @@ export const state = function(): UIPluginState {
   return {
     plugins: [],
     errors:  {},
+    ready:   false,
   };
 };
 
@@ -30,6 +32,10 @@ export const getters = {
 
   errors: (state: any) => {
     return state.errors;
+  },
+
+  ready: (state: any) => {
+    return state.ready;
   },
 };
 
@@ -50,6 +56,10 @@ export const mutations = {
       state.plugins.splice(index, 1);
     }
   },
+
+  setReady(state: UIPluginState, ready: boolean) {
+    state.ready = ready;
+  },
 };
 
 export const actions = {
@@ -63,5 +73,9 @@ export const actions = {
 
   removePlugin({ commit }: any, pluginName: string) {
     commit('removePlugin', pluginName);
-  }
+  },
+
+  setReady( { commit }: any, ready: boolean ) {
+    commit('setReady', ready);
+  },
 };

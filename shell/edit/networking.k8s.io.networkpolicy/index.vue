@@ -47,6 +47,23 @@ export default {
   },
 
   data() {
+    return {
+      POD,
+      matchingPods: {
+        matched: 0,
+        matches: [],
+        none:    true,
+        sample:  null,
+        total:   0,
+      },
+      podTableHeaders: this.$store.getters['type-map/headersFor'](
+        this.$store.getters['cluster/schemaFor'](POD)
+      ),
+      inStore: this.$store.getters['currentProduct'].inStore,
+    };
+  },
+
+  created() {
     if ( !this.value.spec ) {
       this.value['spec'] = {
         policyTypes: [],
@@ -56,23 +73,6 @@ export default {
         }
       };
     }
-
-    const matchingPods = {
-      matched: 0,
-      matches: [],
-      none:    true,
-      sample:  null,
-      total:   0,
-    };
-
-    return {
-      POD,
-      matchingPods,
-      podTableHeaders: this.$store.getters['type-map/headersFor'](
-        this.$store.getters['cluster/schemaFor'](POD)
-      ),
-      inStore: this.$store.getters['currentProduct'].inStore,
-    };
   },
 
   computed: {
@@ -148,6 +148,7 @@ export default {
         $store:        this.$store,
         inStore:       this.inStore,
         namespace:     this.value.metadata.namespace,
+        transient:     true,
       });
     }, 250, { leading: true }),
   },
@@ -174,7 +175,10 @@ export default {
 
     <div class="row mb-40">
       <div class="col span-12">
-        <Tabbed :side-tabs="true">
+        <Tabbed
+          :side-tabs="true"
+          :use-hash="useTabbedHash"
+        >
           <Tab
             name="ingress"
             label-key="networkpolicy.ingress.label"
@@ -196,7 +200,7 @@ export default {
               :value="value"
               type="ingress"
               :mode="mode"
-
+              :use-tabbed-hash="useTabbedHash"
               @update:value="$emit('input', $event)"
             />
           </Tab>

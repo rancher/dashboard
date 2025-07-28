@@ -1,3 +1,4 @@
+import { KubeLabelSelector } from '@shell/types/kube/kube-api';
 import { PaginationArgs, StorePagination } from '@shell/types/store/pagination.types';
 
 /**
@@ -81,3 +82,18 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
    */
   transient?: boolean,
 }
+
+export type ActionFindPageResponse<T = any> = {
+  data: T[],
+  pagination?: StorePagination
+} | T[];
+
+export interface ActionFindMatchingArgs extends ActionCoreFindArgs {
+  labelSelector: KubeLabelSelector,
+  namespaced?: string,
+  depaginate?: boolean
+}
+
+export type ActionFindMatchingResponse<T = any> = ActionFindPageResponse<T>
+
+export type ActionFindLabelSelectorArgs = ActionFindPageArgs | ActionFindMatchingArgs;

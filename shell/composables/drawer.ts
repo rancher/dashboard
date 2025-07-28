@@ -4,10 +4,14 @@ import { useStore } from 'vuex';
 export const useDrawer = () => {
   const store = useStore();
 
-  const open = (component: Component, options?: Record<string, any>) => {
+  const open = (component: Component, returnFocusSelector: string, options?: Record<string, any>) => {
     store.commit('slideInPanel/open', {
       component,
-      componentProps: options || {}
+      componentProps: {
+        ...(options || {}),
+        triggerFocusTrap: true,
+        returnFocusSelector
+      }
     });
   };
 

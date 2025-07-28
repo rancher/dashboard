@@ -152,6 +152,10 @@ export default {
       return getters.all(type);
     }
 
+    if (getters['havePage'](type)) {
+      return getters.all(type);
+    }
+
     // Does the store have all and we can pretend like it contains a result of a labelSelector?
     if (getters['haveAll'](type)) {
       return getters.matching( type, selector, namespace );

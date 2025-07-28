@@ -73,6 +73,7 @@ export default {
       v-bind="$attrs"
       class="mt-15"
       :side-tabs="true"
+      :use-hash="useTabbedHash"
     >
       <Tab
         name="basics"

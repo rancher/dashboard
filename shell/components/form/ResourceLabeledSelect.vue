@@ -127,9 +127,10 @@ export default defineComponent({
       const defaultOptions: LabelSelectPaginationFunctionOptions = {
         opts,
         filters,
-        type: this.resourceType,
-        ctx:  { getters: this.$store.getters, dispatch: this.$store.dispatch },
-        sort: [{ asc: true, field: 'metadata.name' }],
+        type:  this.resourceType,
+        ctx:   { getters: this.$store.getters, dispatch: this.$store.dispatch },
+        sort:  [{ asc: true, field: 'metadata.name' }],
+        store: this.inStore
       };
       const options = this.paginatedResourceSettings?.requestSettings ? this.paginatedResourceSettings.requestSettings(defaultOptions) : defaultOptions;
       const res = await labelSelectPaginationFunction(options);

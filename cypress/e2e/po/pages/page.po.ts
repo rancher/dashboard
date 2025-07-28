@@ -66,7 +66,7 @@ export default class PagePo extends ComponentPo {
   }
 
   mastheadTitle() {
-    return this.self().find('.primaryheader h1').invoke('text');
+    return this.self().find('.title-bar h1.title, .title-bar h1.title, .primaryheader h1').invoke('text');
   }
 
   waitForMastheadTitle(title: string) {

@@ -89,7 +89,7 @@ export default {
       >
         <span
           v-clean-tooltip="value.stateDescription"
-          class="label wrap-text fixed-height"
+          class="label wrap-text"
           :class="{ 'text-error' : value.stateObj.error }"
         >
           {{ value.stateDescription }}
@@ -191,9 +191,5 @@ export default {
     display: -webkit-box;
     -webkit-line-clamp: 5;
     -webkit-box-orient: vertical;
-  }
-
-  .fixed-height {
-    height: 80px;
   }
 </style>

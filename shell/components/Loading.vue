@@ -59,7 +59,7 @@ export default {
 <style lang="scss" scoped>
   .overlay {
     align-items: center;
-    background-color: var(--overlay-bg);
+    background-color: var(--subtle-overlay-bg);
     display: flex;
     justify-content: center;
     position: absolute;

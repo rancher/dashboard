@@ -59,11 +59,11 @@ describe('component: ResourceDetailDrawer/ConfigTab', () => {
     const component = wrapper.getComponent(ResourceYaml);
 
     expect(component.props('value')).toStrictEqual(resource);
-    expect(component.props('mode')).toStrictEqual(_VIEW);
     expect(component.props('yaml')).toStrictEqual(yaml);
+    expect(component.props('mode')).toStrictEqual(_VIEW);
   });
 
-  it('should refresh yaml editor when tab is activated', async() => {
+  it('should refresh yaml editor when tab is activated, without it the editor will not resize', async() => {
     const wrapper = mount(YamlTab, {
       props: { resource, yaml },
       global

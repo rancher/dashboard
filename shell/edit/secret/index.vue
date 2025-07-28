@@ -1,22 +1,23 @@
 <script>
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
-import { MANAGEMENT, NAMESPACE, DEFAULT_WORKSPACE } from '@shell/config/types';
+import {
+  SECRET_SCOPE, SECRET_QUERY_PARAMS,
+  CLOUD_CREDENTIAL, _CLONE, _CREATE, _EDIT, _FLAGGED
+} from '@shell/config/query-params';
+import { MANAGEMENT, NAMESPACE, DEFAULT_WORKSPACE, VIRTUAL_TYPES } from '@shell/config/types';
+import { CAPI, UI_PROJECT_SECRET } from '@shell/config/labels-annotations';
+import FormValidation from '@shell/mixins/form-validation';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CruResource from '@shell/components/CruResource';
-import {
-  CLOUD_CREDENTIAL, _CLONE, _CREATE, _EDIT, _FLAGGED
-} from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import Labels from '@shell/components/form/Labels';
 import { HIDE_SENSITIVE } from '@shell/store/prefs';
-import { CAPI } from '@shell/config/labels-annotations';
 import { clear, uniq } from '@shell/utils/array';
-import { NAME as MANAGER } from '@shell/config/product/manager';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
@@ -46,11 +47,33 @@ export default {
     SelectIconGrid
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   async fetch() {
     if ( this.isCloud ) {
       this.nodeDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
+    }
+
+    const projectScopedLabel = this.value.metadata?.labels?.[UI_PROJECT_SECRET];
+    const isProjectScoped = !!projectScopedLabel || (this.isCreate && this.$route.query[SECRET_SCOPE] === SECRET_QUERY_PARAMS.PROJECT_SCOPED);
+
+    this.isProjectScoped = isProjectScoped;
+
+    if (isProjectScoped) {
+      // If ssp is enabled the store not have all projects. ensure we have them all
+      await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
+      if (this.isCreate) {
+        // Pick first project as default
+        this.projectName = this.filteredProjects[0].metadata.name;
+
+        this.value.metadata.labels = this.value.metadata.labels || {};
+
+        // Set namespace and project-scoped label
+        this.value.metadata.namespace = this.filteredProjects[0].status.backingNamespace;
+        this.value.metadata.labels[UI_PROJECT_SECRET] = this.filteredProjects[0].metadata.name;
+      } else {
+        this.projectName = this.filteredProjects.find((p) => p.metadata.name === projectScopedLabel).metadata.name;
+      }
     }
   },
 
@@ -89,14 +112,50 @@ export default {
 
     return {
       isCloud,
+      isProjectScoped:   false,
       nodeDrivers:       null,
       secretTypes,
       secretType:        this.value._type,
-      initialSecretType: this.value._type
+      initialSecretType: this.value._type,
+      projectName:       null,
+      fvFormRuleSets:    [
+        {
+          path:  'metadata.name',
+          rules: ['required'],
+        },
+        {
+          path:  'metadata.namespace',
+          rules: ['required'],
+        },
+      ],
     };
   },
 
   computed: {
+    clusterId() {
+      return this.$store.getters['currentCluster'].id;
+    },
+
+    filteredProjects() {
+      const allProjects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+
+      return allProjects.filter((p) => p.spec?.clusterName === this.clusterId);
+    },
+
+    projectOpts() {
+      let projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+
+      // Filter out projects not for the current cluster
+      projects = projects.filter((c) => c.spec?.clusterName === this.clusterId);
+      const out = projects.map((project) => {
+        return {
+          label: project.nameDisplay,
+          value: project.metadata.name,
+        };
+      });
+
+      return out;
+    },
     isCustomSecretCreate() {
       return this.mode === _CREATE && this.$route.query.type === 'custom';
     },
@@ -214,12 +273,15 @@ export default {
       }
     },
 
-    doneRoute() {
-      if ( this.$store.getters['currentProduct'].name === MANAGER ) {
-        return 'c-cluster-manager-secret';
-      } else {
-        return 'c-cluster-product-resource';
+    doneLocationOverride() {
+      if (this.isProjectScoped) {
+        return {
+          ...this.value.listLocation,
+          params: { resource: VIRTUAL_TYPES.PROJECT_SECRETS }
+        };
       }
+
+      return this.value.listLocation;
     },
   },
 
@@ -249,6 +311,13 @@ export default {
 
           return;
         }
+      }
+
+      if (this.isProjectScoped) {
+        // Always create project-scoped secrets in the upstream local cluster
+        const url = this.$store.getters['management/urlFor'](this.value.type, this.value.id);
+
+        return this.save(btnCb, url);
       }
 
       return this.save(btnCb);
@@ -301,8 +370,25 @@ export default {
       if (type !== 'custom') {
         this.value['_type'] = type;
       }
+    },
+
+    redirectAfterCancel() {
+      this.$router.replace(this.doneLocationOverride);
     }
   },
+
+  watch: {
+    projectName(neu) {
+      if (this.isCreate && neu) {
+        this.value.metadata.labels = this.value.metadata.labels || {};
+        this.value.metadata.labels[UI_PROJECT_SECRET] = neu;
+
+        const projectScopedNamespace = this.filteredProjects.find((p) => p.metadata.name === neu).status.backingNamespace;
+
+        this.value.metadata.namespace = projectScopedNamespace;
+      }
+    }
+  }
 };
 </script>
 
@@ -312,22 +398,47 @@ export default {
     <CruResource
       v-else
       :mode="mode"
-      :validation-passed="true"
+      :validation-passed="fvFormIsValid"
       :selected-subtype="value._type"
       :resource="value"
       :errors="errors"
-      :done-route="doneRoute"
       :subtypes="secretSubTypes"
+      :cancel-event="true"
+      :done-route="doneLocationOverride"
       @finish="saveSecret"
       @select-type="selectType"
       @error="e=>errors = e"
+      @cancel="redirectAfterCancel"
     >
       <NameNsDescription
+        v-if="!isProjectScoped"
         :value="value"
         :mode="mode"
         :namespaced="!isCloud"
         @update:value="$emit('input', $event)"
       />
+      <NameNsDescription
+        v-else
+        :value="value"
+        :namespaced="false"
+        :mode="mode"
+        :rules="{
+          name: fvGetAndReportPathRules('metadata.name'),
+          namespace: fvGetAndReportPathRules('metadata.namespace'),
+        }"
+      >
+        <template #project-selector>
+          <LabeledSelect
+            v-model:value="projectName"
+            class="mr-20"
+            :disabled="!isCreate"
+            :label="t('namespace.project.label')"
+            :options="projectOpts"
+            required
+            data-testid="secret-project-select"
+          />
+        </template>
+      </NameNsDescription>
 
       <div
         v-if="isCustomSecretCreate"
@@ -373,6 +484,7 @@ export default {
       <Tabbed
         v-else
         :side-tabs="true"
+        :use-hash="useTabbedHash"
         default-tab="data"
       >
         <Tab

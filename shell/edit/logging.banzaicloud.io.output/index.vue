@@ -211,6 +211,7 @@ export default {
         v-else
         ref="tabbed"
         :side-tabs="true"
+        :use-hash="useTabbedHash"
         @changed="tabChanged($event)"
       >
         <Tab

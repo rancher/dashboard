@@ -1,7 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import RcItemCardPo from '@/cypress/e2e/po/components/rc-item-card.po';
 import FilterPanelPo from '@/cypress/e2e/po/components/filter-panel.po';
 
@@ -63,7 +62,15 @@ export class ChartsPage extends PagePo {
     return src.should('not.contain', 'generic-catalog');
   }
 
-  bannerContent() {
-    return new BannersPo('[data-testid="banner-content"]', this.self()).bannerElement('span');
+  emptyState() {
+    return this.self().find('[data-testid="charts-empty-state"]');
+  }
+
+  emptyStateTitle() {
+    return this.self().find('[data-testid="charts-empty-state-title"]').invoke('text');
+  }
+
+  emptyStateResetFilters() {
+    return this.self().find('[data-testid="charts-empty-state-reset-filters"]');
   }
 }

@@ -127,6 +127,14 @@ export default {
   },
 
   methods: {
+    onAddPath() {
+      this.$nextTick(() => {
+        const input = this.$refs[`path-input-${ this.rows?.length || 0 }`] as HTMLInputElement;
+
+        input?.focus();
+      });
+    },
+
     updatePaths(paths: string[]) {
       this.rows = paths.map((path, i) => ({
         ...this.rows[i],
@@ -299,21 +307,23 @@ export default {
 </script>
 <template>
   <h3 v-t="'fleet.gitRepo.paths.title'" />
-  <p class="text-muted mb-10">
+  <p class="text-label m-0">
     {{ t('fleet.gitRepo.paths.description1') }}<br>
     {{ t('fleet.gitRepo.paths.description2') }}
   </p>
   <ArrayList
     data-testid="gitRepo-paths"
+    class="mmt-4"
     :value="paths"
     :mode="mode"
     :initial-empty-row="false"
     :a11y-label="t('fleet.gitRepo.paths.ariaLabel')"
     :add-label="t('fleet.gitRepo.paths.addLabel')"
     :add-icon="'icon-plus'"
-    :add-class="'btn-sm role-secondary mt-24'"
+    :add-class="'btn-sm role-secondary'"
     :protip="t('fleet.gitRepo.paths.tooltip', {}, true)"
     :remove-allowed="false"
+    @add="onAddPath"
     @update:value="updatePaths"
   >
     <template #columns="{row, i}">
@@ -334,10 +344,12 @@ export default {
           </div>
           <p
             v-clean-html="t('fleet.gitRepo.paths.description')"
-            class="text-muted mt-10 mb-5"
+            class="text-label mmt-2"
           />
           <input
+            :ref="`path-input-${ i }`"
             data-testid="main-path"
+            class="mt-5"
             :value="row.value"
             :placeholder="t('fleet.gitRepo.paths.placeholder')"
             :disabled="isView"
@@ -346,7 +358,7 @@ export default {
           <Checkbox
             v-if="!isView"
             :value="rows[i]?.isBundles"
-            class="check"
+            class="check mmt-4"
             type="checkbox"
             label-key="fleet.gitRepo.paths.enableBundles"
             :mode="mode"
@@ -391,15 +403,14 @@ export default {
   .row-container {
     display: flex;
     flex-direction: column;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius);
 
     .header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-    }
-
-    .check {
-      margin-top: 16px;
     }
 
     .subpaths {
@@ -413,14 +424,22 @@ export default {
               display: block;
             }
 
-            // Customize remove button
             .row {
+              // Customize item's margins
+              .kv-item {
+                margin: 0 0 16px 0;
+              }
+
+              // Customize headers
+              .text-label {
+                display: flex;
+                gap: 4px;
+                margin-bottom: 4px;
+              }
+
+              // Customize remove button
               .remove {
                 .btn {
-                  background: var(--accent-btn);
-                  &:not(:hover) {
-                    background: transparent;
-                  }
                   padding: 0 7px;
                 }
               }
@@ -433,7 +452,7 @@ export default {
               border-left: 1px solid var(--border);
               border-bottom: 1px solid var(--border);
               height: 70%;
-              margin-top: -10px;
+              margin-top: -18px;
               margin-right: -10px;
             }
           }
@@ -441,15 +460,8 @@ export default {
 
         // Customize Remove rows button
         :deep(.footer) {
-          margin-top: 5px !important;
+          margin-top: 0px !important;
           margin-left: 30px;
-
-          .btn {
-            &:not(:hover) {
-              background: transparent;
-            }
-            border: 0
-          }
         }
       }
     }

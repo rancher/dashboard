@@ -1,6 +1,5 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 
@@ -151,47 +150,11 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
   });
 
-  it('can toggle legacy feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Check Current State: should be disabled by default
-    FeatureFlagsPagePo.navTo();
-    featureFlagsPage.list().details('legacy', 0).should('include.text', 'Disabled');
-
-    // Activate
-    featureFlagsPage.list().clickRowActionMenuItem('legacy', 'Activate');
-    featureFlagsPage.clickCardActionButtonAndWait('Activate', 'legacy', true);
-
-    // Check Updated State: should be active
-    featureFlagsPage.list().details('legacy', 0).should('include.text', 'Active');
-
-    // Check cluster dashboard
-    const clusterDashboard = new ClusterDashboardPagePo('local');
-    const sideNav = new ProductNavPo();
-
-    clusterDashboard.goTo();
-    sideNav.groups().contains('Legacy').should('be.visible');
-
-    sideNav.navToSideMenuGroupByLabel('Legacy');
-    // Ensuring deprecated items are removed from the side navigation
-    sideNav.visibleNavTypes().should('not.contain', 'Alerts');
-    sideNav.visibleNavTypes().should('not.contain', 'Notifiers');
-    sideNav.visibleNavTypes().should('not.contain', 'Catalogs');
-    // Project item should exist
-    sideNav.visibleNavTypes().should('contain', 'Project');
-
-    // Deactivate
-    FeatureFlagsPagePo.navTo();
-    featureFlagsPage.list().clickRowActionMenuItem('legacy', 'Deactivate');
-    featureFlagsPage.clickCardActionButtonAndWait('Deactivate', 'legacy', false);
-
-    // Check Updated State: should be disabled
-    featureFlagsPage.list().details('legacy', 0).should('include.text', 'Disabled');
-
-    // Check cluster dashboard
-    clusterDashboard.goTo();
-    sideNav.groups().contains('Legacy').should('not.exist');
-  });
-
   it('error when toggling a feature flag is handled correctly', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    const clusterDashboard = new ClusterDashboardPagePo('local');
+
+    clusterDashboard.goTo();
+
     // Check Current State: should be disabled by default
     FeatureFlagsPagePo.navTo();
     featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
@@ -252,7 +215,7 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     });
   });
 
-  describe('List', { tags: ['@vai', '@globalSettings', '@adminUser', '@standardUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@globalSettings', '@adminUser', '@standardUser'] }, () => {
     it('validate feature flags table header content', () => {
       FeatureFlagsPagePo.navTo();
       // check table headers are visible

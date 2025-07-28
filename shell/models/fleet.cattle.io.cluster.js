@@ -136,6 +136,17 @@ export default class FleetCluster extends SteveModel {
     };
   }
 
+  get helmOpsInfo() {
+    const ready = this.status?.readyHelmOps || 0;
+    const total = this.status?.desiredReadyHelmOps || 0;
+
+    return {
+      ready,
+      unready: total - ready,
+      total,
+    };
+  }
+
   get bundleInfo() {
     const bundlesData = {
       ready: 0,
@@ -212,8 +223,8 @@ export default class FleetCluster extends SteveModel {
     return parsedLabels;
   }
 
-  async saveYaml(yaml) {
-    await this._saveYaml(yaml);
+  async saveYaml(yaml, initialYaml) {
+    await this._saveYaml(yaml, initialYaml);
 
     const parsed = jsyaml.load(yaml);
 

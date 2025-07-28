@@ -152,6 +152,10 @@ export default class Service extends SteveModel {
     });
   }
 
+  async unWatchPods() {
+    return await this.$dispatch('unwatch', { type: POD, all: true });
+  }
+
   /**
    * This getter expects a superset of workload pods to have been fetched already
    *

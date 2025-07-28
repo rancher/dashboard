@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
-const localWorkspace = 'fleet-local';
+// const localWorkspace = 'fleet-local';
 const defaultWorkspace = 'fleet-default';
 let customMappingName = '';
 let removeMappings = false;
@@ -62,38 +62,38 @@ describe('Bundle Namespace Mappings', { testIsolation: 'off', tags: ['@fleet', '
     });
 
     // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/13990
-    it.skip('can Edit Config', () => {
-      const fleetBundleNsMappingCreateEditPage = new FleetBundleNsMappingCreateEditPo(defaultWorkspace, customMappingName);
+    // it.skip('can Edit Config', () => {
+    //   const fleetBundleNsMappingCreateEditPage = new FleetBundleNsMappingCreateEditPo(defaultWorkspace, customMappingName);
 
-      cy.intercept('PUT', `/v1/fleet.cattle.io.bundlenamespacemappings/${ defaultWorkspace }/${ customMappingName }`).as('editMapping');
+    //   cy.intercept('PUT', `/v1/fleet.cattle.io.bundlenamespacemappings/${ defaultWorkspace }/${ customMappingName }`).as('editMapping');
 
-      fleetBundleNsMappingsListPage.goTo();
-      fleetBundleNsMappingsListPage.waitForPage();
-      fleetBundleNsMappingsListPage.list().actionMenu(customMappingName).getMenuItem('Edit YAML')
-        .click();
-      fleetBundleNsMappingCreateEditPage.waitForPage('mode=edit&as=yaml');
-      fleetBundleNsMappingCreateEditPage.mastheadTitle().then((title) => {
-        expect(title.replace(/\s+/g, ' ')).to.contain(`BundleNamespaceMapping: ${ customMappingName }`);
-      });
-      fleetBundleNsMappingCreateEditPage.resourceDetail().resourceYaml().codeMirror()
-        .value()
-        .then((val) => {
-          // convert yaml into json to update values
-          const json: any = jsyaml.load(val);
+    //   fleetBundleNsMappingsListPage.goTo();
+    //   fleetBundleNsMappingsListPage.waitForPage();
+    //   fleetBundleNsMappingsListPage.list().actionMenu(customMappingName).getMenuItem('Edit YAML')
+    //     .click();
+    //   fleetBundleNsMappingCreateEditPage.waitForPage('mode=edit&as=yaml');
+    //   fleetBundleNsMappingCreateEditPage.mastheadTitle().then((title) => {
+    //     expect(title.replace(/\s+/g, ' ')).to.contain(`BundleNamespaceMapping: ${ customMappingName }`);
+    //   });
+    //   fleetBundleNsMappingCreateEditPage.resourceDetail().resourceYaml().codeMirror()
+    //     .value()
+    //     .then((val) => {
+    //       // convert yaml into json to update values
+    //       const json: any = jsyaml.load(val);
 
-          json.metadata.namespace = localWorkspace;
+    //       json.metadata.namespace = localWorkspace;
 
-          fleetBundleNsMappingCreateEditPage.resourceDetail().resourceYaml().codeMirror()
-            .set(jsyaml.dump(json));
-        });
-      fleetBundleNsMappingCreateEditPage.resourceDetail().resourceYaml().saveOrCreate()
-        .click();
-      cy.wait('@editMapping').then(({ response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(response?.body.metadata.namespace).equals(localWorkspace);
-      });
-      fleetBundleNsMappingsListPage.waitForPage();
-    });
+    //       fleetBundleNsMappingCreateEditPage.resourceDetail().resourceYaml().codeMirror()
+    //         .set(jsyaml.dump(json));
+    //     });
+    //   fleetBundleNsMappingCreateEditPage.resourceDetail().resourceYaml().saveOrCreate()
+    //     .click();
+    //   cy.wait('@editMapping').then(({ response }) => {
+    //     expect(response?.statusCode).to.eq(200);
+    //     expect(response?.body.metadata.namespace).equals(localWorkspace);
+    //   });
+    //   fleetBundleNsMappingsListPage.waitForPage();
+    // });
 
     it('can clone a bundle namespace mapping', () => {
       const fleetBundleNsMappingCreateEditPage = new FleetBundleNsMappingCreateEditPo(defaultWorkspace, customMappingName);

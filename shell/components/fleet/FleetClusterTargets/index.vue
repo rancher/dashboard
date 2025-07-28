@@ -14,6 +14,11 @@ import { RcButton } from '@components/RcButton';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import TargetsList from '@shell/components/fleet/FleetClusterTargets/TargetsList.vue';
 
+export interface Cluster {
+  name: string,
+  nameDisplay: string
+}
+
 interface DataType {
   targetMode: TargetMode,
   allClusters: any[],
@@ -46,7 +51,7 @@ export default {
     },
 
     matching: {
-      type:    Array as PropType<{ name: string }[]>,
+      type:    Array as PropType<Cluster[]>,
       default: () => [],
     },
 
@@ -174,7 +179,16 @@ export default {
     },
 
     addMatchExpressions() {
-      this.clusterSelectors.push({ key: this.key++ });
+      const neu = { key: this.key++ };
+
+      this.clusterSelectors.push(neu);
+
+      // Focus first element in MatchExpression
+      this.$nextTick(() => {
+        const matchExpression = (this.$refs[`match-expression-${ neu.key }`] as HTMLElement[])?.[0];
+
+        matchExpression?.focus();
+      });
 
       this.update();
     },
@@ -340,11 +354,13 @@ export default {
     v-if="targetMode === 'clusters'"
     class="row mt-20"
   >
-    <div class="col span-8">
-      <h3> {{ t('fleet.clusterTargets.title') }} </h3>
+    <div class="col span-9">
+      <h3 class="m-0">
+        {{ t('fleet.clusterTargets.title') }}
+      </h3>
       <LabeledSelect
-        class="mt-20"
         data-testid="fleet-target-cluster-name-selector"
+        class="mmt-4"
         :value="selectedClusters"
         :label="t('fleet.clusterTargets.label')"
         :options="clustersOptions"
@@ -355,18 +371,22 @@ export default {
         :placeholder="t('fleet.clusterTargets.placeholders.selectMultiple')"
         @update:value="selectClusters"
       />
-      <div class="mt-30">
-        <h3> {{ t('fleet.clusterTargets.rules.title') }} </h3>
+      <div class="mmt-8">
+        <h3 class="m-0">
+          {{ t('fleet.clusterTargets.rules.title') }}
+        </h3>
         <div
           v-for="(selector, i) in clusterSelectors"
           :key="selector.key"
-          class="match-expressions-container mt-20"
+          class="match-expressions-container mmt-4"
         >
           <MatchExpressions
+            :ref="`match-expression-${ selector.key }`"
             class="body"
             :value="selector"
             :mode="mode"
             :initial-empty-row="true"
+            :label-key="t('fleet.clusterTargets.rules.labelKey')"
             :add-icon="'icon-plus'"
             :add-class="'btn-sm'"
             @update:value="updateMatchExpressions(i, $event, selector.key)"
@@ -381,8 +401,8 @@ export default {
         </div>
         <RcButton
           small
-          tertiary
-          class="mt-20"
+          secondary
+          class="mmt-6"
           @click="addMatchExpressions"
         >
           <i class="icon icon-plus" />
@@ -390,9 +410,6 @@ export default {
         </RcButton>
       </div>
     </div>
-
-    <div class="col span-1" />
-
     <div class="col span-3">
       <TargetsList
         class="target-list"

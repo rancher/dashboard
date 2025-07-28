@@ -379,6 +379,16 @@ export default {
     closeError(index) {
       this.errors = this.errors.filter((_, i) => i !== index);
     },
+    onYamlError(err) {
+      this.errors = [];
+      const errors = Array.isArray(err) ? err : [err];
+
+      errors.forEach((e) => {
+        if (this.errors.indexOf(e) === -1) {
+          this.errors.push(e);
+        }
+      });
+    },
     /**
      * Initializes the resource components based on the provided user and
      * resource override.
@@ -483,8 +493,9 @@ export default {
       :offer-preview="offerPreview"
       :done-route="doneRoute"
       :done-override="value ? value.doneOverride : null"
+      :show-errors="false"
       @update:value="$emit('input', $event)"
-      @error="e=>errors.push(e)"
+      @error="onYamlError"
     />
 
     <component
@@ -541,5 +552,11 @@ export default {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+}
+.cru__errors {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--header-bg);
 }
 </style>

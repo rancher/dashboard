@@ -206,7 +206,10 @@ export default {
         :mode="mode"
       />
 
-      <Tabbed :side-tabs="true">
+      <Tabbed
+        :side-tabs="true"
+        :use-hash="useTabbedHash"
+      >
         <Tab
           name="target"
           :label="t('hpa.tabs.target')"

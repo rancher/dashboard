@@ -101,6 +101,10 @@ export default {
       type:     Function,
       required: true
     },
+    useTabbedHash: {
+      type:    Boolean,
+      default: undefined
+    }
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -300,6 +304,7 @@ export default {
       ref="tabbed"
       :side-tabs="true"
       default-tab="overview"
+      :use-hash="useTabbedHash"
       @changed="tabChanged"
     >
       <Tab

@@ -356,6 +356,8 @@ export const actions = {
 
     commit('loggedOut');
     dispatch('onLogout', null, { root: true });
+
+    dispatch('uiplugins/setReady', false, { root: true });
   },
 
   async logout({ dispatch, getters, rootState }, options = {}) {

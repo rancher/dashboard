@@ -17,7 +17,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   it('Charts have expected icons', () => {
     chartsPage.resetAllFilters();
     chartsPage.checkChartGenericIcon('Alerting Driver', false);
-    chartsPage.checkChartGenericIcon('CIS Benchmark', false);
+    chartsPage.checkChartGenericIcon('Rancher Compliance', false);
     chartsPage.checkChartGenericIcon('Logging', false);
   });
 
@@ -76,7 +76,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     const appRepoList = new ReposListPagePo('local', 'apps');
 
     appRepoList.goTo();
-    appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`);
+    appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
     appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
     appRepoList.list().actionMenu('Partners').getMenuItem('Disable').click();
     // go to charts page
@@ -90,8 +90,23 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
 
     // re-enable the disabled repo
     appRepoList.goTo();
-    appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`);
+    appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
     appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
     appRepoList.list().actionMenu('Partners').getMenuItem('Enable').click();
+  });
+
+  it('should display empty state properly', () => {
+    // selecting Rancher repo, PaaS category and Installed status filters to get no results in order to see an empty state
+    chartsPage.getFilterOptionByName('Rancher').set();
+    chartsPage.getFilterOptionByName('PaaS').set();
+    chartsPage.getFilterOptionByName('Installed').set();
+    // check empty state to be displayed
+    chartsPage.emptyState().isVisible();
+    chartsPage.emptyStateTitle().should('eq', 'No charts to show');
+    // reset filters
+    chartsPage.emptyStateResetFilters().isVisible();
+    chartsPage.emptyStateResetFilters().click();
+    // check empty state is NOT displayed
+    chartsPage.emptyState().should('not.exist');
   });
 });

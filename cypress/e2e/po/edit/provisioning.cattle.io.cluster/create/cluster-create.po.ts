@@ -22,7 +22,7 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
   }
 
   rke2PageTitle(): Cypress.Chainable<string> {
-    return this.self().find('.primaryheader h1').invoke('text');
+    return this.self().find('.title-bar h1.title, .primaryheader h1').invoke('text');
   }
 
   gridElementExistanceByName(name: string, assertion: string) {

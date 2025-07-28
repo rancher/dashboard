@@ -20,6 +20,7 @@ export default {
         e.preventDefault();
         e.stopPropagation();
 
+        this.isOpen = false;
         vm.open = false;
         vm.search = '';
 

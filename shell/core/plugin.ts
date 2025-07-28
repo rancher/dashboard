@@ -14,7 +14,8 @@ import {
   ExtensionPoint,
   TabLocation,
   ModelExtensionConstructor,
-  PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut,
+  PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig,
+  NavHooks, OnNavToPackage, OnNavAwayFromPackage, OnLogIn, OnLogOut,
   ExtensionEnvironment
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
@@ -43,6 +44,7 @@ export class Plugin implements IPlugin {
   public onEnter: OnNavToPackage = () => Promise.resolve();
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
   public _onLogOut: OnLogOut = () => Promise.resolve();
+  public onLogIn: OnLogIn = () => Promise.resolve();
 
   public uiConfig: { [key: string]: any } = {};
 
@@ -314,13 +316,36 @@ export class Plugin implements IPlugin {
   }
 
   public addNavHooks(
-    onEnter: OnNavToPackage = () => Promise.resolve(),
-    onLeave: OnNavAwayFromPackage = () => Promise.resolve(),
-    onLogOut: OnLogOut = () => Promise.resolve(),
+    onEnter?: OnNavToPackage | NavHooks,
+    onLeave?: OnNavAwayFromPackage,
+    onLogOut?: OnLogOut,
+    onLogIn?: OnLogIn,
   ): void {
-    this.onEnter = onEnter;
-    this.onLeave = onLeave;
-    this._onLogOut = onLogOut;
+    if (typeof onEnter === 'object') {
+      const hooks = onEnter as NavHooks;
+
+      if (hooks.onEnter) {
+        this.onEnter = hooks.onEnter;
+      }
+
+      if (hooks.onLeave) {
+        this.onLeave = hooks.onLeave;
+      }
+
+      if (hooks.onLogout) {
+        this._onLogOut = hooks.onLogout;
+      }
+
+      if (hooks.onLogin) {
+        this.onLogIn = hooks.onLogin;
+      }
+    } else {
+      // No first arg, or first arg is not an object, so this is the legacy invocation
+      this.onEnter = (onEnter as OnNavToPackage) || (() => Promise.resolve());
+      this.onLeave = onLeave || (() => Promise.resolve());
+      this._onLogOut = onLogOut || (() => Promise.resolve());
+      this.onLogIn = onLogIn || (() => Promise.resolve());
+    }
   }
 
   public async onLogOut(store: any) {

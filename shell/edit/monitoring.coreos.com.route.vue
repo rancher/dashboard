@@ -103,6 +103,7 @@ export default {
       ref="tabbed"
       :side-tabs="true"
       default-tab="overview"
+      :use-hash="useTabbedHash"
     >
       <Tab
         label="Receiver"

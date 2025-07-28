@@ -2,8 +2,11 @@
 import SubtleLink from '@shell/components/SubtleLink.vue';
 import StateDot from '@shell/components/StateDot/index.vue';
 import { StateColor } from '@shell/utils/style';
-import { sortBy } from 'lodash';
+import { sortBy, sumBy } from 'lodash';
 import { RouteLocationRaw } from 'vue-router';
+import { computed } from 'vue';
+import { useI18n } from '@shell/composables/useI18n';
+import { useStore } from 'vuex';
 
 export interface Count {
   label: string;
@@ -36,13 +39,38 @@ export function extractCounts(labels: string[]): Count[] {
 const {
   label, to, counts, color
 } = defineProps<Props>();
+
+const store = useStore();
+const i18n = useI18n(store);
+
+const displayCounts = computed(() => {
+  if (!counts) {
+    return counts;
+  }
+
+  if (counts.length < 3) {
+    return counts;
+  }
+
+  const [first, ...rest] = counts;
+  const otherCount = sumBy(rest, 'count');
+  const other = {
+    label: i18n.t('generic.other', { count: otherCount }),
+    count: otherCount
+  };
+
+  return [
+    first,
+    other
+  ];
+});
 </script>
 
 <template>
   <div class="resource-row">
     <div class="left">
       <SubtleLink
-        v-if="to"
+        v-if="to && (counts && counts.length > 0)"
         :to="to"
       >
         {{ label }}
@@ -70,7 +98,7 @@ const {
           :color="color"
         />
         <span
-          v-for="count in counts"
+          v-for="count in displayCounts"
           :key="count.label"
           class="count"
         >
