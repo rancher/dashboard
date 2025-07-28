@@ -342,7 +342,7 @@ export default {
             v-for="vers of versions"
             :key="vers.id"
             class="chart-body__info-section--versions"
-            data-testid="chart-version"
+            data-testid="chart-versions"
           >
             <b
               v-if="vers.originalVersion === version.version"
