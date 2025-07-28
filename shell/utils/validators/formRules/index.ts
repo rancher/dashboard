@@ -1,3 +1,4 @@
+import semver from 'semver';
 import { RBAC } from '@shell/config/types';
 import { HCI } from '@shell/config/labels-annotations';
 import isEmpty from 'lodash/isEmpty';
@@ -189,6 +190,14 @@ export default function(
     const regex = /^oci:\/\/\S+$/gm;
 
     return !regex.test(url) ? t('validation.oci.url') : undefined;
+  };
+
+  const version: Validator = (value: string) => {
+    return value && !semver.valid(value) ? t('validation.version') : undefined;
+  };
+
+  const semanticVersion: Validator = (value: string) => {
+    return value && !semver.validRange(value) ? t('validation.semanticVersion') : undefined;
   };
 
   const alphanumeric: Validator = (val: string) => val && !/^[a-zA-Z0-9]+$/.test(val) ? t('validation.alphanumeric', { key }) : undefined;
@@ -561,9 +570,11 @@ export default function(
     isOctal,
     roleTemplateRules,
     ruleGroups,
+    semanticVersion,
     servicePort,
     subDomain,
     testRule,
+    version,
     wildcardHostname
   };
 }

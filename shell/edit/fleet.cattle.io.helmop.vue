@@ -408,12 +408,18 @@ export default {
         }, {
           path:  'spec.helm.chart',
           rules: ['required'],
+        }, {
+          path:  'spec.helm.version',
+          rules: ['semanticVersion'],
         }];
         break;
       case SOURCE_TYPE.OCI:
         this.fvFormRuleSets = [{
           path:  'spec.helm.repo',
           rules: ['required', 'ociRegistry'],
+        }, {
+          path:  'spec.helm.version',
+          rules: ['semanticVersion'],
         }];
         break;
       case SOURCE_TYPE.TARBALL:
@@ -541,6 +547,7 @@ export default {
               :mode="mode"
               label-key="fleet.helmOp.source.version.label"
               :placeholder="t('fleet.helmOp.source.version.placeholder', null, true)"
+              :rules="fvGetAndReportPathRules('spec.helm.version')"
             />
           </div>
         </div>
@@ -564,6 +571,7 @@ export default {
               :mode="mode"
               label-key="fleet.helmOp.source.version.label"
               :placeholder="t('fleet.helmOp.source.version.placeholder', null, true)"
+              :rules="fvGetAndReportPathRules('spec.helm.version')"
             />
           </div>
         </div>
