@@ -25,8 +25,8 @@ const props = defineProps<RcStatusIndicatorProps>();
         border: 1px solid transparent;
 
         &.disc {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
         }
 

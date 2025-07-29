@@ -10,6 +10,7 @@ import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 import { useRoute } from 'vue-router';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import { KUBERNETES } from '@shell/config/labels-annotations';
+import ResourcePopover from '@shell/components/Resource/Detail/ResourcePopover/index.vue';
 
 export const useNamespace = (resource: any): ComputedRef<Row> | undefined => {
   const store = useStore();
@@ -21,21 +22,17 @@ export const useNamespace = (resource: any): ComputedRef<Row> | undefined => {
   }
 
   return computed(() => {
-    const to = resourceValue.namespaceLocation || {
-      name:   `c-cluster-product-resource-id`,
-      params: {
-        product:  store.getters['productId'],
-        cluster:  store.getters['clusterId'],
-        resource: NAMESPACE,
-        id:       resourceValue.namespace
-      }
-    };
-
     return {
       label:           i18n.t('component.resource.detail.metadata.identifyingInformation.namespace'),
       value:           resourceValue.namespace,
       valueDataTestid: 'masthead-subheader-namespace',
-      to
+      valueOverride:   {
+        component: markRaw(ResourcePopover),
+        props:     {
+          type: NAMESPACE,
+          id:   resourceValue.namespace
+        }
+      }
     };
   });
 };

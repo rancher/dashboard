@@ -33,6 +33,7 @@ defineExpose({ focus });
     aria-haspopup="menu"
     :aria-expanded="isMenuOpen"
     @keydown.enter.space="handleKeydown"
+    @focus="showMenu(true)"
     @click="showMenu(true)"
   >
     <template #before>
