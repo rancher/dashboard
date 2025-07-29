@@ -161,20 +161,26 @@ describe('formRules', () => {
     const message = JSON.stringify({ message: 'validation.oci.url' });
     const testCases = [
       // Valid
-      ['oci://bucket/object', undefined],
+      ['oci://registry.example.com', undefined],
+      ['oci://myregistry.dev:5000', undefined],
+      ['oci://192.168.1.100', undefined],
+      ['oci://my.domain.com/my/image:tag', undefined],
+      ['oci://localhost:5000', undefined],
       ['oci://region.objectstorage.example.com/n', undefined],
-      ['oci://a', undefined],
-      ['oci://UPPERCASE/path', undefined],
 
       // Invalid
       ['http://example.com/oci', message],
       ['https://oci.cloud.com', message],
       ['ftp://oci.server.net', message],
-      ['/path/to/oci', message],
+      ['path/to/oci', message],
+      ['oci://a', message],
       ['oci:/missing/slash', message],
       ['oci:', message],
       ['oci://', message],
-      ['oci://space between', message],
+      ['oci://oci://duplicate/protocol', message],
+      ['oci  ://registry.example.com/foo/bar', message],
+      ['oci://registry.example.  com/foo/bar', message],
+      ['oci://registry.example.com/  foo/bar', message],
       ['oci://resource multiple spaces', message],
       ['', message],
       [undefined, message],

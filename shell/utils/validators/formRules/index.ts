@@ -219,9 +219,38 @@ export default function(
   };
 
   const ociRegistry: Validator = (url: string) => {
-    const regex = /^oci:\/\/\S+$/gm;
+    const message = t('validation.oci.url');
 
-    return !regex.test(url) ? t('validation.oci.url') : undefined;
+    if (!url) {
+      return message;
+    }
+
+    if (url.includes(' ')) {
+      return message;
+    }
+
+    const {
+      protocol,
+      host,
+      path
+    } = parse(url);
+
+    // Test duplicate protocol
+    if (!host || protocol === host) {
+      return message;
+    }
+
+    // Test oci protocol
+    if (!url.startsWith('oci://')) {
+      return message;
+    }
+
+    // Test host/path
+    if (!/^([\w\.@\:\/\-]+)([\d\/\w.-]+?)(\/)?$/gm.test(`${ host }${ path }`)) {
+      return message;
+    }
+
+    return undefined;
   };
 
   const version: Validator = (value: string) => {

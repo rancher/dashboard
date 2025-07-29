@@ -416,7 +416,7 @@ export default {
       case SOURCE_TYPE.OCI:
         this.fvFormRuleSets = [{
           path:  'spec.helm.repo',
-          rules: ['required', 'ociRegistry'],
+          rules: ['ociRegistry'],
         }, {
           path:  'spec.helm.version',
           rules: ['semanticVersion'],

@@ -6764,7 +6764,7 @@ validation:
   repository:
     url: It must be a valid HTTP(s) or SSH URL with no trailing spaces
   oci:
-    url: URL must be an OCI url with no trailing spaces
+    url: It must be a valid OCI URL with no trailing spaces
   output:
     logdna:
       apiKey: Required an "Api Key" to be set.
