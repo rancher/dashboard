@@ -144,6 +144,15 @@ create_initial_clusters() {
       RANCHER_VERSION=$(helm search repo "rancher-${RANCHER_HELM_REPO}" --devel --versions | grep "${version_string}" | head -n 1 | cut -f2 | tr -d '[:space:]')
     fi
     corral config vars set rancher_image_tag "${RANCHER_IMAGE_TAG}"
+    
+    # Save all values to a file for the Slack notification script
+    cat > "${WORKSPACE}/notification_values.txt" << EOF
+RANCHER_VERSION=${RANCHER_VERSION}
+RANCHER_IMAGE_TAG=${RANCHER_IMAGE_TAG}
+RANCHER_CHART_URL=${RANCHER_CHART_URL}
+RANCHER_HELM_REPO=${RANCHER_HELM_REPO}
+CYPRESS_TAGS=${CYPRESS_TAGS}
+EOF
   fi
   cd "${WORKSPACE}/corral-packages"
   yq -i e ".variables.rancher_version += [\"${RANCHER_VERSION}\"] | .variables.rancher_version style=\"literal\"" packages/aws/rancher-k3s.yaml
