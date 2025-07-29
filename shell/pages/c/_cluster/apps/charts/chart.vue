@@ -629,7 +629,8 @@ export default {
         position: absolute;
         top: 12px;
         right: 24px;
-        min-height: 32px;
+        height: 32px;
+        min-height: 32px; // to overwrite the minimum height of 40px from .btn
         z-index: 1;
         background: var(--body-bg);
 
