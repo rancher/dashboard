@@ -2,7 +2,7 @@
 
 While in the Cluster Provisioning screen in Rancher UI, you've noticed that node drivers have icons for each provider:
 
-![Cluster Provisioning](../../screenshots/cluster-provisioning.png)
+![Cluster Provisioning](../../../screenshots/cluster-provisioning.png)
 
 In order to set the icon for your custom node driver in the cluster provisioning screen, you can use the following method:
 

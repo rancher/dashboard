@@ -1,4 +1,4 @@
-# Custom Node Driver UI
+# Custom Node Drivers UI
 
 Rancher supports custom node drivers to support additional node provisioners. Node drivers are used for both RKE1 and RKE2/k3s. RKE1 support is handled by the legacy ember UI.
 
