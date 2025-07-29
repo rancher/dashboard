@@ -17,27 +17,33 @@ export default {
       default: true
     }
   },
-  data() {
-    const isStandalone = !!this.$route.query.versionInfo;
-    const showAppReadme = this.$route.query.showAppReadme ? this.$route.query.showAppReadme === 'true' : this.showAppReadme;
-    const hideReadmeFirstTitle = this.$route.query.hideReadmeFirstTitle ? this.$route.query.hideReadmeFirstTitle === 'true' : this.hideReadmeFirstTitle;
-
-    if (isStandalone) {
+  created() {
+    // When rendered as a standalone page, the theme is passed as a query parameter and applied to the body.
+    if (this.isStandalone) {
       const theme = this.$route.query.theme || 'light';
 
       document.body.classList.add(`theme-${ theme }`);
     }
-
+  },
+  data() {
     return {
-      appReadmeLoaded:  false,
-      readmeLoaded:     false,
-      localVersionInfo: this.versionInfo || (this.$route.query.versionInfo ? JSON.parse(atob(this.$route.query.versionInfo)) : null),
-      isStandalone,
-      localShowAppReadme:       showAppReadme,
-      localHideReadmeFirstTitle: hideReadmeFirstTitle,
+      appReadmeLoaded: false,
+      readmeLoaded:    false,
     };
   },
   computed: {
+    isStandalone() {
+      return !!this.$route.query.versionInfo;
+    },
+    localShowAppReadme() {
+      return this.$route.query.showAppReadme ? this.$route.query.showAppReadme === 'true' : this.showAppReadme;
+    },
+    localHideReadmeFirstTitle() {
+      return this.$route.query.hideReadmeFirstTitle ? this.$route.query.hideReadmeFirstTitle === 'true' : this.hideReadmeFirstTitle;
+    },
+    localVersionInfo() {
+      return this.versionInfo || (this.isStandalone ? JSON.parse(atob(this.$route.query.versionInfo)) : null);
+    },
     appReadme() {
       return this.localVersionInfo?.appReadme || '';
     },
@@ -53,7 +59,10 @@ export default {
     class="wrapper"
     :class="{'standalone': isStandalone}"
   >
-    <div class="chart-readmes" :class="{'standalone': isStandalone}">
+    <div
+      class="chart-readmes"
+      :class="{'standalone': isStandalone}"
+    >
       <Markdown
         v-if="localShowAppReadme && appReadme"
         v-model:value="appReadme"

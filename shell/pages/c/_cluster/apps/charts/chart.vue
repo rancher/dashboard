@@ -14,6 +14,7 @@ import { compatibleVersionsFor } from '@shell/store/catalog';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import day from 'dayjs';
+import { getStandaloneReadmeUrl } from '@shell/utils/chart.ts';
 
 export default {
   components: {
@@ -148,18 +149,14 @@ export default {
       });
     },
     openReadme() {
-      const encodedVersionInfo = btoa(JSON.stringify(this.versionInfo));
+      // Uses a helper to generate the URL and opens the chart README in a new tab.
       const theme = this.$store.getters['prefs/theme'];
-      const url = this.$router.resolve({
-        name:   'chart-readme-standalone',
-        params: { cluster: this.$route.params.cluster },
-        query:  {
-          versionInfo:         encodedVersionInfo,
-          showAppReadme:       'false',
-          hideReadmeFirstTitle: 'false',
-          theme
-        },
-      }).href;
+      const url = getStandaloneReadmeUrl(this.$router, {
+        versionInfo: this.versionInfo,
+        showAppReadme: false,
+        hideReadmeFirstTitle: false,
+        theme,
+      });
 
       window.open(url, '_blank');
     },
