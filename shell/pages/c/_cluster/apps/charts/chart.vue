@@ -14,6 +14,7 @@ import { compatibleVersionsFor } from '@shell/store/catalog';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import day from 'dayjs';
+import { RcButton } from '@components/RcButton';
 
 export default {
   components: {
@@ -22,7 +23,8 @@ export default {
     LazyImage,
     Loading,
     AppChartCardSubHeader,
-    AppChartCardFooter
+    AppChartCardFooter,
+    RcButton
   },
 
   mixins: [
@@ -271,15 +273,14 @@ export default {
           />
         </div>
       </div>
-      <button
+      <RcButton
         v-if="!requires.length"
-        type="button"
         data-testid="btn-chart-install"
         class="btn role-primary"
         @click.prevent="install"
       >
         {{ t(`asyncButton.${action}.action` ) }}
-      </button>
+      </RcButton>
     </div>
 
     <div class="dashed-spacer" />
