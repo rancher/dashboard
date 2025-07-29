@@ -97,32 +97,54 @@ describe('formRules', () => {
   });
 
   describe('urlRepository', () => {
-    const message = JSON.stringify({ message: 'validation.git.url' });
+    const message = JSON.stringify({ message: 'validation.repository.url' });
     const testCases = [
       // Valid HTTP(s)
       ['https://github.com/rancher/dashboard.git', undefined],
       ['http://github.com/rancher/dashboard.git', undefined],
       ['https://github.com/rancher/dashboard', undefined],
       ['https://github.com/rancher/dashboard/', undefined],
+      ['https://github.com/rancher/%20dashboard/', undefined],
+      ['https://github.com/rancher/dashboard/%20', undefined],
+      ['https://localhost:8005', undefined],
 
       // Valid SSH
       ['git@github.com:rancher/dashboard.git', undefined],
       ['git@github.com:rancher/dashboard', undefined],
       ['git@github.com:rancher/dashboard/', undefined],
+      ['git@github.com:rancher/%20dashboard/', undefined],
+      ['git@github.com:rancher/dashboard/%20', undefined],
 
       // Not valid HTTP(s)
       ['https://github.com/rancher/  dashboard.git', message],
       ['http://github.com/rancher/  dashboard.git', message],
+      ['http://github.com/ rancher/dashboard.git', message],
+      ['http://github.com /rancher/dashboard.git', message],
       ['https://github.com/rancher/dashboard ', message],
+      ['https%20://github.com/rancher/dashboard ', message],
+      ['ht%20tps://github.com/rancher/dashboard ', message],
+      ['https://git%20hub.com/rancher/dashboard/%20', message],
+      ['https://https://', message],
+      ['http:/ww.abc.com', message],
+      ['http:ww.abc.com', message],
       ['foo://github.com/rancher/dashboard/', message],
       ['github.com/rancher/dashboard/', message],
 
       // Not valid SSH
       ['git@github.com:rancher/  dashboard.git', message],
       ['git@github.com:rancher/dashboard  ', message],
+      ['git@github.com:rancher/  dashboard', message],
+      ['git @github.com:rancher/dashboard', message],
+      ['git@github.com:  rancher/dashboard', message],
       ['git@github.comrancher/dashboard', message],
+      ['git@githubcomrancher/dashboard', message],
+      ['%20git@github.comrancher/dashboard', message],
+      ['git@git%20hub.comrancher/dashboard', message],
+      ['git@.git', message],
+      ['git@', message],
 
-      [undefined, undefined]
+      [undefined, message],
+      ['', message]
     ];
 
     it.each(testCases)(
