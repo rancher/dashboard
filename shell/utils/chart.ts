@@ -17,14 +17,16 @@ interface StandaloneReadmeOptions {
  * @param options.theme The theme to apply to the standalone page.
  * @returns The generated URL.
  */
-export function getStandaloneReadmeUrl(router: Router, { versionInfo, showAppReadme, hideReadmeFirstTitle, theme }: StandaloneReadmeOptions): string {
+export function getStandaloneReadmeUrl(router: Router, {
+  versionInfo, showAppReadme, hideReadmeFirstTitle, theme
+}: StandaloneReadmeOptions): string {
   const encodedVersionInfo = btoa(JSON.stringify(versionInfo));
   const { href } = router.resolve({
     name:   'chart-readme-standalone',
     params: { cluster: router.currentRoute.value.params.cluster },
     query:  {
-      versionInfo: encodedVersionInfo,
-      showAppReadme: String(showAppReadme),
+      versionInfo:          encodedVersionInfo,
+      showAppReadme:        String(showAppReadme),
       hideReadmeFirstTitle: String(hideReadmeFirstTitle),
       theme,
     },

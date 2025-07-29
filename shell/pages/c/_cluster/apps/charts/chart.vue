@@ -152,8 +152,8 @@ export default {
       // Uses a helper to generate the URL and opens the chart README in a new tab.
       const theme = this.$store.getters['prefs/theme'];
       const url = getStandaloneReadmeUrl(this.$router, {
-        versionInfo: this.versionInfo,
-        showAppReadme: false,
+        versionInfo:          this.versionInfo,
+        showAppReadme:        false,
         hideReadmeFirstTitle: false,
         theme,
       });
@@ -297,14 +297,6 @@ export default {
 
     <div class="dashed-spacer" />
 
-    <button
-      type="button"
-      class="btn role-secondary"
-      :style="{ display: 'inline', width: '200px' }"
-      @click="openReadme()"
-    >
-      {{ t('catalog.chart.viewReadmeSeparately') }}
-    </button>
     <div
       v-if="requires.length || warnings.length || targetedAppWarning || osWarning"
       class="chart-banners"
@@ -340,13 +332,26 @@ export default {
     </div>
 
     <div class="chart-body">
-      <ChartReadme
+      <div
         v-if="hasReadme"
-        :version-info="versionInfo"
-        :show-app-readme="false"
-        :hide-readme-first-title="false"
-        class="chart-body__readme"
-      />
+        class="readme-wrapper"
+        tabindex="0"
+      >
+        <button
+          type="button"
+          class="btn role-secondary open-readme-button"
+          @click="openReadme()"
+        >
+          {{ t('catalog.chart.viewReadmeSeparately') }}
+          <i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
+        </button>
+        <ChartReadme
+          :version-info="versionInfo"
+          :show-app-readme="false"
+          :hide-readme-first-title="false"
+          class="chart-body__readme"
+        />
+      </div>
       <div
         v-else
         class="chart-body__readme"
@@ -614,6 +619,32 @@ export default {
 
   .chart-body {
     display: flex;
+
+    .readme-wrapper {
+      position: relative;
+      flex: 1;
+
+      .open-readme-button {
+        display: none;
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        min-height: 32px;
+        z-index: 1;
+
+        .icon-external-link {
+          margin: 0 0 0 8px;
+        }
+      }
+
+      &:hover,
+      &:focus-within {
+        .open-readme-button {
+          display: inline-block;
+        }
+      }
+    }
+
     &__readme {
       flex: 1;
       min-width: 400px;
