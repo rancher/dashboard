@@ -627,10 +627,15 @@ export default {
       .open-readme-button {
         display: none;
         position: absolute;
-        top: 20px;
-        right: 20px;
+        top: 12px;
+        right: 24px;
         min-height: 32px;
         z-index: 1;
+        background: var(--body-bg);
+
+        &:focus {
+          background: var(--primary);
+        }
 
         .icon-external-link {
           margin: 0 0 0 8px;
@@ -640,7 +645,7 @@ export default {
       &:hover,
       &:focus-within {
         .open-readme-button {
-          display: inline-block;
+          display: flex;
         }
       }
     }

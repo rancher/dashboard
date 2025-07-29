@@ -3,12 +3,8 @@ import { getStandaloneReadmeUrl } from '@shell/utils/chart';
 describe('getStandaloneReadmeUrl', () => {
   it('should generate a correct standalone README URL', () => {
     const mockRouter = {
-      resolve: jest.fn((route) => ({ href: `/test-url?versionInfo=${ route.query.versionInfo }&showAppReadme=${ route.query.showAppReadme }&hideReadmeFirstTitle=${ route.query.hideReadmeFirstTitle }&theme=${ route.query.theme }` })),
-      currentRoute: {
-        value: {
-          params: { cluster: 'test-cluster' },
-        },
-      },
+      resolve:      jest.fn((route) => ({ href: `/test-url?versionInfo=${ route.query.versionInfo }&showAppReadme=${ route.query.showAppReadme }&hideReadmeFirstTitle=${ route.query.hideReadmeFirstTitle }&theme=${ route.query.theme }` })),
+      currentRoute: { value: { params: { cluster: 'test-cluster' } } },
     };
 
     const options = {

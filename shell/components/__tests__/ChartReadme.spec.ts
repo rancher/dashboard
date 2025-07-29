@@ -1,7 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import ChartReadme from '@shell/components/ChartReadme.vue';
 
-describe('ChartReadme', () => {
+describe('chartReadme', () => {
   describe('standalone mode', () => {
     const mockRoute = {
       query: {
@@ -13,13 +13,7 @@ describe('ChartReadme', () => {
     };
 
     it('should apply theme to body and render with standalone class', () => {
-      const wrapper = shallowMount(ChartReadme, {
-        global: {
-          mocks: {
-            $route: mockRoute,
-          },
-        },
-      });
+      const wrapper = shallowMount(ChartReadme, { global: { mocks: { $route: mockRoute } } });
 
       // Check if theme is applied
       expect(document.body.classList.contains('theme-dark')).toBe(true);
@@ -29,18 +23,12 @@ describe('ChartReadme', () => {
     });
 
     it('should correctly parse props from URL', () => {
-      const wrapper = shallowMount(ChartReadme, {
-        global: {
-          mocks: {
-            $route: mockRoute,
-          },
-        },
-      });
+      const wrapper = shallowMount(ChartReadme, { global: { mocks: { $route: mockRoute } } });
 
       // Check if props are correctly interpreted from the route query
       expect(wrapper.vm.localShowAppReadme).toBe(true);
       expect(wrapper.vm.localHideReadmeFirstTitle).toBe(false);
-      expect(wrapper.vm.localVersionInfo).toEqual({ appReadme: 'test app readme', readme: 'test readme' });
+      expect(wrapper.vm.localVersionInfo).toStrictEqual({ appReadme: 'test app readme', readme: 'test readme' });
     });
   });
 
@@ -54,11 +42,7 @@ describe('ChartReadme', () => {
           showAppReadme:        false,
           hideReadmeFirstTitle: true,
         },
-        global: {
-          mocks: {
-            $route: { query: {} },
-          },
-        },
+        global: { mocks: { $route: { query: {} } } },
       });
 
       // Ensure standalone class is NOT applied
@@ -67,7 +51,7 @@ describe('ChartReadme', () => {
       // Ensure props are used directly
       expect(wrapper.vm.localShowAppReadme).toBe(false);
       expect(wrapper.vm.localHideReadmeFirstTitle).toBe(true);
-      expect(wrapper.vm.localVersionInfo).toEqual(versionInfo);
+      expect(wrapper.vm.localVersionInfo).toStrictEqual(versionInfo);
     });
   });
 });
