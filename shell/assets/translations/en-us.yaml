@@ -8938,3 +8938,12 @@ component:
         keyValue:
           noRows: There are no {propertyName} configured on this resource.
           showConfiguration: Show Configuration
+      glance:
+        state: State
+        age: Age
+        namespace: Namespace
+        project: Project
+        type: Type
+        ariaLabel:
+          showDetails: Show Resource Information about { resource } named { name }
+          actionMenu: Resource Actions - { resource }
