@@ -2001,7 +2001,7 @@ cluster:
           label: Zone
       preemptible:
         label: Make VM instance preemptible
-        tooltip: Indicates whether the GCE VM instance should be preemptible.
+        tooltip: Preemptible machines offer significant cost savings, but may be abruptly stopped when Google Compute Engine needs to reclaim the compute resources for higher-priority VMs.
       scopes:
         add: Add scope
         label: Scopes
