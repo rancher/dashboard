@@ -8,7 +8,7 @@ The UI provides a number of ways to customise the processes that creates RKE2/Cu
 - Overrides that replace the process to persist cluster resources
 
 ## Custom Components
-Existing components that manage cloud credentials and machine configuration can be replaced as per [Custom Node Driver UI](../api/components/node-drivers.md). 
+Existing components that manage cloud credentials and machine configuration can be replaced as per [Custom Node Driver UI](../api/components/node-driver/overview.md). 
 
 ## Custom Cluster Provisioner
 New cluster provisioners can be added that can tailor the create/edit experience for their own needs.
