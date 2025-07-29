@@ -147,6 +147,22 @@ export default {
         }
       });
     },
+    openReadme() {
+      const encodedVersionInfo = btoa(JSON.stringify(this.versionInfo));
+      const theme = this.$store.getters['prefs/theme'];
+      const url = this.$router.resolve({
+        name:   'chart-readme-standalone',
+        params: { cluster: this.$route.params.cluster },
+        query:  {
+          versionInfo:         encodedVersionInfo,
+          showAppReadme:       'false',
+          hideReadmeFirstTitle: 'false',
+          theme
+        },
+      }).href;
+
+      window.open(url, '_blank');
+    },
     handleHeaderItemClick(type, value) {
       const params = {
         cluster: this.$route.params.cluster,
@@ -284,6 +300,14 @@ export default {
 
     <div class="dashed-spacer" />
 
+    <button
+      type="button"
+      class="btn role-secondary"
+      :style="{ display: 'inline', width: '200px' }"
+      @click="openReadme()"
+    >
+      {{ t('catalog.chart.viewReadmeSeparately') }}
+    </button>
     <div
       v-if="requires.length || warnings.length || targetedAppWarning || osWarning"
       class="chart-banners"

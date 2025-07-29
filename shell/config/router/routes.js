@@ -521,6 +521,15 @@ export default [
       }]
   },
   {
+    path:      '/',
+    component: () => interopDefault(import('@shell/components/templates/standalone.vue')),
+    children:  [{
+      path:      '/c/:cluster/apps/charts/chart-readme',
+      component: () => interopDefault(import('@shell/components/ChartReadme.vue')),
+      name:      'chart-readme-standalone',
+    }]
+  },
+  {
     path:      '/:catchAll(.*)*',
     name:      '404',
     component: () => interopDefault(import('@shell/pages/404.vue')),
