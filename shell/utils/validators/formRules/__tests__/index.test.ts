@@ -168,6 +168,59 @@ describe('formRules', () => {
     );
   });
 
+  describe('version', () => {
+    const message = JSON.stringify({ message: 'validation.version' });
+    const testCases: (null | string | undefined)[][] = [
+      // Valid
+      ['1.2.3', undefined],
+      ['', undefined],
+      [null, undefined],
+
+      // Invalid
+      ['1.2.x', message],
+      ['foo', message],
+      ['1.2', message],
+      ['1.2.', message],
+      ['.', message],
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided Version: %p',
+      (version, expected) => {
+        const formRuleResult = formRules.version(version);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
+  });
+
+  describe('semanticVersion', () => {
+    const message = JSON.stringify({ message: 'validation.semanticVersion' });
+    const testCases: (null | string | undefined)[][] = [
+      // Valid
+      ['1.2.x', undefined],
+      ['1.2.3', undefined],
+      ['1.2', undefined],
+      ['> 1', undefined],
+      ['', undefined],
+      [null, undefined],
+
+      // Invalid
+      ['foo', message],
+      ['1.2.', message],
+      ['.', message],
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided Semantic Version: %p',
+      (version, expected) => {
+        const formRuleResult = formRules.semanticVersion(version);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
+  });
+
   describe('alphanumeric', () => {
     const message = JSON.stringify({ message: 'validation.alphanumeric', key: 'testDisplayKey' });
     const testCases = [
