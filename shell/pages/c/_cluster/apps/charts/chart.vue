@@ -283,6 +283,10 @@ export default {
         class="btn role-primary"
         @click.prevent="install"
       >
+        <i
+          v-if="action === 'upgrade'"
+          class="icon icon-upgrade-alt mmr-2"
+        />
         {{ t(`asyncButton.${action}.action` ) }}
       </RcButton>
     </div>
