@@ -71,7 +71,7 @@
     "csv-loader": "3.0.3",
     "custom-event-polyfill": "^1.0.7",
     "cypress": "11.1.0",
-    "d3-selection": "1.4.1",
+    "d3-selection": "3.0.0",
     "d3": "7.3.0",
     "dayjs": "1.8.29",
     "defu": "5.0.1",
