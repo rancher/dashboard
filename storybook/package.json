@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "remark-gfm": "^4.0.0",
-    "vue": "^3.5.10"
+    "vue": "3.5.13"
   },
   "devDependencies": {
     "@storybook/addon-actions": "^8.4.2",
