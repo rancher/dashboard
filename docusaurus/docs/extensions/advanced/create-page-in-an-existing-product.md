@@ -1,6 +1,6 @@
 # Create a page in an existing product
 
-Given that you have covered all of the topics in [Extensions API](../api/overview.md), especially the [Navigation & Pages](../api/nav/products.md) area, we will show an example where you can create an extension that adds a new page to an existing product `Fleet`, which doesn't need any product registration.
+Given that you have covered all of the topics in [Extensions API](../api/overview.md), especially the [Navigation & Pages](../api/nav/products.md) area, we will show an example of how you can create an extension that adds a new page to an existing product `Fleet`. This doesn't need any product registration.
 
 Let's take into account this simple `index.ts` entry for an extension:
 

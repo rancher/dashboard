@@ -1,6 +1,6 @@
 # Page templates
 
-When you create a page, either a [Custom Page](./custom-page.md) (`virtualType`) or a [Resource Page](./resource-page.md) (`configureType`), you can make use of different templates. By default (unspecified) it will use the `default` layout, but there are two different templates available:
+When you create a page, either a [Custom Page](./custom-page.md) (`virtualType`) or a [Resource Page](./resource-page.md) (`configureType`), you can make use of different templates. By default it will use the `default` layout, but there are two different templates available:
 
 ## default template
 
@@ -38,8 +38,8 @@ const routes = [
       path:      `/${ YOUR_PRODUCT_NAME }/c/:cluster/${ CUSTOM_PAGE_NAME }`,
       component: MyCustomPage,
       meta:      {
-      product: YOUR_PRODUCT_NAME,
-      cluster: BLANK_CLUSTER
+        product: YOUR_PRODUCT_NAME,
+        cluster: BLANK_CLUSTER
       },
     }
   }
@@ -48,4 +48,28 @@ const routes = [
 export default routes;
 ```
 
-Same analogy goes for when defining a "Cluster-level product" route. Add the `parent` property with the correct identifier and the `route` property.
+For a [Cluster-level product](./routing.md#cluster-level-product---adding-your-defined-routes-to-vue-router) route the logic is the same. The `name`, `path` and `meta` properties just need to follow the appropriate structure for this type of product. Here's an example:
+
+```ts
+import MyCustomPage from '../pages/myCustomPage.vue';
+
+const YOUR_PRODUCT_NAME = 'myProductName';
+const CUSTOM_PAGE_NAME = 'page1';
+
+const routes = [
+  // this is an example of a custom page if you wanted to register one
+  {
+    parent: 'plain',
+    route: {
+      name:      `c-cluster-${ YOUR_PRODUCT_NAME }-${ CUSTOM_PAGE_NAME }`,
+      path:      `/c/:cluster/${ YOUR_PRODUCT_NAME }/${ CUSTOM_PAGE_NAME }`,
+      component: MyCustomPage,
+      meta:      {
+        product: YOUR_PRODUCT_NAME
+      }
+    }
+  }
+];
+
+export default routes;
+```
