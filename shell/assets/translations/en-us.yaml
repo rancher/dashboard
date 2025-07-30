@@ -6761,10 +6761,10 @@ validation:
   flowOutput:
     both: Requires "Output" or "Cluster Output" to be selected.
     global: Requires "Cluster Output" to be selected.
-  git:
-    url: URL must be a HTTP(s) or SSH url with no trailing spaces
+  repository:
+    url: It must be a valid HTTP(s) or SSH URL with no trailing spaces
   oci:
-    url: URL must be an OCI url with no trailing spaces
+    url: It must be a valid OCI URL with no trailing spaces
   output:
     logdna:
       apiKey: Required an "Api Key" to be set.
