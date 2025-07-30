@@ -8217,6 +8217,7 @@ action:
   runNow: Run Now
   suspend: Suspend
   resume: Resume
+  showConfiguration: Show Configuration
 
 unit:
   sec: secs
