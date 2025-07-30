@@ -2626,8 +2626,8 @@ etcdInfoBanner:
 
 fleet:
   settings:
-    label: Fleet
-    title: Fleet Settings
+    label: Continuous Delivery
+    title: Continuous Delivery Settings
     info: Rancher will reboot Fleet agent and controller on settings change.
     apply: Apply changes
     noPermissions: You have no permissions to modify Fleet Settings
@@ -3035,18 +3035,18 @@ fleet:
         oci: OCI Registry
       tarball:
         label: Absolute URL
-        placeholder: e.g. https://github.com/rancher/fleet/helm-chart/helm-chart-0.0.1.tgz
+        placeholder: e.g. https://example.com/charts/my-chart-1.2.3.tgz
       repo:
         repo:
-          label: URL
-          placeholder: e.g. https://github.com/rancher/fleet/helm-chart
+          label: Repository URL
+          placeholder: e.g. https://foo.bar/baz
         chart:
           label: Chart
           placeholder: The path to the chart name in the repository
       oci:
         chart:
           label: OCI Registry URL
-          placeholder: e.g. oci://ghcr.io/rancher/fleet/helm-chart or oci://ghcr.io/rancher/fleet/helm-chart:0.0.1
+          placeholder: e.g. oci://foo.bar/baz
       version:
         label: Version
         placeholder: The Chart version
@@ -6764,10 +6764,10 @@ validation:
   flowOutput:
     both: Requires "Output" or "Cluster Output" to be selected.
     global: Requires "Cluster Output" to be selected.
-  git:
-    url: URL must be a HTTP(s) or SSH url with no trailing spaces
+  repository:
+    url: It must be a valid HTTP(s) or SSH URL with no trailing spaces
   oci:
-    url: URL must be an OCI url with no trailing spaces
+    url: It must be a valid OCI URL with no trailing spaces
   output:
     logdna:
       apiKey: Required an "Api Key" to be set.
@@ -6834,6 +6834,7 @@ validation:
       missingApiGroup: You must specify an API Group for each resource grant
       missingOneResource: You must specify at least one Resource, Non-Resource URL or API Group for each resource grant
       noResourceAndNonResource: Each rule may contain Resources or Non-Resource URLs but not both
+  semanticVersion: Version must be a valid version number or a semantic versioning constraint (e.g. 2.x.x, < 1.0)
   service:
     externalName:
       none: External Name is required on an ExternalName Service.
@@ -6871,6 +6872,7 @@ validation:
       match: At least one Match or Match Regex must be selected
       interval: '"{key}" must be of a format with digits followed by a unit i.e. 1h, 2m, 30s'
   tab: "One or more fields in this tab contain a form validation error"
+  version: Invalid Version number
 
 carousel:
   previous: Previous
@@ -8218,6 +8220,7 @@ action:
   runNow: Run Now
   suspend: Suspend
   resume: Resume
+  showConfiguration: Show Configuration
 
 unit:
   sec: secs

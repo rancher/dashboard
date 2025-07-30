@@ -107,10 +107,7 @@ export default {
       targetsCreated:          '',
       fvFormRuleSets:          [{
         path:  'spec.repo',
-        rules: [
-          'required',
-          'urlRepository'
-        ],
+        rules: ['urlRepository'],
       }],
       touched: null,
     };

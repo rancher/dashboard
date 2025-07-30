@@ -67,3 +67,20 @@ plugin.addTab(
   }
 );
 ```
+
+### TabLocation.RESOURCE_DETAIL accessible props
+
+When using `addTab` in the `TabLocation.RESOURCE_DETAIL` location, the component used can have access to the given Vue properties:
+
+- `resource`: This will pass to the component used the **resource** object (k8s resource) which can be useful to access in the component context
+
+Usage:
+```js
+props: {
+    resource: {
+      type:    [String, Object],
+      default: () => {}
+    },
+
+....
+```

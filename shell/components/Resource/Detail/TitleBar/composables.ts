@@ -1,4 +1,3 @@
-import { useResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
 import { TitleBarProps } from '@shell/components/Resource/Detail/TitleBar/index.vue';
 import { computed, Ref, toValue } from 'vue';
 import { useRoute } from 'vue-router';
@@ -7,7 +6,6 @@ import { useStore } from 'vuex';
 export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: Ref<string | undefined>): Ref<TitleBarProps> => {
   const route = useRoute();
   const store = useStore();
-  const { openResourceDetailDrawer } = useResourceDetailDrawer();
   const resourceValue = toValue(resource);
 
   return computed(() => {
@@ -26,7 +24,7 @@ export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: Ref<str
       }
     };
     const hasGraph = !!store.getters['type-map/hasGraph'](resourceValue.type);
-    const onShowConfiguration = resourceValue.disableResourceDetailDrawer ? undefined : (returnFocusSelector: string) => openResourceDetailDrawer(resourceValue, returnFocusSelector);
+    const onShowConfiguration = resourceValue.disableResourceDetailDrawer ? undefined : (returnFocusSelector: string) => resourceValue.showConfiguration(returnFocusSelector);
 
     return {
       resourceTypeLabel,
