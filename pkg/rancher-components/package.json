@@ -21,6 +21,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "vee-validate": "4.15.0",
     "lodash.debounce": "4.0.8"
   },
   "devDependencies": {
@@ -47,12 +48,13 @@
     "sass-loader": "12.6.0",
     "sass": "1.83.1",
     "typescript": "5.6.3",
-    "vue": "^3.2.13",
+    "vue": "3.5.13",
     "vee-validate": "4.15.0",
     "eslint-plugin-local-rules": "link:../../eslint-plugin-local-rules"
   },
   "peerDependencies": {
     "core-js": "3.40.0",
-    "vue": "^3.2.13"
+    "vee-validate": "4.15.0",
+    "vue": "3.5.13"
   }
 }

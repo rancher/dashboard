@@ -132,7 +132,7 @@
     "vue-router": "4.5.0",
     "vue-select": "4.0.0-beta.6",
     "vue-server-renderer": "2.7.16",
-    "vue": "^3.2.13",
+    "vue": "3.5.13",
     "vue3-resize": "0.2.0",
     "vue3-virtual-scroll-list": "0.2.1",
     "vuedraggable": "4.1.0",
