@@ -378,7 +378,7 @@ export default defineComponent({
 
     // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details
     removeUnchangedConfigFields(): void {
-      const upstreamConfig = this.normanCluster?.status?.aksStatus?.upstreamSpec;
+      const upstreamConfig = this.normanCluster?.aksStatus?.upstreamSpec;
 
       if (upstreamConfig) {
         const diff = diffUpstreamSpec(upstreamConfig, this.config);
