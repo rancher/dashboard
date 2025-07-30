@@ -16,7 +16,7 @@ account:
       placeholder: Optionally enter a description to help you identify this API Key
 ```
 
-And can be used in the folllowing manner:
+And can be used in the following manner:
 
 In HTML
 
@@ -25,7 +25,13 @@ In HTML
 {{ t("<path to localisation>") }}
 ```
 
-> `t` can be exposed via adding the i18n getter as a computed property with `...mapGetters({ t: 'i18n/t' })`
+> `t` can be exposed via adding the i18n getter as a computed property with `...mapGetters({ t: 'i18n/t' })` using the _Options API_.
+
+> `t` can be exposed in the following manner using the _Composition API_:
+```ts
+const store = useStore();
+const { t } = useI18n(store);
+```
 
 Many components will also accept a localisation path via a `value-key` property, instead of the translated text in `value`.
 
@@ -44,6 +50,13 @@ this.$store.getters['i18n/withFallback']('<path to localisation>', null, '<fallb
 ```
 
 If you wanted to have the string `Optionally enter a description to help you identify this API Key` rendered, then `<path to localisation>` would be `account.apiKey.description.placeholder`.
+
+
+In the HTML example with the above key, the usage should be:
+```html
+<t k="account.apiKey.description.placeholder" />
+{{ t('account.apiKey.description.placeholder') }}
+```
 
 ## Using variables in paths
 

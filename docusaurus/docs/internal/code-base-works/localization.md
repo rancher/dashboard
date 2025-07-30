@@ -2,7 +2,7 @@
 
 ## Internationalization (i18n)
 
-Any code producing messages, labels, numbers, dates, times, and the like should use the `i18n` store and translation strings to generate and format them instead of hardcoding English or American-isms anywhere.   Messages and number formatting uses [ICU templating](https://formatjs.io/docs/intl-messageformat) for very powerful pluralization and customizing.
+Any code producing messages, labels, numbers, dates, times, and the like should use the `i18n` store and translation strings to generate and format them instead of hardcoding English or American-isms anywhere. Messages and number formatting uses [ICU templating](https://formatjs.io/docs/intl-messageformat) for very powerful pluralization and customizing.
 
 The `assets/translations` dir stores a YAML file with translations for each supported language.
   - English is automatically used as the "fallback" if a particular key is missing from a non-English language.
@@ -58,7 +58,7 @@ In this case, the quotation marks are required because some Secret types, such a
 
 Localisation files can be found in `./assets/translations/en-us.yaml`.
 
-Please follow precedents in file to determine where new translations should be place.
+Please follow precedents in file to determine where new translations should be placed.
 
 Form fields are conventionally defined in translations as `<some prefix>`.`<field name>`.\{label,description,enum options if applicable\} e.g.
 
