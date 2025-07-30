@@ -15,6 +15,7 @@ export const useBasicMetadata = (resource: any) => {
 
   return computed(() => {
     return {
+      resource:            toValue(resource),
       labels:              labels.value,
       annotations:         annotations.value,
       onShowConfiguration: () => resourceValue.showConfiguration()
@@ -32,10 +33,11 @@ export const useDefaultMetadataProps = (resource: any, additionalIdentifyingInfo
 
   return computed(() => {
     return {
+      resource:               toValue(resource),
       identifyingInformation: identifyingInformation.value,
       labels:                 basicMetaData.value.labels,
       annotations:            basicMetaData.value.annotations,
-      onShowConfiguration:    () => resourceValue.showConfiguration()
+      onShowConfiguration:    (returnFocusSelector: string) => resourceValue.showConfiguration(returnFocusSelector)
     };
   });
 };
@@ -68,10 +70,11 @@ export const useDefaultMetadataForLegacyPagesProps = (resource: any) => {
 
   return computed(() => {
     return {
+      resource:               toValue(resource),
       identifyingInformation: identifyingInformation.value,
       labels:                 basicMetaData.value.labels,
       annotations:            basicMetaData.value.annotations,
-      onShowConfiguration:    () => resourceValue.showConfiguration()
+      onShowConfiguration:    (returnFocusSelector: string) => resourceValue.showConfiguration(returnFocusSelector)
     };
   });
 };
