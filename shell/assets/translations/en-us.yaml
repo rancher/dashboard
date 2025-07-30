@@ -158,6 +158,7 @@ generic:
   showLess: Show less
   showMore: Show more
   opensInNewTab: Opens in a new tab
+  missingInfoMessage: The info is missing
   
 tabs:
   addItem: Add a new tab item
@@ -1049,11 +1050,13 @@ catalog:
         label: Chart Versions
         showMore: Show More
         showLess: Show Less
-      home: Home
+      home: Homepage
+      repository: Repository Page
       maintainers: Maintainers
       related: Related
       chartUrls: Chart
       keywords: Keywords
+      keywordsTooltip: Find similar charts based on this keyword
     errors:
       clusterToolExists: This chart has a fixed namespace and name. A matching <a href="{url}">application</a> has been found and any changes will be made to it.
     global: Global
