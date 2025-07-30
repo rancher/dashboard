@@ -1,5 +1,6 @@
 <script>
 import Markdown from '@shell/components/Markdown';
+import { CHART_README_STORAGE_KEY } from '@shell/utils/chart.ts';
 
 export default {
   components: { Markdown },
@@ -33,7 +34,7 @@ export default {
   },
   computed: {
     isStandalone() {
-      return !!this.$route.query.versionInfo;
+      return !!this.$route.query.storageKey;
     },
     localShowAppReadme() {
       return this.$route.query.showAppReadme ? this.$route.query.showAppReadme === 'true' : this.showAppReadme;
@@ -42,7 +43,21 @@ export default {
       return this.$route.query.hideReadmeFirstTitle ? this.$route.query.hideReadmeFirstTitle === 'true' : this.hideReadmeFirstTitle;
     },
     localVersionInfo() {
-      return this.versionInfo || (this.isStandalone ? JSON.parse(atob(this.$route.query.versionInfo)) : null);
+      if (this.versionInfo) {
+        return this.versionInfo;
+      }
+
+      if (this.isStandalone) {
+        const { storageKey } = this.$route.query;
+
+        if (storageKey === CHART_README_STORAGE_KEY) {
+          const stored = sessionStorage.getItem(storageKey);
+
+          return stored ? JSON.parse(stored) : null;
+        }
+      }
+
+      return null;
     },
     appReadme() {
       return this.localVersionInfo?.appReadme || '';

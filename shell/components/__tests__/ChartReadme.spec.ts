@@ -1,16 +1,25 @@
 import { shallowMount } from '@vue/test-utils';
 import ChartReadme from '@shell/components/ChartReadme.vue';
+import { CHART_README_STORAGE_KEY } from '@shell/utils/chart.ts';
 
 describe('chartReadme', () => {
   describe('standalone mode', () => {
     const mockRoute = {
       query: {
-        versionInfo:          btoa(JSON.stringify({ appReadme: 'test app readme', readme: 'test readme' })),
+        storageKey:           CHART_README_STORAGE_KEY,
         showAppReadme:        'true',
         hideReadmeFirstTitle: 'false',
         theme:                'dark',
       },
     };
+
+    beforeAll(() => {
+      sessionStorage.setItem(CHART_README_STORAGE_KEY, JSON.stringify({ appReadme: 'test app readme', readme: 'test readme' }));
+    });
+
+    afterAll(() => {
+      sessionStorage.removeItem(CHART_README_STORAGE_KEY);
+    });
 
     it('should apply theme to body and render with standalone class', () => {
       const wrapper = shallowMount(ChartReadme, { global: { mocks: { $route: mockRoute } } });

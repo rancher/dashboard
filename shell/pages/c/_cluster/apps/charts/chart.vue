@@ -14,7 +14,7 @@ import { compatibleVersionsFor } from '@shell/store/catalog';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import day from 'dayjs';
-import { getStandaloneReadmeUrl } from '@shell/utils/chart.ts';
+import { getStandaloneReadmeUrl, CHART_README_STORAGE_KEY } from '@shell/utils/chart.ts';
 
 export default {
   components: {
@@ -151,8 +151,12 @@ export default {
     openReadme() {
       // Uses a helper to generate the URL and opens the chart README in a new tab.
       const theme = this.$store.getters['prefs/theme'];
+      const storageKey = CHART_README_STORAGE_KEY;
+
+      sessionStorage.setItem(storageKey, JSON.stringify(this.versionInfo));
+
       const url = getStandaloneReadmeUrl(this.$router, {
-        versionInfo:          this.versionInfo,
+        storageKey,
         showAppReadme:        false,
         hideReadmeFirstTitle: false,
         theme,
@@ -623,6 +627,7 @@ export default {
     .readme-wrapper {
       position: relative;
       flex: 1;
+      min-width: 400px;
 
       .open-readme-button {
         display: none;
@@ -652,8 +657,6 @@ export default {
     }
 
     &__readme {
-      flex: 1;
-      min-width: 400px;
       padding: 12px 24px;
     }
     &__info {

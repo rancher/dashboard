@@ -1,14 +1,14 @@
-import { getStandaloneReadmeUrl } from '@shell/utils/chart';
+import { getStandaloneReadmeUrl, CHART_README_STORAGE_KEY } from '@shell/utils/chart';
 
 describe('getStandaloneReadmeUrl', () => {
   it('should generate a correct standalone README URL', () => {
     const mockRouter = {
-      resolve:      jest.fn((route) => ({ href: `/test-url?versionInfo=${ route.query.versionInfo }&showAppReadme=${ route.query.showAppReadme }&hideReadmeFirstTitle=${ route.query.hideReadmeFirstTitle }&theme=${ route.query.theme }` })),
+      resolve:      jest.fn((route) => ({ href: `/test-url?storageKey=${ route.query.storageKey }&showAppReadme=${ route.query.showAppReadme }&hideReadmeFirstTitle=${ route.query.hideReadmeFirstTitle }&theme=${ route.query.theme }` })),
       currentRoute: { value: { params: { cluster: 'test-cluster' } } },
     };
 
     const options = {
-      versionInfo:          { appReadme: 'test app readme', readme: 'test readme' },
+      storageKey:           CHART_README_STORAGE_KEY,
       showAppReadme:        true,
       hideReadmeFirstTitle: true,
       theme:                'dark',
@@ -21,7 +21,7 @@ describe('getStandaloneReadmeUrl', () => {
       name:   'chart-readme-standalone',
       params: { cluster: 'test-cluster' },
       query:  {
-        versionInfo:          btoa(JSON.stringify(options.versionInfo)),
+        storageKey:           CHART_README_STORAGE_KEY,
         showAppReadme:        'true',
         hideReadmeFirstTitle: 'true',
         theme:                'dark',
@@ -29,6 +29,6 @@ describe('getStandaloneReadmeUrl', () => {
     });
 
     // Check if the returned URL is what we expect from the mocked resolve
-    expect(url).toBe(`/test-url?versionInfo=${ btoa(JSON.stringify(options.versionInfo)) }&showAppReadme=true&hideReadmeFirstTitle=true&theme=dark`);
+    expect(url).toBe(`/test-url?storageKey=${ CHART_README_STORAGE_KEY }&showAppReadme=true&hideReadmeFirstTitle=true&theme=dark`);
   });
 });
