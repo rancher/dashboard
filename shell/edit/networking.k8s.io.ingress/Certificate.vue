@@ -27,7 +27,7 @@ export default {
   data() {
     return {
       hosts:      this.value?.hosts ?? [''],
-      secretName: this.value?.secretName ?? DEFAULT_CERT_VALUE,
+      secretName: this.value?.secretName === undefined ? DEFAULT_CERT_VALUE : this.value?.secretName,
       secretVal:  this.value?.secretName ?? DEFAULT_CERT_VALUE,
     };
   },
