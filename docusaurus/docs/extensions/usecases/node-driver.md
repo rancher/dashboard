@@ -1,9 +1,9 @@
-# Node Driver Example
+# Custom Node Driver UI
 
 An example node driver UI Extension has been created for OpenStack - the source code is available in this
-GitHub repository - https://github.com/rancher/ui-plugin-examples
+GitHub repository - **https://github.com/rancher/ui-plugin-examples/tree/main/pkg/node-driver**
 
-This is a great starting point for creating your own extension for a Node Driver UI.
+This is a great starting point for creating your own extension for a Node Driver UI. Any doubts, make sure to follow the the comprehensive documentation that we offer on [Custom Node Drivers](../api/components/node-driver/overview.md).
 
 ## Caveats
 
