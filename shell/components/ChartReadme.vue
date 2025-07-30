@@ -153,6 +153,7 @@ export default {
       margin-bottom: 0.5em;
     }
   }
+
   .hidden-first-title {
     :deep() > h1:first-of-type {
       display: none;

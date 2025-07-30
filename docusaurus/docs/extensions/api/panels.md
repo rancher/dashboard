@@ -49,7 +49,7 @@ Usage example for `'PanelLocation.DETAILS_MASTHEAD'`:
 
 ```ts
 plugin.addPanel(
-  PanelLocation.DETAILS_MASTHEAD
+  PanelLocation.DETAILS_MASTHEAD,
   { resource: ['catalog.cattle.io.clusterrepo'] },
   { component: () => import('./MastheadDetailsComponent.vue') }
 );

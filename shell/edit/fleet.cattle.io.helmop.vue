@@ -404,7 +404,7 @@ export default {
       case SOURCE_TYPE.REPO:
         this.fvFormRuleSets = [{
           path:  'spec.helm.repo',
-          rules: ['required', 'urlRepository'],
+          rules: ['urlRepository'],
         }, {
           path:  'spec.helm.chart',
           rules: ['required'],
@@ -416,7 +416,7 @@ export default {
       case SOURCE_TYPE.OCI:
         this.fvFormRuleSets = [{
           path:  'spec.helm.repo',
-          rules: ['required', 'ociRegistry'],
+          rules: ['ociRegistry'],
         }, {
           path:  'spec.helm.version',
           rules: ['semanticVersion'],
@@ -425,7 +425,7 @@ export default {
       case SOURCE_TYPE.TARBALL:
         this.fvFormRuleSets = [{
           path:  'spec.helm.chart',
-          rules: ['required', 'urlRepository'],
+          rules: ['urlRepository'],
         }];
         break;
       }

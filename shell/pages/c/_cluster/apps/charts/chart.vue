@@ -8,12 +8,15 @@ import isEqual from 'lodash/isEqual';
 import {
   CHART, REPO, REPO_TYPE, VERSION, SEARCH_QUERY, CATEGORY, TAG
 } from '@shell/config/query-params';
+import { DATE_FORMAT } from '@shell/store/prefs';
 import { ZERO_TIME } from '@shell/config/types';
+import { escapeHtml } from '@shell/utils/string';
 import { mapGetters } from 'vuex';
 import { compatibleVersionsFor } from '@shell/store/catalog';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import day from 'dayjs';
+import { RcButton } from '@components/RcButton';
 import { getStandaloneReadmeUrl, CHART_README_STORAGE_KEY } from '@shell/utils/chart.ts';
 
 export default {
@@ -23,7 +26,8 @@ export default {
     LazyImage,
     Loading,
     AppChartCardSubHeader,
-    AppChartCardFooter
+    AppChartCardFooter,
+    RcButton
   },
 
   mixins: [
@@ -148,22 +152,6 @@ export default {
         }
       });
     },
-    openReadme() {
-      // Uses a helper to generate the URL and opens the chart README in a new tab.
-      const theme = this.$store.getters['prefs/theme'];
-      const storageKey = CHART_README_STORAGE_KEY;
-
-      sessionStorage.setItem(storageKey, JSON.stringify(this.versionInfo));
-
-      const url = getStandaloneReadmeUrl(this.$router, {
-        storageKey,
-        showAppReadme:        false,
-        hideReadmeFirstTitle: false,
-        theme,
-      });
-
-      window.open(url, '_blank');
-    },
     handleHeaderItemClick(type, value) {
       const params = {
         cluster: this.$route.params.cluster,
@@ -195,13 +183,43 @@ export default {
 
       return day(date).format('MMM D, YYYY');
     },
-    versionDateTooltip(date) {
+    getVersionDateTooltip(date) {
       if (date === ZERO_TIME) {
         return this.t('generic.missingInfoMessage');
       }
 
-      return null;
-    }
+      const dateFormat = escapeHtml(this.$store.getters['prefs/get'](DATE_FORMAT));
+
+      return day(date).format(dateFormat);
+    },
+    getVersionRoute(vers) {
+      const version = vers.id;
+
+      return {
+        name:   this.$route.name,
+        params: this.$route.params,
+        query:  {
+          ...this.$route.query,
+          [VERSION]: version,
+        }
+      };
+    },
+    openReadme() {
+      // Uses a helper to generate the URL and opens the chart README in a new tab.
+      const theme = this.$store.getters['prefs/theme'];
+      const storageKey = CHART_README_STORAGE_KEY;
+
+      sessionStorage.setItem(storageKey, JSON.stringify(this.versionInfo));
+
+      const url = getStandaloneReadmeUrl(this.$router, {
+        storageKey,
+        showAppReadme:        false,
+        hideReadmeFirstTitle: false,
+        theme,
+      });
+
+      window.open(url, '_blank');
+    },
   },
 };
 </script>
@@ -288,15 +306,18 @@ export default {
           />
         </div>
       </div>
-      <button
+      <RcButton
         v-if="!requires.length"
-        type="button"
         data-testid="btn-chart-install"
         class="btn role-primary"
         @click.prevent="install"
       >
+        <i
+          v-if="action === 'upgrade'"
+          class="icon icon-upgrade-alt mmr-2"
+        />
         {{ t(`asyncButton.${action}.action` ) }}
-      </button>
+      </RcButton>
     </div>
 
     <div class="dashed-spacer" />
@@ -341,15 +362,15 @@ export default {
         class="readme-wrapper"
         tabindex="0"
       >
-        <button
-          type="button"
+        <RcButton
           class="btn role-secondary open-readme-button"
           @click="openReadme()"
         >
           {{ t('catalog.chart.viewReadmeSeparately') }}
           <i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
-        </button>
+        </RcButton>
         <ChartReadme
+          v-if="hasReadme"
           :version-info="versionInfo"
           :show-app-readme="false"
           :hide-readme-first-title="false"
@@ -394,23 +415,21 @@ export default {
               v-else
               class="current-version"
             >
-              <a
+              <router-link
                 v-clean-tooltip="vers.label"
-                href="#"
-                role="button"
+                :to="getVersionRoute(vers)"
                 class="ellipsis"
                 data-testid="chart-version-link"
-                @click.prevent="selectVersion(vers)"
               >
                 {{ vers.originalVersion === currentVersion ? currentVersion : vers.originalVersion }}
-              </a>
+              </router-link>
               <i
                 v-if="vers.originalVersion === currentVersion"
                 class="icon icon-confirmation-alt"
               />
             </div>
             <p
-              v-clean-tooltip="versionDateTooltip(vers.created)"
+              v-clean-tooltip="getVersionDateTooltip(vers.created)"
               class="version-date"
             >
               {{ formatVersionDate(vers.created) }}
@@ -623,7 +642,6 @@ export default {
 
   .chart-body {
     display: flex;
-
     .readme-wrapper {
       position: relative;
       flex: 1;
