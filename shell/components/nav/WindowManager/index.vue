@@ -428,9 +428,9 @@ export default {
       </div>
     </div>
     <div
-      v-for="(tab, i) in tabs"
+      v-for="tab in tabs"
       :id="`panel-${tab.id}`"
-      :key="i"
+      :key="tab.id"
       class="body"
       :class="{'active': tab.id === active}"
       draggable="false"
