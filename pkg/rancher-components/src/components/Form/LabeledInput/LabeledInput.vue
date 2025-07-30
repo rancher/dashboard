@@ -361,7 +361,6 @@ export default defineComponent({
     <div
       :class="{
         'error': meta.errors && !!meta.errors.length,
-        'success': veerules && meta.touched && meta.errors && !meta.errors.length,
         'labeled-input': true,
         focused,
         [mode]: true,
@@ -446,10 +445,10 @@ export default defineComponent({
       <slot name="suffix" />
       <!-- informational tooltip about field -->
       <LabeledTooltip
-        v-if="hasTooltip || (veerules && meta.touched && meta.errors && !meta.errors.length)"
+        v-if="hasTooltip"
         :hover="hoverTooltip"
-        :value="tooltipValue || 'Input correct'"
-        :status="(veerules && meta.touched && meta.errors && !meta.errors.length) ? 'success' : status"
+        :value="tooltipValue"
+        :status="status"
       />
       <!-- validation tooltip -->
       <LabeledTooltip
@@ -474,11 +473,6 @@ export default defineComponent({
           v-else-if="subLabel"
           :id="describedById"
           v-clean-html="subLabel"
-        />
-        <div
-          v-else-if="meta && meta.errors && meta.errors.length"
-          :id="describedById"
-          v-clean-html="meta.errors.join(', ')"
         />
       </div>
     </div>
