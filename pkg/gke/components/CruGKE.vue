@@ -675,7 +675,7 @@ export default defineComponent({
 
     // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details
     removeUnchangedConfigFields(): void {
-      const upstreamConfig = this.normanCluster?.status?.gkeStatus?.upstreamSpec;
+      const upstreamConfig = this.normanCluster?.gkeStatus?.upstreamSpec;
 
       if (upstreamConfig) {
         const diff = diffUpstreamSpec(upstreamConfig, this.config);
@@ -735,7 +735,6 @@ export default defineComponent({
         v-model:region="config.region"
         v-model:locations="config.locations"
         v-model:default-image-type="defaultImageType"
-        v-model:labels="config.labels"
         :mode="mode"
         :cloud-credential-id="config.googleCredentialSecret"
         :project-id="config.projectID"
@@ -883,6 +882,7 @@ export default defineComponent({
             v-model:http-load-balancing="config.clusterAddons.httpLoadBalancing"
             v-model:horizontal-pod-autoscaling="config.clusterAddons.horizontalPodAutoscaling"
             v-model:enable-kubernetes-alpha="config.enableKubernetesAlpha"
+            v-model:labels="config.labels"
             :mode="mode"
             :is-new-or-unprovisioned="isNewOrUnprovisioned"
           />
