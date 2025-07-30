@@ -96,4 +96,8 @@ export default class HciCluster extends ProvCluster {
       console.error('unable to get harvester version from settings/server-version', error); // eslint-disable-line no-console
     }
   }
+
+  get disableResourceDetailDrawerConfigTab() {
+    return false;
+  }
 }

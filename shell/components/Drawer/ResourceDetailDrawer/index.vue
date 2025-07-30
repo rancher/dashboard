@@ -50,6 +50,10 @@ const action = computed(() => {
     action
   };
 });
+
+const canEdit = computed(() => {
+  return props.resource.canEdit;
+});
 </script>
 <template>
   <Drawer
@@ -83,6 +87,7 @@ const action = computed(() => {
     </template>
     <template #additional-actions>
       <RcButton
+        v-if="canEdit"
         :primary="true"
         :aria-label="action.ariaLabel"
         @click="action.action"
