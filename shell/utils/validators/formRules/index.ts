@@ -7,7 +7,7 @@ import has from 'lodash/has';
 import isUrl from 'is-url';
 // import uniq from 'lodash/uniq';
 import { Translation } from '@shell/types/t';
-import { isHttps, isLocalhost, hasTrailingForwardSlash } from '@shell/utils/validators/setting';
+import { isHttps, isLocalhost, hasTrailingForwardSlash, isHttpsOrHttp } from '@shell/utils/validators/setting';
 import { cronScheduleRule } from '@shell/utils/validators/cron-schedule';
 
 // import uniq from 'lodash/uniq';
@@ -165,6 +165,8 @@ export default function(
   };
 
   const https: Validator = (val: string) => val && !isHttps(val) ? t('validation.setting.serverUrl.https') : undefined;
+
+  const httpsOrHttp: Validator = (val: string) => val && !isHttpsOrHttp(val) ? t('validation.setting.serverUrl.https') : undefined;
 
   const localhost: Validator = (val: string) => isLocalhost(val) ? t('validation.setting.serverUrl.localhost') : undefined;
 
@@ -611,6 +613,7 @@ export default function(
     imageUrl,
     interval,
     https,
+    httpsOrHttp,
     localhost,
     trailingForwardSlash,
     url,
