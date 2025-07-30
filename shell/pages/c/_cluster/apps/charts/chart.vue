@@ -8,7 +8,9 @@ import isEqual from 'lodash/isEqual';
 import {
   CHART, REPO, REPO_TYPE, VERSION, SEARCH_QUERY, CATEGORY, TAG
 } from '@shell/config/query-params';
+import { DATE_FORMAT } from '@shell/store/prefs';
 import { ZERO_TIME } from '@shell/config/types';
+import { escapeHtml } from '@shell/utils/string';
 import { mapGetters } from 'vuex';
 import { compatibleVersionsFor } from '@shell/store/catalog';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
@@ -185,7 +187,9 @@ export default {
         return this.t('generic.missingInfoMessage');
       }
 
-      return null;
+      const dateFormat = escapeHtml(this.$store.getters['prefs/get'](DATE_FORMAT));
+
+      return day(date).format(dateFormat);
     }
   },
 };
