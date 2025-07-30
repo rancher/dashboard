@@ -182,7 +182,7 @@ export default {
 
       return day(date).format('MMM D, YYYY');
     },
-    versionDateTooltip(date) {
+    getVersionDateTooltip(date) {
       if (date === ZERO_TIME) {
         return this.t('generic.missingInfoMessage');
       }
@@ -190,6 +190,18 @@ export default {
       const dateFormat = escapeHtml(this.$store.getters['prefs/get'](DATE_FORMAT));
 
       return day(date).format(dateFormat);
+    },
+    getVersionRoute(vers) {
+      const version = vers.id;
+
+      return {
+        name:   this.$route.name,
+        params: this.$route.params,
+        query:  {
+          ...this.$route.query,
+          [VERSION]: version,
+        }
+      };
     }
   },
 };
@@ -373,23 +385,21 @@ export default {
               v-else
               class="current-version"
             >
-              <a
+              <router-link
                 v-clean-tooltip="vers.label"
-                href="#"
-                role="button"
+                :to="getVersionRoute(vers)"
                 class="ellipsis"
                 data-testid="chart-version-link"
-                @click.prevent="selectVersion(vers)"
               >
                 {{ vers.originalVersion === currentVersion ? currentVersion : vers.originalVersion }}
-              </a>
+              </router-link>
               <i
                 v-if="vers.originalVersion === currentVersion"
                 class="icon icon-confirmation-alt"
               />
             </div>
             <p
-              v-clean-tooltip="versionDateTooltip(vers.created)"
+              v-clean-tooltip="getVersionDateTooltip(vers.created)"
               class="version-date"
             >
               {{ formatVersionDate(vers.created) }}
