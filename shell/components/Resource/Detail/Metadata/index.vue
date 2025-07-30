@@ -30,7 +30,10 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
 </script>
 
 <template>
-  <SpacedRow class="metadata ppb-3">
+  <SpacedRow
+    class="metadata ppb-3"
+    :class="$attrs.class"
+  >
     <div
       class="identifying-info"
     >
