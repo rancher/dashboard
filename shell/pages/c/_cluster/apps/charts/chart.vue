@@ -363,7 +363,9 @@ export default {
         tabindex="0"
       >
         <RcButton
-          class="btn role-secondary open-readme-button"
+          small
+          secondary
+          class="open-readme-button"
           @click="openReadme()"
         >
           {{ t('catalog.chart.viewReadmeSeparately') }}
@@ -652,8 +654,7 @@ export default {
         position: absolute;
         top: 12px;
         right: 24px;
-        height: 32px;
-        min-height: 32px; // to overwrite the minimum height of 40px from .btn
+        padding: 0 16px;
         z-index: 1;
         background: var(--body-bg);
 
