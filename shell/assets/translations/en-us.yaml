@@ -3032,18 +3032,18 @@ fleet:
         oci: OCI Registry
       tarball:
         label: Absolute URL
-        placeholder: e.g. https://github.com/rancher/fleet/helm-chart/helm-chart-0.0.1.tgz
+        placeholder: e.g. https://example.com/charts/my-chart-1.2.3.tgz
       repo:
         repo:
-          label: URL
-          placeholder: e.g. https://github.com/rancher/fleet/helm-chart
+          label: Repository URL
+          placeholder: e.g. https://foo.bar/baz
         chart:
           label: Chart
           placeholder: The path to the chart name in the repository
       oci:
         chart:
           label: OCI Registry URL
-          placeholder: e.g. oci://ghcr.io/rancher/fleet/helm-chart or oci://ghcr.io/rancher/fleet/helm-chart:0.0.1
+          placeholder: e.g. oci://foo.bar/baz
       version:
         label: Version
         placeholder: The Chart version
