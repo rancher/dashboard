@@ -5,9 +5,11 @@ import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthS
 import { NORMAN } from '@shell/config/types';
 import FormValidation from '@shell/mixins/form-validation';
 import { isHttpsOrHttp } from '@shell/utils/validators/setting';
+import { isEmpty } from '@shell/utils/object';
 
 export default {
-  emits:      ['update:value'],
+  emits: ['update:value', 'validationChanged'],
+
   components: {
     LabeledInput,
     Checkbox,
@@ -69,10 +71,6 @@ export default {
 
       return {};
     },
-
-    isEndpointInvalid() {
-      return this.s3EndpointHasError;
-    }
   },
 
   methods: {
@@ -86,16 +84,12 @@ export default {
     isHttpsOrHttp,
 
     validateEndpoint(value) {
-      let message = '';
+      const hasError = !isEmpty(value) && isHttpsOrHttp(value);
 
-      if (isHttpsOrHttp(this.value.endpoint)) {
-        message = this.t('cluster.credential.s3.defaultEndpoint.error');
-        this.s3EndpointHasError = !!message; // Set to true if a message exists, false otherwise
-      } else {
-        this.s3EndpointHasError = false;
-      }
+      this.s3EndpointHasError = hasError;
+      this.$emit('validationChanged', !hasError);
 
-      return this.s3EndpointHasError;
+      return !hasError;
     },
     endpointMessage() {
       return this.s3EndpointHasError ? this.t('cluster.credential.s3.defaultEndpoint.error') : null;

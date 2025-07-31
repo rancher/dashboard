@@ -67,7 +67,6 @@ import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
 import { mapGetters } from 'vuex';
-import { isHttpsOrHttp } from '@shell/utils/validators/setting';
 import S3Config from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/S3Config.vue';
 const HARVESTER = 'harvester';
 const GOOGLE = 'google';
@@ -151,11 +150,6 @@ export default {
       default: () => null
     },
 
-    s3EndpointHasError: {
-      type:    Boolean,
-      default: false,
-    },
-
   },
 
   async fetch() {
@@ -188,8 +182,6 @@ export default {
     if (!this.value.spec.rkeConfig.etcd) {
       this.value.spec.rkeConfig.etcd = {};
     }
-
-    const initialS3Config = this.value.spec.rkeConfig.etcd?.s3 || {};
 
     if (!this.value.spec.rkeConfig.chartValues) {
       this.value.spec.rkeConfig.chartValues = {};
@@ -289,27 +281,13 @@ export default {
       projectId:                                null,
       REGISTRIES_TAB_NAME,
       labelForAddon,
-      s3ConfigValue:                            { ...initialS3Config },
+      s3ConfigValid:                            true,
     };
   },
 
   computed: {
     ...mapGetters({ features: 'features/get' }),
 
-    isS3EndpointTrulyValid() {
-      const s3EndpointValue = this.rkeConfig.etcd?.s3?.endpoint;
-
-      this.s3ConfigValue.endpoint = s3EndpointValue || '';
-      // if empty or is not protocol
-      if (isEmpty(s3EndpointValue) || !isHttpsOrHttp(s3EndpointValue)) {
-        return true;
-      }
-      if (this.s3ConfigValue) {
-        return this.s3EndpointHasError;
-      }
-
-      return false;
-    },
     isActiveTabRegistries() {
       return this.activeTab?.selectedName === REGISTRIES_TAB_NAME;
     },
@@ -896,7 +874,7 @@ export default {
     overallFormValidationPassed() {
       return this.validationPassed &&
             this.fvFormIsValid &&
-            this.isS3EndpointTrulyValid;
+            this.s3ConfigValid;
     },
   },
 
@@ -2156,10 +2134,8 @@ export default {
         if (isEmpty(this.rkeConfig.etcd?.s3)) {
           this.rkeConfig.etcd.s3 = {};
         }
-        this.s3ConfigValue = this.rkeConfig.etcd.s3;
       } else {
         this.rkeConfig.etcd.s3 = null;
-        this.s3ConfigValue = {};
       }
     },
     handleConfigEtcdExposeMetricsChanged(neu) {
@@ -2209,7 +2185,11 @@ export default {
 
     handleTabChange(data) {
       this.activeTab = data;
-    }
+    },
+
+    handleS3ConfigValidation(isValid) {
+      this.s3ConfigValid = isValid;
+    },
   }
 };
 </script>
@@ -2462,6 +2442,7 @@ export default {
               @update:value="$emit('input', $event)"
               @s3-backup-changed="handleS3BackupChanged"
               @config-etcd-expose-metrics-changed="handleConfigEtcdExposeMetricsChanged"
+              @s3-config-validation-changed="handleS3ConfigValidation"
             />
           </Tab>
 

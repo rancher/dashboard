@@ -166,7 +166,7 @@ export default function(
 
   const https: Validator = (val: string) => val && !isHttps(val) ? t('validation.setting.serverUrl.https') : undefined;
 
-  const httpsOrHttp: Validator = (val: string) => val && !isHttpsOrHttp(val) ? t('validation.setting.serverUrl.https') : undefined;
+  const httpsOrHttp: Validator = (val: string) => val && !isHttpsOrHttp(val) ? t('validation.setting.serverUrl.httpsOrHttp') : undefined;
 
   const localhost: Validator = (val: string) => isLocalhost(val) ? t('validation.setting.serverUrl.localhost') : undefined;
 
