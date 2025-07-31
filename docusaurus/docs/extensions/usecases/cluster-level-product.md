@@ -1,28 +1,7 @@
 # Extension as a cluster-level product
 
 ## What is a cluster-level product
-What is a "cluster-level product" inside the Rancher UI?
-
-When you register a `product` using the example below:
-
-```
-// registering a cluster-level product
-product({
-  icon:    'gear',
-  inStore: 'cluster', // this is what defines the extension as a cluster-level product
-  weight:  100,
-  to:      {
-    name:   `c-cluster-${ YOUR_PRODUCT_NAME }-${ CUSTOM_PAGE_NAME }`,
-    params: { product: YOUR_PRODUCT_NAME }
-  }
-});
-```
-
-You will be registering a new app/product that only appears in the context of a cluster (when you're browsing a given cluster), like:
-
-![Cluster Level Product](../screenshots/c-level-prod.png)
-
-All the pages that you register inside this product will appear as links on it's dedicated sub-menu providing that all the correct functions are used.
+If you're not familiar with a cluster-level product is, check it's definition [here](../api/concepts.md#what-is-a-cluster-level-product).
 
 ## Cluster-level product full code example
 As a full example of an Extension as cluster-level product, let's start with the definition of `product.ts` config:

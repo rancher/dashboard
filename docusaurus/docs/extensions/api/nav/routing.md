@@ -1,7 +1,9 @@
 # Routing
 
 ## Routes definition for an Extension as a top-level product
-If you are not familiar with the concept of "an Extension as a top-level product", we recommend that your about the concept **[here](../../usecases/top-level-product.md#what-is-a-top-level-product)**.
+If you are not familiar with the concept of "an Extension as a top-level product", we recommend that your about the concept **[here](../concepts.md#what-is-a-top-level-product)**.
+
+For this type of product we recommend following this route structure: `product-c-cluster-resoure`.
 
 Extensions should use a `pages` directory, as the shell currently does, but routing needs to be explicitly defined then added in the extension index using the extension `addRoutes` method. Extension routes can override existing dashboard routes: they'll be loaded on extension entry and unloaded (with old dashboard routes re-loaded...) on extension leave. 
 
@@ -291,7 +293,9 @@ The routing definition on this example for `/routing/extension-routing.ts` is ba
 
 
 ## Routes definitions for an Extension as a cluster-level product
-If you are not familiar with the concept of "an Extension as a cluster-level product", we recommend that your about the concept **[here](../../usecases/cluster-level-product.md#what-is-a-cluster-level-product)**.
+If you are not familiar with the concept of "an Extension as a cluster-level product", we recommend that your about the concept **[here](../concepts.md#what-is-a-cluster-level-product)**.
+
+For this type of product we recommend following this route structure: `c-cluster-product-resoure`.
 
 Routes definitions start very similar as a top-level product with the `index.ts` in your root folder, where you define your extension configuration, you can just use the `addRoutes` extension method, such as:
 

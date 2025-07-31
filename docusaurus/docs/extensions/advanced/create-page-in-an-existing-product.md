@@ -2,7 +2,11 @@
 
 Given that you have covered all of the topics in [Extensions API](../api/overview.md), especially the [Navigation & Pages](../api/nav/products.md) area, we will show an example of how you can create an extension that adds a new page to an existing product `Fleet`. This doesn't need any product registration.
 
-Let's take into account this simple `index.ts` entry for an extension:
+> To do this in other areas/products of the Rancher UI, simply take a look at the routing structure in the browser url and don't forget to follow the same structure.
+
+> **CAVEAT:** In our docs we recommend following the routes pattern of `product-c-cluster-resource` for top-level products and `c-cluster-product-resource` for cluster-level products, but you may find that some top-level products like `Fleet` do follow a `c-cluster-product-resource`. While the route structure is not mandatory right now, it's a guideline that has proven to be important for developers when following the documentation so that they associate different products with different route structures.
+
+Taking `Fleet` as an example, let's dive into the code for `index.ts` entry for an extension:
 
 ```ts
 // ./index.ts
@@ -27,7 +31,7 @@ export default function(plugin: IPlugin) {
 }
 ```
 
-The `product.ts` config will then define the "pages/views" we want to add taking into account the route structure of a `top-level product` such as `Fleet`:
+The following `product.ts` config is expanding on the product definition in [shell/config/product/fleet](https://github.com/rancher/dashboard/blob/master/shell/config/product/fleet.js) and is where we define the "pages/views" we want to add taking into account the route structure of `Fleet`:
 
 ```ts
 // ./product.ts
@@ -49,34 +53,12 @@ export function init($plugin: IPlugin, store: any) {
     basicType
   } = $plugin.DSL(store, FLEET_PROD_NAME);
 
-  
-  // defining a k8s resource as page
-  configureType(YOUR_K8S_RESOURCE_NAME, {
-    displayName: 'some-custom-name-you-wish-to-assign-to-this-resource',
-    isCreatable: true,
-    isEditable:  true,
-    isRemovable: true,
-    showAge:     true,
-    showState:   true,
-    canYaml:     true,
-    customRoute: {
-      name: `${ FLEET_PROD_NAME }-c-cluster-resource`,
-      params: {
-        product: FLEET_PROD_NAME,
-        cluster: BLANK_CLUSTER,
-        resource: YOUR_K8S_RESOURCE_NAME
-      }
-    }
-  });
-
-  
-
   // creating a custom page
   virtualType({
     labelKey: 'some.translation.key',
     name:     CUSTOM_PAGE_NAME,
     route:    {
-      name:   `${ FLEET_PROD_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
+      name:   `c-cluster-${ FLEET_PROD_NAME }-${ CUSTOM_PAGE_NAME }`,
       params: {
         product: FLEET_PROD_NAME,
         cluster: BLANK_CLUSTER
@@ -89,7 +71,7 @@ export function init($plugin: IPlugin, store: any) {
 }
 ```
 
-If the routes follow the same rules for a top-level product like `Fleet` (`product-c-cluster-resource`), then you just need to follow the same route name notation and replace the product name for `fleet`.
+If the routes follow the same rules for a top-level product like `Fleet` (`c-cluster-product-resource`), then you just need to follow the same route name notation and replace the product name for `fleet`.
 
 The `/routing/extension-routing.ts` needs to follow the same route name principle, such as:
 
@@ -113,47 +95,9 @@ const CUSTOM_PAGE_NAME = 'page1';
 const routes = [
   // this covers the "custom page"
   {
-    name:      `${ FLEET_PROD_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
-    path:      `/${ FLEET_PROD_NAME }/c/:cluster/${ CUSTOM_PAGE_NAME }`,
+    name:      `c-cluster-${ FLEET_PROD_NAME }-${ CUSTOM_PAGE_NAME }`,
+    path:      `/c/:cluster/${ FLEET_PROD_NAME }/${ CUSTOM_PAGE_NAME }`,
     component: MyCustomPage,
-    meta:      {
-      product: FLEET_PROD_NAME,
-      cluster: BLANK_CLUSTER
-    },
-  },
-  // the following routes cover the "resource page"
-  // registering routes for list/edit/create views
-  {
-    name:      `${ FLEET_PROD_NAME }-c-cluster-resource`,
-    path:      `/${ FLEET_PROD_NAME }/c/:cluster/:resource`,
-    component: ListResource,
-    meta:      {
-      product: FLEET_PROD_NAME,
-      cluster: BLANK_CLUSTER
-    },
-  },
-  {
-    name:      `${ FLEET_PROD_NAME }-c-cluster-resource-create`,
-    path:      `/${ FLEET_PROD_NAME }/c/:cluster/:resource/create`,
-    component: CreateResource,
-    meta:      {
-      product: FLEET_PROD_NAME,
-      cluster: BLANK_CLUSTER
-    },
-  },
-  {
-    name:      `${ FLEET_PROD_NAME }-c-cluster-resource-id`,
-    path:      `/${ FLEET_PROD_NAME }/c/:cluster/:resource/:id`,
-    component: ViewResource,
-    meta:      {
-      product: FLEET_PROD_NAME,
-      cluster: BLANK_CLUSTER
-    },
-  },
-  {
-    name:      `${ FLEET_PROD_NAME }-c-cluster-resource-namespace-id`,
-    path:      `/${ FLEET_PROD_NAME }/:cluster/:resource/:namespace/:id`,
-    component: ViewNamespacedResource,
     meta:      {
       product: FLEET_PROD_NAME,
       cluster: BLANK_CLUSTER
@@ -164,7 +108,7 @@ const routes = [
 export default routes;
 ```
 
-And with the above routing, you have successfully registered two new pages and routes inside the `Fleet` product.
+And with the above routing, you have successfully registered a new custom and route inside the `Fleet` product.
 
 This will also work for `Cluster-level products` like `apps`, but remember that to change that product name and follow the correct notation for a cluster-level product `c-cluster-product-resource` like these [examples](../api/nav/routing.md#cluster-level-product---adding-your-defined-routes-to-vue-router).
 
