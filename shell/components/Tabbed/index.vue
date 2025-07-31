@@ -301,11 +301,6 @@ export default {
         >
           <span>
             {{ tab.labelDisplay }}
-            <template
-              v-if="tab.isCountVisible"
-            >
-              ({{ tab.count }})
-            </template>
           </span>
           <span
             v-if="tab.badge"

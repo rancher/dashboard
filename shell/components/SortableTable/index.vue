@@ -1,8 +1,6 @@
 <script>
 import { mapGetters, useStore } from 'vuex';
-import {
-  defineAsyncComponent, ref, onMounted, onBeforeUnmount, inject
-} from 'vue';
+import { defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
 import day from 'dayjs';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst, randomStr } from '@shell/utils/string';
@@ -28,6 +26,7 @@ import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 import ActionDropdownShell from '@shell/components/ActionDropdownShell.vue';
+import { useTabCountUpdater } from '@shell/components/form/ResourceTabs/composable';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
@@ -418,8 +417,7 @@ export default {
       /**
        * The is the bool the DOM uses to show loading state. it's proxied from `loading` to avoid blipping the indicator (see usages)
        */
-      isLoading,
-      tabKey:                     randomStr(),
+      isLoading
     };
   },
 
@@ -435,7 +433,7 @@ export default {
     $main?.addEventListener('scroll', this._onScroll);
 
     this.debouncedPaginationChanged();
-    this.updateTabCount?.(this.tabKey, this.totalRows);
+    this.updateTabCount(this.totalRows);
   },
 
   beforeUnmount() {
@@ -449,7 +447,7 @@ export default {
     const $main = document.querySelector('main');
 
     $main?.removeEventListener('scroll', this._onScroll);
-    this.updateTabCount?.(this.tabKey, undefined);
+    this.clearTabCount();
   },
 
   watch: {
@@ -564,11 +562,13 @@ export default {
 
     const store = useStore();
     const { featureDropdownMenu } = useRuntimeFlag(store);
+    const { updateTabCount, clearTabCount } = useTabCountUpdater();
 
     return {
       table,
       featureDropdownMenu,
-      updateTabCount: inject('update-count'),
+      updateTabCount,
+      clearTabCount
     };
   },
 

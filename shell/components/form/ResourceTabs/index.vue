@@ -16,6 +16,7 @@ import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { MESSAGE, REASON } from '@shell/config/table-headers';
 import { STEVE_EVENT_LAST_SEEN, STEVE_EVENT_TYPE, STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
 import { headerFromSchemaColString } from '@shell/store/type-map.utils';
+import { useIndicateUseCounts } from '@shell/components/form/ResourceTabs/composable';
 
 export default {
 
@@ -72,6 +73,12 @@ export default {
     useHash: {
       type:    Boolean,
       default: true
+    }
+  },
+
+  setup(props) {
+    if (props.mode === _VIEW) {
+      useIndicateUseCounts();
     }
   },
 
@@ -240,19 +247,13 @@ export default {
     :use-hash="useHash"
     @changed="tabChange"
   >
-    <component
-      :is="child"
-      v-for="(child) in children"
-      :key="child"
-      :show-count="isView"
-    />
+    <slot />
     <Tab
       v-if="showConditions"
       label-key="resourceTabs.conditions.tab"
       name="conditions"
       :weight="-1"
       :display-alert-icon="conditionsHaveIssues"
-      :show-count="isView"
     >
       <Conditions :value="value" />
     </Tab>
@@ -262,7 +263,6 @@ export default {
       label-key="resourceTabs.events.tab"
       name="events"
       :weight="-2"
-      :show-count="isView"
     >
       <!-- namespaced: false given we don't want the default handling of namespaced resource (apply header filter)  -->
       <PaginatedResourceTable
@@ -281,7 +281,6 @@ export default {
       name="related"
       label-key="resourceTabs.related.tab"
       :weight="-3"
-      :show-count="isView"
     >
       <h3 v-t="'resourceTabs.related.from'" />
       <RelatedResources

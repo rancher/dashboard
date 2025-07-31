@@ -100,7 +100,7 @@ export default {
     },
 
     totalRows() {
-      this.updateTabCount?.(this.tabKey, this.totalRows);
+      this.updateTabCount(this.totalRows);
     }
   },
 
