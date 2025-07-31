@@ -1,4 +1,7 @@
 <script>
+import { sum } from 'lodash';
+import { computed, provide, ref } from 'vue';
+
 export default {
   inject: ['addTab', 'removeTab', 'sideTabs'],
 
@@ -43,6 +46,32 @@ export default {
       required: false,
       type:     Number
     },
+    showCount: {
+      default: false,
+      type:    Boolean
+    }
+  },
+
+  setup(props) {
+    const countLedger = ref({});
+
+    provide('update-count', (key, count) => {
+      countLedger.value[key] = count;
+    });
+
+    const isCountVisible = computed(() => {
+      // Some tables get destroyed and recreated depending on visibility so we count keys
+      // to check if a table has been present in the tab
+      const hasTableDescendents = Object.keys(countLedger.value).length > 0;
+
+      return props.showCount && hasTableDescendents;
+    });
+
+    const count = computed(() => {
+      return sum(Object.values(countLedger.value).map((count) => count || 0));
+    });
+
+    return { count, isCountVisible };
   },
 
   data() {
@@ -68,7 +97,7 @@ export default {
       }
 
       return this.sideTabs || false;
-    }
+    },
   },
 
   watch: {
