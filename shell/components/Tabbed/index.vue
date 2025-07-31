@@ -291,7 +291,9 @@ export default {
           @click.prevent="select(tab.name, $event)"
           @keyup.enter.space="select(tab.name, $event)"
         >
-          <span>{{ tab.labelDisplay }}</span>
+          <span>
+            {{ tab.labelDisplay }}
+          </span>
           <span
             v-if="tab.badge"
             class="tab-badge"
