@@ -119,6 +119,7 @@ export default {
 
     harvester() {
       const extension = this.uiplugins?.find((c) => c.name === HARVESTER_CHART.name);
+
       const missingRepository = !!extension && !this.harvesterRepository;
 
       const action = async(btnCb) => {
@@ -149,24 +150,40 @@ export default {
         } else if (!extension) {
           action = 'install';
         }
-
         let key = `harvesterManager.extension.${ action }.${ label }`;
 
         if (label === 'prompt' && !this.isAdmin) {
           key = `harvesterManager.extension.${ action }.${ label }-standard-user`;
         }
 
+        let params = {};
+
+        switch (key) {
+        case 'harvesterManager.extension.update.prompt':
+          params = { newVersion: `v${ this.harvesterUpdateVersion }` };
+          break;
+        case 'harvesterManager.extension.update.warning': {
+          const currentVersion = this?.harvester?.extension?.version ? `v${ this.harvester.extension.version }` : 'unknown';
+
+          params = { currentVersion };
+          break;
+        }
+        default:
+          params = {};
+        }
+
         return {
           ...acc,
-          [label]: this.t(key, {}, true),
+          [label]: this.t(key, params, true),
         };
       }, {});
+      const toUpdate = missingRepository || !!this.harvesterUpdateVersion;
 
       return {
         extension,
         missingRepository,
         toInstall: !extension,
-        toUpdate:  missingRepository || !!this.harvesterUpdateVersion,
+        toUpdate,
         action,
         panelLabel,
         hasErrors,
@@ -549,7 +566,7 @@ export default {
     > div {
       font-size: 16px;
       line-height: 22px;
-      max-width: 80%;
+      max-width: 100%;
       text-align: center;
     }
   }
