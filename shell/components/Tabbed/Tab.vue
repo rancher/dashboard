@@ -1,6 +1,5 @@
 <script>
-import { sum } from 'lodash';
-import { computed, provide, ref } from 'vue';
+import { useTabCountWatcher } from '@shell/components/form/ResourceTabs/composable';
 
 export default {
   inject: ['addTab', 'removeTab', 'sideTabs'],
@@ -53,23 +52,7 @@ export default {
   },
 
   setup(props) {
-    const countLedger = ref({});
-
-    provide('update-count', (key, count) => {
-      countLedger.value[key] = count;
-    });
-
-    const isCountVisible = computed(() => {
-      // Some tables get destroyed and recreated depending on visibility so we count keys
-      // to check if a table has been present in the tab
-      const hasTableDescendents = Object.keys(countLedger.value).length > 0;
-
-      return props.showCount && hasTableDescendents;
-    });
-
-    const count = computed(() => {
-      return sum(Object.values(countLedger.value).map((count) => count || 0));
-    });
+    const { count, isCountVisible } = useTabCountWatcher();
 
     return { count, isCountVisible };
   },
@@ -79,7 +62,7 @@ export default {
   },
 
   computed: {
-    labelDisplay() {
+    baseLabelDisplay() {
       if ( this.labelKey ) {
         return this.$store.getters['i18n/t'](this.labelKey);
       }
@@ -89,6 +72,16 @@ export default {
       }
 
       return this.name;
+    },
+
+    labelDisplay() {
+      const baseLabel = this.baseLabelDisplay;
+
+      if ( !this.isCountVisible ) {
+        return baseLabel;
+      }
+
+      return `${ baseLabel } (${ this.count })`;
     },
 
     shouldShowHeader() {
