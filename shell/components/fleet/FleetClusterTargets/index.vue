@@ -3,6 +3,7 @@ import { PropType } from 'vue';
 import { isEmpty } from 'lodash';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import { isHarvesterCluster } from '@shell/utils/cluster';
+import { HARVESTER_CONTAINER } from '@shell/store/features';
 import { FLEET } from '@shell/config/types';
 import FleetUtils from '@shell/utils/fleet';
 import { Expression, Selector, Target, TargetMode } from '@shell/types/fleet';
@@ -158,7 +159,7 @@ export default {
 
     clustersOptions() {
       return this.allClusters
-        .filter((x) => x.metadata.namespace === this.namespace && !isHarvesterCluster(x))
+        .filter((x) => x.metadata.namespace === this.namespace && (this.isHarvesterClustersEnabled || !isHarvesterCluster(x)))
         .map((x) => ({ label: x.nameDisplay, value: x.metadata.name }));
     },
 
@@ -168,6 +169,10 @@ export default {
         .map((x) => {
           return { label: x.nameDisplay, value: x.metadata.name };
         });
+    },
+
+    isHarvesterClustersEnabled() {
+      return this.$store.getters['features/get'](HARVESTER_CONTAINER);
     },
 
     isLocal() {
@@ -279,7 +284,7 @@ export default {
       case 'none':
         return undefined;
       case 'all':
-        return [excludeHarvesterRule];
+        return this.isHarvesterClustersEnabled ? this.targets : [excludeHarvesterRule];
       case 'clusters':
         return this.normalizeTargets(this.selectedClusters, this.clusterSelectors, this.selectedClusterGroups);
       case 'advanced':

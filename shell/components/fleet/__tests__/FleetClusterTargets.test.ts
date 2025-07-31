@@ -38,6 +38,15 @@ function requiredSetup() {
         'router-link':    { template: '<a><slot /></a>' },
         'n-link':         { template: '<a><slot /></a>' },
         'nuxt-link':      { template: '<a><slot /></a>' },
+        'r-radio':        { template: '<div><slot /></div>' },
+        'r-radio-group':  { template: '<div><slot /></div>' },
+        'r-select':       { template: '<div><slot /></div>' },
+        'r-button':       { template: '<button><slot /></button>' },
+        'r-form-item':    { template: '<div><slot /></div>' },
+        'r-form':         { template: '<form><slot /></form>' },
+        'r-checkbox':     { template: '<input type="checkbox" />' },
+        'r-tabs':         { template: '<div><slot /></div>' },
+        'r-tab-pane':     { template: '<div><slot /></div>' },
         FleetTargetsList: { template: '<div class="fleet-targets-list-stub"><slot /></div>' }
       }
     }
@@ -71,9 +80,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('clusters');
         expect(selectedClusters).toStrictEqual([target1.clusterName]);
@@ -99,9 +109,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('all');
         expect(clusterSelectors).toStrictEqual([]); // Harvester rule should be filtered out
@@ -121,9 +132,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('clusters');
         expect(selectedClusters).toStrictEqual(['fleet-5-france']);
@@ -146,9 +158,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('clusters');
         expect(selectedClusters).toStrictEqual([]);
@@ -174,9 +187,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('advanced');
         // Expect no further processing for selectedClusters or clusterSelectors due to early return
@@ -215,9 +229,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('advanced');
         // Expect no further processing for selectedClusters or clusterSelectors due to early return
@@ -234,9 +249,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('none');
         expect(selectedClusters).toStrictEqual([]);
@@ -253,7 +269,8 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
 
         expect(targetMode).toBe('local');
       });
@@ -269,9 +286,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('clusters');
         expect(selectedClusters).toStrictEqual(['prod-cluster', 'test-cluster']);
@@ -301,9 +319,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('clusters');
         expect(selectedClusters).toStrictEqual([]);
@@ -329,9 +348,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('all');
         expect(selectedClusters).toStrictEqual([]);
@@ -358,9 +378,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('all');
         expect(selectedClusters).toStrictEqual([]);
@@ -382,7 +403,8 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.vm.update();
+        const vm = wrapper.vm as any;
+        vm.update();
 
         await flushPromises();
 
@@ -407,7 +429,8 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.vm.update();
+        const vm = wrapper.vm as any;
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{
@@ -432,7 +455,8 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.vm.update();
+        const vm = wrapper.vm as any;
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{ clusterName: 'fleet-5-france' }, { clusterSelector: { matchLabels: { foo: 'true' } } }]);
@@ -450,7 +474,8 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.vm.update();
+        const vm = wrapper.vm as any;
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{ clusterSelector: { matchLabels: { foo: 'true' } } }, { clusterSelector: { matchLabels: { hci: 'true' } } }]);
@@ -467,7 +492,8 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.vm.update();
+        const vm = wrapper.vm as any;
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{ clusterGroupSelector: {} }]);
@@ -504,7 +530,8 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.vm.update();
+        const vm = wrapper.vm as any;
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{
@@ -535,7 +562,8 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.vm.update();
+        const vm = wrapper.vm as any;
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[0][0]).toBeUndefined();
@@ -552,7 +580,8 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.vm.update();
+        const vm = wrapper.vm as any;
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{ clusterSelector: { matchLabels: { foo: 'true' } } }]);
@@ -581,7 +610,8 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.vm.update();
+        const vm = wrapper.vm as any;
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{
@@ -604,7 +634,8 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.vm.update();
+        const vm = wrapper.vm as any;
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{
@@ -636,7 +667,8 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.vm.update();
+        const vm = wrapper.vm as any;
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{
@@ -668,9 +700,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('clusters');
         expect(selectedClusters).toStrictEqual([target1.clusterName]);
@@ -696,9 +729,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('all');
         expect(clusterSelectors).toStrictEqual([]); // Harvester rule should be filtered out
@@ -719,9 +753,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('clusters');
         expect(selectedClusters).toStrictEqual(['fleet-5-france']);
@@ -745,9 +780,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('clusters');
         expect(selectedClusters).toStrictEqual([]);
@@ -774,9 +810,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('advanced');
         // Expect no further processing for selectedClusters or clusterSelectors due to early return
@@ -816,9 +853,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('advanced');
         // Expect no further processing for selectedClusters or clusterSelectors due to early return
@@ -836,9 +874,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('none');
         expect(selectedClusters).toStrictEqual([]);
@@ -856,7 +895,8 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
 
         expect(targetMode).toBe('local');
       });
@@ -873,9 +913,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('clusters');
         expect(selectedClusters).toStrictEqual(['prod-cluster', 'test-cluster']);
@@ -906,9 +947,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('clusters');
         expect(selectedClusters).toStrictEqual([]);
@@ -934,9 +976,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('all');
         expect(selectedClusters).toStrictEqual([]);
@@ -963,9 +1006,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        const targetMode = wrapper.vm.targetMode;
-        const selectedClusters = wrapper.vm.selectedClusters;
-        const clusterSelectors = wrapper.vm.clusterSelectors as Selector[];
+        const vm = wrapper.vm as any;
+        const targetMode = vm.targetMode;
+        const selectedClusters = vm.selectedClusters;
+        const clusterSelectors = vm.clusterSelectors as Selector[];
 
         expect(targetMode).toBe('all');
         expect(selectedClusters).toStrictEqual([]);
@@ -987,9 +1031,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.setData({ targetMode: 'clusters' });
+        const vm = wrapper.vm as any;
+        vm.targetMode = 'clusters';
 
-        wrapper.vm.update();
+        vm.update();
 
         await flushPromises();
 
@@ -1014,7 +1059,8 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.vm.update();
+        const vm = wrapper.vm as any;
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{
@@ -1039,9 +1085,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.setData({ targetMode: 'clusters' });
+        const vm = wrapper.vm as any;
+        vm.targetMode = 'clusters';
 
-        wrapper.vm.update();
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[1][0]).toStrictEqual([{ clusterName: 'fleet-5-france' }, { clusterSelector: { matchLabels: { foo: 'true' } } }]);
@@ -1059,9 +1106,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.setData({ targetMode: 'clusters' });
+        const vm = wrapper.vm as any;
+        vm.targetMode = 'clusters';
 
-        wrapper.vm.update();
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[1][0]).toStrictEqual([{ clusterSelector: { matchLabels: { foo: 'true' } } }, { clusterSelector: { matchLabels: { hci: 'true' } } }]);
@@ -1078,9 +1126,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.setData({ targetMode: 'advanced' });
+        const vm = wrapper.vm as any;
+        vm.targetMode = 'advanced';
 
-        wrapper.vm.update();
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[1][0]).toStrictEqual([{ clusterGroupSelector: {} }]);
@@ -1117,9 +1166,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.setData({ targetMode: 'advanced' });
+        const vm = wrapper.vm as any;
+        vm.targetMode = 'advanced';
 
-        wrapper.vm.update();
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[1][0]).toStrictEqual([{
@@ -1150,9 +1200,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.setData({ targetMode: 'none' });
+        const vm = wrapper.vm as any;
+        vm.targetMode = 'none';
 
-        wrapper.vm.update();
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[1][0]).toBeUndefined();
@@ -1169,9 +1220,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.setData({ targetMode: 'clusters' });
+        const vm = wrapper.vm as any;
+        vm.targetMode = 'clusters';
 
-        wrapper.vm.update();
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[1][0]).toStrictEqual([{ clusterSelector: { matchLabels: { foo: 'true' } } }]);
@@ -1200,9 +1252,10 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.setData({ targetMode: 'clusters' });
+        const vm = wrapper.vm as any;
+        vm.targetMode = 'clusters';
 
-        wrapper.vm.update();
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[1][0]).toStrictEqual([{
@@ -1225,7 +1278,8 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.vm.update();
+        const vm = wrapper.vm as any;
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{
@@ -1257,7 +1311,8 @@ describe('component: FleetClusterTargets', () => {
           },
         });
 
-        wrapper.vm.update();
+        const vm = wrapper.vm as any;
+        vm.update();
         await flushPromises();
 
         expect(wrapper.emitted('update:value')?.[0][0]).toStrictEqual([{
@@ -1282,7 +1337,8 @@ describe('component: FleetClusterTargets', () => {
           }
         });
 
-        expect(wrapper.vm.selectedClusterGroups).toStrictEqual([]);
+        const vm = wrapper.vm as any;
+        expect(vm.selectedClusterGroups).toStrictEqual([]);
       });
 
       it('should populate allClusterGroups from store data', async() => {
@@ -1305,10 +1361,11 @@ describe('component: FleetClusterTargets', () => {
           }
         });
 
-        wrapper.setData({ allClusterGroups: mockClusterGroups });
+        const vm = wrapper.vm as any;
+        vm.allClusterGroups = mockClusterGroups;
         await flushPromises();
 
-        expect(wrapper.vm.allClusterGroups).toStrictEqual(mockClusterGroups);
+        expect(vm.allClusterGroups).toStrictEqual(mockClusterGroups);
       });
 
       it('should filter clusterGroupsOptions by namespace', () => {
@@ -1335,9 +1392,11 @@ describe('component: FleetClusterTargets', () => {
           }
         });
 
-        wrapper.setData({ allClusterGroups: mockClusterGroups });
+        const vm = wrapper.vm as any;
+        vm.allClusterGroups = mockClusterGroups;
 
-        const filteredOptions = wrapper.vm.clusterGroupsOptions;
+        const filteredOptions = const vm = wrapper.vm as any;
+        vm.clusterGroupsOptions;
 
         expect(filteredOptions).toHaveLength(2);
         expect(filteredOptions).toStrictEqual([
@@ -1359,10 +1418,12 @@ describe('component: FleetClusterTargets', () => {
 
         const updateSpy = jest.spyOn(wrapper.vm, 'update');
 
-        wrapper.vm.selectClusterGroups(['group-1', 'group-2']);
+        const vm = wrapper.vm as any;
+  
+        vm.selectClusterGroups(['group-1', 'group-2']);
         await flushPromises();
 
-        expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['group-1', 'group-2']);
+        expect(vm.selectedClusterGroups).toStrictEqual(['group-1', 'group-2']);
         expect(updateSpy).toHaveBeenCalledWith();
       });
 
@@ -1375,7 +1436,8 @@ describe('component: FleetClusterTargets', () => {
           }
         });
 
-        wrapper.vm.selectClusterGroups(['test-group']);
+        const vm = wrapper.vm as any;
+        vm.selectClusterGroups(['test-group']);
         await flushPromises();
 
         expect(wrapper.emitted('update:value')).toBeDefined();
@@ -1390,15 +1452,17 @@ describe('component: FleetClusterTargets', () => {
           }
         });
 
+        const vm = wrapper.vm as any;
+        
         // First set some groups
-        wrapper.vm.selectClusterGroups(['group-1', 'group-2']);
+        vm.selectClusterGroups(['group-1', 'group-2']);
         await flushPromises();
 
         // Then clear them
-        wrapper.vm.selectClusterGroups([]);
+        vm.selectClusterGroups([]);
         await flushPromises();
 
-        expect(wrapper.vm.selectedClusterGroups).toStrictEqual([]);
+        expect(vm.selectedClusterGroups).toStrictEqual([]);
       });
 
       it('should replace existing selectedClusterGroups on new selection', async() => {
@@ -1410,15 +1474,17 @@ describe('component: FleetClusterTargets', () => {
           }
         });
 
+        const vm = wrapper.vm as any;
+
         // Initial selection
-        wrapper.vm.selectClusterGroups(['group-1', 'group-2']);
+        vm.selectClusterGroups(['group-1', 'group-2']);
         await flushPromises();
 
         // Replace with new selection
-        wrapper.vm.selectClusterGroups(['group-3', 'group-4', 'group-5']);
+        vm.selectClusterGroups(['group-3', 'group-4', 'group-5']);
         await flushPromises();
 
-        expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['group-3', 'group-4', 'group-5']);
+        expect(vm.selectedClusterGroups).toStrictEqual(['group-3', 'group-4', 'group-5']);
       });
     });
 
@@ -1438,8 +1504,10 @@ describe('component: FleetClusterTargets', () => {
           }
         });
 
-        expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['production-group', 'staging-group']);
-        expect(wrapper.vm.selectedClusters).toStrictEqual(['specific-cluster']);
+        const vm = wrapper.vm as any;
+
+        expect(vm.selectedClusterGroups).toStrictEqual(['production-group', 'staging-group']);
+        expect(vm.selectedClusters).toStrictEqual(['specific-cluster']);
       });
 
       it('should include clusterGroups in normalizeTargets output', () => {
@@ -1451,7 +1519,9 @@ describe('component: FleetClusterTargets', () => {
           }
         });
 
-        const result = wrapper.vm.normalizeTargets(
+        const vm = wrapper.vm as any;
+
+        const result = vm.normalizeTargets(
           ['cluster-1'],
           [{ matchLabels: { env: 'prod' } }],
           ['group-1', 'group-2']
@@ -1474,7 +1544,9 @@ describe('component: FleetClusterTargets', () => {
           }
         });
 
-        const result = wrapper.vm.normalizeTargets([], [], ['group-1', 'group-2']);
+        const vm = wrapper.vm as any;
+
+        const result = vm.normalizeTargets([], [], ['group-1', 'group-2']);
 
         expect(result).toStrictEqual([
           { clusterGroup: 'group-1' },
@@ -1491,7 +1563,8 @@ describe('component: FleetClusterTargets', () => {
           }
         });
 
-        const result = wrapper.vm.normalizeTargets([], [], []);
+        const vm = wrapper.vm as any;
+        const result = vm.normalizeTargets([], [], []);
 
         expect(result).toBeUndefined();
       });
@@ -1505,14 +1578,13 @@ describe('component: FleetClusterTargets', () => {
           }
         });
 
-        wrapper.setData({
-          targetMode:            'clusters',
-          selectedClusters:      ['cluster-1'],
-          clusterSelectors:      [],
-          selectedClusterGroups: ['group-1', 'group-2']
-        });
+        const vm = wrapper.vm as any;
+        vm.targetMode = 'clusters';
+        vm.selectedClusters = ['cluster-1'];
+        vm.clusterSelectors = [];
+        vm.selectedClusterGroups = ['group-1', 'group-2'];
 
-        const result = wrapper.vm.toTargets();
+        const result = vm.toTargets();
 
         expect(result).toStrictEqual([
           { clusterName: 'cluster-1' },
@@ -1537,7 +1609,8 @@ describe('component: FleetClusterTargets', () => {
         });
 
         // ClusterGroup targets should be parsed correctly
-        expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['test-group']);
+        const vm = wrapper.vm as any;
+        expect(vm.selectedClusterGroups).toStrictEqual(['test-group']);
       });
     });
 
@@ -1557,10 +1630,12 @@ describe('component: FleetClusterTargets', () => {
         }
       });
 
-      expect(wrapper.vm.selectedClusters).toStrictEqual(['specific-cluster']);
-      expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['production-group', 'development-group']);
-      expect(wrapper.vm.clusterSelectors).toHaveLength(1);
-      expect(wrapper.vm.clusterSelectors[0].matchLabels).toStrictEqual({ env: 'staging' });
+      const vm = wrapper.vm as any;
+
+      expect(vm.selectedClusters).toStrictEqual(['specific-cluster']);
+      expect(vm.selectedClusterGroups).toStrictEqual(['production-group', 'development-group']);
+      expect(vm.clusterSelectors).toHaveLength(1);
+      expect(vm.clusterSelectors[0].matchLabels).toStrictEqual({ env: 'staging' });
     });
 
     it('should reset selectedClusterGroups when reset method is called', () => {
@@ -1573,20 +1648,19 @@ describe('component: FleetClusterTargets', () => {
       });
 
       // Set some cluster groups
-      wrapper.setData({
-        targetMode:            'clusters',
-        selectedClusterGroups: ['group-1', 'group-2'],
-        selectedClusters:      ['cluster-1'],
-        clusterSelectors:      [{ key: 1 }]
-      });
+      const vm = wrapper.vm as any;
+      vm.targetMode = 'clusters';
+      vm.selectedClusterGroups = ['group-1', 'group-2'];
+      vm.selectedClusters = ['cluster-1'];
+      vm.clusterSelectors = [{ key: 1 }];
 
       // Call reset
-      wrapper.vm.reset();
+      vm.reset();
 
-      expect(wrapper.vm.selectedClusterGroups).toStrictEqual([]);
-      expect(wrapper.vm.targetMode).toBe('all');
-      expect(wrapper.vm.selectedClusters).toStrictEqual([]);
-      expect(wrapper.vm.clusterSelectors).toStrictEqual([]);
+      expect(vm.selectedClusterGroups).toStrictEqual([]);
+      expect(vm.targetMode).toBe('all');
+      expect(vm.selectedClusters).toStrictEqual([]);
+      expect(vm.clusterSelectors).toStrictEqual([]);
     });
   });
 
@@ -1600,12 +1674,14 @@ describe('component: FleetClusterTargets', () => {
         }
       });
 
+      const vm = wrapper.vm as any;
+
       // Set target mode and selections
-      wrapper.setData({ targetMode: 'clusters' });
-      wrapper.vm.selectClusters(['cluster-1', 'cluster-2']);
+      vm.targetMode = 'clusters';
+      vm.selectClusters(['cluster-1', 'cluster-2']);
       await flushPromises();
 
-      wrapper.vm.selectClusterGroups(['group-1']);
+      vm.selectClusterGroups(['group-1']);
       await flushPromises();
 
       const emittedValues = wrapper.emitted('update:value');
@@ -1627,8 +1703,10 @@ describe('component: FleetClusterTargets', () => {
         }
       });
 
-      wrapper.setData({ targetMode: 'clusters' });
-      wrapper.vm.selectClusterGroups(['create-group-1', 'create-group-2']);
+      const vm = wrapper.vm as any;
+
+      vm.targetMode = 'clusters';
+      vm.selectClusterGroups(['create-group-1', 'create-group-2']);
       await flushPromises();
 
       const emittedValues = wrapper.emitted('update:value');
@@ -1654,7 +1732,8 @@ describe('component: FleetClusterTargets', () => {
         }
       });
 
-      expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['initial-group']);
+      const vm = wrapper.vm as any;
+      expect(vm.selectedClusterGroups).toStrictEqual(['initial-group']);
 
       // Update props
       const newTargets = [
@@ -1665,10 +1744,10 @@ describe('component: FleetClusterTargets', () => {
       await wrapper.setProps({ targets: newTargets });
 
       // Reset and then parse new targets to simulate component update
-      wrapper.vm.reset();
-      wrapper.vm.fromTargets();
+      vm.reset();
+      vm.fromTargets();
 
-      expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['new-group-1', 'new-group-2']);
+      expect(vm.selectedClusterGroups).toStrictEqual(['new-group-1', 'new-group-2']);
     });
   });
 
@@ -1688,7 +1767,8 @@ describe('component: FleetClusterTargets', () => {
         }
       });
 
-      expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['valid-group']);
+      const vm = wrapper.vm as any;
+        expect(vm.selectedClusterGroups).toStrictEqual(['valid-group']);
     });
 
     it('should handle empty string clusterGroup in targets', () => {
@@ -1705,7 +1785,8 @@ describe('component: FleetClusterTargets', () => {
         }
       });
 
-      expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['valid-group']);
+      const vm = wrapper.vm as any;
+        expect(vm.selectedClusterGroups).toStrictEqual(['valid-group']);
     });
 
     it('should handle empty allClusterGroups data', () => {
@@ -1717,10 +1798,12 @@ describe('component: FleetClusterTargets', () => {
         }
       });
 
-      wrapper.setData({ allClusterGroups: [] });
+      const vm = wrapper.vm as any;
+      
+      vm.allClusterGroups = [];
 
-      expect(() => wrapper.vm.clusterGroupsOptions).not.toThrow();
-      expect(wrapper.vm.clusterGroupsOptions).toStrictEqual([]);
+      expect(() => vm.clusterGroupsOptions).not.toThrow();
+      expect(vm.clusterGroupsOptions).toStrictEqual([]);
     });
 
     it('should handle clusterGroups with missing nameDisplay', () => {
@@ -1743,9 +1826,11 @@ describe('component: FleetClusterTargets', () => {
         }
       });
 
-      wrapper.setData({ allClusterGroups: mockClusterGroups });
+      const vm = wrapper.vm as any;
 
-      const options = wrapper.vm.clusterGroupsOptions;
+      vm.allClusterGroups = mockClusterGroups;
+
+      const options = vm.clusterGroupsOptions;
 
       expect(options).toStrictEqual([
         { label: undefined, value: 'group-1' },
@@ -1765,7 +1850,9 @@ describe('component: FleetClusterTargets', () => {
       });
 
       // Set initial selection
-      wrapper.vm.selectClusterGroups(['persistent-group']);
+      const vm = wrapper.vm as any;
+
+      vm.selectClusterGroups(['persistent-group']);
       await flushPromises();
 
       // Trigger component update by changing namespace
@@ -1773,7 +1860,7 @@ describe('component: FleetClusterTargets', () => {
       await flushPromises();
 
       // In EDIT mode, selections should be preserved unless explicitly reset
-      expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['persistent-group']);
+      expect(vm.selectedClusterGroups).toStrictEqual(['persistent-group']);
     });
 
     it('should clear clusterGroup selections on namespace change in CREATE mode', async() => {
@@ -1785,20 +1872,22 @@ describe('component: FleetClusterTargets', () => {
         }
       });
 
+      const vm = wrapper.vm as any;
+
       // Set initial selection
-      wrapper.vm.selectClusterGroups(['temp-group']);
+      vm.selectClusterGroups(['temp-group']);
       await flushPromises();
 
       // Mock the reset method call that happens on namespace change in CREATE mode
-      const resetSpy = jest.spyOn(wrapper.vm, 'reset');
+      const resetSpy = jest.spyOn(vm, 'reset');
 
       await wrapper.setProps({ namespace: 'different-namespace' });
 
       // Manually trigger reset to simulate the watcher behavior
-      wrapper.vm.reset();
+      vm.reset();
 
       expect(resetSpy).toHaveBeenCalledWith();
-      expect(wrapper.vm.selectedClusterGroups).toStrictEqual([]);
+      expect(vm.selectedClusterGroups).toStrictEqual([]);
     });
   });
 });
