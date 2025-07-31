@@ -100,3 +100,28 @@ plugin.addPanel(
   { component: () => import('./BannerComponent.vue') }
 );
 ```
+
+<br/>
+<br/>
+
+### PanelLocation.ABOUT_TOP options
+
+![List View](../screenshots/about-top.png)
+
+> NOTE: this Panel will only appear on the area designated in the screenshot in the About page of Rancher UI
+
+`options` config object. Admissable parameters for the `options` with `'PanelLocation.ABOUT_TOP'` are:
+
+| Key | Type | Description |
+|---|---|---|
+|`component`| Function | Component to be rendered as content above a table on a "list view" |
+
+Usage example for `'PanelLocation.ABOUT_TOP'`:
+
+```ts
+plugin.addPanel(
+  PanelLocation.ABOUT_TOP,
+  {},
+  { component: () => import('./BannerComponent.vue') }
+);
+```

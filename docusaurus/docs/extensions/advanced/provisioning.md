@@ -73,21 +73,7 @@ These can be provided as per the `Custom Components` section.
 
 ### Custom tabs in the Cluster's Cluster Configuration 
 
-When creating or editing the cluster the user can see a set of `Cluster Configuration` tabs that contain configuration applicable to the entire cluster.
-
-Extensions can add additional tabs here.
-
-```
-  plugin.addTab(TabLocation.CLUSTER_CREATE_RKE2, {
-    resource:     ['provisioning.cattle.io.cluster'],
-    queryParam:    { type: ExampleProvisioner.ID }
-  }, {
-    name:      'custom-cluster-config',
-    labelKey:     'exampleClusterConfigTab.tabLabel',
-    component: () => import('./src/example-cluster-config-tab.vue')
-  });
-```
-> Note we use the new `queryParam` property to allow us to target the tab only when the cluster is of our provider type.
+Check the documentation about adding a tab to the Cluster Configuration area in the interface for cluster creation **[here](../api/tabs.md#tablocationcluster_create_rke2-options)**.
 
 ### Custom tabs in the Cluster's detail page
 
