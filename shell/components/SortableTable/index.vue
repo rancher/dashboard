@@ -1,6 +1,8 @@
 <script>
 import { mapGetters, useStore } from 'vuex';
-import { defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
+import {
+  defineAsyncComponent, ref, onMounted, onBeforeUnmount, inject
+} from 'vue';
 import day from 'dayjs';
 import isEmpty from 'lodash/isEmpty';
 import { dasherize, ucFirst, randomStr } from '@shell/utils/string';
@@ -51,7 +53,7 @@ export default {
     'group-value-change',
     'selection',
     'rowClick',
-    'enter',
+    'enter'
   ],
 
   components: {
@@ -416,7 +418,8 @@ export default {
       /**
        * The is the bool the DOM uses to show loading state. it's proxied from `loading` to avoid blipping the indicator (see usages)
        */
-      isLoading
+      isLoading,
+      tabKey:                     randomStr(),
     };
   },
 
@@ -432,6 +435,7 @@ export default {
     $main?.addEventListener('scroll', this._onScroll);
 
     this.debouncedPaginationChanged();
+    this.updateTabCount?.(this.tabKey, this.totalRows);
   },
 
   beforeUnmount() {
@@ -445,6 +449,7 @@ export default {
     const $main = document.querySelector('main');
 
     $main?.removeEventListener('scroll', this._onScroll);
+    this.updateTabCount?.(this.tabKey, undefined);
   },
 
   watch: {
@@ -563,6 +568,7 @@ export default {
     return {
       table,
       featureDropdownMenu,
+      updateTabCount: inject('update-count'),
     };
   },
 

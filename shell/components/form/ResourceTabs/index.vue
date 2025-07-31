@@ -155,15 +155,13 @@ export default {
       }
 
       return false;
+    },
+    children() {
+      return this.$slots?.default?.() || [];
     }
   },
 
   methods: {
-    // Ensures we only fetch events and show the table when the events tab has been activated
-    tabChange(neu) {
-      this.selectedTab = neu?.selectedName;
-    },
-
     /**
     * Conditions come from a resource's `status`. They are used by both core resources like workloads as well as those from CRDs
     * - Workloads
@@ -242,14 +240,19 @@ export default {
     :use-hash="useHash"
     @changed="tabChange"
   >
-    <slot />
-
+    <component
+      :is="child"
+      v-for="(child) in children"
+      :key="child"
+      :show-count="isView"
+    />
     <Tab
       v-if="showConditions"
       label-key="resourceTabs.conditions.tab"
       name="conditions"
       :weight="-1"
       :display-alert-icon="conditionsHaveIssues"
+      :show-count="isView"
     >
       <Conditions :value="value" />
     </Tab>
@@ -259,10 +262,10 @@ export default {
       label-key="resourceTabs.events.tab"
       name="events"
       :weight="-2"
+      :show-count="isView"
     >
       <!-- namespaced: false given we don't want the default handling of namespaced resource (apply header filter)  -->
       <PaginatedResourceTable
-        v-if="selectedTab === 'events'"
         :schema="eventSchema"
         :local-filter="filterEventsLocal"
         :api-filter="filterEventsApi"
@@ -278,6 +281,7 @@ export default {
       name="related"
       label-key="resourceTabs.related.tab"
       :weight="-3"
+      :show-count="isView"
     >
       <h3 v-t="'resourceTabs.related.from'" />
       <RelatedResources
