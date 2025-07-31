@@ -7,7 +7,7 @@ import S3Config from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/S3Con
 import UnitInput from '@shell/components/form/UnitInput';
 
 export default {
-  emits: ['s3-backup-changed', 'config-etcd-expose-metrics-changed'],
+  emits: ['s3-backup-changed', 'config-etcd-expose-metrics-changed', 's3-config-validation-changed'],
 
   components: {
     LabeledInput,
@@ -54,6 +54,12 @@ export default {
       return !!this.value.spec.rkeConfig.machineGlobalConfig['etcd-expose-metrics'];
     },
   },
+
+  methods: {
+    handleS3ConfigChildValidation(isValid) {
+      this.$emit('s3-config-validation-changed', isValid);
+    },
+  }
 };
 </script>
 
@@ -114,6 +120,7 @@ export default {
         :namespace="value.metadata.namespace"
         :register-before-hook="registerBeforeHook"
         :mode="mode"
+        @validationChanged="handleS3ConfigChildValidation"
       />
     </template>
 
