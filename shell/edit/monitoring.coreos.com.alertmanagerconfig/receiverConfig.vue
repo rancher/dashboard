@@ -128,6 +128,16 @@ export default {
     const expectedFields = Object.keys(receiverSchema.resourceFields);
     const suffix = {};
 
+    // Values contains multiple receivers of two types
+    // 1. Known (expected, from schema) shown in their own tabs with explicity forms
+    // 2. unknown (not expected, missing in schema) shown as a yaml blob
+
+    // - expectedFields and suffixYaml are only used if the receiver is of type `custom`
+    // - expectedFields are the known types
+    // - suffixYaml are the unknown types
+    // - usages,
+    //   - for custom, we need to know only the unknown / yaml blog. so suffixYaml is created by extracting all known (expectedFields) from value
+    //   - on edit of custom we then combine the two again and save to value
     Object.keys(this.value).forEach((key) => {
       if (!expectedFields.includes(key)) {
         suffix[key] = this.value[key];
@@ -195,7 +205,7 @@ export default {
       return {
         duplicateName: () => {
           const receiversArray = this.alertmanagerConfigResource.spec.receivers;
-          const receiverNamesArray = receiversArray.map((R) => R.name);
+          const receiverNamesArray = receiversArray?.map((R) => R.name) || [];
           const receiversSet = new Set(receiverNamesArray);
 
           if (receiversArray.length !== receiversSet.size) {
