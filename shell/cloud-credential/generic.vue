@@ -28,7 +28,7 @@ export default {
     const configId = `${ normanType }credentialconfig`;
 
     this.normanSchema = await this.$store.dispatch('rancher/find', {
-      type: SCHEMA, id: configId, opt: { url: `/v3/schemas/${ configId }`, force: true }
+      type: SCHEMA, id: configId, opt: { url: `/v3/schemas/${ configId }` }
     });
 
     if ( this.normanSchema?.resourceFields ) {
