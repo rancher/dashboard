@@ -10,6 +10,9 @@ on:
 
 jobs:
   port-issue:
+    permissions:
+      issues: write
+      id-token: write
     runs-on: ubuntu-latest
     if: contains(github.event.comment.body, '/backport') || contains(github.event.comment.body, '/forwardport')
     steps:

@@ -7,6 +7,9 @@ on:
 
 jobs:
   port-pr:
+    permissions:
+      pull-requests: write
+      id-token: write
     runs-on: ubuntu-latest
     if: (startsWith(github.event.comment.body, '/backport') || startsWith(github.event.comment.body, '/forwardport')) && github.event.issue.pull_request
     steps:
