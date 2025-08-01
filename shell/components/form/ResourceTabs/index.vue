@@ -234,6 +234,8 @@ export default {
 
 <template>
   <Tabbed
+    class="resource-tabs"
+    :class="{[mode]: true}"
     v-bind="$attrs"
     :default-tab="defaultTab"
     :resource="value"
@@ -296,3 +298,21 @@ export default {
     </Tab>
   </Tabbed>
 </template>
+
+<style lang="scss" scoped>
+.resource-tabs {
+  // For the time being we're only targeting detail pages for the new styling. Remove this if we want this style to apply to all pages.
+  &.view {
+    :deep() .tabs.horizontal {
+      border: none;
+    }
+
+    :deep() .tabs.horizontal + .tab-container {
+      border: none;
+      border-top: 1px solid var(--border);
+      padding: 0;
+      padding-top: 24px;
+    }
+  }
+}
+</style>
