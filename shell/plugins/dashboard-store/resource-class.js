@@ -860,6 +860,10 @@ export default class Resource {
 
   // ------------------------------------------------------------------
 
+  get canEdit() {
+    return this.canUpdate && this.canCustomEdit;
+  }
+
   get availableActions() {
     const all = this._availableActions;
 

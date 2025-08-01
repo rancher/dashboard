@@ -85,6 +85,15 @@ export default class ProvCluster extends SteveModel {
     };
   }
 
+  get canEdit() {
+    // If the cluster is a KEV1 cluster or Harvester cluster then prevent edit
+    if (this.isKev1 || this.isHarvester) {
+      return false;
+    }
+
+    return super.canEdit;
+  }
+
   get _availableActions() {
     const out = super._availableActions;
     const isLocal = this.mgmt?.isLocal;
@@ -1003,5 +1012,9 @@ export default class ProvCluster extends SteveModel {
 
   get description() {
     return super.description || this.mgmt?.description;
+  }
+
+  get disableResourceDetailDrawerConfigTab() {
+    return !!this.isHarvester;
   }
 }
