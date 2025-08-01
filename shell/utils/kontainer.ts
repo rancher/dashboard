@@ -17,11 +17,9 @@ export function syncUpstreamConfig(configPrefix: string, normanCluster: {[key: s
 
   if (!isEmpty(upstreamConfig)) {
     Object.keys(upstreamConfig).forEach((key) => {
-      if (typeof upstreamConfig[key] === 'object') {
-        if (isEmpty(rancherConfig[key]) && !isEmpty(upstreamConfig[key])) {
-          set(rancherConfig, key, upstreamConfig[key]);
-        }
-      } else if ((rancherConfig[key] === null || rancherConfig[key] === undefined) && upstreamConfig[key] !== null && upstreamConfig[key] !== undefined) {
+      const empty = typeof upstreamConfig[key] === 'object' && isEmpty(upstreamConfig[key]);
+
+      if ((rancherConfig[key] === null || rancherConfig[key] === undefined) && upstreamConfig[key] !== null && upstreamConfig[key] !== undefined && !empty) {
         set(rancherConfig, key, upstreamConfig[key]);
       }
     });
