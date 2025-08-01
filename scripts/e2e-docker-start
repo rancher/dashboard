@@ -8,8 +8,6 @@ EMBER_DIST=${DIR}/dist_ember
 
 # Image version
 RANCHER_IMG_VERSION=head
-# RANCHER_IMG_VERSION=v2.12-8bf56b046af7879386aa5928f50eee678f84b057-head - breaking commit
-# RANCHER_IMG_VERSION=v2.12-146a265b2d3e50d789ae55ad13daec8a1416c5fb-head - commit before - works
 
 # Docker volume args when mounting the locally-built UI into the container
 VOLUME_ARGS="-v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard -v ${EMBER_DIST}:/usr/share/rancher/ui"
