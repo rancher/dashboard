@@ -47,6 +47,7 @@ const {
   provideDropdownContext,
   registerDropdownCollection,
   handleKeydown,
+  setDropdownDimensions
 } = useDropdownContext(emit);
 
 provideDropdownContext();
@@ -57,6 +58,7 @@ const dropdownTarget = ref(null);
 useClickOutside(dropdownTarget, () => showMenu(false));
 
 const applyShow = () => {
+  setDropdownDimensions(dropdownTarget.value);
   registerDropdownCollection(dropdownTarget.value);
   setFocus('down');
 };
