@@ -163,7 +163,8 @@ export default {
           params = { newVersion: `v${ this.harvesterUpdateVersion }` };
           break;
         case 'harvesterManager.extension.update.warning': {
-          const currentVersion = this?.harvester?.extension?.version ? `v${ this.harvester.extension.version }` : 'unknown';
+          const version = this?.harvester?.extension?.version;
+          const currentVersion = version ? `v${ version }` : 'unknown';
 
           params = { currentVersion };
           break;
