@@ -23,10 +23,7 @@ export default {
     }
   },
   data() {
-    return { ingressClassName: undefined };
-  },
-  created() {
-    this.ingressClassName = get(this.value, 'spec.ingressClassName');
+    return { ingressClassName: get(this.value, 'spec.ingressClassName') };
   },
   computed: {
     ingressClassOptions() {
