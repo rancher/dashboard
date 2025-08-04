@@ -1,0 +1,6 @@
+name: Codezero
+author: Codezero
+authorUrl: https://codezero.io
+description: Codezero One-Click Installation for Rancher Clusters
+url: https://github.com/c6o/codezero-rancher-extension
+icon: https://raw.githubusercontent.com/c6o/codezero-rancher-extension/refs/heads/main/pkg/codezero-rancher-extension/assets/logo.svg
