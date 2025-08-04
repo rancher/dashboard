@@ -325,7 +325,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * @param hash current registration hash
    */
   const findRegistration = async(hash: string | null): Promise<PartialRegistration | undefined> => {
-    const registrations: PartialRegistration[] = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME, opt: { namespaced: REGISTRATION_NAMESPACE } }) || [];
+    const registrations: PartialRegistration[] = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME }).catch(() => []) || [];
     const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === hash &&
       !isRegistrationOfflineProgress(registration) &&
       isRegistrationCompleted(registration)
@@ -339,7 +339,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * @param hash current registration hash
    */
   const findOfflineRequest = async(hash: string | null): Promise<PartialSecret | null> => {
-    const secrets: PartialSecret[] = await store.dispatch('management/findAll', { type: SECRET, opt: { namespaced: REGISTRATION_NAMESPACE } }) || [];
+    const secrets: PartialSecret[] = await store.dispatch('management/findAll', { type: SECRET, opt: { namespaced: REGISTRATION_NAMESPACE } }).catch(() => []) || [];
     const request = secrets.find((secret) => secret.metadata?.namespace === REGISTRATION_NAMESPACE &&
       secret.metadata?.name.startsWith(REGISTRATION_REQUEST_PREFIX)) ?? null;
 
@@ -402,7 +402,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * Get unique secret code with hardcoded namespace and name
    */
   const getSecret = async(): Promise<PartialSecret | null> => {
-    const secrets: PartialSecret[] = await store.dispatch('management/findAll', { type: SECRET, opt: { namespaced: REGISTRATION_NAMESPACE } }) || [];
+    const secrets: PartialSecret[] = await store.dispatch('management/findAll', { type: SECRET, opt: { namespaced: REGISTRATION_NAMESPACE } }).catch(() => []) || [];
 
     return secrets.find((secret) => secret.metadata?.namespace === REGISTRATION_NAMESPACE &&
       secret.metadata?.name === REGISTRATION_SECRET) ?? null;
