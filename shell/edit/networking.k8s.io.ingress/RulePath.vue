@@ -34,13 +34,17 @@ export default {
       type: Object,
     }
   },
+  setup() {
+    const pathTypes = [
+      'Prefix',
+      'Exact',
+      'ImplementationSpecific'
+    ];
+
+    return { pathTypes };
+  },
   data() {
     return {
-      pathTypes: [
-        'Prefix',
-        'Exact',
-        'ImplementationSpecific'
-      ],
       serviceName: undefined,
       servicePort: undefined,
       pathType:    this.value.pathType,
