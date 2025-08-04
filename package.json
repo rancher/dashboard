@@ -180,7 +180,7 @@
     "csv-loader": "3.0.3",
     "cy2": "4.0.9",
     "cypress": "11.1.0",
-    "cypress-axe": "1.5.0",
+    "cypress-axe": "1.6.0",
     "cypress-delete-downloads-folder": "0.0.4",
     "cypress-mochawesome-reporter": "3.8.2",
     "cypress-real-events": "1.14.0",
