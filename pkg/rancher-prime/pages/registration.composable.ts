@@ -1,4 +1,3 @@
-import { get } from '@shell/utils/object';
 import { computed, ref, Ref } from 'vue';
 import { type Store, useStore } from 'vuex';
 
