@@ -632,7 +632,7 @@ export default class Workload extends WorkloadService {
       return undefined;
     }
 
-    return this.metadata.relationships?.filter((relationship) => relationship.toType === WORKLOAD_TYPES.JOB) || [];
+    return this.metadata?.relationships?.filter((relationship) => relationship.toType === WORKLOAD_TYPES.JOB) || [];
   }
 
   /**
