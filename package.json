@@ -78,7 +78,7 @@
     "color": "4.2.3",
     "cookie": "0.7.0",
     "cookie-universal": "2.2.2",
-    "cron-validator": "1.2.0",
+    "cron-validator": "1.4.0",
     "cronstrue": "2.53.0",
     "cross-env": "7.0.3",
     "custom-event-polyfill": "1.0.7",
