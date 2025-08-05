@@ -444,7 +444,7 @@ export default {
         justify-content: center;
         border: 1px solid transparent;
         color: var(--darker);
-        background-color: var(--overlay-bg);
+        background-color: var(--subtle-overlay-bg);
         font-size: 12px;
 
         .close-indicator {

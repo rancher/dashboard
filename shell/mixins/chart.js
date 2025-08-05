@@ -63,7 +63,6 @@ export default {
           label:           version.version,
           version:         version.version,
           originalVersion: version.version,
-          shortLabel:      version.version.length > 16 ? `${ version.version.slice(0, 15) }...` : version.version,
           id:              version.version,
           created:         version.created,
           disabled:        false,
@@ -93,7 +92,6 @@ export default {
         out.unshift({
           label:           selectedVersion,
           originalVersion: selectedVersion,
-          shortLabel:      selectedVersion.length > 16 ? `${ selectedVersion.slice(0, 15) }...` : selectedVersion,
           id:              selectedVersion,
           created:         null,
           disabled:        false,

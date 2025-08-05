@@ -146,9 +146,9 @@ export const useSecretCluster = (resource: any): ComputedRef<Row> | undefined =>
 };
 
 export const useResourceDetails = (resource: any): undefined | ComputedRef<Row[]> => {
-  const details = resource.details;
+  const details = computed(() => resource.details);
 
-  if (!details) {
+  if (!details.value) {
     return;
   }
 
@@ -167,8 +167,8 @@ export const useResourceDetails = (resource: any): undefined | ComputedRef<Row[]
   };
 
   return computed(() => {
-    return details
-      .filter((detail: any) => !detail.separator)
+    return details.value
+      .filter((detail: any) => !detail.separator && detail.content !== undefined && detail.content !== null)
       .map((detail: any) => {
         return {
           label:         detail.label,

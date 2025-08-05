@@ -89,47 +89,10 @@ export default {
   },
 
   data() {
-    const parseDuration = (duration) => {
-      // The back end stores the timeout in Duration format, for example, "42d31h10m30s".
-      // Here we convert that string to an integer and return the duration as seconds.
-      const splitStr = duration.split(/([a-z])/);
-
-      const durationsAsSeconds = splitStr.reduce((old, neu, idx) => {
-        const parsed = parseInt(neu);
-
-        if ( isNaN(parsed) ) {
-          return old;
-        }
-
-        const interval = splitStr[(idx + 1)];
-
-        switch (interval) {
-        case 'd':
-          old.push(parsed * 24 * 60 * 60);
-          break;
-        case 'h':
-          old.push(parsed * 60 * 60);
-          break;
-        case 'm':
-          old.push(parsed * 60);
-          break;
-        case 's':
-          old.push(parsed);
-          break;
-        default:
-          break;
-        }
-
-        return old;
-      }, []);
-
-      return durationsAsSeconds.reduce((old, neu) => old + neu);
-    };
-
     return {
       uuid: randomStr(),
 
-      unhealthyNodeTimeoutInteger: this.value.pool.unhealthyNodeTimeout ? parseDuration(this.value.pool.unhealthyNodeTimeout) : 0,
+      unhealthyNodeTimeoutInteger: 0,
 
       validationErrors: [],
 
@@ -183,6 +146,8 @@ export default {
    * On creation, ensure that the pool is marked valid - custom machine pools can emit further validation events
    */
   created() {
+    this.unhealthyNodeTimeoutInteger = this.value.pool.unhealthyNodeTimeout ? this.parseDuration(this.value.pool.unhealthyNodeTimeout) : 0;
+
     this.$emit('validationChanged', true);
   },
 
@@ -192,6 +157,42 @@ export default {
   },
 
   methods: {
+    parseDuration(duration) {
+      // The back end stores the timeout in Duration format, for example, "42d31h10m30s".
+      // Here we convert that string to an integer and return the duration as seconds.
+      const splitStr = duration.split(/([a-z])/);
+
+      const durationsAsSeconds = splitStr.reduce((old, neu, idx) => {
+        const parsed = parseInt(neu);
+
+        if ( isNaN(parsed) ) {
+          return old;
+        }
+
+        const interval = splitStr[(idx + 1)];
+
+        switch (interval) {
+        case 'd':
+          old.push(parsed * 24 * 60 * 60);
+          break;
+        case 'h':
+          old.push(parsed * 60 * 60);
+          break;
+        case 'm':
+          old.push(parsed * 60);
+          break;
+        case 's':
+          old.push(parsed);
+          break;
+        default:
+          break;
+        }
+
+        return old;
+      }, []);
+
+      return durationsAsSeconds.reduce((old, neu) => old + neu);
+    },
     emitError(e) {
       this.$emit('error', e);
     },

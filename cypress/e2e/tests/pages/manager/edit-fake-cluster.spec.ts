@@ -67,7 +67,7 @@ describe('Cluster Edit', { tags: ['@manager', '@adminUser'] }, () => {
         })
         .click();
 
-      cy.url().should('include', `https://ranchermanager.docs.rancher.com/v${ CURRENT_RANCHER_VERSION }/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences#cluster-api`);
+      cy.url().should('include', `https://ranchermanager.docs.rancher.com/v${ CURRENT_RANCHER_VERSION }/how-to-guides/new-user-guides/launch-kubernetes-with-rancher#launching-kubernetes-on-new-nodes-in-an-infrastructure-provider`);
     });
   });
 });

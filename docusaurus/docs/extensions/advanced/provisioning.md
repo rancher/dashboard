@@ -8,7 +8,7 @@ The UI provides a number of ways to customise the processes that creates RKE2/Cu
 - Overrides that replace the process to persist cluster resources
 
 ## Custom Components
-Existing components that manage cloud credentials and machine configuration can be replaced as per [Custom Node Driver UI](../api/components/node-drivers.md). 
+Existing components that manage cloud credentials and machine configuration can be replaced as per [Custom Node Driver UI](../api/components/node-driver/overview.md). 
 
 ## Custom Cluster Provisioner
 New cluster provisioners can be added that can tailor the create/edit experience for their own needs.
@@ -73,21 +73,7 @@ These can be provided as per the `Custom Components` section.
 
 ### Custom tabs in the Cluster's Cluster Configuration 
 
-When creating or editing the cluster the user can see a set of `Cluster Configuration` tabs that contain configuration applicable to the entire cluster.
-
-Extensions can add additional tabs here.
-
-```
-  plugin.addTab(TabLocation.CLUSTER_CREATE_RKE2, {
-    resource:     ['provisioning.cattle.io.cluster'],
-    queryParam:    { type: ExampleProvisioner.ID }
-  }, {
-    name:      'custom-cluster-config',
-    labelKey:     'exampleClusterConfigTab.tabLabel',
-    component: () => import('./src/example-cluster-config-tab.vue')
-  });
-```
-> Note we use the new `queryParam` property to allow us to target the tab only when the cluster is of our provider type.
+Check the documentation about adding a tab to the Cluster Configuration area in the interface for cluster creation **[here](../api/tabs.md#tablocationcluster_create_rke2-options)**.
 
 ### Custom tabs in the Cluster's detail page
 
@@ -105,6 +91,34 @@ When clicking on a created cluster in the UI the user is shown details for the c
 ```
 
 Note we use the new `context` property to allow us to target the tab only when the cluster is of our provider type.
+
+
+### Hiding custom Provisioner card on driver deactivation
+
+On `Cluster Management`, `Drivers`, `Cluster Drivers` an administrator/user (depending on permissions) can deactivate your custom cluster driver. 
+
+![Cluster Drivers list](../screenshots/cluster-driver-list.png)
+
+If that happens, then by default your custom Provisioner card will still appear on the Rancher UI
+
+![Cluster Create cards](../screenshots/create-c.png)
+
+In order to hide it when the custom Provisioner is deactivated, you will need to add the following property to the [Provisioner Class](#provisioner-class) created before:
+
+```
+import { MANAGEMENT } from '@shell/config/types';
+
+.....
+export class ExampleProvisioner implements IClusterProvisioner {
+  ....
+
+  get hidden(): boolean {
+    const kontainerDriver = this.context.getters['management/byId'](MANAGEMENT.KONTAINER_DRIVER, 'my-provisioner');
+
+    return !kontainerDriver?.spec?.active;
+  }
+}
+```
 
 ### Localisation
 

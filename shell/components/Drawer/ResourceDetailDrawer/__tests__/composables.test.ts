@@ -1,7 +1,6 @@
-import { useDefaultConfigTabProps, useDefaultYamlTabProps, useResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
+import { useDefaultConfigTabProps, useDefaultYamlTabProps } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
 import * as helpers from '@shell/components/Drawer/ResourceDetailDrawer/helpers';
 import * as vuex from 'vuex';
-import * as drawer from '@shell/composables/drawer';
 
 jest.mock('@shell/components/Drawer/ResourceDetailDrawer/helpers');
 jest.mock('vuex');
@@ -77,30 +76,6 @@ describe('composables: ResourceDetailDrawer', () => {
       expect(importEditSpy).toHaveBeenCalledWith(resource.type);
       expect(props?.component).toStrictEqual(editComponent);
       expect(props?.resource).toStrictEqual(resource);
-    });
-  });
-
-  describe('useResourceDetailDrawer', () => {
-    it('should create a wrapper that passes that appropriate properties to the drawer methods', () => {
-      const openSpy = jest.fn();
-      const closeSpy = jest.fn();
-      const selector = '.selector';
-      const useDrawerSpy = jest.spyOn(drawer, 'useDrawer').mockImplementation(() => ({ open: openSpy, close: closeSpy }));
-      const resourceDetailDrawer = useResourceDetailDrawer();
-
-      resourceDetailDrawer.openResourceDetailDrawer(resource, selector);
-
-      expect(useDrawerSpy).toHaveBeenCalledTimes(1);
-      expect(openSpy).toHaveBeenCalledWith({ name: 'ResourceDetailDrawer' }, selector, {
-        resource,
-        onClose:            closeSpy,
-        width:              '73%',
-        // We want this to be full viewport height top to bottom
-        height:             '100vh',
-        top:                '0',
-        'z-index':          101, // We want this to be above the main side menu
-        closeOnRouteChange: ['name', 'params', 'query']
-      });
     });
   });
 });
