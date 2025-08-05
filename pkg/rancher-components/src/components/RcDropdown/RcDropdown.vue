@@ -131,6 +131,9 @@ const applyShow = () => {
   }
 
   .dropdownTarget {
+    overflow: auto;
+    padding: 3px 0; // Need padding at top and bottom in order to show the focus border for the notification
+
     &:focus-visible, &:focus {
       outline: none;
     }
