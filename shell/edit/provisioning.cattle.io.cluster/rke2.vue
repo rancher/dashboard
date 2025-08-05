@@ -171,7 +171,7 @@ export default {
     this.setAgentConfiguration();
   },
 
-  data() {
+  beforeCreate() {
     if (!this.value.spec.rkeConfig) {
       this.value.spec.rkeConfig = {};
     }
@@ -218,9 +218,9 @@ export default {
     if (!this.value.spec.rkeConfig.machineSelectorConfig?.length) {
       this.value.spec.rkeConfig.machineSelectorConfig = [{ config: {} }];
     }
+  },
 
-    const truncateLimit = this.value.defaultHostnameLengthLimit || 0;
-
+  data() {
     return {
       loadedOnce:                      false,
       lastIdx:                         0,
@@ -257,7 +257,7 @@ export default {
       }],
       harvesterVersionRange:                    {},
       complianceOverride:                       false,
-      truncateLimit,
+      truncateLimit:                            this.value.defaultHostnameLengthLimit || 0,
       busy:                                     false,
       machinePoolValidation:                    {}, // map of validation states for each machine pool
       machinePoolErrors:                        {},
@@ -273,8 +273,7 @@ export default {
       isAuthenticated:                          this.provider !== GOOGLE || this.mode === _EDIT,
       projectId:                                null,
       REGISTRIES_TAB_NAME,
-      labelForAddon
-
+      labelForAddon,
     };
   },
 
@@ -1850,12 +1849,12 @@ export default {
 
       const hasMirrorsOrAuthConfig = Object.keys(regs.configs).length > 0 || Object.keys(regs.mirrors).length > 0;
 
-      if (this.registryHost || registrySecret || hasMirrorsOrAuthConfig) {
+      if (this.registryHost || registrySecret) {
         this.showCustomRegistryInput = true;
+      }
 
-        if (hasMirrorsOrAuthConfig) {
-          this.showCustomRegistryAdvancedInput = true;
-        }
+      if (hasMirrorsOrAuthConfig) {
+        this.showCustomRegistryAdvancedInput = true;
       }
     },
 

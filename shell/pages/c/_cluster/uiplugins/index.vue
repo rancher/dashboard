@@ -32,6 +32,7 @@ import {
 } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
 import versions from '@shell/utils/versions';
+import { getPluginChartVersionLabel } from '@shell/utils/uiplugins';
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
@@ -272,12 +273,14 @@ export default {
           item.certified = latestCompatible?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER;
 
           item.displayVersion = latestCompatible.version;
+          item.displayVersionLabel = getPluginChartVersionLabel(latestCompatible);
           item.icon = latestCompatible.icon;
         } else {
           item.experimental = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true');
           item.certified = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER);
 
           item.displayVersion = item.versions?.[0]?.version;
+          item.displayVersionLabel = getPluginChartVersionLabel(item.versions?.[0]);
           item.icon = chart.icon || latestCompatible?.annotations?.['catalog.cattle.io/ui-icon'];
         }
 
@@ -318,17 +321,18 @@ export default {
 
           const label = rancher.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || p.name;
           const item = {
-            name:           p.name,
+            name:                p.name,
             label,
-            description:    p.metadata?.description,
-            icon:           p.metadata?.icon,
-            id:             p.id,
-            versions:       [],
-            displayVersion: p.metadata?.version || '-',
-            installed:      true,
-            builtin:        !!p.builtin,
-            experimental:   rancher?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
-            certified:      rancher?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER
+            description:         p.metadata?.description,
+            icon:                p.metadata?.icon,
+            id:                  p.id,
+            versions:            [],
+            displayVersion:      p.metadata?.version,
+            displayVersionLabel: p.metadata?.version || '-',
+            installed:           true,
+            builtin:             !!p.builtin,
+            experimental:        rancher?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
+            certified:           rancher?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER
           };
 
           // Built-in plugins can chose to be hidden - used where we implement as extensions
@@ -347,35 +351,42 @@ export default {
           chart.installed = true;
           chart.uiplugin = p;
           chart.displayVersion = p.version;
+          let displayVersionLabel = p.version;
 
           // Can't do this here
           chart.installing = this.installing[chart.name];
 
           // Check for upgrade
-          // Use the currently installed version's metadata to show/hide the experimental and certified labels
-          if (chart.installableVersions?.length && p.version !== chart.installableVersions?.[0]?.version) {
-            const installedVersion = (chart.installableVersions || []).find((v) => v?.version === p.version);
+          const latestInstallableVersion = chart.installableVersions?.[0];
+
+          if (latestInstallableVersion && p.version !== (latestInstallableVersion.appVersion ?? latestInstallableVersion.version)) {
+            // Use the currently installed version's metadata to show/hide the experimental and certified labels
+            const installedVersion = (chart.installableVersions || []).find((v) => (v.appVersion ?? v.version) === p.version);
 
             if (installedVersion) {
               chart.experimental = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true';
               chart.certified = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER;
+              displayVersionLabel = getPluginChartVersionLabel(installedVersion);
             }
 
-            chart.upgrade = chart.installableVersions[0].version;
+            chart.upgrade = getPluginChartVersionLabel(latestInstallableVersion);
           }
+
+          chart.displayVersionLabel = displayVersionLabel;
         } else {
           // No chart, so add a card for the plugin based on its Custom resource being present
           const item = {
-            name:           p.name,
-            label:          p.name,
-            description:    p.description || '-',
-            id:             `${ p.name }-${ p.version }`,
-            versions:       [],
-            displayVersion: p.version || '-',
-            installed:      true,
-            installing:     false,
-            builtin:        false,
-            uiplugin:       p,
+            name:                p.name,
+            label:               p.name,
+            description:         p.description || '-',
+            id:                  `${ p.name }-${ p.version }`,
+            versions:            [],
+            displayVersion:      p.version,
+            displayVersionLabel: p.version || '-',
+            installed:           true,
+            installing:          false,
+            builtin:             false,
+            uiplugin:            p,
           };
 
           all.push(item);
@@ -937,7 +948,7 @@ export default {
                     -
                   </span>
                   <span v-else>
-                    <span>{{ plugin.displayVersion }}</span>
+                    <span>{{ plugin.displayVersionLabel }}</span>
                     <span
                       v-if="plugin.upgrade"
                       v-clean-tooltip="t('plugins.upgradeAvailable')"

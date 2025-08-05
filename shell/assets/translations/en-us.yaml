@@ -158,6 +158,7 @@ generic:
   showLess: Show less
   showMore: Show more
   opensInNewTab: Opens in a new tab
+  missingInfoMessage: The info is missing
   
 tabs:
   addItem: Add a new tab item
@@ -1049,11 +1050,13 @@ catalog:
         label: Chart Versions
         showMore: Show More
         showLess: Show Less
-      home: Home
+      home: Homepage
+      repository: Repository Page
       maintainers: Maintainers
       related: Related
       chartUrls: Chart
       keywords: Keywords
+      keywordsTooltip: Find similar charts based on this keyword
     errors:
       clusterToolExists: This chart has a fixed namespace and name. A matching <a href="{url}">application</a> has been found and any changes will be made to it.
     global: Global
@@ -1122,6 +1125,38 @@ catalog:
       goToUpgrade: Edit/Upgrade
     appReadmeMissing: This chart doesn't have any additional chart information.
     appReadmeTitle: Chart Information (Helm README)
+    button:
+      alreadyInstalled: '{chart} version {version} is already installed.'
+      viewDetails: View chart details
+      customizeInstall: Customize Install Options
+      viewLogs: View Installation Logs
+      waitForLogs: Installation initialized; waiting for logs...
+      canNotCreateRepos: It looks like you don't have permission to add repositories and install helm charts. 
+      canNotInstallApps: The {repo} repository has been added, but you don't have permission to install charts from it.
+      stages:
+        addRepo:
+          action: Add the {repo} repository
+          waiting: Adding {repo} repository...
+          success: Repository added
+          error: Error adding {repo} repository
+        loadCharts:
+          action:  Fetch {repo} repository chart(s)
+          waiting: Fetching {repo} repository chart(s)...
+          success: '{chart} found'
+          error: '{chart} chart not found - Try again?'
+        installChart:
+          action: Install {chart}
+          waiting: Installing {chart}...
+          success: '{chart} installation started'
+          error: Error installing {chart}
+        waitForLogs:
+          action: View installation logs
+          waiting: Waiting for installation logs...
+          error: Unable to load installation logs
+      errors:
+        fetchChart: Error retrieving chart from repository
+        alreadyInstalled: Chart already installed
+        timeoutWaiting: Timed out waiting for logs
     chart: Chart
     warning:
       managed:
@@ -1999,6 +2034,9 @@ cluster:
       location:
         zone:
           label: Zone
+      preemptible:
+        label: Make VM instance preemptible
+        tooltip: Preemptible machines offer significant cost savings, but may be abruptly stopped when Google Compute Engine needs to reclaim the compute resources for higher-priority VMs.
       scopes:
         add: Add scope
         label: Scopes
@@ -2087,7 +2125,7 @@ cluster:
   banner:
     warning: 'This cluster contains a machineSelectorConfig, which this form does not fully support; use the YAML editor to manage the full configuration.'
     os: 'You are attempting to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
-    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a href="{docsBase}/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences#cluster-api" target="_blank" rel="noopener nofollow">documentation</a>.'
+    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a href="{docsBase}/how-to-guides/new-user-guides/launch-kubernetes-with-rancher#launching-kubernetes-on-new-nodes-in-an-infrastructure-provider" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available on this screen will be limited; you may want to use the YAML editor.
     cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the <b>Amazon</b> Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
@@ -2100,13 +2138,6 @@ cluster:
       }
     rke1DeprecationMessage: 'Rancher Kubernetes Engine (RKE / RKE1) has reached end of life and these clusters are no longer supported. We recommend replatforming RKE1 clusters to RKE2 to ensure continued support and security updates. Learn more about the transition <a href="https://www.suse.com/support/kb/doc/?id=000021518" target="_blank" rel="noopener noreferrer nofollow">here</a>.'
   rke1Unsupported: RKE1 Clusters are no longer supported
-  cloudCredentials:
-    renew: Renew Cloud Credentials
-    expired: Cloud Credential expired, please Renew Cloud Credentials
-    expiring: Cloud Credential will expire on { expires }, please Renew Cloud Credentials
-    banners:
-      expiring: "{count} {count, plural, =1 { Cluster has a Cloud Credential that expires soon} other { Clusters have Cloud Credentials that expire soon}}, please Renew Cloud {count, plural, =1 { Credential} other { Credentials}}"
-      expired: "{count} {count, plural, =1 { Cluster has a Cloud Credential that has expired} other { Clusters have Cloud Credentials that have expired}}, please Renew Cloud {count, plural, =1 { Credential} other { Credentials}}"
 
   architecture:
     label:
@@ -2630,8 +2661,8 @@ etcdInfoBanner:
 
 fleet:
   settings:
-    label: Fleet
-    title: Fleet Settings
+    label: Continuous Delivery
+    title: Continuous Delivery Settings
     info: Rancher will reboot Fleet agent and controller on settings change.
     apply: Apply changes
     noPermissions: You have no permissions to modify Fleet Settings
@@ -2750,6 +2781,7 @@ fleet:
       filters:
         gitRepos: Show Git Repos
         helmOps: Show Helm Ops
+      search: Filter
       resourceSummary:
         part1: in
         part2: |-
@@ -2909,7 +2941,7 @@ fleet:
         label: Polling Interval
         tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
         webhookWarning: A webhook is configured in Rancher to reconcile Git updates and GitRepo resources. The Polling Interval will automatically be adjusted to 1 hour.
-        minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
+        minimumValueWarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
     ociStorageSecret:
       title: OCI Registry
       label: OCI Storage Secret
@@ -3038,18 +3070,18 @@ fleet:
         oci: OCI Registry
       tarball:
         label: Absolute URL
-        placeholder: e.g. https://github.com/rancher/fleet/helm-chart/helm-chart-0.0.1.tgz
+        placeholder: e.g. https://example.com/charts/my-chart-1.2.3.tgz
       repo:
         repo:
-          label: URL
-          placeholder: e.g. https://github.com/rancher/fleet/helm-chart
+          label: Repository URL
+          placeholder: e.g. https://foo.bar/baz
         chart:
           label: Chart
           placeholder: The path to the chart name in the repository
       oci:
         chart:
           label: OCI Registry URL
-          placeholder: e.g. oci://ghcr.io/rancher/fleet/helm-chart or oci://ghcr.io/rancher/fleet/helm-chart:0.0.1
+          placeholder: e.g. oci://foo.bar/baz
       version:
         label: Version
         placeholder: The Chart version
@@ -3116,7 +3148,8 @@ fleet:
       pollingInterval:
         label: Polling Interval
         tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
-        minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with HelmOps that contain a large amount of resources please consider increasing this value.
+        minimumValueWarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with HelmOps that contain a large amount of resources please consider increasing this value.
+        versionTooltip: Polling can be enabled only if version is a valid semantic versioning constraint (e.g. 2.x.x, < 1.0).
     tls:
       insecure: Accept any certificate (insecure)
     auth:
@@ -6766,10 +6799,10 @@ validation:
   flowOutput:
     both: Requires "Output" or "Cluster Output" to be selected.
     global: Requires "Cluster Output" to be selected.
-  git:
-    url: URL must be a HTTP(s) or SSH url with no trailing spaces
+  repository:
+    url: It must be a valid HTTP(s) or SSH URL with no trailing spaces
   oci:
-    url: URL must be an OCI url with no trailing spaces
+    url: It must be a valid OCI URL with no trailing spaces
   output:
     logdna:
       apiKey: Required an "Api Key" to be set.
@@ -6836,6 +6869,7 @@ validation:
       missingApiGroup: You must specify an API Group for each resource grant
       missingOneResource: You must specify at least one Resource, Non-Resource URL or API Group for each resource grant
       noResourceAndNonResource: Each rule may contain Resources or Non-Resource URLs but not both
+  semanticVersion: Version must be a valid version number or a semantic versioning constraint (e.g. 2.x.x, < 1.0)
   service:
     externalName:
       none: External Name is required on an ExternalName Service.
@@ -6873,6 +6907,7 @@ validation:
       match: At least one Match or Match Regex must be selected
       interval: '"{key}" must be of a format with digits followed by a unit i.e. 1h, 2m, 30s'
   tab: "One or more fields in this tab contain a form validation error"
+  version: Invalid Version number
 
 carousel:
   previous: Previous
@@ -8220,6 +8255,7 @@ action:
   runNow: Run Now
   suspend: Suspend
   resume: Resume
+  showConfiguration: Show Configuration
 
 unit:
   sec: secs
@@ -8660,11 +8696,6 @@ volumeClaimTemplate:
 manager:
   cloudCredentials:
     label: Cloud Credentials
-    renew: Renew
-    expired: Expired
-    banners:
-      expiring: "{count} Cloud {count, plural, =1 { Credential expires soon} other { Credentials expire soon}}, please Renew"
-      expired: "{count} Cloud {count, plural, =1 { Credential has expired} other { Credentials have expired}}, please Renew"
   drivers:
     label: Drivers
   rkeTemplates:

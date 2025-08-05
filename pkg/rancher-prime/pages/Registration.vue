@@ -180,7 +180,7 @@ onMounted(async() => {
             class="role-primary mt-20"
             :label="t('registration.offline.button.register.label')"
             :disabled="isRegistered || isRegistering"
-            accept="image/*,.cert"
+            accept=".cert"
             data-testid="registration-offline-cta"
             @selected="registerOffline"
           />

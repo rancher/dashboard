@@ -194,8 +194,6 @@ export const SYSTEM_LABELS = [
   'egress.rke2.io'
 ];
 
-export const CLOUD_CREDENTIALS = { EXPIRATION: 'rancher.io/expiration-timestamp' };
-
 export const OIDC_CLIENT_SECRET_ANNOTATIONS = {
   CREATE: 'cattle.io/oidc-client-secret-create',
   REGEN:  'cattle.io/oidc-client-secret-regenerate',

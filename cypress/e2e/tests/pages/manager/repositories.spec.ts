@@ -283,6 +283,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   });
 
   it('can disable/enable a repository', function() {
+    // The context menu can slightly clip at the top of the screen. This ensures it's visible.
+    cy.viewport(1280, 720);
+
     // create repo
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
