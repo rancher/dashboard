@@ -781,58 +781,59 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       });
     });
   });
-  describe('Cluster Manager as standard user', { testIsolation: 'off', tags: ['@manager', '@standardUser'] }, () => {
-    before(() => {
-      cy.login();
-    });
-    it('can navigate to Cluster Management Page', () => {
-      HomePagePo.goTo();
-      const burgerMenu = new BurgerMenuPo();
-
-      BurgerMenuPo.toggle();
-      const clusterManagementNavItem = burgerMenu.links().contains(`Cluster Management`);
-
-      clusterManagementNavItem.should('exist');
-      clusterManagementNavItem.click();
-      const clusterList = new ClusterManagerListPagePo('_');
-
-      clusterList.waitForPage();
-    });
-
-    describe('Cluster Detail Page', () => {
-      const clusterDetail = new ClusterManagerDetailImportedGenericPagePo(undefined, 'local');
-
-      beforeEach( () => {
-        ClusterManagerListPagePo.navTo();
-        const clusterList = new ClusterManagerListPagePo('_');
-
-        clusterList.waitForPage();
-        clusterList.clickOnClusterName('local');
-      });
-
-      it(`Show Configuration allows to view but not edit config and yaml for local cluster`, () => {
-        clusterDetail.waitForPage();
-        clusterDetail.openShowConfiguration();
-        const drawer = clusterDetail.detailDrawer();
-
-        drawer.checkExists();
-        drawer.checkVisible();
-        drawer.saveButton().should('not.exist');
-        const tabs = ['Config', 'YAML'];
-
-        drawer.tabs().tabNames().each((el, i) => {
-          expect(el).to.eq(tabs[i]);
-        });
-
-        drawer.tabs().clickTabWithName('yaml-tab');
-        drawer.saveButton().should('not.exist');
-      });
-    });
-  });
 
   after(() => {
     if (reenableAKS) {
       cy.createRancherResource('v3', 'kontainerDrivers/azurekubernetesservice?action=activate', {});
     }
+  });
+});
+
+describe('Cluster Manager as standard user', { testIsolation: 'off', tags: ['@manager', '@standardUser'] }, () => {
+  before(() => {
+    cy.login();
+  });
+  it('can navigate to Cluster Management Page', () => {
+    HomePagePo.goTo();
+    const burgerMenu = new BurgerMenuPo();
+
+    BurgerMenuPo.toggle();
+    const clusterManagementNavItem = burgerMenu.links().contains(`Cluster Management`);
+
+    clusterManagementNavItem.should('exist');
+    clusterManagementNavItem.click();
+    const clusterList = new ClusterManagerListPagePo('_');
+
+    clusterList.waitForPage();
+  });
+
+  describe('Cluster Detail Page', () => {
+    const clusterDetail = new ClusterManagerDetailImportedGenericPagePo(undefined, 'local');
+
+    beforeEach( () => {
+      ClusterManagerListPagePo.navTo();
+      const clusterList = new ClusterManagerListPagePo('_');
+
+      clusterList.waitForPage();
+      clusterList.clickOnClusterName('local');
+    });
+
+    it(`Show Configuration allows to view but not edit config and yaml for local cluster`, () => {
+      clusterDetail.waitForPage();
+      clusterDetail.openShowConfiguration();
+      const drawer = clusterDetail.detailDrawer();
+
+      drawer.checkExists();
+      drawer.checkVisible();
+      drawer.saveButton().should('not.exist');
+      const tabs = ['Config', 'YAML'];
+
+      drawer.tabs().tabNames().each((el, i) => {
+        expect(el).to.eq(tabs[i]);
+      });
+
+      drawer.tabs().clickTabWithName('yaml-tab');
+      drawer.saveButton().should('not.exist');
+    });
   });
 });
