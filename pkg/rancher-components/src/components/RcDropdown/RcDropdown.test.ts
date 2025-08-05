@@ -52,7 +52,7 @@ describe('component: RcDropdown.vue', () => {
     await wrapper.findComponent(vDropdownMock).vm.$emit('apply-show');
     await wrapper.vm.$nextTick();
 
-    expect(dropdownTarget.style.overflow).toBe('auto');
+    expect(dropdownTarget.classList.contains('dropdownTarget')).toBe(true);
     expect(dropdownTarget.style.height).toBe('268px');
   });
 
@@ -74,7 +74,7 @@ describe('component: RcDropdown.vue', () => {
     await wrapper.findComponent(vDropdownMock).vm.$emit('apply-show');
     await wrapper.vm.$nextTick();
 
-    expect(dropdownTarget.style.overflow).toBe('auto');
+    expect(dropdownTarget.classList.contains('dropdownTarget')).toBe(true);
     expect(dropdownTarget.style.height).toBe('693px');
   });
 
@@ -96,7 +96,7 @@ describe('component: RcDropdown.vue', () => {
     await wrapper.findComponent(vDropdownMock).vm.$emit('apply-show');
     await wrapper.vm.$nextTick();
 
-    expect(dropdownTarget.style.overflow).toBe('auto');
+    expect(dropdownTarget.classList.contains('dropdownTarget')).toBe(true);
     expect(dropdownTarget.style.height).toBe('368px');
   });
 });
