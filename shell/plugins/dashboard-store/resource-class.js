@@ -898,6 +898,10 @@ export default class Resource {
     return out;
   }
 
+  get canEdit() {
+    return this.canUpdate && this.canCustomEdit;
+  }
+
   // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
   get _availableActions() {
     // get menu actions available by plugins configuration

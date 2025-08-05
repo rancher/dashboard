@@ -17,6 +17,8 @@ export interface Props {
 }
 </script>
 <script setup lang="ts">
+const editBttnDataTestId = 'save-configuration-bttn';
+const componentTestid = 'configuration-drawer-tabbed';
 const props = defineProps<Props>();
 const emit = defineEmits(['close']);
 const store = useStore();
@@ -38,6 +40,10 @@ const title = computed(() => {
 
 const activeTab = ref<string>(configTabProps ? 'config-tab' : 'yaml-tab');
 
+const isConfig = computed(() => {
+  return activeTab.value === 'config-tab';
+});
+
 const action = computed(() => {
   const isConfig = activeTab.value === 'config-tab';
   const ariaLabel = isConfig ? i18n.t('component.drawer.resourceDetailDrawer.ariaLabel.editConfig') : i18n.t('component.drawer.resourceDetailDrawer.ariaLabel.editYaml');
@@ -49,6 +55,9 @@ const action = computed(() => {
     label,
     action
   };
+});
+const canEdit = computed(() => {
+  return isConfig.value ? props.resource.canEdit : props.resource.canEditYaml;
 });
 </script>
 <template>
@@ -69,6 +78,7 @@ const action = computed(() => {
         class="tabbed"
         :useHash="false"
         :showExtensionTabs="false"
+        :componentTestid="componentTestid"
         @changed="({selectedName}) => {activeTab = selectedName;}"
       >
         <ConfigTab
@@ -83,8 +93,10 @@ const action = computed(() => {
     </template>
     <template #additional-actions>
       <RcButton
+        v-if="canEdit"
         :primary="true"
         :aria-label="action.ariaLabel"
+        :data-testid="editBttnDataTestId"
         @click="action.action"
       >
         {{ action.label }}
