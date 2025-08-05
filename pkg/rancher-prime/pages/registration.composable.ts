@@ -1,3 +1,4 @@
+import { get } from '@shell/utils/object';
 import { computed, ref, Ref } from 'vue';
 import { type Store, useStore } from 'vuex';
 
@@ -25,6 +26,16 @@ interface RegistrationDashboard {
 }
 
 /**
+ * Partial of the registration condition
+ */
+interface PartialCondition {
+  reason?: string;
+  message?: string;
+  type: string;
+  status: 'True' | 'False';
+}
+
+/**
  * Partial of the registration interface used for this page
  */
 interface PartialRegistration {
@@ -46,12 +57,7 @@ interface PartialRegistration {
       activated: boolean;
       systemUrl: string;
     };
-    conditions: Array<{
-      reason?: string;
-      message?: string;
-      type: string;
-      status: 'True' | 'False';
-    }>
+    conditions: PartialCondition[];
   };
 }
 
@@ -347,6 +353,27 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   };
 
   /**
+   * Return prioritized condition with reason and message
+   * @param conditions
+   * @returns
+   */
+  const getErrorMessages = (conditions: PartialCondition[]): PartialCondition | undefined => {
+    const errorConditions = conditions.filter((condition) => condition.reason && condition.message);
+
+    // Prioritize conditions that are not 'Failure' type
+    if (errorConditions.length > 1) {
+      return errorConditions.find((condition) => condition.type !== 'Failure') || errorConditions[0];
+    }
+
+    // Default return the condition containing the message
+    if (errorConditions.length === 1) {
+      return errorConditions[0];
+    }
+
+    return undefined;
+  };
+
+  /**
    * Get the registration request from the secret data
    * @param secret PartialSecret containing the request data
    */
@@ -382,9 +409,13 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
       } else {
         // Retrieve failure message from conditions
         const conditions = registration.status?.conditions || [];
-        const errorMessage = conditions.find((condition) => condition.reason && condition.message);
+        const errorMessage = getErrorMessages(conditions);
 
-        onError(errorMessage);
+        if (errorMessage) {
+          onError(errorMessage);
+        } else {
+          onError(new Error('Registration failed without a specific error message'));
+        }
 
         return {
           ...commonRegistration,
