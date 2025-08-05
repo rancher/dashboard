@@ -71,6 +71,32 @@ const handleActivate = (e: KeyboardEvent) => {
     e?.target?.click();
   }
 };
+
+/**
+ * Scroll the item into view smoothly
+ * @param event FocusIn Event
+ */
+const scrollIntoView = (event: Event) => {
+  const target = event.target;
+
+  if (target instanceof HTMLElement) {
+    const t = target as HTMLElement;
+
+    // If a button was clicked, then do not scroll into view, as this will scroll to make the button
+    // visible and the click will be ignored - so just return, so that the click works as expected
+    if (t.tagName === 'BUTTON') {
+      return;
+    }
+  }
+
+  if (target instanceof HTMLElement) {
+    target?.scrollIntoView({
+      behavior: 'smooth',
+      block:    'center',
+      inline:   'nearest',
+    });
+  }
+};
 </script>
 
 <template>
