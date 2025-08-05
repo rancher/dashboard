@@ -119,8 +119,8 @@ export default {
 
     harvester() {
       const extension = this.uiplugins?.find((c) => c.name === HARVESTER_CHART.name);
-
-      const missingRepository = !!extension && !this.harvesterRepository;
+      // if no harvester ui extension in uiplugins and no harvester repository, then we will show missing repository warning
+      const missingRepository = !!extension === false && !this.harvesterRepository;
 
       const action = async(btnCb) => {
         const action = `${ !extension ? 'install' : 'update' }HarvesterExtension`;
