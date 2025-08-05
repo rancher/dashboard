@@ -168,11 +168,11 @@ export default {
     },
 
     ingressHeaders() {
-      return this.$store.getters['type-map/headersFor'](this.ingressSchema);
+      return this.$store.getters['type-map/headersFor'](this.ingressSchema).filter((h) => !h.name || h.name !== NAMESPACE_COL.name);
     },
 
     serviceHeaders() {
-      return this.$store.getters['type-map/headersFor'](this.serviceSchema);
+      return this.$store.getters['type-map/headersFor'](this.serviceSchema).filter((h) => !h.name || h.name !== NAMESPACE_COL.name);
     },
 
     totalRuns() {
