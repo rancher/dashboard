@@ -110,6 +110,7 @@ const scrollIntoView = (event: Event) => {
     @click.stop="handleClick"
     @keydown.enter.space="handleActivate"
     @keydown.up.down.stop="handleKeydown"
+    @focusin="scrollIntoView"
   >
     <slot name="before">
       <!--Empty slot content-->
