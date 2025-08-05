@@ -100,7 +100,6 @@ export const useDropdownContext = (emit: typeof rcDropdownEmits) => {
       );
 
       target.style.height = `${ height - padding }px`;
-      target.style.overflow = 'auto';
     }
   };
 
