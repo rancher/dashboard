@@ -6,6 +6,7 @@ import LazyImage from '@shell/components/LazyImage';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
+import { getPluginChartVersionLabel, getPluginChartVersion } from '@shell/utils/uiplugins';
 
 export default {
   async fetch() {
@@ -79,9 +80,11 @@ export default {
     },
 
     async loadPluginVersionInfo(version) {
-      const versionName = version || this.info.displayVersion;
+      const pluginChartVersion = getPluginChartVersion(this.info);
 
-      const isVersionNotCompatible = this.info.versions?.find((v) => v.version === versionName && !v.isVersionCompatible);
+      const versionName = version || pluginChartVersion || this.info.versions?.[0]?.version;
+
+      const isVersionNotCompatible = this.info.versions?.find((v) => versionName === (v.appVersion ?? v.version) && !v.isVersionCompatible);
 
       if (!this.info.chart || isVersionNotCompatible) {
         return;
@@ -147,6 +150,10 @@ export default {
       if (event.key === 'Escape') {
         this.hide();
       }
+    },
+
+    getVersionLabel(version) {
+      return getPluginChartVersionLabel(version);
     }
   }
 };
@@ -167,7 +174,7 @@ export default {
       @after-enter="onEnter"
       @after-leave="onLeave"
     >
-      <div
+      <aside
         v-if="showSlideIn"
         id="slide-in-content-element"
         class="slideIn"
@@ -264,7 +271,7 @@ export default {
                 @click="loadPluginVersionInfo(v.version)"
                 @keyup.enter.space="loadPluginVersionInfo(v.version)"
               >
-                {{ v.version }}
+                {{ getVersionLabel(v) }}
               </a>
             </div>
           </div>
@@ -293,7 +300,7 @@ export default {
             </div>
           </div>
         </div>
-      </div>
+      </aside>
     </transition>
   </div>
 </template>

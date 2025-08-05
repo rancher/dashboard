@@ -34,23 +34,30 @@ export default {
   },
 
   data() {
-    const out = {};
-
-    for ( const k in DEFAULTS ) {
-      if ( typeof this.value[k] === 'undefined' ) {
-        out[k] = DEFAULTS[k];
-      } else {
-        out[k] = this.value[k];
-      }
-    }
-
-    out.customGracePeriod = out.gracePeriod >= 0;
-    out.customTimeout = out.timeout >= 0;
-
-    return out;
+    return {
+      deleteEmptyDirData:              DEFAULTS.deleteEmptyDirData,
+      disableEviction:                 DEFAULTS.disableEviction,
+      enabled:                         DEFAULTS.enabled,
+      force:                           DEFAULTS.force,
+      gracePeriod:                     DEFAULTS.gracePeriod,
+      ignoreDaemonSets:                DEFAULTS.ignoreDaemonSets,
+      skipWaitForDeleteTimeoutSeconds: DEFAULTS.skipWaitForDeleteTimeoutSeconds,
+      timeout:                         DEFAULTS.timeout,
+    };
   },
 
   created() {
+    for ( const k in DEFAULTS ) {
+      if ( typeof this.value[k] === 'undefined' ) {
+        this.$data[k] = DEFAULTS[k];
+      } else {
+        this.$data[k] = this.value[k];
+      }
+    }
+
+    this.customGracePeriod = this.gracePeriod >= 0;
+    this.customTimeout = this.timeout >= 0;
+
     this.update();
   },
 

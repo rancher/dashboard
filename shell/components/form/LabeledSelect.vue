@@ -9,6 +9,9 @@ import { generateRandomAlphaString } from '@shell/utils/string';
 import LabeledSelectPagination from '@shell/components/form/labeled-select-utils/labeled-select-pagination';
 import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
 import { mapGetters } from 'vuex';
+import { _VIEW } from '@shell/config/query-params';
+import { useClickOutside } from '@shell/composables/useClickOutside';
+import { ref } from 'vue';
 
 export default {
   name: 'LabeledSelect',
@@ -114,12 +117,22 @@ export default {
     }
   },
 
+  setup() {
+    const select = ref(null);
+    const isOpen = ref(false);
+
+    useClickOutside(select, () => {
+      isOpen.value = false;
+    });
+
+    return { isOpen, select };
+  },
+
   data() {
     return {
       selectedVisibility:   'visible',
       shouldOpen:           true,
       labeledSelectLabelId: `ls-label-id-${ generateRandomAlphaString(12) }`,
-      isOpen:               false,
       generatedUid:         `ls-uid-${ generateRandomAlphaString(12) }`
     };
   },
@@ -156,13 +169,24 @@ export default {
   },
 
   methods: {
+    // Ensure we only focus on open, otherwise we re-open on close
+    clickSelect() {
+      if (this.mode === _VIEW || this.loading === true || this.disabled === true) {
+        return;
+      }
+
+      this.isOpen = !this.isOpen;
+
+      if (this.isOpen) {
+        this.focusSearch();
+      }
+    },
+
     // resizeHandler = in mixin
     focusSearch() {
       if (this.isView || this.disabled || this.loading) {
         return;
       }
-
-      this.$refs['select-input'].open = true;
 
       this.$nextTick(() => {
         const el = this.$refs['select-input']?.searchEl;
@@ -171,6 +195,10 @@ export default {
           el.focus();
         }
       });
+    },
+
+    focusWrapper() {
+      this.$refs.select.focus();
     },
 
     onFocus() {
@@ -184,14 +212,27 @@ export default {
     },
 
     onOpen() {
-      this.isOpen = true;
+      this.focusSearch();
       this.$emit('on-open');
       this.resizeHandler();
     },
 
-    onClose() {
+    closeOnSelecting(e) {
+      if (e.value === this.value) {
+        this.close();
+      }
+
+      this.$emit('selecting', e);
+    },
+
+    close() {
       this.isOpen = false;
+      this.onClose();
+    },
+
+    onClose() {
       this.$emit('on-close');
+      this.focusWrapper();
     },
 
     getOptionLabel(option) {
@@ -226,6 +267,10 @@ export default {
     },
 
     dropdownShouldOpen(instance, forceOpen = false) {
+      if (!this.isOpen) {
+        return false;
+      }
+
       const { noDrop, mutableLoading } = instance;
       const { open } = instance;
       const shouldOpen = this.shouldOpen;
@@ -290,10 +335,10 @@ export default {
     :aria-expanded="isOpen"
     :aria-describedby="$attrs['aria-describedby'] || undefined"
     :aria-required="requiredField"
-    @click="focusSearch"
-    @keydown.enter="focusSearch"
-    @keydown.down.prevent="focusSearch"
-    @keydown.self.space.prevent="focusSearch"
+    @click="clickSelect"
+    @keydown.self.enter="clickSelect"
+    @keydown.self.down.prevent="clickSelect"
+    @keydown.self.space.prevent="clickSelect"
   >
     <div
       :class="{ 'labeled-container': true, raised, empty, [mode]: true }"
@@ -320,6 +365,7 @@ export default {
       ref="select-input"
       v-bind="filteredAttrs"
       class="inline"
+      :close-on-select="false"
       :append-to-body="appendToBody"
       :calculate-position="positionDropdown"
       :class="{ 'no-label': !(label || '').length}"
@@ -346,7 +392,8 @@ export default {
       @search="onSearch"
       @open="onOpen"
       @close="onClose"
-      @option:selecting="$emit('selecting', $event)"
+      @option:selecting="closeOnSelecting"
+      @option:selected="close"
       @option:deselecting="$emit('deselecting', $event)"
       @keydown.enter.stop
     >

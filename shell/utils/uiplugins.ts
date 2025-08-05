@@ -2,6 +2,7 @@ import { matchesSomeRegex } from '@shell/utils/string';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
 import { UI_PLUGIN_BASE_URL, isSupportedChartVersion } from '@shell/config/uiplugins';
+import { Plugin, Version } from '@shell/types/uiplugins';
 
 const MAX_RETRIES = 10;
 const RETRY_WAIT = 2500;
@@ -342,4 +343,23 @@ export async function onExtensionsReady(store: any) {
   }
 
   await store.dispatch('uiplugins/setReady', true);
+}
+
+/**
+ * Finds a Helm Chart version which matches plugin displayVersion. First it checks against Chart.appVersion and
+ * falls back to Chart.version if appVersion is not present.
+ *
+ * @param plugin A data object constructed from UIPlugin and Helm Chart versions
+ * @returns string Helm Chart version
+ */
+export function getPluginChartVersion(plugin?: Plugin) {
+  const pluginVersion = plugin?.displayVersion;
+
+  return plugin?.versions?.find((v) => pluginVersion === (v.appVersion ?? v.version))?.version ?? pluginVersion;
+}
+
+export function getPluginChartVersionLabel(version: Version) {
+  if (version.appVersion === version.version) return `${ version.version }`;
+
+  return `${ version.appVersion } (${ version.version })`;
 }

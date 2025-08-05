@@ -73,6 +73,11 @@ export default {
       default: true
     },
 
+    showErrors: {
+      type:    Boolean,
+      default: true
+    },
+
     applyHooks: {
       type:    Function,
       default: null,
@@ -229,7 +234,7 @@ export default {
         }
 
         try {
-          await this.value.saveYaml(yaml);
+          await this.value.saveYaml(yaml, this.initialYaml);
         } catch (err) {
           return onError.call(this, err);
         }
@@ -291,7 +296,11 @@ export default {
 
     refresh() {
       this.$refs.yamleditor.refresh();
-    }
+    },
+
+    closeError(index) {
+      this.errors = (this.errors || []).filter((_, i) => i !== index);
+    },
   }
 };
 </script>
@@ -321,7 +330,8 @@ export default {
         class="footer"
         :class="{ 'edit': !isView }"
         :mode="mode"
-        :errors="errors"
+        :errors="showErrors ? errors : []"
+        @close-error="closeError"
         @save="save"
         @done="done"
       >

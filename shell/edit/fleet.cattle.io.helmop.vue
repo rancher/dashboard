@@ -1,12 +1,12 @@
 <script>
 import { clone, set } from '@shell/utils/object';
+import semver from 'semver';
 import jsyaml from 'js-yaml';
 import { saferDump } from '@shell/utils/create-yaml';
 import { mapGetters } from 'vuex';
 import { base64Encode } from '@shell/utils/crypto';
-import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
-import FleetUtils from '@shell/utils/fleet';
 import { AUTH_TYPE, CONFIG_MAP, NORMAN, SECRET } from '@shell/config/types';
 import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
@@ -23,13 +23,14 @@ import ButtonGroup from '@shell/components/ButtonGroup';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
-import ValueFromResource from '@shell/components/form/ValueFromResource';
 import { mapPref, DIFF } from '@shell/store/prefs';
 import { SECRET_TYPES } from '@shell/config/secret';
 import UnitInput from '@shell/components/form/UnitInput';
 import FleetClusterTargets from '@shell/components/fleet/FleetClusterTargets/index.vue';
 import { toSeconds } from '@shell/utils/duration';
-import { DEFAULT_POLLING_INTERVAL, MINIMUM_POLLING_INTERVAL } from '@shell/models/fleet-application';
+import FleetValuesFrom from '@shell/components/fleet/FleetValuesFrom.vue';
+
+const MINIMUM_POLLING_INTERVAL = 15;
 
 const VALUES_STATE = {
   YAML: 'YAML',
@@ -49,6 +50,7 @@ export default {
     Checkbox,
     CruResource,
     FleetClusterTargets,
+    FleetValuesFrom,
     YamlEditor,
     LabeledInput,
     LabeledSelect,
@@ -56,14 +58,14 @@ export default {
     Loading,
     NameNsDescription,
     SelectOrCreateAuthSecret,
-    ValueFromResource,
     UnitInput,
   },
 
   mixins: [CreateEditView, FormValidation],
 
   async fetch() {
-    const hash = await checkSchemasForFindAllHash({
+    // Fetch Secrets and ConfigMaps to mask the loading phase in FleetValuesFrom.vue
+    checkSchemasForFindAllHash({
       allSecrets: {
         inStoreType: 'management',
         type:        SECRET
@@ -74,23 +76,9 @@ export default {
         type:        CONFIG_MAP
       }
     }, this.$store);
-
-    this.allSecrets = hash.allSecrets || [];
-    this.allConfigMaps = hash.allConfigMaps || [];
   },
 
   data() {
-    let pollingInterval = toSeconds(this.value.spec.pollingInterval) || this.value.spec.pollingInterval;
-
-    if (!pollingInterval) {
-      if (this.realMode === _CREATE) {
-        pollingInterval = DEFAULT_POLLING_INTERVAL;
-        this.value.spec.pollingInterval = this.durationSeconds(pollingInterval);
-      } else if (this.realMode === _EDIT || this.realMode === _VIEW) {
-        pollingInterval = MINIMUM_POLLING_INTERVAL;
-      }
-    }
-
     const correctDriftEnabled = this.value.spec?.correctDrift?.enabled || false;
 
     const chartValues = saferDump(clone(this.value.spec.helm.values));
@@ -98,17 +86,14 @@ export default {
     return {
       VALUES_STATE,
       SOURCE_TYPE,
-      allSecrets:       [],
-      allConfigMaps:    [],
       allWorkspaces:    [],
-      pollingInterval,
+      pollingInterval:  toSeconds(this.value.spec.pollingInterval) || this.value.spec.pollingInterval,
       sourceTypeInit:   this.value.sourceType,
       sourceType:       this.value.sourceType || SOURCE_TYPE.REPO,
       helmSpecInit:     clone(this.value.spec.helm),
       yamlForm:         VALUES_STATE.YAML,
       chartValues,
       chartValuesInit:  chartValues,
-      valuesFrom:       FleetUtils.HelmOp.fromValuesFrom(this.value.spec.helm.valuesFrom),
       correctDriftEnabled,
       tempCachedValues: {},
       doneRouteList:    'c-cluster-fleet-application',
@@ -192,17 +177,6 @@ export default {
       }));
     },
 
-    valueFromOptions() {
-      return [
-        {
-          value: 'configMapKeyRef', label: 'ConfigMap Key', hideVariableName: true
-        },
-        {
-          value: 'secretKeyRef', label: 'Secret key', hideVariableName: true
-        },
-      ];
-    },
-
     yamlFormOptions() {
       return [{
         labelKey: 'fleet.helmOp.values.yaml.options.edit',
@@ -238,9 +212,25 @@ export default {
       return EDITOR_MODES.EDIT_CODE;
     },
 
-    showPollingIntervalWarning() {
-      return !this.isView && this.value.isPollingEnabled && this.pollingInterval < MINIMUM_POLLING_INTERVAL;
+    isNullOrStaticVersion() {
+      return !this.value.spec.helm.version || semver.valid(this.value.spec.helm.version) !== null;
     },
+
+    isPollingEnabled() {
+      return !this.isNullOrStaticVersion && !!this.value.spec.pollingInterval;
+    },
+
+    showPollingIntervalMinValueWarning() {
+      return !this.isView && this.isPollingEnabled && this.pollingInterval < MINIMUM_POLLING_INTERVAL;
+    },
+
+    enablePollingTooltip() {
+      if (this.isNullOrStaticVersion) {
+        return this.t('fleet.helmOp.polling.pollingInterval.versionTooltip', { version: this.value.spec.helm.version || '' }, true);
+      }
+
+      return null;
+    }
   },
 
   watch: {
@@ -272,22 +262,21 @@ export default {
       this.value.spec.targets = value;
     },
 
-    enablePolling(value) {
+    togglePolling(value) {
       if (value) {
-        delete this.value.spec.disablePolling;
+        this.pollingInterval = this.pollingInterval ?? MINIMUM_POLLING_INTERVAL;
+        this.value.spec.pollingInterval = this.value.spec.pollingInterval ?? this.durationSeconds(MINIMUM_POLLING_INTERVAL);
       } else {
-        this.value.spec.disablePolling = true;
+        delete this.value.spec.pollingInterval;
       }
     },
 
     updatePollingInterval(value) {
-      if (!value) {
-        this.pollingInterval = DEFAULT_POLLING_INTERVAL;
-        this.value.spec.pollingInterval = this.durationSeconds(DEFAULT_POLLING_INTERVAL);
-      } else if (value === MINIMUM_POLLING_INTERVAL) {
-        delete this.value.spec.pollingInterval;
-      } else {
+      if (value) {
         this.value.spec.pollingInterval = this.durationSeconds(value);
+      } else {
+        this.pollingInterval = MINIMUM_POLLING_INTERVAL;
+        this.value.spec.pollingInterval = this.durationSeconds(MINIMUM_POLLING_INTERVAL);
       }
     },
 
@@ -402,20 +391,7 @@ export default {
       }
     },
 
-    addValueFrom() {
-      this.valuesFrom.push({ valueFrom: {} });
-    },
-
-    updateValueFrom(index, value) {
-      this.valuesFrom[index] = value;
-    },
-
-    removeValueFrom(index) {
-      this.valuesFrom.splice(index, 1);
-    },
-
     updateBeforeSave() {
-      this.value.spec.helm.valuesFrom = FleetUtils.HelmOp.toValuesFrom(this.valuesFrom, this.workspace);
       this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
     },
 
@@ -428,22 +404,28 @@ export default {
       case SOURCE_TYPE.REPO:
         this.fvFormRuleSets = [{
           path:  'spec.helm.repo',
-          rules: ['required', 'urlRepository'],
+          rules: ['urlRepository'],
         }, {
           path:  'spec.helm.chart',
-          rules: ['required', 'alphanumeric'],
+          rules: ['required'],
+        }, {
+          path:  'spec.helm.version',
+          rules: ['semanticVersion'],
         }];
         break;
       case SOURCE_TYPE.OCI:
         this.fvFormRuleSets = [{
-          path:  'spec.helm.chart',
-          rules: ['required', 'ociRegistry'],
+          path:  'spec.helm.repo',
+          rules: ['ociRegistry'],
+        }, {
+          path:  'spec.helm.version',
+          rules: ['semanticVersion'],
         }];
         break;
       case SOURCE_TYPE.TARBALL:
         this.fvFormRuleSets = [{
           path:  'spec.helm.chart',
-          rules: ['required', 'urlRepository'],
+          rules: ['urlRepository'],
         }];
         break;
       }
@@ -565,6 +547,7 @@ export default {
               :mode="mode"
               label-key="fleet.helmOp.source.version.label"
               :placeholder="t('fleet.helmOp.source.version.placeholder', null, true)"
+              :rules="fvGetAndReportPathRules('spec.helm.version')"
             />
           </div>
         </div>
@@ -574,11 +557,11 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
-              v-model:value="value.spec.helm.chart"
+              v-model:value="value.spec.helm.repo"
               :mode="mode"
               :label-key="`fleet.helmOp.source.${ sourceType }.chart.label`"
               :placeholder="t(`fleet.helmOp.source.${ sourceType }.chart.placeholder`, null, true)"
-              :rules="fvGetAndReportPathRules('spec.helm.chart')"
+              :rules="fvGetAndReportPathRules('spec.helm.repo')"
               :required="true"
             />
           </div>
@@ -588,6 +571,7 @@ export default {
               :mode="mode"
               label-key="fleet.helmOp.source.version.label"
               :placeholder="t('fleet.helmOp.source.version.placeholder', null, true)"
+              :rules="fvGetAndReportPathRules('spec.helm.version')"
             />
           </div>
         </div>
@@ -643,30 +627,10 @@ export default {
       </div>
 
       <div class="mb-20">
-        <h2 v-t="'fleet.helmOp.values.valuesFrom.selectLabel'" />
-        <div
-          v-for="(row, i) in valuesFrom"
-          :key="row?.name + '-' + row?.valueFrom?.configMapKeyRef?.key + '-' + row?.valueFrom?.secretKeyRef?.key"
-        >
-          <ValueFromResource
-            :value="row"
-            :options="valueFromOptions"
-            :all-secrets="allSecrets"
-            :all-config-maps="allConfigMaps"
-            :namespaced="true"
-            :mode="mode"
-            :show-variable-name="true"
-            @remove="removeValueFrom(i)"
-            @update:value="updateValueFrom(i, $event)"
-          />
-        </div>
-        <button
-          v-if="!isView"
-          v-t="'workload.container.command.addEnvVar'"
-          type="button"
-          class="btn role-tertiary add"
-          data-testid="add-env-var"
-          @click="addValueFrom"
+        <FleetValuesFrom
+          v-model:value="value.spec.helm.valuesFrom"
+          :namespace="value.metadata.namespace"
+          :mode="realMode"
         />
       </div>
     </template>
@@ -683,7 +647,7 @@ export default {
         @created="targetsCreated=$event"
       />
 
-      <h3 class="mt-40">
+      <h3 class="mmt-16">
         {{ t('fleet.helmOp.target.additionalOptions') }}
       </h3>
       <div class="row mt-20">
@@ -713,6 +677,7 @@ export default {
         v-if="!isView"
         color="info"
         label-key="fleet.helmOp.add.steps.advanced.info"
+        data-testid="helmOp-advanced-info"
       />
 
       <h2 v-t="'fleet.helmOp.auth.title'" />
@@ -763,38 +728,45 @@ export default {
         />
       </div>
 
-      <h2 v-t="'fleet.helmOp.polling.label'" />
-      <div class="row polling">
-        <div class="col span-6">
-          <Checkbox
-            :value="value.isPollingEnabled"
-            type="checkbox"
-            label-key="fleet.helmOp.polling.enable"
-            :mode="mode"
-            @update:value="enablePolling"
-          />
-        </div>
-        <template v-if="value.isPollingEnabled">
-          <div class="col">
-            <Banner
-              v-if="showPollingIntervalWarning"
-              color="warning"
-              label-key="fleet.helmOp.polling.pollingInterval.minimumValuewarning"
-            />
-          </div>
+      <template v-if="sourceType === SOURCE_TYPE.REPO">
+        <h2 v-t="'fleet.helmOp.polling.label'" />
+        <div class="row polling">
           <div class="col span-6">
-            <UnitInput
-              v-model:value="pollingInterval"
-              min="1"
-              :suffix="t('suffix.seconds', { count: pollingInterval })"
-              :label="t('fleet.helmOp.polling.pollingInterval.label')"
+            <Checkbox
+              :value="isPollingEnabled"
+              type="checkbox"
+              label-key="fleet.helmOp.polling.enable"
+              data-testid="helmOp-enablePolling-checkbox"
+              :tooltip="enablePollingTooltip"
               :mode="mode"
-              tooltip-key="fleet.helmOp.polling.pollingInterval.tooltip"
-              @blur.capture="updatePollingInterval(pollingInterval)"
+              :disabled="isNullOrStaticVersion"
+              @update:value="togglePolling"
             />
           </div>
-        </template>
-      </div>
+          <template v-if="isPollingEnabled">
+            <div class="col">
+              <Banner
+                v-if="showPollingIntervalMinValueWarning"
+                color="warning"
+                label-key="fleet.helmOp.polling.pollingInterval.minimumValueWarning"
+                data-testid="helmOp-pollingInterval-minimumValueWarning"
+              />
+            </div>
+            <div class="col span-6">
+              <UnitInput
+                v-model:value="pollingInterval"
+                min="1"
+                data-testid="helmOp-pollingInterval-input"
+                :suffix="t('suffix.seconds', { count: pollingInterval })"
+                :label="t('fleet.helmOp.polling.pollingInterval.label')"
+                :mode="mode"
+                tooltip-key="fleet.helmOp.polling.pollingInterval.tooltip"
+                @blur.capture="updatePollingInterval(pollingInterval)"
+              />
+            </div>
+          </template>
+        </div>
+      </template>
     </template>
   </CruResource>
 </template>

@@ -527,3 +527,39 @@ export function mergeWithReplace(
     }
   });
 }
+/**
+ * Converts Object into a string of a format "key1, val1, key2, val2"
+ * @param {Object} input - KV object to convert
+ * @returns string
+ */
+export const convertKVToString = (input) => {
+  if (!input || typeof input !== 'object') return '';
+
+  return Object.entries(input)
+    .flatMap(([key, value]) => [key, String(value)])
+    .join(',');
+};
+
+/**
+ * Converts kv string into object
+ * @param {string} input - a string of a format "key1, val1, key2, val2"
+ * @returns
+ */
+export const convertStringToKV = ( input ) => {
+  if (!input?.trim()) return {};
+
+  const parts = input.split(',').map((part) => part.trim());
+  const result = {};
+
+  for (let i = 0; i < parts.length - 1; i += 2) {
+    const key = parts[i];
+    const value = parts[i + 1];
+
+    // Accept empty keys but ignore undefined values
+    if (typeof key === 'string') {
+      result[key] = value ?? '';
+    }
+  }
+
+  return result;
+};

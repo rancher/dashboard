@@ -3,7 +3,7 @@ import { Row } from '@shell/components/Resource/Detail/Metadata/IdentifyingInfor
 import {
   useCertificate,
   useExpires,
-  useImage, useIssuer, useLiveDate, useNamespace, useReady, useSecretType,
+  useImage, useIssuer, useLiveDate, useNamespace, useProject, useReady, useSecretCluster, useSecretType,
   useServiceAccount
 } from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/identifying-fields';
 import { useStore } from 'vuex';
@@ -21,7 +21,11 @@ export const useDefaultIdentifyingInformation = (resource: any): ComputedRef<Row
   });
 };
 
-export const useSecretIdentifyingInformation = (resource: any): ComputedRef<Row[]> => {
+export const useSecretIdentifyingInformation = (resource: any, isProjectSecret: boolean): ComputedRef<Row[]> => {
+  const namespace = isProjectSecret ? undefined : useNamespace(resource);
+  const project = isProjectSecret ? useProject(resource) : undefined;
+  const cluster = isProjectSecret ? useSecretCluster(resource) : undefined;
+  const age = useLiveDate(resource);
   const secretType = useSecretType(resource);
   const serviceAccount = useServiceAccount(resource);
   const certificate = useCertificate(resource);
@@ -30,6 +34,10 @@ export const useSecretIdentifyingInformation = (resource: any): ComputedRef<Row[
 
   return computed(() => {
     const rows = [
+      age?.value,
+      namespace?.value,
+      project?.value,
+      cluster?.value,
       secretType?.value,
       serviceAccount?.value,
       certificate?.value,

@@ -4,6 +4,7 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import WorkloadPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import { createDeploymentBlueprint } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployment-create';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 
 const { name: workloadName, namespace } = createDeploymentBlueprint.metadata;
 const deploymentsListPage = new WorkloadsDeploymentsListPagePo('local');
@@ -108,20 +109,20 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
 
   it('Clicking on the tab header should navigate', () => {
     const productNavPo = new ProductNavPo();
-    const group = productNavPo.groups().eq(1); // First group is 'Workloads'
+    const group = productNavPo.groups().eq(0); // first group is 'Cluster'
 
     // Select and expand current top-level group
     group.click();
-    const workloads = new WorkloadPagePo();
+    const clusterDashboard = new ClusterDashboardPagePo('local');
 
-    workloads.waitForPage();
+    clusterDashboard.waitForPage();
 
-    cy.url().then((workloadsUrl) => {
-      // Go to the second subgroup
-      productNavPo.visibleNavTypes().eq(1).click({ force: true });
-      // Clicking back should take us back to workloads
-      productNavPo.tabHeaders().eq(1).click(1, 1).then(() => cy.url().should('equal', workloadsUrl));
-    });
+    // Go to the second subgroup
+    productNavPo.visibleNavTypes().eq(2).click({ force: true });
+
+    // Clicking back should take us back to clusters
+    productNavPo.tabHeaders().eq(0).click(1, 1);
+    clusterDashboard.waitForPage();
   });
 
   after(() => {

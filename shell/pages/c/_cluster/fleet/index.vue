@@ -1,4 +1,5 @@
 <script>
+import debounce from 'lodash/debounce';
 import { getVersionData } from '@shell/config/version';
 import { mapState, mapGetters } from 'vuex';
 import { isEmpty } from '@shell/utils/object';
@@ -103,14 +104,13 @@ export default {
 
   data() {
     return {
-      createRoute:     { name: 'c-cluster-fleet-application-create' },
-      permissions:     {},
+      permissions:      {},
       FLEET,
-      [FLEET.REPO]:    [],
-      [FLEET.HELM_OP]: [],
-      fleetWorkspaces: [],
+      [FLEET.GIT_REPO]: [],
+      [FLEET.HELM_OP]:  [],
+      fleetWorkspaces:  [],
       VIEW_MODE,
-      viewModeOptions: [
+      viewModeOptions:  [
         {
           tooltipKey: 'fleet.dashboard.viewMode.table',
           icon:       'icon-list-flat',
@@ -130,6 +130,7 @@ export default {
       isStateCollapsed:     {},
       typeFilter:           {},
       stateFilter:          {},
+      searchFilter:         {},
       selectedCard:         null,
       presetVersion:        getVersionData()?.Version,
     };
@@ -137,6 +138,10 @@ export default {
 
   created() {
     this.$store.dispatch('showWorkspaceSwitcher', false);
+
+    this.debouncedUpdateSearchFilter = debounce((workspace, value) => {
+      this.searchFilter[workspace] = value;
+    }, 300);
   },
 
   mounted() {
@@ -155,6 +160,10 @@ export default {
 
     repoSchema() {
       return this.$store.getters['management/schemaFor'](FLEET.GIT_REPO);
+    },
+
+    createRoute() {
+      return { name: 'c-cluster-fleet-application-create' };
     },
 
     workspaces() {
@@ -296,6 +305,15 @@ export default {
       this.cardsCount[workspace][state] = val;
     },
 
+    createResource(workspace) {
+      this.$store.dispatch('showWorkspaceSwitcher', true);
+
+      this.$nextTick(() => {
+        this.$store.commit('updateWorkspace', { value: workspace, getters: this.$store.getters });
+        this.$router.push(this.createRoute);
+      });
+    },
+
     showResourceDetails(value, statePanel, workspace, selected) {
       if (this.isClosingSlideInPanel) {
         return;
@@ -311,7 +329,6 @@ export default {
           workspace,
           showHeader:          false,
           width:               window.innerWidth / 3 > 530 ? `${ window.innerWidth / 3 }px` : '530px',
-          zIndex:              1,
           triggerFocusTrap:    true,
           returnFocusSelector: `[data-testid="resource-card-${ value.id }"]`
         }
@@ -346,7 +363,8 @@ export default {
 
     _filterResources(state) {
       return state.resources.filter((item) => this._decodeTypeFilter(item.namespace, item.type) &&
-        this._decodeStateFilter(item.namespace, state)
+        this._decodeStateFilter(item.namespace, state) &&
+        this._decodeSearchFilter(item.namespace, item.nameDisplay)
       );
     },
 
@@ -358,7 +376,7 @@ export default {
     },
 
     _stateExistsInWorkspace(workspace, state) {
-      return !!this.applicationStates[workspace].find((s) => s.statePanel.id === state);
+      return !!this.applicationStates[workspace]?.find((s) => s.statePanel.id === state);
     },
 
     _decodeStateFilter(workspace, state) {
@@ -372,17 +390,33 @@ export default {
         return true;
       }
 
-      if (this.stateFilter[workspace][state.statePanel.id]) {
-        return true;
-      }
-
-      return false;
+      return !!this.stateFilter[workspace]?.[state.statePanel.id];
     },
 
     _decodeTypeFilter(workspace, type) {
-      const emptyFilter = isEmpty(this.typeFilter) || !this.viewMode;
+      if (isEmpty(this.typeFilter)) {
+        return true;
+      }
 
-      return emptyFilter || this.typeFilter[workspace]?.[type];
+      if (!this.viewMode) {
+        return true;
+      }
+
+      return !!this.typeFilter[workspace]?.[type];
+    },
+
+    _decodeSearchFilter(workspace, name) {
+      if (isEmpty(this.searchFilter)) {
+        return true;
+      }
+
+      if (this.viewMode !== VIEW_MODE.CARDS) {
+        return true;
+      }
+
+      const search = this.searchFilter[workspace];
+
+      return !search || name?.includes(search);
     },
 
     _cleanStateFilter(workspace) {
@@ -418,12 +452,15 @@ export default {
           };
 
           this.stateFilter[ws.id] = {};
+
+          this.searchFilter[ws.id] = '';
         });
 
         this.preset('isWorkspaceCollapsed', 'object');
         this.preset('isStateCollapsed', 'object');
         this.preset('typeFilter', 'object');
         this.preset('stateFilter', 'object');
+        this.preset('searchFilter', 'object');
       }
     }
   }
@@ -471,8 +508,8 @@ export default {
             <template #after>
               <i
                 :class="{
-                  ['icon icon-chevron-right']: !allCardsExpanded,
-                  ['icon icon-chevron-down']: allCardsExpanded,
+                  ['icon icon-chevron-down']: !allCardsExpanded,
+                  ['icon icon-chevron-up']: allCardsExpanded,
                 }"
                 aria-hidden="true"
               />
@@ -483,7 +520,7 @@ export default {
       <div
         v-for="(workspace, i) in workspaces"
         :key="i"
-        class="card-container m-0 mt-20"
+        class="workspace-card-container m-0 mt-20"
         :data-testid="`fleet-dashboard-workspace-card-${ workspace.id }`"
         :show-actions="false"
         :show-separator="false"
@@ -494,11 +531,11 @@ export default {
             class="card-panel-main-details"
             :class="{ expand: !isWorkspaceCollapsed[workspace.id] }"
           >
-            <div class="title">
-              <h3 class="label label-secondary">
+            <h2 class="workspace-title">
+              <span class="workspace-label label-secondary">
                 <i class="icon icon-folder" />
                 <span>{{ t('fleet.dashboard.workspace') }} : &nbsp;</span>
-              </h3>
+              </span>
               <router-link
                 class="name"
                 role="link"
@@ -508,7 +545,7 @@ export default {
               >
                 {{ workspace.nameDisplay }}
               </router-link>
-            </div>
+            </h2>
             <div class="body">
               <ResourcePanel
                 v-if="workspace.repos?.length || workspace.helmOps?.length"
@@ -548,12 +585,13 @@ export default {
                 small
                 ghost
                 :aria-label="`workspace-expand-btn-${ workspace.id }`"
+                :data-testid="`workspace-expand-btn-${ workspace.id }`"
                 @click="toggleCard(workspace.id)"
               >
                 <i
                   :class="{
-                    ['icon icon-lg icon-chevron-right']: isWorkspaceCollapsed[workspace.id],
-                    ['icon icon-lg icon-chevron-down']: !isWorkspaceCollapsed[workspace.id],
+                    ['icon icon-lg icon-chevron-down']: isWorkspaceCollapsed[workspace.id],
+                    ['icon icon-lg icon-chevron-up']: !isWorkspaceCollapsed[workspace.id],
                   }"
                   aria-hidden="true"
                 />
@@ -567,42 +605,59 @@ export default {
           :data-testid="`fleet-dashboard-expanded-panel-${ workspace.id }`"
         >
           <div class="actions">
-            <div class="type-filters">
-              <Checkbox
-                :data-testid="'fleet-dashboard-filter-git-repos'"
-                :value="typeFilter[workspace.id]?.[FLEET.GIT_REPO]"
-                @update:value="selectType(workspace.id, FLEET.GIT_REPO, $event)"
+            <div class="resource-filters">
+              <div
+                v-if="viewMode === VIEW_MODE.CARDS"
+                class="search-filter"
               >
-                <template #label>
-                  <i class="icon icon-lg icon-git mr-5" />
-                  <span class="label">{{ t('fleet.dashboard.cards.filters.gitRepos') }}</span>
-                </template>
-              </Checkbox>
-              <Checkbox
-                :data-testid="'fleet-dashboard-filter-helm-ops'"
-                :value="typeFilter[workspace.id]?.[FLEET.HELM_OP]"
-                @update:value="selectType(workspace.id, FLEET.HELM_OP, $event)"
-              >
-                <template #label>
-                  <i class="icon icon-lg icon-helm mr-5" />
-                  <span class="label">{{ t('fleet.dashboard.cards.filters.helmOps') }}</span>
-                </template>
-              </Checkbox>
+                <input
+                  :value="searchFilter[workspace.id]"
+                  type="search"
+                  role="textbox"
+                  class="input"
+                  :data-testid="`fleet-dashboard-search-input-${ workspace.id }`"
+                  :aria-label="t('fleet.dashboard.cards.search')"
+                  :placeholder="t('fleet.dashboard.cards.search')"
+                  @input="debouncedUpdateSearchFilter(workspace.id, $event.target.value)"
+                >
+              </div>
+              <div class="type-filter">
+                <Checkbox
+                  :data-testid="'fleet-dashboard-filter-git-repos'"
+                  :value="typeFilter[workspace.id]?.[FLEET.GIT_REPO]"
+                  @update:value="selectType(workspace.id, FLEET.GIT_REPO, $event)"
+                >
+                  <template #label>
+                    <i class="icon icon-lg icon-git mr-5" />
+                    <span class="label">{{ t('fleet.dashboard.cards.filters.gitRepos') }}</span>
+                  </template>
+                </Checkbox>
+                <Checkbox
+                  :data-testid="'fleet-dashboard-filter-helm-ops'"
+                  :value="typeFilter[workspace.id]?.[FLEET.HELM_OP]"
+                  @update:value="selectType(workspace.id, FLEET.HELM_OP, $event)"
+                >
+                  <template #label>
+                    <i class="icon icon-lg icon-helm mr-5" />
+                    <span class="label">{{ t('fleet.dashboard.cards.filters.helmOps') }}</span>
+                  </template>
+                </Checkbox>
+              </div>
             </div>
             <div
               v-if="permissions.gitRepos || permissions.helmOps"
               class="create-button"
             >
-              <router-link
-                :to="createRoute"
-                class="btn role-primary"
+              <RcButton
+                small
+                @click="createResource(workspace.id)"
               >
                 {{ t('fleet.application.intro.add') }}
-              </router-link>
+              </RcButton>
             </div>
           </div>
           <div
-            v-if="viewMode === 'cards'"
+            v-if="viewMode === VIEW_MODE.CARDS"
             class="cards-panel"
           >
             <div
@@ -630,16 +685,19 @@ export default {
                   />
                   <i
                     v-if="state.statePanel.id !== 'success'"
-                    class="ml-5 state-icon"
+                    class="state-icon"
                     :class="state.statePanel.icon"
                     :style="{ color: state.statePanel.color }"
                   />
-                  <div class="label">
-                    <span class="partial">
-                      {{ state.stateDisplay }}&nbsp;&nbsp;{{ cardResources[workspace.id]?.[state.stateDisplay]?.length }}
+                  <h3 class="state-title">
+                    <span class="state-label">
+                      {{ state.stateDisplay }}
+                    </span>
+                    <span class="state-amount">
+                      {{ cardResources[workspace.id]?.[state.stateDisplay]?.length }}
                     </span>
                     <span class="total label-secondary">/{{ [ ...workspace.repos, ...workspace.helmOps ].length }}</span>
-                  </div>
+                  </h3>
                 </div>
                 <div
                   v-if="!isStateCollapsed[workspace.id]?.[state.stateDisplay]"
@@ -714,7 +772,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: end;
-  gap: 15px;
+  gap: 16px;
 
   .collapse-all-btn {
     width: 105px;
@@ -740,7 +798,7 @@ export default {
   }
 }
 
-.card-container {
+.workspace-card-container {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
@@ -765,22 +823,26 @@ export default {
       display: flex;
       align-items: center;
 
-      .title {
-        margin: 0 20px 0 0;
+      .workspace-title {
+        min-width: 150px;
+        margin: 0 32px 0 0;
+        display: flex;
+        flex-direction: column;
 
-        .name {
-          font-size: 25px;
-        }
-
-        .label {
+        .workspace-label {
+          font-size: 16px;
+          font-weight: normal;
           display: flex;
           align-items: center;
-          min-width: 150px;
-          margin: 0 0 5px 0;
+          margin: 0 0 2px 0;
 
           .icon {
             margin-right: 5px;
           }
+        }
+
+        .name {
+          font-size: 21px;
         }
       }
 
@@ -788,7 +850,7 @@ export default {
         display: flex;
         justify-content: flex-start;
         flex-wrap: wrap;
-        gap: 15px;
+        gap: 24px;
 
         .spacer {
           border-left: 1px solid var(--border);
@@ -824,51 +886,78 @@ export default {
       align-items: center;
       justify-content: space-between;
 
-      .type-filters {
+      .resource-filters {
         display: flex;
-        flex-direction: column;
-        margin-top: 5px;
+        flex-direction: row;
+        align-items: center;
 
-        .checkbox-outer-container {
-          width: fit-content;
+        .type-filter {
+          display: flex;
+          flex-direction: column;
+          margin-top: 5px;
+
+          .checkbox-outer-container {
+            width: fit-content;
+          }
+
+          .label {
+            margin-top: 2px;
+            line-height: 20px;
+          }
+
+          .icon {
+            padding: 2px;
+            font-size: 25px;
+          }
         }
 
-        .label {
+        .search-filter {
           margin-top: 2px;
-          line-height: 20px;
-        }
+          margin-right: 32px;
 
-        .icon {
-          padding: 2px;
-          font-size: 25px;
+          input {
+            width: 190px;
+          }
         }
       }
     }
 
     .cards-panel {
       .card-panel {
-        margin-top: 32px;
+        margin-top: 24px;
 
         .title {
           display: flex;
           align-items: center;
           cursor: pointer;
           width: fit-content;
-          margin-bottom: 16px;
+          margin-bottom: 12px;
 
           .icon {
-            margin-right: 5px;
+            margin-right: 8px;
           }
 
-          .label {
+          .state-icon,
+          .state-title {
+            font-size: 21px;
+          }
+
+          .state-icon {
+            margin-top: 1px;
+          }
+
+          .state-title {
             display: flex;
             align-items: baseline;
-            margin-left: 2px;
+            margin: 0;
 
-            .partial {
-              margin: 0;
-              margin-right: 2px;
-              font-size: 22px;
+            .state-amount {
+              margin-left: 4px
+            }
+
+            .total {
+              margin-left: 4px;
+              font-size: 16px;
             }
 
             p {
@@ -878,10 +967,6 @@ export default {
                 line-height: -1px;
               }
             }
-          }
-
-          .state-icon {
-            font-size: 1.75em;
           }
         }
 

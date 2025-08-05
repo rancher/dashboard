@@ -715,7 +715,7 @@ export default defineComponent({
       align-items: center;
 
       // Ensure long cluster names truncate with ellipsis
-      > A {
+      > A, > span {
         overflow: hidden;
         text-overflow: ellipsis;
       }

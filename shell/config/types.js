@@ -14,7 +14,6 @@ export const STEVE = {
 export const NORMAN = {
   APP:                           'app',
   AUTH_CONFIG:                   'authconfig',
-  ETCD_BACKUP:                   'etcdbackup',
   CLUSTER:                       'cluster',
   CLUSTER_TOKEN:                 'clusterregistrationtoken',
   CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterroletemplatebinding',
@@ -303,11 +302,11 @@ export const BACKUP_RESTORE = {
   RESTORE:      'resources.cattle.io.restore',
 };
 
-export const CIS = {
-  CLUSTER_SCAN:         'cis.cattle.io.clusterscan',
-  CLUSTER_SCAN_PROFILE: 'cis.cattle.io.clusterscanprofile',
-  BENCHMARK:            'cis.cattle.io.clusterscanbenchmark',
-  REPORT:               'cis.cattle.io.clusterscanreport'
+export const COMPLIANCE = {
+  CLUSTER_SCAN:         'compliance.cattle.io.clusterscan',
+  CLUSTER_SCAN_PROFILE: 'compliance.cattle.io.clusterscanprofile',
+  BENCHMARK:            'compliance.cattle.io.clusterscanbenchmark',
+  REPORT:               'compliance.cattle.io.clusterscanreport'
 };
 
 export const UI = { NAV_LINK: 'ui.cattle.io.navlink' };
@@ -316,6 +315,7 @@ export const VIRTUAL_TYPES = {
   CLUSTER_MEMBERS:    'cluster-members',
   PROJECT_NAMESPACES: 'projects-namespaces',
   NAMESPACES:         'namespaces',
+  PROJECT_SECRETS:    'projectsecret',
   JWT_AUTHENTICATION: 'jwt.authentication'
 };
 

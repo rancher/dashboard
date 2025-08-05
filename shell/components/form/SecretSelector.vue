@@ -138,6 +138,13 @@ export default {
     }
   },
 
+  watch: {
+    namespace() {
+      // Namespace has changed, reset the selections
+      this.$emit('update:value', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: undefined, [this.keyKey]: '' } } });
+    }
+  },
+
   methods: {
     /**
      * Provide a set of options for the LabelSelect ([none, ...{label, value}])
@@ -173,11 +180,18 @@ export default {
     paginatePageOptions(opts) {
       const { opts: { filter } } = opts;
 
-      const filters = !!filter ? [PaginationParamFilter.createSingleField({ field: 'metadata.name', value: filter })] : [];
+      const filters = !!filter ? [PaginationParamFilter.createSingleField({
+        field: 'metadata.name', value: filter, exact: false, equals: true
+      })] : [];
 
       filters.push(
         PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: this.namespace }),
-        PaginationParamFilter.createSingleField({ field: 'metadata.fields.1', value: this.types.join(',') })
+        PaginationParamFilter.createMultipleFields(this.types.map((t) => ({
+          field:  'metadata.fields.1',
+          equals: true,
+          exact:  true,
+          value:  t
+        })))
       );
 
       return {
@@ -201,6 +215,7 @@ export default {
     <div class="input-container">
       <!-- key by namespace to ensure label select current page is recreated on ns change -->
       <ResourceLabeledSelect
+        :key="namespace"
         v-model:value="name"
         :disabled="!isView && disabled"
         :label="secretNameLabel"
@@ -212,6 +227,7 @@ export default {
       />
       <LabeledSelect
         v-if="showKeySelector"
+        :key="namespace"
         v-model:value="key"
         class="col span-6"
         :disabled="isKeyDisabled"

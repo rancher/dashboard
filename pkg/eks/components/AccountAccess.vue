@@ -124,7 +124,7 @@ export default defineComponent({
       />
     </div>
     <div
-      class="select-credential-container mb-10"
+      class="select-credential-container"
     >
       <SelectCredential
         :value="credential"

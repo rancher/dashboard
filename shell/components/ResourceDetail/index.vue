@@ -6,6 +6,7 @@ import { MODE, _VIEW } from '@shell/config/query-params';
 import Legacy from '@shell/components/ResourceDetail/legacy.vue';
 import Loading from '@shell/components/Loading.vue';
 import { useIsNewDetailPageEnabled } from '@shell/composables/useIsNewDetailPageEnabled';
+import { VIRTUAL_TYPES } from '@shell/config/types';
 
 export interface Props {
   flexContent?: boolean;
@@ -28,11 +29,12 @@ const resourceToPage: any = {
   // 'apps.statefulset': defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/apps.statefulset.vue')),
   // 'batch.cronjob':    defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/batch.cronjob.vue')),
   // 'batch.job':        defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/batch.job.vue')),
-  configmap: defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/configmap.vue')),
+  configmap:                       defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/configmap.vue')),
   // namespace:           defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/namespace.vue')),
   // node:                defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/node.vue')),
   // pod:                 defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/pod.vue')),
-  secret:    defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/secret.vue')),
+  secret:                          defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/secret.vue')),
+  [VIRTUAL_TYPES.PROJECT_SECRETS]: defineAsyncComponent(() => import('@shell/pages/explorer/resource/detail/projectsecret.vue')),
 };
 
 defineOptions({ inheritAttrs: false });
@@ -48,7 +50,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const currentResourceName = computed(() => {
-  const resource = route?.params?.resource;
+  const resource = props.resourceOverride || route?.params?.resource;
 
   if (!resource) {
     return;
@@ -66,7 +68,7 @@ const isView = computed(() => route?.params?.id && (!mode.value || mode.value ==
 // We're defaulting to legacy being on, we'll switch this once we want to enable the new detail page by default
 const iseNewDetailPageEnabled = useIsNewDetailPageEnabled();
 const page = computed(() => currentResourceName.value ? resourceToPage[currentResourceName.value] : undefined);
-const useLatest = computed(() => !!(iseNewDetailPageEnabled && isView.value && page.value));
+const useLatest = computed(() => !!(iseNewDetailPageEnabled.value && isView.value && page.value));
 </script>
 
 <template>

@@ -39,6 +39,10 @@ export default {
       type:    String,
       default: '',
     },
+    addClass: {
+      type:    String,
+      default: '',
+    },
   },
 
   data() {
@@ -83,6 +87,7 @@ export default {
       :preserve-keys="['effect']"
       :add-label="t('labels.addTaint')"
       :add-icon="addIcon"
+      :add-class="addClass"
       :disabled="disabled"
       @update:value="(e) => $emit('update:value', e)"
     >

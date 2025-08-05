@@ -103,6 +103,7 @@ export default {
         $store:        this.$store,
         inScopeCount:  this.allResourcesInScope,
         namespace:     this.namespace,
+        transient:     true,
       });
     }, 250, { leading: true }),
   }

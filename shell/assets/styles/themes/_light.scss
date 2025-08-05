@@ -100,6 +100,7 @@ BODY, .theme-light {
   .secondary-text-link {
     color: var(--link-text-secondary);
     text-decoration: underline;
+    cursor: pointer;
 
     &:hover {
       text-decoration: none;
@@ -156,9 +157,14 @@ BODY, .theme-light {
   }
 
   --muted                      : #{$dark};
+  --deemphasized               : #717179;
 
   .text-muted {
     color: var(--muted) !important;
+  }
+
+  .text-deemphasized {
+    color: var(--deemphasized);
   }
 
   --darker                    : #{$darker};
@@ -402,7 +408,8 @@ BODY, .theme-light {
 
   --modal-bg                   : #{$lightest};
   --modal-border               : #{$dark};
-  --overlay-bg                 : #{rgba($lighter, 0.75)};
+  --subtle-overlay-bg          : #{rgba($lighter, 0.75)};
+  --overlay-bg                 : rgba(38, 42, 64, 0.35);
   --shadow                     : #{rgba($medium, 0.85)};
 
   --checkbox-tick              : #{$lightest};
@@ -426,6 +433,8 @@ BODY, .theme-light {
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-group-text        : #{$darker};
   --dropdown-highlight-text    : var(--link);
+
+  --notification-unread-bg     : var(--primary-banner-bg);
 
   --card-badge-text            : #ffffff;
 
@@ -466,7 +475,7 @@ BODY, .theme-light {
   --sortable-table-group-label : #{$secondary};
 
   --tag-primary                : #{$darkest};
-  --tag-bg                     : #{$medium};
+  --tag-bg                     : #EEEFF5;
 
   --popover-bg                 : var(--body-bg);
   --popover-border             : var(--border);
@@ -618,4 +627,13 @@ BODY, .theme-light {
   --click-badge-info-bg        : #{$info};
   --click-badge-info-border    : #2673A6;
   --bubble-bg                : #{$lighter};
+
+
+  // These are meant to be the colors used within rancher-components. They will eventually be removed from shell once we have theming working in the components
+  --rc-info: #{$blue0001};
+  --rc-success: #{$green001};
+  --rc-warning: #{$yellow001};
+  --rc-error: #{$red001};
+  --rc-unknown: #{$gray001};
+  --rc-none: #{$gray002};
 }

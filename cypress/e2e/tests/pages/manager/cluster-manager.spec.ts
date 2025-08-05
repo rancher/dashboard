@@ -279,7 +279,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         editCreatedClusterPage.nameNsDescription().description().self().should('have.value', rke2CustomName);
       });
 
-      it('will disbable saving if an addon config has invalid data', () => {
+      it('will disable saving if an addon config has invalid data', () => {
         clusterList.goTo();
 
         clusterList.checkIsCurrentPage();
@@ -376,7 +376,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
     describe('Generic', () => {
       it('can create new cluster', () => {
-        cy.intercept('GET', `${ USERS_BASE_URL }?exclude=metadata.managedFields`).as('getUsers');
+        cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('getUsers');
         cy.intercept('POST', `/v3/${ importType }s`).as('importRequest');
 
         clusterList.goTo();
@@ -533,7 +533,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterList.waitForPage();
   });
 
-  describe('Cluster Details Tabs', () => {
+  describe('Cluster Details Page and Tabs', () => {
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
     const clusterDetail = new ClusterManagerDetailImportedGenericPagePo(undefined, 'local');
 
@@ -573,6 +573,23 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       clusterDetail.machinePoolsList().resourceTable().sortableTable().noRowsShouldNotExist();
       clusterDetail.machinePoolsList().details('machine-', 2).should('be.visible');
       clusterDetail.machinePoolsList().downloadYamlButton().should('be.disabled');
+    });
+    it(`Show Configuration allows to edit config and view yaml for local cluster`, () => {
+      clusterDetail.waitForPage();
+      clusterDetail.openShowConfiguration();
+      const drawer = clusterDetail.detailDrawer();
+
+      drawer.checkExists();
+      drawer.checkVisible();
+      drawer.saveButton().should('be.visible');
+      const tabs = ['Config', 'YAML'];
+
+      drawer.tabs().tabNames().each((el, i) => {
+        expect(el).to.eq(tabs[i]);
+      });
+
+      drawer.tabs().clickTabWithName('yaml-tab');
+      drawer.saveButton().should('not.exist');
     });
 
     it('can navigate to namespace from cluster detail view', () => {
@@ -769,5 +786,54 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     if (reenableAKS) {
       cy.createRancherResource('v3', 'kontainerDrivers/azurekubernetesservice?action=activate', {});
     }
+  });
+});
+
+describe('Cluster Manager as standard user', { testIsolation: 'off', tags: ['@manager', '@standardUser'] }, () => {
+  before(() => {
+    cy.login();
+  });
+  it('can navigate to Cluster Management Page', () => {
+    HomePagePo.goTo();
+    const burgerMenu = new BurgerMenuPo();
+
+    BurgerMenuPo.toggle();
+    const clusterManagementNavItem = burgerMenu.links().contains(`Cluster Management`);
+
+    clusterManagementNavItem.should('exist');
+    clusterManagementNavItem.click();
+    const clusterList = new ClusterManagerListPagePo('_');
+
+    clusterList.waitForPage();
+  });
+
+  describe('Cluster Detail Page', () => {
+    const clusterDetail = new ClusterManagerDetailImportedGenericPagePo(undefined, 'local');
+
+    beforeEach( () => {
+      ClusterManagerListPagePo.navTo();
+      const clusterList = new ClusterManagerListPagePo('_');
+
+      clusterList.waitForPage();
+      clusterList.clickOnClusterName('local');
+    });
+
+    it(`Show Configuration allows to view but not edit config and yaml for local cluster`, () => {
+      clusterDetail.waitForPage();
+      clusterDetail.openShowConfiguration();
+      const drawer = clusterDetail.detailDrawer();
+
+      drawer.checkExists();
+      drawer.checkVisible();
+      drawer.saveButton().should('not.exist');
+      const tabs = ['Config', 'YAML'];
+
+      drawer.tabs().tabNames().each((el, i) => {
+        expect(el).to.eq(tabs[i]);
+      });
+
+      drawer.tabs().clickTabWithName('yaml-tab');
+      drawer.saveButton().should('not.exist');
+    });
   });
 });

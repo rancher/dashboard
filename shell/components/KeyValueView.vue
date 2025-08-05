@@ -225,7 +225,7 @@ export default {
 .key-value {
   width: 100%;
 
-  .kv-container{
+  .kv-container {
     display: grid;
     align-items: center;
     grid-template-columns: auto 1fr;

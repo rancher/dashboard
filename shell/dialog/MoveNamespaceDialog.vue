@@ -121,7 +121,7 @@ export default {
     <template #actions>
       <button
         class="btn role-secondary"
-        @click="close(undefined)"
+        @click="close"
       >
         {{ t('generic.cancel') }}
       </button>

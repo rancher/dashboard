@@ -97,12 +97,21 @@ export default {
           legend:  { display: false },
           title:   { display: false },
           tooltip: {
-            yAlign:    'bottom',
-            callbacks: {
+            yAlign:     'bottom',
+            titleFont:  { size: 12 },
+            bodyFont:   { size: 12 },
+            titleAlign: 'center',
+            bodyAlign:  'center',
+            callbacks:  {
               title: (ctx: TooltipItem<'doughnut'>[]) => {
                 const v = ctx[0];
 
-                return `${ v?.formattedValue } ${ lcFirst(v.label) }`;
+                const value = v?.formattedValue || '';
+                const label = lcFirst(v?.label || '');
+
+                const titleLn = `${ value }${ label }`.length;
+
+                return `${ value }${ titleLn > 7 ? '\n' : ' ' }${ label }`;
               },
               label: () => '',
             }
@@ -298,8 +307,6 @@ export default {
     }
 
     .details {
-      padding: 5px;
-
       .description {
         .count {
           font-size: 25px;
@@ -330,7 +337,8 @@ export default {
           }
 
           &.bg-error {
-            background: var(--click-badge-error-bg);
+            // background: var(--click-badge-error-bg); TODO revert after dashboard theme colors refactoring
+            background: var(--error);
             color: var(--click-badge-error);
           }
 

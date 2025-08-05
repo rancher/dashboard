@@ -38,7 +38,19 @@ export default class HciCluster extends ProvCluster {
   }
 
   get canEdit() {
-    return false;
+    return this.canUpdate && this.canCustomEdit;
+  }
+
+  // We do not allow users to edit Harvester clusters from Cluster Management, so we need to re-enable that action here.
+  get _availableActions() {
+    const out = super._availableActions;
+    const edit = out.find((action) => action.action === 'goToEdit');
+
+    if (edit) {
+      edit.enabled = this.canEdit;
+    }
+
+    return out;
   }
 
   get stateColor() {
@@ -83,5 +95,9 @@ export default class HciCluster extends ProvCluster {
     } catch (error) {
       console.error('unable to get harvester version from settings/server-version', error); // eslint-disable-line no-console
     }
+  }
+
+  get disableResourceDetailDrawerConfigTab() {
+    return false;
   }
 }

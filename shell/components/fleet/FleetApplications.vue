@@ -143,12 +143,6 @@ export default {
       ];
     },
   },
-
-  methods: {
-    getDetailLocation(row: Application) {
-      return row._detailLocation;
-    }
-  },
 };
 </script>
 
@@ -169,7 +163,6 @@ export default {
       :schema="schema"
       :headers="headers"
       :rows="filteredRows"
-      :get-custom-detail-link="getDetailLocation"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :namespaced="!workspace"

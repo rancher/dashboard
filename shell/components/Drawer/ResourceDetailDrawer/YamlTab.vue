@@ -1,10 +1,10 @@
 <script lang="ts">
-import CodeMirror from '@shell/components/CodeMirror.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { _VIEW } from '@shell/config/query-params';
 import { useStore } from 'vuex';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import { useTemplateRef } from 'vue';
+import ResourceYaml from '@shell/components/ResourceYaml.vue';
 
 export interface Props {
   resource: any;
@@ -24,9 +24,10 @@ const yamlComponent: any = useTemplateRef('yaml');
     :label="i18n.t('component.drawer.resourceDetailDrawer.yamlTab.title')"
     @active="() => yamlComponent?.refresh()"
   >
-    <CodeMirror
+    <ResourceYaml
       ref="yaml"
-      :value="props.yaml"
+      :value="props.resource"
+      :yaml="props.yaml"
       :mode="_VIEW"
     />
   </Tab>

@@ -7,7 +7,9 @@ DASHBOARD_DIST=${DIR}/dist
 EMBER_DIST=${DIR}/dist_ember
 
 # Image version
-RANCHER_IMG_VERSION=v2.12-146a265b2d3e50d789ae55ad13daec8a1416c5fb-head
+RANCHER_IMG_VERSION=head
+# RANCHER_IMG_VERSION=v2.12-8bf56b046af7879386aa5928f50eee678f84b057-head - breaking commit
+# RANCHER_IMG_VERSION=v2.12-146a265b2d3e50d789ae55ad13daec8a1416c5fb-head - commit before - works
 
 # Docker volume args when mounting the locally-built UI into the container
 VOLUME_ARGS="-v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard -v ${EMBER_DIST}:/usr/share/rancher/ui"
@@ -21,12 +23,20 @@ fi
 
 echo "Using Rancher image version: ${RANCHER_IMG_VERSION}"
 
+# Configure the Rancher server URL from start, similarly to how chart installations work
+# The special host.docker.internal domain only works for Docker Desktop, not plain Docker Engine on linux, so using the special IP 172.17.0.1 to access the gateway of the default bridge network
+SERVER_URL="https://172.17.0.1"
+
 # we are now enabling the "oidc-provider" feature flag on install because we will need it for e2e testing (not enabled by default in non-prime versions)
 # "oidc-provider" feature flag needs a system restart so it's not feasible to enable it as part of the test
+
 docker run -d --restart=unless-stopped -p 80:80 -p 443:443 ${VOLUME_ARGS} \
   -e CATTLE_UI_OFFLINE_PREFERRED=true \
   -e CATTLE_BOOTSTRAP_PASSWORD=password \
   -e CATTLE_PASSWORD_MIN_LENGTH=3 \
+  -e CATTLE_SERVER_URL="${SERVER_URL}" \
+  -e CATTLE_DEBUG=true \
+  -e CATTLE_TRACE=true \
   --name cypress \
   --privileged \
   rancher/rancher:${RANCHER_IMG_VERSION} \

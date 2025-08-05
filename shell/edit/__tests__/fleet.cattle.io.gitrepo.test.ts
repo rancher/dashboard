@@ -13,7 +13,7 @@ const mockStore = {
     currentStore:              () => 'current_store',
     'current_store/schemaFor': jest.fn(),
     'current_store/all':       jest.fn(),
-    workspace:                 jest.fn(),
+    workspace:                 '',
   },
   rootGetters: { 'i18n/t': jest.fn() },
 };
@@ -58,7 +58,8 @@ const mockRepo = {
       { clusterName: `fleet-local` }
     ],
   },
-  status: {}
+  status:       {},
+  currentRoute: () => {},
 };
 
 const initGitRepo = (props: any, value?: any) => {

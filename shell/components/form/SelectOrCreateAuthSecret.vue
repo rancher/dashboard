@@ -237,7 +237,7 @@ export default {
       let filteredSecrets = [];
 
       if (this.allSecrets) {
-        // Fitler secrets given their namespace and required secret type
+        // Filter secrets given their namespace and required secret type
         filteredSecrets = this.allSecrets
           .filter((x) => this.filterByNamespace ? x.metadata.namespace === this.namespace : true
           )
@@ -450,6 +450,7 @@ export default {
             ),
           ],
         }),
+        watch: this.cacheSecrets,
       };
 
       if (this.cacheSecrets) {
@@ -464,9 +465,11 @@ export default {
         null,
         findPageArgs
       );
-      const res = await this.$store.dispatch(`cluster/request`, { url });
+      // Strictly speaking this could be any store (request action should be agnostic)
+      const res = await this.$store.dispatch(`${ this.inStore }/request`, { url });
 
-      return res?.data || [];
+      // Classify
+      return await this.$store.dispatch(`${ this.inStore }/createMany`, res?.data || []);
     },
 
     updateKeyVal() {

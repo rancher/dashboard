@@ -405,7 +405,7 @@ export default {
       </div>
       <div
         v-if="showAdd && !isView"
-        class="footer mt-20"
+        class="footer mmt-6"
       >
         <slot
           v-if="showAdd"

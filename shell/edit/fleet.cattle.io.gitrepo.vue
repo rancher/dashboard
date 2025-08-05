@@ -23,7 +23,9 @@ import FleetClusterTargets from '@shell/components/fleet/FleetClusterTargets/ind
 import { toSeconds } from '@shell/utils/duration';
 import FleetGitRepoPaths from '@shell/components/fleet/FleetGitRepoPaths.vue';
 import FleetOCIStorageSecret from '@shell/components/fleet/FleetOCIStorageSecret.vue';
-import { DEFAULT_POLLING_INTERVAL, MINIMUM_POLLING_INTERVAL } from '@shell/models/fleet-application';
+
+const MINIMUM_POLLING_INTERVAL = 15;
+const DEFAULT_POLLING_INTERVAL = 60;
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
@@ -105,10 +107,7 @@ export default {
       targetsCreated:          '',
       fvFormRuleSets:          [{
         path:  'spec.repo',
-        rules: [
-          'required',
-          'urlRepository'
-        ],
+        rules: ['urlRepository'],
       }],
       touched: null,
     };
@@ -636,7 +635,7 @@ export default {
             <Banner
               v-if="showPollingIntervalWarning"
               color="warning"
-              label-key="fleet.gitRepo.polling.pollingInterval.minimumValuewarning"
+              label-key="fleet.gitRepo.polling.pollingInterval.minimumValueWarning"
               data-testid="gitRepo-pollingInterval-minimumValueWarning"
             />
             <Banner
@@ -674,7 +673,7 @@ export default {
         @created="targetsCreated=$event"
       />
 
-      <h3 class="mt-40">
+      <h3 class="mmt-16">
         {{ t('fleet.gitRepo.target.additionalOptions') }}
       </h3>
       <div class="row mt-20">

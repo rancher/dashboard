@@ -1,6 +1,6 @@
 <script lang="ts">
 import BadgeState from '@components/BadgeState/BadgeState.vue';
-import { RouteLocationRaw } from 'vue-router';
+import { RouteLocationRaw, useRouter } from 'vue-router';
 import Title from '@shell/components/Resource/Detail/TitleBar/Title.vue';
 import Top from '@shell/components/Resource/Detail/TitleBar/Top.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
@@ -8,7 +8,11 @@ import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import RcButton from '@components/RcButton/RcButton.vue';
 import TabTitle from '@shell/components/TabTitle';
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { _CONFIG, _GRAPH, AS } from '@shell/config/query-params';
+import ButtonGroup from '@shell/components/ButtonGroup';
+import { ExtensionPoint, PanelLocation } from '@shell/core/types';
+import ExtensionPanel from '@shell/components/ExtensionPanel.vue';
 
 export interface Badge {
   color: 'bg-success' | 'bg-error' | 'bg-warning' | 'bg-info';
@@ -16,6 +20,7 @@ export interface Badge {
 }
 
 export interface TitleBarProps {
+  resource: any;
   resourceTypeLabel: string;
   resourceName: string;
 
@@ -27,6 +32,9 @@ export interface TitleBarProps {
   // I don't have the time right now to swap this out though.
   actionMenuResource?: any;
 
+  // Please don't expand this pattern, this was a quick fix to resolve a conflict between the new masthead and fleet.
+  showViewOptions?: boolean;
+
   onShowConfiguration?: (returnFocusSelector: string) => void;
 }
 
@@ -35,15 +43,41 @@ const showConfigurationIcon = require(`@shell/assets/images/icons/document.svg`)
 
 <script setup lang="ts">
 const {
-  resourceTypeLabel, resourceTo, resourceName, description, badge, onShowConfiguration
+  resource, resourceTypeLabel, resourceTo, resourceName, description, badge, showViewOptions, onShowConfiguration,
 } = defineProps<TitleBarProps>();
 
 const store = useStore();
 const i18n = useI18n(store);
+const router = useRouter();
 
 const emit = defineEmits(['show-configuration']);
 const showConfigurationDataTestId = 'show-configuration-cta';
 const showConfigurationReturnFocusSelector = computed(() => `[data-testid="${ showConfigurationDataTestId }"]`);
+
+const currentView = ref(router?.currentRoute?.value?.query?.as || _CONFIG);
+const viewOptions = computed(() => {
+  if (!showViewOptions) {
+    return;
+  }
+
+  return [
+    {
+      labelKey: 'resourceDetail.masthead.config',
+      value:    _CONFIG,
+    },
+    {
+      labelKey: 'resourceDetail.masthead.graph',
+      value:    _GRAPH,
+    }
+  ];
+});
+
+watch(
+  () => currentView.value,
+  () => {
+    router.push({ query: { [AS]: currentView.value } });
+  }
+);
 </script>
 
 <template>
@@ -77,6 +111,12 @@ const showConfigurationReturnFocusSelector = computed(() => `[data-testid="${ sh
         />
       </Title>
       <div class="actions">
+        <!-- Please don't expand this pattern, this was a quick fix to resolve a conflict between the new masthead and fleet. -->
+        <ButtonGroup
+          v-if="viewOptions"
+          v-model:value="currentView"
+          :options="viewOptions"
+        />
         <RcButton
           v-if="onShowConfiguration"
           :data-testid="showConfigurationDataTestId"
@@ -103,20 +143,30 @@ const showConfigurationReturnFocusSelector = computed(() => `[data-testid="${ sh
     </Top>
     <div
       v-if="description"
-      class="bottom description"
+      class="bottom description text-deemphasized"
     >
       {{ description }}
     </div>
+    <ExtensionPanel
+      :resource="resource"
+      :type="ExtensionPoint.PANEL"
+      :location="PanelLocation.DETAILS_MASTHEAD"
+    />
   </div>
 </template>
 
 <style lang="scss" scoped>
 .title-bar {
+  min-width: 740px;
 
   .badge-state {
     font-size: 16px;
-    margin-left: 4px;
+    margin-left: 12px;
     position: relative;
+  }
+
+  .show-configuration {
+    margin-left: 16px;
   }
 
   &:deep() button[data-testid="masthead-action-menu"] {

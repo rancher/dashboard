@@ -117,7 +117,6 @@ export default defineComponent({
     const store = this.$store as Store<any>;
     // This setting is used by RKE1 AKS GKE and EKS - rke2/k3s have a different mechanism for fetching supported versions
     const supportedVersionRange = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
-    const t = store.getters['i18n/t'];
 
     return {
 
@@ -133,10 +132,6 @@ export default defineComponent({
       touchedVersion:        false,
       touchedVmSize:         false,
       touchedVirtualNetwork: false,
-
-      networkPluginOptions: [
-        { value: 'kubenet', label: t('aks.networkPlugin.options.kubenet') }, { value: 'azure', label: t('aks.networkPlugin.options.azure') }
-      ],
 
       loadingVersions:        false,
       loadingVmSizes:         false,
@@ -255,13 +250,14 @@ export default defineComponent({
         locationRequired:        requiredInCluster(this, 'aks.location.label', 'config.location'),
         resourceGroupRequired:   requiredInCluster(this, 'aks.clusterResourceGroup.label', 'config.resourceGroup'),
         dnsPrefixRequired:       requiredInCluster(this, 'aks.dnsPrefix.label', 'config.dnsPrefix'),
+        virtualNetworkRequired:  requiredInCluster(this, 'aks.virtualNetwork.label', 'config.virtualNetwork'),
         resourceGroupChars:      resourceGroupChars(this, 'aks.clusterResourceGroup.label', 'config.resourceGroup'),
         nodeResourceGroupChars:  resourceGroupChars(this, 'aks.nodeResourceGroup.label', 'config.nodeResourceGroup'),
         resourceGroupLength:     resourceGroupLength(this, 'aks.clusterResourceGroup.label', 'config.resourceGroup'),
         nodeResourceGroupLength: resourceGroupLength(this, 'aks.nodeResourceGroup.label', 'config.nodeResourceGroup'),
         resourceGroupEnd:        resourceGroupEnd(this, 'aks.clusterResourceGroup.label', 'config.resourceGroup'),
         nodeResourceGroupEnd:    resourceGroupEnd(this, 'aks.nodeResourceGroup.label', 'config.nodeResourceGroup'),
-        ipv4WithOrWithoutCidr:   ipv4WithOrWithoutCidr(this, 'aks.authorizedIpRanges.label', 'config.authorizedIpRanges'),
+        ipv4WithOrWithoutCidr:   ipv4WithOrWithoutCidr(this),
         serviceCidr:             ipv4WithCidr(this, 'aks.serviceCidr.label', 'config.serviceCidr'),
         podCidr:                 ipv4WithCidr(this, 'aks.podCidr.label', 'config.podCidr'),
         dockerBridgeCidr:        ipv4WithCidr(this, 'aks.dockerBridgeCidr.label', 'config.dockerBridgeCidr'),
@@ -521,6 +517,20 @@ export default defineComponent({
       ];
     },
 
+    networkPluginOptions(): Array<any> {
+      return [
+        {
+          value:    'kubenet',
+          label:    this.t('aks.networkPlugin.options.kubenet'),
+          disabled: this.isUserDefinedRouting
+        },
+        {
+          value: 'azure',
+          label: this.t('aks.networkPlugin.options.azure')
+        }
+      ];
+    },
+
     // in the labeledselect, networks will be shown as 'groups' with their subnets as selectable options
     // it is possible for a virtual network to have no subnets defined - they will be excluded from this list
     virtualNetworkOptions() {
@@ -602,6 +612,10 @@ export default defineComponent({
 
     canEnableNetworkPolicy(): Boolean {
       return this.networkPolicy !== 'none';
+    },
+
+    isUserDefinedRouting(): Boolean {
+      return this.config?.outboundType === 'UserDefinedRouting';
     },
 
     CREATE(): string {
@@ -714,6 +728,22 @@ export default defineComponent({
       if (!neu) {
         this.config['logAnalyticsWorkspaceGroup'] = null;
         this.config['logAnalyticsWorkspaceName'] = null;
+      }
+    },
+
+    isUserDefinedRouting(neu: boolean) {
+      if (neu) {
+        this.config.networkPlugin = 'azure';
+        // add a required fv rule to the existing virtual network validators
+
+        const rule = this.fvFormRuleSets.find((r: {path: string, rules: string[]}) => r.path === 'networkPolicy') || { rules: [] };
+
+        rule.rules.push('virtualNetworkRequired');
+      } else {
+        // remove required fv rule
+        const rule = this.fvFormRuleSets.find((r:{path: string, rules: string[]}) => r.path === 'networkPolicy') || { rules: [] };
+
+        rule.rules.splice(rule.rules.indexOf('virtualNetworkRequired'), 1);
       }
     }
   },
@@ -1051,11 +1081,12 @@ export default defineComponent({
             <LabeledSelect
               v-model:value="config.outboundType"
               :mode="mode"
-              label-key="aks.dns.label"
+              label-key="aks.outboundType.label"
               :disabled="!isNewOrUnprovisioned"
               :rules="fvGetAndReportPathRules('outboundType')"
               :options="outboundTypeOptions"
               :tooltip="t('aks.outboundType.tooltip')"
+              data-testid="aks-outbound-type-select"
             />
           </div>
         </div>
@@ -1067,6 +1098,7 @@ export default defineComponent({
               :options="networkPluginOptions"
               label-key="aks.networkPlugin.label"
               :disabled="!isNewOrUnprovisioned"
+              data-testid="aks-network-plugin-select"
             />
           </div>
           <div class="col span-3">
@@ -1094,6 +1126,8 @@ export default defineComponent({
               option-key="key"
               :disabled="!isNewOrUnprovisioned"
               :rules="fvGetAndReportPathRules('networkPolicy')"
+              :required="isUserDefinedRouting"
+              :require-dirty="false"
               data-testid="aks-virtual-network-select"
               @selecting="(e)=>virtualNetwork = e"
             />

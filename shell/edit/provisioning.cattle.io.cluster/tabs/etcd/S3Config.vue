@@ -36,19 +36,18 @@ export default {
   },
 
   data() {
-    const config = {
-      bucket:              '',
-      cloudCredentialName: null,
-      endpoint:            '',
-      endpointCA:          '',
-      folder:              '',
-      region:              '',
-      skipSSLVerify:       false,
-
-      ...(this.value || {}),
+    return {
+      config: {
+        bucket:              '',
+        cloudCredentialName: null,
+        endpoint:            '',
+        endpointCA:          '',
+        folder:              '',
+        region:              '',
+        skipSSLVerify:       false,
+        ...(this.value || {}),
+      }
     };
-
-    return { config };
   },
 
   computed: {

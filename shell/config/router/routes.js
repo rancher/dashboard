@@ -1,13 +1,15 @@
 import { NAME as APPS } from '@shell/config/product/apps';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as MANAGER } from '@shell/config/product/manager';
-import { CAPI, MANAGEMENT, BACKUP_RESTORE, CIS } from '@shell/config/types';
+import {
+  CAPI, MANAGEMENT, BACKUP_RESTORE, COMPLIANCE, VIRTUAL_TYPES
+} from '@shell/config/types';
 import { NAME as AUTH } from '@shell/config/product/auth';
 
 // All these imports are related to the install-redirect.js navigation guard.
 import { installRedirectRouteMeta } from '@shell/config/router/navigation-guards/install-redirect';
 import { NAME as BACKUP_NAME, CHART_NAME as BACKUP_CHART_NAME } from '@shell/config/product/backup';
-import { NAME as CIS_NAME, CHART_NAME as CIS_CHART_NAME } from '@shell/config/product/cis';
+import { NAME as COMPLIANCE_NAME, CHART_NAME as COMPLIANCE_CHART_NAME } from '@shell/config/product/compliance';
 import { NAME as GATEKEEPER_NAME, CHART_NAME as GATEKEEPER_CHART_NAME } from '@shell/config/product/gatekeeper';
 import { NAME as ISTIO_NAME, CHART_NAME as ISTIO_CHART_NAME } from '@shell/config/product/istio';
 import { NAME as LOGGING_NAME, CHART_NAME as LOGGING_CHART_NAME } from '@shell/config/product/logging';
@@ -207,17 +209,25 @@ export default [
         name: 'c-cluster-backup',
         meta: { ...installRedirectRouteMeta(BACKUP_NAME, BACKUP_CHART_NAME, BACKUP_RESTORE.BACKUP) }
       }, {
-        path: '/c/:cluster/cis',
-        name: 'c-cluster-cis',
-        meta: { ...installRedirectRouteMeta(CIS_NAME, CIS_CHART_NAME, CIS.CLUSTER_SCAN) }
+        path: '/c/:cluster/compliance',
+        name: 'c-cluster-compliance',
+        meta: { ...installRedirectRouteMeta(COMPLIANCE_NAME, COMPLIANCE_CHART_NAME, COMPLIANCE.CLUSTER_SCAN) }
       }, {
         path:      '/c/:cluster/fleet',
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/index.vue')),
         name:      'c-cluster-fleet',
+        meta:      {
+          detailLocation: 'c-cluster-fleet-application-resource-namespace-id',
+          doneOverride:   'c-cluster-fleet',
+        },
       }, {
         path:      '/c/:cluster/fleet/application',
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/index.vue')),
         name:      'c-cluster-fleet-application',
+        meta:      {
+          detailLocation: 'c-cluster-fleet-application-resource-namespace-id',
+          doneOverride:   'c-cluster-fleet-application',
+        },
       }, {
         path:      '/c/:cluster/fleet/application/create',
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/create.vue')),
@@ -225,11 +235,19 @@ export default [
       }, {
         path:      '/c/:cluster/fleet/application/:resource/create',
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/_resource/create.vue')),
-        name:      'c-cluster-fleet-application-resource-create'
+        name:      'c-cluster-fleet-application-resource-create',
+        meta:      {
+          detailLocation: 'c-cluster-fleet-application-resource-namespace-id',
+          doneOverride:   'c-cluster-fleet-application',
+        },
       }, {
         path:      '/c/:cluster/fleet/application/:resource/:namespace/:id?',
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/_resource/_id.vue')),
-        name:      'c-cluster-fleet-application-resource-namespace-id'
+        name:      'c-cluster-fleet-application-resource-namespace-id',
+        meta:      {
+          detailLocation: 'c-cluster-fleet-application-resource-namespace-id',
+          doneOverride:   'c-cluster-fleet-application'
+        },
       }, {
         path:      '/c/:cluster/gatekeeper',
         component: () => interopDefault(import('@shell/pages/c/_cluster/gatekeeper/index.vue')),
@@ -296,6 +314,20 @@ export default [
             path:      'install',
             component: () => interopDefault(import('@shell/pages/c/_cluster/apps/charts/install.vue')),
             name:      'c-cluster-apps-charts-install',
+          },
+          {
+            path: '/c/:cluster/apps/catalog.cattle.io.clusterrepo',
+            name: 'c-cluster-apps-catalog-repo',
+            redirect(to) {
+              return {
+                name:   'c-cluster-product-resource',
+                params: {
+                  ...to.params,
+                  product:  APPS,
+                  resource: 'catalog.cattle.io.clusterrepo',
+                }
+              };
+            },
           },
         ]
       },
@@ -477,6 +509,10 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_id.vue')),
         name:      'c-cluster-product-resource-id',
         meta:      { asyncSetup: true }
+      }, {
+        path:      `/c/:cluster/:product/${ VIRTUAL_TYPES.PROJECT_SECRETS }/:namespace/:id`,
+        component: () => interopDefault(import(`@shell/pages/c/_cluster/explorer/${ VIRTUAL_TYPES.PROJECT_SECRETS }.vue`)),
+        name:      `c-cluster-product-${ VIRTUAL_TYPES.PROJECT_SECRETS }-namespace-id`,
       }, {
         path:      '/c/:cluster/:product/:resource/:namespace/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_namespace/_id.vue')),

@@ -47,16 +47,6 @@ export default {
     },
   },
   data() {
-    if (!this.value[TARGET_OPTIONS.IP_BLOCK] &&
-      !this.value[TARGET_OPTIONS.POD_SELECTOR] &&
-      !this.value[TARGET_OPTIONS.NAMESPACE_SELECTOR] &&
-      !this.value[TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR]
-    ) {
-      this.$nextTick(() => {
-        this.value[TARGET_OPTIONS.IP_BLOCK] = {};
-      });
-    }
-
     return {
       portOptions:  ['TCP', 'UDP'],
       matchingPods: {
@@ -73,6 +63,17 @@ export default {
       inStore:                this.$store.getters['currentProduct'].inStore,
       debouncedUpdateMatches: debounce(this.updateMatches, 500)
     };
+  },
+  created() {
+    if (!this.value[TARGET_OPTIONS.IP_BLOCK] &&
+      !this.value[TARGET_OPTIONS.POD_SELECTOR] &&
+      !this.value[TARGET_OPTIONS.NAMESPACE_SELECTOR] &&
+      !this.value[TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR]
+    ) {
+      this.$nextTick(() => {
+        this.value[TARGET_OPTIONS.IP_BLOCK] = {};
+      });
+    }
   },
   computed: {
     /**
