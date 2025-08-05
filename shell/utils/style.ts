@@ -37,3 +37,6 @@ export function getHighestAlertColor(colors: StateColor[]) {
 
   return highestAlert;
 }
+
+// 1x1 transparent image as a placeholder image
+export const BLANK_IMAGE = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';

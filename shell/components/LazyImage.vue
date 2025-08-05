@@ -1,9 +1,11 @@
 <script>
+import { BLANK_IMAGE } from '@shell/utils/style';
+
 export default {
   props: {
     initialSrc: {
       type:    String,
-      default: require('@shell/assets/images/generic-catalog.svg'),
+      default: BLANK_IMAGE,
     },
 
     errorSrc: {
@@ -28,6 +30,11 @@ export default {
   watch: {
     src(neu, old) {
       if (neu !== old) {
+        // Show error image if src is falsy
+        if (!neu) {
+          return this.onError();
+        }
+
         if (this.intersected) {
           // The component is in the viewport, load the new image right away
           this.loadImage();
@@ -42,7 +49,12 @@ export default {
   },
 
   mounted() {
-    this.startObserver();
+    // Show error image if src is falsy
+    if (!this.src) {
+      this.onError();
+    } else {
+      this.startObserver();
+    }
   },
 
   beforeUnmount() {
