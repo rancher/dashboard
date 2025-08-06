@@ -97,7 +97,7 @@ interface RcItemCardProps {
    *   @focusSearch="focusSearch"
    * />
    */
-   actions?: DropdownOption[];
+  actions?: DropdownOption[];
 
   /** Text content inside the card body. A slot is available for it too #item-card-content */
   content?: Label;
