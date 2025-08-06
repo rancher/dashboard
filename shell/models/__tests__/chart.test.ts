@@ -1,6 +1,7 @@
 import Chart from '@shell/models/chart';
 import { APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { ZERO_TIME } from '@shell/config/types';
 
 const base = {
   chartName:       'my-app',
@@ -268,6 +269,28 @@ describe('class Chart', () => {
         'generic.upgradeable',
         'generic.installed'
       ]));
+    });
+
+    it('handles zero time for last updated date', () => {
+      const chartWithZeroTime = {
+        ...base,
+        versions: [{
+          ...base.versions[0],
+          created: ZERO_TIME,
+        }]
+      };
+      const chart = new Chart(chartWithZeroTime, {
+        rootGetters: {
+          'cluster/all': () => [],
+          'i18n/t':      (key) => key
+        },
+      });
+
+      const result = chart.cardContent;
+      const lastUpdatedItem = result.subHeaderItems[1];
+
+      expect(lastUpdatedItem.label).toBe('generic.na');
+      expect(lastUpdatedItem.labelTooltip).toBe('generic.missingInfoMessage');
     });
   });
 });

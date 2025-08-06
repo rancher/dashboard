@@ -4,7 +4,7 @@ import {
 } from '@shell/config/query-params';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { CATALOG } from '@shell/config/types';
+import { CATALOG, ZERO_TIME } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import day from 'dayjs';
 
@@ -121,21 +121,23 @@ export default class Chart extends SteveModel {
    */
   get cardContent() {
     if (!this._cardContent) {
-      const subHeaderItems = [
-        {
-          icon:        'icon-version-alt',
-          iconTooltip: { key: 'tableHeaders.version' },
-          label:       this.versions[0].version
-        }
-      ];
+      const latestVersion = this.versions?.[0] || {};
+      const subHeaderItems = [];
 
-      // To hide the date for cases like AppCo that don't provide a meaningful date
-      if (this.versions[0].created !== '0001-01-01T00:00:00Z') {
+      if (latestVersion) {
+        const hasZeroTime = latestVersion.created === ZERO_TIME;
+
         subHeaderItems.push(
+          {
+            icon:        'icon-version-alt',
+            iconTooltip: { key: 'tableHeaders.version' },
+            label:       latestVersion.version
+          },
           {
             icon:        'icon-refresh-alt',
             iconTooltip: { key: 'tableHeaders.lastUpdated' },
-            label:       day(this.versions[0].created).format('MMM D, YYYY')
+            label:       hasZeroTime ? this.t('generic.na') : day(latestVersion.created).format('MMM D, YYYY'),
+            ...(hasZeroTime && { labelTooltip: this.t('generic.missingInfoMessage') })
           }
         );
       }

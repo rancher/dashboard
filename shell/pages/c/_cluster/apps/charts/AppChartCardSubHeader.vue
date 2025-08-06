@@ -4,6 +4,7 @@ interface SubHeaderItem {
   icon: string;
   iconTooltip?: Record<{key?: string, text?: string}>;
   label: string;
+  labelTooltip?: string;
 }
 
 defineProps<{
@@ -24,7 +25,9 @@ defineProps<{
         v-clean-tooltip="t(subHeaderItem.iconTooltip.key)"
         :class="['icon', 'app-chart-card-sub-header-item-icon', subHeaderItem.icon]"
       />
-      <p>{{ subHeaderItem.label }}</p>
+      <p v-clean-tooltip="subHeaderItem.labelTooltip">
+        {{ subHeaderItem.label }}
+      </p>
     </div>
   </div>
 </template>
