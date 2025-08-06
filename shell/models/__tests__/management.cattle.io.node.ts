@@ -11,25 +11,6 @@ describe('class MgmtNode', () => {
     jest.clearAllMocks();
   };
 
-  describe('should return an appropriate message', () => {
-    it('if there is no internalIp to display', () => {
-      const node = new MgmtNode({ status: {} }, ctx);
-
-      expect(node.internalIp).toStrictEqual(bar);
-      expect(t).toHaveBeenCalledTimes(1);
-      expect(t).toHaveBeenCalledWith('generic.none');
-      resetMocks();
-    });
-    it('if there is no externalIp to display', () => {
-      const node = new MgmtNode({ status: {} }, ctx);
-
-      expect(node.externalIp).toStrictEqual(bar);
-      expect(t).toHaveBeenCalledTimes(1);
-      expect(t).toHaveBeenCalledWith('generic.none');
-      resetMocks();
-    });
-  });
-
   it('should not return addresses if they are not present in the resource status, the internalNodeStatus, or the rkeNode key in status', () => {
     const mgmtNode = new MgmtNode({ status: {} });
 

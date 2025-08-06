@@ -1,11 +1,6 @@
 import Node from '@shell/models/cluster/node';
 
 describe('class Node', () => {
-  const foo = 'foo';
-  const bar = 'bar';
-  const t = jest.fn(() => bar);
-  const ctx = { rootGetters: { 'i18n/t': t } };
-
   const resetMocks = () => {
     // Clear all mock function calls:
     jest.clearAllMocks();
