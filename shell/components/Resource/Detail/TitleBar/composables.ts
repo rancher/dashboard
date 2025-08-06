@@ -29,6 +29,7 @@ export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: Ref<str
     const onShowConfiguration = resourceValue.disableResourceDetailDrawer ? undefined : (returnFocusSelector: string) => openResourceDetailDrawer(resourceValue, returnFocusSelector);
 
     return {
+      resource:           resourceValue,
       resourceTypeLabel,
       resourceTo,
       resourceName,

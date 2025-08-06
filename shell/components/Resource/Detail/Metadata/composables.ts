@@ -16,6 +16,7 @@ export const useBasicMetadata = (resource: any) => {
 
   return computed(() => {
     return {
+      resource:            toValue(resource),
       labels:              labels.value,
       annotations:         annotations.value,
       onShowConfiguration: (returnFocusSelector: string) => openResourceDetailDrawer(resource, returnFocusSelector)
@@ -33,6 +34,7 @@ export const useDefaultMetadataProps = (resource: any, additionalIdentifyingInfo
 
   return computed(() => {
     return {
+      resource:               toValue(resource),
       identifyingInformation: identifyingInformation.value,
       labels:                 basicMetaData.value.labels,
       annotations:            basicMetaData.value.annotations,
@@ -69,6 +71,7 @@ export const useDefaultMetadataForLegacyPagesProps = (resource: any) => {
 
   return computed(() => {
     return {
+      resource:               toValue(resource),
       identifyingInformation: identifyingInformation.value,
       labels:                 basicMetaData.value.labels,
       annotations:            basicMetaData.value.annotations,

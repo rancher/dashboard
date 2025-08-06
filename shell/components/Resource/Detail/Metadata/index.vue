@@ -7,15 +7,20 @@ import KeyValue from '@shell/components/Resource/Detail/Metadata/KeyValue.vue';
 import { computed } from 'vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
+import { ExtensionPoint, PanelLocation } from '@shell/core/types';
+import ExtensionPanel from '@shell/components/ExtensionPanel.vue';
 
 export interface MetadataProps {
+  resource: any;
   identifyingInformation: IdentifyingInformationRow[],
   labels: Label[],
   annotations: Annotation[],
   onShowConfiguration?: (returnFocusSelector: string) => void;
 }
 
-const { identifyingInformation, labels, annotations } = defineProps<MetadataProps>();
+const {
+  resource, identifyingInformation, labels, annotations
+} = defineProps<MetadataProps>();
 const emit = defineEmits(['show-configuration']);
 
 const store = useStore();
@@ -25,7 +30,10 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
 </script>
 
 <template>
-  <SpacedRow class="metadata ppb-3">
+  <SpacedRow
+    class="metadata ppb-3"
+    v-bind="$attrs"
+  >
     <div
       class="identifying-info"
     >
@@ -62,6 +70,13 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
       />
     </div>
   </SpacedRow>
+  <!-- Extensions area -->
+  <ExtensionPanel
+    class="ppb-3"
+    :resource="resource"
+    :type="ExtensionPoint.PANEL"
+    :location="PanelLocation.DETAIL_TOP"
+  />
 </template>
 
 <style lang="scss" scoped>
