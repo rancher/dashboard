@@ -3,7 +3,6 @@ import difference from 'lodash/difference';
 import { mapGetters } from 'vuex';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
-
 import { set, get } from '@shell/utils/object';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
@@ -11,7 +10,6 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import YamlEditor from '@shell/components/YamlEditor';
 import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
-import { _CREATE, _EDIT } from '@shell/config/query-params';
 
 const HARVESTER = 'harvester';
 
@@ -119,12 +117,23 @@ export default {
     }
   },
 
+  data() {
+    return {
+      showEnablingComplianceWarning: false,
+      initialAgentProfile:           this.value.agentConfig?.profile || ''
+    };
+  },
+
   watch: {
     selectedVersion(neu, old) {
       if (neu?.value !== old?.value && this.ciliumIpv6) {
         // Re-assign so that the setter updates the structure for the new k8s version if needed
         this.ciliumIpv6 = !!this.ciliumIpv6;
       }
+    },
+
+    'agentConfig.profile'(newValue) {
+      this.showEnablingComplianceWarning = this.provider === 'custom' && this.isEdit && !!newValue && newValue !== this.initialAgentProfile;
     }
   },
 
@@ -382,10 +391,6 @@ export default {
       }
     },
 
-    isEdit() {
-      return this.mode === _EDIT;
-    },
-
     canNotEditCloudProvider() {
       if (!this.isEdit) {
         return false;
@@ -405,14 +410,14 @@ export default {
      * Display warning about unsupported Azure provider if k8s >= 1.30
      */
     showCloudProviderUnsupportedAzureWarning() {
-      return this.showCloudProvider && this.mode === _CREATE && this.isAzureProviderUnsupported;
+      return this.showCloudProvider && this.isCreate && this.isAzureProviderUnsupported;
     },
 
     /**
      * Display warning about Azure provider migration from k8s versions >= 1.27 to External provider
      */
     showCloudProviderMigrateAzureWarning() {
-      return this.showCloudProvider && this.mode === _EDIT && this.canAzureMigrateOnEdit;
+      return this.showCloudProvider && this.isEdit && this.canAzureMigrateOnEdit;
     }
   },
 
@@ -579,11 +584,8 @@ export default {
       <p v-clean-html="t('cluster.rke2.banner.complianceUnsupported', {profile: serverConfig.profile || agentConfig.profile}, true)" />
     </Banner>
 
-    <div class="row mb-10">
-      <div
-        v-if="showComplianceProfile"
-        class="col span-6"
-      >
+    <div v-if="showComplianceProfile">
+      <div class="col span-6">
         <LabeledSelect
           v-if="serverArgs && serverArgs.profile && serverConfig"
           v-model:value="serverConfig.profile"
@@ -600,6 +602,13 @@ export default {
           :options="profileOptions"
           :label="t('cluster.rke2.compliance.agent')"
           @update:value="$emit('compliance-changed')"
+        />
+      </div>
+      <div class="row mb-10">
+        <Banner
+          v-if="showEnablingComplianceWarning"
+          color="warning"
+          label-key="cluster.rke2.compliance.warning"
         />
       </div>
     </div>

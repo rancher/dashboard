@@ -125,7 +125,7 @@ export default {
         context: this.context,
       };
 
-      return this.$store.getters[`${ this.inStore }/paginationEnabled`]?.(args);
+      return this.$store.getters[`${ this.overrideInStore || this.inStore }/paginationEnabled`]?.(args);
     }
   },
 
@@ -200,7 +200,7 @@ export default {
         return;
       }
 
-      return this.$store.getters[`${ this.inStore }/havePage`](this.resource);
+      return this.$store.getters[`${ this.overrideInStore || this.inStore }/havePage`](this.resource);
     },
 
     /**
@@ -280,12 +280,12 @@ export default {
           projectsOrNamespaces,
           filters
         } = stevePaginationUtils.createParamsFromNsFilter({
-          allNamespaces:                this.$store.getters[`${ this.currentProduct?.inStore }/all`](NAMESPACE),
-          selection:                    neu,
-          isAllNamespaces:              this.isAllNamespaces,
-          isLocalCluster:               this.$store.getters['currentCluster'].isLocal,
-          showDynamicRancherNamespaces: this.showDynamicRancherNamespaces,
-          productHidesSystemNamespaces: this.productHidesSystemNamespaces,
+          allNamespaces:                 this.$store.getters[`${ this.currentProduct?.inStore }/all`](NAMESPACE),
+          selection:                     neu,
+          isAllNamespaces:               this.isAllNamespaces,
+          isLocalCluster:                this.$store.getters['currentCluster'].isLocal,
+          showReservedRancherNamespaces: this.showDynamicRancherNamespaces,
+          productHidesSystemNamespaces:  this.productHidesSystemNamespaces,
         });
 
         this.requestFilters.filters = filters;
@@ -352,7 +352,7 @@ export default {
     }
   },
 
-  unmounted() {
+  async beforeUnmount() {
     if (this.havePaginated) {
       // of type @STEVE_WATCH_PARAMS
       const watchArgs = {
@@ -360,9 +360,8 @@ export default {
         mode: STEVE_WATCH_MODE.RESOURCE_CHANGES,
       };
 
-      this.$store.dispatch(`${ this.inStore }/forgetType`, this.resource, (watchParams) => {
-        return watchParams.type === watchArgs.type &&
-        watchParams.mode === watchArgs.type.mode;
+      await this.$store.dispatch(`${ this.overrideInStore || this.inStore }/forgetType`, this.resource, (watchParams) => {
+        return watchParams.type === watchArgs.type && watchParams.mode === watchArgs.type.mode;
       });
     }
   }

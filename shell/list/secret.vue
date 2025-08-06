@@ -1,19 +1,21 @@
-<script>
+<script lang="ts">
 import Masthead from '@shell/components/ResourceList/Masthead';
-import Loading from '@shell/components/Loading';
-import ResourceTable from '@shell/components/ResourceTable';
-import Tabbed from '@shell/components/Tabbed';
-import Tab from '@shell/components/Tabbed/Tab';
-import { SCOPE as SECRET_SCOPE, SCOPED_TABS as SECRET_SCOPED_TABS } from '@shell/config/query-params';
-import { NAMESPACE as NAMESPACE_HEADER } from '@shell/config/table-headers';
-import { MANAGEMENT } from '@shell/config/types';
-import { UI_PROJECT_SCOPED } from '@shell/config/labels-annotations';
-import { mapPref, GROUP_RESOURCES } from '@shell/store/prefs';
+import { SECRET_SCOPE, SECRET_QUERY_PARAMS } from '@shell/config/query-params';
+import { MANAGEMENT, SECRET } from '@shell/config/types';
+import { STORE } from '@shell/store/store-types';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
+import { TableColumn } from '@shell/types/store/type-map';
+import ResourceFetch from '@shell/mixins/resource-fetch';
+import { mapGetters } from 'vuex';
+import { SECRET_CLONE, SECRET_PROJECT_SCOPED } from '@shell/config/table-headers';
+import { STEVE_SECRET_CLONE } from '@shell/config/pagination-table-headers';
 
 export default {
-  name:       'Secret',
+  name: 'ListSecret',
+
   components: {
-    ResourceTable, Tabbed, Tab, Masthead, Loading
+    Masthead,
+    PaginatedResourceTable
   },
   props: {
     resource: {
@@ -26,155 +28,82 @@ export default {
       required: true,
     },
 
-    rows: {
-      type:     Array,
-      required: true,
-    },
-
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
     }
   },
 
+  mixins: [ResourceFetch],
+
   data() {
     return {
-      headers:                  null,
-      hasAccessToProjectSchema: false,
-      allProjects:              [],
-      activeTab:                null,
-      SECRET_SCOPED_TABS
+      canViewProjects:  false,
+      activeTab:        SECRET_QUERY_PARAMS.NAMESPACED,
+      SECRET_TABS:      SECRET_QUERY_PARAMS,
+      managementSchema: undefined,
+
+      STORE,
+
+      namespacedHeaders:    [] as TableColumn[],
+      namespacedHeadersSsp: [] as TableColumn[],
     };
   },
 
-  created() {
-    const headers = this.$store.getters['type-map/headersFor'](this.schema, false);
-    const hasAccessToProjectSchema = this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT);
-    const allProjects = [];
+  async created() {
+    this.canViewProjects = this.$store.getters[`${ STORE.MANAGEMENT }/schemaFor`](MANAGEMENT.PROJECT);
+    this.managementSchema = this.$store.getters[`${ STORE.MANAGEMENT }/schemaFor`](SECRET);
+    this.namespacedHeaders = this.$store.getters['type-map/headersFor'](this.schema, false) as TableColumn[];
+    this.namespacedHeadersSsp = this.$store.getters['type-map/headersFor'](this.schema, true) as TableColumn[];
 
-    if (hasAccessToProjectSchema) {
-      this.$store.getters['management/all'](MANAGEMENT.PROJECT).forEach((p) => {
-        const [clusterId, projectId] = p.id.split('/');
+    const headers = this.namespacedHeaders.slice(0, -1);
+    const headersSSP = this.namespacedHeadersSsp.slice(0, -1);
 
-        allProjects.push({
-          clusterId,
-          projectId,
-          projectName: p.spec.displayName
-        });
-      });
+    if (this.canViewProjects) {
+      // if the user can see projects, add a column to let them know if it's a secret from a project scoped secret
+      headers.push(SECRET_CLONE);
+      headersSSP.push(STEVE_SECRET_CLONE);
+      if (this.currentCluster.isLocal) {
+        // if the user is on the local cluster, add a column to let them know if it's a project scoped secret (from another cluster)
+        headers.push(SECRET_PROJECT_SCOPED);
+        headersSSP.push(SECRET_PROJECT_SCOPED);
+      }
     }
 
-    this.headers = headers;
-    this.hasAccessToProjectSchema = hasAccessToProjectSchema;
-    this.allProjects = allProjects;
+    headers.push(this.namespacedHeaders[this.namespacedHeaders.length - 1]);
+    headersSSP.push(this.namespacedHeadersSsp[this.namespacedHeadersSsp.length - 1]);
+
+    this.namespacedHeaders = headers;
+    this.namespacedHeadersSsp = headersSSP;
   },
 
   computed: {
-    groupPreference: mapPref(GROUP_RESOURCES),
-
-    projectgroupBy() {
-      return this.groupPreference === 'none' ? null : 'projectName';
-    },
-
-    projectScopedSecrets() {
-      const filtered = this.rows.filter((r) => !!r.metadata.labels?.[UI_PROJECT_SCOPED]);
-
-      filtered.forEach((row) => {
-        row['projectName'] = this.getProjectName(row);
-      });
-
-      return filtered;
-    },
-
-    projectScopedHeaders() {
-      const projectHeader = {
-        name:     'project',
-        labelKey: 'tableHeaders.project',
-        sort:     'project',
-      };
-
-      return this.headers.map((h) => h.name === NAMESPACE_HEADER.name ? projectHeader : h);
-    },
-
     createLocation() {
       return {
         name:  'c-cluster-product-resource-create',
-        query: { [SECRET_SCOPE]: this.activeTab }
+        query: { [SECRET_SCOPE]: SECRET_QUERY_PARAMS.NAMESPACED }
       };
     },
 
-    createLabel() {
-      if (!this.hasAccessToProjectSchema) {
-        return this.t('generic.create');
-      } else if (this.activeTab === SECRET_SCOPED_TABS.NAMESPACED) {
-        return this.t('secret.tabs.namespaced.create');
-      } else if (this.activeTab === SECRET_SCOPED_TABS.PROJECT_SCOPED) {
-        return this.t('secret.tabs.projectScoped.create');
-      }
-
-      return this.t('generic.create');
-    },
+    ...mapGetters(['currentCluster']),
   },
 
-  methods: {
-    getProjectName(row) {
-      const projectId = row.metadata.labels[UI_PROJECT_SCOPED];
-
-      return this.allProjects.find((p) => p.projectId === projectId)?.projectName;
-    },
-
-    handleTabChange(data) {
-      this.activeTab = data.selectedName;
-    }
-  }
 };
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div>
     <Masthead
       component-testid="secrets-list"
       :schema="schema"
       :resource="resource"
       :create-location="createLocation"
-      :create-button-label="createLabel"
-      :is-creatable="true"
     />
-    <Tabbed
-      hideSingleTab
-      @changed="handleTabChange"
-    >
-      <Tab
-        label-key="secret.tabs.namespaced.label"
-        :name="SECRET_SCOPED_TABS.NAMESPACED"
-        :weight="1"
-      >
-        <ResourceTable
-          :schema="schema"
-          :headers="headers"
-          :rows="rows"
-          :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-        />
-      </Tab>
-      <Tab
-        v-if="hasAccessToProjectSchema"
-        label-key="secret.tabs.projectScoped.label"
-        :name="SECRET_SCOPED_TABS.PROJECT_SCOPED"
-      >
-        <ResourceTable
-          :schema="schema"
-          :headers="projectScopedHeaders"
-          :rows="projectScopedSecrets"
-          :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-          :groupable="true"
-          :group-by="projectgroupBy"
-        >
-          <template #cell:project="{row}">
-            <span>{{ row.projectName }}</span>
-          </template>
-        </ResourceTable>
-      </Tab>
-    </Tabbed>
+    <PaginatedResourceTable
+      :schema="schema"
+      :headers="namespacedHeaders"
+      :pagination-headers="namespacedHeadersSsp"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    />
   </div>
 </template>

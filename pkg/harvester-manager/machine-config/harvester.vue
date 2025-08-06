@@ -18,6 +18,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { Banner } from '@components/Banner';
 import { clone, get } from '@shell/utils/object';
 import { uniq, removeObject } from '@shell/utils/array';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 
@@ -133,13 +134,14 @@ export default {
 
       if (clusterId) {
         let configMapsUrl = `${ url }/${ CONFIG_MAP }s`;
+        const harvesterClusterVaiEnabled = await paginationUtils.isDownstreamSteveCacheEnabled({ dispatch: this.$store.dispatch }, clusterId);
 
-        if (this.$store.getters[`cluster/paginationEnabled`](CONFIG_MAP)) {
+        if (harvesterClusterVaiEnabled && this.$store.getters[`cluster/paginationEnabled`](CONFIG_MAP)) {
           const pagination = new FilterArgs({
             filters: [
               PaginationParamFilter.createMultipleFields([
-                new PaginationFilterField({ field: `metadata.label["${ HCI_ANNOTATIONS.CLOUD_INIT }"]`, value: 'user' }),
-                new PaginationFilterField({ field: `metadata.label["${ HCI_ANNOTATIONS.CLOUD_INIT }"]`, value: 'network' })
+                new PaginationFilterField({ field: `metadata.labels[${ HCI_ANNOTATIONS.CLOUD_INIT }]`, value: 'user' }),
+                new PaginationFilterField({ field: `metadata.labels[${ HCI_ANNOTATIONS.CLOUD_INIT }]`, value: 'network' })
               ])
             ]
           });

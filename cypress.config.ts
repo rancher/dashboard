@@ -123,6 +123,14 @@ export default defineConfig({
       on('task', { removeDirectory });
       websocketTasks(on, config);
 
+      require('cypress-terminal-report/src/installLogsPrinter')(on, {
+        outputRoot:           `${ config.projectRoot }/browser-logs/`,
+        outputTarget:         { 'out.html': 'html' },
+        logToFilesOnAfterRun: true,
+        printLogsToConsole:   'never',
+        // printLogsToFile:      'always', // default prints on failures
+      });
+
       return config;
     },
     experimentalSessionAndOrigin: true,

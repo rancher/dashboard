@@ -44,6 +44,10 @@ export default {
       type:    String,
       default: () => undefined,
     },
+    imgAlt: {
+      type:    String,
+      default: () => undefined,
+    },
     color: {
       type:    String,
       default: () => 'primary',
@@ -143,6 +147,7 @@ export default {
     :src="src"
     class="svg-icon"
     :class="className"
+    :alt="imgAlt"
   >
   <i
     v-else-if="icon"

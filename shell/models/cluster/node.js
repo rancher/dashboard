@@ -227,7 +227,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get podCapacity() {
-    return Number.parseInt(this.status.capacity?.pods);
+    return parseSi(this.status.capacity?.pods);
   }
 
   get podConsumed() {

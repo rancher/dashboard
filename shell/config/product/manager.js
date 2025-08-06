@@ -67,7 +67,6 @@ export function init(store) {
   ]);
 
   configureType(SNAPSHOT, { depaginate: true });
-  configureType(NORMAN.ETCD_BACKUP, { depaginate: true });
 
   configureType(CAPI.RANCHER_CLUSTER, {
     showListMasthead: false, namespaced: false, alias: [HCI.CLUSTER]

@@ -82,7 +82,7 @@ TEXTAREA {
 }
 
 FORM {
-  LABEL {
+  LABEL, .key-value-label {
     color: var(--input-label);
     display: inline-block;
     margin: $spacing 0 $spacing 0;

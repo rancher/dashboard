@@ -125,7 +125,7 @@ export default class CapiMachineDeployment extends SteveModel {
       return;
     }
 
-    const initialValue = this.cluster.toJSON();
+    const initialValue = this.cluster;
 
     this.inClusterSpec.quantity += delta;
 
@@ -145,7 +145,16 @@ export default class CapiMachineDeployment extends SteveModel {
         let errors = exceptionToErrorsArray(err);
 
         if ( err.status === 409 && depth < 2 ) {
-          const conflicts = await handleConflict(initialValue, value, liveModel, this.$rootGetters, { dispatch: this.$dispatch }, 'management');
+          const conflicts = await handleConflict(
+            initialValue,
+            value,
+            liveModel,
+            {
+              dispatch: this.$dispatch,
+              getters:  this.$rootGetters
+            },
+            'management'
+          );
 
           if ( conflicts === false ) {
             // It was automatically figured out, save again

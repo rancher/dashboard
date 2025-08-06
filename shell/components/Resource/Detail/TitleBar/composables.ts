@@ -1,4 +1,3 @@
-import { useResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
 import { TitleBarProps } from '@shell/components/Resource/Detail/TitleBar/index.vue';
 import { computed, Ref, toValue } from 'vue';
 import { useRoute } from 'vue-router';
@@ -7,7 +6,6 @@ import { useStore } from 'vuex';
 export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: Ref<string | undefined>): Ref<TitleBarProps> => {
   const route = useRoute();
   const store = useStore();
-  const { openResourceDetailDrawer } = useResourceDetailDrawer();
   const resourceValue = toValue(resource);
 
   return computed(() => {
@@ -26,8 +24,10 @@ export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: Ref<str
       }
     };
     const hasGraph = !!store.getters['type-map/hasGraph'](resourceValue.type);
+    const onShowConfiguration = resourceValue.disableResourceDetailDrawer ? undefined : (returnFocusSelector: string) => resourceValue.showConfiguration(returnFocusSelector);
 
     return {
+      resource:           resourceValue,
       resourceTypeLabel,
       resourceTo,
       resourceName,
@@ -36,9 +36,9 @@ export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: Ref<str
         color: resourceValue.stateBackground,
         label: resourceValue.stateDisplay
       },
-      description:         resourceValue.description,
-      showViewOptions:     hasGraph,
-      onShowConfiguration: (returnFocusSelector: string) => openResourceDetailDrawer(resourceValue, returnFocusSelector)
+      description:     resourceValue.description,
+      showViewOptions: hasGraph,
+      onShowConfiguration
     };
   });
 };

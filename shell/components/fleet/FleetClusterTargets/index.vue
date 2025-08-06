@@ -14,6 +14,11 @@ import { RcButton } from '@components/RcButton';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import TargetsList from '@shell/components/fleet/FleetClusterTargets/TargetsList.vue';
 
+export interface Cluster {
+  name: string,
+  nameDisplay: string
+}
+
 interface DataType {
   targetMode: TargetMode,
   allClusters: any[],
@@ -46,7 +51,7 @@ export default {
     },
 
     matching: {
-      type:    Array as PropType<{ name: string }[]>,
+      type:    Array as PropType<Cluster[]>,
       default: () => [],
     },
 

@@ -1,7 +1,9 @@
 import { NAME as APPS } from '@shell/config/product/apps';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as MANAGER } from '@shell/config/product/manager';
-import { CAPI, MANAGEMENT, BACKUP_RESTORE, COMPLIANCE } from '@shell/config/types';
+import {
+  CAPI, MANAGEMENT, BACKUP_RESTORE, COMPLIANCE, VIRTUAL_TYPES
+} from '@shell/config/types';
 import { NAME as AUTH } from '@shell/config/product/auth';
 
 // All these imports are related to the install-redirect.js navigation guard.
@@ -313,6 +315,20 @@ export default [
             component: () => interopDefault(import('@shell/pages/c/_cluster/apps/charts/install.vue')),
             name:      'c-cluster-apps-charts-install',
           },
+          {
+            path: '/c/:cluster/apps/catalog.cattle.io.clusterrepo',
+            name: 'c-cluster-apps-catalog-repo',
+            redirect(to) {
+              return {
+                name:   'c-cluster-product-resource',
+                params: {
+                  ...to.params,
+                  product:  APPS,
+                  resource: 'catalog.cattle.io.clusterrepo',
+                }
+              };
+            },
+          },
         ]
       },
       {
@@ -493,6 +509,10 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_id.vue')),
         name:      'c-cluster-product-resource-id',
         meta:      { asyncSetup: true }
+      }, {
+        path:      `/c/:cluster/:product/${ VIRTUAL_TYPES.PROJECT_SECRETS }/:namespace/:id`,
+        component: () => interopDefault(import(`@shell/pages/c/_cluster/explorer/${ VIRTUAL_TYPES.PROJECT_SECRETS }.vue`)),
+        name:      `c-cluster-product-${ VIRTUAL_TYPES.PROJECT_SECRETS }-namespace-id`,
       }, {
         path:      '/c/:cluster/:product/:resource/:namespace/:id',
         component: () => interopDefault(import('@shell/pages/c/_cluster/_product/_resource/_namespace/_id.vue')),

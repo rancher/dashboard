@@ -4,6 +4,7 @@ export const regionsWithAvailabilityZones = {
   canadacentral:      true,
   centralindia:       true,
   centralus:          true,
+  chilecentral:       true,
   eastasia:           true,
   eastus:             true,
   eastus2:            true,

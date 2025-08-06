@@ -1,3 +1,4 @@
+import { useI18n } from '@shell/composables/useI18n';
 import { computed, Ref, toValue } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
@@ -20,11 +21,18 @@ export const useResourceIdentifiers = (type: ResourceType) => {
   };
 };
 
-export const useFetchResourceWithId = async(type: ResourceType, id: IdType) => {
+export const useFetchResourceWithId = async(type: ResourceType, id: IdType, inStore = 'cluster') => {
   const store = useStore();
+  const i18n = useI18n(store);
 
   const typeValue = toValue(type);
   const idValue = toValue(id);
 
-  return await store.dispatch('cluster/find', { type: typeValue, id: idValue });
+  try {
+    return await store.dispatch(`${ inStore }/find`, { type: typeValue, id: idValue });
+  } catch (ex: any) {
+    if (ex.status === 404 || ex.status === 403) {
+      store.dispatch('loadingError', new Error(i18n.t('nav.failWhale.resourceIdNotFound', { resource: type, fqid: id }, true)));
+    }
+  }
 };

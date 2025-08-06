@@ -164,13 +164,15 @@ export default {
     },
 
     jobHeaders() {
-      return this.$store.getters['type-map/headersFor'](this.jobSchema);
+      return this.$store.getters['type-map/headersFor'](this.jobSchema).filter((h) => !h.name || h.name !== NAMESPACE_COL.name);
     },
+
     ingressHeaders() {
-      return this.$store.getters['type-map/headersFor'](this.ingressSchema);
+      return this.$store.getters['type-map/headersFor'](this.ingressSchema).filter((h) => !h.name || h.name !== NAMESPACE_COL.name);
     },
+
     serviceHeaders() {
-      return this.$store.getters['type-map/headersFor'](this.serviceSchema);
+      return this.$store.getters['type-map/headersFor'](this.serviceSchema).filter((h) => !h.name || h.name !== NAMESPACE_COL.name);
     },
 
     totalRuns() {
@@ -311,6 +313,16 @@ export default {
 
       this.matchingIngresses = matchingIngresses;
     }
+  },
+
+  watch: {
+    async 'value.jobRelationships.length'(neu, old) {
+      // If there are MORE jobs ensure we go out and fetch them (changes and removals are tracked by watches)
+      if (neu > old) {
+        // We don't need to worry about spam, this won't be called often and it will be infrequent
+        await this.value.matchingJobs();
+      }
+    }
   }
 };
 </script>
@@ -376,6 +388,7 @@ export default {
           :headers="jobHeaders"
           key-field="id"
           :schema="jobSchema"
+          :namespaced="false"
           :groupable="false"
           :search="false"
         />
@@ -391,6 +404,7 @@ export default {
           :headers="podHeaders"
           key-field="id"
           :schema="podSchema"
+          :namespaced="false"
           :groupable="false"
           :search="false"
         />
@@ -407,7 +421,7 @@ export default {
             :detail-url="WORKLOAD_METRICS_DETAIL_URL"
             :summary-url="WORKLOAD_METRICS_SUMMARY_URL"
             :vars="graphVars"
-            graph-height="550px"
+            graph-height="600px"
           />
         </template>
       </Tab>
@@ -423,7 +437,7 @@ export default {
             :detail-url="WORKLOAD_PROJECT_METRICS_DETAIL_URL"
             :summary-url="WORKLOAD_PROJECT_METRICS_SUMMARY_URL"
             :vars="graphVars"
-            graph-height="550px"
+            graph-height="600px"
           />
         </template>
       </Tab>
@@ -457,6 +471,7 @@ export default {
           :headers="serviceHeaders"
           key-field="id"
           :schema="serviceSchema"
+          :namespaced="false"
           :groupable="false"
           :search="false"
           :table-actions="false"
@@ -498,6 +513,7 @@ export default {
           :headers="ingressHeaders"
           key-field="id"
           :schema="ingressSchema"
+          :namespaced="false"
           :groupable="false"
           :search="false"
           :table-actions="false"

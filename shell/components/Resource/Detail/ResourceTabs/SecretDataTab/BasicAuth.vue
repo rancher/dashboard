@@ -2,8 +2,8 @@
 import DetailText from '@shell/components/DetailText.vue';
 
 export interface Props {
-    username: string;
-    password: string;
+    username?: string;
+    password?: string;
 }
 </script>
 

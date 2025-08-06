@@ -1,4 +1,9 @@
 # Extension as a cluster-level product
+
+## What is a cluster-level product
+If you're not familiar with a cluster-level product is, check it's definition [here](../api/concepts.md#what-is-a-cluster-level-product).
+
+## Cluster-level product full code example
 As a full example of an Extension as cluster-level product, let's start with the definition of `product.ts` config:
 
 ```ts

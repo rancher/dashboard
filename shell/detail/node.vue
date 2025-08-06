@@ -53,7 +53,7 @@ export default {
       this.filterByApi = this.$store.getters[`cluster/paginationEnabled`](POD);
 
       if (this.filterByApi) {
-      // Only get pods associated with this node. The actual values used are from a get all in node model `pods` getter (this works as it just gets all...)
+        // Only get pods associated with this node. The actual values used are from a get all in node model `pods` getter (this works as it just gets all...)
         const opt = { // Of type ActionFindPageArgs
           pagination: new FilterArgs({
             sort:    [{ field: 'metadata.name', asc: true }],
@@ -270,7 +270,7 @@ export default {
             :detail-url="NODE_METRICS_DETAIL_URL"
             :summary-url="NODE_METRICS_SUMMARY_URL"
             :vars="graphVars"
-            graph-height="825px"
+            graph-height="875px"
           />
         </template>
       </Tab>

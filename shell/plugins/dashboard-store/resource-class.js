@@ -32,9 +32,11 @@ import isFunction from 'lodash/isFunction';
 import isString from 'lodash/isString';
 import { markRaw } from 'vue';
 
+import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
+import { importDrawer } from '@shell/utils/dynamic-importer';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -858,6 +860,10 @@ export default class Resource {
 
   // ------------------------------------------------------------------
 
+  get canEdit() {
+    return this.canUpdate && this.canCustomEdit;
+  }
+
   get availableActions() {
     const all = this._availableActions;
 
@@ -897,6 +903,26 @@ export default class Resource {
     return out;
   }
 
+  showConfiguration(returnFocusSelector) {
+    const onClose = () => this.$ctx.commit('slideInPanel/close', undefined, { root: true });
+
+    this.$ctx.commit('slideInPanel/open', {
+      component:      importDrawer('ResourceDetailDrawer'),
+      componentProps: {
+        resource:           this,
+        onClose,
+        width:              '73%',
+        // We want this to be full viewport height top to bottom
+        height:             '100vh',
+        top:                '0',
+        'z-index':          101, // We want this to be above the main side menu
+        closeOnRouteChange: ['name', 'params', 'query'], // We want to ignore hash changes, tables in extensions can trigger the drawer to close while opening
+        triggerFocusTrap:   true,
+        returnFocusSelector
+      }
+    }, { root: true });
+  }
+
   // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
   get _availableActions() {
     // get menu actions available by plugins configuration
@@ -904,6 +930,12 @@ export default class Resource {
     const extensionMenuActions = getApplicableExtensionEnhancements(this.$rootState, ExtensionPoint.ACTION, ActionLocation.TABLE, currentRoute, this);
 
     const all = [
+      {
+        action:  'showConfiguration',
+        label:   this.t('action.showConfiguration'),
+        icon:    'icon icon-document',
+        enabled: this.disableResourceDetailDrawer !== true && (this.canCustomEdit || this.canYaml), // If the resource can't show an edit or a yaml we don't want to show the configuration drawer
+      },
       { divider: true },
       {
         action:  this.canUpdate ? 'goToEdit' : 'goToViewConfig',
@@ -1343,9 +1375,7 @@ export default class Resource {
     this.currentRouter().push(location);
   }
 
-  goToEdit(moreQuery = {}) {
-    const location = this.detailLocation;
-
+  goToEdit(moreQuery = {}, location = this.detailLocation) {
     location.query = {
       ...location.query,
       [MODE]: _EDIT,
@@ -1528,11 +1558,11 @@ export default class Resource {
     }
   }
 
-  async saveYaml(yaml) {
-    await this._saveYaml(yaml);
+  async saveYaml(yaml, initialYaml) {
+    await this._saveYaml(yaml, initialYaml);
   }
 
-  async _saveYaml(yaml) {
+  async _saveYaml(yaml, initialYaml, depth = 0) {
     /* Multipart support, but need to know the right cluster and work for management store
       and "apply" seems to only work for create, not update.
 
@@ -1570,20 +1600,56 @@ export default class Resource {
         data:   yaml
       });
     } else {
-      res = await this.followLink('update', {
-        method: 'PUT',
-        headers,
-        data:   yaml
-      });
+      try {
+        res = await this.followLink('update', {
+          method: 'PUT',
+          headers,
+          data:   yaml
+        });
+      } catch (err) {
+        const IS_ERR_409 = err.status === 409 || err._status === 409;
+
+        // Conflict, the resource being edited has changed since starting editing
+        if (IS_ERR_409 && depth === 0 && initialYaml) {
+          const inStore = this.$rootGetters['currentStore'](this.type);
+
+          const initialValue = jsyaml.load(initialYaml);
+          const value = jsyaml.load(yaml);
+          const liveValue = this.$rootGetters[`${ inStore }/byId`](this.type, this.id);
+
+          const handledConflictErr = await handleConflict(
+            initialValue,
+            value,
+            liveValue,
+            {
+              dispatch: this.$dispatch,
+              getters:  this.$rootGetters
+            },
+            this.$rootGetters['currentStore'](this.type),
+            (v) => v.toJSON ? v.toJSON() : v
+          );
+
+          if (handledConflictErr === false) {
+            // It was automatically figured out, save again
+            await this._saveYaml(jsyaml.dump(value), null, depth + 1);
+          } else {
+            throw handledConflictErr;
+          }
+        } else {
+          throw err;
+        }
+      }
     }
 
-    await this.$dispatch(`load`, {
-      data:     res,
-      existing: (isCreate ? this : undefined)
-    });
+    if (res) {
+      await this.$dispatch(`load`, {
+        data:     res,
+        existing: (isCreate ? this : undefined)
+      });
 
-    if (this.isSpoofed) {
-      await this.$dispatch('cluster/findAll', { type: this.type, opt: { force: true } }, { root: true });
+      if (this.isSpoofed) {
+        await this.$dispatch('cluster/findAll', { type: this.type, opt: { force: true } }, { root: true });
+      }
     }
   }
 

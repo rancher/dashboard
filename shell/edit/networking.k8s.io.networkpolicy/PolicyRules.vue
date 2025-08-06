@@ -32,12 +32,10 @@ export default {
       default: undefined
     }
   },
-  data() {
+  created() {
     if (!this.value.spec[this.type]) {
       this.value.spec[this.type] = [];
     }
-
-    return {};
   },
   methods: {
     addPolicyRule() {
