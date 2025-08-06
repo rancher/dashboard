@@ -696,12 +696,12 @@ export function filterAndArrangeCharts(charts, {
       const searchTokens = searchQuery.split(/\s*[, ]\s*/).map((x) => ensureRegex(x, false));
       const chartDescription = c.chartDescription || '';
       const keywords = c.keywords || [];
-    
+
       for (const token of searchTokens) {
         const nameMatch = c.chartNameDisplay.match(token);
         const descMatch = chartDescription.match(token);
-        const keywordMatch = keywords.some(k => k.match(token));
-    
+        const keywordMatch = keywords.some((k) => k.match(token));
+
         if (!nameMatch && !descMatch && !keywordMatch) {
           return false;
         }
