@@ -36,12 +36,34 @@ export const WATCH_STATUSES = {
   REMOVE_REQUESTED: 'removed_requested'
 };
 
+/**
+ * TODO: RC
+ */
+export const msgFromSubscribeKey = (key) => {
+  return key.split(',').reduce((res, xEqualsY) => {
+    const [prop, value] = xEqualsY.split('=');
+
+    if (value) {
+      res[prop] = value;
+    }
+
+    return res;
+  }, {});
+};
+
+/**
+ * TODO: RC
+ */
 export const keyForSubscribe = ({
   resourceType, type, namespace, id, selector
 } = {}) => {
-  return [(resourceType || type), namespace, id, selector] // each watch param in an array
-    .filter((param) => !!param) // filter out all the empty ones // the filter makes these keys neater
-    .join('/'); // join into a string so we can use it as an object key
+  const keyMap = {
+    type: resourceType || type, namespace, id, selector
+  };
+
+  return Object.entries(keyMap)
+    .map(([prop, value]) => `${ prop }=${ value || '' }`)
+    .join(',');
 };
 
 export const watchKeyFromMessage = (msg) => {

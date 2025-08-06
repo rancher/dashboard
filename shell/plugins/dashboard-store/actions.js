@@ -12,6 +12,9 @@ import { conditionalDepaginate } from '@shell/store/type-map.utils';
 import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import { FilterArgs } from '@shell/types/store/pagination.types';
 import { isLabelSelectorEmpty, labelSelectorToSelector } from '@shell/utils/selector-typed';
+import { REVISION_TOO_OLD } from '@shell/utils/socket';
+import backOff from '@shell/utils/back-off';
+import { msgFromSubscribeKey } from '@shell/plugins/steve/resourceWatcher';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -822,10 +825,27 @@ export default {
 
   // Forget a type in the store
   // Remove all entries for that type and stop watching it
-  forgetType({ commit, dispatch, state }, type, compareWatches) {
+  forgetType({
+    commit, dispatch, state, getters
+  }, type, compareWatches) {
     state.started
       .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type)
       .forEach((entry) => dispatch('unwatch', entry));
+
+    // TODO: RC eugh, better way? (resource.stop removes entry from state.started)
+    Object.entries(state.inError)
+      .map(([key, reason]) => ([msgFromSubscribeKey(key), reason]))
+      .filter(([obj, reason]) => {
+        const rightReason = reason === REVISION_TOO_OLD;
+        const rightWatch = compareWatches ? compareWatches(obj) : obj.type === type;
+
+        return rightReason && rightWatch;
+      })
+      .forEach(([obj]) => {
+        const id = getters.backOffId(obj, REVISION_TOO_OLD);
+
+        backOff.resetPrefix(id);
+      });
 
     commit('forgetType', type);
   },
