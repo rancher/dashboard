@@ -108,7 +108,7 @@
     "jsdiff": "1.1.1",
     "jsonpath-plus": "10.3.0",
     "jsrsasign": "11.0.0",
-    "jszip": "3.8.0",
+    "jszip": "3.10.1",
     "lodash": "4.17.21",
     "marked": "4.0.17",
     "node-polyfill-webpack-plugin": "3.0.0",
