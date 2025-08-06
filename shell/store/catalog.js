@@ -539,6 +539,7 @@ function addChart(ctx, map, chart, repo) {
       featuredIndex:    chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED] ? Number(chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED]) : Number.MAX_SAFE_INTEGER,
       repoKey:          repo._key,
       versions:         [],
+      keywords:         chart.keywords || [],
       categories:       filterCategories(chart.keywords),
       deprecated:       !!chart.deprecated,
       experimental,
@@ -693,11 +694,15 @@ export function filterAndArrangeCharts(charts, {
     if ( searchQuery ) {
       // The search filter doesn't match
       const searchTokens = searchQuery.split(/\s*[, ]\s*/).map((x) => ensureRegex(x, false));
-
-      for ( const token of searchTokens ) {
-        const chartDescription = c.chartDescription || '';
-
-        if ( !c.chartNameDisplay.match(token) && !chartDescription.match(token) ) {
+      const chartDescription = c.chartDescription || '';
+      const keywords = c.keywords || [];
+    
+      for (const token of searchTokens) {
+        const nameMatch = c.chartNameDisplay.match(token);
+        const descMatch = chartDescription.match(token);
+        const keywordMatch = keywords.some(k => k.match(token));
+    
+        if (!nameMatch && !descMatch && !keywordMatch) {
           return false;
         }
       }
