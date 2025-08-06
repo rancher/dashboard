@@ -37,6 +37,7 @@ import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
 import { _MERGE } from '@shell/plugins/dashboard-store/actions';
 import { STEVE_WATCH_EVENT, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import paginationUtils from '@shell/utils/pagination-utils';
+import backOff from '@shell/utils/back-off';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
@@ -70,6 +71,18 @@ const isAdvancedWorker = (ctx) => {
 
   return perfSetting?.advancedWorker.enabled;
 };
+
+// const clearInError = (state, { msg, resetBackOff }) => {
+//   const key = keyForSubscribe(msg);
+//   const backingOff = resetBackOff ? state.inError[key]?.backingOff : undefined;
+
+//   if (backingOff !== undefined) {
+//     console.error(`Clearing subscribe watch back off process`, { msg }); // eslint-disable-line no-console
+
+//     clearTimeout(backingOff);
+//   }
+//   delete state.inError[key];
+// };
 
 export async function createWorker(store, ctx) {
   const { getters, dispatch } = ctx;
@@ -495,6 +508,11 @@ const sharedActions = {
       revision = getters.nextResourceVersion(type, id);
     }
 
+    // TODO: RC remove
+    if (type === 'batch.job') {
+      revision = 'aaa';
+    }
+
     const msg = { resourceType: type };
 
     if (mode) {
@@ -574,6 +592,7 @@ const sharedActions = {
           // Make sure anything in the pending queue for the type is removed, since we've now removed the type
           commit('clearFromQueue', type);
         }
+        backOff.resetPrefix(getters.backOffId(obj));
       };
 
       if (isAdvancedWorker(ctx)) {
@@ -986,7 +1005,16 @@ const defaultActions = {
       // 1) blocks attempts by resource.stop to resub (as type is in error)
       // 2) will be cleared when resyncWatch --> watch (with force) --> resource.start completes
       commit('setInError', { msg, reason: REVISION_TOO_OLD });
-      dispatch('resyncWatch', msg);
+      // backOffFn: async() => await dispatch('resyncWatch', msg)
+
+      const id = getters.backOffId(msg, REVISION_TOO_OLD);
+
+      backOff.execute({
+        id,
+        description: `Invalid watch revision received... re-syncing. '${ id }'`,
+        retries:     10, // TODO: RC how long?
+        fn:          async() => await dispatch('resyncWatch', msg)
+      });
     } else if ( err.includes('the server does not allow this method on the requested resource')) {
       commit('setInError', { msg, reason: NO_PERMS });
     }
@@ -1086,11 +1114,39 @@ const defaultActions = {
     }
   },
 
-  'ws.resource.changes'({ dispatch }, msg) {
-    dispatch('fetchResources', {
-      ...msg,
-      opt: { force: true, load: _MERGE }
-    } );
+  'ws.resource.changes'({ dispatch, getters }, msg) {
+    const backOffId = getters.backOffId(msg, STEVE_WATCH_EVENT.CHANGES);
+    const running = backOff.known(backOffId);
+
+    if (running && running.metadata.revision !== msg.revision) {
+      // We're trying to fetch resources with an old/invalid revision, so stop
+      backOff.reset(backOffId);
+    }
+
+    // start / continue backoff
+    backOff.execute({
+      id:          backOffId,
+      description: `Resources changed... refetching. '${ backOffId }'`,
+      retries:     10, // TODO: RC how long?
+      fn:          async() => {
+        try {
+          await dispatch('fetchResources', {
+            ...msg,
+            opt: {
+              force: true, load: _MERGE, revision: msg.revision
+            }
+          });
+        } catch (e) {
+          // if error of certain type...
+          if (e.status === 123) {
+            dispatch('ws.resource.changes', msg);
+          }
+
+          throw e;
+        }
+      },
+      metadata: { revision: msg.revision }
+    });
   },
 
   'ws.resource.remove'(ctx, msg) {
@@ -1154,6 +1210,7 @@ const defaultMutations = {
       addObject(state.started, obj);
     }
 
+    // clearInError(state, { msg: obj });
     delete state.inError[keyForSubscribe(obj)];
   },
 
@@ -1167,16 +1224,39 @@ const defaultMutations = {
     }
   },
 
-  setInError(state, { msg, reason }) {
+  setInError(state, { msg, reason, backOffFn }) {
     const key = keyForSubscribe(msg);
 
     state.inError[key] = reason;
+
+    // const error = state.inError[key] || { count: 0 };
+
+    // if (backOffFn) {
+    //   if (error.backingOff) {
+    //     console.info(`Skipping subscribe watch back off process (previous back off process still running)`, { msg, reason }); // eslint-disable-line no-console
+    //   } else {
+    //     error.backingOff = setTimeout(async() => {
+    //       try {
+    //         await backOffFn();
+    //       } catch (e) {
+    //         console.error(`Failed subscribe watch back off process`, e, { msg, reason }); // eslint-disable-line no-console
+    //       }
+
+    //       delete error.backingOff;
+    //     }, error.count === 0 ? 1 : Math.pow(1000 * error.count, 2));
+    //     console.info(`Started subscribe watch back off process`, { msg, reason }); // eslint-disable-line no-console
+    //   }
+    // }
+
+    // error.reason = reason;
+    // error.count += 1;
+
+    // state.inError[key] = error;
   },
 
   clearInError(state, msg) {
-    const key = keyForSubscribe(msg);
-
-    delete state.inError[key];
+    // clearInError(state, { msg });
+    delete state.inError[keyForSubscribe(msg)];
   },
 
   resetSubscriptions(state) {
@@ -1202,8 +1282,23 @@ const defaultMutations = {
  * Getters that cover cases 1 & 2 (see file description)
  */
 const defaultGetters = {
+  backOffId: () => (obj, postFix) => {
+    return `${ keyForSubscribe(obj) }${ postFix ? `:${ postFix }` : '' }`;
+  },
+
+  // allInError: (state) => (reason) => {
+  //   const entries = Object.entries(state.inError);
+
+  //   if (reason) {
+  //     return entries.filter(([_key, _reason]) => _reason === reason);
+  //   }
+
+  //   return entries;
+  // },
+
   inError: (state) => (obj) => {
     return state.inError[keyForSubscribe(obj)];
+    // return state.inError[keyForSubscribe(obj)]?.reason;
   },
 
   watchesOfType: (state) => (type) => {
