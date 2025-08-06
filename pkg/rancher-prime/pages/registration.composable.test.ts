@@ -62,6 +62,57 @@ describe('registration composable', () => {
       expect(registration.value.resourceLink).toStrictEqual('123');
       expect(registrationStatus.value).toStrictEqual('registered');
     });
+
+    it('should display the correct error message, prioritizing conditions without Failure', async() => {
+      const value = 'whatever';
+      const hash = 'anything';
+      const errorMessage = 'Registration failed';
+      const secrets = [
+        { metadata: { namespace: 'not me' } },
+        { metadata: { name: 'also not me' } },
+        {
+          metadata: {
+            namespace: REGISTRATION_NAMESPACE,
+            name:      REGISTRATION_SECRET,
+            labels:    { [REGISTRATION_LABEL]: hash }
+          },
+          data: { regCode: btoa(value) }
+        },
+      ];
+      const registrations = [{
+        spec:     { mode: 'online' },
+        metadata: { labels: { [REGISTRATION_LABEL]: hash } },
+        links:    { view: '123' },
+        status:   {
+          activationStatus: { activated: false },
+          conditions:       [
+            {
+              type:    'Failure',
+              status:  'True',
+              message: 'Message not for the user',
+              reason:  'Give me a reason',
+            },
+            {
+              type:    'RegistrationActivated',
+              status:  'False',
+              message: errorMessage,
+              reason:  'Give me a reason',
+            },
+          ]
+        },
+      }];
+
+      dispatchSpy = jest.fn()
+        .mockReturnValueOnce(Promise.resolve(secrets))
+        .mockReturnValue(Promise.resolve(registrations));
+      const store = { state: {}, dispatch: dispatchSpy } as any;
+      const { initRegistration, errors } = usePrimeRegistration(store);
+
+      await initRegistration();
+      jest.setTimeout(0);
+
+      expect(errors.value[0]).toStrictEqual(errorMessage);
+    });
   });
 
   describe('downloading the registration certificate', () => {
