@@ -405,13 +405,6 @@ $image-medium-box-width: 48px;
 
     &-action-menu {
       margin-left: 8px;
-
-      &:deep(.v-popper) {
-        .icon-actions {
-          color: var(--body-text);
-          font-size: 16px;
-        }
-      }
     }
   }
 
