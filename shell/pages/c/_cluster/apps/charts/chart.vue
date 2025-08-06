@@ -679,7 +679,6 @@ export default {
         }
 
         &--keywords{
-          word-break: break-word;
           color: var(--link-text-secondary);
           padding-bottom: 0;
 
@@ -687,11 +686,11 @@ export default {
             .keyword-item {
               display: inline-block;
               white-space: nowrap;
-            }
 
-            span {
-              margin-right: 4px;
-              margin-left: -2px;
+              span {
+                margin-right: 4px;
+                margin-left: -2px;
+              }
             }
           }
         }
