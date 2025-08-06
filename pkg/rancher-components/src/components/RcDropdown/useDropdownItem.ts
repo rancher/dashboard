@@ -64,23 +64,23 @@ export const useDropdownItem = () => {
   const scrollIntoView = (event: Event) => {
     const target = event.target;
 
-    if (target instanceof HTMLElement) {
-      const t = target as HTMLElement;
-
-      // If a button was clicked, then do not scroll into view, as this will scroll to make the button
-      // visible and the click will be ignored - so just return, so that the click works as expected
-      if (t.tagName === 'BUTTON') {
-        return;
-      }
+    if (!(target instanceof HTMLElement)) {
+      return;
     }
 
-    if (target instanceof HTMLElement) {
-      target?.scrollIntoView({
-        behavior: 'smooth',
-        block:    'center',
-        inline:   'nearest',
-      });
+    const t = target as HTMLElement;
+
+    // If a button was clicked, then do not scroll into view, as this will scroll to make the button
+    // visible and the click will be ignored - so just return, so that the click works as expected
+    if (t.tagName === 'BUTTON') {
+      return;
     }
+
+    target?.scrollIntoView({
+      behavior: 'smooth',
+      block:    'center',
+      inline:   'nearest',
+    });
   };
 
   return {
