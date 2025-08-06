@@ -1,7 +1,7 @@
 import { findBy, insertAt } from '@shell/utils/array';
 import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
-import { get, set } from '@shell/utils/object';
+import { set } from '@shell/utils/object';
 import day from 'dayjs';
 import { convertSelectorObj, parse } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
@@ -632,7 +632,7 @@ export default class Workload extends WorkloadService {
       return undefined;
     }
 
-    return (get(this, 'metadata.relationships') || []).filter((relationship) => relationship.toType === WORKLOAD_TYPES.JOB);
+    return this.metadata?.relationships?.filter((relationship) => relationship.toType === WORKLOAD_TYPES.JOB) || [];
   }
 
   /**
