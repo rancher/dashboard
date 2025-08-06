@@ -34,24 +34,21 @@ export default {
       type: Object,
     }
   },
-  data() {
+  setup() {
     const pathTypes = [
       'Prefix',
       'Exact',
       'ImplementationSpecific'
     ];
 
-    set(this.value, 'backend', this.value.backend || {});
-    set(this.value, 'path', this.value.path || '');
-    set(this.value, 'pathType', this.value.pathType || pathTypes[0]);
-    set(this.value.backend, this.ingress.serviceNamePath, get(this.value.backend, this.ingress.serviceNamePath) || '');
-    set(this.value.backend, this.ingress.servicePortPath, get(this.value.backend, this.ingress.servicePortPath) || '');
-
-    const serviceName = get(this.value.backend, this.ingress.serviceNamePath);
-    const servicePort = get(this.value.backend, this.ingress.servicePortPath);
-
+    return { pathTypes };
+  },
+  data() {
     return {
-      pathTypes, serviceName, servicePort, pathType: this.value.pathType, path: this.value.path
+      serviceName: undefined,
+      servicePort: undefined,
+      pathType:    this.value.pathType,
+      path:        this.value.path,
     };
   },
   computed: {
@@ -77,6 +74,15 @@ export default {
   created() {
     this.queueUpdate = debounce(this.update, 500);
     this.queueUpdatePathTypeAndPath = debounce(this.updatePathTypeAndPath, 500);
+
+    set(this.value, 'backend', this.value.backend || {});
+    set(this.value, 'path', this.value.path || '');
+    set(this.value, 'pathType', this.value.pathType || this.pathTypes[0]);
+    set(this.value.backend, this.ingress.serviceNamePath, get(this.value.backend, this.ingress.serviceNamePath) || '');
+    set(this.value.backend, this.ingress.servicePortPath, get(this.value.backend, this.ingress.servicePortPath) || '');
+
+    this.serviceName = get(this.value.backend, this.ingress.serviceNamePath);
+    this.servicePort = get(this.value.backend, this.ingress.servicePortPath);
   },
   methods: {
     update() {
