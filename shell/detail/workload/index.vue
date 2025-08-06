@@ -311,6 +311,16 @@ export default {
 
       this.matchingIngresses = matchingIngresses;
     }
+  },
+
+  watch: {
+    async 'value.jobRelationships.length'(neu, old) {
+      // If there are MORE jobs ensure we go out and fetch them (changes and removals are tracked by watches)
+      if (neu > old) {
+        // We don't need to worry about spam, this won't be called often and it will be infrequent
+        await this.value.matchingJobs();
+      }
+    }
   }
 };
 </script>
