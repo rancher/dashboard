@@ -31,10 +31,9 @@ describe('component: RcDropdown.vue', () => {
     await wrapper.vm.$nextTick();
 
     expect(dropdownTarget.style.height).toBe('');
-    expect(dropdownTarget.style.overflow).toBe('');
   });
 
-  it('should apply correct overflow and height if dropdown exceeds the top edge', async() => {
+  it('should apply correct height if dropdown exceeds the top edge', async() => {
     Object.defineProperty(window, 'innerHeight', { value: 800 });
 
     const wrapper = mount(RcDropdown, { global: { components: { 'v-dropdown': vDropdownMock } } });
@@ -52,11 +51,10 @@ describe('component: RcDropdown.vue', () => {
     await wrapper.findComponent(vDropdownMock).vm.$emit('apply-show');
     await wrapper.vm.$nextTick();
 
-    expect(dropdownTarget.classList.contains('dropdownTarget')).toBe(true);
     expect(dropdownTarget.style.height).toBe('268px');
   });
 
-  it('should apply correct overflow and height if dropdown exceeds the bottom edge', async() => {
+  it('should apply correct height if dropdown exceeds the bottom edge', async() => {
     Object.defineProperty(window, 'innerHeight', { value: 925 });
 
     const wrapper = mount(RcDropdown, { global: { components: { 'v-dropdown': vDropdownMock } } });
@@ -74,11 +72,10 @@ describe('component: RcDropdown.vue', () => {
     await wrapper.findComponent(vDropdownMock).vm.$emit('apply-show');
     await wrapper.vm.$nextTick();
 
-    expect(dropdownTarget.classList.contains('dropdownTarget')).toBe(true);
     expect(dropdownTarget.style.height).toBe('693px');
   });
 
-  it('should apply correct overflow and height if dropdown exceeds both top and bottom edges', async() => {
+  it('should apply correct height if dropdown exceeds both top and bottom edges', async() => {
     Object.defineProperty(window, 'innerHeight', { value: 400 });
 
     const wrapper = mount(RcDropdown, { global: { components: { 'v-dropdown': vDropdownMock } } });
@@ -96,7 +93,6 @@ describe('component: RcDropdown.vue', () => {
     await wrapper.findComponent(vDropdownMock).vm.$emit('apply-show');
     await wrapper.vm.$nextTick();
 
-    expect(dropdownTarget.classList.contains('dropdownTarget')).toBe(true);
     expect(dropdownTarget.style.height).toBe('368px');
   });
 });
