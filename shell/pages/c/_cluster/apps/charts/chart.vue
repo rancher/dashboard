@@ -492,16 +492,20 @@ export default {
         >
           <h4>{{ t('catalog.chart.info.keywords') }}</h4>
           <div class="keyword-links">
-            <router-link
+            <span
               v-for="(keyword, i) in version.keywords"
               :key="i"
-              v-clean-tooltip="t('catalog.chart.info.keywordsTooltip')"
-              :to="{ name: 'c-cluster-apps-charts', query: { [SEARCH_QUERY]: keyword } }"
-              data-testid="chart-keyword-link"
+              class="keyword-item"
             >
-              {{ keyword }}
+              <router-link
+                v-clean-tooltip="t('catalog.chart.info.keywordsTooltip')"
+                :to="{ name: 'c-cluster-apps-charts', query: { [SEARCH_QUERY]: keyword } }"
+                data-testid="chart-keyword-link"
+              >
+                {{ keyword }}
+              </router-link>
               <span v-if="version.keywords.length > 1 && i !== version.keywords.length - 1">,</span>
-            </router-link>
+            </span>
           </div>
         </div>
       </aside>
@@ -677,10 +681,17 @@ export default {
         &--keywords{
           word-break: break-word;
           color: var(--link-text-secondary);
+          padding-bottom: 0;
 
           .keyword-links {
-            a {
-              margin-right: 8px;
+            .keyword-item {
+              display: inline-block;
+              white-space: nowrap;
+            }
+
+            span {
+              margin-right: 4px;
+              margin-left: -2px;
             }
           }
         }
