@@ -1007,14 +1007,18 @@ const defaultActions = {
       commit('setInError', { msg, reason: REVISION_TOO_OLD });
       // backOffFn: async() => await dispatch('resyncWatch', msg)
 
-      const id = getters.backOffId(msg, REVISION_TOO_OLD);
+      if (msg.mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
+        const id = getters.backOffId(msg, REVISION_TOO_OLD);
 
-      backOff.execute({
-        id,
-        description: `Invalid watch revision received... re-syncing. '${ id }'`,
-        retries:     10, // TODO: RC how long?
-        fn:          async() => await dispatch('resyncWatch', msg)
-      });
+        backOff.execute({
+          id,
+          description: `Invalid watch revision received... re-syncing. '${ id }'`,
+          retries:     10, // TODO: RC how long?
+          fn:          async() => await dispatch('resyncWatch', msg)
+        });
+      } else {
+        dispatch('resyncWatch', msg); // TODO: RC await?
+      }
     } else if ( err.includes('the server does not allow this method on the requested resource')) {
       commit('setInError', { msg, reason: NO_PERMS });
     }
@@ -1119,11 +1123,12 @@ const defaultActions = {
     const running = backOff.known(backOffId);
 
     if (running && running.metadata.revision !== msg.revision) {
-      // We're trying to fetch resources with an old/invalid revision, so stop
+      // Stop previously setup attempts to watch with a stale (old/invalid) revision
       backOff.reset(backOffId);
     }
 
-    // start / continue backoff
+    // start backoff
+    // continue backoff - we could have many resource.changes, each with new
     backOff.execute({
       id:          backOffId,
       description: `Resources changed... refetching. '${ backOffId }'`,

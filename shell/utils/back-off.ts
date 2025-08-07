@@ -18,9 +18,18 @@ class BackOff {
     console[level](`BackOff: Process Description ${ description }\nStatus: ${ classDescription }\n`, ...args); // eslint-disable-line no-console
   }
 
-  known(id: string) {
-    return this.map[id];
+  /**
+   * TODO: RC
+   */
+  clear() {
+    Object.keys(this.map).forEach((id) => {
+      this.reset(id);
+    });
   }
+
+  // known(id: string) {
+  //   return this.map[id];
+  // }
 
   /**
  * TODO: RC
@@ -62,18 +71,20 @@ class BackOff {
     retries: number,
     fn: () => Promise<any>,
     metadata: any,
-  }) {
+  }): NodeJS.Timeout | undefined {
     const backOff: BackOffEntry = this.map[id];
 
     if (backOff?.timeoutId) {
       this.log('info', 'Skipping (previous back off process still running)', backOff.description);
+
+      return backOff?.timeoutId;
     } else {
       const backOffTry = backOff?.try || 0;
 
       if (backOffTry + 1 > retries) {
         this.log('error', 'Aborting (too many retries)', description);
 
-        return;
+        return undefined;
       }
 
       // Steps... 0.001s, 0.25s, 1s, 2.25s, 4s, 6.25s, 9s, 12.25s
@@ -83,7 +94,7 @@ class BackOff {
 
       const timeout = setTimeout(async() => {
         try {
-          this.log('info', `Executing call (actual)`, description);
+          this.log('info', `Executing call (actual)1111111111`, description);
 
           await fn();
 
@@ -101,6 +112,8 @@ class BackOff {
         description,
         metadata
       };
+
+      return timeout;
     }
   }
 }
