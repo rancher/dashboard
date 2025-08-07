@@ -3094,6 +3094,8 @@ fleet:
           subtext: 'Define advanced settings'
           description: Fleet will use the authentication settings and polling to synchronise the resources contained in it.
           info: These settings are for advanced usage and optional. You can skip them and finish the creation process.
+    rancherChart:
+      notFound: Chart not found
     source:
       title: Source
       selectLabel: Type
