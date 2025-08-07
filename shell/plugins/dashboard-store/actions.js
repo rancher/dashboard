@@ -811,30 +811,19 @@ export default {
     return classify(ctx, resource.toJSON(), true);
   },
 
-  // Forget a type in the store
-  // Remove all entries for that type and stop watching it
-  forgetType({
-    commit, dispatch, state, getters
-  }, type, compareWatches) {
+  /**
+   * Remove all cached entries and stop watches
+   */
+  forgetType({ commit, dispatch, state }, type, compareWatches) {
+    // Stop all known watches
     state.started
       .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type)
       .forEach((entry) => dispatch('unwatch', entry));
 
-    // TODO: RC eugh, better way? (resource.stop removes entry from state.started)
-    Object.entries(state.inError)
-      .map(([key, reason]) => ([msgFromSubscribeKey(key), reason]))
-      .filter(([obj, reason]) => {
-        const rightReason = reason === REVISION_TOO_OLD;
-        const rightWatch = compareWatches ? compareWatches(obj) : obj.type === type;
+    // Stop all known back-off watch processes
+    dispatch('watchResetBackOff', { type, compareWatches });
 
-        return rightReason && rightWatch;
-      })
-      .forEach(([obj]) => {
-        const id = getters.backOffId(obj, REVISION_TOO_OLD);
-
-        backOff.resetPrefix(id);
-      });
-
+    // Remove entries from store
     commit('forgetType', type);
   },
 
