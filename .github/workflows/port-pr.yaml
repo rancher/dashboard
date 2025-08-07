@@ -19,8 +19,8 @@ jobs:
         uses: rancher-eio/read-vault-secrets@main
         with:
           secrets: |
-            secret/data/github/repo/${{ github.repository }}/github/app-credentials appId | APPID ;
-            secret/data/github/repo/${{ github.repository }}/github/app-credentials privateKey | PRIVATEKEY
+            secret/data/github/repo/rancher/${{ github.repository }}/github/app-credentials appId | APPID;
+            secret/data/github/repo/rancher/${{ github.repository }}/github/app-credentials privateKey | PRIVATEKEY
 
       - name: Generate Token
         id: generate-token
