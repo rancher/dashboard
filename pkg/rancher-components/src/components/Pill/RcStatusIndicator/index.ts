@@ -1,2 +1,2 @@
 export { default } from './RcStatusIndicator.vue';
-export type { Shape, Status } from './types';
+export type { Shape } from './types';
