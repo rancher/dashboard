@@ -35,6 +35,7 @@ function onClickItem(type: string, label: string) {
       <rc-item-card-action
         v-for="(label, j) in footerItem.labels"
         :key="j"
+        v-clean-tooltip="footerItem.labelTooltip"
         class="app-chart-card-footer-item-text secondary-text-link"
         data-testid="app-chart-card-footer-item-text"
         tabindex="0"
