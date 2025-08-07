@@ -40,7 +40,7 @@ $spacing-property-map: (
 .dashed-spacer {
   margin: 24px 0;
   border-bottom: none;
-  background-image: repeating-linear-gradient(to right, #DCDEE7 0, #DCDEE7 4px, transparent 4px, transparent 8px);
+  background-image: repeating-linear-gradient(to right, var(--border) 0, var(--border) 4px, transparent 4px, transparent 8px);
   background-position: bottom;
   background-repeat: repeat-x;
   background-size: 8px 1px;
