@@ -142,7 +142,8 @@ const defaultImportedCluster = {
     projectID:              '',
     region:                 '',
   },
-  labels: {}
+  labels:      {},
+  annotations: {}
 };
 
 export default defineComponent({
