@@ -557,7 +557,7 @@ export default {
       list-style: none;
       padding: 0;
       margin-top: auto;
-      z-index: 100;
+      z-index: 1;
 
       li {
         display: flex;
@@ -585,6 +585,7 @@ export default {
           border-top-right-radius: 0;
           border-top-left-radius: 0;
           border-bottom-left-radius: 0;
+          border-bottom-right-radius: 0;
         }
       }
     }
