@@ -14,7 +14,9 @@ import { allHash } from '@shell/utils/promise';
 import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
-import { HARVESTER_CHART, HARVESTER_COMMUNITY_REPO, HARVESTER_RANCHER_REPO, communityRepoRegexes } from '../types';
+import {
+  HARVESTER_CHART, HARVESTER_COMMUNITY_REPO, HARVESTER_RANCHER_REPO, communityRepoRegexes, HARVESTER_CATALOG_IMAGES
+} from '../types';
 import {
   getLatestExtensionVersion,
   getHelmRepositoryExact,
@@ -119,6 +121,7 @@ export default {
 
     harvester() {
       const extension = this.uiplugins?.find((c) => c.name === HARVESTER_CHART.name);
+      // if installed harvester ui extension, but no harvester repository, then we will show missing repository warning message
       const missingRepository = !!extension && !this.harvesterRepository;
 
       const action = async(btnCb) => {
@@ -216,7 +219,7 @@ export default {
         if (isRancherPrime()) {
           return await getHelmRepositoryExact(this.$store, HARVESTER_REPO.gitRepo);
         } else {
-          return await getHelmRepositoryMatch(this.$store, communityRepoRegexes);
+          return await getHelmRepositoryMatch(this.$store, communityRepoRegexes, HARVESTER_CATALOG_IMAGES);
         }
       } catch (error) {
         this.harvesterRepositoryError = true;
