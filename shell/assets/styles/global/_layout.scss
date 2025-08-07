@@ -6,7 +6,7 @@
   .outlet {
     display: flex;
     flex-direction: column;
-    padding: 24px;
+    padding: $space-m;
     min-height: 100%;
   }
 }
