@@ -229,9 +229,24 @@ export default [
           doneOverride:   'c-cluster-fleet-application',
         },
       }, {
-        path:      '/c/:cluster/fleet/application/create',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/create.vue')),
-        name:      'c-cluster-fleet-application-create',
+        path:     '/c/:cluster/fleet/application/create',
+        children: [
+          {
+            path:      '',
+            component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/create.vue')),
+            name:      'c-cluster-fleet-application-create',
+          },
+          {
+            path:      'appco',
+            component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/appco/index.vue')),
+            name:      'c-cluster-fleet-application-resource-create-appco'
+          },
+          {
+            path:      'chart',
+            component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/appco/chart.vue')),
+            name:      'c-cluster-fleet-application-resource-create-appco-chart',
+          },
+        ]
       }, {
         path:      '/c/:cluster/fleet/application/:resource/create',
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/application/_resource/create.vue')),
