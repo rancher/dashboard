@@ -75,6 +75,7 @@ export default {
       <button
         :disabled="disable"
         @click="customBadgeDialog"
+        @keydown.enter.space.prevent="customBadgeDialog"
       >
         <i class="icon icon-brush-icon" />
         <span>
