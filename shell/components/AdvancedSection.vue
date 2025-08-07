@@ -32,9 +32,17 @@ export default {
       v-t="show ? 'generic.hideAdvanced' : 'generic.showAdvanced'"
       class="hand block"
       :class="{'mb-10': show}"
+      tabindex="0"
+      @keydown.enter.space.prevent="toggle"
       @click="toggle"
     />
 
     <slot v-if="show" />
   </div>
 </template>
+
+<style lang="scss" scoped>
+.hand.block {
+  max-width: fit-content;
+}
+</style>
