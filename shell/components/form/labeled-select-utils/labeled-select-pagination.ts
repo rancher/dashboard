@@ -1,46 +1,11 @@
 import { debounce } from 'lodash';
 import { PropType, defineComponent } from 'vue';
-import { ComputedOptions, MethodOptions } from 'vue/types/v3-component-options';
 import { LabelSelectPaginateFn, LABEL_SELECT_NOT_OPTION_KINDS, LABEL_SELECT_KINDS } from '@shell/types/components/labeledSelect';
-
-interface Props {
-  paginate?: LabelSelectPaginateFn
-}
-
-interface Data {
-  currentPage: number,
-  search: string,
-  pageSize: number,
-
-  page: any[],
-  pages: number,
-  totalResults: number,
-
-  paginating: boolean,
-
-  debouncedRequestPagination: Function
-}
-
-interface Computed extends ComputedOptions {
-  canPaginate: () => boolean,
-
-  canLoadMore: () => boolean,
-
-  optionsInPage: () => number,
-
-  optionCounts: () => string,
-}
-
-interface Methods extends MethodOptions {
-  loadMore: () => void
-  setPaginationFilter: (filter: string) => void
-  requestPagination: () => Promise<any>;
-}
 
 /**
  * 'mixin' to provide pagination support to LabeledSelect
  */
-export default defineComponent<Props, any, Data, Computed, Methods>({
+export default defineComponent({
   props: {
     paginate: {
       default: null,
@@ -61,7 +26,7 @@ export default defineComponent<Props, any, Data, Computed, Methods>({
     },
   },
 
-  data(): Data {
+  data() {
     return {
       // Internal
       currentPage: 1,
@@ -72,7 +37,7 @@ export default defineComponent<Props, any, Data, Computed, Methods>({
       debouncedRequestPagination: debounce(this.requestPagination, 700),
 
       // External
-      page:         [],
+      page:         [] as any[],
       totalResults: 0,
       paginating:   false,
     };
