@@ -498,7 +498,7 @@ export default {
               class="keyword-item"
             >
               <router-link
-                v-clean-tooltip="t('catalog.chart.info.keywordsTooltip')"
+                v-clean-tooltip="t('catalog.charts.findSimilar.message', { type: t('catalog.charts.findSimilar.types.keyword') }, true)"
                 :to="{ name: 'c-cluster-apps-charts', query: { [SEARCH_QUERY]: keyword } }"
                 data-testid="chart-keyword-link"
               >
