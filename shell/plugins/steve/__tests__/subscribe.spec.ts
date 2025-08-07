@@ -264,7 +264,7 @@ describe('steve: subscribe', () => {
         ctx,
         obj, msg,
         revision,
-        tooManyTries = false
+        tooManyTries = false,
       }) => {
         const {
           state, dispatch, getters, rootGetters, commit
@@ -369,7 +369,7 @@ describe('steve: subscribe', () => {
       });
 
       afterEach(() => {
-        backOff.clear();
+        backOff.resetAll();
       });
 
       // eslint-disable-next-line jest/expect-expect

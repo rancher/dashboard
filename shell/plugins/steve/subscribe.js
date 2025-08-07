@@ -29,7 +29,7 @@ import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
-import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
+import { keyForSubscribe, msgFromSubscribeKey } from '@shell/plugins/steve/resourceWatcher';
 import { waitFor } from '@shell/utils/async';
 import { WORKER_MODES } from './worker';
 import acceptOrRejectSocketMessage from './accept-or-reject-socket-message';
@@ -71,18 +71,6 @@ const isAdvancedWorker = (ctx) => {
 
   return perfSetting?.advancedWorker.enabled;
 };
-
-// const clearInError = (state, { msg, resetBackOff }) => {
-//   const key = keyForSubscribe(msg);
-//   const backingOff = resetBackOff ? state.inError[key]?.backingOff : undefined;
-
-//   if (backingOff !== undefined) {
-//     console.error(`Clearing subscribe watch back off process`, { msg }); // eslint-disable-line no-console
-
-//     clearTimeout(backingOff);
-//   }
-//   delete state.inError[key];
-// };
 
 export async function createWorker(store, ctx) {
   const { getters, dispatch } = ctx;
@@ -274,6 +262,8 @@ function queueChange({ getters, state, rootGetters }, { data, revision }, load, 
 function growlsDisabled(rootGetters) {
   return getPerformanceSetting(rootGetters)?.disableWebsocketNotification;
 }
+
+let counter = 0; // TODO: RC remove
 
 /**
  * Supported events are listed
@@ -509,8 +499,9 @@ const sharedActions = {
     }
 
     // TODO: RC remove
-    if (type === 'batch.job') {
+    if (type === 'batch.job' && counter < 4) {
       revision = 'aaa';
+      counter += 1;
     }
 
     const msg = { resourceType: type };
@@ -623,6 +614,32 @@ const sharedActions = {
     }
 
     unwatch.forEach((entry) => dispatch('unwatch', entry));
+  },
+
+  watchResetBackOff({ state }, { type, compareWatches }) {
+    // For all entries in inError...
+    // (it would be nicer if we could store backOff state in `state.started`,
+    // however resource.stop clears `started` and we need the settings to persist if
+    // it was preceded by a resource.error message)
+    let entries = Object.entries(state.inError)
+      .map(([key, reason]) => ([msgFromSubscribeKey(key), reason]));
+
+    if (type) {
+      // Filter out ones for types we're no interested int
+      entries = entries
+        .filter(([entry]) => compareWatches ? compareWatches(entry) : entry.type === type);
+    }
+
+    entries
+      // Filter out ones for reasons we're not interested in
+      .filter(([, reason]) => reason === REVISION_TOO_OLD)
+      .forEach(([obj]) => {
+        // Get the id for this watch
+        const id = getters.backOffId(obj, REVISION_TOO_OLD);
+
+        // Reset backoff related to it
+        backOff.resetPrefix(id);
+      });
   },
 
   'ws.ping'({ getters, dispatch }, msg) {
@@ -860,6 +877,8 @@ const defaultActions = {
     }
 
     if ( socket.hasReconnected ) {
+      await dispatch('watchResetBackOff', { id: undefined });
+
       await dispatch('reconnectWatches');
       // Check for disconnect notifications and clear them
       const growlErr = rootGetters['growl/find']({ key: 'url', val: socket.url });
@@ -1005,19 +1024,18 @@ const defaultActions = {
       // 1) blocks attempts by resource.stop to resub (as type is in error)
       // 2) will be cleared when resyncWatch --> watch (with force) --> resource.start completes
       commit('setInError', { msg, reason: REVISION_TOO_OLD });
-      // backOffFn: async() => await dispatch('resyncWatch', msg)
 
       if (msg.mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
-        const id = getters.backOffId(msg, REVISION_TOO_OLD);
-
+        // See Scenario 1 from https://github.com/rancher/dashboard/issues/14974
+        // The watch that results from resyncWatch will fail and end up here if the revision isn't (yet) known
+        // So re-retry resyncWatch until it does (or we give up)
         backOff.execute({
-          id,
-          description: `Invalid watch revision received... re-syncing. '${ id }'`,
-          retries:     10, // TODO: RC how long?
-          fn:          async() => await dispatch('resyncWatch', msg)
+          id:          getters.backOffId(msg, REVISION_TOO_OLD),
+          description: `Invalid watch revision, re-syncing`,
+          delayedFn:   async() => await dispatch('resyncWatch', msg),
         });
       } else {
-        dispatch('resyncWatch', msg); // TODO: RC await?
+        dispatch('resyncWatch', msg);
       }
     } else if ( err.includes('the server does not allow this method on the requested resource')) {
       commit('setInError', { msg, reason: NO_PERMS });
@@ -1120,21 +1138,22 @@ const defaultActions = {
 
   'ws.resource.changes'({ dispatch, getters }, msg) {
     const backOffId = getters.backOffId(msg, STEVE_WATCH_EVENT.CHANGES);
-    const running = backOff.known(backOffId);
+    const running = backOff.getBackOff(backOffId);
 
     if (running && running.metadata.revision !== msg.revision) {
       // Stop previously setup attempts to watch with a stale (old/invalid) revision
       backOff.reset(backOffId);
     }
 
-    // start backoff
-    // continue backoff - we could have many resource.changes, each with new
+    // See Scenario 2 from https://github.com/rancher/dashboard/issues/14974
+    // fetchResources will fail if it's hit a replica where revision doesn't exist (yet)
+    // So re-retry fetchResources until it does (or we give up)
     backOff.execute({
       id:          backOffId,
-      description: `Resources changed... refetching. '${ backOffId }'`,
-      retries:     10, // TODO: RC how long?
-      fn:          async() => {
+      description: `Resources changed, refetching`,
+      delayedFn:   async() => {
         try {
+          // TODO: RC: Backend Blocked - test
           await dispatch('fetchResources', {
             ...msg,
             opt: {
@@ -1142,8 +1161,8 @@ const defaultActions = {
             }
           });
         } catch (e) {
-          // if error of certain type...
-          if (e.status === 123) {
+          // if error of certain type, try again
+          if (e.status === 123) { // TODO: RC: Backend Blocked - test
             dispatch('ws.resource.changes', msg);
           }
 
@@ -1215,7 +1234,6 @@ const defaultMutations = {
       addObject(state.started, obj);
     }
 
-    // clearInError(state, { msg: obj });
     delete state.inError[keyForSubscribe(obj)];
   },
 
@@ -1233,35 +1251,6 @@ const defaultMutations = {
     const key = keyForSubscribe(msg);
 
     state.inError[key] = reason;
-
-    // const error = state.inError[key] || { count: 0 };
-
-    // if (backOffFn) {
-    //   if (error.backingOff) {
-    //     console.info(`Skipping subscribe watch back off process (previous back off process still running)`, { msg, reason }); // eslint-disable-line no-console
-    //   } else {
-    //     error.backingOff = setTimeout(async() => {
-    //       try {
-    //         await backOffFn();
-    //       } catch (e) {
-    //         console.error(`Failed subscribe watch back off process`, e, { msg, reason }); // eslint-disable-line no-console
-    //       }
-
-    //       delete error.backingOff;
-    //     }, error.count === 0 ? 1 : Math.pow(1000 * error.count, 2));
-    //     console.info(`Started subscribe watch back off process`, { msg, reason }); // eslint-disable-line no-console
-    //   }
-    // }
-
-    // error.reason = reason;
-    // error.count += 1;
-
-    // state.inError[key] = error;
-  },
-
-  clearInError(state, msg) {
-    // clearInError(state, { msg });
-    delete state.inError[keyForSubscribe(msg)];
   },
 
   resetSubscriptions(state) {
@@ -1291,19 +1280,8 @@ const defaultGetters = {
     return `${ keyForSubscribe(obj) }${ postFix ? `:${ postFix }` : '' }`;
   },
 
-  // allInError: (state) => (reason) => {
-  //   const entries = Object.entries(state.inError);
-
-  //   if (reason) {
-  //     return entries.filter(([_key, _reason]) => _reason === reason);
-  //   }
-
-  //   return entries;
-  // },
-
   inError: (state) => (obj) => {
     return state.inError[keyForSubscribe(obj)];
-    // return state.inError[keyForSubscribe(obj)]?.reason;
   },
 
   watchesOfType: (state) => (type) => {
