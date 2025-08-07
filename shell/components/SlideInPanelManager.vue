@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, watch } from 'vue';
+import { computed, onBeforeUnmount, watch, useTemplateRef } from 'vue';
 import { useStore } from 'vuex';
 import {
   DEFAULT_FOCUS_TRAP_OPTS,
@@ -9,6 +9,9 @@ import { isEqual } from 'lodash';
 import { useRouter } from 'vue-router';
 
 const HEADER_HEIGHT = 55;
+
+const slideInPanelManager = useTemplateRef('SlideInPanelManager');
+const slideInPanelManagerClose = useTemplateRef('SlideInPanelManagerClose');
 
 const store = useStore();
 const isOpen = computed(() => store.getters['slideInPanel/isOpen']);
@@ -72,7 +75,9 @@ watch(
           }
 
           return returnFocusSelector || '.dashboard-root';
-        }
+        },
+        // putting the initial focus on the first element that is not conditionally displayed
+        initialFocus: slideInPanelManagerClose.value
       };
 
       useWatcherBasedSetupFocusTrapWithDestroyIncluded(
@@ -83,7 +88,7 @@ watch(
 
           return isOpen?.value && !isClosing?.value;
         },
-        '#slide-in-panel-manager',
+        slideInPanelManager.value as HTMLElement,
         opts,
         false
       );
@@ -128,6 +133,7 @@ function closePanel() {
   <Teleport to="#slides">
     <div
       id="slide-in-panel-manager"
+      ref="SlideInPanelManager"
       @keydown.escape="closePanel"
     >
       <div
@@ -155,6 +161,7 @@ function closePanel() {
             {{ panelTitle }}
           </div>
           <i
+            ref="SlideInPanelManagerClose"
             class="icon icon-close"
             data-testid="slide-in-close"
             :tabindex="isOpen ? 0 : -1"
