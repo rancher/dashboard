@@ -7,7 +7,12 @@ import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
 const props = defineProps({ disabled: Boolean });
 const emits = defineEmits(['click']);
 
-const { handleKeydown, close, handleActivate } = useDropdownItem();
+const {
+  handleKeydown,
+  close,
+  handleActivate,
+  scrollIntoView,
+} = useDropdownItem();
 
 const handleClick = (e: MouseEvent) => {
   if (props.disabled) {
@@ -31,6 +36,7 @@ const handleClick = (e: MouseEvent) => {
     @click.stop="handleClick"
     @keydown.enter.space="handleActivate"
     @keydown.up.down.prevent.stop="handleKeydown"
+    @focusin="scrollIntoView"
   >
     <slot name="before">
       <!--Empty slot content-->
