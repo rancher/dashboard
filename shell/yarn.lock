@@ -6195,10 +6195,10 @@ create-hmac@^1.1.7:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
-cron-validator@1.3.1:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/cron-validator/-/cron-validator-1.3.1.tgz#8f2fe430f92140df77f91178ae31fc1e3a48a20e"
-  integrity sha512-C1HsxuPCY/5opR55G5/WNzyEGDWFVG+6GLrA+fW/sCTcP6A6NTjUP2AK7B8n2PyFs90kDG2qzwm8LMheADku6A==
+cron-validator@1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/cron-validator/-/cron-validator-1.4.0.tgz#77ed4277b086c22e74ee65640f8456747afd4885"
+  integrity sha512-wGcJ9FCy65iaU6egSH8b5dZYJF7GU/3Jh06wzaT9lsa5dbqExjljmu+0cJ8cpKn+vUyZa/EM4WAxeLR6SypJXw==
 
 cronstrue@2.53.0:
   version "2.53.0"
@@ -10220,15 +10220,15 @@ jsrsasign@11.0.0:
   resolved "https://registry.yarnpkg.com/jsrsasign/-/jsrsasign-11.0.0.tgz#766570c21f87d68075a142f5188f7e583cee9d70"
   integrity sha512-BtRwVKS+5dsgPpAtzJcpo5OoWjSs1/zllSBG0+8o8/aV0Ki76m6iZwHnwnsqoTdhfFZDN1XIdcaZr5ZkP+H2gg==
 
-jszip@3.8.0:
-  version "3.8.0"
-  resolved "https://registry.yarnpkg.com/jszip/-/jszip-3.8.0.tgz#a2ac3c33fe96a76489765168213655850254d51b"
-  integrity sha512-cnpQrXvFSLdsR9KR5/x7zdf6c3m8IhZfZzSblFEHSqBaVwD2nvJ4CuCKLyvKvwBgZm08CgfSoiTBQLm5WW9hGw==
+jszip@3.10.1:
+  version "3.10.1"
+  resolved "https://registry.yarnpkg.com/jszip/-/jszip-3.10.1.tgz#34aee70eb18ea1faec2f589208a157d1feb091c2"
+  integrity sha512-xXDvecyTpGLrqFrvkrUSoxxfJI5AH7U8zxxtVclpsUtMCq4JQ290LY8AW5c7Ggnr/Y/oK+bQMbqK2qmtk3pN4g==
   dependencies:
     lie "~3.3.0"
     pako "~1.0.2"
     readable-stream "~2.3.6"
-    set-immediate-shim "~1.0.1"
+    setimmediate "^1.0.5"
 
 just-extend@^4.0.2:
   version "4.2.1"
@@ -12444,10 +12444,10 @@ sass-loader@12.6.0:
     klona "^2.0.4"
     neo-async "^2.6.2"
 
-sass@1.83.1:
-  version "1.83.1"
-  resolved "https://registry.yarnpkg.com/sass/-/sass-1.83.1.tgz#dee1ab94b47a6f9993d3195d36f556bcbda64846"
-  integrity sha512-EVJbDaEs4Rr3F0glJzFSOvtg2/oy2V/YrGFPqPY24UqcLDWcI9ZY5sN+qyO3c/QCZwzgfirvhXvINiJCE/OLcA==
+sass@1.89.2:
+  version "1.89.2"
+  resolved "https://registry.yarnpkg.com/sass/-/sass-1.89.2.tgz#a771716aeae774e2b529f72c0ff2dfd46c9de10e"
+  integrity sha512-xCmtksBKd/jdJ9Bt9p7nPKiuqrlBMBuuGkQlkhZjjQk3Ty48lv93k5Dq6OPkKt4XwxDJ7tvlfrTa1MPA9bf+QA==
   dependencies:
     chokidar "^4.0.0"
     immutable "^5.0.2"
@@ -12634,11 +12634,6 @@ set-function-name@^2.0.1, set-function-name@^2.0.2:
     functions-have-names "^1.2.3"
     has-property-descriptors "^1.0.2"
 
-set-immediate-shim@~1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/set-immediate-shim/-/set-immediate-shim-1.0.1.tgz#4b2b1b27eb808a9f8dcc481a58e5e56f599f3f61"
-  integrity sha512-Li5AOqrZWCVA2n5kryzEmqai6bKSIvpz5oUJHPVj6+dsbD3X1ixtsY5tEnsaNpH3pFAHmG8eIHUrtEtohrg+UQ==
-
 set-proto@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/set-proto/-/set-proto-1.0.0.tgz#0760dbcff30b2d7e801fd6e19983e56da337565e"
@@ -12648,7 +12643,7 @@ set-proto@^1.0.0:
     es-errors "^1.3.0"
     es-object-atoms "^1.0.0"
 
-setimmediate@^1.0.4:
+setimmediate@^1.0.4, setimmediate@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/setimmediate/-/setimmediate-1.0.5.tgz#290cbb232e306942d7d7ea9b83732ab7856f8285"
   integrity sha512-MATJdZp8sLqDl/68LfQmbP8zKPLQNV6BIZoIgrscFDQ+RsvK/BxeDQOgyxKKoh0y/8h3BqVFnCqQ/gd+reiIXA==
@@ -12868,12 +12863,7 @@ sortablejs@1.14.0:
   resolved "https://registry.yarnpkg.com/sortablejs/-/sortablejs-1.14.0.tgz#6d2e17ccbdb25f464734df621d4f35d4ab35b3d8"
   integrity sha512-pBXvQCs5/33fdN1/39pPL0NZF20LeRbLQ5jtnheIPN9JQAaufGjKdWduZn4U7wCtVuzKhmRkI0DFYHYRbB2H1w==
 
-"source-map-js@>=0.6.2 <2.0.0", source-map-js@^1.0.1, source-map-js@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/source-map-js/-/source-map-js-1.2.0.tgz#16b809c162517b5b8c3e7dcd315a2a5c2612b2af"
-  integrity sha512-itJW8lvSA0TXEphiRoawsCksnlf8SyvmFzIhltqAHluXd88pkCd+cXJVHTDwdCr0IzwptSm035IHQktUu1QUMg==
-
-source-map-js@^1.2.1:
+"source-map-js@>=0.6.2 <2.0.0", source-map-js@^1.0.1, source-map-js@^1.2.0, source-map-js@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/source-map-js/-/source-map-js-1.2.1.tgz#1ce5650fddd87abc099eda37dcff024c2667ae46"
   integrity sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==
@@ -13401,9 +13391,9 @@ timers-browserify@^2.0.12:
     setimmediate "^1.0.4"
 
 tmp@~0.2.1:
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.2.3.tgz#eb783cc22bc1e8bebd0671476d46ea4eb32a79ae"
-  integrity sha512-nZD7m9iCPC5g0pYmcaxogYKggSfLsdxl8of3Q/oIbqCqLLIO9IAF0GWjX1z9NZRHPiXv8Wex4yDCaZsgEw0Y8w==
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.2.4.tgz#c6db987a2ccc97f812f17137b36af2b6521b0d13"
+  integrity sha512-UdiSoX6ypifLmrfQ/XfiawN6hkjSBpCjhKxxZcWlUUmoXLaCKQU0bx4HF/tdDK2uzRuchf1txGvrWBzYREssoQ==
 
 tmpl@1.0.5:
   version "1.0.5"
