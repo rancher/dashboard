@@ -461,7 +461,9 @@ export default {
       //
       if (type === 'batch.job' && !!opt.revision) { // TODO: RC remove
         throw {
-          data:        { message: '', status: 400 },
+          data: {
+            message: '', status: 400, code: 'unknown revision'
+          },
           _status:     400,
           _statusText: 'Not Found',
           _url:        'sadfdfgds',

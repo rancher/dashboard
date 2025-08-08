@@ -6,7 +6,7 @@ type BackOffEntry = {
   metadata: any,
 }
 
-// TODO: RC 1. manually test scenario 2
+// TODO: RC 1. Xmanually test scenario 2
 // TODO: RC 2. tests for scenario 2
 // TODO: RC 3. tests for backoff
 // TODO: RC 4 final tests?
@@ -22,6 +22,7 @@ type BackOffEntry = {
 // 5) extensions/harvester?
 // 6) delay happening ... resource.changes received
 // 7) socket disconnect... reconnect
+// switch between clusters
 
 /**
  * Helper class which handles backing off making the supplied request
@@ -164,13 +165,18 @@ class BackOff {
           this.log('info', id, `Executing call`, description);
 
           await delayedFn();
-
-          delete this.map[id].timeoutId;
         } catch (e) {
           // Error occurred. Don't clear the map. Next time this is called we'll back off before trying ...
           this.log('error', id, 'Failed call', description, e);
         }
+
+        // Unblock future calls
+        delete this.map[id].timeoutId;
       }, delay);
+
+      // TODO: RC nothing truly resets this after success
+      // scenario 1 - no resource.error after resource.start??
+      // scenario 2 - if successfull called
 
       this.map[id] = {
         timeoutId: timeout,
