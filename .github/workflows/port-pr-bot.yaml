@@ -103,7 +103,7 @@ jobs:
           echo "Milestone: ${MILESTONE}"
 
           echo "Logging in with token..."
-          gh auth login --with-token
+          gh auth login --with-token ${APP_TOKEN}
           echo "Logged in with token"
 
           PATCH_FILE=$(mktemp)
