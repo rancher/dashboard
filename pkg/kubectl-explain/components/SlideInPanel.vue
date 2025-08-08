@@ -41,7 +41,7 @@ export default {
     // and therefore not triggering the focus trap
     isOpen(neu, old) {
       if (neu && neu !== old) {
-        useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.isOpen, '[data-testid="slide-in-panel-resource-explain"]', {
+        useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => this.isOpen, this.$refs.slideInPanelResourceExplain, {
           escapeDeactivates: false,
           allowOutsideClick: true,
           // putting the initial focus on the first element that is not conditionally displayed
@@ -205,6 +205,7 @@ export default {
       @click="close()"
     />
     <aside
+      ref="slideInPanelResourceExplain"
       class="slide-in"
       :class="{ 'slide-in-open': isOpen }"
       :style="{ width, right, top, height }"
