@@ -81,7 +81,6 @@ export default {
 
       this.validateEndpoint(this.config.endpoint);
     },
-    isHttpsOrHttp,
 
     validateEndpoint(value) {
       const hasError = !isEmpty(value) && isHttpsOrHttp(value);

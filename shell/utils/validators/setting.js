@@ -6,7 +6,7 @@ export const isHttps = (value) => value.toLowerCase().startsWith('https://');
 
 export const isHttpsOrHttp = (value) => {
   if (typeof value !== 'string') {
-    return false; // Or throw new Error('Input is not a string');
+    return false; 
   }
 
   const lowerCaseValue = value.toLowerCase();
