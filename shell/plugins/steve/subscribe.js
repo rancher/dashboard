@@ -3,8 +3,25 @@
  *
  * Covers three use cases
  * 1) Handles subscription within this file
- * 2) Handles `cluster` subscriptions for some basic types in a web worker (SETTING.UI_PERFORMANCE advancedWorker = false)
+ * 2) Handles `cluster` subscriptions for some basic types in a web worker (SETTING.UI_PERFORMANCE advancedWorker = false) (is this true??)
  * 2) Handles `cluster` subscriptions and optimisations in an advanced worker (SETTING.UI_PERFORMANCE advancedWorker = true)
+ *
+ * Very roughly this does...
+ *
+ * 1. _Subscribes_ to a web socket (v1, v3, v1 cluster)
+ * 2. Sends a _watch_ message for a specific resource type (which can have qualifying filters)
+ * 3. Rancher can send a number of messages back
+ *   - `resource.start`   - watch has started
+ *   - `resource.error`   - watch has errored, usually a result of bad data in the resource.start message
+ *   - `resource.change`  - a resource has changed, this is it's new value
+ *   - `resource.changes` - if in this mode, no resource.change events are sent, instead one debounced message is sent without any resource data
+ *   - `resource.stop`    - either we have requested the watch stops, or there has been a resource.error
+ * 4. Sends an _unwatch_ request for a matching _watch_ request
+ *
+ * Additionally
+ * - if we receive resource.stop, unless the watch is in error, we immediately send back a watch event
+ * - if the web socket is disconnected (happens every 30 mins, or when there are permission changes)
+ *   the ui will re-connect it and re-watch all previous watches using a best effort revision
  */
 
 import { addObject, clear, removeObject } from '@shell/utils/array';
@@ -263,7 +280,7 @@ function growlsDisabled(rootGetters) {
   return getPerformanceSetting(rootGetters)?.disableWebsocketNotification;
 }
 
-let counter = 0; // TODO: RC remove
+const counter = 0; // TODO: RC remove
 
 /**
  * Supported events are listed
@@ -350,7 +367,9 @@ const sharedActions = {
     }
   },
 
-  unsubscribe({ commit, getters, state }) {
+  async unsubscribe({
+    commit, getters, state, dispatch
+  }) {
     const socket = state.socket;
 
     commit('setWantSocket', false);
@@ -366,6 +385,8 @@ const sharedActions = {
     if ( socket ) {
       cleanupTasks.push(socket.disconnect());
     }
+
+    await dispatch('resetWatchBackOff');
 
     return Promise.all(cleanupTasks);
   },
@@ -500,8 +521,8 @@ const sharedActions = {
 
     // TODO: RC remove
     if (type === 'batch.job' && counter < 4) {
-      revision = 'aaa';
-      counter += 1;
+      // revision = 'aaa';
+      // counter += 1;
     }
 
     const msg = { resourceType: type };
@@ -583,6 +604,7 @@ const sharedActions = {
           // Make sure anything in the pending queue for the type is removed, since we've now removed the type
           commit('clearFromQueue', type);
         }
+        // Ensure anything pinging in the background is stopped
         backOff.resetPrefix(getters.backOffId(obj));
       };
 
@@ -616,30 +638,50 @@ const sharedActions = {
     unwatch.forEach((entry) => dispatch('unwatch', entry));
   },
 
-  watchResetBackOff({ state }, { type, compareWatches }) {
-    // For all entries in inError...
-    // (it would be nicer if we could store backOff state in `state.started`,
-    // however resource.stop clears `started` and we need the settings to persist if
-    // it was preceded by a resource.error message)
-    let entries = Object.entries(state.inError)
-      .map(([key, reason]) => ([msgFromSubscribeKey(key), reason]));
+  /**
+   * Ensure there's no back-off process waiting to run for
+   * - resource.changes fetchResources
+   * - resource.error resyncWatches
+   */
+  resetWatchBackOff({ state, getters }, {
+    type, compareWatches, inError = true, started = true
+  } = { inError: true, started: true }) {
+    if (inError && state.inError) {
+      // For all entries in inError...
+      // (it would be nicer if we could store backOff state in `state.started`,
+      // however resource.stop clears `started` and we need the settings to persist over start-->error-->stop-->start cycles
+      let entries = Object.entries(state.inError)
+        .map(([key, reason]) => ([msgFromSubscribeKey(key), reason]));
 
-    if (type) {
-      // Filter out ones for types we're no interested int
-      entries = entries
-        .filter(([entry]) => compareWatches ? compareWatches(entry) : entry.type === type);
+      if (type) { // Filter out ones for types we're no interested in
+        entries = entries
+          .filter(([entry]) => compareWatches ? compareWatches(entry) : entry.type === type);
+      }
+
+      entries
+        .filter(([, reason]) => reason === REVISION_TOO_OLD) // Filter out ones for reasons we're not interested in
+        .forEach(([obj]) => {
+          // for this watch ... get the specific prefix we care about ... reset backoff related to it
+          backOff.resetPrefix(getters.backOffId(obj, REVISION_TOO_OLD));
+        });
     }
 
-    entries
-      // Filter out ones for reasons we're not interested in
-      .filter(([, reason]) => reason === REVISION_TOO_OLD)
-      .forEach(([obj]) => {
-        // Get the id for this watch
-        const id = getters.backOffId(obj, REVISION_TOO_OLD);
+    if (started && state.started?.length) {
+      // For all entries in started...
+      let entries = state.started;
 
-        // Reset backoff related to it
-        backOff.resetPrefix(id);
-      });
+      if (type) { // Filter out ones for types we're no interested in
+        entries = entries
+          .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type);
+      }
+
+      entries
+        .filter((obj) => obj.mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) // Filter out ones for reasons we're not interested in
+        .forEach((obj) => {
+          // for this watch ... get the specific prefix we care about ... reset backoff related to it
+          backOff.resetPrefix(getters.backOffId(obj, STEVE_WATCH_MODE.RESOURCE_CHANGES));
+        });
+    }
   },
 
   'ws.ping'({ getters, dispatch }, msg) {
@@ -877,8 +919,6 @@ const defaultActions = {
     }
 
     if ( socket.hasReconnected ) {
-      await dispatch('watchResetBackOff', { id: undefined });
-
       await dispatch('reconnectWatches');
       // Check for disconnect notifications and clear them
       const growlErr = rootGetters['growl/find']({ key: 'url', val: socket.url });
@@ -901,15 +941,20 @@ const defaultActions = {
     }
   },
 
-  closed({ state, getters }) {
+  async closed({ state, getters, dispatch }) {
     state.debugSocket && console.info(`WebSocket Closed [${ getters.storeName }]`); // eslint-disable-line no-console
+
+    await dispatch('resetWatchBackOff');
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
   },
 
-  error({
+  async error({
     getters, state, dispatch, rootGetters
   }, e) {
+    state.debugSocket && console.info(`WebSocket Error [${ getters.storeName }]`); // eslint-disable-line no-console
+
+    await dispatch('resetWatchBackOff');
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
 
@@ -1032,7 +1077,8 @@ const defaultActions = {
         backOff.execute({
           id:          getters.backOffId(msg, REVISION_TOO_OLD),
           description: `Invalid watch revision, re-syncing`,
-          delayedFn:   async() => await dispatch('resyncWatch', msg),
+          canFn:       () => getters.canBackoff(this.$socket),
+          delayedFn:   () => dispatch('resyncWatch', msg),
         });
       } else {
         dispatch('resyncWatch', msg);
@@ -1151,18 +1197,21 @@ const defaultActions = {
     backOff.execute({
       id:          backOffId,
       description: `Resources changed, refetching`,
+      canFn:       () => getters.canBackoff(this.$socket),
       delayedFn:   async() => {
         try {
+          debugger;
           // TODO: RC: Backend Blocked - test
           await dispatch('fetchResources', {
             ...msg,
             opt: {
-              force: true, load: _MERGE, revision: msg.revision
+              force: true, load: _MERGE, revision: msg.revision || 'abcde'
             }
           });
         } catch (e) {
+          debugger;
           // if error of certain type, try again
-          if (e.status === 123) { // TODO: RC: Backend Blocked - test
+          if (e._status === 400 && e.data?.message === 'unknown revision') { // TODO: RC: Backend Blocked - test
             dispatch('ws.resource.changes', msg);
           }
 
@@ -1253,12 +1302,17 @@ const defaultMutations = {
     state.inError[key] = reason;
   },
 
+  /**
+   * Clear out socket state
+   */
   resetSubscriptions(state) {
-    // Clear out socket state. This is only ever called from reset... which is always called after we `disconnect` above.
-    // This could probably be folded in to there
     clear(state.started);
     clear(state.pendingFrames);
     clear(state.queue);
+    // Note - we haven't called resetWatchBackOff here as this is a mutation however..
+    // this is called from store reset, which includes forgetType on everything in the store
+    // additionally this is probably called on a cluster store, so we also call resetWatchBackOff
+    // when the socket goes
     clearTimeout(state.queueTimer);
     state.deferredRequests = {};
     state.queueTimer = null;
@@ -1276,8 +1330,20 @@ const defaultMutations = {
  * Getters that cover cases 1 & 2 (see file description)
  */
 const defaultGetters = {
+  /**
+   * Get a unique id that can be used to track a process that won't overlap, and on subsequent calls back-off
+   */
   backOffId: () => (obj, postFix) => {
     return `${ keyForSubscribe(obj) }${ postFix ? `:${ postFix }` : '' }`;
+  },
+
+  /**
+   * Can the back off process run?
+   *
+   * If we're not connected no.
+   */
+  canBackoff: () => ($socket) => {
+    return $socket.state === EVENT_CONNECTED;
   },
 
   inError: (state) => (obj) => {

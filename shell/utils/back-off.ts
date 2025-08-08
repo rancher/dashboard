@@ -6,6 +6,11 @@ type BackOffEntry = {
   metadata: any,
 }
 
+// TODO: RC 1. manually test scenario 2
+// TODO: RC 2. tests for scenario 2
+// TODO: RC 3. tests for backoff
+// TODO: RC 4 final tests?
+
 // TODO: RC review
 // 1) make sure if is solid for the happy case... no way to fail
 // TODO: RC Test
@@ -74,6 +79,8 @@ class BackOff {
       this.log('debug', id, 'Reset', backOff.description);
 
       delete this.map[id];
+    } else {
+      this.log('debug', id, 'Reset', 'NOT!'); // TODO: RC remove
     }
   }
 
@@ -89,18 +96,52 @@ class BackOff {
    *
    * This can be called repeatedly, if the previous delay is still running new requests will be ignored
    */
-  execute({
-    id, description, retries = 10, delayedFn, metadata
+  async execute<T = any>({
+    id, description, retries = 10, delayedFn, canFn = async() => true, metadata
   }: {
+    /**
+     * Unique id for the execution of this function.
+     *
+     * This will be used to delay further executions, and also to cancel it
+     */
     id: string,
+    /**
+     * Basic text description to use in logging
+     */
     description: string,
+    /**
+     * Number of executions allowed before flatly refusing to call more. Defaults to 10
+     */
     retries: number,
+    /**
+     * Before calling delayedFn check if it can still run
+     *
+     * Useful for checking state after a looong delay
+     */
+    canFn: () => Promise<boolean>,
+    /**
+     * Call this function
+     * - if it's not already waiting to run
+     * - if it's passed canFn
+     * - if it hasn't been tried over `retries` amount
+     *
+     * The function will be increasingly (exponentially) delayed if it has previously been called
+     */
     delayedFn: () => Promise<any>,
-    metadata: any,
-  }): NodeJS.Timeout | undefined {
+    /**
+     * Anything that might be important outside of this file (used with `getBackOff`)
+     */
+    metadata: T,
+  }): Promise<NodeJS.Timeout | undefined> {
     const backOff: BackOffEntry = this.map[id];
 
-    if (backOff?.timeoutId) {
+    const cont = await canFn();
+
+    if (!cont) {
+      this.log('info', id, 'Skipping (can execute fn test failed)', backOff.description);
+
+      return undefined;
+    } else if (backOff?.timeoutId) {
       this.log('info', id, 'Skipping (previous back off process still running)', backOff.description);
 
       return backOff?.timeoutId;
