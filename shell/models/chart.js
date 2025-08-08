@@ -127,19 +127,23 @@ export default class Chart extends SteveModel {
       if (latestVersion) {
         const hasZeroTime = latestVersion.created === ZERO_TIME;
 
-        subHeaderItems.push(
-          {
-            icon:        'icon-version-alt',
-            iconTooltip: { key: 'tableHeaders.version' },
-            label:       latestVersion.version
-          },
-          {
-            icon:        'icon-refresh-alt',
-            iconTooltip: { key: 'tableHeaders.lastUpdated' },
-            label:       hasZeroTime ? this.t('generic.na') : day(latestVersion.created).format('MMM D, YYYY'),
-            ...(hasZeroTime && { labelTooltip: this.t('generic.missingInfoMessage') })
-          }
-        );
+        subHeaderItems.push({
+          icon:        'icon-version-alt',
+          iconTooltip: { key: 'tableHeaders.version' },
+          label:       latestVersion.version
+        });
+
+        const lastUpdatedItem = {
+          icon:        'icon-refresh-alt',
+          iconTooltip: { key: 'tableHeaders.lastUpdated' },
+          label:       hasZeroTime ? this.t('generic.na') : day(latestVersion.created).format('MMM D, YYYY')
+        };
+
+        if (hasZeroTime) {
+          lastUpdatedItem.labelTooltip = this.t('catalog.charts.appChartCard.subHeaderItem.missingVersionDate');
+        }
+
+        subHeaderItems.push(lastUpdatedItem);
       }
 
       const footerItems = [

@@ -290,7 +290,7 @@ describe('class Chart', () => {
       const lastUpdatedItem = result.subHeaderItems[1];
 
       expect(lastUpdatedItem.label).toBe('generic.na');
-      expect(lastUpdatedItem.labelTooltip).toBe('generic.missingInfoMessage');
+      expect(lastUpdatedItem.labelTooltip).toBe('catalog.charts.appChartCard.subHeaderItem.missingVersionDate');
     });
   });
 });

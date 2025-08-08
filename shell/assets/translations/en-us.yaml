@@ -158,7 +158,6 @@ generic:
   showLess: Show less
   showMore: Show more
   opensInNewTab: Opens in a new tab
-  missingInfoMessage: The info is missing
   
 tabs:
   addItem: Add a new tab item
@@ -1050,6 +1049,7 @@ catalog:
         label: Chart Versions
         showMore: Show More
         showLess: Show Less
+        missingVersionDate: No date available for this chart version
       home: Homepage
       repository: Repository Page
       maintainers: Maintainers
@@ -1095,6 +1095,8 @@ catalog:
       label: Add new
       ariaLabel: Add a new repository
     appChartCard:
+      subHeaderItem:
+        missingVersionDate: Last updated date is not available for this chart
       footerItem:
         ariaLabel: Apply filter
     statusFilterCautions:

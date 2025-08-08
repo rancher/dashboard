@@ -184,7 +184,7 @@ export default {
     },
     getVersionDateTooltip(date) {
       if (date === ZERO_TIME) {
-        return this.t('generic.missingInfoMessage');
+        return this.t('catalog.chart.info.chartVersions.missingVersionDate');
       }
 
       const dateFormat = escapeHtml(this.$store.getters['prefs/get'](DATE_FORMAT));
