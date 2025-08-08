@@ -19,14 +19,6 @@ export default {
     },
   },
 
-  data() {
-    return {
-      observer:    null,
-      intersected: false,
-      boundError:  null,
-    };
-  },
-
   watch: {
     src(neu, old) {
       if (neu !== old) {
