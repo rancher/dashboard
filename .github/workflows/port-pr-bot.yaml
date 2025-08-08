@@ -1,4 +1,4 @@
-name: Port PR
+name: Port PR [BOT]
 
 on:
   issue_comment:
@@ -101,6 +101,10 @@ jobs:
           echo "Type: ${TYPE}"
           echo "Target Branch: ${TARGET_BRANCH}"
           echo "Milestone: ${MILESTONE}"
+
+          echo "Logging in with token..."
+          gh auth login --with-token
+          echo "Logged in with token"
 
           PATCH_FILE=$(mktemp)
           echo "Created temporary patch file: ${PATCH_FILE}"
