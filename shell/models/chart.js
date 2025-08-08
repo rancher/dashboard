@@ -148,28 +148,31 @@ export default class Chart extends SteveModel {
 
       const footerItems = [
         {
-          type:        REPO,
-          icon:        'icon-repository-alt',
-          iconTooltip: { key: 'tableHeaders.repoName' },
-          labels:      [this.repoNameDisplay]
+          type:         REPO,
+          icon:         'icon-repository-alt',
+          iconTooltip:  { key: 'tableHeaders.repoName' },
+          labels:       [this.repoNameDisplay],
+          labelTooltip: this.t('catalog.charts.findSimilar.message', { type: this.t('catalog.charts.findSimilar.types.repo') }, true)
         }
       ];
 
       if (this.categories.length) {
         footerItems.push( {
-          type:        CATEGORY,
-          icon:        'icon-category-alt',
-          iconTooltip: { key: 'generic.category' },
-          labels:      this.categories
+          type:         CATEGORY,
+          icon:         'icon-category-alt',
+          iconTooltip:  { key: 'generic.category' },
+          labels:       this.categories,
+          labelTooltip: this.t('catalog.charts.findSimilar.message', { type: this.t('catalog.charts.findSimilar.types.category') }, true)
         });
       }
 
       if (this.tags.length) {
         footerItems.push({
-          type:        TAG,
-          icon:        'icon-tag-alt',
-          iconTooltip: { key: 'generic.tags' },
-          labels:      this.tags
+          type:         TAG,
+          icon:         'icon-tag-alt',
+          iconTooltip:  { key: 'generic.tags' },
+          labels:       this.tags,
+          labelTooltip: this.t('catalog.charts.findSimilar.message', { type: this.t('catalog.charts.findSimilar.types.tag') }, true)
         });
       }
 

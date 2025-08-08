@@ -1056,7 +1056,6 @@ catalog:
       related: Related
       chartUrls: Chart
       keywords: Keywords
-      keywordsTooltip: Find similar charts based on this keyword
     errors:
       clusterToolExists: This chart has a fixed namespace and name. A matching <a href="{url}">application</a> has been found and any changes will be made to it.
     global: Global
@@ -1122,6 +1121,13 @@ catalog:
       alphaDescending: Chart name, Z → A
     refreshButton:
       label: Refresh all repositories
+    findSimilar:
+      message: "Find similar charts based on this {type}"
+      types:
+        keyword: keyword
+        repo: repository
+        category: category
+        tag: tag
   install:
     action:
       goToUpgrade: Edit/Upgrade

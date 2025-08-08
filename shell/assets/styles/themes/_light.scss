@@ -630,10 +630,21 @@ BODY, .theme-light {
 
 
   // These are meant to be the colors used within rancher-components. They will eventually be removed from shell once we have theming working in the components
-  --rc-info: #{$blue0001};
+  --rc-info: #{$blue001};
+  --rc-info-secondary: #{$blue002};
+
   --rc-success: #{$green001};
+  --rc-success-secondary: #{$green002};
+
   --rc-warning: #{$yellow001};
+  --rc-warning-secondary: #{$yellow002};
+
   --rc-error: #{$red001};
+  --rc-error-secondary: #{$gray003};
+
   --rc-unknown: #{$gray001};
+  --rc-unknown-secondary: #{$gray004};
+
   --rc-none: #{$gray002};
+  --rc-none-secondary: #{$gray004};
 }

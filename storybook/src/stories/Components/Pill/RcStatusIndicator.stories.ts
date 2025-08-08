@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import StatusIndicator from '@components/Pill/RcStatusIndicator/RcStatusIndicator.vue';
+import RcStatusIndicator from '@components/Pill/RcStatusIndicator/RcStatusIndicator.vue';
 
-const meta: Meta<typeof StatusIndicator> = {
-  component: StatusIndicator,
+const meta: Meta<typeof RcStatusIndicator> = {
+  component: RcStatusIndicator,
   argTypes:  {
     shape: {
       options:     ['disc', 'horizontal-bar', 'vertical-bar'],
@@ -18,19 +18,19 @@ const meta: Meta<typeof StatusIndicator> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof StatusIndicator>;
+type Story = StoryObj<typeof RcStatusIndicator>;
 
 const Default: Story = {
   render: (args: any) => ({
-    components: { StatusIndicator },
+    components: { RcStatusIndicator },
     setup() {
       return { args };
     },
-    template: '<StatusIndicator v-bind="args" />',
+    template: '<RcStatusIndicator v-bind="args" />',
   }),
 };
 
-export const Success: Story = {
+export const Example: Story = {
   ...Default,
   args: {
     shape:  'disc',

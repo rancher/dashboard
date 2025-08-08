@@ -22,8 +22,6 @@
 </template>
 <style lang="scss" scoped>
 .resource-detail-page {
-  padding: 24px;
-
   :deep() .tabs.horizontal {
     border: none;
   }
