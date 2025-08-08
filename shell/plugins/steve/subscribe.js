@@ -280,7 +280,7 @@ function growlsDisabled(rootGetters) {
   return getPerformanceSetting(rootGetters)?.disableWebsocketNotification;
 }
 
-const counter = 0; // TODO: RC remove
+let counter = 0; // TODO: RC remove
 
 /**
  * Supported events are listed
@@ -521,8 +521,8 @@ const sharedActions = {
 
     // TODO: RC remove
     if (type === 'batch.job' && counter < 4) {
-      // revision = 'aaa';
-      // counter += 1;
+      revision = 'aaa';
+      counter += 1;
     }
 
     const msg = { resourceType: type };
@@ -1080,6 +1080,8 @@ const defaultActions = {
           canFn:       () => getters.canBackoff(this.$socket),
           delayedFn:   () => dispatch('resyncWatch', msg),
         });
+        // TODO: RC after this is successfully how do we call backoff.reset??
+        // We need to store previous revision in metadata, if different reset. asked BE
       } else {
         dispatch('resyncWatch', msg);
       }
@@ -1205,13 +1207,14 @@ const defaultActions = {
           await dispatch('fetchResources', {
             ...msg,
             opt: {
-              force: true, load: _MERGE, revision: msg.revision || 'abcde'
+              force: true, load: _MERGE, revision: msg.revision || 'abcde' // TODO: RC
             }
           });
         } catch (e) {
           debugger;
+          // TODO: RC const 'unknown revision'
           // if error of certain type, try again
-          if (e._status === 400 && e.data?.message === 'unknown revision') { // TODO: RC: Backend Blocked - test
+          if (e._status === 400 && e.data?.code === 'unknown revision') { // TODO: RC: Backend Blocked - test
             dispatch('ws.resource.changes', msg);
           }
 
