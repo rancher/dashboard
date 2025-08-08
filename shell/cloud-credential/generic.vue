@@ -4,6 +4,7 @@ import KeyValue from '@shell/components/form/KeyValue';
 import { Banner } from '@components/Banner';
 import { simplify, iffyFields, likelyFields } from '@shell/store/plugins';
 import Loading from '@shell/components/Loading';
+import { SCHEMA } from '@shell/config/types';
 
 export default {
   emits: ['validationChanged'],
@@ -23,10 +24,15 @@ export default {
   async fetch() {
     let keyOptions = [];
 
-    const { normanSchema } = this;
+    const normanType = this.$store.getters['plugins/credentialFieldForDriver'](this.driverName);
+    const configId = `${ normanType }credentialconfig`;
 
-    if ( normanSchema?.resourceFields ) {
-      keyOptions = Object.keys(normanSchema.resourceFields);
+    this.normanSchema = await this.$store.dispatch('rancher/find', {
+      type: SCHEMA, id: configId, opt: { url: `/v3/schemas/${ configId }` }
+    });
+
+    if ( this.normanSchema?.resourceFields ) {
+      keyOptions = Object.keys(this.normanSchema.resourceFields);
     } else {
       keyOptions = await this.$store.getters['plugins/fieldNamesForDriver'](this.driverName);
     }
@@ -38,7 +44,7 @@ export default {
     for ( const k of keyOptions ) {
       const sk = simplify(k);
 
-      if ( normanSchema?.resourceFields || likelyFields.includes(sk) || iffyFields.includes(sk) ) {
+      if ( this.normanSchema?.resourceFields || likelyFields.includes(sk) || iffyFields.includes(sk) ) {
         keys.push(k);
       }
     }
@@ -51,13 +57,9 @@ export default {
   },
 
   data() {
-    const normanType = this.$store.getters['plugins/credentialFieldForDriver'](this.driverName);
-    const normanSchema = this.$store.getters['rancher/schemaFor'](`${ normanType }credentialconfig`);
-
     return {
-      hasSupport: !!normanSchema,
-      errors:     null,
-      normanSchema,
+      errors:       null,
+      normanSchema: null,
     };
   },
 
@@ -72,6 +74,12 @@ export default {
       this.value.setData(val);
     }
   },
+
+  computed: {
+    hasSupport() {
+      return !!this.normanSchema;
+    }
+  }
 
 };
 </script>
