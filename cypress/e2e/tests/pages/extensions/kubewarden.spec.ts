@@ -40,7 +40,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
 
     // click on install button on card
     extensionsPo.extensionCardInstallClick(extensionName);
-    extensionsPo.extensionInstallModal().should('be.visible');
+    extensionsPo.extensionInstallModal().should('be.visible' );
 
     // click install
     extensionsPo.installModalInstallClick();
