@@ -40,11 +40,14 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     // Set up intercept for the network request triggered by $fetch
     cy.intercept('GET', `**${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartDataAfterSelect');
 
-    // making sure it's not hidden under the show more results
-    chartPage.showMoreVersions().click();
-    chartPage.selectVersion('105.2.1+up4.10.0');
+    // Select the first active version link
+    chartPage.versionLinks()
+      .first()
+      .then((firstVersion) => {
+        chartPage.selectVersion(firstVersion.text());
 
-    cy.wait('@fetchChartDataAfterSelect').its('response.statusCode').should('eq', 200);
+        cy.wait('@fetchChartDataAfterSelect').its('response.statusCode').should('eq', 200);
+      });
   });
 
   it('should not call fetch when navigating back to charts page', () => {

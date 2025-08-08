@@ -55,6 +55,10 @@ export class ChartPage extends PagePo {
     return this.self().find('[data-testid="chart-versions"]');
   }
 
+  versionLinks() {
+    return this.versions().find('[data-testid="chart-version-link"]');
+  }
+
   showMoreVersions() {
     return this.self().find('[data-testid="chart-show-more-versions"]');
   }
