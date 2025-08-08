@@ -119,6 +119,10 @@ export default {
         color: var(--link);
         background: transparent;
 
+        &:focus-visible {
+          @include focus-outline;
+        }
+
         i {
           margin-right: 2px;
         }
