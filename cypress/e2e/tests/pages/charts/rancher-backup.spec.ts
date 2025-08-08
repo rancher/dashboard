@@ -62,6 +62,8 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         const select = new LabeledSelectPo('[data-testid="backup-chart-select-existing-storage-class"]');
 
         select.checkExists();
+        select.toggle();
+        select.clickOptionWithLabel('test-default-storage-class'); // in k3s there's a different default storage class (local-path)
         select.checkOptionSelected('test-default-storage-class');
 
         // Verify that changing tabs doesn't reset the last selected storage class option
