@@ -159,19 +159,16 @@ export default {
       if (neu === 'useDefault') {
         delete this.value.spec.storageLocation;
         delete this.value.spec.backupFilename;
-      } else if (!this.value.spec.storageLocation && neu === 'configureS3') {
-        this.value.spec['storageLocation'] = { s3: {} };
-        this.s3 = this.value.spec.storageLocation.s3;
-      }
-      if (neu === 'useBackup') {
+        this.s3 = {};
+      } else if (neu === 'configureS3') {
+        this.s3 = this.value.spec.storageLocation?.s3 || {};
+        this.value.spec.storageLocation = { s3: this.s3 };
+      } else if (neu === 'useBackup') {
         delete this.value.spec.storageLocation;
 
         if (this.availableBackups.length === 1) {
           this.updateTargetBackup(this.availableBackups[0]);
         }
-      } else {
-        delete this.value.spec.backupFilename;
-        this.value.spec.storageLocation = { s3: this.s3 };
       }
     },
 
