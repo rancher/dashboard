@@ -1,7 +1,7 @@
 import { matchesSomeRegex } from '@shell/utils/string';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
-import { UI_PLUGIN_BASE_URL, isSupportedChartVersion } from '@shell/config/uiplugins';
+import { UI_PLUGIN_BASE_URL, isSupportedChartVersion, UI_PLUGIN_LABELS } from '@shell/config/uiplugins';
 
 const MAX_RETRIES = 10;
 const RETRY_WAIT = 2500;
@@ -180,10 +180,17 @@ export async function getHelmRepositoryExact(store: any, url: string): Promise<H
  *
  * @param store Vue store
  * @param urlRegexes Regex to match a community repository
+ * @param catalogImages Catalog images to match against the repository's labels
  * @returns HelmRepository
  */
-export async function getHelmRepositoryMatch(store: any, urlRegexes: string[]): Promise<HelmRepository> {
+export async function getHelmRepositoryMatch(store: any, urlRegexes: string[], catalogImages: string[]): Promise<HelmRepository> {
   return await getHelmRepository(store, (repository: any) => {
+    // if installed from rancher/ui-plugin-catalog or rancher/ui-extension-harvester-ui-extension
+    const catalog = repository?.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE] || '';
+
+    if (catalogImages.includes(catalog)) {
+      return true;
+    }
     const target = repository.spec?.gitBranch ? repository.spec?.gitRepo : repository.spec?.url;
 
     return matchesSomeRegex(target, urlRegexes);
