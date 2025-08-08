@@ -399,7 +399,7 @@ export default {
               />
             </div>
             <p
-              v-clean-tooltip="getVersionDateTooltip(vers.created)"
+              v-clean-tooltip="{ content: getVersionDateTooltip(vers.created), placement: 'left'}"
               class="version-date"
             >
               {{ formatVersionDate(vers.created) }}
