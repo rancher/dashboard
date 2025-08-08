@@ -41,6 +41,11 @@ export default {
   },
 
   mounted() {
+    // initialize non-reactive data
+    this.observer = null;
+    this.intersected = false;
+    this.boundError = null;
+
     // Show error image if src is falsy
     if (!this.src) {
       this.onError();
