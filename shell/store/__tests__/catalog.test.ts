@@ -1,5 +1,7 @@
 import { CATALOG } from '@shell/config/types';
-import { state, getters, actions, mutations } from '../catalog';
+import {
+  state, getters, actions, mutations, filterAndArrangeCharts
+} from '../catalog';
 import { createStore } from 'vuex';
 
 const clusterRepo = { _key: 'testClusterRepo' };
@@ -202,6 +204,96 @@ describe('catalog', () => {
 
       // Version info should be changed (it's now empty given reset)
       expect(store.state[catalogStoreName].versionInfos).toStrictEqual({ });
+    });
+  });
+
+  describe('filterAndArrangeCharts', () => {
+    const mockCharts = [
+      {
+        chartName:        'chart-a',
+        chartNameDisplay: 'Chart Alpha',
+        chartDescription: 'Description for Alpha',
+        keywords:         ['keyword1', 'keyword2'],
+        versions:         [{ annotations: {}, version: '1.0.0' }],
+        deprecated:       false,
+        hidden:           false,
+        repoKey:          'repo1',
+        chartType:        'app',
+        categories:       [],
+        tags:             [],
+      },
+      {
+        chartName:        'chart-b',
+        chartNameDisplay: 'Chart Beta',
+        chartDescription: 'Description for Beta',
+        keywords:         ['keyword2', 'keyword3'],
+        versions:         [{ annotations: {}, version: '1.0.0' }],
+        deprecated:       false,
+        hidden:           false,
+        repoKey:          'repo1',
+        chartType:        'app',
+        categories:       [],
+        tags:             [],
+      },
+      {
+        chartName:        'chart-c',
+        chartNameDisplay: 'Chart Gamma',
+        chartDescription: 'Description for Gamma',
+        keywords:         ['keyword3', 'keyword4'],
+        versions:         [{ annotations: {}, version: '1.0.0' }],
+        deprecated:       false,
+        hidden:           false,
+        repoKey:          'repo1',
+        chartType:        'app',
+        categories:       [],
+        tags:             [],
+      },
+    ];
+
+    it('should return all charts when no search query is provided', () => {
+      const result = filterAndArrangeCharts(mockCharts, {});
+
+      expect(result).toHaveLength(mockCharts.length);
+    });
+
+    it('should filter charts by name', () => {
+      const result = filterAndArrangeCharts(mockCharts, { searchQuery: 'Chart Alpha' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].chartNameDisplay).toBe('Chart Alpha');
+    });
+
+    it('should filter charts by description', () => {
+      const result = filterAndArrangeCharts(mockCharts, { searchQuery: 'Description for Beta' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].chartNameDisplay).toBe('Chart Beta');
+    });
+
+    it('should filter charts by keyword', () => {
+      const result = filterAndArrangeCharts(mockCharts, { searchQuery: 'keyword1' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].chartNameDisplay).toBe('Chart Alpha');
+    });
+
+    it('should handle multiple search tokens', () => {
+      const result = filterAndArrangeCharts(mockCharts, { searchQuery: 'Chart, keyword2' });
+
+      expect(result).toHaveLength(2);
+    });
+
+    it('should be case-insensitive', () => {
+      const result = filterAndArrangeCharts(mockCharts, { searchQuery: 'chart alpha' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].chartNameDisplay).toBe('Chart Alpha');
+    });
+
+    it('should return an empty array if no charts match', () => {
+      const result = filterAndArrangeCharts(mockCharts, { searchQuery: 'nonexistent' });
+
+      expect(result).toHaveLength(0);
     });
   });
 });
