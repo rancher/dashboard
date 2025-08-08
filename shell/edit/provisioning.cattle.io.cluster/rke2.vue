@@ -67,7 +67,6 @@ import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
 import { mapGetters } from 'vuex';
-import S3Config from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/S3Config.vue';
 const HARVESTER = 'harvester';
 const GOOGLE = 'google';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
@@ -123,7 +122,6 @@ export default {
     Advanced,
     ClusterAppearance,
     AddOnAdditionalManifest,
-    S3Config,
     AccountAccess
   },
 
@@ -177,10 +175,6 @@ export default {
   data() {
     if (!this.value.spec.rkeConfig) {
       this.value.spec.rkeConfig = {};
-    }
-
-    if (!this.value.spec.rkeConfig.etcd) {
-      this.value.spec.rkeConfig.etcd = {};
     }
 
     if (!this.value.spec.rkeConfig.chartValues) {
@@ -281,7 +275,7 @@ export default {
       projectId:                                null,
       REGISTRIES_TAB_NAME,
       labelForAddon,
-      s3ConfigValid:                            true,
+      etcdConfigValid:                            true,
     };
   },
 
@@ -870,7 +864,7 @@ export default {
     overallFormValidationPassed() {
       return this.validationPassed &&
             this.fvFormIsValid &&
-            this.s3ConfigValid;
+            this.etcdConfigValid;
     },
     hideFooter() {
       return this.needCredential && !this.credential;
@@ -2186,8 +2180,8 @@ export default {
       this.activeTab = data;
     },
 
-    handleS3ConfigValidation(isValid) {
-      this.s3ConfigValid = isValid;
+    handleEtcdConfigValidation(isValid) {
+      this.etcdConfigValid = isValid;
     },
   }
 };
@@ -2441,7 +2435,7 @@ export default {
               @update:value="$emit('input', $event)"
               @s3-backup-changed="handleS3BackupChanged"
               @config-etcd-expose-metrics-changed="handleConfigEtcdExposeMetricsChanged"
-              @s3-config-validation-changed="handleS3ConfigValidation"
+              @etcd-validation-changed="handleEtcdConfigValidation"
             />
           </Tab>
 
