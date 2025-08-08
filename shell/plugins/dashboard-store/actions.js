@@ -12,9 +12,6 @@ import { conditionalDepaginate } from '@shell/store/type-map.utils';
 import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import { FilterArgs } from '@shell/types/store/pagination.types';
 import { isLabelSelectorEmpty, labelSelectorToSelector } from '@shell/utils/selector-typed';
-import { REVISION_TOO_OLD } from '@shell/utils/socket';
-import backOff from '@shell/utils/back-off';
-import { msgFromSubscribeKey } from '@shell/plugins/steve/resourceWatcher';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -483,7 +480,18 @@ export default {
       }
 
       out = await dispatch('request', { opt, type });
+
+      //
+      if (type === 'batch.job' && !!opt.revision) { // TODO: RC remove
+        throw {
+          data:        { message: '', status: 400 },
+          _status:     400,
+          _statusText: 'Not Found',
+          _url:        'sadfdfgds',
+        };
+      }
     } catch (e) {
+      debugger;
       if (opt.hasManualRefresh) {
         dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
       }
@@ -833,7 +841,9 @@ export default {
       .forEach((entry) => dispatch('unwatch', entry));
 
     // Stop all known back-off watch processes
-    dispatch('watchResetBackOff', { type, compareWatches });
+    dispatch('resetWatchBackOff', {
+      type, compareWatches, started: false
+    });
 
     // Remove entries from store
     commit('forgetType', type);
