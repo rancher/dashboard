@@ -13,7 +13,7 @@ jobs:
       actions: write
       id-token: write
     runs-on: ubuntu-latest
-    if: (startsWith(github.event.comment.body, '/backport-bot') || startsWith(github.event.comment.body, '/forwardport')) && github.event.issue.pull_request
+    if: (startsWith(github.event.comment.body, '/bot-backport') || startsWith(github.event.comment.body, '/forwardport')) && github.event.issue.pull_request
     steps:
       - name: Read secrets
         uses: rancher-eio/read-vault-secrets@main
@@ -91,6 +91,7 @@ jobs:
         if: ${{ env.is_member == 'true' }} && ${{ env.milestone_exists == 'true' }} && ${{ env.target_branch_exists == 'true' }}
         env:
           APP_TOKEN: ${{ steps.generate-token.outputs.token }}
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           ORIGINAL_ISSUE_NUMBER: ${{ github.event.issue.number }}
           TYPE: ${{ env.type }}
           TARGET_BRANCH: ${{ env.target_branch }}
@@ -101,10 +102,6 @@ jobs:
           echo "Type: ${TYPE}"
           echo "Target Branch: ${TARGET_BRANCH}"
           echo "Milestone: ${MILESTONE}"
-
-          echo "Logging in with token..."
-          gh auth login --with-token <<< ${APP_TOKEN}
-          echo "Logged in with token"
 
           PATCH_FILE=$(mktemp)
           echo "Created temporary patch file: ${PATCH_FILE}"
