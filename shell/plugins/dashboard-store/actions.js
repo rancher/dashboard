@@ -480,7 +480,20 @@ export default {
       }
 
       out = await dispatch('request', { opt, type });
+
+      //
+      if (type === 'batch.job' && !!opt.revision) { // TODO: RC remove
+        throw {
+          data: {
+            message: '', status: 400, code: 'unknown revision'
+          },
+          _status:     400,
+          _statusText: 'Not Found',
+          _url:        'sadfdfgds',
+        };
+      }
     } catch (e) {
+      debugger;
       if (opt.hasManualRefresh) {
         dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
       }
@@ -820,13 +833,21 @@ export default {
     return classify(ctx, resource.toJSON(), true);
   },
 
-  // Forget a type in the store
-  // Remove all entries for that type and stop watching it
+  /**
+   * Remove all cached entries and stop watches
+   */
   forgetType({ commit, dispatch, state }, type, compareWatches) {
+    // Stop all known watches
     state.started
       .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type)
       .forEach((entry) => dispatch('unwatch', entry));
 
+    // Stop all known back-off watch processes
+    dispatch('resetWatchBackOff', {
+      type, compareWatches, started: false
+    });
+
+    // Remove entries from store
     commit('forgetType', type);
   },
 
