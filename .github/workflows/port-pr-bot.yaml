@@ -1,4 +1,4 @@
-name: Port PR [BOT]
+name: Port PR
 
 on:
   issue_comment:
@@ -13,7 +13,7 @@ jobs:
       actions: write
       id-token: write
     runs-on: ubuntu-latest
-    if: (startsWith(github.event.comment.body, '/bot-backport') || startsWith(github.event.comment.body, '/forwardport')) && github.event.issue.pull_request
+    if: (startsWith(github.event.comment.body, '/backport') || startsWith(github.event.comment.body, '/forwardport')) && github.event.issue.pull_request
     steps:
       - name: Read secrets
         uses: rancher-eio/read-vault-secrets@main
