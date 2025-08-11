@@ -20,7 +20,7 @@
  *
  * Additionally
  * - if we receive resource.stop, unless the watch is in error, we immediately send back a watch event
- * - if the web socket is disconnected (happens every 30 mins, or when there are permission changes)
+ * - if the web socket is disconnected (for steve based sockets it happens every 30 mins, or when there are permission changes)
  *   the ui will re-connect it and re-watch all previous watches using a best effort revision
  */
 
@@ -644,9 +644,9 @@ const sharedActions = {
    * - resource.error resyncWatches
    */
   resetWatchBackOff({ state, getters }, {
-    type, compareWatches, inError = true, started = true
+    type, compareWatches, resetInError = true, resetStarted = true
   } = { inError: true, started: true }) {
-    if (inError && state.inError) {
+    if (resetInError && state.inError) {
       // For all entries in inError...
       // (it would be nicer if we could store backOff state in `state.started`,
       // however resource.stop clears `started` and we need the settings to persist over start-->error-->stop-->start cycles
@@ -666,7 +666,7 @@ const sharedActions = {
         });
     }
 
-    if (started && state.started?.length) {
+    if (resetStarted && state.started?.length) {
       // For all entries in started...
       let entries = state.started;
 
@@ -1080,8 +1080,7 @@ const defaultActions = {
           canFn:       () => getters.canBackoff(this.$socket),
           delayedFn:   () => dispatch('resyncWatch', msg),
         });
-        // TODO: RC after this is successfully how do we call backoff.reset??
-        // We need to store previous revision in metadata, if different reset. asked BE
+        // TODO: RC after this is successfully how do we call backoff.reset?? solution... we need to store previous revision in metadata, if different reset. asked BE
       } else {
         dispatch('resyncWatch', msg);
       }
@@ -1299,7 +1298,7 @@ const defaultMutations = {
     }
   },
 
-  setInError(state, { msg, reason, backOffFn }) {
+  setInError(state, { msg, reason }) {
     const key = keyForSubscribe(msg);
 
     state.inError[key] = reason;
@@ -1312,10 +1311,11 @@ const defaultMutations = {
     clear(state.started);
     clear(state.pendingFrames);
     clear(state.queue);
-    // Note - we haven't called resetWatchBackOff here as this is a mutation however..
-    // this is called from store reset, which includes forgetType on everything in the store
-    // additionally this is probably called on a cluster store, so we also call resetWatchBackOff
-    // when the socket goes
+    // Note - we clear async operations here (like queueTimer) and we should also do so for backoff requests via
+    // resetWatchBackOff, however can't because this is a mutation and it's an action
+    // We shouldn't need to though given resetSubscription is called from store reset, which includes forgetType
+    // on everything in the store, which resets backoff requests.
+    // Additionally this is probably called on a cluster store, so we also call resetWatchBackOff when the socket disconnects
     clearTimeout(state.queueTimer);
     state.deferredRequests = {};
     state.queueTimer = null;

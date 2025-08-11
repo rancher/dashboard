@@ -174,10 +174,6 @@ class BackOff {
         delete this.map[id].timeoutId;
       }, delay);
 
-      // TODO: RC nothing truly resets this after success
-      // scenario 1 - no resource.error after resource.start??
-      // scenario 2 - if successfull called
-
       this.map[id] = {
         timeoutId: timeout,
         try:       backOff?.try ? backOff.try + 1 : 1,
