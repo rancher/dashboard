@@ -161,6 +161,7 @@ class BackOff {
       this.log('debug', id, `Delaying call (for ${ delay }ms)`, description);
 
       const timeout = setTimeout(async() => {
+        // Unblock future calls
         try {
           this.log('info', id, `Executing call`, description);
 
