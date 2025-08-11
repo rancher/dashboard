@@ -842,7 +842,7 @@ export default {
       .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type)
       .forEach((entry) => dispatch('unwatch', entry));
 
-    // Stop all known back-off watch processes
+    // Stop all known back-off watch processes for this type
     dispatch('resetWatchBackOff', {
       type, compareWatches, resetStarted: false
     });

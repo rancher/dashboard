@@ -1082,7 +1082,7 @@ const defaultActions = {
         });
         // TODO: RC after this is successfully how do we call backoff.reset?? solution... we need to store previous revision in metadata, if different reset. asked BE
       } else {
-        dispatch('resyncWatch', msg);
+        dispatch('resyncWatch', msg); // TODO: RC
       }
     } else if ( err.includes('the server does not allow this method on the requested resource')) {
       commit('setInError', { msg, reason: NO_PERMS });
@@ -1194,14 +1194,13 @@ const defaultActions = {
 
     // See Scenario 2 from https://github.com/rancher/dashboard/issues/14974
     // fetchResources will fail if it's hit a replica where revision doesn't exist (yet)
-    // So re-retry fetchResources until it does (or we give up)
+    // So retry fetchResources until it does (or we give up)
     backOff.execute({
       id:          backOffId,
       description: `Resources changed, refetching`,
       canFn:       () => getters.canBackoff(this.$socket),
       delayedFn:   async() => {
         try {
-          debugger;
           // TODO: RC: Backend Blocked - test
           await dispatch('fetchResources', {
             ...msg,
@@ -1210,8 +1209,8 @@ const defaultActions = {
             }
           });
         } catch (e) {
-          debugger;
           // TODO: RC const 'unknown revision'
+
           // if error of certain type, try again
           if (e._status === 400 && e.data?.code === 'unknown revision') { // TODO: RC: Backend Blocked - test
             dispatch('ws.resource.changes', msg);
