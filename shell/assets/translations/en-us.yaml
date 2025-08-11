@@ -1092,6 +1092,8 @@ catalog:
       label: Add new
       ariaLabel: Add a new repository
     appChartCard:
+      subHeaderItem:
+        missingVersionDate: Last updated date is not available for this chart
       footerItem:
         ariaLabel: Apply filter
     statusFilterCautions:
