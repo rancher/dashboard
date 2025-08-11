@@ -832,7 +832,7 @@ export default {
 
     // Stop all known back-off watch processes
     dispatch('resetWatchBackOff', {
-      type, compareWatches, started: false
+      type, compareWatches, resetStarted: false
     });
 
     // Remove entries from store
