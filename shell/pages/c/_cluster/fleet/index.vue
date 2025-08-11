@@ -329,7 +329,6 @@ export default {
           workspace,
           showHeader:          false,
           width:               window.innerWidth / 3 > 530 ? `${ window.innerWidth / 3 }px` : '530px',
-          zIndex:              1,
           triggerFocusTrap:    true,
           returnFocusSelector: `[data-testid="resource-card-${ value.id }"]`
         }
