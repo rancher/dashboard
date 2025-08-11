@@ -113,13 +113,13 @@ class BackOff {
     /**
      * Number of executions allowed before flatly refusing to call more. Defaults to 10
      */
-    retries: number,
+    retries?: number,
     /**
      * Before calling delayedFn check if it can still run
      *
      * Useful for checking state after a looong delay
      */
-    canFn: () => Promise<boolean>,
+    canFn?: () => Promise<boolean>,
     /**
      * Call this function
      * - if it's not already waiting to run
@@ -132,18 +132,18 @@ class BackOff {
     /**
      * Anything that might be important outside of this file (used with `getBackOff`)
      */
-    metadata: T,
+    metadata?: T,
   }): Promise<NodeJS.Timeout | undefined> {
     const backOff: BackOffEntry = this.map[id];
 
     const cont = await canFn();
 
     if (!cont) {
-      this.log('info', id, 'Skipping (can execute fn test failed)', backOff.description);
+      this.log('info', id, 'Skipping (can execute fn test failed)', description);
 
       return undefined;
     } else if (backOff?.timeoutId) {
-      this.log('info', id, 'Skipping (previous back off process still running)', backOff.description);
+      this.log('info', id, 'Skipping (previous back off process still running)', description);
 
       return backOff?.timeoutId;
     } else {
