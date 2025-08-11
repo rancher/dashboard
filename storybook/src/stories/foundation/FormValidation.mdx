@@ -24,6 +24,24 @@ To integrate with our existing components, you just need to wrap it around the `
 
 <Canvas of={FormComponentInput.Default} />
 
+This will allow to use the component directly with the form:
+
+```html
+<script setup lang="ts">
+  import { Form } from 'vee-validate
+  import { LabeledInput } from '@shell/components/form';
+  const value = ref(null as string | null);
+</script>
+<template>
+  <Form>
+    <LabeledInput
+      v-model:value="value"
+      :veerules="(value) => value ? true : 'This is required'"
+    />
+  </Form>
+</template>
+```
+
 ### Components: Nested
 
 <Canvas of={FormComponentNested.Default} />
