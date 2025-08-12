@@ -199,4 +199,8 @@ export default class HelmOp extends FleetApplication {
   get bundleDeployments() {
     return this.$getters['matching'](FLEET.BUNDLE_DEPLOYMENT, { [FLEET_ANNOTATIONS.HELM_NAME]: this.name });
   }
+
+  get fullDetailPageOverride() {
+    return true;
+  }
 }

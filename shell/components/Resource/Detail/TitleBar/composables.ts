@@ -23,7 +23,6 @@ export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: Ref<str
         resource:  resourceValue.type
       }
     };
-    const hasGraph = !!store.getters['type-map/hasGraph'](resourceValue.type);
     const onShowConfiguration = resourceValue.disableResourceDetailDrawer ? undefined : (returnFocusSelector: string) => resourceValue.showConfiguration(returnFocusSelector);
 
     return {
@@ -36,8 +35,7 @@ export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: Ref<str
         color: resourceValue.stateBackground,
         label: resourceValue.stateDisplay
       },
-      description:     resourceValue.description,
-      showViewOptions: hasGraph,
+      description: resourceValue.description,
       onShowConfiguration
     };
   });
