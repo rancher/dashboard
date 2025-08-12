@@ -557,7 +557,7 @@ export default {
       list-style: none;
       padding: 0;
       margin-top: auto;
-      z-index: 1;
+      z-index: z-index('default');
 
       li {
         display: flex;
