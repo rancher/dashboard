@@ -155,7 +155,8 @@ export default {
           configMaps:   this.$store.dispatch('cluster/request', { url: configMapsUrl }),
           networks:     this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
           storageClass: this.$store.dispatch('cluster/request', { url: `${ url }/${ STORAGE_CLASS }es` }),
-          settings:     this.$store.dispatch('cluster/request', { url: `${ url }/${ MANAGEMENT.SETTING }s` })
+          settings:     this.$store.dispatch('cluster/request', { url: `${ url }/${ MANAGEMENT.SETTING }s` }),
+          nodes:        this.$store.dispatch('cluster/request', { url: `${ url }/${ NODE }s` })
         });
 
         for (const key of Object.keys(res)) {
@@ -206,6 +207,7 @@ export default {
         this.images = res.images.value?.data;
         this.storageClass = res.storageClass.value?.data;
         this.networks = res.networks.value?.data;
+        this.nodes = res?.nodes?.value?.data || [];
 
         let systemNamespaces = (res.settings.value?.data || []).filter((x) => x.id === SETTING.SYSTEM_NAMESPACES);
 
@@ -372,6 +374,7 @@ export default {
       userData,
       userDataTemplate:   '',
       networkData,
+      nodes:              [],
       images:             [],
       storageClass:       [],
       namespaces:         [],
@@ -496,7 +499,6 @@ export default {
         ...this.vGpusInit,
         ...Object.values(this.vGpuDevices)
           .filter((vGpu) => vGpu.enabled && !!vGpu.type && (vGpu.allocatable === null || vGpu.allocatable > 0))
-          .map((vGpu) => vGpu.type),
       ]);
 
       return vGpuTypes;
@@ -504,10 +506,23 @@ export default {
 
     showVGpuAllocationInfo() {
       return this.mode !== _VIEW && !!Object.values(this.vGpuDevices).find((d) => d.allocatable);
-    }
+    },
+
+    enableCpuPinningCheckbox() {
+      return this.nodes.some((node) => node?.metadata?.labels?.[HCI_ANNOTATIONS.CPU_MANAGER] === 'true'); // any one of nodes has label cpuManager=true
+    },
   },
 
   watch: {
+    'value.enableEfi': {
+      handler(neu) {
+        // clear secureBoot if disable enableEfi
+        if (!!neu === false) {
+          this.value.secureBoot = undefined;
+        }
+      },
+      immediate: true
+    },
     credentialId() {
       if (!this.isEdit) {
         this.imageOptions = [];
@@ -1502,12 +1517,51 @@ export default {
 
           <Checkbox
             v-model:value="installAgent"
-            class="check mb-20"
+            class="check"
             type="checkbox"
             label-key="cluster.credential.harvester.installGuestAgent"
             :mode="mode"
             @update:value="updateAgent"
           />
+
+          <Checkbox
+            v-model:value="value.cpuPinning"
+            class="check"
+            :disabled="!enableCpuPinningCheckbox"
+            type="checkbox"
+            tooltip-key="cluster.credential.harvester.cpuPinningTooltip"
+            label-key="cluster.credential.harvester.enableCpuPinning"
+            :mode="mode"
+          />
+          <Checkbox
+            v-model:value="value.enableTpm"
+            class="check"
+            type="checkbox"
+            label-key="cluster.credential.harvester.enableTpm"
+            :mode="mode"
+          />
+          <Checkbox
+            v-model:value="value.enableEfi"
+            class="check"
+            type="checkbox"
+            label-key="cluster.credential.harvester.enableEfi"
+            :mode="mode"
+          />
+          <Checkbox
+            v-if="!!value.enableEfi"
+            v-model:value="value.secureBoot"
+            class="check"
+            type="checkbox"
+            label-key="cluster.credential.harvester.secureBoot"
+            :mode="mode"
+          />
+          <Banner
+            v-if="!enableCpuPinningCheckbox"
+            color="warning"
+            class="check mb-20"
+          >
+            <span> {{ t('cluster.credential.harvester.cpuManagerWarning') }}</span>
+          </Banner>
         </div>
 
         <h3>{{ t('cluster.credential.harvester.networkData.title') }}</h3>
