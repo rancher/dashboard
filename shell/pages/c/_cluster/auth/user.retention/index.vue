@@ -21,12 +21,12 @@ import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 import dayjs from 'dayjs';
 
 const store = useStore();
-const userRetentionSettings = reactive<{[id: string]: string | null }>({
-  [SETTING.DISABLE_INACTIVE_USER_AFTER]: null,
-  [SETTING.DELETE_INACTIVE_USER_AFTER]:  null,
-  [SETTING.USER_RETENTION_CRON]:         null,
-  [SETTING.USER_RETENTION_DRY_RUN]:      null,
-  [SETTING.USER_LAST_LOGIN_DEFAULT]:     null,
+const userRetentionSettings = reactive<{[id: string]: string | undefined }>({
+  [SETTING.DISABLE_INACTIVE_USER_AFTER]: undefined,
+  [SETTING.DELETE_INACTIVE_USER_AFTER]:  undefined,
+  [SETTING.USER_RETENTION_CRON]:         undefined,
+  [SETTING.USER_RETENTION_DRY_RUN]:      undefined,
+  [SETTING.USER_LAST_LOGIN_DEFAULT]:     undefined,
 });
 const authUserSessionTtlMinutes = ref<Setting | null>(null);
 const disableAfterPeriod = ref(false);
@@ -51,7 +51,7 @@ let settings: { [id: string]: Setting } = {};
  */
 watch(disableAfterPeriod, (newVal) => {
   if (!newVal) {
-    userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER] = null;
+    userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER] = undefined;
 
     return;
   }
@@ -65,7 +65,7 @@ watch(disableAfterPeriod, (newVal) => {
  */
 watch(deleteAfterPeriod, (newVal) => {
   if (!newVal) {
-    userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER] = null;
+    userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER] = undefined;
 
     return;
   }
@@ -81,7 +81,7 @@ watch(deleteAfterPeriod, (newVal) => {
 watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDeleteAfterPeriod]) => {
   if (!newDisableAfterPeriod && !newDeleteAfterPeriod) {
     ids.forEach((key) => {
-      userRetentionSettings[key] = null;
+      userRetentionSettings[key] = undefined;
     });
 
     removeValidation(SETTING.USER_RETENTION_CRON);
