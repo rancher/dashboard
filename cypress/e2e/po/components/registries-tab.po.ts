@@ -14,7 +14,7 @@ export default class RegistriesTabPo extends ComponentPo {
   }
 
   showAdvanced() {
-    return this.self().find('[data-testid="registries-advanced-section"]');
+    return this.self().find('[data-testid="registries-advanced-section"] a');
   }
 
   clickShowAdvanced(): void {
