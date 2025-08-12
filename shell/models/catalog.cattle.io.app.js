@@ -31,7 +31,7 @@ export default class CatalogApp extends SteveModel {
     const upgrade = {
       action:  'goToUpgrade',
       enabled: true,
-      icon:    'icon icon-fw icon-edit',
+      icon:    'icon icon-edit',
       label:   this.t('catalog.install.action.goToUpgrade'),
     };
 
