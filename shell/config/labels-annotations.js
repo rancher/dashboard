@@ -165,6 +165,7 @@ export const HCI = {
   NETWORK_TYPE:        'network.harvesterhci.io/type',
   CLUSTER_NETWORK:     'network.harvesterhci.io/clusternetwork',
   PRIMARY_SERVICE:     'cloudprovider.harvesterhci.io/primary-service',
+  CPU_MANAGER:         'cpumanager',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge
