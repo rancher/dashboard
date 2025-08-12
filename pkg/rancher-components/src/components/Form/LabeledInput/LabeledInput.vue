@@ -457,7 +457,7 @@ export default defineComponent({
         :value="validationMessage || meta.errors.join(', ')"
       />
       <div
-        v-if="cronHint || subLabel || (meta.errors && meta.errors.length)"
+        v-if="cronHint || subLabel"
         class="sub-label"
         data-testid="sub-label"
       >
