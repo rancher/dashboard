@@ -6,24 +6,6 @@ type BackOffEntry = {
   metadata: any,
 }
 
-// TODO: RC 1. Xmanually test scenario 2
-// TODO: RC 2. tests for scenario 2
-// TODO: RC 3. tests for backoff
-// TODO: RC 4 final tests?
-
-// TODO: RC review
-// 1) make sure if is solid for the happy case... no way to fail
-// TODO: RC Test
-// 1) Succeeds first time
-// 2) Succeeds after a while
-// 2) Succeeds after a while... user returns and it works without delay
-// 3) Never succeeds (no new cycles)
-// 4) User leaves context (no new cycles)
-// 5) extensions/harvester?
-// 6) delay happening ... resource.changes received
-// 7) socket disconnect... reconnect
-// switch between clusters
-
 /**
  * Helper class which handles backing off making the supplied request
  *
@@ -145,7 +127,7 @@ class BackOff {
     } else if (backOff?.timeoutId) {
       this.log('info', id, 'Skipping (previous back off process still running)', description);
 
-      return backOff?.timeoutId;
+      return backOff.timeoutId;
     } else {
       const backOffTry = backOff?.try || 0;
 
@@ -155,7 +137,10 @@ class BackOff {
         return undefined;
       }
 
-      // Steps... 0.001s, 0.25s, 1s, 2.25s, 4s, 6.25s, 9s, 12.25s, 16s, 20.25s
+      // First step is immediate (0.001s)
+      // Second and others are exponential
+      // 1,4,9,16,25,36,49,64,81
+      // 0.25s, 1s, 2.25s, 4s, 6.25s, 9s, 12.25s, 16s, 20.25s
       const delay = backOffTry === 0 ? 1 : Math.pow(backOffTry, 2) * 250;
 
       this.log('debug', id, `Delaying call (for ${ delay }ms)`, description);

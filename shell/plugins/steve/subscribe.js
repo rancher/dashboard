@@ -646,42 +646,34 @@ const sharedActions = {
   resetWatchBackOff({ state, getters }, {
     type, compareWatches, resetInError = true, resetStarted = true
   } = { inError: true, started: true }) {
+    let toReset = [];
+
     if (resetInError && state.inError) {
       // For all entries in inError...
       // (it would be nicer if we could store backOff state in `state.started`,
       // however resource.stop clears `started` and we need the settings to persist over start-->error-->stop-->start cycles
-      let entries = Object.entries(state.inError)
-        .map(([key, reason]) => ([msgFromSubscribeKey(key), reason]));
+      const entries = Object.entries(state.inError)
+        .map(([key, reason]) => ([msgFromSubscribeKey(key), reason])) // convert string id back to id obj
+        .filter(([, reason]) => reason === REVISION_TOO_OLD); // Filter out ones for reasons we're not interested in
 
-      if (type) { // Filter out ones for types we're no interested in
-        entries = entries
-          .filter(([entry]) => compareWatches ? compareWatches(entry) : entry.type === type);
-      }
-
-      entries
-        .filter(([, reason]) => reason === REVISION_TOO_OLD) // Filter out ones for reasons we're not interested in
-        .forEach(([obj]) => {
-          // for this watch ... get the specific prefix we care about ... reset backoff related to it
-          backOff.resetPrefix(getters.backOffId(obj, REVISION_TOO_OLD));
-        });
+      toReset.push(...entries);
     }
 
     if (resetStarted && state.started?.length) {
       // For all entries in started...
-      let entries = state.started;
-
-      if (type) { // Filter out ones for types we're no interested in
-        entries = entries
-          .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type);
-      }
-
-      entries
-        .filter((obj) => obj.mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) // Filter out ones for reasons we're not interested in
-        .forEach((obj) => {
-          // for this watch ... get the specific prefix we care about ... reset backoff related to it
-          backOff.resetPrefix(getters.backOffId(obj, STEVE_WATCH_MODE.RESOURCE_CHANGES));
-        });
+      toReset.push(...state.started);
     }
+
+    if (type) { // Filter out ones for types we're no interested in
+      toReset = toReset
+        .filter(([entry]) => compareWatches ? compareWatches(entry) : entry.type === type);
+    }
+
+    toReset
+      .forEach((obj) => {
+        // for this watch ... get the specific prefix we care about ... reset backoff related to it
+        backOff.resetPrefix(getters.backOffId(obj, ''));
+      });
   },
 
   'ws.ping'({ getters, dispatch }, msg) {
@@ -1070,20 +1062,22 @@ const defaultActions = {
       // 2) will be cleared when resyncWatch --> watch (with force) --> resource.start completes
       commit('setInError', { msg, reason: REVISION_TOO_OLD });
 
-      if (msg.mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
-        // See Scenario 1 from https://github.com/rancher/dashboard/issues/14974
-        // The watch that results from resyncWatch will fail and end up here if the revision isn't (yet) known
-        // So re-retry resyncWatch until it does (or we give up)
-        backOff.execute({
-          id:          getters.backOffId(msg, REVISION_TOO_OLD),
-          description: `Invalid watch revision, re-syncing`,
-          canFn:       () => getters.canBackoff(this.$socket),
-          delayedFn:   () => dispatch('resyncWatch', msg),
-        });
-        // TODO: RC after this is successfully how do we call backoff.reset?? solution... we need to store previous revision in metadata, if different reset. asked BE
-      } else {
-        dispatch('resyncWatch', msg); // TODO: RC
-      }
+      // See Scenario 1 from https://github.com/rancher/dashboard/issues/14974
+      // The watch that results from resyncWatch will fail and end up here if the revision isn't (yet) known
+      // So re-retry resyncWatch until it does OR
+      // - we're already re-retrying
+      //   - early exist from `execute`
+      // - we give up (exceed max retries)
+      //   - early exist from `execute`
+      // - we need to stop (socket is disconnected or closed, type is 'forgotten', watch is unwatched)
+      //   - `reset` called asynchronously
+      //   - Note - we won't need to clear the id outside of the above scenarios because `too old` only occurs on fresh watches (covered by above scenarios)
+      backOff.execute({
+        id:          getters.backOffId(msg, REVISION_TOO_OLD),
+        description: `Invalid watch revision, re-syncing`,
+        canFn:       () => getters.canBackoff(this.$socket),
+        delayedFn:   () => dispatch('resyncWatch', msg),
+      });
     } else if ( err.includes('the server does not allow this method on the requested resource')) {
       commit('setInError', { msg, reason: NO_PERMS });
     }
@@ -1183,44 +1177,11 @@ const defaultActions = {
     }
   },
 
-  'ws.resource.changes'({ dispatch, getters }, msg) {
-    const backOffId = getters.backOffId(msg, STEVE_WATCH_EVENT.CHANGES);
-    const running = backOff.getBackOff(backOffId);
-
-    if (running && running.metadata.revision !== msg.revision) {
-      // Stop previously setup attempts to watch with a stale (old/invalid) revision
-      backOff.reset(backOffId);
-    }
-
-    // See Scenario 2 from https://github.com/rancher/dashboard/issues/14974
-    // fetchResources will fail if it's hit a replica where revision doesn't exist (yet)
-    // So retry fetchResources until it does (or we give up)
-    backOff.execute({
-      id:          backOffId,
-      description: `Resources changed, refetching`,
-      canFn:       () => getters.canBackoff(this.$socket),
-      delayedFn:   async() => {
-        try {
-          // TODO: RC: Backend Blocked - test
-          await dispatch('fetchResources', {
-            ...msg,
-            opt: {
-              force: true, load: _MERGE, revision: msg.revision || 'abcde' // TODO: RC
-            }
-          });
-        } catch (e) {
-          // TODO: RC const 'unknown revision'
-
-          // if error of certain type, try again
-          if (e._status === 400 && e.data?.code === 'unknown revision') { // TODO: RC: Backend Blocked - test
-            dispatch('ws.resource.changes', msg);
-          }
-
-          throw e;
-        }
-      },
-      metadata: { revision: msg.revision }
-    });
+  'ws.resource.changes'({ dispatch }, msg) {
+    dispatch('fetchResources', {
+      ...msg,
+      opt: { force: true, load: _MERGE }
+    } );
   },
 
   'ws.resource.remove'(ctx, msg) {
@@ -1303,6 +1264,14 @@ const defaultMutations = {
     state.inError[key] = reason;
   },
 
+  clearInError(state, msg) {
+    // Couldn't see where clearInError is used, candidate to remove
+
+    const key = keyForSubscribe(msg);
+
+    delete state.inError[key];
+  },
+
   /**
    * Clear out socket state
    */
@@ -1333,7 +1302,10 @@ const defaultMutations = {
  */
 const defaultGetters = {
   /**
-   * Get a unique id that can be used to track a process that won't overlap, and on subsequent calls back-off
+   * Get a unique id that can be used to track a process that can be backed-off
+   *
+   * @param obj - the usual id/namespace/selector, etc,
+   * @param postFix - something else to uniquely id this back-off
    */
   backOffId: () => (obj, postFix) => {
     return `${ keyForSubscribe(obj) }${ postFix ? `:${ postFix }` : '' }`;

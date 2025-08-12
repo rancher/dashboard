@@ -493,7 +493,6 @@ export default {
         };
       }
     } catch (e) {
-      debugger;
       if (opt.hasManualRefresh) {
         dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
       }
@@ -834,7 +833,7 @@ export default {
   },
 
   /**
-   * Remove all cached entries and stop watches
+   * Remove all cached entries for a resource and stop watches
    */
   forgetType({ commit, dispatch, state }, type, compareWatches) {
     // Stop all known watches
