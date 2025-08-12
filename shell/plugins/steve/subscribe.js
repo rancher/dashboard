@@ -106,7 +106,7 @@ export async function createWorker(store, ctx) {
       postMessage: (msg) => {
         if (Object.keys(msg)?.[0] === 'destroyWorker') {
           // The worker has been destroyed before it's been set up. Flag this so we stop waiting for mgmt settings and then can destroy worker.
-          // This can occurr when the user is redirected to the log in page
+          // This can occur when the user is redirected to the log in page
           // - workers created (but waiting)
           // - logout is called
           // - <store>/unsubscribe is dispatched
@@ -520,7 +520,7 @@ const sharedActions = {
     }
 
     // TODO: RC remove
-    if (type === 'batch.job' && counter < 20) {
+    if (type === 'batch.job' && counter < 2000) {
       console.error(`Overriding revision ${ revision } with junk`);
       revision = 'aaa';
       counter += 1;
@@ -625,6 +625,7 @@ const sharedActions = {
    * Unwatch watches that are incompatible with the new type
    */
   unwatchIncompatible({ state, dispatch, getters }, messageMeta) {
+    console.error('123', 'unwatchIncompatible', 'start', messageMeta);
     const watchesOfType = getters.watchesOfType(messageMeta.type);
     let unwatch = [];
 
@@ -637,6 +638,25 @@ const sharedActions = {
     }
 
     unwatch.forEach((entry) => dispatch('unwatch', entry));
+
+    debugger;
+    console.error('123', 'unwatchIncompatible', 'end', messageMeta, unwatch);
+
+    let entries = Object.entries(state.inError || {})
+      .map(([key, reason]) => ([msgFromSubscribeKey(key), reason])); // DOES NOT CONTAIN mode!!!!!!!!!!!!!!1
+
+    entries = entries
+      .filter(([entry]) => entry.type === messageMeta.type)
+      .filter(([entry]) => {
+        console.error('123', 'unwatchIncompatible', messageMeta.mode, entry.mode, JSON.parse(JSON.stringify(state.inError)));
+        if (messageMeta.mode === STEVE_WATCH_EVENT.CHANGES) {
+          return entry.mode !== STEVE_WATCH_EVENT.CHANGES;
+        }
+
+        return entry.mode === STEVE_WATCH_EVENT.CHANGES;
+      });
+
+    console.error('123', 'unwatchIncompatible', 'end2', entries);
   },
 
   /**
@@ -644,38 +664,50 @@ const sharedActions = {
    * - resource.changes fetchResources
    * - resource.error resyncWatches
    */
-  resetWatchBackOff({ state, getters }, {
+  resetWatchBackOff({ state, getters, commit }, {
     type, compareWatches, resetInError = true, resetStarted = true
   } = { inError: true, started: true }) {
-    counter = 0; // TODO: RC remove
-    let toReset = [];
+    const resetBackOff = (obj) => {
+      // for this watch ... get the specific prefix we care about ... reset backoffs related to it
+      backOff.resetPrefix(getters.backOffId(obj, ''));
+    };
 
     if (resetInError && state.inError) {
       // For all entries in inError...
       // (it would be nicer if we could store backOff state in `state.started`,
       // however resource.stop clears `started` and we need the settings to persist over start-->error-->stop-->start cycles
-      const entries = Object.entries(state.inError)
-        .map(([key, reason]) => ([msgFromSubscribeKey(key), reason])) // convert string id back to id obj
-        .filter(([, reason]) => reason === REVISION_TOO_OLD); // Filter out ones for reasons we're not interested in
+      let entries = Object.entries(state.inError)
+        .map(([key, reason]) => ([msgFromSubscribeKey(key), reason]));
 
-      toReset.push(...entries);
+      if (type) { // Filter out ones for types we're no interested in
+        entries = entries
+          .filter(([obj]) => compareWatches ? compareWatches(obj) : obj.type === type);
+      }
+
+      entries
+        .filter(([, reason]) => reason === REVISION_TOO_OLD) // Filter out ones for reasons we're not interested in
+        .forEach(([obj]) => {
+          // Reset backoff
+          resetBackOff(obj);
+          // Clear out stale error state (next time around we can try again with a new revision that was just fetched)
+          commit('clearInError', obj);
+        });
     }
 
     if (resetStarted && state.started?.length) {
       // For all entries in started...
-      toReset.push(...state.started);
+      let entries = state.started;
+
+      if (type) { // Filter out ones for types we're no interested in
+        entries = entries
+          .filter((obj) => compareWatches ? compareWatches(obj) : obj.type === type);
+      }
+
+      // Reset backoff
+      entries.forEach((obj) => resetBackOff(obj));
     }
 
-    if (type) { // Filter out ones for types we're no interested in
-      toReset = toReset
-        .filter(([entry]) => compareWatches ? compareWatches(entry) : entry.type === type);
-    }
-
-    toReset
-      .forEach((obj) => {
-        // for this watch ... get the specific prefix we care about ... reset backoff related to it
-        backOff.resetPrefix(getters.backOffId(obj, ''));
-      });
+    counter = 0; // TODO: RC remove
   },
 
   'ws.ping'({ getters, dispatch }, msg) {
