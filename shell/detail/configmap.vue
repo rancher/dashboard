@@ -1,42 +1,33 @@
 <script setup lang="ts">
 import DetailPage from '@shell/components/Resource/Detail/Page.vue';
-import TitleBar from '@shell/components/Resource/Detail/TitleBar/index.vue';
-import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
-import Metadata from '@shell/components/Resource/Detail/Metadata/index.vue';
-import { useDefaultMetadataProps } from '@shell/components/Resource/Detail/Metadata/composables';
 import { CONFIG_MAP } from '@shell/config/types';
 import ResourceTabs from '@shell/components/form/ResourceTabs/index.vue';
 import ConfigMapDataTab from '@shell/components/Resource/Detail/ResourceTabs/ConfigMapDataTab/index.vue';
 import { useGetConfigMapDataTabProps } from '@shell/components/Resource/Detail/ResourceTabs/ConfigMapDataTab/composables';
 import { useStore } from 'vuex';
 import { computed } from 'vue';
+import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
+import { useDefaultMastheadProps } from '@shell/components/Resource/Detail/Masthead/composable';
 
 const store = useStore();
 const props = defineProps<{
   value: any;
 }>();
 
-const secret = props.value;
+const configmap = props.value;
 const schema = computed(() => store.getters['cluster/schemaFor'](CONFIG_MAP));
-const titleBarProps = useDefaultTitleBarProps(secret);
-const metadataProps = useDefaultMetadataProps(secret);
-const configMapDataTabProps = useGetConfigMapDataTabProps(secret);
+const defaultMastheadProps = useDefaultMastheadProps(configmap);
+const configMapDataTabProps = useGetConfigMapDataTabProps(configmap);
 </script>
 
 <template>
   <DetailPage>
     <template #top-area>
-      <TitleBar
-        v-bind="titleBarProps"
-      />
-      <Metadata
-        class="mmt-6"
-        v-bind="metadataProps"
-      />
+      <Masthead v-bind="defaultMastheadProps" />
     </template>
     <template #bottom-area>
       <ResourceTabs
-        :value="secret"
+        :value="configmap"
         :schema="schema"
       >
         <ConfigMapDataTab

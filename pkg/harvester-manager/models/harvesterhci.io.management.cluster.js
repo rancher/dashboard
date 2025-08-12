@@ -100,4 +100,8 @@ export default class HciCluster extends ProvCluster {
   get disableResourceDetailDrawerConfigTab() {
     return false;
   }
+
+  get fullDetailPageOverride() {
+    return false;
+  }
 }

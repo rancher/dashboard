@@ -835,5 +835,13 @@ describe('Cluster Manager as standard user', { testIsolation: 'off', tags: ['@ma
       drawer.tabs().clickTabWithName('yaml-tab');
       drawer.saveButton().should('not.exist');
     });
+
+    it('Shows the explore button and navigates to the cluster explorer when clicked', () => {
+      clusterDetail.waitForPage();
+      clusterDetail.exploreButton().should('exist');
+
+      clusterDetail.exploreButton().click();
+      cy.url().should('include', '/c/local/explorer');
+    });
   });
 });

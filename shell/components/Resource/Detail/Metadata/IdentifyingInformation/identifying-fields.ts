@@ -16,7 +16,7 @@ export const useNamespace = (resource: any): ComputedRef<Row> | undefined => {
   const i18n = useI18n(store);
   const resourceValue = toValue(resource);
 
-  if (!resourceValue.namespace || resourceValue.namespaces) {
+  if (!resourceValue.namespace || resourceValue.namespaces || resourceValue.isProjectScoped) {
     return;
   }
 

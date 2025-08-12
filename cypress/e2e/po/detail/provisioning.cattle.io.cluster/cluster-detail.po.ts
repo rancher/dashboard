@@ -74,4 +74,8 @@ export default abstract class ClusterManagerDetailPagePo extends PagePo {
   namespace() {
     return cy.get('[data-testid="masthead-subheader-namespace"]');
   }
+
+  exploreButton() {
+    return cy.get('[data-testid="detail-explore-button"]');
+  }
 }
