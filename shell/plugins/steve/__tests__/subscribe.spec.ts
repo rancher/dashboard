@@ -238,10 +238,9 @@ describe('steve: subscribe', () => {
       const errorWatch = ({
         ctx,
         obj, msg,
-        revision
       }) => {
         const {
-          state, dispatch, getters, rootGetters, commit
+          state, dispatch, getters, commit
         } = ctx;
 
         // Receive error from BE
@@ -271,23 +270,13 @@ describe('steve: subscribe', () => {
         revision,
         tooManyTries = false,
       }) => {
-        const {
-          state, dispatch, getters, rootGetters, commit
-        } = ctx;
-
-        // dispatch.mockImplementation(async(type, ...args) => {
-        //   if (type === 'resyncWatch') {
-        //     return Promise.resolve();
-        //   }
-
-        //   // return Promise.resolve();
-        // });
+        const { dispatch } = ctx;
 
         startWatch({
           ctx, obj, msg, revision
         });
         errorWatch({
-          ctx, obj, msg, revision
+          ctx, obj, msg
         });
 
         await waitForBackOff(50000);
@@ -323,7 +312,7 @@ describe('steve: subscribe', () => {
           state, dispatch, getters, rootGetters, commit
         } = ctx;
 
-        dispatch.mockImplementation(async(type, ...args) => {
+        dispatch.mockImplementation(async(type: string) => {
           if (type === 'resyncWatch') {
             return Promise.resolve();
           }
@@ -466,7 +455,7 @@ describe('steve: subscribe', () => {
       it('succeeds', async() => {
         const { dispatch } = initStore();
 
-        await actions['ws.resource.changes']({ dispatch, getters }, msg);
+        await actions['ws.resource.changes']({ dispatch }, msg);
 
         await waitForBackOff();
 
@@ -480,7 +469,7 @@ describe('steve: subscribe', () => {
       });
 
       it('doesn\'t retry if not correct response', async() => {
-        const { dispatch, getters } = initStore();
+        const { dispatch } = initStore();
 
         const failLimit = 5;
 
@@ -491,7 +480,7 @@ describe('steve: subscribe', () => {
         });
 
         for (let i = 0; i < failLimit; i++) {
-          await actions['ws.resource.changes']({ dispatch, getters }, msg);
+          await actions['ws.resource.changes']({ dispatch }, msg);
 
           await waitForBackOff();
 
@@ -500,7 +489,7 @@ describe('steve: subscribe', () => {
       });
 
       it('does retry if correct response', async() => {
-        const { dispatch, getters } = initStore();
+        const { dispatch } = initStore();
 
         dispatch.mockImplementation(async(type, ...args) => {
           if (type === 'fetchResources') {
@@ -509,7 +498,7 @@ describe('steve: subscribe', () => {
           }
         });
 
-        await actions['ws.resource.changes']({ dispatch, getters }, msg);
+        await actions['ws.resource.changes']({ dispatch }, msg);
 
         await waitForBackOff();
 
@@ -518,7 +507,7 @@ describe('steve: subscribe', () => {
       });
 
       it('fails then eventually succeeds', async() => {
-        const { dispatch, getters } = initStore();
+        const { dispatch } = initStore();
 
         const failLimit = 5;
         let failed = 0;
@@ -535,13 +524,13 @@ describe('steve: subscribe', () => {
             break;
           case 'ws.resource.changes':
             return Promise.resolve().then(() => {
-              actions['ws.resource.changes']({ dispatch, getters }, ...args);
+              actions['ws.resource.changes']({ dispatch }, ...args);
             });
             break;
           }
         });
 
-        await actions['ws.resource.changes']({ dispatch, getters }, msg);
+        await actions['ws.resource.changes']({ dispatch }, msg);
 
         for (let i = 0; i < failLimit * 2; i++) {
           await waitForBackOff();

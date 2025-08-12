@@ -520,7 +520,8 @@ const sharedActions = {
     }
 
     // TODO: RC remove
-    if (type === 'batch.job' && counter < 4) {
+    if (type === 'batch.job' && counter < 20) {
+      console.error(`Overriding revision ${ revision } with junk`);
       revision = 'aaa';
       counter += 1;
     }
@@ -646,6 +647,7 @@ const sharedActions = {
   resetWatchBackOff({ state, getters }, {
     type, compareWatches, resetInError = true, resetStarted = true
   } = { inError: true, started: true }) {
+    counter = 0; // TODO: RC remove
     let toReset = [];
 
     if (resetInError && state.inError) {

@@ -55,15 +55,13 @@ class BackOff {
 
     if (backOff) {
       if (backOff?.timeoutId) {
-        this.log('info', id, 'Stopping (timeout cleared)', backOff.description);
+        this.log('info', id, 'Stopping (cancelling active back-off)', backOff.description);
 
         clearTimeout(backOff.timeoutId);
       }
       this.log('debug', id, 'Reset', backOff.description);
 
       delete this.map[id];
-    } else {
-      this.log('debug', id, 'Reset', 'NOT!'); // TODO: RC remove
     }
   }
 

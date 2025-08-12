@@ -480,18 +480,6 @@ export default {
       }
 
       out = await dispatch('request', { opt, type });
-
-      //
-      if (type === 'batch.job' && !!opt.revision) { // TODO: RC remove
-        throw {
-          data: {
-            message: '', status: 400, code: 'unknown revision'
-          },
-          _status:     400,
-          _statusText: 'Not Found',
-          _url:        'sadfdfgds',
-        };
-      }
     } catch (e) {
       if (opt.hasManualRefresh) {
         dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
