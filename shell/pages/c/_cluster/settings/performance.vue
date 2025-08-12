@@ -206,6 +206,11 @@ export default {
         <!-- Inactivity -->
         <div class="mt-20">
           <h2>{{ t('performance.inactivity.title') }}</h2>
+          <Banner
+            color="warning"
+          >
+            <span v-clean-html="t(`performance.deprecatedGeneral`, { setting: t('performance.inactivity.title') }, true)" />
+          </Banner>
           <p>{{ t('performance.inactivity.description') }}</p>
           <Checkbox
             v-model:value="value.inactivity.enabled"
