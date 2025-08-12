@@ -3,8 +3,7 @@ import ModalWithCard from '@shell/components/ModalWithCard';
 import { Banner } from '@components/Banner';
 import PercentageBar from '@shell/components/PercentageBar.vue';
 import throttle from 'lodash/throttle';
-import { MANAGEMENT } from '@shell/config/types';
-import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
+import { checkIfUIInactivityIsEnabled } from '@shell/utils/inactivity';
 
 let globalId;
 
@@ -28,36 +27,22 @@ export default {
     };
   },
   async mounted() {
-    // Info: normally, this is done in the fetch hook but for some reasons while awaiting for things that will take a while, it won't be ready by the time mounted() is called, pending for investigation.
-    let settings;
+    const data2 = await this.$store.dispatch('management/request', { url: '/v1/management.cattle.io.features' });
 
-    try {
-      const settingsString = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
+    console.error('FEATURES', data2);
 
-      settings = settingsString?.value ? JSON.parse(settingsString.value) : DEFAULT_PERF_SETTING;
-    } catch { }
+    // const data1 = await this.$store.dispatch('management/request', { url: '/v1/ext.cattle.io.useractivities' });
+    // console.error('USER ACTIVITIES', data1);
 
-    if (!settings || !settings?.inactivity || !settings?.inactivity.enabled) {
-      return;
-    }
+    const UIInactivityIsEnabled = await checkIfUIInactivityIsEnabled(this.$store);
 
-    this.enabled = settings?.inactivity?.enabled || false;
+    if (UIInactivityIsEnabled.enabled) {
+      console.error('UI INACTIVITY ENABLED!');
+      this.enabled = UIInactivityIsEnabled.enabled;
+      this.courtesyTimer = UIInactivityIsEnabled.courtesyTimer;
+      this.courtesyCountdown = UIInactivityIsEnabled.courtesyCountdown;
+      this.showModalAfter = UIInactivityIsEnabled.showModalAfter;
 
-    // Total amount of time before the user's session is lost
-    const thresholdToSeconds = settings?.inactivity?.threshold * 60;
-
-    // Amount of time the user sees the inactivity warning
-    this.courtesyTimer = Math.floor(thresholdToSeconds * 0.1);
-    this.courtesyTimer = Math.min(this.courtesyTimer, 60 * 5); // Never show the modal more than 5 minutes
-    // Amount of time before the user sees the inactivity warning
-    // Note - time before warning is shown + time warning is shown = settings threshold (total amount of time)
-    this.showModalAfter = thresholdToSeconds - this.courtesyTimer;
-
-    console.debug(`Inactivity modal will show after ${ this.showModalAfter / 60 }(m) and be shown for ${ this.courtesyTimer / 60 }(m)`); // eslint-disable-line no-console
-
-    this.courtesyCountdown = this.courtesyTimer;
-
-    if (settings?.inactivity.enabled) {
       this.trackInactivity();
       this.addIdleListeners();
     }
@@ -80,6 +65,8 @@ export default {
 
       const checkInactivityTimer = () => {
         const now = Date.now();
+
+        console.warn(`****** checkInactivityTimer diff`, Math.floor((endTime - now) / 1000));
 
         if (this.id !== globalId) {
           return;
