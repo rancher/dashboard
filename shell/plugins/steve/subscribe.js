@@ -9,14 +9,46 @@
  * Very roughly this does...
  *
  * 1. _Subscribes_ to a web socket (v1, v3, v1 cluster)
- * 2. Sends a _watch_ message for a specific resource type (which can have qualifying filters)
- * 3. Rancher can send a number of messages back
+ * 2. UI --> Rancher: Sends a _watch_ message for a specific resource type (which can have qualifying filters)
+ * 3. Rancher --> UI: Rancher can send a number of messages back
  *   - `resource.start`   - watch has started
  *   - `resource.error`   - watch has errored, usually a result of bad data in the resource.start message
  *   - `resource.change`  - a resource has changed, this is it's new value
  *   - `resource.changes` - if in this mode, no resource.change events are sent, instead one debounced message is sent without any resource data
  *   - `resource.stop`    - either we have requested the watch stops, or there has been a resource.error
- * 4. Sends an _unwatch_ request for a matching _watch_ request
+ * 4. UI --> Rancher: Sends an _unwatch_ request for a matching _watch_ request
+ *
+ * Below are some VERY brief steps for common flows. Some will link together
+ *
+ * Successfully flow - watch
+ * 1. UI --> Rancher: _watch_ request
+ * 2. Rancher --> UI: `resource.start`. UI sets watch as started
+ * 3. Rancher --> UI: `resource.change` (contains data). UI caches data
+ *
+ * Successful flow - watch - new mode
+ * 1. UI --> Rancher: _watch_ request
+ * 2. Rancher --> UI: `resource.start`. UI sets watch as started
+ * 3. Rancher --> UI: `resource.changes` (contains no data). UI makes a HTTP request to fetch data
+ *
+ * Successful flow - unwatch
+ * 1. UI --> Rancher: _unwatch_ request
+ * 2. Rancher --> UI: `resource.stop`. UI sets watch as stopped
+ *
+ * Successful flow - resource.stop received
+ * 1. Rancher --> UI: `resource.stop`. UI sets watch as stopped
+ * 2. UI --> Rancher: _watch_ request
+ *
+ * Successful flow - socket disconnected
+ * 1. Socket closes|disconnects (not sure which)
+ * 2. UI: reopens socket
+ * 3. UI --> Rancher: _watch_ request (for every started watch)
+ *
+ * Error Flow
+ * 1. UI --> Rancher: _watch_ request
+ * 2. Rancher --> UI: `resource.start`. UI sets watch as started
+ * 3. Rancher --> UI: `resource.error`. UI sets watch as errored.
+ *   a) UI: in the event of 'too old' the UI will make a http request to fetch a new revision and re-watch with it. This process is delayed on each call
+ * 4. Rancher --> UI: `resource.stop`. UI sets watch as stop (note the resource.stop flow above is avoided given error state)
  *
  * Additionally
  * - if we receive resource.stop, unless the watch is in error, we immediately send back a watch event
