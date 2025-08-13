@@ -557,6 +557,7 @@ export default {
       list-style: none;
       padding: 0;
       margin-top: auto;
+      z-index: z-index('default');
 
       li {
         display: flex;
@@ -566,16 +567,25 @@ export default {
           flex: 1 1;
           display: flex;
           justify-content: center;
+
+          &:focus-visible {
+            @include focus-outline;
+          }
         }
 
         button:first-of-type {
           border-top: solid 1px var(--border);
           border-right: solid 1px var(--border);
+          border-top-left-radius: 0;
           border-top-right-radius: 0;
+          border-bottom-right-radius: 0;
         }
         button:last-of-type {
           border-top: solid 1px var(--border);
+          border-top-right-radius: 0;
           border-top-left-radius: 0;
+          border-bottom-left-radius: 0;
+          border-bottom-right-radius: 0;
         }
       }
     }
