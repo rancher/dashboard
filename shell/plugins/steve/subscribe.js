@@ -573,10 +573,12 @@ const sharedActions = {
     }
 
     // TODO: RC remove
-    if (type === 'batch.job' && counter < 2000) {
-      console.error(`Overriding revision ${ revision } with junk`);
-      revision = 'aaa';
-      counter += 1;
+    if (type === 'batch.job') {
+      if (counter < 5) {
+        console.error(`Overriding revision ${ revision } with junk`);
+        revision = 'aaa';
+        counter += 1;
+      }
     }
 
     const msg = { resourceType: type };
