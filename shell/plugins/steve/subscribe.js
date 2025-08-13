@@ -312,8 +312,6 @@ function growlsDisabled(rootGetters) {
   return getPerformanceSetting(rootGetters)?.disableWebsocketNotification;
 }
 
-let counter = 0; // TODO: RC remove
-
 /**
  * Supported events are listed
  *
@@ -572,15 +570,6 @@ const sharedActions = {
       revision = getters.nextResourceVersion(type, id);
     }
 
-    // TODO: RC remove
-    if (type === 'batch.job') {
-      if (counter < 5) {
-        console.error(`Overriding revision ${ revision } with junk`);
-        revision = 'aaa';
-        counter += 1;
-      }
-    }
-
     const msg = { resourceType: type };
 
     if (mode) {
@@ -736,8 +725,6 @@ const sharedActions = {
         .filter((error) => error.reason === REVISION_TOO_OLD) // Filter out ones for reasons we're not interested in
         .forEach((error) => clearInError({ getters, commit }, error));
     }
-
-    counter = 0; // TODO: RC remove
   },
 
   'ws.ping'({ getters, dispatch }, msg) {
