@@ -78,7 +78,7 @@ import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
-import { keyForSubscribe, msgFromSubscribeKey } from '@shell/plugins/steve/resourceWatcher';
+import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { waitFor } from '@shell/utils/async';
 import { WORKER_MODES } from './worker';
 import acceptOrRejectSocketMessage from './accept-or-reject-socket-message';
@@ -1323,13 +1323,11 @@ const defaultMutations = {
   setInError(state, { msg, reason }) {
     const key = keyForSubscribe(msg);
 
-    state.inError[key] = {
-      obj: {
-        ...msg,
-        type: msg.resourceType || msg.type
-      },
-      reason,
-    };
+    const { data, resourceType, ...obj } = msg;
+
+    obj.type = msg.resourceType || msg.type;
+
+    state.inError[key] = { obj, reason };
   },
 
   clearInError(state, msg) {

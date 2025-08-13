@@ -250,7 +250,17 @@ describe('steve: subscribe', () => {
           ...msg,
           data: { error: 'too old' }
         });
-        expect(state.inError).toStrictEqual({ 'type=abc,namespace=,id=,selector=': REVISION_TOO_OLD });
+        expect(state.inError).toStrictEqual(
+          {
+            'type=abc,namespace=,id=,selector=': {
+              obj: {
+                type: msg.resourceType,
+                mode: msg.mode,
+              },
+              reason: REVISION_TOO_OLD
+            }
+          }
+        );
 
         // Receive stop from BE
         actions['ws.resource.stop']({
@@ -308,9 +318,7 @@ describe('steve: subscribe', () => {
         obj, msg,
         revision
       }) => {
-        const {
-          state, dispatch, getters, rootGetters, commit
-        } = ctx;
+        const { dispatch } = ctx;
 
         dispatch.mockImplementation(async(type: string) => {
           if (type === 'resyncWatch') {
