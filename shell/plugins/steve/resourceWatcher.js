@@ -37,21 +37,6 @@ export const WATCH_STATUSES = {
 };
 
 /**
- * Reverse of {@link keyForSubscribe} - Extract resource watch params from a unique key
- */
-export const msgFromSubscribeKey = (key) => {
-  return key.split(',').reduce((res, xEqualsY) => {
-    const [prop, value] = xEqualsY.split('=');
-
-    if (value) {
-      res[prop] = value;
-    }
-
-    return res;
-  }, {});
-};
-
-/**
  * Create a unique key for a specific resource watch's params
  */
 export const keyForSubscribe = ({

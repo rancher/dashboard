@@ -290,6 +290,27 @@ let counter = 0; // TODO: RC remove
 const listeners = { [STEVE_WATCH_EVENT.CHANGES]: [] };
 
 /**
+ * Given a started or error entry, is it compatible with the given change in mode?
+ */
+const shouldUnwatchIncompatible = (messageMeta, mode) => {
+  if (messageMeta.mode === STEVE_WATCH_EVENT.CHANGES) {
+    return mode !== STEVE_WATCH_EVENT.CHANGES;
+  }
+
+  return mode === STEVE_WATCH_EVENT.CHANGES;
+};
+
+/**
+ * clear the provided error, but also ensure any backoff request associated with it is cleared as well
+ */
+const clearInError = ({ getters, commit }, error) => {
+  // for this watch ... get the specific prefix we care about ... reset back-offs related to it
+  backOff.resetPrefix(getters.backOffId(error.obj, ''));
+  // Clear out stale error state (next time around we can try again with a new revision that was just fetched)
+  commit('clearInError', error.obj);
+};
+
+/**
  * Actions that cover all cases (see file description)
  */
 const sharedActions = {
@@ -624,39 +645,26 @@ const sharedActions = {
   /**
    * Unwatch watches that are incompatible with the new type
    */
-  unwatchIncompatible({ state, dispatch, getters }, messageMeta) {
-    console.error('123', 'unwatchIncompatible', 'start', messageMeta);
+  unwatchIncompatible({
+    state, dispatch, getters, commit
+  }, messageMeta) {
+    // Step 1 - Clear incompatible watches that have STARTED
     const watchesOfType = getters.watchesOfType(messageMeta.type);
-    let unwatch = [];
 
-    if (messageMeta.mode === STEVE_WATCH_EVENT.CHANGES) {
-      // resource.changes should not be running when other types are, so unwatch
-      unwatch = watchesOfType.filter((entry) => entry.mode !== STEVE_WATCH_EVENT.CHANGES);
-    } else {
-      // all other modes of watches should not be running when resource.changes is, so unwatch
-      unwatch = watchesOfType.filter((entry) => entry.mode === STEVE_WATCH_EVENT.CHANGES);
-    }
-
-    unwatch.forEach((entry) => dispatch('unwatch', entry));
-
-    debugger;
-    console.error('123', 'unwatchIncompatible', 'end', messageMeta, unwatch);
-
-    let entries = Object.entries(state.inError || {})
-      .map(([key, reason]) => ([msgFromSubscribeKey(key), reason])); // DOES NOT CONTAIN mode!!!!!!!!!!!!!!1
-
-    entries = entries
-      .filter(([entry]) => entry.type === messageMeta.type)
-      .filter(([entry]) => {
-        console.error('123', 'unwatchIncompatible', messageMeta.mode, entry.mode, JSON.parse(JSON.stringify(state.inError)));
-        if (messageMeta.mode === STEVE_WATCH_EVENT.CHANGES) {
-          return entry.mode !== STEVE_WATCH_EVENT.CHANGES;
-        }
-
-        return entry.mode === STEVE_WATCH_EVENT.CHANGES;
+    watchesOfType
+      .filter((entry) => shouldUnwatchIncompatible(messageMeta, entry.mode))
+      .forEach((entry) => {
+        dispatch('unwatch', entry);
       });
 
-    console.error('123', 'unwatchIncompatible', 'end2', entries);
+    // Step 2 - Clear inError state for incompatible watches (these won't appear in watchesOfType / state.started)
+    // (important for the backoff case... for example backoff request to find would overwrite findPage res if executed after nav from detail to list)
+    const inErrorOfType = Object.values(state.inError || {})
+      .filter((error) => error.obj.type === messageMeta.type);
+
+    inErrorOfType
+      .filter((error) => shouldUnwatchIncompatible(messageMeta, error.obj.mode))
+      .forEach((error) => clearInError({ getters, commit }, error));
   },
 
   /**
@@ -666,36 +674,9 @@ const sharedActions = {
    */
   resetWatchBackOff({ state, getters, commit }, {
     type, compareWatches, resetInError = true, resetStarted = true
-  } = { inError: true, started: true }) {
-    const resetBackOff = (obj) => {
-      // for this watch ... get the specific prefix we care about ... reset backoffs related to it
-      backOff.resetPrefix(getters.backOffId(obj, ''));
-    };
-
-    if (resetInError && state.inError) {
-      // For all entries in inError...
-      // (it would be nicer if we could store backOff state in `state.started`,
-      // however resource.stop clears `started` and we need the settings to persist over start-->error-->stop-->start cycles
-      let entries = Object.entries(state.inError)
-        .map(([key, reason]) => ([msgFromSubscribeKey(key), reason]));
-
-      if (type) { // Filter out ones for types we're no interested in
-        entries = entries
-          .filter(([obj]) => compareWatches ? compareWatches(obj) : obj.type === type);
-      }
-
-      entries
-        .filter(([, reason]) => reason === REVISION_TOO_OLD) // Filter out ones for reasons we're not interested in
-        .forEach(([obj]) => {
-          // Reset backoff
-          resetBackOff(obj);
-          // Clear out stale error state (next time around we can try again with a new revision that was just fetched)
-          commit('clearInError', obj);
-        });
-    }
-
+  } = { resetInError: true, resetStarted: true }) {
+    // Step 1 - Reset back-offs related to watches that have STARTED
     if (resetStarted && state.started?.length) {
-      // For all entries in started...
       let entries = state.started;
 
       if (type) { // Filter out ones for types we're no interested in
@@ -703,8 +684,23 @@ const sharedActions = {
           .filter((obj) => compareWatches ? compareWatches(obj) : obj.type === type);
       }
 
-      // Reset backoff
-      entries.forEach((obj) => resetBackOff(obj));
+      entries.forEach((obj) => backOff.resetPrefix(getters.backOffId(obj, '')));
+    }
+
+    // Step 2 - Reset back-offs related to watches that are in error (and may not be started)
+    if (resetInError && state.inError) {
+      // (it would be nicer if we could store backOff state in `state.started`,
+      // however resource.stop clears `started` and we need the settings to persist over start-->error-->stop-->start cycles
+      let entries = Object.values(state.inError || {});
+
+      if (type) { // Filter out ones for types we're no interested in
+        entries = entries
+          .filter((error) => compareWatches ? compareWatches(error.obj) : error.obj.type === type);
+      }
+
+      entries
+        .filter((error) => error.reason === REVISION_TOO_OLD) // Filter out ones for reasons we're not interested in
+        .forEach((error) => clearInError({ getters, commit }, error));
     }
 
     counter = 0; // TODO: RC remove
@@ -1295,11 +1291,17 @@ const defaultMutations = {
   setInError(state, { msg, reason }) {
     const key = keyForSubscribe(msg);
 
-    state.inError[key] = reason;
+    state.inError[key] = {
+      obj: {
+        ...msg,
+        type: msg.resourceType || msg.type
+      },
+      reason,
+    };
   },
 
   clearInError(state, msg) {
-    // Couldn't see where clearInError is used, candidate to remove
+    // Callers of this should consider using local clearInError instead
 
     const key = keyForSubscribe(msg);
 
@@ -1355,7 +1357,7 @@ const defaultGetters = {
   },
 
   inError: (state) => (obj) => {
-    return state.inError[keyForSubscribe(obj)];
+    return state.inError[keyForSubscribe(obj)]?.reason;
   },
 
   watchesOfType: (state) => (type) => {
