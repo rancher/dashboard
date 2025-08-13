@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import RcTag from './index';
-import { Type } from './types';
+import { Type } from '../types';
 
 describe('component: RcTag', () => {
   const types: Type[] = ['active', 'inactive'];
