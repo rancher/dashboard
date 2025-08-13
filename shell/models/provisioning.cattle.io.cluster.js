@@ -74,15 +74,8 @@ export default class ProvCluster extends SteveModel {
     return super.creationTimestamp;
   }
 
-  // Models can specify a single action that will be shown as a button in the details masthead
-  get detailsAction() {
-    const canExplore = this.mgmt?.isReady && !this.hasError;
-
-    return {
-      action:  'explore',
-      label:   this.$rootGetters['i18n/t']('cluster.explore'),
-      enabled: canExplore,
-    };
+  get canExplore() {
+    return this.mgmt?.isReady && !this.hasError;
   }
 
   get canEdit() {
@@ -1016,5 +1009,9 @@ export default class ProvCluster extends SteveModel {
 
   get disableResourceDetailDrawerConfigTab() {
     return !!this.isHarvester;
+  }
+
+  get fullDetailPageOverride() {
+    return true;
   }
 }

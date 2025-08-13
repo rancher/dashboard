@@ -1,11 +1,22 @@
 import { shallowMount } from '@vue/test-utils';
 import ProvisioningCattleIoCluster from '@shell/detail/provisioning.cattle.io.cluster.vue';
+import * as MastheadComposable from '@shell/components/Resource/Detail/Masthead/composable';
 
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
 });
 
+jest.mock('@shell/components/Resource/Detail/Masthead/composable');
+
 describe('view: provisioning.cattle.io.cluster', () => {
+  const useDefaultMastheadPropsSpy = jest.spyOn(MastheadComposable, 'useDefaultMastheadProps');
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    useDefaultMastheadPropsSpy.mockReturnValue({} as any);
+  });
+
   const mockStore = {
     getters: {
       'management/canList':      () => true,

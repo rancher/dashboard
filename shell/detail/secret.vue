@@ -1,18 +1,15 @@
 <script setup lang="ts">
 import DetailPage from '@shell/components/Resource/Detail/Page.vue';
-import TitleBar from '@shell/components/Resource/Detail/TitleBar/index.vue';
-import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
-import Metadata from '@shell/components/Resource/Detail/Metadata/index.vue';
 import { MANAGEMENT, SECRET } from '@shell/config/types';
 import ResourceTabs from '@shell/components/form/ResourceTabs/index.vue';
 import SecretDataTab from '@shell/components/Resource/Detail/ResourceTabs/SecretDataTab/index.vue';
 import KnownHostsTab from '@shell/components/Resource/Detail/ResourceTabs/KnownHostsTab/index.vue';
 import { useGetKnownHostsTabProps } from '@shell/components/Resource/Detail/ResourceTabs/KnownHostsTab/composables';
 import { useSecretDataTabDefaultProps } from '@shell/components/Resource/Detail/ResourceTabs/SecretDataTab/composeables';
-import { useSecretIdentifyingInformation } from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/composable';
 import { useStore } from 'vuex';
-import { useBasicMetadata } from '@shell/components/Resource/Detail/Metadata/composables';
 import { computed } from 'vue';
+import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
+import { useDefaultMastheadProps } from '@shell/components/Resource/Detail/Masthead/composable';
 
 const store = useStore();
 
@@ -26,9 +23,8 @@ const secret = props.value;
 if (secret.isProjectScoped) {
   store.dispatch('management/find', { id: secret.projectId, type: MANAGEMENT.PROJECT });
 }
-const titleBarProps = useDefaultTitleBarProps(secret);
-const identifyingInformation = useSecretIdentifyingInformation(secret, secret.isProjectScoped);
-const metaDataProps = useBasicMetadata(secret);
+
+const defaultMastheadProps = useDefaultMastheadProps(secret);
 const knownHostsTabProps = useGetKnownHostsTabProps(secret);
 const secretDataTabProps = useSecretDataTabDefaultProps(secret);
 
@@ -36,12 +32,7 @@ const secretDataTabProps = useSecretDataTabDefaultProps(secret);
 <template>
   <DetailPage>
     <template #top-area>
-      <TitleBar v-bind="titleBarProps" />
-      <Metadata
-        class="mmt-6"
-        v-bind="metaDataProps"
-        :identifyingInformation="identifyingInformation"
-      />
+      <Masthead v-bind="defaultMastheadProps" />
     </template>
     <template #bottom-area>
       <ResourceTabs
