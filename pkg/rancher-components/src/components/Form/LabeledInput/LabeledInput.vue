@@ -438,6 +438,11 @@ export default defineComponent({
     />
     <!-- validation tooltip -->
     <LabeledTooltip
+      v-if="!!errorMessage"
+      :hover="hoverTooltip"
+      :value="errorMessage"
+    />
+    <LabeledTooltip
       v-if="!!validationMessage"
       :hover="hoverTooltip"
       :value="validationMessage"

@@ -10,6 +10,7 @@ interface LabeledFormElementProps {
   disabled: boolean;
   rules: Array<any>;
   requireDirty?: boolean;
+  errorMessage?: string;
 }
 
 interface UseLabeledFormElement {
@@ -69,6 +70,10 @@ export const labeledFormElementProps = {
   requireDirty: {
     default: true,
     type:    Boolean
+  },
+  errorMessage: {
+    default: undefined,
+    type:    String,
   }
 };
 
