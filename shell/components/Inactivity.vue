@@ -31,8 +31,14 @@ export default {
 
     console.error('FEATURES', data2);
 
-    // const data1 = await this.$store.dispatch('management/request', { url: '/v1/ext.cattle.io.useractivities' });
+    // const data1 = await this.$store.dispatch('management/request', { url: 'ext/apis/v1/ext.cattle.io/useractivities/token-p9mwk' });
+
     // console.error('USER ACTIVITIES', data1);
+
+    // const data0 = await this.$store.dispatch('management/request', { url: 'ext/apis/v1/ext.cattle.io/useractivities/token-rvsvq' });
+    const data0 = await this.$store.dispatch('management/request', { url: '/v1/ext.cattle.io.useractivities/token-rvsvq' });
+
+    console.error('USER ACTIVITIES2', data0);
 
     const UIInactivityIsEnabled = await checkIfUIInactivityIsEnabled(this.$store);
 
