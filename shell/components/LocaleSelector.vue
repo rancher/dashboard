@@ -80,7 +80,7 @@ export default {
         <rc-dropdown-trigger
           data-testid="locale-selector"
           link
-          class="baseline"
+          class="baseline locale-selector-btn"
           :aria-label="t('locale.menu')"
         >
           {{ selectedLocaleLabel }}
@@ -88,7 +88,7 @@ export default {
             v-if="showIcon"
             #after
           >
-            <i class="icon icon-fw icon-sort-down" />
+            <i class="ml-5 icon icon-chevron-down" />
           </template>
         </rc-dropdown-trigger>
         <template #dropdownCollection>
@@ -125,5 +125,10 @@ export default {
 <style lang="scss">
   .baseline {
     align-items: baseline;
+  }
+
+  .locale-selector-btn {
+    align-items: center;
+    display: flex;
   }
 </style>
