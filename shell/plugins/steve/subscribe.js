@@ -3,8 +3,57 @@
  *
  * Covers three use cases
  * 1) Handles subscription within this file
- * 2) Handles `cluster` subscriptions for some basic types in a web worker (SETTING.UI_PERFORMANCE advancedWorker = false)
+ * 2) Handles `cluster` subscriptions for some basic types in a web worker (SETTING.UI_PERFORMANCE advancedWorker = false) (is this true??)
  * 2) Handles `cluster` subscriptions and optimisations in an advanced worker (SETTING.UI_PERFORMANCE advancedWorker = true)
+ *
+ * Very roughly this does...
+ *
+ * 1. _Subscribes_ to a web socket (v1, v3, v1 cluster)
+ * 2. UI --> Rancher: Sends a _watch_ message for a specific resource type (which can have qualifying filters)
+ * 3. Rancher --> UI: Rancher can send a number of messages back
+ *   - `resource.start`   - watch has started
+ *   - `resource.error`   - watch has errored, usually a result of bad data in the resource.start message
+ *   - `resource.change`  - a resource has changed, this is it's new value
+ *   - `resource.changes` - if in this mode, no resource.change events are sent, instead one debounced message is sent without any resource data
+ *   - `resource.stop`    - either we have requested the watch stops, or there has been a resource.error
+ * 4. UI --> Rancher: Sends an _unwatch_ request for a matching _watch_ request
+ *
+ * Below are some VERY brief steps for common flows. Some will link together
+ *
+ * Successfully flow - watch
+ * 1. UI --> Rancher: _watch_ request
+ * 2. Rancher --> UI: `resource.start`. UI sets watch as started
+ * 3. Rancher --> UI: `resource.change` (contains data). UI caches data
+ *
+ * Successful flow - watch - new mode
+ * 1. UI --> Rancher: _watch_ request
+ * 2. Rancher --> UI: `resource.start`. UI sets watch as started
+ * 3. Rancher --> UI: `resource.changes` (contains no data). UI makes a HTTP request to fetch data
+ *
+ * Successful flow - unwatch
+ * 1. UI --> Rancher: _unwatch_ request
+ * 2. Rancher --> UI: `resource.stop`. UI sets watch as stopped
+ *
+ * Successful flow - resource.stop received
+ * 1. Rancher --> UI: `resource.stop`. UI sets watch as stopped
+ * 2. UI --> Rancher: _watch_ request
+ *
+ * Successful flow - socket disconnected
+ * 1. Socket closes|disconnects (not sure which)
+ * 2. UI: reopens socket
+ * 3. UI --> Rancher: _watch_ request (for every started watch)
+ *
+ * Error Flow
+ * 1. UI --> Rancher: _watch_ request
+ * 2. Rancher --> UI: `resource.start`. UI sets watch as started
+ * 3. Rancher --> UI: `resource.error`. UI sets watch as errored.
+ *   a) UI: in the event of 'too old' the UI will make a http request to fetch a new revision and re-watch with it. This process is delayed on each call
+ * 4. Rancher --> UI: `resource.stop`. UI sets watch as stop (note the resource.stop flow above is avoided given error state)
+ *
+ * Additionally
+ * - if we receive resource.stop, unless the watch is in error, we immediately send back a watch event
+ * - if the web socket is disconnected (for steve based sockets it happens every 30 mins, or when there are permission changes)
+ *   the ui will re-connect it and re-watch all previous watches using a best effort revision
  */
 
 import { addObject, clear, removeObject } from '@shell/utils/array';
@@ -37,6 +86,7 @@ import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
 import { _MERGE } from '@shell/plugins/dashboard-store/actions';
 import { STEVE_WATCH_EVENT, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import paginationUtils from '@shell/utils/pagination-utils';
+import backOff from '@shell/utils/back-off';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
@@ -88,7 +138,7 @@ export async function createWorker(store, ctx) {
       postMessage: (msg) => {
         if (Object.keys(msg)?.[0] === 'destroyWorker') {
           // The worker has been destroyed before it's been set up. Flag this so we stop waiting for mgmt settings and then can destroy worker.
-          // This can occurr when the user is redirected to the log in page
+          // This can occur when the user is redirected to the log in page
           // - workers created (but waiting)
           // - logout is called
           // - <store>/unsubscribe is dispatched
@@ -270,6 +320,27 @@ function growlsDisabled(rootGetters) {
 const listeners = { [STEVE_WATCH_EVENT.CHANGES]: [] };
 
 /**
+ * Given a started or error entry, is it compatible with the given change in mode?
+ */
+const shouldUnwatchIncompatible = (messageMeta, mode) => {
+  if (messageMeta.mode === STEVE_WATCH_EVENT.CHANGES) {
+    return mode !== STEVE_WATCH_EVENT.CHANGES;
+  }
+
+  return mode === STEVE_WATCH_EVENT.CHANGES;
+};
+
+/**
+ * clear the provided error, but also ensure any backoff request associated with it is cleared as well
+ */
+const clearInError = ({ getters, commit }, error) => {
+  // for this watch ... get the specific prefix we care about ... reset back-offs related to it
+  backOff.resetPrefix(getters.backOffId(error.obj, ''));
+  // Clear out stale error state (next time around we can try again with a new revision that was just fetched)
+  commit('clearInError', error.obj);
+};
+
+/**
  * Actions that cover all cases (see file description)
  */
 const sharedActions = {
@@ -347,7 +418,9 @@ const sharedActions = {
     }
   },
 
-  unsubscribe({ commit, getters, state }) {
+  async unsubscribe({
+    commit, getters, state, dispatch
+  }) {
     const socket = state.socket;
 
     commit('setWantSocket', false);
@@ -363,6 +436,8 @@ const sharedActions = {
     if ( socket ) {
       cleanupTasks.push(socket.disconnect());
     }
+
+    await dispatch('resetWatchBackOff');
 
     return Promise.all(cleanupTasks);
   },
@@ -574,6 +649,8 @@ const sharedActions = {
           // Make sure anything in the pending queue for the type is removed, since we've now removed the type
           commit('clearFromQueue', type);
         }
+        // Ensure anything pinging in the background is stopped
+        backOff.resetPrefix(getters.backOffId(obj));
       };
 
       if (isAdvancedWorker(ctx)) {
@@ -591,19 +668,63 @@ const sharedActions = {
   /**
    * Unwatch watches that are incompatible with the new type
    */
-  unwatchIncompatible({ state, dispatch, getters }, messageMeta) {
+  unwatchIncompatible({
+    state, dispatch, getters, commit
+  }, messageMeta) {
+    // Step 1 - Clear incompatible watches that have STARTED
     const watchesOfType = getters.watchesOfType(messageMeta.type);
-    let unwatch = [];
 
-    if (messageMeta.mode === STEVE_WATCH_EVENT.CHANGES) {
-      // resource.changes should not be running when other types are, so unwatch
-      unwatch = watchesOfType.filter((entry) => entry.mode !== STEVE_WATCH_EVENT.CHANGES);
-    } else {
-      // all other modes of watches should not be running when resource.changes is, so unwatch
-      unwatch = watchesOfType.filter((entry) => entry.mode === STEVE_WATCH_EVENT.CHANGES);
+    watchesOfType
+      .filter((entry) => shouldUnwatchIncompatible(messageMeta, entry.mode))
+      .forEach((entry) => {
+        dispatch('unwatch', entry);
+      });
+
+    // Step 2 - Clear inError state for incompatible watches (these won't appear in watchesOfType / state.started)
+    // (important for the backoff case... for example backoff request to find would overwrite findPage res if executed after nav from detail to list)
+    const inErrorOfType = Object.values(state.inError || {})
+      .filter((error) => error.obj.type === messageMeta.type);
+
+    inErrorOfType
+      .filter((error) => shouldUnwatchIncompatible(messageMeta, error.obj.mode))
+      .forEach((error) => clearInError({ getters, commit }, error));
+  },
+
+  /**
+   * Ensure there's no back-off process waiting to run for
+   * - resource.changes fetchResources
+   * - resource.error resyncWatches
+   */
+  resetWatchBackOff({ state, getters, commit }, {
+    type, compareWatches, resetInError = true, resetStarted = true
+  } = { resetInError: true, resetStarted: true }) {
+    // Step 1 - Reset back-offs related to watches that have STARTED
+    if (resetStarted && state.started?.length) {
+      let entries = state.started;
+
+      if (type) { // Filter out ones for types we're no interested in
+        entries = entries
+          .filter((obj) => compareWatches ? compareWatches(obj) : obj.type === type);
+      }
+
+      entries.forEach((obj) => backOff.resetPrefix(getters.backOffId(obj, '')));
     }
 
-    unwatch.forEach((entry) => dispatch('unwatch', entry));
+    // Step 2 - Reset back-offs related to watches that are in error (and may not be started)
+    if (resetInError && state.inError) {
+      // (it would be nicer if we could store backOff state in `state.started`,
+      // however resource.stop clears `started` and we need the settings to persist over start-->error-->stop-->start cycles
+      let entries = Object.values(state.inError || {});
+
+      if (type) { // Filter out ones for types we're no interested in
+        entries = entries
+          .filter((error) => compareWatches ? compareWatches(error.obj) : error.obj.type === type);
+      }
+
+      entries
+        .filter((error) => error.reason === REVISION_TOO_OLD) // Filter out ones for reasons we're not interested in
+        .forEach((error) => clearInError({ getters, commit }, error));
+    }
   },
 
   'ws.ping'({ getters, dispatch }, msg) {
@@ -863,15 +984,20 @@ const defaultActions = {
     }
   },
 
-  closed({ state, getters }) {
+  async closed({ state, getters, dispatch }) {
     state.debugSocket && console.info(`WebSocket Closed [${ getters.storeName }]`); // eslint-disable-line no-console
+
+    await dispatch('resetWatchBackOff');
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
   },
 
-  error({
+  async error({
     getters, state, dispatch, rootGetters
   }, e) {
+    state.debugSocket && console.info(`WebSocket Error [${ getters.storeName }]`); // eslint-disable-line no-console
+
+    await dispatch('resetWatchBackOff');
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
 
@@ -986,7 +1112,23 @@ const defaultActions = {
       // 1) blocks attempts by resource.stop to resub (as type is in error)
       // 2) will be cleared when resyncWatch --> watch (with force) --> resource.start completes
       commit('setInError', { msg, reason: REVISION_TOO_OLD });
-      dispatch('resyncWatch', msg);
+
+      // See Scenario 1 from https://github.com/rancher/dashboard/issues/14974
+      // The watch that results from resyncWatch will fail and end up here if the revision isn't (yet) known
+      // So re-retry resyncWatch until it does OR
+      // - we're already re-retrying
+      //   - early exist from `execute`
+      // - we give up (exceed max retries)
+      //   - early exist from `execute`
+      // - we need to stop (socket is disconnected or closed, type is 'forgotten', watch is unwatched)
+      //   - `reset` called asynchronously
+      //   - Note - we won't need to clear the id outside of the above scenarios because `too old` only occurs on fresh watches (covered by above scenarios)
+      backOff.execute({
+        id:          getters.backOffId(msg, REVISION_TOO_OLD),
+        description: `Invalid watch revision, re-syncing`,
+        canFn:       () => getters.canBackoff(this.$socket),
+        delayedFn:   () => dispatch('resyncWatch', msg),
+      });
     } else if ( err.includes('the server does not allow this method on the requested resource')) {
       commit('setInError', { msg, reason: NO_PERMS });
     }
@@ -1170,21 +1312,33 @@ const defaultMutations = {
   setInError(state, { msg, reason }) {
     const key = keyForSubscribe(msg);
 
-    state.inError[key] = reason;
+    const { data, resourceType, ...obj } = msg;
+
+    obj.type = msg.resourceType || msg.type;
+
+    state.inError[key] = { obj, reason };
   },
 
   clearInError(state, msg) {
+    // Callers of this should consider using local clearInError instead
+
     const key = keyForSubscribe(msg);
 
     delete state.inError[key];
   },
 
+  /**
+   * Clear out socket state
+   */
   resetSubscriptions(state) {
-    // Clear out socket state. This is only ever called from reset... which is always called after we `disconnect` above.
-    // This could probably be folded in to there
     clear(state.started);
     clear(state.pendingFrames);
     clear(state.queue);
+    // Note - we clear async operations here (like queueTimer) and we should also do so for backoff requests via
+    // resetWatchBackOff, however can't because this is a mutation and it's an action
+    // We shouldn't need to though given resetSubscription is called from store reset, which includes forgetType
+    // on everything in the store, which resets backoff requests.
+    // Additionally this is probably called on a cluster store, so we also call resetWatchBackOff when the socket disconnects
     clearTimeout(state.queueTimer);
     state.deferredRequests = {};
     state.queueTimer = null;
@@ -1202,8 +1356,27 @@ const defaultMutations = {
  * Getters that cover cases 1 & 2 (see file description)
  */
 const defaultGetters = {
+  /**
+   * Get a unique id that can be used to track a process that can be backed-off
+   *
+   * @param obj - the usual id/namespace/selector, etc,
+   * @param postFix - something else to uniquely id this back-off
+   */
+  backOffId: () => (obj, postFix) => {
+    return `${ keyForSubscribe(obj) }${ postFix ? `:${ postFix }` : '' }`;
+  },
+
+  /**
+   * Can the back off process run?
+   *
+   * If we're not connected no.
+   */
+  canBackoff: () => ($socket) => {
+    return $socket.state === EVENT_CONNECTED;
+  },
+
   inError: (state) => (obj) => {
-    return state.inError[keyForSubscribe(obj)];
+    return state.inError[keyForSubscribe(obj)]?.reason;
   },
 
   watchesOfType: (state) => (type) => {
