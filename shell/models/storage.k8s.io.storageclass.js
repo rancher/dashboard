@@ -141,14 +141,14 @@ export default class extends SteveModel {
       out.unshift({
         action:  'resetDefault',
         enabled: true,
-        icon:    'icon icon-fw icon-checkmark',
+        icon:    'icon icon-checkmark',
         label:   this.t('storageClass.actions.resetDefault'),
       });
     } else {
       out.unshift({
         action:  'setDefault',
         enabled: true,
-        icon:    'icon icon-fw icon-checkmark',
+        icon:    'icon icon-checkmark',
         label:   this.t('storageClass.actions.setAsDefault'),
       });
     }

@@ -136,7 +136,7 @@ export default class ProvCluster extends SteveModel {
       }, {
         action:  'restoreSnapshotAction',
         label:   this.$rootGetters['i18n/t']('nav.restoreSnapshot'),
-        icon:    'icon icon-fw icon-backup-restore',
+        icon:    'icon icon-backup-restore',
         enabled: canSnapshot,
       }, {
         action:  'rotateCertificates',
