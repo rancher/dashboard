@@ -280,35 +280,36 @@ export default {
       // Find Ingresses that forward traffic to Services
       // that select this workload.
       const matchingIngresses = this.allIngresses.filter((ingress) => {
-        const rules = ingress.spec.rules;
+        try {
+          const rules = ingress.spec.rules;
 
-        if (rules) {
+          if (!rules || !Array.isArray(rules)) return false;
+
           for (let i = 0; i < rules.length; i++) {
-            const rule = rules[i];
+            const paths = rules[i]?.http?.paths;
 
-            const paths = rule.http.paths;
+            if (!paths || !Array.isArray(paths)) continue;
+            // For each Ingress, check if any Services that match
+            // this workload are also target backends for the Ingress.
+            for (let j = 0; j < paths.length; j++) {
+              const pathData = paths[j];
+              const targetServiceName = pathData?.backend?.service?.name;
 
-            if (paths) {
-              // For each Ingress, check if any Services that match
-              // this workload are also target backends for the Ingress.
-              for (let j = 0; j < paths.length; j++) {
-                const pathData = paths[j];
-                const targetServiceName = pathData.backend.service.name;
+              if (!targetServiceName) continue;
 
-                for (let k = 0; k < this.matchingServices.length; k++) {
-                  const service = this.matchingServices[k];
-                  const matchingServiceName = service.metadata?.name;
+              for (let k = 0; k < this.matchingServices.length; k++) {
+                const service = this.matchingServices[k];
+                const matchingServiceName = service?.metadata?.name;
 
-                  if (ingress.metadata?.namespace === this.value.metadata?.namespace && matchingServiceName === targetServiceName) {
-                    return true;
-                  }
+                if (ingress.metadata?.namespace === this.value.metadata?.namespace && matchingServiceName === targetServiceName) {
+                  return true;
                 }
               }
             }
           }
+        } catch (err) {
+          return false;
         }
-
-        return false;
       });
 
       this.matchingIngresses = matchingIngresses;
