@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, inject } from 'vue';
+import { defineComponent, inject, ref, watch } from 'vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
 import { escapeHtml, generateRandomAlphaString } from '@shell/utils/string';
@@ -8,6 +8,7 @@ import { isValidCron } from 'cron-validator';
 import { debounce } from 'lodash';
 import { useLabeledFormElement, labeledFormElementProps } from '@shell/composables/useLabeledFormElement';
 import { useCompactInput } from '@shell/composables/useCompactInput';
+import { useField } from 'vee-validate';
 
 interface NonReactiveProps {
   onInput: (event: Event) => void | ((event: Event) => void);
@@ -132,6 +133,36 @@ export default defineComponent({
 
     const onInput = inject('onInput', provideProps.onInput);
 
+    const localValue = ref(props.value);
+
+    const {
+      value: fieldValue,
+      errorMessage,
+      handleBlur,
+      handleChange,
+    } = props.name ? useField(() => props.name, undefined, { initialValue: props.value }) : {
+      value:        localValue,
+      errorMessage: ref(''),
+      handleBlur:   () => {},
+      handleChange: (e: Event) => {
+        localValue.value = (e.target as HTMLInputElement).value;
+      }
+    };
+
+    // Sync the field value with v-model
+    watch(props.name ? fieldValue : localValue, (val) => {
+      emit('update:value', val);
+    });
+
+    // Sync the prop value with the field value
+    watch(() => props.value, (val) => {
+      if (props.name) {
+        fieldValue.value = val;
+      } else {
+        localValue.value = val;
+      }
+    });
+
     return {
       focused,
       onFocusLabeled,
@@ -141,6 +172,12 @@ export default defineComponent({
       validationMessage,
       requiredField,
       isCompact,
+      inputValue:   props.name ? fieldValue : localValue,
+      inputError:   props.name ? errorMessage : ref(''),
+      handleBlur:   props.name ? handleBlur : () => {},
+      handleChange: props.name ? handleChange : (e: Event) => {
+        localValue.value = (e.target as HTMLInputElement).value;
+      },
     };
   },
 
@@ -200,7 +237,7 @@ export default defineComponent({
      * Determines if the Labeled Input should display a cron hint.
      */
     cronHint(): string | undefined {
-      if (this.type !== 'cron' || !this.value) {
+      if (this.type !== 'cron' || !this.inputValue) {
         return;
       }
 
@@ -214,10 +251,10 @@ export default defineComponent({
         '@midnight',
         '@hourly'
       ];
-      const isPredefined = predefined.includes(this.value as string);
+      const isPredefined = predefined.includes(this.inputValue as string);
 
       // refer https://github.com/GuillaumeRochat/cron-validator#readme
-      if (!isPredefined && !isValidCron(this.value as string, {
+      if (!isPredefined && !isValidCron(this.inputValue as string, {
         alias:              true,
         allowBlankDay:      true,
         allowSevenAsSunday: true,
@@ -226,7 +263,7 @@ export default defineComponent({
       }
 
       try {
-        const hint = cronstrue.toString(this.value as string || '', { verbose: true });
+        const hint = cronstrue.toString(this.inputValue as string || '', { verbose: true });
 
         return hint;
       } catch (e) {
@@ -392,15 +429,15 @@ export default defineComponent({
         :maxlength="_maxlength"
         :disabled="isDisabled"
         :aria-disabled="isDisabled"
-        :value="value || ''"
+        :value="inputValue || ''"
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"
         :aria-describedby="ariaDescribedBy"
         :aria-required="requiredField"
-        @update:value="onInput"
+        @update:value="handleChange"
         @focus="onFocus"
-        @blur="onBlur"
+        @blur="handleBlur"
       />
       <input
         v-else
@@ -414,16 +451,16 @@ export default defineComponent({
         :disabled="isDisabled"
         :aria-disabled="isDisabled"
         :type="type === 'cron' ? 'text' : type"
-        :value="value"
+        :value="inputValue"
         :placeholder="_placeholder"
         autocomplete="off"
         autocapitalize="off"
         :data-lpignore="ignorePasswordManagers"
         :aria-describedby="ariaDescribedBy"
         :aria-required="requiredField"
-        @input="onInput"
+        @input="handleChange"
         @focus="onFocus"
-        @blur="onBlur"
+        @blur="handleBlur"
         @change="onChange"
       >
     </slot>
@@ -438,9 +475,9 @@ export default defineComponent({
     />
     <!-- validation tooltip -->
     <LabeledTooltip
-      v-if="!!errorMessage"
+      v-if="!!errorMessage || !!inputError"
       :hover="hoverTooltip"
-      :value="errorMessage"
+      :value="errorMessage || inputError"
     />
     <LabeledTooltip
       v-if="!!validationMessage"

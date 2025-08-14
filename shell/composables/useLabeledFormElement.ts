@@ -11,6 +11,7 @@ interface LabeledFormElementProps {
   rules: Array<any>;
   requireDirty?: boolean;
   errorMessage?: string;
+  name?: string;
 }
 
 interface UseLabeledFormElement {
@@ -74,6 +75,10 @@ export const labeledFormElementProps = {
   errorMessage: {
     default: undefined,
     type:    String,
+  },
+  name: {
+    type:    String,
+    default: undefined,
   }
 };
 
