@@ -10,6 +10,7 @@ const loginPage = new LoginPagePo();
 const homePage = new HomePagePo();
 const brandingPage = new BrandingPagePo();
 const burgerMenu = new BurgerMenuPo();
+let resetPrivateLabel = false;
 
 const settings = {
   privateLabel: {
@@ -75,7 +76,12 @@ describe('Branding', { testIsolation: 'off' }, () => {
     // Set
     cy.title().should('not.eq', settings.privateLabel.new);
     brandingPage.privateLabel().set(settings.privateLabel.new);
-    brandingPage.applyAndWait('**/ui-pl', 200);
+    brandingPage.applyAndWait('**/ui-pl').then(({ response, request }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value', `${ settings.privateLabel.new }`);
+      expect(response?.body).to.have.property('value', `${ settings.privateLabel.new }`);
+      resetPrivateLabel = true;
+    });
 
     // Visit the Home Page
     BurgerMenuPo.toggle();
@@ -96,7 +102,12 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
     // Reset
     brandingPage.privateLabel().set(settings.privateLabel.original);
-    brandingPage.applyAndWait('**/ui-pl', 200);
+    brandingPage.applyAndWait('**/ui-pl').then(({ response, request }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value', `${ settings.privateLabel.original }`);
+      expect(response?.body).to.have.property('value', `${ settings.privateLabel.original }`);
+    });
+
     BurgerMenuPo.toggle();
     burgerMenuPo.home().click();
     cy.title({ timeout: 2000 }).should('eq', `${ settings.privateLabel.original } - Homepage`);
@@ -181,6 +192,11 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
   it('Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const prefPage = new PreferencesPagePo();
+
+    // Clear any banner hiding preferences
+    // Ensure the banner is visible by resetting any user preferences that might hide it
+    // This prevents the test from failing if the banner was previously hidden
+    cy.setUserPreference({ 'home-page-cards': '{}' });
 
     BrandingPagePo.navTo();
     brandingPage.customBannerCheckbox().set();
@@ -457,5 +473,19 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.primaryColorCheckbox().isDisabled();
     brandingPage.linkColorCheckbox().isDisabled();
     brandingPage.applyButton().checkNotExists();
+  });
+
+  after(() => {
+    // Reset Private label to default - needed incase of 'Private Label' test failure
+    if (resetPrivateLabel) {
+      cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-pl', null).then((resp: Cypress.Response<any>) => {
+        const resourceVersion = resp.body.metadata.resourceVersion;
+
+        cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-pl', {
+          value:    `${ settings.privateLabel.original }`,
+          metadata: { name: 'ui-pl', resourceVersion }
+        });
+      });
+    }
   });
 });
