@@ -54,7 +54,7 @@ export default class HomePagePo extends PagePo {
     const pageActionsPo = new PageActions();
 
     cy.intercept('PUT', 'v1/userpreferences/*').as('toggleBanner');
-    pageActionsPo.toggleBanner().click();
+    pageActionsPo.bannerLink().click();
     cy.wait('@toggleBanner');
   }
 

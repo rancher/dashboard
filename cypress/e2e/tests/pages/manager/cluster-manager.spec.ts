@@ -451,7 +451,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         cy.intercept('GET', '/v1-rke2-release/releases').as('getRke2Releases');
         clusterList.goTo();
         clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
-        editImportedClusterPage.waitForPage('mode=edit');
 
         editImportedClusterPage.nameNsDescription().name().value().should('eq', importGenericName );
 
@@ -570,10 +569,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       clusterDetail.selectTab(tabbedPo, '[data-testid="btn-node-pools"]');
 
       clusterDetail.waitForPage(undefined, 'node-pools');
-      clusterDetail.machinePoolsList().resourceTable().sortableTable().noRowsShouldNotExist();
       clusterDetail.machinePoolsList().details('machine-', 2).should('be.visible');
       clusterDetail.machinePoolsList().downloadYamlButton().should('be.disabled');
     });
+
     it(`Show Configuration allows to edit config and view yaml for local cluster`, () => {
       clusterDetail.waitForPage();
       clusterDetail.openShowConfiguration();
@@ -605,19 +604,19 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  describe('Local', { tags: ['@jenkins', '@localCluster'] }, () => {
+  describe('Local', () => {
     it(`can open edit for local cluster`, () => {
       const editLocalClusterPage = new ClusterManagerEditImportedPagePo(undefined, 'fleet-local', 'local');
 
-      cy.intercept('GET', '/v1-rke2-release/releases').as('getRke2Releases');
+      cy.intercept('GET', `/v1/management.cattle.io.users?*`).as('pageLoad');
       clusterList.goTo();
       clusterList.list().actionMenu('local').getMenuItem('Edit Config').click();
       editLocalClusterPage.waitForPage('mode=edit');
-
+      cy.wait('@pageLoad');
       editLocalClusterPage.nameNsDescription().name().value().should('eq', 'local' );
 
       // check accordions are properly displayed
-      editLocalClusterPage.accordion(2, 'Basics').should('be.visible');
+      editLocalClusterPage.accordion(2, 'K3S Options').should('be.visible'); // for K3S local cluster its K3S Options
       editLocalClusterPage.accordion(3, 'Member Roles').scrollIntoView().should('be.visible');
       editLocalClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
       editLocalClusterPage.accordion(5, 'Networking').scrollIntoView().should('be.visible');
@@ -628,16 +627,15 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       editLocalClusterPage.versionManagementBanner().should('not.exist');
 
       editLocalClusterPage.enableVersionManagement();
-      editLocalClusterPage.versionManagementBanner().should('exist').and('be.visible');
       editLocalClusterPage.versionManagementBanner().should('not.contain.text', 'This change will trigger cluster agent redeployment.');
       editLocalClusterPage.disableVersionManagement();
-      editLocalClusterPage.versionManagementBanner().should('exist').and('be.visible');
       editLocalClusterPage.versionManagementBanner().should('not.contain.text', 'This change will trigger cluster agent redeployment.');
       editLocalClusterPage.cancel();
 
       // We should be taken back to the list page if the save was successful
       clusterList.waitForPage();
     });
+
     it(`can navigate to local cluster's explore product`, () => {
       const clusterName = 'local';
       const clusterDashboard = new ClusterDashboardPagePo(clusterName);

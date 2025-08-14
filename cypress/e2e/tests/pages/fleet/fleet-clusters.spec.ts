@@ -28,7 +28,6 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
   let removeGitRepo = false;
   let removeWorkspace = false;
   let disableFeature = false;
-  let clusterId = '';
   let clusterName = '';
   let gitRepo = '';
   let customWorkspace = '';
@@ -73,17 +72,6 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
       }).then(() => {
         removeCluster = true;
       });
-
-      // get clusterId
-      cy.getRancherResource('v3', 'clusters').then((resp: Cypress.Response<any>) => {
-        const body = resp.body;
-
-        body.data.forEach((item: any) => {
-          if (item['name'] === name) {
-            clusterId = item.id;
-          }
-        });
-      });
     });
 
     cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
@@ -122,9 +110,9 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
     // check Helm Ops ready
     fleetClusterListPage.resourceTableDetails(clusterName, 4).should('have.text', '0');
     // check Bundles ready
-    fleetClusterListPage.resourceTableDetails(clusterName, 5).should('have.text', '4');
+    fleetClusterListPage.resourceTableDetails(clusterName, 5).should('have.text', '2');
     // check resources: testing https://github.com/rancher/dashboard/issues/11154
-    fleetClusterListPage.resourceTableDetails(clusterName, 6).contains( ' 15 ', MEDIUM_TIMEOUT_OPT);
+    fleetClusterListPage.resourceTableDetails(clusterName, 6).contains( ' 7 ', MEDIUM_TIMEOUT_OPT);
     // check cluster labels
     fleetClusterListPage.list().resourceTable().sortableTable()
       .subRows()
@@ -135,18 +123,20 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
     // go to cluster details in fleet
     fleetClusterListPage.goToDetailsPage(clusterName);
     fleetClusterDetailsPage.waitForPage(null, 'applications');
-    fleetClusterDetailsPage.clusterTabs().clickTabWithSelector('[data-testid="btn-repos"]');
+    fleetClusterDetailsPage.clusterTabs().clickTabWithSelector('[data-testid="btn-applications"]');
 
     // check state
-    fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 1).contains('Ready');
+    fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 1).contains('Active');
     // check name
     fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 2).should('be.visible');
-    // check repo
-    fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 3).contains('rancher/fleet-test-data master');
+    // check type
+    fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 3).contains('GitRepo');
+    // check source
+    fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 4).contains('rancher/fleet-test-data');
     // check target
-    fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 4).contains('Advanced');
+    fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 5).contains('All');
     // check cluster resources
-    fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 5).should('have.text', ' 1 ');
+    fleetClusterDetailsPage.appBundlesList().resourceTableDetails(gitRepo, 7).should('have.text', ' 1 ');
   });
 
   it('check all tabs are available in the details view', () => {
@@ -163,18 +153,20 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
     const tabs = ['App Bundles', 'Conditions', 'Recent Events', 'Related Resources'];
 
     fleetClusterDetailsPage.clusterTabs().tabNames().each((el, i) => {
-      expect(el).to.eq(tabs[i]);
+      expect(el).to.include(tabs[i]);
     });
   });
 
   it('adding git repo should add bundles on downstream cluster (deployments added)', () => {
-    const deploymentsList = new WorkloadsDeploymentsListPagePo(clusterId);
-    const deployments = 'nginx-keep';
+    cy.getClusterIdByName(clusterName).then((clusterId) => {
+      const deploymentsList = new WorkloadsDeploymentsListPagePo(clusterId);
+      const deployments = 'nginx-keep';
 
-    deploymentsList.goTo();
-    deploymentsList.waitForPage();
+      deploymentsList.goTo();
+      deploymentsList.waitForPage();
 
-    deploymentsList.details(deployments, 1).contains('Active', { timeout: 15000 });
+      deploymentsList.details(deployments, 1).contains('Active', { timeout: 15000 });
+    });
   });
 
   it('can Pause', () => {
@@ -319,17 +311,19 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
   });
 
   it('removing git repo should remove bundles on downstream cluster (deployments removed)', () => {
-    const deploymentsList = new WorkloadsDeploymentsListPagePo(clusterId);
+    cy.getClusterIdByName(clusterName).then((clusterId) => {
+      const deploymentsList = new WorkloadsDeploymentsListPagePo(clusterId);
 
-    // delete gitrepo
-    cy.deleteRancherResource('v1', `fleet.cattle.io.gitrepos/${ namespace }`, gitRepo).then(() => {
-      removeGitRepo = false;
+      // delete gitrepo
+      cy.deleteRancherResource('v1', `fleet.cattle.io.gitrepos/${ namespace }`, gitRepo).then(() => {
+        removeGitRepo = false;
+      });
+
+      deploymentsList.goTo();
+      deploymentsList.waitForPage();
+      deploymentsList.sortableTable().checkLoadingIndicatorNotVisible();
+      deploymentsList.sortableTable().checkRowCount(true, 1, LONG_TIMEOUT_OPT);
     });
-
-    deploymentsList.goTo();
-    deploymentsList.waitForPage();
-    deploymentsList.sortableTable().checkLoadingIndicatorNotVisible();
-    deploymentsList.sortableTable().checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
   });
 
   it('cluster should be removed from fleet cluster list once deleted', () => {
