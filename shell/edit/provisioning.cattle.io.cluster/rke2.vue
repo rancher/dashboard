@@ -274,11 +274,13 @@ export default {
       projectId:                                null,
       REGISTRIES_TAB_NAME,
       labelForAddon,
+      etcdConfigValid:                          true,
     };
   },
 
   computed: {
     ...mapGetters({ features: 'features/get' }),
+
     isActiveTabRegistries() {
       return this.activeTab?.selectedName === REGISTRIES_TAB_NAME;
     },
@@ -860,7 +862,13 @@ export default {
     },
     hideFooter() {
       return this.needCredential && !this.credential;
-    }
+    },
+
+    overallFormValidationPassed() {
+      return this.validationPassed &&
+            this.fvFormIsValid &&
+            this.etcdConfigValid;
+    },
   },
 
   watch: {
@@ -2170,7 +2178,7 @@ export default {
 
     handleTabChange(data) {
       this.activeTab = data;
-    }
+    },
   }
 };
 </script>
@@ -2186,7 +2194,7 @@ export default {
     v-else
     ref="cruresource"
     :mode="mode"
-    :validation-passed="validationPassed && fvFormIsValid"
+    :validation-passed="overallFormValidationPassed"
     :resource="value"
     :errors="errors"
     :cancel-event="true"
@@ -2423,6 +2431,7 @@ export default {
               @update:value="$emit('input', $event)"
               @s3-backup-changed="handleS3BackupChanged"
               @config-etcd-expose-metrics-changed="handleConfigEtcdExposeMetricsChanged"
+              @etcd-validation-changed="(val)=>etcdConfigValid = val"
             />
           </Tab>
 
