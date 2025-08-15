@@ -262,11 +262,10 @@ export default {
     fetchStoreChart() {
       if (!this.chart && this.repo && this.query.chartName) {
         this.chart = this.$store.getters['catalog/chart']({
-          repoType:       this.query.repoType,
-          repoName:       this.query.repoName,
-          chartName:      this.query.chartName,
-          includeHidden:  true,
-          showDeprecated: this.showDeprecated
+          repoType:      this.query.repoType,
+          repoName:      this.query.repoName,
+          chartName:     this.query.chartName,
+          includeHidden: true
         });
       }
 
