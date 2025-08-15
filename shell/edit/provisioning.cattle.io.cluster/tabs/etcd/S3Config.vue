@@ -110,7 +110,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="config.bucket"
-          label="Bucket"
+          :label="t('cluster.rke2.etcd.s3config.bucket.label')"
           :mode="mode"
           :placeholder="ccData.defaultBucket"
           :required="!ccData.defaultBucket"
@@ -121,7 +121,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="config.folder"
-          label="Folder"
+          :label="t('cluster.rke2.etcd.s3config.folder.label')"
           :mode="mode"
           :placeholder="ccData.defaultFolder"
           @update:value="update"
@@ -133,7 +133,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="config.region"
-          label="Region"
+          :label="t('cluster.rke2.etcd.s3config.region.label')"
           :mode="mode"
           :placeholder="ccData.defaultRegion"
           @update:value="update"
@@ -142,7 +142,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="config.endpoint"
-          label="Endpoint"
+          :label="t('cluster.rke2.etcd.s3config.endpoint.label')"
           :mode="mode"
           :placeholder="ccData.defaultEndpoint"
           :rules="fvGetAndReportPathRules('endpoint')"
@@ -158,7 +158,7 @@ export default {
       <Checkbox
         v-model:value="config.skipSSLVerify"
         :mode="mode"
-        label="Accept any certificate (insecure)"
+        :label="t('cluster.rke2.etcd.s3config.skipSSLVerify.label')"
         @update:value="update"
       />
 
@@ -166,7 +166,7 @@ export default {
         v-if="!config.skipSSLVerify"
         v-model:value="config.endpointCA"
         type="multiline"
-        label="Endpoint CA Cert"
+        :label="t('cluster.rke2.etcd.s3config.endpointCA.label')"
         :placeholder="ccData.defaultEndpointCA"
         @update:value="update"
       />
