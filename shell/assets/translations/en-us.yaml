@@ -6903,7 +6903,7 @@ validation:
       localhost: If the Server URL is internal to the Rancher server (e.g. localhost) the downstream clusters may not be able to communicate with Rancher.
       trailingForwardSlash: Server URL should not have a trailing forward slash.
       url: Server URL must be an URL.
-      httpsOrHttp: Endpoint URL cannot start with protocol (e.g. https://, http://)
+      httpsOrHttp: Endpoint URL has to be a valid domain-based endpoint and cannot start with a protocol (https://, http://)
   genericUrl: Field must be a valid URL
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'

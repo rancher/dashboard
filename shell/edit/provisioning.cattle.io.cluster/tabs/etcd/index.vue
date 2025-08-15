@@ -53,12 +53,6 @@ export default {
     configEtcdExposeMetrics() {
       return !!this.value.spec.rkeConfig.machineGlobalConfig['etcd-expose-metrics'];
     },
-  },
-
-  methods: {
-    handleEtcdConfigChildValidation(isValid) {
-      this.$emit('etcd-validation-changed', isValid);
-    },
   }
 };
 </script>
@@ -120,7 +114,7 @@ export default {
         :namespace="value.metadata.namespace"
         :register-before-hook="registerBeforeHook"
         :mode="mode"
-        @validationChanged="handleEtcdConfigChildValidation"
+        @validationChanged="$emit('etcd-validation-changed', $event);"
       />
     </template>
 
