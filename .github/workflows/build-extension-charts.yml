@@ -86,13 +86,35 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          yarn parse-tag-name ${{ inputs.tagged_release }} ${{ github.run_id }} "charts"
+          #!/usr/bin/env bash
+
+          set -eo pipefail
+
+          SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+          BASE_DIR="$(
+            cd $SCRIPT_DIR && cd ../.. &
+            pwd
+          )"
+
+          git clone -b master https://github.com/rancher/dashboard.git dashboard-repo
+
+          ${BASE_DIR}/dashboard-repo/shell/scripts/extension/parse-tag-name ${{ inputs.tagged_release }} ${{ github.run_id }} "charts"
 
       - name: Run build script
         shell: bash
         id: build_script
         run: |
-          publish="yarn publish-pkgs -s ${{ github.repository }} -b ${{ inputs.target_branch }}"
+          #!/usr/bin/env bash
+
+          set -eo pipefail
+
+          SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+          BASE_DIR="$(
+            cd $SCRIPT_DIR && cd ../.. &
+            pwd
+          )"
+
+          publish="publish -s ${{ github.repository }} -b ${{ inputs.target_branch }}"
 
           if [[ -n "${{ inputs.tagged_release }}" ]]; then
             publish="$publish -t ${{ inputs.tagged_release }}"
@@ -101,8 +123,8 @@ jobs:
           if [[ "${{ inputs.is_test }}" == "true" ]]; then
             publish="$publish -f"
           fi
-
-          $publish
+          
+          ${BASE_DIR}/dashboard-repo/shell/scripts/extension/${publish}
 
       - name: Upload charts artifact
         if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') || inputs.is_test == 'true'
