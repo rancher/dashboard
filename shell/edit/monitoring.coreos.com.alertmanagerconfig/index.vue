@@ -14,6 +14,10 @@ import ResourceTable from '@shell/components/ResourceTable';
 import ActionMenu from '@shell/components/ActionMenu';
 import { _CREATE, _EDIT, _VIEW, _CONFIG } from '@shell/config/query-params';
 import { fetchAlertManagerConfigSpecs } from '@shell/utils/alertmanagerconfig';
+import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
+import ActionMenuShell from '@shell/components/ActionMenuShell.vue';
+
+import { useStore } from 'vuex';
 
 export default {
   emits:      ['input'],
@@ -26,6 +30,7 @@ export default {
     RouteConfig,
     Tab,
     Tabbed,
+    ActionMenuShell,
   },
 
   mixins: [CreateEditView],
@@ -51,6 +56,13 @@ export default {
     const receiverActions = alertmanagerConfigResource.getReceiverActions(alertmanagerConfigActions);
 
     this.receiverActions = receiverActions;
+  },
+
+  setup() {
+    const store = useStore();
+    const { featureDropdownMenu } = useRuntimeFlag(store);
+
+    return { featureDropdownMenu };
   },
 
   data() {
@@ -150,22 +162,22 @@ export default {
         throw new Error('Could not find action menu target element.');
       }
     },
-    goToEdit() {
+    goToEdit(selectedReceiverName) {
       // 'goToEdit' is the exact name of an action for AlertmanagerConfig
       // and this method executes the action.
-      this.$router.push(this.alertmanagerConfigResource.getEditReceiverConfigRoute(this.selectedReceiverName, _EDIT));
+      this.$router.push(this.alertmanagerConfigResource.getEditReceiverConfigRoute(selectedReceiverName ?? this.selectedReceiverName, _EDIT));
     },
 
-    goToEditYaml() {
+    goToEditYaml(selectedReceiverName) {
       // 'goToEditYaml' is the exact name of an action for AlertmanagerConfig
       // and this method executes the action.
-      this.$router.push(this.alertmanagerConfigResource.getEditReceiverYamlRoute(this.selectedReceiverName, _EDIT));
+      this.$router.push(this.alertmanagerConfigResource.getEditReceiverYamlRoute(selectedReceiverName ?? this.selectedReceiverName, _EDIT));
     },
-    promptRemove() {
+    promptRemove(event, selectedReceiverName) {
       // 'promptRemove' is the exact name of an action for AlertmanagerConfig
       // and this method executes the action.
       // Get the name of the receiver to delete from the action info.
-      const nameOfReceiverToDelete = this.selectedReceiverName;
+      const nameOfReceiverToDelete = selectedReceiverName ?? this.selectedReceiverName;
       // Remove it from the configuration of the parent AlertmanagerConfig
       // resource.
       const existingReceivers = this.alertmanagerConfigResource.spec.receivers || [];
@@ -175,7 +187,7 @@ export default {
 
       this.alertmanagerConfigResource.spec.receivers = receiversMinusDeletedItem;
       // After saving the AlertmanagerConfig, the resource has been deleted.
-      this.alertmanagerConfigResource.save(...arguments);
+      this.alertmanagerConfigResource.save(event);
     }
   }
 };
@@ -226,9 +238,20 @@ export default {
           :rows="value.spec.receivers || []"
           :get-custom-detail-link="getReceiverDetailLink"
           :table-actions="false"
-          :custom-actions="value.receiverActions"
           @clickedActionButton="setActionMenuState"
         >
+          <template
+            v-if="featureDropdownMenu"
+            #row-actions="{row}"
+          >
+            <ActionMenuShell
+              :resource="row.row"
+              :custom-actions="receiverActions"
+              @goToEdit="goToEdit(row.name)"
+              @goToEditYaml="goToEditYaml(row.name)"
+              @promptRemove="(e) => promptRemove(e, row.name)"
+            />
+          </template>
           <template #header-button>
             <router-link
               v-if="createReceiverLink && createReceiverLink.name"
