@@ -146,8 +146,7 @@ export default {
     providerConfig: {
       type:    Object,
       default: () => null
-    },
-
+    }
   },
 
   async fetch() {
@@ -2180,10 +2179,6 @@ export default {
     handleTabChange(data) {
       this.activeTab = data;
     },
-
-    handleEtcdConfigValidation(isValid) {
-      this.etcdConfigValid = isValid;
-    },
   }
 };
 </script>
@@ -2436,7 +2431,7 @@ export default {
               @update:value="$emit('input', $event)"
               @s3-backup-changed="handleS3BackupChanged"
               @config-etcd-expose-metrics-changed="handleConfigEtcdExposeMetricsChanged"
-              @etcd-validation-changed="handleEtcdConfigValidation"
+              @etcd-validation-changed="(val)=>etcdConfigValid = val"
             />
           </Tab>
 

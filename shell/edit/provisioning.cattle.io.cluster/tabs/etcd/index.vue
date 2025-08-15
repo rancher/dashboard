@@ -53,6 +53,12 @@ export default {
     configEtcdExposeMetrics() {
       return !!this.value.spec.rkeConfig.machineGlobalConfig['etcd-expose-metrics'];
     },
+  },
+  methods: {
+    s3BackupChanged(val) {
+      this.$emit('s3-backup-changed', val);
+      this.$emit('etcd-validation-changed', !val);
+    }
   }
 };
 </script>
@@ -105,7 +111,7 @@ export default {
         :label="t('cluster.rke2.etcd.s3backups.label')"
         :labels="[t('generic.disable'),t('generic.enable')]"
         :mode="mode"
-        @update:value="$emit('s3-backup-changed', $event)"
+        @update:value="s3BackupChanged"
       />
 
       <S3Config
@@ -114,7 +120,7 @@ export default {
         :namespace="value.metadata.namespace"
         :register-before-hook="registerBeforeHook"
         :mode="mode"
-        @validationChanged="$emit('etcd-validation-changed', $event);"
+        @validationChanged="$emit('etcd-validation-changed', $event)"
       />
     </template>
 

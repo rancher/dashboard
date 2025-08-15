@@ -166,7 +166,7 @@ export default function(
 
   const https: Validator = (val: string) => val && !isHttps(val) ? t('validation.setting.serverUrl.https') : undefined;
 
-  const awsStyleEndpoint: Validator = (val: string) => val && !isAWSStyleEndpoint(val) ? t('validation.setting.serverUrl.httpsOrHttp') : undefined;
+  const awsStyleEndpoint: Validator = (val: string) => val && !isAWSStyleEndpoint(val) ? t('validation.setting.serverUrl.awsStyleEndpoint') : undefined;
 
   const localhost: Validator = (val: string) => isLocalhost(val) ? t('validation.setting.serverUrl.localhost') : undefined;
 
