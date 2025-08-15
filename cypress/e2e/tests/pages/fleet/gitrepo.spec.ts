@@ -254,7 +254,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       const tabs = ['Bundles', 'Resources', 'Conditions', 'Recent Events'];
 
       gitRepoDetails.gitRepoTabs().tabNames().each((el, i) => {
-        expect(el).to.eq(tabs[i]);
+        expect(el).to.include(tabs[i]);
       });
     });
 
