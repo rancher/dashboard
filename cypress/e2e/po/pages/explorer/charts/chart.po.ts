@@ -24,6 +24,8 @@ export class ChartPage extends PagePo {
     const chartsPage = new ChartsPage(clusterId);
 
     ChartsPage.navTo();
+    // eslint-disable-next-line no-console
+    cy.get('[data-testid="item-card-header-title"]').invoke('html').then((html) => console.log('html', html));
     chartsPage.clickChart(chartName);
   }
 
