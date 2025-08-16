@@ -94,10 +94,6 @@ skipGeometric=true`;
     let nsName2: string;
     let rootResourceName: string;
 
-    before(() => {
-      cy.login();
-    });
-
     before('set up', () => {
       cy.getRootE2EResourceName().then((root) => {
         rootResourceName = root;
