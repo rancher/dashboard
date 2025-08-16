@@ -10,14 +10,15 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-
+      - name: Setup Node
+        uses: ./.github/actions/setup-node
+      - name: "Avoid 'fatal: detected dubious ownership' of dashboard/dashboard"
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
       - name: Install dependencies
         run: cd docusaurus/ && yarn install:ci
       - name: Build website
@@ -38,7 +39,8 @@ jobs:
   deploy:
     name: Publish
     if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher' }}
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     needs: build
 
     # This is required to avoid https://github.com/actions/deploy-pages/issues/271
