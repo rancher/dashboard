@@ -162,25 +162,33 @@ describe('CustomResourceDefinitions', { testIsolation: 'off', tags: ['@explorer'
     });
 
     it('sorting changes the order of paginated CRDs data', () => {
+      const filter = 'catalog.cattle.io';
+      const app = 'apps.catalog.cattle.io';
+
       CustomResourceDefinitionsPagePo.navTo();
       crdsPage.waitForPage();
       crdsPage.sortableTable().checkVisible();
       crdsPage.sortableTable().checkNoRowsNotVisible();
-      crdsPage.sortableTable().filter('apps');
+      crdsPage.sortableTable().filter(filter);
+      crdsPage.waitForPage(`q=${ filter }`);
+
+      // Wait for the filter to apply (vai on -- http request -- populate results)
+      // This is brittle, we should wait for the response for the page to be received
+      crdsPage.sortableTable().checkRowCount(false, 4);
 
       let indexBeforeSort: number;
 
       crdsPage.sortableTable().rowNames().then((rows) => {
         const sortedRows = rows.sort();
 
-        indexBeforeSort = sortedRows.indexOf('apps.catalog.cattle.io');
+        indexBeforeSort = sortedRows.indexOf(app);
       });
 
       // check table is sorted by `name` in ASC order by default
       crdsPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');
 
       // crd name should be visible on first page (sorted in ASC order)
-      crdsPage.sortableTable().rowElementWithPartialName('apps.catalog.cattle.io').scrollIntoView().should('be.visible');
+      crdsPage.sortableTable().rowElementWithPartialName(app).scrollIntoView().should('be.visible');
 
       // sort by name in DESC order
       crdsPage.sortableTable().sort(2).click();
