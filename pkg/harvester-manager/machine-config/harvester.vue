@@ -155,7 +155,7 @@ export default {
           configMaps:   this.$store.dispatch('cluster/request', { url: configMapsUrl }),
           networks:     this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
           storageClass: this.$store.dispatch('cluster/request', { url: `${ url }/${ STORAGE_CLASS }es` }),
-          settings:     this.$store.dispatch('cluster/request', { url: `${ url }/${ MANAGEMENT.SETTING }s` }),
+          settings:     this.$store.dispatch('cluster/request', { url: `${ url }/${ MANAGEMENT.SETTING }s` })
         });
 
         for (const key of Object.keys(res)) {
@@ -372,7 +372,6 @@ export default {
       userData,
       userDataTemplate:   '',
       networkData,
-      nodes:              [],
       images:             [],
       storageClass:       [],
       namespaces:         [],
