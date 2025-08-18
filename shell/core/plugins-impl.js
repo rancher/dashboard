@@ -8,7 +8,7 @@ import { addLinkInterceptor, removeLinkInterceptor } from '@shell/plugins/clean-
 
 let plugin;
 
-const createPlugins = (context, _vueApp) => {
+const createPlugins = (context) => {
   const {
     app, store, $axios, redirect
   } = context;
@@ -470,10 +470,9 @@ const createPlugins = (context, _vueApp) => {
 /**
  *
  * @param {*} context
- * @param {*} vueApp
  */
-export const initPlugins = (context, vueApp) => {
-  plugin = createPlugins(context, vueApp);
+export const initPlugins = (context) => {
+  plugin = createPlugins(context);
 };
 
 /**
