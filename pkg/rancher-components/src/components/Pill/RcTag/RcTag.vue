@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { RcTagProps } from '@components/Pill/RcTag/types';
 
-const props = withDefaults(defineProps<RcTagProps>(), { disabled: false });
+const props = withDefaults(defineProps<RcTagProps>(), { disabled: false, showClose: false });
+const emit = defineEmits(['close']);
 </script>
 
 <template>
@@ -10,6 +11,12 @@ const props = withDefaults(defineProps<RcTagProps>(), { disabled: false });
     :class="{[props.type]: true, disabled: props.disabled}"
   >
     <slot name="default" />
+    <button
+      v-if="props.showClose"
+      @click="emit('close')"
+    >
+      <i class="icon icon-close" />
+    </button>
   </div>
 </template>
 
@@ -30,6 +37,19 @@ const props = withDefaults(defineProps<RcTagProps>(), { disabled: false });
     font-style: normal;
     font-weight: 400;
     line-height: 22px;
+
+    button {
+      $size: 12px;
+      padding: 0;
+      line-height: $size;
+      min-height: $size;
+
+      &, .icon-close {
+        width: $size;
+        height: $size;
+        font-size: $size;
+      }
+    }
 
     &.active {
         border-color: var(--rc-active-border);

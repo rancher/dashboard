@@ -13,6 +13,10 @@ const meta: Meta<typeof RcTag> = {
       control:     { type: 'boolean' },
       description: 'Specified if the tag is disabled.'
     },
+    showClose: {
+      control:     { type: 'boolean' },
+      description: 'Specified if the close button is visible.'
+    },
     default: {
       control: { type: 'text' },
       name:    'default slot'
@@ -36,6 +40,6 @@ const Default: Story = {
 export const Example: Story = {
   ...Default,
   args: {
-    type: 'inactive', disabled: false, default: 'key: value'
+    type: 'inactive', disabled: false, showClose: false, default: 'key: value'
   },
 };
