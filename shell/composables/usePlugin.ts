@@ -1,5 +1,5 @@
 import { Plugin } from '@shell/types/plugin';
-import { getExtensionManager } from '@shell/core/plugins-impl';
+import { getExtensionManager } from '~/shell/core/extension-manager-impl';
 
 export const usePlugin = (): Plugin => {
   const plugin = getExtensionManager();
