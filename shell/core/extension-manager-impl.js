@@ -470,11 +470,14 @@ const createExtensionManager = (context) => {
 /**
  * Initializes a new extension manager if one does not exist.
  * @param {*} context The Rancher Dashboard context object
+ * @returns The extension manager instance
  */
 export const initExtensionManager = (context) => {
   if (!extensionManagerInstance) {
     extensionManagerInstance = createExtensionManager(context);
   }
+
+  return extensionManagerInstance;
 };
 
 /**

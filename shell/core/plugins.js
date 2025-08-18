@@ -1,6 +1,8 @@
-import { getExtensionManager, initExtensionManager } from './extension-manager-impl';
+import { initExtensionManager } from './extension-manager-impl';
 
 export default function(context, inject) {
-  initExtensionManager(context);
-  inject('plugin', getExtensionManager());
+  const extensionManager = initExtensionManager(context);
+
+  inject('plugin', extensionManager);
+  inject('extension', extensionManager);
 }
