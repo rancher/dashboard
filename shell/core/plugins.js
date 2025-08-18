@@ -1,6 +1,6 @@
-import { getPlugins, initPlugins } from './plugins-impl';
+import { getExtensionManager, initExtensionManager } from './plugins-impl';
 
 export default function(context, inject) {
-  initPlugins(context);
-  inject('plugin', getPlugins());
+  initExtensionManager(context);
+  inject('plugin', getExtensionManager());
 }

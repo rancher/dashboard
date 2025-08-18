@@ -6,7 +6,7 @@ import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 import { ExtensionPoint } from './types';
 import { addLinkInterceptor, removeLinkInterceptor } from '@shell/plugins/clean-html';
 
-let plugin;
+let extensionManagerInstance;
 
 const createPlugins = (context) => {
   const {
@@ -471,12 +471,12 @@ const createPlugins = (context) => {
  *
  * @param {*} context
  */
-export const initPlugins = (context) => {
-  plugin = createPlugins(context);
+export const initExtensionManager = (context) => {
+  extensionManagerInstance = createPlugins(context);
 };
 
 /**
  *
  * @returns
  */
-export const getPlugins = () => plugin;
+export const getExtensionManager = () => extensionManagerInstance;

@@ -1,8 +1,8 @@
 import { Plugin } from '@shell/types/plugin';
-import { getPlugins } from '@shell/core/plugins-impl';
+import { getExtensionManager } from '@shell/core/plugins-impl';
 
 export const usePlugin = (): Plugin => {
-  const plugin = getPlugins();
+  const plugin = getExtensionManager();
 
   if (!plugin) {
     throw new Error('usePlugin must be called after the plugin has been initialized');
