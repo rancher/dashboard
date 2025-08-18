@@ -1,4 +1,4 @@
-export type Plugin = {
+export type ExtensionManager = {
   internal(): any;
   loadPluginAsync(plugin: any): Promise<void>;
   loadAsync(id: string, mainFile: string): Promise<void>;

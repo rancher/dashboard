@@ -1,12 +1,12 @@
-import { Plugin } from '@shell/types/plugin';
-import { getExtensionManager } from '~/shell/core/extension-manager-impl';
+import { ExtensionManager } from '@shell/types/extension-manager';
+import { getExtensionManager } from '@shell/core/extension-manager-impl';
 
-export const useExtensionManager = (): Plugin => {
-  const plugin = getExtensionManager();
+export const useExtensionManager = (): ExtensionManager => {
+  const extension = getExtensionManager();
 
-  if (!plugin) {
-    throw new Error('useExtensionManager must be called after the plugin has been initialized');
+  if (!extension) {
+    throw new Error('useExtensionManager must be called after the extensionManager has been initialized');
   }
 
-  return plugin;
+  return extension;
 };
