@@ -472,7 +472,9 @@ const createExtensionManager = (context) => {
  * @param {*} context The Rancher Dashboard context object
  */
 export const initExtensionManager = (context) => {
-  extensionManagerInstance = createExtensionManager(context);
+  if (!extensionManagerInstance) {
+    extensionManagerInstance = createExtensionManager(context);
+  }
 };
 
 /**
