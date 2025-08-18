@@ -8,7 +8,7 @@ import { addLinkInterceptor, removeLinkInterceptor } from '@shell/plugins/clean-
 
 let extensionManagerInstance;
 
-const createPlugins = (context) => {
+const createExtensionManager = (context) => {
   const {
     app, store, $axios, redirect
   } = context;
@@ -472,7 +472,7 @@ const createPlugins = (context) => {
  * @param {*} context
  */
 export const initExtensionManager = (context) => {
-  extensionManagerInstance = createPlugins(context);
+  extensionManagerInstance = createExtensionManager(context);
 };
 
 /**
