@@ -1,4 +1,7 @@
-import { actions, getters } from '../subscribe';
+import { actions, getters, mutations } from '../subscribe';
+import { REVISION_TOO_OLD } from '../../../utils/socket';
+import { STEVE_WATCH_EVENT } from '../../../types/store/subscribe.types';
+import backOff from '../../../utils/back-off';
 
 describe('steve: subscribe', () => {
   describe('actions', () => {
@@ -168,6 +171,261 @@ describe('steve: subscribe', () => {
         ['Is missing (null), Return Null', createState(null), null],
       ])('test revision from a collection - %s', (_, state, expected) => {
         expect(getters.nextResourceVersion(state, {})(myType)).toBe(expected);
+      });
+    });
+  });
+
+  describe('backoff', () => {
+    const waitForBackOff = async(advanceTimersByTime = 20000) => {
+      jest.advanceTimersByTime(advanceTimersByTime);
+      // jest.advanceTimersByTime(advanceTimersByTime);
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    };
+
+    describe('stale cache in replicate that handles watch', () => {
+      /**
+        1. ui makes http request.
+          - it's handled by up-to-date replica A
+          - response contains an up-to-date revision X
+        2. ui makes watch request referencing up-to-date revision X from A
+          - it's received by replica B with a stale cache which does not contain revision X.
+          - replicate B rejects watch with unknown revision message (i.e. 'too old')
+        3. ui receives unknown revision and makes a new request
+          - this should backoff until eventually succeeding
+       */
+
+      const startWatch = ({
+        ctx,
+        obj, msg,
+        revision
+      }) => {
+        const {
+          state, dispatch, getters, rootGetters, commit
+        } = ctx;
+
+        // call watch
+        actions.watch({
+          state, dispatch, getters, rootGetters
+        }, {
+          ...obj,
+          revision,
+          mode:  STEVE_WATCH_EVENT.CHANGES,
+          force: true,
+        });
+
+        expect(dispatch).toHaveBeenNthCalledWith(1, 'unwatchIncompatible', {
+          id: undefined, mode: STEVE_WATCH_EVENT.CHANGES, namespace: undefined, selector: undefined, type: obj.type
+        });
+
+        expect(dispatch).toHaveBeenNthCalledWith(2, 'send', {
+          debounceMs:      4000,
+          mode:            'resource.changes',
+          resourceType:    obj.type,
+          resourceVersion: revision.toString(),
+        });
+
+        // Receive start from BE
+        actions['ws.resource.start']({
+          state, dispatch, getters, commit
+        }, { ...msg });
+
+        expect(dispatch).toHaveBeenCalledTimes(2);
+        dispatch.mockClear();
+      };
+
+      const errorWatch = ({
+        ctx,
+        obj, msg,
+      }) => {
+        const {
+          state, dispatch, getters, commit
+        } = ctx;
+
+        // Receive error from BE
+        actions['ws.resource.error']({
+          dispatch, getters, commit
+        }, {
+          ...msg,
+          data: { error: 'too old' }
+        });
+        expect(state.inError).toStrictEqual(
+          {
+            'type=abc,namespace=,id=,selector=': {
+              obj: {
+                type: msg.resourceType,
+                mode: msg.mode,
+              },
+              reason: REVISION_TOO_OLD
+            }
+          }
+        );
+
+        // Receive stop from BE
+        actions['ws.resource.stop']({
+          state, dispatch, getters, commit
+        }, { ...msg });
+        // stop tries to watch again, however we're in error so will be ignored
+        expect(dispatch).toHaveBeenNthCalledWith(1, 'watch', {
+          id: undefined, mode: STEVE_WATCH_EVENT.CHANGES, namespace: undefined, selector: undefined, type: obj.type
+        });
+
+        dispatch.mockClear();
+      };
+
+      const cycleFail = async({
+        ctx,
+        obj, msg,
+        revision,
+        tooManyTries = false,
+      }) => {
+        const { dispatch } = ctx;
+
+        startWatch({
+          ctx, obj, msg, revision
+        });
+        errorWatch({
+          ctx, obj, msg
+        });
+
+        await waitForBackOff(50000);
+        await waitForBackOff(50000);
+
+        if (tooManyTries) {
+          expect(dispatch).toHaveBeenCalledTimes(0);
+        } else {
+          expect(dispatch).toHaveBeenCalledTimes(1);
+          expect(dispatch).toHaveBeenCalledWith('resyncWatch', {
+            ...msg,
+            data: { error: 'too old' }
+          });
+        }
+
+        await waitForBackOff();
+
+        if (tooManyTries) {
+          expect(dispatch).toHaveBeenCalledTimes(0);
+        } else {
+          expect(dispatch).toHaveBeenCalledTimes(1);
+        }
+
+        dispatch.mockClear();
+      };
+
+      const cycleSucceed = async({
+        ctx,
+        obj, msg,
+        revision
+      }) => {
+        const { dispatch } = ctx;
+
+        dispatch.mockImplementation(async(type: string) => {
+          if (type === 'resyncWatch') {
+            return Promise.resolve();
+          }
+        });
+
+        startWatch({
+          ctx, obj, msg, revision
+        });
+
+        await waitForBackOff();
+
+        expect(dispatch).toHaveBeenCalledTimes(0);
+
+        await waitForBackOff();
+
+        expect(dispatch).toHaveBeenCalledTimes(0);
+
+        dispatch.mockClear();
+      };
+
+      const dispatch = jest.fn();
+      const rootGetters = {
+        'type-map/isSpoofed': () => false,
+        'management/byId':    () => ({ value: true })
+      };
+      const obj = { type: 'abc' };
+      const msg = {
+        resourceType: obj.type,
+        mode:         STEVE_WATCH_EVENT.CHANGES,
+      };
+
+      const initStore = () => {
+        const state = { started: [], inError: {} };
+        const _getters = {
+          normalizeType: (type: string) => type,
+          schemaFor:     () => ({}),
+          storeName:     'test',
+          inError:       (...args) => getters.inError(state)(...args),
+          watchStarted:  (...args) => getters.watchStarted(state)(...args),
+          backOffId:     (...args) => getters.backOffId()(...args),
+          canBackoff:    () => true,
+        };
+        const commit = (type, ...args) => mutations[type](state, ...args);
+
+        return {
+          state, dispatch, getters: _getters, rootGetters, commit
+        };
+      };
+
+      beforeAll(() => {
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        backOff.resetAll();
+        dispatch.mockClear();
+      });
+
+      // eslint-disable-next-line jest/expect-expect
+      it('succeeds', async() => {
+        jest.useFakeTimers();
+
+        const ctx = initStore();
+
+        await cycleSucceed({
+          ctx, msg, obj, revision: 1
+        });
+      });
+
+      // eslint-disable-next-line jest/expect-expect
+      it('succeeds after a few failures', async() => {
+        jest.useFakeTimers();
+
+        const ctx = initStore();
+
+        await cycleFail({
+          ctx, msg, obj, revision: 1
+        });
+        await cycleFail({
+          ctx, msg, obj, revision: 1
+        });
+        await cycleFail({
+          ctx, msg, obj, revision: 1
+        });
+        await cycleFail({
+          ctx, msg, obj, revision: 1
+        });
+        await cycleSucceed({
+          ctx, msg, obj, revision: 1
+        });
+      });
+
+      // eslint-disable-next-line jest/expect-expect
+      it('never succeeds', async() => {
+        const ctx = initStore();
+
+        for (let i = 0; i < 10; i++) {
+          await cycleFail({
+            ctx, msg, obj, revision: 1
+          });
+        }
+
+        await cycleFail({
+          ctx, msg, obj, revision: 1, tooManyTries: true
+        });
       });
     });
   });

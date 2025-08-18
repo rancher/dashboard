@@ -217,7 +217,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT);
 
       // check for update harvester message
-      harvesterPo.extensionWarning().should('have.text', 'The Harvester UI Extension is not updated');
+      harvesterPo.extensionWarning().invoke('text').should('match', /^Your current Harvester UI Extension \((v[\d.]+)\) is not the latest\.$/);
       harvesterPo.updateOrInstallButton().click();
 
       // wait for update version update

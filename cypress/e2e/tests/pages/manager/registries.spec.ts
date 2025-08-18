@@ -25,6 +25,31 @@ describe('Registries for RKE2', { tags: ['@manager', '@adminUser'] }, () => {
     });
   });
 
+  it('11135: Show Advanced should be decoupled from Enable cluster scoped container registry ... checkbox', () => {
+    const clusterList = new ClusterManagerListPagePo();
+    const createCustomClusterPage = new ClusterManagerCreateRke2CustomPagePo();
+
+    clusterList.goTo();
+
+    clusterList.checkIsCurrentPage();
+    clusterList.createCluster();
+
+    createCustomClusterPage.waitForPage();
+
+    createCustomClusterPage.selectCustom(0);
+
+    // navigate to Registries tab
+    createCustomClusterPage.clusterConfigurationTabs().clickTabWithSelector('#registry');
+    // enable registry
+    createCustomClusterPage.registries().enableRegistryCheckbox().set();
+    createCustomClusterPage.registries().enableRegistryCheckbox().isChecked();
+    createCustomClusterPage.registries().showAdvanced().should('be.visible');
+    // disable registry
+    createCustomClusterPage.registries().enableRegistryCheckbox().set();
+    createCustomClusterPage.registries().enableRegistryCheckbox().isUnchecked();
+    createCustomClusterPage.registries().showAdvanced().should('be.visible');
+  });
+
   it('HTTP Basic Auth: Should send the correct payload to the server', function() {
     const clusterList = new ClusterManagerListPagePo();
     const createCustomClusterPage = new ClusterManagerCreateRke2CustomPagePo();

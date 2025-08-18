@@ -71,6 +71,14 @@ export default {
     showExtensionTabs: {
       type:    Boolean,
       default: true,
+    },
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'tabbed'
     }
   },
 
@@ -253,8 +261,12 @@ export default {
 
 <template>
   <div
-    :class="{'side-tabs': !!sideTabs, 'tabs-only': tabsOnly }"
-    data-testid="tabbed"
+    class="tabbed-container"
+    :class="{
+      'side-tabs': !!sideTabs,
+      'tabs-only': tabsOnly
+    }"
+    :data-testid="componentTestid"
   >
     <ul
       v-if="!hideTabs"
@@ -262,7 +274,7 @@ export default {
       role="tablist"
       class="tabs"
       :class="{'clearfix':!sideTabs, 'vertical': sideTabs, 'horizontal': !sideTabs}"
-      data-testid="tabbed-block"
+      :data-testid="`${componentTestid}-block`"
       tabindex="0"
       @keydown.right.prevent="selectNext(1)"
       @keydown.left.prevent="selectNext(-1)"
@@ -369,6 +381,10 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.tabbed-container {
+  min-width: fit-content;
+}
+
 .tabs {
   list-style-type: none;
   margin: 0;
@@ -541,6 +557,7 @@ export default {
       list-style: none;
       padding: 0;
       margin-top: auto;
+      z-index: z-index('default');
 
       li {
         display: flex;
@@ -550,16 +567,25 @@ export default {
           flex: 1 1;
           display: flex;
           justify-content: center;
+
+          &:focus-visible {
+            @include focus-outline;
+          }
         }
 
         button:first-of-type {
           border-top: solid 1px var(--border);
           border-right: solid 1px var(--border);
+          border-top-left-radius: 0;
           border-top-right-radius: 0;
+          border-bottom-right-radius: 0;
         }
         button:last-of-type {
           border-top: solid 1px var(--border);
+          border-top-right-radius: 0;
           border-top-left-radius: 0;
+          border-bottom-left-radius: 0;
+          border-bottom-right-radius: 0;
         }
       }
     }

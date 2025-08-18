@@ -52,7 +52,7 @@ export default class ClusterScan extends SteveModel {
     const downloadReport = {
       action:  'downloadLatestReport',
       enabled: this.hasReport,
-      icon:    'icon icon-fw icon-download',
+      icon:    'icon icon-download',
       label:   t('compliance.downloadReport'),
       total:   1,
     };
@@ -60,7 +60,7 @@ export default class ClusterScan extends SteveModel {
     const downloadAllReports = {
       action:  'downloadAllReports',
       enabled: this.hasReport,
-      icon:    'icon icon-fw icon-download',
+      icon:    'icon icon-download',
       label:   t('compliance.downloadAllReports'),
       total:   1,
     };

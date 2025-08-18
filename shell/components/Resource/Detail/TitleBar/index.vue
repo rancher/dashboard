@@ -11,6 +11,8 @@ import TabTitle from '@shell/components/TabTitle';
 import { computed, ref, watch } from 'vue';
 import { _CONFIG, _GRAPH, AS } from '@shell/config/query-params';
 import ButtonGroup from '@shell/components/ButtonGroup';
+import { ExtensionPoint, PanelLocation } from '@shell/core/types';
+import ExtensionPanel from '@shell/components/ExtensionPanel.vue';
 
 export interface Badge {
   color: 'bg-success' | 'bg-error' | 'bg-warning' | 'bg-info';
@@ -18,6 +20,7 @@ export interface Badge {
 }
 
 export interface TitleBarProps {
+  resource: any;
   resourceTypeLabel: string;
   resourceName: string;
 
@@ -40,7 +43,7 @@ const showConfigurationIcon = require(`@shell/assets/images/icons/document.svg`)
 
 <script setup lang="ts">
 const {
-  resourceTypeLabel, resourceTo, resourceName, description, badge, showViewOptions, onShowConfiguration,
+  resource, resourceTypeLabel, resourceTo, resourceName, description, badge, showViewOptions, onShowConfiguration,
 } = defineProps<TitleBarProps>();
 
 const store = useStore();
@@ -114,6 +117,7 @@ watch(
           v-model:value="currentView"
           :options="viewOptions"
         />
+        <slot name="additional-actions" />
         <RcButton
           v-if="onShowConfiguration"
           :data-testid="showConfigurationDataTestId"
@@ -144,6 +148,11 @@ watch(
     >
       {{ description }}
     </div>
+    <ExtensionPanel
+      :resource="resource"
+      :type="ExtensionPoint.PANEL"
+      :location="PanelLocation.DETAILS_MASTHEAD"
+    />
   </div>
 </template>
 

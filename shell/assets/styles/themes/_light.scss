@@ -100,6 +100,7 @@ BODY, .theme-light {
   .secondary-text-link {
     color: var(--link-text-secondary);
     text-decoration: underline;
+    cursor: pointer;
 
     &:hover {
       text-decoration: none;
@@ -407,6 +408,7 @@ BODY, .theme-light {
 
   --modal-bg                   : #{$lightest};
   --modal-border               : #{$dark};
+  --subtle-overlay-bg          : #{rgba($lighter, 0.75)};
   --overlay-bg                 : rgba(38, 42, 64, 0.35);
   --shadow                     : #{rgba($medium, 0.85)};
 
@@ -625,4 +627,24 @@ BODY, .theme-light {
   --click-badge-info-bg        : #{$info};
   --click-badge-info-border    : #2673A6;
   --bubble-bg                : #{$lighter};
+
+
+  // These are meant to be the colors used within rancher-components. They will eventually be removed from shell once we have theming working in the components
+  --rc-info: #{$blue001};
+  --rc-info-secondary: #{$blue002};
+
+  --rc-success: #{$green001};
+  --rc-success-secondary: #{$green002};
+
+  --rc-warning: #{$yellow001};
+  --rc-warning-secondary: #{$yellow002};
+
+  --rc-error: #{$red001};
+  --rc-error-secondary: #{$gray003};
+
+  --rc-unknown: #{$gray001};
+  --rc-unknown-secondary: #{$gray004};
+
+  --rc-none: #{$gray002};
+  --rc-none-secondary: #{$gray004};
 }

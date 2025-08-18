@@ -16,7 +16,7 @@ export default class ClusterNode extends SteveModel {
     const cordon = {
       action:   'cordon',
       enabled:  !!normanAction.cordon,
-      icon:     'icon icon-fw icon-pause',
+      icon:     'icon icon-pause',
       label:    'Cordon',
       total:    1,
       bulkable: true
@@ -25,7 +25,7 @@ export default class ClusterNode extends SteveModel {
     const uncordon = {
       action:   'uncordon',
       enabled:  !!normanAction.uncordon,
-      icon:     'icon icon-fw icon-play',
+      icon:     'icon icon-play',
       label:    'Uncordon',
       total:    1,
       bulkable: true
@@ -34,7 +34,7 @@ export default class ClusterNode extends SteveModel {
     const drain = {
       action:     'drain',
       enabled:    !!normanAction.drain,
-      icon:       'icon icon-fw icon-dot-open',
+      icon:       'icon icon-dot-open',
       label:      this.t('drainNode.action'),
       bulkable:   true,
       bulkAction: 'drain'
@@ -43,7 +43,7 @@ export default class ClusterNode extends SteveModel {
     const stopDrain = {
       action:   'stopDrain',
       enabled:  !!normanAction.stopDrain,
-      icon:     'icon icon-fw icon-x',
+      icon:     'icon icon-x',
       label:    this.t('drainNode.actionStop'),
       bulkable: true,
     };
@@ -51,14 +51,14 @@ export default class ClusterNode extends SteveModel {
     const openSsh = {
       action:  'openSsh',
       enabled: !!this.provisionedMachine?.links?.shell,
-      icon:    'icon icon-fw icon-chevron-right',
+      icon:    'icon icon-chevron-right',
       label:   'SSH Shell',
     };
 
     const downloadKeys = {
       action:  'downloadKeys',
       enabled: !!this.provisionedMachine?.links?.sshkeys,
-      icon:    'icon icon-fw icon-download',
+      icon:    'icon icon-download',
       label:   this.t('node.actions.downloadSSHKey'),
     };
 
@@ -227,7 +227,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get podCapacity() {
-    return Number.parseInt(this.status.capacity?.pods);
+    return parseSi(this.status.capacity?.pods);
   }
 
   get podConsumed() {

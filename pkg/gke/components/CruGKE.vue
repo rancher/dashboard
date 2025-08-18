@@ -27,7 +27,6 @@ import Networking from './Networking.vue';
 import GKENodePoolComponent from './GKENodePool.vue';
 import Config from './Config.vue';
 import Import from './Import.vue';
-
 import {
   DEFAULT_GCP_ZONE, DEFAULT_GCP_SERVICE_ACCOUNT, GKEImageTypes, getGKEMachineTypes, getGKEServiceAccounts
 } from '@shell/components/google/util/gcp';
@@ -143,7 +142,8 @@ const defaultImportedCluster = {
     projectID:              '',
     region:                 '',
   },
-  labels: {}
+  labels:      {},
+  annotations: {}
 };
 
 export default defineComponent({
@@ -676,7 +676,7 @@ export default defineComponent({
 
     // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details
     removeUnchangedConfigFields(): void {
-      const upstreamConfig = this.normanCluster?.status?.gkeStatus?.upstreamSpec;
+      const upstreamConfig = this.normanCluster?.gkeStatus?.upstreamSpec;
 
       if (upstreamConfig) {
         const diff = diffUpstreamSpec(upstreamConfig, this.config);
@@ -718,207 +718,204 @@ export default defineComponent({
     @error="e=>errors=e"
     @finish="save"
   >
-    <div>
-      <AccountAccess
-        v-model:credential="config.googleCredentialSecret"
-        v-model:project="config.projectID"
-        v-model:is-authenticated="isAuthenticated"
+    <AccountAccess
+      v-model:credential="config.googleCredentialSecret"
+      v-model:project="config.projectID"
+      v-model:is-authenticated="isAuthenticated"
+      :mode="mode"
+      @error="e=>errors.push(e)"
+      @cancel-credential="cancelCredential"
+    />
+    <div
+      v-if="isAuthenticated"
+      data-testid="crugke-form"
+    >
+      <Config
+        v-model:kubernetes-version="config.kubernetesVersion"
+        v-model:zone="config.zone"
+        v-model:region="config.region"
+        v-model:locations="config.locations"
+        v-model:default-image-type="defaultImageType"
         :mode="mode"
-        @error="e=>errors.push(e)"
-        @cancel-credential="cancelCredential"
+        :cloud-credential-id="config.googleCredentialSecret"
+        :project-id="config.projectID"
+        :is-new-or-unprovisioned="isNewOrUnprovisioned"
+        :original-version="originalVersion"
+        :cluster-id="normanCluster.id"
+        :cluster-name="normanCluster.name"
+        :cluster-description="normanCluster.description"
+        :rules="{
+          clusterName: fvGetAndReportPathRules('clusterName')
+        }"
+        :is-import="isImport"
+        @update:clusterName="setClusterName"
+        @update:clusterDescription="setClusterDescription"
       />
 
-      <div
-        v-if="isAuthenticated"
-        data-testid="crugke-form"
+      <Accordion
+        v-if="isImport"
+        class="mb-20"
+        :title="t('gke.accordion.import')"
+        :open-initially="true"
       >
-        <Config
-          v-model:kubernetes-version="config.kubernetesVersion"
-          v-model:zone="config.zone"
-          v-model:region="config.region"
-          v-model:locations="config.locations"
-          v-model:default-image-type="defaultImageType"
-          v-model:labels="config.labels"
+        <Import
+          v-model:enable-network-policy="normanCluster.enableNetworkPolicy"
+          :credential="config.googleCredentialSecret"
+          :project="config.projectID"
+          :zone="config.zone"
+          :region="config.region"
           :mode="mode"
-          :cloud-credential-id="config.googleCredentialSecret"
-          :project-id="config.projectID"
-          :is-new-or-unprovisioned="isNewOrUnprovisioned"
-          :original-version="originalVersion"
-          :cluster-id="normanCluster.id"
-          :cluster-name="normanCluster.name"
-          :cluster-description="normanCluster.description"
+          :cluster-name="config.clusterName"
           :rules="{
-            clusterName: fvGetAndReportPathRules('clusterName')
+            importName: fvGetAndReportPathRules('importName')
           }"
-          :is-import="isImport"
-          @update:clusterName="setClusterName"
-          @update:clusterDescription="setClusterDescription"
+          @error="e=>errors.push(e)"
+          @update:clusterName="e=>config.clusterName=e"
         />
+      </Accordion>
 
-        <Accordion
-          v-if="isImport"
+      <template v-else>
+        <div><h3>{{ t('gke.accordion.nodePools') }}</h3></div>
+        <Tabbed
+          ref="pools"
+          :side-tabs="true"
+          :show-tabs-add-remove="mode !== 'view'"
           class="mb-20"
-          :title="t('gke.accordion.import')"
-          :open-initially="true"
+          :use-hash="false"
+          @addTab="addPool($event)"
+          @removeTab="removePool($event)"
         >
-          <Import
-            v-model:enable-network-policy="normanCluster.enableNetworkPolicy"
-            :credential="config.googleCredentialSecret"
-            :project="config.projectID"
-            :zone="config.zone"
-            :region="config.region"
-            :mode="mode"
-            :cluster-name="config.clusterName"
-            :rules="{
-              importName: fvGetAndReportPathRules('importName')
-            }"
-            @error="e=>errors.push(e)"
-            @update:clusterName="e=>config.clusterName=e"
-          />
-        </Accordion>
-
-        <template v-else>
-          <div><h3>{{ t('gke.accordion.nodePools') }}</h3></div>
-          <Tabbed
-            ref="pools"
-            :side-tabs="true"
-            :show-tabs-add-remove="mode !== 'view'"
-            class="mb-20"
-            :use-hash="false"
-            @addTab="addPool($event)"
-            @removeTab="removePool($event)"
+          <Tab
+            v-for="(pool) in nodePools"
+            :key="pool._id"
+            :name="pool._id || pool.name"
+            :label="pool.name || t('gke.notNamed')"
+            :error="pool._minMaxValid===false || pool._nameUnique===false"
           >
-            <Tab
-              v-for="(pool) in nodePools"
-              :key="pool._id"
-              :name="pool._id || pool.name"
-              :label="pool.name || t('gke.notNamed')"
-              :error="pool._minMaxValid===false || pool._nameUnique===false"
-            >
-              <GKENodePoolComponent
-                v-model:version="pool.version"
-                v-model:image-type="pool.config.imageType"
-                v-model:machine-type="pool.config.machineType"
-                v-model:service-account="pool.config.serviceAccount"
-                v-model:disk-type="pool.config.diskType"
-                v-model:disk-size-gb="pool.config.diskSizeGb"
-                v-model:local-ssd-count="pool.config.localSsdCount"
-                v-model:preemptible="pool.config.preemptible"
-                v-model:taints="pool.config.taints"
-                v-model:labels="pool.config.labels"
-                v-model:tags="pool.config.tags"
-                v-model:name="pool.name"
-                v-model:initial-node-count="pool.initialNodeCount"
-                v-model:max-pods-constraint="pool.maxPodsConstraint"
-                v-model:autoscaling="pool.autoscaling.enabled"
-                v-model:min-node-count="pool.autoscaling.minNodeCount"
-                v-model:max-node-count="pool.autoscaling.maxNodeCount"
-                v-model:auto-repair="pool.management.autoRepair"
-                v-model:auto-upgrade="pool.management.autoUpgrade"
-                v-model:oauth-scopes="pool.config.oauthScopes"
-                :rules="{
-                  diskSizeGb: fvGetAndReportPathRules('diskSizeGb'),
-                  initialNodeCount: fvGetAndReportPathRules('initialNodeCount'),
-                  ssdCount: fvGetAndReportPathRules('ssdCount'),
-                  poolName: fvGetAndReportPathRules('poolName'),
-                }"
-                :mode="mode"
-                :cluster-kubernetes-version="config.kubernetesVersion"
-                :machine-type-options="machineTypeOptions"
-                :service-account-options="serviceAccountOptions"
-                :loading-machine-types="loadingMachineTypes"
-                :loading-service-accounts="loadingServiceAccounts"
-                :is-new="pool._isNewOrUnprovisioned"
-              />
-            </Tab>
-          </Tabbed>
-          <Accordion
-            class="mb-20"
-            :title="t('gke.accordion.networking')"
-          >
-            <Networking
-              v-model:kubernetes-version="config.kubernetesVersion"
-              v-model:network="config.network"
-              v-model:subnetwork="config.subnetwork"
-              v-model:create-subnetwork="config.ipAllocationPolicy.createSubnetwork"
-              v-model:use-ip-aliases="config.ipAllocationPolicy.useIpAliases"
-              v-model:network-policy-config="config.clusterAddons.networkPolicyConfig"
-              v-model:enable-network-policy="normanCluster.enableNetworkPolicy"
-              v-model:network-policy-enabled="config.networkPolicyEnabled"
-              v-model:cluster-ipv4-cidr="config.clusterIpv4Cidr"
-              v-model:cluster-secondary-range-name="config.ipAllocationPolicy.clusterSecondaryRangeName"
-              v-model:services-secondary-range-name="config.ipAllocationPolicy.servicesSecondaryRangeName"
-              v-model:cluster-ipv4-cidr-block="config.ipAllocationPolicy.clusterIpv4CidrBlock"
-              v-model:services-ipv4-cidr-block="config.ipAllocationPolicy.servicesIpv4CidrBlock"
-              v-model:node-ipv4-cidr-block="config.ipAllocationPolicy.nodeIpv4CidrBlock"
-              v-model:subnetwork-name="config.ipAllocationPolicy.subnetworkName"
-              v-model:enable-private-endpoint="config.privateClusterConfig.enablePrivateEndpoint"
-              v-model:enable-private-nodes="config.privateClusterConfig.enablePrivateNodes"
-              v-model:master-ipv4-cidr-block="config.privateClusterConfig.masterIpv4CidrBlock"
-              v-model:enable-master-authorized-network="config.masterAuthorizedNetworks.enabled"
-              v-model:master-authorized-network-cidr-blocks="config.masterAuthorizedNetworks.cidrBlocks"
+            <GKENodePoolComponent
+              v-model:version="pool.version"
+              v-model:image-type="pool.config.imageType"
+              v-model:machine-type="pool.config.machineType"
+              v-model:service-account="pool.config.serviceAccount"
+              v-model:disk-type="pool.config.diskType"
+              v-model:disk-size-gb="pool.config.diskSizeGb"
+              v-model:local-ssd-count="pool.config.localSsdCount"
+              v-model:preemptible="pool.config.preemptible"
+              v-model:taints="pool.config.taints"
+              v-model:labels="pool.config.labels"
+              v-model:tags="pool.config.tags"
+              v-model:name="pool.name"
+              v-model:initial-node-count="pool.initialNodeCount"
+              v-model:max-pods-constraint="pool.maxPodsConstraint"
+              v-model:autoscaling="pool.autoscaling.enabled"
+              v-model:min-node-count="pool.autoscaling.minNodeCount"
+              v-model:max-node-count="pool.autoscaling.maxNodeCount"
+              v-model:auto-repair="pool.management.autoRepair"
+              v-model:auto-upgrade="pool.management.autoUpgrade"
+              v-model:oauth-scopes="pool.config.oauthScopes"
               :rules="{
-                masterIpv4CidrBlock: fvGetAndReportPathRules('masterIpv4CidrBlock'),
-                clusterIpv4CidrBlock: fvGetAndReportPathRules('clusterIpv4CidrBlock'),
-                nodeIpv4CidrBlock: fvGetAndReportPathRules('nodeIpv4CidrBlock'),
-                servicesIpv4CidrBlock: fvGetAndReportPathRules('servicesIpv4CidrBlock'),
-                clusterIpv4Cidr: fvGetAndReportPathRules('clusterIpv4Cidr')
+                diskSizeGb: fvGetAndReportPathRules('diskSizeGb'),
+                initialNodeCount: fvGetAndReportPathRules('initialNodeCount'),
+                ssdCount: fvGetAndReportPathRules('ssdCount'),
+                poolName: fvGetAndReportPathRules('poolName'),
               }"
               :mode="mode"
-              :zone="config.zone"
-              :region="config.region"
-              :cloud-credential-id="config.googleCredentialSecret"
-              :project-id="config.projectID"
-              :original-version="originalVersion"
-              :cluster-id="normanCluster.id"
-              :cluster-name="config.clusterName"
-              :is-new-or-unprovisioned="isNewOrUnprovisioned"
+              :cluster-kubernetes-version="config.kubernetesVersion"
+              :machine-type-options="machineTypeOptions"
+              :service-account-options="serviceAccountOptions"
+              :loading-machine-types="loadingMachineTypes"
+              :loading-service-accounts="loadingServiceAccounts"
+              :is-new="pool._isNewOrUnprovisioned"
             />
-          </Accordion>
-          <Accordion
-            class="mb-20"
-            :title="t('gke.accordion.advanced')"
-          >
-            <AdvancedOptions
-              v-model:logging-service="config.loggingService"
-              v-model:monitoring-service="config.monitoringService"
-              v-model:maintenance-window="config.maintenanceWindow"
-              v-model:http-load-balancing="config.clusterAddons.httpLoadBalancing"
-              v-model:horizontal-pod-autoscaling="config.clusterAddons.horizontalPodAutoscaling"
-              v-model:enable-kubernetes-alpha="config.enableKubernetesAlpha"
-              :mode="mode"
-              :is-new-or-unprovisioned="isNewOrUnprovisioned"
-            />
-          </Accordion>
-        </template>
+          </Tab>
+        </Tabbed>
+        <Accordion
+          class="mb-20"
+          :title="t('gke.accordion.networking')"
+        >
+          <Networking
+            v-model:kubernetes-version="config.kubernetesVersion"
+            v-model:network="config.network"
+            v-model:subnetwork="config.subnetwork"
+            v-model:create-subnetwork="config.ipAllocationPolicy.createSubnetwork"
+            v-model:use-ip-aliases="config.ipAllocationPolicy.useIpAliases"
+            v-model:network-policy-config="config.clusterAddons.networkPolicyConfig"
+            v-model:enable-network-policy="normanCluster.enableNetworkPolicy"
+            v-model:network-policy-enabled="config.networkPolicyEnabled"
+            v-model:cluster-ipv4-cidr="config.clusterIpv4Cidr"
+            v-model:cluster-secondary-range-name="config.ipAllocationPolicy.clusterSecondaryRangeName"
+            v-model:services-secondary-range-name="config.ipAllocationPolicy.servicesSecondaryRangeName"
+            v-model:cluster-ipv4-cidr-block="config.ipAllocationPolicy.clusterIpv4CidrBlock"
+            v-model:services-ipv4-cidr-block="config.ipAllocationPolicy.servicesIpv4CidrBlock"
+            v-model:node-ipv4-cidr-block="config.ipAllocationPolicy.nodeIpv4CidrBlock"
+            v-model:subnetwork-name="config.ipAllocationPolicy.subnetworkName"
+            v-model:enable-private-endpoint="config.privateClusterConfig.enablePrivateEndpoint"
+            v-model:enable-private-nodes="config.privateClusterConfig.enablePrivateNodes"
+            v-model:master-ipv4-cidr-block="config.privateClusterConfig.masterIpv4CidrBlock"
+            v-model:enable-master-authorized-network="config.masterAuthorizedNetworks.enabled"
+            v-model:master-authorized-network-cidr-blocks="config.masterAuthorizedNetworks.cidrBlocks"
+            :rules="{
+              masterIpv4CidrBlock: fvGetAndReportPathRules('masterIpv4CidrBlock'),
+              clusterIpv4CidrBlock: fvGetAndReportPathRules('clusterIpv4CidrBlock'),
+              nodeIpv4CidrBlock: fvGetAndReportPathRules('nodeIpv4CidrBlock'),
+              servicesIpv4CidrBlock: fvGetAndReportPathRules('servicesIpv4CidrBlock'),
+              clusterIpv4Cidr: fvGetAndReportPathRules('clusterIpv4Cidr')
+            }"
+            :mode="mode"
+            :zone="config.zone"
+            :region="config.region"
+            :cloud-credential-id="config.googleCredentialSecret"
+            :project-id="config.projectID"
+            :original-version="originalVersion"
+            :cluster-id="normanCluster.id"
+            :cluster-name="config.clusterName"
+            :is-new-or-unprovisioned="isNewOrUnprovisioned"
+          />
+        </Accordion>
+        <Accordion
+          class="mb-20"
+          :title="t('gke.accordion.advanced')"
+        >
+          <AdvancedOptions
+            v-model:logging-service="config.loggingService"
+            v-model:monitoring-service="config.monitoringService"
+            v-model:maintenance-window="config.maintenanceWindow"
+            v-model:http-load-balancing="config.clusterAddons.httpLoadBalancing"
+            v-model:horizontal-pod-autoscaling="config.clusterAddons.horizontalPodAutoscaling"
+            v-model:enable-kubernetes-alpha="config.enableKubernetesAlpha"
+            v-model:labels="config.labels"
+            :mode="mode"
+            :is-new-or-unprovisioned="isNewOrUnprovisioned"
+          />
+        </Accordion>
+      </template>
 
-        <Accordion
-          class="mb-20"
-          :title="t('members.memberRoles')"
+      <Accordion
+        class="mb-20"
+        :title="t('members.memberRoles')"
+      >
+        <Banner
+          v-if="isEdit"
+          color="info"
         >
-          <Banner
-            v-if="isEdit"
-            color="info"
-          >
-            {{ t('cluster.memberRoles.removeMessage') }}
-          </Banner>
-          <ClusterMembershipEditor
-            v-if="canManageMembers"
-            :mode="mode"
-            :parent-id="normanCluster.id ? normanCluster.id : null"
-            @membership-update="onMembershipUpdate"
-          />
-        </Accordion>
-        <Accordion
-          class="mb-20"
-          :title="t('gke.accordion.labels')"
-        >
-          <Labels
-            v-model:value="normanCluster"
-            :mode="mode"
-          />
-        </Accordion>
-      </div>
+          {{ t('cluster.memberRoles.removeMessage') }}
+        </Banner>
+        <ClusterMembershipEditor
+          v-if="canManageMembers"
+          :mode="mode"
+          :parent-id="normanCluster.id ? normanCluster.id : null"
+          @membership-update="onMembershipUpdate"
+        />
+      </Accordion>
+      <Accordion
+        class="mb-20"
+        :title="t('gke.accordion.labels')"
+      >
+        <Labels
+          v-model:value="normanCluster"
+          :mode="mode"
+        />
+      </Accordion>
     </div>
     <template
       v-if="!hasCredential"
