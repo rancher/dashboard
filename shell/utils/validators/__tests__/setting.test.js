@@ -1,7 +1,7 @@
 import {
   isServerUrl,
   isHttps,
-  isAWSStyleEndpoint,
+  isDomainWithoutProtocol,
   isLocalhost,
   hasTrailingForwardSlash,
 } from '@shell/utils/validators/setting';
@@ -31,7 +31,7 @@ describe('isHttps', () => {
   });
 });
 
-describe('isAWSStyleEndpoint (follows domain format, no protocol)', () => {
+describe('isDomainWithoutProtocol (follows domain format, no protocol)', () => {
   it.each([
     ['ec2.us-west-2.amazonaws.com', true],
     ['ec2.us-west-2.api.aws', true],
@@ -39,17 +39,24 @@ describe('isAWSStyleEndpoint (follows domain format, no protocol)', () => {
     ['s3.eu-central-1.amazonaws.com.cn', true],
     ['my-service.internal.net', true],
     ['db.example.org:5432', true],
+    ['ex.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.com', true],
     ['service.company.local/path/to/resource', true],
+    ['example.org:443', true],
     ['https://ec2.us-west-2.amazonaws.com', false],
     ['http://example.com', false],
+    ['udp://example.com', false],
+    ['ftp://example.com', false],
+    ['ftps://example.com', false],
+    ['example://example.com', false],
     ['example', false],
     ['-bad.example.com', false],
     ['bad-.example.com', false],
     ['example.c', false],
     ['exa mple.com', false],
+    ['exa.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.example.com', false],
     ['', false],
-  ])('should validate that isAWSStyleEndpoint("%s") returns %s', (input, expected) => {
-    expect(isAWSStyleEndpoint(input)).toBe(expected);
+  ])('should validate that isDomainWithoutProtocol("%s") returns %s', (input, expected) => {
+    expect(isDomainWithoutProtocol(input)).toBe(expected);
   });
 });
 

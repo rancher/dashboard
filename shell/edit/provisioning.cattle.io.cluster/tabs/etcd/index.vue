@@ -58,6 +58,12 @@ export default {
     s3BackupChanged(val) {
       this.$emit('s3-backup-changed', val);
       this.$emit('etcd-validation-changed', !val);
+    },
+    disableSnapshotsChanged(val) {
+      if (val) {
+        this.$emit('etcd-validation-changed', true);
+        this.$emit('s3-backup-changed', null);
+      }
     }
   }
 };
@@ -74,6 +80,7 @@ export default {
           :label="t('cluster.rke2.etcd.disableSnapshots.label')"
           :labels="[t('generic.disable'), t('generic.enable')]"
           :mode="mode"
+          @update:value="disableSnapshotsChanged"
         />
       </div>
     </div>
