@@ -6,7 +6,7 @@ import has from 'lodash/has';
 import isUrl from 'is-url';
 // import uniq from 'lodash/uniq';
 import { Translation } from '@shell/types/t';
-import { isHttps, isLocalhost, hasTrailingForwardSlash } from '@shell/utils/validators/setting';
+import { isHttps, isLocalhost, hasTrailingForwardSlash, isDomainWithoutProtocol } from '@shell/utils/validators/setting';
 import { cronScheduleRule } from '@shell/utils/validators/cron-schedule';
 
 // import uniq from 'lodash/uniq';
@@ -162,6 +162,7 @@ export default function(
       return t(cronScheduleRule.message);
     }
   };
+  const awsStyleEndpoint: Validator = (val: string) => val && !isDomainWithoutProtocol(val) ? t('validation.setting.serverUrl.awsStyleEndpoint') : undefined;
 
   const https: Validator = (val: string) => val && !isHttps(val) ? t('validation.setting.serverUrl.https') : undefined;
 
@@ -601,6 +602,7 @@ export default function(
     hostname,
     imageUrl,
     interval,
+    awsStyleEndpoint,
     https,
     localhost,
     trailingForwardSlash,

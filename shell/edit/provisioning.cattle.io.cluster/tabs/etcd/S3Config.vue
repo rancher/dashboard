@@ -3,15 +3,17 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { NORMAN } from '@shell/config/types';
+import FormValidation from '@shell/mixins/form-validation';
 
 export default {
-  emits: ['update:value'],
+  emits: ['update:value', 'validationChanged'],
 
   components: {
     LabeledInput,
     Checkbox,
     SelectOrCreateAuthSecret,
   },
+  mixins: [FormValidation],
 
   props: {
     mode: {
@@ -48,7 +50,17 @@ export default {
       ...(this.value || {}),
     };
 
-    return { config };
+    return {
+      config,
+      fvFormRuleSets: [
+        {
+          path: 'endpoint', rootObject: this.config, rules: ['awsStyleEndpoint']
+        },
+        {
+          path: 'bucket', rootObject: this.config, rules: ['required']
+        },
+      ]
+    };
   },
 
   computed: {
@@ -63,6 +75,11 @@ export default {
 
       return {};
     },
+  },
+  watch: {
+    fvFormIsValid(newValue) {
+      this.$emit('validationChanged', !!newValue);
+    }
   },
 
   methods: {
@@ -79,6 +96,7 @@ export default {
   <div>
     <SelectOrCreateAuthSecret
       v-model:value="config.cloudCredentialName"
+      :mode="mode"
       :register-before-hook="registerBeforeHook"
       in-store="management"
       :allow-ssh="false"
@@ -94,7 +112,8 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="config.bucket"
-          label="Bucket"
+          :label="t('cluster.rke2.etcd.s3config.bucket.label')"
+          :mode="mode"
           :placeholder="ccData.defaultBucket"
           :required="!ccData.defaultBucket"
           @update:value="update"
@@ -103,7 +122,8 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="config.folder"
-          label="Folder"
+          :label="t('cluster.rke2.etcd.s3config.folder.label')"
+          :mode="mode"
           :placeholder="ccData.defaultFolder"
           @update:value="update"
         />
@@ -114,7 +134,8 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="config.region"
-          label="Region"
+          :label="t('cluster.rke2.etcd.s3config.region.label')"
+          :mode="mode"
           :placeholder="ccData.defaultRegion"
           @update:value="update"
         />
@@ -122,8 +143,10 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model:value="config.endpoint"
-          label="Endpoint"
+          :label="t('cluster.rke2.etcd.s3config.endpoint.label')"
+          :mode="mode"
           :placeholder="ccData.defaultEndpoint"
+          :rules="fvGetAndReportPathRules('endpoint')"
           @update:value="update"
         />
       </div>
@@ -136,7 +159,7 @@ export default {
       <Checkbox
         v-model:value="config.skipSSLVerify"
         :mode="mode"
-        label="Accept any certificate (insecure)"
+        :label="t('cluster.rke2.etcd.s3config.skipSSLVerify.label')"
         @update:value="update"
       />
 
@@ -144,7 +167,7 @@ export default {
         v-if="!config.skipSSLVerify"
         v-model:value="config.endpointCA"
         type="multiline"
-        label="Endpoint CA Cert"
+        :label="t('cluster.rke2.etcd.s3config.endpointCA.label')"
         :placeholder="ccData.defaultEndpointCA"
         @update:value="update"
       />
