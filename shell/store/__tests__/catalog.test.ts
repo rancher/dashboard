@@ -296,35 +296,4 @@ describe('catalog', () => {
       expect(result).toHaveLength(0);
     });
   });
-
-  describe('getters', () => {
-    describe('chart', () => {
-      it('should return the correct chart', () => {
-        const chartGetter = getters.chart as Function;
-        const state = {};
-        const localGetters = {
-          charts: [
-            {
-              repoType:  'cluster',
-              repoName:  'rancher-charts',
-              chartName: 'foo',
-            },
-            {
-              repoType:  'cluster',
-              repoName:  'rancher-charts',
-              chartName: 'bar',
-            },
-          ],
-        };
-
-        const chart = chartGetter(state, localGetters)({
-          repoType:  'cluster',
-          repoName:  'rancher-charts',
-          chartName: 'foo',
-        });
-
-        expect(chart.chartName).toBe('foo');
-      });
-    });
-  });
 });

@@ -114,7 +114,7 @@ export const getters = {
 
   chart(state, getters) {
     return ({
-      key, repoType, repoName, chartName, includeHidden, multiple
+      key, repoType, repoName, chartName, includeHidden, showDeprecated, multiple
     }) => {
       if ( key && !repoType && !repoName && !chartName) {
         const parsed = parseKey(key);
@@ -127,7 +127,8 @@ export const getters = {
       let matchingCharts = filterBy(getters.charts, {
         repoType,
         repoName,
-        chartName
+        chartName,
+        deprecated: !!showDeprecated,
       });
 
       if ( includeHidden === false ) {
