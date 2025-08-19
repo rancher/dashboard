@@ -188,14 +188,14 @@ export default {
 
           if (cloudTemplate === 'user') {
             userDataOptions.push({
-              label: O.metadata.name,
+              label: O.id,
               value: O.data.cloudInit
             });
           }
 
           if (cloudTemplate === 'network') {
             networkDataOptions.push({
-              label: O.metadata.name,
+              label: O.id,
               value: O.data.cloudInit
             });
           }
