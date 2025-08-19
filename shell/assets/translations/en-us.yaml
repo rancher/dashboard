@@ -1659,6 +1659,12 @@ cluster:
         label: KubeconfigContent
       placeholder: 'Namespace/Name'
       cluster: Imported Harvester Cluster
+      enableTpm: Enable TPM
+      enableCpuPinning: Enable CPU Pinning
+      cpuPinningTooltip: Enable CPU Pinning brings better performance and reduce latency for the harvester virtual machine
+      cpuManagerWarning: You must enable CPU Manager for at least one node in harvester host page to enable CPU Pinning for VM
+      secureBoot: Secure Boot
+      enableEfi: Booting in EFI mode
       installGuestAgent: Install guest agent
       tokenExpirationWarning: 'Warning: Harvester Cloud Credentials use an underlying authentication token that may have an expiry time - please see the following <a href="https://harvesterhci.io/kb/renew_harvester_cloud_credentials" target="_blank" rel="noopener nofollow">knowledge base article</a> for possible implications on management operations.'
   description:
@@ -2426,6 +2432,19 @@ cluster:
         true: Exposed to the public interface
       s3backups:
         label: Save Backups to S3
+      s3config:
+        bucket:
+          label: Bucket
+        folder:
+          label: Folder
+        region:
+          label: Region
+        endpoint:
+          label: Endpoint
+        skipSSLVerify:
+          label: Accept any certificate (insecure)
+        endpointCA:
+          label: Endpoint CA Cert
   k3s:
     systemService:
       coredns: 'CoreDNS'
@@ -6902,6 +6921,7 @@ validation:
       localhost: If the Server URL is internal to the Rancher server (e.g. localhost) the downstream clusters may not be able to communicate with Rancher.
       trailingForwardSlash: Server URL should not have a trailing forward slash.
       url: Server URL must be an URL.
+      awsStyleEndpoint: Endpoint URL has to be a valid domain-based endpoint and cannot start with a protocol (e.g https:// or http://)
   genericUrl: Field must be a valid URL
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
