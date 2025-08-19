@@ -3,9 +3,15 @@ import ModalWithCard from '@shell/components/ModalWithCard';
 import { Banner } from '@components/Banner';
 import PercentageBar from '@shell/components/PercentageBar.vue';
 import throttle from 'lodash/throttle';
-import { checkIfUIInactivityIsEnabled } from '@shell/utils/inactivity';
+import { checkIfUIInactivityIsEnabled, checkBackendBasedSessionIdle } from '@shell/utils/inactivity';
+import { allHash } from 'utils/promise';
 
 let globalId;
+
+const INACTIVITY_TYPE = {
+  FRONTEND: 'frontend',
+  BACKEND:  'backend'
+};
 
 export default {
   name:       'Inactivity',
@@ -14,47 +20,49 @@ export default {
   },
   data() {
     return {
-      enabled:             null,
+      inactivityTimerData: {},
       isOpen:              false,
       isInactive:          false,
-      showModalAfter:      null,
       inactivityTimeoutId: null,
-      courtesyTimer:       null,
       courtesyTimerId:     null,
-      courtesyCountdown:   null,
       trackInactivity:     throttle(this._trackInactivity, 1000),
       id:                  null,
     };
   },
   async mounted() {
-    const data2 = await this.$store.dispatch('management/request', { url: '/v1/management.cattle.io.features' });
+    const hash = {
+      UIInactivityIsEnabled: checkIfUIInactivityIsEnabled(this.$store),
+      backendInactivityData: checkBackendBasedSessionIdle(this.$store),
+    };
 
-    console.error('FEATURES', data2);
+    const res = await allHash(hash);
 
-    // const data1 = await this.$store.dispatch('management/request', { url: 'ext/apis/v1/ext.cattle.io/useractivities/token-p9mwk' });
+    const UIInactivityData = res.UIInactivityIsEnabled;
+    const backendInactivityData = res.backendInactivityData;
 
-    // console.error('USER ACTIVITIES', data1);
+    if (UIInactivityData.enabled && UIInactivityData.showModalAfter < backendInactivityData.showModalAfter) {
+      this.inactivityTimerData = {
+        ...backendInactivityData,
+        type: INACTIVITY_TYPE.FRONTEND
+      };
+    } else {
+      this.inactivityTimerData = {
+        ...backendInactivityData,
+        type: INACTIVITY_TYPE.BACKEND
+      };
+    }
 
-    // const data0 = await this.$store.dispatch('management/request', { url: 'ext/apis/v1/ext.cattle.io/useractivities/token-rvsvq' });
-    const data0 = await this.$store.dispatch('management/request', { url: '/v1/ext.cattle.io.useractivities/token-rvsvq' });
+    this.trackInactivity();
 
-    console.error('USER ACTIVITIES2', data0);
-
-    const UIInactivityIsEnabled = await checkIfUIInactivityIsEnabled(this.$store);
-
-    if (UIInactivityIsEnabled.enabled) {
-      console.error('UI INACTIVITY ENABLED!');
-      this.enabled = UIInactivityIsEnabled.enabled;
-      this.courtesyTimer = UIInactivityIsEnabled.courtesyTimer;
-      this.courtesyCountdown = UIInactivityIsEnabled.courtesyCountdown;
-      this.showModalAfter = UIInactivityIsEnabled.showModalAfter;
-
-      this.trackInactivity();
+    if (this.inactivityTimerData.type === INACTIVITY_TYPE.FRONTEND) {
       this.addIdleListeners();
     }
   },
   beforeUnmount() {
-    this.removeEventListener();
+    if (this.inactivityTimerData.type === INACTIVITY_TYPE.FRONTEND) {
+      this.removeEventListener();
+    }
+
     this.clearAllTimeouts();
   },
   methods: {
@@ -72,7 +80,7 @@ export default {
       const checkInactivityTimer = () => {
         const now = Date.now();
 
-        console.warn(`****** checkInactivityTimer diff`, Math.floor((endTime - now) / 1000));
+        // console.warn(`****** checkInactivityTimer diff`, Math.floor((endTime - now) / 1000));
 
         if (this.id !== globalId) {
           return;
@@ -120,18 +128,15 @@ export default {
       document.removeEventListener('touchmove', this.trackInactivity);
       document.removeEventListener('visibilitychange', this.trackInactivity);
     },
-
     resume() {
       this.isInactive = false;
       this.isOpen = false;
       this.courtesyCountdown = this.courtesyTimer;
       this.clearAllTimeouts();
     },
-
     refresh() {
       window.location.reload();
     },
-
     unsubscribe() {
       console.debug('Unsubscribing from all websocket events'); // eslint-disable-line no-console
       this.$store.dispatch('unsubscribe');
@@ -140,9 +145,17 @@ export default {
       clearTimeout(this.inactivityTimeoutId);
       clearTimeout(this.courtesyTimerId);
     }
-
   },
   computed: {
+    courtesyTimer() {
+      return this.inactivityTimerData?.courtesyTimer | null;
+    },
+    courtesyCountdown() {
+      return this.inactivityTimerData?.courtesyCountdown | null;
+    },
+    showModalAfter() {
+      return this.inactivityTimerData?.showModalAfter | null;
+    },
     isInactiveTexts() {
       return this.isInactive ? {
         title:   this.t('inactivity.titleExpired'),
