@@ -296,4 +296,32 @@ describe('catalog', () => {
       expect(result).toHaveLength(0);
     });
   });
+
+  describe('getters', () => {
+    describe('version', () => {
+      it('should call chart getter with showDeprecated', () => {
+        const chartGetter = jest.fn();
+        const state = {};
+        const localGetters = { chart: chartGetter };
+
+        const versionGetter = getters.version(state, localGetters);
+        const args = {
+          repoType:       'cluster',
+          repoName:       'rancher-charts',
+          chartName:      'rancher-monitoring',
+          versionName:    '100.1.0',
+          showDeprecated: true
+        };
+
+        versionGetter(args);
+
+        expect(chartGetter).toHaveBeenCalledWith({
+          repoType:       args.repoType,
+          repoName:       args.repoName,
+          chartName:      args.chartName,
+          showDeprecated: args.showDeprecated
+        });
+      });
+    });
+  });
 });
