@@ -27,7 +27,7 @@ export default {
       if (this.resources[0]) {
         this.resources[0](value);
         delete this.resources[0];
-        this.$emit('close', value);
+        this.$emit('close');
       }
     },
 
