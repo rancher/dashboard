@@ -5108,13 +5108,9 @@ podDisruptionBudget:
 
 inactivity:
   title: Session expiring
-  titleExpired: Session expired
   banner: Your session is about to expire due to inactivity. Any unsaved changes will be lost.
-  bannerExpired: Your session has expired in this tab due to inactivity.
   content: Click “Resume Session” to keep the session in this tab active or refresh the browser after the session has expired.
-  contentExpired: To return to this page click “Refresh” below or refresh the browser.
   cta: Resume Session
-  ctaExpired: Refresh
 
 # Rancher Extensions
 plugins:
@@ -8418,9 +8414,9 @@ advancedSettings:
     'auth-user-info-max-age-seconds': 'The maximum age of a users auth tokens before an auth provider group membership sync will be performed.'
     'auth-user-info-resync-cron': 'Default cron schedule for resyncing auth provider group memberships.'
     'cluster-template-enforcement': 'Non-admins will be restricted to launching clusters via preapproved RKE Templates only.'
-    'auth-user-session-idle-ttl-minutes': 'Custom idle TTL (in minutes) on a user auth session. This is the maximum duration a session can stay alive when there is no user activity in a browser. This should be smaller than auth-user-session-ttl-minutes.'
+    'auth-user-session-idle-ttl-minutes': 'Custom idle TTL (in minutes) on a user auth session. This is the maximum duration a session can stay alive when there is no user activity in a browser. This should be smaller than "auth-user-session-ttl-minutes".'
     'auth-user-session-ttl-minutes': 'Custom TTL (in minutes) on a user auth session. This is the maximum duration a session can stay alive regardless of user activity in a browser. This should be larger than "auth-user-session-idle-ttl-minutes".'
-    'auth-token-max-ttl-minutes': 'Max TTL (in minutes) for all authentication tokens. When set to 0, the token never expires.'
+    'auth-token-max-ttl-minutes': 'Max TTL (in minutes) for all tokens except those controlled by "auth-user-session-ttl-minutes" (user session tokens). When set to 0, the token never expires.'
     'kubeconfig-generate-token': 'Automatically generate tokens for users when a kubeconfig is requested.'
     'kubeconfig-default-token-ttl-minutes': 'TTL (in minutes) applied on all kubeconfig tokens. When set to 0, the token never expires.'
     'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
@@ -8478,7 +8474,7 @@ featureFlags:
 performance:
   label: UI Performance Settings
   settingName: Performance
-  deprecatedGeneral: The <i class="mr-5">"{setting}"</i> setting is now deprecated and will be removed in a future release.
+  deprecatedInactivitySetting: The <i class="mr-5">"Inactivity"</i> Performance setting is now deprecated in favor of <i class="mr-5">"auth-user-session-idle-ttl-minutes"</i> flag found in Settings. 
   deprecatedForSSP: The <i class="mr-5">"{setting}"</i> setting is now deprecated and will be removed in a future release.
   incrementalLoad:
     label: Incremental Loading
