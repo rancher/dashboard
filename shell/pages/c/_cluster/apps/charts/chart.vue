@@ -6,7 +6,7 @@ import ChartReadme from '@shell/components/ChartReadme';
 import LazyImage from '@shell/components/LazyImage';
 import isEqual from 'lodash/isEqual';
 import {
-  CHART, REPO, REPO_TYPE, VERSION, SEARCH_QUERY, CATEGORY, TAG
+  CHART, REPO, REPO_TYPE, VERSION, SEARCH_QUERY, CATEGORY, TAG, DEPRECATED
 } from '@shell/config/query-params';
 import { DATE_FORMAT } from '@shell/store/prefs';
 import { ZERO_TIME } from '@shell/config/types';
@@ -144,10 +144,11 @@ export default {
           product: this.$store.getters['productId'],
         },
         query: {
-          [REPO_TYPE]: this.query.repoType,
-          [REPO]:      this.query.repoName,
-          [CHART]:     this.query.chartName,
-          [VERSION]:   this.query.versionName,
+          [REPO_TYPE]:  this.query.repoType,
+          [REPO]:       this.query.repoName,
+          [CHART]:      this.query.chartName,
+          [VERSION]:    this.query.versionName,
+          [DEPRECATED]: this.query.deprecated,
         }
       });
     },
