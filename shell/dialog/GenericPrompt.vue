@@ -47,7 +47,7 @@ export default {
     decodeHtml,
     close() {
       this.confirm(false);
-      this.$emit('close');
+      this.$emit('close', false);
     },
 
     async apply(buttonDone) {
