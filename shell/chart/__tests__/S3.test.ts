@@ -11,7 +11,8 @@ describe('rancher-backup: S3', () => {
       'i18n/t':                    (text: string) => text,
       t:                           (text: string) => text,
       'cluster/all':               () => [],
-      'cluster/paginationEnabled': () => false
+      'cluster/paginationEnabled': () => false,
+      currentStore:                () => 'cluster'
     }
   };
   const wrapper = mount(S3, {

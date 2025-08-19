@@ -117,6 +117,7 @@ watch(
           v-model:value="currentView"
           :options="viewOptions"
         />
+        <slot name="additional-actions" />
         <RcButton
           v-if="onShowConfiguration"
           :data-testid="showConfigurationDataTestId"

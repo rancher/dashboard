@@ -76,7 +76,7 @@ export default class Workload extends WorkloadService {
     insertAt(out, 0, {
       action:  'openShell',
       enabled: !!this.links.view,
-      icon:    'icon icon-fw icon-chevron-right',
+      icon:    'icon icon-chevron-right',
       label:   this.t('action.openShell'),
       total:   1,
     });
