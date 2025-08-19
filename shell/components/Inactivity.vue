@@ -3,15 +3,14 @@ import ModalWithCard from '@shell/components/ModalWithCard';
 import { Banner } from '@components/Banner';
 import PercentageBar from '@shell/components/PercentageBar.vue';
 import throttle from 'lodash/throttle';
-import { checkIfUIInactivityIsEnabled, checkBackendBasedSessionIdle } from '@shell/utils/inactivity';
-import { allHash } from 'utils/promise';
+import {
+  checkBackendBasedSessionIdle,
+  checkUserActivityData,
+  updateUserActivityToken,
+  parseTTLData
+} from '@shell/utils/inactivity';
 
 let globalId;
-
-const INACTIVITY_TYPE = {
-  FRONTEND: 'frontend',
-  BACKEND:  'backend'
-};
 
 export default {
   name:       'Inactivity',
@@ -20,58 +19,46 @@ export default {
   },
   data() {
     return {
-      inactivityTimerData: {},
-      isOpen:              false,
-      isInactive:          false,
-      inactivityTimeoutId: null,
-      courtesyTimerId:     null,
-      trackInactivity:     throttle(this._trackInactivity, 1000),
-      id:                  null,
+      inactivityTimerData:  {},
+      isUserActive:         false,
+      thirtySecondCheckRan: false,
+      isOpen:               true,
+      showModalAfter:       null,
+      sessionTokenName:     null,
+      expiresAt:            null,
+      inactivityTimeoutId:  null,
+      courtesyTimer:        null,
+      courtesyTimerId:      null,
+      courtesyCountdown:    null,
+      trackInactivity:      throttle(this._trackInactivity, 1000),
+      id:                   null
     };
   },
   async mounted() {
-    const hash = {
-      UIInactivityIsEnabled: checkIfUIInactivityIsEnabled(this.$store),
-      backendInactivityData: checkBackendBasedSessionIdle(this.$store),
-    };
+    const backendInactivityData = await checkBackendBasedSessionIdle(this.$store);
 
-    const res = await allHash(hash);
+    if (backendInactivityData.enabled) {
+      this.courtesyTimer = backendInactivityData.courtesyTimer;
+      this.courtesyCountdown = backendInactivityData.courtesyCountdown;
+      this.showModalAfter = backendInactivityData.showModalAfter;
+      this.sessionTokenName = backendInactivityData.sessionTokenName;
+      this.expiresAt = backendInactivityData.expiresAt;
 
-    const UIInactivityData = res.UIInactivityIsEnabled;
-    const backendInactivityData = res.backendInactivityData;
-
-    if (UIInactivityData.enabled && UIInactivityData.showModalAfter < backendInactivityData.showModalAfter) {
-      this.inactivityTimerData = {
-        ...backendInactivityData,
-        type: INACTIVITY_TYPE.FRONTEND
-      };
-    } else {
-      this.inactivityTimerData = {
-        ...backendInactivityData,
-        type: INACTIVITY_TYPE.BACKEND
-      };
-    }
-
-    this.trackInactivity();
-
-    if (this.inactivityTimerData.type === INACTIVITY_TYPE.FRONTEND) {
+      this.trackInactivity();
       this.addIdleListeners();
     }
   },
   beforeUnmount() {
-    if (this.inactivityTimerData.type === INACTIVITY_TYPE.FRONTEND) {
-      this.removeEventListener();
-    }
-
+    this.removeEventListener();
     this.clearAllTimeouts();
   },
   methods: {
     _trackInactivity() {
-      if (this.isInactive || this.isOpen || !this.showModalAfter) {
+      if (this.isOpen || !this.showModalAfter) {
         return;
       }
+      console.error('TRACK INACTIVITY CALLED!!!');
 
-      this.clearAllTimeouts();
       const endTime = Date.now() + this.showModalAfter * 1000;
 
       this.id = endTime;
@@ -80,21 +67,46 @@ export default {
       const checkInactivityTimer = () => {
         const now = Date.now();
 
-        // console.warn(`****** checkInactivityTimer diff`, Math.floor((endTime - now) / 1000));
+        console.warn(`****** checkInactivityTimer diff`, Math.floor((endTime - now) / 1000));
 
         if (this.id !== globalId) {
           return;
         }
 
         if (now >= endTime) {
+          console.error('TIME TO OPEN THE MODAL!!!');
           this.isOpen = true;
           this.startCountdown();
         } else {
+          // When we have 10 seconds to go until we display the modal, check for activity on the backend flag
+          // it may have come from another tab in the same browser
+          if (now >= endTime - (10 * 1000) && !this.thirtySecondCheckRan) {
+            console.error('SHOULD ONLY RUN THIS ONCE!!!!');
+            this.thirtySecondCheckRan = true;
+
+            if (this.isUserActive) {
+              this.resetUserActivity();
+            } else {
+              this.checkBackendInactivity();
+            }
+          }
+
           this.inactivityTimeoutId = setTimeout(checkInactivityTimer, 1000);
         }
       };
 
       checkInactivityTimer();
+    },
+    async checkBackendInactivity() {
+      const userActivityData = await checkUserActivityData(this.$store, this.sessionTokenName);
+
+      console.error('checkBackendInactivity userActivityData', userActivityData);
+
+      // this means that something updated the backend expiresAt, which means we must now reset the timers and adjust for new data
+      if (userActivityData?.status?.expiresAt && (userActivityData?.status?.expiresAt !== this.expiresAt)) {
+        console.error('RESETTING INACtIVITY AFTeR cHEcKIng BACKEND dATA!', userActivityData?.status?.expiresAt, this.expiresAt);
+        this.resetInactivityDataAndTimers(userActivityData);
+      }
     },
     startCountdown() {
       const endTime = Date.now() + (this.courtesyCountdown * 1000);
@@ -103,9 +115,8 @@ export default {
         const now = Date.now();
 
         if (now >= endTime) {
-          this.isInactive = true;
-          this.unsubscribe();
           this.clearAllTimeouts();
+          this.$store.dispatch('auth/logout');
         } else {
           this.courtesyCountdown = Math.floor((endTime - now) / 1000);
           this.courtesyTimerId = setTimeout(checkCountdown, 1000);
@@ -114,32 +125,43 @@ export default {
 
       checkCountdown();
     },
+    setUserAsActive() {
+      this.isUserActive = true;
+    },
     addIdleListeners() {
-      document.addEventListener('mousemove', this.trackInactivity);
-      document.addEventListener('mousedown', this.trackInactivity);
-      document.addEventListener('keypress', this.trackInactivity);
-      document.addEventListener('touchmove', this.trackInactivity);
-      document.addEventListener('visibilitychange', this.trackInactivity);
+      document.addEventListener('mousemove', this.setUserAsActive);
+      document.addEventListener('mousedown', this.setUserAsActive);
+      document.addEventListener('keypress', this.setUserAsActive);
+      document.addEventListener('touchmove', this.setUserAsActive);
+      document.addEventListener('visibilitychange', this.setUserAsActive);
     },
     removeEventListener() {
-      document.removeEventListener('mousemove', this.trackInactivity);
-      document.removeEventListener('mousedown', this.trackInactivity);
-      document.removeEventListener('keypress', this.trackInactivity);
-      document.removeEventListener('touchmove', this.trackInactivity);
-      document.removeEventListener('visibilitychange', this.trackInactivity);
+      document.removeEventListener('mousemove', this.setUserAsActive);
+      document.removeEventListener('mousedown', this.setUserAsActive);
+      document.removeEventListener('keypress', this.setUserAsActive);
+      document.removeEventListener('touchmove', this.setUserAsActive);
+      document.removeEventListener('visibilitychange', this.setUserAsActive);
     },
-    resume() {
-      this.isInactive = false;
+    async resetUserActivity() {
+      const userActivityData = await updateUserActivityToken(this.$store, this.sessionTokenName);
+
+      this.resetInactivityDataAndTimers(userActivityData);
+    },
+    resetInactivityDataAndTimers(userActivityData) {
+      const backendInactivityData = parseTTLData(userActivityData);
+
+      this.thirtySecondCheckRan = false;
       this.isOpen = false;
-      this.courtesyCountdown = this.courtesyTimer;
+      this.isUserActive = false;
+
+      this.courtesyTimer = backendInactivityData.courtesyTimer;
+      this.courtesyCountdown = backendInactivityData.courtesyCountdown;
+      this.showModalAfter = backendInactivityData.showModalAfter;
+      this.sessionTokenName = backendInactivityData.sessionTokenName;
+      this.expiresAt = backendInactivityData.expiresAt;
+
       this.clearAllTimeouts();
-    },
-    refresh() {
-      window.location.reload();
-    },
-    unsubscribe() {
-      console.debug('Unsubscribing from all websocket events'); // eslint-disable-line no-console
-      this.$store.dispatch('unsubscribe');
+      this.trackInactivity();
     },
     clearAllTimeouts() {
       clearTimeout(this.inactivityTimeoutId);
@@ -147,26 +169,6 @@ export default {
     }
   },
   computed: {
-    courtesyTimer() {
-      return this.inactivityTimerData?.courtesyTimer | null;
-    },
-    courtesyCountdown() {
-      return this.inactivityTimerData?.courtesyCountdown | null;
-    },
-    showModalAfter() {
-      return this.inactivityTimerData?.showModalAfter | null;
-    },
-    isInactiveTexts() {
-      return this.isInactive ? {
-        title:   this.t('inactivity.titleExpired'),
-        banner:  this.t('inactivity.bannerExpired'),
-        content: this.t('inactivity.contentExpired'),
-      } : {
-        title:   this.t('inactivity.title'),
-        banner:  this.t('inactivity.banner'),
-        content: this.t('inactivity.content'),
-      };
-    },
     timerPercentageLeft() {
       return Math.floor((this.courtesyCountdown / this.courtesyTimer ) * 100);
     },
@@ -185,24 +187,22 @@ export default {
     ref="inactivityModal"
     name="inactivityModal"
     save-text="Continue"
-    @finish="resume"
   >
     <template #title>
-      {{ isInactiveTexts.title }}
+      {{ t('inactivity.title') }}
     </template>
     <span>{{ courtesyCountdown }}</span>
 
     <template #content>
       <Banner color="info">
-        {{ isInactiveTexts.banner }}
+        {{ t('inactivity.banner') }}
       </Banner>
 
       <p>
-        {{ isInactiveTexts.content }}
+        {{ t('inactivity.content') }}
       </p>
 
       <PercentageBar
-        v-if="!isInactive"
         class="mt-20"
         :modelValue="timerPercentageLeft"
         :color-stops="colorStops"
@@ -214,19 +214,10 @@ export default {
     >
       <div class="card-actions">
         <button
-          v-if="!isInactive"
           class="btn role-tertiary bg-primary"
-          @click.prevent="resume"
+          @click.prevent="resetUserActivity"
         >
           <t k="inactivity.cta" />
-        </button>
-
-        <button
-          v-if="isInactive"
-          class="btn role-tertiary bg-primary"
-          @click.prevent="refresh"
-        >
-          <t k="inactivity.ctaExpired" />
         </button>
       </div>
     </template>

@@ -209,7 +209,7 @@ export default {
           <Banner
             color="warning"
           >
-            <span v-clean-html="t(`performance.deprecatedGeneral`, { setting: t('performance.inactivity.title') }, true)" />
+            <span v-clean-html="t(`performance.deprecatedInactivitySetting`, {}, true)" />
           </Banner>
           <p>{{ t('performance.inactivity.description') }}</p>
           <Checkbox
@@ -218,6 +218,7 @@ export default {
             :label="t('performance.inactivity.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
+            :disabled="true"
           />
           <div class="ml-20">
             <LabeledInput
@@ -225,7 +226,7 @@ export default {
               data-testid="inactivity-threshold"
               :mode="mode"
               :label="t('performance.inactivity.inputLabel')"
-              :disabled="!value.inactivity.enabled"
+              :disabled="true"
               class="input mb-10"
               type="number"
               min="0"
