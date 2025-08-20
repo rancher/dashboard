@@ -405,6 +405,7 @@ $image-medium-box-width: 48px;
 
     &-action-menu {
       margin-left: 8px;
+      margin-right: -8px;
     }
   }
 
