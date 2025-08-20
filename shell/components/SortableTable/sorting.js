@@ -37,6 +37,12 @@ export default {
         return;
       }
 
+      let rowsToProcess = [];
+
+      if (this.cachedRows) {
+        rowsToProcess = this.cachedRows;
+      }
+
       let key;
 
       // Why is sortGeneration needed when we have sortGenerationFn?
@@ -51,18 +57,20 @@ export default {
       if ( sortGenerationKey) {
         key = `${ sortGenerationKey }/${ this.rows.length }/${ this.descending }/${ this.sortFields.join(',') }`;
         if ( this.cacheKey === key ) {
-          return this.cachedRows;
+          const outRowsCached = sortBy(rowsToProcess, this.sortFields, this.descending);
+
+          return outRowsCached;
         }
       }
 
-      const out = sortBy(this.rows, this.sortFields, this.descending);
+      const outRows = sortBy(this.rows, this.sortFields, this.descending);
 
       if ( key ) {
         this.cacheKey = key;
-        this.cachedRows = out;
+        this.cachedRows = outRows; // new cached rows
       }
 
-      return out;
+      return outRows;
     },
   },
 
