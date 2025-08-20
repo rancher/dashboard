@@ -23,6 +23,7 @@ import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import Wizard from '@shell/components/Wizard';
 import TypeDescription from '@shell/components/TypeDescription';
+import KeyValue from '@shell/components/form/KeyValue';
 import ChartMixin from '@shell/mixins/chart';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { CATALOG, MANAGEMENT, DEFAULT_WORKSPACE, CAPI } from '@shell/config/types';
@@ -91,7 +92,8 @@ export default {
     UnitInput,
     YamlEditor,
     Wizard,
-    TypeDescription
+    TypeDescription,
+    KeyValue
   },
 
   mixins: [
@@ -399,6 +401,9 @@ export default {
       autoInstallInfo:        [],
 
       nameDisabled: false,
+
+      automaticCPTolerations: this.existing?.automaticCPTolerations || false,
+      operationTolerations:   this.existing?.operationTolerations || [],
 
       preFormYamlOption:       VALUES_STATE.YAML,
       formYamlOption:          VALUES_STATE.YAML,
@@ -1154,12 +1159,14 @@ export default {
         upgrade operation.
       */
       const out = {
-        charts:    [chart],
-        noHooks:   this.cmdOptions.hooks === false,
-        timeout:   this.cmdOptions.timeout > 0 ? `${ this.cmdOptions.timeout }s` : null,
-        wait:      this.cmdOptions.wait === true,
-        namespace: form.metadata.namespace,
-        projectId: this.project,
+        charts:                 [chart],
+        noHooks:                this.cmdOptions.hooks === false,
+        timeout:                this.cmdOptions.timeout > 0 ? `${ this.cmdOptions.timeout }s` : null,
+        wait:                   this.cmdOptions.wait === true,
+        namespace:              form.metadata.namespace,
+        projectId:              this.project,
+        automaticCPTolerations: this.automaticCPTolerations,
+        operationTolerations:   this.operationTolerations
       };
 
       /*
@@ -1448,6 +1455,26 @@ export default {
               />
             </div>
           </div>
+
+          <Checkbox
+            v-model:value="automaticCPTolerations"
+            class="mb-20"
+            :label="t('catalog.install.helm.tolerations.automaticCPTolerations.checkBoxLabel')"
+            :tooltip="t('catalog.install.helm.tolerations.automaticCPTolerations.tooltip')"
+          />
+          <div class="row">
+            <div class="col span-8">
+              <KeyValue
+                v-model:value="operationTolerations"
+                :title="t('catalog.install.helm.tolerations.operationTolerations.title')"
+                :as-map="false"
+                key-name="key"
+                value-name="value"
+                :read-allowed="false"
+                data-testid="catalog-install-operationTolerations-keyvalue"
+              />
+            </div>
+          </div>
           <div
             class="step__values__controls--spacer"
             style="flex:1"
@@ -1457,7 +1484,6 @@ export default {
           <Banner
             v-if="isNamespaceNew && value.metadata.namespace.length"
             color="info"
-            class="namespace-create-banner"
           >
             <div v-clean-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) " />
           </Banner>
@@ -1851,6 +1877,7 @@ export default {
       display: flex;
       flex-direction: column;
       flex: 1;
+      margin-bottom: 70px;
 
       .spacer {
         line-height: 2;
