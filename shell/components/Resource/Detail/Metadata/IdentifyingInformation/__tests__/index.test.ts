@@ -76,7 +76,7 @@ describe('component: Metadata/IdentifyingInformation', () => {
     expect(wrapper.find(`.value .status.${ status }`).exists()).toBeTruthy();
   });
 
-  it('should render a valueOverride', async() => {
+  it('should render a .full-custom-value valueOverride', async() => {
     const valueOverride = {
       component: markRaw(Rectangle),
       props:     { outline: false }
@@ -96,8 +96,33 @@ describe('component: Metadata/IdentifyingInformation', () => {
 
     expect(wrapper.find('.label').element.innerHTML.trim()).toStrictEqual(label);
 
-    const testComponent = wrapper.find('.value').getComponent(Rectangle);
+    const testComponent = wrapper.find('.full-custom-value').getComponent(Rectangle);
 
     expect(testComponent.props('outline')).toStrictEqual(valueOverride.props.outline);
+  });
+
+  it('should render a formatter valueOverride', async() => {
+    const valueOverride = {
+      component: 'router-link',
+      props:     { to: '#' }
+    };
+    const wrapper = mount(IdentifyingInformation, {
+      props: {
+        rows: [
+          {
+            label,
+            value,
+            valueOverride
+          }
+        ]
+      },
+      global: { stubs: { 'router-link': RouterLinkStub } }
+    });
+
+    expect(wrapper.find('.label').element.innerHTML.trim()).toStrictEqual(label);
+
+    const testComponent: any = wrapper.find('.value').getComponent('a');
+
+    expect(testComponent.props('to')).toStrictEqual('#');
   });
 });

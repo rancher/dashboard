@@ -1,5 +1,7 @@
 import { useI18n } from '@shell/composables/useI18n';
-import { computed, ComputedRef, markRaw, toValue } from 'vue';
+import {
+  computed, ComputedRef, defineAsyncComponent, markRaw, toValue
+} from 'vue';
 import Additional from '@shell/components/Resource/Detail/Additional.vue';
 import { useStore } from 'vuex';
 import {
@@ -11,7 +13,6 @@ import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 import { useRoute } from 'vue-router';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import { KUBERNETES } from '@shell/config/labels-annotations';
-import ResourcePopover from '@shell/components/Resource/Detail/ResourcePopover/index.vue';
 
 export const useNamespace = (resource: any): ComputedRef<Row> | undefined => {
   const store = useStore();
@@ -28,7 +29,7 @@ export const useNamespace = (resource: any): ComputedRef<Row> | undefined => {
       value:           resourceValue.namespace,
       valueDataTestid: 'masthead-subheader-namespace',
       valueOverride:   {
-        component: markRaw(ResourcePopover),
+        component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue'))),
         props:     {
           type: NAMESPACE,
           id:   resourceValue.namespace
@@ -124,14 +125,14 @@ export const useProject = (resource: any): ComputedRef<Row> | undefined => {
 
   return computed(() => {
     return {
-      label: i18n.t('component.resource.detail.metadata.identifyingInformation.project'),
-      value: resourceValue.project?.nameDisplay,
+      label:           i18n.t('component.resource.detail.metadata.identifyingInformation.project'),
+      value:           resourceValue.project?.nameDisplay,
       valueDataTestid: 'masthead-subheader-project',
-      valueOverride: {
-        component: markRaw(ResourcePopover),
-        props: {
-          type: MANAGEMENT.PROJECT,
-          id: resourceValue.project?.id,
+      valueOverride:   {
+        component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue'))),
+        props:     {
+          type:         MANAGEMENT.PROJECT,
+          id:           resourceValue.project?.id,
           currentStore: 'management'
         }
       }
