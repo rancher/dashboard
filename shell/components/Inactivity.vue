@@ -19,19 +19,18 @@ export default {
   },
   data() {
     return {
-      inactivityTimerData:  {},
-      isUserActive:         false,
-      thirtySecondCheckRan: false,
-      isOpen:               true,
-      showModalAfter:       null,
-      sessionTokenName:     null,
-      expiresAt:            null,
-      inactivityTimeoutId:  null,
-      courtesyTimer:        null,
-      courtesyTimerId:      null,
-      courtesyCountdown:    null,
-      trackInactivity:      throttle(this._trackInactivity, 1000),
-      id:                   null
+      isUserActive:          false,
+      tenSecondToGoCheckRan: false,
+      isOpen:                false,
+      showModalAfter:        null,
+      sessionTokenName:      null,
+      expiresAt:             null,
+      inactivityTimeoutId:   null,
+      courtesyTimer:         null,
+      courtesyTimerId:       null,
+      courtesyCountdown:     null,
+      trackInactivity:       throttle(this._trackInactivity, 1000),
+      id:                    null
     };
   },
   async mounted() {
@@ -57,7 +56,6 @@ export default {
       if (this.isOpen || !this.showModalAfter) {
         return;
       }
-      console.error('TRACK INACTIVITY CALLED!!!');
 
       const endTime = Date.now() + this.showModalAfter * 1000;
 
@@ -67,22 +65,18 @@ export default {
       const checkInactivityTimer = () => {
         const now = Date.now();
 
-        console.warn(`****** checkInactivityTimer diff`, Math.floor((endTime - now) / 1000));
-
         if (this.id !== globalId) {
           return;
         }
 
         if (now >= endTime) {
-          console.error('TIME TO OPEN THE MODAL!!!');
           this.isOpen = true;
           this.startCountdown();
         } else {
           // When we have 10 seconds to go until we display the modal, check for activity on the backend flag
           // it may have come from another tab in the same browser
-          if (now >= endTime - (10 * 1000) && !this.thirtySecondCheckRan) {
-            console.error('SHOULD ONLY RUN THIS ONCE!!!!');
-            this.thirtySecondCheckRan = true;
+          if (now >= endTime - (10 * 1000) && !this.tenSecondToGoCheckRan) {
+            this.tenSecondToGoCheckRan = true;
 
             if (this.isUserActive) {
               this.resetUserActivity();
@@ -100,11 +94,8 @@ export default {
     async checkBackendInactivity() {
       const userActivityData = await checkUserActivityData(this.$store, this.sessionTokenName);
 
-      console.error('checkBackendInactivity userActivityData', userActivityData);
-
       // this means that something updated the backend expiresAt, which means we must now reset the timers and adjust for new data
       if (userActivityData?.status?.expiresAt && (userActivityData?.status?.expiresAt !== this.expiresAt)) {
-        console.error('RESETTING INACtIVITY AFTeR cHEcKIng BACKEND dATA!', userActivityData?.status?.expiresAt, this.expiresAt);
         this.resetInactivityDataAndTimers(userActivityData);
       }
     },
@@ -116,7 +107,8 @@ export default {
 
         if (now >= endTime) {
           this.clearAllTimeouts();
-          this.$store.dispatch('auth/logout');
+
+          return this.$store.dispatch('auth/logout', { sessionIdle: true });
         } else {
           this.courtesyCountdown = Math.floor((endTime - now) / 1000);
           this.courtesyTimerId = setTimeout(checkCountdown, 1000);
@@ -150,7 +142,7 @@ export default {
     resetInactivityDataAndTimers(userActivityData) {
       const backendInactivityData = parseTTLData(userActivityData);
 
-      this.thirtySecondCheckRan = false;
+      this.tenSecondToGoCheckRan = false;
       this.isOpen = false;
       this.isUserActive = false;
 
