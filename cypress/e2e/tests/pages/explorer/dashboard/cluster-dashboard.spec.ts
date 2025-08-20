@@ -245,6 +245,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     clusterDashboard.waitForPage(undefined, 'cluster-events');
 
     // Check events
+    clusterDashboard.eventsList().sortableTable().self().scrollIntoView();
     clusterDashboard.eventsList().sortableTable().rowElements()
       .should('have.length.gte', 2);
 

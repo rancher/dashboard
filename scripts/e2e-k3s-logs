@@ -1,0 +1,59 @@
+#!/bin/bash
+
+RANCHER_DEPLOYMENT="rancher"
+RANCHER_NAMESPACE="cattle-system"
+
+echo "Fetching pods for deployment '$RANCHER_DEPLOYMENT' in namespace '$RANCHER_NAMESPACE'..."
+
+# Get the selector from the deployment
+SELECTOR=$(kubectl get deployment "$RANCHER_DEPLOYMENT" -n "$RANCHER_NAMESPACE" -o jsonpath='{.spec.selector.matchLabels}' | jq -r 'to_entries | map("\(.key)=\(.value)") | join(",")')
+
+if [ -z "$SELECTOR" ]; then
+    echo "Error: Could not determine selector for deployment '$RANCHER_DEPLOYMENT'. Please ensure the deployment exists and has a selector."
+    exit 1
+fi
+
+echo "Using selector: $SELECTOR"
+
+# Get all pod names using the selector
+POD_NAMES=$(kubectl get pods -n "$RANCHER_NAMESPACE" -l "$SELECTOR" -o jsonpath='{.items[*].metadata.name}')
+
+if [ -z "$POD_NAMES" ]; then
+  echo "No pods found for deployment '$RANCHER_DEPLOYMENT' with selector '$SELECTOR' in namespace '$RANCHER_NAMESPACE'."
+  exit 0
+fi
+
+for POD in $POD_NAMES; do
+  echo "----------------------------------------------------" >> "$E2E_RANCHER_LOG" 2>&1
+  echo "Processing pod: $POD" >> "$E2E_RANCHER_LOG" 2>&1
+
+  # Get all container names within the pod
+  CONTAINER_NAMES=$(kubectl get pod "$POD" -n "$RANCHER_NAMESPACE" -o jsonpath='{.spec.containers[*].name}')
+
+  for CONTAINER in $CONTAINER_NAMES; do
+    echo "  Container: $CONTAINER" >> "$E2E_RANCHER_LOG" 2>&1
+
+    # Check if the container has restarted by looking at its restartCount
+    RESTART_COUNT=$(kubectl get pod "$POD" -n "$RANCHER_NAMESPACE" -o jsonpath="{.status.containerStatuses[?(@.name=='$CONTAINER')].restartCount}")
+
+    if [ -n "$RESTART_COUNT" ] && [ "$RESTART_COUNT" -gt 0 ]; then
+      echo "    Container '$CONTAINER' has restarted ($RESTART_COUNT times). Fetching previous logs..." >> "$E2E_RANCHER_LOG" 2>&1
+      kubectl logs "$POD" -c "$CONTAINER" -n "$RANCHER_NAMESPACE" --previous --prefix >> "$E2E_RANCHER_LOG" 2>&1
+      if [ $? -ne 0 ]; then
+        echo "    Warning: Could not retrieve previous logs for container '$CONTAINER' in pod '$POD'." >> "$E2E_RANCHER_LOG" 2>&1
+      fi
+    else
+      echo "    Container '$CONTAINER' has not restarted. Skipping previous logs." >> "$E2E_RANCHER_LOG" 2>&1
+    fi
+
+    echo "    Fetching current logs for container '$CONTAINER'..." >> "$E2E_RANCHER_LOG" 2>&1
+    kubectl logs "$POD" -c "$CONTAINER" -n "$RANCHER_NAMESPACE" --prefix >> "$E2E_RANCHER_LOG" 2>&1
+    if [ $? -ne 0 ]; then
+      echo "    Warning: Could not retrieve current logs for container '$CONTAINER' in pod '$POD'." >> "$E2E_RANCHER_LOG" 2>&1
+    fi
+
+  done
+  echo "----------------------------------------------------" >> "$E2E_RANCHER_LOG" 2>&1
+done
+
+echo "Script completed."
