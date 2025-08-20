@@ -2610,7 +2610,7 @@
     "@smithy/url-parser" "^4.0.5"
     tslib "^2.6.2"
 
-"@smithy/fetch-http-handler@^5.1.1":
+"@smithy/fetch-http-handler@5.1.1", "@smithy/fetch-http-handler@^5.1.1":
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/@smithy/fetch-http-handler/-/fetch-http-handler-5.1.1.tgz#a444c99bffdf314deb447370429cc3e719f1a866"
   integrity sha512-61WjM0PWmZJR+SnmzaKI7t7G0UkkNFboDpzIdzSoy7TByUzlxo18Qlh9s71qug4AY4hlH/CwXdubMtkcNEb/sQ==
