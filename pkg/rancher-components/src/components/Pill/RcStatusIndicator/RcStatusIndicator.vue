@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RcStatusIndicatorProps } from '@components/Pill/RcStatusIndicator/types';
+import { RcStatusIndicatorProps } from './types';
 
 const props = defineProps<RcStatusIndicatorProps>();
 </script>
