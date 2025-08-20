@@ -4067,6 +4067,7 @@ login:
   welcome: Welcome to {vendor}
   landscapeAlt: Landscape image
   loggedOut: You have been logged out.
+  loggedOutSessionIdle: You've been logged out of Rancher because your session has expired. Log in again to continue.
   loggedOutFromSso: You've been logged out of Rancher, however you may still be logged in to your single sign-on identity provider.
   loggedOutFromSlo: You've been logged out of Rancher and from your single sign-on identity provider.
   loginAgain: Log in again to continue.

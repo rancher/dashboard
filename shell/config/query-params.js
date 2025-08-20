@@ -8,6 +8,7 @@ export const STEP = 'step';
 export const LOGGED_OUT = 'logged-out';
 export const IS_SSO = 'is-sso';
 export const IS_SLO = 'is-slo';
+export const IS_SESSION_IDLE = 'is-session-idle';
 export const UPGRADED = 'upgraded';
 export const TIMED_OUT = 'timed-out';
 export const AUTH_TEST = 'test';
