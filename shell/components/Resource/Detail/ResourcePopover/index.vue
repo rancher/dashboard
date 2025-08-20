@@ -55,11 +55,11 @@ watch(
     if (neu && focusOpen.value) {
       const opts = {
         ...DEFAULT_FOCUS_TRAP_OPTS,
-        fallbackFocus:  '#resource-popover-card-content',
+        fallbackFocus:  '#first-glance-item',
         setReturnFocus: () => '.focus-button'
       };
 
-      useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => showPopover.value, '.foobar', opts);
+      useWatcherBasedSetupFocusTrapWithDestroyIncluded(() => showPopover.value, '#resource-popover-card', opts);
     }
   }
 );
@@ -114,8 +114,8 @@ watch(
       <template #popper>
         <ResourcePopoverCard
           v-if="showPopover"
+          id="resource-popover-card"
           ref="card"
-          class="foobar"
           :resource="fetch.data"
           @action-invoked="actionInvoked"
           @keydown.escape="showPopover=false; focusOpen=false"

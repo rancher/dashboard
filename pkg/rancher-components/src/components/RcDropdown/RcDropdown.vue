@@ -63,8 +63,6 @@ const applyShow = () => {
   setFocus('down');
 };
 
-defineExpose({ showMenu });
-
 </script>
 
 <template>

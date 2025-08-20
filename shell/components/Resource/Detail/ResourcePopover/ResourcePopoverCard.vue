@@ -2,7 +2,6 @@
 import Card from '@shell/components/Resource/Detail/Card/index.vue';
 import { useStore } from 'vuex';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
-import { ref } from 'vue';
 import { useI18n } from '@shell/composables/useI18n';
 
 export interface Props {
@@ -34,10 +33,7 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
       />
     </template>
 
-    <div
-      id="resource-popover-card-content"
-      tabindex="-1"
-    >
+    <div>
       <div
         v-for="(glanceItem, i) in props.resource.glance"
         :key="glanceItem.label"
@@ -57,11 +53,13 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
             :is="glanceItem.formatter"
             v-if="glanceItem.formatter"
             v-bind="glanceItem.formatterOpts"
+            :id="i === 0 ? 'first-glance-item' : undefined"
             :value="glanceItem.content"
             :tabindex="i"
           />
           <span
             v-else
+            :id="i === 0 ? 'first-glance-item' : undefined"
             :tabindex="i"
           >
             {{ glanceItem.content }}
