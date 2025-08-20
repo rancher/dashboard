@@ -106,13 +106,14 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
       margin-bottom: 8px;
 
       .full-custom-value {
-        width: 100%;
+        flex: 1;
       }
 
       .value {
         display: flex;
         flex-direction: row;
         align-items: center;
+        flex: 1;
 
         & > div, & > span {
           max-width: 100%;

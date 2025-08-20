@@ -79,9 +79,10 @@ watch(
       :aria-label="i18n.t('component.resource.detail.glance.ariaLabel.showDetails', { name: fetch.data?.nameDisplay, resource: resourceTypeLabel })"
     >
       <div class="target">
-        <span class="display">
+        <span class="display-container">
           <span
             v-if="fetch.data"
+            class="display"
           >
             <RcStatusIndicator
               shape="disc"
@@ -133,12 +134,20 @@ watch(
     @include clip;
   }
 
-  .display {
+  .display-container {
     position: absolute;
     left: 0;
     right: 0;
     top: 0;
     bottom: 0;
+  }
+
+  .display {
+    display: inline-flex;
+    max-width: 100%;
+    a {
+      flex: 1;
+    }
   }
 
   .target {
