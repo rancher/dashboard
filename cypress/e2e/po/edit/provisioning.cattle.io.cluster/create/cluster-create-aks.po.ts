@@ -53,15 +53,15 @@ export default class ClusterManagerCreateAKSPagePo extends ClusterManagerCreateR
   }
 
   getVMsize() {
-    return LabeledSelectPo.byLabel(cy.get('[data-testid="cruaks-form"]'), 'VM Size');
+    return LabeledSelectPo.byLabel(cy.get('.pool'), 'VM Size');
   }
 
   getAvailabiltyZones() {
-    return LabeledSelectPo.byLabel(cy.get('[data-testid="cruaks-form"]'), 'Availability Zones');
+    return LabeledSelectPo.byLabel(cy.get('.pool'), 'Availability Zones');
   }
 
   getOSdiskSize() {
-    return LabeledInputPo.byLabel(cy.get('[data-testid="cruaks-form"]'), 'OS Disk Size');
+    return LabeledInputPo.byLabel(cy.get('.pool'), 'OS Disk Size');
   }
 
   getNodeCount() {
@@ -81,7 +81,7 @@ export default class ClusterManagerCreateAKSPagePo extends ClusterManagerCreateR
   }
 
   getClusterResourceGroup() {
-    return LabeledInputPo.byLabel(cy.get('[data-testid="cruaks-form"]'), 'Cluster Resource Group');
+    return new LabeledInputPo(cy.get('[placeholder*="aks-resource-group"]'));
   }
 
   getNodeResourceGroup() {
@@ -113,7 +113,7 @@ export default class ClusterManagerCreateAKSPagePo extends ClusterManagerCreateR
   }
 
   getDNSprefix() {
-    return LabeledSelectPo.byLabel(cy.get('[data-testid="cruaks-form"]'), 'DNS Prefix');
+    return LabeledSelectPo.byLabel(cy.get('.labeled-select'), 'DNS Prefix');
   }
 
   getNetworkPlugin() {
