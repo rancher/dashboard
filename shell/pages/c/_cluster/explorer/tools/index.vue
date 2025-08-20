@@ -182,6 +182,7 @@ export default {
 
     <div
       class="tools-app-chart-cards"
+      data-testid="tools-app-chart-cards"
     >
       <rc-item-card
         v-for="card in appChartCards"

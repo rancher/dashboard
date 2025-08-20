@@ -13,6 +13,7 @@ import { CLUSTER_APPS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, () => {
   const kubectl = new Kubectl();
+  const chartAppDisplayName = 'Logging';
   const chartApp = 'rancher-logging';
   const chartCrd = 'rancher-logging-crd';
   const chartNamespace = 'cattle-logging-system';
@@ -122,7 +123,7 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     clusterTools.goTo();
     clusterTools.waitForPage();
     cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-    clusterTools.deleteChart(chartApp);
+    clusterTools.deleteChart(chartAppDisplayName);
 
     const promptRemove = new PromptRemove();
 

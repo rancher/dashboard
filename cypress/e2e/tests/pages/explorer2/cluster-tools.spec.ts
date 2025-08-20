@@ -27,14 +27,14 @@ describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
   it('can deploy chart successfully', () => {
     clusterTools.goTo();
     clusterTools.waitForPage();
-    clusterTools.getChartVersion(0).invoke('text').then((el) => {
-      const chartVersion = el.trim().slice(1);
+    clusterTools.getChartVersion('Alerting Drivers').invoke('text').then((el) => {
+      const chartVersion = el.trim();
 
       const chartType = 'rancher-alerting-drivers';
       const installAlertingDriversPage = `repo-type=cluster&repo=rancher-charts&chart=${ chartType }&version=${ chartVersion }&tools`;
       const installCharts = new InstallChartPage();
 
-      clusterTools.goToInstall(0);
+      clusterTools.goToInstall('Alerting Drivers');
       installCharts.waitForPage(installAlertingDriversPage);
       installCharts.nextPage();
 
@@ -50,7 +50,7 @@ describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
   it('can edit chart successfully', () => {
     clusterTools.goTo();
     clusterTools.waitForPage();
-    clusterTools.editChart(0);
+    clusterTools.editChart('Alerting Drivers');
 
     const installChart = new InstallChartPage();
 
@@ -67,7 +67,7 @@ describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
   it('can uninstall chart successfully', () => {
     clusterTools.goTo();
     clusterTools.waitForPage();
-    clusterTools.deleteChart('rancher-alerting-drivers');
+    clusterTools.deleteChart('Alerting Drivers');
 
     const promptRemove = new PromptRemove();
 
