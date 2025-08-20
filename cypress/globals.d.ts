@@ -138,6 +138,14 @@ declare global {
          */
         wait?: number
       })
+      /**
+       * Loop through the array and execute the process, pausing every 5 entries for wait amount
+       */
+      loopProcessWait<T = any>(args: {
+        iterables: T[],
+        process: ({ entry, iteration }: {entry: T, iteration: number}) => Chainable
+        wait?: number
+      }): Chainable;
 
       tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string)
       tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration?: number)

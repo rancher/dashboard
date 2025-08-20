@@ -8,13 +8,15 @@ import {
   settings, serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCases
 } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 
-const settingsPage = new SettingsPagePo('local');
+// If there's more than one cluster the currentCluster used in links can be different to `local`
+const settingsClusterId = 'local';
+const settingsPage = new SettingsPagePo(settingsClusterId);
 const homePage = new HomePagePo();
 const accountPage = new AccountPagePo();
 const clusterList = new ClusterManagerListPagePo();
 const burgerMenu = new BurgerMenuPo();
 const settingsOriginal = {};
-const removeServerUrl = false;
+let removeServerUrl = false;
 const resetSettings = [];
 
 describe('Settings', { testIsolation: 'off' }, () => {
@@ -43,7 +45,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
       settingsPage.editSettingsByLabel('server-url');
 
-      const settingsEdit = settingsPage.editSettings('local', 'server-url');
+      const settingsEdit = settingsPage.editSettings(settingsClusterId, 'server-url');
 
       settingsEdit.waitForPage();
       settingsEdit.title().contains('Setting: server-url').should('be.visible');
@@ -76,7 +78,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     settingsPage.editSettingsByLabel('server-url');
 
-    const settingsEdit = settingsPage.editSettings('local', 'server-url');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'server-url');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: server-url').should('be.visible');
@@ -106,7 +108,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('ui-index');
 
-    const settingsEdit = settingsPage.editSettings('local', 'ui-index');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'ui-index');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: ui-index').should('be.visible');
@@ -144,7 +146,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('ui-dashboard-index');
 
-    const settingsEdit = settingsPage.editSettings('local', 'ui-dashboard-index');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'ui-dashboard-index');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: ui-dashboard-index').should('be.visible');
@@ -182,7 +184,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('ui-offline-preferred');
 
-    const settingsEdit = settingsPage.editSettings('local', 'ui-offline-preferred');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'ui-offline-preferred');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: ui-offline-preferred').should('be.visible');
@@ -265,7 +267,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('ui-brand');
 
-    const settingsEdit = settingsPage.editSettings('local', 'ui-brand');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'ui-brand');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: ui-brand').should('be.visible');
@@ -300,7 +302,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.saveAndWait('ui-brand');
 
     settingsPage.waitForPage();
-    // settingsPage.settingsValue('ui-brand'). .contains(settingsOriginal['ui-brand'].default); .. empty value
+    settingsPage.settingsValue('ui-brand').should('not.contain', settings['ui-brand'].new);
 
     // Check logos in top-level navigation header for updated logo
     HomePagePo.navTo();
@@ -319,7 +321,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('hide-local-cluster');
 
-    const settingsEdit = settingsPage.editSettings('local', 'hide-local-cluster');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'hide-local-cluster');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: hide-local-cluster').should('be.visible');
@@ -354,7 +356,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('k3s-based-upgrader-uninstall-concurrency');
 
-    const settingsEdit = settingsPage.editSettings('local', 'k3s-based-upgrader-uninstall-concurrency');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'k3s-based-upgrader-uninstall-concurrency');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: k3s-based-upgrader-uninstall-concurrency').should('be.visible');
@@ -393,7 +395,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
   //     SettingsPagePo.navTo();
   //     settingsPage.editSettingsByLabel('system-agent-upgrader-install-concurrency');
 
-  //     const settingsEdit = settingsPage.editSettings('local', 'system-agent-upgrader-install-concurrency');
+  //     const settingsEdit = settingsPage.editSettings(settingsClusterId, 'system-agent-upgrader-install-concurrency');
 
   //     settingsEdit.waitForPage();
   //     settingsEdit.title().contains('Setting: system-agent-upgrader-install-concurrency').should('be.visible');
@@ -429,7 +431,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('system-default-registry');
 
-    const settingsEdit = settingsPage.editSettings('local', 'system-default-registry');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'system-default-registry');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: system-default-registry').should('be.visible');
@@ -488,17 +490,18 @@ describe('Settings', { testIsolation: 'off' }, () => {
       });
     }
 
-    resetSettings.forEach((s, i) => {
-      const resource = settingsOriginal[s];
+    // Revert all settings to their original, but don't spam the backend with settings changes
+    cy.loopProcessWait({
+      iterables: resetSettings,
+      process:   ({ entry: s }) => {
+        const resource = settingsOriginal[s];
 
-      cy.getRancherResource('v1', 'management.cattle.io.settings', s).then((res) => {
-        resource.metadata.resourceVersion = res.body.metadata.resourceVersion;
-        cy.setRancherResource('v1', 'management.cattle.io.settings', s, resource );
-      });
+        return cy.getRancherResource('v1', 'management.cattle.io.settings', s).then((res) => {
+          resource.metadata.resourceVersion = res.body.metadata.resourceVersion;
 
-      if (i % 5) {
-        cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
-      }
+          return cy.setRancherResource('v1', 'management.cattle.io.settings', s, resource );
+        });
+      },
     });
   });
 });

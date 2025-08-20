@@ -8,7 +8,9 @@ import * as jsyaml from 'js-yaml';
 import { settings } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 
-const settingsPage = new SettingsPagePo('local');
+// If there's more than one cluster the currentCluster used in links can be different to `local`
+const settingsClusterId = 'local';
+const settingsPage = new SettingsPagePo(settingsClusterId);
 const accountPage = new AccountPagePo();
 const createKeyPage = new CreateKeyPagePo();
 const clusterList = new ClusterManagerListPagePo();
@@ -49,7 +51,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('engine-iso-url');
 
-    const settingsEdit = settingsPage.editSettings('local', 'engine-iso-url');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'engine-iso-url');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: engine-iso-url').should('be.visible');
@@ -91,7 +93,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('password-min-length');
 
-    const settingsEdit = settingsPage.editSettings('local', 'password-min-length');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'password-min-length');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: password-min-length').should('be.visible');
@@ -145,7 +147,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('ingress-ip-domain');
 
-    const settingsEdit = settingsPage.editSettings('local', 'ingress-ip-domain');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'ingress-ip-domain');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: ingress-ip-domain').should('be.visible');
@@ -183,7 +185,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-info-max-age-seconds');
 
-    const settingsEdit = settingsPage.editSettings('local', 'auth-user-info-max-age-seconds');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'auth-user-info-max-age-seconds');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: auth-user-info-max-age-seconds').should('be.visible');
@@ -221,7 +223,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-session-ttl-minutes');
 
-    const settingsEdit = settingsPage.editSettings('local', 'auth-user-session-ttl-minutes');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'auth-user-session-ttl-minutes');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: auth-user-session-ttl-minutes').should('be.visible');
@@ -262,7 +264,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-token-max-ttl-minutes');
 
-    const settingsEdit = settingsPage.editSettings('local', 'auth-token-max-ttl-minutes');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'auth-token-max-ttl-minutes');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: auth-token-max-ttl-minutes').should('be.visible');
@@ -300,7 +302,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('agent-tls-mode');
 
-    const settingsEdit = settingsPage.editSettings('local', 'agent-tls-mode');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'agent-tls-mode');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: agent-tls-mode').should('be.visible');
@@ -330,7 +332,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('kubeconfig-default-token-ttl-minutes');
 
-    const settingsEdit = settingsPage.editSettings('local', 'kubeconfig-default-token-ttl-minutes');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'kubeconfig-default-token-ttl-minutes');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: kubeconfig-default-token-ttl-minutes').should('be.visible');
@@ -368,7 +370,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('auth-user-info-resync-cron');
 
-    const settingsEdit = settingsPage.editSettings('local', 'auth-user-info-resync-cron');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'auth-user-info-resync-cron');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: auth-user-info-resync-cron').should('be.visible');
@@ -406,7 +408,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('kubeconfig-generate-token');
 
-    const settingsEdit = settingsPage.editSettings('local', 'kubeconfig-generate-token');
+    const settingsEdit = settingsPage.editSettings(settingsClusterId, 'kubeconfig-generate-token');
 
     settingsEdit.waitForPage();
     settingsEdit.title().contains('Setting: kubeconfig-generate-token').should('be.visible');
@@ -451,17 +453,18 @@ describe('Settings', { testIsolation: 'off' }, () => {
   });
 
   after(() => {
-    resetSettings.forEach((s, i) => {
-      const resource = settingsOriginal[s];
+    // Revert all settings to their original, but don't spam the backend with settings changes
+    cy.loopProcessWait({
+      iterables: resetSettings,
+      process:   ({ entry: s }) => {
+        const resource = settingsOriginal[s];
 
-      cy.getRancherResource('v1', 'management.cattle.io.settings', s).then((res) => {
-        resource.metadata.resourceVersion = res.body.metadata.resourceVersion;
-        cy.setRancherResource('v1', 'management.cattle.io.settings', s, resource );
-      });
+        return cy.getRancherResource('v1', 'management.cattle.io.settings', s).then((res) => {
+          resource.metadata.resourceVersion = res.body.metadata.resourceVersion;
 
-      if (i % 5) {
-        cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
-      }
+          return cy.setRancherResource('v1', 'management.cattle.io.settings', s, resource );
+        });
+      },
     });
   });
 });
