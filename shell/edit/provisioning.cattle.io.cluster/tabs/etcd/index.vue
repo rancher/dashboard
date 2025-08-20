@@ -62,7 +62,7 @@ export default {
     disableSnapshotsChanged(val) {
       if (val) {
         this.$emit('etcd-validation-changed', true);
-        this.$emit('s3-backup-changed', null);
+        this.$emit('s3-backup-changed', false);
       }
     }
   }
