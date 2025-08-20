@@ -11,11 +11,6 @@ interface userActivityResponse {
   }
 }
 
-interface sessionTokenResponse {
-  current: boolean,
-  name: string
-}
-
 interface parsedInactivitySetting {
   enabled: boolean,
   expiresAt: string | undefined,
@@ -38,11 +33,11 @@ let storedUserActivityResponse: userActivityResponse = {
   metadata: { name: '' },
   status:   { expiresAt: '' }
 };
-let sessionToken: sessionTokenResponse;
+
+let sessionTokenName: string;
 
 export async function checkBackendBasedSessionIdle(store: any): Promise<parsedInactivitySetting> {
   let userActivity;
-  let sessionTokenName;
   const canListSettings = store.getters[`management/canList`](MANAGEMENT.SETTING);
   const canListUserAct = store.getters[`management/canList`](EXT.USERACTIVITY);
   const canListTokens = store.getters[`rancher/canList`](NORMAN.TOKEN);
@@ -63,12 +58,15 @@ export async function checkBackendBasedSessionIdle(store: any): Promise<parsedIn
     const ttlIdleValue = parseInt(userSessionTtlIdleSetting?.value || 0);
     const ttlValue = parseInt(userSessionTtlSetting?.value || 0);
 
-    // this can be improved once https://github.com/rancher/rancher/issues/51580 is fixed
-    // we should not need to store the UI session token globally
-    // side-effect here is that if we the "idle-ttl" setting in the UI, we won't get the updated token
-    if (!sessionToken) {
-      sessionToken = tokens.find((token: any) => token.description === 'UI session' && token.current);
-    }
+    const sessionToken = tokens.find((token: any) => {
+      // this can be improved once https://github.com/rancher/rancher/issues/51580 is fixed
+      // we should not need to store the UI session token name globally
+      if (sessionTokenName) {
+        return token.name === sessionTokenName;
+      } else {
+        return token.description === 'UI session' && token.current;
+      }
+    });
 
     // we only consider this feature as enabled IF ttlIdleValue < ttlValue (will be saving XHR requests if they are the same value - "normal" TTL will log out user)
     if (sessionToken && ttlIdleValue < ttlValue) {
