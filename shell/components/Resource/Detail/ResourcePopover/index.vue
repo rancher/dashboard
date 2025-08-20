@@ -68,7 +68,6 @@ watch(
 <template>
   <div
     class="resource-popover"
-    @mouseenter="showPopover=true"
     @mouseleave="showPopover=false"
   >
     <v-dropdown
@@ -83,6 +82,7 @@ watch(
           <span
             v-if="fetch.data"
             class="display"
+            @mouseenter="showPopover=true"
           >
             <RcStatusIndicator
               shape="disc"
@@ -93,6 +93,12 @@ watch(
             >
               {{ fetch.data.nameDisplay }}
             </router-link>
+            <div
+              ref="popoverContainer"
+              class="resource-popover-container"
+            >
+              <!--Empty container for mounting popper content-->
+            </div>
           </span>
           <span v-else>...</span>
           <button
@@ -102,12 +108,6 @@ watch(
           >
             <i class="icon icon-chevron-down icon-sm" />
           </button>
-          <div
-            ref="popoverContainer"
-            class="resource-popover-container"
-          >
-            <!--Empty container for mounting popper content-->
-          </div>
         </span>
       </div>
 
@@ -183,7 +183,9 @@ watch(
 
   .resource-popover-container {
     position: absolute;
-    height: 10px;
+    $size: 10px;
+    height: $size;
+    bottom: -$size;
     width: 100%;
   }
 
