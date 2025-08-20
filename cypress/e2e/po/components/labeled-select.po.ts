@@ -80,9 +80,9 @@ export default class LabeledSelectPo extends ComponentPo {
   static byLabel(self: CypressChainable, label: string): LabeledSelectPo {
     return new LabeledSelectPo(
       self
-        .find('.labeled-select', { includeShadowDom: true })
-        .contains(label)
-        .next()
+        .contains('label', label)
+        .closest('div')
+        .next('.v-select')
     );
   }
 }

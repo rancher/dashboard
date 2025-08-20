@@ -3,7 +3,7 @@
 export const DEFAULT_REGION = 'eastus';
 
 export const defaultNodePool = {
-  availabilityZones:     ['1', '2', '3'],
+  availabilityZones:     'zone 1zone 2zone 3',
   count:                 '1',
   enableAutoScaling:     false,
   maxPods:               '110',
@@ -16,7 +16,7 @@ export const defaultNodePool = {
   osDiskSizeGB:          '128',
   osDiskType:            'Managed',
   osType:                'Linux',
-  vmSize:                'Standard_DS2_v2',
+  vmSize:                'Standard_D2d_v4',
   _isNewOrUnprovisioned: true,
   _validation:           {}
 };
@@ -33,7 +33,7 @@ export const defaultAksConfig = {
   imported:           false,
   linuxAdminUsername: 'azureuser',
   loadBalancerSku:    'Standard',
-  networkPlugin:      'kubenet',
+  networkPlugin:      'Kubenet',
   privateCluster:     false,
   tags:               {},
   outboundType:       'LoadBalancer',
