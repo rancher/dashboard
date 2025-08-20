@@ -1,6 +1,6 @@
 import { sortBy } from '@shell/utils/sort';
 import { randomStr } from '@shell/utils/string';
-import { FetchHttpHandler } from '@aws-sdk/fetch-http-handler';
+import { FetchHttpHandler } from '@smithy/fetch-http-handler';
 import { isArray, addObjects } from '@shell/utils/array';
 
 export const state = () => {
@@ -11,26 +11,33 @@ export const state = () => {
 };
 
 class Handler {
-  constructor(cloudCredentialId) {
+  constructor(cloudCredentialId, options) {
     this.cloudCredentialId = (cloudCredentialId || '');
+    this.fetchHandler = new FetchHttpHandler(options);
   }
 
-  handle(httpRequest, ...args) {
+  async handle(httpRequest, options = {}) {
+    if (!httpRequest?.headers) {
+      httpRequest.headers = {};
+    }
+
     httpRequest.headers['x-api-headers-restrict'] = 'Content-Length';
 
-    if ( this.cloudCredentialId ) {
+    if (this.cloudCredentialId) {
       httpRequest.headers['x-api-cattleauth-header'] = `awsv4 credID=${ this.cloudCredentialId }`;
-    } else {
+    } else if (httpRequest?.headers['authorization']) {
       httpRequest.headers['x-api-auth-header'] = httpRequest.headers['authorization'];
     }
 
     delete httpRequest.headers['authorization'];
 
-    httpRequest.headers['content-type'] = `rancher:${ httpRequest.headers['content-type'] }`;
+    const originalContentType = httpRequest.headers['content-type'] ?? '';
+
+    httpRequest.headers['content-type'] = originalContentType ? `rancher:${ originalContentType }` : 'rancher:';
 
     const endpoint = `/meta/proxy/`;
 
-    if ( !httpRequest.path.startsWith(endpoint) ) {
+    if (!httpRequest.path.startsWith(endpoint)) {
       httpRequest.path = endpoint + httpRequest.hostname + httpRequest.path;
     }
 
@@ -38,7 +45,7 @@ class Handler {
     httpRequest.hostname = window.location.hostname;
     httpRequest.port = window.location.port;
 
-    return FetchHttpHandler.prototype.handle.call(this, httpRequest, ...args);
+    return this.fetchHandler.handle(httpRequest, options);
   }
 }
 
@@ -107,6 +114,7 @@ export const actions = {
       region,
       credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
       requestHandler:            new Handler(cloudCredentialId),
+      useDualstackEndpoint:      true,
     });
 
     return client;
@@ -121,6 +129,7 @@ export const actions = {
       region,
       credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
       requestHandler:            new Handler(cloudCredentialId),
+      useDualstackEndpoint:      true,
     });
 
     return client;
@@ -135,6 +144,7 @@ export const actions = {
       region,
       credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
       requestHandler:            new Handler(cloudCredentialId),
+      useDualstackEndpoint:      true,
     });
 
     return client;
@@ -149,6 +159,7 @@ export const actions = {
       region,
       credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
       requestHandler:            new Handler(cloudCredentialId),
+      useDualstackEndpoint:      true,
     });
 
     return client;
