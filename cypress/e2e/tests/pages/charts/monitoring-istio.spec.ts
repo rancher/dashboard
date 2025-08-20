@@ -29,7 +29,6 @@ describe('[Vue3 Skip]: [Placeholder]: Charts', { tags: ['@charts', '@adminUser']
 
 //   before(() => {
 //     cy.login();
-//     cy.viewport(1280, 720);
 //   });
 
 //   after(() => {
