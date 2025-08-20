@@ -3,7 +3,8 @@ import { computed, ComputedRef, markRaw, toValue } from 'vue';
 import Additional from '@shell/components/Resource/Detail/Additional.vue';
 import { useStore } from 'vuex';
 import {
-  NAMESPACE, FLEET, SERVICE_ACCOUNT, SECRET, CAPI
+  NAMESPACE, FLEET, SERVICE_ACCOUNT, SECRET, CAPI,
+  MANAGEMENT
 } from '@shell/config/types';
 import { Row } from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/index.vue';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
@@ -125,7 +126,15 @@ export const useProject = (resource: any): ComputedRef<Row> | undefined => {
     return {
       label: i18n.t('component.resource.detail.metadata.identifyingInformation.project'),
       value: resourceValue.project?.nameDisplay,
-      to:    resourceValue.project?.detailLocation
+      valueDataTestid: 'masthead-subheader-project',
+      valueOverride: {
+        component: markRaw(ResourcePopover),
+        props: {
+          type: MANAGEMENT.PROJECT,
+          id: resourceValue.project?.id,
+          currentStore: 'management'
+        }
+      }
     };
   });
 };
