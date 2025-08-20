@@ -88,7 +88,7 @@ export default {
       charts = charts.filter((c) => c.sideLabel !== 'Experimental');
 
       return charts.map((chart) => {
-        const app = this.installedAppForChart[chart.id];
+        const installedApp = this.installedAppForChart[chart.id];
         const card = {
           id:     chart.id,
           header: {
@@ -99,7 +99,7 @@ export default {
           image:          { src: chart.versions[0].icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
           content:        { text: chart.chartDescription },
           rawChart:       chart,
-          app,
+          installedApp,
         };
 
         return card;
@@ -125,9 +125,9 @@ export default {
 
   methods: {
     getCardActions(card) {
-      const { app, rawChart } = card;
+      const { installedApp, rawChart } = card;
 
-      if (app) {
+      if (installedApp) {
         return [
           {
             label:  this.t('catalog.tools.action.upgrade'),
@@ -193,8 +193,8 @@ export default {
         :content="card.content"
         :actions="getCardActions(card)"
         :class="{ 'single-card': appChartCards.length === 1 }"
-        @edit="() => edit(card.app)"
-        @remove="(payload) => remove(card.app, payload.event)"
+        @edit="() => edit(card.installedApp)"
+        @remove="(payload) => remove(card.installedApp, payload.event)"
         @install="() => install(card.rawChart)"
       >
         <template

@@ -14,7 +14,7 @@ describe('page: cluster tools', () => {
           content:        { text: 'Some description' },
           image:          { src: '' },
           subHeaderItems: [],
-          app:            {},
+          installedApp:   {},
           rawChart:       { blocked: false }
         }
       ]
