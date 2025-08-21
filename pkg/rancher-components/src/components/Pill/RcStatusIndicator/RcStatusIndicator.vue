@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RcStatusIndicatorProps } from '@components/Pill/RcStatusIndicator/types';
+import { RcStatusIndicatorProps } from './types';
 
 const props = defineProps<RcStatusIndicatorProps>();
 </script>
@@ -25,8 +25,8 @@ const props = defineProps<RcStatusIndicatorProps>();
         border: 1px solid transparent;
 
         &.disc {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
         }
 
