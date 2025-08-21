@@ -598,7 +598,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       clusterDetail.namespace().should('contain.text', 'fleet-local');
       clusterDetail.namespace().click();
 
-      const nsPage = new ClusterManagerNamespacePagePo('local');
+      const nsPage = new ClusterManagerNamespacePagePo();
 
       nsPage.waitForPage(undefined, 'Resources');
       nsPage.namespace().should('contain.text', 'fleet-local');
