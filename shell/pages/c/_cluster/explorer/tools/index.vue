@@ -146,7 +146,7 @@ export default {
         {
           label:   this.t('catalog.tools.action.install'),
           action:  'install',
-          icon:    'icon-spinner',
+          icon:    'icon-plus',
           enabled: !rawChart.blocked
         }
       ];
