@@ -566,6 +566,21 @@ export type ModelExtensionConstructor = (context: ModelExtensionContext) => Obje
  */
 export interface IPlugin {
   /**
+   * The plugin name
+   */
+  name: string;
+
+  /**
+   * The plugin version
+   */
+  version: string;
+
+  /**
+   * The plugin endpoint URL
+   */
+  endpoint?: string;
+
+  /**
    * Add a product
    * @param importFn Function that will import the module containing a product definition
    */

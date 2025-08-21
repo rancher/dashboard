@@ -1,6 +1,8 @@
+import type { IPlugin } from '@shell/core/types';
+
 export type ExtensionManager = {
   internal(): any;
-  loadPluginAsync(plugin: any): Promise<void>;
+  loadPluginAsync(plugin: IPlugin): Promise<void>;
   loadAsync(id: string, mainFile: string): Promise<void>;
   loadBuiltinExtensions(): void;
   registerBuiltinExtension(id: string, module: any): void;
