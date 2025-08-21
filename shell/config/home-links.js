@@ -3,6 +3,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { allHash } from '@shell/utils/promise';
 import { isRancherPrime } from '@shell/config/version';
+import DOMPurify from 'dompurify';
 
 // i18n-uses customLinks.defaults.*
 const DEFAULT_LINKS = [
@@ -111,6 +112,17 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
 
       uiLinks.defaults = defaults;
     }
+
+    // Check the link values for each custom link
+    uiLinks.custom.forEach((link) => {
+      const anchor = `<a href="${ link.value }"></a>`;
+      const cleanedLink = DOMPurify.sanitize(anchor);
+
+      if (cleanedLink !== anchor) {
+        console.error(`Custom link value "${ link.value }" is not valid for link "${ link.label }"`); // eslint-disable-line no-console
+        link.value = '/#';
+      }
+    });
 
     return ensureSupportLink(uiLinks, hasSupport, isSupportPage, t, store);
   }
