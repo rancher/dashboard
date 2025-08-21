@@ -10,11 +10,11 @@ export type ExtensionManager = {
   logout(): Promise<void>;
   removePlugin(name: string): Promise<void>;
   removeTypeFromStore(store: any, storeName: string, types: string[]): any[];
-  applyPlugin(plugin: any): void;
+  applyPlugin(plugin: IPlugin): void;
   register(type: string, name: string, fn: Function): void;
   unregister(type: string, name: string, fn: Function): void;
   getAll(): any;
-  getPlugins(): any;
+  getPlugins(): IPlugin[];
   getDynamic(typeName: string, name: string): any;
   getValidator(name: string): any;
   getUIConfig(type: string, uiArea: string): any[];

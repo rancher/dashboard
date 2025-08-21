@@ -11,6 +11,8 @@ export interface PackageMetadata {
   version: string;
   description: string;
   icon: string;
+  direct: string;
+  main: string;
 }
 
 // export interface Route {
@@ -561,6 +563,10 @@ export type ModelExtensionContext = {
  */
 export type ModelExtensionConstructor = (context: ModelExtensionContext) => Object;
 
+type Types = Record<string, Array<{ name: string; value: any }>>;
+type UiConfig = Record<string, Record<string, Array<Action | Tab | Panel | Card | TableColumn>>>;
+type L10n = { [key: string]: Function[] };
+
 /**
  * Interface for a Dashboard plugin
  */
@@ -579,6 +585,41 @@ export interface IPlugin {
    * The plugin endpoint URL
    */
   endpoint?: string;
+
+  /**
+   * A collection of custom types registered by the plugin
+   */
+  types: Types;
+
+  /**
+   * The plugin UI configuration
+   */
+  uiConfig: UiConfig;
+
+  /**
+   * Localization resources for the plugin
+   */
+  l10n: L10n;
+
+  /**
+   * Model extensions provided by the plugin
+   */
+  modelExtensions: { [key: string]: Function[] };
+
+  /**
+   * Vuex stores registered by the plugin
+   */
+  stores: Array<{ register: () => (store: VuexStoreObject) => void }>;
+
+  /**
+   * Locales supported by the plugin
+   */
+  locales: { locale: string, label: string }[];
+
+  /**
+   * Routes added to Vue Router by the plugin
+   */
+  routes: PluginRouteRecordRaw[];
 
   /**
    * Add a product
