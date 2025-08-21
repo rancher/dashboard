@@ -94,7 +94,7 @@ export default {
       this.errors = [];
 
       // Guard against events that can be implicitly passed by components
-      const modalData = data instanceof Event ? undefined : data;
+      const modalData = (data instanceof Event || !data?.performCallback) ? undefined : data;
 
       this.$store.commit('action-menu/togglePromptModal', modalData);
 
