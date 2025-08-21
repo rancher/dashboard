@@ -39,6 +39,7 @@ import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
 import { isDevBuild } from '@shell/utils/version';
 import { markRaw } from 'vue';
 import paginationUtils from '@shell/utils/pagination-utils';
+import { addReleaseNotesNotification } from '@shell/utils/release-notes';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -263,6 +264,7 @@ export const state = () => {
      * Cache state of side nav clusters. This avoids flickering when the user changes pages and the side nav component re-renders
      */
     sideNavCache:            undefined,
+    showWorkspaceSwitcher:   true,
   };
 };
 
@@ -601,6 +603,16 @@ export const getters = {
     return getters['isRancherInHarvester'] || getters['isMultiCluster'] || !getters['isSingleProduct'];
   },
 
+  showWorkspaceSwitcher(state, getters) {
+    const product = getters['currentProduct'];
+
+    if (!product) {
+      return false;
+    }
+
+    return product.showWorkspaceSwitcher && state.showWorkspaceSwitcher;
+  },
+
   targetRoute(state) {
     return state.targetRoute;
   },
@@ -763,7 +775,11 @@ export const mutations = {
 
   setSideNavCache(state, sideNavCache) {
     state.sideNavCache = sideNavCache;
-  }
+  },
+
+  showWorkspaceSwitcher(state, value) {
+    state.showWorkspaceSwitcher = value;
+  },
 };
 
 export const actions = {
@@ -879,6 +895,11 @@ export const actions = {
 
     if (brand) {
       setBrand(brand);
+    }
+
+    // Add the notification for the release notes
+    if (isRancher) {
+      await addReleaseNotesNotification(dispatch, getters);
     }
 
     if (systemNamespaces) {
@@ -1289,6 +1310,10 @@ export const actions = {
 
   setSideNavCache({ commit }, sideNavCache) {
     commit('setSideNavCache', sideNavCache);
+  },
+
+  showWorkspaceSwitcher({ commit }, value) {
+    commit('showWorkspaceSwitcher', value);
   },
 
   ...gcActions

@@ -24,11 +24,11 @@ export class ChartPage extends PagePo {
     const chartsPage = new ChartsPage(clusterId);
 
     ChartsPage.navTo();
-    chartsPage.charts().select(chartName);
+    chartsPage.clickChart(chartName);
   }
 
   chartHeader(options?: any) {
-    return this.self().find('.name-logo h1', options).invoke('text');
+    return this.self().find('[data-testid="chart-header-title"]', options).invoke('text');
   }
 
   waitForChartHeader(title: string, options?: any) {
@@ -48,6 +48,26 @@ export class ChartPage extends PagePo {
   }
 
   selectVersion(version: string) {
-    return this.self().find('.chart-content__right-bar__section--cVersion').contains(version).click();
+    return this.self().find('[data-testid="chart-version-link"]').contains(version).click();
+  }
+
+  versions() {
+    return this.self().find('[data-testid="chart-versions"]');
+  }
+
+  versionLinks() {
+    return this.versions().find('[data-testid="chart-version-link"]');
+  }
+
+  showMoreVersions() {
+    return this.self().find('[data-testid="chart-show-more-versions"]');
+  }
+
+  repoLink() {
+    return this.self().find('[data-testid="chart-repo-link"]');
+  }
+
+  keywords() {
+    return this.self().find('[data-testid="chart-keyword-link"]');
   }
 }

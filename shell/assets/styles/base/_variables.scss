@@ -42,30 +42,36 @@ $z-indexes: (
 
   cruFooter: 19,
 
-  modalOverlay: 20,
-  modalContent: 21,
+  loadingMain: 51,
 
-  tooltip: 30,
+  slide-in: 52,
 
-  dropdownOverlay: 40,
-  dropdownContent: 41,
+  modalOverlay: 53,
+  modalContent: 54,
 
-  loadingMain: 51
+  dropdownOverlay: 55,
+  dropdownContent: 56,
+
+  tooltip: 57,
 );
 
 // Usage Example:
 // @media only screen and (min-width: map-get($breakpoints, '--viewport-*')) {
 // }
 $breakpoints: (
-  '--viewport-4':  480px, // Phone
-  '--viewport-7':  768px, // Tablet
-  '--viewport-9':  992px, // Laptop/Desktop
-  '--viewport-12': 1281px, // Desktop
+  '--viewport-4': 480px,
+  // Phone
+  '--viewport-7': 768px,
+  // Tablet
+  '--viewport-9': 992px,
+  // Laptop/Desktop
+  '--viewport-12': 1281px,
+  // Desktop
 );
 
 $font-size-h2: 21px;
 
 // Global spacing variables
 $space-s: 10px;
-$space-m: 20px;
+$space-m: 24px;
 $space-l: 40px;

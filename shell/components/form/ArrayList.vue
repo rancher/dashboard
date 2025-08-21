@@ -49,6 +49,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    addClass: {
+      type:    String,
+      default: '',
+    },
     addIcon: {
       type:    String,
       default: '',
@@ -300,6 +304,7 @@ export default {
           :key="idx"
           :data-testid="`${componentTestid}-box${ idx }`"
           class="box"
+          :class="{'hide-remove-is-view': isView}"
           role="group"
         >
           <slot
@@ -358,7 +363,7 @@ export default {
             </div>
           </slot>
           <div
-            v-if="showRemove"
+            v-if="showRemove && !isView"
             class="remove"
           >
             <slot
@@ -380,6 +385,12 @@ export default {
               </button>
             </slot>
           </div>
+          <slot
+            name="value-sub-row"
+            :row="row"
+            :mode="mode"
+            :isView="isView"
+          />
         </div>
       </template>
       <div v-else>
@@ -394,7 +405,7 @@ export default {
       </div>
       <div
         v-if="showAdd && !isView"
-        class="footer mt-20"
+        class="footer mmt-6"
       >
         <slot
           v-if="showAdd"
@@ -404,6 +415,7 @@ export default {
           <button
             type="button"
             class="btn role-tertiary add"
+            :class="[addClass]"
             :disabled="loading || disableAdd"
             :data-testid="`${componentTestid}-button`"
             :aria-label="_addLabel"
@@ -443,6 +455,11 @@ export default {
       }
     }
   }
+
+  .box.hide-remove-is-view {
+    grid-template-columns: auto;
+  }
+
   .remove {
     text-align: right;
   }

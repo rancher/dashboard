@@ -229,7 +229,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   it('can create an oci repository with basic auth', function() {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    repositoriesPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?exclude=metadata.managedFields`);
+    repositoriesPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
     repositoriesPage.create();
     repositoriesPage.createEditRepositories().waitForPage();
     const ociUrl = 'oci://test.rancher.io/charts/mychart';
@@ -283,6 +283,9 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
   });
 
   it('can disable/enable a repository', function() {
+    // The context menu can slightly clip at the top of the screen. This ensures it's visible.
+    cy.viewport(1280, 720);
+
     // create repo
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();

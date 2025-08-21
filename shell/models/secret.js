@@ -1,8 +1,8 @@
 import r from 'jsrsasign';
-import { CERTMANAGER, KUBERNETES } from '@shell/config/labels-annotations';
+import { CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { removeObjects } from '@shell/utils/array';
-import { SERVICE_ACCOUNT } from '@shell/config/types';
+import { MANAGEMENT, SERVICE_ACCOUNT, VIRTUAL_TYPES } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -10,6 +10,8 @@ import { colorForState, stateDisplay, STATES_ENUM } from '@shell/plugins/dashboa
 import { diffFrom } from '@shell/utils/time';
 import day from 'dayjs';
 import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
+import { STORE } from '@shell/store/store-types';
+import { escapeHtml } from '@shell/utils/string';
 
 export const TYPES = {
   OPAQUE:           'Opaque',
@@ -159,6 +161,10 @@ export default class Secret extends SteveModel {
   }
 
   get canUpdate() {
+    if (this.isProjectSecretCopy) {
+      return false;
+    }
+
     if ( !this.hasLink('update') ) {
       return false;
     }
@@ -168,6 +174,20 @@ export default class Secret extends SteveModel {
     }
 
     return this.$rootGetters['type-map/optionsFor'](this.type).isEditable;
+  }
+
+  get canDelete() {
+    // Deleting a copy / synced secret that was created in a namespace in a project that has a project scoped secret
+    // will only be temporary (the parent project scoped secret will recreate it)
+    return this.isProjectSecretCopy ? false : super.canDelete;
+  }
+
+  get canCreate() {
+    return this.isProjectSecretCopy ? false : super.canCreate;
+  }
+
+  get canEditYaml() {
+    return this.isProjectSecretCopy ? false : super.canEditYaml;
   }
 
   get keysDisplay() {
@@ -469,5 +489,144 @@ export default class Secret extends SteveModel {
     // ref: https://kubernetes.io/docs/concepts/configuration/secret/#secret-types
 
     return steveCleanForDownload(yaml, { rootKeys: ['id', 'links', 'actions'] });
+  }
+
+  /**
+   * is this a project scoped secret .... or also a cloned project scoped secret
+   */
+  get isProjectScopedRelated() {
+    return !!this.metadata.labels?.[UI_PROJECT_SECRET];
+  }
+
+  /**
+   * is this a project scoped secret
+   */
+  get isProjectScoped() {
+    return this.isProjectScopedRelated && !this.isProjectSecretCopy && this.$rootGetters['isRancher'];
+  }
+
+  get projectScopedClusterId() {
+    if (!this.projectScopedProjectId) {
+      return undefined;
+    }
+
+    const clusterId = this.metadata.namespace.replace(`-${ this.projectScopedProjectId }`, '');
+
+    // default and system pss don't follow the patter of <cluster>-<project>, so if they match assume its one of them
+    return clusterId === this.metadata.namespace ? 'local' : clusterId;
+  }
+
+  get projectScopedProjectId() {
+    return this.metadata.labels?.[UI_PROJECT_SECRET];
+  }
+
+  get isProjectSecretCopy() {
+    return this.metadata?.annotations?.[UI_PROJECT_SECRET_COPY] === 'true';
+  }
+
+  get projectCluster() {
+    if (!this.isProjectScoped) {
+      return undefined;
+    }
+
+    return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.CLUSTER, this.projectScopedClusterId);
+  }
+
+  /**
+   * If this is a project scoped secret, return it
+   */
+  get project() {
+    if (!this.isProjectScoped ) {
+      return undefined;
+    }
+
+    return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, `${ this.projectScopedClusterId }/${ this.projectScopedProjectId }`);
+  }
+
+  get projectScopedSecretCluster() {
+    if (!this.isProjectScoped ) {
+      return undefined;
+    }
+
+    return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, `${ this.projectScopedClusterId }/${ this.projectScopedProjectId }`);
+  }
+
+  get clusterAndProjectLabel() {
+    if (!this.isProjectScoped) {
+      return '';
+    }
+    const clusterName = this.projectCluster?.nameDisplay;
+    // project is going to be empty if upstream and trying to show pss from downstream clusters
+    // we only ever have the current clusters projects. if we change this (fetch them in the list)
+    // we wipe out the header ns filter projects
+    const projectName = this.project?.nameDisplay || this.projectScopedProjectId;
+
+    if (clusterName && projectName) {
+      return `${ projectName } (${ clusterName })`;
+    }
+
+    return '';
+  }
+
+  get detailLocation() {
+    if (this.isProjectScoped) {
+      const id = this.id?.replace(/.*\//, '');
+
+      return {
+        name:   `c-cluster-product-${ VIRTUAL_TYPES.PROJECT_SECRETS }-namespace-id`,
+        params: {
+          product:   this.$rootGetters['productId'],
+          cluster:   this.$rootGetters['clusterId'],
+          namespace: this.metadata?.namespace,
+          resource:  VIRTUAL_TYPES.PROJECT_SECRETS,
+          id,
+        }
+      };
+    }
+
+    return this._detailLocation;
+  }
+
+  get listLocation() {
+    if (!this.isProjectScoped) {
+      return super.listLocation;
+    }
+
+    return {
+      name:   'c-cluster-product-resource',
+      params: {
+        product:  this.$rootGetters['productId'],
+        cluster:  this.$rootGetters['clusterId'],
+        resource: VIRTUAL_TYPES.PROJECT_SECRETS,
+      }
+    };
+  }
+
+  get parentNameOverride() {
+    if (!this.isProjectScoped) {
+      return super.parentNameOverride;
+    }
+
+    return this.$rootGetters['i18n/t'](`typeLabel."${ VIRTUAL_TYPES.PROJECT_SECRETS }"`, { count: 1 })?.trim();
+  }
+
+  get parentLocationOverride() {
+    if (!this.isProjectScoped) {
+      return super.parentNameOverride;
+    }
+
+    return this.listLocation;
+  }
+
+  get groupByProject() {
+    if (!this.isProjectScoped) {
+      return undefined;
+    }
+
+    return this.t('resourceTable.groupLabel.project', { name: escapeHtml(this?.project?.nameDisplay || '') }, true);
+  }
+
+  get fullDetailPageOverride() {
+    return true;
   }
 }

@@ -7,7 +7,7 @@
  *
  * <rc-button primary @click="doAction">Perform an Action</rc-button>
  */
-import { computed, ref, defineExpose } from 'vue';
+import { computed, ref } from 'vue';
 import { ButtonRoleProps, ButtonSizeProps } from './types';
 
 const buttonRoles: { role: keyof ButtonRoleProps, className: string }[] = [

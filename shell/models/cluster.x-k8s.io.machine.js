@@ -60,13 +60,13 @@ export default class CapiMachine extends SteveModel {
     const openSsh = {
       action:  'openSsh',
       enabled: !!this.links.shell && this.isRunning,
-      icon:    'icon icon-fw icon-chevron-right',
+      icon:    'icon icon-chevron-right',
       label:   'SSH Shell',
     };
     const downloadKeys = {
       action:  'downloadKeys',
       enabled: !!this.links.sshkeys,
-      icon:    'icon icon-fw icon-download',
+      icon:    'icon icon-download',
       label:   this.t('node.actions.downloadSSHKey'),
     };
     const forceRemove = {
@@ -80,7 +80,7 @@ export default class CapiMachine extends SteveModel {
       action:     'toggleScaleDownModal',
       bulkAction: 'toggleScaleDownModal',
       enabled:    !!this.canScaleDown,
-      icon:       'icon icon-minus icon-fw',
+      icon:       'icon icon-minus',
       label:      this.t('node.actions.scaleDown'),
       bulkable:   true
     };

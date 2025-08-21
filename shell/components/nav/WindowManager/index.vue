@@ -383,7 +383,7 @@ export default {
         <span class="tab-label"> {{ tab.label }}</span>
         <i
           data-testid="wm-tab-close-button"
-          class="closer icon icon-fw icon-x wm-closer-button"
+          class="closer icon icon-x wm-closer-button"
           :alt="t('wm.containerShell.closeShellTab', { tab: tab.label })"
           tabindex="0"
           :aria-label="t('windowmanager.closeTab', { tabId: tab.id })"
@@ -428,9 +428,9 @@ export default {
       </div>
     </div>
     <div
-      v-for="(tab, i) in tabs"
+      v-for="tab in tabs"
       :id="`panel-${tab.id}`"
-      :key="i"
+      :key="tab.id"
       class="body"
       :class="{'active': tab.id === active}"
       draggable="false"

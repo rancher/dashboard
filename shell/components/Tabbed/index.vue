@@ -66,6 +66,19 @@ export default {
     resource: {
       type:    Object,
       default: () => {}
+    },
+
+    showExtensionTabs: {
+      type:    Boolean,
+      default: true,
+    },
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'tabbed'
     }
   },
 
@@ -92,7 +105,7 @@ export default {
   },
 
   data() {
-    const extensionTabs = getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams) || [];
+    const extensionTabs = this.showExtensionTabs ? getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams) || [] : [];
 
     const parsedExtTabs = extensionTabs.map((item) => {
       return {
@@ -145,17 +158,10 @@ export default {
         this.select(activeTab.name);
       }
     },
-  },
-
-  mounted() {
-    if ( this.useHash ) {
-      window.addEventListener('hashchange', this.hashChange);
-    }
-  },
-
-  unmounted() {
-    if ( this.useHash ) {
-      window.removeEventListener('hashchange', this.hashChange);
+    '$route.hash'() {
+      if ( this.useHash ) {
+        this.hashChange();
+      }
     }
   },
 
@@ -164,7 +170,7 @@ export default {
       return tab.displayAlertIcon || (tab.error && !tab.active);
     },
     hashChange() {
-      if (!this.scrollOnChange) {
+      if (this.scrollOnChange) {
         const scrollable = document.getElementsByTagName('main')[0];
 
         if (scrollable) {
@@ -182,8 +188,9 @@ export default {
     select(name/* , event */) {
       const { sortedTabs } = this;
 
-      const selected = this.find(name);
-      const hashName = `#${ name }`;
+      const cleanName = name.replace('#', '');
+      const selected = this.find(cleanName);
+      const hashName = `#${ cleanName }`;
 
       if ( !selected || selected.disabled) {
         return;
@@ -254,8 +261,12 @@ export default {
 
 <template>
   <div
-    :class="{'side-tabs': !!sideTabs, 'tabs-only': tabsOnly }"
-    data-testid="tabbed"
+    class="tabbed-container"
+    :class="{
+      'side-tabs': !!sideTabs,
+      'tabs-only': tabsOnly
+    }"
+    :data-testid="componentTestid"
   >
     <ul
       v-if="!hideTabs"
@@ -263,7 +274,7 @@ export default {
       role="tablist"
       class="tabs"
       :class="{'clearfix':!sideTabs, 'vertical': sideTabs, 'horizontal': !sideTabs}"
-      data-testid="tabbed-block"
+      :data-testid="`${componentTestid}-block`"
       tabindex="0"
       @keydown.right.prevent="selectNext(1)"
       @keydown.left.prevent="selectNext(-1)"
@@ -281,7 +292,7 @@ export default {
       >
         <a
           :data-testid="`btn-${tab.name}`"
-          :aria-controls="'#' + tab.name"
+          :aria-controls="tab.name"
           :aria-selected="tab.active"
           :aria-label="tab.labelDisplay || ''"
           role="tab"
@@ -318,6 +329,7 @@ export default {
             type="button"
             class="btn bg-transparent"
             data-testid="tab-list-add"
+            :aria-label="t('tabs.addItem')"
             @click="tabAddClicked"
           >
             <i class="icon icon-plus" />
@@ -327,6 +339,7 @@ export default {
             class="btn bg-transparent"
             :disabled="!sortedTabs.length"
             data-testid="tab-list-remove"
+            :aria-label="t('tabs.removeItem')"
             @click="tabRemoveClicked"
           >
             <i class="icon icon-minus" />
@@ -368,6 +381,10 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.tabbed-container {
+  min-width: fit-content;
+}
+
 .tabs {
   list-style-type: none;
   margin: 0;
@@ -540,6 +557,7 @@ export default {
       list-style: none;
       padding: 0;
       margin-top: auto;
+      z-index: z-index('default');
 
       li {
         display: flex;
@@ -549,16 +567,25 @@ export default {
           flex: 1 1;
           display: flex;
           justify-content: center;
+
+          &:focus-visible {
+            @include focus-outline;
+          }
         }
 
         button:first-of-type {
           border-top: solid 1px var(--border);
           border-right: solid 1px var(--border);
+          border-top-left-radius: 0;
           border-top-right-radius: 0;
+          border-bottom-right-radius: 0;
         }
         button:last-of-type {
           border-top: solid 1px var(--border);
+          border-top-right-radius: 0;
           border-top-left-radius: 0;
+          border-bottom-left-radius: 0;
+          border-bottom-right-radius: 0;
         }
       }
     }

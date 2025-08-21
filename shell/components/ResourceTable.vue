@@ -217,11 +217,16 @@ export default {
       default: null, // Default comes from the user preference
     },
 
+    overrideInStore: {
+      type:    String,
+      default: undefined,
+    },
+
   },
 
   data() {
     // Confirm which store we're in, if schema isn't available we're probably showing a list with different types
-    const inStore = this.schema?.id ? this.$store.getters['currentStore'](this.schema.id) : undefined;
+    const inStore = this.overrideInStore || (this.schema?.id ? this.$store.getters['currentStore'](this.schema.id) : undefined);
 
     return {
       inStore,

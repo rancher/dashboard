@@ -1,6 +1,6 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { STATES_ENUM, colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { NAME, NAMESPACE, STATE, TYPE } from '@shell/config/table-headers';
 import { sortableNumericSuffix } from '@shell/utils/sort';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
@@ -70,9 +70,9 @@ export default {
       const out = [];
 
       for ( const r of this.filteredRelationships) {
-        const state = r.state || 'active';
-        const stateColor = colorForState(state, r.error, r.transitioning);
         const type = r[`${ this.direction }Type`];
+        const state = r.state || this.$store.getters[`${ inStore }/byId`](type, r[`${ this.direction }Id`])?.state || STATES_ENUM.MISSING;
+        const stateColor = colorForState(state, r.error, r.transitioning);
         const schema = this.$store.getters[`${ inStore }/schemaFor`](type);
 
         let name = r[`${ this.direction }Id`];
@@ -104,7 +104,6 @@ export default {
 
         out.push({
           type,
-          real:     this.$store.getters[`${ inStore }/byId`](type, r[`${ this.direction }Id`]),
           id:       r[`${ this.direction }Id`],
           state,
           metadata: { namespace, name },
@@ -174,14 +173,7 @@ export default {
     :groupable="false"
   >
     <template #cell:state="{row}">
-      <BadgeState
-        v-if="row.real"
-        :value="row.real"
-      />
-      <BadgeState
-        v-else
-        :value="row"
-      />
+      <BadgeState :value="row" />
     </template>
   </ResourceTable>
 </template>

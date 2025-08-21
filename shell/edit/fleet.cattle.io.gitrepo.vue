@@ -1,33 +1,28 @@
 <script>
-import { exceptionToErrorsArray } from '@shell/utils/error';
 import { mapGetters } from 'vuex';
-import {
-  AUTH_TYPE, FLEET, NORMAN, SECRET, VIRTUAL_HARVESTER_PROVIDER
-} from '@shell/config/types';
+import { AUTH_TYPE, NORMAN, SECRET } from '@shell/config/types';
 import { set } from '@shell/utils/object';
-import ArrayList from '@shell/components/form/ArrayList';
 import { Banner } from '@components/Banner';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import InputWithSelect from '@shell/components/form/InputWithSelect';
-import jsyaml from 'js-yaml';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Labels from '@shell/components/form/Labels';
 import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import YamlEditor from '@shell/components/YamlEditor';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
-import { isHarvesterCluster } from '@shell/utils/cluster';
-import { CAPI, CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
+import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
-import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FormValidation from '@shell/mixins/form-validation';
 import UnitInput from '@shell/components/form/UnitInput';
+import FleetClusterTargets from '@shell/components/fleet/FleetClusterTargets/index.vue';
 import { toSeconds } from '@shell/utils/duration';
+import FleetGitRepoPaths from '@shell/components/fleet/FleetGitRepoPaths.vue';
+import FleetOCIStorageSecret from '@shell/components/fleet/FleetOCIStorageSecret.vue';
 
 const MINIMUM_POLLING_INTERVAL = 15;
 const DEFAULT_POLLING_INTERVAL = 60;
@@ -45,38 +40,24 @@ export default {
 
   components: {
     Checkbox,
-    ArrayList,
     Banner,
     CruResource,
+    FleetOCIStorageSecret,
+    FleetGitRepoPaths,
     InputWithSelect,
     Labels,
     LabeledInput,
     LabeledSelect,
     Loading,
     NameNsDescription,
-    YamlEditor,
     SelectOrCreateAuthSecret,
+    FleetClusterTargets,
     UnitInput,
   },
 
   mixins: [CreateEditView, FormValidation],
 
   async fetch() {
-    const hash = await checkSchemasForFindAllHash({
-      allClusters: {
-        inStoreType: 'management',
-        type:        FLEET.CLUSTER
-      },
-
-      allClusterGroups: {
-        inStoreType: 'management',
-        type:        FLEET.CLUSTER_GROUP
-      }
-    }, this.$store);
-
-    this.allClusters = hash.allClusters || [];
-    this.allClusterGroups = hash.allClusterGroups || [];
-
     let tls = _VERIFY;
 
     if ( this.value.spec.insecureSkipTLSVerify ) {
@@ -93,8 +74,6 @@ export default {
     this.tlsMode = tls;
 
     this.correctDriftEnabled = this.value.spec?.correctDrift?.enabled || false;
-
-    this.updateTargets();
   },
 
   data() {
@@ -109,28 +88,10 @@ export default {
       }
     }
 
-    const targetInfo = this.value.targetInfo;
-    const targetCluster = targetInfo.cluster;
-    const targetClusterGroup = targetInfo.clusterGroup;
-    const targetAdvanced = targetInfo.advanced;
-
     const ref = ( this.value.spec?.revision ? 'revision' : 'branch' );
     const refValue = this.value.spec?.[ref] || '';
 
-    let targetMode = targetInfo.mode;
-
-    if ( this.realMode === _CREATE ) {
-      targetMode = 'all';
-    } else if ( targetMode === 'cluster' ) {
-      targetMode = `cluster://${ targetCluster }`;
-    } else if ( targetMode === 'clusterGroup' ) {
-      targetMode = `group://${ targetClusterGroup }`;
-    }
-
     return {
-      allClusters:             [],
-      allClusterGroups:        [],
-      allWorkspaces:           [],
       tempCachedValues:        {},
       username:                null,
       password:                null,
@@ -139,23 +100,16 @@ export default {
       tlsMode:                 null,
       caBundle:                null,
       correctDriftEnabled:     false,
-      targetAdvancedErrors:    null,
-      matchingClusters:        null,
       pollingInterval,
       ref,
       refValue,
-      targetMode,
-      targetCluster,
-      targetClusterGroup,
-      targetAdvanced,
       displayHelmRepoURLRegex: false,
+      targetsCreated:          '',
       fvFormRuleSets:          [{
         path:  'spec.repo',
-        rules: [
-          'required',
-          'gitRepository'
-        ],
-      }]
+        rules: ['urlRepository'],
+      }],
+      touched: null,
     };
   },
 
@@ -207,92 +161,8 @@ export default {
       ];
     },
 
-    isLocal() {
-      return this.value.metadata.namespace === 'fleet-local';
-    },
-
     isTls() {
       return !(this.value?.spec?.repo || '').startsWith('http://');
-    },
-
-    isPollingEnabled() {
-      return !this.value.spec.disablePolling;
-    },
-
-    isWebhookConfigured() {
-      return !!this.value.status?.webhookCommit;
-    },
-
-    targetOptions() {
-      const out = [
-        {
-          label: 'No Clusters',
-          value: 'none'
-        },
-        {
-          label: 'All Clusters in the Workspace',
-          value: 'all',
-        },
-        {
-          label: 'Advanced',
-          value: 'advanced'
-        },
-      ];
-
-      const clusters = this.allClusters
-        .filter((x) => {
-          return x.metadata.namespace === this.value.metadata.namespace;
-        })
-        .filter((x) => !isHarvesterCluster(x))
-        .map((x) => {
-          return { label: x.nameDisplay, value: `cluster://${ x.metadata.name }` };
-        });
-
-      if ( clusters.length ) {
-        out.push({ kind: 'divider', disabled: true });
-        out.push({
-          kind:     'title',
-          label:    'Clusters',
-          disabled: true,
-        });
-
-        out.push(...clusters);
-      }
-
-      const groups = this.allClusterGroups
-        .filter((x) => x.metadata.namespace === this.value.metadata.namespace)
-        .map((x) => {
-          return { label: x.nameDisplay, value: `group://${ x.metadata.name }` };
-        });
-
-      if ( groups.length ) {
-        out.push({ kind: 'divider', disabled: true });
-        out.push({
-          kind:     'title',
-          label:    'Cluster Groups',
-          disabled: true
-        });
-
-        out.push(...groups);
-      }
-
-      return out;
-    },
-
-    clusterNames() {
-      const out = this.allClusters
-        .filter((x) => x.metadata.namespace === this.value.metadata.namespace)
-        .map((x) => x.metadata.name);
-
-      return out;
-    },
-
-    clusterGroupNames() {
-      const out = this.allClusterGroups
-        .filter((x) => x.metadata.namespace === this.value.metadata.namespace)
-        .map((x) => x.metadata.name);
-
-      return out;
     },
 
     tlsOptions() {
@@ -304,18 +174,13 @@ export default {
     },
 
     showPollingIntervalWarning() {
-      return !this.isView && this.isPollingEnabled && this.pollingInterval < MINIMUM_POLLING_INTERVAL;
+      return !this.isView && this.value.isPollingEnabled && this.pollingInterval < MINIMUM_POLLING_INTERVAL;
     },
   },
 
   watch: {
-    'value.metadata.namespace': 'updateTargets',
-    targetMode:                 'updateTargets',
-    targetCluster:              'updateTargets',
-    targetClusterGroup:         'updateTargets',
-    targetAdvanced:             'updateTargets',
-    tlsMode:                    'updateTls',
-    caBundle:                   'updateTls',
+    tlsMode:  'updateTls',
+    caBundle: 'updateTls',
 
     workspace(neu) {
       if ( this.isCreate ) {
@@ -328,9 +193,20 @@ export default {
     this.registerBeforeHook(this.cleanTLS, 'cleanTLS');
     this.registerBeforeHook(this.doCreateSecrets, `registerAuthSecrets${ new Date().getTime() }`, 99);
     this.registerBeforeHook(this.updateBeforeSave);
+
+    if (this.realMode === _EDIT && this.workspace !== this.value.namespace) {
+      this.$store.commit('updateWorkspace', { value: this.value.namespace, getters: this.$store.getters });
+    }
   },
 
   methods: {
+    updatePaths(value) {
+      const { paths, bundles } = value;
+
+      this.value.spec.paths = paths;
+      this.value.spec.bundles = bundles;
+    },
+
     set,
 
     cleanTLS() {
@@ -360,59 +236,15 @@ export default {
       this.updateCachedAuthVal(val, key);
     },
 
+    updateTargets(value) {
+      this.value.spec.targets = value;
+    },
+
     toggleHelmRepoURLRegex(active) {
       this.displayHelmRepoURLRegex = active;
 
       if (!active) {
         delete this.value.spec?.helmRepoURLRegex;
-      }
-    },
-
-    updateTargets() {
-      const spec = this.value.spec;
-      const mode = this.targetMode;
-
-      let kind, value;
-      const match = mode.match(/([^:]+)(:\/\/(.*))?$/);
-
-      if ( match ) {
-        kind = match[1];
-        value = match[3];
-      }
-
-      if ( kind === 'all' ) {
-        spec.targets = [{
-          clusterSelector: {
-            matchExpressions: [{
-              key:      CAPI.PROVIDER,
-              operator: 'NotIn',
-              values:   [
-                VIRTUAL_HARVESTER_PROVIDER
-              ],
-            }],
-          },
-        }];
-      } else if ( kind === 'none' ) {
-        spec.targets = [];
-      } else if ( kind === 'cluster' ) {
-        spec.targets = [
-          { clusterName: value },
-        ];
-      } else if ( kind === 'group' ) {
-        spec.targets = [
-          { clusterGroup: value }
-        ];
-      } else if ( kind === 'advanced' ) {
-        try {
-          const parsed = jsyaml.load(this.targetAdvanced);
-
-          spec.targets = parsed;
-          this.targetAdvancedErrors = null;
-        } catch (e) {
-          this.targetAdvancedErrors = exceptionToErrorsArray(e);
-        }
-      } else {
-        spec.targets = [];
       }
     },
 
@@ -651,17 +483,15 @@ export default {
         </div>
       </div>
 
-      <ArrayList
-        v-model:value="value.spec.paths"
-        data-testid="gitRepo-paths"
-        :title="t('fleet.gitRepo.paths.label')"
+      <FleetGitRepoPaths
+        :value="{
+          paths: value.spec.paths,
+          bundles: value.spec.bundles
+        }"
         :mode="mode"
-        :initial-empty-row="false"
-        :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
-        :add-label="t('fleet.gitRepo.paths.addLabel')"
-        :a11y-label="t('fleet.gitRepo.paths.ariaLabel')"
-        :add-icon="'icon-plus'"
-        :protip="t('fleet.gitRepo.paths.empty')"
+        :touched="touched"
+        @update:value="updatePaths"
+        @touched="touched=$event"
       />
     </template>
 
@@ -750,6 +580,20 @@ export default {
         </div>
       </template>
       <div class="spacer" />
+
+      <h2 v-t="'fleet.gitRepo.ociStorageSecret.title'" />
+      <div class="row mt-20">
+        <div class="col span-6">
+          <FleetOCIStorageSecret
+            :secret="value.spec.ociRegistrySecret"
+            :workspace="workspace"
+            :mode="mode"
+            @update:value="value.spec.ociRegistrySecret=$event"
+          />
+        </div>
+      </div>
+      <div class="spacer" />
+
       <h2 v-t="'fleet.gitRepo.resources.label'" />
       <div class="resource-handling">
         <Checkbox
@@ -777,7 +621,7 @@ export default {
       <div class="row polling">
         <div class="col span-6">
           <Checkbox
-            v-model:value="isPollingEnabled"
+            :value="value.isPollingEnabled"
             data-testid="gitRepo-enablePolling-checkbox"
             class="check"
             type="checkbox"
@@ -786,16 +630,16 @@ export default {
             @update:value="enablePolling"
           />
         </div>
-        <template v-if="isPollingEnabled">
+        <template v-if="value.isPollingEnabled">
           <div class="col">
             <Banner
               v-if="showPollingIntervalWarning"
               color="warning"
-              label-key="fleet.gitRepo.polling.pollingInterval.minimumValuewarning"
+              label-key="fleet.gitRepo.polling.pollingInterval.minimumValueWarning"
               data-testid="gitRepo-pollingInterval-minimumValueWarning"
             />
             <Banner
-              v-if="isWebhookConfigured"
+              v-if="value.isWebhookConfigured"
               color="warning"
               label-key="fleet.gitRepo.polling.pollingInterval.webhookWarning"
               data-testid="gitRepo-pollingInterval-webhookWarning"
@@ -810,7 +654,7 @@ export default {
               :label="t('fleet.gitRepo.polling.pollingInterval.label')"
               :mode="mode"
               tooltip-key="fleet.gitRepo.polling.pollingInterval.tooltip"
-              @update:value="updatePollingInterval"
+              @blur.capture="updatePollingInterval(pollingInterval)"
             />
           </div>
         </template>
@@ -818,50 +662,20 @@ export default {
     </template>
 
     <template #stepTarget>
-      <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
+      <h2 v-t="'fleet.gitRepo.target.label'" />
+      <FleetClusterTargets
+        :targets="value.spec.targets"
+        :matching="value.targetClusters"
+        :namespace="value.metadata.namespace"
+        :mode="realMode"
+        :created="targetsCreated"
+        @update:value="updateTargets"
+        @created="targetsCreated=$event"
+      />
 
-      <template v-if="!isLocal">
-        <div class="row">
-          <div class="col span-6">
-            <LabeledSelect
-              v-model:value="targetMode"
-              :options="targetOptions"
-              option-key="value"
-              :mode="mode"
-              :selectable="option => !option.disabled"
-              :label="t('fleet.gitRepo.target.selectLabel')"
-              data-testid="fleet-gitrepo-target-cluster"
-            >
-              <template v-slot:option="opt">
-                <hr v-if="opt.kind === 'divider'">
-                <div v-else-if="opt.kind === 'title'">
-                  {{ opt.label }}
-                </div>
-                <div v-else>
-                  {{ opt.label }}
-                </div>
-              </template>
-            </LabeledSelect>
-          </div>
-        </div>
-
-        <div
-          v-if="targetMode === 'advanced'"
-          class="row mt-10"
-        >
-          <div class="col span-12">
-            <YamlEditor v-model:value="targetAdvanced" />
-          </div>
-        </div>
-
-        <Banner
-          v-for="(err, i) in targetAdvancedErrors"
-          :key="i"
-          color="error"
-          :label="err"
-        />
-      </template>
-
+      <h3 class="mmt-16">
+        {{ t('fleet.gitRepo.target.additionalOptions') }}
+      </h3>
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput

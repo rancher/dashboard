@@ -17,6 +17,8 @@ export const AZURE_MIGRATED = 'auth.cattle.io/azuread-endpoint-migrated';
 export const WORKSPACE_ANNOTATION = 'objectset.rio.cattle.io/id';
 export const NODE_ARCHITECTURE = 'kubernetes.io/arch';
 export const IMPORTED_CLUSTER_VERSION_MANAGEMENT = 'rancher.io/imported-cluster-version-management';
+export const UI_PROJECT_SECRET = 'management.cattle.io/project-scoped-secret';
+export const UI_PROJECT_SECRET_COPY = 'management.cattle.io/project-scoped-secret-copy';
 
 export const KUBERNETES = {
   SERVICE_ACCOUNT_UID:  'kubernetes.io/service-account.uid',
@@ -116,17 +118,20 @@ export const CATALOG = {
 };
 
 export const FLEET = {
-  REPO_NAME:            'fleet.cattle.io/repo-name',
-  CLUSTER_DISPLAY_NAME: 'management.cattle.io/cluster-display-name',
-  CLUSTER_NAME:         'management.cattle.io/cluster-name',
-  BUNDLE_ID:            'fleet.cattle.io/bundle-id',
-  BUNDLE_NAME:          'fleet.cattle.io/bundle-name',
-  BUNDLE_NAMESPACE:     'fleet.cattle.io/bundle-namespace',
-  MANAGED:              'fleet.cattle.io/managed',
-  CLUSTER_NAMESPACE:    'fleet.cattle.io/cluster-namespace',
-  CLUSTER:              'fleet.cattle.io/cluster',
-  CREATED_BY_USER_ID:   'fleet.cattle.io/created-by-user-id',
-  CREATED_BY_USER_NAME: 'fleet.cattle.io/created-by-display-name',
+  REPO_NAME:                    'fleet.cattle.io/repo-name',
+  HELM_NAME:                    'fleet.cattle.io/fleet-helm-name',
+  CLUSTER_DISPLAY_NAME:         'management.cattle.io/cluster-display-name',
+  CLUSTER_NAME:                 'management.cattle.io/cluster-name',
+  BUNDLE_ID:                    'fleet.cattle.io/bundle-id',
+  BUNDLE_NAME:                  'fleet.cattle.io/bundle-name',
+  BUNDLE_NAMESPACE:             'fleet.cattle.io/bundle-namespace',
+  MANAGED:                      'fleet.cattle.io/managed',
+  CLUSTER_NAMESPACE:            'fleet.cattle.io/cluster-namespace',
+  CLUSTER:                      'fleet.cattle.io/cluster',
+  CREATED_BY_USER_ID:           'fleet.cattle.io/created-by-user-id',
+  CREATED_BY_USER_NAME:         'fleet.cattle.io/created-by-display-name',
+  OCI_STORAGE_SECRET_DEFAULT:   'ui-default-oci-registry',
+  OCI_STORAGE_SECRET_GENERATED: 'fleet.cattle.io/bundle-internal-secret',
 };
 
 export const RBAC = { PRODUCT: 'management.cattle.io/ui-product' };
@@ -160,6 +165,7 @@ export const HCI = {
   NETWORK_TYPE:        'network.harvesterhci.io/type',
   CLUSTER_NETWORK:     'network.harvesterhci.io/clusternetwork',
   PRIMARY_SERVICE:     'cloudprovider.harvesterhci.io/primary-service',
+  CPU_MANAGER:         'cpumanager',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge
@@ -189,4 +195,8 @@ export const SYSTEM_LABELS = [
   'egress.rke2.io'
 ];
 
-export const CLOUD_CREDENTIALS = { EXPIRATION: 'rancher.io/expiration-timestamp' };
+export const OIDC_CLIENT_SECRET_ANNOTATIONS = {
+  CREATE: 'cattle.io/oidc-client-secret-create',
+  REGEN:  'cattle.io/oidc-client-secret-regenerate',
+  REMOVE: 'cattle.io/oidc-client-secret-remove',
+};

@@ -16,20 +16,22 @@ describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
 
         workloadsReplicasetsListPage.goTo();
         workloadsReplicasetsListPage.waitForPage();
-        workloadsReplicasetsListPage.createReplicaset();
+        workloadsReplicasetsListPage.baseResourceList().masthead().create();
 
         // create a new replicaset
         const workloadsDaemonsetsEditPage = new WorkloadsReplicasetsEditPagePo('local');
 
-        workloadsDaemonsetsEditPage.nameNsDescription().name().set(replicasetName);
+        workloadsDaemonsetsEditPage.resourceDetail().createEditView().nameNsDescription().name()
+          .set(replicasetName);
         workloadsDaemonsetsEditPage.containerImageInput().set('nginx');
-        workloadsDaemonsetsEditPage.saveCreateForm().click();
+        workloadsDaemonsetsEditPage.resourceDetail().createEditView().save();
 
         ResourceSearchDialog.goToResource('ReplicaSets');
 
         workloadsReplicasetsListPage.waitForPage();
 
-        workloadsReplicasetsListPage.listElementWithName(replicasetName).should('be.visible');
+        workloadsReplicasetsListPage.list().resourceTable().sortableTable().rowElementWithName(replicasetName)
+          .should('be.visible');
         workloadsReplicasetsListPage.baseResourceList().actionMenu(replicasetName).menuItemNames().should('not.contain', 'Rollback');
 
         cy.deleteRancherResource('v1', 'apps.replicasets', `default/${ replicasetName }`);

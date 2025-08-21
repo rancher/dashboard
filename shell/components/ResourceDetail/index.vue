@@ -6,14 +6,13 @@ import {
   _VIEW, _EDIT, _CLONE, _IMPORT, _STAGE, _CREATE,
   AS, _YAML, _DETAIL, _CONFIG, _GRAPH, PREVIEW, MODE,
 } from '@shell/config/query-params';
-import { FLEET, SCHEMA } from '@shell/config/types';
+import { SCHEMA } from '@shell/config/types';
 import { createYaml } from '@shell/utils/create-yaml';
 import Masthead from '@shell/components/ResourceDetail/Masthead';
 import DetailTop from '@shell/components/DetailTop';
 import { clone, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
-import ForceDirectedTreeChart from '@shell/components/fleet/ForceDirectedTreeChart';
-import { checkSchemasForFindAllHash } from '@shell/utils/auth';
+import ForceDirectedTreeChart from '@shell/components/ForceDirectedTreeChart';
 import { stringify } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
 
@@ -172,28 +171,6 @@ export default {
         yaml = createYaml(schemas, resourceType, data);
       }
     } else {
-      if ( as === _GRAPH ) {
-        const graphSchema = await checkSchemasForFindAllHash({
-          cluster: {
-            inStoreType: 'management',
-            type:        FLEET.CLUSTER
-          },
-          bundle: {
-            inStoreType: 'management',
-            type:        FLEET.BUNDLE,
-            opt:         { excludeFields: ['metadata.managedFields', 'spec.resources'] },
-          },
-
-          bundleDeployment: {
-            inStoreType: 'management',
-            type:        FLEET.BUNDLE_DEPLOYMENT
-          }
-
-        }, this.$store);
-
-        this.canViewChart = graphSchema.cluster && graphSchema.bundle && graphSchema.bundleDeployment;
-      }
-
       let fqid = id;
 
       if ( schema.attributes?.namespaced && namespace ) {
@@ -296,7 +273,6 @@ export default {
       value:           null,
       model:           null,
       notFound:        null,
-      canViewChart:    true,
       canViewYaml:     null,
       errors:          []
     };
@@ -350,6 +326,9 @@ export default {
         }
       }), {});
     },
+    isFullPageOverride() {
+      return this.isView && this.value.fullDetailPageOverride;
+    }
   },
 
   watch: {
@@ -403,6 +382,16 @@ export default {
     closeError(index) {
       this.errors = this.errors.filter((_, i) => i !== index);
     },
+    onYamlError(err) {
+      this.errors = [];
+      const errors = Array.isArray(err) ? err : [err];
+
+      errors.forEach((e) => {
+        if (this.errors.indexOf(e) === -1) {
+          this.errors.push(e);
+        }
+      });
+    },
     /**
      * Initializes the resource components based on the provided user and
      * resource override.
@@ -454,6 +443,23 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending || notFound" />
+  <component
+    :is="showComponent"
+    v-else-if="isFullPageOverride"
+    v-model:value="value"
+    v-bind="$data"
+    :done-params="doneParams"
+    :done-route="doneRoute"
+    :mode="mode"
+    :initial-value="initialModel"
+    :live-value="liveModel"
+    :real-mode="realMode"
+    :class="{'flex-content': flexContent}"
+    :resource-errors="errors"
+    @update:value="$emit('input', $event)"
+    @update:mode="setMode"
+    @set-subtype="setSubtype"
+  />
   <div v-else>
     <Masthead
       v-if="showMasthead"
@@ -493,7 +499,7 @@ export default {
     </div>
 
     <ForceDirectedTreeChart
-      v-if="isGraph && canViewChart"
+      v-if="isGraph"
       :data="chartData"
       :fdc-config="getGraphConfig"
     />
@@ -507,8 +513,9 @@ export default {
       :offer-preview="offerPreview"
       :done-route="doneRoute"
       :done-override="value ? value.doneOverride : null"
+      :show-errors="false"
       @update:value="$emit('input', $event)"
-      @error="e=>errors.push(e)"
+      @error="onYamlError"
     />
 
     <component
@@ -565,5 +572,11 @@ export default {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+}
+.cru__errors {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--header-bg);
 }
 </style>

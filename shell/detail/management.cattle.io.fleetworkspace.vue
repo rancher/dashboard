@@ -1,8 +1,6 @@
 <script>
 import CountBox from '@shell/components/CountBox';
-// import RoleBindings from '@shell/components/RoleBindings';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
-// import Tab from '@shell/components/Tabbed/Tab';
 import { SCOPE_NAMESPACE, SCOPE_CLUSTER } from '@shell/components/RoleBindings.vue';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 import { FLEET } from '@shell/config/types';
@@ -12,8 +10,6 @@ export default {
 
   components: {
     CountBox,
-    // RoleBindings,
-    // Tab,
     ResourceTabs
   },
 
@@ -32,7 +28,10 @@ export default {
       return this.t(`typeLabel."${ FLEET.CLUSTER_GROUP }"`, { count: this.value.counts.clusterGroup });
     },
     gitRepoLabel() {
-      return this.t(`typeLabel."${ FLEET.GIT_REPO }"`, { count: this.value.counts.gitRepo });
+      return this.t(`typeLabel."${ FLEET.GIT_REPO }"`, { count: this.value.counts.gitRepos });
+    },
+    helmOpsLabel() {
+      return this.t(`typeLabel."${ FLEET.HELM_OP }"`, { count: this.value.counts.helmOps });
     },
 
     SCOPE_NAMESPACE() {
@@ -54,21 +53,28 @@ export default {
   <div>
     <div class="mb-20">
       <div class="row">
-        <div class="col span-4">
+        <div class="col span-3">
           <CountBox
             :count="value.counts.gitRepos"
             :name="gitRepoLabel"
             :primary-color-var="'--sizzle-3'"
           />
         </div>
-        <div class="col span-4">
+        <div class="col span-3">
+          <CountBox
+            :count="value.counts.helmOps"
+            :name="helmOpsLabel"
+            :primary-color-var="'--sizzle-3'"
+          />
+        </div>
+        <div class="col span-3">
           <CountBox
             :count="value.counts.clusters"
             :name="clustersLabel"
             :primary-color-var="'--sizzle-1'"
           />
         </div>
-        <div class="col span-4">
+        <div class="col span-3">
           <CountBox
             :count="value.counts.clusterGroups"
             :name="clusterGroupsLabel"
@@ -77,24 +83,9 @@ export default {
         </div>
       </div>
     </div>
-    <section class="bordered-section">
-      <ResourceTabs
-        :value="value"
-        mode="view"
-      >
-        <!-- <Tab name="members" label="Members">
-          <RoleBindings
-            ref="rb"
-            :role-scope="SCOPE_CLUSTER"
-            :binding-scope="SCOPE_NAMESPACE"
-            :filter-role-value="FLEET_NAME"
-            :namespace="value.name"
-            in-store="management"
-            mode="view"
-            as="detail"
-          />
-        </Tab> -->
-      </ResourceTabs>
-    </section>
+    <ResourceTabs
+      :value="value"
+      mode="view"
+    />
   </div>
 </template>

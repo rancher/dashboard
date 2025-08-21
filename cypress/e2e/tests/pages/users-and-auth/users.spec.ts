@@ -179,16 +179,16 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       });
     });
 
-    it('can View YAML', () => {
-      // View YAML and verify user lands on correct page
+    it('can Edit YAML', () => {
+      // Edit YAML and verify user lands on correct page
 
       // We don't have a good pattern for the view/edit yaml page yet
       const viewYaml = usersPo.createEdit(userId);
 
       usersPo.goTo();
       usersPo.waitForPage();
-      usersPo.list().clickRowActionMenuItem(standardUsername, 'View YAML');
-      cy.url().should('include', `?mode=view&as=yaml`);
+      usersPo.list().clickRowActionMenuItem(standardUsername, 'Edit YAML');
+      cy.url().should('include', `?mode=edit&as=yaml`);
       viewYaml.mastheadTitle().should('contain', standardUsername);
     });
 
@@ -272,7 +272,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@vai', '@adminUser'] }, () => {
+  describe('List', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueUserName = SortableTablePo.firstByDefaultName('user');
 
     const userIdsList = [];
@@ -310,7 +310,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     it('pagination is visible and user is able to navigate through users data', () => {
-      usersPo.goTo(); // This is needed for the @vai only world
+      usersPo.goTo(); // This is needed for the @noVai only world
       usersPo.waitForPage();
       const count = initialCount + 26;
 
@@ -504,7 +504,11 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     after(() => {
-      userIdsList.forEach((r) => cy.deleteRancherResource('v3', 'Users', r, false));
+      cy.deleteManyResources({
+        toDelete: userIdsList,
+        deleteFn: (r) => cy.deleteRancherResource('v3', 'Users', r, false)
+      });
+
       // Ensure the default rows per page value is set after executing the tests
       cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
     });

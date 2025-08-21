@@ -12,10 +12,13 @@ export default {
 
   async fetch() {
     if ( this.$store.getters['cluster/schemaFor'](SERVICE) ) {
-      this.uiServices = await this.$store.dispatch('cluster/findLabelSelector', {
+      const response = await this.$store.dispatch('cluster/findLabelSelector', {
         type:     SERVICE,
-        matching: { labelSelector: { matchLabels: { app: 'longhorn-ui' } } }
+        matching: { labelSelector: { matchLabels: { app: 'longhorn-ui' } } },
+        opt:      { transient: true }
       });
+
+      this.uiServices = response.data;
     }
   },
 

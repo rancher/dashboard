@@ -71,11 +71,16 @@ export default {
 <template>
   <div>
     <div v-if="mode === 'login'">
-      <rc-dropdown v-if="showLocale">
+      <rc-dropdown
+        v-if="showLocale"
+        :aria-label="$attrs['aria-label'] || undefined"
+        :aria-labelledby="$attrs['aria-labelledby'] || undefined"
+        :aria-describedby="$attrs['aria-describedby'] || undefined"
+      >
         <rc-dropdown-trigger
           data-testid="locale-selector"
           link
-          class="baseline"
+          class="baseline locale-selector-btn"
           :aria-label="t('locale.menu')"
         >
           {{ selectedLocaleLabel }}
@@ -83,7 +88,7 @@ export default {
             v-if="showIcon"
             #after
           >
-            <i class="icon icon-fw icon-sort-down" />
+            <i class="ml-5 icon icon-chevron-down" />
           </template>
         </rc-dropdown-trigger>
         <template #dropdownCollection>
@@ -105,6 +110,9 @@ export default {
     </div>
     <div v-else>
       <Select
+        :aria-label="$attrs['aria-label'] || undefined"
+        :aria-labelledby="$attrs['aria-labelledby'] || undefined"
+        :aria-describedby="$attrs['aria-describedby'] || undefined"
         :value="selectedOption"
         :options="localesOptions"
         :is-lang-select="true"
@@ -117,5 +125,10 @@ export default {
 <style lang="scss">
   .baseline {
     align-items: baseline;
+  }
+
+  .locale-selector-btn {
+    align-items: center;
+    display: flex;
   }
 </style>

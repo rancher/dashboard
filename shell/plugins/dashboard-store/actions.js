@@ -79,6 +79,29 @@ const findAllGetter = (getters, type, opt) => {
   return opt.namespaced ? getters.matching(type, null, opt.namespaced, { skipSelector: true }) : getters.all(type);
 };
 
+const createFindWatchArg = ({
+  type, id, opt, res
+}) => {
+  const revision = typeof opt.revision !== 'undefined' ? opt.revision : res?.metadata?.resourceVersion;
+  const watchMsg = {
+    type,
+    id,
+    // Although not used by sockets, we need this for when resyncWatch calls find... which needs namespace to construct the url
+    namespace: opt.namespaced,
+    revision:  revision || '',
+    force:     opt.forceWatch === true,
+  };
+
+  const idx = id.indexOf('/');
+
+  if ( idx > 0 ) {
+    watchMsg.namespace = id.substr(0, idx);
+    watchMsg.id = id.substr(idx + 1);
+  }
+
+  return watchMsg;
+};
+
 export default {
   request() {
     throw new Error('Not Implemented');
@@ -408,10 +431,12 @@ export default {
    *
    * @param {*} ctx
    * @param { {type: string, opt: ActionFindPageArgs} } opt
+   * @returns @ActionFindPageResponse
    */
   async findPage(ctx, { type, opt }) {
     const { getters, commit, dispatch } = ctx;
 
+    // of type @ActionFindPageArgs
     opt = opt || {};
 
     if (!opt.pagination) {
@@ -443,7 +468,7 @@ export default {
       return findAllGetter(getters, type, opt);
     }
 
-    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Size: ${ opt.pagination.pageSize }`); // eslint-disable-line no-console
+    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Size: ${ opt.pagination.pageSize }. Sort: ${ opt.pagination.sort.map((s) => s.field).join(', ') }`); // eslint-disable-line no-console
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
 
@@ -513,6 +538,9 @@ export default {
    * b) Pagination Disabled - use the old 'native kube api' - findMatching
    *
    * Filter is defined via the kube labelSelector object (see KubeLabelSelector)
+   *
+   * opt: @ActionFindLabelSelectorArgs
+   * @returns @ActionFindMatchingResponse (resources[], or if transient { data: resources[], pagination: StorePagination })
    */
   async findLabelSelector(ctx, {
     type,
@@ -529,6 +557,8 @@ export default {
       context,
     };
 
+    opt = opt || {};
+
     if (getters[`paginationEnabled`]?.(args)) {
       if (isLabelSelectorEmpty(labelSelector)) {
         throw new Error(`labelSelector must not be empty when using findLabelSelector (avoid fetching all resources)`);
@@ -538,21 +568,28 @@ export default {
       return dispatch('findPage', {
         type,
         opt: {
-          ...(opt || {}),
+          ...opt,
           namespaced: namespace,
           pagination: new FilterArgs({ labelSelector }),
+          transient:  opt?.transient !== undefined ? opt.transient : false // Call this out explicitly here, as by default findX methods ar eusually be cached AND watched
         }
       });
     }
 
-    return dispatch('findMatching', {
+    // opt of type ActionFindPageArgs
+    const findMatching = await dispatch('findMatching', {
       type,
       selector: labelSelectorToSelector(labelSelector),
       opt,
       namespace,
     });
+
+    return opt.transient ? { data: findMatching } : findMatching;
   },
 
+  /**
+   * opt: @ActionFindMatchingArgs
+   */
   async findMatching(ctx, {
     type,
     selector,
@@ -644,6 +681,12 @@ export default {
       out = getters.byId(type, id);
 
       if ( out ) {
+        if ( opt.watch !== false ) {
+          dispatch('watch', createFindWatchArg({
+            type, id, opt, res: undefined
+          }));
+        }
+
         return out;
       }
     }
@@ -656,26 +699,9 @@ export default {
     await dispatch('load', { data: res });
 
     if ( opt.watch !== false ) {
-      const watchMsg = {
-        type,
-        id,
-        // Although not used by sockets, we need this for when resyncWatch calls find... which needs namespace to construct the url
-        namespace: opt.namespaced,
-        // Override the revision. Used in cases where we need to avoid using the resource's own revision which would be `too old`.
-        // For the above case opt.revision will be `null`. If left as `undefined` the subscribe mechanism will try to determine a revision
-        // from resources in store (which would be this one, with the too old revision)
-        revision:  typeof opt.revision !== 'undefined' ? opt.revision : res?.metadata?.resourceVersion,
-        force:     opt.forceWatch === true,
-      };
-
-      const idx = id.indexOf('/');
-
-      if ( idx > 0 ) {
-        watchMsg.namespace = id.substr(0, idx);
-        watchMsg.id = id.substr(idx + 1);
-      }
-
-      dispatch('watch', watchMsg);
+      dispatch('watch', createFindWatchArg({
+        type, id, opt, res
+      }));
     }
 
     out = getters.byId(type, id);
@@ -795,13 +821,21 @@ export default {
     return classify(ctx, resource.toJSON(), true);
   },
 
-  // Forget a type in the store
-  // Remove all entries for that type and stop watching it
-  forgetType({ commit, dispatch, state }, type) {
+  /**
+   * Remove all cached entries for a resource and stop watches
+   */
+  forgetType({ commit, dispatch, state }, type, compareWatches) {
+    // Stop all known watches
     state.started
-      .filter((entry) => entry.type === type)
+      .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type)
       .forEach((entry) => dispatch('unwatch', entry));
 
+    // Stop all known back-off watch processes for this type
+    dispatch('resetWatchBackOff', {
+      type, compareWatches, resetStarted: false
+    });
+
+    // Remove entries from store
     commit('forgetType', type);
   },
 

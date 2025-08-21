@@ -3,7 +3,7 @@ import { mapGetters, useStore } from 'vuex';
 import { defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
 import day from 'dayjs';
 import isEmpty from 'lodash/isEmpty';
-import { dasherize, ucFirst } from '@shell/utils/string';
+import { dasherize, ucFirst, randomStr } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
@@ -130,7 +130,7 @@ export default {
     },
     groupSort: {
       // Field to order groups by, defaults to groupBy
-      type:    Array,
+      type:    String,
       default: null
     },
 
@@ -735,7 +735,7 @@ export default {
         grp.rows.forEach((row) => {
           const rowData = {
             row,
-            key:                        this.get(row, this.keyField),
+            key:                        this.get(row, this.keyField) ?? randomStr(),
             showSubRow:                 this.showSubRow(row, this.keyField),
             canRunBulkActionOfInterest: this.canRunBulkActionOfInterest(row),
             columns:                    []
@@ -1038,7 +1038,7 @@ export default {
     handleActionButtonClick(i, event) {
       // Each row in the table gets its own ref with
       // a number based on its index. If you are using
-      // an ActionMenu that doen't have a dependency on Vuex,
+      // an ActionMenu that doesn't have a dependency on Vuex,
       // these refs are useful because you can reuse the
       // same ActionMenu component on a page with many different
       // target elements in a list,
@@ -1398,7 +1398,7 @@ export default {
         </slot>
         <template
           v-for="(row, i) in groupedRows.rows"
-          :key="i"
+          :key="row.key"
         >
           <slot
             name="main-row"

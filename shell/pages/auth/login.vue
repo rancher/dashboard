@@ -452,7 +452,7 @@ export default {
                   v-model:value="password"
                   data-testid="local-login-password"
                   :label="t('login.password')"
-                  autocomplete="password"
+                  autocomplete="current-password"
                 />
               </div>
             </div>

@@ -29,6 +29,7 @@ env:
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
   BUILD_DASHBOARD: true
 
+  E2E_RANCHER_LOG: rancher.log
   E2E_BUILD_DIST_NAME: dist
   E2E_BUILD_DIST_DIR: dist
   E2E_BUILD_DIST_EMBER_NAME: dist_ember
@@ -63,7 +64,6 @@ jobs:
           retention-days: 10
           compression-level: 9
 
-
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
@@ -84,7 +84,7 @@ jobs:
           ['@manager'],
           ['@userMenu', '@usersAndAuths'],
           ['@components'],
-          ['@vai']
+          ['@noVai']
         ]
     runs-on: ubuntu-latest
     steps:
@@ -96,6 +96,11 @@ jobs:
 
       # Installing fixed version of Chrome since latest version does not work (128 didn't work)
       # Leaving this here again in case we need to pin to a specific Chrome version in the future
+      # NOTE - If we need to pin chrome again we should...
+      # 1. create a repo gh action to install chrome (see .github/actions)
+      # 2. call it here
+      # 3. call it from `a11y-test` as well
+
       # - name: Install Chrome 127
       #   run: |
       #     sudo apt-get install -y wget libu2f-udev
@@ -134,6 +139,7 @@ jobs:
           TEST_SKIP: setup
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
+          VAI_ENABLED: ${{ (matrix.features[0] != '@noVai') && 'true' || 'false' }}
           
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
@@ -141,6 +147,29 @@ jobs:
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
           path: cypress/screenshots
+
+      - name: Create Rancher Logs
+        if: ${{ failure() }}
+        run: yarn docker:local:logs
+      - name: Upload Rancher logs
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-rancher-logs-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
+          path: ${{ env.E2E_RANCHER_LOG }}
+          if-no-files-found: error
+          retention-days: 5
+          compression-level: 9
+
+      - name: Upload Cypress Logs
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-browser-logs-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
+          path: browser-logs/out.html
+          if-no-files-found: error
+          retention-days: 5
+          compression-level: 9
 
   a11y-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
@@ -152,17 +181,6 @@ jobs:
           fetch-depth: 1
       - name: Setup env
         uses: ./.github/actions/setup
-
-      # Installing fixed version of Chrome since latest version does not work (128 didn't work)
-      # Leaving this here again in case we need to pin to a specific Chrome version in the future
-      - name: Install Chrome 127
-        run: |
-          sudo apt-get install -y wget libu2f-udev
-          cd /tmp
-          wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_127.0.6533.72-1_amd64.deb
-          sudo dpkg -i google-chrome-stable_127.0.6533.72-1_amd64.deb
-          sudo apt-get install -y --allow-downgrades ./google-chrome-stable_127.0.6533.72-1_amd64.deb
-          google-chrome --version
 
       - name: Download e2e build
         uses:  actions/download-artifact@v4
@@ -223,7 +241,6 @@ jobs:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
           path: coverage-artifacts/**/*
 
-
   i18n:
     runs-on: ubuntu-latest
     steps:
@@ -233,7 +250,6 @@ jobs:
 
       - name: Run i18n lint
         uses: ./.github/actions/i18n-lint
-
 
   lint:
     runs-on: ubuntu-latest
@@ -245,7 +261,6 @@ jobs:
       - name: Run tests
         uses: ./.github/actions/lint
       
-
   check-i18n:
     runs-on: ubuntu-latest
     steps:

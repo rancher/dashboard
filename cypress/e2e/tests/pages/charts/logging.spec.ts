@@ -2,8 +2,8 @@ import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import { LoggingClusteroutputEditPagePo, LoggingClusteroutputListPagePo } from '@/cypress/e2e/po/other-products/logging/logging-clusteroutput.po';
-import { LoggingClusterflowEditPagePo, LoggingClusterflowListPagePo } from '@/cypress/e2e/po/other-products/logging/logging-clusterflow-po';
+import { LoggingClusterOutputCreateEditPagePo, LoggingClusteroutputListPagePo } from '@/cypress/e2e/po/other-products/logging/logging-clusteroutput.po';
+import { LoggingClusterFlowCreateEditPagePo, LoggingClusterFlowDetailPagePo, LoggingClusterFlowListPagePo } from '@/cypress/e2e/po/other-products/logging/logging-clusterflow-po';
 import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
@@ -16,10 +16,22 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
   const chartApp = 'rancher-logging';
   const chartCrd = 'rancher-logging-crd';
   const chartNamespace = 'cattle-logging-system';
+  const loggingFlowList = new LoggingClusterFlowListPagePo();
+  const loggingFlowCreate = new LoggingClusterFlowCreateEditPagePo('local');
+  let flowName;
+  let outputName;
 
   before(() => {
     cy.login();
     HomePagePo.goTo();
+
+    cy.createE2EResourceName('logging-flow').then((name) => {
+      flowName = name;
+    });
+
+    cy.createE2EResourceName('logging-output').then((name) => {
+      outputName = name;
+    });
   });
 
   it('is installed and a rule created', () => {
@@ -27,54 +39,74 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     const installChartPage = new InstallChartPage();
     const chartPage = new ChartPage();
     const sideNav = new ProductNavPo();
-    const outputName = Cypress._.uniqueId(Date.now().toString());
-    const flowName = Cypress._.uniqueId(Date.now().toString());
     const loggingOutputList = new LoggingClusteroutputListPagePo();
-    const loggingOutputEdit = new LoggingClusteroutputEditPagePo();
-    const loggingFlowList = new LoggingClusterflowListPagePo();
-    const loggingFlowEdit = new LoggingClusterflowEditPagePo();
-
-    ChartPage.navTo(null, 'Logging');
-    chartPage.waitForChartHeader('Logging', { timeout: 20000 });
-    chartPage.goToInstall();
-    installChartPage.nextPage();
+    const loggingOutputEdit = new LoggingClusterOutputCreateEditPagePo('local');
 
     cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
+    ChartPage.navTo(null, 'Logging');
+    chartPage.waitForChartHeader('Logging', { timeout: 20000 });
+    chartPage.waitForPage();
+    chartPage.goToInstall();
+    installChartPage.nextPage();
     installChartPage.installChart();
-    cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
-    kubectl.waitForTerminalStatus('Disconnected');
 
+    cy.wait('@chartInstall', { timeout: 10000 }).its('response.statusCode').should('eq', 201);
+    kubectl.waitForTerminalStatus('Disconnected');
     kubectl.closeTerminal();
 
-    sideNav.navToSideMenuGroupByLabel('Logging');
-    sideNav.navToSideMenuGroupByLabel('ClusterOutput');
-    loggingOutputList.createLoggingOutput();
-    loggingOutputEdit.waitForPage();
-    loggingOutputEdit.nameNsDescription().name().set(outputName);
-    loggingOutputEdit.target().set('random.domain.site');
-    loggingOutputEdit.saveCreateForm().click();
+    LoggingClusteroutputListPagePo.navTo();
     loggingOutputList.waitForPage();
-    loggingOutputList.listElementWithName(outputName).should('exist');
+    loggingOutputList.baseResourceList().masthead().create();
+    loggingOutputEdit.waitForPage();
+    loggingOutputEdit.resourceDetail().createEditView().nameNsDescription().name()
+      .set(outputName);
+    loggingOutputEdit.target().set('random.domain.site');
+    loggingOutputEdit.resourceDetail().createEditView().saveAndWaitForRequests('POST', '/v1/logging.banzaicloud.io.clusteroutputs')
+      .then(({ response }) => {
+        expect(response?.statusCode).to.eq(201);
+        expect(response?.body.metadata).to.have.property('name', outputName);
+      });
+    loggingOutputList.waitForPage();
+    loggingOutputList.baseResourceList().resourceTable().sortableTable().rowElementWithName(outputName)
+      .should('exist');
 
     sideNav.navToSideMenuEntryByLabel('ClusterFlow');
-    loggingFlowList.createLoggingFlow();
-    loggingFlowEdit.waitForPage();
-    loggingFlowEdit.nameNsDescription().name().set(flowName);
-    loggingFlowEdit.outputsTab();
-    loggingFlowEdit.outputSelector().toggle();
-    loggingFlowEdit.outputSelector().clickOptionWithLabel(outputName);
-    loggingFlowEdit.saveCreateForm().click();
-    loggingFlowList.waitForPage();
-    loggingFlowList.listElementWithName(flowName).should('exist');
-    loggingFlowList.rowLinkWithName(flowName).click();
-    const loggingFlowEditExisting = new LoggingClusterflowEditPagePo('local', flowName);
+    loggingFlowList.baseResourceList().masthead().create();
+    loggingFlowCreate.waitForPage();
+    loggingFlowCreate.resourceDetail().createEditView()
+      .nameNsDescription().name()
+      .set(flowName);
+    loggingFlowCreate.resourceDetail().tabs().clickTabWithSelector('[data-testid="btn-outputs"]');
+    loggingFlowCreate.waitForPage(null, 'outputs');
+    loggingFlowCreate.outputSelector().toggle();
+    loggingFlowCreate.outputSelector().clickOptionWithLabel(outputName);
 
-    loggingFlowEditExisting.ruleItem(0).should('be.visible');
+    // Configure namespaces during creation
+    // testing https://github.com/rancher/dashboard/issues/13845
+    loggingFlowCreate.resourceDetail().tabs().clickTabWithSelector('[data-testid="btn-match"]');
+    loggingFlowCreate.waitForPage(null, 'match');
+    const namespaces = ['fleet-default', 'cattle-system'];
+
+    loggingFlowCreate.setNamespaceValueByLabel(0, namespaces);
+    loggingFlowCreate.resourceDetail().createEditView().saveAndWaitForRequests('POST', '/v1/logging.banzaicloud.io.clusterflows')
+      .then(({ response }) => {
+        expect(response?.statusCode).to.eq(201);
+        expect(response?.body.metadata).to.have.property('name', flowName);
+        expect(response?.body.spec.match[0].select.namespaces[0]).to.contain(namespaces[0]);
+        expect(response?.body.spec.match[0].select.namespaces[1]).to.equal(namespaces[1]);
+      });
+    loggingFlowList.waitForPage();
+    loggingFlowList.list().resourceTable().sortableTable().rowElementWithName(flowName)
+      .should('exist');
+    loggingFlowList.list().resourceTable().goToDetailsPage(flowName);
+    const loggingFlowDetail = new LoggingClusterFlowDetailPagePo('local', 'cattle-logging-system', flowName);
+
+    loggingFlowDetail.ruleItem(0).should('be.visible');
   });
 
   // testing https://github.com/rancher/dashboard/issues/4849
   it('can uninstall both chart and crd at once', () => {
-    cy.intercept('GET', `${ CLUSTER_APPS_BASE_URL }?exclude=metadata.managedFields`).as('getCharts');
+    cy.intercept('GET', `${ CLUSTER_APPS_BASE_URL }?*`).as('getCharts');
 
     const clusterTools = new ClusterToolsPagePo('local');
     const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');

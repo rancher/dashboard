@@ -25,6 +25,20 @@ export default {
         return { valueFrom: {} };
       }
     },
+    options: {
+      type:    Array,
+      default: () => {
+        return [
+          { value: 'simple', label: 'Key/Value Pair' },
+          { value: 'resourceFieldRef', label: 'Resource' },
+          { value: 'configMapKeyRef', label: 'ConfigMap Key' },
+          { value: 'secretKeyRef', label: 'Secret Key' },
+          { value: 'fieldRef', label: 'Pod Field' },
+          { value: 'secretRef', label: 'Secret' },
+          { value: 'configMapRef', label: 'ConfigMap' },
+        ];
+      },
+    },
     allConfigMaps: {
       type:    Array,
       default: () => []
@@ -46,15 +60,6 @@ export default {
 
   data() {
     return {
-      typeOpts: [
-        { value: 'simple', label: 'Key/Value Pair' },
-        { value: 'resourceFieldRef', label: 'Resource' },
-        { value: 'configMapKeyRef', label: 'ConfigMap Key' },
-        { value: 'secretKeyRef', label: 'Secret key' },
-        { value: 'fieldRef', label: 'Pod Field' },
-        { value: 'secretRef', label: 'Secret' },
-        { value: 'configMapRef', label: 'ConfigMap' },
-      ],
       secrets:         this.allSecrets,
       resourceKeyOpts: ['limits.cpu', 'limits.ephemeral-storage', 'limits.memory', 'requests.cpu', 'requests.ephemeral-storage', 'requests.memory'],
     };
@@ -70,7 +75,7 @@ export default {
     } else if (props.value.value) {
       type.value = 'simple';
     } else if (props.value.valueFrom) {
-      type.value = Object.keys((props.value.valueFrom))[0] || 'simple';
+      type.value = Object.keys((props.value.valueFrom))[0] || props.options[0].value || 'simple';
     }
 
     const refName = ref('');
@@ -84,13 +89,13 @@ export default {
     switch (type.value) {
     case 'resourceFieldRef':
       name.value = props.value.name;
-      refName.value = props.value.valueFrom[type.value].containerName;
-      key.value = props.value.valueFrom[type.value].resource || '';
+      refName.value = props.value.valueFrom?.[type.value]?.containerName;
+      key.value = props.value.valueFrom?.[type.value]?.resource || '';
       break;
     case 'configMapKeyRef':
       name.value = props.value.name;
-      key.value = props.value.valueFrom[type.value].key || '';
-      refName.value = props.value.valueFrom[type.value].name;
+      key.value = props.value.valueFrom?.[type.value]?.key || '';
+      refName.value = props.value.valueFrom?.[type.value]?.name;
       referenced.value = props.allConfigMaps.filter((resource) => {
         return resource.metadata.name === refName.value;
       })[0];
@@ -101,12 +106,12 @@ export default {
     case 'secretRef':
     case 'configMapRef':
       name.value = props.value.prefix;
-      refName.value = props.value[type.value].name;
+      refName.value = props.value[type.value]?.name;
       break;
     case 'secretKeyRef':
       name.value = props.value.name;
-      key.value = props.value.valueFrom[type.value].key || '';
-      refName.value = props.value.valueFrom[type.value].name;
+      key.value = props.value.valueFrom?.[type.value]?.key || '';
+      refName.value = props.value.valueFrom?.[type.value]?.name;
       referenced.value = props.allSecrets.filter((resource) => {
         return resource.metadata.name === refName.value;
       })[0];
@@ -269,6 +274,10 @@ export default {
     extraColumn() {
       return ['resourceFieldRef', 'configMapKeyRef', 'secretKeyRef'].includes(this.type);
     },
+
+    hideVariableName() {
+      return this.options?.find((opt) => opt.value === this.type)?.hideVariableName || false;
+    }
   },
 };
 </script>
@@ -280,7 +289,7 @@ export default {
         v-model:value="type"
         :mode="mode"
         :multiple="false"
-        :options="typeOpts"
+        :options="options"
         option-label="label"
         :searchable="false"
         :reduce="e=>e.value"
@@ -289,7 +298,10 @@ export default {
       />
     </div>
 
-    <div class="name">
+    <div
+      v-if="!hideVariableName"
+      class="name"
+    >
       <LabeledInput
         v-model:value="name"
         :label="nameLabel"

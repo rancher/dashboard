@@ -47,14 +47,14 @@ export default {
     decodeHtml,
     close() {
       this.confirm(false);
-      this.$emit('close', false);
+      this.$emit('close');
     },
 
     async apply(buttonDone) {
       try {
         await this.applyAction(buttonDone);
         this.confirm(true);
-        this.$emit('close', true);
+        this.$emit('close');
       } catch (err) {
         console.error(err); // eslint-disable-line
         this.errors = exceptionToErrorsArray(err);

@@ -1,3 +1,4 @@
+import { isEmpty, isEqual } from 'lodash';
 import {
   BundleDeploymentResource,
   BundleResourceKey,
@@ -5,9 +6,11 @@ import {
   BundleDeploymentStatus,
   Condition,
 } from '@shell/types/resources/fleet';
-import { mapStateToEnum, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
-import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
+import { mapStateToEnum, STATES_ENUM, STATES } from '@shell/plugins/dashboard-store/resource-class';
+import { FLEET as FLEET_LABELS, CAPI } from '@shell/config/labels-annotations';
 import { NAME as EXPLORER_NAME } from '@shell/config/product/explorer';
+import { FleetDashboardState, FleetResourceState, Target, TargetMode } from '@shell/types/fleet';
+import { FLEET, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 
 interface Resource extends BundleDeploymentResource {
   state: string,
@@ -29,7 +32,139 @@ function conditionIsTrue(conditions: Condition[] | undefined, type: string): boo
   return !!conditions.find((c) => c.type === type && c.status.toLowerCase() === 'true');
 }
 
+class Application {
+  excludeHarvesterRule = {
+    clusterSelector: {
+      matchExpressions: [{
+        key:      CAPI.PROVIDER,
+        operator: 'NotIn',
+        values:   [
+          VIRTUAL_HARVESTER_PROVIDER
+        ],
+      }],
+    },
+  };
+
+  getTargetMode(targets: Target[], namespace: string): TargetMode {
+    if (namespace === 'fleet-local') {
+      return 'local';
+    }
+
+    if (!targets.length) {
+      return 'none';
+    }
+
+    let mode: TargetMode = 'all';
+
+    for (const target of targets) {
+      const {
+        clusterName,
+        clusterSelector,
+        clusterGroup,
+        clusterGroupSelector,
+      } = target;
+
+      if (clusterGroup || clusterGroupSelector) {
+        return 'advanced';
+      }
+
+      if (clusterName) {
+        mode = 'clusters';
+      }
+
+      if (!isEmpty(clusterSelector)) {
+        mode = 'clusters';
+      }
+    }
+
+    const normalized = [...targets].map((target) => {
+      delete target.name;
+
+      return target;
+    });
+
+    // Check if targets contains only harvester rule after name normalizing
+    if (isEqual(normalized, [this.excludeHarvesterRule])) {
+      mode = 'all';
+    }
+
+    return mode;
+  }
+}
+
 class Fleet {
+  resourceIcons = {
+    [FLEET.GIT_REPO]: 'icon icon-github',
+    [FLEET.HELM_OP]:  'icon icon-helm',
+  };
+
+  dashboardIcons = {
+    [FLEET.GIT_REPO]: 'icon icon-git',
+    [FLEET.HELM_OP]:  'icon icon-helm',
+  };
+
+  dashboardStates: FleetDashboardState[] = [
+    {
+      index:           0,
+      id:              'error',
+      label:           'Error',
+      color:           '#F64747',
+      icon:            'icon icon-error',
+      stateBackground: 'bg-error'
+    },
+    {
+      index:           1,
+      id:              'warning',
+      label:           'Warning',
+      color:           '#DAC342',
+      icon:            'icon icon-warning',
+      stateBackground: 'bg-warning'
+    },
+    {
+      index:           2,
+      id:              'success',
+      label:           'Active',
+      color:           '#5D995D',
+      icon:            'icon icon-checkmark',
+      stateBackground: 'bg-success'
+    },
+    {
+      index:           3,
+      id:              'info',
+      label:           'Pending',
+      color:           '#3d98d3',
+      icon:            'icon icon-warning',
+      stateBackground: 'bg-info'
+    },
+  ];
+
+  Application = new Application();
+
+  GIT_HTTPS_REGEX = /^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/;
+  GIT_SSH_REGEX = /^git@github\.com:.*\.git$/;
+  HTTP_REGEX = /^(https?:\/\/[^\s]+)$/;
+  OCI_REGEX = /^oci:\/\//;
+
+  quacksLikeAHash(str: string) {
+    if (str.match(/^[a-f0-9]{40,}$/i)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  parseSSHUrl(url: string) {
+    const parts = (url || '').split(':');
+
+    const sshUserAndHost = parts[0];
+    const repoPath = parts[1]?.replace('.git', '');
+
+    return {
+      sshUserAndHost,
+      repoPath
+    };
+  }
+
   resourceId(r: BundleResourceKey): string {
     return r.namespace ? `${ r.namespace }/${ r.name }` : r.name;
   }
@@ -125,6 +260,59 @@ class Fleet {
     } else {
       return STATES_ENUM.READY;
     }
+  }
+
+  getResourcesDefaultState(labelGetter: (key: string, args: any, fallback: any) => Record<string, any>, stateKey: string): Record<string, FleetResourceState> {
+    return [
+      STATES_ENUM.READY,
+      STATES_ENUM.NOT_READY,
+      STATES_ENUM.WAIT_APPLIED,
+      STATES_ENUM.MODIFIED,
+      STATES_ENUM.MISSING,
+      STATES_ENUM.ORPHANED,
+      STATES_ENUM.UNKNOWN,
+    ].reduce((acc: Record<string, any>, state) => {
+      acc[state] = {
+        count:  0,
+        color:  STATES[state].color,
+        label:  labelGetter(`${ stateKey }.${ state }`, null, STATES[state].label ),
+        status: state
+      };
+
+      return acc;
+    }, {});
+  }
+
+  getBundlesDefaultState(labelGetter: (key: string, args: any, fallback: any) => Record<string, any>, stateKey: string): Record<string, FleetResourceState> {
+    return [
+      STATES_ENUM.READY,
+      STATES_ENUM.INFO,
+      STATES_ENUM.WARNING,
+      STATES_ENUM.NOT_READY,
+      STATES_ENUM.ERROR,
+      STATES_ENUM.ERR_APPLIED,
+      STATES_ENUM.WAIT_APPLIED,
+      STATES_ENUM.UNKNOWN,
+    ].reduce((acc: Record<string, any>, state) => {
+      acc[state] = {
+        count:  0,
+        color:  STATES[state].color,
+        label:  labelGetter(`${ stateKey }.${ state }`, null, STATES[state].label ),
+        status: state
+      };
+
+      return acc;
+    }, {});
+  }
+
+  getDashboardStateId(resource: { stateColor: string }): string {
+    return resource?.stateColor?.replace('text-', '') || 'warning';
+  }
+
+  getDashboardState(resource: { stateColor: string }): FleetDashboardState | {} {
+    const stateId = this.getDashboardStateId(resource);
+
+    return this.dashboardStates.find(({ id }) => stateId === id) || {};
   }
 }
 

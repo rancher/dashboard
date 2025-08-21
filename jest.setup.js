@@ -63,6 +63,14 @@ beforeAll(() => {
       getImageData:         jest.fn(() => ({ data: [] }))
     }))
   });
+  Object.defineProperty(window, 'IntersectionObserver', {
+    writable: true,
+    value:    jest.fn().mockImplementation(() => ({
+      observe:    jest.fn(),
+      unobserve:  jest.fn(),
+      disconnect: jest.fn(),
+    })),
+  });
 });
 jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => (key) => key }));
 // eslint-disable-next-line no-console
@@ -72,11 +80,7 @@ jest.spyOn(console, 'warn').mockImplementation((warning) => warning.includes('[V
 jest.mock('@shell/composables/useI18n', () => {
   return {
     useI18n() {
-      return {
-        t(key) {
-          return key;
-        }
-      };
+      return { t: (key, options) => `${ key }${ options ? `-${ JSON.stringify(options) }` : '' }` };
     }
   };
 });

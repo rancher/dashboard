@@ -13,6 +13,7 @@ import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/label
 import { KEV1 } from '@shell/models/management.cattle.io.kontainerdriver';
 
 const RKE1_ALLOWED_ACTIONS = [
+  'promptRemove',
   'openShell',
   'downloadKubeConfig',
   'copyKubeConfig',
@@ -73,15 +74,17 @@ export default class ProvCluster extends SteveModel {
     return super.creationTimestamp;
   }
 
-  // Models can specify a single action that will be shown as a button in the details masthead
-  get detailsAction() {
-    const canExplore = this.mgmt?.isReady && !this.hasError;
+  get canExplore() {
+    return this.mgmt?.isReady && !this.hasError;
+  }
 
-    return {
-      action:  'explore',
-      label:   this.$rootGetters['i18n/t']('cluster.explore'),
-      enabled: canExplore,
-    };
+  get canEdit() {
+    // If the cluster is a KEV1 cluster or Harvester cluster then prevent edit
+    if (this.isKev1 || this.isHarvester) {
+      return false;
+    }
+
+    return super.canEdit;
   }
 
   get _availableActions() {
@@ -100,7 +103,7 @@ export default class ProvCluster extends SteveModel {
 
     const canEditRKE2cluster = this.isRke2 && ready && this.canUpdate;
 
-    const canSnapshot = ready && ((this.isRke2 && this.canUpdate) || (this.isRke1 && this.mgmt?.hasAction('backupEtcd')));
+    const canSnapshot = ready && this.isRke2 && this.canUpdate;
 
     const actions = [
       // Note: Actions are not supported in the Steve API, so we check
@@ -133,7 +136,7 @@ export default class ProvCluster extends SteveModel {
       }, {
         action:  'restoreSnapshotAction',
         label:   this.$rootGetters['i18n/t']('nav.restoreSnapshot'),
-        icon:    'icon icon-fw icon-backup-restore',
+        icon:    'icon icon-backup-restore',
         enabled: canSnapshot,
       }, {
         action:  'rotateCertificates',
@@ -147,23 +150,10 @@ export default class ProvCluster extends SteveModel {
         enabled: canEditRKE2cluster
       }, { divider: true }];
 
-    // Harvester Cluster 1:1 Harvester Cloud Cred
-    if (this.cloudCredential?.canRenew || this.cloudCredential?.canBulkRenew) {
-      out.splice(0, 0, { divider: true });
-      out.splice(0, 0, {
-        action:     'renew',
-        enabled:    this.cloudCredential?.canRenew,
-        bulkable:   this.cloudCredential?.canBulkRenew,
-        bulkAction: 'renewBulk',
-        icon:       'icon icon-fw icon-refresh',
-        label:      this.$rootGetters['i18n/t']('cluster.cloudCredentials.renew'),
-      });
-    }
-
     const all = actions.concat(out);
 
-    // If the cluster is a KEV1 cluster then prevent edit
-    if (this.isKev1) {
+    // If the cluster is a KEV1 cluster or Harvester cluster then prevent edit
+    if (this.isKev1 || this.isHarvester) {
       const edit = all.find((action) => action.action === 'goToEdit');
 
       if (edit) {
@@ -719,7 +709,7 @@ export default class ProvCluster extends SteveModel {
   async copyKubeConfig() {
     await this.mgmt?.copyKubeConfig();
 
-    this.$dispatch('growl/success', {
+    this.$dispatch('growl/info', {
       title:   this.t('cluster.copiedConfig'),
       timeout: 3000,
     }, { root: true });
@@ -736,7 +726,7 @@ export default class ProvCluster extends SteveModel {
   async snapshotAction() {
     try {
       await this.takeSnapshot();
-      this.$dispatch('growl/success', {
+      this.$dispatch('growl/info', {
         title:   this.$rootGetters['i18n/t']('cluster.snapshot.successTitle', { name: this.nameDisplay }),
         message: this.$rootGetters['i18n/t']('cluster.snapshot.successMessage', { name: this.nameDisplay })
       }, { root: true });
@@ -756,7 +746,7 @@ export default class ProvCluster extends SteveModel {
     const successful = res.filter( (x) => x.status === 'fulfilled').length;
 
     if ( successful ) {
-      this.$dispatch('growl/success', {
+      this.$dispatch('growl/info', {
         title:   this.$rootGetters['i18n/t']('cluster.snapshot.bulkSuccessTitle'),
         message: this.$rootGetters['i18n/t']('cluster.snapshot.bulkSuccessMessage', { count: successful })
       }, { root: true });
@@ -820,33 +810,6 @@ export default class ProvCluster extends SteveModel {
 
   get stateObj() {
     return this._stateObj;
-  }
-
-  get rkeTemplate() {
-    if (!this.isRke1 || !this.mgmt) {
-      // Not an RKE! cluster or no management cluster available
-      return false;
-    }
-
-    if (!this.mgmt.spec?.clusterTemplateRevisionName) {
-      // Cluster does not use an RKE template
-      return false;
-    }
-
-    const clusterTemplateName = this.mgmt.spec.clusterTemplateName.replace(':', '/');
-    const clusterTemplateRevisionName = this.mgmt.spec.clusterTemplateRevisionName.replace(':', '/');
-    const template = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE).find((t) => t.id === clusterTemplateName);
-    const revision = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).find((t) => t.spec.enabled && t.id === clusterTemplateRevisionName);
-
-    if (!template || !revision) {
-      return false;
-    }
-
-    return {
-      displayName: `${ template.spec?.displayName }/${ revision.spec?.displayName }`,
-      template,
-      revision,
-    };
   }
 
   get _stateObj() {
@@ -1011,6 +974,28 @@ export default class ProvCluster extends SteveModel {
     return null;
   }
 
+  /**
+   * Gets the options for fields that should be commented out in the YAML representation
+   * of the model. This is particularly useful for conditionally commenting out certain
+   * fields based on the model's configuration.
+   *
+   * @returns {null | Array.<{path: string, key: string}>}
+   * - `path`: A dot-separated string indicating the path to the object containing the key.
+   * - `key`: The specific key within the object at the given path that should be commented out.
+   */
+  get commentFieldsOptions() {
+    if ( this.isRke2 ) {
+      return [
+        {
+          path: 'spec.rkeConfig.machineGlobalConfig',
+          key:  'profile'
+        }
+      ];
+    }
+
+    return null;
+  }
+
   // JSON Paths that should be folded in the YAML editor by default
   get yamlFolding() {
     return [
@@ -1022,24 +1007,11 @@ export default class ProvCluster extends SteveModel {
     return super.description || this.mgmt?.description;
   }
 
-  renew() {
-    return this.cloudCredential?.renew();
+  get disableResourceDetailDrawerConfigTab() {
+    return !!this.isHarvester;
   }
 
-  renewBulk(clusters = []) {
-    // In theory we don't need to filter by cloudCred, but do so for safety
-    const cloudCredentials = clusters.filter((c) => c.cloudCredential).map((c) => c.cloudCredential);
-
-    return this.cloudCredential?.renewBulk(cloudCredentials);
-  }
-
-  get cloudCredential() {
-    return this.$rootGetters['rancher/all'](NORMAN.CLOUD_CREDENTIAL).find((cc) => cc.id === this.spec.cloudCredentialSecretName);
-  }
-
-  get cloudCredentialWarning() {
-    const expireData = this.cloudCredential?.expireData;
-
-    return expireData?.expired || expireData?.expiring;
+  get fullDetailPageOverride() {
+    return true;
   }
 }

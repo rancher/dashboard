@@ -1,4 +1,4 @@
-import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
+import { CATTLE_PUBLIC_ENDPOINTS, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { NODE as NODE_TYPE } from '@shell/config/types';
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
@@ -383,6 +383,29 @@ export const SECRET_DATA = {
   formatter: 'SecretData'
 };
 
+export const SECRET_CLONE = {
+  name:      'secret-clone',
+  labelKey:  'tableHeaders.secret.project-clone',
+  tooltip:   'tableHeaders.secret.project-clone-tooltip',
+  value:     'isProjectSecretCopy',
+  sort:      `metadata.annotations."${ UI_PROJECT_SECRET_COPY }"`,
+  search:    false,
+  formatter: 'Checked',
+};
+
+export const SECRET_PROJECT_SCOPED = {
+  name:     'secret-project-scoped',
+  labelKey: 'tableHeaders.secret.project-scoped',
+  tooltip:  'tableHeaders.secret.project-scoped-tooltip',
+  value:    'clusterAndProjectLabel',
+  // Cannot _sort_ upstream secrets by if they are cluster scoped
+  // https://github.com/rancher/rancher/issues/51001
+  // metadata.labels[management.cattle.io/project-scoped-secret] - covers both cluster scoped AND clones
+  // metadata.annotations[management.cattle.io/project-scoped-secret-copy]
+  // sort:     [`metadata.labels[${ UI_PROJECT_SECRET }]`, `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]`],
+  search:   false,
+};
+
 export const TARGET_KIND = {
   name:     'target-kind',
   labelKey: 'tableHeaders.targetKind',
@@ -761,6 +784,52 @@ export const FLEET_SUMMARY = {
   width:     100,
 };
 
+export const FLEET_APPLICATION_TYPE = {
+  name:     'applicationType',
+  labelKey: 'fleet.tableHeaders.applicationType',
+  value:    'kind',
+  sort:     'kind',
+  search:   false,
+  align:    'center',
+  width:    100,
+};
+
+export const FLEET_APPLICATION_SOURCE = {
+  name:      'applicationSource',
+  labelKey:  'fleet.tableHeaders.applicationSource',
+  value:     'source.value',
+  formatter: 'FleetApplicationSource',
+  sort:      'source.value',
+  search:    ['source.value', 'sourceSub.value'],
+};
+
+export const FLEET_APPLICATION_TARGET = {
+  name:     'applicationTarget',
+  labelKey: 'fleet.tableHeaders.applicationTarget',
+  value:    'targetInfo.modeDisplay',
+  sort:     ['targetInfo.modeDisplay'],
+};
+
+export const FLEET_APPLICATION_CLUSTERS_READY = {
+  name:      'applicationClustersReady',
+  labelKey:  'fleet.tableHeaders.applicationClustersReady',
+  value:     'readyClusters',
+  formatter: 'FleetApplicationClustersReady',
+  sort:      'readyClusters',
+  search:    false,
+};
+
+export const FLEET_APPLICATION_RESOURCES_SUMMARY = {
+  name:      'applicationResourcesSummary',
+  labelKey:  'fleet.tableHeaders.applicationResourcesSummary',
+  value:     'status.resourceCounts',
+  sort:      false,
+  search:    false,
+  formatter: 'FleetSummaryGraph',
+  align:     'center',
+  width:     100,
+};
+
 export const FLEET_REPO_CLUSTER_SUMMARY = {
   name:      'clusterSummary',
   labelKey:  'tableHeaders.clusterResources',
@@ -1052,36 +1121,20 @@ export const FLEET_BUNDLE_LAST_UPDATED = {
   sort:          ['lastUpdateTime']
 };
 
-export const FLEET_BUNDLE_TYPE = {
-  name:     'bundleType',
-  labelKey: 'tableHeaders.fleetBundleType',
-  value:    'bundleType',
-  sort:     ['bundleType'],
-  width:    100,
-};
-
-export const FLEET_REPO_CLUSTERS_READY = {
-  name:     'clustersReady',
-  labelKey: 'tableHeaders.clustersReady',
-  value:    'status.readyClusters',
-  sort:     'status.readyClusters',
-  search:   false,
-};
-
 export const FLEET_REPO_TARGET = {
   name:     'target',
   labelKey: 'tableHeaders.target',
   value:    'targetInfo.modeDisplay',
-  sort:     ['targetInfo.modeDisplay', 'targetInfo.cluster', 'targetInfo.clusterGroup'],
-
+  sort:     ['targetInfo.modeDisplay'],
 };
 
 export const FLEET_REPO = {
-  name:     'repo',
-  labelKey: 'tableHeaders.repo',
-  value:    'repoDisplay',
-  sort:     'repoDisplay',
-  search:   ['spec.repo', 'status.commit'],
+  name:      'repo',
+  labelKey:  'tableHeaders.repo',
+  value:     'source.value',
+  formatter: 'FleetApplicationSource',
+  sort:      'source.value',
+  search:    ['source.value', 'sourceSub.value'],
 };
 
 export const UI_PLUGIN_CATALOG = [
@@ -1115,3 +1168,9 @@ export const UI_PLUGIN_CATALOG = [
     value:    'repo.metadata.name'
   }
 ];
+
+// SECRETS
+export const PROJECT = {
+  name:     'project',
+  labelKey: 'tableHeaders.project',
+};

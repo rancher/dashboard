@@ -1,49 +1,8 @@
 <script>
-import { STATES, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import { clone } from '@shell/utils/object';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import FleetStatus from '@shell/components/fleet/FleetStatus';
-
-const getResourcesDefaultState = (labelGetter, stateKey) => {
-  return [
-    STATES_ENUM.READY,
-    STATES_ENUM.NOT_READY,
-    STATES_ENUM.WAIT_APPLIED,
-    STATES_ENUM.MODIFIED,
-    STATES_ENUM.MISSING,
-    STATES_ENUM.ORPHANED,
-    STATES_ENUM.UNKNOWN,
-  ].reduce((acc, state) => {
-    acc[state] = {
-      count:  0,
-      color:  STATES[state].color,
-      label:  labelGetter(`${ stateKey }.${ state }`, null, STATES[state].label ),
-      status: state
-    };
-
-    return acc;
-  }, {});
-};
-
-const getBundlesDefaultState = (labelGetter, stateKey) => {
-  return [
-    STATES_ENUM.READY,
-    STATES_ENUM.INFO,
-    STATES_ENUM.WARNING,
-    STATES_ENUM.NOT_READY,
-    STATES_ENUM.ERROR,
-    STATES_ENUM.ERR_APPLIED,
-    STATES_ENUM.WAIT_APPLIED,
-    STATES_ENUM.UNKNOWN,
-  ].reduce((acc, state) => {
-    acc[state] = {
-      count:  0,
-      color:  STATES[state].color,
-      label:  labelGetter(`${ stateKey }.${ state }`, null, STATES[state].label ),
-      status: state
-    };
-
-    return acc;
-  }, {});
-};
+import FleetUtils from '@shell/utils/fleet';
 
 export default {
 
@@ -67,24 +26,39 @@ export default {
     },
   },
 
+  data() {
+    let bundlesDefaultStates; let resourcesDefaultStates = {};
+
+    try {
+      bundlesDefaultStates = FleetUtils.getBundlesDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey);
+      resourcesDefaultStates = FleetUtils.getResourcesDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey);
+    } catch (error) {
+    }
+
+    return {
+      bundlesDefaultStates,
+      resourcesDefaultStates,
+    };
+  },
+
   computed: {
 
-    repoName() {
+    resourceName() {
       return this.value.metadata.name;
     },
 
-    repoNamespace() {
+    resourceNamespace() {
       return this.value.metadata.namespace;
     },
 
     bundleCounts() {
-      const resources = this.bundles.filter((item) => item.namespace === this.repoNamespace && item.repoName === this.repoName);
+      const resources = this.bundles.filter((item) => item.namespace === this.resourceNamespace && item.appSourceName === this.resourceName);
 
       if (!resources.length) {
         return [];
       }
 
-      const out = { ...getBundlesDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
+      const out = clone(this.bundlesDefaultStates);
 
       resources.forEach(({ status, metadata }) => {
         if (!status) {
@@ -149,7 +123,8 @@ export default {
     },
 
     resourceCounts() {
-      const out = { ...getResourcesDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
+      const out = clone(this.resourcesDefaultStates);
+
       const resourceStatuses = this.value.allResourceStatuses;
 
       Object.entries(resourceStatuses.states)
@@ -183,13 +158,13 @@ export default {
       title="Bundles"
       :values="bundleCounts"
       value-key="count"
-      data-testid="gitrepo-bundle-summary"
+      data-testid="resource-bundle-summary"
     />
     <FleetStatus
       title="Resources"
       :values="resourceCounts"
       value-key="count"
-      data-testid="gitrepo-deployment-summary"
+      data-testid="resource-deployment-summary"
     />
   </div>
 </template>

@@ -412,7 +412,6 @@ export default {
           newNamespace.applyDefaults();
           await newNamespace.save();
         } catch (e) {
-          // this.errors = exceptionToErrorsArray(e);
           this.$emit('error', exceptionToErrorsArray(e));
           throw new Error(`Could not create the new namespace. ${ e.message }`);
         }
@@ -836,7 +835,7 @@ export default {
           :offer-preview="isEdit"
           :done-route="doneRoute"
           :done-override="resource.doneOverride"
-          :errors="errors"
+          :show-errors="false"
           :apply-hooks="applyHooks"
           class="resource-container cru__content"
           @error="e=>$emit('error', e)"

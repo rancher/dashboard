@@ -18,6 +18,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { Banner } from '@components/Banner';
 import { clone, get } from '@shell/utils/object';
 import { uniq, removeObject } from '@shell/utils/array';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 
@@ -133,13 +134,14 @@ export default {
 
       if (clusterId) {
         let configMapsUrl = `${ url }/${ CONFIG_MAP }s`;
+        const harvesterClusterVaiEnabled = await paginationUtils.isDownstreamSteveCacheEnabled({ dispatch: this.$store.dispatch }, clusterId);
 
-        if (this.$store.getters[`cluster/paginationEnabled`](CONFIG_MAP)) {
+        if (harvesterClusterVaiEnabled && this.$store.getters[`cluster/paginationEnabled`](CONFIG_MAP)) {
           const pagination = new FilterArgs({
             filters: [
               PaginationParamFilter.createMultipleFields([
-                new PaginationFilterField({ field: `metadata.label["${ HCI_ANNOTATIONS.CLOUD_INIT }"]`, value: 'user' }),
-                new PaginationFilterField({ field: `metadata.label["${ HCI_ANNOTATIONS.CLOUD_INIT }"]`, value: 'network' })
+                new PaginationFilterField({ field: `metadata.labels[${ HCI_ANNOTATIONS.CLOUD_INIT }]`, value: 'user' }),
+                new PaginationFilterField({ field: `metadata.labels[${ HCI_ANNOTATIONS.CLOUD_INIT }]`, value: 'network' })
               ])
             ]
           });
@@ -186,14 +188,14 @@ export default {
 
           if (cloudTemplate === 'user') {
             userDataOptions.push({
-              label: O.metadata.name,
+              label: O.id,
               value: O.data.cloudInit
             });
           }
 
           if (cloudTemplate === 'network') {
             networkDataOptions.push({
-              label: O.metadata.name,
+              label: O.id,
               value: O.data.cloudInit
             });
           }
@@ -494,7 +496,6 @@ export default {
         ...this.vGpusInit,
         ...Object.values(this.vGpuDevices)
           .filter((vGpu) => vGpu.enabled && !!vGpu.type && (vGpu.allocatable === null || vGpu.allocatable > 0))
-          .map((vGpu) => vGpu.type),
       ]);
 
       return vGpuTypes;
@@ -502,10 +503,23 @@ export default {
 
     showVGpuAllocationInfo() {
       return this.mode !== _VIEW && !!Object.values(this.vGpuDevices).find((d) => d.allocatable);
-    }
+    },
+
+    enableCpuPinningCheckbox() {
+      return this.allNodeObjects.some((node) => node?.metadata?.labels?.[HCI_ANNOTATIONS.CPU_MANAGER] === 'true'); // any one of nodes has label cpuManager=true
+    },
   },
 
   watch: {
+    'value.enableEfi': {
+      handler(neu) {
+        // clear secureBoot if disable enableEfi
+        if (!!neu === false) {
+          this.value.enableSecureBoot = undefined;
+        }
+      },
+      immediate: true
+    },
     credentialId() {
       if (!this.isEdit) {
         this.imageOptions = [];
@@ -1500,12 +1514,51 @@ export default {
 
           <Checkbox
             v-model:value="installAgent"
-            class="check mb-20"
-            type="checkbox"
+            class="check"
+            type="checkbox mb-20"
             label-key="cluster.credential.harvester.installGuestAgent"
             :mode="mode"
             @update:value="updateAgent"
           />
+
+          <Checkbox
+            v-model:value="value.cpuPinning"
+            class="check mb-20"
+            :disabled="!enableCpuPinningCheckbox"
+            type="checkbox"
+            tooltip-key="cluster.credential.harvester.cpuPinningTooltip"
+            label-key="cluster.credential.harvester.enableCpuPinning"
+            :mode="mode"
+          />
+          <Checkbox
+            v-model:value="value.enableTpm"
+            class="check mb-20"
+            type="checkbox"
+            label-key="cluster.credential.harvester.enableTpm"
+            :mode="mode"
+          />
+          <Checkbox
+            v-model:value="value.enableEfi"
+            class="check mb-20"
+            type="checkbox"
+            label-key="cluster.credential.harvester.enableEfi"
+            :mode="mode"
+          />
+          <Checkbox
+            v-if="!!value.enableEfi"
+            v-model:value="value.enableSecureBoot"
+            class="check mb-20"
+            type="checkbox"
+            label-key="cluster.credential.harvester.secureBoot"
+            :mode="mode"
+          />
+          <Banner
+            v-if="!enableCpuPinningCheckbox"
+            color="warning"
+            class="check mb-20 mt-0"
+          >
+            <span> {{ t('cluster.credential.harvester.cpuManagerWarning') }}</span>
+          </Banner>
         </div>
 
         <h3>{{ t('cluster.credential.harvester.networkData.title') }}</h3>

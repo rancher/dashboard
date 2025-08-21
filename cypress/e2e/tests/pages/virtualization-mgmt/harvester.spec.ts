@@ -88,6 +88,8 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       harvesterPo.harvesterLogo().should('not.exist');
       harvesterPo.harvesterTagline().should('not.exist');
 
+      // #14285: Should be able to edit cluster here
+      harvesterPo.list().actionMenu(harvesterClusterName).getMenuItem('Edit Config').should('exist');
       // delete cluster
       cy.deleteRancherResource('v1', 'provisioning.cattle.io.clusters', `fleet-default/${ harvesterClusterId }`);
     });
@@ -215,7 +217,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT);
 
       // check for update harvester message
-      harvesterPo.extensionWarning().should('have.text', 'The Harvester UI Extension is not updated');
+      harvesterPo.extensionWarning().invoke('text').should('match', /^Your current Harvester UI Extension \((v[\d.]+)\) is not the latest\.$/);
       harvesterPo.updateOrInstallButton().click();
 
       // wait for update version update

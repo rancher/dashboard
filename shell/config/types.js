@@ -14,7 +14,6 @@ export const STEVE = {
 export const NORMAN = {
   APP:                           'app',
   AUTH_CONFIG:                   'authconfig',
-  ETCD_BACKUP:                   'etcdbackup',
   CLUSTER:                       'cluster',
   CLUSTER_TOKEN:                 'clusterregistrationtoken',
   CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterroletemplatebinding',
@@ -134,6 +133,14 @@ export const CATALOG = {
   REPO:         'catalog.cattle.io.repo',
 };
 
+// Charts/Apps
+export const CATALOG_SORT_OPTIONS = {
+  RECOMMENDED:       'recommended',
+  LAST_UPDATED_DESC: 'lastupdatedDescending',
+  ALPHABETICAL_ASC:  'alphaAscending',
+  ALPHABETICAL_DESC: 'alphaDescending'
+};
+
 // UI Plugin type
 export const UI_PLUGIN = 'catalog.cattle.io.uiplugin';
 
@@ -211,7 +218,8 @@ export const MANAGEMENT = {
   GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider',
   RKE_TEMPLATE:                  'management.cattle.io.clustertemplate',
   RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
-  CLUSTER_PROXY_CONFIG:          'management.cattle.io.clusterproxyconfig'
+  CLUSTER_PROXY_CONFIG:          'management.cattle.io.clusterproxyconfig',
+  OIDC_CLIENT:                   'management.cattle.io.oidcclient'
 };
 
 export const CAPI = {
@@ -229,12 +237,14 @@ export const CAPI = {
 // Base: /k8s/clusters/<id>/v1/
 
 export const FLEET = {
+  APPLICATION:              'fleet.cattle.io.application',
   BUNDLE:                   'fleet.cattle.io.bundle',
   BUNDLE_DEPLOYMENT:        'fleet.cattle.io.bundledeployment',
   CLUSTER:                  'fleet.cattle.io.cluster',
   CLUSTER_GROUP:            'fleet.cattle.io.clustergroup',
   DASHBOARD:                'fleet.cattle.io.dashboard',
   GIT_REPO:                 'fleet.cattle.io.gitrepo',
+  HELM_OP:                  'fleet.cattle.io.helmop',
   WORKSPACE:                'management.cattle.io.fleetworkspace',
   TOKEN:                    'fleet.cattle.io.clusterregistrationtoken',
   BUNDLE_NAMESPACE_MAPPING: 'fleet.cattle.io.bundlenamespacemapping',
@@ -292,11 +302,11 @@ export const BACKUP_RESTORE = {
   RESTORE:      'resources.cattle.io.restore',
 };
 
-export const CIS = {
-  CLUSTER_SCAN:         'cis.cattle.io.clusterscan',
-  CLUSTER_SCAN_PROFILE: 'cis.cattle.io.clusterscanprofile',
-  BENCHMARK:            'cis.cattle.io.clusterscanbenchmark',
-  REPORT:               'cis.cattle.io.clusterscanreport'
+export const COMPLIANCE = {
+  CLUSTER_SCAN:         'compliance.cattle.io.clusterscan',
+  CLUSTER_SCAN_PROFILE: 'compliance.cattle.io.clusterscanprofile',
+  BENCHMARK:            'compliance.cattle.io.clusterscanbenchmark',
+  REPORT:               'compliance.cattle.io.clusterscanreport'
 };
 
 export const UI = { NAV_LINK: 'ui.cattle.io.navlink' };
@@ -305,6 +315,7 @@ export const VIRTUAL_TYPES = {
   CLUSTER_MEMBERS:    'cluster-members',
   PROJECT_NAMESPACES: 'projects-namespaces',
   NAMESPACES:         'namespaces',
+  PROJECT_SECRETS:    'projectsecret',
   JWT_AUTHENTICATION: 'jwt.authentication'
 };
 

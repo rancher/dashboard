@@ -55,7 +55,7 @@ export const defaultNodePool = {
   osDiskSizeGB:          128,
   osDiskType:            'Managed' as AKSDiskType,
   osType:                'Linux',
-  vmSize:                'Standard_DS2_v2',
+  vmSize:                'Standard_D2d_v4',
   _isNewOrUnprovisioned: true,
   _validation:           {}
 };
@@ -378,7 +378,7 @@ export default defineComponent({
 
     // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details
     removeUnchangedConfigFields(): void {
-      const upstreamConfig = this.normanCluster?.status?.aksStatus?.upstreamSpec;
+      const upstreamConfig = this.normanCluster?.aksStatus?.upstreamSpec;
 
       if (upstreamConfig) {
         const diff = diffUpstreamSpec(upstreamConfig, this.config);

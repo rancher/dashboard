@@ -1,67 +1,47 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
-import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
-import ResourceListMastheadPo from '@/cypress/e2e/po/components/ResourceList/resource-list-masthead.po';
-import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
-export class LoggingClusterflowListPagePo extends PagePo {
+export class LoggingClusterFlowListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/logging/logging.banzaicloud.io.clusterflow`;
   }
 
   static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(LoggingClusterflowListPagePo.createPath(clusterId));
+    return super.goTo(LoggingClusterFlowListPagePo.createPath(clusterId));
   }
 
   constructor(clusterId = 'local') {
-    super(LoggingClusterflowListPagePo.createPath(clusterId));
+    super(LoggingClusterFlowListPagePo.createPath(clusterId));
   }
 
-  masthead() {
-    return new ResourceListMastheadPo(this.self());
-  }
+  static navTo(clusterId = 'local') {
+    const burgerMenu = new BurgerMenuPo();
+    const sideNav = new ProductNavPo();
 
-  createLoggingFlow() {
-    return this.masthead().create();
-  }
-
-  listElementWithName(name:string) {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().rowElementWithName(name);
-  }
-
-  rowLinkWithName(name: string) {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().detailsPageLinkWithName(name);
+    burgerMenu.goToCluster(clusterId);
+    sideNav.navToSideMenuGroupByLabel('Logging');
+    sideNav.navToSideMenuEntryByLabel('ClusterFlow');
   }
 }
 
-export class LoggingClusterflowEditPagePo extends PagePo {
-  static url: string;
+export class LoggingClusterFlowCreateEditPagePo extends BaseDetailPagePo {
+  private static createPath(clusterId: string, namespace?: string, id?: string ) {
+    const root = `/c/${ clusterId }/logging/logging.banzaicloud.io.clusterflow`;
 
-  private static createPath( clusterId: string, name: string ) {
-    const urlStr = `/c/${ clusterId }/logging/logging.banzaicloud.io.clusterflow/${ name }#`;
-
-    return urlStr;
+    return id ? `${ root }/${ namespace }/${ id }` : `${ root }/create`;
   }
 
-  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(this.url);
+  static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
+    throw new Error('invalid');
   }
 
-  constructor(clusterId = 'local', name = 'create') {
-    super(LoggingClusterflowEditPagePo.createPath(clusterId, name));
-
-    LoggingClusterflowEditPagePo.url = LoggingClusterflowEditPagePo.createPath(clusterId, name);
-  }
-
-  nameNsDescription() {
-    return new NameNsDescription(this.self());
+  constructor(clusterId: string, namespace?: string, id?: string) {
+    super(LoggingClusterFlowCreateEditPagePo.createPath(clusterId, namespace, id));
   }
 
   outputsTab() {
@@ -72,8 +52,55 @@ export class LoggingClusterflowEditPagePo extends PagePo {
     return new LabeledSelectPo('section#outputs .labeled-select');
   }
 
-  saveCreateForm(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="form-save"]', this.self());
+  ruleItem(index: number) {
+    return new ArrayListPo(this.self()).arrayListItem(index);
+  }
+
+  matchesList() {
+    return new ArrayListPo('section#match .array-list-grouped');
+  }
+
+  /**
+   * Sets multiple namespace values for a match rule at the specified index
+   * @param arrayListIndex - The index of the match rule in the array list
+   * @param values - Array of namespace values to select
+   */
+  setNamespaceValueByLabel(arrayListIndex: number, values: string[]) {
+    const item = this.matchesList().arrayListItem(arrayListIndex);
+    const select = new LabeledSelectPo(item.find('.row:nth-of-type(2) .unlabeled-select'));
+
+    select.toggle();
+    values.forEach((value) => {
+      select.clickOptionWithLabel(value);
+    });
+  }
+}
+
+export class LoggingClusterFlowDetailPagePo extends BaseDetailPagePo {
+  static url: string;
+
+  private static createPath( clusterId: string, namespace: string, id: string ) {
+    const urlStr = `/c/${ clusterId }/logging/logging.banzaicloud.io.clusterflow/${ namespace }/${ id }`;
+
+    return urlStr;
+  }
+
+  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(this.url);
+  }
+
+  constructor(clusterId = 'local', namespace: string, id: string) {
+    super(LoggingClusterFlowDetailPagePo.createPath(clusterId, namespace, id));
+
+    LoggingClusterFlowDetailPagePo.url = LoggingClusterFlowDetailPagePo.createPath(clusterId, namespace, id);
+  }
+
+  outputsTab() {
+    return new TabbedPo().clickTabWithSelector('[data-testid="btn-outputs"]');
+  }
+
+  outputSelector() {
+    return new LabeledSelectPo('section#outputs .labeled-select');
   }
 
   ruleItem(index: number) {
