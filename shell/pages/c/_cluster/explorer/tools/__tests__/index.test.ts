@@ -2,21 +2,25 @@ import { clone } from '@shell/utils/object';
 import ClusterTools from '@shell/pages/c/_cluster/explorer/tools/index.vue';
 import { shallowMount } from '@vue/test-utils';
 import { MANAGEMENT } from '@shell/config/types';
+import { RcItemCard } from '@components/RcItemCard';
 
 describe('page: cluster tools', () => {
   const mountOptions = {
     computed: {
-      options: () => [
+      appChartCards: () => [
         {
-          chart: {
-            id:       'cluster/rancher-charts/rancher-alerting-drivers',
-            iconName: 'icon',
-          },
-          app: {}
+          id:             'cluster/rancher-charts/rancher-alerting-drivers',
+          header:         { title: { text: 'Rancher Alerting Drivers' } },
+          content:        { text: 'Some description' },
+          image:          { src: '' },
+          subHeaderItems: [],
+          installedApp:   {},
+          rawChart:       { blocked: false }
         }
       ]
     },
-    global: {
+    methods: { getCardActions: () => [] },
+    global:  {
       mocks: {
         $route:      { query: {} },
         $fetchState: {
@@ -47,7 +51,7 @@ describe('page: cluster tools', () => {
     const wrapper = shallowMount(ClusterTools, mountOptions);
 
     await (ClusterTools as any).fetch.call(wrapper.vm);
-    const cards = wrapper.find('[data-testid^="cluster-tools-app"]');
+    const cards = wrapper.findComponent(RcItemCard);
 
     expect(cards.exists()).toBe(true);
   });
@@ -64,7 +68,7 @@ describe('page: cluster tools', () => {
     const wrapper = shallowMount(ClusterTools, options);
 
     await (ClusterTools as any).fetch.call(wrapper.vm);
-    const cards = wrapper.find('[data-testid^="cluster-tools-app"]');
+    const cards = wrapper.findComponent(RcItemCard);
 
     expect(cards.exists()).toBe(true);
   });
