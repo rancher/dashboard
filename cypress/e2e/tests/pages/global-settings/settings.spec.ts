@@ -35,7 +35,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
   });
 
   describe('Inactivity', () => {
-    it('should show the the inactivity modal', () => {
+    it('should show the the inactivity modal', { tags: ['@globalSettings', '@adminUser'] }, () => {
       // Update setting "auth-user-session-idle-ttl-minutes" for the e2e test
       const sessionIdleSetting = 'auth-user-session-idle-ttl-minutes';
 
