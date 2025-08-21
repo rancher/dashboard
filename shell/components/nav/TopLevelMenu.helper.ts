@@ -157,7 +157,7 @@ export abstract class BaseTopLevelMenuHelper {
       iconColor:       mgmtCluster.iconColor,
       isLocal:         mgmtCluster.isLocal,
       pinned:          mgmtCluster.pinned,
-      description:     provCluster?.description || mgmtCluster.description,
+      description:     provCluster?.description || mgmtCluster.description, // If description is the only thing we care about, don't bother watching...
       pin:             () => mgmtCluster.pin(),
       unpin:           () => mgmtCluster.unpin(),
       clusterRoute:    { name: 'c-cluster-explorer', params: { cluster: mgmtCluster.id } }
@@ -202,9 +202,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.clustersOthersWrapper = new PaginationWrapper({
       $store,
       id:       'tlm-unpinned-clusters',
-      onChange: () => {
+      onChange: async() => {
         if (this.args) {
-          this.update(this.args);
+          await this.update(this.args);
         }
       },
       enabledFor: {
@@ -220,9 +220,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.provClusterWrapper = new PaginationWrapper({
       $store,
       id:       'tlm-prov-clusters',
-      onChange: () => {
+      onChange: async() => {
         if (this.args) {
-          this.update(this.args);
+          await this.update(this.args);
         }
       },
       enabledFor: {
@@ -390,7 +390,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   private async updateProvCluster(notPinned: MgmtCluster[], pinned: MgmtCluster[]): Promise<ProvCluster[]> {
     return this.provClusterWrapper.request({
       pagination: {
-
         filters: [
           PaginationParamFilter.createMultipleFields(
             [...notPinned, ...pinned]
@@ -399,7 +398,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
               }))
           )
         ],
-
         page:                 1,
         sort:                 [],
         projectsOrNamespaces: []

@@ -667,6 +667,10 @@ const sharedActions = {
 
   /**
    * Unwatch watches that are incompatible with the new type
+   *
+   * This is mainly to prevent the cache being polluted with resources that aren't compatible with it's aim
+   *
+   * For instance if the store contains a page then we don't want to receive updates for watches on specific other resources
    */
   unwatchIncompatible({
     state, dispatch, getters, commit

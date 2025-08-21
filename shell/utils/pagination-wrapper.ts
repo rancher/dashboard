@@ -126,7 +126,7 @@ class PaginationWrapper<T extends object> {
     }
     const watchParams: STEVE_WATCH_EVENT_PARAMS = {
       ...this.steveWatchParams,
-      callback: this.onChange as STEVE_WATCH_EVENT_LISTENER_CALLBACK, // we must have it by now
+      callback: this.onChange as STEVE_WATCH_EVENT_LISTENER_CALLBACK, // we must have onChange by now
     };
 
     await this.$store.dispatch(`${ this.enabledFor.store }/watchEvent`, watchParams);
