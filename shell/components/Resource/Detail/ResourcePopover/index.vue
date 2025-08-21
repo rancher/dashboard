@@ -14,6 +14,7 @@ export interface Props {
   type: string;
   id: string;
   currentStore?: string;
+  detailLocation?: object;
 }
 </script>
 
@@ -89,7 +90,7 @@ watch(
               :status="fetch.data?.stateBackground || 'unknown'"
             />
             <router-link
-              :to="fetch.data.detailLocation"
+              :to="props.detailLocation ||fetch.data.detailLocation"
             >
               {{ fetch.data.nameDisplay }}
             </router-link>

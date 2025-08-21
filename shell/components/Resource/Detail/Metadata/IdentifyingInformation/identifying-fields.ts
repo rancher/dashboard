@@ -31,8 +31,9 @@ export const useNamespace = (resource: any): ComputedRef<Row> | undefined => {
       valueOverride:   {
         component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue'))),
         props:     {
-          type: NAMESPACE,
-          id:   resourceValue.namespace
+          type:           NAMESPACE,
+          id:             resourceValue.namespace,
+          detailLocation: resourceValue.namespaceLocation
         }
       }
     };
