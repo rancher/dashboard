@@ -181,6 +181,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.displayName' },
       { field: `status.provider` },
       { field: `metadata.labels["${ CAPI_LAB_AND_ANO.PROVIDER }]` },
+      // { field: `metadata.labels[${ CAPI_LAB_AND_ANO.PROVIDER }]` }, TODO: RC test
       { field: `status.connected` },
     ],
     [CONFIG_MAP]: [
@@ -681,8 +682,8 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
       enableAll:  false,
       enableSome: {
         enabled: [
-          // { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
-          // { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
+          { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] },
+          { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
           { resource: CATALOG.APP, context: ['branding'] },
           SECRET
         ],
