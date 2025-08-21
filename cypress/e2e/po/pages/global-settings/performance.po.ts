@@ -35,10 +35,6 @@ export class PerformancePagePo extends RootClusterPage {
     return LabeledInputPo.byLabel(this.self(), 'Inactivity timeout (minutes) ');
   }
 
-  inactivityModalCard() {
-    return new ModalWithCardPo();
-  }
-
   websocketCheckbox(): CheckboxInputPo {
     return CheckboxInputPo.byLabel(this.self(), 'Disable websocket notifications');
   }
