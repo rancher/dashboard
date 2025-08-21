@@ -34,6 +34,65 @@ describe('Settings', { testIsolation: 'off' }, () => {
     });
   });
 
+  describe('Inactivity', () => {
+    it('should show the the inactivity modal', () => {
+      // Update setting "auth-user-session-idle-ttl-minutes" for the e2e test
+      const sessionIdleSetting = 'auth-user-session-idle-ttl-minutes';
+
+      SettingsPagePo.navTo();
+      settingsPage.editSettingsByLabel(sessionIdleSetting);
+
+      const settingsEdit = settingsPage.editSettings('local', sessionIdleSetting);
+
+      settingsEdit.waitForPage();
+      settingsEdit.title().contains(`Setting: ${ sessionIdleSetting }`).should('be.visible');
+      settingsEdit.settingsInput().set(settings[sessionIdleSetting].new);
+      settingsEdit.saveAndWait(sessionIdleSetting).then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body).to.have.property('value', settings[sessionIdleSetting].new);
+        expect(response?.body).to.have.property('value', settings[sessionIdleSetting].new);
+      });
+      settingsPage.waitForPage();
+      settingsPage.settingsValue(sessionIdleSetting).contains(settings[sessionIdleSetting].new);
+
+      // We need to reload the page to get the new settings to take effect.
+      cy.reload();
+
+      // we need to make sure we wait (timeout) a bit over a minute because the backend
+      // only accepts Int, which makes the minimum of 1 minute
+      expect(settingsPage.inactivityModalCard().getModal({ timeout: 65000 }).should('exist'));
+
+      expect(settingsPage.inactivityModalCard().getCardTitle().should('exist'));
+      expect(settingsPage.inactivityModalCard().getCardBody().should('exist'));
+      expect(settingsPage.inactivityModalCard().getCardActions().should('exist'));
+
+      expect(settingsPage.inactivityModalCard().getCardTitle().should('contain', 'Session expiring'));
+      expect(settingsPage.inactivityModalCard().getCardBody().should('contain', 'Your session is about to expire due to inactivity. Any unsaved changes will be lost'));
+      expect(settingsPage.inactivityModalCard().getCardBody().should('contain', 'Click “Resume Session” to keep the session in this tab active or refresh the browser after the session has expired'));
+
+      // Clicking the resume button should close the modal and reset the timer
+      expect(settingsPage.inactivityModalCard().getCardActions().contains('Resume Session').click());
+      expect(settingsPage.inactivityModalCard().shouldNotExist());
+
+      // Reset the setting to it's original value
+      SettingsPagePo.navTo();
+      settingsPage.waitForPage();
+      settingsPage.editSettingsByLabel(sessionIdleSetting);
+
+      settingsEdit.waitForPage();
+      settingsEdit.title().contains(`Setting: ${ sessionIdleSetting }`).should('be.visible');
+      settingsEdit.useDefaultButton().click();
+      settingsEdit.saveAndWait(sessionIdleSetting).then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body).to.have.property('value', settings[sessionIdleSetting].original);
+        expect(response?.body).to.have.property('value', settings[sessionIdleSetting].original);
+      });
+
+      settingsPage.waitForPage();
+      settingsPage.settingsValue(sessionIdleSetting).contains(settings[sessionIdleSetting].original);
+    });
+  });
+
   it('has the correct title', { tags: ['@globalSettings', '@adminUser'] }, () => {
     SettingsPagePo.navTo();
 
