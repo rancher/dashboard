@@ -206,7 +206,6 @@ export default {
       </rc-item-card>
     </div>
   </div>
-
   <div v-else>
     <IconMessage
       icon="icon-warning"
