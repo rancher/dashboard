@@ -40,12 +40,13 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
       // Update setting "auth-user-session-idle-ttl-minutes" for the e2e test
       const sessionIdleSetting = 'auth-user-session-idle-ttl-minutes';
+      const newSettingsPage = new SettingsPagePo('_');
 
       // Update setting
       SettingsPagePo.navTo();
-      settingsPage.editSettingsByLabel(sessionIdleSetting);
+      newSettingsPage.editSettingsByLabel(sessionIdleSetting);
 
-      const settingsEdit = settingsPage.editSettings('_', sessionIdleSetting);
+      const settingsEdit = newSettingsPage.editSettings('_', sessionIdleSetting);
 
       settingsEdit.waitForPage();
       settingsEdit.title().contains(`Setting: ${ sessionIdleSetting }`).should('be.visible');
@@ -55,8 +56,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
         expect(request.body).to.have.property('value', settings[sessionIdleSetting].new);
         expect(response?.body).to.have.property('value', settings[sessionIdleSetting].new);
       });
-      settingsPage.waitForPage();
-      settingsPage.settingsValue(sessionIdleSetting).contains(settings[sessionIdleSetting].new);
+      newSettingsPage.waitForPage();
+      newSettingsPage.settingsValue(sessionIdleSetting).contains(settings[sessionIdleSetting].new);
 
       // We need to reload the page to get the new settings to take effect.
       cy.reload();
@@ -90,24 +91,24 @@ describe('Settings', { testIsolation: 'off' }, () => {
       // eslint-disable-next-line cypress/no-unnecessary-waiting
       cy.wait(5000);
 
-      expect(settingsPage.inactivityModalCard().getModal().should('exist'));
+      expect(newSettingsPage.inactivityModalCard().getModal().should('exist'));
 
-      expect(settingsPage.inactivityModalCard().getCardTitle().should('exist'));
-      expect(settingsPage.inactivityModalCard().getCardBody().should('exist'));
-      expect(settingsPage.inactivityModalCard().getCardActions().should('exist'));
+      expect(newSettingsPage.inactivityModalCard().getCardTitle().should('exist'));
+      expect(newSettingsPage.inactivityModalCard().getCardBody().should('exist'));
+      expect(newSettingsPage.inactivityModalCard().getCardActions().should('exist'));
 
-      expect(settingsPage.inactivityModalCard().getCardTitle().should('contain', 'Session expiring'));
-      expect(settingsPage.inactivityModalCard().getCardBody().should('contain', 'Your session is about to expire due to inactivity. Any unsaved changes will be lost'));
-      expect(settingsPage.inactivityModalCard().getCardBody().should('contain', 'Click “Resume Session” to keep the session in this tab active or refresh the browser after the session has expired'));
+      expect(newSettingsPage.inactivityModalCard().getCardTitle().should('contain', 'Session expiring'));
+      expect(newSettingsPage.inactivityModalCard().getCardBody().should('contain', 'Your session is about to expire due to inactivity. Any unsaved changes will be lost'));
+      expect(newSettingsPage.inactivityModalCard().getCardBody().should('contain', 'Click “Resume Session” to keep the session in this tab active or refresh the browser after the session has expired'));
 
       // Clicking the resume button should close the modal and reset the timer
-      expect(settingsPage.inactivityModalCard().getCardActions().contains('Resume Session').click());
-      expect(settingsPage.inactivityModalCard().shouldNotExist());
+      expect(newSettingsPage.inactivityModalCard().getCardActions().contains('Resume Session').click());
+      expect(newSettingsPage.inactivityModalCard().shouldNotExist());
 
       // Reset
       SettingsPagePo.navTo();
-      settingsPage.waitForPage();
-      settingsPage.editSettingsByLabel(sessionIdleSetting);
+      newSettingsPage.waitForPage();
+      newSettingsPage.editSettingsByLabel(sessionIdleSetting);
 
       settingsEdit.waitForPage();
       settingsEdit.title().contains(`Setting: ${ sessionIdleSetting }`).should('be.visible');
@@ -118,8 +119,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
         expect(response?.body).to.have.property('value', settingsOriginal[sessionIdleSetting].default);
       });
 
-      settingsPage.waitForPage();
-      settingsPage.settingsValue(sessionIdleSetting).contains(settingsOriginal[sessionIdleSetting].default);
+      newSettingsPage.waitForPage();
+      newSettingsPage.settingsValue(sessionIdleSetting).contains(settingsOriginal[sessionIdleSetting].default);
 
       resetSettings.push(sessionIdleSetting);
     });
