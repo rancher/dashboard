@@ -41,10 +41,11 @@ describe('Settings', { testIsolation: 'off' }, () => {
       // Update setting "auth-user-session-idle-ttl-minutes" for the e2e test
       const sessionIdleSetting = 'auth-user-session-idle-ttl-minutes';
 
+      // Update setting
       SettingsPagePo.navTo();
       settingsPage.editSettingsByLabel(sessionIdleSetting);
 
-      const settingsEdit = settingsPage.editSettings('local', sessionIdleSetting);
+      const settingsEdit = settingsPage.editSettings(settingsClusterId, sessionIdleSetting);
 
       settingsEdit.waitForPage();
       settingsEdit.title().contains(`Setting: ${ sessionIdleSetting }`).should('be.visible');
@@ -103,7 +104,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(settingsPage.inactivityModalCard().getCardActions().contains('Resume Session').click());
       expect(settingsPage.inactivityModalCard().shouldNotExist());
 
-      // Reset the setting to it's original value
+      // Reset
       SettingsPagePo.navTo();
       settingsPage.waitForPage();
       settingsPage.editSettingsByLabel(sessionIdleSetting);
@@ -113,12 +114,14 @@ describe('Settings', { testIsolation: 'off' }, () => {
       settingsEdit.useDefaultButton().click();
       settingsEdit.saveAndWait(sessionIdleSetting).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
-        expect(request.body).to.have.property('value', settingsOriginal[`${ sessionIdleSetting }`].default);
-        expect(response?.body).to.have.property('value', settingsOriginal[`${ sessionIdleSetting }`].default);
+        expect(request.body).to.have.property('value', settingsOriginal[sessionIdleSetting].default);
+        expect(response?.body).to.have.property('value', settingsOriginal[sessionIdleSetting].default);
       });
 
       settingsPage.waitForPage();
-      settingsPage.settingsValue(sessionIdleSetting).contains(settingsOriginal[`${ sessionIdleSetting }`].default);
+      settingsPage.settingsValue(sessionIdleSetting).contains(settingsOriginal[sessionIdleSetting].default);
+
+      resetSettings.push(sessionIdleSetting);
     });
   });
 
