@@ -16,6 +16,7 @@ import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { MESSAGE, REASON } from '@shell/config/table-headers';
 import { STEVE_EVENT_LAST_SEEN, STEVE_EVENT_TYPE, STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
 import { headerFromSchemaColString } from '@shell/store/type-map.utils';
+import { useIndicateUseCounts } from '@shell/components/form/ResourceTabs/composable';
 
 export default {
 
@@ -72,6 +73,12 @@ export default {
     useHash: {
       type:    Boolean,
       default: true
+    }
+  },
+
+  setup(props) {
+    if (props.mode === _VIEW) {
+      useIndicateUseCounts();
     }
   },
 
@@ -155,15 +162,13 @@ export default {
       }
 
       return false;
+    },
+    children() {
+      return this.$slots?.default?.() || [];
     }
   },
 
   methods: {
-    // Ensures we only fetch events and show the table when the events tab has been activated
-    tabChange(neu) {
-      this.selectedTab = neu?.selectedName;
-    },
-
     /**
     * Conditions come from a resource's `status`. They are used by both core resources like workloads as well as those from CRDs
     * - Workloads
@@ -243,7 +248,6 @@ export default {
     @changed="tabChange"
   >
     <slot />
-
     <Tab
       v-if="showConditions"
       label-key="resourceTabs.conditions.tab"
@@ -262,7 +266,6 @@ export default {
     >
       <!-- namespaced: false given we don't want the default handling of namespaced resource (apply header filter)  -->
       <PaginatedResourceTable
-        v-if="selectedTab === 'events'"
         :schema="eventSchema"
         :local-filter="filterEventsLocal"
         :api-filter="filterEventsApi"

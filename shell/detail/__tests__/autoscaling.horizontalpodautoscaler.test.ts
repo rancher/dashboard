@@ -20,6 +20,7 @@ describe('view: autoscaling.horizontalpodautoscaler', () => {
       'current_store/all': jest.fn(),
       workspace:           jest.fn(),
       'i18n/exists':       jest.fn(),
+      'management/byId':   jest.fn()
     },
   };
 
