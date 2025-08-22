@@ -56,6 +56,12 @@
  *   the ui will re-connect it and re-watch all previous watches using a best effort revision
  */
 
+// TODO: RC Bug 1. refresh cluster list / detail page. side nav "mode=r.cs" watch fights with current context "mode=undefined" watch
+// TODO: RC Bug 2. home page --> (prv cluster unwatch given leaving list) --> side nav now doesn't update
+// TODO: RC Bug 3. refresh cluster detail page (even if two watches allowed, one on side bar one for individual), nav to cluster list (need to unwatch individual as we start watching list BUT cannot have individual watch and non-transient watch at same time)
+
+// TODO: RC on reconnect .. resyncWatches --> if watchers use a super low / invalid version
+
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get, deepToRaw } from '@shell/utils/object';
 import { SCHEMA, MANAGEMENT } from '@shell/config/types';
@@ -84,9 +90,10 @@ import { WORKER_MODES } from './worker';
 import acceptOrRejectSocketMessage from './accept-or-reject-socket-message';
 import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
 import { _MERGE } from '@shell/plugins/dashboard-store/actions';
-import { STEVE_WATCH_EVENT, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
+import { STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import paginationUtils from '@shell/utils/pagination-utils';
 import backOff from '@shell/utils/back-off';
+import myLogger from '@shell/utils/my-logger';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
@@ -237,6 +244,9 @@ export async function createWorker(store, ctx) {
 }
 
 export function equivalentWatch(a, b) {
+  if (!a || !b) {
+    debugger;
+  }
   const aResourceType = a.resourceType || a.type;
   const bResourceType = b.resourceType || b.type;
 
@@ -313,21 +323,35 @@ function growlsDisabled(rootGetters) {
 }
 
 /**
- * Supported events are listed
- *
- * of type { [key: STEVE_WATCH_EVENT]: STEVE_WATCH_EVENT_LISTENER[]}
- */
-const listeners = { [STEVE_WATCH_EVENT.CHANGES]: [] };
-
-/**
  * Given a started or error entry, is it compatible with the given change in mode?
  */
-const shouldUnwatchIncompatible = (messageMeta, mode) => {
-  if (messageMeta.mode === STEVE_WATCH_EVENT.CHANGES) {
-    return mode !== STEVE_WATCH_EVENT.CHANGES;
+const shouldUnwatchIncompatible = ({ subscribeEvents, incObj, obj }) => {
+  if (incObj.type === 'provisioning.cattle.io.cluster') {
+    // debugger;
+  }
+  if (incObj.type === 'management.cattle.io.cluster') {
+    debugger;
   }
 
-  return mode === STEVE_WATCH_EVENT.CHANGES;
+  const watch = subscribeEvents.getWatch({ params: incObj });
+
+  if (!!watch && !watch.hasNormalWatch) {
+    // Ignore
+    return false;
+  }
+
+  const watch2 = subscribeEvents.getWatch({ params: obj });
+
+  if (!!watch2 && !watch2.hasNormalWatch) {
+    // Ignore
+    return false;
+  }
+
+  if (incObj.mode === STEVE_WATCH_EVENT_TYPES.CHANGES) {
+    return obj.mode !== STEVE_WATCH_EVENT_TYPES.CHANGES;
+  }
+
+  return obj.mode === STEVE_WATCH_EVENT_TYPES.CHANGES;
 };
 
 /**
@@ -450,7 +474,7 @@ const sharedActions = {
    * @param {STEVE_WATCH_EVENT_PARAMS} event
    */
   watchEvent(ctx, {
-    event = STEVE_WATCH_EVENT.CHANGES,
+    event = STEVE_WATCH_EVENT_TYPES.CHANGES,
     id,
     callback,
     /**
@@ -458,26 +482,25 @@ const sharedActions = {
      */
     params
   }) {
-    if (!listeners[event]) {
-      console.error(`Unknown event type "${ event }", only ${ Object.keys(listeners).join(',') } are supported`); // eslint-disable-line no-console
+    if (!ctx.getters.subscribeEvents.isSupportedEventType(event)) {
+      console.error(`Unknown event type "${ event }", only ${ Object.keys(ctx.getters.subscribeEvents.supportedEventTypes).join(',') } are supported`); // eslint-disable-line no-console
 
       return;
     }
 
-    // STEVE_WATCH_EVENT_LISTENER | undefined
-    let listener = listeners[event].find((l) => equivalentWatch(l.params, params));
+    let eventWatcher = ctx.getters.subscribeEvents.getEventListener({ event, params });
 
-    if (!listener) {
-      listener = {
-        params,
-        callbacks: { }
-      };
-      listeners[event].push(listener);
+    if (!eventWatcher) {
+      eventWatcher = ctx.getters.subscribeEvents.addEventListenerCallback({
+        event, params, callback, id
+      });
     }
 
-    if (!listener.callbacks[id]) {
-      listener.callbacks[id] = callback;
-      ctx.dispatch('watch', params);
+    if (!eventWatcher.hasNormalWatch) {
+      ctx.dispatch('watch', {
+        ...params,
+        isNormalWatch: false
+      }); // Ensure something is watching (no-op if exists)
     }
   },
 
@@ -486,24 +509,22 @@ const sharedActions = {
    * @param {STEVE_UNWATCH_EVENT_PARAMS} event
    */
   unwatchEvent(ctx, {
-    event = STEVE_WATCH_EVENT.CHANGES,
+    event = STEVE_WATCH_EVENT_TYPES.CHANGES,
     id,
     /**
      * of type @STEVE_WATCH_PARAMS
      */
     params
   }) {
-    if (!listeners[event]) {
+    if (!ctx.getters.subscribeEvents.isSupportedEventType(event)) {
       console.info(`Attempted to unwatch for an event "${ event }" but it had no watchers`); // eslint-disable-line no-console
 
       return;
     }
 
-    const existing = listeners[event].find((l) => equivalentWatch(l.params, params));
-
-    if (existing) {
-      delete existing.callbacks[id];
-    }
+    ctx.getters.subscribeEvents.removeEventListenerCallback({
+      event, params, id
+    });
   },
 
   /**
@@ -515,7 +536,7 @@ const sharedActions = {
     state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
     let {
       // eslint-disable-next-line prefer-const
-      type, selector, id, revision, namespace, stop, force, mode
+      type, selector, id, revision, namespace, stop, force, mode, isNormalWatch = true
     } = params;
 
     namespace = acceptOrRejectSocketMessage.subscribeNamespace(namespace);
@@ -560,7 +581,7 @@ const sharedActions = {
       return;
     }
 
-    if (!stop) {
+    if (!stop && isNormalWatch) {
       dispatch('unwatchIncompatible', messageMeta);
     }
 
@@ -616,6 +637,10 @@ const sharedActions = {
       return;
     }
 
+    if (isNormalWatch) {
+      getters.subscribeEvents.setWatchStarted({ started: true, args: { event: msg.mode, params: msg } });
+    }
+
     return dispatch('send', msg);
   },
 
@@ -640,6 +665,20 @@ const sharedActions = {
       };
 
       const unwatch = (obj) => {
+        myLogger.warn('sub', 'action', 'unwatch', 'started', obj);
+
+        const watch = ctx.getters.subscribeEvents.getWatch({ params: obj });
+
+        if (watch) {
+          const watchHasListeners = ctx.getters.subscribeEvents.watchHasListeners({ params: obj });
+
+          if (watchHasListeners && !watch.hasNormalWatch) {
+            myLogger.warn('sub', 'action', 'unwatch', 'finished', 'skipping', obj );
+
+            return;
+          }
+        }
+
         if (getters['watchStarted'](obj)) {
           // Set that we don't want to watch this type
           // Otherwise, the dispatch to unwatch below will just cause a re-watch when we
@@ -648,6 +687,8 @@ const sharedActions = {
           dispatch('watch', obj); // Ask the backend to stop watching the type
           // Make sure anything in the pending queue for the type is removed, since we've now removed the type
           commit('clearFromQueue', type);
+          ctx.getters.subscribeEvents.setWatchStarted({ started: false, args: { params: obj } });
+          myLogger.warn('sub', 'action', 'unwatch', 'finished', 'doing', obj);
         }
         // Ensure anything pinging in the background is stopped
         backOff.resetPrefix(getters.backOffId(obj));
@@ -679,8 +720,17 @@ const sharedActions = {
     const watchesOfType = getters.watchesOfType(messageMeta.type);
 
     watchesOfType
-      .filter((entry) => shouldUnwatchIncompatible(messageMeta, entry.mode))
+      .filter((entry) => {
+        const a = shouldUnwatchIncompatible({
+          subscribeEvents: getters.subscribeEvents, incObj: messageMeta, obj: entry
+        });
+
+        myLogger.warn('sub', 'action', 'unwatchIncompatible', 'checking', messageMeta, entry, a );
+
+        return a;
+      })
       .forEach((entry) => {
+        myLogger.warn('sub', 'action', 'unwatchIncompatible', 'finished', 'doing', messageMeta, 'unwatched', entry );
         dispatch('unwatch', entry);
       });
 
@@ -690,7 +740,9 @@ const sharedActions = {
       .filter((error) => error.obj.type === messageMeta.type);
 
     inErrorOfType
-      .filter((error) => shouldUnwatchIncompatible(messageMeta, error.obj.mode))
+      .filter((error) => shouldUnwatchIncompatible({
+        subscribeEvents: getters.subscribeEvents, incObj: messageMeta, obj: error.obj
+      }))
       .forEach((error) => clearInError({ getters, commit }, error));
   },
 
@@ -903,11 +955,12 @@ const defaultActions = {
         }
 
         // Should any listeners be notified of this request for them to kick off their own event handling?
-        const listener = listeners[STEVE_WATCH_MODE.RESOURCE_CHANGES].find((sl) => equivalentWatch(sl.params, params));
+        getters.subscribeEvents.triggerEventListener({ event: STEVE_WATCH_MODE.RESOURCE_CHANGES, params });
+        // const eventWatcher = eventWatchers[STEVE_WATCH_MODE.RESOURCE_CHANGES].find((sl) => equivalentWatch(sl.params, params));
 
-        if (listener) {
-          Object.values(listener.callbacks).forEach((cb) => cb());
-        }
+        // if (eventWatcher) {
+        //   Object.values(eventWatcher.watchers).forEach((cb) => cb());
+        // }
       } else {
         have = getters['all'](resourceType).slice();
 
@@ -1088,10 +1141,12 @@ const defaultActions = {
       mode:      msg.mode,
     };
 
+    // What concurrent watches are allowed
     state.started.filter((entry) => {
       if (
         entry.type === newWatch.type &&
-        entry.namespace !== newWatch.namespace
+        entry.namespace !== newWatch.namespace &&
+        (!entry.mode && !newWatch.mode) // watch cluster, watch clusters, unsub cluster
       ) {
         return true;
       }
@@ -1445,6 +1500,15 @@ const defaultGetters = {
     }
 
     return revision || null;
+  },
+
+  /**
+   * TODO: RC
+   */
+  subscribeEvents: (state) => {
+    // if (!getters.subscribeEvents)
+    // return new SteveWatchEventListenerManager('asd');
+    return state.socketListener;
   },
 };
 

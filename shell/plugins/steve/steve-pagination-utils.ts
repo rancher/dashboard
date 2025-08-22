@@ -180,8 +180,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.internal' },
       { field: 'spec.displayName' },
       { field: `status.provider` },
-      { field: `metadata.labels["${ CAPI_LAB_AND_ANO.PROVIDER }]` },
-      // { field: `metadata.labels[${ CAPI_LAB_AND_ANO.PROVIDER }]` }, TODO: RC test
+      { field: `metadata.labels[${ CAPI_LAB_AND_ANO.PROVIDER }]` },
       { field: `status.connected` },
     ],
     [CONFIG_MAP]: [

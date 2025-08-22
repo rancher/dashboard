@@ -9,6 +9,7 @@ import {
 import getters, { STEVE_MODEL_TYPES } from './getters';
 import mutations from './mutations';
 import actions from './actions';
+import { SteveWatchEventListenerManager } from '@shell/plugins/subscribe-events';
 
 export function SteveFactory(namespace, baseUrl) {
   return {
@@ -26,6 +27,10 @@ export function SteveFactory(namespace, baseUrl) {
         deferredRequests: {},
         started:          [],
         inError:          {},
+        /**
+         * TODO: RC
+         */
+        socketListener:   new SteveWatchEventListenerManager(namespace),
         podsByNamespace:  {}, // Cache of pods by namespace
       };
     },
