@@ -22,4 +22,8 @@ Cypress.on('uncaught:exception', (err, runnable) => {
   }
 });
 
-require('cypress-terminal-report/src/installLogsCollector')({ collectTypes: ['cons:log', 'cons:info', 'cons:warn', 'cons:error', 'cy:log', 'cy:request', 'cy:xhr'] });
+require('cypress-terminal-report/src/installLogsCollector')({
+  collectTypes:            ['cons:log', 'cons:info', 'cons:warn', 'cons:error', 'cy:log', 'cy:request', 'cy:xhr'],
+  // Enable logging of before and after all
+  enableExtendedCollector: true
+});
