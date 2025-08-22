@@ -89,7 +89,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       // we need to do this so that the timer on the modal doesn't go out too quickly
       // not giving enough time to assert the contents of the modal
       // eslint-disable-next-line cypress/no-unnecessary-waiting
-      cy.wait(5000);
+      cy.wait(10000);
 
       expect(newSettingsPage.inactivityModalCard().getModal().should('exist'));
 
