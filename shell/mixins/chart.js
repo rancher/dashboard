@@ -347,10 +347,11 @@ export default {
 
       try {
         this.version = this.$store.getters['catalog/version']({
-          repoType:    this.query.repoType,
-          repoName:    this.query.repoName,
-          chartName:   this.query.chartName,
-          versionName: this.query.versionName
+          repoType:       this.query.repoType,
+          repoName:       this.query.repoName,
+          chartName:      this.query.chartName,
+          versionName:    this.query.versionName,
+          showDeprecated: this.showDeprecated
         });
       } catch (e) {
         console.error('Unable to fetch Version: ', e); // eslint-disable-line no-console
