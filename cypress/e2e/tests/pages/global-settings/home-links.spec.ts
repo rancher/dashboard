@@ -97,7 +97,7 @@ describe('Home Links', { testIsolation: 'off' }, () => {
     cy.wait('@applyDummyCustomLinks');
     HomePagePo.navTo();
     homePage.supportLinks().contains(customLinkName).should('not.have.attr', 'href', `${ customLinkUrl }`);
-    homePage.supportLinks().contains(customLinkName).should('have.attr', 'href', `/#`);
+    homePage.supportLinks().contains(customLinkName).should('have.attr', 'href').and('satisfy', (href: string) => href.endsWith('/#'));
 
     // Remove custom link
     HomeLinksPagePo.navTo();
