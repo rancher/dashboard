@@ -113,12 +113,12 @@ describe('Settings', { testIsolation: 'off' }, () => {
       settingsEdit.useDefaultButton().click();
       settingsEdit.saveAndWait(sessionIdleSetting).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
-        expect(request.body).to.have.property('value', settings[sessionIdleSetting].original);
-        expect(response?.body).to.have.property('value', settings[sessionIdleSetting].original);
+        expect(request.body).to.have.property('value', settingsOriginal[`${ sessionIdleSetting }`].default);
+        expect(response?.body).to.have.property('value', settingsOriginal[`${ sessionIdleSetting }`].default);
       });
 
       settingsPage.waitForPage();
-      settingsPage.settingsValue(sessionIdleSetting).contains(settings[sessionIdleSetting].original);
+      settingsPage.settingsValue(sessionIdleSetting).contains(settingsOriginal[`${ sessionIdleSetting }`].default);
     });
   });
 
