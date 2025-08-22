@@ -45,7 +45,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       SettingsPagePo.navTo();
       settingsPage.editSettingsByLabel(sessionIdleSetting);
 
-      const settingsEdit = settingsPage.editSettings(settingsClusterId, sessionIdleSetting);
+      const settingsEdit = settingsPage.editSettings('_', sessionIdleSetting);
 
       settingsEdit.waitForPage();
       settingsEdit.title().contains(`Setting: ${ sessionIdleSetting }`).should('be.visible');
