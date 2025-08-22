@@ -35,7 +35,9 @@ describe('Settings', { testIsolation: 'off' }, () => {
   });
 
   describe('Inactivity', () => {
-    it('should show the the inactivity modal', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    it('should show the the inactivity modal and be able to set the setting "auth-user-session-idle-ttl-minutes" properly in Settings', { tags: ['@globalSettings', '@adminUser'] }, () => {
+      let callCount = 0;
+
       // Update setting "auth-user-session-idle-ttl-minutes" for the e2e test
       const sessionIdleSetting = 'auth-user-session-idle-ttl-minutes';
 
@@ -58,9 +60,36 @@ describe('Settings', { testIsolation: 'off' }, () => {
       // We need to reload the page to get the new settings to take effect.
       cy.reload();
 
-      // we need to make sure we wait (timeout) a bit over a minute because the backend
-      // only accepts Int, which makes the minimum of 1 minute
-      expect(settingsPage.inactivityModalCard().getModal({ timeout: 65000 }).should('exist'));
+      // Let's increment the curr ISO date in 30 seconds so that we can test the feature in a timely manner
+      // we need to give it 30 seconds so that the timer on the modal doesn't go out too quickly
+      // not giving enough time to assert the contents of the modal
+      const now = new Date();
+
+      now.setSeconds(now.getSeconds() + 30);
+      const newIsoDate = now.toISOString();
+
+      // we intercept the POST to UserActivity that runs on every refresh
+      cy.intercept('POST', `/v1/ext.cattle.io.useractivities`, (req) => {
+        callCount++;
+
+        if (callCount === 1) {
+          req.continue((res) => {
+            res.body.status.expiresAt = newIsoDate;
+            res.send(res.body);
+          });
+        } else {
+          req.continue();
+        }
+      }).as('updateUserActivity');
+      cy.wait('@updateUserActivity', { timeout: 15000 });
+
+      // this wait is a delicate balance with the 30 seconds of the intercept
+      // we need to do this so that the timer on the modal doesn't go out too quickly
+      // not giving enough time to assert the contents of the modal
+      // eslint-disable-next-line cypress/no-unnecessary-waiting
+      cy.wait(5000);
+
+      expect(settingsPage.inactivityModalCard().getModal().should('exist'));
 
       expect(settingsPage.inactivityModalCard().getCardTitle().should('exist'));
       expect(settingsPage.inactivityModalCard().getCardBody().should('exist'));
