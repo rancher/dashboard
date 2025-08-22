@@ -211,12 +211,12 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     });
   });
 
-  let removePod = false;
-  let podName = `e2e-test`;
+  let removePods = false;
+  const podNames = ['e2e-test1', 'e2e-test2', 'e2e-test3', 'e2e-test4', 'e2e-test5', 'e2e-test6'];
   const projName = `project${ +new Date() }`;
   const nsName = `namespace${ +new Date() }`;
 
-  it('can view events', () => {
+  it('can view events and change events list count in cluster dashboard', () => {
     // Create a pod to trigger events
 
     // get user id
@@ -232,11 +232,13 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
           cy.createNamespaceInProject(nsName, projId);
         });
 
-        // create pod
+        // create various pods to generate 12 events in total
         // eslint-disable-next-line no-return-assign
-        cy.createPod(nsName, podName, 'nginx:latest').then((resp) => {
-          podName = resp.body.metadata.name;
-          removePod = true;
+        podNames.forEach((podName, i) => {
+          cy.createPod(nsName, podName, 'nginx:latest').then((resp) => {
+            podNames[i] = resp.body.metadata.name;
+            removePods = true;
+          });
         });
       });
     });
@@ -247,7 +249,13 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     // Check events
     clusterDashboard.eventsList().sortableTable().self().scrollIntoView();
     clusterDashboard.eventsList().sortableTable().rowElements()
-      .should('have.length.gte', 2);
+      .should('have.length.gte', 10); // default is now 10 events. user can configure in gear icon
+
+    // change events list row count
+    clusterDashboard.eventsRowCountMenuToggle();
+    clusterDashboard.eventsRowCountMenu().getMenuItem('Show 25 events').click();
+    clusterDashboard.eventsList().sortableTable().rowElements()
+      .should('have.length.gte', 12); // minimum is 12, as per the pods generated above
 
     clusterDashboard.fullEventsLink().click();
 
@@ -255,7 +263,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
     events.waitForPage();
     events.list().resourceTable().sortableTable().rowElements()
-      .should('have.length.gte', 2);
+      .should('have.length.gte', 12);
   });
 
   it('can view events table empty if no events', { tags: ['@noVai', '@adminUser'] }, () => {
@@ -425,8 +433,10 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   });
 
   after(function() {
-    if (removePod) {
-      cy.deleteRancherResource('v1', `pods/${ nsName }`, `${ podName }`);
+    if (removePods) {
+      podNames.forEach((podName) => {
+        cy.deleteRancherResource('v1', `pods/${ nsName }`, `${ podName }`);
+      });
       cy.deleteRancherResource('v1', 'namespaces', `${ nsName }`);
       cy.deleteRancherResource('v3', 'projects', this.projId);
     }
