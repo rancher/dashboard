@@ -45,6 +45,10 @@ export default {
       required: false,
       type:     Number
     },
+    /**
+     * False to hide the count from being displayed in a tab.
+     * Number override/display the number as the count on the tab.
+     */
     count: {
       default: undefined,
       type:    [Number, Boolean]
