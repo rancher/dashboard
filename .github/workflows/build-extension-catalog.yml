@@ -42,14 +42,14 @@ jobs:
     steps:
       - if: inputs.is_test == 'true'
         name: Checkout repository (test flow)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: rancher/${{ inputs.test_ext_repo }}
           ref: ${{ inputs.test_ext_branch }}
       
       - if: inputs.is_test != 'true'
         name: Checkout repository (normal flow)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Enable Corepack
         run: corepack enable

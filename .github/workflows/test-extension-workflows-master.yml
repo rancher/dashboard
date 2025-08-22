@@ -17,7 +17,7 @@ jobs:
       test-extensions-creators-and-update-paths-job-status: ${{ job.status }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Retrieve Shell and Creators versions
         run: .github/workflows/scripts/test-extensions-creators-build.sh
@@ -32,7 +32,7 @@ jobs:
         branch: [master, release-2.9, release-2.8]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Validate shipped workflows with creator for branch ${{ matrix.branch }}
         shell: bash
@@ -50,7 +50,7 @@ jobs:
       tags-job-status: ${{ job.status }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: master
 

@@ -33,7 +33,7 @@ jobs:
     steps:
       - if: inputs.is_test == 'true' && inputs.test_branch != ''
         name: Checkout (test flow)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
           ref: ${{ inputs.test_branch }}
@@ -41,7 +41,7 @@ jobs:
       
       - if: inputs.is_test != 'true'
         name: Checkout (normal flow)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: false
