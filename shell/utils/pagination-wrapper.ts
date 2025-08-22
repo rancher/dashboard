@@ -3,7 +3,7 @@ import { PaginationArgs, PaginationResourceContext } from '@shell/types/store/pa
 import { VuexStore } from '@shell/types/store/vuex';
 import { ActionFindPageArgs, ActionFindPageTransientResult } from '@shell/types/store/dashboard-store.types';
 import {
-  STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_UNWATCH_EVENT_PARAMS, STEVE_WATCH_EVENT, STEVE_WATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_PARAMS_COMMON, STEVE_WATCH_MODE
+  STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_UNWATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_PARAMS_COMMON, STEVE_WATCH_MODE
 } from '@shell/types/store/subscribe.types';
 import { Reactive, reactive } from 'vue';
 
@@ -92,7 +92,7 @@ class PaginationWrapper<T extends object> {
     // Watch
     if (this.onChange && !this.steveWatchParams) {
       this.steveWatchParams = {
-        event:  STEVE_WATCH_EVENT.CHANGES,
+        event:  STEVE_WATCH_EVENT_TYPES.CHANGES,
         id:     this.id,
         params: {
           type: this.enabledFor.resource?.id as string,
@@ -134,8 +134,7 @@ class PaginationWrapper<T extends object> {
 
   private async unWatch() {
     if (!this.steveWatchParams) {
-      console.error('Calling unWatch but no watch params created'); // eslint-disable-line no-console
-
+      // We're unwatching before we've made the initial request
       return;
     }
 
