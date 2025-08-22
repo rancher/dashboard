@@ -71,15 +71,10 @@ export function init(store) {
   configureType(CAPI.RANCHER_CLUSTER, {
     showListMasthead: false, namespaced: false, alias: [HCI.CLUSTER]
   });
-  // configureType(NORMAN.CLOUD_CREDENTIAL, { showListMasthead: false, namespaced: false });
   weightType(CAPI.RANCHER_CLUSTER, 100, true);
   weightType('cloud-credentials', 99, true);
   weightType('drivers', 98, true);
   weightType(CATALOG.CLUSTER_REPO, 97, true);
-
-  configureType(NORMAN.CLOUD_CREDENTIAL, {
-    showState: false, showAge: false, canYaml: false
-  });
 
   virtualType({
     labelKey:   'drivers.kontainer.title',
