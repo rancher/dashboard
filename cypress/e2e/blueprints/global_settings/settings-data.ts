@@ -1,8 +1,12 @@
 // settings data
 export const settings = {
-  'password-min-length':                  { new: '13' },
-  'system-default-registry':              { new: 'docker.io' },
-  'auth-token-max-ttl-minutes':           { new: '10' },
+  'password-min-length':                { new: '13' },
+  'system-default-registry':            { new: 'docker.io' },
+  'auth-token-max-ttl-minutes':         { new: '10' },
+  'auth-user-session-idle-ttl-minutes': {
+    original: '960',
+    new:      '200'
+  },
   'auth-user-session-ttl-minutes':        { new: '900' },
   'auth-user-info-max-age-seconds':       { new: '3500' },
   'engine-iso-url':                       { new: 'https://releases.rancher.com/os/latest/rancheros-vmware.isoABC' },
