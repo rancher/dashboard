@@ -16,6 +16,7 @@ import { _CREATE, _EDIT, _VIEW, _CONFIG } from '@shell/config/query-params';
 import { fetchAlertManagerConfigSpecs } from '@shell/utils/alertmanagerconfig';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 import ActionMenuShell from '@shell/components/ActionMenuShell.vue';
+import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 
 import { useStore } from 'vuex';
 
@@ -31,6 +32,7 @@ export default {
     Tab,
     Tabbed,
     ActionMenuShell,
+    ButtonMultiAction,
   },
 
   mixins: [CreateEditView],
@@ -136,17 +138,17 @@ export default {
     toggleReceiverActionMenu() {
       this.receiverActionMenuIsOpen = true;
     },
-    setActionMenuState(eventData) {
+    setActionMenuState(event, rowName) {
       // This method is called when the user clicks a context menu
       // for a receiver in the receiver in the receiver list view.
       // It sets the target element so the menu can open where the
       // user clicked.
-      const { event, targetElement } = eventData;
+      const { target } = event;
 
       // TargetElement could be an array of more than
       // one if there is more than one ref of the same name.
-      if (event && targetElement) {
-        this.actionMenuTargetElement = targetElement;
+      if (event && target ) {
+        this.actionMenuTargetElement = target;
         this.actionMenuTargetEvent = event;
 
         // We take the selected receiver name out of the target
@@ -155,20 +157,20 @@ export default {
         // We use a plus sign as the delimiter to separate the
         // name because the plus is not an allowed character in
         // Kubernetes names.
-        this.selectedReceiverName = targetElement.id.split('+').slice(2).join('');
+        this.selectedReceiverName = rowName;
 
         this.toggleReceiverActionMenu();
       } else {
         throw new Error('Could not find action menu target element.');
       }
     },
-    goToEdit(selectedReceiverName) {
+    goToEdit(_event, selectedReceiverName) {
       // 'goToEdit' is the exact name of an action for AlertmanagerConfig
       // and this method executes the action.
       this.$router.push(this.alertmanagerConfigResource.getEditReceiverConfigRoute(selectedReceiverName ?? this.selectedReceiverName, _EDIT));
     },
 
-    goToEditYaml(selectedReceiverName) {
+    goToEditYaml(_event, selectedReceiverName) {
       // 'goToEditYaml' is the exact name of an action for AlertmanagerConfig
       // and this method executes the action.
       this.$router.push(this.alertmanagerConfigResource.getEditReceiverYamlRoute(selectedReceiverName ?? this.selectedReceiverName, _EDIT));
@@ -238,7 +240,6 @@ export default {
           :rows="value.spec.receivers || []"
           :get-custom-detail-link="getReceiverDetailLink"
           :table-actions="false"
-          @clickedActionButton="setActionMenuState"
         >
           <template
             v-if="featureDropdownMenu"
@@ -247,9 +248,19 @@ export default {
             <ActionMenuShell
               :resource="row.row"
               :custom-actions="receiverActions"
-              @goToEdit="goToEdit(row.name)"
-              @goToEditYaml="goToEditYaml(row.name)"
+              @goToEdit="(e) => goToEdit(e, row.name)"
+              @goToEditYaml="(e) => goToEditYaml(e, row.name)"
               @promptRemove="(e) => promptRemove(e, row.name)"
+            />
+          </template>
+          <template
+            v-else
+            #row-actions="{row}"
+          >
+            <ButtonMultiAction
+              class="project-action"
+              :borderless="true"
+              @click="(e) => setActionMenuState(e, row.name)"
             />
           </template>
           <template #header-button>
