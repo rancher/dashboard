@@ -4,7 +4,7 @@ import Loading from '@shell/components/Loading';
 import ResourceYaml from '@shell/components/ResourceYaml';
 import {
   _VIEW, _EDIT, _CLONE, _IMPORT, _STAGE, _CREATE,
-  AS, _YAML, _DETAIL, _CONFIG, _GRAPH, PREVIEW, MODE,
+  AS, _YAML, _DETAIL, _CONFIG, PREVIEW, MODE,
 } from '@shell/config/query-params';
 import { SCHEMA } from '@shell/config/types';
 import { createYaml } from '@shell/utils/create-yaml';
@@ -12,7 +12,6 @@ import Masthead from '@shell/components/ResourceDetail/Masthead';
 import DetailTop from '@shell/components/DetailTop';
 import { clone, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
-import ForceDirectedTreeChart from '@shell/components/ForceDirectedTreeChart';
 import { stringify } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
 
@@ -45,7 +44,6 @@ export default {
   components: {
     Loading,
     DetailTop,
-    ForceDirectedTreeChart,
     ResourceYaml,
     Masthead,
     IconMessage,
@@ -106,8 +104,6 @@ export default {
     // know about:  view, edit, create (stage, import and clone become "create")
     const mode = ([_CLONE, _IMPORT, _STAGE].includes(realMode) ? _CREATE : realMode);
 
-    const getGraphConfig = store.getters['type-map/hasGraph'](resourceType);
-    const hasGraph = !!getGraphConfig;
     const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resourceType, id);
     const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resourceType, id);
 
@@ -120,8 +116,6 @@ export default {
 
     if ( mode === _VIEW && hasCustomDetail && (!requested || requested === _DETAIL) ) {
       as = _DETAIL;
-    } else if ( mode === _VIEW && hasGraph && requested === _GRAPH) {
-      as = _GRAPH;
     } else if ( hasCustomEdit && (!requested || requested === _CONFIG) ) {
       as = _CONFIG;
     } else {
@@ -213,10 +207,6 @@ export default {
         }
       }
 
-      if ( as === _GRAPH ) {
-        this.chartData = liveModel;
-      }
-
       if ( [_CLONE, _IMPORT, _STAGE].includes(realMode) ) {
         model.cleanForNew();
         yaml = model.cleanYaml(yaml, realMode);
@@ -231,8 +221,6 @@ export default {
     }
 
     const out = {
-      hasGraph,
-      getGraphConfig,
       hasCustomDetail,
       hasCustomEdit,
       canViewYaml,
@@ -256,11 +244,9 @@ export default {
   },
   data() {
     return {
-      chartData:       null,
       resourceSubtype: null,
 
       // Set by fetch
-      hasGraph:        null,
       hasCustomDetail: null,
       hasCustomEdit:   null,
       resourceType:    null,
@@ -296,10 +282,6 @@ export default {
 
     isDetail() {
       return this.as === _DETAIL;
-    },
-
-    isGraph() {
-      return this.as === _GRAPH;
     },
 
     offerPreview() {
@@ -468,7 +450,6 @@ export default {
       :mode="mode"
       :real-mode="realMode"
       :as="as"
-      :has-graph="hasGraph"
       :has-detail="hasCustomDetail"
       :has-edit="hasCustomEdit"
       :can-view-yaml="canViewYaml"
@@ -497,12 +478,6 @@ export default {
         @close="closeError(i)"
       />
     </div>
-
-    <ForceDirectedTreeChart
-      v-if="isGraph"
-      :data="chartData"
-      :fdc-config="getGraphConfig"
-    />
 
     <ResourceYaml
       v-else-if="isYaml"

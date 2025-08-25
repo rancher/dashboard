@@ -9,8 +9,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import RcButton from '@components/RcButton/RcButton.vue';
 import TabTitle from '@shell/components/TabTitle';
 import { computed, ref, watch } from 'vue';
-import { _CONFIG, _GRAPH, AS } from '@shell/config/query-params';
-import ButtonGroup from '@shell/components/ButtonGroup';
+import { _CONFIG, AS } from '@shell/config/query-params';
 import { ExtensionPoint, PanelLocation } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel.vue';
 
@@ -31,10 +30,6 @@ export interface TitleBarProps {
   // This should be replaced with a list of menu items we want to render.
   // I don't have the time right now to swap this out though.
   actionMenuResource?: any;
-
-  // Please don't expand this pattern, this was a quick fix to resolve a conflict between the new masthead and fleet.
-  showViewOptions?: boolean;
-
   onShowConfiguration?: (returnFocusSelector: string) => void;
 }
 
@@ -43,7 +38,7 @@ const showConfigurationIcon = require(`@shell/assets/images/icons/document.svg`)
 
 <script setup lang="ts">
 const {
-  resource, resourceTypeLabel, resourceTo, resourceName, description, badge, showViewOptions, onShowConfiguration,
+  resource, resourceTypeLabel, resourceTo, resourceName, description, badge, onShowConfiguration,
 } = defineProps<TitleBarProps>();
 
 const store = useStore();
@@ -55,22 +50,6 @@ const showConfigurationDataTestId = 'show-configuration-cta';
 const showConfigurationReturnFocusSelector = computed(() => `[data-testid="${ showConfigurationDataTestId }"]`);
 
 const currentView = ref(router?.currentRoute?.value?.query?.as || _CONFIG);
-const viewOptions = computed(() => {
-  if (!showViewOptions) {
-    return;
-  }
-
-  return [
-    {
-      labelKey: 'resourceDetail.masthead.config',
-      value:    _CONFIG,
-    },
-    {
-      labelKey: 'resourceDetail.masthead.graph',
-      value:    _GRAPH,
-    }
-  ];
-});
 
 watch(
   () => currentView.value,
@@ -111,12 +90,6 @@ watch(
         />
       </Title>
       <div class="actions">
-        <!-- Please don't expand this pattern, this was a quick fix to resolve a conflict between the new masthead and fleet. -->
-        <ButtonGroup
-          v-if="viewOptions"
-          v-model:value="currentView"
-          :options="viewOptions"
-        />
         <slot name="additional-actions" />
         <RcButton
           v-if="onShowConfiguration"

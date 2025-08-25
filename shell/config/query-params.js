@@ -39,6 +39,7 @@ export const _IMPORT = 'import';
 export const LEGACY = 'legacy';
 
 export const AS = 'as';
+export const VIEW = 'view';
 export const _DETAIL = 'detail';
 export const _CONFIG = 'config';
 export const _YAML = 'yaml';
