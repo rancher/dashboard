@@ -1051,7 +1051,6 @@ export default {
               v-for="card in pluginCards"
               :id="card.id"
               :key="card.id"
-              :data-testid="`extension-card-${card.id}`"
               :class="{ 'single-card': pluginCards.length === 1 }"
               :header="card.header"
               :image="card.image"
