@@ -22,7 +22,7 @@ jobs:
       tags-job-status: ${{ job.status }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: release-2.9
 
