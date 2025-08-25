@@ -319,7 +319,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // check for installed extension in "installed" tab
     extensionsPo.extensionTabInstalledClick();
     extensionsPo.waitForPage(null, 'installed');
-    extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
+    extensionsPo.extensionCard(EXTENSION_NAME).checkVisible();
 
     // check for installed extension in "available" tab
     extensionsPo.extensionTabAvailableClick();
@@ -374,7 +374,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // make sure extension card is on the updates tab
     extensionsPo.extensionTabUpdatesClick();
     extensionsPo.waitForPage(null, 'updates');
-    extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
+    extensionsPo.extensionCard(EXTENSION_NAME).checkVisible();
   });
 
   // ui-plugin-operator updated cache disabled threshold to 30mb as per https://github.com/rancher/rancher/pull/47565
