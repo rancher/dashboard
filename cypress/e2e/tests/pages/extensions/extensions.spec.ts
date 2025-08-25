@@ -55,29 +55,29 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.waitForPage(null, 'builtin');
 
     // AKS Provisioning
-    extensionsPo.extensionCardVersion('aks').should('contain', pluginVersion);
-    extensionsPo.extensionCardClick('aks');
+    extensionsPo.extensionCardVersion('AKS Provisioning').should('contain', pluginVersion);
+    extensionsPo.extensionCardClick('AKS Provisioning');
     extensionsPo.extensionDetailsTitle().should('contain', 'AKS Provisioning');
     extensionsPo.extensionDetailsVersion().should('contain', pluginVersion);
     extensionsPo.extensionDetailsCloseClick();
 
     // EKS Provisioning
-    extensionsPo.extensionCardVersion('eks').should('contain', pluginVersion);
-    extensionsPo.extensionCardClick('eks');
+    extensionsPo.extensionCardVersion('EKS Provisioning').should('contain', pluginVersion);
+    extensionsPo.extensionCardClick('EKS Provisioning');
     extensionsPo.extensionDetailsTitle().should('contain', 'EKS Provisioning');
     extensionsPo.extensionDetailsVersion().should('contain', pluginVersion);
     extensionsPo.extensionDetailsCloseClick();
 
     // GKE Provisioning
-    extensionsPo.extensionCardVersion('gke').should('contain', pluginVersion);
-    extensionsPo.extensionCardClick('gke');
+    extensionsPo.extensionCardVersion('GKE Provisioning').should('contain', pluginVersion);
+    extensionsPo.extensionCardClick('GKE Provisioning');
     extensionsPo.extensionDetailsTitle().should('contain', 'GKE Provisioning');
     extensionsPo.extensionDetailsVersion().should('contain', pluginVersion);
     extensionsPo.extensionDetailsCloseClick();
 
     // Virtualization Manager
-    extensionsPo.extensionCardVersion('harvester-manager').should('contain', pluginVersion);
-    extensionsPo.extensionCardClick('harvester-manager');
+    extensionsPo.extensionCardVersion('Virtualization Manager').should('contain', pluginVersion);
+    extensionsPo.extensionCardClick('Virtualization Manager');
     extensionsPo.extensionDetailsTitle().should('contain', 'Virtualization Manager');
     extensionsPo.extensionDetailsVersion().should('contain', pluginVersion);
     extensionsPo.extensionDetailsCloseClick();

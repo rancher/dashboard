@@ -128,38 +128,38 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   // ------------------ extension card ------------------
-  extensionCard(extensionId: string): RcItemCardPo {
-    return RcItemCardPo.getCardById(extensionId);
+  extensionCard(extensionTitle: string): RcItemCardPo {
+    return RcItemCardPo.getCardById(extensionTitle);
   }
 
-  private clickAction(extensionId: string, actionLabel: string) {
-    const actionMenu = this.extensionCard(extensionId).openActionMenu();
+  private clickAction(extensionTitle: string, actionLabel: string) {
+    const actionMenu = this.extensionCard(extensionTitle).openActionMenu();
 
     return actionMenu.getMenuItem(actionLabel).click();
   }
 
-  extensionCardVersion(extensionId: string): Cypress.Chainable<string> {
-    return this.extensionCard(extensionId).self().find('[data-testid="app-chart-card-version"]').invoke('text');
+  extensionCardVersion(extensionTitle: string): Cypress.Chainable<string> {
+    return this.extensionCard(extensionTitle).self().find('[data-testid="app-chart-card-version"]').invoke('text');
   }
 
-  extensionCardClick(extensionId: string): void {
-    this.extensionCard(extensionId).click();
+  extensionCardClick(extensionTitle: string): void {
+    this.extensionCard(extensionTitle).click();
   }
 
-  extensionCardInstallClick(extensionId: string): Cypress.Chainable {
-    return this.clickAction(extensionId, 'Install');
+  extensionCardInstallClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Install');
   }
 
-  extensionCardUpdateClick(extensionId: string): Cypress.Chainable {
-    return this.clickAction(extensionId, 'Update');
+  extensionCardUpdateClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Update');
   }
 
-  extensionCardRollbackClick(extensionId: string): Cypress.Chainable {
-    return this.clickAction(extensionId, 'Rollback');
+  extensionCardRollbackClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Rollback');
   }
 
-  extensionCardUninstallClick(extensionId: string): Cypress.Chainable {
-    return this.clickAction(extensionId, 'Uninstall');
+  extensionCardUninstallClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Uninstall');
   }
 
   // ------------------ extension install modal ------------------
