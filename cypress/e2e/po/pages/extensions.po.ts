@@ -129,7 +129,7 @@ export default class ExtensionsPagePo extends PagePo {
 
   // ------------------ extension card ------------------
   extensionCard(extensionTitle: string): RcItemCardPo {
-    return RcItemCardPo.getCardById(extensionTitle);
+    return RcItemCardPo.getCardByTitle(extensionTitle);
   }
 
   private clickAction(extensionTitle: string, actionLabel: string) {
