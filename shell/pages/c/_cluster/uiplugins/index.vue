@@ -862,10 +862,7 @@ export default {
 </script>
 
 <template>
-  <div
-    id="extensions-main-page"
-    class="plugins"
-  >
+  <div id="extensions-main-page">
     <div class="plugin-header">
       <!-- catalog view header -->
       <template v-if="showCatalogList">
@@ -1080,11 +1077,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .plugins {
-    display: inherit;
-    margin: 0 24px;
-  }
-
   .setup-message {
     margin-top: 100px;
   }
