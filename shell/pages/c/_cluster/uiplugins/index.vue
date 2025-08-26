@@ -1063,18 +1063,12 @@ export default {
               @rollback="({event}) => showInstallDialog(card.plugin, 'rollback', event)"
               @install="({event}) => showInstallDialog(card.plugin, 'install', event)"
             >
-              <template
-                v-once
-                #item-card-sub-header
-              >
+              <template #item-card-sub-header>
                 <AppChartCardSubHeader
                   :items="card.subHeaderItems"
                 />
               </template>
-              <template
-                v-once
-                #item-card-footer
-              >
+              <template #item-card-footer>
                 <AppChartCardFooter :items="card.footerItems" />
               </template>
             </rc-item-card>
