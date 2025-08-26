@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Validate description checklist has been completed
         if: ${{ ! contains(github.event.pull_request.labels.*.name, 'area/dependencies') }}
