@@ -180,7 +180,7 @@
     "babel-plugin-transform-require-context": "0.1.1",
     "babel-preset-vue": "2.0.2",
     "core-js": "3.45.0",
-    "css-loader": "6.7.3",
+    "css-loader": "7.1.2",
     "csv-loader": "3.0.3",
     "cy2": "4.0.9",
     "cypress": "11.1.0",
