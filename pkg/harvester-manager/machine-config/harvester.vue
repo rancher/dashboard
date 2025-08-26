@@ -134,7 +134,13 @@ export default {
 
       if (clusterId) {
         let configMapsUrl = `${ url }/${ CONFIG_MAP }s`;
-        const harvesterClusterVaiEnabled = await paginationUtils.isDownstreamSteveCacheEnabled({ dispatch: this.$store.dispatch }, clusterId);
+        let harvesterClusterVaiEnabled = false;
+
+        try {
+          harvesterClusterVaiEnabled = await paginationUtils.isDownstreamSteveCacheEnabled({ dispatch: this.$store.dispatch }, clusterId);
+        } catch (e) {
+          console.error('Failed to determine if vai is enabled in imported harvester cluster, reverting to non-vai process', e); // eslint-disable-line no-console
+        }
 
         if (harvesterClusterVaiEnabled && this.$store.getters[`cluster/paginationEnabled`](CONFIG_MAP)) {
           const pagination = new FilterArgs({
