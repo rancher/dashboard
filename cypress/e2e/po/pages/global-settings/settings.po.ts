@@ -2,6 +2,8 @@ import RootClusterPage from '@/cypress/e2e/po/pages/root-cluster-page';
 import SettingsEditPo from '@/cypress/e2e/po/edit/settings.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
+import ModalWithCardPo from '@/cypress/e2e/po/components/modal-with-card.po';
+
 export class SettingsPagePo extends RootClusterPage {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/settings/management.cattle.io.setting`;
@@ -76,5 +78,9 @@ export class SettingsPagePo extends RootClusterPage {
    */
   settingsValue(label: string) {
     return this.advancedSettingRow(label).find('.settings-value');
+  }
+
+  inactivityModalCard() {
+    return new ModalWithCardPo();
   }
 }

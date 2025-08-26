@@ -34,6 +34,98 @@ describe('Settings', { testIsolation: 'off' }, () => {
     });
   });
 
+  describe('Inactivity', () => {
+    it('should show the the inactivity modal and be able to set the setting "auth-user-session-idle-ttl-minutes" properly in Settings', { tags: ['@globalSettings', '@adminUser'] }, () => {
+      let callCount = 0;
+
+      // Update setting "auth-user-session-idle-ttl-minutes" for the e2e test
+      const sessionIdleSetting = 'auth-user-session-idle-ttl-minutes';
+      const newSettingsPage = new SettingsPagePo('_');
+
+      // Update setting
+      SettingsPagePo.navTo();
+      newSettingsPage.editSettingsByLabel(sessionIdleSetting);
+
+      const settingsEdit = newSettingsPage.editSettings('_', sessionIdleSetting);
+
+      settingsEdit.waitForPage();
+      settingsEdit.title().contains(`Setting: ${ sessionIdleSetting }`).should('be.visible');
+      settingsEdit.settingsInput().set(settings[sessionIdleSetting].new);
+      settingsEdit.saveAndWait(sessionIdleSetting).then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body).to.have.property('value', settings[sessionIdleSetting].new);
+        expect(response?.body).to.have.property('value', settings[sessionIdleSetting].new);
+      });
+      newSettingsPage.waitForPage();
+      newSettingsPage.settingsValue(sessionIdleSetting).contains(settings[sessionIdleSetting].new);
+
+      // We need to reload the page to get the new settings to take effect.
+      cy.reload();
+
+      // Let's increment the curr ISO date in 30 seconds so that we can test the feature in a timely manner
+      // we need to give it 30 seconds so that the timer on the modal doesn't go out too quickly
+      // not giving enough time to assert the contents of the modal
+      const now = new Date();
+
+      now.setSeconds(now.getSeconds() + 30);
+      const newIsoDate = now.toISOString();
+
+      // we intercept the POST to UserActivity that runs on every refresh
+      cy.intercept('POST', `/v1/ext.cattle.io.useractivities`, (req) => {
+        callCount++;
+
+        if (callCount === 1) {
+          req.continue((res) => {
+            res.body.status.expiresAt = newIsoDate;
+            res.send(res.body);
+          });
+        } else {
+          req.continue();
+        }
+      }).as('updateUserActivity');
+      cy.wait('@updateUserActivity', { timeout: 15000 });
+
+      // this wait is a delicate balance with the 30 seconds of the intercept
+      // we need to do this so that the timer on the modal doesn't go out too quickly
+      // not giving enough time to assert the contents of the modal
+      // eslint-disable-next-line cypress/no-unnecessary-waiting
+      cy.wait(15000);
+
+      expect(newSettingsPage.inactivityModalCard().getModal().should('exist'));
+
+      expect(newSettingsPage.inactivityModalCard().getCardTitle().should('exist'));
+      expect(newSettingsPage.inactivityModalCard().getCardBody().should('exist'));
+      expect(newSettingsPage.inactivityModalCard().getCardActions().should('exist'));
+
+      expect(newSettingsPage.inactivityModalCard().getCardTitle().should('contain', 'Session expiring'));
+      expect(newSettingsPage.inactivityModalCard().getCardBody().should('contain', 'Your session is about to expire due to inactivity. Any unsaved changes will be lost'));
+      expect(newSettingsPage.inactivityModalCard().getCardBody().should('contain', 'Click “Resume Session” to keep the session in this tab active or refresh the browser after the session has expired'));
+
+      // Clicking the resume button should close the modal and reset the timer
+      expect(newSettingsPage.inactivityModalCard().getCardActions().contains('Resume Session').click());
+      expect(newSettingsPage.inactivityModalCard().shouldNotExist());
+
+      // Reset
+      SettingsPagePo.navTo();
+      newSettingsPage.waitForPage();
+      newSettingsPage.editSettingsByLabel(sessionIdleSetting);
+
+      settingsEdit.waitForPage();
+      settingsEdit.title().contains(`Setting: ${ sessionIdleSetting }`).should('be.visible');
+      settingsEdit.useDefaultButton().click();
+      settingsEdit.saveAndWait(sessionIdleSetting).then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body).to.have.property('value', settingsOriginal[sessionIdleSetting].default);
+        expect(response?.body).to.have.property('value', settingsOriginal[sessionIdleSetting].default);
+      });
+
+      newSettingsPage.waitForPage();
+      newSettingsPage.settingsValue(sessionIdleSetting).contains(settingsOriginal[sessionIdleSetting].default);
+
+      resetSettings.push(sessionIdleSetting);
+    });
+  });
+
   it('has the correct title', { tags: ['@globalSettings', '@adminUser'] }, () => {
     SettingsPagePo.navTo();
 

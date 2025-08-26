@@ -17,55 +17,6 @@ describe('Performance', { testIsolation: 'off', tags: ['@globalSettings', '@admi
     });
   });
 
-  describe('Inactivity', () => {
-    it('should show the modal after 6 seconds', () => {
-      PerformancePagePo.navTo();
-
-      performancePage.inactivityCheckbox().isUnchecked();
-
-      // Enables the inactivity timeout and sets it to 6 seconds
-      performancePage.inactivityCheckbox().set();
-      performancePage.inactivityCheckbox().isChecked();
-      performancePage.inactivityInput().clear().type('0.10');
-      performancePage.applyAndWait('inactivity=true');
-
-      // We need to reload the page to get the new settings to take effect.
-      cy.reload();
-
-      // eslint-disable-next-line cypress/no-unnecessary-waiting
-      cy.wait(7000); // We wait for the modal to show // FIXME: should wait for modal to open
-
-      expect(performancePage.inactivityModalCard().getModal().should('exist'));
-
-      expect(performancePage.inactivityModalCard().getCardTitle().should('exist'));
-      expect(performancePage.inactivityModalCard().getCardBody().should('exist'));
-      expect(performancePage.inactivityModalCard().getCardActions().should('exist'));
-
-      expect(performancePage.inactivityModalCard().getCardTitle().should('contain', 'Session expired'));
-      expect(performancePage.inactivityModalCard().getCardBody().should('contain', 'Your session has expired in this tab due to inactivity.'));
-      expect(performancePage.inactivityModalCard().getCardBody().should('contain', 'To return to this page click “Refresh” below or refresh the browser.'));
-
-      // // Clicking the refresh button should close the modal and restart the page
-      // performancePage.inactivityModal().get("[data-testid='card-actions-slot']").contains('Refresh').click();
-      expect(performancePage.inactivityModalCard().getCardActions().contains('Refresh').click());
-      expect(performancePage.inactivityModalCard().shouldNotExist());
-    });
-
-    it('should reset the settings', () => {
-      // INFO: We need to keep this in a separate test
-      const performancePage = new PerformancePagePo();
-
-      performancePage.goTo();
-
-      performancePage.restoresInactivitySettings();
-
-      // We need to reload the page to get the new settings to take effect.
-      cy.reload();
-
-      performancePage.inactivityCheckbox().isUnchecked();
-    });
-  });
-
   it('can toggle websocket notifications', () => {
     PerformancePagePo.navTo();
 
