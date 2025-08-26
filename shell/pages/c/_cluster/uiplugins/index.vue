@@ -970,7 +970,7 @@ export default {
       </template>
       <template v-else>
         <Banner
-          v-if="showAddReposBanner"
+          v-if="!loading && showAddReposBanner"
           color="warning"
           class="add-repos-banner mb-20"
           data-testid="extensions-new-repos-banner"
