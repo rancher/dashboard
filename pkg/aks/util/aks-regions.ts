@@ -1,5 +1,6 @@
 export const regionsWithAvailabilityZones = {
   australiaeast:      true,
+  austriaeast:        true,
   brazilsouth:        true,
   canadacentral:      true,
   centralindia:       true,
