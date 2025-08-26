@@ -81,4 +81,34 @@ describe('Home Links', { testIsolation: 'off' }, () => {
     homeLinksPage.selectCheckbox(0).checkNotExists();
     homeLinksPage.applyButton().checkNotExists();
   });
+
+  it('cleans custom links', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    const customLinkName = `${ runPrefix }-custom-link2`;
+    const customLinkUrl = `javascript:window.alert(window)`;
+
+    // Add custom link
+    HomeLinksPagePo.navTo();
+    homeLinksPage.addLinkButton().click();
+    homeLinksPage.displayTextInput().set(customLinkName);
+    homeLinksPage.urlInput().set(customLinkUrl);
+
+    cy.intercept('PUT', '/v1/management.cattle.io.settings/ui-custom-links', applyCustomLinksResponse(customLinkName, customLinkUrl)).as('applyDummyCustomLinks');
+    homeLinksPage.applyButton().click();
+    cy.wait('@applyDummyCustomLinks');
+    HomePagePo.navTo();
+    homePage.supportLinks().contains(customLinkName).should('not.have.attr', 'href', `${ customLinkUrl }`);
+    homePage.supportLinks().contains(customLinkName).should('have.attr', 'href').and('satisfy', (href: string) => href.endsWith('/#'));
+
+    // Remove custom link
+    HomeLinksPagePo.navTo();
+    homeLinksPage.removeLinkButton().click();
+    homeLinksPage.displayTextInput().checkNotExists();
+    homeLinksPage.removeLinkButton().should('not.exist');
+
+    cy.intercept('PUT', '/v1/management.cattle.io.settings/ui-custom-links', removeCustomLinksResponse()).as('removeDummyCustomLinks');
+    homeLinksPage.applyButton().click();
+    cy.wait('@removeDummyCustomLinks');
+    HomePagePo.navTo();
+    homePage.supportLinks().contains(customLinkName).should('not.exist');
+  });
 });
