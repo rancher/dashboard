@@ -33,7 +33,7 @@ export default class AlertmanagerConfig extends SteveModel {
   }
 
   getReceiverActions(alertmanagerConfigActions) {
-    return alertmanagerConfigActions.filter((actionData) => {
+    const actions = alertmanagerConfigActions.filter((actionData) => {
       if (actionData.divider) {
         return true;
       }
@@ -48,6 +48,9 @@ export default class AlertmanagerConfig extends SteveModel {
         return false;
       }
     });
+
+    // remove the first action if it is a divider
+    return actions.filter((action, index) => !(index === 0 && action.divider));
   }
 
   get alertmanagerConfigDoneRouteName() {
