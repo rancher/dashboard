@@ -73,15 +73,12 @@ export default {
       }
     }
     .title {
-      display: flex;
-      justify-content: center;
-      align-items: center;
       position: absolute;
       text-align: center;
-      top: 0;
-      height: 100%;
-      width: 100%;
-      margin-top: -20px;
+      top: 50%;
+      left: 20%;
+      transform: translate(0, -50%);
+      color: white !important;
     }
     &.small {
       .graphic {
