@@ -1,2 +1,2 @@
 export { default } from './RcStatusBadge.vue';
-export type { Status } from '@components/Pill/types';
+export type { Status } from '../types';
