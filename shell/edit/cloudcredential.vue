@@ -106,7 +106,7 @@ export default {
     },
 
     hasCustomCloudCredentialComponent() {
-      if (!!this.correspondingExtension && this.correspondingExtension.providesCredential) {
+      if (!!this.correspondingExtension && !!this.correspondingExtension.cloudCredential) {
         return true;
       }
       const driverName = this.driverName;
@@ -115,7 +115,7 @@ export default {
     },
 
     cloudCredentialComponent() {
-      if (!!this.correspondingExtension && this.correspondingExtension.providesCredential) {
+      if (!!this.correspondingExtension && !!this.correspondingExtension.cloudCredential) {
         return this.correspondingExtension.cloudCredential;
       }
       const driverName = this.driverName;
@@ -155,7 +155,7 @@ export default {
         .filter((x) => x.spec.active && x.id !== 'rancherkubernetesengine')
         .map((x) => x.spec.displayName || x.id);
 
-      const fromExtensions = this.extensions.filter((x) => x.providesCredential).map((x) => x.id);
+      const fromExtensions = this.extensions.filter((x) => !!x.cloudCredential).map((x) => x.id);
       const providers = [...fromDrivers, ...fromExtensions];
 
       let types = uniq(providers.map((x) => this.$store.getters['plugins/credentialDriverFor'](x)));
