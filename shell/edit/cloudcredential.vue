@@ -35,7 +35,7 @@ export default {
   async fetch() {
     this.nodeDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
     this.kontainerDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTAINER_DRIVER });
-
+    this.getExtensions();
     // Force reload the cloud cred schema and any missing subtypes because there aren't change events sent when drivers come/go
     try {
       const schema = await this.$store.dispatch('rancher/find', {
@@ -87,7 +87,8 @@ export default {
       credCustomComponentValidation: false,
       nameRequiredValidation:        false,
       nodeDrivers:                   null,
-      kontainerDrivers:              null
+      kontainerDrivers:              null,
+      extensions:                    null
     };
   },
 
@@ -100,13 +101,23 @@ export default {
   computed: {
     rke2Enabled: mapFeature(RKE2_FEATURE),
 
+    correspondingExtension() {
+      return this.extensions.find((x) => x.id === this.driverName);
+    },
+
     hasCustomCloudCredentialComponent() {
+      if (!!this.correspondingExtension && this.correspondingExtension.providesCredential) {
+        return true;
+      }
       const driverName = this.driverName;
 
       return this.$store.getters['type-map/hasCustomCloudCredentialComponent'](driverName);
     },
 
     cloudCredentialComponent() {
+      if (!!this.correspondingExtension && this.correspondingExtension.providesCredential) {
+        return this.correspondingExtension.cloudCredential;
+      }
       const driverName = this.driverName;
 
       return this.$store.getters['type-map/importCloudCredential'](driverName);
@@ -140,11 +151,14 @@ export default {
     secretSubTypes() {
       const out = [];
 
-      const drivers = [...this.nodeDrivers, ...this.kontainerDrivers]
+      const fromDrivers = [...this.nodeDrivers, ...this.kontainerDrivers]
         .filter((x) => x.spec.active && x.id !== 'rancherkubernetesengine')
         .map((x) => x.spec.displayName || x.id);
 
-      let types = uniq(drivers.map((x) => this.$store.getters['plugins/credentialDriverFor'](x)));
+      const fromExtensions = this.extensions.filter((x) => x.providesCredential).map((x) => x.id);
+      const providers = [...fromDrivers, ...fromExtensions];
+
+      let types = uniq(providers.map((x) => this.$store.getters['plugins/credentialDriverFor'](x)));
 
       if ( !this.rke2Enabled ) {
         types = types.filter((x) => rke1Supports.includes(x));
@@ -191,7 +205,7 @@ export default {
 
         out.push({
           id,
-          label: this.typeDisplay(CAPI.CREDENTIAL_DRIVER, id),
+          label: this.typeDisplay(id),
           bannerImage,
           bannerAbbrv
         });
@@ -212,6 +226,28 @@ export default {
   methods: {
     createValidationChanged(passed) {
       this.credCustomComponentValidation = passed;
+    },
+
+    getExtensions() {
+      // Custom Providers from extensions - initialize each with the store and the i18n service
+      try {
+        const extensionClasses = this.$plugin.listDynamic('provisioner').map((name) => this.$plugin.getDynamic('provisioner', name));
+
+        // We can't pass in this.$store as this leads to a circular-reference that causes Vue to freeze,
+        // so pass in specific services that the provisioner extension may need
+        this.extensions = extensionClasses.map((c) => new c({
+          dispatch: this.$store.dispatch,
+          getters:  this.$store.getters,
+          axios:    this.$store.$axios,
+          $plugin:  this.$store.app.$plugin,
+          t:        (...args) => this.t.apply(this, args),
+          isCreate: this.isCreate,
+          isEdit:   this.isEdit,
+          isView:   this.isView,
+        }));
+      } catch (e) {
+        console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console
+      }
     },
 
     async saveCredential(btnCb) {
@@ -266,10 +302,10 @@ export default {
       }
 
       this.value['_type'] = type;
-      this.$emit('set-subtype', this.typeDisplay(type, driver));
+      this.$emit('set-subtype', this.typeDisplay(driver));
     },
 
-    typeDisplay(type, driver) {
+    typeDisplay(driver) {
       return this.$store.getters['i18n/withFallback'](`cluster.provider."${ driver }"`, null, driver);
     },
 
