@@ -1,0 +1,26 @@
+import type { IPlugin } from '@shell/core/types';
+
+export type ExtensionManager = {
+  internal(): any;
+  loadPluginAsync(plugin: IPlugin): Promise<void>;
+  loadAsync(id: string, mainFile: string): Promise<void>;
+  loadBuiltinExtensions(): void;
+  registerBuiltinExtension(id: string, module: any): void;
+  initBuiltinExtension(id: string, module: any): void;
+  logout(): Promise<void>;
+  removePlugin(name: string): Promise<void>;
+  removeTypeFromStore(store: any, storeName: string, types: string[]): any[];
+  applyPlugin(plugin: IPlugin): void;
+  register(type: string, name: string, fn: Function): void;
+  unregister(type: string, name: string, fn: Function): void;
+  getAll(): any;
+  getPlugins(): IPlugin[];
+  getDynamic(typeName: string, name: string): any;
+  getValidator(name: string): any;
+  getUIConfig(type: string, uiArea: string): any[];
+  getAllUIConfig(): any;
+  lastLoad: number;
+  listDynamic(typeName: string): string[];
+  products: any[];
+  loadProducts(loadPlugins: any[]): void;
+}
