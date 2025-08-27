@@ -1139,6 +1139,7 @@ export default {
     .actions-container {
       display: flex;
       flex-direction: row;
+      align-items: center;
       justify-content: flex-end;
     }
 
