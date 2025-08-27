@@ -1,3 +1,16 @@
+$grey-100   : #000000;
+$grey-90    : #141619;
+$grey-80    : #25282D;
+$grey-70    : #31353F;
+$grey-60    : #4A4D52;
+$grey-50    : #6C6F76;
+$grey-40    : #92959B;
+$grey-30    : #B6BAC2;
+$grey-20    : #DCDFE7;
+$grey-10    : #EEF0F4;
+$grey-5     : #F5F7FA;
+$grey-0     : #FFFFFF;
+
 // Local variables for reused colors
 //light main text
 $darkest   : #141419;
@@ -23,9 +36,20 @@ $lightest  : #FFFFFF;
 //color for items that are not enabled
 $disabled  : $medium;
 
-$primary         : #3D98D3;
-$secondary       : $darker;
-$link            : #3D98D3;
+$primary         : #2F68DF;
+$primary-150     : #1A2A4D;
+$primary-140     : #304778; // Active light
+$primary-120     : #3459A8;
+$primary-110     : #496192;
+$primary-80      : #4871C7;
+$primary-75      : #454968; // Category active dark
+$primary-60      : #75A1FF;
+$primary-55      : #81AEFC;
+$primary-50      : #B3CBFF; // Active dark
+$primary-20      : #EDF2FC;
+$primary-15      : #EEF1F6; // Category active light
+$secondary       : $grey-50;
+$link            : $primary-80;
 
 // Status colors
 $success         : #5D995D;
