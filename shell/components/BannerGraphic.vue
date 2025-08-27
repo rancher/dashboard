@@ -72,13 +72,16 @@ export default {
         object-fit: cover;
       }
     }
-    .title {
+    h1.title {
       position: absolute;
       text-align: center;
+      height: auto;
+      width: auto;
       top: 50%;
       left: 20%;
       transform: translate(0, -50%);
-      color: white !important;
+      color: white;
+      margin: 0;
     }
     &.small {
       .graphic {
