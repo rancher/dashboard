@@ -1,9 +1,3 @@
-/**
- * Supported events are listed
- *
- * of type { [key: STEVE_WATCH_EVENT]: STEVE_WATCH_EVENT_LISTENER[]}
- */
-
 import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import {
   STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_EVENT_LISTENER, STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_WATCH_EVENT_TYPES_NAMES, STEVE_WATCH_PARAMS
@@ -59,10 +53,7 @@ export class SteveWatchEventListenerManager {
   }
 
   private keyForSubscribe({ params }: {params: STEVE_WATCH_PARAMS}): string {
-    const socketId = keyForSubscribe(params);
-
-    // return `${ socketId }mode=${ params.mode }`;
-    return socketId;
+    return keyForSubscribe(params);
   }
 
   /**
@@ -165,7 +156,7 @@ export class SteveWatchEventListenerManager {
   }
   /************************/
 
-  // TODO: RC refactor GetEventWatcherArgs has multi uses
+  // TODO: RC refactor GetEventWatcherArgs is overloaded
   /**
    * TODO: RC description
    */
@@ -179,30 +170,12 @@ export class SteveWatchEventListenerManager {
     const listener = watch?.listeners.find((w) => Object.values(w.callbacks).length > 0);
 
     return !!listener;
-
-    // const watches = Object.entries(this.watches);
-
-    // for (let i = 0; i < watches.length; i++) {
-    //   const [ewSocketId, watch] = watches[i];
-
-    //   if (socketId === ewSocketId && watch) {
-    //     const listener = watch.listeners.find((w) => Object.values(w.callbacks).length > 0);
-
-    //     if (listener) {
-    //       return true;
-    //     }
-    //   }
-    // }
-
-    // return false;
   }
 
   /**
    * TODO: RC description
    */
-  public getEventListener({
-    event, params, entryOnly, hasCallbacks
-  }: GetEventWatcherArgs): STEVE_WATCH_EVENT_LISTENER | null {
+  public getEventListener({ event, params, entryOnly }: GetEventWatcherArgs): STEVE_WATCH_EVENT_LISTENER | null {
     const socketId = this.keyForSubscribe({ params });
     const watch = this.watches[socketId];
 
@@ -213,21 +186,6 @@ export class SteveWatchEventListenerManager {
         return listener;
       }
     }
-
-    // const watches = Object.entries(this.watches);
-
-    // for (let i = 0; i < watches.length; i++) {
-    //   const [ewSocketId, watch] = watches[i];
-
-    //   if (socketId === ewSocketId && watch) {
-    //     const listener = watch.listeners.find((w) => w.event === event);
-
-    //     if (listener && (entryOnly || !!Object.keys(listener?.callbacks || {}).length)) {
-    //       return listener;
-    //     }
-    //     break;
-    //   }
-    // }
 
     return null;
   }
@@ -277,6 +235,14 @@ export class SteveWatchEventListenerManager {
         cb();
       });
     }
+  }
+
+  public triggerWatch({ params }: GetEventWatcherArgs) {
+    const watch = this.getWatch({ params });
+
+    watch.listeners.forEach((l) => {
+      Object.values(l.callbacks || {}).forEach((cb) => cb());
+    });
   }
 
   /************************/

@@ -361,26 +361,6 @@ const shouldUnwatchIncompatible = ({ subscribeEvents, incObj, obj }) => {
     const hasNormalWatch = subscribeEvents.hasNormalWatch({ params: obj });
 
     return hasEventListeners && !hasNormalWatch;
-
-    //   if (!hasEventListeners) {
-    //     dispatch('watch', obj);
-    //   } else {
-    //     const hasNormalWatch = getters.subscribeEvents.hasNormalWatch({ params: obj });
-
-    //     if (hasNormalWatch) {
-    //       //  dispatch('resyncWatch', msg)
-    //       dispatch('watch', obj);
-    //       getters.subscribeEvents.triggerEventListener({ event: STEVE_WATCH_MODE.RESOURCE_CHANGES, params: obj });
-    //     } else {
-    //       dispatch('watch', {
-    //         ...obj,
-    //         isNormalWatch: false
-    //       }); // Ensure something is watching (no-op if exists)
-    //       getters.subscribeEvents.triggerEventListener({ event: STEVE_WATCH_MODE.RESOURCE_CHANGES, params: obj });
-    //     }
-    //   }
-
-    // return !!watch && !watch.hasNormalWatch;
   };
 
   if (cannotBeIncompatibleEventListener({ params: incObj })) {
@@ -406,31 +386,6 @@ const shouldUnwatchIncompatible = ({ subscribeEvents, incObj, obj }) => {
   }
 
   return false;
-
-  // const watch2 = subscribeEvents.getWatch({ params: obj });
-
-  // if (!!watch2 && !watch2.hasNormalWatch) {
-  //   // Ignore
-  //   return false;
-  // }
-
-  // state.started.filter((entry) => {
-  //   if (
-  //     entry.type === newWatch.type &&
-  //     entry.namespace !== newWatch.namespace &&
-  //     (!entry.mode && !newWatch.mode) // watch cluster, watch clusters, unsub cluster
-  //   ) {
-  //     return true;
-  //   }
-  // }).forEach((entry) => {
-  //   dispatch('unwatch', entry);
-  // });
-
-  // if (incObj.mode === STEVE_WATCH_EVENT_TYPES.CHANGES) {
-  //   return obj.mode !== STEVE_WATCH_EVENT_TYPES.CHANGES;
-  // }
-
-  // return obj.mode === STEVE_WATCH_EVENT_TYPES.CHANGES;
 };
 
 /**
@@ -567,9 +522,6 @@ const sharedActions = {
       return;
     }
 
-    // const a = new SteveWatchEventListenerManager();
-    // const b = a.getEventListener({ event, params });
-
     ctx.getters.subscribeEvents.addEventListenerCallback({
       event, params, callback, id
     });
@@ -585,21 +537,6 @@ const sharedActions = {
         isNormalWatch: false
       }); // Ensure something is watching (no-op if exists)
     }
-
-    // let eventWatcher = ctx.getters.subscribeEvents.getEventListener({ event, params });
-
-    // if (!eventWatcher) {
-    //   eventWatcher = ctx.getters.subscribeEvents.addEventListenerCallback({
-    //     event, params, callback, id
-    //   });
-    // }
-
-    // if (!eventWatcher.hasNormalWatch) {
-    //   ctx.dispatch('watch', {
-    //     ...params,
-    //     isNormalWatch: false
-    //   }); // Ensure something is watching (no-op if exists)
-    // }
   },
 
   /**
@@ -1357,13 +1294,13 @@ const defaultActions = {
         if (hasNormalWatch) {
           //  dispatch('resyncWatch', msg)
           dispatch('watch', obj);
-          getters.subscribeEvents.triggerEventListener({ event: STEVE_WATCH_MODE.RESOURCE_CHANGES, params: obj });
+          getters.subscribeEvents.triggerWatch({ params: obj });
         } else {
           dispatch('watch', {
             ...obj,
             isNormalWatch: false
           }); // Ensure something is watching (no-op if exists)
-          getters.subscribeEvents.triggerEventListener({ event: STEVE_WATCH_MODE.RESOURCE_CHANGES, params: obj });
+          getters.subscribeEvents.triggerWatch({ params: obj });
         }
       }
 
@@ -1376,7 +1313,6 @@ const defaultActions = {
       // - get next resource
       // listeners + hasNormalWatch
       // - dispatch('resyncWatch', msg)
-      //   -
       // listeners + !hasNormalWatch
       // -  ctx.dispatch('watch', {
       // ...params,
