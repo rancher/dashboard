@@ -44,7 +44,7 @@ export default {
       }, {
         tooltipKey: 'manager.cloudCredentials.list.groupBy.provider',
         hideColumn: 'provider',
-        icon:       'icon-service',
+        icon:       'icon-folder',
         value:      'providerDisplay',
         field:      'providerDisplay',
       }],
