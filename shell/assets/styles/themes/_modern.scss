@@ -79,6 +79,9 @@ BODY, .theme-light {
   --primary-light-bg           : #{rgba($primary, 0.05)};
   --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
 
+  --active       : #{$primary-110};
+  --on-active    : #{$grey-0};
+  --active-hover : #{lighten($primary-110, 5%)};
 
   .text-primary {
     color: var(--primary) !important;
@@ -399,7 +402,7 @@ BODY, .theme-light {
   --nav-width                  : 250px;
   --nav-bg                     : #{$lightest};
   --nav-active                 : #{$light};
-  --nav-hover                  : #{$medium};
+  --nav-hover                  : #{$grey-10};
   --nav-expander-hover         : #{darken($medium, 10%)};
   --nav-border                 : #{$medium};
   --nav-border-size            : 1px;
@@ -719,8 +722,16 @@ BODY, .theme-dark {
   $contrasted-light: $darkest !default;
 
   $drag-over: #DCDEE7;
+  $body-bg  : #2F2F42;
 
   $slate: #4B4F6B;
+
+  --body-border: #5A5F6A;
+  --link       : #{$primary-55};
+
+  --active       : #{$primary-50};
+  --on-active    : #{$grey-90};
+  --active-hover : #{darken($primary-50, 5%)};
 
   --slate: #{$slate};
 
@@ -739,14 +750,14 @@ BODY, .theme-dark {
   --muted                      : #{$disabled};
   --deemphasized               : #{$disabled};
 
-  --body-bg                    : #{$darker};
+  --body-bg                    : #{$body-bg};
   --body-text                  : #{$lightest};
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$medium};
 
   --side-menu-desc             : #{$desc-light};
 
-  --header-bg                  : #{$darker};
+  --header-bg                  : #{$body-bg};
   --header-border              : #{$medium};
   --header-btn-bg              : transparent;
   --header-btn-text            : #{$lightest};
@@ -756,10 +767,10 @@ BODY, .theme-dark {
   // Header, Footer and Consent banner defaults
   --banner-text-color          : #{$lightest};
 
-  --nav-bg                     : #{$darkest};
+  --nav-bg                     : #{$body-bg};
   --nav-active                 : #333;
   --nav-border                 : #{$medium};
-  --nav-hover                  : var(--primary);
+  --nav-hover                  : #{lighten($body-bg, 10%)};
   --nav-expander-hover         : var(--primary-banner-bg);
   --nav-icon-badge-bg          : #{$dark};
 
@@ -769,7 +780,7 @@ BODY, .theme-dark {
   --subtle-border              : #{$darkest};
   --border                     : #{$medium};
 
-  --topmenu-bg                 : #{$darkest};
+  --topmenu-bg                 : #{$body-bg};
   --topmenu-text               : #{$lightest};
   --topmost-border             : #{$medium};
   --topmost-shadow             : #{lighten($darkest, 5%)};
@@ -939,6 +950,11 @@ BODY, .theme-dark {
   $slate: #4B4F6B;
 
   --slate: #{$slate};
+
+  --border: var(--body-border);
+  --nav-border: var(--body-border);
+  --topmost-border: var(--body-border);
+  --header-border: var(--body-border);
 
   --link-text-secondary: #{$secondary};
 
