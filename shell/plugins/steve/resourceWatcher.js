@@ -40,10 +40,10 @@ export const WATCH_STATUSES = {
  * Create a unique key for a specific resource watch's params
  */
 export const keyForSubscribe = ({
-  resourceType, type, namespace, id, selector
+  resourceType, type, namespace, id, selector, mode
 } = {}) => {
   const keyMap = {
-    type: resourceType || type, namespace, id, selector
+    type: resourceType || type, namespace, id, selector, mode
   };
 
   return Object.entries(keyMap)

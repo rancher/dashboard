@@ -5,18 +5,16 @@
  */
 
 import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
-import { equivalentWatch } from '@shell/plugins/steve/subscribe';
 import {
   STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_EVENT_LISTENER, STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_WATCH_EVENT_TYPES_NAMES, STEVE_WATCH_PARAMS
 } from '@shell/types/store/subscribe.types';
 import myLogger from '@shell/utils/my-logger';
 
-// type SupportedSteveWatchEvents = STEVE_WATCH_EVENT.CHANGES
-
 type GetEventWatcherArgs = {
   event: STEVE_WATCH_EVENT_TYPES_NAMES,
   params: STEVE_WATCH_PARAMS,
   entryOnly?: boolean,
+  hasCallbacks?: boolean,
 }
 
 type GetEventWatchersArgs = {
@@ -43,53 +41,63 @@ type STEVE_WATCH = {
 }
 type STEVE_WATCHES = { [socketId: string]: STEVE_WATCH};
 
+/**
+ * For a specific resource watch, listen for a specific event type and trigger callback when received
+ *
+ * For example, listen for provisioning.cattle.io clusters messages of type resource.changes and trigger callback when received
+ *
+ * // TODO: RC refactor SteveSocketMessageListener
+ * Watch - UI is watching a resource type restricted by nothing/id/namespace/selector
+ * // TODO: RC refactor event --> message
+ * Event - Rancher socket message to ui
+ * Listener - listen to events, trigger when received
+ */
 export class SteveWatchEventListenerManager {
-  /**
-   *
-   */
   constructor(storeName: string) {
-    // TODO: RC check that this is called on every new store created
-    myLogger.warn('SubscribeEvents', storeName);
+    // TODO: RC remove
+    myLogger.warn('sub', 'event', 'ctor', storeName);
   }
 
+  private keyForSubscribe({ params }: {params: STEVE_WATCH_PARAMS}): string {
+    const socketId = keyForSubscribe(params);
+
+    // return `${ socketId }mode=${ params.mode }`;
+    return socketId;
+  }
+
+  /**
+   * collection of ui --> rancher watches. we keep state specific to this class here
+   */
   /* eslint-disable-next-line no-unused-vars */
   private watches: STEVE_WATCHES = {};
 
-  // private eventWatchers: { [event in SupportedSteveWatchEvents]: STEVE_WATCH_EVENT_LISTENER[]} = { [STEVE_WATCH_EVENT.CHANGES]: [] };
+  /**
+   * Not all event types can be listened to are supported, only these
+   */
   public readonly supportedEventTypes: STEVE_WATCH_EVENT_TYPES[] = [STEVE_WATCH_EVENT_TYPES.CHANGES];
 
-  isSupportedEventType(type: STEVE_WATCH_EVENT_TYPES): boolean {
+  /**
+   * Not all event types can be listened to are supported, check if one is
+   */
+  public isSupportedEventType(type: STEVE_WATCH_EVENT_TYPES): boolean {
     return !!this.supportedEventTypes.includes(type);
   }
 
   /************************/
-  getWatch({ params } : GetEventWatchersArgs): STEVE_WATCH {
-    const socketId = keyForSubscribe(params);
+  /**
+   * Get the watch for the given params
+   */
+  public getWatch({ params } : GetEventWatchersArgs): STEVE_WATCH {
+    const socketId = this.keyForSubscribe({ params });
 
     return this.watches[socketId];
-
-    // const events = Object.keys(this.eventWatchers) as STEVE_WATCH_EVENT_NAMES[];
-
-    // for (let i = 0; i < events.length; i++) {
-    //   const event = events[i];
-    //   const socketId = keyForSubscribe(params);
-    //   const eventWatcher: STEVE_WATCH_EVENT_LISTENER | undefined = this.eventWatchers[socketId].find((sl) => equivalentWatch(sl.event, event));
-    //   // const eventWatcher: STEVE_WATCH_EVENT_LISTENER | undefined = this.eventWatchers[event].find((sl) => equivalentWatch(sl.params, params));
-
-    //   if (!eventWatcher) {
-    //     continue;
-    //   }
-
-    //   if (entryOnly || !!Object.keys(eventWatcher?.watchers || {}).length) {
-    //     res.push(eventWatcher);
-    //   }
-    // }
-
-    // return res;
   }
 
-  createWatch({ params }: { params: STEVE_WATCH_PARAMS}): STEVE_WATCH {
-    const socketId = keyForSubscribe(params);
+  /**
+   * Create a watch for the given params
+   */
+  private createWatch({ params }: { params: STEVE_WATCH_PARAMS}): STEVE_WATCH {
+    const socketId = this.keyForSubscribe({ params });
 
     this.watches[socketId] = {
       hasNormalWatch: false,
@@ -99,7 +107,22 @@ export class SteveWatchEventListenerManager {
     return this.watches[socketId];
   }
 
-  setWatchStarted({ started, args }: { started: boolean, args: GetEventWatchersArgs}) {
+  private deleteWatch({ params } : GetEventWatchersArgs) {
+    const socketId = this.keyForSubscribe({ params });
+
+    delete this.watches[socketId];
+  }
+
+  public hasNormalWatch({ params } : GetEventWatchersArgs): boolean {
+    const socketId = this.keyForSubscribe({ params });
+
+    return this.watches[socketId]?.hasNormalWatch;
+  }
+
+  /**
+   * TODO: RC description
+   */
+  public setWatchStarted({ started, args }: { started: boolean, args: GetEventWatchersArgs}) {
     const { params } = args;
 
     let watch = this.getWatch({ params });
@@ -114,12 +137,24 @@ export class SteveWatchEventListenerManager {
 
     //  && args.params.type === 'management.cattle.io.cluster'
     if (started) {
-      debugger;
+      // debugger; TODO: RC
     }
+    if ( params.resourceType === 'management.cattle.io.cluster') {
+      myLogger.warn('sub', 'event', 'setWatchStarted', 'hasNormalWatch', started, params );
+    }
+
     watch.hasNormalWatch = started;
+
+    // is watch empty
+    if (!watch.hasNormalWatch && watch.listeners.length === 0) {
+      this.deleteWatch({ params });
+    }
   }
 
-  watchHasListeners({ params }: { params: STEVE_WATCH_PARAMS}): boolean {
+  /**
+   * TODO: RC description
+   */
+  public watchHasListeners({ params }: { params: STEVE_WATCH_PARAMS}): boolean {
     const watch = this.getWatch({ params });
 
     if (!watch) {
@@ -130,57 +165,79 @@ export class SteveWatchEventListenerManager {
   }
   /************************/
 
+  // TODO: RC refactor GetEventWatcherArgs has multi uses
   /**
-     * TODO: RC
-     */
-  hasEventListener(args: GetEventWatcherArgs) {
+   * TODO: RC description
+   */
+  public hasEventListener(args: GetEventWatcherArgs) {
     return !!this.getEventListener(args);
   }
 
-  /**
-   * TODO: RC
-   */
-  getEventListener({ event, params, entryOnly }: GetEventWatcherArgs): STEVE_WATCH_EVENT_LISTENER | null {
-    // const events = Object.keys(this.eventWatchers) as STEVE_WATCH_EVENT_NAMES[];
-    const socketId = keyForSubscribe(params);
-    const watches = Object.entries(this.watches);
+  public hasEventListeners({ params }: GetEventWatcherArgs): boolean {
+    const socketId = this.keyForSubscribe({ params });
+    const watch = this.watches[socketId];
+    const listener = watch?.listeners.find((w) => Object.values(w.callbacks).length > 0);
 
-    for (let i = 0; i < watches.length; i++) {
-      const [ewSocketId, watch] = watches[i];
+    return !!listener;
 
-      if (socketId === ewSocketId && watch) {
-        const listener = watch.listeners.find((w) => w.event === event);
+    // const watches = Object.entries(this.watches);
 
-        if (listener && (entryOnly || !!Object.keys(listener?.callbacks || {}).length)) {
-          return listener;
-        }
-        break;
-      }
-    }
+    // for (let i = 0; i < watches.length; i++) {
+    //   const [ewSocketId, watch] = watches[i];
 
-    return null;
+    //   if (socketId === ewSocketId && watch) {
+    //     const listener = watch.listeners.find((w) => Object.values(w.callbacks).length > 0);
 
-    // for (let i = 0; i < events.length; i++) {
-    //   const event = events[i];
-    //   const socketId = keyForSubscribe(params);
-    //   const eventWatcher: STEVE_WATCH_EVENT_LISTENER | undefined = this.eventWatchers[socketId].find((sl) => equivalentWatch(sl.event, event));
-    //   // const eventWatcher: STEVE_WATCH_EVENT_LISTENER | undefined = this.eventWatchers[event].find((sl) => equivalentWatch(sl.params, params));
-
-    //   if (!eventWatcher) {
-    //     continue;
-    //   }
-    //   // TODO: RC needs watchers???
-    //   if (entryOnly || !!Object.keys(eventWatcher?.watchers || {}).length) {
-    //     return eventWatcher;
+    //     if (listener) {
+    //       return true;
+    //     }
     //   }
     // }
 
-    // return null;
+    // return false;
   }
 
-  addEventListener({ event, params }: GetEventWatcherArgs): STEVE_WATCH_EVENT_LISTENER | undefined {
+  /**
+   * TODO: RC description
+   */
+  public getEventListener({
+    event, params, entryOnly, hasCallbacks
+  }: GetEventWatcherArgs): STEVE_WATCH_EVENT_LISTENER | null {
+    const socketId = this.keyForSubscribe({ params });
+    const watch = this.watches[socketId];
+
+    if (watch) {
+      const listener = watch.listeners.find((w) => w.event === event);
+
+      if (listener && (entryOnly || !!Object.keys(listener?.callbacks || {}).length)) {
+        return listener;
+      }
+    }
+
+    // const watches = Object.entries(this.watches);
+
+    // for (let i = 0; i < watches.length; i++) {
+    //   const [ewSocketId, watch] = watches[i];
+
+    //   if (socketId === ewSocketId && watch) {
+    //     const listener = watch.listeners.find((w) => w.event === event);
+
+    //     if (listener && (entryOnly || !!Object.keys(listener?.callbacks || {}).length)) {
+    //       return listener;
+    //     }
+    //     break;
+    //   }
+    // }
+
+    return null;
+  }
+
+  /**
+   * TODO: RC description
+   */
+  public addEventListener({ event, params }: GetEventWatcherArgs): STEVE_WATCH_EVENT_LISTENER {
     if (!event) {
-      return;
+      throw new Error(`Cannot add a socket watch event listener if there's no event to listen to`);
     }
 
     let watch = this.getWatch({ params });
@@ -204,7 +261,10 @@ export class SteveWatchEventListenerManager {
     return listener;
   }
 
-  triggerEventListener({ event, params }: GetEventWatcherArgs) {
+  /**
+   * TODO: RC description
+   */
+  public triggerEventListener({ event, params }: GetEventWatcherArgs) {
     const eventWatcher = this.getEventListener({
       event, params, entryOnly: false
     });
@@ -220,14 +280,13 @@ export class SteveWatchEventListenerManager {
   }
 
   /************************/
-  addEventListenerCallback({
+  /**
+   * TODO: RC description
+   */
+  public addEventListenerCallback({
     event, params, callback, id
   }: AddEventWatcherArgs): STEVE_WATCH_EVENT_LISTENER {
     const eventWatcher = this.addEventListener({ event, params });
-
-    if (!eventWatcher) {
-      throw new Error('TODO: RC');
-    }
 
     if (!eventWatcher.callbacks[id]) {
       eventWatcher.callbacks[id] = callback;
@@ -236,17 +295,21 @@ export class SteveWatchEventListenerManager {
     return eventWatcher;
   }
 
-  removeEventListenerCallback({ event, params, id }: RemoveEventWatcherArgs) {
-    // const socketId = keyForSubscribe(params);
+  /**
+   * TODO: RC description
+   */
+  public removeEventListenerCallback({ event, params, id }: RemoveEventWatcherArgs) {
     const existing = this.getEventListener({ event, params });
-    // const existing = this.eventWatchers[socketId].find((l) => equivalentWatch(l.event, event));
 
     if (existing) {
       delete existing.callbacks[id];
     }
   }
 
-  removeEventListenderCallbacksOfType() {
+  /**
+   * TODO: RC description
+   */
+  public removeEventListenerCallbacksOfType() {
     // TODO: RC clear inError / backoff + subscrive events
     // state.inError
   }

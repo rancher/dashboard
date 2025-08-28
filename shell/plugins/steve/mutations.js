@@ -164,10 +164,10 @@ export default {
   },
 
   reset(state) {
-    // Reset generic store things.... then steve specific things
-
+    // 1. Reset generic store things
     resetStore(state, this.commit);
 
+    // 2. Reset steve specific store things
     this.commit(`${ state.config.namespace }/resetSubscriptions`);
 
     // Clear the podsByNamespace cache

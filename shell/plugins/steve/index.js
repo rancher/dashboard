@@ -27,9 +27,6 @@ export function SteveFactory(namespace, baseUrl) {
         deferredRequests: {},
         started:          [],
         inError:          {},
-        /**
-         * TODO: RC
-         */
         socketListener:   new SteveWatchEventListenerManager(namespace),
         podsByNamespace:  {}, // Cache of pods by namespace
       };
