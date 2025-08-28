@@ -257,73 +257,66 @@ export default {
           >
             <span v-clean-html="group.labelDisplay || group.label" />
           </h6>
-        </router-link>
-        <h6
-          v-else
-        >
-          <span
-            v-clean-html="group.labelDisplay || group.label"
-          />
-        </h6>
-      </slot>
-      <i
-        v-if="!onlyHasOverview && canCollapse"
-        class="icon toggle toggle-accordion"
-        :class="{'icon-chevron-right': !isExpanded, 'icon-chevron-down': isExpanded}"
-        role="button"
-        tabindex="0"
-        :aria-label="t('nav.ariaLabel.collapseExpand')"
-        @click="peek($event, true)"
-        @keyup.enter="peek($event, true)"
-        @keyup.space="peek($event, true)"
-      />
-    </div>
-    <ul
-      v-if="isExpanded"
-      class="list-unstyled body"
-      v-bind="$attrs"
-    >
-      <template
-        v-for="(child, idx) in group[childrenKey]"
-        :key="idx"
+        </slot>
+        <i
+          v-if="!onlyHasOverview && canCollapse"
+          class="icon toggle toggle-accordion"
+          :class="{'icon-chevron-right': !isExpanded, 'icon-chevron-down': isExpanded}"
+          role="button"
+          tabindex="0"
+          :aria-label="t('nav.ariaLabel.collapseExpand')"
+          @click="peek($event, true)"
+          @keyup.enter="peek($event, true)"
+          @keyup.space="peek($event, true)"
+        />
+      </div>
+      <ul
+        v-if="isExpanded"
+        class="list-unstyled body"
+        v-bind="$attrs"
       >
-        <li
-          v-if="child.divider"
+        <template
+          v-for="(child, idx) in group[childrenKey]"
           :key="idx"
         >
-          <hr role="none">
-        </li>
-        <!-- <div v-else-if="child[childrenKey] && hideGroup(child[childrenKey])" :key="child.name">
+          <li
+            v-if="child.divider"
+            :key="idx"
+          >
+            <hr role="none">
+          </li>
+          <!-- <div v-else-if="child[childrenKey] && hideGroup(child[childrenKey])" :key="child.name">
           HIDDEN
         </div> -->
-        <li
-          v-else-if="child[childrenKey]"
-          :key="child.name"
-        >
-          <Group
-            ref="groups"
-            :key="id+'_'+child.name+'_children'"
-            :id-prefix="id+'_'"
-            :depth="depth + 1"
-            :children-key="childrenKey"
-            :can-collapse="canCollapse"
-            :group="child"
-            :fixed-open="fixedOpen"
-            @selected="groupSelected($event)"
-            @expand="expandGroup($event)"
-            @close="close($event)"
+          <li
+            v-else-if="child[childrenKey]"
+            :key="child.name"
+          >
+            <Group
+              ref="groups"
+              :key="id+'_'+child.name+'_children'"
+              :id-prefix="id+'_'"
+              :depth="depth + 1"
+              :children-key="childrenKey"
+              :can-collapse="canCollapse"
+              :group="child"
+              :fixed-open="fixedOpen"
+              @selected="groupSelected($event)"
+              @expand="expandGroup($event)"
+              @close="close($event)"
+            />
+          </li>
+          <Type
+            v-else-if="!child.overview || group.name === 'starred'"
+            :key="id+'_' + child.name + '_type'"
+            :is-root="depth == 0 && !showHeader"
+            :type="child"
+            :depth="depth"
+            @selected="selectType($event)"
           />
-        </li>
-        <Type
-          v-else-if="!child.overview || group.name === 'starred'"
-          :key="id+'_' + child.name + '_type'"
-          :is-root="depth == 0 && !showHeader"
-          :type="child"
-          :depth="depth"
-          @selected="selectType($event)"
-        />
-      </template>
-    </ul>
+        </template>
+      </ul>
+    </div>
   </div>
 </template>
 
