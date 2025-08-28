@@ -1,62 +1,8 @@
-// Local variables for reused colors
-//light main text
-$darkest   : #141419;
-
-//light secondary
-$darker    : #6C6C76;
-
-//light disabled
-$dark      : #B6B6C2;
-
-//light border and buttons
-$medium    : #DCDEE7;
-
-//light inputs
-$light     : #EEEFF4;
-
-//light sidebar and box
-$lighter   : #F4F5FA;
-
-//light body bg
-$lightest  : #FFFFFF;
-
-//color for items that are not enabled
-$disabled  : $medium;
-
-$primary         : #3D98D3;
-$secondary       : $darker;
-$link            : #3D98D3;
-
-// Status colors
-$success         : #5D995D;
-$warning         : #DAC342;
-$error           : #F64747;
-$info            : #3D98D3;
-
-$contrasted-dark: $darkest !default;
-$contrasted-light: $lightest !default;
-
-// Text selection color for terminal window (we don't want this to change with the primary color)
-// The terminal alway uses a light background, so okay to use a fixed color
-$selected: rgba(#3D98D3, .5);
-
-$drag-over: #DCDEE7;
+@import "~shell/assets/styles/base/_color-classic.scss";
+@import "~shell/assets/styles/base/_variables-classic.scss";
 
 .classic {
   &.theme-light {
-
-    --primary                    : #{$primary};
-    --primary-text               : #{contrast-color($primary)};
-    --primary-hover-bg           : #{darken($primary, 10%)};
-    --primary-hover-text         : #{saturate($lightest, 20%)};
-    --primary-active-bg          : #{darken($primary, 25%)};
-    --primary-active-text        : #{contrast-color(darken($primary, 25%))};
-    --primary-border             : #{$primary};
-    --primary-banner-bg          : #{rgba($primary, 0.15)};
-    --primary-light-bg           : #{rgba($primary, 0.05)};
-    --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
-
-
     .text-primary {
       color: var(--primary) !important;
     }
@@ -77,19 +23,6 @@ $drag-over: #DCDEE7;
         }
     }
 
-    --link                    : #{$link};
-    --link-text               : #{contrast-color($link)};
-    --link-text-secondary     : #{$darker};
-    --link-hover-bg           : #{darken($link, 10%)};
-    --link-hover-text         : #{saturate($lightest, 20%)};
-    --link-active-bg          : #{darken($link, 25%)};
-    --link-active-text        : #{contrast-color(darken($link, 25%))};
-    --link-border             : #{$link};
-    --link-banner-bg          : #{rgba($link, 0.15)};
-    --link-light-bg           : #{rgba($link, 0.05)};
-
-
-
     .text-link {
       color: var(--link) !important;
 
@@ -101,7 +34,6 @@ $drag-over: #DCDEE7;
     .secondary-text-link {
       color: var(--link-text-secondary);
       text-decoration: underline;
-      cursor: pointer;
 
       &:hover {
         text-decoration: none;
@@ -136,7 +68,6 @@ $drag-over: #DCDEE7;
     --slider-light-bg            : #{rgba($lightest, 1)};
     --slider-light-bg-right      : #{rgba($lightest, 0)};
 
-
     .text-default {
       color: var(--default) !important;
     }
@@ -158,25 +89,10 @@ $drag-over: #DCDEE7;
     }
 
     --muted                      : #{$dark};
-    --deemphasized               : #717179;
 
     .text-muted {
       color: var(--muted) !important;
     }
-
-    .text-deemphasized {
-      color: var(--deemphasized);
-    }
-
-    --darker                    : #{$darker};
-    --darker-text               : #{contrast-color($darker)};
-    --darker-hover-bg           : #{darken($darker, 10%)};
-    --darker-hover-text         : #{saturate($lightest, 20%)};
-    --darker-active-bg          : #{darken($darker, 25%)};
-    --darker-active-text        : #{contrast-color(darken($darker, 25%))};
-    --darker-border             : #{$darker};
-    --darker-banner-bg          : #{rgba($darker, 0.15)};
-    --darker-light-bg           : #{rgba($darker, 0.05)};
 
     .text-darker {
       color: var(--default) !important;
@@ -198,18 +114,6 @@ $drag-over: #DCDEE7;
         }
     }
 
-
-
-    --success                    : #{$success};
-    --success-text               : #{contrast-color($success)};
-    --success-hover-bg           : #{darken($success, 10%)};
-    --success-hover-text         : #{saturate($lightest, 20%)};
-    --success-active-bg          : #{darken($success, 25%)};
-    --success-active-text        : #{contrast-color(darken($success, 25%))};
-    --success-border             : #{$success};
-    --success-banner-bg          : #{rgba($success, 0.15)};
-    --success-light-bg           : #{rgba($success, 0.05)};
-
     .text-success {
       color: var(--success) !important;
     }
@@ -229,17 +133,6 @@ $drag-over: #DCDEE7;
         background: var(--success-active-bg);
         }
     }
-
-
-    --info                    : #{$info};
-    --info-text               : #{contrast-color($info)};
-    --info-hover-bg           : #{darken($info, 10%)};
-    --info-hover-text         : #{saturate($lightest, 20%)};
-    --info-active-bg          : #{darken($info, 25%)};
-    --info-active-text        : #{contrast-color(darken($info, 25%))};
-    --info-border             : #{$info};
-    --info-banner-bg          : #{rgba($info, 0.15)};
-    --info-light-bg           : #{rgba($info, 0.05)};
 
     .text-info {
       color: var(--info) !important;
@@ -261,17 +154,6 @@ $drag-over: #DCDEE7;
         }
     }
 
-
-    --warning                    : #{$warning};
-    --warning-text               : #{contrast-color($warning)};
-    --warning-hover-bg           : #{darken($warning, 10%)};
-    --warning-hover-text         : #{saturate($lightest, 20%)};
-    --warning-active-bg          : #{darken($warning, 25%)};
-    --warning-active-text        : #{contrast-color(darken($warning, 25%))};
-    --warning-border             : #{$warning};
-    --warning-banner-bg          : #{rgba($warning, 0.15)};
-    --warning-light-bg           : #{rgba($warning, 0.05)};
-
     .text-warning {
       color: var(--warning) !important;
     }
@@ -291,18 +173,6 @@ $drag-over: #DCDEE7;
         background: var(--warning-active-bg);
         }
     }
-
-
-    --error                    : #{$error};
-    --error-text               : #{contrast-color($error)};
-    --error-hover-bg           : #{darken($error, 10%)};
-    --error-hover-text         : #{saturate($lightest, 20%)};
-    --error-active-bg          : #{darken($error, 25%)};
-    --error-active-text        : #{contrast-color(darken($error, 25%))};
-    --error-border             : #{$error};
-    --error-banner-bg          : #{rgba($error, 0.15)};
-    --error-light-bg           : #{rgba($error, 0.05)};
-
 
     .text-error {
       color: var(--error) !important;
@@ -326,14 +196,17 @@ $drag-over: #DCDEE7;
 
     --disabled : #{$disabled};
     --disabled-text : #{contrast-color($disabled)};
-    --disabled-hover-bg : #{darken($disabled, 10%)};
     --disabled-hover-text : #{saturate($lightest, 20%)};
     --disabled-active-bg : #{darken($disabled, 25%)};
     --disabled-active-text : #{contrast-color(darken($disabled, 25%))};
     --disabled-border : #{$disabled};
     --disabled-banner-bg : #{rgba($disabled, 0.15)};
     --disabled-light-bg : #{rgba($disabled, 0.05)};
-
+    --body-bg                    : #{$lightest};
+    --body-text                  : #{$darkest};
+    --scrollbar-thumb            : #{$dark};
+    --scrollbar-thumb-dropdown   : #{$lighter};
+    --scrollbar-track            : transparent;
 
     .text-disabled {
       color: var(--disabled) !important;
@@ -355,13 +228,6 @@ $drag-over: #DCDEE7;
       }
     }
 
-
-    --body-bg                    : #{$lightest};
-    --body-text                  : #{$darkest};
-    --scrollbar-thumb            : #{$dark};
-    --scrollbar-thumb-dropdown   : #{$lighter};
-    --scrollbar-track            : transparent;
-
     // Header, Footer and Consent banner defaults
     --banner-text-color          : #{$darkest};
 
@@ -373,6 +239,7 @@ $drag-over: #DCDEE7;
     --header-height              : 55px;
     --header-border              : #{$medium};
     --header-border-size         : 1px;
+
     --nav-width                  : 250px;
     --nav-bg                     : #{$lightest};
     --nav-active                 : #{$light};
@@ -407,10 +274,12 @@ $drag-over: #DCDEE7;
     --accent-btn-hover           : var(--primary);
     --accent-btn-hover-text      : #{$lightest};
 
+    --yaml-editor-bg             : #{$lighter};
+    --drawer-body-bg             : #{$lighter};
+
     --modal-bg                   : #{$lightest};
     --modal-border               : #{$dark};
-    --subtle-overlay-bg          : #{rgba($lighter, 0.75)};
-    --overlay-bg                 : rgba(38, 42, 64, 0.35);
+    --overlay-bg                 : #{rgba($lighter, 0.75)};
     --shadow                     : #{rgba($medium, 0.85)};
 
     --checkbox-tick              : #{$lightest};
@@ -434,8 +303,6 @@ $drag-over: #DCDEE7;
     --dropdown-disabled-bg       : #{$disabled};
     --dropdown-group-text        : #{$darker};
     --dropdown-highlight-text    : var(--link);
-
-    --notification-unread-bg     : var(--primary-banner-bg);
 
     --card-badge-text            : #ffffff;
 
@@ -476,7 +343,7 @@ $drag-over: #DCDEE7;
     --sortable-table-group-label : #{$secondary};
 
     --tag-primary                : #{$darkest};
-    --tag-bg                     : #EEEFF5;
+    --tag-bg                     : #{$medium};
 
     --popover-bg                 : var(--body-bg);
     --popover-border             : var(--border);
@@ -493,7 +360,6 @@ $drag-over: #DCDEE7;
     --tabbed-container-bg        : #{mix($light, $lighter, 15%)};
 
     --yaml-editor-bg             : #{$lighter};
-    --drawer-body-bg             : #{$lighter};
 
     --diff-border                : var(--border);
     --diff-header-bg             : var(--nav-bg);
@@ -628,25 +494,21 @@ $drag-over: #DCDEE7;
     --click-badge-info-bg        : #{$info};
     --click-badge-info-border    : #2673A6;
     --bubble-bg                : #{$lighter};
+  
+    /* Semantics */
+    --warning-badge    : #{$warning};
+    --on-warning-banner : #{darken($warning, 60%)};
 
+    --success-badge    : #{rgba($success, 0.10)};
+    --on-success-banner : #{$success};
 
-    // These are meant to be the colors used within rancher-components. They will eventually be removed from shell once we have theming working in the components
-    --rc-info: #{$blue001};
-    --rc-info-secondary: #{$blue002};
+    --info-badge    : #{rgba($info, 0.10)};
+    --on-info-banner : #{$info};
+    
+    --error-badge    :  #{$error};
+    --on-error-banner : #FFFFFF;
 
-    --rc-success: #{$green001};
-    --rc-success-secondary: #{$green002};
-
-    --rc-warning: #{$yellow001};
-    --rc-warning-secondary: #{$yellow002};
-
-    --rc-error: #{$red001};
-    --rc-error-secondary: #{$gray003};
-
-    --rc-unknown: #{$gray001};
-    --rc-unknown-secondary: #{$gray004};
-
-    --rc-none: #{$gray002};
-    --rc-none-secondary: #{$gray004};
+    --error-banner-text: #{$error};
+    --warning-banner-text: var(--warning-text);
   }
 }

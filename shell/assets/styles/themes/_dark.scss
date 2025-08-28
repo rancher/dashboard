@@ -1,10 +1,9 @@
+@import "~shell/assets/styles/base/_color-classic.scss";
+@import "~shell/assets/styles/base/_variables-classic.scss";
+
 .classic {
   &.theme-dark {
-    // Local variables for reused colors
-
-    //dark sidebar
-    $darkest: #141419;
-
+    // Local variables color overrides
     //dark body
     $darker: #1b1c21;
 
@@ -20,9 +19,6 @@
     //dark secondary
     $lighter: #b6b6c2;
 
-    // dark main text
-    $lightest: #ffffff;
-
     // menu cluster description active+hover
     $desc-light: #EEEFF4;
 
@@ -36,6 +32,15 @@
     $drag-over: #DCDEE7;
 
     $slate: #4B4F6B;
+
+    --secondary: var(--body-bg);
+    --secondary-border: #{$primary};
+    --on-secondary: #{$primary};
+    --secondary-hover: var(--non-primary-hover);
+
+    --tertiary: transparent;
+    --on-tertiary: var(--link);
+    --tertiary-hover: var(--non-primary-hover);
 
     --slate: #{$slate};
 
@@ -52,7 +57,6 @@
     --slider-light-bg-right      : #{rgba($darker, 0)};
 
     --muted                      : #{$disabled};
-    --deemphasized               : #{$disabled};
 
     --body-bg                    : #{$darker};
     --body-text                  : #{$lightest};
@@ -96,7 +100,6 @@
 
     --modal-bg                   : #{$dark};
     --modal-border               : #{$medium};
-    --subtle-overlay-bg          : #{rgba($darkest, 0.75)};
     --overlay-bg                 : #{rgba($darkest, 0.75)};
     --shadow                     : #{rgba($darkest, 0.9)};
 
@@ -121,8 +124,6 @@
     --dropdown-disabled-text     : #{$disabled};
     --dropdown-group-text        : #{$lighter};
     --dropdown-highlight-text    : var(--link);
-
-    --notification-unread-bg     : var(--primary-banner-bg);
 
     --input-text                 : #{$lightest};
     --input-label                : #{$lighter};
@@ -260,5 +261,7 @@
     .secondary-text-link {
       color: var(--link-text-secondary);
     }
+
+    --warning-banner-text: var(--body-text);
   }
 }

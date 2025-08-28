@@ -1,7 +1,8 @@
-$btn-padding: 0 21px 0 21px;
-$btn-sm-padding: 0 7px 0 7px;
+$btn-padding: 0 21px;
+$btn-sm-padding: 0 12px;
 $btn-height: 40px;
-$btn-sm-height: 30px;
+$btn-sm-height: 24px;
+$btn-radius: 4px;
 
 // -----------------------------------------------------------------------------
 // This file contains all styles related to the button component.
@@ -21,10 +22,10 @@ button,
   user-select: none;
   border: 0;
   padding: $btn-padding;
-  border-radius: var(--border-radius);
+  border-radius: $btn-radius;
   color: var(--lightest);
   line-height: $btn-height;
-  min-height: $btn-height;
+  height: $btn-height;
 
   > .icon:not(:only-child) {
     margin-right: 6px;
@@ -32,11 +33,15 @@ button,
 
   &:hover {
     text-decoration: none;
-    color: var(--lightest);
   }
 
   &.bg-transparent {
     color: var(--body-text);
+  }
+
+  &:focus-visible {
+    @include focus-outline;
+    outline-offset: 2px;
   }
 }
 
@@ -59,8 +64,8 @@ button,
 .btn-group-sm > .btn,
 .btn-sm .btn-label {
   padding: $btn-sm-padding;
-  min-height: $btn-sm-height;
-  line-height: 28px;
+  height: $btn-sm-height;
+  line-height: $btn-sm-height;
 }
 
 //btn roles
@@ -69,82 +74,71 @@ button,
   color: var(--primary-text);
 
   &:hover, &._hover {
-    background-color: var(--primary-hover-bg);
+    background-color: var(--primary-hover, var(--primary-hover-bg));
     color: var(--primary-text);
   }
 
   &:focus, &.focused {
-    background-color: var(--primary-hover-bg);
-    color: var(--primary-text);
-  }
-
-  &:focus-visible {
-    @include focus-outline;
-    outline-offset: 2px;
+    background-color: var(--primary-hover);
   }
 }
 
 .role-secondary {
-  background: transparent;
-  color: var(--primary) !important;
-  border: solid 1px var(--primary);
+  background: var(--secondary, transparent);
+  color: var(--on-secondary, var(--primary));
+
+  border: solid 1px var(--secondary-border);
   line-height: $btn-height - 2px;
 
   &:hover, &._hover {
-    color: var(--lightest) !important;
+    background: var(--secondary-hover);
+    color: var(--on-secondary, var(--lightest));
   }
 
   &:focus, &.focused {
-    background-color: var(--primary-hover-bg);
-    color: var(--primary-text) !important;
+    background: var(--secondary-hover, var(--primary-hover-bg));
   }
 
   &.btn-sm {
     line-height: $btn-sm-height - 2px;
 
     &:focus, &.focused {
-      border: 0;
+      border-color: transparent;
     }
-  }
-
-  &:focus-visible {
-    @include focus-outline;
-    outline-offset: 2px;
   }
 }
 
 .role-tertiary {
-  background: var(--accent-btn);
-  border: solid 1px var(--primary);
-  color: var(--primary);
+  background: var(--tertiary, var(--accent-btn));
+  color: var(--on-tertiary, var(--primary));
+
+  &:hover, &._hover {
+    background: var(--tertiary-hover);
+    color: var(--on-tertiary);
+  }
 
   &:focus, &.focused {
-    background-color: var(--primary-hover-bg);
-    color: var(--primary-text);
-  }
-
-  &.btn:not(.btn-sm) {
-    line-height: $btn-height - 2px;
-  }
-
-  &:focus-visible {
-    @include focus-outline;
-    outline-offset: 2px;
+    background: var(--tertiary-hover);
   }
 }
 
 .role-link {
-  background: transparent;
-  color: var(--link);
+  background: var(--tertiary, transparent);
+  color: var(--on-tertiary, var(--link));
+  padding: 0;
+  min-width: $btn-height;
+  display: flex;
+  justify-content: center;
 
   &:hover, &._hover {
-    color: var(--lightest);
+    color: var(--body-text);
+    background-color: transparent;
+    box-shadow: none;
   }
 
   &:focus, &.focused {
-    background: transparent;
-    color: var(--link);
-    box-shadow: none;
+    @include focus-outline;
+    outline-offset: -2px;
   }
 
   &:focus-visible {
@@ -170,15 +164,17 @@ button,
 .btn[disabled],
 fieldset[disabled] .btn {
   cursor: not-allowed;
-  color: var(--disabled-text) !important;
-  &:not(.role-link){
-    background-color: var(--disabled-bg) !important;
-    border-color: var(--disabled-bg) !important;
+  opacity: var(--disabled-opacity);
+
+  &:hover {
+    background-color: initial;
   }
 }
 
 .btn-group {
   position: relative;
+  display: flex;
+  gap: 4px;
   text-align: initial;
   vertical-align: middle;
   padding: 0;
@@ -187,8 +183,27 @@ fieldset[disabled] .btn {
   .btn {
     position: relative;
     display: inline-flex;
-    border-radius: 0;
-    text-align: center;
+    width: auto;
+    height: 32px;
+    padding: 0 12px;
+    justify-content: center;
+    align-items: center;
+    border-radius: var(--border-radius);
+    background: var(--toggle-OFF-bg, var(--disabled-bg));
+    color: var(--toggle-OFF-color, var(--body-text));
+
+    &:hover {
+      background: var(--toggle-OFF-hover, var(--disabled-bg));
+    }
+   
+    &.toggle-on {
+      background: var(--toggle-ON-bg, var(--primary));
+      color: var(--toggle-ON-color, var(--primary-hover-text));
+
+      &:hover {
+        background: var(--active-hover, var(--primary-hover-bg));
+      }
+    }
 
     &:focus {
       // Move the focused one to the top so that the focus ring is all visible
@@ -196,23 +211,10 @@ fieldset[disabled] .btn {
     }
 
     &:focus-visible {
-      z-index: 1;
+      z-index: 1; 
       @include focus-outline;
     }
-    
-    &.active {
-      @extend .bg-primary;
-    }
 
-    &:first-child {
-      border-top-left-radius: var(--border-radius);
-      border-bottom-left-radius: var(--border-radius);
-    }
-
-    &:last-child {
-      border-top-right-radius: var(--border-radius);
-      border-bottom-right-radius: var(--border-radius);
-    }
   }
 
   .btn-disabled,

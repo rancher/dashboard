@@ -73,6 +73,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ brand: 'prefs/brand' }),
     ...mapGetters(['clusterId']),
     ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct', 'isRancherInHarvester']),
     ...mapGetters({ features: 'features/get' }),
@@ -470,7 +471,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div :class="brand">
     <!-- Overlay -->
     <div
       v-if="shown"
@@ -973,6 +974,18 @@ export default {
   $option-padding-left: 14px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
+  div .classic .side-menu .body .option,
+  div .csp .side-menu .body .option {
+    &:hover {
+      background: var(--primary-hover-bg);
+      color: var(--primary-hover-text);
+
+      svg {
+        fill: var(--primary-hover-text);
+      }
+    }
+  }
+
   .side-menu {
     .menu {
       position: absolute;
@@ -1073,11 +1086,19 @@ export default {
       width: 300px;
       overflow: auto;
 
+      a {
+        &.router-link-active, &.active-menu-link {
+          svg {
+            fill: var(--on-active, var(--primary-hover-text));
+          }
+        }
+      }
+
       .option {
         align-items: center;
         cursor: pointer;
         display: flex;
-        color: var(--link);
+        color: var(--on-tertiary, var(--link));
         font-size: 14px;
         height: $option-height;
         white-space: nowrap;
@@ -1159,7 +1180,7 @@ export default {
         .rancher-provider-icon,
         svg {
           margin-right: 16px;
-          fill: var(--link);
+          fill: var(--on-tertiary, var(--link));
         }
 
         .top-menu-icon {
@@ -1178,19 +1199,23 @@ export default {
             outline-offset: -4px;
           }
 
-          background: var(--primary-hover-bg);
-          color: var(--primary-hover-text);
-
-          svg {
-            fill: var(--primary-hover-text);
-          }
+          background: var(--active, var(--primary-hover-bg));
+          color: var(--on-active, var(--primary-hover-text));
 
           i {
-            color: var(--primary-hover-text);
+            color: var(--on-active, var(--primary-hover-text));
           }
 
           div .description {
-            color: var(--default);
+            color: var(--on-active, var(--default));
+          }
+
+          &:hover {
+            background: var(--nav-active-hover, var(--primary-hover-bg));
+
+            svg {
+              fill: var(--on-active, var(--primary-hover-text));
+            }
           }
         }
 
@@ -1201,21 +1226,12 @@ export default {
         }
 
         &:hover {
-          color: var(--primary-hover-text);
-          background: var(--primary-hover-bg);
-          > div {
-            color: var(--primary-hover-text);
+          background: var(--nav-hover, var(--primary-hover-bg));
 
-            .description {
-              color: var(--default);
-            }
-          }
           svg {
-            fill: var(--primary-hover-text);
+            fill: var(--on-tertiary);
           }
-          div {
-            color: var(--primary-hover-text);
-          }
+
           &.disabled {
             background: transparent;
             color: var(--muted);

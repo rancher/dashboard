@@ -162,7 +162,7 @@ export default {
     rowActionsWidth: {
       // How wide the action dropdown column should be
       type:    Number,
-      default: 40
+      default: 55
     },
 
     search: {
@@ -1104,7 +1104,7 @@ export default {
                 :key="act.action"
                 v-clean-tooltip="actionTooltip"
                 type="button"
-                class="btn role-primary"
+                class="btn role-secondary"
                 :class="{[bulkActionClass]:true}"
                 :disabled="!act.enabled"
                 :data-testid="componentTestid + '-' + act.action"
@@ -1945,7 +1945,7 @@ export default {
         &:before {
           content: "";
           display: block;
-          height: 20px;
+          height: 10px;
           background-color: transparent;
         }
       }
@@ -2055,6 +2055,7 @@ export default {
     display: grid;
     grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 200px);
     grid-column-gap: 10px;
+    align-items: center;
 
     &.advanced-filtering {
       grid-template-columns: [bulk] auto [middle] minmax(min-content, auto) [search] minmax(min-content, auto);
