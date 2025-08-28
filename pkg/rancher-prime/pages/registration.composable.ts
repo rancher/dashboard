@@ -356,27 +356,6 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   };
 
   /**
-   * Return prioritized condition with reason and message
-   * @param conditions
-   * @returns
-   */
-  const getErrorMessages = (conditions: PartialCondition[]): PartialCondition | undefined => {
-    const errorConditions = conditions.filter((condition) => condition.reason && condition.message);
-
-    // Prioritize conditions that are not 'Failure' type
-    if (errorConditions.length > 1) {
-      return errorConditions.find((condition) => condition.type !== 'Failure') || errorConditions[0];
-    }
-
-    // Default return the condition containing the message
-    if (errorConditions.length === 1) {
-      return errorConditions[0];
-    }
-
-    return undefined;
-  };
-
-  /**
    * Get the registration request from the secret data
    * @param secret PartialSecret containing the request data
    */
