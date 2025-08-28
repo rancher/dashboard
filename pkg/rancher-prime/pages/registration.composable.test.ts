@@ -39,10 +39,7 @@ describe('registration composable', () => {
         links:    { view: '123' },
         status:   {
           activationStatus: { activated: true },
-          conditions:       [{
-            type:   'Done',
-            status: 'True',
-          }]
+          currentCondition: { type: 'Done' }
         },
       }];
 
@@ -85,20 +82,11 @@ describe('registration composable', () => {
         links:    { view: '123' },
         status:   {
           activationStatus: { activated: false },
-          conditions:       [
-            {
-              type:    'Failure',
-              status:  'True',
-              message: 'Message not for the user',
-              reason:  'Give me a reason',
-            },
-            {
-              type:    'RegistrationActivated',
-              status:  'False',
-              message: errorMessage,
-              reason:  'Give me a reason',
-            },
-          ]
+          currentCondition: {
+            type:    'RegistrationActivated',
+            message: errorMessage,
+            reason:  'Give me a reason',
+          },
         },
       }];
 
@@ -136,10 +124,7 @@ describe('registration composable', () => {
         links:    { view: '123' },
         status:   {
           activationStatus: { activated: true },
-          conditions:       [{
-            type:   'Done',
-            status: 'True',
-          }]
+          currentCondition: { type: 'Done' }
         },
       }];
 
@@ -228,10 +213,7 @@ describe('registration composable', () => {
         links:    { view: '123' },
         status:   {
           activationStatus: { activated: true },
-          conditions:       [{
-            type:   'Done',
-            status: 'True',
-          }]
+          currentCondition: { type: 'Done' }
         },
       }];
       const secretRequest = {
@@ -299,13 +281,7 @@ describe('registration composable', () => {
         links:    { view: '123' },
         status:   {
           activationStatus: { activated: true },
-          conditions:       [
-            { type: 'OfflineRequestReady' },
-            {
-              type:   'OfflineActivationDone',
-              status: 'True',
-            },
-          ]
+          currentCondition: { type: 'OfflineActivationDone' },
         },
       }];
 
