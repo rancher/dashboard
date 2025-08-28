@@ -737,34 +737,41 @@ export default {
     getPluginActions(plugin) {
       const actions = [];
 
-      if (plugin.installed) {
-        if (!plugin.builtin) {
-          actions.push({
-            label:  this.t('plugins.uninstall.label'),
-            action: 'uninstall',
-            icon:   'icon-delete'
-          });
-        }
-        if (plugin.upgrade) {
-          actions.push({
-            label:  this.t('plugins.update.label'),
-            action: 'update',
-            icon:   'icon-edit'
-          });
-        }
-        if (!plugin.upgrade && plugin.installableVersions && plugin.installableVersions.length > 1) {
-          actions.push({
-            label:  this.t('plugins.rollback.label'),
-            action: 'rollback',
-            icon:   'icon-history'
-          });
-        }
-      } else if (plugin.installableVersions && plugin.installableVersions.length) {
+      const canInstall = !plugin.installed && plugin.installableVersions?.length;
+      const canUninstall = plugin.installed && !plugin.builtin;
+      const canUpdate = plugin.installed && plugin.upgrade;
+      const canRollback = plugin.installed && !plugin.upgrade && plugin.installableVersions?.length > 1;
+
+      if (canUninstall) {
+        actions.push({
+          label:  this.t('plugins.uninstall.label'),
+          action: 'uninstall',
+          icon:   'icon-delete',
+        });
+      }
+
+      if (canUpdate) {
+        actions.push({
+          label:  this.t('plugins.update.label'),
+          action: 'update',
+          icon:   'icon-edit',
+        });
+      }
+
+      if (canRollback) {
+        actions.push({
+          label:  this.t('plugins.rollback.label'),
+          action: 'rollback',
+          icon:   'icon-history',
+        });
+      }
+
+      if (canInstall) {
         actions.push({
           label:   this.t('plugins.install.label'),
           action:  'install',
           icon:    'icon-plus',
-          enabled: true
+          enabled: true,
         });
       }
 
@@ -791,29 +798,25 @@ export default {
     },
 
     getFooterItems(plugin) {
-      const items = [];
       const labels = [];
 
       if (plugin.builtin) {
         labels.push(this.t('plugins.labels.builtin'));
-      } else {
-        if (!plugin.certified) {
-          labels.push(this.t('plugins.labels.third-party'));
-        }
-        if (plugin.experimental) {
-          labels.push(this.t('plugins.labels.experimental'));
-        }
       }
 
-      if (labels.length) {
-        items.push({
-          icon:        'icon-tag-alt',
-          iconTooltip: { key: 'generic.tags' },
-          labels
-        });
+      if (!plugin.builtin && !plugin.certified) {
+        labels.push(this.t('plugins.labels.third-party'));
       }
 
-      return items;
+      if (!plugin.builtin && plugin.experimental) {
+        labels.push(this.t('plugins.labels.experimental'));
+      }
+
+      return labels.length ? [{
+        icon:        'icon-tag-alt',
+        iconTooltip: { key: 'generic.tags' },
+        labels,
+      }] : [];
     },
 
     getStatuses(plugin) {
