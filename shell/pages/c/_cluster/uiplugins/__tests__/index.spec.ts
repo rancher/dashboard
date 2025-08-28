@@ -34,12 +34,6 @@ describe('page: UI plugins/Extensions', () => {
     wrapper = mountComponent();
   });
 
-  afterEach(() => {
-    if (wrapper && wrapper.destroy) {
-      wrapper.destroy();
-    }
-  });
-
   describe('getPluginActions', () => {
     it('should return install action for a non-installed plugin with installable versions', () => {
       const plugin = {
