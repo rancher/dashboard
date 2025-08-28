@@ -25,10 +25,12 @@ export interface STEVE_WATCH_PARAMS {
   namespace?: string,
   stop?: boolean,
   force?: boolean,
-  mode?: STEVE_WATCH_MODE
+  mode?: STEVE_WATCH_MODE,
+  transient?: boolean,
 }
 
-export type STEVE_WATCH_EVENT_LISTENER_CALLBACK = () => void
+export type STEVE_WATCH_EVENT_LISTENER_ARGS = { forceWatch: boolean }
+export type STEVE_WATCH_EVENT_LISTENER_CALLBACK = (args: STEVE_WATCH_EVENT_LISTENER_ARGS) => void
 export interface STEVE_WATCH_EVENT_LISTENER {
   params: STEVE_WATCH_PARAMS,
   callbacks: { [id: string]: STEVE_WATCH_EVENT_LISTENER_CALLBACK},
