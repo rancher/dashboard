@@ -207,36 +207,36 @@ describe('page: UI plugins/Extensions', () => {
       expect(statuses[0].tooltip.key).toBe('generic.deprecated');
     });
 
-    it('should return warning status for installedError', () => {
+    it('should return error status for installedError', () => {
       const plugin = { installedError: 'An error occurred' };
       const statuses = wrapper.vm.getStatuses(plugin);
 
-      expect(statuses[0].icon).toBe('icon-warning');
-      expect(statuses[0].tooltip.text).toBe('An error occurred');
+      expect(statuses[0].icon).toBe('icon-alert-alt');
+      expect(statuses[0].tooltip.text).toBe('generic.error: An error occurred');
     });
 
-    it('should return warning status for incompatibilityMessage', () => {
+    it('should return error status for incompatibilityMessage', () => {
       const plugin = { incompatibilityMessage: 'Incompatible version' };
       const statuses = wrapper.vm.getStatuses(plugin);
 
-      expect(statuses[0].icon).toBe('icon-warning');
-      expect(statuses[0].tooltip.text).toBe('Incompatible version');
+      expect(statuses[0].icon).toBe('icon-alert-alt');
+      expect(statuses[0].tooltip.text).toBe('generic.error: Incompatible version');
     });
 
-    it('should return warning status for helmError', () => {
+    it('should return error status for helmError', () => {
       const plugin = { helmError: true };
       const statuses = wrapper.vm.getStatuses(plugin);
 
-      expect(statuses[0].icon).toBe('icon-warning');
-      expect(statuses[0].tooltip.text).toBe('plugins.helmError');
+      expect(statuses[0].icon).toBe('icon-alert-alt');
+      expect(statuses[0].tooltip.text).toBe('generic.error: plugins.helmError');
     });
 
     it('should combine deprecated and other errors in tooltip', () => {
       const plugin = { chart: { deprecated: true }, helmError: true };
       const statuses = wrapper.vm.getStatuses(plugin);
-      const warningStatus = statuses.find((s) => s.icon === 'icon-warning');
+      const warningStatus = statuses.find((s) => s.icon === 'icon-alert-alt');
 
-      expect(warningStatus.tooltip.text).toBe('generic.deprecated - plugins.helmError');
+      expect(warningStatus.tooltip.text).toBe('generic.deprecated. generic.error: plugins.helmError');
     });
   });
 });

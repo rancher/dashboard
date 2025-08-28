@@ -834,28 +834,25 @@ export default {
         });
       }
 
-      if (plugin?.chart?.deprecated) {
-        statuses.push({
-          icon: 'icon-alert-alt', color: 'error', tooltip: { key: 'generic.deprecated' }
-        });
-      }
-
       const errorTooltip = plugin.installedError || plugin.incompatibilityMessage || (plugin.helmError ? this.t('plugins.helmError') : null);
+      const isDeprecated = plugin?.chart?.deprecated;
 
-      if (errorTooltip) {
-        if (plugin?.chart?.deprecated) {
-          statuses.push({
-            icon:    'icon-warning',
-            color:   'error',
-            tooltip: { text: `${ this.t('generic.deprecated') } - ${ errorTooltip }` }
-          });
-        } else {
-          statuses.push({
-            icon:    'icon-warning',
-            color:   'error',
-            tooltip: { text: errorTooltip }
-          });
+      if (isDeprecated || errorTooltip) {
+        let tooltip;
+
+        if (isDeprecated && errorTooltip) {
+          tooltip = { text: `${ this.t('generic.deprecated') }. ${ this.t('generic.error') }: ${ errorTooltip }` };
+        } else if (isDeprecated) {
+          tooltip = { key: 'generic.deprecated' };
+        } else { // errorTooltip is present
+          tooltip = { text: `${ this.t('generic.error') }: ${ errorTooltip }` };
         }
+
+        statuses.push({
+          icon:  'icon-alert-alt',
+          color: 'error',
+          tooltip
+        });
       }
 
       return statuses;
