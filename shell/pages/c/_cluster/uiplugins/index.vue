@@ -901,7 +901,7 @@ export default {
         <!-- extensions reload toast/notification -->
         <div
           v-if="reloadRequired"
-          class="plugin-reload-banner mr-20"
+          class="plugin-reload-banner mmr-6"
           data-testid="extension-reload-banner"
         >
           <i class="icon icon-checkmark mr-10" />
@@ -1095,7 +1095,7 @@ export default {
     align-items: center;
     background-color: var(--success-banner-bg);
     display: flex;
-    padding: 0 10px;
+    padding: 4px 4px 4px 12px;
     border-radius: 5px;
     min-height: 36px;
 
