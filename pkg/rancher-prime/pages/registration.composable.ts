@@ -411,8 +411,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
         };
       } else {
         // Retrieve failure message from conditions
-        const conditions = registration.status?.conditions || [];
-        const errorMessage = getErrorMessages(conditions);
+        const errorMessage = registration.status?.currentCondition;
 
         if (errorMessage) {
           onError(errorMessage);
