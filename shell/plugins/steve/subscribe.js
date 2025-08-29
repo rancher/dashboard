@@ -259,9 +259,6 @@ export async function createWorker(store, ctx) {
 }
 
 export function equivalentWatch(a, b) {
-  if (!a || !b) {
-    debugger;
-  }
   const aResourceType = a.resourceType || a.type;
   const bResourceType = b.resourceType || b.type;
 
@@ -750,7 +747,7 @@ const sharedActions = {
    *
    * This is mainly to prevent the cache being polluted with resources that aren't compatible with it's aim
    *
-   * For instance if the store contains a page then we don't want to receive updates for watches on specific other resources
+   * For instance if the store/cache for pods contains a single page. we don't want to watch for changes outside of the page which would make it into the store, making it look like they were in that page
    */
   unwatchIncompatible({
     state, dispatch, getters, commit
@@ -1002,11 +999,6 @@ const defaultActions = {
 
         // Should any listeners be notified of this request for them to kick off their own event handling?
         getters.subscribeEvents.triggerEventListener({ event: STEVE_WATCH_MODE.RESOURCE_CHANGES, params });
-        // const eventWatcher = eventWatchers[STEVE_WATCH_MODE.RESOURCE_CHANGES].find((sl) => equivalentWatch(sl.params, params));
-
-        // if (eventWatcher) {
-        //   Object.values(eventWatcher.watchers).forEach((cb) => cb());
-        // }
       } else {
         have = getters['all'](resourceType).slice();
 
@@ -1174,10 +1166,7 @@ const defaultActions = {
   /**
    * Steve only event
    */
-  'ws.resource.start'({
-    state, getters, commit,
-    // dispatch
-  }, msg) {
+  'ws.resource.start'({ state, getters, commit }, msg) {
     state.debugSocket && console.info(`Resource start: [${ getters.storeName }]`, msg); // eslint-disable-line no-console
 
     const newWatch = {
@@ -1187,19 +1176,6 @@ const defaultActions = {
       selector:  msg.selector,
       mode:      msg.mode,
     };
-
-    // What concurrent watches are allowed
-    // state.started.filter((entry) => {
-    //   if (
-    //     entry.type === newWatch.type &&
-    //     entry.namespace !== newWatch.namespace &&
-    //     (!entry.mode && !newWatch.mode) // watch cluster, watch clusters, unsub cluster
-    //   ) {
-    //     return true;
-    //   }
-    // }).forEach((entry) => {
-    //   dispatch('unwatch', entry);
-    // });
 
     commit('setWatchStarted', newWatch);
   },
@@ -1282,43 +1258,54 @@ const defaultActions = {
         commit('setWatchStopped', obj);
       }
 
-      // dispatch('watch', obj);
-
+      // Now re-watch
       const hasEventListeners = getters.subscribeEvents.hasEventListeners({ params: obj });
+      const hasNormalWatch = getters.subscribeEvents.hasNormalWatch({ params: obj });
 
-      if (!hasEventListeners) {
-        dispatch('watch', obj);
-      } else {
-        const hasNormalWatch = getters.subscribeEvents.hasNormalWatch({ params: obj });
+      dispatch('watch', {
+        ...obj,
+        // hasEventListeners && !hasNormalWatch ? false : true
+        // if this watch isn't associated with a normal watch... (there are no listeners, or there are listeners but also a normal watch)
+        // treat it d we have event listeners and they aren't normal watches then treat this
+        isNormalWatch: !(hasEventListeners && !hasNormalWatch)
+      });
 
-        if (hasNormalWatch) {
-          //  dispatch('resyncWatch', msg)
-          dispatch('watch', obj);
-          getters.subscribeEvents.triggerWatch({ params: obj });
-        } else {
-          dispatch('watch', {
-            ...obj,
-            isNormalWatch: false
-          }); // Ensure something is watching (no-op if exists)
-          getters.subscribeEvents.triggerWatch({ params: obj });
-        }
+      if (hasEventListeners) {
+        // If there's event listeners always kick them off (should these be specific to _changes_ events?)
+        // if we have a normal watch it will pick a revision from the cache and then watch from that point in time on wards.
+        // however the listeners may have state that was before that revision, watch will never receive an message that will get the listeners up to date
+        // so always fall back on a manual trigger
+        getters.subscribeEvents.triggerWatch({ params: obj });
       }
+
+      // TODO: RC Keep for a bit, move up comments
+      // const hasEventListeners = getters.subscribeEvents.hasEventListeners({ params: obj });
+
+      // if (!hasEventListeners) {
+      //   // This watch has no event listeners, simply dispatch watch again
+      //   dispatch('watch', obj);
+      // } else {
+      //   const hasNormalWatch = getters.subscribeEvents.hasNormalWatch({ params: obj });
+
+      //   if (hasNormalWatch) {
+      //     // This watch has listeners, but it has a normal watch, so dispatch watch again...
+      //     dispatch('watch', obj);
+      //     // .. and because that watch will go from a `revision` from the cache... it will be out of step with resources the listeners
+      //     // work with, so just trigger them again to re-fetch
+      //     getters.subscribeEvents.triggerWatch({ params: obj });
+      //   } else {
+      //     // This watch has listeners, and there isn't a normal watch, so dispatch a special watch...
+      //     dispatch('watch', {
+      //       ...obj,
+      //       isNormalWatch: false
+      //     });
+      //     // ... and just in case there's revision shenanigans above, so kick off the listeners again
+      //     getters.subscribeEvents.triggerWatch({ params: obj });
+      //   }
+      // }
 
       // TODO: RC refactor hasNormalWatch --> isWatching??? | nonListenerWatch
       // TODO: RC refactor isNormalWatch --> ??
-
-      // let eventWatcher = ctx.getters.subscribeEvents.getEventListener({ event, params });
-
-      // no listeners
-      // - get next resource
-      // listeners + hasNormalWatch
-      // - dispatch('resyncWatch', msg)
-      // listeners + !hasNormalWatch
-      // -  ctx.dispatch('watch', {
-      // ...params,
-      // isNormalWatch: false
-      // }); // Ensure something is watching (no-op if exists)
-      // - getters.subscribeEvents.triggerEventListener({ event: STEVE_WATCH_MODE.RESOURCE_CHANGES, params });
     }
   },
 
@@ -1590,8 +1577,6 @@ const defaultGetters = {
    * TODO: RC
    */
   subscribeEvents: (state) => {
-    // if (!getters.subscribeEvents)
-    // return new SteveWatchEventListenerManager('asd');
     return state.socketListener;
   },
 };

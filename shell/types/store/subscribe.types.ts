@@ -48,9 +48,6 @@ export interface STEVE_WATCH_EVENT_PARAMS extends STEVE_WATCH_EVENT_PARAMS_COMMO
 export type STEVE_UNWATCH_EVENT_PARAMS = STEVE_WATCH_EVENT_PARAMS_COMMON
 
 export interface STEVE_WATCH_EVENT_LISTENER {
-  // params: STEVE_WATCH_PARAMS,
-  // watchers: { [id: string]: STEVE_WATCH_EVENT_LISTENER_CALLBACK},
-  // hasNormalWatch: boolean,
   event: STEVE_WATCH_EVENT_TYPES_NAMES,
   callbacks: { [id: string]: STEVE_WATCH_EVENT_LISTENER_CALLBACK},
 }
