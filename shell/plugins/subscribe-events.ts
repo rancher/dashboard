@@ -4,6 +4,7 @@ import {
 } from '@shell/types/store/subscribe.types';
 import myLogger from '@shell/utils/my-logger';
 
+// TODO: RC move to types file
 type GetEventWatcherArgs = {
   event: STEVE_WATCH_EVENT_TYPES_NAMES,
   params: STEVE_WATCH_PARAMS,
