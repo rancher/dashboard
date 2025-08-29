@@ -606,7 +606,7 @@ class TopLevelMenuHelperService {
 
   get helper(): TopLevelMenuHelper {
     if (!this._helper) {
-      throw new Error('TODO: RC ');
+      throw new Error('Unable to use the side nav cluster helper (not initialised)');
     }
 
     return this._helper;

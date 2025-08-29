@@ -89,7 +89,7 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch(`management/find`, { type: MANAGEMENT.CLUSTER, id: this.value.mgmtClusterId }); // TODO: RC test on refresh
+    await this.$store.dispatch(`management/find`, { type: MANAGEMENT.CLUSTER, id: this.value.mgmtClusterId });
     await this.value.waitForProvisioner();
 
     // Support for the 'provisioner' extension
