@@ -780,40 +780,41 @@ const sharedActions = {
   unwatchIncompatible({
     state, dispatch, getters, commit
   }, messageMeta) {
-    // Step 1 - Clear incompatible watches that have STARTED
-    const watchesOfType = getters.watchesOfType(messageMeta.type);
 
-    const a = watchesOfType
-      .filter((entry) => {
-        const b = areWatchesIncompatible({
-          subscribeEvents: getters.subscribeEvents, rootObj: messageMeta, compareObj: entry
-        });
+    // // Step 1 - Clear incompatible watches that have STARTED
+    // const watchesOfType = getters.watchesOfType(messageMeta.type);
 
-        // myLogger.warn('sub', 'action', 'unwatchIncompatible', 'checking', messageMeta, entry, b );
+    // const a = watchesOfType
+    //   .filter((entry) => {
+    //     const b = areWatchesIncompatible({
+    //       subscribeEvents: getters.subscribeEvents, rootObj: messageMeta, compareObj: entry
+    //     });
 
-        return b;
-      });
+    //     // myLogger.warn('sub', 'action', 'unwatchIncompatible', 'checking', messageMeta, entry, b );
 
-    if (a.length) {
-      myLogger.warn('sub', 'action', 'unwatchIncompatible', 'finished', messageMeta, 'doing all', a );
-    }
+    //     return b;
+    //   });
 
-    a.forEach((entry) => {
-      // myLogger.warn('sub', 'action', 'unwatchIncompatible', 'finished', 'doing', messageMeta, 'unwatched', entry );
+    // if (a.length) {
+    //   myLogger.warn('sub', 'action', 'unwatchIncompatible', 'finished', messageMeta, 'doing all', a );
+    // }
 
-      dispatch('unwatch', entry);
-    });
+    // a.forEach((entry) => {
+    //   // myLogger.warn('sub', 'action', 'unwatchIncompatible', 'finished', 'doing', messageMeta, 'unwatched', entry );
 
-    // Step 2 - Clear inError state for incompatible watches (these won't appear in watchesOfType / state.started)
-    // (important for the backoff case... for example backoff request to find would overwrite findPage res if executed after nav from detail to list)
-    const inErrorOfType = Object.values(state.inError || {})
-      .filter((error) => error.obj.type === messageMeta.type);
+    //   dispatch('unwatch', entry);
+    // });
 
-    inErrorOfType
-      .filter((error) => areWatchesIncompatible({
-        subscribeEvents: getters.subscribeEvents, incObj: messageMeta, obj: error.obj
-      }))
-      .forEach((error) => clearInError({ getters, commit }, error));
+    // // Step 2 - Clear inError state for incompatible watches (these won't appear in watchesOfType / state.started)
+    // // (important for the backoff case... for example backoff request to find would overwrite findPage res if executed after nav from detail to list)
+    // const inErrorOfType = Object.values(state.inError || {})
+    //   .filter((error) => error.obj.type === messageMeta.type);
+
+    // inErrorOfType
+    //   .filter((error) => areWatchesIncompatible({
+    //     subscribeEvents: getters.subscribeEvents, incObj: messageMeta, obj: error.obj
+    //   }))
+    //   .forEach((error) => clearInError({ getters, commit }, error));
   },
 
   /**
@@ -1194,7 +1195,9 @@ const defaultActions = {
   /**
    * Steve only event
    */
-  'ws.resource.start'({ state, getters, commit }, msg) {
+  'ws.resource.start'({
+    state, getters, commit, dispatch
+  }, msg) {
     state.debugSocket && console.info(`Resource start: [${ getters.storeName }]`, msg); // eslint-disable-line no-console
 
     const newWatch = {
@@ -1204,6 +1207,22 @@ const defaultActions = {
       selector:  msg.selector,
       mode:      msg.mode,
     };
+
+    state.started.filter((entry) => {
+      if (entry.type === newWatch.type) {
+        debugger;
+      }
+
+      if (
+        (entry.type === newWatch.type) &&
+        (entry.namespace !== newWatch.namespace) &&
+        (!entry.mode && !newWatch.mode) //
+      ) {
+        return true;
+      }
+    }).forEach((entry) => {
+      dispatch('unwatch', entry);
+    });
 
     commit('setWatchStarted', newWatch);
   },
@@ -1363,6 +1382,14 @@ const defaultActions = {
         // No further processing - let the web worker check the schema updates
         return;
       }
+    }
+
+    const havePage = ctx.getters['havePage'](type);
+
+    if (havePage) {
+      ctx.dispatch('unwatch', data);
+
+      return;
     }
 
     // TODO: RC check
