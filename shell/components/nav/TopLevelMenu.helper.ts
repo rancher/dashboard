@@ -139,12 +139,6 @@ export abstract class BaseTopLevelMenuHelper {
     this.$store = $store;
 
     this.hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
-
-    // Reduce flicker when component is recreated on a different layout
-    const { clustersPinned = [], clustersOthers = [] } = this.$store.getters['sideNavCache'] || {};
-
-    this.clustersPinned.push(...clustersPinned);
-    this.clustersOthers.push(...clustersOthers);
   }
 
   protected convertToCluster(mgmtCluster: MgmtCluster, provCluster: ProvCluster): TopLevelMenuCluster {
@@ -157,16 +151,16 @@ export abstract class BaseTopLevelMenuHelper {
       iconColor:       mgmtCluster.iconColor,
       isLocal:         mgmtCluster.isLocal,
       pinned:          mgmtCluster.pinned,
-      description:     provCluster?.description || mgmtCluster.description,
+      description:     provCluster?.description || mgmtCluster.description, // If description is the only thing we care about, don't bother watching...
       pin:             () => mgmtCluster.pin(),
       unpin:           () => mgmtCluster.unpin(),
       clusterRoute:    { name: 'c-cluster-explorer', params: { cluster: mgmtCluster.id } }
     };
   }
 
-  protected cacheClusters() {
-    this.$store.dispatch('setSideNavCache', { clustersPinned: this.clustersPinned, clustersOthers: this.clustersOthers });
-  }
+  // protected cacheClusters() {
+  //   this.$store.dispatch('setSideNavCache', { clustersPinned: this.clustersPinned, clustersOthers: this.clustersOthers });
+  // }
 }
 
 /**
@@ -202,9 +196,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.clustersOthersWrapper = new PaginationWrapper({
       $store,
       id:       'tlm-unpinned-clusters',
-      onChange: () => {
+      onChange: async() => {
         if (this.args) {
-          this.update(this.args);
+          await this.update(this.args);
         }
       },
       enabledFor: {
@@ -220,9 +214,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.provClusterWrapper = new PaginationWrapper({
       $store,
       id:       'tlm-prov-clusters',
-      onChange: () => {
+      onChange: async() => {
         if (this.args) {
-          this.update(this.args);
+          await this.update(this.args);
         }
       },
       enabledFor: {
@@ -277,7 +271,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.clustersPinned.push(..._clustersPinned);
     this.clustersOthers.push(..._clustersNotPinned);
 
-    this.cacheClusters();
+    // this.cacheClusters();
   }
 
   async destroy() {
@@ -390,7 +384,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   private async updateProvCluster(notPinned: MgmtCluster[], pinned: MgmtCluster[]): Promise<ProvCluster[]> {
     return this.provClusterWrapper.request({
       pagination: {
-
         filters: [
           PaginationParamFilter.createMultipleFields(
             [...notPinned, ...pinned]
@@ -399,7 +392,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
               }))
           )
         ],
-
         page:                 1,
         sort:                 [],
         projectsOrNamespaces: []
@@ -433,7 +425,7 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     this.clustersPinned.push(..._clustersPinned);
     this.clustersOthers.push(..._clustersNotPinned);
 
-    this.cacheClusters();
+    // this.cacheClusters();
   }
 
   async destroy() {
@@ -581,3 +573,46 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     return sorted;
   }
 }
+
+/**
+ * Retain state of the side nav, no matter when the TopLevelMenu component is created/deleted (on layout change)
+ *
+ * This means there's no flickering when the user changes pages and the side nav component re-renders
+ *
+ * Also it means we're not unwatching then watching the clusters
+ */
+class TopLevelMenuHelperService {
+  private _helper?: TopLevelMenuHelper;
+  public init($store: VuexStore) {
+    if (this._helper) {
+      return;
+    }
+
+    const canPagination = $store.getters[`management/paginationEnabled`]({
+      id:      MANAGEMENT.CLUSTER,
+      context: 'side-bar',
+    }) && $store.getters[`management/paginationEnabled`]({
+      id:      CAPI.RANCHER_CLUSTER,
+      context: 'side-bar',
+    });
+
+    this._helper = canPagination ? new TopLevelMenuHelperPagination({ $store }) : new TopLevelMenuHelperLegacy({ $store });
+  }
+
+  public async reset() {
+    await this._helper?.destroy();
+    delete this._helper;
+  }
+
+  get helper(): TopLevelMenuHelper {
+    if (!this._helper) {
+      throw new Error('Unable to use the side nav cluster helper (not initialised)');
+    }
+
+    return this._helper;
+  }
+}
+
+const instance = new TopLevelMenuHelperService();
+
+export default instance;
