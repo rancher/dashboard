@@ -57,6 +57,7 @@ interface PartialRegistration {
       systemUrl: string;
     };
     conditions: PartialCondition[];
+    currentCondition: PartialCondition;
   };
 }
 
@@ -302,7 +303,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const isRegistrationOfflineProgress = (registration: PartialRegistration): boolean => {
     const isOffline = registration.spec?.mode === 'offline';
-    const lastCondition = registration.status?.conditions[registration.status?.conditions.length - 1];
+    const lastCondition = registration.status?.currentCondition;
     const isInProgress = lastCondition.type === 'OfflineRequestReady';
     const isActive = registration.status.activationStatus.activated === true;
 
@@ -316,11 +317,14 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const isRegistrationCompleted = (registration: PartialRegistration): boolean => {
     const mode = registration.spec?.mode;
-    const lastCondition = registration.status?.conditions[registration.status?.conditions.length - 1];
-    const isError = lastCondition.type === 'RegistrationActivated' && lastCondition.status === 'False';
-    const isError2 = lastCondition.type === 'Failure' && lastCondition.status === 'True';
-    const isCompleteOnline = mode === 'online' && lastCondition.type === 'Done' && lastCondition.status === 'True';
-    const isCompleteOffline = mode === 'offline' && lastCondition.type === 'OfflineActivationDone' && lastCondition.status === 'True';
+    const lastCondition = registration.status?.currentCondition;
+
+    if (!lastCondition.type) return false;
+
+    const isError = lastCondition.type === 'RegistrationActivated';
+    const isError2 = lastCondition.type === 'RegistrationAnnounced';
+    const isCompleteOnline = mode === 'online' && lastCondition.type === 'Done';
+    const isCompleteOffline = mode === 'offline' && lastCondition.type === 'OfflineActivationDone';
 
     return isError || isError2 || isCompleteOnline || isCompleteOffline;
   };
@@ -349,27 +353,6 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
       secret.metadata?.name.startsWith(REGISTRATION_REQUEST_PREFIX)) ?? null;
 
     return request;
-  };
-
-  /**
-   * Return prioritized condition with reason and message
-   * @param conditions
-   * @returns
-   */
-  const getErrorMessages = (conditions: PartialCondition[]): PartialCondition | undefined => {
-    const errorConditions = conditions.filter((condition) => condition.reason && condition.message);
-
-    // Prioritize conditions that are not 'Failure' type
-    if (errorConditions.length > 1) {
-      return errorConditions.find((condition) => condition.type !== 'Failure') || errorConditions[0];
-    }
-
-    // Default return the condition containing the message
-    if (errorConditions.length === 1) {
-      return errorConditions[0];
-    }
-
-    return undefined;
   };
 
   /**
@@ -407,8 +390,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
         };
       } else {
         // Retrieve failure message from conditions
-        const conditions = registration.status?.conditions || [];
-        const errorMessage = getErrorMessages(conditions);
+        const errorMessage = registration.status?.currentCondition;
 
         if (errorMessage) {
           onError(errorMessage);
