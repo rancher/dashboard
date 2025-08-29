@@ -77,7 +77,7 @@
 // TODO: RC 1 - tests again
 // TODO: RC 2 - ensure state is tidied up (on cluster switch, on forgetType, etc)
 // TODO: RC 3 - self review
-// TODO: RC 4 - refactors + TODOs
+// TODO: RC 4 - refactors + TODOs + remove myLogger
 // TODO: RC 5 - tests again
 
 import { addObject, clear, removeObject } from '@shell/utils/array';
@@ -476,15 +476,19 @@ const sharedActions = {
       event, params, callback, id
     });
 
+    // TODO: RC can hasNormalWatch be removed
+    // Can hasNormalWatch be replaced with watchStarted? are transient watches also in watchStarted (should be?)
+
     const hasNormalWatch = ctx.getters.subscribeEvents.hasNormalWatch({ params });
 
     // TODO: RC refactor hasNormalWatch --> isWatching??? | nonListenerWatch
+    // TODO: RC do we need isNormalWatch??
     // TODO: RC refactor isNormalWatch --> ??
 
     if (!hasNormalWatch) {
       ctx.dispatch('watch', {
         ...params,
-        isNormalWatch: false
+        isNormalWatch: false // <-- is just a mechanism to not call subscribeEvents.setWatchStarted --> sets up subscribeEvents.hasNormalWatch
       }); // Ensure something is watching (no-op if exists)
     }
   },
@@ -658,6 +662,10 @@ const sharedActions = {
         if (hasNormalWatch) {
           const watchHasListeners = ctx.getters.subscribeEvents.hasEventListeners({ params: obj });
 
+          // TODO: RC !!!!!!!!!!!!!!! surely just watchHasListeners is enough?
+          // 1. only normal
+          // 2. only listeners
+          // 3. mix
           if (watchHasListeners) {
             // abort
             myLogger.warn('sub', 'action', 'unwatch', 'finished', 'skipping', obj );
@@ -1210,10 +1218,6 @@ const defaultActions = {
         // so always fall back on a manual trigger
         getters.subscribeEvents.triggerAllEventListeners({ params: obj });
       }
-
-      // TODO: RC refactor hasNormalWatch --> isWatching??? | nonListenerWatch
-      // TODO: RC do we need isNormalWatch??
-      // TODO: RC refactor isNormalWatch --> ??
     }
   },
 
