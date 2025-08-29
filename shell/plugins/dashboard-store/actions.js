@@ -220,6 +220,8 @@ export default {
       )
     ) {
       if (opt.watch !== false ) {
+        // Note list page (watch all) --> detail page (stop watch all, watch one)
+        // --> list page (watch all - does not contain a revision however cache will be out of date)
         const args = {
           type,
           revision:  '',
