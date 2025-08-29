@@ -1,21 +1,20 @@
 <script setup lang="ts">
-import { useAttrs } from 'vue';
 import { RcItemCardAction } from '@components/RcItemCard';
 
 interface FooterItem {
   icon?: string;
   iconTooltip?: Record<{key?: string, text?: string}>;
   labels: string[];
+  labelTooltip?: string;
+  type?: string;
 }
 
 const emit = defineEmits<{(e: 'click:item', type: string, label: string): void; }>();
 
 defineProps<{
   items: FooterItem[];
+  clickable?: boolean;
 }>();
-
-const attrs = useAttrs();
-const hasClickListener = !!attrs['onClick:item'];
 
 function onClickItem(type: string, label: string) {
   emit('click:item', type, label);
@@ -41,7 +40,7 @@ function onClickItem(type: string, label: string) {
         :key="j"
       >
         <rc-item-card-action
-          v-if="hasClickListener"
+          v-if="clickable"
           v-clean-tooltip="footerItem.labelTooltip"
           class="app-chart-card-footer-item-text secondary-text-link"
           data-testid="app-chart-card-footer-item-text"
