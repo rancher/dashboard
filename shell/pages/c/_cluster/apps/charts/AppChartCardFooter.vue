@@ -40,7 +40,7 @@ function onClickItem(type: string, label: string) {
         :key="j"
       >
         <rc-item-card-action
-          v-if="clickable"
+          v-if="clickable && footerItem.type"
           v-clean-tooltip="footerItem.labelTooltip"
           class="app-chart-card-footer-item-text secondary-text-link"
           data-testid="app-chart-card-footer-item-text"
