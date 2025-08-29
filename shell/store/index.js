@@ -40,6 +40,7 @@ import { isDevBuild } from '@shell/utils/version';
 import { markRaw } from 'vue';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { addReleaseNotesNotification } from '@shell/utils/release-notes';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -265,6 +266,7 @@ export const state = () => {
      */
     sideNavCache:            undefined,
     showWorkspaceSwitcher:   true,
+
   };
 };
 
@@ -921,6 +923,10 @@ export const actions = {
       });
     }
 
+    sideNavService.init({
+      getters, state, commit, dispatch, rootGetters
+    });
+
     console.log(`Done loading management; isRancher=${ isRancher }; isMultiCluster=${ isMultiCluster }`); // eslint-disable-line no-console
   },
 
@@ -1186,6 +1192,8 @@ export const actions = {
         p.onLogOut(store);
       }
     });
+
+    sideNavService.reset();
 
     await dispatch('management/unsubscribe');
     commit('managementChanged', { ready: false });

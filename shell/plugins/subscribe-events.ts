@@ -143,18 +143,6 @@ export class SteveWatchEventListenerManager {
     }
   }
 
-  /**
-   * TODO: RC description
-   */
-  public watchHasListeners({ params }: { params: STEVE_WATCH_PARAMS}): boolean {
-    const watch = this.getWatch({ params });
-
-    if (!watch) {
-      return false;
-    }
-
-    return !!watch.listeners.find((l) => l.callbacks.length);
-  }
   /************************/
 
   // TODO: RC refactor GetEventWatcherArgs is overloaded
@@ -165,10 +153,10 @@ export class SteveWatchEventListenerManager {
     return !!this.getEventListener(args);
   }
 
-  public hasEventListeners({ params }: GetEventWatcherArgs): boolean {
+  public hasEventListeners({ params }: { params: STEVE_WATCH_PARAMS}): boolean {
     const socketId = this.keyForSubscribe({ params });
     const watch = this.watches[socketId];
-    const listener = watch?.listeners.find((w) => Object.values(w.callbacks).length > 0);
+    const listener = watch?.listeners.find((l) => Object.values(l.callbacks).length > 0);
 
     return !!listener;
   }
