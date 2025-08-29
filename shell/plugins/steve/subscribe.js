@@ -580,6 +580,9 @@ const sharedActions = {
     ctx.getters.subscribeEvents.removeEventListenerCallback({
       event, params, id
     });
+
+    // This will be safe to call, if there are other listeners on the same event it won't unwatch
+    ctx.dispatch('unwatch', params);
   },
 
   /**
@@ -636,9 +639,7 @@ const sharedActions = {
       return;
     }
 
-    if (!stop && isNormalWatch) {
-      dispatch('unwatchIncompatible', messageMeta);
-    }
+    // TODO: RC is isNormaWatch needed / used now?
 
     // Watch errors mean we make a http request to get latest revision (which is still missing) and try to re-watch with it...
     // etc
@@ -722,12 +723,7 @@ const sharedActions = {
       const unwatch = (obj) => {
         myLogger.warn('sub', 'action', 'unwatch', 'started', obj);
 
-        // const watch = ctx.getters.subscribeEvents.getWatch({ params: obj });
         const hasNormalWatch = ctx.getters.subscribeEvents.hasNormalWatch({ params: obj });
-
-        if (obj.type === 'provisioning.cattle.io.cluster') {
-          debugger;
-        }
 
         if (hasNormalWatch) {
           const watchHasListeners = ctx.getters.subscribeEvents.hasEventListeners({ params: obj });
@@ -738,8 +734,6 @@ const sharedActions = {
 
             return;
           }
-
-          // watch.hasNormalWatch = false;
         }
 
         if (getters['watchStarted'](obj)) {
@@ -754,67 +748,29 @@ const sharedActions = {
           myLogger.warn('sub', 'action', 'unwatch', 'setting', 'hasNormalWatch', false, obj );
           myLogger.warn('sub', 'action', 'unwatch', 'finished', 'doing', obj);
         }
-        // Ensure anything pinging in the background is stopped
-        backOff.resetPrefix(getters.backOffId(obj));
       };
+
+      const objKey = keyForSubscribe(obj);
+      const reset = [];
 
       if (isAdvancedWorker(ctx)) {
         dispatch('watch', obj); // Ask the backend to stop watching the type
       } else if (all) {
-        getters['watchesOfType'](type).forEach((obj) => {
-          unwatch({ ...obj, stop: true });
-        });
+        reset.push(...getters['watchesOfType'](type)); // TODO: RC test
       } else if (getters['watchStarted'](obj)) {
-        unwatch(obj);
+        reset.push(obj);
       }
+
+      reset.forEach((obj) => {
+        unwatch(obj);
+        // TODO: RC re-check logic
+        // Ensure anything pinging in the background is stopped
+        dispatch('resetWatchBackOff', {
+          type,
+          compareWatches: (entry) => objKey === keyForSubscribe(entry)
+        });
+      });
     }
-  },
-
-  /**
-   * Unwatch watches that are incompatible with the new type
-   *
-   * This is mainly to prevent the cache being polluted with resources that aren't compatible with it's aim
-   *
-   * For instance if the store/cache for pods contains a single page. we don't want to watch for changes outside of the page which would make it into the store, making it look like they were in that page
-   */
-  unwatchIncompatible({
-    state, dispatch, getters, commit
-  }, messageMeta) {
-
-    // // Step 1 - Clear incompatible watches that have STARTED
-    // const watchesOfType = getters.watchesOfType(messageMeta.type);
-
-    // const a = watchesOfType
-    //   .filter((entry) => {
-    //     const b = areWatchesIncompatible({
-    //       subscribeEvents: getters.subscribeEvents, rootObj: messageMeta, compareObj: entry
-    //     });
-
-    //     // myLogger.warn('sub', 'action', 'unwatchIncompatible', 'checking', messageMeta, entry, b );
-
-    //     return b;
-    //   });
-
-    // if (a.length) {
-    //   myLogger.warn('sub', 'action', 'unwatchIncompatible', 'finished', messageMeta, 'doing all', a );
-    // }
-
-    // a.forEach((entry) => {
-    //   // myLogger.warn('sub', 'action', 'unwatchIncompatible', 'finished', 'doing', messageMeta, 'unwatched', entry );
-
-    //   dispatch('unwatch', entry);
-    // });
-
-    // // Step 2 - Clear inError state for incompatible watches (these won't appear in watchesOfType / state.started)
-    // // (important for the backoff case... for example backoff request to find would overwrite findPage res if executed after nav from detail to list)
-    // const inErrorOfType = Object.values(state.inError || {})
-    //   .filter((error) => error.obj.type === messageMeta.type);
-
-    // inErrorOfType
-    //   .filter((error) => areWatchesIncompatible({
-    //     subscribeEvents: getters.subscribeEvents, incObj: messageMeta, obj: error.obj
-    //   }))
-    //   .forEach((error) => clearInError({ getters, commit }, error));
   },
 
   /**
@@ -829,7 +785,7 @@ const sharedActions = {
     if (resetStarted && state.started?.length) {
       let entries = state.started;
 
-      if (type) { // Filter out ones for types we're no interested in
+      if (type || compareWatches) { // Filter out ones for types we're no interested in
         entries = entries
           .filter((obj) => compareWatches ? compareWatches(obj) : obj.type === type);
       }
@@ -843,7 +799,7 @@ const sharedActions = {
       // however resource.stop clears `started` and we need the settings to persist over start-->error-->stop-->start cycles
       let entries = Object.values(state.inError || {});
 
-      if (type) { // Filter out ones for types we're no interested in
+      if (type || compareWatches) { // Filter out ones for types we're no interested in
         entries = entries
           .filter((error) => compareWatches ? compareWatches(error.obj) : error.obj.type === type);
       }
@@ -1208,15 +1164,16 @@ const defaultActions = {
       mode:      msg.mode,
     };
 
-    state.started.filter((entry) => {
-      if (entry.type === newWatch.type) {
-        debugger;
-      }
+    // Unwatch watches that are incompatible with the new type
+    // This is mainly to prevent the cache being polluted with resources that aren't compatible with it's aim
+    // For instance if the store/cache for pods contains a namespace X and we watch another namespace Y... we don't want ns X resources added to cache
 
+    // Unwatch incompatible watches
+    state.started.filter((entry) => {
       if (
         (entry.type === newWatch.type) &&
         (entry.namespace !== newWatch.namespace) &&
-        (!entry.mode && !newWatch.mode) //
+        (!entry.mode && !newWatch.mode) // mode watches will be handled when they become an issue
       ) {
         return true;
       }
@@ -1387,14 +1344,12 @@ const defaultActions = {
     const havePage = ctx.getters['havePage'](type);
 
     if (havePage) {
+      // if the store has a page then this change will corrupt it and should not be running
+      // for example cluster list shows a page, but there's a generic watch who's changes would insert entries not in that page
       ctx.dispatch('unwatch', data);
 
       return;
     }
-
-    // TODO: RC check
-    // is store currently set up to receive this? if not stop
-    // i.e. if havePage --> unwatch
 
     queueChange(ctx, msg, true, 'Change');
 
