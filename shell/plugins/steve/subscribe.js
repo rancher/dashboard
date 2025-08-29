@@ -70,11 +70,13 @@
 // TODO: RC validation - start on home page, edit cluster badge in tab 2, see that is shows up in side nav
 // TODO: RC validation - start on CM cluster list, edit cluster badge in tab 2, see that is shows up in side nav
 
-// TODO: RC on reconnect .. resyncWatches --> if watchers use a super low / invalid version
+// TODO: RC xon reconnect .. resyncWatches --> if watchers use a super low / invalid version
 // TODO: RC root abort issue(?) - reconnect --> watch with core list revision --> it's further ahead than transient lists --> no resource.changes for transient lists to update
 // Solution - on resync if there's transient lists always resync, don't watch with stale revision?
+// TODO: RC
 
-// TODO: RC FIX - home page --> CM
+// TODO: RC XFIX - home page --> CM (calls onDestroy unwatch ) singleton TopLevelMenu.helper? in store?
+// TODO: RC FIX - home --> CM --> tab 2 create --> unwatchs mode
 
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get, deepToRaw } from '@shell/utils/object';
@@ -337,48 +339,69 @@ function growlsDisabled(rootGetters) {
 /**
  * Given a started or error entry, is it compatible with the given change in mode?
  */
-const shouldUnwatchIncompatible = ({ subscribeEvents, incObj, obj }) => {
-  if (incObj.type === 'management.cattle.io.cluster') {
+const areWatchesIncompatible = ({ subscribeEvents, rootObj, compareObj }) => {
+  if (rootObj.type === 'provisioning.cattle.io.cluster') {
     debugger;
   }
 
   // Not same type, can never be incompatible
-  if (obj.type !== incObj.type) {
+  if (compareObj.type !== rootObj.type) {
     return false;
   }
 
-  const cannotBeIncompatibleEventListener = ({ params }) => {
-    const watch = subscribeEvents.getWatch({ params });
+  const cannotBeIncompatible = ({ params }) => {
+    if (rootObj.type === 'provisioning.cattle.io.cluster') {
+      const watch = subscribeEvents.getWatch({ params });
 
-    if (incObj.type === 'management.cattle.io.cluster') {
-      myLogger.warn('sub', 'shouldUnwatchIncompatible', JSON.parse(JSON.stringify(watch || {})), params);
+      myLogger.warn('sub', 'areWatchesIncompatible', JSON.parse(JSON.stringify(watch || {})), params);
     }
 
-    const hasEventListeners = subscribeEvents.hasEventListeners({ params: obj });
-    const hasNormalWatch = subscribeEvents.hasNormalWatch({ params: obj });
+    // Will it pollute the store ?
 
+    const hasNormalWatch = subscribeEvents.hasNormalWatch({ params });
+    const hasEventListeners = subscribeEvents.hasEventListeners({ params });
+
+    // return hasNormalWatch && hasEventListeners;
     return hasEventListeners && !hasNormalWatch;
+
+    // If there are ONLY listeners and no normal watches it cannot be incompatible
+
+    // if (!subscribeEvents.hasEventListeners({ params: compareObj })) {
+    //   // No event listeners --> could be incompatible
+    //   return false;
+    // }
+
+    // if (subscribeEvents.hasNormalWatch({ params: compareObj })) {
+    //   // we have listeners AND there's a normal watch  --> as there's a normal watch could be incompatible
+    //   return false;
+    // }
+
+    // // have ONLY listeners (no normal watch) --> cannot be incompatible
+    // return true;
+
+    // return hasEventListeners && !hasNormalWatch;
+    // return !hasEventListeners || hasNormalWatch
   };
 
-  if (cannotBeIncompatibleEventListener({ params: incObj })) {
+  if (cannotBeIncompatible({ params: rootObj })) {
     return false;
   }
 
-  if (cannotBeIncompatibleEventListener({ params: obj })) {
+  if (cannotBeIncompatible({ params: compareObj })) {
     return false;
   }
 
   // Prevent watches
 
-  if (incObj.mode === STEVE_WATCH_EVENT_TYPES.CHANGES && obj.mode !== STEVE_WATCH_EVENT_TYPES.CHANGES) {
+  if (rootObj.mode === STEVE_WATCH_EVENT_TYPES.CHANGES && compareObj.mode !== STEVE_WATCH_EVENT_TYPES.CHANGES) {
     return true;
   }
 
-  if (incObj.mode !== STEVE_WATCH_EVENT_TYPES.CHANGES && obj.mode === STEVE_WATCH_EVENT_TYPES.CHANGES) {
+  if (rootObj.mode !== STEVE_WATCH_EVENT_TYPES.CHANGES && compareObj.mode === STEVE_WATCH_EVENT_TYPES.CHANGES) {
     return true;
   }
 
-  if (obj.namespace !== incObj.namespace) {
+  if (compareObj.namespace !== rootObj.namespace) {
     return true;
   }
 
@@ -699,12 +722,17 @@ const sharedActions = {
       const unwatch = (obj) => {
         myLogger.warn('sub', 'action', 'unwatch', 'started', obj);
 
-        const watch = ctx.getters.subscribeEvents.getWatch({ params: obj });
+        // const watch = ctx.getters.subscribeEvents.getWatch({ params: obj });
+        const hasNormalWatch = ctx.getters.subscribeEvents.hasNormalWatch({ params: obj });
 
-        if (watch) {
-          const watchHasListeners = ctx.getters.subscribeEvents.watchHasListeners({ params: obj });
+        if (obj.type === 'provisioning.cattle.io.cluster') {
+          debugger;
+        }
 
-          if (watchHasListeners && watch.hasNormalWatch) {
+        if (hasNormalWatch) {
+          const watchHasListeners = ctx.getters.subscribeEvents.hasEventListeners({ params: obj });
+
+          if (watchHasListeners) {
             // abort
             myLogger.warn('sub', 'action', 'unwatch', 'finished', 'skipping', obj );
 
@@ -757,8 +785,8 @@ const sharedActions = {
 
     const a = watchesOfType
       .filter((entry) => {
-        const b = shouldUnwatchIncompatible({
-          subscribeEvents: getters.subscribeEvents, incObj: messageMeta, obj: entry
+        const b = areWatchesIncompatible({
+          subscribeEvents: getters.subscribeEvents, rootObj: messageMeta, compareObj: entry
         });
 
         // myLogger.warn('sub', 'action', 'unwatchIncompatible', 'checking', messageMeta, entry, b );
@@ -782,7 +810,7 @@ const sharedActions = {
       .filter((error) => error.obj.type === messageMeta.type);
 
     inErrorOfType
-      .filter((error) => shouldUnwatchIncompatible({
+      .filter((error) => areWatchesIncompatible({
         subscribeEvents: getters.subscribeEvents, incObj: messageMeta, obj: error.obj
       }))
       .forEach((error) => clearInError({ getters, commit }, error));
@@ -1336,6 +1364,10 @@ const defaultActions = {
         return;
       }
     }
+
+    // TODO: RC check
+    // is store currently set up to receive this? if not stop
+    // i.e. if havePage --> unwatch
 
     queueChange(ctx, msg, true, 'Change');
 

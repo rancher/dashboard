@@ -140,11 +140,12 @@ export abstract class BaseTopLevelMenuHelper {
 
     this.hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
+    // TODO: RC remove this now??
     // Reduce flicker when component is recreated on a different layout
-    const { clustersPinned = [], clustersOthers = [] } = this.$store.getters['sideNavCache'] || {};
+    // const { clustersPinned = [], clustersOthers = [] } = this.$store.getters['sideNavCache'] || {};
 
-    this.clustersPinned.push(...clustersPinned);
-    this.clustersOthers.push(...clustersOthers);
+    // this.clustersPinned.push(...clustersPinned);
+    // this.clustersOthers.push(...clustersOthers);
   }
 
   protected convertToCluster(mgmtCluster: MgmtCluster, provCluster: ProvCluster): TopLevelMenuCluster {
@@ -579,3 +580,38 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     return sorted;
   }
 }
+
+/**
+ * Provide a way to have the
+ */
+class TopLevelMenuHelperService {
+  private _helper?: TopLevelMenuHelper;
+  public init($store: VuexStore) {
+    const canPagination = $store.getters[`management/paginationEnabled`]({
+      id:      MANAGEMENT.CLUSTER,
+      context: 'side-bar',
+    }) && $store.getters[`management/paginationEnabled`]({
+      id:      CAPI.RANCHER_CLUSTER,
+      context: 'side-bar',
+    });
+
+    this._helper = canPagination ? new TopLevelMenuHelperPagination({ $store }) : new TopLevelMenuHelperLegacy({ $store });
+  }
+
+  public async reset() {
+    await this._helper?.destroy();
+    delete this._helper;
+  }
+
+  get helper(): TopLevelMenuHelper {
+    if (!this._helper) {
+      throw new Error('TODO: RC ');
+    }
+
+    return this._helper;
+  }
+}
+
+const instance = new TopLevelMenuHelperService();
+
+export default instance;
