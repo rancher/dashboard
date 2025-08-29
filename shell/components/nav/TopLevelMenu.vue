@@ -73,6 +73,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ brand: 'prefs/brand' }),
     ...mapGetters(['clusterId']),
     ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct', 'isRancherInHarvester']),
     ...mapGetters({ features: 'features/get' }),
@@ -470,7 +471,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div :class="brand">
     <!-- Overlay -->
     <div
       v-if="shown"
@@ -973,6 +974,22 @@ export default {
   $option-padding-left: 14px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
+  div .classic .side-menu .body .option,
+  div .csp .side-menu .body .option {
+    &:hover {
+      background: var(--primary-hover-bg);
+      color: var(--primary-hover-text);
+
+      svg {
+        fill: var(--primary-hover-text);
+      }
+
+      div {
+        color: var(--primary-hover-text);
+      }
+    }
+  }
+
   .side-menu {
     .menu {
       position: absolute;
@@ -1073,6 +1090,14 @@ export default {
       width: 300px;
       overflow: auto;
 
+      & .category {
+        & a.router-link-active {
+          &:hover {
+            color: var(--on-active, var(--default));
+          }
+        }
+      }
+
       .option {
         align-items: center;
         cursor: pointer;
@@ -1115,6 +1140,15 @@ export default {
               font-size: 12px;
               padding-right: 8px;
               color: var(--darker);
+            }
+          }
+        }
+
+        &:not(.active-menu-link) {
+          &:hover {
+            .pin {
+              display: block;
+              color: var(--body-text);
             }
           }
         }
@@ -1178,19 +1212,31 @@ export default {
             outline-offset: -4px;
           }
 
-          background: var(--primary-hover-bg);
-          color: var(--primary-hover-text);
+          background: var(--active, var(--primary-hover-bg));
+          color: var(--on-active, var(--primary-hover-text));
 
           svg {
-            fill: var(--primary-hover-text);
+            fill: var(--on-active, var(--primary-hover-text));
           }
 
           i {
-            color: var(--primary-hover-text);
+            color: var(--on-active, var(--primary-hover-text));
           }
 
           div .description {
-            color: var(--default);
+            color: var(--on-active, var(--default));
+          }
+
+          &:hover {
+            background: var(--active-hover, var(--primary-hover-bg));
+
+            div {
+              color: var(--on-active, var(--default));
+            }
+
+            svg {
+              fill: var(--on-active, var(--primary-hover-text));
+            }
           }
         }
 
@@ -1201,8 +1247,8 @@ export default {
         }
 
         &:hover {
-          color: var(--primary-hover-text);
-          background: var(--primary-hover-bg);
+          color: var(--link, var(--primary-hover-text));
+          background: var(--nav-hover, var(--primary-hover-bg));
           > div {
             color: var(--primary-hover-text);
 
@@ -1211,10 +1257,10 @@ export default {
             }
           }
           svg {
-            fill: var(--primary-hover-text);
+            fill: var(--link, var(--primary-hover-text));
           }
           div {
-            color: var(--primary-hover-text);
+            color: var(--link, var(--primary-hover-text));
           }
           &.disabled {
             background: transparent;
@@ -1592,7 +1638,7 @@ export default {
       padding: 8px 20px;
 
       &:hover {
-        background-color: var(--primary-hover-bg);
+        background-color: var(--active-hover, var(--primary-hover-bg));
         color: var(--primary-hover-text);
         text-decoration: none;
       }
