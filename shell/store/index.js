@@ -261,10 +261,6 @@ export const state = () => {
     $router:                 markRaw({}),
     $route:                  markRaw({}),
     $plugin:                 markRaw({}),
-    /**
-     * Cache state of side nav clusters. This avoids flickering when the user changes pages and the side nav component re-renders
-     */
-    sideNavCache:            undefined,
     showWorkspaceSwitcher:   true,
 
   };
@@ -631,10 +627,6 @@ export const getters = {
     return `${ base }/latest`;
   },
 
-  sideNavCache(state) {
-    return state.sideNavCache;
-  },
-
   ...gcGetters
 };
 
@@ -773,10 +765,6 @@ export const mutations = {
 
   setPlugin(state, pluginDefinition) {
     state.$plugin = markRaw(pluginDefinition || {});
-  },
-
-  setSideNavCache(state, sideNavCache) {
-    state.sideNavCache = sideNavCache;
   },
 
   showWorkspaceSwitcher(state, value) {
@@ -923,9 +911,9 @@ export const actions = {
       });
     }
 
-    sideNavService.init({
-      getters, state, commit, dispatch, rootGetters
-    });
+    // sideNavService.init({
+    //   getters, state, commit, dispatch, rootGetters
+    // });
 
     console.log(`Done loading management; isRancher=${ isRancher }; isMultiCluster=${ isMultiCluster }`); // eslint-disable-line no-console
   },
@@ -1314,10 +1302,6 @@ export const actions = {
         dispatch(`${ storeName }/unsubscribe`);
       }
     });
-  },
-
-  setSideNavCache({ commit }, sideNavCache) {
-    commit('setSideNavCache', sideNavCache);
   },
 
   showWorkspaceSwitcher({ commit }, value) {

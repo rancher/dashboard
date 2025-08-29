@@ -71,7 +71,6 @@
 // TODO: RC validation - start on CM cluster list, edit cluster badge in tab 2, see that is shows up in side nav
 // TODO: RC validation - smattering of above but resource.changes when incompatible (resource.change --> unwatch)
 
-// TODO: RC xon reconnect .. resyncWatches --> if watchers use a super low / invalid version
 // TODO: RC root abort issue(?) - reconnect --> watch with core list revision --> it's further ahead than transient lists --> no resource.changes for transient lists to update
 // Solution - on resync if there's transient lists always resync, don't watch with stale revision?
 
