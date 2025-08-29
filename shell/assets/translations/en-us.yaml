@@ -6473,7 +6473,6 @@ tableHeaders:
   apikey: API Key
   available: Available
   attachedVM: Attached VM
-
   authRoles:
     globalDefault: New User Default
     clusterDefault: Cluster Creator Default
@@ -8724,6 +8723,11 @@ volumeClaimTemplate:
 manager:
   cloudCredentials:
     label: Cloud Credentials
+    list:
+      groupBy:
+        provider: Group by Provider
+      headers:
+        provider: Provider
   drivers:
     label: Drivers
   rkeTemplates:

@@ -37,6 +37,17 @@ export default {
       allCredentials: null,
       resource:       NORMAN.CLOUD_CREDENTIAL,
       schema:         this.$store.getters['rancher/schemaFor'](NORMAN.CLOUD_CREDENTIAL),
+      groupOptions:   [{
+        tooltipKey: 'resourceTable.groupBy.none',
+        icon:       'icon-list-flat',
+        value:      'none',
+      }, {
+        tooltipKey: 'manager.cloudCredentials.list.groupBy.provider',
+        hideColumn: 'provider',
+        icon:       'icon-folder',
+        value:      'providerDisplay',
+        field:      'providerDisplay',
+      }],
     };
   },
 
@@ -56,6 +67,12 @@ export default {
           sort:      'publicData',
           search:    'publicData',
           formatter: 'CloudCredPublicData',
+        }, {
+          name:     'provider',
+          labelKey: 'manager.cloudCredentials.list.headers.provider',
+          value:    'providerDisplay',
+          sort:     'providerDisplay',
+          search:   'providerDisplay',
         },
         DESCRIPTION,
         AGE_NORMAN
@@ -91,7 +108,7 @@ export default {
       :rows="rows"
       :headers="headers"
       :namespaced="false"
-      group-by="providerDisplay"
+      :group-options="groupOptions"
     >
       <template #cell:id="{row}">
         {{ row.id.replace('cattle-global-data:', '') }}
