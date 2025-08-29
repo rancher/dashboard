@@ -44,8 +44,11 @@ type STEVE_WATCHES = { [socketId: string]: STEVE_WATCH};
  * // TODO: RC refactor SteveSocketMessageListener
  * Watch - UI is watching a resource type restricted by nothing/id/namespace/selector
  * // TODO: RC refactor event --> message
- * Event - Rancher socket message to ui
+ * Event - Rancher socket message to ui. resource.started, resource.changes, resource.changes, etc
  * Listener - listen to events, trigger when received
+ * Callback - triggered when a listener has heard something
+ *
+ * Watch 1:M Events 0:M Listeners 0:M Callbacks
  */
 export class SteveWatchEventListenerManager {
   constructor(storeName: string) {
@@ -88,7 +91,7 @@ export class SteveWatchEventListenerManager {
   /**
    * Create a watch for the given params
    */
-  private createWatch({ params }: { params: STEVE_WATCH_PARAMS}): STEVE_WATCH {
+  private initialiseWatch({ params }: { params: STEVE_WATCH_PARAMS}): STEVE_WATCH {
     const socketId = this.keyForSubscribe({ params });
 
     this.watches[socketId] = {
@@ -124,20 +127,12 @@ export class SteveWatchEventListenerManager {
         // no point setting a non-existent watch as not started
         return;
       }
-      watch = this.createWatch({ params });
-    }
-
-    //  && args.params.type === 'management.cattle.io.cluster'
-    if (started) {
-      // debugger; TODO: RC
-    }
-    if ( params.resourceType === 'management.cattle.io.cluster') {
-      myLogger.warn('sub', 'event', 'setWatchStarted', 'hasNormalWatch', started, params );
+      watch = this.initialiseWatch({ params });
     }
 
     watch.hasNormalWatch = started;
 
-    // is watch empty
+    // is watch empty, if so get rid of the entry
     if (!watch.hasNormalWatch && watch.listeners.length === 0) {
       this.deleteWatch({ params });
     }
@@ -149,9 +144,9 @@ export class SteveWatchEventListenerManager {
   /**
    * TODO: RC description
    */
-  public hasEventListener(args: GetEventWatcherArgs) {
-    return !!this.getEventListener(args);
-  }
+  // public hasEventListener(args: GetEventWatcherArgs) {
+  //   return !!this.getEventListener(args);
+  // }
 
   public hasEventListeners({ params }: { params: STEVE_WATCH_PARAMS}): boolean {
     const socketId = this.keyForSubscribe({ params });
@@ -190,7 +185,7 @@ export class SteveWatchEventListenerManager {
     let watch = this.getWatch({ params });
 
     if (!watch) {
-      watch = this.createWatch({ params });
+      watch = this.initialiseWatch({ params });
     }
 
     let listener = this.getEventListener({
@@ -226,7 +221,10 @@ export class SteveWatchEventListenerManager {
     }
   }
 
-  public triggerWatch({ params }: GetEventWatcherArgs) {
+  /**
+   * TODO: RC description
+   */
+  public triggerAllEventListeners({ params }: GetEventWatcherArgs) {
     const watch = this.getWatch({ params });
 
     watch.listeners.forEach((l) => {
@@ -265,7 +263,7 @@ export class SteveWatchEventListenerManager {
    * TODO: RC description
    */
   public removeEventListenerCallbacksOfType() {
-    // TODO: RC clear inError / backoff + subscrive events
+    // TODO: RC clear inError / backoff + subscribe events
     // state.inError
   }
 }

@@ -69,14 +69,17 @@
 // TODO: RC validation - create / delete a cluster in tab 2, see that it shows up in CM cluster list
 // TODO: RC validation - start on home page, edit cluster badge in tab 2, see that is shows up in side nav
 // TODO: RC validation - start on CM cluster list, edit cluster badge in tab 2, see that is shows up in side nav
+// TODO: RC validation - smattering of above but resource.changes when incompatible (resource.change --> unwatch)
 
 // TODO: RC xon reconnect .. resyncWatches --> if watchers use a super low / invalid version
 // TODO: RC root abort issue(?) - reconnect --> watch with core list revision --> it's further ahead than transient lists --> no resource.changes for transient lists to update
 // Solution - on resync if there's transient lists always resync, don't watch with stale revision?
-// TODO: RC
 
-// TODO: RC XFIX - home page --> CM (calls onDestroy unwatch ) singleton TopLevelMenu.helper? in store?
-// TODO: RC FIX - home --> CM --> tab 2 create --> unwatchs mode
+// TODO: RC 1 - tests again
+// TODO: RC 2 - ensure state is tidied up (on cluster switch, on forgetType, etc)
+// TODO: RC 3 - self review
+// TODO: RC 4 - refactors + TODOs
+// TODO: RC 5 - tests again
 
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get, deepToRaw } from '@shell/utils/object';
@@ -337,78 +340,6 @@ function growlsDisabled(rootGetters) {
 }
 
 /**
- * Given a started or error entry, is it compatible with the given change in mode?
- */
-const areWatchesIncompatible = ({ subscribeEvents, rootObj, compareObj }) => {
-  if (rootObj.type === 'provisioning.cattle.io.cluster') {
-    debugger;
-  }
-
-  // Not same type, can never be incompatible
-  if (compareObj.type !== rootObj.type) {
-    return false;
-  }
-
-  const cannotBeIncompatible = ({ params }) => {
-    if (rootObj.type === 'provisioning.cattle.io.cluster') {
-      const watch = subscribeEvents.getWatch({ params });
-
-      myLogger.warn('sub', 'areWatchesIncompatible', JSON.parse(JSON.stringify(watch || {})), params);
-    }
-
-    // Will it pollute the store ?
-
-    const hasNormalWatch = subscribeEvents.hasNormalWatch({ params });
-    const hasEventListeners = subscribeEvents.hasEventListeners({ params });
-
-    // return hasNormalWatch && hasEventListeners;
-    return hasEventListeners && !hasNormalWatch;
-
-    // If there are ONLY listeners and no normal watches it cannot be incompatible
-
-    // if (!subscribeEvents.hasEventListeners({ params: compareObj })) {
-    //   // No event listeners --> could be incompatible
-    //   return false;
-    // }
-
-    // if (subscribeEvents.hasNormalWatch({ params: compareObj })) {
-    //   // we have listeners AND there's a normal watch  --> as there's a normal watch could be incompatible
-    //   return false;
-    // }
-
-    // // have ONLY listeners (no normal watch) --> cannot be incompatible
-    // return true;
-
-    // return hasEventListeners && !hasNormalWatch;
-    // return !hasEventListeners || hasNormalWatch
-  };
-
-  if (cannotBeIncompatible({ params: rootObj })) {
-    return false;
-  }
-
-  if (cannotBeIncompatible({ params: compareObj })) {
-    return false;
-  }
-
-  // Prevent watches
-
-  if (rootObj.mode === STEVE_WATCH_EVENT_TYPES.CHANGES && compareObj.mode !== STEVE_WATCH_EVENT_TYPES.CHANGES) {
-    return true;
-  }
-
-  if (rootObj.mode !== STEVE_WATCH_EVENT_TYPES.CHANGES && compareObj.mode === STEVE_WATCH_EVENT_TYPES.CHANGES) {
-    return true;
-  }
-
-  if (compareObj.namespace !== rootObj.namespace) {
-    return true;
-  }
-
-  return false;
-};
-
-/**
  * clear the provided error, but also ensure any backoff request associated with it is cleared as well
  */
 const clearInError = ({ getters, commit }, error) => {
@@ -546,12 +477,12 @@ const sharedActions = {
       event, params, callback, id
     });
 
-    const watch = ctx.getters.subscribeEvents.getWatch({ params });
+    const hasNormalWatch = ctx.getters.subscribeEvents.hasNormalWatch({ params });
 
     // TODO: RC refactor hasNormalWatch --> isWatching??? | nonListenerWatch
     // TODO: RC refactor isNormalWatch --> ??
 
-    if (!watch.hasNormalWatch) {
+    if (!hasNormalWatch) {
       ctx.dispatch('watch', {
         ...params,
         isNormalWatch: false
@@ -1270,7 +1201,6 @@ const defaultActions = {
         ...obj,
         // hasEventListeners && !hasNormalWatch ? false : true
         // if this watch isn't associated with a normal watch... (there are no listeners, or there are listeners but also a normal watch)
-        // treat it d we have event listeners and they aren't normal watches then treat this
         isNormalWatch: !(hasEventListeners && !hasNormalWatch)
       });
 
@@ -1279,36 +1209,11 @@ const defaultActions = {
         // if we have a normal watch it will pick a revision from the cache and then watch from that point in time on wards.
         // however the listeners may have state that was before that revision, watch will never receive an message that will get the listeners up to date
         // so always fall back on a manual trigger
-        getters.subscribeEvents.triggerWatch({ params: obj });
+        getters.subscribeEvents.triggerAllEventListeners({ params: obj });
       }
 
-      // TODO: RC Keep for a bit, move up comments
-      // const hasEventListeners = getters.subscribeEvents.hasEventListeners({ params: obj });
-
-      // if (!hasEventListeners) {
-      //   // This watch has no event listeners, simply dispatch watch again
-      //   dispatch('watch', obj);
-      // } else {
-      //   const hasNormalWatch = getters.subscribeEvents.hasNormalWatch({ params: obj });
-
-      //   if (hasNormalWatch) {
-      //     // This watch has listeners, but it has a normal watch, so dispatch watch again...
-      //     dispatch('watch', obj);
-      //     // .. and because that watch will go from a `revision` from the cache... it will be out of step with resources the listeners
-      //     // work with, so just trigger them again to re-fetch
-      //     getters.subscribeEvents.triggerWatch({ params: obj });
-      //   } else {
-      //     // This watch has listeners, and there isn't a normal watch, so dispatch a special watch...
-      //     dispatch('watch', {
-      //       ...obj,
-      //       isNormalWatch: false
-      //     });
-      //     // ... and just in case there's revision shenanigans above, so kick off the listeners again
-      //     getters.subscribeEvents.triggerWatch({ params: obj });
-      //   }
-      // }
-
       // TODO: RC refactor hasNormalWatch --> isWatching??? | nonListenerWatch
+      // TODO: RC do we need isNormalWatch??
       // TODO: RC refactor isNormalWatch --> ??
     }
   },
