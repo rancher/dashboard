@@ -139,13 +139,6 @@ export abstract class BaseTopLevelMenuHelper {
     this.$store = $store;
 
     this.hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
-
-    // TODO: RC remove this now??
-    // Reduce flicker when component is recreated on a different layout
-    // const { clustersPinned = [], clustersOthers = [] } = this.$store.getters['sideNavCache'] || {};
-
-    // this.clustersPinned.push(...clustersPinned);
-    // this.clustersOthers.push(...clustersOthers);
   }
 
   protected convertToCluster(mgmtCluster: MgmtCluster, provCluster: ProvCluster): TopLevelMenuCluster {
@@ -165,9 +158,9 @@ export abstract class BaseTopLevelMenuHelper {
     };
   }
 
-  protected cacheClusters() {
-    this.$store.dispatch('setSideNavCache', { clustersPinned: this.clustersPinned, clustersOthers: this.clustersOthers });
-  }
+  // protected cacheClusters() {
+  //   this.$store.dispatch('setSideNavCache', { clustersPinned: this.clustersPinned, clustersOthers: this.clustersOthers });
+  // }
 }
 
 /**
@@ -278,7 +271,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.clustersPinned.push(..._clustersPinned);
     this.clustersOthers.push(..._clustersNotPinned);
 
-    this.cacheClusters();
+    // this.cacheClusters();
   }
 
   async destroy() {
@@ -432,7 +425,7 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
     this.clustersPinned.push(..._clustersPinned);
     this.clustersOthers.push(..._clustersNotPinned);
 
-    this.cacheClusters();
+    // this.cacheClusters();
   }
 
   async destroy() {
@@ -582,11 +575,19 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
 }
 
 /**
- * Provide a way to have the
+ * Retain state of the side nav, no matter when the TopLevelMenu component is created/deleted (on layout change)
+ *
+ * This means there's no flickering when the user changes pages and the side nav component re-renders
+ *
+ * Also it means we're not unwatching then watching the clusters
  */
 class TopLevelMenuHelperService {
   private _helper?: TopLevelMenuHelper;
   public init($store: VuexStore) {
+    if (this._helper) {
+      return;
+    }
+
     const canPagination = $store.getters[`management/paginationEnabled`]({
       id:      MANAGEMENT.CLUSTER,
       context: 'side-bar',
