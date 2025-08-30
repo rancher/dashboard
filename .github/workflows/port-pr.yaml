@@ -76,6 +76,9 @@ jobs:
           TARGET_BRANCH=$(echo "${COMMENT_BODY}" | awk '{ print $3 }')
           echo "Target branch: ${TARGET_BRANCH}" >> $GITHUB_STEP_SUMMARY
           echo "target_branch=${TARGET_BRANCH}" >> $GITHUB_ENV
+          ISSUE_NUMBER=$(echo "${COMMENT_BODY}" | awk '{ print $4 }' | sed -e 's/#//')
+          echo "Issue number: ${ISSUE_NUMBER}" >> $GITHUB_STEP_SUMMARY
+          echo "issue_number=${ISSUE_NUMBER}" >> $GITHUB_ENV
           if gh api repos/${GITHUB_REPOSITORY}/branches --paginate | jq -e --arg TARGET_BRANCH "$TARGET_BRANCH" '.[] | select(.name == $TARGET_BRANCH)' > /dev/null; then
               echo "target_branch_exists=true" >> $GITHUB_ENV
           else
@@ -99,11 +102,13 @@ jobs:
           TYPE: ${{ env.type }}
           TARGET_BRANCH: ${{ env.target_branch }}
           MILESTONE: ${{ env.milestone }}
+          ISSUE_NUMBER: ${{ env.issue_number }}
         run: |
           echo "Starting Port PR step..."
           echo "Original Issue Number: ${ORIGINAL_ISSUE_NUMBER}"
           echo "Type: ${TYPE}"
           echo "Target Branch: ${TARGET_BRANCH}"
+          echo "Target Issue Number: ${ISSUE_NUMBER}"
           echo "Milestone: ${MILESTONE}"
 
           PATCH_FILE=$(mktemp)
@@ -144,6 +149,9 @@ jobs:
               echo -e "This is an automated request to port PR #${ORIGINAL_ISSUE_NUMBER} by @${GITHUB_ACTOR}\n\n" > $BODY
               echo -e "Original PR body:\n\n" >> $BODY
               echo "${ORIGINAL_PR}" | jq -r .body >> $BODY
+              if [ -n "$ISSUE_NUMBER" ]; then
+                  echo -e "\n\nFixes #${ISSUE_NUMBER}" >> $BODY
+              fi
 
               ASSIGNEES=$(echo "${ORIGINAL_PR}" | jq -r .assignees[].login)
               echo "Original PR Assignees: ${ASSIGNEES}"
