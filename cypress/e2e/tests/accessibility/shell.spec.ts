@@ -695,7 +695,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         extensionsPo.loading().should('not.exist');
         extensionsPo.extensionTabAllClick();
         extensionsPo.waitForPage(null, 'all');
-        extensionsPo.extensionCard('aks').should('be.visible');
+        extensionsPo.extensionCard('AKS Provisioning').checkVisible();
         cy.injectAxe();
 
         cy.checkPageAccessibility();

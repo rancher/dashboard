@@ -10,6 +10,7 @@ const appRepoList = new RepositoriesPagePo(undefined, 'manager');
 
 let harvesterClusterName = '';
 const harvesterGitRepoName = 'harvester';
+const harvesterTitle = 'Harvester';
 const branchName = 'gh-pages';
 const harvesterGitRepoUrl = 'https://github.com/harvester/harvester-ui-extension.git';
 
@@ -53,7 +54,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     extensionsPo.goTo();
     extensionsPo.waitForPage(null, 'installed');
     extensionsPo.loading().should('not.exist');
-    extensionsPo.extensionCard(harvesterGitRepoName).should('be.visible');
+    extensionsPo.extensionCard(harvesterTitle).checkVisible();
 
     // verify harvester repo is added to repos list page
     appRepoList.goTo();
@@ -119,7 +120,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     extensionsPo.loading().should('not.exist');
 
     // click on install button on card
-    extensionsPo.extensionCardInstallClick(harvesterGitRepoName);
+    extensionsPo.extensionCardInstallClick(harvesterTitle);
     extensionsPo.extensionInstallModal().should('be.visible');
 
     // select latest version and click install
@@ -195,7 +196,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     });
 
     // click on install button on card
-    extensionsPo.extensionCardInstallClick(harvesterGitRepoName);
+    extensionsPo.extensionCardInstallClick(harvesterTitle);
     extensionsPo.extensionInstallModal().should('be.visible');
 
     cy.get('@harvesterVersions').then((versions) => {
@@ -210,7 +211,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.loading().should('not.exist');
 
       // check harvester version on card - should not be older version
-      extensionsPo.extensionCardVersion(harvesterGitRepoName).should('contain', versions[1]);
+      extensionsPo.extensionCardVersion(harvesterTitle).should('contain', versions[1]);
 
       harvesterPo.goTo();
       harvesterPo.waitForPage();
@@ -235,7 +236,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.waitForPage(null, 'installed');
       extensionsPo.loading().should('not.exist');
       // check harvester version on card after update - should be latest
-      extensionsPo.extensionCardVersion(harvesterGitRepoName).should('contain', versions[0]);
+      extensionsPo.extensionCardVersion(harvesterTitle).should('contain', versions[0]);
     });
   });
 
