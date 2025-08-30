@@ -157,6 +157,9 @@ describe('About Page', { testIsolation: 'off', tags: ['@generic', '@adminUser', 
       aboutPage.goTo();
       aboutPage.waitForPage();
 
+      // Wait for the intercepted rancherversion request to complete
+      cy.wait('@rancherVersion');
+
       aboutPage.rancherPrimeInfo().should('exist');
     });
   });

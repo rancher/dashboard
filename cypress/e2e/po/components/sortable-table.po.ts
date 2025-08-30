@@ -95,11 +95,11 @@ export default class SortableTablePo extends ComponentPo {
    * @param searchText
    * @returns
    */
-  filter(searchText: string) {
+  filter(searchText: string, delay?: number) {
     return this.filterComponent()
       .focus()
       .clear()
-      .type(searchText);
+      .type(searchText, { delay });
   }
 
   resetFilter() {
