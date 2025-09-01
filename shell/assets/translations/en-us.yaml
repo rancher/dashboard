@@ -8931,12 +8931,13 @@ component:
   cron:
     expressionEditor:
       label:
-        minute: Minute
-        hour: Hour
-        dayOfMonth: Day of Month
-        month: Month
-        dayOfWeek: Day of Week
+        minute: "Minute"
+        hour: "Hour"
+        dayOfMonth: "Day of Month"
+        month: "Month"
+        dayOfWeek: "Day of Week"
       invalidValue: "Invalid value"
+      invalidCronExpression: "Invalid Cron Expression"
       minute:
         any: "any value (every minute)"
         at1and5: "at 1 and 5 min past the hour"
@@ -8974,3 +8975,22 @@ component:
         range: "every day from Monday to Friday"
         allowed: "Allowed literal values: 0-7"
         alias: "Allowed alias values: mon-sun"
+    expressionEditorModal:
+      title: "Define Cron expression"
+      description: "Click on any field to get hints about valid values and wildcard symbols."
+      wildcards:
+        title: "Generic Wildcards"
+        anyValue: "any value"
+        xAndY: "X and Y"
+        fromXtoY: "from X to Y"
+        everyX: "every X"
+        everyXStartingY: "every X starting at Y"
+        everyXFromYtoZ: "every X, from Y to Z"
+      examples:
+        title: "Examples"
+        dailyMidnight: "At 12:00 AM"
+        every5Hours: "At 0 minutes past the hour, every 5 hours"
+        day1At1745: "At 05:45 PM, on day 1 of the month"
+        weekdaysAt0830: "At 30 minutes past the hour, every 1 hours, starting at 08:00 AM, Monday through Friday"
+        marchToMayHourly: "Every hour, only in March, April, and May"
+        every4Hours9to17: "At 0 minutes past the hour, every 4 hours, between 09:00 AM and 05:00 PM"
