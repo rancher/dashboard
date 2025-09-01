@@ -30,8 +30,7 @@ const setNotification = (store: Store<any>) => {
           label: t('registration.notification.button.primary.label'),
           route: '/c/local/settings/registration'
         },
-        id:         'rancher-prime-registration',
-        preference: 'rancher-prime-registration'
+        id: 'rancher-prime-registration',
       };
 
       store.dispatch('notifications/add', notification);
