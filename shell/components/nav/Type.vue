@@ -249,12 +249,7 @@ export default {
       height: 33px;
 
       &:hover {
-        background: var(--nav-hover);
         text-decoration: none;
-
-        :deep() .icon {
-          color: var(--body-text);
-        }
       }
     }
 
