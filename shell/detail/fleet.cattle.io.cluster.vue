@@ -37,6 +37,7 @@ export default {
       }),
       repos:             this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO }),
       workspaces:        this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE }),
+      clusterGroups:     this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP }),
       bundleDeployments: this.$store.dispatch('management/findAll', { type: FLEET.BUNDLE_DEPLOYMENT })
     });
 
@@ -54,9 +55,7 @@ export default {
     },
 
     repos() {
-      return this.allRepos.filter((x) => {
-        return x.targetClusters.includes(this.value);
-      });
+      return this.allRepos.filter((repo) => !!repo.targetClusters.find((c) => c.id === this.clusterId));
     },
 
     repoSchema() {
