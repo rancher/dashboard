@@ -2,6 +2,7 @@ import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import CreateEditViewPo from '@/cypress/e2e/po/components/create-edit-view.po';
 import CruResourcePo from '@/cypress/e2e/po/components/cru-resource.po';
 import ResourceYamlPo from '@/cypress/e2e/po/components/resource-yaml.po';
+import ResourceDetailMastheadPo from '@/cypress/e2e/po/components/resource-detail-masthead.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 
 export default class ResourceDetailPo extends ComponentPo {
@@ -43,5 +44,13 @@ export default class ResourceDetailPo extends ComponentPo {
 
   title(): Cypress.Chainable<string> {
     return this.self().find('.title-bar h1.title, .primaryheader h1').invoke('text');
+  }
+
+  /**
+   * Get masthead component for resource details
+   * @returns
+   */
+  masthead() {
+    return new ResourceDetailMastheadPo(this.self());
   }
 }
