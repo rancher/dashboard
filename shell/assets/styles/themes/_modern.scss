@@ -79,6 +79,8 @@ BODY, .theme-light {
   --primary-light-bg           : #{rgba($primary, 0.05)};
   --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
 
+  --on-tertiary: var(--link);
+
   --active       : #{$primary-110};
   --on-active    : #{$grey-0};
   --active-hover : #{lighten($primary-110, 5%)};
@@ -403,6 +405,7 @@ BODY, .theme-light {
   --nav-bg                     : #{$lightest};
   --nav-active                 : #{$light};
   --nav-hover                  : #{$grey-10};
+  --nav-hover-top-level        : var(--nav-hover);
   --nav-expander-hover         : #{darken($medium, 10%)};
   --nav-border                 : #{$medium};
   --nav-border-size            : 1px;
@@ -729,6 +732,8 @@ BODY, .theme-dark {
   --body-border: #5A5F6A;
   --link       : #{$primary-55};
 
+  --on-tertiary: var(--link);
+
   --active       : #{$primary-50};
   --on-active    : #{$grey-90};
   --active-hover : #{darken($primary-50, 5%)};
@@ -771,6 +776,7 @@ BODY, .theme-dark {
   --nav-active                 : #333;
   --nav-border                 : #{$medium};
   --nav-hover                  : #{lighten($body-bg, 10%)};
+  --nav-hover-top-level        : var(--nav-hover);
   --nav-expander-hover         : var(--primary-banner-bg);
   --nav-icon-badge-bg          : #{$dark};
 

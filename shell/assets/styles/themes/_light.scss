@@ -310,6 +310,7 @@
     --nav-bg                     : #{$lightest};
     --nav-active                 : #{$light};
     --nav-hover                  : #{$medium};
+    --nav-hover-top-level        : var(--primary-hover-bg);
     --nav-expander-hover         : #{darken($medium, 10%)};
     --nav-border                 : #{$medium};
     --nav-border-size            : 1px;

@@ -21,6 +21,8 @@
   --link-banner-bg          : #{rgba($link, 0.15)};
   --link-light-bg           : #{rgba($link, 0.05)};
 
+  --on-tertiary: var(--primary-hover-text);
+
   --active        : var(--primary);
   --on-active     : #{$grey-0};
   --active-hover  : var(--primary-hover-bg);
