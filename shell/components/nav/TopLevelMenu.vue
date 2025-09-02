@@ -73,7 +73,6 @@ export default {
   },
 
   computed: {
-    ...mapGetters({ brand: 'prefs/brand' }),
     ...mapGetters(['clusterId']),
     ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct', 'isRancherInHarvester']),
     ...mapGetters({ features: 'features/get' }),
@@ -471,7 +470,7 @@ export default {
 </script>
 
 <template>
-  <div :class="brand">
+  <div>
     <!-- Overlay -->
     <div
       v-if="shown"
@@ -974,22 +973,6 @@ export default {
   $option-padding-left: 14px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
-  div .classic .side-menu .body .option,
-  div .csp .side-menu .body .option {
-    &:hover {
-      background: var(--primary-hover-bg);
-      color: var(--primary-hover-text);
-
-      svg {
-        fill: var(--primary-hover-text);
-      }
-
-      div {
-        color: var(--primary-hover-text);
-      }
-    }
-  }
-
   .side-menu {
     .menu {
       position: absolute;
@@ -1247,8 +1230,8 @@ export default {
         }
 
         &:hover {
-          color: var(--link, var(--primary-hover-text));
-          background: var(--nav-hover, var(--primary-hover-bg));
+          color: var(--on-tertiary, var(--primary-hover-text));
+          background: var(--nav-hover-top-level, var(--primary-hover-bg));
           > div {
             color: var(--primary-hover-text);
 
@@ -1257,10 +1240,10 @@ export default {
             }
           }
           svg {
-            fill: var(--link, var(--primary-hover-text));
+            fill: var(--on-tertiary, var(--primary-hover-text));
           }
           div {
-            color: var(--link, var(--primary-hover-text));
+            color: var(--on-tertiary, var(--primary-hover-text));
           }
           &.disabled {
             background: transparent;
