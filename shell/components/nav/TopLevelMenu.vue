@@ -73,6 +73,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ brand: 'prefs/brand' }),
     ...mapGetters(['clusterId']),
     ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct', 'isRancherInHarvester']),
     ...mapGetters({ features: 'features/get' }),
@@ -470,7 +471,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div :class="brand">
     <!-- Overlay -->
     <div
       v-if="shown"
@@ -972,6 +973,22 @@ export default {
   $option-padding: 9px;
   $option-padding-left: 14px;
   $option-height: $icon-size + $option-padding + $option-padding;
+
+  div .classic .side-menu .body .option,
+  div .csp .side-menu .body .option {
+    &:hover {
+      background: var(--primary-hover-bg);
+      color: var(--primary-hover-text);
+
+      svg {
+        fill: var(--primary-hover-text);
+      }
+
+      div {
+        color: var(--primary-hover-text);
+      }
+    }
+  }
 
   .side-menu {
     .menu {

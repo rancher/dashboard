@@ -1,0 +1,27 @@
+.classic {
+  --primary                    : #{$primary};
+  --primary-text               : #{contrast-color($primary)};
+  --primary-hover-bg           : #{darken($primary, 10%)};
+  --primary-hover-text         : #{saturate($lightest, 20%)};
+  --primary-active-bg          : #{darken($primary, 25%)};
+  --primary-active-text        : #{contrast-color(darken($primary, 25%))};
+  --primary-border             : #{$primary};
+  --primary-banner-bg          : #{rgba($primary, 0.15)};
+  --primary-light-bg           : #{rgba($primary, 0.05)};
+  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
+
+  --link                    : #{$link};
+  --link-text               : #{contrast-color($link)};
+  --link-text-secondary     : #{$darker};
+  --link-hover-bg           : #{darken($link, 10%)};
+  --link-hover-text         : #{saturate($lightest, 20%)};
+  --link-active-bg          : #{darken($link, 25%)};
+  --link-active-text        : #{contrast-color(darken($link, 25%))};
+  --link-border             : #{$link};
+  --link-banner-bg          : #{rgba($link, 0.15)};
+  --link-light-bg           : #{rgba($link, 0.05)};
+
+  --active        : var(--primary);
+  --on-active     : #{$grey-0};
+  --active-hover  : var(--primary-hover-bg);
+}
