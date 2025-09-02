@@ -56,9 +56,12 @@ export default {
     async save(buttonDone) {
       try {
         this.errors = [];
+
         await this.value.save();
 
         await this.normanCluster.save();
+
+        await this.waitForFleetClusterLastRevision();
 
         this.done();
         buttonDone(true);
@@ -67,6 +70,21 @@ export default {
         buttonDone(false);
       }
     },
+
+    async waitForFleetClusterLastRevision() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      try {
+        return await this.value.waitForTestFn(() => {
+          const curr = this.value.metadata?.resourceVersion;
+          const nue = this.$store.getters[`${ inStore }/byId`](this.value.type, this.value.id)?.metadata?.resourceVersion;
+
+          return curr && curr !== nue;
+        }, `${ this.value.id } - wait for resourceVersion to change`, 1000, 200);
+      } catch (e) {
+
+      }
+    }
   },
 };
 </script>
