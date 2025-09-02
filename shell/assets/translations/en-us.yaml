@@ -5815,6 +5815,8 @@ resourceTabs:
     tab: Conditions
   events:
     tab: Recent Events
+    namespaceTab: "Events in Namespace"
+    namespaceCaption: "Shows all events from resources in <span class='namespace-name'><b>{namespace}</b></span> namespace"
   related:
     tab: Related Resources
     from: Referred To By
