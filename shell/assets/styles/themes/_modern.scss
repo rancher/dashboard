@@ -81,9 +81,11 @@ BODY, .theme-light {
 
   --on-tertiary: var(--link);
 
-  --active       : #{$primary-110};
-  --on-active    : #{$grey-0};
-  --active-hover : #{lighten($primary-110, 5%)};
+  --active                : #{$primary-110};
+  --on-active             : #{$grey-0};
+  --active-hover          : #{lighten($primary-110, 5%)};
+  --category-active       : #{$primary-15};
+  --category-active-hover : #{$grey-20};
 
   .text-primary {
     color: var(--primary) !important;
@@ -401,10 +403,12 @@ BODY, .theme-light {
   --header-height              : 55px;
   --header-border              : #{$medium};
   --header-border-size         : 1px;
+
   --nav-width                  : 250px;
   --nav-bg                     : #{$lightest};
   --nav-active                 : #{$light};
   --nav-hover                  : #{$grey-10};
+  --nav-active-hover           : var(--active-hover);
   --nav-hover-top-level        : var(--nav-hover);
   --nav-expander-hover         : #{darken($medium, 10%)};
   --nav-border                 : #{$medium};
@@ -734,9 +738,11 @@ BODY, .theme-dark {
 
   --on-tertiary: var(--link);
 
-  --active       : #{$primary-50};
-  --on-active    : #{$grey-90};
-  --active-hover : #{darken($primary-50, 5%)};
+  --active                : #{$primary-50};
+  --on-active             : #{$grey-90};
+  --active-hover          : #{darken($primary-50, 5%)};
+  --category-active       : #{$primary-75};
+  --category-active-hover : #{$grey-70};
 
   --slate: #{$slate};
 
@@ -776,6 +782,7 @@ BODY, .theme-dark {
   --nav-active                 : #333;
   --nav-border                 : #{$medium};
   --nav-hover                  : #{lighten($body-bg, 10%)};
+  --nav-active-hover           : var(--active-hover);
   --nav-hover-top-level        : var(--nav-hover);
   --nav-expander-hover         : var(--primary-banner-bg);
   --nav-icon-badge-bg          : #{$dark};
