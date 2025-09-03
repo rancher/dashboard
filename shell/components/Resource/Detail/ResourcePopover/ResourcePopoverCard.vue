@@ -54,12 +54,10 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
             v-bind="glanceItem.formatterOpts"
             :id="i === 0 ? 'first-glance-item' : undefined"
             :value="glanceItem.content"
-            :tabindex="i"
           />
           <span
             v-else
             :id="i === 0 ? 'first-glance-item' : undefined"
-            :tabindex="i"
           >
             {{ glanceItem.content }}
           </span>
