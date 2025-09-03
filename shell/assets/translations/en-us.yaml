@@ -5758,7 +5758,6 @@ resourceDetail:
       favoriteAction: Add {resource} to your starred/favorites list
       unfavoriteAction: Remove {resource} from your starred/favorites list
     age: Age
-    createdBy: Created by
     restartCount: Pod Restarts
     defaultBannerMessage:
       error: This resource is currently in an error state, but there isn't a detailed message available.
@@ -8917,7 +8916,6 @@ component:
       metadata:
         labelsAndAnnotations: Labels and Annotations
         identifyingInformation:
-          createdBy: Created by
           namespace: Namespace
           project: Project
           age: Age

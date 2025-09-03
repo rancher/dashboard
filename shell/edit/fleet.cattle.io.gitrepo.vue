@@ -407,7 +407,6 @@ export default {
 
       if (this.mode === _CREATE) {
         this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_ID] = this.value.currentUser.id;
-        this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_NAME] = this.value.currentUser.username;
       }
     },
 

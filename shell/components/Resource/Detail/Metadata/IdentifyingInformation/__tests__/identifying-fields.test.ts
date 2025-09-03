@@ -1,6 +1,5 @@
 import {
-  useNamespace, useWorkspace, useLiveDate, useCreatedBy, useProject,
-  useResourceDetails
+  useNamespace, useWorkspace, useLiveDate, useProject, useResourceDetails
 } from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/identifying-fields';
 import { NAMESPACE, FLEET } from '@shell/config/types';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
@@ -119,41 +118,6 @@ describe('composables: IdentifyingFields', () => {
       });
       expect(result?.value.value).toStrictEqual(resource.creationTimestamp);
       expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.age');
-    });
-  });
-
-  describe('useCreatedBy', () => {
-    it('should return undefined if showCreatedBy is falsy', () => {
-      const resource = {};
-      const result = useCreatedBy(resource);
-
-      expect(result).toBeUndefined();
-    });
-
-    it('should return a valid createdBy row', () => {
-      mockStore.getters[`type-map/optionsFor`].mockReturnValue({ showAge: true });
-
-      const resource = { showCreatedBy: true, createdBy: { displayName: 'CREATED_BY' } };
-      const result = useCreatedBy(resource);
-
-      expect(result?.value.to).toBeUndefined();
-      expect(result?.value.value).toStrictEqual(resource.createdBy.displayName);
-      expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.createdBy');
-      expect(result?.value.dataTestid).toStrictEqual('masthead-subheader-createdBy');
-      expect(result?.value.valueDataTestid).toStrictEqual('masthead-subheader-createdBy_plain-text');
-    });
-
-    it('should return a valid createdBy row with createdBy.location', () => {
-      mockStore.getters[`type-map/optionsFor`].mockReturnValue({ showAge: true });
-
-      const resource = { showCreatedBy: true, createdBy: { displayName: 'CREATED_BY', location: 'LOCATION' } };
-      const result = useCreatedBy(resource);
-
-      expect(result?.value.to).toStrictEqual(resource.createdBy.location);
-      expect(result?.value.value).toStrictEqual(resource.createdBy.displayName);
-      expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.createdBy');
-      expect(result?.value.dataTestid).toStrictEqual('masthead-subheader-createdBy');
-      expect(result?.value.valueDataTestid).toStrictEqual('masthead-subheader-createdBy-link');
     });
   });
 
