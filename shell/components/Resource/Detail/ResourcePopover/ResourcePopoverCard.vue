@@ -27,7 +27,7 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
     <template #heading-action>
       <ActionMenu
         :resource="props.resource"
-        :button-aria-label="i18n.t('component.resource.detail.resourcePopoverCard.ariaLabel.actionMenu', { resource: props.resource.nameDisplay })"
+        :button-aria-label="i18n.t('component.resource.detail.glance.ariaLabel.actionMenu', { resource: props.resource.nameDisplay })"
         data-testid="resource-popover-action-menu"
         @action-invoked="emit('action-invoked')"
       />
