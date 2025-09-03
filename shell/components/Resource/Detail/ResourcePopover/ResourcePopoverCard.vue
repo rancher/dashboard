@@ -21,7 +21,7 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
 <template>
   <Card
     class="resource-popover-card"
-    :title="'cattle-system'"
+    :title="resource.nameDisplay"
   >
     <template #heading-action>
       <ActionMenu
