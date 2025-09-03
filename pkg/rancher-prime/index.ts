@@ -6,6 +6,7 @@ import routing from './routing/index';
 import { useI18n } from '@shell/composables/useI18n';
 import { usePrimeRegistration } from './pages/registration.composable';
 import { type Store } from 'vuex';
+import { NotificationLevel } from '@shell/types/notifications';
 
 /**
  * Trigger notification on plugin loaded and no active registration is found.
@@ -22,7 +23,7 @@ const setNotification = (store: Store<any>) => {
       const { t } = useI18n(store);
 
       const notification = {
-        level:         'error',
+        level:         NotificationLevel.Info,
         title:         t('registration.notification.title'),
         message:       t('registration.notification.message'),
         progress:      0,
