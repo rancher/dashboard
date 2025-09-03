@@ -63,12 +63,13 @@ export default {
 
   data() {
     let tlsMode = _VERIFY;
+    let caBundle = null;
 
     if ( this.value.spec.insecureSkipTLSVerify ) {
       tlsMode = _SKIP;
     } else if ( this.value.spec.caBundle ) {
       try {
-        this.caBundle = base64Decode(this.value.spec.caBundle);
+        caBundle = base64Decode(this.value.spec.caBundle);
         tlsMode = _SPECIFY;
       } catch (e) {
         // Hmm...
@@ -98,7 +99,7 @@ export default {
       password:                null,
       publicKey:               null,
       privateKey:              null,
-      caBundle:                null,
+      caBundle,
       tlsMode,
       correctDriftEnabled,
       pollingInterval,
@@ -180,8 +181,14 @@ export default {
   },
 
   watch: {
-    tlsMode:  'updateTls',
-    caBundle: 'updateTls',
+    tlsMode: {
+      handler:   'updateTls',
+      immediate: true
+    },
+    caBundle: {
+      handler:   'updateTls',
+      immediate: true
+    },
 
     workspace(neu) {
       if ( this.isCreate ) {
