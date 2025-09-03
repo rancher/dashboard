@@ -105,6 +105,8 @@ watch(
           <button
             class="focus-button role-secondary"
             :aria-label="i18n.t('component.resource.detail.glance.ariaLabel.showDetails', { name: fetch.data?.nameDisplay, resource: resourceTypeLabel })"
+            aria-haspopup="true"
+            :aria-expanded="showPopover"
             @click="showPopover=true; focusOpen=true;"
           >
             <i class="icon icon-chevron-down icon-sm" />
