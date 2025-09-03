@@ -1,5 +1,6 @@
 <script>
 import { NORMAN } from '@shell/config/types';
+import { isAdminUser } from '@shell/store/type-map';
 import ResourceTable from '@shell/components/ResourceTable';
 import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
@@ -14,21 +15,6 @@ export default {
 
   async fetch() {
     this.allDrivers = await this.$store.dispatch('rancher/findAll', { type: NORMAN.KONTAINER_DRIVER }, { root: true });
-
-    // Work out if the user has the admin role
-    const v3User = this.$store.getters['auth/v3User'] || {};
-
-    if (v3User?.links?.globalRoleBindings) {
-      try {
-        // Non-blocking fetch to get the user's global roles to see if they have the 'admin' role
-        this.$store.dispatch('management/request', { url: v3User.links.globalRoleBindings }).then((response) => {
-          const data = response?.data || [];
-          const isAdmin = !!data.find((role) => role.globalRoleId === 'admin');
-
-          this.showDeprecationBanner = isAdmin;
-        });
-      } catch {}
-    }
   },
 
   data() {
@@ -39,7 +25,7 @@ export default {
       schema:                           this.$store.getters['rancher/schemaFor'](NORMAN.KONTAINER_DRIVER),
       useQueryParamsForSimpleFiltering: false,
       forceUpdateLiveAndDelayed:        10,
-      showDeprecationBanner:            false,
+      showDeprecationBanner:            isAdminUser(this.$store.getters),
     };
   },
   computed: {
