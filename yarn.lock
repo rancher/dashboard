@@ -6431,6 +6431,11 @@ commondir@^1.0.1:
   resolved "https://registry.npmjs.org/commondir/-/commondir-1.0.1.tgz#ddd800da0c66127393cca5950ea968a3aaf1253b"
   integrity sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==
 
+compare-versions@^6.1.1:
+  version "6.1.1"
+  resolved "https://registry.yarnpkg.com/compare-versions/-/compare-versions-6.1.1.tgz#7af3cc1099ba37d244b3145a9af5201b629148a9"
+  integrity sha512-4hm4VPpIecmlg59CHXnRDnqGplJFrbLG4aFEl5vl6cK1u76ws3LLvX7ikFnTDl5vo39sjWD6AaDPYodJp/NNHg==
+
 compressible@~2.0.16:
   version "2.0.18"
   resolved "https://registry.npmjs.org/compressible/-/compressible-2.0.18.tgz#af53cca6b070d4c3c0750fbd77286a6d7cc46fba"
@@ -6943,6 +6948,15 @@ cypress-mochawesome-reporter@3.8.2:
     mochawesome "^7.1.3"
     mochawesome-merge "^4.2.1"
     mochawesome-report-generator "^6.2.0"
+
+cypress-terminal-report@^7.2.0:
+  version "7.2.1"
+  resolved "https://registry.yarnpkg.com/cypress-terminal-report/-/cypress-terminal-report-7.2.1.tgz#28f4a9c857e932b4c50a3d5c5b0fd0690db3e5a6"
+  integrity sha512-Mm6gWjenl/WlxStMRHqeZhN+rlKaxuNLwOCN13tCJbr8bcBXicHu0lXf7QYKuMxF7fEixNeWneu49C3ncmPhpg==
+  dependencies:
+    chalk "^4.0.0"
+    compare-versions "^6.1.1"
+    superstruct "0.14.2"
 
 cypress@11.1.0:
   version "11.1.0"
@@ -14660,6 +14674,11 @@ stylehacks@^5.1.1:
   dependencies:
     browserslist "^4.21.4"
     postcss-selector-parser "^6.0.4"
+
+superstruct@0.14.2:
+  version "0.14.2"
+  resolved "https://registry.yarnpkg.com/superstruct/-/superstruct-0.14.2.tgz#0dbcdf3d83676588828f1cf5ed35cda02f59025b"
+  integrity sha512-nPewA6m9mR3d6k7WkZ8N8zpTWfenFH3q9pA2PkuiZxINr9DKB2+40wEQf0ixn8VaGuJ78AB6iWOtStI+/4FKZQ==
 
 supports-color@^2.0.0:
   version "2.0.0"

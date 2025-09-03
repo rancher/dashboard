@@ -134,13 +134,23 @@ jobs:
           TEST_SKIP: setup
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
-          
-      - name: Upload screenshots
+
+      - name: Create Artifacts Folder
+        if: ${{ failure() }}
+        run: |
+          mkdir artifacts
+          cp -r cypress/screenshots artifacts
+          cp browser-logs/out.html artifacts/browser-logs.html
+
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
-          path: cypress/screenshots
+          name: ${{github.run_number}}-${{github.run_attempt}}-artifacts-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 5
+          compression-level: 9
 
   a11y-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
