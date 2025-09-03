@@ -16,6 +16,7 @@ import { ucFirst } from '@shell/utils/string';
 import { set } from '@shell/utils/object';
 import { mapFeature, RKE2 as RKE2_FEATURE } from '@shell/store/features';
 import { rke1Supports } from '@shell/store/plugins';
+import { getProviders } from '@shell/core/plugins.js';
 
 export default {
   name: 'CruCloudCredential',
@@ -101,23 +102,11 @@ export default {
   computed: {
     rke2Enabled: mapFeature(RKE2_FEATURE),
 
-    correspondingExtension() {
-      return this.extensions.find((x) => x.id === this.driverName);
-    },
-
     hasCustomCloudCredentialComponent() {
-      if (!!this.correspondingExtension && !!this.correspondingExtension.cloudCredential) {
-        return true;
-      }
-      const driverName = this.driverName;
-
-      return this.$store.getters['type-map/hasCustomCloudCredentialComponent'](driverName);
+      return this.getCustomCloudCredentialComponent(this.driverName);
     },
 
     cloudCredentialComponent() {
-      if (!!this.correspondingExtension && !!this.correspondingExtension.cloudCredential) {
-        return this.correspondingExtension.cloudCredential;
-      }
       const driverName = this.driverName;
 
       return this.$store.getters['type-map/importCloudCredential'](driverName);
@@ -155,7 +144,7 @@ export default {
         .filter((x) => x.spec.active && x.id !== 'rancherkubernetesengine')
         .map((x) => x.spec.displayName || x.id);
 
-      const fromExtensions = this.extensions.filter((x) => !!x.cloudCredential).map((x) => x.id);
+      const fromExtensions = this.extensions?.filter((x) => !!this.getCustomCloudCredentialComponent(x.id)).map((x) => x.id) || [];
       const providers = [...fromDrivers, ...fromExtensions];
 
       let types = uniq(providers.map((x) => this.$store.getters['plugins/credentialDriverFor'](x)));
@@ -229,25 +218,22 @@ export default {
     },
 
     getExtensions() {
-      // Custom Providers from extensions - initialize each with the store and the i18n service
-      try {
-        const extensionClasses = this.$plugin.listDynamic('provisioner').map((name) => this.$plugin.getDynamic('provisioner', name));
+      const context = {
+        dispatch: this.$store.dispatch,
+        getters:  this.$store.getters,
+        axios:    this.$store.$axios,
+        $plugin:  this.$store.app.$plugin,
+        t:        (...args) => this.t.apply(this, args),
+        isCreate: this.isCreate,
+        isEdit:   this.isEdit,
+        isView:   this.isView,
+      };
 
-        // We can't pass in this.$store as this leads to a circular-reference that causes Vue to freeze,
-        // so pass in specific services that the provisioner extension may need
-        this.extensions = extensionClasses.map((c) => new c({
-          dispatch: this.$store.dispatch,
-          getters:  this.$store.getters,
-          axios:    this.$store.$axios,
-          $plugin:  this.$store.app.$plugin,
-          t:        (...args) => this.t.apply(this, args),
-          isCreate: this.isCreate,
-          isEdit:   this.isEdit,
-          isView:   this.isView,
-        }));
-      } catch (e) {
-        console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console
-      }
+      this.extensions = getProviders(context);
+    },
+
+    getCustomCloudCredentialComponent(driverName) {
+      return this.$store.getters['type-map/hasCustomCloudCredentialComponent'](driverName);
     },
 
     async saveCredential(btnCb) {

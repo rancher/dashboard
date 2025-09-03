@@ -31,3 +31,16 @@ const deprecationProxy = (target, message) => {
 
   return new Proxy(target, proxyHandler);
 };
+
+export function getProviders(context) {
+  // Custom Providers from extensions - initialize each with the store and the i18n service
+  // Wrap in try ... catch, to prevent errors in an extension breaking the page
+  try {
+    const extensionClasses = context.$plugin.listDynamic('provisioner').map((name) => context.$plugin.getDynamic('provisioner', name));
+    const extensions = extensionClasses.map((c) => new c({ ...context }));
+
+    return extensions;
+  } catch (e) {
+    console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console
+  }
+}
