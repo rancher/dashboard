@@ -58,25 +58,25 @@ export default {
   mixins: [CreateEditView, FormValidation],
 
   async fetch() {
-    let tls = _VERIFY;
+    // Nothing to do
+  },
+
+  data() {
+    let tlsMode = _VERIFY;
 
     if ( this.value.spec.insecureSkipTLSVerify ) {
-      tls = _SKIP;
+      tlsMode = _SKIP;
     } else if ( this.value.spec.caBundle ) {
       try {
         this.caBundle = base64Decode(this.value.spec.caBundle);
-        tls = _SPECIFY;
+        tlsMode = _SPECIFY;
       } catch (e) {
         // Hmm...
       }
     }
 
-    this.tlsMode = tls;
+    const correctDriftEnabled = this.value.spec?.correctDrift?.enabled || false;
 
-    this.correctDriftEnabled = this.value.spec?.correctDrift?.enabled || false;
-  },
-
-  data() {
     let pollingInterval = toSeconds(this.value.spec.pollingInterval) || this.value.spec.pollingInterval;
 
     if (!pollingInterval) {
@@ -97,9 +97,9 @@ export default {
       password:                null,
       publicKey:               null,
       privateKey:              null,
-      tlsMode:                 null,
-      caBundle:                null,
-      correctDriftEnabled:     false,
+            caBundle:                null,
+tlsMode,
+      correctDriftEnabled,
       pollingInterval,
       ref,
       refValue,
