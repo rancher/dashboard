@@ -22,7 +22,6 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
   <Card
     class="resource-popover-card"
     :title="'cattle-system'"
-    dropdown-menu-item
   >
     <template #heading-action>
       <ActionMenu
