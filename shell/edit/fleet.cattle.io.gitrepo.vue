@@ -58,7 +58,7 @@ export default {
   mixins: [CreateEditView, FormValidation],
 
   async fetch() {
-    // Nothing to do
+    this.currentUser = await this.value.getCurrentUser();
   },
 
   data() {
@@ -92,13 +92,14 @@ export default {
     const refValue = this.value.spec?.[ref] || '';
 
     return {
+      currentUser:             {},
       tempCachedValues:        {},
       username:                null,
       password:                null,
       publicKey:               null,
       privateKey:              null,
-            caBundle:                null,
-tlsMode,
+      caBundle:                null,
+      tlsMode,
       correctDriftEnabled,
       pollingInterval,
       ref,
@@ -406,7 +407,7 @@ tlsMode,
       this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
 
       if (this.mode === _CREATE) {
-        this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_ID] = this.value.currentUser.id;
+        this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_ID] = this.currentUser.id;
       }
     },
 

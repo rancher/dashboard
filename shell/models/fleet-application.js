@@ -29,8 +29,19 @@ function normalizeStateCounts(data) {
 }
 
 export default class FleetApplication extends SteveModel {
-  get currentUser() {
-    return this.$rootGetters['auth/v3User'] || {};
+  async getCurrentUser() {
+    const user = this.$rootGetters['auth/v3User'];
+
+    if (user?.id) {
+      return user;
+    }
+
+    const res = await this.$dispatch('rancher/request', {
+      url:    '/v3/users?me=true',
+      method: 'get',
+    }, { root: true });
+
+    return res?.data?.[0] || {};
   }
 
   pause() {
