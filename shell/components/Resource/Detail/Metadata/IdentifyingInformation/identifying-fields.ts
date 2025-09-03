@@ -88,28 +88,6 @@ export const useLiveDate = (resource: any): ComputedRef<Row> | undefined => {
   }));
 };
 
-export const useCreatedBy = (resource: any): ComputedRef<Row> | undefined => {
-  const store = useStore();
-  const i18n = useI18n(store);
-  const resourceValue = toValue(resource);
-
-  if (!resourceValue.showCreatedBy) {
-    return;
-  }
-
-  return computed(() => {
-    const to = resourceValue.createdBy.location || undefined;
-
-    return {
-      label:           i18n.t('component.resource.detail.metadata.identifyingInformation.createdBy'),
-      value:           resourceValue.createdBy.displayName,
-      to,
-      dataTestid:      'masthead-subheader-createdBy',
-      valueDataTestid: to ? 'masthead-subheader-createdBy-link' : 'masthead-subheader-createdBy_plain-text'
-    };
-  });
-};
-
 export const useProject = (resource: any): ComputedRef<Row> | undefined => {
   const store = useStore();
   const i18n = useI18n(store);
