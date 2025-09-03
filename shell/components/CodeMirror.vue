@@ -327,7 +327,7 @@ export default {
 
       &:focus, &.focus {
         outline: none;
-        border-color: var(--outline);
+        border-color: var(--primary-border);
       }
 
       .CodeMirror-wrap pre {
