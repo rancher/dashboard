@@ -90,7 +90,7 @@ watch(
               :status="fetch.data?.stateBackground || 'unknown'"
             />
             <router-link
-              :to="props.detailLocation ||fetch.data.detailLocation"
+              :to="props.detailLocation || fetch.data.detailLocation || '#'"
             >
               {{ fetch.data.nameDisplay }}
             </router-link>
@@ -103,6 +103,7 @@ watch(
           </span>
           <span v-else>...</span>
           <button
+            v-if="fetch.data"
             class="focus-button role-secondary"
             :aria-label="i18n.t('component.resource.detail.glance.ariaLabel.showDetails', { name: fetch.data?.nameDisplay, resource: resourceTypeLabel })"
             aria-haspopup="true"
