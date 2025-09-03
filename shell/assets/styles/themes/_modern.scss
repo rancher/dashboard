@@ -79,7 +79,11 @@ BODY, .theme-light {
   --primary-light-bg           : #{rgba($primary, 0.05)};
   --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
 
-  --on-tertiary: var(--link);
+  --non-primary-hover: #{$primary-20};
+
+  --tertiary        : transparent;
+  --on-tertiary     : var(--link);
+  --tertiary-hover  : var(--non-primary-hover);
 
   --active                : #{$primary-110};
   --on-active             : #{$grey-0};
@@ -736,7 +740,13 @@ BODY, .theme-dark {
   --body-border: #5A5F6A;
   --link       : #{$primary-55};
 
-  --on-tertiary: var(--link);
+  --primary-border: var(--link);
+
+  --non-primary-hover: #{$primary-150};
+
+  --tertiary        : transparent;
+  --on-tertiary     : var(--link);
+  --tertiary-hover  : var(--non-primary-hover);
 
   --active                : #{$primary-50};
   --on-active             : #{$grey-90};
@@ -777,6 +787,8 @@ BODY, .theme-dark {
 
   // Header, Footer and Consent banner defaults
   --banner-text-color          : #{$lightest};
+
+  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l + 10));
 
   --nav-bg                     : #{$body-bg};
   --nav-active                 : #333;

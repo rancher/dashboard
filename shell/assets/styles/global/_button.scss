@@ -114,13 +114,18 @@ button,
 }
 
 .role-tertiary {
-  background: var(--accent-btn);
+  background: var(--tertiary, var(--accent-btn));
   border: solid 1px var(--primary);
-  color: var(--primary);
+  color: var(--on-tertiary, var(--primary));
+
+  &:hover {
+    background: var(--tertiary-hover);
+    color: var(--on-tertiary);
+  }
 
   &:focus, &.focused {
-    background-color: var(--primary-hover-bg);
-    color: var(--primary-text);
+    background-color: var(--tertiary-hover, var(--primary-hover-bg));
+    color: var(--on-tertiary, var(--primary-text));
   }
 
   &.btn:not(.btn-sm) {
