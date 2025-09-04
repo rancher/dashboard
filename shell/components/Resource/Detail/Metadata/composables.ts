@@ -5,7 +5,6 @@ import { useDefaultAnnotations } from '@shell/components/Resource/Detail/Metadat
 import { computed, toValue, Ref } from 'vue';
 import { useResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
 import {
-  useCreatedBy,
   useLiveDate, useNamespace, useProject, useResourceDetails, useWorkspace
 } from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/identifying-fields';
 
@@ -49,7 +48,6 @@ export const useDefaultMetadataForLegacyPagesProps = (resource: any) => {
   const workspace = useWorkspace(resource);
   const namespace = useNamespace(resource);
   const liveDate = useLiveDate(resource);
-  const createdBy = useCreatedBy(resource);
 
   const identifyingInformation = computed((): IdentifyingInformationRow[] => {
     const defaultInfo = [
@@ -57,7 +55,6 @@ export const useDefaultMetadataForLegacyPagesProps = (resource: any) => {
       workspace?.value,
       namespace?.value,
       liveDate?.value,
-      createdBy?.value,
     ];
     const info = [
       ...defaultInfo,

@@ -58,25 +58,26 @@ export default {
   mixins: [CreateEditView, FormValidation],
 
   async fetch() {
-    let tls = _VERIFY;
+    this.currentUser = await this.value.getCurrentUser();
+  },
+
+  data() {
+    let tlsMode = _VERIFY;
+    let caBundle = null;
 
     if ( this.value.spec.insecureSkipTLSVerify ) {
-      tls = _SKIP;
+      tlsMode = _SKIP;
     } else if ( this.value.spec.caBundle ) {
       try {
-        this.caBundle = base64Decode(this.value.spec.caBundle);
-        tls = _SPECIFY;
+        caBundle = base64Decode(this.value.spec.caBundle);
+        tlsMode = _SPECIFY;
       } catch (e) {
         // Hmm...
       }
     }
 
-    this.tlsMode = tls;
+    const correctDriftEnabled = this.value.spec?.correctDrift?.enabled || false;
 
-    this.correctDriftEnabled = this.value.spec?.correctDrift?.enabled || false;
-  },
-
-  data() {
     let pollingInterval = toSeconds(this.value.spec.pollingInterval) || this.value.spec.pollingInterval;
 
     if (!pollingInterval) {
@@ -92,14 +93,15 @@ export default {
     const refValue = this.value.spec?.[ref] || '';
 
     return {
+      currentUser:             {},
       tempCachedValues:        {},
       username:                null,
       password:                null,
       publicKey:               null,
       privateKey:              null,
-      tlsMode:                 null,
-      caBundle:                null,
-      correctDriftEnabled:     false,
+      caBundle,
+      tlsMode,
+      correctDriftEnabled,
       pollingInterval,
       ref,
       refValue,
@@ -179,8 +181,14 @@ export default {
   },
 
   watch: {
-    tlsMode:  'updateTls',
-    caBundle: 'updateTls',
+    tlsMode: {
+      handler:   'updateTls',
+      immediate: true
+    },
+    caBundle: {
+      handler:   'updateTls',
+      immediate: true
+    },
 
     workspace(neu) {
       if ( this.isCreate ) {
@@ -406,8 +414,7 @@ export default {
       this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
 
       if (this.mode === _CREATE) {
-        this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_ID] = this.value.currentUser.id;
-        this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_NAME] = this.value.currentUser.username;
+        this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_ID] = this.currentUser.id;
       }
     },
 
