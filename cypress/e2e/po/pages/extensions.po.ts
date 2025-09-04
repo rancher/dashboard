@@ -158,7 +158,7 @@ export default class ExtensionsPagePo extends PagePo {
 
     selectVersion.toggle();
 
-    return selectVersion.clickOptionWithLabel(label);
+    return selectVersion.setOptionAndClick(label);
   }
 
   installModalSelectVersionClick(optionIndex: number): Cypress.Chainable {

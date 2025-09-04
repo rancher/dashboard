@@ -186,14 +186,8 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     extensionsPo.extensionInstallModal().should('be.visible');
 
     cy.get('@harvesterVersions').then((versions) => {
-      // Note - `versions` contains ALL versions regardless of if they are applicable or not (incompatible rancher version, kube version, etc)
-      // So we can't use anything indexed based related to it (new, incompatible versions are introduced at the top)
-      // So just hardcode it instead
-      const initialVersion = '1.5.0';
-      const upgradeVersion = '1.5.1';
-
       // select older version and click install
-      extensionsPo.installModalSelectVersionLabel(initialVersion);
+      extensionsPo.installModalSelectVersionClick(2);
       extensionsPo.installModalInstallClick();
       cy.wait('@installHarvesterExtension').its('response.statusCode').should('eq', 201);
       extensionsPo.waitForPage(null, 'installed');
@@ -203,7 +197,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.loading().should('not.exist');
 
       // check harvester version on card - should not be older version
-      extensionsPo.extensionCardVersion(harvesterGitRepoName).should('contain', initialVersion);
+      extensionsPo.extensionCardVersion(harvesterGitRepoName).should('contain', versions[1]);
 
       harvesterPo.goTo();
       harvesterPo.waitForPage();
@@ -216,7 +210,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       // wait for update version update
       cy.wait('@upgradeHarvesterExtension', EXTRA_LONG_TIMEOUT_OPT).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(201);
-        expect(request?.body?.charts[0].version).to.eq(upgradeVersion);
+        expect(request?.body?.charts[0].version).to.eq(versions[0]);
       });
       cy.wait('@updateHarvesterChart', EXTRA_LONG_TIMEOUT_OPT);
 
@@ -228,7 +222,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.waitForPage(null, 'installed');
       extensionsPo.loading().should('not.exist');
       // check harvester version on card after update - should be latest
-      extensionsPo.extensionCardVersion(harvesterGitRepoName).should('contain', upgradeVersion);
+      extensionsPo.extensionCardVersion(harvesterGitRepoName).should('contain', versions[0]);
     });
   });
 
