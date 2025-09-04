@@ -1,3 +1,16 @@
+$grey-100   : #000000;
+$grey-90    : #141619;
+$grey-80    : #25282D;
+$grey-70    : #31353F;
+$grey-60    : #4A4D52;
+$grey-50    : #6C6F76;
+$grey-40    : #92959B;
+$grey-30    : #B6BAC2;
+$grey-20    : #DCDFE7;
+$grey-10    : #EEF0F4;
+$grey-5     : #F5F7FA;
+$grey-0     : #FFFFFF;
+
 // Local variables for reused colors
 //light main text
 $darkest   : #141419;
@@ -23,9 +36,20 @@ $lightest  : #FFFFFF;
 //color for items that are not enabled
 $disabled  : $medium;
 
-$primary         : #3D98D3;
-$secondary       : $darker;
-$link            : #3D98D3;
+$primary         : #2F68DF;
+$primary-150     : #1A2A4D;
+$primary-140     : #304778; // Active light
+$primary-120     : #3459A8;
+$primary-110     : #496192;
+$primary-80      : #4871C7;
+$primary-75      : #454968; // Category active dark
+$primary-60      : #75A1FF;
+$primary-55      : #81AEFC;
+$primary-50      : #B3CBFF; // Active dark
+$primary-20      : #EDF2FC;
+$primary-15      : #EEF1F6; // Category active light
+$secondary       : $grey-50;
+$link            : $primary-80;
 
 // Status colors
 $success         : #5D995D;
@@ -55,6 +79,22 @@ BODY, .theme-light {
   --primary-light-bg           : #{rgba($primary, 0.05)};
   --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
 
+  --non-primary-hover: #{$primary-20};
+
+  --secondary        : var(--body-bg);
+  --secondary-border : #{$primary};
+  --on-secondary     : #{$primary};
+  --secondary-hover  : var(--non-primary-hover);
+
+  --tertiary        : transparent;
+  --on-tertiary     : var(--link);
+  --tertiary-hover  : var(--non-primary-hover);
+
+  --active                : #{$primary-110};
+  --on-active             : #{$grey-0};
+  --active-hover          : #{lighten($primary-110, 5%)};
+  --category-active       : #{$primary-15};
+  --category-active-hover : #{$grey-20};
 
   .text-primary {
     color: var(--primary) !important;
@@ -372,10 +412,13 @@ BODY, .theme-light {
   --header-height              : 55px;
   --header-border              : #{$medium};
   --header-border-size         : 1px;
+
   --nav-width                  : 250px;
   --nav-bg                     : #{$lightest};
   --nav-active                 : #{$light};
-  --nav-hover                  : #{$medium};
+  --nav-hover                  : #{$grey-10};
+  --nav-active-hover           : var(--active-hover);
+  --nav-hover-top-level        : var(--nav-hover);
   --nav-expander-hover         : #{darken($medium, 10%)};
   --nav-border                 : #{$medium};
   --nav-border-size            : 1px;
@@ -412,7 +455,7 @@ BODY, .theme-light {
   --overlay-bg                 : rgba(38, 42, 64, 0.35);
   --shadow                     : #{rgba($medium, 0.85)};
 
-  --checkbox-tick              : #{$lightest};
+  --checkbox-tick              : var(--on-active);
   --checkbox-border            : #{$medium};
   --checkbox-tick-disabled     : #{darken($disabled, 40%)};
   --checkbox-disabled-bg       : #{$disabled};
@@ -684,8 +727,31 @@ BODY, .theme-dark {
   $contrasted-light: $darkest !default;
 
   $drag-over: #DCDEE7;
+  $body-bg  : #2F2F42;
 
   $slate: #4B4F6B;
+
+  --body-border: #5A5F6A;
+  --link       : #{$primary-55};
+
+  --primary-border: var(--link);
+
+  --non-primary-hover: #{$primary-150};
+
+  --secondary: var(--body-bg);
+  --secondary-border: #{$primary-60};
+  --on-secondary: #{$primary-60};
+  --secondary-hover: var(--non-primary-hover);
+
+  --tertiary        : transparent;
+  --on-tertiary     : var(--link);
+  --tertiary-hover  : var(--non-primary-hover);
+
+  --active                : #{$primary-50};
+  --on-active             : #{$grey-90};
+  --active-hover          : #{darken($primary-50, 5%)};
+  --category-active       : #{$primary-75};
+  --category-active-hover : #{$grey-70};
 
   --slate: #{$slate};
 
@@ -704,14 +770,14 @@ BODY, .theme-dark {
   --muted                      : #{$disabled};
   --deemphasized               : #{$disabled};
 
-  --body-bg                    : #{$darker};
+  --body-bg                    : #{$body-bg};
   --body-text                  : #{$lightest};
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$medium};
 
   --side-menu-desc             : #{$desc-light};
 
-  --header-bg                  : #{$darker};
+  --header-bg                  : #{$body-bg};
   --header-border              : #{$medium};
   --header-btn-bg              : transparent;
   --header-btn-text            : #{$lightest};
@@ -721,10 +787,14 @@ BODY, .theme-dark {
   // Header, Footer and Consent banner defaults
   --banner-text-color          : #{$lightest};
 
-  --nav-bg                     : #{$darkest};
+  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l + 10));
+
+  --nav-bg                     : #{$body-bg};
   --nav-active                 : #333;
   --nav-border                 : #{$medium};
-  --nav-hover                  : var(--primary);
+  --nav-hover                  : #{lighten($body-bg, 10%)};
+  --nav-active-hover           : var(--active-hover);
+  --nav-hover-top-level        : var(--nav-hover);
   --nav-expander-hover         : var(--primary-banner-bg);
   --nav-icon-badge-bg          : #{$dark};
 
@@ -734,7 +804,7 @@ BODY, .theme-dark {
   --subtle-border              : #{$darkest};
   --border                     : #{$medium};
 
-  --topmenu-bg                 : #{$darkest};
+  --topmenu-bg                 : #{$body-bg};
   --topmenu-text               : #{$lightest};
   --topmost-border             : #{$medium};
   --topmost-shadow             : #{lighten($darkest, 5%)};
@@ -750,7 +820,7 @@ BODY, .theme-dark {
   --overlay-bg                 : #{rgba($darkest, 0.75)};
   --shadow                     : #{rgba($darkest, 0.9)};
 
-  --checkbox-tick              : #{$lightest};
+  --checkbox-tick              : var(--on-active);
   --checkbox-border            : #{$medium};
   --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
   --checkbox-disabled-bg       : #{$disabled};
@@ -904,6 +974,11 @@ BODY, .theme-dark {
   $slate: #4B4F6B;
 
   --slate: #{$slate};
+
+  --border: var(--body-border);
+  --nav-border: var(--body-border);
+  --topmost-border: var(--body-border);
+  --header-border: var(--body-border);
 
   --link-text-secondary: #{$secondary};
 

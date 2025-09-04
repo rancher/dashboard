@@ -1,62 +1,8 @@
-// Local variables for reused colors
-//light main text
-$darkest   : #141419;
-
-//light secondary
-$darker    : #6C6C76;
-
-//light disabled
-$dark      : #B6B6C2;
-
-//light border and buttons
-$medium    : #DCDEE7;
-
-//light inputs
-$light     : #EEEFF4;
-
-//light sidebar and box
-$lighter   : #F4F5FA;
-
-//light body bg
-$lightest  : #FFFFFF;
-
-//color for items that are not enabled
-$disabled  : $medium;
-
-$primary         : #3D98D3;
-$secondary       : $darker;
-$link            : #3D98D3;
-
-// Status colors
-$success         : #5D995D;
-$warning         : #DAC342;
-$error           : #F64747;
-$info            : #3D98D3;
-
-$contrasted-dark: $darkest !default;
-$contrasted-light: $lightest !default;
-
-// Text selection color for terminal window (we don't want this to change with the primary color)
-// The terminal alway uses a light background, so okay to use a fixed color
-$selected: rgba(#3D98D3, .5);
-
-$drag-over: #DCDEE7;
+@import "~shell/assets/styles/base/_color-classic.scss";
+@import "~shell/assets/styles/base/_variables-classic.scss";
 
 .classic {
   &.theme-light {
-
-    --primary                    : #{$primary};
-    --primary-text               : #{contrast-color($primary)};
-    --primary-hover-bg           : #{darken($primary, 10%)};
-    --primary-hover-text         : #{saturate($lightest, 20%)};
-    --primary-active-bg          : #{darken($primary, 25%)};
-    --primary-active-text        : #{contrast-color(darken($primary, 25%))};
-    --primary-border             : #{$primary};
-    --primary-banner-bg          : #{rgba($primary, 0.15)};
-    --primary-light-bg           : #{rgba($primary, 0.05)};
-    --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
-
-
     .text-primary {
       color: var(--primary) !important;
     }
@@ -76,19 +22,6 @@ $drag-over: #DCDEE7;
         background: var(--primary-active-bg);
         }
     }
-
-    --link                    : #{$link};
-    --link-text               : #{contrast-color($link)};
-    --link-text-secondary     : #{$darker};
-    --link-hover-bg           : #{darken($link, 10%)};
-    --link-hover-text         : #{saturate($lightest, 20%)};
-    --link-active-bg          : #{darken($link, 25%)};
-    --link-active-text        : #{contrast-color(darken($link, 25%))};
-    --link-border             : #{$link};
-    --link-banner-bg          : #{rgba($link, 0.15)};
-    --link-light-bg           : #{rgba($link, 0.05)};
-
-
 
     .text-link {
       color: var(--link) !important;
@@ -377,6 +310,7 @@ $drag-over: #DCDEE7;
     --nav-bg                     : #{$lightest};
     --nav-active                 : #{$light};
     --nav-hover                  : #{$medium};
+    --nav-hover-top-level        : var(--primary-hover-bg);
     --nav-expander-hover         : #{darken($medium, 10%)};
     --nav-border                 : #{$medium};
     --nav-border-size            : 1px;
