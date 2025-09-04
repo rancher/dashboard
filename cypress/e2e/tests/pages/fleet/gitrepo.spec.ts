@@ -11,7 +11,6 @@ const fakeProvClusterId = 'some-fake-cluster-id';
 const fakeMgmtClusterId = 'some-fake-mgmt-id';
 
 describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
-  let adminUsername = '';
   let adminUserId = '';
 
   describe('Create', () => {
@@ -41,7 +40,6 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
     beforeEach(() => {
       cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
         adminUserId = resp.body.data[0].id.trim();
-        adminUsername = resp.body.data[0].username.trim();
       });
 
       cy.createE2EResourceName('git-repo').as('gitRepo');
@@ -119,7 +117,6 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
       });
 
       cy.wait('@interceptGitRepo').then(({ request, response }) => {
-        gitRepoCreateRequest.metadata.labels['fleet.cattle.io/created-by-display-name'] = adminUsername;
         gitRepoCreateRequest.metadata.labels['fleet.cattle.io/created-by-user-id'] = adminUserId;
         gitRepoCreateRequest.spec.helmSecretName = helmSecretName;
         gitRepoCreateRequest.spec.clientSecretName = gitSecretName; // Git SSH credentials

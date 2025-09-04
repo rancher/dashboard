@@ -2,7 +2,7 @@ import { convert, matching, convertSelectorObj } from '@shell/utils/selector';
 import jsyaml from 'js-yaml';
 import isEmpty from 'lodash/isEmpty';
 import { escapeHtml } from '@shell/utils/string';
-import { FLEET, MANAGEMENT } from '@shell/config/types';
+import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
@@ -42,8 +42,19 @@ function normalizeStateCounts(data) {
 }
 
 export default class GitRepo extends SteveModel {
-  get currentUser() {
-    return this.$rootGetters['auth/v3User'] || {};
+  async getCurrentUser() {
+    const user = this.$rootGetters['auth/v3User'];
+
+    if (user?.id) {
+      return user;
+    }
+
+    const res = await this.$dispatch('rancher/request', {
+      url:    '/v3/users?me=true',
+      method: 'get',
+    }, { root: true });
+
+    return res?.data?.[0] || {};
   }
 
   applyDefaults() {
@@ -139,10 +150,6 @@ export default class GitRepo extends SteveModel {
   goToClone() {
     if (this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID]) {
       delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
-    }
-
-    if (this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME]) {
-      delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
     }
 
     super.goToClone();
@@ -507,42 +514,5 @@ export default class GitRepo extends SteveModel {
 
   get clustersList() {
     return this.$getters['all'](FLEET.CLUSTER);
-  }
-
-  get authorId() {
-    return this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
-  }
-
-  get author() {
-    if (this.authorId) {
-      return this.$rootGetters['management/byId'](MANAGEMENT.USER, this.authorId);
-    }
-
-    return null;
-  }
-
-  get createdBy() {
-    const displayName = this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
-
-    if (!displayName) {
-      return null;
-    }
-
-    return {
-      displayName,
-      location: !this.author ? null : {
-        name:   'c-cluster-product-resource-id',
-        params: {
-          cluster:  '_',
-          product:  'auth',
-          resource: MANAGEMENT.USER,
-          id:       this.author.id,
-        }
-      }
-    };
-  }
-
-  get showCreatedBy() {
-    return !!this.createdBy;
   }
 }

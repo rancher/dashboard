@@ -126,7 +126,6 @@ export const FLEET = {
   CLUSTER_NAMESPACE:    'fleet.cattle.io/cluster-namespace',
   CLUSTER:              'fleet.cattle.io/cluster',
   CREATED_BY_USER_ID:   'fleet.cattle.io/created-by-user-id',
-  CREATED_BY_USER_NAME: 'fleet.cattle.io/created-by-display-name',
 };
 
 export const RBAC = { PRODUCT: 'management.cattle.io/ui-product' };
