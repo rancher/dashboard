@@ -1,0 +1,91 @@
+name: Notify Slack on Milestone Change
+
+on:
+  issues:
+    types: [milestoned, demilestoned]
+
+permissions:
+  issues: read
+  organization_projects: read # Needed for some GitHub API calls related to teams
+
+env:
+  TEAM_NAME: "rancher/ui"
+
+jobs:
+  notify-on-milestone-change:
+    runs-on: ubuntu-latest
+    steps:
+    - name: "Check if user is in a team"
+      id: check-team-membership
+      uses: actions/github-script@v7
+      with:
+        script: |
+          try {
+            // Get the team name from the environment variable.
+            const [org, teamSlug] = process.env.TEAM_NAME.split('/');
+            // Check if the user who triggered the event is a member of the specified team.
+            const { status } = await github.rest.teams.getMembershipForUserInOrg({
+                org: org,
+                team_slug: teamSlug,
+                username: context.payload.sender.login,
+            });
+
+            // Set an output variable based on the check.
+            // Status 200 means the user is a member, 404 means they are not.
+            console.log(`Membership check status: ${status}`);
+            if (status === 200) {
+                core.setOutput('is_member', 'true');
+            } else {
+                core.setOutput('is_member', 'false');
+            }
+          } catch (error) {
+            // If the user is not found, or there's an API error,
+            // we assume they are not a member for the purpose of this script.
+            console.error('An error occurred during team membership check:', error);
+            core.setOutput('is_member', 'false');
+          }
+    - name: "Send Slack message if user is not a team member"
+      # This step only runs if the 'is_member' output from the previous step is 'false'.
+      if: steps.check-team-membership.outputs.is_member == 'false'
+      uses: slackapi/slack-github-action@v1.26.0
+      with:
+        payload: |
+          {
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": "🚨 Unexpected Milestone Changed on an Issue",
+                  "emoji": true
+                }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Issue:* <${{ github.event.issue.html_url }}|${{ github.event.issue.title }}>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Changed by:* ${{ github.event.sender.login }}"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Old Milestone:* `${{ github.event.issue.milestone.title }}`"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*New Milestone:* `${{ github.event.issue.milestone.title }}`"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Reason:* The user who changed the milestone is not a member of ${{env.TEAM_NAME}}."
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
