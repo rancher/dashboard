@@ -204,28 +204,24 @@ export default {
         pagination.filters = [];
       }
 
-      const field = `involvedObject.uid`;
+      // Determine the field and value based on type
+      const isNamespace = this.value?.type === 'namespace';
+      const field = isNamespace ? 'metadata.namespace' : 'involvedObject.uid';
+      const value = isNamespace ? this.value.metadata.name : this.value.metadata.uid;
 
-      // of type PaginationParamFilter
-      let existing = null;
+      // Check if a filter for this field already exists
+      const existing = pagination.filters.find((f) => f.fields.some((ff) => ff.field === field));
 
-      for (let i = 0; i < pagination.filters.length; i++) {
-        const filter = pagination.filters[i];
-
-        if (!!filter.fields.find((f) => f.field === field)) {
-          existing = filter;
-          break;
-        }
-      }
-
+      // Create the required filter
       const required = PaginationParamFilter.createSingleField({
         field,
         exact:  true,
-        value:  this.value.metadata.uid,
+        value,
         equals: true
       });
 
-      if (!!existing) {
+      // Merge or add the filter
+      if (existing) {
         Object.assign(existing, required);
       } else {
         pagination.filters.push(required);
@@ -264,6 +260,13 @@ export default {
       name="events"
       :weight="-2"
     >
+      <!-- Caption for namespace pages -->
+      <div
+        v-if="value?.type === 'namespace'"
+        class="tab-caption"
+      >
+        Shows all events from resources in &nbsp;<span class="namespace-name">{{ value.metadata.name }}</span> namespace
+      </div>
       <!-- namespaced: false given we don't want the default handling of namespaced resource (apply header filter)  -->
       <PaginatedResourceTable
         :schema="eventSchema"
@@ -316,6 +319,18 @@ export default {
       padding: 0;
       padding-top: 24px;
     }
+  }
+}
+/* Caption for namespace events tab */
+.tab-caption {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+
+  .namespace-name {
+    font-weight: bold;
+    font-size: 16px;
+    margin-right: 5px;
   }
 }
 </style>
