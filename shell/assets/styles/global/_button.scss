@@ -85,18 +85,19 @@ button,
 }
 
 .role-secondary {
-  background: transparent;
-  color: var(--primary) !important;
-  border: solid 1px var(--primary);
+  background: var(--secondary, transparent);
+  color: var(--on-secondary, var(--primary)) !important;
+  border: solid 1px var(--secondary-border, var(--primary));
   line-height: $btn-height - 2px;
 
   &:hover, &._hover {
-    color: var(--lightest) !important;
+    background: var(--secondary-hover, transparent);
+    color: var(--on-secondary, var(--lightest)) !important;
   }
 
   &:focus, &.focused {
-    background-color: var(--primary-hover-bg);
-    color: var(--primary-text) !important;
+    background-color: var(--secondary-hover, var(--primary-hover-bg));
+    color: var(--on-secondary, var(--primary-text)) !important;
   }
 
   &.btn-sm {
@@ -115,7 +116,6 @@ button,
 
 .role-tertiary {
   background: var(--tertiary, var(--accent-btn));
-  border: solid 1px var(--primary);
   color: var(--on-tertiary, var(--primary));
 
   &:hover {

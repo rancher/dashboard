@@ -81,6 +81,11 @@ BODY, .theme-light {
 
   --non-primary-hover: #{$primary-20};
 
+  --secondary        : var(--body-bg);
+  --secondary-border : #{$primary};
+  --on-secondary     : #{$primary};
+  --secondary-hover  : var(--non-primary-hover);
+
   --tertiary        : transparent;
   --on-tertiary     : var(--link);
   --tertiary-hover  : var(--non-primary-hover);
@@ -450,7 +455,7 @@ BODY, .theme-light {
   --overlay-bg                 : rgba(38, 42, 64, 0.35);
   --shadow                     : #{rgba($medium, 0.85)};
 
-  --checkbox-tick              : #{$lightest};
+  --checkbox-tick              : var(--on-active);
   --checkbox-border            : #{$medium};
   --checkbox-tick-disabled     : #{darken($disabled, 40%)};
   --checkbox-disabled-bg       : #{$disabled};
@@ -744,6 +749,11 @@ BODY, .theme-dark {
 
   --non-primary-hover: #{$primary-150};
 
+  --secondary: var(--body-bg);
+  --secondary-border: #{$primary-60};
+  --on-secondary: #{$primary-60};
+  --secondary-hover: var(--non-primary-hover);
+
   --tertiary        : transparent;
   --on-tertiary     : var(--link);
   --tertiary-hover  : var(--non-primary-hover);
@@ -821,7 +831,7 @@ BODY, .theme-dark {
   --overlay-bg                 : #{rgba($darkest, 0.75)};
   --shadow                     : #{rgba($darkest, 0.9)};
 
-  --checkbox-tick              : #{$lightest};
+  --checkbox-tick              : var(--on-active);
   --checkbox-border            : #{$medium};
   --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
   --checkbox-disabled-bg       : #{$disabled};

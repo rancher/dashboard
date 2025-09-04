@@ -284,12 +284,12 @@ $fontColor: var(--input-label);
 
   .radio-custom {
     &[aria-checked="true"] {
-      background-color: var(--primary);
+      background-color: var(--active, var(--primary));
       -webkit-transform: rotate(0deg) scale(1);
       -ms-transform: rotate(0deg) scale(1);
       transform: rotate(0deg) scale(1);
       opacity:1;
-      border: 1.5px solid var(--primary);
+      border: 1.5px solid var(--active, var(--primary));
 
       // Ensure that checked radio buttons are muted but still visibly selected when muted
       &.text-muted {
