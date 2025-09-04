@@ -416,11 +416,11 @@ export default class GitRepo extends SteveModel {
   }
 
   statusResourceCountsForCluster(clusterId) {
-    if (!this.targetClusters.some((c) => c.id === clusterId)) {
+    if (!(this.targetClusters || []).some((c) => c.id === clusterId)) {
       return {};
     }
 
-    return this.status?.perClusterResourceCounts[clusterId] || { desiredReady: 0 };
+    return this.status?.perClusterResourceCounts?.[clusterId] || { desiredReady: 0 };
   }
 
   get resourcesStatuses() {
