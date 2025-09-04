@@ -4,7 +4,6 @@ import { useDefaultLabels } from '@shell/components/Resource/Detail/Metadata/Lab
 import { useDefaultAnnotations } from '@shell/components/Resource/Detail/Metadata/Annotations/composable';
 import { computed, toValue, Ref } from 'vue';
 import {
-  useCreatedBy,
   useLiveDate, useNamespace, useProject, useResourceDetails, useWorkspace
 } from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/identifying-fields';
 
@@ -48,7 +47,6 @@ export const useDefaultMetadataForLegacyPagesProps = (resource: any) => {
   const workspace = useWorkspace(resource);
   const namespace = useNamespace(resource);
   const liveDate = useLiveDate(resource);
-  const createdBy = useCreatedBy(resource);
   const resourceValue = toValue(resource);
 
   const identifyingInformation = computed((): IdentifyingInformationRow[] => {
@@ -57,7 +55,6 @@ export const useDefaultMetadataForLegacyPagesProps = (resource: any) => {
       workspace?.value,
       namespace?.value,
       liveDate?.value,
-      createdBy?.value,
     ];
     const info = [
       ...defaultInfo,
@@ -74,7 +71,7 @@ export const useDefaultMetadataForLegacyPagesProps = (resource: any) => {
       identifyingInformation: identifyingInformation.value,
       labels:                 basicMetaData.value.labels,
       annotations:            basicMetaData.value.annotations,
-      onShowConfiguration:    (returnFocusSelector: string) => resourceValue.showConfiguration(returnFocusSelector)
+      onShowConfiguration:    (returnFocusSelector?: string) => resourceValue.showConfiguration(returnFocusSelector)
     };
   });
 };
