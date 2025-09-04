@@ -260,5 +260,16 @@
     .secondary-text-link {
       color: var(--link-text-secondary);
     }
+
+    --rc-active-background: #{$gray006};
+    --rc-active-disabled-background: #{$gray006};
+    --rc-active-border: #{$gray005};
+  
+    --rc-inactive-border: #{$gray005};
+    --rc-inactive-background: #{$gray005};
+    --rc-inactive-disabled-border: #{$gray004};
+  
+    --rc-disabled-background: #{$gray005};
+    --rc-disabled-text-color: #{$gray004};
   }
 }

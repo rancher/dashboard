@@ -47,4 +47,18 @@ describe('component: RcTag', () => {
 
     expect(wrapper.emitted('close')).toBeTruthy();
   });
+
+  it('should add the aria-label to the button when specified', () => {
+    const closeAria = 'CLOSE_ARIA';
+    const wrapper = mount(RcTag, {
+      props: {
+        type: 'active', disabled: true, showClose: true, closeAriaLabel: closeAria
+      }
+    });
+
+    const shapeEl = wrapper.find('.rc-tag');
+    const close = shapeEl.find('button');
+
+    expect(close.attributes('aria-label')).toBe(closeAria);
+  });
 });

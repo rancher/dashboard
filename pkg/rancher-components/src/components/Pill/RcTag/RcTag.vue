@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RcTagProps } from '@components/Pill/RcTag/types';
+import { RcTagProps } from './types';
 
 const props = withDefaults(defineProps<RcTagProps>(), { disabled: false, showClose: false });
 const emit = defineEmits(['close']);
@@ -13,6 +13,7 @@ const emit = defineEmits(['close']);
     <slot name="default" />
     <button
       v-if="props.showClose"
+      :aria-label="props.closeAriaLabel"
       @click="emit('close')"
     >
       <i class="icon icon-close" />
@@ -37,18 +38,24 @@ const emit = defineEmits(['close']);
     font-style: normal;
     font-weight: 400;
     line-height: 22px;
+    color: var(--body-text);
 
     button {
       $size: 12px;
       padding: 0;
       line-height: $size;
       min-height: $size;
+      background: none;
 
       &, .icon-close {
         width: $size;
         height: $size;
         font-size: $size;
       }
+    }
+
+    &.disabled button {
+      cursor: not-allowed;
     }
 
     &.active {

@@ -17,6 +17,10 @@ const meta: Meta<typeof RcTag> = {
       control:     { type: 'boolean' },
       description: 'Specified if the close button is visible.'
     },
+    closeAriaLabel: {
+      control:     { type: 'text' },
+      description: 'Adds an aria-label to the close button.'
+    },
     default: {
       control: { type: 'text' },
       name:    'default slot'
@@ -40,6 +44,6 @@ const Default: Story = {
 export const Example: Story = {
   ...Default,
   args: {
-    type: 'inactive', disabled: false, showClose: false, default: 'key: value'
+    type: 'inactive', disabled: false, showClose: false, closeAriaLabel: 'Close', default: 'key: value',
   },
 };
