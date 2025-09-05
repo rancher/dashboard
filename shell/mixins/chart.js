@@ -230,15 +230,21 @@ export default {
     },
 
     action() {
-      if (this.existing) {
-        if (this.currentVersion === this.targetVersion) {
-          return { name: 'update', tKey: 'edit2', icon: 'icon-edit' };
-        }
-
-        return { name: 'upgrade', tKey: 'upgrade', icon: 'icon-upgrade-alt' };
+      if (!this.existing) {
+        return {
+          name: 'install', tKey: 'install', icon: 'icon-plus'
+        };
       }
 
-      return { name: 'install', tKey: 'install', icon: 'icon-plus' };
+      if (this.currentVersion === this.targetVersion) {
+        return {
+          name: 'update', tKey: 'edit2', icon: 'icon-edit'
+        };
+      }
+
+      return {
+        name: 'upgrade', tKey: 'upgrade', icon: 'icon-upgrade-alt'
+      };
     },
 
     isChartTargeted() {

@@ -29,7 +29,10 @@ describe('chartMixin', () => {
             return () => 'repo';
           },
           'catalog/chart': () => {
-            return { id: chartId };
+            return {
+              id:                    chartId,
+              matchingInstalledApps: []
+            };
           },
           'i18n/t': () => jest.fn()
         }
@@ -113,7 +116,9 @@ describe('chartMixin', () => {
             return () => 'repo';
           },
           'catalog/chart': () => {
-            return { id: 'chart-id', versions: [{ version: '1.0.0' }] };
+            return {
+              id: 'chart-id', versions: [{ version: '1.0.0' }], matchingInstalledApps: []
+            };
           },
           'catalog/version': jest.fn(),
           'prefs/get':       () => {},

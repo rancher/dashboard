@@ -1331,7 +1331,7 @@ catalog:
     noTools: "No Cluster Tools found"
     action:
       install: Install
-      upgrade: Upgrade/Edit
+      upgrade: Upgrade
       edit: Edit
       remove: Remove
       manage: Manage
