@@ -12,18 +12,20 @@ import cleanHtmlDirective from '@shell/directives/clean-html';
 import trimWhitespaceDirective from '@shell/directives/trim-whitespace';
 import htmlStrippedAriaLabelDirective from '@shell/directives/strip-html-aria-label';
 import store from './store'
+import 'floating-vue/dist/style.css';
 
 // i18n
 import i18n from '@shell/plugins/i18n';
 
 setup((vueApp) => {
-  vueApp.use(i18n, { store: { dispatch() {} } });
+  vueApp.use(store);
+  vueApp.use(i18n, { store });
   vueApp.use(FloatingVue, floatingVueOptions);
   vueApp.directive('clean-html', cleanHtmlDirective);
   vueApp.directive('clean-tooltip', cleanTooltipDirective);
   vueApp.directive('trim-whitespace', trimWhitespaceDirective);
   vueApp.directive('stripped-aria-label', htmlStrippedAriaLabelDirective);
-  
+
   vueApp.component('v-select', vSelect);
   vueApp.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
   vueApp.component('router-link', {
@@ -51,7 +53,16 @@ const preview: Preview = {
       toc: true, // 👈 Enables the table of contents
     },
   },
+  decorators: [
+    (story, context) => {
+      const theme = context.globals.backgrounds?.value === "#333" ? "theme-dark" : "theme-light";
 
+      document.body.classList.remove("theme-dark", "theme-light");
+      document.body.classList.add(theme);
+
+      return story();
+    },
+  ],
   tags: ['autodocs']
 };
 
