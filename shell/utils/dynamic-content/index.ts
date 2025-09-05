@@ -12,7 +12,7 @@ import { SystemInfoProvider } from './info';
 
 const FETCH_DELAY = 3 * 1000; // Short delay to let UI settle before we fetch the updates document
 const FETCH_REQUEST_TIMEOUT = 15000; // Time out the request after 15 seconds
-const FETCH_CONCURRENT_SECONDS = 30; // Time to wait to ignore another in-porgress fetch
+const FETCH_CONCURRENT_SECONDS = 30; // Time to wait to ignore another in-porgress fetch (seconds)
 
 const UPDATE_DATE_FORMAT = 'YYYY-MM-DD'; // Format of the fetch date
 
@@ -60,7 +60,7 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
   context.logger.debug('Read configuration', context.config);
 
   try {
-    // Check if we already have done an update check today
+    // Fetch the dynamic content if required, otherwise return the cached content or empty object if no content available
     let content = await fetchDynamicContent(context);
 
     const versionData = getVersionData();
@@ -108,6 +108,7 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
       ...context,
       settings: {
         releaseNotesUrl: content.settings?.releaseNotesUrl || DEFAULT_RELEASE_NOTES_URL,
+        suseExtensions: [],
       }
     };
 
@@ -187,7 +188,7 @@ export async function fetchDynamicContent(context: Context): Promise<DynamicCont
   const { getters, logger, config } = context;
 
   // Check if we already have done an update check today
-  let content = {};
+  let content: Partial<DynamicContent> = {};
 
   try {
     const today = day();
@@ -229,7 +230,7 @@ export async function fetchDynamicContent(context: Context): Promise<DynamicCont
       // Wait a short while before fetching dynamic content
       await new Promise((resolve) => setTimeout(resolve, FETCH_DELAY));
 
-      const systemData = new SystemInfoProvider(getters);
+      const systemData = new SystemInfoProvider(getters, content?.settings || {});
       const qs = systemData.buildQueryString();
       const distribution = config.prime ? 'prime' : 'community';
       const url = `${ config.endpoint.replace('$dist', distribution) }?${ qs }`;
