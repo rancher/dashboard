@@ -237,10 +237,10 @@ export const getters = {
 
   version(state, getters) {
     return ({
-      repoType, repoName, chartName, versionName
+      repoType, repoName, chartName, versionName, showDeprecated
     }) => {
       const chart = getters['chart']({
-        repoType, repoName, chartName
+        repoType, repoName, chartName, showDeprecated
       });
 
       if ( !chart ) {

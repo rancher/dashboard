@@ -1,6 +1,6 @@
 import { compatibleVersionsFor, APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, _FLAGGED, HIDE_SIDE_NAV, CATEGORY, TAG
+  REPO_TYPE, REPO, CHART, VERSION, _FLAGGED, HIDE_SIDE_NAV, CATEGORY, TAG, DEPRECATED as DEPRECATED_QUERY
 } from '@shell/config/query-params';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -28,6 +28,10 @@ export default class Chart extends SteveModel {
       [CHART]:     this.chartName,
       [VERSION]:   version,
     };
+
+    if (this.deprecated) {
+      out[DEPRECATED_QUERY] = true;
+    }
 
     if ( from ) {
       out[from] = _FLAGGED;

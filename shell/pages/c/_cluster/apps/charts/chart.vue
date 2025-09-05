@@ -6,7 +6,9 @@ import ChartReadme from '@shell/components/ChartReadme';
 import LazyImage from '@shell/components/LazyImage';
 import DateFormatter from '@shell/components/formatter/Date';
 import isEqual from 'lodash/isEqual';
-import { CHART, REPO, REPO_TYPE, VERSION } from '@shell/config/query-params';
+import {
+  CHART, REPO, REPO_TYPE, VERSION, DEPRECATED
+} from '@shell/config/query-params';
 import { ZERO_TIME } from '@shell/config/types';
 import { mapGetters } from 'vuex';
 import { compatibleVersionsFor } from '@shell/store/catalog';
@@ -132,10 +134,11 @@ export default {
           product: this.$store.getters['productId'],
         },
         query: {
-          [REPO_TYPE]: this.query.repoType,
-          [REPO]:      this.query.repoName,
-          [CHART]:     this.query.chartName,
-          [VERSION]:   this.query.versionName,
+          [REPO_TYPE]:  this.query.repoType,
+          [REPO]:       this.query.repoName,
+          [CHART]:      this.query.chartName,
+          [VERSION]:    this.query.versionName,
+          [DEPRECATED]: this.query.deprecated,
         }
       });
     },

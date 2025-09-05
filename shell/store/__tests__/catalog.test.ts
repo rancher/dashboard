@@ -204,4 +204,67 @@ describe('catalog', () => {
       expect(store.state[catalogStoreName].versionInfos).toStrictEqual({ });
     });
   });
+
+  describe('getters', () => {
+    describe('version', () => {
+      it('should find a version from a chart, respecting the showDeprecated flag for charts', () => {
+        // A regular chart with some versions
+        const regularChart = {
+          repoType:   'cluster',
+          repoName:   'rancher-charts',
+          chartName:  'regular-chart',
+          deprecated: false,
+          versions:   [{ version: '1.2.3' }, { version: '1.2.4' }]
+        };
+        // A deprecated chart with some versions
+        const deprecatedChart = {
+          repoType:   'cluster',
+          repoName:   'rancher-charts',
+          chartName:  'deprecated-chart',
+          deprecated: true,
+          versions:   [{ version: '2.0.0' }, { version: '2.1.0' }]
+        };
+
+        const allCharts = [regularChart, deprecatedChart];
+        const state = {};
+        const localGetters = {
+          charts: allCharts,
+          chart:  (args: any) => getters.chart(state, { charts: allCharts })(args)
+        };
+
+        // Scenario 1: Get a version from a regular chart
+        const result1 = getters.version(state, localGetters)({
+          repoType:       'cluster',
+          repoName:       'rancher-charts',
+          chartName:      'regular-chart',
+          versionName:    '1.2.3',
+          showDeprecated: false
+        });
+
+        expect(result1).toStrictEqual({ version: '1.2.3' });
+
+        // Scenario 2: Get a version from a deprecated chart
+        const result2 = getters.version(state, localGetters)({
+          repoType:       'cluster',
+          repoName:       'rancher-charts',
+          chartName:      'deprecated-chart',
+          versionName:    '2.0.0',
+          showDeprecated: true
+        });
+
+        expect(result2).toStrictEqual({ version: '2.0.0' });
+
+        // Scenario 3: Try to get a version from a deprecated chart without the flag should fail
+        const result3 = getters.version(state, localGetters)({
+          repoType:       'cluster',
+          repoName:       'rancher-charts',
+          chartName:      'deprecated-chart',
+          versionName:    '2.0.0',
+          showDeprecated: false
+        });
+
+        expect(result3).toBeNull();
+      });
+    });
+  });
 });

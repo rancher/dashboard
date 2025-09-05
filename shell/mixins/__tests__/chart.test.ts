@@ -101,4 +101,50 @@ describe('chartMixin', () => {
       expect(warnings).toHaveLength(expected as number);
     }
   );
+
+  describe('fetchChart', () => {
+    it('should call catalog/version with showDeprecated', async() => {
+      const mockStore = {
+        dispatch: jest.fn(() => Promise.resolve()),
+        getters:  {
+          currentCluster: () => {},
+          isRancher:      () => true,
+          'catalog/repo': () => {
+            return () => 'repo';
+          },
+          'catalog/chart': () => {
+            return { id: 'chart-id', versions: [{ version: '1.0.0' }] };
+          },
+          'catalog/version': jest.fn(),
+          'prefs/get':       () => {},
+          'i18n/t':          () => jest.fn()
+        }
+      };
+
+      const DummyComponent = {
+        mixins:   [ChartMixin],
+        template: '<div></div>',
+      };
+
+      const wrapper = mount(
+        DummyComponent,
+        {
+          global: {
+            mocks: {
+              $store: mockStore,
+              $route: {
+                query: {
+                  chart:      'chart_name',
+                  deprecated: 'true'
+                }
+              }
+            }
+          }
+        });
+
+      await wrapper.vm.fetchChart();
+
+      expect(mockStore.getters['catalog/version']).toHaveBeenCalledWith(expect.objectContaining({ showDeprecated: true }));
+    });
+  });
 });
