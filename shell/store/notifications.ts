@@ -45,13 +45,6 @@ export const state = function(): NotificationsStore {
 };
 
 let bc: BroadcastChannel;
-  // Title to be displayed in the notification
-  // Message to be shown in the notification (optional)
-  // Notification Level
-  // Progress (0-100) for notifications of type `Task` (optional)
-  // Primary action to be shown in the notification (optional)
-  // Secondary to be shown in the notification (optional)
-  // User Preference tied to the notification (optional) (the preference will be updated when the notification is marked read)
 
 /**
  * Sync notifications to other tabs using the broadcast channel. Send the user id, to cover corner case
