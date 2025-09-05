@@ -26,7 +26,7 @@ describe('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser
     rkeTemplatesPage.form().templateDetails(2).set(this.rkeRevisionName);
     cy.intercept('POST', '/v3/clustertemplate').as('createTemplate');
     rkeTemplatesPage.form().create();
-    cy.wait('@createTemplate');
+    cy.wait('@createTemplate').its('response.statusCode').should('eq', 201);
     rkeTemplatesPage.waitForPage();
     rkeTemplatesPage.groupRow().groupRowWithName(this.rkeTemplateName).should('be.visible');
     rkeTemplatesPage.groupRow().rowWithinGroupByName(this.rkeTemplateName, this.rkeRevisionName).should('be.visible');
