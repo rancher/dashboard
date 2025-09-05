@@ -4,8 +4,6 @@ import { Configuration, Distribution } from './types';
 import { MANAGEMENT } from '@shell/config/types';
 
 // Default endpoint ($dist is either 'community' or 'prime')
-// const DEFAULT_ENDPOINT = 'https://update.ui.rancher.space/rancher/$dist';
-
 // This will never connect
 const DEFAULT_ENDPOINT = 'https://192.168.1.1/$dist';
 
