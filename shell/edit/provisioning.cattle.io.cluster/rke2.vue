@@ -1437,6 +1437,8 @@ export default {
           entry.pool.machineConfigRef.name = neu.metadata.name;
           entry.create = false;
           entry.update = true;
+
+          this.initialMachinePoolsValues[entry.config.id] = clone(neu);
         } else if (entry.update) {
           entry.config = await entry.config.save();
         }
