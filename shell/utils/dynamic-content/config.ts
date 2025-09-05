@@ -7,7 +7,7 @@ import { MANAGEMENT } from '@shell/config/types';
 // This will never connect
 const DEFAULT_ENDPOINT = 'https://192.168.1.1/$dist';
 
-// We only support retrieving content from secure 
+// We only support retrieving content from secure endpoints
 const HTTPS_PREFIX = 'https://';
 
 export function getConfig(getters: any): Configuration {
