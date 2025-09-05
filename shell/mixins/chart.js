@@ -231,10 +231,14 @@ export default {
 
     action() {
       if (this.existing) {
-        return this.currentVersion === this.targetVersion ? 'update' : 'upgrade';
+        if (this.currentVersion === this.targetVersion) {
+          return { name: 'update', tKey: 'edit2', icon: 'icon-edit' };
+        }
+
+        return { name: 'upgrade', tKey: 'upgrade', icon: 'icon-upgrade-alt' };
       }
 
-      return 'install';
+      return { name: 'install', tKey: 'install', icon: 'icon-plus' };
     },
 
     isChartTargeted() {
@@ -276,7 +280,10 @@ export default {
     async fetchChart() {
       this.versionInfoError = null;
 
-      await this.$store.dispatch('catalog/load'); // not the problem
+      await Promise.all([
+        this.$store.dispatch('catalog/load'),
+        this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
+      ]);
 
       this.fetchStoreChart();
 
@@ -315,6 +322,15 @@ export default {
         } catch (e) {
           this.mode = _CREATE;
           this.existing = null;
+        }
+      } else if (this.chart) {
+        const matching = this.chart.matchingInstalledApps;
+
+        if (matching.length === 1) {
+          this.existing = matching[0];
+          this.mode = _EDIT;
+        } else {
+          this.mode = _CREATE;
         }
       } else {
         // Regular create

@@ -834,6 +834,10 @@ asyncButton:
     action: Save
     success: Saved
     waiting: Saving&hellip;
+  edit2:
+    action: Edit
+    success: Saved
+    waiting: Saving&hellip;
   editAndContinue:
     action: Save and Continue
     success: Saved
