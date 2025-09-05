@@ -20,7 +20,7 @@ export async function addReleaseNotesNotification(dispatch: any, getters: any) {
       if (notification.id === id) {
         found = true;
       } else {
-        await dispatch('notifications/delete', notification.id);
+        await dispatch('notifications/remove', notification.id);
       }
     }
   }
