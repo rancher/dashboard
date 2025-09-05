@@ -57,7 +57,11 @@ export default class ClusterRepo extends SteveModel {
     this.spec.forceUpdate = now;
     await this.save();
 
-    await this.waitForState('active', 10000, 1000);
+    try {
+      // waitForState throws error when state changes from InProgress to Active
+      await this.waitForState('active', 10000, 1000);
+    } catch (err) {
+    }
 
     this.$dispatch('catalog/load', { force: true, reset: true }, { root: true });
   }

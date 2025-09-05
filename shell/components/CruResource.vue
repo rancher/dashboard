@@ -161,7 +161,13 @@ export default {
     yamlModifiers: {
       type:    Object,
       default: undefined
-    }
+    },
+
+    bannerImage: {
+      type:    String,
+      default: null
+    },
+
   },
 
   data(props) {
@@ -665,6 +671,7 @@ export default {
             :edit-first-step="stepsOptions.editFirstStep"
             :errors="errors"
             :finish-mode="finishMode"
+            :banner-image="bannerImage"
             class="wizard"
             @error="e=>errors = e"
           >

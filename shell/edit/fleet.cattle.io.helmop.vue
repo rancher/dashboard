@@ -5,9 +5,14 @@ import jsyaml from 'js-yaml';
 import { saferDump } from '@shell/utils/create-yaml';
 import { mapGetters } from 'vuex';
 import { base64Encode } from '@shell/utils/crypto';
-import { _CREATE, _EDIT } from '@shell/config/query-params';
+import {
+  CHART, REPO, REPO_TYPE, VERSION, _CREATE, _EDIT
+} from '@shell/config/query-params';
+import { APPCO_REGISTRY } from '@shell/models/fleet-application';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
-import { AUTH_TYPE, CONFIG_MAP, NORMAN, SECRET } from '@shell/config/types';
+import {
+  AUTH_TYPE, CONFIG_MAP, NORMAN, SECRET, CATALOG as REPO_CATALOG
+} from '@shell/config/types';
 import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SOURCE_TYPE } from '@shell/config/product/fleet';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -76,6 +81,8 @@ export default {
         type:        CONFIG_MAP
       }
     }, this.$store);
+
+    await this.fillChartInfo();
   },
 
   data() {
@@ -84,22 +91,25 @@ export default {
     const chartValues = saferDump(clone(this.value.spec.helm.values));
 
     return {
+      APPCO_REGISTRY,
       VALUES_STATE,
       SOURCE_TYPE,
-      allWorkspaces:    [],
-      pollingInterval:  toSeconds(this.value.spec.pollingInterval) || this.value.spec.pollingInterval,
-      sourceTypeInit:   this.value.sourceType,
-      sourceType:       this.value.sourceType || SOURCE_TYPE.REPO,
-      helmSpecInit:     clone(this.value.spec.helm),
-      yamlForm:         VALUES_STATE.YAML,
+      allWorkspaces:       [],
+      pollingInterval:     toSeconds(this.value.spec.pollingInterval) || this.value.spec.pollingInterval,
+      sourceTypeInit:      this.value.sourceType,
+      sourceType:          this.value.sourceType || SOURCE_TYPE.REPO,
+      helmSpecInit:        clone(this.value.spec.helm),
+      yamlForm:            VALUES_STATE.YAML,
       chartValues,
-      chartValuesInit:  chartValues,
+      chartValuesInit:     chartValues,
       correctDriftEnabled,
-      tempCachedValues: {},
-      doneRouteList:    'c-cluster-fleet-application',
-      isRealModeEdit:   this.realMode === _EDIT,
-      targetsCreated:   '',
-      fvFormRuleSets:   [],
+      tempCachedValues:    {},
+      doneRouteList:       'c-cluster-fleet-application',
+      isRealModeEdit:      this.realMode === _EDIT,
+      targetsCreated:      '',
+      fvFormRuleSets:      [],
+      fetchingChartValues: false,
+      selectedChart:       false
     };
   },
 
@@ -242,6 +252,65 @@ export default {
   },
 
   methods: {
+    async fillChartInfo() {
+      await this.$store.dispatch('catalog/load', { root: true });
+
+      const registries = this.$store.getters['catalog/repos'] || [];
+      const charts = this.$store.getters['catalog/charts'] || [];
+
+      const repoType = this.$route.query[REPO_TYPE];
+      const repoName = this.$route.query[REPO];
+      const chartName = this.$route.query[CHART];
+      const chartVersion = this.$route.query[VERSION];
+
+      if (repoType && repoName && chartName && chartVersion) {
+        const repo = registries.find(({ name }) => name === repoName);
+        const chart = charts.find((chart) => chart.chartName === chartName);
+        const version = chart?.versions?.find(({ version }) => version === chartVersion);
+
+        if (repo && chart && version) {
+          this.selectedChart = chart;
+        } else {
+          this.selectedChart = null;
+
+          return;
+        }
+
+        // Decode Source Type
+        if (repo?.spec?.url.startsWith('oci://')) {
+          this.sourceType = SOURCE_TYPE.OCI;
+
+          this.value.spec.helm.repo = repo?.spec?.url + '/' + chartName;
+          this.value.spec.helm.version = chartVersion;
+        } else {
+          // TODO
+        }
+
+        this.getChartDefaultValues(repoName, chartName, chartVersion);
+
+        this.updateValidationRules(this.sourceType);
+      }
+    },
+
+    async getChartDefaultValues(repo, chart, version) {
+      this.fetchingChartValues = true;
+
+      try {
+        const url = `/v1/${ REPO_CATALOG.CLUSTER_REPO }/${ repo }?link=info&chartName=${ chart }&version=${ version }`;
+
+        const res = await this.$store.dispatch('management/request', { url });
+
+        if (res?.values) {
+          this.chartValues = saferDump(res.values);
+
+          this.value.spec.helm.values = res.values;
+        }
+      } catch (error) {
+      }
+
+      this.fetchingChartValues = false;
+    },
+
     onSourceTypeSelect(type) {
       delete this.value.spec.helm.repo;
       delete this.value.spec.helm.chart;
@@ -437,6 +506,12 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
 
+  <Banner
+    v-else-if="selectedChart === null"
+    color="error"
+    :label="t('fleet.helmOp.rancherChart.notFound')"
+  />
+
   <CruResource
     v-else
     :done-route="doneRouteList"
@@ -447,6 +522,7 @@ export default {
     :errors="errors"
     :steps="steps"
     :finish-mode="'finish'"
+    :banner-image="selectedChart?.icon"
     class="wizard"
     @cancel="done"
     @error="e=>errors = e"
@@ -483,6 +559,13 @@ export default {
       </div>
 
       <h2 v-t="'fleet.helmOp.source.title'" />
+
+      <div
+        v-if="value.spec?.helm?.repo === APPCO_REGISTRY"
+        class="row mb-20 text-label"
+      >
+        {{ 'SUSE Application Collection' }}
+      </div>
 
       <div
         v-if="!isView"
@@ -587,7 +670,10 @@ export default {
 
       <h2 v-t="'fleet.helmOp.values.title'" />
 
-      <div class="mb-15">
+      <div
+        v-if="!fetchingChartValues"
+        class="mb-15"
+      >
         <div
           v-if="isRealModeEdit"
           class="yaml-form-controls"

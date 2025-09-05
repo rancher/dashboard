@@ -1,9 +1,9 @@
 <script>
-import { mapGetters } from 'vuex';
 import isEqual from 'lodash/isEqual';
 import {
-  CHART, REPO, REPO_TYPE, VERSION, CATEGORY, TAG, DEPRECATED
+  CHART, REPO, REPO_TYPE, VERSION, DEPRECATED
 } from '@shell/config/query-params';
+import { FLEET, MANAGEMENT } from '@shell/config/types';
 import ChartMixin from '@shell/mixins/chart';
 import Loading from '@shell/components/Loading';
 import ChartDetail from '@shell/components/charts/ChartDetails.vue';
@@ -22,7 +22,11 @@ export default {
     await this.fetchChart();
   },
 
-  computed: { ...mapGetters(['currentCluster']) },
+  computed: {
+    currentCluster() {
+      return this.$store.getters['management/all'](MANAGEMENT.CLUSTER).find((x) => x.isLocal);
+    },
+  },
 
   watch: {
     '$route.query'(neu, old) {
@@ -37,10 +41,11 @@ export default {
   methods: {
     clickInstall() {
       this.$router.push({
-        name:   'c-cluster-apps-charts-install',
+        name:   'c-cluster-fleet-application-resource-create',
         params: {
-          cluster: this.$route.params.cluster,
-          product: this.$store.getters['productId'],
+          cluster:  this.$route.params.cluster,
+          product:  this.$store.getters['productId'],
+          resource: FLEET.HELM_OP,
         },
         query: {
           [REPO_TYPE]:  this.query.repoType,
@@ -50,31 +55,6 @@ export default {
           [DEPRECATED]: this.query.deprecated,
         }
       });
-    },
-
-    clickFooter({ type, value }) {
-      const params = {
-        cluster: this.$route.params.cluster,
-        product: this.$store.getters['productId'],
-      };
-
-      let queryValue;
-
-      if (type === REPO) {
-        const repos = this.$store.getters['catalog/repos'];
-
-        queryValue = repos.find((r) => r.nameDisplay === value)?.metadata?.uid;
-      } else if (type === CATEGORY || type === TAG) {
-        queryValue = value.toLowerCase();
-      }
-
-      if (queryValue) {
-        this.$router.push({
-          name:  'c-cluster-apps-charts',
-          params,
-          query: { [type]: queryValue },
-        });
-      }
     },
   },
 };
@@ -104,6 +84,8 @@ export default {
     :has-readme="hasReadme"
     :action="action"
     @click:install="clickInstall"
-    @click:footer="clickFooter"
   />
 </template>
+
+<style lang="scss" scoped>
+</style>

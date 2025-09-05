@@ -655,13 +655,24 @@ $spacer: 10px;
 
     & .round-image {
       min-width: 50px;
-      height: 50px;
-      margin: 10px 10px 10px 0;
+      height: 20px;
+
       border-radius: 50%;
       overflow: hidden;
       .logo {
-        min-width: 50px;
-        height: 50px;
+        margin-right: 10px;
+        background-color: white;
+        border: 1px solid white;
+        border-radius: calc( 3 * var(--border-radius));
+        position: relative;
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        margin: auto;
       }
     }
   }
