@@ -62,6 +62,7 @@ export type ReleaseInfo = {
  */
 export type SettingsInfo = {
   releaseNotesUrl: string; // URL format to use when generating release note links for new releases
+  suseExtensions: string[]; // Names of extra SUSE UI extensions on top of the list built-in
 };
 
 /**

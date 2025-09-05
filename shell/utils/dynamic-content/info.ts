@@ -9,6 +9,7 @@ import {
 } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { getVersionData } from '@shell/config/version';
+import { SettingsInfo } from '@shell/utils/dynamic-content/types';
 
 const QS_VERSION = 'v1'; // Include a version number in the query string in case we want to version the set of params we are sending
 const UNKNOWN = 'unknown';
@@ -25,11 +26,9 @@ const SUSE_EXTENSIONS = [
   'virtual-clusters'
 ];
 
-type ExtensionInfo = {
-  knownInstalled: string[];
-  customCount: number;
-};
-
+/**
+ * System information that is collected and which can then be encoded into a query string in the dyanmic content request
+ */
 type SystemInfo = {
   systemUUID: string;
   systemHash: string;
@@ -39,17 +38,23 @@ type SystemInfo = {
   isPrime: boolean;
   clusterCount: number;
   localCluster: any;
-  extensions?: ExtensionInfo;
+  extensions?: {
+    knownInstalled: string[];
+    customCount: number;
+  };
   browserSize: string;
   screenSize: string;
   language: string;
 };
 
+/**
+ * Helper that will gather system information and provided the `buildQueryString` method to format as a query string
+ */
 export class SystemInfoProvider {
   private info: SystemInfo;
 
-  constructor(getters: any) {
-    this.info = this.getSystemData(getters);
+  constructor(getters: any, settings: Partial<SettingsInfo>) {
+    this.info = this.getSystemData(getters, settings);
   }
 
   /**
@@ -57,7 +62,7 @@ export class SystemInfoProvider {
    * @param getters Store getters to access the store
    * @returns System data
    */
-  private getSystemData(getters: any): SystemInfo {
+  private getSystemData(getters: any, settingsInfo: Partial<SettingsInfo>): SystemInfo {
     const settings = this.getAll(getters, MANAGEMENT.SETTING);
     let url;
     let systemUUID = UNKNOWN;
@@ -104,8 +109,12 @@ export class SystemInfoProvider {
     let extensions;
 
     if (uiExtensionList) {
+      const suseExtensions = [
+        ...SUSE_EXTENSIONS,
+        ...settingsInfo?.suseExtensions || []
+      ];
       const notBuiltIn = uiExtensionList.filter((e: any) => !e.builtin);
-      const suseNames = notBuiltIn.filter((e: any) => SUSE_EXTENSIONS.includes(e.name)).map((e: any) => e.name);
+      const suseNames = notBuiltIn.filter((e: any) => suseExtensions.includes(e.name)).map((e: any) => e.name);
       const customCount = notBuiltIn.length - suseNames.length;
 
       extensions = {
