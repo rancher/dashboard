@@ -7,6 +7,9 @@ import { MANAGEMENT } from '@shell/config/types';
 // This will never connect
 const DEFAULT_ENDPOINT = 'https://192.168.1.1/$dist';
 
+// We only support retrieving content from secure 
+const HTTPS_PREFIX = 'https://';
+
 export function getConfig(getters: any): Configuration {
   const prime = getVersionData().RancherPrime === 'true';
   const distribution: Distribution = prime ? 'prime' : 'community';
@@ -25,8 +28,8 @@ export function getConfig(getters: any): Configuration {
     const enabledSetting = getters['management/byId'](MANAGEMENT.SETTING, SETTING.DYNAMIC_CONTENT_ENABLED);
 
     if (enabledSetting?.value) {
-      // Any value other than 'false' means enabled
-      config.enabled = enabledSetting.value !== 'false';
+      // Any value other than 'false' means enabled (can't disable on Prime)
+      config.enabled = config.prime ? enabledSetting.value !== 'false' : true;
       config.debug = enabledSetting.value === 'debug';
       config.log = enabledSetting.value === 'log' || config.debug;
     }
@@ -34,8 +37,8 @@ export function getConfig(getters: any): Configuration {
     // Can only override the url when Prime
     const urlSetting = getters['management/byId'](MANAGEMENT.SETTING, SETTING.DYNAMIC_CONTENT_ENDPOINT);
 
-    // TODO: Should check the value is a URL (or at least starts with http(s)://
-    if (urlSetting?.value && prime) {
+    // Are we Prime, do we have a URL and does the URL start with the https prefix? If so, use it
+    if (prime && urlSetting?.value && urlSetting.value.startsWith(HTTPS_PREFIX)) {
       config.endpoint = urlSetting.value;
     }
   } catch {}
