@@ -81,6 +81,7 @@ export default {
           :label="t('cluster.rke2.etcd.disableSnapshots.label')"
           :labels="[t('generic.disable'), t('generic.enable')]"
           :mode="mode"
+          @update:value="disableSnapshotsChanged"
         />
       </div>
     </div>
