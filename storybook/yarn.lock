@@ -615,6 +615,13 @@
     "@storybook/global" "^5.0.0"
     ts-dedent "^2.0.0"
 
+"@storybook/addon-themes@^8.4.2":
+  version "8.6.14"
+  resolved "http://localhost:4873/@storybook/addon-themes/-/addon-themes-8.6.14.tgz#37630b8e719a0237b6e2514ee2e58ac387f0f619"
+  integrity sha512-/HJCgskA3OFGectuoLEBQ3JX1nQhE7lnpSv5gH13CWyyaMEk/mP8JYF1uO25YQqwGuSgL2gaEox+aK7UmglAmQ==
+  dependencies:
+    ts-dedent "^2.0.0"
+
 "@storybook/addon-toolbars@8.4.5":
   version "8.4.5"
   resolved "https://registry.npmjs.org/@storybook/addon-toolbars/-/addon-toolbars-8.4.5.tgz#ebe20f0577a3e399858ba591066dbc8ac9636a5c"
