@@ -1,3 +1,13 @@
+/**
+ *
+ * The code in this file provides utility functions for dynamic content
+ *
+ * First up is a helper to remove notifications that match a given prefix
+ * Second up is a basic logging helper than will log to the console but can also log to local storage
+ * so that we have a persistent log of what the dynamic content code has been doing to help with debugging
+ *
+ */
+
 import { randomStr } from '@shell/utils/string';
 import { Configuration, Context } from './types';
 
@@ -47,6 +57,11 @@ export async function removeMatchingNotifications(context: Context, prefix: stri
   return found;
 }
 
+/**
+ * Create a logger interface that can be used to log messages and errors appropriately
+ * @param config Configuration to help us determine where and when to log
+ * @returns Logger interface with methods to log for error, info and debug
+ */
 export function createLogger(config: Configuration) {
   return {
     error: (message: string, arg?: any) => log(config, 'error', message, arg),
@@ -55,7 +70,14 @@ export function createLogger(config: Configuration) {
   };
 }
 
-export function log(config: Configuration, level: string, message: string, arg?: any) {
+/**
+ * Actual logging function that logs appropriately
+ * @param config Configuration to help us determine where and when to log
+ * @param level Log level (error, info, debug)
+ * @param message Log message
+ * @param arg Optional argument to be logged
+ */
+function log(config: Configuration, level: string, message: string, arg?: any) {
   // Log to the console when appropriate
   if (level === 'error') {
     arg ? console.error(message, arg) : console.error(message); // eslint-disable-line no-console
@@ -65,7 +87,7 @@ export function log(config: Configuration, level: string, message: string, arg?:
     arg ? console.debug(message, arg) : console.debug(message); // eslint-disable-line no-console
   }
 
-  // Only log to local storage if the configuration says we should (either log or debug configured in the setting)
+  // Only log to local storage if the configuration says we should
   if (config.log) {
     // Add the log message to the log we keep in local storage
     try {
@@ -84,7 +106,7 @@ export function log(config: Configuration, level: string, message: string, arg?:
       // Limit the number of log messages
       window.localStorage.setItem(LOCAL_STORAGE_CONTENT_DEBUG_LOG, JSON.stringify(data.slice(0, MAX_LOG_MESSAGES)));
 
-      // Send an event so a UI can update if necessary
+      // Send an event so the UI can update if necessary
       const event = new CustomEvent('dynamicContentLog', { detail: item });
 
       window.dispatchEvent(event);
