@@ -1,7 +1,7 @@
 import { mount, VueWrapper } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import { createStore } from 'vuex';
-import CronExpressionEditor from '@shell/components/Cron/CronExpressionEditor.vue';
+import CronExpressionEditor from '@components/Cron/CronExpressionEditor.vue';
 
 const store = createStore({});
 

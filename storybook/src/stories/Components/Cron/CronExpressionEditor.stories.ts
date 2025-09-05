@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { ref } from 'vue';
-import CronExpressionEditor from '@shell/components/Cron/CronExpressionEditor.vue';
+import CronExpressionEditor from '@components/Cron/CronExpressionEditor.vue';
 
 const meta: Meta<typeof CronExpressionEditor> = {
   component: CronExpressionEditor,

@@ -1,6 +1,6 @@
 import { mount, VueWrapper } from '@vue/test-utils';
 import { createStore } from 'vuex';
-import CronExpressionEditorModal from '@shell/components/Cron/CronExpressionEditorModal.vue';
+import CronExpressionEditorModal from '@components/Cron/CronExpressionEditorModal.vue';
 
 const store = createStore({});
 
