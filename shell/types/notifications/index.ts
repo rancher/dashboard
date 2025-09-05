@@ -52,3 +52,15 @@ export type Notification = {
   // User Preference tied to the notification (optional) (the preference will be updated when the notification is marked read)
   preference?: NotificationPreference;
 };
+
+/**
+ * Type for notification that is stored
+ *
+ * This should not be used outside of this store or the Notification Center UI components
+ *
+ * Includes extra fields managed by the notification center
+ */
+export type StoredNotification = {
+  created: Date;
+  read: Boolean;
+} & Notification;
