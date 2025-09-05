@@ -41,7 +41,7 @@ export class SteveWatchEventListenerManager {
     return !!this.supportedEventTypes.includes(type);
   }
 
-  /* Watches ***********************/
+  /** * Watches ***********************/
   public getWatch({ params } : SubscribeEventWatchArgs): SubscribeEventWatch {
     const socketId = this.keyForSubscribe({ params });
 
@@ -103,7 +103,7 @@ export class SteveWatchEventListenerManager {
     }
   }
 
-  /* Listeners ***********************/
+  /** * Listeners ***********************/
 
   public hasEventListeners({ params }: SubscribeEventWatchArgs): boolean {
     const socketId = this.keyForSubscribe({ params });
@@ -174,7 +174,7 @@ export class SteveWatchEventListenerManager {
     });
   }
 
-  /* Callbacks ***********************/
+  /** * Callbacks ***********************/
   public addEventListenerCallback({ callback, args }: {
     callback: STEVE_WATCH_EVENT_LISTENER_CALLBACK,
     args: SubscribeEventCallbackArgs
@@ -200,10 +200,5 @@ export class SteveWatchEventListenerManager {
     if (existing) {
       delete existing.callbacks[id];
     }
-  }
-
-  public removeEventListenerCallbacksOfType() {
-    // TODO: RC clear inError / backoff + subscribe events
-    // state.inError
   }
 }

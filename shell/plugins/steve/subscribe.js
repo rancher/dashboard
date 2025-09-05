@@ -58,28 +58,14 @@
  *   the ui will re-connect it and re-watch all previous watches using a best effort revision
  */
 
+// TODO: RC validation - check that the resetWatchBackOff stuff / retry on too old stuff still works
+
 // TODO: RC Bug 1. refresh cluster list / detail page. side nav "mode=r.cs" watch fights with current context "mode=undefined" watch
 // TODO: RC Bug 2. home page --> (prv cluster unwatch given leaving list) --> side nav now doesn't update
 // TODO: RC Bug 3. refresh cluster detail page (even if two watches allowed, one on side bar one for individual), nav to cluster list (need to unwatch individual as we start watching list BUT cannot have individual watch and non-transient watch at same time)
-// TODO: RC validation - switch between clusters, updates to cluster specific resource still work
-// TODO: RC validation - start on cluster list, nav to cluster detail (and vice versa). after switching resources automatically update
-// TODO: RC validation - start on home page, nav to cluster management
-// TODO: RC validation - create / delete a cluster, see that side nav updates
-// TODO: RC validation - create / delete a cluster in tab 2, see that it shows up in home page cluster list
-// TODO: RC validation - create / delete a cluster in tab 2, see that it shows up in CM cluster list
-// TODO: RC validation - start on home page, edit cluster badge in tab 2, see that is shows up in side nav
-// TODO: RC validation - start on CM cluster list, edit cluster badge in tab 2, see that is shows up in side nav
-// TODO: RC validation - smattering of above but resource.changes when incompatible (resource.change --> unwatch)
-// TODO: RC validation - check that the resetWatchBackOff stuff / retry on too old stuff still works
 
 // TODO: RC root abort issue(?) - reconnect --> watch with core list revision --> it's further ahead than transient lists --> no resource.changes for transient lists to update
 // Solution - on resync if there's transient lists always resync, don't watch with stale revision?
-
-// TODO: RC 1 - tests again
-// TODO: RC 2 - ensure state is tidied up (on cluster switch, on forgetType, etc)
-// TODO: RC 3 - self review
-// TODO: RC 4 - refactors + TODOs + remove myLogger
-// TODO: RC 5 - tests again
 
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get, deepToRaw } from '@shell/utils/object';
@@ -474,7 +460,10 @@ const sharedActions = {
     }
 
     ctx.getters.listenerManager.addEventListenerCallback({
-      event, params, callback, id
+      callback,
+      args: {
+        event, params, id
+      }
     });
 
     const hasStandardWatch = ctx.getters.listenerManager.hasStandardWatch({ params });
