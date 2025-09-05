@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import RcButton from '@components/RcButton/RcButton.vue';
 import { RcTagProps } from './types';
 
 const props = withDefaults(defineProps<RcTagProps>(), { disabled: false, showClose: false });
@@ -11,13 +12,14 @@ const emit = defineEmits(['close']);
     :class="{[props.type]: true, disabled: props.disabled}"
   >
     <slot name="default" />
-    <button
+    <RcButton
       v-if="props.showClose"
+      ghost
       :aria-label="props.closeAriaLabel"
       @click="emit('close')"
     >
       <i class="icon icon-close" />
-    </button>
+    </RcButton>
   </div>
 </template>
 
