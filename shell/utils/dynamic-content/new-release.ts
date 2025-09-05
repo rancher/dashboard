@@ -1,10 +1,24 @@
+/**
+ *
+ * The code in this file is responsible for adding New Release notifications driven off of the dynamic content metadata
+ *
+ * We handle two cases:
+ *
+ * 1. There is a new patch release available for the current Rancher version (e.g. user is in 2.12.0 and we release 2.12.1)
+ * 2. There is a new patch release available for the current Rancher version AND there is a newer version for a high minor relases
+ *    > this often occurs because we release monthly releases in parallel with the new minor releases
+ *
+ * We show slightly different messages in these 2 cases.
+ *
+ */
+
 import semver from 'semver';
 import { NotificationLevel } from '@shell/types/notifications';
 import { READ_NEW_RELEASE } from '@shell/store/prefs';
-import { Context, VersionInfo } from './types';
+import { ContextWithSettings, VersionInfo } from './types';
 import { removeMatchingNotifications } from './util';
 
-export async function processReleaseVersion(context: Context, releaseInfo: any, versionInfo: VersionInfo) {
+export async function processReleaseVersion(context: ContextWithSettings, releaseInfo: any, versionInfo: VersionInfo) {
   if (!releaseInfo || !versionInfo?.version) {
     return;
   }
@@ -39,17 +53,14 @@ export async function processReleaseVersion(context: Context, releaseInfo: any, 
   }
 }
 
-async function addNewReleaseNotification(context: Context, version: string) {
+async function addNewReleaseNotification(context: ContextWithSettings, version: string) {
   const prefix = 'new-release-';
-
-  // TODO: Constant for this
-  const releaseNotesUrl = `https://github.com/rancher/rancher/releases/tag/v${ version }`;
+  const releaseNotesUrl = context.settings.releaseNotesUrl.replace('$version', version);
   const { dispatch, getters, logger } = context;
 
   // TODO: Get the preference
   const lastReadVersion = getters['prefs/get'](READ_NEW_RELEASE) || '';
   const t = getters['i18n/t'];
-  // const releaseNotesUrl = getters['releaseNotesUrl'];
 
   // Delete notification(s) for old release notes
   // This shouldn't happen normally, as we release less often than notifications should expire
@@ -75,11 +86,11 @@ async function addNewReleaseNotification(context: Context, version: string) {
   }
 }
 
-async function addNewMultipleReleasesNotification(context: Context, version1: string, version2: string) {
+async function addNewMultipleReleasesNotification(context: ContextWithSettings, version1: string, version2: string) {
   const prefix = 'new-release-';
   const key = `${ version1 }-${ version2 }`;
-  const releaseNotesUrl1 = `https://github.com/rancher/rancher/releases/tag/v${ version1 }`;
-  const releaseNotesUrl2 = `https://github.com/rancher/rancher/releases/tag/v${ version2 }`;
+  const releaseNotesUrl1 = context.settings.releaseNotesUrl.replace('$version', version1);
+  const releaseNotesUrl2 = context.settings.releaseNotesUrl.replace('$version', version2);
   const { dispatch, getters, logger } = context;
 
   // TODO: Get the preference

@@ -1,16 +1,34 @@
+/**
+ *
+ * The code in this file is responsible for adding Support notifications driven off of the dynamic content metadata
+ *
+ * This covers these cases:
+ *
+ * 1. Current release has reached  End of Maintenance (EOL)
+ * 2. Current release has reached End of Maintenance (EOM)
+ * 3. Current release is approaching End of Maintenance (EOL)
+ * 4. Current release is approaching End of Maintenance (EOM)
+ *
+ * Note that we process in the order to that shown above, and stop at the first one that is actuve - so reaching EOL wil show a notification
+ * and we won't look at the others.
+ *
+ */
+
 import semver from 'semver';
 import day from 'dayjs';
 import { NotificationLevel } from '@shell/types/notifications';
 import { READ_SUPPORT_NOTICE, READ_UPCOMING_SUPPORT_NOTICE } from '@shell/store/prefs';
 import { removeMatchingNotifications } from './util';
-import { Context, SettingsInfo, VersionInfo, UpcomingSupportInfo } from './types';
+import { ContextWithSettings, VersionInfo, UpcomingSupportInfo, SupportInfo } from './types';
 
 // Number of days ahead of upcoming EOM or EOL that we will notify the user
 const DEFAULT_UPCOMING_WINDOW = 30;
 
+// Prefixes used in the notifications IDs created here
 const SUPPORT_NOTICE_PREFIX = 'support-notice-';
 const UPCOMING_SUPPORT_NOTICE_PREFIX = 'upcoming-support-notice-';
 
+// Prefixes used in the value of the user preference to track which notifications the user has read
 const PREFIX = {
   EOM: 'eom',
   EOL: 'eol',
@@ -25,7 +43,15 @@ type Config = {
   messageKey: string;
 };
 
-export async function processSupportNotices(context: Context, statusInfo: SettingsInfo, versionInfo: VersionInfo) {
+/**
+ * Main exported function that will process the support (stateInfo)
+ *
+ * @param context Context helper providing access to config, logger, store
+ * @param statusInfo Support information
+ * @param versionInfo Version information
+ */
+
+export async function processSupportNotices(context: ContextWithSettings, statusInfo: SupportInfo, versionInfo: VersionInfo): Promise<void> {
   if (!statusInfo || !versionInfo?.version) {
     return;
   }
@@ -33,16 +59,9 @@ export async function processSupportNotices(context: Context, statusInfo: Settin
   const { version } = versionInfo;
   const { logger } = context;
 
+  // TODO: ****************************************************************************************
   // TODO: Check if the user is an admin if we are Prime - we only notify admins of EOM and EOL
-
-  /**
-   * We add a notification in this order: (we add a notification for the first case that is true)
-   *
-   * 1. The current version is End of Life
-   * 2. The current version is End of Maintainence
-   * 3. The current version is approproaching End of Life (within 1 month - TBD)
-   * 4. The current version is approproaching End of Maintainence (within 1 month - TBD)
-   */
+  // TODO: ****************************************************************************************
 
   const status = statusInfo.status || {};
   const majorMinor = `${ semver.major(version) }.${ semver.minor(version) }`;
@@ -100,7 +119,7 @@ export async function processSupportNotices(context: Context, statusInfo: Settin
   }
 }
 
-async function checkAndAddUpcomingNotification(context: Context, info: UpcomingSupportInfo, config: Config, majorMinor: string): Promise<boolean> {
+async function checkAndAddUpcomingNotification(context: ContextWithSettings, info: UpcomingSupportInfo, config: Config, majorMinor: string): Promise<boolean> {
   const now = day();
   const upcomingDate = day(info.date);
   const distance = upcomingDate.diff(now, 'day');
@@ -119,12 +138,12 @@ async function checkAndAddUpcomingNotification(context: Context, info: UpcomingS
 /**
  * Check if a notification already exists or has already been read and if not, add it
  *
- * @param context Helpers
+ * @param context Context helper providing access to config, logger, store
  * @param config Configuration for the notification
  * @param majorMinor Major.Minor version number
  * @param distance Number of days until the event occurs (for upcoming support events)
  */
-async function checkAndAddNotification(context: Context, config: Config, majorMinor: string, distance?: number) {
+async function checkAndAddNotification(context: ContextWithSettings, config: Config, majorMinor: string, distance?: number) {
   const { dispatch, getters, logger } = context;
   const t = getters['i18n/t'];
   const lastReadNotice = getters['prefs/get'](config.pref) || '';

@@ -18,11 +18,13 @@ const UPDATE_DATE_FORMAT = 'YYYY-MM-DD'; // Format of the fetch date
 
 const LOCAL_STORAGE_UPDATE_FETCH_DATE = 'rancher-updates-fetch-next'; // Local storage setting that holds the date when we should next try and fetch content
 const LOCAL_STORAGE_UPDATE_CONTENT = 'rancher-updates-last-content'; // Local storage setting that holds the last fetched content
-const LOCAL_STORAGE_UPDATE_ERRORS = 'rancher-updates-fetch-errors'; // Local storage setting that holds the count of contiguos errors
+const LOCAL_STORAGE_UPDATE_ERRORS = 'rancher-updates-fetch-errors'; // Local storage setting that holds the count of contiguous errors
 const LOCAL_STORAGE_UPDATE_FETCHING = 'rancher-updates-fetching'; // Local storage setting that holds the date and time of the last fetch that was started
 const LOCAL_STORAGE_TEST_DATA = 'rancher-updates-test-data'; // Local storage setting that holds test data to be used when in debug mode
 
-const BACKOFFS = [1, 1, 1, 2, 2, 3, 5]; // Backoff in days for the contiguos number of errors (i.e. after 1 errors, we wait 1 day, after 3 errors, we wait 2 days, etc.)
+const BACKOFFS = [1, 1, 1, 2, 2, 3, 5]; // Backoff in days for the contiguous number of errors (i.e. after 1 errors, we wait 1 day, after 3 errors, we wait 2 days, etc.)
+
+const DEFAULT_RELEASE_NOTES_URL = 'https://github.com/rancher/rancher/releases/tag/v$version'; // Default release notes URL
 
 /**
  * Fetch dynamic content if needed and process it if it has changed since we last checked
@@ -47,6 +49,13 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
     isAdmin: isAdminUser(getters),
     config,
   };
+
+  // If not enabled via the configuration, then just return
+  if (!config.enabled) {
+    console.log('Dynamic content disabled through configuration'); // eslint-disable-line no-console
+
+    return;
+  }
 
   context.logger.debug('Read configuration', context.config);
 
@@ -94,22 +103,34 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
       } catch {}
     }
 
+    // Add the settings data to the context, so that is guarenteed to have the settings with their defaults or values from the dynamic content payload
+    const contextWithSettings = {
+      ...context,
+      settings: {
+        releaseNotesUrl: content.settings?.releaseNotesUrl || DEFAULT_RELEASE_NOTES_URL,
+      }
+    };
+
     // We always process the content in case the Rancher version has changed or the date means that
     // an announcement/notification should now be shown
 
     // New release notifications
-    processReleaseVersion(context, content.releases, versionInfo);
+    processReleaseVersion(contextWithSettings, content.releases, versionInfo);
 
     // EOM, EOL notifications
-    processSupportNotices(context, content.support, versionInfo);
+    processSupportNotices(contextWithSettings, content.support, versionInfo);
   } catch (e) {
     context.logger.error('Error reading or processing dynamic content', e);
   }
 }
 
-// We use a signal to timeout the connection
-// For air-gapped environments, this ensures the request will timeout after FETCH_REQUEST_TIMEOUT
-// This timeout is set relaively low (15s). The default, otherwise, is 2 minutes.
+/**
+ * We use a signal to timeout the connection
+ * For air-gapped environments, this ensures the request will timeout after FETCH_REQUEST_TIMEOUT
+ * This timeout is set relaively low (15s). The default, otherwise, is 2 minutes.
+ *
+ * @param timeoutMs Time in milliseconds after which the abort signal should signal
+ */
 function newRequestAbortSignal(timeoutMs: number) {
   const abortController = new AbortController();
 
@@ -118,6 +139,11 @@ function newRequestAbortSignal(timeoutMs: number) {
   return abortController.signal;
 }
 
+/**
+ * Update the local storage data that tracks when to next fetch content and how many consecutive errors we have had
+ *
+ * @param didError Indicates if we should update to record content retrieved without error or with error
+ */
 function updateFetchInfo(didError: boolean) {
   if (!didError) {
     // No error, so check again tomorrow and remove the backoff setting, so it will get its default next time
@@ -131,25 +157,25 @@ function updateFetchInfo(didError: boolean) {
   } else {
     // Did error, read the backoff, increase and add to the date
     try {
-      const contiguosErrorsString = window.localStorage.getItem(LOCAL_STORAGE_UPDATE_ERRORS) || '0';
+      const contiguousErrorsString = window.localStorage.getItem(LOCAL_STORAGE_UPDATE_ERRORS) || '0';
 
-      let contiguosErrors = parseInt(contiguosErrorsString, 10);
+      let contiguousErrors = parseInt(contiguousErrorsString, 10);
 
       // Increase the number of errors that have happenned in a row
-      contiguosErrors++;
+      contiguousErrors++;
 
       // Once we reach the max backoff, just stick with it
-      if (contiguosErrors >= BACKOFFS.length ) {
-        contiguosErrors = BACKOFFS.length - 1;
+      if (contiguousErrors >= BACKOFFS.length ) {
+        contiguousErrors = BACKOFFS.length - 1;
       }
 
       // Now find the backoff (days) given the error count and calculate the date of the next fetch
-      const daysToAdd = BACKOFFS[contiguosErrors];
+      const daysToAdd = BACKOFFS[contiguousErrors];
       const nextFetch = day().add(daysToAdd, 'day');
       const nextFetchString = nextFetch.format(UPDATE_DATE_FORMAT);
 
       window.localStorage.setItem(LOCAL_STORAGE_UPDATE_FETCH_DATE, nextFetchString);
-      window.localStorage.setItem(LOCAL_STORAGE_UPDATE_ERRORS, contiguosErrors.toString());
+      window.localStorage.setItem(LOCAL_STORAGE_UPDATE_ERRORS, contiguousErrors.toString());
     } catch {}
   }
 }
