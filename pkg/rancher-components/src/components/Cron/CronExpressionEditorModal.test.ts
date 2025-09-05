@@ -3,24 +3,19 @@ import { mount, VueWrapper } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import CronExpressionEditorModal from '@components/Cron/CronExpressionEditorModal.vue';
 
+interface CronExpressionEditorModalVm extends InstanceType<typeof CronExpressionEditorModal> {
+  localCron: string;
+  confirmCron?: () => void;
+  closeModal?: () => void;
+}
+
 const store = createStore({});
 
 describe('cronExpressionEditorModal', () => {
-  let wrapper: VueWrapper<any>;
   let modalsDiv: HTMLElement;
+  let wrapper: VueWrapper<CronExpressionEditorModalVm>;
 
-  beforeEach(() => {
-    modalsDiv = document.createElement('div');
-    modalsDiv.id = 'modals';
-    document.body.appendChild(modalsDiv);
-  });
-
-  afterEach(() => {
-    wrapper?.unmount();
-    modalsDiv.remove();
-  });
-
-  const factory = (props = {}) => mount(CronExpressionEditorModal, {
+  const factory = (props: Partial<CronExpressionEditorModalVm> = {}) => mount(CronExpressionEditorModal, {
     global: {
       plugins: [store],
       stubs:   {
@@ -33,13 +28,23 @@ describe('cronExpressionEditorModal', () => {
       show:           true,
       ...props,
     },
-  });
+  }) as VueWrapper<CronExpressionEditorModalVm>;
 
   const getEmitted = (event: string) => wrapper.emitted(event) as unknown[][] || [];
 
+  beforeEach(() => {
+    modalsDiv = document.createElement('div');
+    modalsDiv.id = 'modals';
+    document.body.appendChild(modalsDiv);
+  });
+
+  afterEach(() => {
+    wrapper?.unmount();
+    modalsDiv.remove();
+  });
+
   it('renders modal with correct initial props', () => {
     wrapper = factory();
-
     expect(wrapper.props('cronExpression')).toBe('0 0 * * *');
     expect(wrapper.props('show')).toBe(true);
   });
@@ -47,7 +52,6 @@ describe('cronExpressionEditorModal', () => {
   it('updates localCron when cronExpression prop changes', async() => {
     wrapper = factory();
     await wrapper.setProps({ cronExpression: '*/5 * * * *' });
-
     expect(wrapper.vm.localCron).toBe('*/5 * * * *');
   });
 
