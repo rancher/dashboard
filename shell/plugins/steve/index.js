@@ -19,17 +19,22 @@ export function SteveFactory(namespace, baseUrl) {
     state() {
       return {
         ...coreStoreState(namespace, baseUrl),
-        socket:           null,
-        queue:            [], // For change event coalescing
-        wantSocket:       false,
-        debugSocket:      false,
-        allowStreaming:   true,
-        pendingFrames:    [],
-        deferredRequests: {},
-        started:          [],
-        inError:          {},
-        socketListener:   markRaw(new SteveWatchEventListenerManager(namespace)),
-        podsByNamespace:  {}, // Cache of pods by namespace
+        socket:                null,
+        queue:                 [], // For change event coalescing
+        wantSocket:            false,
+        debugSocket:           false,
+        allowStreaming:        true,
+        pendingFrames:         [],
+        deferredRequests:      {},
+        started:               [],
+        inError:               {},
+        /**
+         * Socket listener manager for this store
+         *
+         * Instance of @SteveWatchEventListenerManager . See it's description for more info
+         */
+        socketListenerManager: markRaw(new SteveWatchEventListenerManager(namespace)),
+        podsByNamespace:       {}, // Cache of pods by namespace
       };
     },
 

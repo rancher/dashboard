@@ -18,6 +18,6 @@ export interface SubscribeEventListener {
 }
 
 export type SubscribeEventWatch = {
-  hasNormalWatch: boolean,
+  hasStandardWatch: boolean,
   listeners: SubscribeEventListener[],
 }

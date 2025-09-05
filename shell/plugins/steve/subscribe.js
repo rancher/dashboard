@@ -70,6 +70,7 @@
 // TODO: RC validation - start on home page, edit cluster badge in tab 2, see that is shows up in side nav
 // TODO: RC validation - start on CM cluster list, edit cluster badge in tab 2, see that is shows up in side nav
 // TODO: RC validation - smattering of above but resource.changes when incompatible (resource.change --> unwatch)
+// TODO: RC validation - check that the resetWatchBackOff stuff / retry on too old stuff still works
 
 // TODO: RC root abort issue(?) - reconnect --> watch with core list revision --> it's further ahead than transient lists --> no resource.changes for transient lists to update
 // Solution - on resync if there's transient lists always resync, don't watch with stale revision?
@@ -466,29 +467,22 @@ const sharedActions = {
      */
     params
   }) {
-    if (!ctx.getters.subscribeEvents.isSupportedEventType(event)) {
-      console.error(`Unknown event type "${ event }", only ${ Object.keys(ctx.getters.subscribeEvents.supportedEventTypes).join(',') } are supported`); // eslint-disable-line no-console
+    if (!ctx.getters.listenerManager.isSupportedEventType(event)) {
+      console.error(`Unknown event type "${ event }", only ${ Object.keys(ctx.getters.listenerManager.supportedEventTypes).join(',') } are supported`); // eslint-disable-line no-console
 
       return;
     }
 
-    ctx.getters.subscribeEvents.addEventListenerCallback({
+    ctx.getters.listenerManager.addEventListenerCallback({
       event, params, callback, id
     });
 
-    // TODO: RC can hasNormalWatch be removed
-    // Can hasNormalWatch be replaced with watchStarted? are transient watches also in watchStarted (should be?)
+    const hasStandardWatch = ctx.getters.listenerManager.hasStandardWatch({ params });
 
-    const hasNormalWatch = ctx.getters.subscribeEvents.hasNormalWatch({ params });
-
-    // TODO: RC refactor hasNormalWatch --> isWatching??? | nonListenerWatch
-    // TODO: RC do we need isNormalWatch??
-    // TODO: RC refactor isNormalWatch --> ??
-
-    if (!hasNormalWatch) {
+    if (!hasStandardWatch) {
       ctx.dispatch('watch', {
         ...params,
-        isNormalWatch: false // <-- is just a mechanism to not call subscribeEvents.setWatchStarted --> sets up subscribeEvents.hasNormalWatch
+        standardWatch: false // <-- is just a mechanism to not call listenerManager.setWatchStarted --> sets up listenerManager.hasStandardWatch
       }); // Ensure something is watching (no-op if exists)
     }
   },
@@ -505,13 +499,13 @@ const sharedActions = {
      */
     params
   }) {
-    if (!ctx.getters.subscribeEvents.isSupportedEventType(event)) {
+    if (!ctx.getters.listenerManager.isSupportedEventType(event)) {
       console.info(`Attempted to unwatch for an event "${ event }" but it had no watchers`); // eslint-disable-line no-console
 
       return;
     }
 
-    ctx.getters.subscribeEvents.removeEventListenerCallback({
+    ctx.getters.listenerManager.removeEventListenerCallback({
       event, params, id
     });
 
@@ -528,7 +522,7 @@ const sharedActions = {
     state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
     let {
       // eslint-disable-next-line prefer-const
-      type, selector, id, revision, namespace, stop, force, mode, isNormalWatch = true
+      type, selector, id, revision, namespace, stop, force, mode, standardWatch = true
     } = params;
 
     namespace = acceptOrRejectSocketMessage.subscribeNamespace(namespace);
@@ -572,8 +566,6 @@ const sharedActions = {
 
       return;
     }
-
-    // TODO: RC is isNormaWatch needed / used now?
 
     // Watch errors mean we make a http request to get latest revision (which is still missing) and try to re-watch with it...
     // etc
@@ -627,8 +619,10 @@ const sharedActions = {
       return;
     }
 
-    if (!stop && isNormalWatch) {
-      getters.subscribeEvents.setWatchStarted({ started: true, args: { event: msg.mode, params: msg } });
+    if (!stop && standardWatch) {
+      // Track that this watch is just a normal one, not one kicked off by listeners
+      // This helps us keep the watch going (for listeners) instead of in unwatch just stopping it
+      getters.listenerManager.setWatchStarted({ standardWatch: true, args: { event: msg.mode, params: msg } });
     }
 
     return dispatch('send', msg);
@@ -657,21 +651,21 @@ const sharedActions = {
       const unwatch = (obj) => {
         myLogger.warn('sub', 'action', 'unwatch', 'started', obj);
 
-        const hasNormalWatch = ctx.getters.subscribeEvents.hasNormalWatch({ params: obj });
+        // Has this normal watch got listeners? If so
+        const hasStandardWatch = ctx.getters.listenerManager.hasStandardWatch({ params: obj });
+        const watchHasListeners = ctx.getters.listenerManager.hasEventListeners({ params: obj });
 
-        if (hasNormalWatch) {
-          const watchHasListeners = ctx.getters.subscribeEvents.hasEventListeners({ params: obj });
+        if (hasStandardWatch) {
+          // Have we previously touched this watch with listeners? If so ensure it has the correct state
+          ctx.getters.listenerManager.setWatchStarted({ standardWatch: false, args: { params: obj } });
+          myLogger.warn('sub', 'action', 'unwatch', 'setting', 'hasStandardWatch', false, obj );
+        }
 
-          // TODO: RC !!!!!!!!!!!!!!! surely just watchHasListeners is enough?
-          // 1. only normal
-          // 2. only listeners
-          // 3. mix
-          if (watchHasListeners) {
-            // abort
-            myLogger.warn('sub', 'action', 'unwatch', 'finished', 'skipping', obj );
+        if (watchHasListeners) {
+          // Does this watch have listeners? if so we shouldn't stop it
+          myLogger.warn('sub', 'action', 'unwatch', 'finished', 'skipping', obj );
 
-            return;
-          }
+          return;
         }
 
         if (getters['watchStarted'](obj)) {
@@ -682,8 +676,6 @@ const sharedActions = {
           dispatch('watch', obj); // Ask the backend to stop watching the type
           // Make sure anything in the pending queue for the type is removed, since we've now removed the type
           commit('clearFromQueue', type);
-          ctx.getters.subscribeEvents.setWatchStarted({ started: false, args: { params: obj } });
-          myLogger.warn('sub', 'action', 'unwatch', 'setting', 'hasNormalWatch', false, obj );
           myLogger.warn('sub', 'action', 'unwatch', 'finished', 'doing', obj);
         }
       };
@@ -694,14 +686,13 @@ const sharedActions = {
       if (isAdvancedWorker(ctx)) {
         dispatch('watch', obj); // Ask the backend to stop watching the type
       } else if (all) {
-        reset.push(...getters['watchesOfType'](type)); // TODO: RC test
+        reset.push(...getters['watchesOfType'](type));
       } else if (getters['watchStarted'](obj)) {
         reset.push(obj);
       }
 
       reset.forEach((obj) => {
         unwatch(obj);
-        // TODO: RC re-check logic
         // Ensure anything pinging in the background is stopped
         dispatch('resetWatchBackOff', {
           type,
@@ -921,7 +912,7 @@ const defaultActions = {
         }
 
         // Should any listeners be notified of this request for them to kick off their own event handling?
-        getters.subscribeEvents.triggerEventListener({ event: STEVE_WATCH_MODE.RESOURCE_CHANGES, params });
+        getters.listenerManager.triggerEventListener({ event: STEVE_WATCH_MODE.RESOURCE_CHANGES, params });
       } else {
         have = getters['all'](resourceType).slice();
 
@@ -1201,14 +1192,14 @@ const defaultActions = {
       }
 
       // Now re-watch
-      const hasEventListeners = getters.subscribeEvents.hasEventListeners({ params: obj });
-      const hasNormalWatch = getters.subscribeEvents.hasNormalWatch({ params: obj });
+      const hasEventListeners = getters.listenerManager.hasEventListeners({ params: obj });
+      const hasStandardWatch = getters.listenerManager.hasStandardWatch({ params: obj });
 
       dispatch('watch', {
         ...obj,
-        // hasEventListeners && !hasNormalWatch ? false : true
+        // hasEventListeners && !hasStandardWatch ? false : true
         // if this watch isn't associated with a normal watch... (there are no listeners, or there are listeners but also a normal watch)
-        isNormalWatch: !(hasEventListeners && !hasNormalWatch)
+        standardWatch: !(hasEventListeners && !hasStandardWatch)
       });
 
       if (hasEventListeners) {
@@ -1216,7 +1207,7 @@ const defaultActions = {
         // if we have a normal watch it will pick a revision from the cache and then watch from that point in time on wards.
         // however the listeners may have state that was before that revision, watch will never receive an message that will get the listeners up to date
         // so always fall back on a manual trigger
-        getters.subscribeEvents.triggerAllEventListeners({ params: obj });
+        getters.listenerManager.triggerAllEventListeners({ params: obj });
       }
     }
   },
@@ -1393,7 +1384,7 @@ const defaultMutations = {
     clearTimeout(state.queueTimer);
     state.deferredRequests = {};
     state.queueTimer = null;
-    state.socketListener = new SteveWatchEventListenerManager(state.config.namespace);
+    state.socketListenerManager = new SteveWatchEventListenerManager(state.config.namespace);
   },
 
   clearFromQueue(state, type) {
@@ -1496,10 +1487,12 @@ const defaultGetters = {
   },
 
   /**
-   * TODO: RC
+   * Get the watch listener manager for this store
+   *
+   * Instance of @SteveWatchEventListenerManager . See it's description for more info
    */
-  subscribeEvents: (state) => {
-    return state.socketListener;
+  listenerManager: (state) => {
+    return state.socketListenerManager;
   },
 };
 

@@ -52,44 +52,53 @@ export class SteveWatchEventListenerManager {
     const socketId = this.keyForSubscribe({ params });
 
     this.watches[socketId] = {
-      hasNormalWatch: false,
-      listeners:      []
+      hasStandardWatch: false,
+      listeners:        []
     };
 
     return this.watches[socketId];
   }
 
+  /**
+   * This is just tidying the entry
+   *
+   * All watches associated with this type should be unwatched
+   */
   private deleteWatch({ params } : SubscribeEventWatchArgs) {
     const socketId = this.keyForSubscribe({ params });
 
     delete this.watches[socketId];
-
-    // TODO: RC unwatch?
   }
 
-  public hasNormalWatch({ params } : SubscribeEventWatchArgs): boolean {
+  /**
+   * Is there a standard non-listener watch for this this type
+   */
+  public hasStandardWatch({ params } : SubscribeEventWatchArgs): boolean {
     const socketId = this.keyForSubscribe({ params });
 
-    return this.watches[socketId]?.hasNormalWatch;
+    return this.watches[socketId]?.hasStandardWatch;
   }
 
-  public setWatchStarted({ isNormalWatch, args }: { isNormalWatch: boolean, args: SubscribeEventWatchArgs}) {
+  /**
+   * Set if this type has a standard non-listener watch associated with it
+   */
+  public setWatchStarted({ standardWatch, args }: { standardWatch: boolean, args: SubscribeEventWatchArgs}) {
     const { params } = args;
 
     let watch = this.getWatch({ params });
 
     if (!watch) {
-      if (!started) {
+      if (!standardWatch) {
         // no point setting a non-existent watch as not started
         return;
       }
       watch = this.initialiseWatch({ params });
     }
 
-    watch.hasNormalWatch = isNormalWatch;
+    watch.hasStandardWatch = standardWatch;
 
     // is watch empty, if so get rid of the entry
-    if (!watch.hasNormalWatch && watch.listeners.length === 0) {
+    if (!watch.hasStandardWatch && watch.listeners.length === 0) {
       this.deleteWatch({ params });
     }
   }
@@ -180,14 +189,17 @@ export class SteveWatchEventListenerManager {
     return eventWatcher;
   }
 
+  /**
+   * This is just tidying the entry
+   *
+   * All watches associated with this type should be unwatched
+   */
   public removeEventListenerCallback({ event, params, id }: SubscribeEventCallbackArgs) {
     const existing = this.getEventListener({ args: { event, params } });
 
     if (existing) {
       delete existing.callbacks[id];
     }
-
-    // TODO: RC unwatch? !!!!!
   }
 
   public removeEventListenerCallbacksOfType() {
