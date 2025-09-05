@@ -2201,6 +2201,19 @@ cluster:
         true: Exposed to the public interface
       s3backups:
         label: Save Backups to S3
+      s3config:
+        bucket:
+          label: Bucket
+        folder:
+          label: Folder
+        region:
+          label: Region
+        endpoint:
+          label: Endpoint
+        skipSSLVerify:
+          label: Accept any certificate (insecure)
+        endpointCA:
+          label: Endpoint CA Cert
   k3s:
     systemService:
       coredns: 'CoreDNS'
@@ -6283,6 +6296,7 @@ validation:
       localhost: If the Server URL is internal to the Rancher server (e.g. localhost) the downstream clusters may not be able to communicate with Rancher.
       trailingForwardSlash: Server URL should not have a trailing forward slash.
       url: Server URL must be an URL.
+      awsStyleEndpoint: Endpoint URL has to be a valid domain-based endpoint and cannot start with a protocol (e.g https:// or http://)
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
     exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'
