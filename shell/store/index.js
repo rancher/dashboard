@@ -40,7 +40,7 @@ import { isDevBuild } from '@shell/utils/version';
 import { markRaw } from 'vue';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { addReleaseNotesNotification } from '@shell/utils/release-notes';
-import { fetchAndProcessDynamicContent } from '@shell/utils/dynamic-content/index';
+import { fetchAndProcessDynamicContent } from '@shell/utils/dynamic-content';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
