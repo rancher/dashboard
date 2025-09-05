@@ -9,6 +9,8 @@ import { createPopper, Instance as PopperInstance } from '@popperjs/core';
 import { useI18n } from '@shell/composables/useI18n';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import CronTooltip from './CronTooltip.vue';
+import type { TooltipSection, CronField } from './types';
+import { cronFields } from './types';
 
 const props = defineProps<{
   cronExpression?: string;
@@ -23,11 +25,9 @@ const emit = defineEmits<{
 
 const store = useStore();
 const { t } = useI18n(store);
-const fields = ['minute', 'hour', 'dayOfMonth', 'month', 'dayOfWeek'] as const;
+const fields: CronField[] = cronFields;
 
-type Field = typeof fields[number];
-
-const fieldLabels: Record<Field, string> = {
+const fieldLabels: Record<CronField, string> = {
   minute:     'component.cron.expressionEditor.label.minute',
   hour:       'component.cron.expressionEditor.label.hour',
   dayOfMonth: 'component.cron.expressionEditor.label.dayOfMonth',
@@ -35,17 +35,15 @@ const fieldLabels: Record<Field, string> = {
   dayOfWeek:  'component.cron.expressionEditor.label.dayOfWeek',
 };
 
-function makeFieldRecord<T>(value: T): Record<Field, T> {
-  return {
-    minute:     value,
-    hour:       value,
-    dayOfMonth: value,
-    month:      value,
-    dayOfWeek:  value,
-  };
+function makeFieldRecord<T>(value: T): Record<CronField, T> {
+  return cronFields.reduce((acc, f) => {
+    acc[f] = value;
+
+    return acc;
+  }, {} as Record<CronField, T>);
 }
 
-function parseCronToFields(expr: string): Record<Field, string> {
+function parseCronToFields(expr: string): Record<CronField, string> {
   const parts = expr?.trim().split(' ') || [];
   const record = makeFieldRecord('');
 
@@ -56,18 +54,15 @@ function parseCronToFields(expr: string): Record<Field, string> {
   return record;
 }
 
-const cronValues = reactive<Record<Field, string>>(parseCronToFields(props.cronExpression || '* * * * *'));
-const errors = reactive<Record<Field, boolean>>(makeFieldRecord(false));
-const focusedField = reactive<Record<Field, boolean>>(makeFieldRecord(false));
+const cronValues = reactive<Record<CronField, string>>(parseCronToFields(props.cronExpression || '* * * * *'));
+const errors = reactive<Record<CronField, boolean>>(makeFieldRecord(false));
+const focusedField = reactive<Record<CronField, boolean>>(makeFieldRecord(false));
 const rootRef = ref<HTMLElement | null>(null);
-const tooltipRefs = reactive<Record<Field, HTMLElement | null>>(makeFieldRecord(null));
-const wrapperRefs = reactive<Record<Field, HTMLElement | null>>(makeFieldRecord(null));
-const popperInstances: Record<Field, PopperInstance | null> = makeFieldRecord(null);
+const wrapperRefs: Record<CronField, HTMLElement | null> = makeFieldRecord(null);
+const tooltipRefs: Record<CronField, HTMLElement | null> = makeFieldRecord(null);
+const popperInstances: Record<CronField, PopperInstance | null> = makeFieldRecord(null);
 
-type TooltipItem = { value?: string; descKey?: string };
-type TooltipSection = { type: 'rules' | 'explanation'; items: TooltipItem[] };
-
-const tooltipData: Record<Field, TooltipSection[]> = {
+const tooltipData: Record<CronField, TooltipSection[]> = {
   minute: [
     {
       type:  'rules',
@@ -162,14 +157,14 @@ const tooltipData: Record<Field, TooltipSection[]> = {
   ],
 };
 
-const validateField = (field: Field, value: string) => {
+const validateField = (field: CronField, value: string) => {
   if (!value) {
     errors[field] = true;
 
     return;
   }
 
-  const exprMap: Record<Field, string> = {
+  const exprMap: Record<CronField, string> = {
     minute:     `${ value } * * * *`,
     hour:       `* ${ value } * * *`,
     dayOfMonth: `* * ${ value } * *`,
@@ -203,12 +198,12 @@ watch(cronValues, () => {
   emit('update:isValid', isValid.value);
 }, { deep: true, immediate: true });
 
-const handleInput = (field: Field, val: string) => {
+const handleInput = (field: CronField, val: string) => {
   cronValues[field] = val;
   validateField(field, val);
 };
 
-const handleFocus = async(field: Field) => {
+const handleFocus = async(field: CronField) => {
   focusedField[field] = true;
   await nextTick();
   if (wrapperRefs[field] && tooltipRefs[field]) {
@@ -223,7 +218,7 @@ const handleFocus = async(field: Field) => {
   }
 };
 
-const handleBlur = (field: Field) => {
+const handleBlur = (field: CronField) => {
   focusedField[field] = false;
   popperInstances[field]?.destroy();
   popperInstances[field] = null;

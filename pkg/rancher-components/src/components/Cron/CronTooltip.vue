@@ -2,9 +2,7 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
-
-export interface TooltipItem { value?: string; descKey?: string }
-export interface TooltipSection { type: 'rules' | 'explanation'; items: TooltipItem[] }
+import type { TooltipSection } from './types';
 
 const props = defineProps<{ sections: TooltipSection[] }>();
 
