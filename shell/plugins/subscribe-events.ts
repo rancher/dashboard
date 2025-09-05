@@ -12,12 +12,20 @@ type SubscribeEventWatches = { [socketId: string]: SubscribeEventWatch};
  *
  * For example, listen for provisioning.cattle.io clusters messages of type resource.changes and trigger callback when received
  *
- * Watch - UI is watching a resource type restricted by nothing/id/namespace/selector
- * Event - Rancher socket messages to ui. resource.started, resource.changes, resource.changes, etc
- * Listener - listen to events, trigger when received
+ * Watch - UI is watching a resource type restricted by nothing/id/namespace/selector. For example
+ * - watch all pods
+ * - watch specific pod
+ * - watch pods with specific labels
+ * Event - Rancher socket messages TO the ui. For example
+ * - resource.started
+ * - resource.change
+ * - resource.changes
+ * Listener - listen to events, trigger when received. For example
+ * - listen for resource.changes messages for the all pods watch
  * Callback - triggered when a listener has heard something
+ * - watch for all pods receives a resource.changes message, it has a listener, listener executes it's callback
  *
- * Watch 1:M Events 0:M Listeners 0:M Callbacks
+ * Watch 0:M Events 0:M Listeners 0:M Callbacks
  */
 export class SteveWatchEventListenerManager {
   private keyForSubscribe({ params }: {params: STEVE_WATCH_PARAMS}): string {
@@ -41,7 +49,8 @@ export class SteveWatchEventListenerManager {
     return !!this.supportedEventTypes.includes(type);
   }
 
-  /** * Watches ***********************/
+  /** **** Watches ***********************/
+
   public getWatch({ params } : SubscribeEventWatchArgs): SubscribeEventWatch {
     const socketId = this.keyForSubscribe({ params });
 
@@ -103,7 +112,7 @@ export class SteveWatchEventListenerManager {
     }
   }
 
-  /** * Listeners ***********************/
+  /** **** Listeners ***********************/
 
   public hasEventListeners({ params }: SubscribeEventWatchArgs): boolean {
     const socketId = this.keyForSubscribe({ params });
@@ -158,9 +167,6 @@ export class SteveWatchEventListenerManager {
 
     if (eventWatcher) {
       Object.values(eventWatcher.callbacks).forEach((cb) => {
-        if (!cb) {
-          debugger;
-        }
         cb();
       });
     }
@@ -174,7 +180,8 @@ export class SteveWatchEventListenerManager {
     });
   }
 
-  /** * Callbacks ***********************/
+  /** **** Callbacks ***********************/
+
   public addEventListenerCallback({ callback, args }: {
     callback: STEVE_WATCH_EVENT_LISTENER_CALLBACK,
     args: SubscribeEventCallbackArgs

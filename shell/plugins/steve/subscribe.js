@@ -498,7 +498,8 @@ const sharedActions = {
       event, params, id
     });
 
-    // This will be safe to call, if there are other listeners on the same event it won't unwatch
+    // Unwatch the underlying standard watch
+    // Note - If we were piggybacking on a watch that previously existed we won't unwatch it
     ctx.dispatch('unwatch', params);
   },
 
@@ -645,13 +646,13 @@ const sharedActions = {
         const watchHasListeners = ctx.getters.listenerManager.hasEventListeners({ params: obj });
 
         if (hasStandardWatch) {
-          // Have we previously touched this watch with listeners? If so ensure it has the correct state
+          // If we have listeners for this watch... make sure it knows there's now no root standard watch
           ctx.getters.listenerManager.setWatchStarted({ standardWatch: false, args: { params: obj } });
           myLogger.warn('sub', 'action', 'unwatch', 'setting', 'hasStandardWatch', false, obj );
         }
 
         if (watchHasListeners) {
-          // Does this watch have listeners? if so we shouldn't stop it
+          // Does this watch have listeners? if so we shouldn't stop it (they still need it)
           myLogger.warn('sub', 'action', 'unwatch', 'finished', 'skipping', obj );
 
           return;
@@ -1192,11 +1193,12 @@ const defaultActions = {
       });
 
       if (hasEventListeners) {
-        // If there's event listeners always kick them off (should these be specific to _changes_ events?)
-        // if we have a normal watch it will pick a revision from the cache and then watch from that point in time on wards.
-        // however the listeners may have state that was before that revision, watch will never receive an message that will get the listeners up to date
-        // so always fall back on a manual trigger
-        getters.listenerManager.triggerAllEventListeners({ params: obj });
+        // If there's event listeners always kick them off
+        // - The re-watch associated with normal watches will watch from a revision from it's own cache
+        // - The revision in that cache might be ahead of the state the listeners have, so the watch won't ping something for the listeners to trigger on
+        // - so to work around this whenever we start the watches again trigger off the changes for it
+        // Improvement - we only do one event here (currently the only one supported), could expand to others
+        getters.listenerManager.triggerEventListener({ event: STEVE_WATCH_EVENT_TYPES.CHANGES, params: obj });
       }
     }
   },
@@ -1232,8 +1234,7 @@ const defaultActions = {
     const havePage = ctx.getters['havePage'](type);
 
     if (havePage) {
-      // if the store has a page then this change will corrupt it and should not be running
-      // for example cluster list shows a page, but there's a generic watch who's changes would insert entries not in that page
+      console.warn(`Prevented watch \`resource.change\` data from polluting the cache for type "${ type }" (currently represents a page). To prevent any further issues the watch has been stopped.`, data); // eslint-disable-line no-console
       ctx.dispatch('unwatch', data);
 
       return;

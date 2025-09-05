@@ -17,7 +17,7 @@ export enum STEVE_WATCH_EVENT_TYPES {
 }
 /* eslint-enable no-unused-vars */
 
-export type STEVE_WATCH_EVENT_TYPES_NAMES = keyof typeof STEVE_WATCH_EVENT_TYPES;
+export type STEVE_WATCH_EVENT_TYPES_NAMES = `${ STEVE_WATCH_EVENT_TYPES }`;
 
 /**
  * The content of the web socket messages sent (and partially received back from) steve
