@@ -157,10 +157,6 @@ export abstract class BaseTopLevelMenuHelper {
       clusterRoute:    { name: 'c-cluster-explorer', params: { cluster: mgmtCluster.id } }
     };
   }
-
-  // protected cacheClusters() {
-  //   this.$store.dispatch('setSideNavCache', { clustersPinned: this.clustersPinned, clustersOthers: this.clustersOthers });
-  // }
 }
 
 /**
@@ -270,8 +266,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
 
     this.clustersPinned.push(..._clustersPinned);
     this.clustersOthers.push(..._clustersNotPinned);
-
-    // this.cacheClusters();
   }
 
   async destroy() {
@@ -424,8 +418,6 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
 
     this.clustersPinned.push(..._clustersPinned);
     this.clustersOthers.push(..._clustersNotPinned);
-
-    // this.cacheClusters();
   }
 
   async destroy() {

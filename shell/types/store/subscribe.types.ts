@@ -32,17 +32,3 @@ export interface STEVE_WATCH_PARAMS {
   force?: boolean,
   mode?: STEVE_WATCH_MODE
 }
-
-export interface STEVE_WATCH_EVENT_PARAMS_COMMON {
-  event: STEVE_WATCH_EVENT_TYPES,
-  id: string,
-  /**
-   * of type @STEVE_WATCH_PARAMS
-   */
-  params: STEVE_WATCH_PARAMS,
-}
-export type STEVE_WATCH_EVENT_LISTENER_CALLBACK = () => void
-export interface STEVE_WATCH_EVENT_PARAMS extends STEVE_WATCH_EVENT_PARAMS_COMMON {
-  callback: STEVE_WATCH_EVENT_LISTENER_CALLBACK,
-}
-export type STEVE_UNWATCH_EVENT_PARAMS = STEVE_WATCH_EVENT_PARAMS_COMMON

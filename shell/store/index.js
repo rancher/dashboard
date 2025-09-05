@@ -911,10 +911,6 @@ export const actions = {
       });
     }
 
-    // sideNavService.init({
-    //   getters, state, commit, dispatch, rootGetters
-    // });
-
     console.log(`Done loading management; isRancher=${ isRancher }; isMultiCluster=${ isMultiCluster }`); // eslint-disable-line no-console
   },
 

@@ -1,9 +1,9 @@
 import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import {
-  SubscribeEventListener, SubscribeEventCallbackArgs, SubscribeEventListenerArgs, SubscribeEventWatch, SubscribeEventWatchArgs
+  SubscribeEventListener, SubscribeEventCallbackArgs, SubscribeEventListenerArgs, SubscribeEventWatch, SubscribeEventWatchArgs,
+  STEVE_WATCH_EVENT_LISTENER_CALLBACK
 } from '@shell/types/store/subscribe-events.types';
-import { STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_PARAMS } from '@shell/types/store/subscribe.types';
-import myLogger from '@shell/utils/my-logger';
+import { STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_PARAMS } from '@shell/types/store/subscribe.types';
 
 type SubscribeEventWatches = { [socketId: string]: SubscribeEventWatch};
 
