@@ -11,7 +11,7 @@ export interface Logger {
   error: Function,
   info: Function,
   debug: Function,
-};
+}
 
 /**
  * Distribution type

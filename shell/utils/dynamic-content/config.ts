@@ -4,6 +4,8 @@ import { Configuration, Distribution } from './types';
 import { MANAGEMENT } from '@shell/config/types';
 
 // Default endpoint ($dist is either 'community' or 'prime')
+// const DEFAULT_ENDPOINT = 'https://update.ui.rancher.space/rancher/$dist';
+
 // This will never connect
 const DEFAULT_ENDPOINT = 'https://192.168.1.1/$dist';
 
@@ -24,6 +26,7 @@ export function getConfig(getters: any): Configuration {
     distribution,
   };
 
+  // Update 'enabled' and 'endpoint' from Rancher settings, if applicable
   try {
     const enabledSetting = getters['management/byId'](MANAGEMENT.SETTING, SETTING.DYNAMIC_CONTENT_ENABLED);
 

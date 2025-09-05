@@ -1,3 +1,9 @@
+/**
+ * This is the main dynamic content file that provides the 'fetchAndProcessDynamicContent' function
+ *
+ * This is the main entry point for reading and processing dynamic content
+ */
+
 import day from 'dayjs';
 import * as jsyaml from 'js-yaml';
 import semver from 'semver';
@@ -103,23 +109,25 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
       } catch {}
     }
 
-    // Add the settings data to the context, so that is guarenteed to have the settings with their defaults or values from the dynamic content payload
+    // Add the settings data to the context, so that it is guarenteed to have the settings with their defaults or values from the dynamic content payload
     const contextWithSettings = {
       ...context,
       settings: {
         releaseNotesUrl: content.settings?.releaseNotesUrl || DEFAULT_RELEASE_NOTES_URL,
-        suseExtensions: [],
+        suseExtensions:  [],
       }
     };
 
-    // We always process the content in case the Rancher version has changed or the date means that
-    // an announcement/notification should now be shown
+    // We always process the content in case the Rancher version has changed or the date means that an announcement/notification should now be shown
 
+    // New release notifications and support notifications are shown to ALL community users, but only to admin users when Prime
+    if (!config.prime || context.isAdmin) {
     // New release notifications
-    processReleaseVersion(contextWithSettings, content.releases, versionInfo);
+      processReleaseVersion(contextWithSettings, content.releases, versionInfo);
 
-    // EOM, EOL notifications
-    processSupportNotices(contextWithSettings, content.support, versionInfo);
+      // EOM, EOL notifications
+      processSupportNotices(contextWithSettings, content.support, versionInfo);
+    }
   } catch (e) {
     context.logger.error('Error reading or processing dynamic content', e);
   }
