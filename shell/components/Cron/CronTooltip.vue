@@ -33,16 +33,14 @@ const processedSections = computed(() => {
         v-for="item in section.items"
         :key="item.value || item.descKey || item.text"
       >
-        <span v-if="item.value">{{ item.value }}</span>
-        {{ item.text }}
+        <span class="symbol">{{ item.value || '' }}</span>
+        <span class="desc">{{ item.text }}</span>
       </li>
     </ul>
   </div>
 </template>
 
 <style scoped lang="scss">
-$value-width: 23px;
-
 .cron-tooltip-content-wrapper {
   display: flex;
   flex-direction: column;
@@ -51,25 +49,32 @@ $value-width: 23px;
     list-style: none;
     padding: 0;
     margin: 0;
-    display: flex;
-    flex-direction: column;
 
-    &.cron-tooltip-rules {
+     &.cron-tooltip-rules {
+      display: grid;
+      grid-template-columns: max-content 1fr;
       gap: 12px;
-    }
 
+      li {
+        display: contents;
+        align-items: center;
+      }
+    }
     &.cron-tooltip-explanation {
       margin-top: 20px;
+      display: grid;
+      gap: 8px;
     }
 
     li {
-      color: var(--input-label);
+      white-space: nowrap;
 
-      span {
-        display: inline-block;
-        width: $value-width;
+      .symbol {
         color: var(--body-text);
-        margin-right: 9px;
+      }
+
+      .desc {
+        color: var(--input-label);
       }
     }
   }
