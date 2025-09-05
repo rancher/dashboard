@@ -33,7 +33,7 @@ export function SteveFactory(namespace, baseUrl) {
          *
          * Instance of @SteveWatchEventListenerManager . See it's description for more info
          */
-        socketListenerManager: markRaw(new SteveWatchEventListenerManager(namespace)),
+        socketListenerManager: markRaw(new SteveWatchEventListenerManager()),
         podsByNamespace:       {}, // Cache of pods by namespace
       };
     },

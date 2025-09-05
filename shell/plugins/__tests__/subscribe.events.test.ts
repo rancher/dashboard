@@ -14,7 +14,6 @@ const mockKeyForSubscribe = jest.fn(({
 const mockParams1 = {
   type: 'pods', name: 'my-pod', id: 'abc-123', selector: 'app=test'
 };
-const mockParams2 = { type: 'services', name: 'my-service' };
 const mockCallback1 = jest.fn();
 const mockCallback2 = jest.fn();
 
