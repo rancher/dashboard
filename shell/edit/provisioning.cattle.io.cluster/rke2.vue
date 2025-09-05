@@ -252,7 +252,7 @@ export default {
       allNamespaces:         [],
       extensionTabs:         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
       labelForAddon,
-      etcdConfigValid:       true,
+      etcdConfigValid:       true
     };
   },
 
