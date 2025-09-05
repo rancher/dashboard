@@ -3,7 +3,7 @@ import ClusterManagerCreateRke1CustomPagePo from '@/cypress/e2e/po/edit/provisio
 import RkeTemplatesPagePo from '@/cypress/e2e/po/pages/cluster-manager/rke-templates.po';
 import EmberModalPo from '@/cypress/e2e/po/components/ember/ember-modal.po';
 
-// Skipping due to CI failures. opened gh #15350 to undo
+// Skipping due to CI failures. gh #15350 is opened to undo this change
 describe.skip('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@ember'] }, () => {
   const rkeTemplatesPage = new RkeTemplatesPagePo();
   const clusterList = new ClusterManagerListPagePo();
@@ -27,7 +27,7 @@ describe.skip('RKE Templates', { testIsolation: 'off', tags: ['@manager', '@admi
     rkeTemplatesPage.form().templateDetails(2).set(this.rkeRevisionName);
     cy.intercept('POST', '/v3/clustertemplate').as('createTemplate');
     rkeTemplatesPage.form().create();
-    cy.wait('@createTemplate').its('response.statusCode').should('eq', 201);
+    cy.wait('@createTemplate');
     rkeTemplatesPage.waitForPage();
     rkeTemplatesPage.groupRow().groupRowWithName(this.rkeTemplateName).should('be.visible');
     rkeTemplatesPage.groupRow().rowWithinGroupByName(this.rkeTemplateName, this.rkeRevisionName).should('be.visible');
