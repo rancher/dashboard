@@ -58,15 +58,6 @@
  *   the ui will re-connect it and re-watch all previous watches using a best effort revision
  */
 
-// TODO: RC validation - check that the resetWatchBackOff stuff / retry on too old stuff still works
-
-// TODO: RC Bug 1. refresh cluster list / detail page. side nav "mode=r.cs" watch fights with current context "mode=undefined" watch
-// TODO: RC Bug 2. home page --> (prv cluster unwatch given leaving list) --> side nav now doesn't update
-// TODO: RC Bug 3. refresh cluster detail page (even if two watches allowed, one on side bar one for individual), nav to cluster list (need to unwatch individual as we start watching list BUT cannot have individual watch and non-transient watch at same time)
-
-// TODO: RC root abort issue(?) - reconnect --> watch with core list revision --> it's further ahead than transient lists --> no resource.changes for transient lists to update
-// Solution - on resync if there's transient lists always resync, don't watch with stale revision?
-
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get, deepToRaw } from '@shell/utils/object';
 import { SCHEMA, MANAGEMENT } from '@shell/config/types';
@@ -98,7 +89,6 @@ import { _MERGE } from '@shell/plugins/dashboard-store/actions';
 import { STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import paginationUtils from '@shell/utils/pagination-utils';
 import backOff from '@shell/utils/back-off';
-import myLogger from '@shell/utils/my-logger';
 import { SteveWatchEventListenerManager } from '@shell/plugins/subscribe-events';
 
 // minimum length of time a disconnect notification is shown
@@ -639,8 +629,6 @@ const sharedActions = {
       };
 
       const unwatch = (obj) => {
-        myLogger.warn('sub', 'action', 'unwatch', 'started', obj);
-
         // Has this normal watch got listeners? If so
         const hasStandardWatch = ctx.getters.listenerManager.hasStandardWatch({ params: obj });
         const watchHasListeners = ctx.getters.listenerManager.hasEventListeners({ params: obj });
@@ -648,12 +636,10 @@ const sharedActions = {
         if (hasStandardWatch) {
           // If we have listeners for this watch... make sure it knows there's now no root standard watch
           ctx.getters.listenerManager.setWatchStarted({ standardWatch: false, args: { params: obj } });
-          myLogger.warn('sub', 'action', 'unwatch', 'setting', 'hasStandardWatch', false, obj );
         }
 
         if (watchHasListeners) {
           // Does this watch have listeners? if so we shouldn't stop it (they still need it)
-          myLogger.warn('sub', 'action', 'unwatch', 'finished', 'skipping', obj );
 
           return;
         }
@@ -666,7 +652,6 @@ const sharedActions = {
           dispatch('watch', obj); // Ask the backend to stop watching the type
           // Make sure anything in the pending queue for the type is removed, since we've now removed the type
           commit('clearFromQueue', type);
-          myLogger.warn('sub', 'action', 'unwatch', 'finished', 'doing', obj);
         }
       };
 

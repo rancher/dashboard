@@ -4,7 +4,6 @@ import { VuexStore } from '@shell/types/store/vuex';
 import { ActionFindPageArgs, ActionFindPageTransientResult } from '@shell/types/store/dashboard-store.types';
 import { STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import { Reactive, reactive } from 'vue';
-import myLogger from '@shell/utils/my-logger';
 import { STEVE_UNWATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_WATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_PARAMS_COMMON } from '@shell/types/store/subscribe-events.types';
 
 interface Args {
@@ -144,7 +143,6 @@ class PaginationWrapper<T extends object> {
   }
 
   async onDestroy() {
-    myLogger.warn('pagination-wrapper', 'onDestroy');
     await this.unWatch();
   }
 }
