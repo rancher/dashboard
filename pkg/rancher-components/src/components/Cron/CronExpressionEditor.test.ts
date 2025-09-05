@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-hooks */
 import { mount, VueWrapper } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import { createStore } from 'vuex';
@@ -35,7 +36,6 @@ describe('cronExpressionEditor', () => {
     props: { cronExpression: '0 0 * * *', ...props },
   });
 
-  // eslint-disable-next-line jest/no-hooks
   afterEach(() => wrapper?.unmount());
 
   const getEmitted = (event: string) => wrapper.emitted(event) as unknown[][] | [];

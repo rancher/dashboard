@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-hooks */
 import { mount, VueWrapper } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import CronExpressionEditorModal from '@components/Cron/CronExpressionEditorModal.vue';
@@ -16,7 +17,7 @@ describe('cronExpressionEditorModal', () => {
 
   afterEach(() => {
     wrapper?.unmount();
-    document.getElementById('modals')?.remove();
+    modalsDiv.remove();
   });
 
   const factory = (props = {}) => mount(CronExpressionEditorModal, {
@@ -34,7 +35,7 @@ describe('cronExpressionEditorModal', () => {
     },
   });
 
-  const getEmitted = (event: string) => wrapper.emitted(event) as unknown[][] | [];
+  const getEmitted = (event: string) => wrapper.emitted(event) as unknown[][] || [];
 
   it('renders modal with correct initial props', () => {
     wrapper = factory();
