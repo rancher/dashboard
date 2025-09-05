@@ -73,8 +73,68 @@ export class WorkloadDetailsPageBasePo extends BaseDetailPagePo {
     return this.self().find('.count-gauge h1').first();
   }
 
+  replicaCount(): Cypress.Chainable {
+    return this.self().find('.plus-minus .value');
+  }
+
   gaugesPods(): Cypress.Chainable {
     return this.self().find('.gauges__pods');
+  }
+
+  /**
+   * Wait for the workload details page to be fully loaded
+   * This ensures the masthead title is present and the scaling controls are ready
+   */
+  waitForDetailsPage(workloadName: string) {
+    this.waitForPage();
+    this.waitForMastheadTitle(workloadName);
+    this.podsRunningTotal().should('be.visible');
+
+    return this;
+  }
+
+  /**
+   * Wait for scale operations to complete by checking button states and pending elements
+   * This ensures scale buttons are enabled and no pending/loading indicators are present
+   */
+  waitForScaleOperationComplete() {
+    this.waitForScaleButtonsEnabled();
+    this.waitForPendingOperationsToComplete();
+    this.ensureReplicaCountStable();
+
+    return this;
+  }
+
+  /**
+   * Wait for both scale up and down buttons to be enabled
+   */
+  waitForScaleButtonsEnabled() {
+    this.podScaleUp().should('not.be.disabled');
+    this.podScaleDown().should('not.be.disabled');
+    this.podScaleUp().should('not.have.attr', 'aria-disabled', 'true');
+    this.podScaleDown().should('not.have.attr', 'aria-disabled', 'true');
+
+    return this;
+  }
+
+  /**
+   * Wait for any pending or loading operations in the scale area to complete
+   */
+  waitForPendingOperationsToComplete() {
+    cy.get('.plus-minus:contains("Pending"):visible', MEDIUM_TIMEOUT_OPT).should('not.exist');
+    cy.get('.plus-minus .bg-info:visible', MEDIUM_TIMEOUT_OPT).should('not.exist');
+    cy.get('.plus-minus [class*="loading"]:visible', MEDIUM_TIMEOUT_OPT).should('not.exist');
+
+    return this;
+  }
+
+  /**
+   * Ensure the replica count element is visible and stable
+   */
+  ensureReplicaCountStable() {
+    this.replicaCount().should('be.visible').and('not.be.empty');
+
+    return this;
   }
 }
 
