@@ -1234,7 +1234,15 @@ export default class Resource {
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {
-        await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined ) });
+        // Will loading this resource invalidate the resources in the cache that represent a page (resource is not from page)
+        // By default we set this to no, it won't pollute the cache. Most likely either
+        // 1. The resource came from a list already (loaded resource is already in the page that is in the cache)
+        // 2. UI is not on a page with a list (cache doesn't represent a list)
+        const invalidatePageCache = opt.invalidatePageCache || false;
+
+        await this.$dispatch('load', {
+          data: res, existing: (forNew ? this : undefined ), invalidatePageCache
+        });
       }
     } catch (e) {
       if ( this.type && this.id && e?._status === 409) {
