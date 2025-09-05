@@ -1,7 +1,7 @@
 import {
   useNamespace, useWorkspace, useLiveDate, useProject, useResourceDetails
 } from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/identifying-fields';
-import { NAMESPACE, FLEET } from '@shell/config/types';
+import { NAMESPACE, FLEET, MANAGEMENT } from '@shell/config/types';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 
 const mockStore = {
@@ -32,29 +32,12 @@ describe('composables: IdentifyingFields', () => {
       expect(result).toBeUndefined();
     });
 
-    it('should return a valid namespace row with namespaceLocation', () => {
-      const resource = { namespace: 'NAMESPACE', namespaceLocation: 'NAMESPACE_LOCATION' };
-      const result = useNamespace(resource);
-
-      expect(result?.value.to).toStrictEqual(resource.namespaceLocation);
-      expect(result?.value.value).toStrictEqual(resource.namespace);
-      expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.namespace');
-      expect(result?.value.valueDataTestid).toStrictEqual('masthead-subheader-namespace');
-    });
-
-    it('should return a valid namespace row with computed `to`', () => {
+    it('should return a valid namespace row', () => {
       const resource = { namespace: 'NAMESPACE' };
       const result = useNamespace(resource);
 
-      expect(result?.value.to).toStrictEqual({
-        name:   `c-cluster-product-resource-id`,
-        params: {
-          product:  'PRODUCT_ID',
-          cluster:  'CLUSTER_ID',
-          resource: NAMESPACE,
-          id:       resource.namespace
-        }
-      });
+      expect(result?.value.valueOverride?.props.type).toStrictEqual(NAMESPACE);
+      expect(result?.value.valueOverride?.props.id).toStrictEqual(resource.namespace);
       expect(result?.value.value).toStrictEqual(resource.namespace);
       expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.namespace');
       expect(result?.value.valueDataTestid).toStrictEqual('masthead-subheader-namespace');
@@ -137,11 +120,16 @@ describe('composables: IdentifyingFields', () => {
     });
 
     it('should return a valid project row', () => {
-      const resource = { type: NAMESPACE, project: { nameDisplay: 'PROJECT', detailLocation: 'LOCATION' } };
+      const resource = {
+        type:    NAMESPACE,
+        project: {
+          id: 'ID', nameDisplay: 'PROJECT', detailLocation: 'LOCATION'
+        }
+      };
       const result = useProject(resource);
 
-      expect(result?.value.to).toStrictEqual(resource.project.detailLocation);
-      expect(result?.value.value).toStrictEqual(resource.project.nameDisplay);
+      expect(result?.value.valueOverride?.props.type).toStrictEqual(MANAGEMENT.PROJECT);
+      expect(result?.value.valueOverride?.props.id).toStrictEqual(resource.project.id);
       expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.project');
     });
   });

@@ -28,13 +28,15 @@ const openChanged = (event: boolean) => {
   }
 };
 
-const emit = defineEmits<{(event: string, payload: any): void}>();
+const emit = defineEmits<{(event: string, payload: any): void;(event: 'action-invoked'): void;}>();
 const route = useRoute();
 
 const execute = (action: any, event: MouseEvent, args?: any) => {
   if (action.disabled) {
     return;
   }
+
+  emit('action-invoked');
 
   // this will come from extensions...
   if (action.invoke) {
