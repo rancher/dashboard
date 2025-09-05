@@ -1,13 +1,26 @@
+/**
+ * Shared types for Dynamic Content
+ */
+
 import { SemVer } from 'semver';
 
-export type Logger = {
+/**
+ * Loger interface
+ */
+export interface Logger {
   error: Function,
   info: Function,
   debug: Function,
 };
 
+/**
+ * Distribution type
+ */
 export type Distribution = 'community' | 'prime';
 
+/**
+ * Dynamic Content configuration
+ */
 export type Configuration = {
   enabled: boolean;
   debug: boolean;
@@ -29,21 +42,48 @@ export type Context = {
   config: Configuration,
 };
 
+/**
+ * Version information
+ */
 export type VersionInfo = {
   version: SemVer;
   isPrime: boolean;
 };
 
-export type ReleaseInfo = any;
-export type SupportInfo = any;
-
-export type UpcomingSupportInfo = {
-  version: string,
-  date: Date,
-  noticeDays?: number,
+/**
+ * Information for a new release
+ */
+export type ReleaseInfo = {
+  name: string;
 };
 
+/**
+ * Settings configuration that can be supplied in the dynamic content package
+ */
 export type SettingsInfo = {
+  releaseNotesUrl: string; // URL format to use when generating release note links for new releases
+};
+
+/**
+ * Context that includes settings
+ */
+export type ContextWithSettings = Context & {
+  settings: SettingsInfo,
+};
+
+/**
+ * Information for an upcoming release
+ */
+export type UpcomingSupportInfo = {
+  version: string, // Version number: semver (e.g. '<= 2.12')
+  date: Date, // Date when the eom/eol takes place
+  noticeDays?: number, // Number of days in advance to notify the user (if not specified, the default is used)
+};
+
+/**
+ * Support information covering current EOM/EOL and upcoming EOM/EOL information
+ */
+export type SupportInfo = {
   status: {
     eom: string,
     eol: string,
@@ -54,9 +94,12 @@ export type SettingsInfo = {
   }
 };
 
+/**
+ * Main type for the metadata that is retrieved from the dynamic content endpoint
+ */
 export type DynamicContent = {
   version: string;
-  releases: ReleaseInfo,
+  releases: ReleaseInfo[],
   support: SupportInfo,
-  settings: SettingsInfo,
+  settings?: Partial<SettingsInfo>,
 };
