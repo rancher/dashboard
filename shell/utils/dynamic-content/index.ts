@@ -100,13 +100,11 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
       }
     } else {
       // Delete any test content in local storage when not in debug mode
-      try {
-        window.localStorage.removeItem(LOCAL_STORAGE_TEST_DATA);
+      window.localStorage.removeItem(LOCAL_STORAGE_TEST_DATA);
 
-        if (!config.log) {
-          window.localStorage.removeItem(LOCAL_STORAGE_CONTENT_DEBUG_LOG);
-        }
-      } catch {}
+      if (!config.log) {
+        window.localStorage.removeItem(LOCAL_STORAGE_CONTENT_DEBUG_LOG);
+      }
     }
 
     // Add the settings data to the context, so that it is guarenteed to have the settings with their defaults or values from the dynamic content payload
@@ -156,36 +154,32 @@ function newRequestAbortSignal(timeoutMs: number) {
 function updateFetchInfo(didError: boolean) {
   if (!didError) {
     // No error, so check again tomorrow and remove the backoff setting, so it will get its default next time
-    try {
-      const nextFetch = day().add(1, 'day');
-      const nextFetchString = nextFetch.format(UPDATE_DATE_FORMAT);
+    const nextFetch = day().add(1, 'day');
+    const nextFetchString = nextFetch.format(UPDATE_DATE_FORMAT);
 
-      window.localStorage.setItem(LOCAL_STORAGE_UPDATE_FETCH_DATE, nextFetchString);
-      window.localStorage.removeItem(LOCAL_STORAGE_UPDATE_ERRORS);
-    } catch {}
+    window.localStorage.setItem(LOCAL_STORAGE_UPDATE_FETCH_DATE, nextFetchString);
+    window.localStorage.removeItem(LOCAL_STORAGE_UPDATE_ERRORS);
   } else {
     // Did error, read the backoff, increase and add to the date
-    try {
-      const contiguousErrorsString = window.localStorage.getItem(LOCAL_STORAGE_UPDATE_ERRORS) || '0';
+    const contiguousErrorsString = window.localStorage.getItem(LOCAL_STORAGE_UPDATE_ERRORS) || '0';
 
-      let contiguousErrors = parseInt(contiguousErrorsString, 10);
+    let contiguousErrors = parseInt(contiguousErrorsString, 10);
 
-      // Increase the number of errors that have happenned in a row
-      contiguousErrors++;
+    // Increase the number of errors that have happenned in a row
+    contiguousErrors++;
 
-      // Once we reach the max backoff, just stick with it
-      if (contiguousErrors >= BACKOFFS.length ) {
-        contiguousErrors = BACKOFFS.length - 1;
-      }
+    // Once we reach the max backoff, just stick with it
+    if (contiguousErrors >= BACKOFFS.length ) {
+      contiguousErrors = BACKOFFS.length - 1;
+    }
 
-      // Now find the backoff (days) given the error count and calculate the date of the next fetch
-      const daysToAdd = BACKOFFS[contiguousErrors];
-      const nextFetch = day().add(daysToAdd, 'day');
-      const nextFetchString = nextFetch.format(UPDATE_DATE_FORMAT);
+    // Now find the backoff (days) given the error count and calculate the date of the next fetch
+    const daysToAdd = BACKOFFS[contiguousErrors];
+    const nextFetch = day().add(daysToAdd, 'day');
+    const nextFetchString = nextFetch.format(UPDATE_DATE_FORMAT);
 
-      window.localStorage.setItem(LOCAL_STORAGE_UPDATE_FETCH_DATE, nextFetchString);
-      window.localStorage.setItem(LOCAL_STORAGE_UPDATE_ERRORS, contiguousErrors.toString());
-    } catch {}
+    window.localStorage.setItem(LOCAL_STORAGE_UPDATE_FETCH_DATE, nextFetchString);
+    window.localStorage.setItem(LOCAL_STORAGE_UPDATE_ERRORS, contiguousErrors.toString());
   }
 }
 
@@ -204,9 +198,7 @@ export async function fetchDynamicContent(context: Context): Promise<DynamicCont
     const nextFetch = window.localStorage.getItem(LOCAL_STORAGE_UPDATE_FETCH_DATE) || todayString;
 
     // Read the cached content from local storage if possible
-    try {
-      content = JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_UPDATE_CONTENT) || '{}');
-    } catch {}
+    content = JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_UPDATE_CONTENT) || '{}');
 
     const nextFetchDay = day(nextFetch);
 
@@ -214,26 +206,20 @@ export async function fetchDynamicContent(context: Context): Promise<DynamicCont
     if (!nextFetchDay.isValid() || !nextFetchDay.isAfter(today)) {
       logger.info(`Performing update check on ${ todayString }`);
 
-      try {
-        const activeFetch = window.localStorage.getItem(LOCAL_STORAGE_UPDATE_FETCHING);
+      const activeFetch = window.localStorage.getItem(LOCAL_STORAGE_UPDATE_FETCHING);
 
-        if (activeFetch) {
-          const activeFetchDate = day(activeFetch);
+      if (activeFetch) {
+        const activeFetchDate = day(activeFetch);
 
-          if (activeFetchDate.isValid() && today.diff(activeFetchDate, 'second') < FETCH_CONCURRENT_SECONDS) {
-            logger.debug('Already fetching dynamic content in another tab (or previous tab closed while fetching) - skipping');
+        if (activeFetchDate.isValid() && today.diff(activeFetchDate, 'second') < FETCH_CONCURRENT_SECONDS) {
+          logger.debug('Already fetching dynamic content in another tab (or previous tab closed while fetching) - skipping');
 
-            return content as DynamicContent;
-          }
+          return content as DynamicContent;
         }
-      } catch (e) {
-        logger.error('Unable to check if another tab is fetching dynamic content', e);
       }
 
       // Set the local storage key that indicates a tab is fetching the content - prevents other tabs doing so at the same time
-      try {
-        window.localStorage.setItem(LOCAL_STORAGE_UPDATE_FETCHING, today.toString());
-      } catch {}
+      window.localStorage.setItem(LOCAL_STORAGE_UPDATE_FETCHING, today.toString());
 
       // Wait a short while before fetching dynamic content
       await new Promise((resolve) => setTimeout(resolve, FETCH_DELAY));
@@ -286,9 +272,7 @@ export async function fetchDynamicContent(context: Context): Promise<DynamicCont
   }
 
   // Remove the local storage key that indicates a tab is fetching the content
-  try {
-    window.localStorage.removeItem(LOCAL_STORAGE_UPDATE_FETCHING);
-  } catch {}
+  window.localStorage.removeItem(LOCAL_STORAGE_UPDATE_FETCHING);
 
   return content as DynamicContent;
 }
