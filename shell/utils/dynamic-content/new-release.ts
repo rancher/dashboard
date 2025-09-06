@@ -15,10 +15,10 @@
 import semver from 'semver';
 import { NotificationLevel } from '@shell/types/notifications';
 import { READ_NEW_RELEASE } from '@shell/store/prefs';
-import { ContextWithSettings, VersionInfo } from './types';
+import { Context, VersionInfo } from './types';
 import { removeMatchingNotifications } from './util';
 
-export async function processReleaseVersion(context: ContextWithSettings, releaseInfo: any, versionInfo: VersionInfo) {
+export async function processReleaseVersion(context: Context, releaseInfo: any, versionInfo: VersionInfo) {
   if (!releaseInfo || !versionInfo?.version) {
     return;
   }
@@ -53,7 +53,7 @@ export async function processReleaseVersion(context: ContextWithSettings, releas
   }
 }
 
-async function addNewReleaseNotification(context: ContextWithSettings, version: string) {
+async function addNewReleaseNotification(context: Context, version: string) {
   const prefix = 'new-release-';
   const releaseNotesUrl = context.settings.releaseNotesUrl.replace('$version', version);
   const { dispatch, getters, logger } = context;
@@ -86,7 +86,7 @@ async function addNewReleaseNotification(context: ContextWithSettings, version: 
   }
 }
 
-async function addNewMultipleReleasesNotification(context: ContextWithSettings, version1: string, version2: string) {
+async function addNewMultipleReleasesNotification(context: Context, version1: string, version2: string) {
   const prefix = 'new-release-';
   const key = `${ version1 }-${ version2 }`;
   const releaseNotesUrl1 = context.settings.releaseNotesUrl.replace('$version', version1);
