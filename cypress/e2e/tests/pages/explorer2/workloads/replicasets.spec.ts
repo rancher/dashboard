@@ -24,9 +24,8 @@ describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
         workloadsDaemonsetsEditPage.resourceDetail().createEditView().nameNsDescription().name()
           .set(replicasetName);
         workloadsDaemonsetsEditPage.containerImageInput().set('nginx');
-        workloadsDaemonsetsEditPage.resourceDetail().createEditView().save();
 
-        ResourceSearchDialog.goToResource('ReplicaSets');
+        workloadsDaemonsetsEditPage.resourceDetail().createEditView().save();
 
         workloadsReplicasetsListPage.waitForPage();
 
