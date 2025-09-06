@@ -31,6 +31,15 @@ export type Configuration = {
 };
 
 /**
+ * Settings configuration that can be supplied in the dynamic content package
+ */
+export type SettingsInfo = {
+  releaseNotesUrl: string; // URL format to use when generating release note links for new releases
+  suseExtensions: string[]; // Names of extra SUSE UI extensions on top of the list built-in
+  debugVersion?: string;
+};
+
+/**
  * Common context passed through various functions
  */
 export type Context = {
@@ -40,13 +49,14 @@ export type Context = {
   logger: Logger,
   isAdmin: boolean,
   config: Configuration,
+  settings: SettingsInfo,
 };
 
 /**
  * Version information
  */
 export type VersionInfo = {
-  version: SemVer;
+  version: SemVer | null;
   isPrime: boolean;
 };
 
@@ -55,21 +65,6 @@ export type VersionInfo = {
  */
 export type ReleaseInfo = {
   name: string;
-};
-
-/**
- * Settings configuration that can be supplied in the dynamic content package
- */
-export type SettingsInfo = {
-  releaseNotesUrl: string; // URL format to use when generating release note links for new releases
-  suseExtensions: string[]; // Names of extra SUSE UI extensions on top of the list built-in
-};
-
-/**
- * Context that includes settings
- */
-export type ContextWithSettings = Context & {
-  settings: SettingsInfo,
 };
 
 /**
