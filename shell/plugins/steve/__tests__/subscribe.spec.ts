@@ -1,17 +1,19 @@
 import { actions, getters, mutations } from '../subscribe';
 import { REVISION_TOO_OLD } from '../../../utils/socket';
-import { STEVE_WATCH_EVENT } from '../../../types/store/subscribe.types';
+import { STEVE_WATCH_MODE } from '../../../types/store/subscribe.types';
 import backOff from '../../../utils/back-off';
+import { SteveWatchEventListenerManager } from '../../subscribe-events';
 
 describe('steve: subscribe', () => {
   describe('actions', () => {
     describe('watch', () => {
-      const state = {};
+      const state = { listenerManager: new SteveWatchEventListenerManager() };
       const getters = {
-        normalizeType: (type: string) => type,
-        schemaFor:     () => null,
-        inError:       () => false,
-        watchStarted:  () => false,
+        normalizeType:   (type: string) => type,
+        schemaFor:       () => null,
+        inError:         () => false,
+        watchStarted:    () => false,
+        listenerManager: state.listenerManager
       };
       const rootGetters = {
         'type-map/isSpoofed': () => false,
@@ -211,15 +213,11 @@ describe('steve: subscribe', () => {
         }, {
           ...obj,
           revision,
-          mode:  STEVE_WATCH_EVENT.CHANGES,
+          mode:  STEVE_WATCH_MODE.RESOURCE_CHANGES,
           force: true,
         });
 
-        expect(dispatch).toHaveBeenNthCalledWith(1, 'unwatchIncompatible', {
-          id: undefined, mode: STEVE_WATCH_EVENT.CHANGES, namespace: undefined, selector: undefined, type: obj.type
-        });
-
-        expect(dispatch).toHaveBeenNthCalledWith(2, 'send', {
+        expect(dispatch).toHaveBeenNthCalledWith(1, 'send', {
           debounceMs:      4000,
           mode:            'resource.changes',
           resourceType:    obj.type,
@@ -231,7 +229,7 @@ describe('steve: subscribe', () => {
           state, dispatch, getters, commit
         }, { ...msg });
 
-        expect(dispatch).toHaveBeenCalledTimes(2);
+        expect(dispatch).toHaveBeenCalledTimes(1);
         dispatch.mockClear();
       };
 
@@ -252,7 +250,7 @@ describe('steve: subscribe', () => {
         });
         expect(state.inError).toStrictEqual(
           {
-            'type=abc,namespace=,id=,selector=': {
+            'type=abc,namespace=,id=,selector=,mode=resource.changes': {
               obj: {
                 type: msg.resourceType,
                 mode: msg.mode,
@@ -268,7 +266,7 @@ describe('steve: subscribe', () => {
         }, { ...msg });
         // stop tries to watch again, however we're in error so will be ignored
         expect(dispatch).toHaveBeenNthCalledWith(1, 'watch', {
-          id: undefined, mode: STEVE_WATCH_EVENT.CHANGES, namespace: undefined, selector: undefined, type: obj.type
+          id: undefined, mode: STEVE_WATCH_MODE.RESOURCE_CHANGES, namespace: undefined, selector: undefined, standardWatch: true, type: obj.type
         });
 
         dispatch.mockClear();
@@ -349,19 +347,24 @@ describe('steve: subscribe', () => {
       const obj = { type: 'abc' };
       const msg = {
         resourceType: obj.type,
-        mode:         STEVE_WATCH_EVENT.CHANGES,
+        mode:         STEVE_WATCH_MODE.RESOURCE_CHANGES,
       };
 
       const initStore = () => {
-        const state = { started: [], inError: {} };
+        const state = {
+          started:         [],
+          inError:         {},
+          listenerManager: new SteveWatchEventListenerManager()
+        };
         const _getters = {
-          normalizeType: (type: string) => type,
-          schemaFor:     () => ({}),
-          storeName:     'test',
-          inError:       (...args) => getters.inError(state)(...args),
-          watchStarted:  (...args) => getters.watchStarted(state)(...args),
-          backOffId:     (...args) => getters.backOffId()(...args),
-          canBackoff:    () => true,
+          normalizeType:   (type: string) => type,
+          schemaFor:       () => ({}),
+          storeName:       'test',
+          inError:         (...args) => getters.inError(state)(...args),
+          watchStarted:    (...args) => getters.watchStarted(state)(...args),
+          backOffId:       (...args) => getters.backOffId()(...args),
+          canBackoff:      () => true,
+          listenerManager: state.listenerManager
         };
         const commit = (type, ...args) => mutations[type](state, ...args);
 
