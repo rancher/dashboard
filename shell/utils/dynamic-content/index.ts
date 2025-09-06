@@ -11,7 +11,7 @@ import { isAdminUser } from '@shell/store/type-map';
 import { getVersionData } from '@shell/config/version';
 import { processReleaseVersion } from './new-release';
 import { processSupportNotices } from './support-notice';
-import { Context, DynamicContent } from './types';
+import { Context, DynamicContent, VersionInfo } from './types';
 import { createLogger, LOCAL_STORAGE_CONTENT_DEBUG_LOG } from './util';
 import { getConfig } from './config';
 import { SystemInfoProvider } from './info';
@@ -45,15 +45,20 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
   }
 
   const config = getConfig(getters);
+  const logger = createLogger(config);
 
   // Common context to pass through to functions for store access, logging, etc
-  const context = {
+  const context: Context = {
     dispatch,
     getters,
     axios,
-    logger:  createLogger(config),
-    isAdmin: isAdminUser(getters),
+    logger,
     config,
+    isAdmin:  isAdminUser(getters),
+    settings: {
+      releaseNotesUrl: DEFAULT_RELEASE_NOTES_URL,
+      suseExtensions:  [],
+    }
   };
 
   // If not enabled via the configuration, then just return
@@ -63,7 +68,7 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
     return;
   }
 
-  context.logger.debug('Read configuration', context.config);
+  logger.debug('Read configuration', context.config);
 
   try {
     // Fetch the dynamic content if required, otherwise return the cached content or empty object if no content available
@@ -76,7 +81,7 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
       return;
     }
 
-    const versionInfo = {
+    const versionInfo: VersionInfo = {
       version,
       isPrime: versionData.RancherPrime === 'true',
     };
@@ -87,16 +92,16 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
         const data = JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_TEST_DATA) || '{}');
 
         if (data?.version) {
-          versionInfo.version = semver.coerce(data.version) as any;
+          versionInfo.version = semver.coerce(data.version);
         }
 
         if (data?.content) {
           content = data.content;
 
-          context.logger.debug('Using test content from local storage (developer mode)');
+          logger.debug('Using test content from local storage (developer mode)');
         }
       } catch (e) {
-        context.logger.debug('Failed to read test content from local storage', e);
+        logger.debug('Failed to read test content from local storage', e);
       }
     } else {
       // Delete any test content in local storage when not in debug mode
@@ -107,27 +112,31 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
       }
     }
 
-    // Add the settings data to the context, so that it is guarenteed to have the settings with their defaults or values from the dynamic content payload
-    const contextWithSettings = {
-      ...context,
-      settings: {
-        releaseNotesUrl: content.settings?.releaseNotesUrl || DEFAULT_RELEASE_NOTES_URL,
-        suseExtensions:  [],
-      }
+    // Update the settings data from the content, so that it is has the settings with their defaults or values from the dynamic content payload
+    context.settings = {
+      ...context.settings,
+      ...content.settings
     };
+
+    // If the cached content has a debug version then use that as an override for the current version number
+    // This is only for debug and testing purposes
+    if (content.settings?.debugVersion) {
+      versionInfo.version = semver.coerce(content.settings.debugVersion);
+      logger.debug(`Overriding version number to ${ content.settings.debugVersion }`);
+    }
 
     // We always process the content in case the Rancher version has changed or the date means that an announcement/notification should now be shown
 
     // New release notifications and support notifications are shown to ALL community users, but only to admin users when Prime
     if (!config.prime || context.isAdmin) {
     // New release notifications
-      processReleaseVersion(contextWithSettings, content.releases, versionInfo);
+      processReleaseVersion(context, content.releases, versionInfo);
 
       // EOM, EOL notifications
-      processSupportNotices(contextWithSettings, content.support, versionInfo);
+      processSupportNotices(context, content.support, versionInfo);
     }
   } catch (e) {
-    context.logger.error('Error reading or processing dynamic content', e);
+    logger.error('Error reading or processing dynamic content', e);
   }
 }
 

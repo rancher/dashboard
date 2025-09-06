@@ -4,8 +4,6 @@ import { Configuration, Distribution } from './types';
 import { MANAGEMENT } from '@shell/config/types';
 
 // Default endpoint ($dist is either 'community' or 'prime')
-// const DEFAULT_ENDPOINT = 'https://update.ui.rancher.space/rancher/$dist';
-
 // This will never connect
 const DEFAULT_ENDPOINT = 'https://192.168.1.1/$dist';
 
@@ -44,7 +42,16 @@ export function getConfig(getters: any): Configuration {
     if (prime && urlSetting?.value && urlSetting.value.startsWith(HTTPS_PREFIX)) {
       config.endpoint = urlSetting.value;
     }
-  } catch {}
+  } catch (e) {
+    console.error('Error reading dynamic content settings', e); // eslint-disable-line no-console
+  }
+
+  // TODO: Remove this code ===================================================================================
+  // For testing, there is no default endpoint, so if not specified in config, then this feature is not enabled
+  if (!config.endpoint) {
+    config.enabled = false;
+  }
+  // END TODO: Remove this code ===============================================================================
 
   return config;
 }

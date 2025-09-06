@@ -19,7 +19,7 @@ import day from 'dayjs';
 import { NotificationLevel } from '@shell/types/notifications';
 import { READ_SUPPORT_NOTICE, READ_UPCOMING_SUPPORT_NOTICE } from '@shell/store/prefs';
 import { removeMatchingNotifications } from './util';
-import { ContextWithSettings, VersionInfo, UpcomingSupportInfo, SupportInfo } from './types';
+import { Context, VersionInfo, UpcomingSupportInfo, SupportInfo } from './types';
 
 // Number of days ahead of upcoming EOM or EOL that we will notify the user
 const DEFAULT_UPCOMING_WINDOW = 30;
@@ -51,7 +51,7 @@ type Config = {
  * @param versionInfo Version information
  */
 
-export async function processSupportNotices(context: ContextWithSettings, statusInfo: SupportInfo, versionInfo: VersionInfo): Promise<void> {
+export async function processSupportNotices(context: Context, statusInfo: SupportInfo, versionInfo: VersionInfo): Promise<void> {
   if (!statusInfo || !versionInfo?.version) {
     return;
   }
@@ -119,7 +119,7 @@ export async function processSupportNotices(context: ContextWithSettings, status
   }
 }
 
-async function checkAndAddUpcomingNotification(context: ContextWithSettings, info: UpcomingSupportInfo, config: Config, majorMinor: string): Promise<boolean> {
+async function checkAndAddUpcomingNotification(context: Context, info: UpcomingSupportInfo, config: Config, majorMinor: string): Promise<boolean> {
   const now = day();
   const upcomingDate = day(info.date);
   const distance = upcomingDate.diff(now, 'day');
@@ -143,7 +143,7 @@ async function checkAndAddUpcomingNotification(context: ContextWithSettings, inf
  * @param majorMinor Major.Minor version number
  * @param distance Number of days until the event occurs (for upcoming support events)
  */
-async function checkAndAddNotification(context: ContextWithSettings, config: Config, majorMinor: string, distance?: number) {
+async function checkAndAddNotification(context: Context, config: Config, majorMinor: string, distance?: number) {
   const { dispatch, getters, logger } = context;
   const t = getters['i18n/t'];
   const lastReadNotice = getters['prefs/get'](config.pref) || '';
