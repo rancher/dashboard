@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import Loading from '@shell/components/Loading';
 import { _FLAGGED, DEPRECATED as DEPRECATED_QUERY, HIDDEN, FROM_TOOLS } from '@shell/config/query-params';
-import { filterAndArrangeCharts } from '@shell/store/catalog';
+import { filterAndArrangeCharts, APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import { CATALOG, NORMAN } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { isAlternate } from '@shell/utils/platform';
@@ -128,18 +128,31 @@ export default {
       const { installedApp, rawChart } = card;
 
       if (installedApp) {
-        return [
-          {
+        const upgradeAvailable = installedApp.upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE;
+
+        const actions = [];
+
+        if (upgradeAvailable) {
+          actions.push({
             label:  this.t('catalog.tools.action.upgrade'),
+            icon:   'icon-upgrade-alt',
+            action: 'edit',
+          });
+        } else {
+          actions.push({
+            label:  this.t('catalog.tools.action.edit'),
             icon:   'icon-edit',
             action: 'edit',
-          },
-          {
-            label:  this.t('catalog.tools.action.remove'),
-            icon:   'icon-delete',
-            action: 'remove',
-          }
-        ];
+          });
+        }
+
+        actions.push({
+          label:  this.t('catalog.tools.action.remove'),
+          icon:   'icon-delete',
+          action: 'remove',
+        });
+
+        return actions;
       }
 
       return [

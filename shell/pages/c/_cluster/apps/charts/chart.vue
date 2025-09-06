@@ -297,10 +297,9 @@ export default {
         @click.prevent="install"
       >
         <i
-          v-if="action === 'upgrade'"
-          class="icon icon-upgrade-alt mmr-2"
+          :class="['icon', action.icon, 'mmr-2']"
         />
-        {{ t(`asyncButton.${action}.action` ) }}
+        {{ t(`asyncButton.${action.tKey}.action` ) }}
       </RcButton>
     </div>
 

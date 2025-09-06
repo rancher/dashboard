@@ -29,7 +29,10 @@ describe('chartMixin', () => {
             return () => 'repo';
           },
           'catalog/chart': () => {
-            return { id: chartId };
+            return {
+              id:                    chartId,
+              matchingInstalledApps: []
+            };
           },
           'i18n/t': () => jest.fn()
         }
@@ -113,7 +116,9 @@ describe('chartMixin', () => {
             return () => 'repo';
           },
           'catalog/chart': () => {
-            return { id: 'chart-id', versions: [{ version: '1.0.0' }] };
+            return {
+              id: 'chart-id', versions: [{ version: '1.0.0' }], matchingInstalledApps: []
+            };
           },
           'catalog/version': jest.fn(),
           'prefs/get':       () => {},
@@ -145,6 +150,73 @@ describe('chartMixin', () => {
       await wrapper.vm.fetchChart();
 
       expect(mockStore.getters['catalog/version']).toHaveBeenCalledWith(expect.objectContaining({ showDeprecated: true }));
+    });
+  });
+
+  describe('action', () => {
+    const DummyComponent = {
+      mixins:   [ChartMixin],
+      template: '<div></div>',
+    };
+
+    const mockStore = {
+      dispatch: jest.fn(() => Promise.resolve()),
+      getters:  { 'i18n/t': (key: string) => key }
+    };
+
+    it('should return "install" action when not installed', () => {
+      const wrapper = mount(DummyComponent, {
+        data:   () => ({ existing: null }),
+        global: { mocks: { $store: mockStore } }
+      });
+
+      expect(wrapper.vm.action).toStrictEqual({
+        name: 'install',
+        tKey: 'install',
+        icon: 'icon-plus',
+      });
+    });
+
+    it('should return "update" action when installed and on same version', () => {
+      const wrapper = mount(DummyComponent, {
+        data: () => ({
+          existing: { spec: { chart: { metadata: { version: '1.0.0' } } } },
+          version:  { version: '1.0.0' }
+        }),
+        global: {
+          mocks: {
+            $store: mockStore,
+            $route: { query: {} }
+          }
+        }
+      });
+
+      expect(wrapper.vm.action).toStrictEqual({
+        name: 'update',
+        tKey: 'edit2',
+        icon: 'icon-edit',
+      });
+    });
+
+    it('should return "upgrade" action when installed and on different version', () => {
+      const wrapper = mount(DummyComponent, {
+        data: () => ({
+          existing: { spec: { chart: { metadata: { version: '1.0.0' } } } },
+          version:  { version: '1.0.1' }
+        }),
+        global: {
+          mocks: {
+            $store: mockStore,
+            $route: { query: {} }
+          }
+        }
+      });
+
+      expect(wrapper.vm.action).toStrictEqual({
+        name: 'upgrade',
+        tKey: 'upgrade',
+        icon: 'icon-upgrade-alt',
+      });
     });
   });
 });
