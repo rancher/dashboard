@@ -26,7 +26,6 @@ const LOCAL_STORAGE_UPDATE_FETCH_DATE = 'rancher-updates-fetch-next'; // Local s
 const LOCAL_STORAGE_UPDATE_CONTENT = 'rancher-updates-last-content'; // Local storage setting that holds the last fetched content
 const LOCAL_STORAGE_UPDATE_ERRORS = 'rancher-updates-fetch-errors'; // Local storage setting that holds the count of contiguous errors
 const LOCAL_STORAGE_UPDATE_FETCHING = 'rancher-updates-fetching'; // Local storage setting that holds the date and time of the last fetch that was started
-const LOCAL_STORAGE_TEST_DATA = 'rancher-updates-test-data'; // Local storage setting that holds test data to be used when in debug mode
 
 const BACKOFFS = [1, 1, 1, 2, 2, 3, 5]; // Backoff in days for the contiguous number of errors (i.e. after 1 errors, we wait 1 day, after 3 errors, we wait 2 days, etc.)
 
@@ -72,8 +71,9 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
 
   try {
     // Fetch the dynamic content if required, otherwise return the cached content or empty object if no content available
-    let content = await fetchDynamicContent(context);
+    const content = await fetchDynamicContent(context);
 
+    // Version metadata
     const versionData = getVersionData();
     const version = semver.coerce(versionData.Version);
 
@@ -86,30 +86,9 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
       isPrime: versionData.RancherPrime === 'true',
     };
 
-    // Allow test content to be read from local storage when in debug mode only
-    if (config.debug) {
-      try {
-        const data = JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_TEST_DATA) || '{}');
-
-        if (data?.version) {
-          versionInfo.version = semver.coerce(data.version);
-        }
-
-        if (data?.content) {
-          content = data.content;
-
-          logger.debug('Using test content from local storage (developer mode)');
-        }
-      } catch (e) {
-        logger.debug('Failed to read test content from local storage', e);
-      }
-    } else {
-      // Delete any test content in local storage when not in debug mode
-      window.localStorage.removeItem(LOCAL_STORAGE_TEST_DATA);
-
-      if (!config.log) {
-        window.localStorage.removeItem(LOCAL_STORAGE_CONTENT_DEBUG_LOG);
-      }
+    // If not logging, then clear out any log data from local storage
+    if (!config.log) {
+      window.localStorage.removeItem(LOCAL_STORAGE_CONTENT_DEBUG_LOG);
     }
 
     // Update the settings data from the content, so that it is has the settings with their defaults or values from the dynamic content payload
