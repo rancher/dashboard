@@ -45,4 +45,4 @@ OUTPUT_EMBER_DIR="${E2E_BUILD_DIST_EMBER_DIR:-dist_ember}"
 
 echo "Pulling latest rancher/ui"
 mkdir $OUTPUT_EMBER_DIR
-curl https://releases.rancher.com/ui/latest2/index.html -k -o $OUTPUT_EMBER_DIR/index.html
+curl https://releases.rancher.com/ui/release-2.10/index.html -k -o $OUTPUT_EMBER_DIR/index.html
