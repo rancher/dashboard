@@ -69,14 +69,6 @@ const preview: Preview = {
       defaultTheme: 'light',
       parentSelector: 'body'
     }),
-    (story, context) => {
-      const theme = context.globals.backgrounds?.value === "#333" ? "theme-dark" : "theme-light";
-
-      document.body.classList.remove("theme-dark", "theme-light");
-      document.body.classList.add(theme);
-
-      return story();
-    },
   ]
 };
 
