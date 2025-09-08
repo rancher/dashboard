@@ -14,7 +14,6 @@ describe('composables: Metadata/composables', () => {
     const useWorkspaceSpy = jest.spyOn(IdentifyingFields, 'useWorkspace');
     const useNamespaceSpy = jest.spyOn(IdentifyingFields, 'useNamespace');
     const useLiveDateSpy = jest.spyOn(IdentifyingFields, 'useLiveDate');
-    const useCreatedBySpy = jest.spyOn(IdentifyingFields, 'useCreatedBy');
     const useResourceDetailsSpy = jest.spyOn(IdentifyingFields, 'useResourceDetails');
 
     it('should filter out undefined identifyingInformation', () => {
@@ -39,7 +38,6 @@ describe('composables: Metadata/composables', () => {
       useWorkspaceSpy.mockReturnValue(computed(() => ({ label: 'WORKSPACE' })));
       useNamespaceSpy.mockReturnValue(computed(() => ({ label: 'NAMESPACE' })));
       useLiveDateSpy.mockReturnValue(computed(() => ({ label: 'LIVE_DATE' })));
-      useCreatedBySpy.mockReturnValue(computed(() => ({ label: 'CREATED_BY' })));
       useResourceDetailsSpy.mockReturnValue(computed(() => [{ label: 'RESOURCE_DETAILS' }]));
 
       const resource = {
@@ -59,7 +57,6 @@ describe('composables: Metadata/composables', () => {
         { label: 'WORKSPACE' },
         { label: 'NAMESPACE' },
         { label: 'LIVE_DATE' },
-        { label: 'CREATED_BY' },
         { label: 'RESOURCE_DETAILS' }
       ]);
       expect(resource.showConfiguration).toHaveBeenCalledTimes(1);

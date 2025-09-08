@@ -1,4 +1,4 @@
-import { Status } from '@components/Pill/types';
+import { Status } from '../types';
 export type Shape = 'disc' | 'horizontal-bar' | 'vertical-bar';
 
 export interface RcStatusIndicatorProps {

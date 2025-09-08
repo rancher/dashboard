@@ -504,18 +504,24 @@ export default {
         version:  this.query.versionName,
       };
 
+      const query = {
+        [REPO_TYPE]: provider.repoType,
+        [REPO]:      provider.repoName,
+        [CHART]:     provider.name,
+        [VERSION]:   provider.version,
+      };
+
+      if (this.showDeprecated) {
+        query[DEPRECATED_QUERY] = this.query.deprecated;
+      }
+
       return {
         name:   install ? 'c-cluster-apps-charts-install' : 'c-cluster-apps-charts-chart',
         params: {
           cluster: this.$route.params.cluster,
           product: this.$store.getters['productId'],
         },
-        query: {
-          [REPO_TYPE]: provider.repoType,
-          [REPO]:      provider.repoName,
-          [CHART]:     provider.name,
-          [VERSION]:   provider.version,
-        }
+        query
       };
     },
 
@@ -531,13 +537,20 @@ export default {
     },
 
     clusterToolsLocation() {
+      const query = {};
+
+      if (this.showDeprecated) {
+        query[DEPRECATED_QUERY] = this.query.deprecated;
+      }
+
       return {
         name:   `c-cluster-explorer-tools`,
         params: {
           product:  EXPLORER,
           cluster:  this.$store.getters['clusterId'],
           resource: CATALOG.APP,
-        }
+        },
+        query
       };
     },
 

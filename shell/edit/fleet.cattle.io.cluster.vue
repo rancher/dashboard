@@ -56,9 +56,13 @@ export default {
     async save(buttonDone) {
       try {
         this.errors = [];
+
         await this.value.save();
 
         await this.normanCluster.save();
+
+        // Changes (such as labels or annotations fields) to normanCluster are reflected in the fleet cluster via Rancher services, so wait for that to occur
+        await this.waitForFleetClusterLastRevision();
 
         this.done();
         buttonDone(true);
@@ -67,6 +71,21 @@ export default {
         buttonDone(false);
       }
     },
+
+    async waitForFleetClusterLastRevision() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      const currRev = this.value?.metadata?.resourceVersion;
+
+      try {
+        return await this.value.waitForTestFn(() => {
+          const rev = this.$store.getters[`${ inStore }/byId`](this.value.type, this.value.id)?.metadata?.resourceVersion;
+
+          return currRev && currRev !== rev;
+        }, `${ this.value.id } - wait for resourceVersion to change`, 1000, 200);
+      } catch (e) {
+      }
+    }
   },
 };
 </script>

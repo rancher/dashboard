@@ -269,4 +269,24 @@ export default class Namespace extends SteveModel {
   get hideDetailLocation() {
     return !!this.$rootGetters['currentProduct'].hideNamespaceLocation;
   }
+
+  get glance() {
+    const glance = [...this._glance];
+
+    const namespaceIndex = glance.findIndex((item) => item.name === 'namespace');
+
+    if (namespaceIndex > -1) {
+      glance.splice(namespaceIndex, 1, {
+        name:          'project',
+        label:         this.t('component.resource.detail.glance.project'),
+        formatter:     'Link',
+        formatterOpts: {
+          to: this.project.detailLocation, row: {}, options: { internal: true }
+        },
+        content: this.project.nameDisplay
+      });
+    }
+
+    return glance;
+  }
 }

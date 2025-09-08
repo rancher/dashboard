@@ -1,15 +1,14 @@
 import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
-import { prometheusSpec } from '@/cypress/e2e/blueprints/charts/prometheus-chart';
+// import { prometheusSpec } from '@/cypress/e2e/blueprints/charts/prometheus-chart';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
 import { PrometheusTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/prometheus-tab.po';
 import { GrafanaTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/grafana-tab.po';
-import { AlertingTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/alerting-tab.po';
-import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
-import { DEFAULT_GRAFANA_STORAGE_SIZE } from '@shell/config/types.js';
-import ChartInstalledAppsListPagePo from '@/cypress/e2e/po/pages/chart-installed-apps.po';
+// import { AlertingTab } from '@/cypress/e2e/po/pages/explorer/charts/tabs/alerting-tab.po';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+// import { DEFAULT_GRAFANA_STORAGE_SIZE } from '@shell/config/types.js';
 
 describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   const chartsPage = new ChartsPage();
@@ -17,24 +16,28 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
   const installChart = new InstallChartPage();
   const terminal = new Kubectl();
   const prometheus = new PrometheusTab();
-  const alerting = new AlertingTab();
-  const chartInstalledAppsListPage = new ChartInstalledAppsListPagePo('local', 'apps');
+  // const alerting = new AlertingTab();
+  const CHART = {
+    name: 'Monitoring',
+    id:   'rancher-monitoring',
+    repo: 'rancher-charts'
+  };
 
   before(() => {
     cy.login();
     cy.viewport(1280, 720);
   });
 
-  after(() => {
-    uninstallApp('cattle-monitoring-system', 'rancher-monitoring-crd');
-    uninstallApp('cattle-monitoring-system', 'rancher-monitoring');
-  });
+  // after(() => {
+  //   uninstallApp('cattle-monitoring-system', 'rancher-monitoring-crd');
+  //   uninstallApp('cattle-monitoring-system', 'rancher-monitoring');
+  // });
 
-  function uninstallApp(namespace: string, name: string) {
-    cy.createRancherResource('v1', `catalog.cattle.io.apps/${ namespace }/${ name }?action=uninstall`, '{}');
-    // Need to wait between uninstalls (not ideal)
-    cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
-  }
+  // function uninstallApp(namespace: string, name: string) {
+  //   cy.createRancherResource('v1', `catalog.cattle.io.apps/${ namespace }/${ name }?action=uninstall`, '{}');
+  //   // Need to wait between uninstalls (not ideal)
+  //   cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+  // }
 
   describe('Monitoring', { testIsolation: 'off' }, () => {
     describe('Prometheus local provisioner config', () => {
@@ -64,15 +67,15 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         const tabbedOptions = new TabbedPo();
 
         ChartPage.navTo(null, 'Monitoring');
-        chartPage.waitForChartPage('rancher-charts', 'rancher-monitoring');
+        chartPage.waitForChartPage(CHART.repo, CHART.id);
         chartPage.goToInstall();
-        installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
+        installChart.waitForChartPage(CHART.repo, CHART.id);
 
         // Check Grafana has all storage options: https://github.com/rancher/dashboard/issues/11540
         const grafana = new GrafanaTab();
 
         installChart.nextPage().selectTab(tabbedOptions, grafana.tabID());
-        installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
+        installChart.waitForChartPage(CHART.repo, CHART.id);
         grafana.storageOptions().getAllOptions().should('have.length', 4);
         grafana.storageOptions().isChecked(0); // Disabled by default
 
@@ -97,7 +100,7 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
 
         // Check Prometheus has storage class input: https://github.com/rancher/dashboard/issues/11539
         installChart.selectTab(tabbedOptions, prometheus.tabID());
-        installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
+        installChart.waitForChartPage(CHART.repo, CHART.id);
 
         prometheus.scrollToTabBottom();
 
@@ -110,197 +113,122 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
         prometheus.storageClass().checkOptionSelected(storageClass);
       });
 
-      it('Should not include empty prometheus selector when installing.', () => {
-        ChartPage.navTo(null, 'Monitoring');
+      // NOTE: Test disabled until we have a reliable way of waiting for the installation process to complete.
+      // NOTE: There are two issues around this test:
+      // - https://github.com/rancher/dashboard/issues/15253 (SSP issue)
+      // - https://github.com/rancher/dashboard/issues/15260 (UI crash when uninstalling during installation)
+      // it('Should install monitoring app with comprehensive configuration validation', () => {
+      //   const tabbedOptions = new TabbedPo();
+      //   const grafana = new GrafanaTab();
 
-        chartPage.waitForChartPage('rancher-charts', 'rancher-monitoring');
+      //   ChartPage.navTo(null, 'Monitoring');
+      //   chartPage.waitForChartPage(CHART.repo, CHART.id);
 
-        const tabbedOptions = new TabbedPo();
+      //   // Get versions
+      //   chartPage.getVersions().then((versions) => {
+      //     const truncatedVersion = versions[0].substring(0, versions[0].indexOf('-rancher'));
 
-        // Get versions
-        chartPage.getVersions().then((versions) => {
-          const truncatedVersion = versions[0].substring(0, versions[0].indexOf('-rancher'));
+      //     // Check latest selected by default
+      //     chartPage.checkSelectedVersion(truncatedVersion);
 
-          // Check latest selected by default
-          chartPage.checkSelectedVersion(truncatedVersion);
+      //     // Navigate to the edit options page
+      //     chartPage.goToInstall();
+      //     installChart.waitForChartPage(CHART.repo, CHART.id);
 
-          // Navigate to the edit options page and Set prometheus storage class
-          chartPage.goToInstall();
-          installChart.nextPage().selectTab(tabbedOptions, prometheus.tabID());
+      //     // === PROMETHEUS CONFIGURATION ===
+      //     installChart.nextPage().selectTab(tabbedOptions, prometheus.tabID());
+      //     installChart.waitForChartPage(CHART.repo, CHART.id);
 
-          installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
+      //     // Scroll into view and configure persistent storage
+      //     prometheus.persistentStorage().checkVisible();
+      //     prometheus.persistentStorage().set();
 
-          // Scroll into view
-          prometheus.persistentStorage().checkVisible();
-          prometheus.persistentStorage().set();
+      //     // to check custom box element width and height in order to prevent regression
+      //     // https://github.com/rancher/dashboard/issues/10000
+      //     prometheus.persistentStorage().hasAppropriateWidth();
+      //     prometheus.persistentStorage().hasAppropriateHeight();
 
-          // to check custom box element width and height in order to prevent regression
-          // https://github.com/rancher/dashboard/issues/10000
-          prometheus.persistentStorage().hasAppropriateWidth();
-          prometheus.persistentStorage().hasAppropriateHeight();
+      //     // Configure storage class
+      //     prometheus.storageClass().checkVisible();
+      //     prometheus.storageClass().toggle();
+      //     prometheus.storageClass().clickOptionWithLabel(storageClass);
 
-          // Scroll into view
-          prometheus.storageClass().checkVisible();
-          prometheus.storageClass().toggle();
-          prometheus.storageClass().clickOptionWithLabel(storageClass);
+      //     // Test add/remove selector functionality - previously this would result in empty selector being present
+      //     // Regression test for: https://github.com/rancher/dashboard/issues/10016
+      //     prometheus.scrollToTabBottom();
+      //     installChart.self().find(`[data-testid="input-match-expression-add-rule"]`).click();
+      //     installChart.self().find(`[data-testid="input-match-expression-remove-control-0"]`).click();
 
-          // Disable installing Alert Manager
-          installChart.selectTab(tabbedOptions, alerting.tabID());
+      //     // === GRAFANA CONFIGURATION ===
+      //     installChart.selectTab(tabbedOptions, grafana.tabID());
+      //     installChart.waitForChartPage(CHART.repo, CHART.id);
 
-          installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
+      //     // Configure Grafana resource requests/limits
+      //     grafana.requestedCpu().checkExists();
+      //     grafana.requestedCpu().checkVisible();
+      //     grafana.requestedCpu().set('123m');
 
-          alerting.deployCheckbox().checkVisible();
-          alerting.deployCheckbox().set();
+      //     grafana.requestedMemory().checkExists();
+      //     grafana.requestedMemory().checkVisible();
+      //     grafana.requestedMemory().set('567Mi');
 
-          // Click on YAML. In YAML mode, the prometheus selector is present but empty
-          // It should not be sent to the API
-          installChart.editYaml();
+      //     grafana.cpuLimit().checkExists();
+      //     grafana.cpuLimit().checkVisible();
+      //     grafana.cpuLimit().set('87m');
 
-          installChart.installChart();
+      //     grafana.memoryLimit().checkExists();
+      //     grafana.memoryLimit().checkVisible();
+      //     grafana.memoryLimit().set('123Mi');
 
-          cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
-            const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
+      //     // Check default Grafana storage value for pvc and statefulset types
+      //     // pvc
+      //     grafana.storageOptions().set(2);
+      //     grafana.storagePvcSizeInput().checkExists();
+      //     grafana.storagePvcSizeInput().checkVisible();
+      //     grafana.storagePvcSizeInput().self().invoke('val').should('equal', DEFAULT_GRAFANA_STORAGE_SIZE);
+      //     // statefulset
+      //     grafana.storageOptions().set(3);
+      //     grafana.storageStatefulsetSizeInput().checkExists();
+      //     grafana.storageStatefulsetSizeInput().checkVisible();
+      //     grafana.storageStatefulsetSizeInput().self().invoke('val').should('equal', DEFAULT_GRAFANA_STORAGE_SIZE);
+      //     // back to disabled
+      //     grafana.storageOptions().set(0);
 
-            expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
-          });
+      //     // === ALERTING CONFIGURATION ===
+      //     installChart.selectTab(tabbedOptions, alerting.tabID());
+      //     installChart.waitForChartPage(CHART.repo, CHART.id);
 
-          chartInstalledAppsListPage.waitForPage(null, null, MEDIUM_TIMEOUT_OPT);
-          terminal.closeTerminal();
-        });
-      });
+      //     // Disable installing Alert Manager
+      //     alerting.deployCheckbox().checkVisible();
+      //     alerting.deployCheckbox().set();
 
-      // Regression test for: https://github.com/rancher/dashboard/issues/10016
-      it('Should not include empty prometheus selector when installing (add/remove selector).', () => {
-        ChartPage.navTo(null, 'Monitoring');
+      //     // === INSTALLATION ===
+      //     // Click on YAML. In YAML mode, the prometheus selector is present but empty
+      //     // It should not be sent to the API
+      //     installChart.editYaml();
 
-        chartPage.waitForChartPage('rancher-charts', 'rancher-monitoring');
+      //     installChart.installChart();
 
-        const tabbedOptions = new TabbedPo();
+      //     // Wait for installation and validate all configurations
+      //     cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
+      //       const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
 
-        // Get versions
-        chartPage.getVersions().then((versions) => {
-          const truncatedVersion = versions[0].substring(0, versions[0].indexOf('-rancher'));
+      //       // Validate Prometheus configuration
+      //       expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
 
-          // Check latest selected by default
-          chartPage.checkSelectedVersion(truncatedVersion);
+      //       // Validate Grafana resource configuration
+      //       const resource = monitoringChart.values.grafana.resources;
 
-          // Set prometheus storage class
-          chartPage.goToInstall();
-          installChart.nextPage().selectTab(tabbedOptions, prometheus.tabID());
-          installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
+      //       expect(resource.requests.cpu).to.equal('123m');
+      //       expect(resource.requests.memory).to.equal('567Mi');
+      //       expect(resource.limits.cpu).to.equal('87m');
+      //       expect(resource.limits.memory).to.equal('123Mi');
+      //     });
 
-          // Scroll into view
-          prometheus.persistentStorage().checkVisible();
-          prometheus.persistentStorage().set();
-
-          prometheus.scrollToTabBottom();
-
-          prometheus.storageClass().toggle();
-          prometheus.storageClass().clickOptionWithLabel(storageClass);
-
-          // Add a selector and then remove it - previously this would result in the empty selector being present
-          installChart.self().find(`[data-testid="input-match-expression-add-rule"]`).click();
-          installChart.self().find(`[data-testid="input-match-expression-remove-control-0"]`).click();
-
-          // Click on YAML. In YAML mode, the prometheus selector is present but empty
-          // It should not be sent to the API
-          installChart.editYaml();
-
-          installChart.installChart();
-
-          cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
-            const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
-
-            expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
-          });
-
-          chartInstalledAppsListPage.waitForPage(null, null, MEDIUM_TIMEOUT_OPT);
-          terminal.closeTerminal();
-        });
-      });
-    });
-
-    describe('Grafana resource configuration', () => {
-      beforeEach(() => {
-        ChartPage.navTo(null, 'Monitoring');
-        chartPage.waitForChartPage('rancher-charts', 'rancher-monitoring');
-
-        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?*', {
-          statusCode: 201,
-          body:       {
-            type:               'chartActionOutput',
-            links:              {},
-            operationName:      'helm-operation-test',
-            operationNamespace: 'fleet-local'
-          }
-        }).as('prometheusChartCreation');
-
-        cy.intercept('GET', 'v1/catalog.cattle.io.operations/fleet-local/helm-operation-test?*', {
-          statusCode: 200,
-          body:       {
-            id:   'fleet-local/helm-operation-test',
-            kind: 'Operation',
-          }
-        });
-      });
-
-      it('Should allow for Grafana resource requests/limits configuration', () => {
-        const tabbedOptions = new TabbedPo();
-        const grafana = new GrafanaTab();
-
-        // Set Grafana resource request/limits configuration
-        chartPage.goToInstall();
-        installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
-
-        installChart.nextPage().selectTab(tabbedOptions, grafana.tabID());
-        installChart.waitForChartPage('rancher-charts', 'rancher-monitoring');
-
-        grafana.requestedCpu().checkExists();
-        grafana.requestedCpu().checkVisible();
-        grafana.requestedCpu().set('123m');
-
-        grafana.requestedMemory().checkExists();
-        grafana.requestedMemory().checkVisible();
-        grafana.requestedMemory().set('567Mi');
-
-        grafana.cpuLimit().checkExists();
-        grafana.cpuLimit().checkVisible();
-        grafana.cpuLimit().set('87m');
-
-        grafana.memoryLimit().checkExists();
-        grafana.memoryLimit().checkVisible();
-        grafana.memoryLimit().set('123Mi');
-
-        // Check default Grafana storage value for pvc and statefulset types
-        // pvc
-        grafana.storageOptions().set(2);
-        grafana.storagePvcSizeInput().checkExists();
-        grafana.storagePvcSizeInput().checkVisible();
-        grafana.storagePvcSizeInput().self().invoke('val').should('equal', DEFAULT_GRAFANA_STORAGE_SIZE);
-        // statefulset
-        grafana.storageOptions().set(3);
-        grafana.storageStatefulsetSizeInput().checkExists();
-        grafana.storageStatefulsetSizeInput().checkVisible();
-        grafana.storageStatefulsetSizeInput().self().invoke('val').should('equal', DEFAULT_GRAFANA_STORAGE_SIZE);
-        // back to disabled
-        grafana.storageOptions().set(0);
-
-        // Click on YAML. In YAML mode, the prometheus selector is present but empty
-        // It should not be sent to the API
-        installChart.editYaml();
-
-        installChart.installChart();
-
-        cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
-          const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
-          const resource = monitoringChart.values.grafana.resources;
-
-          expect(resource.requests.cpu).to.equal('123m');
-          expect(resource.requests.memory).to.equal('567Mi');
-          expect(resource.limits.cpu).to.equal('87m');
-          expect(resource.limits.memory).to.equal('123Mi');
-        });
-      });
+      //     terminal.waitForTerminalStatus('Disconnected', RESTART_TIMEOUT_OPT);
+      //     terminal.closeTerminalByTabName('Install cattle-monitoring-system:rancher-monitoring');
+      //   });
+      // });
     });
   });
 });

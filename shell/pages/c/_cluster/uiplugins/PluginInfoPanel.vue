@@ -223,7 +223,7 @@ export default {
                   :aria-label="t('plugins.closePluginPanel')"
                   tabindex="0"
                   @click="hide()"
-                  @keyup.enter.space="hide()"
+                  @keydown.enter.space="hide()"
                 >
                   <i class="icon icon-close" />
                 </div>

@@ -176,6 +176,7 @@ export function init(store) {
   mapGroup(/^(.*\.)?resources\.cattle\.io$/, 'Backup-Restore');
   mapGroup(/^(.*\.)?cluster\.x-k8s\.io$/, 'clusterProvisioning');
   mapGroup(/^(aks|eks|gke|rke|rke-machine-config|rke-machine|provisioning)\.cattle\.io$/, 'clusterProvisioning');
+  mapGroup(/^(.*\.)?(scc)\.cattle\.io$/, 'SCC');
 
   const dePaginateBindings = configureConditionalDepaginate({ maxResourceCount: 5000 });
   const dePaginateNormanBindings = configureConditionalDepaginate({ maxResourceCount: 5000, isNorman: true }) ;

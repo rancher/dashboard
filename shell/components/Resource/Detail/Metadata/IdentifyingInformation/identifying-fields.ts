@@ -1,9 +1,12 @@
 import { useI18n } from '@shell/composables/useI18n';
-import { computed, ComputedRef, markRaw, toValue } from 'vue';
+import {
+  computed, ComputedRef, defineAsyncComponent, markRaw, toValue
+} from 'vue';
 import Additional from '@shell/components/Resource/Detail/Additional.vue';
 import { useStore } from 'vuex';
 import {
-  NAMESPACE, FLEET, SERVICE_ACCOUNT, SECRET, CAPI
+  NAMESPACE, FLEET, SERVICE_ACCOUNT, SECRET, CAPI,
+  MANAGEMENT
 } from '@shell/config/types';
 import { Row } from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/index.vue';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
@@ -21,21 +24,18 @@ export const useNamespace = (resource: any): ComputedRef<Row> | undefined => {
   }
 
   return computed(() => {
-    const to = resourceValue.namespaceLocation || {
-      name:   `c-cluster-product-resource-id`,
-      params: {
-        product:  store.getters['productId'],
-        cluster:  store.getters['clusterId'],
-        resource: NAMESPACE,
-        id:       resourceValue.namespace
-      }
-    };
-
     return {
       label:           i18n.t('component.resource.detail.metadata.identifyingInformation.namespace'),
       value:           resourceValue.namespace,
       valueDataTestid: 'masthead-subheader-namespace',
-      to
+      valueOverride:   {
+        component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue'))),
+        props:     {
+          type:           NAMESPACE,
+          id:             resourceValue.namespace,
+          detailLocation: resourceValue.namespaceLocation
+        }
+      }
     };
   });
 };
@@ -88,28 +88,6 @@ export const useLiveDate = (resource: any): ComputedRef<Row> | undefined => {
   }));
 };
 
-export const useCreatedBy = (resource: any): ComputedRef<Row> | undefined => {
-  const store = useStore();
-  const i18n = useI18n(store);
-  const resourceValue = toValue(resource);
-
-  if (!resourceValue.showCreatedBy) {
-    return;
-  }
-
-  return computed(() => {
-    const to = resourceValue.createdBy.location || undefined;
-
-    return {
-      label:           i18n.t('component.resource.detail.metadata.identifyingInformation.createdBy'),
-      value:           resourceValue.createdBy.displayName,
-      to,
-      dataTestid:      'masthead-subheader-createdBy',
-      valueDataTestid: to ? 'masthead-subheader-createdBy-link' : 'masthead-subheader-createdBy_plain-text'
-    };
-  });
-};
-
 export const useProject = (resource: any): ComputedRef<Row> | undefined => {
   const store = useStore();
   const i18n = useI18n(store);
@@ -126,9 +104,17 @@ export const useProject = (resource: any): ComputedRef<Row> | undefined => {
 
   return computed(() => {
     return {
-      label: i18n.t('component.resource.detail.metadata.identifyingInformation.project'),
-      value: resourceValue.project?.nameDisplay,
-      to:    resourceValue.project?.detailLocation
+      label:           i18n.t('component.resource.detail.metadata.identifyingInformation.project'),
+      value:           resourceValue.project?.nameDisplay,
+      valueDataTestid: 'masthead-subheader-project',
+      valueOverride:   {
+        component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue'))),
+        props:     {
+          type:         MANAGEMENT.PROJECT,
+          id:           resourceValue.project?.id,
+          currentStore: 'management'
+        }
+      }
     };
   });
 };

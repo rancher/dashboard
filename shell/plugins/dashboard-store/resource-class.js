@@ -1847,6 +1847,55 @@ export default class Resource {
     return details;
   }
 
+  get glance() {
+    return this._glance;
+  }
+
+  get _glance() {
+    const type = this.parentNameOverride || this.$rootGetters['type-map/labelFor'](this.schema);
+
+    return [
+      {
+        name:          'state',
+        label:         this.t('component.resource.detail.glance.state'),
+        formatter:     'BadgeStateFormatter',
+        formatterOpts: { row: this },
+        content:       this.stateDisplay
+      },
+      {
+        name:          'type',
+        label:         this.t('component.resource.detail.glance.type'),
+        formatter:     'Link',
+        formatterOpts: {
+          to: this.listLocation, row: {}, options: { internal: true }
+        },
+        content: type
+      },
+      {
+        name:          'namespace',
+        label:         this.t('component.resource.detail.glance.namespace'),
+        formatter:     'Link',
+        formatterOpts: {
+          to: {
+            name:     `c-cluster-product-resource-id`,
+            product:  this.$rootGetters['currentProduct'].id,
+            cluster:  this.$rootGetters['currentCluster'].id,
+            resource: this.type
+          },
+          row:     {},
+          options: { internal: true }
+        },
+        content: this.namespacedName
+      },
+      {
+        name:      'age',
+        label:     this.t('component.resource.detail.glance.age'),
+        formatter: 'LiveDate',
+        content:   this.creationTimestamp
+      }
+    ];
+  }
+
   get t() {
     return this.$rootGetters['i18n/t'];
   }

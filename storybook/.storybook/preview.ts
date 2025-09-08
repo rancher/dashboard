@@ -1,7 +1,7 @@
 import type { Preview } from "@storybook/vue3";
 import { setup } from '@storybook/vue3';
-import { themes } from '@storybook/theming';
 import RancherTheme from './theme-rancher';
+import '../src/assets/style.scss';
 
 import vSelect from 'vue-select';
 import FloatingVue from 'floating-vue';
@@ -12,6 +12,7 @@ import cleanHtmlDirective from '@shell/directives/clean-html';
 import trimWhitespaceDirective from '@shell/directives/trim-whitespace';
 import htmlStrippedAriaLabelDirective from '@shell/directives/strip-html-aria-label';
 import store from './store'
+import { withThemeByClassName } from '@storybook/addon-themes';
 import 'floating-vue/dist/style.css';
 
 // i18n
@@ -37,6 +38,10 @@ setup((vueApp) => {
 
 const preview: Preview = {
   parameters: {
+    // This disables the background selector control, it conflicts with the theme selector
+    backgrounds: {
+      disable: true,
+    },
     controls: {
       matchers: {
         color: /(background|color)$/i,
@@ -53,7 +58,17 @@ const preview: Preview = {
       toc: true, // 👈 Enables the table of contents
     },
   },
+  tags: ['autodocs'],
   decorators: [
+    // This adds the theme-light/theme-dark classes to the body of the document when the theme changes
+    withThemeByClassName({
+      themes: {
+        light: 'theme-light',
+        dark: 'theme-dark',
+      },
+      defaultTheme: 'light',
+      parentSelector: 'body'
+    }),
     (story, context) => {
       const theme = context.globals.backgrounds?.value === "#333" ? "theme-dark" : "theme-light";
 
@@ -62,8 +77,7 @@ const preview: Preview = {
 
       return story();
     },
-  ],
-  tags: ['autodocs']
+  ]
 };
 
 export default preview;

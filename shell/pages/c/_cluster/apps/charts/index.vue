@@ -624,6 +624,7 @@ export default {
             >
               <AppChartCardFooter
                 :items="card.footerItems"
+                :clickable="true"
                 @click:item="handleFooterItemClick"
               />
             </template>

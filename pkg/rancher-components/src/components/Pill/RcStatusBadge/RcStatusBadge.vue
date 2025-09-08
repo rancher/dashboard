@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RcStatusBadgeProps } from '@components/Pill/RcStatusBadge/types';
+import { RcStatusBadgeProps } from './types';
 
 const props = defineProps<RcStatusBadgeProps>();
 </script>

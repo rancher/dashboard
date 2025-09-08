@@ -11,6 +11,7 @@ import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import { GetOptions } from '@/cypress/e2e/po/components/component.po';
+import RcItemCardPo from '@/cypress/e2e/po/components/rc-item-card.po';
 
 export default class ExtensionsPagePo extends PagePo {
   static url = '/c/local/uiplugins'
@@ -127,32 +128,38 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   // ------------------ extension card ------------------
-  extensionCard(extensionName: string) {
-    return this.self().getId(`extension-card-${ extensionName }`).scrollIntoView();
+  extensionCard(extensionTitle: string): RcItemCardPo {
+    return RcItemCardPo.getCardByTitle(extensionTitle);
   }
 
-  extensionCardVersion(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).find('.plugin-version > span').invoke('text');
+  private clickAction(extensionTitle: string, actionLabel: string) {
+    const actionMenu = this.extensionCard(extensionTitle).openActionMenu();
+
+    return actionMenu.getMenuItem(actionLabel).click();
   }
 
-  extensionCardClick(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).click();
+  extensionCardVersion(extensionTitle: string): Cypress.Chainable<string> {
+    return this.extensionCard(extensionTitle).self().find('[data-testid="app-chart-card-version"]').invoke('text');
   }
 
-  extensionCardInstallClick(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).getId(`extension-card-install-btn-${ extensionName }`).click();
+  extensionCardClick(extensionTitle: string): void {
+    this.extensionCard(extensionTitle).click();
   }
 
-  extensionCardUpdateClick(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).getId(`extension-card-update-btn-${ extensionName }`).click();
+  extensionCardInstallClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Install');
   }
 
-  extensionCardRollbackClick(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).getId(`extension-card-rollback-btn-${ extensionName }`).click();
+  extensionCardUpdateClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Update');
   }
 
-  extensionCardUninstallClick(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).getId(`extension-card-uninstall-btn-${ extensionName }`).click();
+  extensionCardRollbackClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Rollback');
+  }
+
+  extensionCardUninstallClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Uninstall');
   }
 
   // ------------------ extension install modal ------------------

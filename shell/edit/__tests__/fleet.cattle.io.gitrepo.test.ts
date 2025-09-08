@@ -74,7 +74,8 @@ const initGitRepo = (props: any, value?: any) => {
 
   return {
     props: {
-      value: initValue,
+      value:     initValue,
+      liveValue: initValue,
       ...props
     },
     computed: mockComputed,

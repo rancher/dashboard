@@ -40,6 +40,7 @@ generic:
   disabled: Disabled
   done: Done
   enabled: Enabled
+  error: Error
   here: here
   id: ID
   ignored: Ignored
@@ -2604,6 +2605,8 @@ cruResource:
 drivers:
   kontainer:
     title: Cluster Drivers
+    emberDeprecationMessage: 'Support for UI Plugins (based on Ember) for cluster and node drivers was deprecated in Rancher 2.11.0 and will be removed in a future release. These need to be migrated to the new <a href="https://extensions.rancher.io" target="_blank" rel="noopener noreferrer nofollow">UI Extensions framework</a>.'
+
   node:
     title: Node Drivers
   add:
@@ -4089,6 +4092,11 @@ login:
   useNonLocal: Use a non-local user
   remember:
     label: Remember Username
+  cli:
+    welcome: Login to complete CLI authentication
+    invalidParams: Invalid login parameters - can not login
+    warning: 'If you did not initiate this request or the "Client Request Id" shown in your terminal does not match the code shown below, do not continue'
+    warningLegacy: 'If you did not initiate this request or the code shown below does not match the "requestId" parameter shown as part of the login url in your terminal, do not continue'
 
 logout:
   message: Logging Out...
@@ -5752,7 +5760,6 @@ resourceDetail:
       favoriteAction: Add {resource} to your starred/favorites list
       unfavoriteAction: Remove {resource} from your starred/favorites list
     age: Age
-    createdBy: Created by
     restartCount: Pod Restarts
     defaultBannerMessage:
       error: This resource is currently in an error state, but there isn't a detailed message available.
@@ -6473,7 +6480,6 @@ tableHeaders:
   apikey: API Key
   available: Available
   attachedVM: Attached VM
-
   authRoles:
     globalDefault: New User Default
     clusterDefault: Cluster Creator Default
@@ -8724,6 +8730,11 @@ volumeClaimTemplate:
 manager:
   cloudCredentials:
     label: Cloud Credentials
+    list:
+      groupBy:
+        provider: Group by Provider
+      headers:
+        provider: Provider
   drivers:
     label: Drivers
   rkeTemplates:
@@ -8907,7 +8918,6 @@ component:
       metadata:
         labelsAndAnnotations: Labels and Annotations
         identifyingInformation:
-          createdBy: Created by
           namespace: Namespace
           project: Project
           age: Age
@@ -8928,6 +8938,15 @@ component:
         keyValue:
           noRows: There are no {propertyName} configured on this resource.
           showConfiguration: Show Configuration
+      glance:
+        state: State
+        age: Age
+        namespace: Namespace
+        project: Project
+        type: Type
+        ariaLabel:
+          showDetails: Show Resource Information about { resource } named { name }
+          actionMenu: Resource Actions - { resource }
   cron:
     expressionEditor:
       label:

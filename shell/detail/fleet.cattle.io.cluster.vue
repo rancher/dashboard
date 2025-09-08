@@ -38,6 +38,7 @@ export default {
       gitRepos:          this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO }),
       helmOps:           this.$store.dispatch('management/findAll', { type: FLEET.HELM_OP }),
       workspaces:        this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE }),
+      clusterGroups:     this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP }), // Needed for calculating targetClusters
       bundleDeployments: this.$store.dispatch('management/findAll', { type: FLEET.BUNDLE_DEPLOYMENT })
     });
 
@@ -67,8 +68,8 @@ export default {
       return [
         ...this.gitRepos,
         ...this.helmOps
-      ].filter((x) => {
-        return x.targetClusters.includes(this.value);
+      ].filter((resource) => {
+        return !!resource.targetClusters.find((c) => c.id === this.clusterId);
       });
     },
 

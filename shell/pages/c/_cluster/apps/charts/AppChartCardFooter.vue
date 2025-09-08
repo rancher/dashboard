@@ -5,12 +5,15 @@ interface FooterItem {
   icon?: string;
   iconTooltip?: Record<{key?: string, text?: string}>;
   labels: string[];
+  labelTooltip?: string;
+  type?: string;
 }
 
 const emit = defineEmits<{(e: 'click:item', type: string, label: string): void; }>();
 
 defineProps<{
   items: FooterItem[];
+  clickable?: boolean;
 }>();
 
 function onClickItem(type: string, label: string) {
@@ -32,20 +35,32 @@ function onClickItem(type: string, label: string) {
         v-clean-tooltip="t(footerItem.iconTooltip?.key)"
         :class="['icon', 'app-chart-card-footer-item-icon', footerItem.icon]"
       />
-      <rc-item-card-action
+      <template
         v-for="(label, j) in footerItem.labels"
         :key="j"
-        v-clean-tooltip="footerItem.labelTooltip"
-        class="app-chart-card-footer-item-text secondary-text-link"
-        data-testid="app-chart-card-footer-item-text"
-        tabindex="0"
-        :aria-label="t('catalog.charts.appChartCard.footerItem.ariaLabel')"
-        @click="onClickItem(footerItem.type, label)"
-        @keydown.enter="onClickItem(footerItem.type, label)"
-        @keydown.space.prevent="onClickItem(footerItem.type, label)"
       >
-        {{ label }}<span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
-      </rc-item-card-action>
+        <rc-item-card-action
+          v-if="clickable && footerItem.type"
+          v-clean-tooltip="footerItem.labelTooltip"
+          class="app-chart-card-footer-item-text secondary-text-link"
+          data-testid="app-chart-card-footer-item-text"
+          tabindex="0"
+          :aria-label="t('catalog.charts.appChartCard.footerItem.ariaLabel')"
+          @click="onClickItem(footerItem.type, label)"
+        >
+          {{ label }}
+          <span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
+        </rc-item-card-action>
+        <span
+          v-else
+          v-clean-tooltip="footerItem.labelTooltip"
+          class="app-chart-card-footer-item-text"
+          data-testid="app-chart-card-footer-item-text"
+        >
+          {{ label }}
+          <span v-if="footerItem.labels.length > 1 && j !== footerItem.labels.length - 1">, </span>
+        </span>
+      </template>
     </div>
   </div>
 </template>

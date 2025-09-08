@@ -1,8 +1,7 @@
 import {
-  useNamespace, useWorkspace, useLiveDate, useCreatedBy, useProject,
-  useResourceDetails
+  useNamespace, useWorkspace, useLiveDate, useProject, useResourceDetails
 } from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/identifying-fields';
-import { NAMESPACE, FLEET } from '@shell/config/types';
+import { NAMESPACE, FLEET, MANAGEMENT } from '@shell/config/types';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 
 const mockStore = {
@@ -33,29 +32,12 @@ describe('composables: IdentifyingFields', () => {
       expect(result).toBeUndefined();
     });
 
-    it('should return a valid namespace row with namespaceLocation', () => {
-      const resource = { namespace: 'NAMESPACE', namespaceLocation: 'NAMESPACE_LOCATION' };
-      const result = useNamespace(resource);
-
-      expect(result?.value.to).toStrictEqual(resource.namespaceLocation);
-      expect(result?.value.value).toStrictEqual(resource.namespace);
-      expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.namespace');
-      expect(result?.value.valueDataTestid).toStrictEqual('masthead-subheader-namespace');
-    });
-
-    it('should return a valid namespace row with computed `to`', () => {
+    it('should return a valid namespace row', () => {
       const resource = { namespace: 'NAMESPACE' };
       const result = useNamespace(resource);
 
-      expect(result?.value.to).toStrictEqual({
-        name:   `c-cluster-product-resource-id`,
-        params: {
-          product:  'PRODUCT_ID',
-          cluster:  'CLUSTER_ID',
-          resource: NAMESPACE,
-          id:       resource.namespace
-        }
-      });
+      expect(result?.value.valueOverride?.props.type).toStrictEqual(NAMESPACE);
+      expect(result?.value.valueOverride?.props.id).toStrictEqual(resource.namespace);
       expect(result?.value.value).toStrictEqual(resource.namespace);
       expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.namespace');
       expect(result?.value.valueDataTestid).toStrictEqual('masthead-subheader-namespace');
@@ -122,41 +104,6 @@ describe('composables: IdentifyingFields', () => {
     });
   });
 
-  describe('useCreatedBy', () => {
-    it('should return undefined if showCreatedBy is falsy', () => {
-      const resource = {};
-      const result = useCreatedBy(resource);
-
-      expect(result).toBeUndefined();
-    });
-
-    it('should return a valid createdBy row', () => {
-      mockStore.getters[`type-map/optionsFor`].mockReturnValue({ showAge: true });
-
-      const resource = { showCreatedBy: true, createdBy: { displayName: 'CREATED_BY' } };
-      const result = useCreatedBy(resource);
-
-      expect(result?.value.to).toBeUndefined();
-      expect(result?.value.value).toStrictEqual(resource.createdBy.displayName);
-      expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.createdBy');
-      expect(result?.value.dataTestid).toStrictEqual('masthead-subheader-createdBy');
-      expect(result?.value.valueDataTestid).toStrictEqual('masthead-subheader-createdBy_plain-text');
-    });
-
-    it('should return a valid createdBy row with createdBy.location', () => {
-      mockStore.getters[`type-map/optionsFor`].mockReturnValue({ showAge: true });
-
-      const resource = { showCreatedBy: true, createdBy: { displayName: 'CREATED_BY', location: 'LOCATION' } };
-      const result = useCreatedBy(resource);
-
-      expect(result?.value.to).toStrictEqual(resource.createdBy.location);
-      expect(result?.value.value).toStrictEqual(resource.createdBy.displayName);
-      expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.createdBy');
-      expect(result?.value.dataTestid).toStrictEqual('masthead-subheader-createdBy');
-      expect(result?.value.valueDataTestid).toStrictEqual('masthead-subheader-createdBy-link');
-    });
-  });
-
   describe('useProject', () => {
     it('should return undefined if type is not namespace', () => {
       const resource = { type: 'anything' };
@@ -173,11 +120,16 @@ describe('composables: IdentifyingFields', () => {
     });
 
     it('should return a valid project row', () => {
-      const resource = { type: NAMESPACE, project: { nameDisplay: 'PROJECT', detailLocation: 'LOCATION' } };
+      const resource = {
+        type:    NAMESPACE,
+        project: {
+          id: 'ID', nameDisplay: 'PROJECT', detailLocation: 'LOCATION'
+        }
+      };
       const result = useProject(resource);
 
-      expect(result?.value.to).toStrictEqual(resource.project.detailLocation);
-      expect(result?.value.value).toStrictEqual(resource.project.nameDisplay);
+      expect(result?.value.valueOverride?.props.type).toStrictEqual(MANAGEMENT.PROJECT);
+      expect(result?.value.valueOverride?.props.id).toStrictEqual(resource.project.id);
       expect(result?.value.label).toStrictEqual('component.resource.detail.metadata.identifyingInformation.project');
     });
   });

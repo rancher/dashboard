@@ -648,5 +648,17 @@ $drag-over: #DCDEE7;
 
     --rc-none: #{$gray002};
     --rc-none-secondary: #{$gray004};
+
+    --rc-primary-hover: #{$blue003};
+
+    --rc-active-background: #{$gray003};
+    --rc-active-disabled-background: #{$gray001};
+    --rc-active-border: #{$gray002};
+    --rc-inactive-border: #{$gray001};
+    --rc-inactive-background: #{$gray001};
+    --rc-inactive-disabled-border: #{$gray001};
+    --rc-disabled-background: #{$gray001};
+    --rc-disabled-text-color: #{$gray004};
+  
   }
 }
