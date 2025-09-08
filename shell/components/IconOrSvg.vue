@@ -24,12 +24,16 @@ const cssCache = {};
 
 const colors = {
   header: {
-    color: '--header-btn-text',
-    hover: '--header-btn-text-hover'
+    color:         '--on-tertiary',
+    hover:         '--on-tertiary',
+    colorFallback: '--header-btn-text',
+    hoverFallback: '--header-btn-text-hover',
   },
   primary: {
-    color: '--link',
-    hover: '--primary-hover-text'
+    color:         '--link',
+    hover:         '--primary-hover-text',
+    colorFallback: '--link',
+    hoverFallback: '--primary-hover-text',
   }
 };
 
@@ -65,13 +69,16 @@ export default {
   },
 
   methods: {
-    getComputedStyleFor(cssVar) {
-      return normalizeHex(mapStandardColors((window.getComputedStyle(document.body).getPropertyValue(cssVar)).trim()));
+    getComputedStyleFor(cssVar, fallback) {
+      const value = window.getComputedStyle(document.body).getPropertyValue(cssVar).trim();
+
+      return normalizeHex(mapStandardColors(value ?? fallback));
     },
 
     setColor() {
-      const uiColor = this.getComputedStyleFor(colors[this.color].color);
-      const hoverColor = this.getComputedStyleFor(colors[this.color].hover);
+      const colorConfig = colors[this.color];
+      const uiColor = this.getComputedStyleFor(colorConfig.color, colorConfig.colorFallback);
+      const hoverColor = this.getComputedStyleFor(colorConfig.hover, colorConfig.hoverFallback);
 
       if (!uiColor || !hoverColor) {
         return;

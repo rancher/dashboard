@@ -64,7 +64,7 @@ button,
 }
 
 //btn roles
-.role-primary {
+BUTTON.role-primary, A.role-primary {
   background: var(--primary);
   color: var(--primary-text);
 
@@ -81,6 +81,14 @@ button,
   &:focus-visible {
     @include focus-outline;
     outline-offset: 2px;
+  }
+
+  &.btn {
+    &:disabled {
+      background: var(--primary) !important;
+      color: var(--primary-text) !important;
+      opacity: 0.5;
+    }
   }
 }
 
@@ -188,6 +196,25 @@ fieldset[disabled] .btn {
   vertical-align: middle;
   padding: 0;
   border-radius: var(--border-radius);
+
+  //TODO: Remove important specifier here and in bg-primary/bg-disabled
+  .bg-primary {
+    background: var(--toggle-on-bg, var(--primary));
+    color: var(--toggle-on-color, var(--primary-hover-text));
+
+    &:hover {
+      background: var(--active-hover) !important;
+    }
+  }
+
+  .bg-disabled {
+    background: var(--toggle-off-bg, var(--disabled-bg)) !important; 
+    color: var(--toggle-off-color, var(--body-text));
+
+    &:hover {
+      background: var(--toggle-off-hover, var(--disabled-bg)) !important;
+    }
+  }
 
   .btn {
     position: relative;

@@ -90,6 +90,14 @@ BODY, .theme-light {
   --on-tertiary     : var(--link);
   --tertiary-hover  : var(--non-primary-hover);
 
+  --active            : #{$primary-110};
+  --on-active         : #{$grey-0};
+  --toggle-on-bg      : var(--active);
+  --toggle-on-color   : var(--on-active);
+  --toggle-off-bg     : #{$grey-5};
+  --toggle-off-color  : #{$grey-50};
+  --toggle-off-hover  : #{$grey-10};
+
   --active                : #{$primary-110};
   --on-active             : #{$grey-0};
   --active-hover          : #{lighten($primary-110, 5%)};
@@ -505,17 +513,15 @@ BODY, .theme-light {
   --progress-bg                : #{$medium};
   --progress-divider           : #{$medium};
 
-  --sortable-table-bg          : #{darken($lightest, 5%)};
-  --sortable-table-row-bg      : #{$lightest};
-  --sortable-table-header-bg   : #{$lighter};
+  --sortable-table-bg          : #{darken($grey-0, 5%)};
+  --sortable-table-row-bg      : #{$grey-0};
+  --sortable-table-header-bg   : #{$grey-5};
   --sortable-table-top-divider : var(--border);
-  --sortable-table-body-divider : #{$medium};
-
-  --sortable-table-hover-bg    : #{$lighter};
-  //--sortable-table-selected-bg : #{rgba($primary, 0.02)};
-
+  --sortable-table-hover-bg    : #{$grey-5};
   --sortable-table-selected-bg : var(--primary-light-bg);
+  --sortable-table-group-label : #{$lighter};
   --sortable-table-group-label : #{$secondary};
+  --sortable-table-body-divider : #{$medium};
 
   --tag-primary                : #{$darkest};
   --tag-bg                     : #EEEFF5;
@@ -701,6 +707,21 @@ BODY, .theme-light {
   --rc-inactive-disabled-border: #{$gray001};
   --rc-disabled-background: #{$gray001};
   --rc-disabled-text-color: #{$gray004};
+
+  --warning-badge    : #{$warning};
+  --on-warning-banner : #{darken($warning, 60%)};
+
+  --success-badge    : #{rgba($success, 0.10)};
+  --on-success-banner : #{$success};
+
+  --info-badge    : #{rgba($info, 0.10)};
+  --on-info-banner : #{$info};
+  
+  --error-badge    :  #{$error};
+  --on-error-banner : #FFFFFF;
+
+  --error-banner-text: #{$error};
+  --warning-banner-text: var(--warning-text);
 }
 
 BODY, .theme-dark {
@@ -729,6 +750,11 @@ BODY, .theme-dark {
 
   // menu cluster description active+hover
   $desc-light: #EEEFF4;
+
+  $success         : #00FF32;
+  $warning         : #FFCA4D;
+  $error           : #B13333;
+  $info            : #1F67DB;
 
   $secondary: $lighter;
   $disabled: $light;
@@ -763,6 +789,12 @@ BODY, .theme-dark {
   --active-hover          : #{darken($primary-50, 5%)};
   --category-active       : #{$primary-75};
   --category-active-hover : #{$grey-70};
+
+  --toggle-on-bg      : var(--active);
+  --toggle-on-color   : var(--on-active);
+  --toggle-off-bg     : #{$grey-80};
+  --toggle-off-color  : #{$grey-30};
+  --toggle-off-hover  : #{$grey-90};
 
   --slate: #{$slate};
 
@@ -875,13 +907,13 @@ BODY, .theme-dark {
   --progress-bg                : #{$medium};
   --progress-divider           : #{$lightest};
 
-  --sortable-table-bg          : #{lighten($darkest, 10%)};
-  --sortable-table-row-bg      : #{$darker};;
-  --sortable-table-header-bg   : #{$darkest};
-  --sortable-table-top-divider : var(--border);
-  --sortable-table-hover-bg    : #{$darkest};
-  --sortable-table-selected-bg : var(--primary-light-bg);
-  --sortable-table-group-label : #{$lighter};
+  --sortable-table-bg          : #{darken($body-bg, 10%)};
+  --sortable-table-row-bg       : var(--body-bg);
+  --sortable-table-header-bg    : #{darken($body-bg, 15%)};
+  --sortable-table-top-divider  : var(--body-border);
+  --sortable-table-hover-bg     : #{lighten($body-bg, 5%)};
+  --sortable-table-selected-bg  : #{lighten($body-bg, 15%)};
+  --sortable-table-group-label  : #{$grey-30};
 
   --tag-primary                : #{$lightest};
   --tag-bg                     : #{$medium};
@@ -1007,5 +1039,25 @@ BODY, .theme-dark {
 
   --rc-disabled-background: #{$gray005};
   --rc-disabled-text-color: #{$gray004};
+
+  --error-text    : #FFAC99;
+  --warning-text  : #{$warning};
+
+  --success-badge     : #{rgba($success, 10%)};
+  --on-success-banner : #{$success};
+
+  --warning-badge     : #ffcc00;
+  --on-warning-banner : #{darken($warning, 60%)};
+
+  --info-badge      : #{rgba($info, 30%)};
+  --on-info-banner  : #{lighten($info, 50%)};
+
+  --error-badge     :  #{$error};
+  --on-error-banner : #FFFFFF;
+
+  --error-banner-bg: #301D1D;
+
+  --warning-banner-text : var(--warning-text);
+  --error-banner-text   : var(--error-text);
 }
 
