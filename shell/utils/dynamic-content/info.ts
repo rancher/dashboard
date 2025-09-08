@@ -36,6 +36,7 @@ type SystemInfo = {
   version: string;
   isDeveloperVersion: boolean;
   isPrime: boolean;
+  isLTS: boolean;
   clusterCount: number;
   localCluster: any;
   extensions?: {
@@ -133,6 +134,7 @@ export class SystemInfoProvider {
       version:            vers[0],
       isDeveloperVersion: vers.length > 1,
       isPrime:            versionData.RancherPrime === 'true',
+      isLTS:              false,
       clusterCount:       clusterCount?.summary?.count,
       localCluster,
       extensions,
@@ -171,6 +173,7 @@ export class SystemInfoProvider {
     params.push(`v=${ systemData.version }`);
     params.push(`dev=${ systemData.isDeveloperVersion }`);
     params.push(`p=${ systemData.isPrime }`);
+    params.push(`lts=${ systemData.isLTS }`);
 
     // Clusters
     params.push(`cc=${ systemData.clusterCount }`);
