@@ -3300,6 +3300,8 @@ fleet:
           =0 { Adding namespaces here will create a GitRepoRestriction. }
           other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction}
         }"
+  configMaps:
+    label: Config Maps
   secrets:
     label: Secrets
 footer:
