@@ -2,8 +2,8 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import AmazonCognitoPo from '@/cypress/e2e/po/edit/auth/cognito.po';
 import { AuthProvider, AuthProviderPo } from '@/cypress/e2e/po/pages/users-and-auth/authProvider.po';
 
-const authProviderPo = new AuthProviderPo('local');
-const cognitoPo = new AmazonCognitoPo('local');
+const authProviderPo = new AuthProviderPo('_');
+const cognitoPo = new AmazonCognitoPo('_');
 
 const clientId = 'test-client-id';
 const clientSecret = 'test-client-secret';

@@ -62,7 +62,7 @@ describe('Home Page', () => {
       cy.percySnapshot('Home Page');
     });
 
-    it('Can see that cluster details match those in Cluster Manangement page', { tags: ['@generic', '@adminUser'] }, () => {
+    it('Can see that cluster details match those in Cluster Management page', { tags: ['@generic', '@adminUser'] }, () => {
       /**
        * Get cluster details from the Home page
        * Verify that the cluster details match those on the Cluster Management page
@@ -120,7 +120,10 @@ describe('Home Page', () => {
       // since I wasn't able to fully mock a list of clusters
       // the next best thing is to add a description to the current local cluster
       // testing https://github.com/rancher/dashboard/issues/10441
-      cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`, (req) => {
+      cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?page=1&pagesize=100&sort=metadata.annotations[provisioning.cattle.io/management-cluster-display-name]&filter=metadata.labels[provider.cattle.io]!=harvester&filter=status.provider!=harvester&exclude=metadata.managedFields`, (req) => {
+        // Why the long intercept url?
+        // There are two requests to fetch clusters (side nav + cluster list). In theory "cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`" should intercept them both
+        // how is not, only the first one for the side nav, and not the second for the list.
         req.continue((res) => {
           const localIndex = res.body.data.findIndex((item) => item.id.includes('/local'));
 
