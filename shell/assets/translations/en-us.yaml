@@ -3246,7 +3246,7 @@ fleet:
       none: None
       local: Local
     resources:
-      label: 'Resource Handling'
+      label: 'Resources'
       keepResources: Always keep resources
       keepResourcesTooltip: When enabled, resources will be kept when deleting a HelmOp or Bundle - only Helm release secrets will be deleted.
       correctDrift: Enable self-healing

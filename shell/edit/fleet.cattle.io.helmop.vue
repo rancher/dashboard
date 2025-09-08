@@ -29,6 +29,8 @@ import UnitInput from '@shell/components/form/UnitInput';
 import FleetClusterTargets from '@shell/components/fleet/FleetClusterTargets/index.vue';
 import { toSeconds } from '@shell/utils/duration';
 import FleetValuesFrom from '@shell/components/fleet/FleetValuesFrom.vue';
+import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
+import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
 
 const MINIMUM_POLLING_INTERVAL = 15;
 
@@ -50,6 +52,8 @@ export default {
     Checkbox,
     CruResource,
     FleetClusterTargets,
+    FleetConfigMapSelector,
+    FleetSecretSelector,
     FleetValuesFrom,
     YamlEditor,
     LabeledInput,
@@ -711,6 +715,26 @@ export default {
 
       <h2 v-t="'fleet.helmOp.resources.label'" />
 
+      <div class="row mt-20 mb-20">
+        <div class="col span-6">
+          <FleetSecretSelector
+            :value="value.spec.helm.secretListField || []"
+            :namespace="value.metadata.namespace"
+            :mode="mode"
+            @update:value="value.spec.helm.secretListField = $event"
+          />
+        </div>
+      </div>
+      <div class="row mt-20 mb-20">
+        <div class="col span-6">
+          <FleetConfigMapSelector
+            :value="value.spec.helm.configMapListField || []"
+            :namespace="value.metadata.namespace"
+            :mode="mode"
+            @update:value="value.spec.helm.configMapListField = $event"
+          />
+        </div>
+      </div>
       <div class="resource-handling mb-30">
         <Checkbox
           v-model:value="correctDriftEnabled"
