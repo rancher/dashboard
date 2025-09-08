@@ -184,6 +184,7 @@ export class SystemInfoProvider {
     params.push(`v=${ systemData.version }`);
     params.push(`dev=${ systemData.isDeveloperVersion }`);
     params.push(`p=${ systemData.isPrime }`);
+    params.push(`lts=${ systemData.isLTS }`);
 
     // Remove LTS for now, until we can determine LTS status
     // params.push(`lts=${ systemData.isLTS }`);
