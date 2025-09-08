@@ -11,10 +11,11 @@ import TabTitle from '@shell/components/TabTitle';
 import { get } from '@shell/utils/object';
 import { RcItemCard } from '@components/RcItemCard';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
+import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 
 export default {
   components: {
-    Loading, IconMessage, TabTitle, RcItemCard, AppChartCardSubHeader
+    Loading, IconMessage, TabTitle, RcItemCard, AppChartCardSubHeader, AppChartCardFooter
   },
 
   async fetch() {
@@ -96,9 +97,14 @@ export default {
             statuses: chart.cardContent.statuses
           },
           subHeaderItems: chart.cardContent.subHeaderItems.slice(0, 1),
-          image:          { src: chart.versions[0].icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
-          content:        { text: chart.chartDescription },
-          rawChart:       chart,
+          footerItems:    chart.deploysOnWindows ? [{
+            icon:        'icon-tag-alt',
+            iconTooltip: { key: 'generic.tags' },
+            labels:      [this.t('catalog.charts.deploysOnWindows')],
+          }] : [],
+          image:    { src: chart.versions[0].icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
+          content:  { text: chart.chartDescription },
+          rawChart: chart,
           installedApp,
         };
 
@@ -202,6 +208,12 @@ export default {
           #item-card-sub-header
         >
           <AppChartCardSubHeader :items="card.subHeaderItems" />
+        </template>
+        <template
+          v-once
+          #item-card-footer
+        >
+          <AppChartCardFooter :items="card.footerItems" />
         </template>
       </rc-item-card>
     </div>
