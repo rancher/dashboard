@@ -4,18 +4,26 @@ import { Configuration, Distribution } from './types';
 import { MANAGEMENT } from '@shell/config/types';
 
 // Default endpoint ($dist is either 'community' or 'prime')
-// This will never connect
-const DEFAULT_ENDPOINT = 'https://192.168.1.1/$dist';
+// const DEFAULT_ENDPOINT = 'https://SERVER//rancher/$dist';
+
+// TODO: Update with the default production endpoint
+const DEFAULT_ENDPOINT = '';
 
 // We only support retrieving content from secure endpoints
 const HTTPS_PREFIX = 'https://';
 
+/**
+ * Get congiuration data based on the distribution and Rancher settings
+ *
+ * @param getters Store getters to access the store
+ * @returns Dynamic Content configuration
+ */
 export function getConfig(getters: any): Configuration {
   const prime = getVersionData().RancherPrime === 'true';
   const distribution: Distribution = prime ? 'prime' : 'community';
 
   // Default configuration
-  const config = {
+  const config: Configuration = {
     enabled:  true,
     debug:    false,
     log:      false,
@@ -39,7 +47,11 @@ export function getConfig(getters: any): Configuration {
     const urlSetting = getters['management/byId'](MANAGEMENT.SETTING, SETTING.DYNAMIC_CONTENT_ENDPOINT);
 
     // Are we Prime, do we have a URL and does the URL start with the https prefix? If so, use it
-    if (prime && urlSetting?.value && urlSetting.value.startsWith(HTTPS_PREFIX)) {
+    // TODO: ====================================================================================
+    // TODO: Put this back in when the default URL is set
+    // if (prime && urlSetting?.value && urlSetting.value.startsWith(HTTPS_PREFIX)) {
+    // TODO: ====================================================================================
+    if (urlSetting?.value && urlSetting.value.startsWith(HTTPS_PREFIX)) {
       config.endpoint = urlSetting.value;
     }
   } catch (e) {
