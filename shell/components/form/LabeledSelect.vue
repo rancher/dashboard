@@ -169,14 +169,19 @@ export default {
   },
 
   methods: {
-    // Ensure we only focus on open, otherwise we re-open on close
-    clickSelect() {
+    clickSelect(event) {
       if (this.mode === _VIEW || this.loading === true || this.disabled === true) {
+        return;
+      }
+
+      // Ensure we don't toggle when clicking the clear button on multi-select
+      if (this.$attrs.multiple && event?.target.className === 'vs__deselect') {
         return;
       }
 
       this.isOpen = !this.isOpen;
 
+      // Ensure we only focus on open, otherwise we re-open on close
       if (this.isOpen) {
         this.focusSearch();
       }
