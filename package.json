@@ -211,7 +211,7 @@
     "ts-jest": "27.1.5",
     "typescript": "5.6.3",
     "vue": "3.5.18",
-    "webpack-bundle-analyzer": "4.5.0",
+    "webpack-bundle-analyzer": "4.10.2",
     "webpack-virtual-modules": "0.4.3",
     "worker-loader": "3.0.8",
     "ws": "8.18.0",
