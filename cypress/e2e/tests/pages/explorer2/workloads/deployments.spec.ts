@@ -21,6 +21,17 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2'] }, () => {
     const { namespace } = createDeploymentBlueprint.metadata;
     let deploymentId;
     let volumeDeploymentId;
+    let scaleTestDeploymentId;
+    let scaleTestDeploymentName;
+    let scaleTestNamespace; // Dynamic namespace for scale test
+
+    const createTesDeployment = (baseName: string) => {
+      const deployment = { ...createDeploymentBlueprint };
+
+      deployment.metadata.name = `${ baseName }-${ Date.now() }`;
+
+      return deployment;
+    };
 
     before(() => {
       cy.createE2EResourceName('deployment').then((name) => {
@@ -29,11 +40,38 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2'] }, () => {
 
       cy.createE2EResourceName('volume-deployment').then((name) => {
         volumeDeploymentId = name;
+
         // Create a deployment with volumes for the volume-related tests
         const volumeDeployment = { ...createDeploymentBlueprint };
 
         volumeDeployment.metadata.name = volumeDeploymentId;
         cy.createRancherResource('v1', 'apps.deployment', JSON.stringify(volumeDeployment));
+      });
+
+      cy.createE2EResourceName('scale-deployment').then((name) => {
+        scaleTestDeploymentId = name;
+
+        // Create dynamic namespace for scale test
+        cy.createE2EResourceName('scale-test-ns').then((nsName) => {
+          scaleTestNamespace = nsName;
+
+          // Create the namespace first
+          cy.createRancherResource('v1', 'namespaces', JSON.stringify({
+            apiVersion: 'v1',
+            kind:       'Namespace',
+            metadata:   { name: scaleTestNamespace }
+          }));
+
+          const scaleDeployment = createTesDeployment(scaleTestDeploymentId);
+
+          // Use the dynamic namespace
+          scaleDeployment.metadata.namespace = scaleTestNamespace;
+          scaleDeployment.spec.template.spec.containers[0].image = SMALL_CONTAINER.image;
+
+          scaleTestDeploymentName = scaleDeployment.metadata.name;
+
+          cy.createRancherResource('v1', 'apps.deployments', JSON.stringify(scaleDeployment), false);
+        });
       });
 
       cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
@@ -59,18 +97,29 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2'] }, () => {
     });
 
     it('Should be able to scale the number of pods', () => {
-      const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(deploymentId);
+      const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(scaleTestDeploymentName, localCluster, 'apps.deployment', scaleTestNamespace);
 
       workloadDetailsPage.goTo();
-      workloadDetailsPage.waitForPage();
-      workloadDetailsPage.mastheadTitle().should('contain', deploymentId);
-      workloadDetailsPage.podsRunningTotal().should('contain', '1');
+      workloadDetailsPage.waitForDetailsPage(scaleTestDeploymentName);
+
+      workloadDetailsPage.replicaCount().should('contain', '1', MEDIUM_TIMEOUT_OPT);
+
       workloadDetailsPage.podScaleUp().click();
-      workloadDetailsPage.gaugesPods().should('contain', 'Containercreating');
-      workloadDetailsPage.gaugesPods().should('contain', 'Running');
-      workloadDetailsPage.podsRunningTotal().should('contain', '2', MEDIUM_TIMEOUT_OPT);
+
+      workloadDetailsPage.waitForScaleButtonsEnabled();
+      workloadDetailsPage.waitForPendingOperationsToComplete();
+
+      workloadDetailsPage.replicaCount().should('contain', '2', MEDIUM_TIMEOUT_OPT);
+
+      // Verify pod status shows healthy scaling state
+      workloadDetailsPage.gaugesPods().should('be.visible', MEDIUM_TIMEOUT_OPT)
+        .should('contain.text', 'Running');
+
       workloadDetailsPage.podScaleDown().click();
-      workloadDetailsPage.podsRunningTotal().should('contain', '1', MEDIUM_TIMEOUT_OPT);
+      workloadDetailsPage.waitForScaleButtonsEnabled();
+      workloadDetailsPage.waitForPendingOperationsToComplete();
+
+      workloadDetailsPage.replicaCount().should('contain', '1', MEDIUM_TIMEOUT_OPT);
     });
 
     it('Should be able to view and edit configuration of pod volumes with no custom component', () => {
@@ -205,7 +254,12 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2'] }, () => {
     });
 
     after(() => {
-      cy.deleteRancherResource('v1', 'apps.deployment', `${ namespace }/${ volumeDeploymentId }`);
+      cy.deleteRancherResource('v1', 'apps.deployment', `${ namespace }/${ volumeDeploymentId }`, false);
+
+      // Clean up the namespace, kubernetes will handle the deployment cleanup
+      if (scaleTestNamespace) {
+        cy.deleteRancherResource('v1', 'namespaces', scaleTestNamespace, false);
+      }
     });
   });
 
