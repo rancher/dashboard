@@ -382,7 +382,7 @@ export default {
 
       &.active {
         color: var(--on-active, var(--primary-hover-text));
-        background-color: var(--active, var(--primary-hover-bg));
+        background-color: var(--active-nav, var(--primary-hover-bg));
 
         h6 {
           padding: 8px 0 8px 16px;
@@ -448,7 +448,7 @@ export default {
 
         .child, .header {
           &:hover {
-            background: var(--category-active-hover);
+            background: var(--category-active-hover, var(--primary));
           }
         }
       }
@@ -501,7 +501,7 @@ export default {
 
     A {
       color: var(--on-active, var(--primary-hover-text));
-      background-color: var(--active, var(--primary-hover-bg));
+      background-color: var(--active-nav, var(--primary-hover-bg));
       font-weight: bold;
 
       &:hover {

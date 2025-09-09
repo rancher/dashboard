@@ -1195,7 +1195,7 @@ export default {
             outline-offset: -4px;
           }
 
-          background: var(--active, var(--primary-hover-bg));
+          background: var(--active-nav, var(--primary-hover-bg));
           color: var(--on-active, var(--primary-hover-text));
 
           svg {

@@ -36,6 +36,10 @@
   --tertiary-hover-app-bar    : var(--primary-hover-text);
 
   --active        : var(--primary);
+  --active-nav    : var(--primary-hover-bg);
   --on-active     : #{$grey-0};
   --active-hover  : var(--primary-hover-bg);
+
+  --category-active       : var(--nav-active);
+  --category-active-hover : var(--primary);
 }
