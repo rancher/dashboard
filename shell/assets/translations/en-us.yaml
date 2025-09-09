@@ -898,9 +898,9 @@ asyncButton:
     success: Redeployed
     waiting: Redeploying Workload
   rollback:
-    action: Roll Back
+    action: Rollback
     success: Rolled Back
-    waiting: Rolling Back Workload
+    waiting: Rolling Back&hellip;
   rotate:
     action: Rotate
     waiting: Rotating&hellip;
@@ -5105,6 +5105,8 @@ plugins:
     image: Image
     installing: Installing ...
     uninstalling: Uninstalling ...
+    updating: Updating ...
+    rollingBack: Rolling back ...
     menu: Extensions menu
     reloadRancher: Reload Rancher
   descriptions:
