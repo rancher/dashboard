@@ -8994,6 +8994,8 @@ component:
         range: "every day from Monday to Friday"
         allowed: "Allowed literal values: 0-7"
         alias: "Allowed alias values: mon-sun"
+      a11y:
+        examples: "Edit {label}. Examples:"
     expressionEditorModal:
       title: "Define Cron expression"
       description: "Click on any field to get hints about valid values and wildcard symbols."

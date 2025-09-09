@@ -238,20 +238,27 @@ const handleBlur = (field: CronField) => {
         :ref="el => wrapperRefs[field] = el as HTMLElement"
         class="input-wrapper"
       >
-        <label class="label">
+        <label
+          class="label"
+          :for="`input-${field}`"
+        >
           {{ t(fieldLabels[field]) }}
         </label>
         <LabeledInput
+          :id="`input-${field}`"
+          class="input-center"
           :value="cronValues[field]"
           :status="errors[field] ? 'error' : undefined"
           :tooltip="errors[field] ? t('component.cron.expressionEditor.invalidValue') : ''"
-          :aria-describedby="focusedField[field] ? `tooltip-${field}` : undefined"
+          :aria-invalid="!!errors[field]"
+          :aria-label="t('component.cron.expressionEditor.a11y.examples', { label: t(fieldLabels[field]) })"
+          :aria-describedby="`tooltip-${field}`"
           @update:value="val => handleInput(field, val)"
           @focus="() => handleFocus(field)"
           @blur="() => handleBlur(field)"
         />
         <div
-          v-if="focusedField[field]"
+          v-show="focusedField[field]"
           :id="`tooltip-${field}`"
           :ref="el => tooltipRefs[field] = el as HTMLElement"
           role="tooltip"
@@ -283,7 +290,7 @@ $input-max-width: 88px;
     font-size: 12px;
   }
 
-  ::v-deep(.labeled-input input) {
+  .input-center :deep(input) {
     text-align: center;
   }
 }
