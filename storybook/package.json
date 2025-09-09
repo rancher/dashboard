@@ -27,6 +27,7 @@
     "@storybook/vue3": "^8.4.2",
     "@storybook/vue3-webpack5": "^8.4.2",
     "storybook": "^8.4.2",
+    "storybook-addon-pseudo-states": "4.0.3",
     "storybook-vue3-router": "^5.0.0",
     "typescript": "^5.5.3",
     "vue-tsc": "^2.1.6"
