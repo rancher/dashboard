@@ -717,6 +717,7 @@ export default {
 
       <div class="row mt-20 mb-20">
         <div class="col span-6">
+          <!-- TODO replace secretListField with real field name when available -->
           <FleetSecretSelector
             :value="value.spec.helm.secretListField || []"
             :namespace="value.metadata.namespace"
@@ -727,6 +728,7 @@ export default {
       </div>
       <div class="row mt-20 mb-20">
         <div class="col span-6">
+          <!-- TODO replace configMapListField with real field name when available -->
           <FleetConfigMapSelector
             :value="value.spec.helm.configMapListField || []"
             :namespace="value.metadata.namespace"

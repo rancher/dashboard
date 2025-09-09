@@ -229,6 +229,7 @@ describe.each([
     expect(pollingIntervalInput.value).toBe(displayValue);
   });
 
+  // TODO replace secretListField with real field name when available
   it('should update secretListField when FleetSecretSelector emits update event', async() => {
     const wrapper = mount(HelmOpComponent, initHelmOp({ realMode: mode }));
 
@@ -241,6 +242,7 @@ describe.each([
     expect(wrapper.vm.value.spec.helm.secretListField).toStrictEqual(['secret2', 'secret3']);
   });
 
+  // TODO replace configMapListField with real field name when available
   it('should update configMapListField when FleetConfigMapSelector emits update event', async() => {
     const wrapper = mount(HelmOpComponent, initHelmOp({ realMode: mode }));
 
