@@ -4,7 +4,7 @@ import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { generateRandomAlphaString } from '@shell/utils/string';
 import { LabeledTooltip } from '@components/LabeledTooltip';
-import { onClickOption, calculatePosition } from '@shell/utils/select';
+import { calculatePosition } from '@shell/utils/select';
 import { _VIEW } from '@shell/config/query-params';
 import { useClickOutside } from '@shell/composables/useClickOutside';
 import { ref } from 'vue';
@@ -163,9 +163,6 @@ export default {
 
     get,
 
-    onClickOption(option, event) {
-      onClickOption.call(this, option, event);
-    },
     selectable(opt) {
       // Lets you disable options that are used
       // for headings on groups of options.
@@ -352,10 +349,7 @@ export default {
       <template
         #option="option"
       >
-        <div
-          :lang="isLangSelect ? option.value : undefined"
-          @mousedown="(e) => onClickOption(option, e)"
-        >
+        <div :lang="isLangSelect ? option.value : undefined">
           {{ getOptionLabel(option.label) }}
         </div>
       </template>
