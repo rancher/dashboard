@@ -21,7 +21,19 @@
   --link-banner-bg          : #{rgba($link, 0.15)};
   --link-light-bg           : #{rgba($link, 0.05)};
 
-  --on-tertiary: var(--primary-hover-text);
+  --on-secondary: var(--primary);
+  --secondary-border: var(--primary);
+
+  --tertiary                  : var(--accent-btn);
+  --tertiary-header           : var(--header-btn-bg);
+  --tertiary-border           : var(--primary);
+  --tertiary-header-hover     : var(--primary);
+  --on-tertiary               : var(--primary);
+  --on-tertiary-header        : var(--header-btn-text);
+  --on-tertiary-header-hover  : #fff;
+  --on-tertiary-hover         : var(--lightest);
+  --tertiary-hover            : var(--accent-btn);
+  --tertiary-hover-app-bar    : var(--primary-hover-text);
 
   --active        : var(--primary);
   --on-active     : #{$grey-0};

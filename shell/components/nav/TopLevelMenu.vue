@@ -1230,7 +1230,7 @@ export default {
         }
 
         &:hover {
-          color: var(--on-tertiary, var(--primary-hover-text));
+          color: var(--tertiary-hover-app-bar, var(--primary-hover-text));
           background: var(--nav-hover-top-level, var(--primary-hover-bg));
           > div {
             color: var(--primary-hover-text);
@@ -1240,10 +1240,10 @@ export default {
             }
           }
           svg {
-            fill: var(--on-tertiary, var(--primary-hover-text));
+            fill: var(--tertiary-hover-app-bar, var(--primary-hover-text));
           }
           div {
-            color: var(--on-tertiary, var(--primary-hover-text));
+            color: var(--tertiary-hover-app-bar, var(--primary-hover-text));
           }
           &.disabled {
             background: transparent;

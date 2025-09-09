@@ -125,10 +125,11 @@ BUTTON.role-primary, A.role-primary {
 .role-tertiary {
   background: var(--tertiary, var(--accent-btn));
   color: var(--on-tertiary, var(--primary));
+  border: solid 1px var(--tertiary-border, var(--primary));
 
   &:hover {
-    background: var(--tertiary-hover);
-    color: var(--on-tertiary);
+    background: var(--tertiary-hover, var(--accent-btn));
+    color: var(--on-tertiary-hover, var(--lightest));
   }
 
   &:focus, &.focused {

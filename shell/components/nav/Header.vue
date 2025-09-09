@@ -932,6 +932,8 @@ export default {
       :deep() div .btn.role-tertiary {
         border: 1px solid var(--header-btn-bg);
         border: none;
+        background: var(--tertiary-header, var(--header-btn-bg));
+        color: var(--on-tertiary-header, var(--header-btn-text));
         padding: 0 10px;
         line-height: 32px;
         min-height: 32px;
@@ -939,6 +941,11 @@ export default {
         i {
           // Ideally same height as the parent button, but this means tooltip needs adjusting (which is it's own can of worms)
           line-height: 20px;
+        }
+
+        &:hover {
+          background: var(--tertiary-header-hover, var(--primary));
+          color: var(--on-tertiary-header-hover, #fff);
         }
 
         &[disabled=disabled] {

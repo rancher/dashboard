@@ -24,8 +24,8 @@ const cssCache = {};
 
 const colors = {
   header: {
-    color:         '--on-tertiary',
-    hover:         '--on-tertiary',
+    color:         '--on-tertiary-header',
+    hover:         '--on-tertiary-header-hover',
     colorFallback: '--header-btn-text',
     hoverFallback: '--header-btn-text-hover',
   },

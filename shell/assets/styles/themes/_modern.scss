@@ -86,9 +86,16 @@ BODY, .theme-light {
   --on-secondary     : #{$primary};
   --secondary-hover  : var(--non-primary-hover);
 
-  --tertiary        : transparent;
-  --on-tertiary     : var(--link);
-  --tertiary-hover  : var(--non-primary-hover);
+  --tertiary                  : transparent;
+  --tertiary-header           : transparent;
+  --tertiary-border           : transparent;
+  --tertiary-header-hover     : var(--non-primary-hover);
+  --on-tertiary               : var(--link);
+  --on-tertiary-header        : var(--link);
+  --on-tertiary-header-hover  : var(--link);
+  --on-tertiary-hover         : var(--link);
+  --tertiary-hover            : var(--non-primary-hover);
+  --tertiary-hover-app-bar    : var(--link);
 
   --active            : #{$primary-110};
   --on-active         : #{$grey-0};
@@ -780,9 +787,16 @@ BODY, .theme-dark {
   --on-secondary: #{$primary-60};
   --secondary-hover: var(--non-primary-hover);
 
-  --tertiary        : transparent;
-  --on-tertiary     : var(--link);
-  --tertiary-hover  : var(--non-primary-hover);
+  --tertiary                  : transparent;
+  --tertiary-header           : transparent;
+  --tertiary-border           : transparent;
+  --tertiary-header-hover     : var(--non-primary-hover);
+  --on-tertiary               : var(--link);
+  --on-tertiary-header        : var(--link);
+  --on-tertiary-header-hover  : var(--link);
+  --on-tertiary-hover         : var(--link);
+  --tertiary-hover            : var(--non-primary-hover);
+  --tertiary-hover-app-bar    : var(--link);
 
   --active                : #{$primary-50};
   --on-active             : #{$grey-90};
