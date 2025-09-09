@@ -575,9 +575,9 @@ BODY, .theme-light {
 
   --resource-gauge-back-circle : 255, 255, 255, 0.15;
 
-  --simple-box-bg              : #{$lightest};
-  --simple-box-border          : #{$medium};
-  --simple-box-divider         : #{$medium};
+  --simple-box-bg              : #{$grey-0};
+  --simple-box-border          : #{$grey-20};
+  --simple-box-divider         : #{$grey-20};
   --simple-box-shadow          : none;
 
   --terminal-bg                : var(--body-bg);
@@ -967,7 +967,7 @@ BODY, .theme-dark {
 
   --resource-gauge-back-circle : 74, 75, 82, 0.5;
 
-  --simple-box-bg              : #{$darker};
+  --simple-box-bg              : var(--body-bg);
   --simple-box-border          : #{$medium};
   --simple-box-divider         : #{$medium};
   --simple-box-shadow          : none;
