@@ -238,15 +238,8 @@ const handleBlur = (field: CronField) => {
         :ref="el => wrapperRefs[field] = el as HTMLElement"
         class="input-wrapper"
       >
-        <label
-          class="label"
-          :for="`input-${field}`"
-        >
-          {{ t(fieldLabels[field]) }}
-        </label>
         <LabeledInput
-          :id="`input-${field}`"
-          class="input-center"
+          :label="t(fieldLabels[field])"
           :value="cronValues[field]"
           :status="errors[field] ? 'error' : undefined"
           :tooltip="errors[field] ? t('component.cron.expressionEditor.invalidValue') : ''"
@@ -272,7 +265,7 @@ const handleBlur = (field: CronField) => {
 </template>
 
 <style scoped lang="scss">
-$input-max-width: 88px;
+$input-max-width: 110px;
 
 .cron-row {
   display: flex;
@@ -288,10 +281,6 @@ $input-max-width: 88px;
   .label {
     color: var(--label-secondary);
     font-size: 12px;
-  }
-
-  .input-center :deep(input) {
-    text-align: center;
   }
 }
 
