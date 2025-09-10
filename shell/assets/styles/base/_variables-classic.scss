@@ -41,5 +41,7 @@
   --active-hover  : var(--primary-hover-bg);
 
   --category-active       : var(--nav-active);
-  --category-active-hover : var(--primary);
+  --category-active-hover : var(--nav-hover);
+
+  --body-text-hover: var(--darker-text);
 }

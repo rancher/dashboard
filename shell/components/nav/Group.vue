@@ -395,7 +395,7 @@ export default {
         }
 
         ~ I {
-          color: var(--primary-hover-text);
+          color: var(--on-active, var(--primary-hover-text));
         }
       }
       &:hover:not(.active) {

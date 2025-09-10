@@ -411,6 +411,7 @@ BODY, .theme-light {
 
   --body-bg                    : #{$lightest};
   --body-text                  : #{$darkest};
+  --body-text-hover            : var(--body-text);
   --scrollbar-thumb            : #{$dark};
   --scrollbar-thumb-dropdown   : #{$lighter};
   --scrollbar-track            : transparent;
@@ -829,6 +830,7 @@ BODY, .theme-dark {
 
   --body-bg                    : #{$body-bg};
   --body-text                  : #{$lightest};
+  --body-text-hover            : var(--body-text);
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$medium};
 

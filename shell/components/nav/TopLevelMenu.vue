@@ -1131,7 +1131,7 @@ export default {
           &:hover {
             .pin {
               display: block;
-              color: var(--body-text);
+              color: var(--body-text-hover);
             }
           }
         }
