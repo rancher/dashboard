@@ -209,4 +209,8 @@ export default class GitRepo extends FleetApplication {
       display: this.commitDisplay
     };
   }
+
+  get fullDetailPageOverride() {
+    return true;
+  }
 }
