@@ -984,7 +984,7 @@ BODY, .theme-dark {
   --resource-gauge-back-circle : 74, 75, 82, 0.5;
 
   --simple-box-bg              : var(--body-bg);
-  --simple-box-border          : #{$medium};
+  --simple-box-border          : var(--body-border);
   --simple-box-divider         : #{$medium};
   --simple-box-shadow          : none;
 
