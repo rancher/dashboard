@@ -474,7 +474,7 @@ BODY, .theme-light {
   --checkbox-border            : #{$medium};
   --checkbox-tick-disabled     : #{darken($disabled, 40%)};
   --checkbox-disabled-bg       : #{$disabled};
-  --checkbox-ticked-bg         : var(--link);
+  --checkbox-ticked-bg         : var(--active);
 
   --drag-over-inner-bg         : #{rgba($drag-over, 0.9)};
   --drag-over-outer-bg         : #{rgba($drag-over, 0)};
@@ -883,7 +883,7 @@ BODY, .theme-dark {
   --checkbox-border            : #{$medium};
   --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
   --checkbox-disabled-bg       : #{$disabled};
-  --checkbox-ticked-bg         : var(--link);
+  --checkbox-ticked-bg         : var(--active);
 
   --drag-over-inner-bg         : #{rgba($drag-over, 0.9)};
   --drag-over-outer-bg         : #{rgba($drag-over, 0)};
