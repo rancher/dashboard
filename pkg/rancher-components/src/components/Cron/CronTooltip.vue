@@ -4,7 +4,14 @@ import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import type { TooltipSection } from './types';
 
-const props = defineProps<{ sections: TooltipSection[] }>();
+const props = defineProps<{
+  /**
+   * Tooltip content sections.
+   * Each section has a type (e.g., "rules" or "explanation")
+   * and a list of items with optional `value` and i18n `descKey`.
+   */
+  sections: TooltipSection[]
+}>();
 
 const store = useStore();
 const { t } = useI18n(store);

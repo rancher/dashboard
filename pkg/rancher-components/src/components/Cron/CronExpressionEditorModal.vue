@@ -8,7 +8,13 @@ import AppModal from '@shell/components/AppModal.vue';
 import CronExpressionEditor from './CronExpressionEditor.vue';
 
 const props = defineProps<{
+  /**
+   * Initial cron expression string.
+   */
   cronExpression?: string;
+  /**
+   * Controls whether the cron editor modal is visible.
+   */
   show: boolean;
 }>();
 

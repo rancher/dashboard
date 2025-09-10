@@ -13,6 +13,9 @@ import type { TooltipSection, CronField } from './types';
 import { cronFields } from './types';
 
 const props = defineProps<{
+  /**
+   * Initial cron expression string.
+   */
   cronExpression?: string;
 }>();
 
