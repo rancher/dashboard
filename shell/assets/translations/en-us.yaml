@@ -479,6 +479,12 @@ addProjectMemberDialog:
   title: Add Project Member
 
 authConfig:
+  slo:
+    sloTitle: Log Out behavior
+    sloOptions:
+      onlyRancher: Log out of Rancher and not {name}
+      logoutAll: Log out of Rancher and {name} (includes all other applications registered with {name})
+      choose: Allow the user to choose one of the above in an additional log out step
   accessMode:
     label: 'Configure who should be able to login and use {vendor}'
     required: Restrict access to only the authorized users & groups
@@ -628,11 +634,6 @@ authConfig:
     UID: UID Field
     adfs: Configure an AD FS account
     api: '{vendor} API Host'
-    sloTitle: Log Out behavior
-    sloOptions:
-      onlyRancher: Log out of Rancher and not {name}
-      logoutAll: Log out of Rancher and {name} (includes all other applications registered with {name})
-      choose: Allow the user to choose one of the above in an additional log out step
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
@@ -699,6 +700,7 @@ authConfig:
         title: Are you sure? This update is irreversible.
         body: '<p><b>You may need to make some additional changes</b>. Please ensure the Azure AD app has the Directory.Read.All <b>Application</b> permission added to Microsoft Graph.<br> If any endpoints were customized while configuring Azure AD authentication in Rancher, they will not be automatically updated. </p>'
   oidc:
+    endSessionEndpoint: End Session Endpoint
     genericoidc: Configure an OIDC account
     keycloakoidc: Configure a Keycloak OIDC account
     cognito: Configure an Amazon Cognito account
@@ -898,9 +900,9 @@ asyncButton:
     success: Redeployed
     waiting: Redeploying Workload
   rollback:
-    action: Rollback
+    action: Roll Back
     success: Rolled Back
-    waiting: Rolling Back&hellip;
+    waiting: Rolling Back Workload
   rotate:
     action: Rotate
     waiting: Rotating&hellip;
@@ -5105,8 +5107,6 @@ plugins:
     image: Image
     installing: Installing ...
     uninstalling: Uninstalling ...
-    updating: Updating ...
-    rollingBack: Rolling back ...
     menu: Extensions menu
     reloadRancher: Reload Rancher
   descriptions:

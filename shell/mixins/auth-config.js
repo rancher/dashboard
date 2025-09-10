@@ -21,6 +21,12 @@ export const SLO_OPTION_VALUES = {
   both:    'both',
 };
 
+// admissable auth providers compatible with SLO, based on shell/models/management.cattle.io.authconfig "configType"
+export const SLO_AUTH_PROVIDERS = ['oidc', 'saml'];
+
+// this is connected to the redirect url, for which the logic can be found in "shell/store/auth"
+export const SLO_TOKENS_ENDPOINT_LOGOUT_RES_BASETYPE = ['samlConfigLogoutOutput', 'oidcConfigLogoutOutput'];
+
 export default {
   beforeCreate() {
     const { query } = this.$route;
@@ -115,13 +121,17 @@ export default {
       if (this.model.openLdapConfig) {
         this.showLdap = true;
       }
-      if (this.value.configType === 'saml') {
+
+      console.log('AUTH CONFIG this.value', this.value);
+      if (this.value?.configType && SLO_AUTH_PROVIDERS.includes(this.value?.configType)) {
+        console.warn('IS OIDC OR SAML');
         if (!this.model.rancherApiHost || !this.model.rancherApiHost.length) {
           this.model['rancherApiHost'] = this.serverUrl;
         }
 
         // setting data for SLO
         if (this.model && Object.keys(this.model).includes('logoutAllSupported')) {
+          console.warn('logoutAllSupported');
           if (!this.model.logoutAllEnabled && !this.model.logoutAllForced) {
             this.sloType = SLO_OPTION_VALUES.rancher;
           } else if (this.model.logoutAllEnabled && this.model.logoutAllForced) {
