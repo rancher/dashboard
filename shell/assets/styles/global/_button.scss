@@ -214,6 +214,7 @@ fieldset[disabled] .btn {
 
     &:hover {
       background: var(--toggle-off-hover, var(--disabled-bg)) !important;
+      color: var(--toggle-off-color, var(--disabled-hover-text)) !important;
     }
   }
 
