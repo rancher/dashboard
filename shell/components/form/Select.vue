@@ -94,7 +94,11 @@ export default {
     isLangSelect: {
       type:    Boolean,
       default: false
-    }
+    },
+    loading: {
+      default: false,
+      type:    Boolean
+    },
   },
   setup() {
     const select = ref(null);
@@ -134,14 +138,19 @@ export default {
       calculatePosition(dropdownList, component, width, this.placement);
     },
 
-    // Ensure we only focus on open, otherwise we re-open on close
     clickSelect(ev) {
       if (this.mode === _VIEW || this.loading === true || this.disabled === true) {
         return;
       }
 
+      // Ensure we don't toggle when clicking the clear button on multi-select
+      if (this.$attrs.multiple && ev?.target.className === 'vs__deselect') {
+        return;
+      }
+
       this.isOpen = !this.isOpen;
 
+      // Ensure we only focus on open, otherwise we re-open on close
       if (this.isOpen) {
         this.focusSearch(ev);
       }
