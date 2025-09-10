@@ -399,12 +399,16 @@ export const actions = {
         redirectUnauthorized: false,
       }, { root: true });
 
+      // eslint-disable-next-line no-console
       console.error('TOKENS AUTH RESPONSE', res);
+      // eslint-disable-next-line no-console
       console.error('TOKENS AUTH RESPONSE baseType', res.baseType);
+      // eslint-disable-next-line no-console
       console.error('TOKENS AUTH RESPONSE idpRedirectUrl', res.idpRedirectUrl);
 
       // Single-sign logout redirect for SLO compatible auth providers
       if (SLO_TOKENS_ENDPOINT_LOGOUT_RES_BASETYPE.includes(res.baseType) && res.idpRedirectUrl) {
+        // eslint-disable-next-line no-console
         console.error('WE ARE ON SLO WORLD!!!!');
         window.location.href = res.idpRedirectUrl;
 

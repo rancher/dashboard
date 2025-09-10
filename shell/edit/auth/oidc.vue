@@ -137,6 +137,7 @@ export default {
     },
 
     sloOptions() {
+      // eslint-disable-next-line no-console
       console.log('MODEL', this.model);
 
       return [

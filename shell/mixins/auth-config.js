@@ -122,8 +122,10 @@ export default {
         this.showLdap = true;
       }
 
+      // eslint-disable-next-line no-console
       console.log('AUTH CONFIG this.value', this.value);
       if (this.value?.configType && SLO_AUTH_PROVIDERS.includes(this.value?.configType)) {
+        // eslint-disable-next-line no-console
         console.warn('IS OIDC OR SAML');
         if (!this.model.rancherApiHost || !this.model.rancherApiHost.length) {
           this.model['rancherApiHost'] = this.serverUrl;
@@ -131,6 +133,7 @@ export default {
 
         // setting data for SLO
         if (this.model && Object.keys(this.model).includes('logoutAllSupported')) {
+          // eslint-disable-next-line no-console
           console.warn('logoutAllSupported');
           if (!this.model.logoutAllEnabled && !this.model.logoutAllForced) {
             this.sloType = SLO_OPTION_VALUES.rancher;
