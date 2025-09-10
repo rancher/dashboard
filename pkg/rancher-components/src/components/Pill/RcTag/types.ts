@@ -1,4 +1,4 @@
-export type Type = 'active' | 'inactive';
+import { Type } from '../types';
 
 export interface RcTagProps {
   type: Type;

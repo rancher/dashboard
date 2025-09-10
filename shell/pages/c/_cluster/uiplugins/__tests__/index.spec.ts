@@ -142,6 +142,22 @@ describe('page: UI plugins/Extensions', () => {
       expect(items).toHaveLength(2);
       expect(items[1].label).toBe('plugins.labels.uninstalling');
     });
+
+    it('should show updating status', () => {
+      const plugin = { displayVersionLabel: 'v1.0.0', installing: 'update' };
+      const items = wrapper.vm.getSubHeaderItems(plugin);
+
+      expect(items).toHaveLength(2);
+      expect(items[1].label).toBe('plugins.labels.updating');
+    });
+
+    it('should show rolling back status', () => {
+      const plugin = { displayVersionLabel: 'v1.0.0', installing: 'rollback' };
+      const items = wrapper.vm.getSubHeaderItems(plugin);
+
+      expect(items).toHaveLength(2);
+      expect(items[1].label).toBe('plugins.labels.rollingBack');
+    });
   });
 
   describe('getFooterItems', () => {
@@ -237,6 +253,66 @@ describe('page: UI plugins/Extensions', () => {
       const warningStatus = statuses.find((s) => s.icon === 'icon-alert-alt');
 
       expect(warningStatus.tooltip.text).toBe('generic.deprecated. generic.error: plugins.helmError');
+    });
+  });
+
+  describe('watch: helmOps', () => {
+    let wrapper;
+
+    beforeEach(() => {
+      const store = {
+        getters: {
+          'prefs/get':         jest.fn(),
+          'catalog/rawCharts': {},
+          'uiplugins/plugins': [],
+          'uiplugins/errors':  {}
+        },
+        dispatch: () => Promise.resolve(),
+      };
+
+      wrapper = shallowMount(UiPluginsPage, {
+        global: {
+          mocks: {
+            $store: store,
+            t,
+          },
+          stubs: { ActionMenu: { template: '<div />' } }
+        }
+      });
+    });
+
+    it('should set status to "update" for an upgrade operation', async() => {
+      const plugin = { name: 'my-plugin' };
+
+      wrapper.vm.available = [plugin];
+      wrapper.vm.installing['my-plugin'] = 'update';
+
+      const helmOps = [{
+        metadata: { state: { transitioning: true } },
+        status:   { releaseName: 'my-plugin', action: 'upgrade' }
+      }];
+
+      wrapper.vm.helmOps = helmOps;
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.installing['my-plugin']).toBe('update');
+    });
+
+    it('should keep status as "rollback" during an upgrade operation if it was already rolling back', async() => {
+      const plugin = { name: 'my-plugin' };
+
+      wrapper.vm.available = [plugin];
+      wrapper.vm.installing['my-plugin'] = 'rollback';
+
+      const helmOps = [{
+        metadata: { state: { transitioning: true } },
+        status:   { releaseName: 'my-plugin', action: 'upgrade' }
+      }];
+
+      wrapper.vm.helmOps = helmOps;
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.installing['my-plugin']).toBe('rollback');
     });
   });
 });

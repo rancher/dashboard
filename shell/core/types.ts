@@ -1,5 +1,6 @@
 import { ProductFunction } from './plugin';
 import { RouteRecordRaw } from 'vue-router';
+import type { ExtensionManager } from '@shell/types/extension-manager';
 
 // Cluster Provisioning types
 export * from './types-provisioning';
@@ -542,9 +543,13 @@ export type ModelExtensionContext = {
    */
   axios: any,
   /**
+   * [DEPRECATED] Definition of the extension
+   */
+  $plugin: ExtensionManager,
+  /**
    * Definition of the extension
    */
-  $plugin: any,
+  $extension: ExtensionManager,
   /**
    * Function to retrieve a localised string
    */
