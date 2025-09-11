@@ -11,10 +11,7 @@ describe('mixin: authConfigMixin', () => {
       computed: { principal: () => ({ me: {} }) },
       global:   {
         mocks: {
-          $store: {
-            dispatch: () => model,
-            commit:   () => ({ 'auth/loggedInAs': jest.fn() }),
-          },
+          $store: { dispatch: () => model },
           $route: {
             params: { id: '123' },
             query:  { mode: 'edit' },

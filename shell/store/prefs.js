@@ -289,12 +289,16 @@ export const actions = {
     commit('load', { key, value });
 
     if ( definition.asCookie ) {
-      const opt = {
+      const options = {
         ...cookieOptions,
         parseJSON: definition.parseJSON === true
       };
 
-      this.$cookies.set(`${ cookiePrefix }${ key }`.toUpperCase(), value, opt);
+      const computedKey = `${ cookiePrefix }${ key }`.toUpperCase();
+
+      commit('cookies/set', {
+        key: computedKey, value, options
+      }, { root: true });
     }
 
     if ( definition.asUserPreference ) {
@@ -336,7 +340,7 @@ export const actions = {
     await dispatch('set', { key: THEME, value: val });
   },
 
-  loadCookies({ state, commit }) {
+  loadCookies({ state, commit, rootGetters }) {
     if ( state.cookiesLoaded ) {
       return;
     }
@@ -348,8 +352,9 @@ export const actions = {
         continue;
       }
 
-      const opt = { parseJSON: definition.parseJSON === true };
-      const value = this.$cookies.get(`${ cookiePrefix }${ key }`.toUpperCase(), opt);
+      const options = { parseJSON: definition.parseJSON === true };
+      const computedKey = `${ cookiePrefix }${ key }`.toUpperCase();
+      const value = rootGetters['cookies/get']({ key: computedKey, options });
 
       if (value !== undefined) {
         commit('load', { key, value });

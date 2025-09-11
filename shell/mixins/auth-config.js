@@ -220,7 +220,7 @@ export default {
               addObject(this.model.allowedPrincipalIds, this.principal.id);
             }
             // Session has switched to new 'me', ensure we react
-            this.$store.commit('auth/loggedInAs', this.principal.id);
+            this.$store.dispatch('auth/loggedInAs', this.principal.id);
           } else {
             console.warn(`Unable to find principal marked as 'me'`); // eslint-disable-line no-console
           }
