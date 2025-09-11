@@ -276,17 +276,27 @@ export default class Namespace extends SteveModel {
     const namespaceIndex = glance.findIndex((item) => item.name === 'namespace');
 
     if (namespaceIndex > -1) {
-      glance.splice(namespaceIndex, 1, {
-        name:          'project',
-        label:         this.t('component.resource.detail.glance.project'),
-        formatter:     'Link',
-        formatterOpts: {
-          to: this.project.detailLocation, row: {}, options: { internal: true }
-        },
-        content: this.project.nameDisplay
-      });
+      glance.splice(namespaceIndex, 1, this.projectGlance);
     }
 
-    return glance;
+    // projectGlance could be undefined
+    return glance.filter(Boolean);
+  }
+
+  get projectGlance() {
+    // Not all namespaces are in a project
+    if (!this.project) {
+      return undefined;
+    }
+
+    return {
+      name:          'project',
+      label:         this.t('component.resource.detail.glance.project'),
+      formatter:     'Link',
+      formatterOpts: {
+        to: this.project.detailLocation, row: {}, options: { internal: true }
+      },
+      content: this.project.nameDisplay
+    };
   }
 }
