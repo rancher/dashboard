@@ -543,6 +543,7 @@ export const LAST_SEEN_TIME = {
 
 export const EVENT_LAST_SEEN_TIME = {
   ...LAST_SEEN_TIME,
+  sort:        'metadata.fields.0',
   defaultSort: true,
 };
 

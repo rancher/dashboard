@@ -127,6 +127,10 @@ const TYPE_ORDER = {
   date:      10,
 };
 
+function isDurationString(str) {
+  return typeof str === 'string' && /(\d+)([dhms])/i.test(str);
+}
+
 export function compare(a, b) {
   const typeA = typeOf(a);
   const typeB = typeOf(b);
@@ -135,6 +139,16 @@ export function compare(a, b) {
 
   if ( res ) {
     return res;
+  }
+
+  const aIsDuration = isDurationString(a);
+  const bIsDuration = isDurationString(b);
+
+  if (aIsDuration && bIsDuration) {
+    const msA = parseDurationToMilliseconds(a);
+    const msB = parseDurationToMilliseconds(b);
+
+    return spaceship(msA, msB);
   }
 
   switch (typeA) {
@@ -222,4 +236,40 @@ export function sortableNumericSuffix(str) {
 
 export function isNumeric(num) {
   return !!`${ num }`.match(notNumericRegex);
+}
+
+export function parseDurationToMilliseconds(durationStr) {
+  let totalMilliseconds = 0;
+
+  if (typeof durationStr !== 'string') {
+    return 0;
+  }
+  const regex = /(\d+)([dhms])/gi;
+  let match;
+
+  while ((match = regex.exec(durationStr)) !== null) {
+    const value = parseInt(match[1], 10);
+    const unit = match[2].toLowerCase();
+
+    if (isNaN(value)) {
+      return 0;
+    }
+
+    switch (unit) {
+    case 'd':
+      totalMilliseconds += value * 24 * 60 * 60 * 1000;
+      break;
+    case 'h':
+      totalMilliseconds += value * 60 * 60 * 1000;
+      break;
+    case 'm':
+      totalMilliseconds += value * 60 * 1000;
+      break;
+    case 's':
+      totalMilliseconds += value * 1000;
+      break;
+    }
+  }
+
+  return totalMilliseconds;
 }

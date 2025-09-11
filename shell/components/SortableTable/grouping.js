@@ -1,4 +1,5 @@
 import { get } from '@shell/utils/object';
+import { sortBy } from '@shell/utils/sort';
 
 export default {
   computed: {
@@ -12,19 +13,28 @@ export default {
     groupedRows() {
       const groupKey = this.groupBy;
       const refKey = this.groupRef || this.selectedGroupOption?.groupLabelKey || groupKey;
+      let rowsToProcess = [];
+
+      if (this.pagedRows.length > 0 ) {
+        rowsToProcess = [...this.pagedRows];
+      }
+      // else{
+      //  rowsToProcess = [...this.rows];
+      // }
+      const outRows = sortBy(rowsToProcess, this.sortFields, this.descending);
 
       if ( !groupKey) {
         return [{
           key:  'default',
           ref:  'default',
-          rows: this.pagedRows,
+          rows: outRows,
         }];
       }
 
       const out = [];
       const map = {};
 
-      for ( const obj of this.pagedRows ) {
+      for ( const obj of outRows ) {
         const key = get(obj, groupKey) || '';
         const ref = get(obj, refKey);
         let entry = map[key];
