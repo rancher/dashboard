@@ -1,3 +1,4 @@
+import { ClusterProvisionerContext } from '@shell/core/types';
 export type ExtensionManager = {
   internal(): any;
   loadPluginAsync(plugin: any): Promise<void>;
@@ -17,7 +18,7 @@ export type ExtensionManager = {
   getValidator(name: string): any;
   getUIConfig(type: string, uiArea: string): any[];
   getAllUIConfig(): any;
-  getProviders(context: object): any[];
+  getProviders(context: ClusterProvisionerContext): any[];
   lastLoad: number;
   listDynamic(typeName: string): string[];
   products: any[];
