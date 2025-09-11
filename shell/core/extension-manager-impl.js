@@ -432,16 +432,30 @@ const createExtensionManager = (context) => {
     get lastLoad() {
       return _lastLoaded;
     },
+    /**
+     *
+     * @param {*} ClusterProvisionerContext
+     *  Example:
+     *  dispatch:   this.$store.dispatch,
+        getters:    this.$store.getters,
+        axios:      this.$store.$axios,
+        $extension: this.$store.app.$extension,
+        t:          (...args) => this.t.apply(this, args),
+        isCreate:   this.isCreate,
+        isEdit:     this.isEdit,
+        isView:     this.isView,
+     * @returns array of all extension provisioners
+     */
 
-    getProviders(context) {
+    getProviders(ClusterProvisionerContext) {
       // Custom Providers from extensions - initialize each with the store and the i18n service
       // Wrap in try ... catch, to prevent errors in an extension breaking the page
 
-      const extensions = context.$extension.listDynamic('provisioner').map((name) => {
+      const extensions = ClusterProvisionerContext.$extension.listDynamic('provisioner').map((name) => {
         try {
-          const provisioner = context.$extension.getDynamic('provisioner', name);
+          const provisioner = ClusterProvisionerContext.$extension.getDynamic('provisioner', name);
 
-          return new provisioner({ ...context });
+          return new provisioner({ ...ClusterProvisionerContext });
         } catch (e) {
           console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console
         }
