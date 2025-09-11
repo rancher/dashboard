@@ -35,6 +35,10 @@ env:
   E2E_BUILD_DIST_EMBER_NAME: dist_ember
   E2E_BUILD_DIST_EMBER_DIR: dist_ember
 
+permissions:
+  contents: read
+  deployments: write
+
 jobs:
   e2e-ui-build:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
@@ -210,6 +214,49 @@ jobs:
         with:
           name: accessibility-report
           path: cypress/accessibility
+
+      - name: Deploy a11y report to Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          DEPLOY_ALIAS="pr-${PR_NUMBER}"
+          npx netlify deploy \
+            --auth $NETLIFY_AUTH_TOKEN \
+            --site=$NETLIFY_SITE_ID \
+            --dir=cypress/accessibility \
+            --alias=$DEPLOY_ALIAS
+
+      - name: Create GitHub Deployment and Status
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const prNumber = pr.number;
+            const envName = `ACCESSIBILITY-REPORT-PR-${prNumber}`;
+            const envUrl = `https://pr-${prNumber}--chipper-paletas-75dfc9.netlify.app`;
+
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: pr.head.sha,
+              required_contexts: [],
+              environment: envName,
+              auto_merge: false,
+              transient_environment: true
+            });
+
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deployment.data.id,
+              state: "success",
+              environment_url: envUrl,
+              log_url: envUrl
+            });
+
         
   unit-test:
     runs-on: ubuntu-latest

@@ -1,0 +1,22 @@
+on:
+  pull_request:
+    types: [closed]
+jobs:
+  netlify-cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clean Netlify alias
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          # Netlify doesn't have a command to delete aliases directly
+          # So we deploy an empty directory to overwrite the alias
+          mkdir empty && echo "<html><body>Deleted</body></html>" > empty/index.html
+
+          npx netlify deploy \
+            --auth $NETLIFY_AUTH_TOKEN \
+            --site=$NETLIFY_SITE_ID \
+            --dir=empty \
+            --alias=pr-${PR_NUMBER}
