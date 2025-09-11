@@ -17,6 +17,7 @@ import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartC
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import day from 'dayjs';
 import { RcButton } from '@components/RcButton';
+import { getStandaloneReadmeUrl, CHART_README_STORAGE_KEY } from '@shell/utils/chart.ts';
 
 export default {
   components: {
@@ -203,7 +204,23 @@ export default {
           [VERSION]: version,
         }
       };
-    }
+    },
+    openReadme() {
+      // Uses a helper to generate the URL and opens the chart README in a new tab.
+      const theme = this.$store.getters['prefs/theme'];
+      const storageKey = CHART_README_STORAGE_KEY;
+
+      sessionStorage.setItem(storageKey, JSON.stringify(this.versionInfo));
+
+      const url = getStandaloneReadmeUrl(this.$router, {
+        storageKey,
+        showAppReadme:        false,
+        hideReadmeFirstTitle: false,
+        theme,
+      });
+
+      window.open(url, '_blank');
+    },
   },
 };
 </script>
@@ -341,13 +358,28 @@ export default {
     </div>
 
     <div class="chart-body">
-      <ChartReadme
+      <div
         v-if="hasReadme"
-        :version-info="versionInfo"
-        :show-app-readme="false"
-        :hide-readme-first-title="false"
-        class="chart-body__readme"
-      />
+        class="readme-wrapper"
+        tabindex="0"
+      >
+        <RcButton
+          small
+          secondary
+          class="open-readme-button"
+          @click="openReadme()"
+        >
+          {{ t('catalog.chart.viewReadmeSeparately') }}
+          <i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span>
+        </RcButton>
+        <ChartReadme
+          v-if="hasReadme"
+          :version-info="versionInfo"
+          :show-app-readme="false"
+          :hide-readme-first-title="false"
+          class="chart-body__readme"
+        />
+      </div>
       <div
         v-else
         class="chart-body__readme"
@@ -617,9 +649,38 @@ export default {
 
   .chart-body {
     display: flex;
-    &__readme {
+    .readme-wrapper {
+      position: relative;
       flex: 1;
       min-width: 400px;
+
+      .open-readme-button {
+        display: none;
+        position: absolute;
+        top: 12px;
+        right: 24px;
+        padding: 0 16px;
+        z-index: 1;
+        background: var(--body-bg);
+
+        &:focus {
+          background: var(--primary);
+        }
+
+        .icon-external-link {
+          margin: 0 0 0 8px;
+        }
+      }
+
+      &:hover,
+      &:focus-within {
+        .open-readme-button {
+          display: flex;
+        }
+      }
+    }
+
+    &__readme {
       padding: 12px 24px;
     }
     &__info {
