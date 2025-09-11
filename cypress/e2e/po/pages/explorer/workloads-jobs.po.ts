@@ -4,6 +4,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ResourceDetailMastheadPo from '@/cypress/e2e/po/components/resource-detail-masthead.po';
 
 export class WorkloadsJobsListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
@@ -70,5 +71,9 @@ export class WorkLoadsJobDetailsPagePo extends BaseDetailPagePo {
 
   errorBanner() {
     return cy.get('#cru-errors');
+  }
+
+  masthead() {
+    return new ResourceDetailMastheadPo(this.self());
   }
 }
