@@ -4,7 +4,7 @@ import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import { get } from '@shell/utils/object';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
-import { onClickOption, calculatePosition } from '@shell/utils/select';
+import { calculatePosition } from '@shell/utils/select';
 import { generateRandomAlphaString } from '@shell/utils/string';
 import LabeledSelectPagination from '@shell/components/form/labeled-select-utils/labeled-select-pagination';
 import { LABEL_SELECT_NOT_OPTION_KINDS } from '@shell/types/components/labeledSelect';
@@ -169,14 +169,19 @@ export default {
   },
 
   methods: {
-    // Ensure we only focus on open, otherwise we re-open on close
-    clickSelect() {
+    clickSelect(event) {
       if (this.mode === _VIEW || this.loading === true || this.disabled === true) {
+        return;
+      }
+
+      // Ensure we don't toggle when clicking the clear button on multi-select
+      if (this.$attrs.multiple && event?.target.className === 'vs__deselect') {
         return;
       }
 
       this.isOpen = !this.isOpen;
 
+      // Ensure we only focus on open, otherwise we re-open on close
       if (this.isOpen) {
         this.focusSearch();
       }
@@ -261,10 +266,6 @@ export default {
     },
 
     get,
-
-    onClickOption(option, event) {
-      onClickOption.call(this, option, event);
-    },
 
     dropdownShouldOpen(instance, forceOpen = false) {
       if (!this.isOpen) {
@@ -428,7 +429,6 @@ export default {
           v-else
           class="vs__option-kind"
           :class="{ 'has-icon' : hasGroupIcon}"
-          @mousedown="(e) => onClickOption(option, e)"
         >
           {{ getOptionLabel(option) }}
           <i
