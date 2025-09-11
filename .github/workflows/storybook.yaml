@@ -1,9 +1,19 @@
 name: storybook
 on:
   push:
+    paths:
+      - 'storybook/**/*'
+      - 'pkg/rancher-components/**/*'
+      - 'shell/components/**/*'
+      - 'shell/assets/**/*'
     branches:
       - master
   pull_request:
+    paths:
+      - 'storybook/**/*'
+      - 'pkg/rancher-components/**/*'
+      - 'shell/components/**/*'
+      - 'shell/assets/**/*'
     branches:
       - master
 jobs:
