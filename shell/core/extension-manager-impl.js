@@ -434,7 +434,7 @@ const createExtensionManager = (context) => {
     },
     /**
      *
-     * @param {*} ClusterProvisionerContext
+     * @param {*} context is of type ClusterProvisionerContext
      *  Example:
      *  dispatch:   this.$store.dispatch,
         getters:    this.$store.getters,
@@ -447,15 +447,15 @@ const createExtensionManager = (context) => {
      * @returns array of all extension provisioners
      */
 
-    getProviders(ClusterProvisionerContext) {
+    getProviders(context) {
       // Custom Providers from extensions - initialize each with the store and the i18n service
       // Wrap in try ... catch, to prevent errors in an extension breaking the page
 
-      const extensions = ClusterProvisionerContext.$extension.listDynamic('provisioner').map((name) => {
+      const extensions = context.$extension.listDynamic('provisioner').map((name) => {
         try {
-          const provisioner = ClusterProvisionerContext.$extension.getDynamic('provisioner', name);
+          const provisioner = context.$extension.getDynamic('provisioner', name);
 
-          return new provisioner({ ...ClusterProvisionerContext });
+          return new provisioner({ ...context });
         } catch (e) {
           console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console
         }
