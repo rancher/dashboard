@@ -1,7 +1,6 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-import WorkloadPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import { createDeploymentBlueprint } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployment-create';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
@@ -70,11 +69,10 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
     productNavPo.groups().get('.expanded').as('openGroup');
 
     productNavPo.visibleNavTypes().eq(1).should('be.visible').click(); // Go into Workloads
-    const workload = new WorkloadPagePo('local');
 
-    workload.goTo();
-    workload.waitForPage();
-    workload.goToDetailsPage(workloadName);
+    deploymentsListPage.goTo();
+    deploymentsListPage.waitForPage();
+    deploymentsListPage.goToDetailsPage(workloadName);
     cy.get('@openGroup').should('be.visible');
     cy.get('@openGroup').find('.router-link-active').should('have.length.gt', 0);
   });
