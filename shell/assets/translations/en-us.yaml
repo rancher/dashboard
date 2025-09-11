@@ -1220,6 +1220,12 @@ catalog:
             other { seconds }
           }
       wait: Wait
+      tolerations:
+        operationTolerations:
+          title: Tolerations
+        automaticCPTolerations:
+          checkBoxLabel: Enable Automatic Control Plane Toleration
+          tooltip: Automatically adds tolerations to all taints present in control plane nodes
     namespaceIsInProject: "This chart's target namespace, <code>{namespace}</code>, already exists and cannot be added to a different project."
     project: Install into Project
     section:
