@@ -17,6 +17,7 @@ export type ExtensionManager = {
   getValidator(name: string): any;
   getUIConfig(type: string, uiArea: string): any[];
   getAllUIConfig(): any;
+  getProviders(context: object): any[];
   lastLoad: number;
   listDynamic(typeName: string): string[];
   products: any[];

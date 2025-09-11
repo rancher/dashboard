@@ -433,6 +433,23 @@ const createExtensionManager = (context) => {
       return _lastLoaded;
     },
 
+    getProviders(context) {
+      // Custom Providers from extensions - initialize each with the store and the i18n service
+      // Wrap in try ... catch, to prevent errors in an extension breaking the page
+
+      const extensions = context.$extension.listDynamic('provisioner').map((name) => {
+        try {
+          const provisioner = context.$extension.getDynamic('provisioner', name);
+
+          return new provisioner({ ...context });
+        } catch (e) {
+          console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console
+        }
+      }).filter((ext) => !!ext);
+
+      return extensions;
+    },
+
     listDynamic(typeName) {
       if (!dynamic[typeName]) {
         return [];

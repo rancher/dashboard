@@ -20,7 +20,6 @@ import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 import Rke2Config from './rke2';
 import { DRIVER_TO_IMPORT } from '@shell/models/management.cattle.io.kontainerdriver';
-import { getProviders } from '@shell/core/plugins.js';
 
 const SORT_GROUPS = {
   template:  1,
@@ -153,17 +152,17 @@ export default {
     // We can't pass in this.$store as this leads to a circular-reference that causes Vue to freeze,
     // so pass in specific services that the provisioner extension may need
     const context = {
-      dispatch: this.$store.dispatch,
-      getters:  this.$store.getters,
-      axios:    this.$store.$axios,
-      $plugin:  this.$store.app.$plugin,
-      t:        (...args) => this.t.apply(this, args),
-      isCreate: this.isCreate,
-      isEdit:   this.isEdit,
-      isView:   this.isView,
+      dispatch:   this.$store.dispatch,
+      getters:    this.$store.getters,
+      axios:      this.$store.$axios,
+      $extension: this.$store.app.$extension,
+      t:          (...args) => this.t.apply(this, args),
+      isCreate:   this.isCreate,
+      isEdit:     this.isEdit,
+      isView:     this.isView,
     };
 
-    this.extensions = getProviders(context);
+    this.extensions = this.$extension.getProviders(context);
   },
 
   data() {

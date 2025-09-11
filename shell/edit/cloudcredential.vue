@@ -14,9 +14,6 @@ import SelectIconGrid from '@shell/components/SelectIconGrid';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { set } from '@shell/utils/object';
-import { mapFeature, RKE2 as RKE2_FEATURE } from '@shell/store/features';
-import { rke1Supports } from '@shell/store/plugins';
-import { getProviders } from '@shell/core/plugins.js';
 
 export default {
   name: 'CruCloudCredential',
@@ -36,7 +33,7 @@ export default {
   async fetch() {
     this.nodeDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
     this.kontainerDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTAINER_DRIVER });
-    this.getExtensions();
+    this.extensions = this.getExtensions();
     // Force reload the cloud cred schema and any missing subtypes because there aren't change events sent when drivers come/go
     try {
       const schema = await this.$store.dispatch('rancher/find', {
@@ -100,7 +97,6 @@ export default {
   },
 
   computed: {
-    rke2Enabled: mapFeature(RKE2_FEATURE),
 
     hasCustomCloudCredentialComponent() {
       return this.getCustomCloudCredentialComponent(this.driverName);
@@ -144,14 +140,10 @@ export default {
         .filter((x) => x.spec.active && x.id !== 'rancherkubernetesengine')
         .map((x) => x.spec.displayName || x.id);
 
-      const fromExtensions = this.extensions?.filter((x) => !!this.getCustomCloudCredentialComponent(x.id)).map((x) => x.id) || [];
+      const fromExtensions = this.extensions?.filter((x) => !!this.getCustomCloudCredentialComponent(x?.id)).map((x) => x?.id) || [];
       const providers = [...fromDrivers, ...fromExtensions];
 
       let types = uniq(providers.map((x) => this.$store.getters['plugins/credentialDriverFor'](x)));
-
-      if ( !this.rke2Enabled ) {
-        types = types.filter((x) => rke1Supports.includes(x));
-      }
 
       const schema = this.$store.getters['rancher/schemaFor'](NORMAN.CLOUD_CREDENTIAL);
 
@@ -181,7 +173,7 @@ export default {
       for ( const id of types ) {
         let bannerAbbrv;
 
-        let bannerImage = this.$store.app.$plugin.getDynamic('image', `providers/${ id }.svg`);
+        let bannerImage = this.$store.app.$extension.getDynamic('image', `providers/${ id }.svg`);
 
         if (!bannerImage) {
           try {
@@ -219,17 +211,17 @@ export default {
 
     getExtensions() {
       const context = {
-        dispatch: this.$store.dispatch,
-        getters:  this.$store.getters,
-        axios:    this.$store.$axios,
-        $plugin:  this.$store.app.$plugin,
-        t:        (...args) => this.t.apply(this, args),
-        isCreate: this.isCreate,
-        isEdit:   this.isEdit,
-        isView:   this.isView,
+        dispatch:   this.$store.dispatch,
+        getters:    this.$store.getters,
+        axios:      this.$store.$axios,
+        $extension: this.$store.app.$extension,
+        t:          (...args) => this.t.apply(this, args),
+        isCreate:   this.isCreate,
+        isEdit:     this.isEdit,
+        isView:     this.isView,
       };
 
-      this.extensions = getProviders(context);
+      return this.$extension.getProviders(context);
     },
 
     getCustomCloudCredentialComponent(driverName) {
