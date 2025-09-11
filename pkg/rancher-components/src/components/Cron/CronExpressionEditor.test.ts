@@ -14,12 +14,6 @@ const translations: Record<string, string> = {
   'component.cron.expressionEditor.invalidValue':     'Invalid value',
 };
 
-const LabeledInputMock = {
-  name:     'LabeledInput',
-  props:    ['value', 'status', 'tooltip', 'ariaDescribedby'],
-  template: '<input />',
-};
-
 const store = createStore({});
 
 interface CronExpressionEditorVm extends InstanceType<typeof CronExpressionEditor> {
@@ -41,11 +35,8 @@ describe('cronExpressionEditor', () => {
   const factory = (props: Partial<CronExpressionEditorVm> = {}) => mount(CronExpressionEditor, {
     global: {
       plugins: [store],
-      stubs:   {
-        LabeledInput: LabeledInputMock,
-        CronTooltip:  true,
-      },
-      mocks: { t: (key: string) => translations[key] || key },
+      stubs:   { CronTooltip: true },
+      mocks:   { t: (key: string) => translations[key] || key },
     },
     props: { cronExpression: '0 0 * * *', ...props },
   }) as VueWrapper<CronExpressionEditorVm>;
