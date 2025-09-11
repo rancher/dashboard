@@ -8,6 +8,9 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import { mapStateToEnum, primaryDisplayStatusFromCount, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import FleetUtils from '@shell/utils/fleet';
 
+export const APPCO = 'appco';
+export const APPCO_REGISTRY = 'oci://dp.apps.rancher.io/charts';
+
 function normalizeStateCounts(data) {
   if (isEmpty(data)) {
     return {
