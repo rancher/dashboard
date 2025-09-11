@@ -3,7 +3,8 @@ import {
   STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, OBJECT,
   EVENT_LAST_SEEN_TIME,
   EVENT_TYPE,
-  SECRET_CLONE
+  SECRET_CLONE,
+  EVENT_FIRST_SEEN_TIME
 } from '@shell/config/table-headers';
 
 // This file contains table headers
@@ -56,10 +57,17 @@ export const STEVE_EVENT_OBJECT = {
   search: 'involvedObject.kind',
 };
 
+export const STEVE_EVENT_FIRST_SEEN = {
+  ...EVENT_FIRST_SEEN_TIME,
+
+  value: 'metadata.fields.7',
+  sort:  'metadata.fields.7:desc',
+};
+
 export const STEVE_EVENT_LAST_SEEN = {
   ...EVENT_LAST_SEEN_TIME,
   value: 'metadata.fields.0',
-  sort:  'metadata.fields.0',
+  sort:  'metadata.fields.0:desc',
 };
 
 export const STEVE_EVENT_TYPE = {
