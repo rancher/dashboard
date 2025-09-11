@@ -3228,6 +3228,7 @@ footer:
   slack: Slack
 
 gatekeeperConstraint:
+  templateRequired: You must have at least one Template before attempting to create a Constraint.
   downloadViolations: Download Violations
   match:
     title: Match
