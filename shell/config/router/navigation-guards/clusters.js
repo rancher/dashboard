@@ -80,7 +80,7 @@ export async function loadClusters(to, from, next, { store }) {
         getters: store.getters
       });
     }
-
+    console.log('**** loading cluster in middleware');
     // Always run loadCluster, it handles 'unload' as well
     // Run them in parallel
     await Promise.all([

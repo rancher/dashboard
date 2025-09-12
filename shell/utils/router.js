@@ -29,10 +29,16 @@ export function queryParamsFor(current, qp, defaults = {}) {
 }
 
 export function getClusterFromRoute(to) {
-  let cluster = to.params?.cluster;
+  // let cluster = to.params?.cluster;
+
+  // if (!cluster) {
+  //   cluster = findMeta(to, 'cluster');
+  // }
+
+  let cluster = findMeta(to, 'cluster');
 
   if (!cluster) {
-    cluster = findMeta(to, 'cluster');
+    cluster = to.params?.cluster;
   }
 
   return cluster;

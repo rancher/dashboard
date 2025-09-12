@@ -922,6 +922,7 @@ export const actions = {
   }, {
     id, product, oldProduct, oldPkg, newPkg, targetRoute
   }) {
+    console.log('*** Loading cluster with id ', id);
     commit('targetRoute', targetRoute);
     const sameCluster = state.clusterId && state.clusterId === id;
     const samePackage = oldPkg?.name === newPkg?.name;
@@ -933,6 +934,8 @@ export const actions = {
 
     // Are we in the same cluster and package or product or root product?
     if (sameCluster && (samePackage || sameProduct || (productConfig?.rootProduct === oldProductConfig?.rootProduct))) {
+      console.log('Already connected to cluster ', id);
+
       // Do nothing, we're already connected/connecting to this cluster
       return;
     }
@@ -955,6 +958,7 @@ export const actions = {
     // (latter catches cases like nav from explorer cluster A to epinio cluster A)
     // AND if the product not scoped to the explorer - a case for products that only exist within the explorer (i.e. Kubewarden)
     if ( forgetCurrentCluster ) {
+      console.log('Forgetting old cluster...');
       // Clear the old cluster state out if switching to a new one.
       // If there is not an id then stay connected to the old one behind the scenes,
       // so that the nav and header stay the same when going to things like prefs
@@ -980,6 +984,7 @@ export const actions = {
     }
 
     if ( id ) {
+      console.log('Remembering current cluster...');
       // Remember the current cluster
       dispatch('prefs/set', { key: CLUSTER_PREF, value: id });
       commit('clusterId', id);

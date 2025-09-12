@@ -97,16 +97,41 @@ export default {
       return !this.$route?.matched?.length;
     },
 
+    // /**
+    //  * When navigation involves unloading one cluster and loading another, clusterReady toggles from true->false->true in middleware (before new route content renders)
+    //  * Prevent rendering "outlet" until the route changes to avoid re-rendering old route content after its cluster is unloaded
+    //  */
+    // clusterAndRouteReady() {
+    //   const targetRoute = this.$store.getters['targetRoute'];
+    //   const routeReady = targetRoute ? this.currentProduct?.name === getProductFromRoute(this.$route) && this.currentProduct?.name === getProductFromRoute(targetRoute) : this.currentProduct?.name === getProductFromRoute(this.$route);
+
+    //   console.log('*** clouster and route ready targetRoute', targetRoute);
+    //   console.log('*** clouster and route ready routeReady', routeReady);
+    //   console.log('*** clouster and route ready clusterId', this.clusterId);
+
+    //   console.log('clouster and route ready getClusterFromRoute', getClusterFromRoute(targetRoute));
+
+    //   return this.clusterReady &&
+    //     this.clusterId === getClusterFromRoute(targetRoute) && routeReady;
+    // },
+
     /**
      * When navigation involves unloading one cluster and loading another, clusterReady toggles from true->false->true in middleware (before new route content renders)
      * Prevent rendering "outlet" until the route changes to avoid re-rendering old route content after its cluster is unloaded
      */
-    clusterAndRouteReady() {
+    routeReady() {
       const targetRoute = this.$store.getters['targetRoute'];
       const routeReady = targetRoute ? this.currentProduct?.name === getProductFromRoute(this.$route) && this.currentProduct?.name === getProductFromRoute(targetRoute) : this.currentProduct?.name === getProductFromRoute(this.$route);
 
-      return this.clusterReady &&
-        this.clusterId === getClusterFromRoute(this.$route) && routeReady;
+      console.log('*** clouster and route ready targetRoute', targetRoute);
+      console.log('*** clouster and route ready routeReady', routeReady);
+      console.log('*** clouster and route ready clusterId', this.clusterId);
+
+      console.log('clouster and route ready getClusterFromRoute', getClusterFromRoute(targetRoute));
+
+      // return this.clusterReady &&
+      //   this.clusterId === getClusterFromRoute(targetRoute) && routeReady;
+      return routeReady;
     },
 
     pinClass() {
@@ -197,8 +222,13 @@ export default {
         v-if="clusterReady"
         class="default-side-nav"
       />
-      <main
+      <!-- <main
         v-if="clusterAndRouteReady"
+        class="main-layout"
+        :aria-label="t('layouts.default')"
+      > -->
+      <main
+        v-if="routeReady"
         class="main-layout"
         :aria-label="t('layouts.default')"
       >
