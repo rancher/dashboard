@@ -1171,6 +1171,13 @@ export const getters = {
     };
   },
 
+  // This has to be left in to support extensions which use shell version 3.0.5-rc.8 or earlier, this extensions have a version of ResourceDetail/index.vue which still invokes this method.
+  hasGraph() {
+    return () => {
+      return null;
+    };
+  },
+
   hasCustomEdit(state, getters, rootState) {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);

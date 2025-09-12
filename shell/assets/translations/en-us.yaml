@@ -282,7 +282,6 @@ nav:
     filteringDescription: Using this input will immediately filter the results in the list below
   header:
     setLoginPage: Set as login page
-    restoreCards: Restore hidden cards
     showHideBanner: Show/Hide Banner
   userMenu:
     preferences: Preferences
@@ -3233,6 +3232,7 @@ footer:
   slack: Slack
 
 gatekeeperConstraint:
+  templateRequired: You must have at least one Template before attempting to create a Constraint.
   downloadViolations: Download Violations
   match:
     title: Match

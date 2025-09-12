@@ -194,7 +194,6 @@ nav:
     placeholder: 输入关键词，搜索资源
   header:
     setLoginPage: 设置为登录页面
-    restoreCards: 恢复隐藏的卡片
   userMenu:
     preferences: 偏好设置
     accountAndKeys: 账号 & API 密钥

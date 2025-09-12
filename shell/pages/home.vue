@@ -22,7 +22,7 @@ import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilte
 import TabTitle from '@shell/components/TabTitle.vue';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 
-import { RESET_CARDS_ACTION, SET_LOGIN_ACTION, SHOW_HIDE_BANNER_ACTION } from '@shell/config/page-actions';
+import { SET_LOGIN_ACTION, SHOW_HIDE_BANNER_ACTION } from '@shell/config/page-actions';
 import { STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
 import { PaginationParamFilter, FilterArgs, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
@@ -74,10 +74,6 @@ export default defineComponent({
         {
           label:  this.t('nav.header.showHideBanner'),
           action: SHOW_HIDE_BANNER_ACTION
-        },
-        {
-          label:  this.t('nav.header.restoreCards'),
-          action: RESET_CARDS_ACTION
         },
       ],
       vendor: getVendor(),
@@ -368,10 +364,6 @@ export default defineComponent({
      */
     handlePageAction(action: any) {
       switch (action.action) {
-      case RESET_CARDS_ACTION:
-        this.resetCards();
-        break;
-
       case SHOW_HIDE_BANNER_ACTION:
         this.toggleBanner();
         break;

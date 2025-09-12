@@ -5,7 +5,7 @@ import WorkloadPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 
 const podName = 'some-pod-name';
 
-describe('Workloads', { tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Workloads', { tags: ['@noVai', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
