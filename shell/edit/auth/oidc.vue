@@ -90,6 +90,11 @@ export default {
         return false;
       }
 
+      // make sure that if SLO options are enabled on radio group, field "endSessionEndpoint" is required
+      if (this.isLogoutAllSupported && this.sloEndSessionEndpointUiEnabled && !this.model.endSessionEndpoint) {
+        return false;
+      }
+
       if (this.isAmazonCognito) {
         const { issuer } = this.model;
 
