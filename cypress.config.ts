@@ -67,7 +67,7 @@ export default defineConfig({
   chromeWebSecurity:     false,
   retries:               {
     runMode:  2,
-    openMode: 0
+    openMode: 2
   },
   env: {
     grepFilterSpecs:  true,
