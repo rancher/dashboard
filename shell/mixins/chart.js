@@ -1,6 +1,5 @@
 
 import { mapGetters } from 'vuex';
-
 import {
   REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, DEPRECATED as DEPRECATED_QUERY, HIDDEN, _FLAGGED, _CREATE, _EDIT
 } from '@shell/config/query-params';
@@ -9,10 +8,9 @@ import { SHOW_PRE_RELEASE, mapPref } from '@shell/store/prefs';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
-
 import { formatSi, parseSi } from '@shell/utils/units';
 import { CAPI, CATALOG } from '@shell/config/types';
-import { isPrerelease } from '@shell/utils/version';
+import { isPrerelease, compare } from '@shell/utils/version';
 import difference from 'lodash/difference';
 import { LINUX, APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import { clone } from '@shell/utils/object';
@@ -232,18 +230,24 @@ export default {
     action() {
       if (!this.existing) {
         return {
-          name: 'install', tKey: 'install', icon: 'icon-plus'
+          name: 'install', tKey: 'installVersion', icon: 'icon-plus'
         };
       }
 
       if (this.currentVersion === this.targetVersion) {
         return {
-          name: 'update', tKey: 'edit2', icon: 'icon-edit'
+          name: 'update', tKey: 'editVersion', icon: 'icon-edit'
+        };
+      }
+
+      if (compare(this.currentVersion, this.targetVersion) < 0) {
+        return {
+          name: 'upgrade', tKey: 'upgradeVersion', icon: 'icon-upgrade-alt'
         };
       }
 
       return {
-        name: 'upgrade', tKey: 'upgrade', icon: 'icon-upgrade-alt'
+        name: 'downgrade', tKey: 'downgradeVersion', icon: 'icon-upgrade-alt'
       };
     },
 

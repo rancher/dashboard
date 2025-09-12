@@ -193,7 +193,7 @@ describe('chartMixin', () => {
 
       expect(wrapper.vm.action).toStrictEqual({
         name: 'update',
-        tKey: 'edit2',
+        tKey: 'editVersion',
         icon: 'icon-edit',
       });
     });

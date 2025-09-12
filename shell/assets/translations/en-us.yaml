@@ -825,6 +825,10 @@ asyncButton:
     action: Download
     success: Saving
     waiting: Downloading&hellip;
+  downgradeVersion:
+    action: Downgrade to this version
+    success: Downgraded
+    waiting: Downgrading&hellip;
   drain:
     action: Drain
     success: Drained
@@ -833,10 +837,10 @@ asyncButton:
     action: Save
     success: Saved
     waiting: Saving&hellip;
-  edit2:
-    action: Edit
+  editVersion:
+    action: Edit the current version
     success: Saved
-    waiting: Saving&hellip;
+    waiting: Saving changes&hellip;
   editAndContinue:
     action: Save and Continue
     success: Saved
@@ -855,6 +859,10 @@ asyncButton:
     waiting: Importing&hellip;
   install:
     action: Install
+    success: Installed
+    waiting: Installing&hellip;
+  installVersion:
+    action: Install this version
     success: Installed
     waiting: Installing&hellip;
   load:
@@ -932,6 +940,10 @@ asyncButton:
     action: Upgrade
     success: Upgrading
     waiting: Starting&hellip;
+  upgradeVersion:
+    action: Upgrade to this version
+    success: Upgraded
+    waiting: Upgrading&hellip;
   generate:
     action: Generate
     success: Generated
