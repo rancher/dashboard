@@ -451,6 +451,7 @@ export interface StorePaginationResult {
    * The last time the resource was updated. Used to assist list watching for changes
    */
   timestamp: number,
+  revision: string,
 }
 
 export interface StorePaginationRequest {
