@@ -19,9 +19,6 @@ export default {
 
       const { idpRedirectUrl } = res;
 
-      console.error('SAML LOGIN res', res);
-      console.error('SAML LOGIN res idpRedirectUrl', idpRedirectUrl);
-
       window.location.href = idpRedirectUrl;
     },
   },

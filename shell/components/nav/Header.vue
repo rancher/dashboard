@@ -29,7 +29,7 @@ import {
   RcDropdownSeparator,
   RcDropdownTrigger
 } from '@components/RcDropdown';
-import { SLO_AUTH_PROVIDERS } from '@shell/mixins/auth-config';
+import { SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 
 export default {
 
@@ -278,7 +278,7 @@ export default {
       this.$store.dispatch('management/promptModal', {
         component:      'SloDialog',
         componentProps: { authProvider: this.sloAuthProviderEnabled },
-        modalWidth:     '500px'
+        modalWidth:     '600px'
       });
     },
     // Sizes the product area of the header such that it shrinks to ensure the whole header bar can be shown
