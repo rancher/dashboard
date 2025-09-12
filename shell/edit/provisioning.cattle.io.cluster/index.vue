@@ -149,25 +149,20 @@ export default {
     });
 
     // Custom Providers from extensions - initialize each with the store and the i18n service
-    // Wrap in try ... catch, to prevent errors in an extension breaking the page
-    try {
-      const extensionClasses = this.$plugin.listDynamic('provisioner').map((name) => this.$plugin.getDynamic('provisioner', name));
+    // We can't pass in this.$store as this leads to a circular-reference that causes Vue to freeze,
+    // so pass in specific services that the provisioner extension may need
+    const context = {
+      dispatch:   this.$store.dispatch,
+      getters:    this.$store.getters,
+      axios:      this.$store.$axios,
+      $extension: this.$store.app.$extension,
+      t:          (...args) => this.t.apply(this, args),
+      isCreate:   this.isCreate,
+      isEdit:     this.isEdit,
+      isView:     this.isView,
+    };
 
-      // We can't pass in this.$store as this leads to a circular-reference that causes Vue to freeze,
-      // so pass in specific services that the provisioner extension may need
-      this.extensions = extensionClasses.map((c) => new c({
-        dispatch: this.$store.dispatch,
-        getters:  this.$store.getters,
-        axios:    this.$store.$axios,
-        $plugin:  this.$store.app.$plugin,
-        t:        (...args) => this.t.apply(this, args),
-        isCreate: this.isCreate,
-        isEdit:   this.isEdit,
-        isView:   this.isView,
-      }));
-    } catch (e) {
-      console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console
-    }
+    this.extensions = this.$extension.getProviders(context);
   },
 
   data() {
