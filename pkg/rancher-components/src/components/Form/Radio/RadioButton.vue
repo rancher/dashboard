@@ -226,7 +226,7 @@ export default defineComponent({
   </label>
 </template>
 
-<style lang='scss'>
+<style lang='scss' scoped>
 $fontColor: var(--input-label);
 
 .radio-view {

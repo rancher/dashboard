@@ -98,7 +98,7 @@ export default defineComponent({
   </div>
 </template>
 
-<style lang='scss'>
+<style lang='scss' scoped>
  .card-container {
   &.highlight-border {
     border-left: 5px solid var(--primary);

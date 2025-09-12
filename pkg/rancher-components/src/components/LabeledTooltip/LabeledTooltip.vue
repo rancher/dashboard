@@ -95,7 +95,7 @@ export default defineComponent({
   </div>
 </template>
 
-<style lang='scss'>
+<style lang='scss' scoped>
 .labeled-tooltip {
     position: absolute;
     width: 100%;
@@ -136,15 +136,5 @@ export default defineComponent({
     &.success {
         @include tooltipColors(var(--success));
     }
-}
-
-// Ensure code blocks inside tootips don't look awful
-.v-popper__popper.v-popper--theme-tooltip {
-  .v-popper__inner {
-    pre {
-      padding: 2px;
-      vertical-align: middle;
-    }
-  }
 }
 </style>
