@@ -1,7 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import AuthConfig from '@shell/mixins/auth-config';
+import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
 import CruResource from '@shell/components/CruResource';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import FileSelector from '@shell/components/form/FileSelector';
@@ -56,7 +56,8 @@ export default {
         userInfoEndpoint: null,
       },
       // TODO #13457: this is duplicated due wrong format
-      oidcScope: []
+      oidcScope: [],
+      SLO_OPTION_VALUES
     };
   },
 
@@ -129,7 +130,28 @@ export default {
 
     isAmazonCognito() {
       return this.model?.id === 'cognito';
-    }
+    },
+
+    isLogoutAllSupported() {
+      return this.model?.logoutAllSupported;
+    },
+
+    sloOptions() {
+      // eslint-disable-next-line no-console
+      console.log('MODEL', this.model);
+
+      return [
+        { value: SLO_OPTION_VALUES.rancher, label: this.t('authConfig.slo.sloOptions.onlyRancher', { name: this.model?.nameDisplay }) },
+        { value: SLO_OPTION_VALUES.all, label: this.t('authConfig.slo.sloOptions.logoutAll', { name: this.model?.nameDisplay }) },
+        { value: SLO_OPTION_VALUES.both, label: this.t('authConfig.slo.sloOptions.choose') },
+      ];
+    },
+
+    sloTypeText() {
+      const sloOptionSelected = this.sloOptions.find((item) => item.value === this.sloType);
+
+      return sloOptionSelected?.label || '';
+    },
   },
 
   watch: {
@@ -165,6 +187,25 @@ export default {
       // Cover use case where user edits existing oidc (oidcUrls aren't persisted, so if we have issuer set custom endpoints to true)
       if (!old && neu) {
         this.customEndpoint.value = !this.oidcUrls.url && !!this.model.issuer;
+      }
+    },
+
+    // sloType is defined on shell/mixins/auth-config.js
+    sloType(neu) {
+      switch (neu) {
+      case SLO_OPTION_VALUES.rancher:
+        this.model.logoutAllEnabled = false;
+        this.model.logoutAllForced = false;
+        this.model.endSessionEndpoint = '';
+        break;
+      case SLO_OPTION_VALUES.all:
+        this.model.logoutAllEnabled = true;
+        this.model.logoutAllForced = true;
+        break;
+      case SLO_OPTION_VALUES.both:
+        this.model.logoutAllEnabled = true;
+        this.model.logoutAllForced = false;
+        break;
       }
     }
   },
@@ -229,6 +270,9 @@ export default {
             <tr><td>{{ t(`authConfig.oidc.issuer`) }}: </td><td>{{ model.issuer }}</td></tr>
             <tr v-if="model.authEndpoint">
               <td>{{ t(`authConfig.oidc.authEndpoint`) }}: </td><td>{{ model.authEndpoint }}</td>
+            </tr>
+            <tr v-if="isLogoutAllSupported">
+              <td>{{ t(`authConfig.slo.sloTitle`) }}: </td><td>{{ sloTypeText }}</td>
             </tr>
           </template>
         </AuthBanner>
@@ -494,6 +538,43 @@ export default {
             </div>
           </div>
         </template>
+
+        <!-- SLO logout -->
+        <div
+          v-if="isLogoutAllSupported"
+          class="mt-40 mb-20"
+        >
+          <div class="row">
+            <div class="col span-12">
+              <h3>{{ t('authConfig.slo.sloTitle') }}</h3>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col span-4">
+              <RadioGroup
+                v-model:value="sloType"
+                :mode="mode"
+                :options="sloOptions"
+                :disabled="!model.logoutAllSupported"
+                name="sloTypeRadio"
+              />
+            </div>
+          </div>
+          <div
+            v-if="sloType === SLO_OPTION_VALUES.all || sloType === SLO_OPTION_VALUES.both"
+            class="row mt-20"
+          >
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.endSessionEndpoint"
+                :label="t(`authConfig.oidc.endSessionEndpoint`)"
+                :mode="mode"
+                required
+                data-testid="oidc-endSessionEndpoint"
+              />
+            </div>
+          </div>
+        </div>
       </template>
     </CruResource>
   </div>
