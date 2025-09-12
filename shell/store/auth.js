@@ -8,6 +8,13 @@ import { removeEmberPage } from '@shell/utils/ember-page';
 import { randomStr } from '@shell/utils/string';
 import { addParams, parse as parseUrl, removeParam } from '@shell/utils/url';
 
+// configuration for Single Logout/SLO
+// admissable auth providers compatible with SLO, based on shell/models/management.cattle.io.authconfig "configType"
+export const SLO_AUTH_PROVIDERS = ['oidc', 'saml'];
+
+// this is connected to the redirect url, for which the logic can be found in "shell/store/auth"
+const SLO_TOKENS_ENDPOINT_LOGOUT_RES_BASETYPE = ['authConfigLogoutOutput'];
+
 export const BASE_SCOPES = {
   github:       ['read:org'],
   googleoauth:  ['openid profile email'],
@@ -398,8 +405,8 @@ export const actions = {
         redirectUnauthorized: false,
       }, { root: true });
 
-      // Single-sign logout for SAML providers that allow for it
-      if (res.baseType === 'samlConfigLogoutOutput' && res.idpRedirectUrl) {
+      // Single-sign logout redirect for SLO compatible auth providers
+      if (SLO_TOKENS_ENDPOINT_LOGOUT_RES_BASETYPE.includes(res.baseType) && res.idpRedirectUrl) {
         window.location.href = res.idpRedirectUrl;
 
         return;

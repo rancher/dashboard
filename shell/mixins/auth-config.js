@@ -1,7 +1,7 @@
 import { _EDIT } from '@shell/config/query-params';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { AFTER_SAVE_HOOKS, BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
-import { BASE_SCOPES } from '@shell/store/auth';
+import { BASE_SCOPES, SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 import { addObject, findBy } from '@shell/utils/array';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import difference from 'lodash/difference';
@@ -115,7 +115,9 @@ export default {
       if (this.model.openLdapConfig) {
         this.showLdap = true;
       }
-      if (this.value.configType === 'saml') {
+
+      // Logic for Single Logout/SLO for auth providers
+      if (this.value?.configType && SLO_AUTH_PROVIDERS.includes(this.value?.configType)) {
         if (!this.model.rancherApiHost || !this.model.rancherApiHost.length) {
           this.model['rancherApiHost'] = this.serverUrl;
         }
