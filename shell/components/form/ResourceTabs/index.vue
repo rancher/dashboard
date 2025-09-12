@@ -14,7 +14,7 @@ import RelatedResources from '@shell/components/RelatedResources';
 import { isConditionReadyAndWaiting } from '@shell/plugins/dashboard-store/resource-class';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { MESSAGE, REASON } from '@shell/config/table-headers';
-import { STEVE_EVENT_LAST_SEEN, STEVE_EVENT_TYPE, STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
+import { STEVE_EVENT_FIRST_SEEN, STEVE_EVENT_LAST_SEEN, STEVE_EVENT_TYPE, STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
 import { headerFromSchemaColString } from '@shell/store/type-map.utils';
 import { useIndicateUseCounts } from '@shell/components/form/ResourceTabs/composable';
 
@@ -93,7 +93,7 @@ export default {
       headerFromSchemaColString('Subobject', eventSchema, this.$store.getters, true),
       headerFromSchemaColString('Source', eventSchema, this.$store.getters, true),
       MESSAGE,
-      headerFromSchemaColString('First Seen', eventSchema, this.$store.getters, true),
+      STEVE_EVENT_FIRST_SEEN,
       headerFromSchemaColString('Count', eventSchema, this.$store.getters, true),
       STEVE_NAME_COL,
     ] : [];

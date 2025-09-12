@@ -3,7 +3,7 @@
 import { MESSAGE, NAME, OBJECT, REASON } from '@shell/config/table-headers';
 import { EVENT } from '@shell/config/types';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
-import { STEVE_EVENT_OBJECT, STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
+import { STEVE_EVENT_FIRST_SEEN, STEVE_EVENT_LAST_SEEN, STEVE_EVENT_OBJECT, STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
 import { headerFromSchemaColString } from '@shell/store/type-map.utils';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 
@@ -59,11 +59,8 @@ export default {
         ...STEVE_NAME_COL,
         defaultSort: false,
       },
-      headerFromSchemaColString('First Seen', schema, this.$store.getters, true),
-      {
-        ...headerFromSchemaColString('Last Seen', schema, this.$store.getters, true),
-        defaultSort: true,
-      },
+      STEVE_EVENT_FIRST_SEEN,
+      STEVE_EVENT_LAST_SEEN,
       headerFromSchemaColString('Count', schema, this.$store.getters, true),
     ] : [];
 
