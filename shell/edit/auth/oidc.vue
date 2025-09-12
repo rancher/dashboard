@@ -137,8 +137,6 @@ export default {
     },
 
     sloOptions() {
-      console.log('MODEL', this.model);
-
       return [
         { value: SLO_OPTION_VALUES.rancher, label: this.t('authConfig.slo.sloOptions.onlyRancher', { name: this.model?.nameDisplay }) },
         { value: SLO_OPTION_VALUES.all, label: this.t('authConfig.slo.sloOptions.logoutAll', { name: this.model?.nameDisplay }) },
@@ -151,6 +149,10 @@ export default {
 
       return sloOptionSelected?.label || '';
     },
+
+    sloEndSessionEndpointUiEnabled() {
+      return this.sloType === SLO_OPTION_VALUES.all || this.sloType === SLO_OPTION_VALUES.both;
+    }
   },
 
   watch: {
@@ -264,14 +266,19 @@ export default {
           :edit="goToEdit"
         >
           <template #rows>
-            <tr><td>{{ t(`authConfig.oidc.rancherUrl`) }}: </td><td>{{ model.rancherUrl }}</td></tr>
-            <tr><td>{{ t(`authConfig.oidc.clientId`) }}: </td><td>{{ model.clientId }}</td></tr>
-            <tr><td>{{ t(`authConfig.oidc.issuer`) }}: </td><td>{{ model.issuer }}</td></tr>
+            <tr><td>{{ t('authConfig.oidc.rancherUrl') }}: </td><td>{{ model.rancherUrl }}</td></tr>
+            <tr><td>{{ t('authConfig.oidc.clientId') }}: </td><td>{{ model.clientId }}</td></tr>
+            <tr><td>{{ t('authConfig.oidc.issuer') }}: </td><td>{{ model.issuer }}</td></tr>
             <tr v-if="model.authEndpoint">
-              <td>{{ t(`authConfig.oidc.authEndpoint`) }}: </td><td>{{ model.authEndpoint }}</td>
+              <td>{{ t('authConfig.oidc.authEndpoint') }}: </td><td>{{ model.authEndpoint }}</td>
             </tr>
             <tr v-if="isLogoutAllSupported">
-              <td>{{ t(`authConfig.slo.sloTitle`) }}: </td><td>{{ sloTypeText }}</td>
+              <td>{{ t('authConfig.slo.sloTitle') }}: </td><td>{{ sloTypeText }}</td>
+            </tr>
+            <tr v-if="isLogoutAllSupported && sloEndSessionEndpointUiEnabled">
+              <td>
+                {{ t('authConfig.oidc.endSessionEndpoint.title') }}:
+              </td><td>{{ model.endSessionEndpoint }}</td>
             </tr>
           </template>
         </AuthBanner>
@@ -560,13 +567,14 @@ export default {
             </div>
           </div>
           <div
-            v-if="sloType === SLO_OPTION_VALUES.all || sloType === SLO_OPTION_VALUES.both"
+            v-if="sloEndSessionEndpointUiEnabled"
             class="row mt-20"
           >
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.endSessionEndpoint"
-                :label="t(`authConfig.oidc.endSessionEndpoint`)"
+                :tooltip="t('authConfig.oidc.endSessionEndpoint.tooltip')"
+                :label="t('authConfig.oidc.endSessionEndpoint.title')"
                 :mode="mode"
                 required
                 data-testid="oidc-endSessionEndpoint"

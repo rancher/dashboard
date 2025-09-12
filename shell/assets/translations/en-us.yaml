@@ -699,7 +699,9 @@ authConfig:
         title: Are you sure? This update is irreversible.
         body: '<p><b>You may need to make some additional changes</b>. Please ensure the Azure AD app has the Directory.Read.All <b>Application</b> permission added to Microsoft Graph.<br> If any endpoints were customized while configuring Azure AD authentication in Rancher, they will not be automatically updated. </p>'
   oidc:
-    endSessionEndpoint: End Session Endpoint
+    endSessionEndpoint: 
+      title: End Session Endpoint
+      tooltip: Provider specific URL used for logging a user out of their session
     genericoidc: Configure an OIDC account
     keycloakoidc: Configure a Keycloak OIDC account
     cognito: Configure an Amazon Cognito account
@@ -7568,6 +7570,8 @@ model:
       saml: SAML
       oauth: OAuth
       oidc: OIDC
+      keycloakoidc: Keycloak
+      genericoidc: OIDC provider
       cognito: Amazon Cognito
     name:
       keycloak: Keycloak (SAML)

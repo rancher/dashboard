@@ -1,6 +1,6 @@
 <script>
 import { configType } from '@shell/models/management.cattle.io.authconfig';
-import { SLO_AUTH_PROVIDERS } from '@shell/mixins/auth-config';
+import { SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 
 export default {
   async fetch() {
