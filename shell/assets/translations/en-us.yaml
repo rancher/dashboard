@@ -7732,6 +7732,11 @@ typeLabel:
       one { Helm Op }
       other { Helm Ops }
     }
+  fleet.cattle.io.schedule: |-
+    {count, plural,
+      one { Schedule }
+      other {Schedules }
+    }
   management.cattle.io.authconfig: |-
     {count, plural,
       one { Authentication Provider }
