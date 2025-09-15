@@ -45,7 +45,7 @@ export default {
     },
     poolCreateMode: {
       type:    Boolean,
-      default: false
+      default: true
     },
     location: {
       type:     Object,
