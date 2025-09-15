@@ -1,6 +1,6 @@
 import { nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
-import ContainerLogs from '@shell/components/nav/WindowManager/ContainerLogs.vue';
+import ContainerLogs from '@shell/components/Window/ContainerLogs.vue';
 import { base64Encode } from '@shell/utils/crypto';
 import { Buffer } from 'buffer';
 import { addEventListener } from '@shell/utils/socket';

@@ -71,37 +71,19 @@ HEADER {
   flex: 1 1 auto;
   min-height: 0px;
 
+  grid-template-areas:
+    "header  header  header  header"
+    "wm-vl    nav     main   wm-vr"
+    "wm-vl    wm       wm    wm-vr";
+  grid-template-rows: var(--header-height) auto var(--wm-height, 0px);
+  grid-template-columns: var(--wm-vl-width, 0px) var(--nav-width) auto var(--wm-vr-width, 0px);
+
   &.dashboard-padding-left {
     padding-left: $app-bar-collapsed-width;
 
     .overlay-content-mode {
       left: calc(var(--nav-width) + $app-bar-collapsed-width);
     }
-  }
-
-  &.pin-right {
-    grid-template-areas:
-      "header  header  header"
-      "nav      main     wm";
-    grid-template-rows: var(--header-height) auto;
-    grid-template-columns: var(--nav-width) auto var(--wm-width, 0px);
-  }
-
-  &.pin-bottom {
-    grid-template-areas:
-      "header  header"
-      "nav       main"
-      "wm         wm";
-    grid-template-rows: var(--header-height) auto var(--wm-height, 0px);
-    grid-template-columns: var(--nav-width) auto;
-  }
-
-  &.pin-left {
-    grid-template-areas:
-      "header  header  header"
-      "wm       nav     main";
-    grid-template-rows: var(--header-height) auto;
-    grid-template-columns: var(--wm-width, 0px) var(--nav-width) auto;
   }
 
   >HEADER {
@@ -115,6 +97,20 @@ HEADER {
 
 .wm {
   grid-area: wm;
+  overflow-y: hidden;
+  z-index: z-index('windowsManager');
+  position: relative;
+}
+
+.wm-vr {
+  grid-area: wm-vr;
+  overflow-y: hidden;
+  z-index: z-index('windowsManager');
+  position: relative;
+}
+
+.wm-vl {
+  grid-area: wm-vl;
   overflow-y: hidden;
   z-index: z-index('windowsManager');
   position: relative;
@@ -151,16 +147,6 @@ HEADER {
       text-decoration: none;
     }
   }
-}
-
-.drag-start {
-  z-index: 1000;
-  opacity: 0.5;
-  transition: opacity .3s ease;
-}
-
-.drag-end {
-  opacity: 1;
 }
 
 // !END

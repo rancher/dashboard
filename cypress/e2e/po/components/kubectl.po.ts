@@ -3,7 +3,7 @@ import jsyaml from 'js-yaml';
 
 export default class Kubectl extends ComponentPo {
   constructor() {
-    super('#windowmanager');
+    super('#horizontal-window-manager');
   }
 
   readonly kubeCommand: string = 'kubectl'
