@@ -6,7 +6,7 @@ import throttle from 'lodash/throttle';
 import {
   checkBackendBasedSessionIdle,
   checkUserActivityData,
-  updateUserActivityToken,
+  createAndUpdateUserActivityToken,
   parseTTLData
 } from '@shell/utils/inactivity';
 
@@ -135,7 +135,7 @@ export default {
       document.removeEventListener('visibilitychange', this.setUserAsActive);
     },
     async resetUserActivity() {
-      const userActivityData = await updateUserActivityToken(this.$store, this.sessionTokenName);
+      const userActivityData = await createAndUpdateUserActivityToken(this.$store, this.sessionTokenName);
 
       this.resetInactivityDataAndTimers(userActivityData);
     },
