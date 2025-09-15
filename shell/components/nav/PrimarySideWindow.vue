@@ -6,6 +6,8 @@ import {
 } from '@shell/utils/position';
 
 export default {
+  name: 'PrimarySideWindow',
+
   emits: ['draggable'],
 
   data() {
