@@ -408,21 +408,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsPage.settingsValue('system-agent-upgrader-install-concurrency').contains(settings['system-agent-upgrader-install-concurrency'].new);
 
     // Reset
-    SettingsPagePo.navTo();
-    settingsPage.waitForPage();
-    settingsPage.editSettingsByLabel('system-agent-upgrader-install-concurrency');
-
-    settingsEdit.waitForPage();
-    settingsEdit.title().contains('Setting: system-agent-upgrader-install-concurrency').should('be.visible');
-    settingsEdit.useDefaultButton().click();
-    settingsEdit.saveAndWait('system-agent-upgrader-install-concurrency').then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['system-agent-upgrader-install-concurrency']);
-      expect(response?.body).to.have.property('value', settings['system-agent-upgrader-install-concurrency']);
-    });
-
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('system-agent-upgrader-install-concurrency').contains(settings['system-agent-upgrader-install-concurrency']);
+    resetSettings.push('system-agent-upgrader-install-concurrency');
   });
 
   it('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
