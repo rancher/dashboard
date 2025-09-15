@@ -1,9 +1,9 @@
 import { flushPromises, mount, Wrapper } from '@vue/test-utils';
-import ContainerShell from '@shell/components/nav/WindowManager/ContainerShell.vue';
+import ContainerShell from '@shell/components/Console/ContainerShell.vue';
 import Socket, {
   addEventListener, EVENT_CONNECTED, EVENT_CONNECTING, EVENT_DISCONNECTED, EVENT_MESSAGE, EVENT_CONNECT_ERROR
 } from '@shell/utils/socket';
-import Window from '@shell/components/nav/WindowManager/Window.vue';
+import Window from '@shell/components/Window/Window.vue';
 
 jest.mock('@shell/utils/socket');
 jest.mock('@shell/utils/crypto', () => {

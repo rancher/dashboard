@@ -22,6 +22,10 @@ defineProps({
       return [];
     }
   },
+  label: {
+    type:    String,
+    default: ''
+  }
 });
 const emits = defineEmits(['click', 'select']);
 
@@ -55,7 +59,7 @@ const focusMenuItem = () => {
     <LabeledSelect
       ref="menuItemSelect"
       :value="modelValue"
-      :label="t('wm.containerLogs.range.label')"
+      :label="label"
       :options="options"
       :clearable="false"
       placement="top"
