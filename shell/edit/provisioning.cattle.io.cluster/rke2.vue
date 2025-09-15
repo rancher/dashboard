@@ -918,7 +918,9 @@ export default {
       }
     },
 
-    selectedVersion() {
+  selectedVersion: {
+    handler(neu, old) {
+      this.preserveAddonConfigs(old, neu);
       this.versionInfo = {}; // Invalidate cache such that version info relevent to selected kube version is updated
 
       // Allow time for addonNames to update... then fetch any missing addons
@@ -927,6 +929,7 @@ export default {
         this.initServerAgentArgs();
       }
     },
+  },
 
     showCni(neu) {
       // Update `serverConfig.cni to recalculate addonNames...
@@ -969,6 +972,33 @@ export default {
   },
 
   methods: {
+    preserveAddonConfigs(oldVersion, newVersion) {
+      if (!this.isEdit || !oldVersion) {
+        return;
+      }
+
+      const oldChartVersions = oldVersion.charts || {};
+      const newChartVersions = newVersion.charts || {};
+
+      // Iterate through the add-ons of the previously selected k8s version.
+      for (const chartName in oldChartVersions) {
+        const oldAddonVersion = oldChartVersions[chartName].version;
+        const newAddonVersion = newChartVersions[chartName]?.version;
+
+        // Check if the add-on version has changed.
+        if (newAddonVersion && newAddonVersion !== oldAddonVersion) {
+          const oldKey = `${ chartName }-${ oldAddonVersion }`;
+          const newKey = `${ chartName }-${ newAddonVersion }`;
+
+          // If custom values exist for the old version, and none exist for the new version,
+          // copy the values to the new key to preserve them.
+          if (this.userChartValues[oldKey] && !this.userChartValues[newKey]) {
+            this.userChartValues[newKey] = clone(this.userChartValues[oldKey]);
+          }
+        }
+      }
+    },
+
     set,
 
     async handleVsphereCpiSecret() {
