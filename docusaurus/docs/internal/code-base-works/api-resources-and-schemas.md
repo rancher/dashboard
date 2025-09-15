@@ -55,7 +55,7 @@ And then a bunch of others:
 | index       | The root store, manages things like which cluster you're connected to and what namespaces should be shown        |
 | prefs       | User preferences                                                                                                 |
 | type-map    | Meta-information about all the k8s types that are available to the current user and how they should be displayed |
-| wm          | "Window manager" at the bottom of the screen for things like container shells and logs.                          |
+| wm          | "Window manager" to handle Primary and Secondary side windows.                                                   |
 
 
 Store objects are accessed in different ways, below are common ways they are referenced by models and components
