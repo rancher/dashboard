@@ -409,9 +409,7 @@ export const actions = {
 
     const propagateOptions = {};
 
-    if (options.sessionIdle) {
-      propagateOptions.sessionIdle = options.sessionIdle;
-    }
+    propagateOptions.sessionIdle = options.sessionIdle;
 
     dispatch('uiLogout', propagateOptions);
   }

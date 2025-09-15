@@ -76,6 +76,13 @@ export default {
           resource: MANAGEMENT.FEATURE
         }
       }).href,
+      settingsPageUrl: this.$router.resolve({
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  SETTING_PRODUCT,
+          resource: MANAGEMENT.SETTING
+        }
+      }).href,
       ssPApplicableTypesOpen: false,
     };
   },
@@ -209,34 +216,8 @@ export default {
           <Banner
             color="warning"
           >
-            <span v-clean-html="t(`performance.deprecatedInactivitySetting`, {}, true)" />
+            <span v-clean-html="t(`performance.deprecatedInactivitySetting`, { settingsPageUrl }, true)" />
           </Banner>
-          <p>{{ t('performance.inactivity.description') }}</p>
-          <Checkbox
-            v-model:value="value.inactivity.enabled"
-            :mode="mode"
-            :label="t('performance.inactivity.checkboxLabel')"
-            class="mt-10 mb-20"
-            :primary="true"
-            :disabled="true"
-          />
-          <div class="ml-20">
-            <LabeledInput
-              v-model:value="value.inactivity.threshold"
-              data-testid="inactivity-threshold"
-              :mode="mode"
-              :label="t('performance.inactivity.inputLabel')"
-              :disabled="true"
-              class="input mb-10"
-              type="number"
-              min="0"
-              :rules="[validateInactivityThreshold]"
-            />
-            <span
-              v-clean-html="t('performance.inactivity.information', {}, true)"
-              :class="{ 'text-muted': !value.incrementalLoading.enabled }"
-            />
-          </div>
         </div>
         <!-- Websocket Notifications -->
         <div class="mt-40">

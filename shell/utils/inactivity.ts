@@ -1,17 +1,16 @@
 import { MANAGEMENT, EXT, NORMAN } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
+import { RancherKubeMetadata } from '@shell/types/kube/kube-api';
 import { allHash } from 'utils/promise';
 
-interface userActivityResponse {
-  metadata: {
-    name: string
-  },
+interface UserActivityResponse {
+  metadata: RancherKubeMetadata,
   status: {
     expiresAt: string
   }
 }
 
-interface parsedInactivitySetting {
+interface ParsedInactivitySetting {
   enabled: boolean,
   expiresAt: string | undefined,
   sessionTokenName: string | undefined,
@@ -29,17 +28,17 @@ const defaultParsedTTLData = {
   showModalAfter:    undefined,
 };
 
-let storedUserActivityResponse: userActivityResponse = {
+let storedUserActivityResponse: UserActivityResponse = {
   metadata: { name: '' },
   status:   { expiresAt: '' }
 };
 
 let sessionTokenName: string;
 
-export async function checkBackendBasedSessionIdle(store: any): Promise<parsedInactivitySetting> {
+export async function checkBackendBasedSessionIdle(store: any): Promise<ParsedInactivitySetting> {
   let userActivity;
   const canListSettings = store.getters[`management/canList`](MANAGEMENT.SETTING);
-  const canListUserAct = store.getters[`management/canList`](EXT.USERACTIVITY);
+  const canListUserAct = store.getters[`management/canList`](EXT.USER_ACTIVITY);
   const canListTokens = store.getters[`rancher/canList`](NORMAN.TOKEN);
 
   if (canListUserAct && canListTokens && canListSettings) {
@@ -90,13 +89,15 @@ export async function checkBackendBasedSessionIdle(store: any): Promise<parsedIn
 
         // this is the POST to the UserActivity, which will reset the expireAt
         if (requiresFreshData) {
-          userActivity = await updateUserActivityToken(store, sessionTokenName);
+          userActivity = await createAndUpdateUserActivityToken(store, sessionTokenName);
         }
 
         if (userActivity) {
           const data = parseTTLData(userActivity);
+          const shownAfter = Math.round(((data.showModalAfter || 0) / 60) * 100) / 100;
+          const shownFor = Math.round(((data.courtesyTimer || 0) / 60) * 100) / 100;
 
-          console.debug(`UI inactivity modal (backend-based) will show after ${ data.showModalAfter || 0 / 60 }(m) and be shown for ${ data.courtesyTimer || 0 / 60 }(m)`); // eslint-disable-line no-console
+          console.debug(`UI inactivity modal (backend-based) will show after ${ shownAfter }(m) and be shown for ${ shownFor }(m)`); // eslint-disable-line no-console
 
           return data;
         }
@@ -109,37 +110,41 @@ export async function checkBackendBasedSessionIdle(store: any): Promise<parsedIn
 
         return defaultParsedTTLData;
       }
+    } else if (ttlIdleValue === ttlValue) {
+      console.warn('ttlIdleValue === ttlValue, so backend-based session timeout is NOT enabled'); // eslint-disable-line no-console
     }
+  } else {
+    console.error('Cannot find a userActivity for this session OR this user does not have permissions to list the necessary resources'); // eslint-disable-line no-console
   }
-
-  console.error('Cannot find a userActivity for this session OR this user does not have permissions to list the necessary resources'); // eslint-disable-line no-console
 
   return defaultParsedTTLData;
 }
 
-export async function checkUserActivityData(store: any, sessionTokenName: string): Promise<userActivityResponse> {
+export async function checkUserActivityData(store: any, sessionTokenName: string): Promise<UserActivityResponse> {
   try {
-    const updatedData = await store.dispatch('management/find', { type: EXT.USERACTIVITY, id: sessionTokenName });
+    const updatedData = await store.dispatch('management/find', { type: EXT.USER_ACTIVITY, id: sessionTokenName });
 
     // update stored data
     storedUserActivityResponse = updatedData;
 
-    return Promise.resolve(updatedData);
-  } catch (e) {
+    return updatedData;
+  } catch (e: any) {
     console.error(`Could not GET UserActivity for session token ${ sessionTokenName }`, e); // eslint-disable-line no-console
 
-    return Promise.reject(e);
+    throw new Error(e);
   }
 }
 
-export async function updateUserActivityToken(store: any, sessionTokenName: string):Promise<userActivityResponse> {
+export async function createAndUpdateUserActivityToken(store: any, sessionTokenName: string):Promise<UserActivityResponse> {
   const updateUserActivity = await store.dispatch('management/create', {
     apiVersion: 'ext.cattle.io/v1',
     kind:       'UserActivity',
-    type:       EXT.USERACTIVITY,
+    type:       EXT.USER_ACTIVITY,
     metadata:   { name: sessionTokenName },
     spec:       { tokenId: sessionTokenName }
   });
+
+  console.error('updateUserActivity', updateUserActivity);
 
   try {
     const savedData = await updateUserActivity.save();
@@ -147,15 +152,15 @@ export async function updateUserActivityToken(store: any, sessionTokenName: stri
     // update stored data
     storedUserActivityResponse = savedData;
 
-    return Promise.resolve(savedData);
-  } catch (e) {
+    return savedData;
+  } catch (e: any) {
     console.error(`Could not update (POST) UserActivity for session token ${ sessionTokenName }`, e); // eslint-disable-line no-console
 
-    return Promise.reject(e);
+    throw new Error(e);
   }
 }
 
-export function parseTTLData(userActivityData: userActivityResponse): parsedInactivitySetting {
+export function parseTTLData(userActivityData: UserActivityResponse): ParsedInactivitySetting {
   const currDate = Date.now();
   const endDate = new Date(userActivityData.status?.expiresAt).getTime();
 
@@ -163,7 +168,7 @@ export function parseTTLData(userActivityData: userActivityResponse): parsedInac
   const thresholdSeconds = Math.floor((endDate - currDate) / 1000) - 3;
 
   // Amount of time the user sees the inactivity warning
-  const courtesyTimerVal = Math.floor(thresholdSeconds * 0.1);
+  const courtesyTimerVal = Math.floor(thresholdSeconds * 0.1); // the modal is shown for 10% of the total time to display
   const courtesyTimer = Math.min(courtesyTimerVal, 60 * 5); // Never show the modal more than 5 minutes
 
   const courtesyCountdown = courtesyTimer;
@@ -171,6 +176,13 @@ export function parseTTLData(userActivityData: userActivityResponse): parsedInac
   // Amount of time before the user sees the inactivity warning
   // Note - time before warning is shown + time warning is shown = settings threshold (total amount of time)
   const showModalAfter = thresholdSeconds - courtesyTimer;
+
+  console.log('currDate', currDate);
+  console.log('endDate', endDate);
+  console.log('thresholdSeconds', thresholdSeconds);
+  console.log('courtesyTimer', courtesyTimer);
+  console.log('courtesyCountdown', courtesyCountdown);
+  console.log('showModalAfter', showModalAfter);
 
   return {
     enabled:          true,
