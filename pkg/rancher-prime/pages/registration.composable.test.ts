@@ -281,7 +281,7 @@ describe('registration composable', () => {
         links:    { view: '123' },
         status:   {
           activationStatus: { activated: true },
-          currentCondition: { type: 'OfflineActivationDone' },
+          currentCondition: { type: 'Done' },
         },
       }];
 
