@@ -370,9 +370,7 @@ layouts:
   unauthenticated: unauthenticated layout
   logout: logout layout
   verify: verify layout
-
-windowmanager:
-  closeTab: Close tab {tabId}
+  
 about:
   title: About
   versions:
@@ -6990,7 +6988,9 @@ wizard:
   install: Install
   upgrade: Upgrade
   downgrade: Downgrade
-wm:
+
+console:
+  closeTab: Close tab {tabId}
   connection:
     connected: Connected
     connecting: Connecting&hellip;

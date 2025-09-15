@@ -55,7 +55,7 @@ const focusMenuItem = () => {
     <LabeledSelect
       ref="menuItemSelect"
       :value="modelValue"
-      :label="t('wm.containerLogs.range.label')"
+      :label="t('console.containerLogs.range.label')"
       :options="options"
       :clearable="false"
       placement="top"
