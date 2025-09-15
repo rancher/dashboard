@@ -123,7 +123,7 @@ export default {
     };
   },
   created() {
-    if (this.mode === _CREATE) {
+    if (this.isNewOrUnprovisioned) {
       this.$emit('validationChanged', false);
       this.value.project = this.projectId;
       for (const key in this.defaultConfig) {
@@ -157,7 +157,7 @@ export default {
     'value.setExternalFirewallRulePrefix'(neu) {
       if (!neu) {
         this.value.openPort = [];
-      } else if (this.isCreate) {
+      } else if (this.isNewOrUnprovisioned) {
         this.value.openPort.push('6443');
       } else {
         this.value.openPort = this.originalOpenPort.length > 0 ? this.originalOpenPort : ['6443'];
@@ -213,6 +213,10 @@ export default {
     },
     project() {
       return this.value.project;
+    },
+
+    isNewOrUnprovisioned() {
+      return this.mode === _CREATE || !this.value?.metadata?.uid;
     },
 
     sharedNetworks() {
@@ -334,7 +338,7 @@ export default {
 
         if (!cur ) {
           // If default is not actually available, reset
-          if (this.isCreate) {
+          if (this.isNewOrUnprovisioned) {
             this.value.diskType = '';
           }
         } else {
@@ -494,7 +498,7 @@ export default {
           label-key="cluster.machineConfig.gce.network.label"
           :mode="mode"
           :options="networkOptions"
-          :disabled="!isCreate"
+          :disabled="!isNewOrUnprovisioned"
           option-key="name"
           option-label="label"
           :loading="loadingNetworks"
@@ -508,7 +512,7 @@ export default {
           label-key="cluster.machineConfig.gce.subnetwork.label"
           :mode="mode"
           :options="subnetworkOptions"
-          :disabled="!isCreate"
+          :disabled="!isNewOrUnprovisioned"
           option-key="name"
           option-label="name"
           :loading="loadingNetworks"
