@@ -43,6 +43,10 @@ export default {
       type:    String,
       default: _CREATE,
     },
+    poolCreateMode: {
+      type:    Boolean,
+      default: false
+    },
     location: {
       type:     Object,
       required: true
@@ -85,7 +89,7 @@ export default {
   },
   created() {
     this.debouncedLoadFamilies = debounce(this.getFamilies, 500);
-    if (!this.isNewOrUnprovisioned) {
+    if (!this.poolCreateMode) {
       this.imageProjects = `${ this.getProjectFromImage() }`;
     }
   },
@@ -110,9 +114,6 @@ export default {
         }
 
       };
-    },
-    isNewOrUnprovisioned() {
-      return this.mode === _CREATE || !this.value?.metadata?.uid;
     },
     project() {
       return this.value.project;
@@ -284,7 +285,7 @@ export default {
     async getImages(val) {
       this.loadingImages = true;
       try {
-        const isOriginal = !this.isNewOrUnprovisioned && this.machineImage === this.getImageNameFromImage(this.originalMachineImage);
+        const isOriginal = !this.poolCreateMode && this.machineImage === this.getImageNameFromImage(this.originalMachineImage);
 
         this.machineImages = await this.getImagesInProject(val, this.showDeprecated);
         // If we had to reload list of images, we need to reset selected image if it is no longer in the list,
