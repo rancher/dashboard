@@ -363,7 +363,7 @@ export default {
             // Output an message to let he user know none of the shell commands worked
             const timestamp = dayjs().format('YYYY-MM-DD HH:mm:ss');
 
-            this.terminal.writeln(`[${ timestamp }] ${ this.t('wm.containerShell.logLevel.info') }: ${ this.t('wm.containerShell.failed') }`);
+            this.terminal.writeln(`[${ timestamp }] ${ this.t('console.containerShell.logLevel.info') }: ${ this.t('console.containerShell.failed') }`);
           }
         }
       });
@@ -382,10 +382,10 @@ export default {
           this.terminal.write(msg);
         } else {
           const timestamp = dayjs().format('YYYY-MM-DD HH:mm:ss');
-          let customError = `[${ timestamp }] ${ this.t('wm.containerShell.logLevel.error') }: ${ this.container }: ${ msg }`;
+          let customError = `[${ timestamp }] ${ this.t('console.containerShell.logLevel.error') }: ${ this.container }: ${ msg }`;
 
           if (msg.includes('stat /bin/sh: no such file or directory')) {
-            customError = `[${ timestamp }] ${ this.t('wm.containerShell.logMessage.containerError', { logLevel: this.t('wm.containerShell.logLevel.error') }) }: ${ msg }`;
+            customError = `[${ timestamp }] ${ this.t('console.containerShell.logMessage.containerError', { logLevel: this.t('console.containerShell.logLevel.error') }) }: ${ msg }`;
           }
           console.error(customError); // eslint-disable-line no-console
 
@@ -467,7 +467,7 @@ export default {
         <template #selected-option="option">
           <t
             v-if="option"
-            k="wm.containerShell.containerName"
+            k="console.containerShell.containerName"
             :label="option.label"
           />
         </template>
@@ -476,30 +476,30 @@ export default {
         <button
           class="btn btn-sm role-primary"
           role="button"
-          :aria-label="t('wm.containerShell.clear')"
+          :aria-label="t('console.containerShell.clear')"
           @click="clear"
         >
           <t
             data-testid="shell-clear-button-label"
-            k="wm.containerShell.clear"
+            k="console.containerShell.clear"
           />
         </button>
       </div>
       <div class="status pull-left">
         <t
           v-if="isOpen"
-          k="wm.connection.connected"
+          k="console.connection.connected"
           class="text-success"
         />
         <t
           v-else-if="isOpening"
-          k="wm.connection.connecting"
+          k="console.connection.connecting"
           class="text-warning"
           :raw="true"
         />
         <t
           v-else
-          k="wm.connection.disconnected"
+          k="console.connection.disconnected"
           class="text-error"
           data-testid="shell-status-disconnected"
         />
@@ -507,8 +507,8 @@ export default {
           v-show="isXtermFocused"
           class="escape-text"
           role="alert"
-          :aria-describedby="t('wm.containerShell.escapeText')"
-        >{{ t('wm.containerShell.escapeText') }}</span>
+          :aria-describedby="t('console.containerShell.escapeText')"
+        >{{ t('console.containerShell.escapeText') }}</span>
       </div>
     </template>
     <template #body>
