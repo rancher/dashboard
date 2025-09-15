@@ -9,7 +9,7 @@ import ActionMenu from '@shell/components/ActionMenu';
 import GrowlManager from '@shell/components/GrowlManager';
 import ModalManager from '@shell/components/ModalManager';
 import SlideInPanelManager from '@shell/components/SlideInPanelManager';
-import WindowManager from '@shell/components/nav/WindowManager';
+import PrimarySideWindow from '@shell/components/nav/PrimarySideWindow';
 import PromptRemove from '@shell/components/PromptRemove';
 import PromptRestore from '@shell/components/PromptRestore';
 import PromptModal from '@shell/components/PromptModal';
@@ -41,7 +41,7 @@ export default {
     GrowlManager,
     ModalManager,
     SlideInPanelManager,
-    WindowManager,
+    PrimarySideWindow,
     FixedBanner,
     AwsComplianceBanner,
     AzureWarning,
@@ -256,7 +256,7 @@ export default {
         @dragstart="$refs.draggableZone.onDragStart($event)"
         @dragend="$refs.draggableZone.onDragEnd($event)"
       >
-        <WindowManager @draggable="draggable=$event" />
+        <PrimarySideWindow @draggable="draggable=$event" />
       </div>
     </div>
     <FixedBanner :footer="true" />
