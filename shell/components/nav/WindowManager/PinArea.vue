@@ -1,105 +1,67 @@
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapState } from 'vuex';
+<script setup lang="ts">
+import { onMounted } from 'vue';
 import { BOTTOM, CENTER, LEFT, RIGHT } from '@shell/utils/position';
+import useDragHandler from './composables/useDragHandler';
 
-type Zone = null | typeof CENTER | typeof RIGHT | typeof BOTTOM | typeof LEFT;
+const {
+  dragOverPositionsActive, pin, zone, onDragPositionOver
+} = useDragHandler();
 
-export interface Drag {
-  active: boolean;
-  zone: Zone;
-}
+onMounted(() => {
+  const Z_INDEX = {
+    WM:         1000,
+    PIN_EFFECT: 996,
+    RIGHT:      999,
+    LEFT:       999,
+    BOTTOM:     998,
+    CENTER:     997,
+  };
 
-interface Data {
-  drag: Drag;
-}
-
-export default defineComponent({
-  data(): Data {
-    return {
-      drag: {
-        active: false,
-        zone:   CENTER,
-      },
-    };
-  },
-
-  computed: {
-
-    ...mapState('wm', ['userPin']),
-
-    pin: {
-      get(): Zone {
-        return this.userPin;
-      },
-
-      set(pin: Zone) {
-        if (pin === CENTER) {
-          return;
-        }
-        window.localStorage.setItem('wm-pin', pin as string);
-        this.$store.commit('wm/setUserPin', pin);
-      },
-    },
-
-  },
-
-  methods: {
-
-    onDragStart() {
-      this.drag.active = true;
-    },
-
-    onDragOver(event: DragEvent, zone: Zone) {
-      this.drag.zone = zone;
-      if (zone !== CENTER) {
-        event.preventDefault();
-      }
-    },
-
-    onDragEnd() {
-      this.pin = this.drag.zone;
-      this.drag = {
-        active: false,
-        zone:   CENTER,
-      };
-    },
-
-  }
+  Object.keys(Z_INDEX).forEach((key) => {
+    document.documentElement.style.setProperty(
+      `--drag-area-${ key.toLowerCase().replaceAll('_', '-') }-z-index`, (Z_INDEX as any)[key].toString()
+    );
+  });
 });
 </script>
 
 <template>
-  <div v-if="drag.active">
+  <div
+    v-if="dragOverPositionsActive"
+    class="pin-area-container"
+  >
     <span
-      v-if="drag.zone != pin"
+      v-if="zone != pin"
       class="pin-effect-area"
-      :class="drag.zone"
+      :class="zone"
     />
     <span
       class="drag-area center"
-      @dragover="onDragOver($event, 'center')"
+      @dragover="onDragPositionOver($event, CENTER)"
     />
     <span
       class="drag-area right"
-      @dragover="onDragOver($event, 'right')"
-    />
-    <span
-      class="drag-area bottom"
-      @dragover="onDragOver($event, 'bottom')"
+      @dragover="onDragPositionOver($event, RIGHT)"
     />
     <span
       class="drag-area left"
-      @dragover="onDragOver($event, 'left')"
+      @dragover="onDragPositionOver($event, LEFT)"
+    />
+    <span
+      class="drag-area bottom"
+      @dragover="onDragPositionOver($event, BOTTOM)"
     />
   </div>
 </template>
 
 <style lang='scss' scoped>
+  .pin-area-container {
+    display: contents;
+  }
 
   .pin-effect-area {
     position: absolute;
-    z-index: 997;
+    z-index: var(--drag-area-pin-effect-z-index);
     width: 0;
     height: 0;
     border-style: hidden;
@@ -142,10 +104,8 @@ export default defineComponent({
     }
   }
 
-  // ToDo make height and width as input variable
   .drag-area {
     position: absolute;
-    z-index: 999;
     width: 0;
     height: 0;
     opacity: 0;
@@ -155,7 +115,7 @@ export default defineComponent({
       right: 0;
       width: 100%;
       height: 100%;
-      z-index: 998;
+      z-index: var(--drag-area-center-z-index);
     }
 
     &.right {
@@ -163,6 +123,7 @@ export default defineComponent({
       right: 0;
       width: 300px;
       height: 100%;
+      z-index: var(--drag-area-right-z-index);
     }
 
     &.left {
@@ -170,12 +131,14 @@ export default defineComponent({
       left: 0;
       width: 300px;
       height: 100%;
+      z-index: var(--drag-area-left-z-index);
     }
 
     &.bottom {
       bottom: 0;
       height: 270px;
       width: 100%;
+      z-index: var(--drag-area-bottom-z-index);
     }
   }
 </style>
