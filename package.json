@@ -97,7 +97,7 @@
     "express": "4.17.1",
     "file-saver": "2.0.2",
     "floating-vue": "5.2.2",
-    "focus-trap": "7.6.2",
+    "focus-trap": "7.6.5",
     "https": "1.0.0",
     "identicon.js": "2.3.3",
     "intl-messageformat": "7.8.4",
