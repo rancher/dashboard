@@ -89,11 +89,13 @@ HEADER {
 
   &.pin-bottom {
     grid-template-areas:
-      "header  header"
-      "nav       main"
-      "wm         wm";
+      "header  header  header"
+      "nav       main  wm2"
+      "wm         wm   wm2";
     grid-template-rows: var(--header-height) auto var(--wm-height, 0px);
-    grid-template-columns: var(--nav-width) auto;
+    grid-template-columns: var(--nav-width) auto var(--wm2-width, 0px);
+
+    // transition: grid-template-columns .5s ease;
   }
 
   &.pin-left {
@@ -115,6 +117,13 @@ HEADER {
 
 .wm {
   grid-area: wm;
+  overflow-y: hidden;
+  z-index: z-index('windowsManager');
+  position: relative;
+}
+
+.wm2 {
+  grid-area: wm2;
   overflow-y: hidden;
   z-index: z-index('windowsManager');
   position: relative;

@@ -10,6 +10,7 @@ import GrowlManager from '@shell/components/GrowlManager';
 import ModalManager from '@shell/components/ModalManager';
 import SlideInPanelManager from '@shell/components/SlideInPanelManager';
 import PrimarySideWindow from '@shell/components/nav/PrimarySideWindow';
+import SecondarySideWindow from '@shell/components/nav/SecondarySideWindow.vue';
 import PromptRemove from '@shell/components/PromptRemove';
 import PromptRestore from '@shell/components/PromptRestore';
 import PromptModal from '@shell/components/PromptModal';
@@ -42,6 +43,7 @@ export default {
     ModalManager,
     SlideInPanelManager,
     PrimarySideWindow,
+    SecondarySideWindow,
     FixedBanner,
     AwsComplianceBanner,
     AzureWarning,
@@ -116,6 +118,7 @@ export default {
   },
 
   mounted() {
+    // Here pin the window manager to the last known position
     this.wmPin = window.localStorage.getItem('wm-pin') || BOTTOM;
 
     // two-way binding this.wmPin <-> draggableZone.pin
@@ -257,6 +260,9 @@ export default {
         @dragend="$refs.draggableZone.onDragEnd($event)"
       >
         <PrimarySideWindow @draggable="draggable=$event" />
+      </div>
+      <div class="wm2">
+        <SecondarySideWindow />
       </div>
     </div>
     <FixedBanner :footer="true" />

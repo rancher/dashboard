@@ -12,6 +12,7 @@ import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import Inactivity from '@shell/components/Inactivity';
 import { mapState, mapGetters } from 'vuex';
 import PromptModal from '@shell/components/PromptModal';
+import SecondarySideWindow from '@shell/components/nav/SecondarySideWindow';
 
 export default {
 
@@ -24,7 +25,8 @@ export default {
     AzureWarning,
     AwsComplianceBanner,
     Inactivity,
-    PromptModal
+    PromptModal,
+    SecondarySideWindow
   },
 
   mixins: [Brand, BrowserTabVisibility],
@@ -81,6 +83,9 @@ export default {
           class="outlet"
         />
       </main>
+      <div class="wm2">
+        <SecondarySideWindow />
+      </div>
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
@@ -112,11 +117,13 @@ export default {
     flex-grow:1;
 
     grid-template-areas:
-      "header"
-      "main";
+      "header header"
+      "main   wm2";
 
-    grid-template-columns: auto;
+    grid-template-columns: auto var(--wm2-width, 0px);
     grid-template-rows:    var(--header-height) auto;
+
+    // transition: grid-template-columns .5s ease;
 
     > HEADER {
       grid-area: header;
