@@ -12,7 +12,7 @@ export const useIndicateUseCounts = () => {
 };
 
 export const useTabCountWatcher = () => {
-  if (!inject<boolean>(USE_COUNTS_KEY)) {
+  if (!inject<boolean>(USE_COUNTS_KEY, false)) {
     return { isCountVisible: ref<boolean>(false) };
   }
 

@@ -2,7 +2,7 @@
 import CopyToClipboard from '@shell/components/Resource/Detail/CopyToClipboard.vue';
 import Content from '@shell/components/Resource/Detail/Preview/Content.vue';
 import { useBasicSetupFocusTrap } from '@shell/composables/focusTrap';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 export interface Props {
   title: string;

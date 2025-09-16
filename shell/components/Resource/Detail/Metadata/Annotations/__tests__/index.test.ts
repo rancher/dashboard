@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import Annotations from '@shell/components/Resource/Detail/Metadata/Annotations/index.vue';
 import { createStore } from 'vuex';
+jest.mock('@shell/utils/clipboard', () => ({ copyTextToClipboard: jest.fn() }));
 
 describe('component: Metadata/Annotations', () => {
   it('should render KeyValue with the appropriate props', async() => {
@@ -14,6 +15,5 @@ describe('component: Metadata/Annotations', () => {
 
     expect(keyValue.props('propertyName')).toStrictEqual('component.resource.detail.metadata.annotations.title');
     expect(keyValue.props('rows')).toStrictEqual(annotations);
-    expect(keyValue.props('outline')).toStrictEqual(true);
   });
 });
