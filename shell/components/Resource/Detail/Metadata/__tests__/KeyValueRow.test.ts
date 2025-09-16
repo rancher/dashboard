@@ -4,6 +4,7 @@ import Preview from '@shell/components/Resource/Detail/Preview/Preview.vue';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 
 jest.mock('@shell/utils/clipboard', () => ({ copyTextToClipboard: jest.fn() }));
+jest.mock('vuex', () => ({ useStore: () => { } }));
 
 // Create a teleport target
 const teleportTarget = document.createElement('div');

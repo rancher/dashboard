@@ -1,12 +1,16 @@
 <script lang="ts" setup>
+import { useI18n } from '@shell/composables/useI18n';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { ref } from 'vue';
+import { useStore } from 'vuex';
 
 export interface Props {
     value: string;
 }
 
 const props = defineProps<Props>();
+const store = useStore();
+const i18n = useI18n(store);
 const copied = ref(false);
 const timeout = ref<null | ReturnType<typeof setTimeout>>(null);
 
@@ -30,6 +34,7 @@ const onClick = (ev: MouseEvent) => {
   <button
     class="copy-to-clipboard"
     :class="{copied}"
+    :aria-label="i18n.t('component.resource.detail.copyToClipboard.ariaLabel.copy')"
     @click="onClick"
   >
     <i class="icon icon-copy" />

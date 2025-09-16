@@ -6,6 +6,9 @@ import { nextTick, ref } from 'vue';
 import RcTag from '@components/Pill/RcTag/RcTag.vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import { Type } from '@components/Pill/types';
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
+import { randomStr } from '@shell/utils/string';
 
 export interface KeyValueRowProps {
     row: Row;
@@ -13,6 +16,10 @@ export interface KeyValueRowProps {
 }
 
 const props = defineProps<KeyValueRowProps>();
+
+const store = useStore();
+const i18n = useI18n(store);
+
 const showPreview = ref(false);
 const element = ref<HTMLElement | null>(null);
 const button = ref<HTMLElement | null>(null);
@@ -25,6 +32,7 @@ const onClose = (keyboardExit: boolean) => {
     });
   }
 };
+const previewId = randomStr();
 </script>
 
 <template>
@@ -36,6 +44,10 @@ const onClose = (keyboardExit: boolean) => {
     <RcButton
       ref="button"
       ghost
+      aria-haspopup="dialog"
+      :aria-expanded="showPreview"
+      :aria-controls="previewId"
+      :aria-label="i18n.t('component.resource.detail.metadata.keyValue.ariaLabel.showPreview')"
       @click="() => showPreview = true"
     >
       <RcTag
@@ -48,6 +60,7 @@ const onClose = (keyboardExit: boolean) => {
     <CopyToClipboard :value="row.value" />
     <Preview
       v-if="showPreview"
+      :id="previewId"
       class="preview"
       :title="row.key"
       :value="row.value"

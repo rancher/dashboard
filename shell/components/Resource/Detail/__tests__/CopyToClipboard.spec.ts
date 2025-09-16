@@ -4,6 +4,7 @@ import { copyTextToClipboard } from '@shell/utils/clipboard';
 
 // Mock the clipboard utility
 jest.mock('@shell/utils/clipboard', () => ({ copyTextToClipboard: jest.fn() }));
+jest.mock('vuex', () => ({ useStore: () => { } }));
 
 describe('component: CopyToClipboard', () => {
   beforeAll(() => {

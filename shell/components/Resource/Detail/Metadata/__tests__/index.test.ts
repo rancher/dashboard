@@ -2,6 +2,8 @@ import { mount } from '@vue/test-utils';
 import Metadata from '@shell/components/Resource/Detail/Metadata/index.vue';
 import { createStore } from 'vuex';
 
+jest.mock('@shell/utils/clipboard', () => ({ copyTextToClipboard: jest.fn() }));
+
 describe('component: Metadata/index', () => {
   const store = createStore({});
   const stubs = ['IdentifyingInformation', 'KeyValue', 'Labels', 'Annotations'];
@@ -14,7 +16,8 @@ describe('component: Metadata/index', () => {
       props: {
         identifyingInformation,
         labels:      [],
-        annotations: []
+        annotations: [],
+        resource:    {}
       },
       global: { provide: { store }, stubs }
     });
@@ -27,7 +30,8 @@ describe('component: Metadata/index', () => {
       props: {
         identifyingInformation,
         labels:      [],
-        annotations: []
+        annotations: [],
+        resource:    {}
       },
       global: { provide: { store }, stubs }
     });
@@ -42,7 +46,8 @@ describe('component: Metadata/index', () => {
       props: {
         identifyingInformation,
         labels:      [],
-        annotations: []
+        annotations: [],
+        resource:    {}
       },
       global: { provide: { store }, stubs }
     });
@@ -60,7 +65,8 @@ describe('component: Metadata/index', () => {
       props: {
         identifyingInformation,
         labels:      keyValue,
-        annotations: []
+        annotations: [],
+        resource:    {}
       },
       global: { provide: { store }, stubs }
     });
@@ -77,7 +83,8 @@ describe('component: Metadata/index', () => {
       props: {
         identifyingInformation,
         labels:      [],
-        annotations: keyValue
+        annotations: keyValue,
+        resource:    {}
       },
       global: { provide: { store }, stubs }
     });
