@@ -81,7 +81,7 @@ export function importWindowComponent(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "components/nav" */ `@shell/components/Console/${name}`));
+  return defineAsyncComponent(() => import(/* webpackChunkName: "components" */ `@shell/components/Console/${name}`));
 }
 
 export function loadProduct(name) {
