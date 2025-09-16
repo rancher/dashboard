@@ -35,7 +35,8 @@ let store = {};
   resolveStoreModules(require('../store/slideInPanel.ts'), 'slideInPanel.ts');
   resolveStoreModules(require('../store/type-map.js'), 'type-map.js');
   resolveStoreModules(require('../store/uiplugins.ts'), 'uiplugins.ts');
-  resolveStoreModules(require('../store/wm.js'), 'wm.js');
+  resolveStoreModules(require('../store/wm/index.js'), 'wm/index.js');
+  resolveStoreModules(require('../store/wm/secondary.js'), 'wm/secondary.js');
   resolveStoreModules(require('../store/customisation.js'), 'customisation.js');
   resolveStoreModules(require('../store/cru-resource.ts'), 'cru-resource.ts');
   resolveStoreModules(require('../store/notifications.ts'), 'notifications.ts');
@@ -65,7 +66,8 @@ let store = {};
       '../store/slideInPanel.ts',
       '../store/type-map.js',
       '../store/uiplugins.ts',
-      '../store/wm.js',
+      '../store/wm/index.js',
+      '../store/wm/secondary.js',
       '../store/customisation.js',
       '../store/cru-resource.ts',
       '../store/notifications.ts',
