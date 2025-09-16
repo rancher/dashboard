@@ -7595,6 +7595,7 @@ model:
       activedirectory: ActiveDirectory
       azuread: AzureAD
       github: GitHub
+      githubapp: GitHub App
       keycloak: Keycloak
       ldap: LDAP
       openldap: OpenLDAP
@@ -9068,3 +9069,4 @@ component:
         weekdaysAt0830: "At 30 minutes past the hour, every 1 hours, starting at 08:00 AM, Monday through Friday"
         marchToMayHourly: "Every hour, only in March, April, and May"
         every4Hours9to17: "At 0 minutes past the hour, every 4 hours, between 09:00 AM and 05:00 PM"
+
