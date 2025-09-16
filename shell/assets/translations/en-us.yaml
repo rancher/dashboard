@@ -7549,6 +7549,7 @@ model:
       activedirectory: ActiveDirectory
       azuread: AzureAD
       github: GitHub
+      githubapp: GitHub App
       keycloak: Keycloak
       ldap: LDAP
       openldap: OpenLDAP
