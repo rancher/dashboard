@@ -40,7 +40,7 @@ const onClose = (keyboardExit: boolean) => {
         type="active"
         :highlight="showPreview"
       >
-        {{ props.row.key }}: {{ props.row.value }}
+        <span class="tag-data">{{ props.row.key }}: {{ props.row.value }}</span>
       </RcTag>
     </RcButton>
     <CopyToClipboard :value="row.value" />
@@ -58,6 +58,8 @@ const onClose = (keyboardExit: boolean) => {
 
 <style lang="scss" scoped>
 .rectangle {
+    $ellipsis-padding: 22px;
+
     display: inline-block;
     position: relative;
     padding: 0;
@@ -68,6 +70,15 @@ const onClose = (keyboardExit: boolean) => {
 
     .rc-tag {
       display: inline-block;
+    }
+
+    .tag-data {
+      display: inline-block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: calc(100%);
+      line-height: normal;
     }
 
     & .btn {
@@ -89,10 +100,8 @@ const onClose = (keyboardExit: boolean) => {
       z-index: 20px;
     }
 
-    $ellipsis-padding: 22px;
-
     button:focus-visible, button:hover, .copy-to-clipboard:focus-visible {
-      .rc-tag {
+      .rc-tag .tag-data {
         // This alters the ellipsis so we show more letters when the clipboard button is visible and occluding parts of the tag
         padding-right: $ellipsis-padding;
       }
@@ -108,7 +117,7 @@ const onClose = (keyboardExit: boolean) => {
     }
 
     .btn:has(+ .copy-to-clipboard:focus-visible), .btn:has(+ .copy-to-clipboard:hover)  {
-      .rc-tag {
+      .rc-tag .tag-data {
         // This alters the ellipsis so we show more letters when the clipboard button is visible and occluding parts of the tag
         padding-right: $ellipsis-padding;
       }
