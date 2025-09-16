@@ -84,7 +84,7 @@ describe('component: Metadata/IdentifyingInformation', () => {
     expect(wrapper.find('.show-all').exists()).toBeTruthy();
   });
 
-  it('should pass type down to KeyValueRow', async () => {
+  it('should pass type down to KeyValueRow', async() => {
     const wrapper = mount(KeyValue, {
       props: {
         propertyName, rows, type: 'active'
