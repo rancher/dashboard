@@ -5,12 +5,14 @@ import Preview from '@shell/components/Resource/Detail/Preview/Preview.vue';
 import { nextTick, ref } from 'vue';
 import RcTag from '@components/Pill/RcTag/RcTag.vue';
 import RcButton from '@components/RcButton/RcButton.vue';
+import { Type } from '@components/Pill/types';
 
-export interface RectangleProps {
+export interface KeyValueRowProps {
     row: Row;
+    type: Type;
 }
 
-const props = defineProps<RectangleProps>();
+const props = defineProps<KeyValueRowProps>();
 const showPreview = ref(false);
 const element = ref<HTMLElement | null>(null);
 const button = ref<HTMLElement | null>(null);
@@ -29,7 +31,7 @@ const onClose = (keyboardExit: boolean) => {
   <div
     ref="element"
     class="rectangle"
-    :class="{'show-preview': showPreview}"
+    :class="{'show-preview': showPreview, [props.type]: true}"
   >
     <RcButton
       ref="button"
@@ -37,7 +39,7 @@ const onClose = (keyboardExit: boolean) => {
       @click="() => showPreview = true"
     >
       <RcTag
-        type="active"
+        :type="type"
         :highlight="showPreview"
       >
         <span class="tag-data">{{ props.row.key }}: {{ props.row.value }}</span>
@@ -58,46 +60,48 @@ const onClose = (keyboardExit: boolean) => {
 
 <style lang="scss" scoped>
 .rectangle {
-    $ellipsis-padding: 22px;
+  display: inline-block;
+  position: relative;
+  padding: 0;
 
+  .copy-to-clipboard {
+    position: fixed;
+
+    right: -20px;
+    top: -9px;
+    z-index: 20px;
+  }
+
+  &, .btn, .rc-tag {
+    max-width: calc(100%);
+  }
+
+  .rc-tag {
     display: inline-block;
-    position: relative;
-    padding: 0;
+    line-height: normal;
+  }
 
-    &, .btn, .rc-tag {
-      max-width: calc(100%);
-    }
+  .tag-data {
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: calc(100%);
+    line-height: normal;
+  }
 
-    .rc-tag {
-      display: inline-block;
-    }
+  & .btn {
+    line-height: initial;
+    min-height: initial;
+  }
 
-    .tag-data {
-      display: inline-block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: calc(100%);
-      line-height: normal;
-    }
-
-    & .btn {
-      line-height: initial;
-      min-height: initial;
-    }
+  &.active {
+    $ellipsis-padding: 22px;
 
     &.show-preview {
       .copy-to-clipboard {
         position: fixed;
       }
-    }
-
-    .copy-to-clipboard {
-      position: fixed;
-
-      right: -20px;
-      top: -9px;
-      z-index: 20px;
     }
 
     button:focus-visible, button:hover, .copy-to-clipboard:focus-visible {
@@ -122,5 +126,6 @@ const onClose = (keyboardExit: boolean) => {
         padding-right: $ellipsis-padding;
       }
     }
+  }
 }
 </style>

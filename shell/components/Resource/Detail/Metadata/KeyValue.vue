@@ -1,8 +1,9 @@
 <script lang="ts">
 import { computed, toRefs } from 'vue';
-import Rectangle from '@shell/components/Resource/Detail/Metadata/Rectangle.vue';
+import KeyValueRow from '@shell/components/Resource/Detail/Metadata/KeyValueRow.vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
+import { Type } from '@components/Pill/types';
 
 export type KeyValueType = {[key: string]: string};
 
@@ -14,8 +15,9 @@ export interface Row {
 export interface KeyValueProps {
     propertyName: string;
     rows: Row[];
-    maxRows?: number;
+    type: Type;
 
+    maxRows?: number;
     onShowConfiguration?: (returnFocusSelector: string) => void;
 }
 </script>
@@ -75,8 +77,9 @@ const showConfigurationMoreFocusSelector = computed(() => `[data-testid="${ show
       :key="displayValue(row)"
       class="row"
     >
-      <Rectangle
+      <KeyValueRow
         class="rectangle"
+        :type="props.type"
         :row="row"
       />
     </div>
