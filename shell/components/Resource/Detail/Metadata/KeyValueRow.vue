@@ -30,7 +30,7 @@ const onClose = (keyboardExit: boolean) => {
 <template>
   <div
     ref="element"
-    class="rectangle"
+    class="key-value-row"
     :class="{'show-preview': showPreview, [props.type]: true}"
   >
     <RcButton
@@ -59,7 +59,7 @@ const onClose = (keyboardExit: boolean) => {
 </template>
 
 <style lang="scss" scoped>
-.rectangle {
+.key-value-row {
   display: inline-block;
   position: relative;
   padding: 0;
