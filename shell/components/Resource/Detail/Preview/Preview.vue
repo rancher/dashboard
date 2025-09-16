@@ -19,9 +19,17 @@ const top = computed(() => `${ (boundingRect.value?.top || 0) - 28 }px`);
 const right = computed(() => `${ (document.documentElement.clientWidth - (boundingRect.value?.left || 0)) + 16 }px`);
 const containerRef = ref<HTMLElement | null>(null);
 const escapePressed = ref(false);
+const isMouseInteraction = ref(false);
 
-const onFocusOut = () => {
-  emit('close', escapePressed.value);
+const onFocusOut = (e: FocusEvent) => {
+  // Refocus the container if the user clicks a child element (copy to clipboard)
+  if (!escapePressed.value && containerRef.value?.contains(e.relatedTarget as Node)) {
+    if (isMouseInteraction.value) {
+      containerRef.value.focus();
+    }
+  } else {
+    emit('close', escapePressed.value);
+  }
 };
 
 const onKeydown = (event: KeyboardEvent) => {
@@ -33,13 +41,6 @@ const onKeydown = (event: KeyboardEvent) => {
 
 onMounted(() => {
   containerRef.value?.focus();
-  containerRef.value?.addEventListener('focusout', onFocusOut);
-  containerRef.value?.addEventListener('keydown', onKeydown);
-});
-
-onBeforeUnmount(() => {
-  containerRef.value?.removeEventListener('focusout', onFocusOut);
-  containerRef.value?.removeEventListener('keydown', onKeydown);
 });
 
 useBasicSetupFocusTrap('#focus-trap-preview-container-element');
@@ -52,6 +53,10 @@ useBasicSetupFocusTrap('#focus-trap-preview-container-element');
       ref="containerRef"
       class="preview"
       tabindex="-1"
+      @keydown="onKeydown"
+      @focusout="onFocusOut"
+      @mousedown="isMouseInteraction=true"
+      @mouseup="isMouseInteraction=false"
     >
       <div class="title">
         {{ props.title }}
