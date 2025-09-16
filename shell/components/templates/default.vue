@@ -47,6 +47,7 @@ export default {
     AzureWarning,
     DraggableZone,
     Inactivity,
+    
     SideNav,
   },
 
@@ -124,10 +125,10 @@ export default {
       const routeReady = targetRoute ? this.currentProduct?.name === getProductFromRoute(this.$route) && this.currentProduct?.name === getProductFromRoute(targetRoute) : this.currentProduct?.name === getProductFromRoute(this.$route);
 
       console.log('*** clouster and route ready targetRoute', targetRoute);
-      console.log('*** clouster and route ready routeReady', routeReady);
-      console.log('*** clouster and route ready clusterId', this.clusterId);
+      // console.log('*** clouster and route ready routeReady', routeReady);
+      // console.log('*** clouster and route ready clusterId', this.clusterId);
 
-      console.log('clouster and route ready getClusterFromRoute', getClusterFromRoute(targetRoute));
+      // console.log('clouster and route ready getClusterFromRoute', getClusterFromRoute(targetRoute));
 
       // return this.clusterReady &&
       //   this.clusterId === getClusterFromRoute(targetRoute) && routeReady;
@@ -218,15 +219,18 @@ export default {
       :class="{[pinClass]: true, 'dashboard-padding-left': showTopLevelMenu}"
     >
       <Header />
-      <SideNav
+      <!-- <SideNav
         v-if="clusterReady"
         class="default-side-nav"
-      />
+      /> -->
       <!-- <main
         v-if="clusterAndRouteReady"
         class="main-layout"
         :aria-label="t('layouts.default')"
       > -->
+            <SideNav
+        class="default-side-nav"
+      />
       <main
         v-if="routeReady"
         class="main-layout"

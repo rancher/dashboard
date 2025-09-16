@@ -90,12 +90,12 @@ export default {
       }
     },
 
-    clusterReady(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Immediately update because you'll see it come in later
-        this.getGroups();
-      }
-    },
+    // clusterReady(a, b) {
+    //   if ( !isEqual(a, b) ) {
+    //     // Immediately update because you'll see it come in later
+    //     this.getGroups();
+    //   }
+    // },
 
     rootProduct(a, b) {
       if (a?.name !== b?.name) {

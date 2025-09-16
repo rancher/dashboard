@@ -166,6 +166,7 @@ export default {
   },
 
   data() {
+    console.log('*** crucluster data running');
     let subType = null;
 
     subType = this.$route.query[SUB_TYPE] || null;
