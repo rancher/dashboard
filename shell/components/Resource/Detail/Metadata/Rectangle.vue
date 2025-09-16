@@ -2,26 +2,25 @@
 import CopyToClipboard from '@shell/components/Resource/Detail/CopyToClipboard.vue';
 import { Row } from '@shell/components/Resource/Detail/Metadata/KeyValue.vue';
 import Preview from '@shell/components/Resource/Detail/Preview/Preview.vue';
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
+import RcTag from '@components/Pill/RcTag/RcTag.vue';
+import RcButton from '@components/RcButton/RcButton.vue';
 
 export interface RectangleProps {
-    outline?: boolean;
     row: Row;
 }
 
-const props = withDefaults(
-  defineProps<RectangleProps>(),
-  { outline: false }
-);
-
+const props = defineProps<RectangleProps>();
 const showPreview = ref(false);
 const element = ref<HTMLElement | null>(null);
 const button = ref<HTMLElement | null>(null);
 
 const onClose = (keyboardExit: boolean) => {
   showPreview.value = false;
-  if (keyboardExit && button.value) {
-    button.value.focus();
+  if (keyboardExit) {
+    nextTick(() => {
+      button.value?.focus();
+    });
   }
 };
 </script>
@@ -30,15 +29,20 @@ const onClose = (keyboardExit: boolean) => {
   <div
     ref="element"
     class="rectangle"
-    :class="{outline: props.outline, 'show-preview': showPreview}"
+    :class="{'show-preview': showPreview}"
   >
-    <button
+    <RcButton
       ref="button"
-      class="content"
+      ghost
       @click="() => showPreview = true"
     >
-      {{ row.key }}: {{ row.value }}
-    </button>
+      <RcTag
+        type="active"
+        :highlight="showPreview"
+      >
+        {{ props.row.key }}: {{ props.row.value }}
+      </RcTag>
+    </RcButton>
     <CopyToClipboard :value="row.value" />
     <Preview
       v-if="showPreview"
@@ -54,65 +58,60 @@ const onClose = (keyboardExit: boolean) => {
 
 <style lang="scss" scoped>
 .rectangle {
-    border: 1px solid var(--tag-bg);
-    border-radius: 4px;
-    background: none;
     display: inline-block;
     position: relative;
-    max-width: 100%;
+    padding: 0;
 
-    &:not(.outline) {
-      background-color: var(--tag-bg);
+    &, .btn, .rc-tag {
+      max-width: calc(100%);
+    }
+
+    .rc-tag {
+      display: inline-block;
+    }
+
+    & .btn {
+      line-height: initial;
+      min-height: initial;
     }
 
     &.show-preview {
-      border-color: var(--primary);
-
-      .content, .content:hover {
-        & + .copy-to-clipboard {
-          position: fixed;
-        }
-      }
-    }
-
-    .content {
-      // Override the base definition of buttons
-      display: inline-block;
-      color: var(--body-text);
-      background: none;
-
-      padding: 0 8px;
-      height: 23px;
-      line-height: 23px;
-      max-width: 100%;
-      min-height: initial;
-
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-
-      cursor: pointer;
-
-      &:focus-visible {
-        @include focus-outline;
-      }
-
-      &:focus-visible, &:hover {
-        & + .copy-to-clipboard {
-          position: absolute;
-        }
+      .copy-to-clipboard {
+        position: fixed;
       }
     }
 
     .copy-to-clipboard {
       position: fixed;
-      &:focus-visible, &:hover {
-        position: absolute;
-      }
 
-      right: -40px;
+      right: -20px;
       top: -9px;
       z-index: 20px;
+    }
+
+    $ellipsis-padding: 22px;
+
+    button:focus-visible, button:hover, .copy-to-clipboard:focus-visible {
+      .rc-tag {
+        // This alters the ellipsis so we show more letters when the clipboard button is visible and occluding parts of the tag
+        padding-right: $ellipsis-padding;
+      }
+
+      & + .copy-to-clipboard {
+        position: absolute;
+      }
+    }
+
+    .copy-to-clipboard:focus-visible, .copy-to-clipboard:hover {
+      position: absolute;
+
+    }
+
+    .btn:has(+ .copy-to-clipboard:focus-visible), .btn:has(+ .copy-to-clipboard:hover)  {
+      .rc-tag {
+        // This alters the ellipsis so we show more letters when the clipboard button is visible and occluding parts of the tag
+        padding-right: $ellipsis-padding;
+      }
     }
 }
 </style>

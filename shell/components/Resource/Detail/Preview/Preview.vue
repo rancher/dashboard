@@ -18,22 +18,28 @@ const boundingRect = computed(() => props.anchorElement?.getBoundingClientRect()
 const top = computed(() => `${ (boundingRect.value?.top || 0) - 28 }px`);
 const right = computed(() => `${ (document.documentElement.clientWidth - (boundingRect.value?.left || 0)) + 16 }px`);
 const containerRef = ref<HTMLElement | null>(null);
-const onFocusOut = (event: FocusEvent) => {
-  if (!event.relatedTarget || !containerRef.value?.contains(event.relatedTarget as Node)) {
-    emit('close', false);
-  } else if (containerRef.value === event.relatedTarget) {
-    // Keyboard exit via escape press
-    emit('close', true);
+const escapePressed = ref(false);
+
+const onFocusOut = () => {
+  emit('close', escapePressed.value);
+};
+
+const onKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    escapePressed.value = true;
+    containerRef.value?.blur();
   }
 };
 
 onMounted(() => {
   containerRef.value?.focus();
   containerRef.value?.addEventListener('focusout', onFocusOut);
+  containerRef.value?.addEventListener('keydown', onKeydown);
 });
 
 onBeforeUnmount(() => {
   containerRef.value?.removeEventListener('focusout', onFocusOut);
+  containerRef.value?.removeEventListener('keydown', onKeydown);
 });
 
 useBasicSetupFocusTrap('#focus-trap-preview-container-element');

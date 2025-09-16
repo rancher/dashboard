@@ -3,7 +3,6 @@ import { computed, toRefs } from 'vue';
 import Rectangle from '@shell/components/Resource/Detail/Metadata/Rectangle.vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
-import CopyToClipboard from '@shell/components/Resource/Detail/CopyToClipboard.vue';
 
 export type KeyValueType = {[key: string]: string};
 
@@ -16,7 +15,6 @@ export interface KeyValueProps {
     propertyName: string;
     rows: Row[];
     maxRows?: number;
-    outline?: boolean;
 
     onShowConfiguration?: (returnFocusSelector: string) => void;
 }
@@ -25,13 +23,9 @@ export interface KeyValueProps {
 <script setup lang="ts">
 const props = withDefaults(
   defineProps<KeyValueProps>(),
-  {
-    outline: false, maxRows: 4, onShowConfiguration: undefined
-  }
+  { maxRows: 4, onShowConfiguration: undefined }
 );
-const {
-  propertyName, rows, maxRows, outline
-} = toRefs(props);
+const { propertyName, rows, maxRows } = toRefs(props);
 
 const store = useStore();
 const i18n = useI18n(store);
@@ -83,7 +77,6 @@ const showConfigurationMoreFocusSelector = computed(() => `[data-testid="${ show
     >
       <Rectangle
         class="rectangle"
-        :outline="outline"
         :row="row"
       />
     </div>

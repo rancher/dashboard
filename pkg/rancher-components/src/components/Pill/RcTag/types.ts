@@ -5,4 +5,5 @@ export interface RcTagProps {
   disabled?: boolean;
   showClose?: boolean;
   closeAriaLabel?: string;
+  highlight?: boolean;
 }
