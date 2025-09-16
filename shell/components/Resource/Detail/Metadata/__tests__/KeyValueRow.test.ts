@@ -2,7 +2,6 @@ import { mount } from '@vue/test-utils';
 import KeyValueRow from '@shell/components/Resource/Detail/Metadata/KeyValueRow.vue';
 import Preview from '@shell/components/Resource/Detail/Preview/Preview.vue';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
-import { identity } from 'lodash';
 
 jest.mock('@shell/utils/clipboard', () => ({ copyTextToClipboard: jest.fn() }));
 
