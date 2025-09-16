@@ -1,3 +1,4 @@
+import { throttle } from 'lodash';
 import { initExtensionManager } from './extension-manager-impl';
 
 export default function(context, inject) {
@@ -17,10 +18,14 @@ export default function(context, inject) {
  * accessed
  */
 const deprecationProxy = (target, message) => {
+  const logWarning = throttle(() => {
+    // eslint-disable-next-line no-console
+    console.warn(message);
+  }, 150);
+
   const deprecationHandler = {
     get(target, prop) {
-      // eslint-disable-next-line no-console
-      console.warn(message);
+      logWarning();
 
       return Reflect.get(target, prop);
     }
