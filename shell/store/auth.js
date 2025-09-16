@@ -10,6 +10,7 @@ import { addParams, parse as parseUrl, removeParam } from '@shell/utils/url';
 
 export const BASE_SCOPES = {
   github:       ['read:org'],
+  githubapp:    ['read:org'],
   googleoauth:  ['openid profile email'],
   azuread:      [],
   keycloakoidc: ['openid profile email'],
