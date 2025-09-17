@@ -42,10 +42,10 @@ $primary-140     : #304778; // Active light
 $primary-120     : #3459A8;
 $primary-110     : #496192;
 $primary-80      : #4871C7;
-$primary-75      : #454968; // Category active dark
+$primary-75      : #454F68; // Category active dark
 $primary-60      : #75A1FF;
 $primary-55      : #81AEFC;
-$primary-50      : #B3CBFF; // Active dark
+$primary-50      : #C7D3EB; // Active dark
 $primary-20      : #EDF2FC;
 $primary-15      : #EEF1F6; // Category active light
 $secondary       : $grey-50;
@@ -735,7 +735,7 @@ BODY, .theme-dark {
   // Local variables for reused colors
 
   //dark sidebar
-  $darkest: #141419;
+  $darkest: #262A30;
 
   //dark body
   $darker: #1b1c21;
@@ -771,11 +771,11 @@ BODY, .theme-dark {
   $contrasted-light: $darkest !default;
 
   $drag-over: #DCDEE7;
-  $body-bg  : #2F2F42;
+  $body-bg  : #2D3139;
 
   $slate: #4B4F6B;
 
-  --body-border: #5A5F6A;
+  --body-border: #495361;
   --link       : #{$primary-55};
 
   --primary-border: var(--link);
@@ -923,9 +923,9 @@ BODY, .theme-dark {
   --progress-bg                : #{$medium};
   --progress-divider           : #{$lightest};
 
-  --sortable-table-bg          : #{darken($body-bg, 10%)};
+  --sortable-table-bg           : #262A30;
   --sortable-table-row-bg       : var(--body-bg);
-  --sortable-table-header-bg    : #{darken($body-bg, 15%)};
+  --sortable-table-header-bg    : #262A30;
   --sortable-table-top-divider  : var(--body-border);
   --sortable-table-hover-bg     : #{lighten($body-bg, 5%)};
   --sortable-table-selected-bg  : #{lighten($body-bg, 15%)};
