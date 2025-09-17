@@ -1351,7 +1351,8 @@ catalog:
     action:
       install: Install
       upgrade: Upgrade
-      edit: Edit
+      edit: Edit current version
+      downgrade: Downgrade
       remove: Remove
       manage: Manage
   os:
