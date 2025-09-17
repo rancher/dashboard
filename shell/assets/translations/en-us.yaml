@@ -6982,6 +6982,9 @@ wizard:
   edit: Edit
   create: Create
   view: View
+  install: Install
+  upgrade: Upgrade
+  downgrade: Downgrade
 wm:
   connection:
     connected: Connected
