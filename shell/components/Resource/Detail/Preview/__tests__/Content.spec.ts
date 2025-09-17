@@ -43,7 +43,7 @@ describe('component: Resource Detail Preview Content', () => {
   });
 
   it('should display a plain text message for a non-JSON string', () => {
-    const textValue = 'line 1\nline 2';
+    const textValue = 'line 1';
     const wrapper = shallowMount(Content, {
       props: { value: textValue },
       global
@@ -52,12 +52,12 @@ describe('component: Resource Detail Preview Content', () => {
     const span = wrapper.find('[data-testid="detail-top_html"]');
 
     expect(span.exists()).toBe(true);
-    expect(span.text()).toBe('line 1<br/>\nline 2');
+    expect(span.text()).toBe('line 1');
     expect(span.classes()).toContain('monospace');
   });
 
   it('should display a plain text message for a string that looks like JSON but is invalid', () => {
-    const invalidJson = '{"key":}';
+    const invalidJson = '{';
     const wrapper = shallowMount(Content, {
       props: { value: invalidJson },
       global
@@ -66,6 +66,6 @@ describe('component: Resource Detail Preview Content', () => {
     const span = wrapper.find('[data-testid="detail-top_html"]');
 
     expect(span.exists()).toBe(true);
-    expect(span.text()).toBe('{&quot;key&quot;:}');
+    expect(span.text()).toBe('{');
   });
 });

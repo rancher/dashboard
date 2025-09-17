@@ -6,12 +6,6 @@ import { copyTextToClipboard } from '@shell/utils/clipboard';
 jest.mock('@shell/utils/clipboard', () => ({ copyTextToClipboard: jest.fn() }));
 jest.mock('vuex', () => ({ useStore: () => { } }));
 
-// Create a teleport target
-const teleportTarget = document.createElement('div');
-
-teleportTarget.id = 'preview';
-document.body.appendChild(teleportTarget);
-
 describe('component: KeyValueRow', () => {
   const mockRow = {
     key:   'test-key',
@@ -26,7 +20,16 @@ describe('component: KeyValueRow', () => {
     directives: { cleanHtml: (identity: any) => identity, t: (identity: any) => identity },
   };
 
+  beforeEach(() => {
+    // Create a teleport target
+    const teleportTarget = document.createElement('div');
+
+    teleportTarget.id = 'preview';
+    document.body.appendChild(teleportTarget);
+  });
+
   afterEach(() => {
+    document.getElementById('preview')?.remove();
     jest.clearAllMocks();
   });
 
@@ -70,7 +73,10 @@ describe('component: KeyValueRow', () => {
       global
     });
 
+    expect(wrapper.findComponent(Preview).exists()).toBe(false);
+
     await wrapper.find('button').trigger('click');
+
     expect(wrapper.findComponent(Preview).exists()).toBe(true);
 
     const preview = wrapper.findComponent({ name: 'Preview' });
