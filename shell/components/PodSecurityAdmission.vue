@@ -222,6 +222,7 @@ export default defineComponent({
         <Checkbox
           v-if="!labelsAlwaysActive"
           v-model:value="psaControl.active"
+          :mode="mode"
           :data-testid="componentTestid + '--psaControl-' + i + '-active'"
           :label="level"
           :label-key="`podSecurityAdmission.labels.${ level }`"
@@ -281,6 +282,7 @@ export default defineComponent({
         <span class="col span-2">
           <Checkbox
             v-model:value="psaExemptionsControl.active"
+            :mode="mode"
             :data-testid="componentTestid + '--psaExemptionsControl-' + i + '-active'"
             :label="dimension"
             :label-key="`podSecurityAdmission.labels.${ dimension }`"
