@@ -1,73 +1,67 @@
-<script lang="ts">
-import { mapState } from 'vuex';
+<script lang="ts" setup>
+import { ref, computed, watch, onMounted } from 'vue';
+import { useStore } from 'vuex';
 import RcButton from '@components/RcButton/RcButton.vue';
 
 const _warn = (msg: string, ...args: any[]) => {
   console.warn(`[wm2] ${ msg } ${ args?.reduce((acc, v) => `${ acc } '${ v }'`, '') }`); /* eslint-disable-line no-console */
 };
 
-export default {
-  name: 'SecondarySideWindow',
+const store = useStore();
 
-  components: { RcButton },
+const componentName = ref('');
+const component = ref<any>(null);
 
-  data() {
-    return {
-      componentName: '',
-      component:     null
-    };
-  },
+const open = computed(() => store.getters['wm/secondary/isOpen']);
+const userWidth = computed(() => store.getters['wm/secondary/userWidth']);
 
-  mounted() {
-  },
+function loadComponent(name: string, extensionId: string) {
+  if (!name) {
+    _warn(`component name not provided`);
 
-  computed: { ...mapState('wm/secondary', ['open', 'userHeight', 'userWidth']) },
-
-  watch: {
-    open: {
-      handler:   'setupWindow',
-      immediate: true,
-    }
-  },
-
-  methods: {
-    setupWindow(isOpen: boolean) {
-      document.documentElement.style.setProperty('--wm2-width', isOpen ? this.userWidth : '0');
-
-      const { componentName, extensionId } = this.$store.getters['wm/secondary/config'] || {};
-
-      this.loadComponent(componentName, extensionId);
-    },
-
-    loadComponent(name: string, extensionId: string) {
-      if (!!this.component || !name || this.componentName === name) {
-        _warn(`component is already loaded`, name, extensionId);
-
-        return;
-      }
-
-      this.componentName = name;
-
-      if (!!extensionId) {
-        _warn(`loading component from extension`, name, extensionId);
-
-        this.component = (this as any).$extension?.getDynamic('component', name);
-      } else if (this.$store.getters['type-map/hasCustomWindowComponent'](name)) {
-        _warn(`loading component from TypeMap`, name);
-
-        this.component = this.$store.getters['type-map/importWindowComponent'](name);
-      }
-
-      if (!this.component) {
-        _warn(`component not found for`, name);
-      }
-    },
-
-    close() {
-      this.$store.dispatch('wm/secondary/close');
-    },
+    return;
   }
-};
+
+  if (!!component.value || componentName.value === name) {
+    _warn(`component is already loaded`, name, extensionId);
+
+    return;
+  }
+
+  componentName.value = name;
+
+  if (!!extensionId) {
+    _warn(`loading component from extension`, name, extensionId);
+    component.value = (store as any).$extension?.getDynamic('component', name);
+  } else if (store.getters['type-map/hasCustomWindowComponent'](name)) {
+    _warn(`loading component from TypeMap`, name);
+    component.value = store.getters['type-map/importWindowComponent'](name);
+  }
+
+  if (!component.value) {
+    _warn(`component not found for`, name);
+  }
+}
+
+function setupWindow(isOpen: boolean) {
+  document.documentElement.style.setProperty('--wm2-width', isOpen ? userWidth.value : '0');
+
+  if (isOpen) {
+    const { componentName: name, extensionId } = store.getters['wm/secondary/config'] || {};
+
+    loadComponent(name, extensionId);
+  }
+}
+
+function close() {
+  store.dispatch('wm/secondary/close');
+}
+
+watch(open, (val) => setupWindow(val), { immediate: true });
+
+onMounted(() => {
+  // No logic needed here for now
+});
 </script>
 
 <template>
@@ -115,10 +109,6 @@ export default {
   align-items: flex-start;
   justify-content: flex-start;
   padding: 8px;
-}
-
-.close-btn {
-  /* Optional: adjust size or margin if needed */
 }
 
 .body {
