@@ -360,7 +360,7 @@ export default defineComponent({
   </div>
 </template>
 
-<style lang='scss'>
+<style lang='scss' scoped>
 $fontColor: var(--input-label);
 
 .checkbox-outer-container {
