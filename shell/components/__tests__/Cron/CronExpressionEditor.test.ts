@@ -2,8 +2,8 @@
 import { mount, VueWrapper } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import { createStore } from 'vuex';
-import CronExpressionEditor from '@components/Cron/CronExpressionEditor.vue';
-import type { CronField } from './types';
+import CronExpressionEditor from '@shell/components/Cron/CronExpressionEditor.vue';
+import type { CronField } from '@shell/components/Cron/types';
 
 const translations: Record<string, string> = {
   'component.cron.expressionEditor.label.minute':     'Minute',
@@ -35,8 +35,20 @@ describe('cronExpressionEditor', () => {
   const factory = (props: Partial<CronExpressionEditorVm> = {}) => mount(CronExpressionEditor, {
     global: {
       plugins: [store],
-      stubs:   { CronTooltip: true },
-      mocks:   { t: (key: string) => translations[key] || key },
+      stubs:   {
+        CronTooltip:  true,
+        LabeledInput: {
+          name:     'LabeledInput',
+          props:    ['label', 'tooltip', 'type', 'value'],
+          template: `
+            <div>
+              <label>{{ label }}</label>
+              <input ref="value" :value="value" />
+            </div>
+          `
+        }
+      },
+      mocks: { t: (key: string) => translations[key] || key },
     },
     props: { cronExpression: '0 0 * * *', ...props },
   }) as VueWrapper<CronExpressionEditorVm>;

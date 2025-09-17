@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { ref, watch, onMounted } from 'vue';
-import CronExpressionEditorModal from '@components/Cron/CronExpressionEditorModal.vue';
+import CronExpressionEditorModal from '@shell/components/Cron/CronExpressionEditorModal.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
 
 const meta: Meta<typeof CronExpressionEditorModal> = { component: CronExpressionEditorModal };
