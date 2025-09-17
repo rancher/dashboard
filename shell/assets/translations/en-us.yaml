@@ -497,6 +497,13 @@ authConfig:
       label: Client ID
     clientSecret:
       label: Client Secret
+    app:
+      githubAppId:
+        label: Github APP ID
+      installationId:
+        label: Installation ID
+      privateKey:
+        label: Private Key
     form:
       app:
         label: Application name
