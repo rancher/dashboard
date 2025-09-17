@@ -324,7 +324,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     const isError = lastCondition.type === 'RegistrationActivated';
     const isError2 = lastCondition.type === 'RegistrationAnnounced';
     const isCompleteOnline = mode === 'online' && lastCondition.type === 'Done';
-    const isCompleteOffline = mode === 'offline' && lastCondition.type === 'OfflineActivationDone';
+    const isCompleteOffline = mode === 'offline' && lastCondition.type === 'Done';
 
     return isError || isError2 || isCompleteOnline || isCompleteOffline;
   };
