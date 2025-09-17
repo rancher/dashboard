@@ -12,6 +12,7 @@ import AuthConfig from '@shell/mixins/auth-config';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import InfoBox from '@shell/components/InfoBox';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
+import FileSelector from '@shell/components/form/FileSelector';
 
 const NAME = 'github';
 
@@ -25,7 +26,8 @@ export default {
     AllowedPrincipals,
     AuthBanner,
     InfoBox,
-    AuthProviderWarningBanners
+    AuthProviderWarningBanners,
+    FileSelector,
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -86,7 +88,11 @@ export default {
         githubConfig: this.model,
         description:  'Enable GitHub',
       };
-    }
+    },
+
+    isGithubApp() {
+      return this.model?.id === 'githubapp';
+    },
 
   },
 
@@ -108,6 +114,10 @@ export default {
 
         this.model.hostname = match[4] || 'github.com';
       }
+    },
+
+    updatePrivateKey(content) {
+      this.model.privateKey = content;
     },
   },
 };
@@ -232,6 +242,10 @@ export default {
           </ul>
         </InfoBox>
 
+        <h1>{{ NAME }}</h1>
+
+        {{ JSON.stringify(model) }}
+
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
@@ -249,6 +263,38 @@ export default {
             />
           </div>
         </div>
+        <template v-if="isGithubApp">
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.appId"
+                :label="t(`authConfig.${NAME}.app.githubAppId.label`)"
+                :mode="mode"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.privateKey"
+                :label="t(`authConfig.${NAME}.app.privateKey.label`)"
+                :mode="mode"
+              />
+              <FileSelector
+                class="btn btn-sm bg-primary mt-10"
+                :label="t('generic.readFromFile')"
+                @selected="updatePrivateKey"
+              />
+            </div>
+          </div>
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.installationId"
+                :label="t(`authConfig.${NAME}.app.installationId.label`)"
+                :mode="mode"
+              />
+            </div>
+          </div>
+        </template>
       </template>
     </CruResource>
   </div>
