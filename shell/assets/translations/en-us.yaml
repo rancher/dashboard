@@ -825,8 +825,8 @@ asyncButton:
     action: Download
     success: Saving
     waiting: Downloading&hellip;
-  downgradeVersion:
-    action: Downgrade to this version
+  downgrade:
+    action: Downgrade
     success: Downgraded
     waiting: Downgrading&hellip;
   drain:
@@ -838,7 +838,7 @@ asyncButton:
     success: Saved
     waiting: Saving&hellip;
   editVersion:
-    action: Edit the current version
+    action: Save changes
     success: Saved
     waiting: Saving changes&hellip;
   editAndContinue:
@@ -941,7 +941,7 @@ asyncButton:
     success: Upgrading
     waiting: Starting&hellip;
   upgradeVersion:
-    action: Upgrade to this version
+    action: Upgrade
     success: Upgraded
     waiting: Upgrading&hellip;
   generate:
@@ -1078,6 +1078,12 @@ catalog:
     deprecatedWarning: '{chartName} has been marked as deprecated. Use caution when installing this helm chart as it might be removed in the future.'
     experimentalWarning: '{chartName} has been marked as experimental. Use caution when installing this helm chart as it might not function as expected.'
     deprecatedAndExperimentalWarning: '{chartName} has been marked as deprecated and experimental. Use caution when installing this helm chart as it might be removed in the future and might not function as expected.'
+    chartButton:
+      action:
+        install: Install this version
+        edit: Edit the current version
+        upgrade: Upgrade to this version
+        downgrade: Downgrade to this version
   charts:
     browseAriaLabel: Show only charts grid
     iconAlt: Icon for {app} card/grid item
@@ -1250,7 +1256,9 @@ catalog:
         description: This process will help {action, select,
             install { create }
             upgrade { upgrade }
-            update { update }
+            downgrade { upgrade }
+            editVersion { update }
+            upgradeVersion { upgrade }
           } the {existing, select,
             true { app}
             false { chart}

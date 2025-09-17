@@ -230,24 +230,24 @@ export default {
     action() {
       if (!this.existing) {
         return {
-          name: 'install', tKey: 'installVersion', icon: 'icon-plus'
+          name: 'install', chartDetailTKey: 'install', icon: 'icon-plus'
         };
       }
 
       if (this.currentVersion === this.targetVersion) {
         return {
-          name: 'update', tKey: 'editVersion', icon: 'icon-edit'
+          name: 'editVersion', chartDetailTKey: 'edit', icon: 'icon-edit'
         };
       }
 
       if (compare(this.currentVersion, this.targetVersion) < 0) {
         return {
-          name: 'upgrade', tKey: 'upgradeVersion', icon: 'icon-upgrade-alt'
+          name: 'upgradeVersion', chartDetailTKey: 'upgrade', icon: 'icon-upgrade-alt'
         };
       }
 
       return {
-        name: 'downgrade', tKey: 'downgradeVersion', icon: 'icon-upgrade-alt'
+        name: 'downgrade', chartDetailTKey: 'downgrade', icon: 'icon-upgrade-alt'
       };
     },
 

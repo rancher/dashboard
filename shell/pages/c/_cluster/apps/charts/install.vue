@@ -1300,7 +1300,6 @@ export default {
       :banner-title="stepperName"
       :banner-title-subtext="stepperSubtext"
       :finish-mode="action.name"
-      :finish-label="t(`asyncButton.${action.tKey}.action`)"
       class="wizard"
       :class="{'windowsIncompatible': windowsIncompatible}"
       @cancel="cancel"

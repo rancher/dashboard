@@ -292,7 +292,7 @@ export default {
         <i
           :class="['icon', action.icon, 'mmr-2']"
         />
-        {{ t(`asyncButton.${action.tKey}.action` ) }}
+        {{ t(`catalog.chart.chartButton.action.${action.chartDetailTKey}` ) }}
       </RcButton>
     </div>
 
