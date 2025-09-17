@@ -1,42 +1,49 @@
-// import { addObject, removeObject } from '@shell/utils/array';
+import { addObject, removeObject } from '@shell/utils/array';
 
 export const state = function() {
   return {
-    // tabs:       [],
-    userHeight: window.localStorage.getItem('wm2-height') || 'auto',
-    userWidth:  window.localStorage.getItem('wm2-width') || '400px',
-    open:       false, // window.localStorage.getItem('wm2-open') === 'true',
-    config:     {},
+    tabs:       [],
+    active:     null,
+    open:       false,
+    userHeight: null,
+    userWidth:  null,
+    userPin:    null,
   };
 };
 
 export const getters = {
+  byId: (state) => (id) => {
+    return state.tabs.find((x) => x.id === id);
+  },
+  allTabs:   (state) => state.tabs,
+  tabs:      (state) => state.tabs,
   isOpen:    (state) => state.open,
-  config:    (state) => state.config,
   userWidth: (state) => state.userWidth,
 };
 
 export const mutations = {
+  addTab(state, tab) {
+    const existing = state.tabs.find((x) => x.id === tab.id);
+
+    if ( !existing ) {
+      addObject(state.tabs, tab);
+    }
+
+    state.active = tab.id;
+    state.open = true;
+  },
+
+  removeTab(state, tab) {
+    removeObject(state.tabs, tab);
+  },
+
   setOpen(state, open) {
     state.open = open;
-    // window.localStorage.setItem('wm2-open', open);
   },
 
-  setConfig(state, config) {
-    state.config = config;
+  setActive(state, id) {
+    state.active = id;
   },
-
-  // addTab(state, tab) {
-  //   const existing = !!state.tabs[0];
-
-  //   if (!existing) {
-  //     addObject(state.tabs, tab);
-  //   }
-  // },
-
-  // removeTab(state, tab) {
-  //   removeObject(state.tabs, tab);
-  // },
 
   setUserHeight(state, height) {
     state.userHeight = height;
@@ -44,25 +51,52 @@ export const mutations = {
 
   setUserWidth(state, width) {
     state.userWidth = width;
-    window.localStorage.setItem('wm2-width', width);
   },
+
+  setUserPin(state, pin) {
+    state.userPin = pin;
+  }
 };
 
 export const actions = {
-  open({ commit }, { config }) {
-    commit('setConfig', config);
-    commit('setOpen', true);
+  closeTab({ state, getters, commit }, id) {
+    const tab = getters.byId(id);
+
+    if ( !tab ) {
+      return;
+    }
+
+    let idx = state.tabs.indexOf(tab);
+
+    commit('removeTab', tab);
+    if ( idx >= state.tabs.length ) {
+      idx = state.tabs.length - 1;
+    }
+
+    if ( idx >= 0 ) {
+      commit('setActive', state.tabs[idx].id);
+    } else {
+      commit('setOpen', false);
+    }
   },
 
   close({ commit }) {
     commit('setOpen', false);
   },
 
-  setUserHeight({ commit }, height) {
-    commit('setUserHeight', height);
-  },
+  // {
+  //   id:  shell-<pod id> -- A string that is be unique for this instance;
+  //                           if a window with this key exists it will be focused instead of creating another
+  //   label: Shown on the tab
+  //   icon:  Shown on the tab
+  //   component: 'ContainerShell',
+  //   attrs: { whateverTheComponent: wants }
+  // }
+  open({ commit }, tab) {
+    if ( !tab.id ) {
+      throw new Error('Window must have an id property');
+    }
 
-  setUserWidth({ commit }, width) {
-    commit('setUserWidth', width);
-  },
+    commit('addTab', tab);
+  }
 };
