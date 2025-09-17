@@ -1,7 +1,5 @@
-import { MANAGEMENT, EXT, NORMAN } from '@shell/config/types';
-import { SETTING } from '@shell/config/settings';
+import { EXT } from '@shell/config/types';
 import { RancherKubeMetadata } from '@shell/types/kube/kube-api';
-import { allHash } from 'utils/promise';
 
 interface UserActivityResponse {
   metadata: RancherKubeMetadata,
@@ -19,105 +17,29 @@ interface ParsedInactivitySetting {
   showModalAfter: number | undefined
 }
 
-const defaultParsedTTLData = {
-  enabled:           false,
-  expiresAt:         undefined,
-  sessionTokenName:  undefined,
-  courtesyTimer:     undefined,
-  courtesyCountdown: undefined,
-  showModalAfter:    undefined,
-};
-
+// store in memory the userActivity resource
 let storedUserActivityResponse: UserActivityResponse = {
   metadata: { name: '' },
   status:   { expiresAt: '' }
 };
 
+// store in memory the session token name (this is the identifier for the correct user activity resource)
 let sessionTokenName: string;
 
-export async function checkBackendBasedSessionIdle(store: any): Promise<ParsedInactivitySetting> {
-  let userActivity;
-  const canListSettings = store.getters[`management/canList`](MANAGEMENT.SETTING);
-  const canListUserAct = store.getters[`management/canList`](EXT.USER_ACTIVITY);
-  const canListTokens = store.getters[`rancher/canList`](NORMAN.TOKEN);
+export function getSessionTokenName():string {
+  return sessionTokenName;
+}
 
-  if (canListUserAct && canListTokens && canListSettings) {
-    const hash = {
-      userSessionTtlIdleSetting: store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.AUTH_USER_SESSION_IDLE_TTL_MINUTES }),
-      userSessionTtlSetting:     store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.AUTH_USER_SESSION_TTL_MINUTES }),
-      tokens:                    store.dispatch('rancher/findAll', { type: NORMAN.TOKEN }),
-    };
+export function storeSessionTokenName(tokenName: string) {
+  sessionTokenName = tokenName;
+}
 
-    const res = await allHash(hash);
+export function getStoredUserActivity():UserActivityResponse {
+  return storedUserActivityResponse;
+}
 
-    const userSessionTtlIdleSetting = res.userSessionTtlIdleSetting;
-    const userSessionTtlSetting = res.userSessionTtlSetting;
-    const tokens = res.tokens;
-
-    const ttlIdleValue = parseInt(userSessionTtlIdleSetting?.value || 0);
-    const ttlValue = parseInt(userSessionTtlSetting?.value || 0);
-
-    const sessionToken = tokens.find((token: any) => {
-      // this can be improved once https://github.com/rancher/rancher/issues/51580 is fixed
-      // we should not need to store the UI session token name globally
-      if (sessionTokenName) {
-        return token.name === sessionTokenName;
-      } else {
-        return token.description === 'UI session' && token.current;
-      }
-    });
-
-    // we only consider this feature as enabled IF ttlIdleValue < ttlValue (will be saving XHR requests if they are the same value - "normal" TTL will log out user)
-    if (sessionToken && ttlIdleValue < ttlValue) {
-      sessionTokenName = sessionToken.name;
-
-      try {
-        let requiresFreshData = false;
-
-        if (storedUserActivityResponse.status?.expiresAt) {
-          const currDate = Date.now();
-          const endDate = new Date(storedUserActivityResponse?.status?.expiresAt).getTime();
-
-          if (currDate < endDate) {
-            userActivity = storedUserActivityResponse;
-          } else {
-            requiresFreshData = true;
-          }
-        } else {
-          requiresFreshData = true;
-        }
-
-        // this is the POST to the UserActivity, which will reset the expireAt
-        if (requiresFreshData) {
-          userActivity = await createAndUpdateUserActivityToken(store, sessionTokenName);
-        }
-
-        if (userActivity) {
-          const data = parseTTLData(userActivity);
-          const shownAfter = Math.round(((data.showModalAfter || 0) / 60) * 100) / 100;
-          const shownFor = Math.round(((data.courtesyTimer || 0) / 60) * 100) / 100;
-
-          console.debug(`UI inactivity modal (backend-based) will show after ${ shownAfter }(m) and be shown for ${ shownFor }(m)`); // eslint-disable-line no-console
-
-          return data;
-        }
-
-        console.error(`Could not find any user activity for token ${ sessionTokenName }`); // eslint-disable-line no-console
-
-        return defaultParsedTTLData;
-      } catch (e) {
-        console.error(`Could not update user activity for token ${ sessionTokenName }`, e); // eslint-disable-line no-console
-
-        return defaultParsedTTLData;
-      }
-    } else if (ttlIdleValue === ttlValue) {
-      console.warn('ttlIdleValue === ttlValue, so backend-based session timeout is NOT enabled'); // eslint-disable-line no-console
-    }
-  } else {
-    console.error('Cannot find a userActivity for this session OR this user does not have permissions to list the necessary resources'); // eslint-disable-line no-console
-  }
-
-  return defaultParsedTTLData;
+export function storeUserActivity(userActivity: UserActivityResponse) {
+  storedUserActivityResponse = userActivity;
 }
 
 export async function checkUserActivityData(store: any, sessionTokenName: string): Promise<UserActivityResponse> {
@@ -135,7 +57,7 @@ export async function checkUserActivityData(store: any, sessionTokenName: string
   }
 }
 
-export async function createAndUpdateUserActivityToken(store: any, sessionTokenName: string):Promise<UserActivityResponse> {
+export async function updateUserActivityToken(store: any, sessionTokenName: string):Promise<UserActivityResponse> {
   const updateUserActivity = await store.dispatch('management/create', {
     apiVersion: 'ext.cattle.io/v1',
     kind:       'UserActivity',
@@ -144,10 +66,8 @@ export async function createAndUpdateUserActivityToken(store: any, sessionTokenN
     spec:       { tokenId: sessionTokenName }
   });
 
-  console.error('updateUserActivity', updateUserActivity);
-
   try {
-    const savedData = await updateUserActivity.save();
+    const savedData = await updateUserActivity.save({ force: true });
 
     // update stored data
     storedUserActivityResponse = savedData;
@@ -176,13 +96,6 @@ export function parseTTLData(userActivityData: UserActivityResponse): ParsedInac
   // Amount of time before the user sees the inactivity warning
   // Note - time before warning is shown + time warning is shown = settings threshold (total amount of time)
   const showModalAfter = thresholdSeconds - courtesyTimer;
-
-  console.log('currDate', currDate);
-  console.log('endDate', endDate);
-  console.log('thresholdSeconds', thresholdSeconds);
-  console.log('courtesyTimer', courtesyTimer);
-  console.log('courtesyCountdown', courtesyCountdown);
-  console.log('showModalAfter', showModalAfter);
 
   return {
     enabled:          true,
