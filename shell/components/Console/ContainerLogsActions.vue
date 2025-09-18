@@ -36,12 +36,12 @@ defineEmits([
     >
       <i
         class="icon icon-gear"
-        :alt="t('wm.containerLogs.options')"
+        :alt="t('console.containerLogs.options')"
       />
       <template #after>
         <i
           class="icon icon-chevron-up"
-          :alt="t('wm.containerLogs.expand')"
+          :alt="t('console.containerLogs.expand')"
         />
       </template>
     </rc-dropdown-trigger>
@@ -55,13 +55,13 @@ defineEmits([
         :model-value="wrap"
         @click="$emit('toggleWrap', $event)"
       >
-        {{ t('wm.containerLogs.wrap') }}
+        {{ t('console.containerLogs.wrap') }}
       </rc-dropdown-item-checkbox>
       <rc-dropdown-item-checkbox
         :model-value="timestamps"
         @click="$emit('toggleTimestamps', $event)"
       >
-        {{ t('wm.containerLogs.timestamps') }}
+        {{ t('console.containerLogs.timestamps') }}
       </rc-dropdown-item-checkbox>
     </template>
   </rc-dropdown>

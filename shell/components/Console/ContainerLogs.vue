@@ -10,7 +10,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import Select from '@shell/components/form/Select';
 import VirtualList from 'vue3-virtual-scroll-list';
 import LogItem from '@shell/components/LogItem';
-import ContainerLogsActions from '@shell/components/nav/WindowManager/ContainerLogsActions.vue';
+import ContainerLogsActions from '@shell/components/Console/ContainerLogsActions.vue';
 import { shallowRef } from 'vue';
 import { useStore } from 'vuex';
 import { debounce } from 'lodash';
@@ -197,7 +197,7 @@ export default {
       for ( const x of lines ) {
         value = `${ x } lines`;
         out.push({
-          label: t('wm.containerLogs.range.lines', { value: x }),
+          label: t('console.containerLogs.range.lines', { value: x }),
           value,
         });
         updateFound(value);
@@ -206,7 +206,7 @@ export default {
       for ( const x of minutes ) {
         value = `${ x } minutes`;
         out.push({
-          label: t('wm.containerLogs.range.minutes', { value: x }),
+          label: t('console.containerLogs.range.minutes', { value: x }),
           value
         });
         updateFound(value);
@@ -215,14 +215,14 @@ export default {
       for ( const x of hours ) {
         value = `${ x } hours`;
         out.push({
-          label: t('wm.containerLogs.range.hours', { value: x }),
+          label: t('console.containerLogs.range.hours', { value: x }),
           value,
         });
         updateFound(value);
       }
 
       out.push({
-        label: t('wm.containerLogs.range.all'),
+        label: t('console.containerLogs.range.all'),
         value: 'all'
       });
       updateFound('all');
@@ -595,7 +595,7 @@ export default {
           <template #selected-option="option">
             <t
               v-if="option"
-              k="wm.containerLogs.containerName"
+              k="console.containerLogs.containerName"
               :label="option.label"
             />
           </template>
@@ -604,26 +604,26 @@ export default {
           <button
             class="btn role-primary wm-btn"
             role="button"
-            :aria-label="t('wm.containerLogs.follow')"
+            :aria-label="t('console.containerLogs.follow')"
             :aria-disabled="isFollowing"
             :disabled="isFollowing"
             @click="follow"
           >
             <t
               class="wm-btn-large"
-              k="wm.containerLogs.follow"
+              k="console.containerLogs.follow"
             />
             <i class="wm-btn-small icon icon-chevron-end" />
           </button>
           <button
             class="btn role-primary wm-btn"
             role="button"
-            :aria-label="t('wm.containerLogs.clear')"
+            :aria-label="t('console.containerLogs.clear')"
             @click="clear"
           >
             <t
               class="wm-btn-large"
-              k="wm.containerLogs.clear"
+              k="console.containerLogs.clear"
             />
             <i class="wm-btn-small icon icon-close" />
           </button>
@@ -640,7 +640,7 @@ export default {
         <div class="log-action log-previous ml-5">
           <div>
             <Checkbox
-              :label="t('wm.containerLogs.previous')"
+              :label="t('console.containerLogs.previous')"
               :value="previous"
               @update:value="togglePrevious"
             />
@@ -663,7 +663,7 @@ export default {
             <div
               role="menu"
               tabindex="0"
-              :aria-label="t('wm.containerLogs.logActionMenu')"
+              :aria-label="t('console.containerLogs.logActionMenu')"
               @click="openContainerMenu"
               @blur.capture="closeContainerMenu"
               @keyup.enter="openContainerMenu"
@@ -682,15 +682,15 @@ export default {
                 <button
                   class="btn role-primary btn-cog"
                   role="button"
-                  :aria-label="t('wm.containerLogs.options')"
+                  :aria-label="t('console.containerLogs.options')"
                 >
                   <i
                     class="icon icon-gear"
-                    :alt="t('wm.containerLogs.options')"
+                    :alt="t('console.containerLogs.options')"
                   />
                   <i
                     class="icon icon-chevron-up"
-                    :alt="t('wm.containerLogs.expand')"
+                    :alt="t('console.containerLogs.expand')"
                   />
                 </button>
 
@@ -699,7 +699,7 @@ export default {
                     <LabeledSelect
                       v-model:value="range"
                       class="range"
-                      :label="t('wm.containerLogs.range.label')"
+                      :label="t('console.containerLogs.range.label')"
                       :options="rangeOptions"
                       :clearable="false"
                       placement="top"
@@ -708,7 +708,7 @@ export default {
                     />
                     <div>
                       <Checkbox
-                        :label="t('wm.containerLogs.wrap')"
+                        :label="t('console.containerLogs.wrap')"
                         :value="wrap"
                         role="menuitem"
                         @update:value="toggleWrap"
@@ -716,7 +716,7 @@ export default {
                     </div>
                     <div>
                       <Checkbox
-                        :label="t('wm.containerLogs.timestamps')"
+                        :label="t('console.containerLogs.timestamps')"
                         :value="timestamps"
                         role="menuitem"
                         @update:value="toggleTimestamps"
@@ -735,15 +735,15 @@ export default {
             class="input-sm"
             type="search"
             role="textbox"
-            :aria-label="t('wm.containerLogs.searchLogs')"
-            :placeholder="t('wm.containerLogs.search')"
+            :aria-label="t('console.containerLogs.searchLogs')"
+            :placeholder="t('console.containerLogs.search')"
           >
         </div>
 
         <div class="status log-action p-10">
           <t
             :class="{'text-success': isOpen, 'text-error': !isOpen}"
-            :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'"
+            :k="isOpen ? 'console.connection.connected' : 'console.connection.disconnected'"
           />
         </div>
       </div>
@@ -766,10 +766,10 @@ export default {
         />
         <template v-if="!filtered.length">
           <div v-if="search">
-            <span class="msg text-muted">{{ t('wm.containerLogs.noMatch') }}</span>
+            <span class="msg text-muted">{{ t('console.containerLogs.noMatch') }}</span>
           </div>
           <div v-else>
-            <span class="msg text-muted">{{ t('wm.containerLogs.noData') }}</span>
+            <span class="msg text-muted">{{ t('console.containerLogs.noData') }}</span>
           </div>
         </template>
       </div>

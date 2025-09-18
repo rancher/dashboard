@@ -6,6 +6,8 @@ import {
 } from '@shell/utils/position';
 
 export default {
+  name: 'PrimarySideWindow',
+
   emits: ['draggable'],
 
   data() {
@@ -83,7 +85,7 @@ export default {
   watch: {
     userPin(v) {
       if (this.open) {
-        this.setWmDimensions();
+        this.setDimensions();
         if (v === LEFT || v === RIGHT) {
           this.setReportedHeight(window.innerHeight - 55);
         }
@@ -127,7 +129,7 @@ export default {
     },
 
     show() {
-      this.setWmDimensions();
+      this.setDimensions();
       this.$store.commit('wm/setOpen', true);
     },
 
@@ -261,7 +263,7 @@ export default {
       this.reportedWidth = this.width;
     },
 
-    setWmDimensions(forceValue) {
+    setDimensions(forceValue) {
       switch (this.userPin) {
       case RIGHT:
       case LEFT:
@@ -301,7 +303,7 @@ export default {
 
       this.height = height;
 
-      this.setWmDimensions(height);
+      this.setDimensions(height);
       this.setReportedHeight(height);
     },
 
@@ -317,7 +319,7 @@ export default {
 
       this.width = width;
 
-      this.setWmDimensions(width);
+      this.setDimensions(width);
       this.setReportedWidth(width);
     }
   }
@@ -327,9 +329,9 @@ export default {
 <template>
   <div
     v-if="open"
-    id="windowmanager"
-    data-testid="windowmanager"
-    class="windowmanager"
+    id="primary-side-window"
+    data-testid="primary-side-window"
+    class="primary-side-window"
     :class="{[pinClass]: true}"
   >
     <div
@@ -349,7 +351,7 @@ export default {
         class="resizer resizer-x"
         role="button"
         tabindex="0"
-        :aria-label="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
+        :aria-label="t('console.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
         aria-expanded="true"
         @mousedown.prevent.stop="dragXStart($event)"
         @touchstart.prevent.stop="dragXStart($event)"
@@ -358,7 +360,7 @@ export default {
       >
         <i
           class="icon icon-code"
-          :alt="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
+          :alt="t('console.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
         />
       </div>
       <div
@@ -378,15 +380,15 @@ export default {
           v-if="tab.icon"
           class="icon"
           :class="{['icon-'+ tab.icon]: true}"
-          :alt="t('wm.containerShell.tabIcon')"
+          :alt="t('console.containerShell.tabIcon')"
         />
         <span class="tab-label"> {{ tab.label }}</span>
         <i
           data-testid="wm-tab-close-button"
           class="closer icon icon-x wm-closer-button"
-          :alt="t('wm.containerShell.closeShellTab', { tab: tab.label })"
+          :alt="t('console.containerShell.closeShellTab', { tab: tab.label })"
           tabindex="0"
-          :aria-label="t('windowmanager.closeTab', { tabId: tab.id })"
+          :aria-label="t('console.closeTab', { tabId: tab.id })"
           @click.stop="close(tab.id)"
           @keyup.enter.space.stop="close(tab.id)"
         />
@@ -396,7 +398,7 @@ export default {
         class="resizer resizer-y"
         role="button"
         tabindex="0"
-        :aria-label="t('wm.containerShell.resizeShellWindow', {arrow1: 'up', arrow2: 'down'})"
+        :aria-label="t('console.containerShell.resizeShellWindow', {arrow1: 'up', arrow2: 'down'})"
         aria-expanded="true"
         @mousedown.prevent.stop="dragYStart($event)"
         @touchstart.prevent.stop="dragYStart($event)"
@@ -406,7 +408,7 @@ export default {
       >
         <i
           class="icon icon-sort"
-          :alt="t('wm.containerShell.resizeShellWindow', {arrow1: 'up', arrow2: 'down'})"
+          :alt="t('console.containerShell.resizeShellWindow', {arrow1: 'up', arrow2: 'down'})"
         />
       </div>
       <div
@@ -414,7 +416,7 @@ export default {
         class="resizer resizer-x resizer-align-right"
         role="button"
         tabindex="0"
-        :aria-label="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
+        :aria-label="t('console.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
         aria-expanded="true"
         @mousedown.prevent.stop="dragXStart($event)"
         @touchstart.prevent.stop="dragXStart($event)"
@@ -423,7 +425,7 @@ export default {
       >
         <i
           class="icon icon-code"
-          :alt="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
+          :alt="t('console.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
         />
       </div>
     </div>
@@ -453,7 +455,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .windowmanager {
+  .primary-side-window {
     display: grid;
     height: var(--wm-height, 0);
 

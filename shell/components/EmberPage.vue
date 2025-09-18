@@ -8,7 +8,7 @@ import { findEmberPage, clearEmberInactiveTimer, startEmberInactiveTimer, EMBER_
 
 const EMBER_FRAME_HIDE_CLASS = 'ember-iframe-hidden';
 const PAGE_CHECK_TIMEOUT = 30000;
-const WINDOW_MANAGER = 'windowmanager';
+const CONSOLE_WINDOW = 'primary-side-window';
 
 // Pages that we should intercept when loaded in the IFRAME and instead
 // navigate to a page in Cluster Dashboard
@@ -333,18 +333,18 @@ export default {
           iframeEl.width = w;
         }
       } else {
-        // Ensure the height takes into count the window manger height
-        const wm = document.getElementById(WINDOW_MANAGER);
+        // Ensure the height takes into count the console height
+        const console = document.getElementById(CONSOLE_WINDOW);
 
-        if (wm) {
-          const wmh = wm.offsetHeight;
+        if (console) {
+          const consoleHeight = console.offsetHeight;
 
-          if (wmh !== this.wmHeight) {
+          if (consoleHeight !== this.consoleHeight) {
             // Adjust the bottom
             const iframeEl = findEmberPage();
 
-            iframeEl.style.height = `calc(100vh - var(--header-height) - ${ wmh }px)`;
-            this.wmHeight = wmh;
+            iframeEl.style.height = `calc(100vh - var(--header-height) - ${ consoleHeight }px)`;
+            this.consoleHeight = consoleHeight;
           }
         }
       }
