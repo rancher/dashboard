@@ -247,7 +247,7 @@ export default {
       }
 
       return {
-        name: 'downgrade', chartDetailTKey: 'downgrade', icon: 'icon-upgrade-alt'
+        name: 'downgrade', chartDetailTKey: 'downgrade', icon: 'icon-history'
       };
     },
 

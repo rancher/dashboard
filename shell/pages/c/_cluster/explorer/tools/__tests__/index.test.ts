@@ -117,7 +117,7 @@ describe('page: cluster tools', () => {
       });
       expect(actions[2]).toStrictEqual({
         label:  'catalog.tools.action.downgrade',
-        icon:   'icon-upgrade-alt',
+        icon:   'icon-history',
         action: 'downgrade'
       });
       expect(actions[3]).toStrictEqual({ divider: true });

@@ -235,7 +235,7 @@ describe('chartMixin', () => {
       expect(wrapper.vm.action).toStrictEqual({
         name:            'downgrade',
         chartDetailTKey: 'downgrade',
-        icon:            'icon-upgrade-alt',
+        icon:            'icon-history',
       });
     });
   });
