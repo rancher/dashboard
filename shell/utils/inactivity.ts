@@ -43,8 +43,11 @@ export function storeUserActivity(userActivity: UserActivityResponse) {
 }
 
 export async function checkUserActivityData(store: any, sessionTokenName: string): Promise<UserActivityResponse> {
+  // needs "force" for reactivity
   try {
-    const updatedData = await store.dispatch('management/find', { type: EXT.USER_ACTIVITY, id: sessionTokenName });
+    const updatedData = await store.dispatch('management/find', {
+      type: EXT.USER_ACTIVITY, id: sessionTokenName, opt: { force: true }
+    });
 
     // update stored data
     storedUserActivityResponse = updatedData;

@@ -27,7 +27,6 @@ export default {
   data() {
     return {
       sessionTokenName:      null,
-      isFeatureInitialized:  false,
       tokens:                [],
       isUserActive:          false,
       tenSecondToGoCheckRan: false,
@@ -117,18 +116,22 @@ export default {
       }
     },
     watcherData: {
-      async handler(neu) {
-        console.error('watcherData RAN!!!', neu);
+      async handler(neu, old) {
+        console.error('watcherData RAN neu!!!', neu);
+        console.error('watcherData RAN old!!!', old);
         const currDate = Date.now();
         const endDate = new Date(neu.userActivityExpiresAt || '0001-01-01 00:00:00 +0000 UTC').getTime();
 
-        // this means that all conditions are met to start the timers
-        if (endDate > currDate && neu.sessionTokenName) {
+        // this covers the scenario where the TTL setting have changed
+        // but the userActivity hasn't updated yet because it's an async operation
+        if (neu?.ttlIdleValue !== old?.ttlIdleValue && neu?.userActivityExpiresAt === old?.userActivityExpiresAt) {
+          this.stopInactivity();
+          // this means that all conditions are met to start the timers
+        } else if (endDate > currDate && neu?.sessionTokenName) {
           console.error('watcherData passed gate 1!!!');
           console.error('neu.ttlIdleValue < neu.ttlValue', neu.ttlIdleValue < neu.ttlValue);
-          console.error('this.isFeatureInitialized', this.isFeatureInitialized);
           // feature is considered as enabled
-          if ((neu.ttlIdleValue < neu.ttlValue) && !this.isFeatureInitialized) {
+          if (neu.ttlIdleValue < neu.ttlValue) {
             console.error('watcherData passed gate 2!!!');
             this.clearAllTimeouts();
 
@@ -153,16 +156,8 @@ export default {
             this.trackInactivity();
             // add event listeners for UI interaction
             this.addIdleListeners();
-
-            this.isFeatureInitialized = true;
-          } else if (this.isFeatureInitialized) {
-            this.isFeatureInitialized = false;
-            this.tenSecondToGoCheckRan = false;
-            this.isOpen = false;
-            this.isUserActive = false;
-
-            this.removeEventListeners();
-            this.clearAllTimeouts();
+          } else {
+            this.stopInactivity();
           }
         }
       },
@@ -316,6 +311,14 @@ export default {
       const userActivityData = await updateUserActivityToken(this.$store, this.sessionTokenName);
 
       this.resetInactivityDataAndTimers(userActivityData);
+    },
+    stopInactivity() {
+      this.tenSecondToGoCheckRan = false;
+      this.isOpen = false;
+      this.isUserActive = false;
+
+      this.removeEventListeners();
+      this.clearAllTimeouts();
     },
     resetInactivityDataAndTimers(userActivityData) {
       const data = parseTTLData(userActivityData);
