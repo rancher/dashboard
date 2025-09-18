@@ -130,7 +130,20 @@ export type Card = {
   component: Function;
 };
 
-export type TableColumn = any;
+export type TableColumn = {
+  name?: string;
+  label?: string;
+  labelKey?: string;
+  sort?: string | string[];
+  search?: string | string[];
+  value?: string;
+  getValue?: () => any;
+  width?: number;
+  default?: string;
+  formatter?: string;
+  canBeVariable?: boolean;
+  defaultSort?: boolean;
+};
 
 /** Definition of a tab (options that can be passed when defining an extension tab enhancement) */
 export type Tab = {
