@@ -165,6 +165,7 @@ export default {
       <LabeledInput
         v-if="!config.skipSSLVerify"
         v-model:value="config.endpointCA"
+        :mode="mode"
         type="multiline"
         :label="t('cluster.rke2.etcd.s3config.endpointCA.label')"
         :placeholder="ccData.defaultEndpointCA"

@@ -162,6 +162,7 @@ export default defineComponent({
       <div class="col-basics span-6 mt-15">
         <Checkbox
           v-model:value="showDeprecatedPatchVersions"
+          :mode="mode"
           :label="t('cluster.kubernetesVersion.deprecatedPatches')"
           :tooltip="t('cluster.kubernetesVersion.deprecatedPatchWarning')"
           :disabled="versionInformationDisabled"

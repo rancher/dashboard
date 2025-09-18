@@ -41,6 +41,7 @@ export default {
     <YamlEditor
       ref="yaml-additional"
       v-model:value="additionalManifest"
+      :mode="mode"
       :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
       initial-yaml-values="# Additional Manifest YAML"
       class="yaml-editor"

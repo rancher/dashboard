@@ -493,6 +493,7 @@ export default {
         />
         <Checkbox
           :value="showDeprecatedPatchVersions"
+          :mode="mode"
           :label="t('cluster.kubernetesVersion.deprecatedPatches')"
           :tooltip="t('cluster.kubernetesVersion.deprecatedPatchWarning')"
           class="patch-version"
