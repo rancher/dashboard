@@ -171,13 +171,13 @@ describe('chartMixin', () => {
       });
 
       expect(wrapper.vm.action).toStrictEqual({
-        name: 'install',
-        tKey: 'install',
-        icon: 'icon-plus',
+        name:            'install',
+        chartDetailTKey: 'install',
+        icon:            'icon-plus',
       });
     });
 
-    it('should return "update" action when installed and on same version', () => {
+    it('should return "editVersion" action when installed and on same version', () => {
       const wrapper = mount(DummyComponent, {
         data: () => ({
           existing: { spec: { chart: { metadata: { version: '1.0.0' } } } },
@@ -192,13 +192,13 @@ describe('chartMixin', () => {
       });
 
       expect(wrapper.vm.action).toStrictEqual({
-        name: 'update',
-        tKey: 'editVersion',
-        icon: 'icon-edit',
+        name:            'editVersion',
+        chartDetailTKey: 'edit',
+        icon:            'icon-edit',
       });
     });
 
-    it('should return "upgrade" action when installed and on different version', () => {
+    it('should return "upgrade" action when installed and on a newer version', () => {
       const wrapper = mount(DummyComponent, {
         data: () => ({
           existing: { spec: { chart: { metadata: { version: '1.0.0' } } } },
@@ -213,9 +213,29 @@ describe('chartMixin', () => {
       });
 
       expect(wrapper.vm.action).toStrictEqual({
-        name: 'upgrade',
-        tKey: 'upgrade',
-        icon: 'icon-upgrade-alt',
+        name:            'upgradeVersion',
+        chartDetailTKey: 'upgrade',
+        icon:            'icon-upgrade-alt',
+      });
+    });
+    it('should return "downgrade" action when installed and on an older version', () => {
+      const wrapper = mount(DummyComponent, {
+        data: () => ({
+          existing: { spec: { chart: { metadata: { version: '1.0.1' } } } },
+          version:  { version: '1.0.0' }
+        }),
+        global: {
+          mocks: {
+            $store: mockStore,
+            $route: { query: {} }
+          }
+        }
+      });
+
+      expect(wrapper.vm.action).toStrictEqual({
+        name:            'downgrade',
+        chartDetailTKey: 'downgrade',
+        icon:            'icon-upgrade-alt',
       });
     });
   });

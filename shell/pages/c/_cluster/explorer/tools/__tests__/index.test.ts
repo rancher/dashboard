@@ -15,8 +15,8 @@ describe('page: cluster tools', () => {
           content:        { text: 'Some description' },
           image:          { src: '' },
           subHeaderItems: [],
-          installedApp:   {},
-          rawChart:       { blocked: false }
+          installedApp:   { spec: { chart: { metadata: { version: '1.0.0' } } } },
+          rawChart:       { versions: [{ version: '1.0.0' }], blocked: false }
         }
       ]
     },
@@ -93,36 +93,69 @@ describe('page: cluster tools', () => {
       });
     });
 
-    it('should return "edit" action for an installed chart with no upgrade', () => {
+    it('should return all actions for an installed chart', () => {
       const wrapper = shallowMount(ClusterTools, mountOptions);
       const card = {
-        installedApp: { upgradeAvailable: APP_UPGRADE_STATUS.NO_UPGRADE },
-        rawChart:     {}
+        installedApp: {
+          spec:             { chart: { metadata: { version: '1.0.1' } } },
+          upgradeAvailable: APP_UPGRADE_STATUS.SINGLE_UPGRADE
+        },
+        rawChart: { versions: [{ version: '1.0.2' }, { version: '1.0.1' }, { version: '1.0.0' }] }
       };
       const actions = wrapper.vm.getCardActions(card);
 
-      expect(actions).toHaveLength(2); // Edit and Remove
-      expect(actions[0]).toStrictEqual({
-        label:  'catalog.tools.action.edit',
-        icon:   'icon-edit',
-        action: 'edit',
-      });
-    });
-
-    it('should return "upgrade" action for an installed chart with an upgrade', () => {
-      const wrapper = shallowMount(ClusterTools, mountOptions);
-      const card = {
-        installedApp: { upgradeAvailable: APP_UPGRADE_STATUS.SINGLE_UPGRADE },
-        rawChart:     {}
-      };
-      const actions = wrapper.vm.getCardActions(card);
-
-      expect(actions).toHaveLength(2); // Upgrade and Remove
+      expect(actions).toHaveLength(5); // Upgrade, Edit, Downgrade, separator, Remove
       expect(actions[0]).toStrictEqual({
         label:  'catalog.tools.action.upgrade',
         icon:   'icon-upgrade-alt',
-        action: 'edit',
+        action: 'upgrade'
       });
+      expect(actions[1]).toStrictEqual({
+        label:  'catalog.tools.action.edit',
+        icon:   'icon-edit',
+        action: 'edit'
+      });
+      expect(actions[2]).toStrictEqual({
+        label:  'catalog.tools.action.downgrade',
+        icon:   'icon-upgrade-alt',
+        action: 'downgrade'
+      });
+      expect(actions[3]).toStrictEqual({ divider: true });
+      expect(actions[4]).toStrictEqual({
+        label:  'catalog.tools.action.remove',
+        icon:   'icon-delete',
+        action: 'remove'
+      });
+    });
+
+    it('should not show upgrade if not available', () => {
+      const wrapper = shallowMount(ClusterTools, mountOptions);
+      const card = {
+        installedApp: {
+          spec:             { chart: { metadata: { version: '1.0.2' } } },
+          upgradeAvailable: APP_UPGRADE_STATUS.NO_UPGRADE
+        },
+        rawChart: { versions: [{ version: '1.0.2' }, { version: '1.0.1' }, { version: '1.0.0' }] }
+      };
+      const actions = wrapper.vm.getCardActions(card);
+
+      expect(actions.find((a) => a.action === 'upgrade')).toBeUndefined();
+      expect(actions).toHaveLength(4); // Edit, Downgrade, separator, Remove
+    });
+
+    it('should not show downgrade if not available', () => {
+      const wrapper = shallowMount(ClusterTools, mountOptions);
+      const card = {
+        installedApp: {
+          spec:             { chart: { metadata: { version: '1.0.0' } } },
+          upgradeAvailable: APP_UPGRADE_STATUS.SINGLE_UPGRADE
+        },
+        rawChart: { versions: [{ version: '1.0.1' }, { version: '1.0.0' }] }
+      };
+      const actions = wrapper.vm.getCardActions(card);
+
+      expect(actions.find((a) => a.action === 'downgrade')).toBeUndefined();
+      expect(actions).toHaveLength(4); // Upgrade, Edit, separator, Remove
     });
   });
 });
