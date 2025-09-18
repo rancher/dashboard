@@ -45,7 +45,7 @@ $primary-80      : #4871C7;
 $primary-75      : #454F68; // Category active dark
 $primary-60      : #75A1FF;
 $primary-55      : #81AEFC;
-$primary-50      : #C7D3EB; // Active dark
+$primary-50      : #A7BFF1; // Active dark
 $primary-20      : #EDF2FC;
 $primary-15      : #EEF1F6; // Category active light
 $secondary       : $grey-50;
@@ -735,7 +735,7 @@ BODY, .theme-dark {
   // Local variables for reused colors
 
   //dark sidebar
-  $darkest: #262A30;
+  $darkest: #171C22;
 
   //dark body
   $darker: #1b1c21;
@@ -758,9 +758,9 @@ BODY, .theme-dark {
   // menu cluster description active+hover
   $desc-light: #EEEFF4;
 
-  $success         : #00FF32;
-  $warning         : #FFCA4D;
-  $error           : #B13333;
+  $success         : #008F40;
+  $warning         : #EAC431;
+  $error           : #C63434;
   $info            : #1F67DB;
 
   $secondary: $lighter;
@@ -771,11 +771,11 @@ BODY, .theme-dark {
   $contrasted-light: $darkest !default;
 
   $drag-over: #DCDEE7;
-  $body-bg  : #2D3139;
+  $body-bg  : #25282F;
 
   $slate: #4B4F6B;
 
-  --body-border: #495361;
+  --body-border: #38404B;
   --link       : #{$primary-55};
 
   --primary-border: var(--link);
@@ -807,14 +807,14 @@ BODY, .theme-dark {
 
   --toggle-on-bg      : var(--active);
   --toggle-on-color   : var(--on-active);
-  --toggle-off-bg     : #{$grey-80};
+  --toggle-off-bg     : #303542;
   --toggle-off-color  : #{$grey-30};
   --toggle-off-hover  : #{$grey-90};
 
   --slate: #{$slate};
 
   --default                    : #{$dark};
-  --default-text               : #{$light};
+  --default-text               : #FFFAFA;
   --default-hover-bg           : #{darken($dark, 10%)};
   --default-hover-text         : #{saturate($lightest, 20%)};
   --default-active-bg          : #{darken($dark, 25%)};
@@ -829,7 +829,7 @@ BODY, .theme-dark {
   --deemphasized               : #{$disabled};
 
   --body-bg                    : #{$body-bg};
-  --body-text                  : #{$lightest};
+  --body-text                  : #FFFAFA;
   --body-text-hover            : var(--body-text);
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$medium};
@@ -923,9 +923,9 @@ BODY, .theme-dark {
   --progress-bg                : #{$medium};
   --progress-divider           : #{$lightest};
 
-  --sortable-table-bg           : #262A30;
+  --sortable-table-bg           : #171C22;
   --sortable-table-row-bg       : var(--body-bg);
-  --sortable-table-header-bg    : #262A30;
+  --sortable-table-header-bg    : #171C22;
   --sortable-table-top-divider  : var(--body-border);
   --sortable-table-hover-bg     : #{lighten($body-bg, 5%)};
   --sortable-table-selected-bg  : #{lighten($body-bg, 15%)};
