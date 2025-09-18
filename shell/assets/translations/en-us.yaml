@@ -498,6 +498,29 @@ authConfig:
         label: Installation ID
       privateKey:
         label: Private Key
+      form:
+        prefix:
+          1: <li><a href="{baseUrl}/settings/organizations" target="_blank" rel="noopener noreferrer nofollow">Click here</a> to go to GitHub organization settings in a new window.</li>
+          2: <li>To the right of the organization, click Settings.</li>
+          3: <li>In the left sidebar, click Developer settings.</li>
+          4: <li>In the left sidebar, click GitHub Apps.</li>
+          5: <li>Click New Github App.</li>
+        instruction: 'Fill in the form with these values:'
+        app:
+          label: GitHub App name 
+          value: 'Anything you like, e.g. My {vendor}'
+        callback:
+          label: Callback URL
+        description:
+          label: Application description
+          value: 'Optional, can be left blank'
+        homepage:
+          label: Homepage URL
+        suffix:
+          1: <li>Click "Create Github App"</li>
+          2: <li>Click "Generate a new client secret"</li>
+          3: <li>Click "Generate a private key"</li>
+          4: <li>Copy and paste the App ID, Client ID, Client Secret, and Private Key of your newly created OAuth app into the fields below</li>
     form:
       app:
         label: Application name
