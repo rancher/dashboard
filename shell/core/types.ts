@@ -130,20 +130,8 @@ export type Card = {
   component: Function;
 };
 
-export type TableColumn = {
-  name?: string;
-  label?: string;
-  labelKey?: string;
-  sort?: string | string[];
-  search?: string | string[];
-  value?: string;
-  getValue?: () => any;
-  width?: number;
-  default?: string;
-  formatter?: string;
-  canBeVariable?: boolean;
-  defaultSort?: boolean;
-};
+// Duplication of HeaderOptions?
+export type TableColumn = any;
 
 /** Definition of a tab (options that can be passed when defining an extension tab enhancement) */
 export type Tab = {
@@ -341,7 +329,7 @@ export interface HeaderOptions {
   formatterOpts?: any;
 
   /**
-   * Provide a function which accets a row and returns the value that should be displayed in the column
+   * Provide a function which accepts a row and returns the value that should be displayed in the column
    * @param row This can be any value which represents the row
    * @returns Can return {@link string | number | null | undefined} to display in the column
    */
