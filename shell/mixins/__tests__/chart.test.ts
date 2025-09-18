@@ -171,9 +171,9 @@ describe('chartMixin', () => {
       });
 
       expect(wrapper.vm.action).toStrictEqual({
-        name:            'install',
-        chartDetailTKey: 'install',
-        icon:            'icon-plus',
+        name: 'install',
+        tKey: 'install',
+        icon: 'icon-plus',
       });
     });
 
@@ -192,9 +192,9 @@ describe('chartMixin', () => {
       });
 
       expect(wrapper.vm.action).toStrictEqual({
-        name:            'editVersion',
-        chartDetailTKey: 'edit',
-        icon:            'icon-edit',
+        name: 'editVersion',
+        tKey: 'edit',
+        icon: 'icon-edit',
       });
     });
 
@@ -213,9 +213,9 @@ describe('chartMixin', () => {
       });
 
       expect(wrapper.vm.action).toStrictEqual({
-        name:            'upgradeVersion',
-        chartDetailTKey: 'upgrade',
-        icon:            'icon-upgrade-alt',
+        name: 'upgradeVersion',
+        tKey: 'upgrade',
+        icon: 'icon-upgrade-alt',
       });
     });
     it('should return "downgrade" action when installed and on an older version', () => {
@@ -233,9 +233,9 @@ describe('chartMixin', () => {
       });
 
       expect(wrapper.vm.action).toStrictEqual({
-        name:            'downgrade',
-        chartDetailTKey: 'downgrade',
-        icon:            'icon-history',
+        name: 'downgrade',
+        tKey: 'downgrade',
+        icon: 'icon-history',
       });
     });
   });

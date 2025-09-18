@@ -1300,7 +1300,7 @@ export default {
       :banner-title="stepperName"
       :banner-title-subtext="stepperSubtext"
       :finish-mode="action.name"
-      :header-mode="action.chartDetailTKey"
+      :header-mode="action.tKey"
       class="wizard"
       :class="{'windowsIncompatible': windowsIncompatible}"
       @cancel="cancel"

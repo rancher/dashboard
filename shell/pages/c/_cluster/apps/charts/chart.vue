@@ -296,7 +296,7 @@ export default {
         <i
           :class="['icon', action.icon, 'mmr-2']"
         />
-        {{ t(`catalog.chart.chartButton.action.${action.chartDetailTKey}` ) }}
+        {{ t(`catalog.chart.chartButton.action.${action.tKey}` ) }}
       </RcButton>
     </div>
 
