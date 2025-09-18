@@ -6,6 +6,10 @@ on:
       - 'pkg/rancher-components/**/*'
       - 'shell/components/**/*'
       - 'shell/assets/**/*'
+      - 'shell/utils/**/*'
+      - 'shell/directives/**/*'
+      - 'shell/config/**/*'
+      - 'shell/composables/**/*'
     branches:
       - master
   pull_request:
@@ -14,6 +18,10 @@ on:
       - 'pkg/rancher-components/**/*'
       - 'shell/components/**/*'
       - 'shell/assets/**/*'
+      - 'shell/utils/**/*'
+      - 'shell/directives/**/*'
+      - 'shell/config/**/*'
+      - 'shell/composables/**/*'
     branches:
       - master
 jobs:
