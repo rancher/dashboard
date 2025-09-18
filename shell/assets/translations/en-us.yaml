@@ -8886,6 +8886,9 @@ component:
         title: Config
   resource:
     detail:
+      copyToClipboard:
+        ariaLabel:
+          copy: Copy to clipboard
       card:
         resourceUsage:
           used: Used
@@ -8940,6 +8943,8 @@ component:
         keyValue:
           noRows: There are no {propertyName} configured on this resource.
           showConfiguration: Show Configuration
+          ariaLabel:
+            showPreview: Show Preview
       glance:
         state: State
         age: Age
