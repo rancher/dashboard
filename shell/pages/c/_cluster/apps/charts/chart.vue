@@ -280,7 +280,11 @@ export default {
           </div>
         </div>
         <div class="header-bottom">
-          <AppChartCardFooter :items="headerContent.footerItems" />
+          <AppChartCardFooter
+            :clickable="true"
+            :items="headerContent.footerItems"
+            @click:item="handleHeaderItemClick"
+          />
         </div>
       </div>
       <RcButton
