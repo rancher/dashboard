@@ -391,6 +391,15 @@ export default class ProvCluster extends SteveModel {
       const pCluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, this.id);
       const name = this.status?.clusterName || pCluster?.status?.clusterName;
 
+      try {
+        if (name) {
+          // Just in case we're not generically watching all mgmt clusters and...
+          // thus won't receive new mgmt cluster over socket...
+          // fire and forget a request to fetch it (this won't make multiple requests if one is already running)
+          this.$dispatch('find', { type: MANAGEMENT.CLUSTER, id: name });
+        }
+      } catch {}
+
       return name && !!this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, name);
     }, this.$rootGetters['i18n/t']('cluster.managementTimeout'), timeout, interval);
   }

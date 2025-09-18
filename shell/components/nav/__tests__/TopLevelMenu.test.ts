@@ -3,6 +3,7 @@ import { mount, Wrapper } from '@vue/test-utils';
 import { CAPI, COUNT, MANAGEMENT } from '@shell/config/types';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { nextTick } from 'vue';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 
 /**
  * `clusters` doubles up as both mgmt and prov clusters (don't shoot the messenger)
@@ -53,6 +54,7 @@ const waitForIt = async() => {
 describe('topLevelMenu', () => {
   beforeEach(() => {
     jest.useFakeTimers();
+    sideNavService.reset();
   });
 
   afterEach(() => {
