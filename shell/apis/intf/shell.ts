@@ -1,5 +1,32 @@
 import { Component } from 'vue';
 
+export type GrowlMessage = {
+  title: string;
+
+  message?: string;
+
+  // Use enums not strings
+  type?: 'success' | 'info' | 'warning' | 'error';
+
+  /**
+   * Optional duration (in milliseconds) for which the notification should be displayed.
+   * Defaults to `5000` milliseconds. A value of `0` keeps the notification indefinitely.
+   */
+  timeout?: number;  
+}
+
+/**
+ * API for displaying growls
+ */
+export interface GrowlApi {
+  /**
+   * Shows a growl
+   *
+   * @param message Message to show in the growl
+   */
+  show(message: GrowlMessage): void;
+}
+
 /**
  * Configuration object for opening a modal.
  */
@@ -74,4 +101,56 @@ export interface ModalConfig {
    * ```
    */
   // modalSticky?: boolean; // Not implemented yet
+}
+
+/**
+ * API for displaying modals
+ */
+export interface ModalApi {
+  /**
+   * Opens a modal dialog
+   *
+   * @param config Modal configuration
+   */
+  open(config: ModalConfig): void;
+}
+
+/**
+ * Configuration object for opening a slide-in panel.
+ *
+ * @property component - The Vue component to render in the slide-in panel.
+ *                       This should be a valid Vue Component, such as an imported SFC or functional component.
+ *
+ * @property componentProps - (Optional) An object containing props to be passed to the component rendered in the slide-in panel.
+ *                            Keys should match the props defined in the provided component.
+ */
+export interface SlideInConfig {
+  component: Component | null;
+  componentProps?: Record<string, any>;
+}
+
+export interface SlideInApi {
+  /**
+   * Opens the slide in
+   *
+   * @param config Slide-in configuration
+   */
+  open(config: SlideInConfig): void;
+}
+
+export interface ShellApi {
+  /**
+   * Provides access to the growl API
+   */
+  get growl(): GrowlApi;
+
+  /**
+   * Provides access to the modal API
+   */
+  get modal(): ModalApi;
+
+  /**
+   * Provides access to the slide-in API
+   */
+  get slideIn(): SlideInApi;  
 }
