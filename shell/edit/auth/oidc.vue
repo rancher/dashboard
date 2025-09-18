@@ -15,6 +15,8 @@ import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 import { BASE_SCOPES } from '@shell/store/auth';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
+import FormValidation from '@shell/mixins/form-validation';
+import isUrl from 'is-url';
 
 export default {
   components: {
@@ -33,7 +35,9 @@ export default {
     CopyToClipboardText,
   },
 
-  mixins: [CreateEditView, AuthConfig],
+  emits: ['validationChanged'],
+
+  mixins: [CreateEditView, AuthConfig, FormValidation],
 
   data() {
     return {
@@ -56,8 +60,11 @@ export default {
         userInfoEndpoint: null,
       },
       // TODO #13457: this is duplicated due wrong format
-      oidcScope: [],
-      SLO_OPTION_VALUES
+      oidcScope:      [],
+      SLO_OPTION_VALUES,
+      fvFormRuleSets: [
+        { path: 'endSessionEndpoint', rules: ['required', 'url'] },
+      ]
     };
   },
 
@@ -91,7 +98,7 @@ export default {
       }
 
       // make sure that if SLO options are enabled on radio group, field "endSessionEndpoint" is required
-      if (this.isLogoutAllSupported && this.sloEndSessionEndpointUiEnabled && !this.model.endSessionEndpoint) {
+      if (this.isLogoutAllSupported && this.sloEndSessionEndpointUiEnabled && (!this.model.endSessionEndpoint || !isUrl(this.model.endSessionEndpoint))) {
         return false;
       }
 
@@ -161,6 +168,10 @@ export default {
   },
 
   watch: {
+    fvFormIsValid(newValue) {
+      this.$emit('validationChanged', !!newValue);
+    },
+
     'oidcUrls.url'() {
       this.updateEndpoints();
     },
@@ -583,6 +594,7 @@ export default {
                 :mode="mode"
                 required
                 data-testid="oidc-endSessionEndpoint"
+                :rules="fvGetAndReportPathRules('endSessionEndpoint')"
               />
             </div>
           </div>

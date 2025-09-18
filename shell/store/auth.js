@@ -143,10 +143,18 @@ export const actions = {
     commit('initialPass', pass);
   },
 
-  getAuthProviders({ dispatch }) {
+  getAuthProviders({ dispatch }, opt) {
+    let force = false;
+
+    if (opt?.force) {
+      force = true;
+    }
+
     return dispatch('rancher/findAll', {
       type: 'authProvider',
-      opt:  { url: `/v3-public/authProviders`, watch: false }
+      opt:  {
+        url: `/v3-public/authProviders`, watch: false, force
+      }
     }, { root: true });
   },
 
