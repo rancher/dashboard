@@ -873,7 +873,7 @@ BODY, .theme-dark {
   --accent-btn-hover           : var(--primary);
   --accent-btn-hover-text      : #{$lightest};
 
-  --modal-bg                   : #{$dark};
+  --modal-bg                   : #{$body-bg};
   --modal-border               : #{$medium};
   --subtle-overlay-bg          : #{rgba($darkest, 0.75)};
   --overlay-bg                 : #{rgba($darkest, 0.75)};
