@@ -200,8 +200,8 @@ export default function(
       return message;
     }
 
-    // Test http(s) protocol
-    if (protocol && (!/^(http|http(s))/gm.test(protocol) || (!url.startsWith('https://') && !url.startsWith('http://')))) {
+    // Test http(s)/ssh protocol
+    if (protocol && (!/^(http|https|ssh)$/gm.test(protocol) || (!url.startsWith('https://') && !url.startsWith('http://') && !url.startsWith('ssh://')))) {
       return message;
     }
 
