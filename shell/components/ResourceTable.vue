@@ -341,6 +341,29 @@ export default {
 
         // adding extension defined cols to the correct header config
         extensionCols.forEach((col) => {
+          if (this.externalPaginationEnabled) {
+            // validate that the required settings are supplied to enable search and sort server-side
+            // these do not check other invalid scenarios like a path is a string but to a model property, or that the field supports sort/search via api (some basic non-breaking checks are done further on)
+            if (
+              col.search !== false && // search is explicitly disabled
+              (typeof col.search !== 'string' && !Array.isArray(col.search)) && // primary property path to search on
+              typeof col.value !== 'string' // secondary property path to search on
+            ) {
+              console.warn(`Unable to support server-side search for extension provided column "${ col.name || col.label || col.labelKey }" (column must provide \`search\` or \`value\` property containing a path to a property in the resource. search can be an array).`); // eslint-disable-line no-console
+
+              col.search = false;
+            }
+
+            if (
+              col.sort !== false && // sort is explicitly disabled
+              (typeof col.sort !== 'string' && !Array.isArray(col.sort)) // primary property path to sort on
+            ) {
+              console.warn(`Unable to support server-side sort for extension provided column "${ col.name || col.label || col.labelKey }" (column must provide \`sort\` property containing a path to a property, or array of paths, in the resource)`); // eslint-disable-line no-console
+
+              col.sort = false;
+            }
+          }
+
           // we need the 'value' prop to be populated in order for the rows to show the values
           if (!col.value && col.getValue) {
             col.value = col.getValue;
@@ -378,18 +401,6 @@ export default {
           headers.splice(idx, 1);
         }
       }
-
-      // Validate headers
-      headers.forEach((h) => {
-        if (this.externalPaginationEnabled && typeof h.value !== 'string') {
-          // If we are sorting and searching via api we need `value` which should represent the path in the resource to sort/search on server side
-          // If we don't have value or it's not a string we can't sort/search by api, so disable
-          // This does not also check other invalid scenarios like a value exists but it's not a path in the object, or that the field supports sort/search via api (some basic non-breaking checks done lower down)
-          h.sort = false;
-          h.search = false;
-          console.warn(`Unable to support server-side sort / search for extension provided column "${ h.name || h.label || h.labelKey }" (column must provide \`value\` and be a path to a property in the resource).`); // eslint-disable-line no-console
-        }
-      });
 
       return headers;
     },
