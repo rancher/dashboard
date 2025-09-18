@@ -275,6 +275,7 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.privateKey"
+                type="multiline"
                 :label="t(`authConfig.${NAME}.app.privateKey.label`)"
                 :mode="mode"
               />
