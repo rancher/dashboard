@@ -1,0 +1,75 @@
+<script setup lang="ts">
+import InfoBox from '@shell/components/InfoBox';
+import CopyToClipboard from '@shell/components/CopyToClipboard';
+
+type TArgs = {
+  baseUrl: string;
+  serverUrl: string;
+  provider: string;
+  username: string;
+}
+
+defineProps<{
+  NAME: string;
+  tArgs: TArgs;
+}>();
+
+</script>
+
+<template>
+  <InfoBox
+    :step="1"
+    class="step-box"
+  >
+    <ul class="step-list">
+      <li v-clean-html="t(`authConfig.${NAME}.form.prefix.1`, tArgs, true)" />
+      <li v-clean-html="t(`authConfig.${NAME}.form.prefix.2`, tArgs, true)" />
+      <li v-clean-html="t(`authConfig.${NAME}.form.prefix.3`, tArgs, true)" />
+    </ul>
+  </InfoBox>
+  <InfoBox
+    :step="2"
+    class="step-box"
+  >
+    <ul class="step-list">
+      <li>
+        {{ t(`authConfig.${NAME}.form.instruction`, tArgs, true) }}
+        <ul class="mt-10">
+          <li><b>{{ t(`authConfig.${NAME}.form.app.label`) }}</b>: <span v-clean-html="t(`authConfig.${NAME}.form.app.value`, tArgs, true)" /></li>
+          <li>
+            <b>{{ t(`authConfig.${NAME}.form.homepage.label`) }}</b>: {{ tArgs.serverUrl }} <CopyToClipboard
+              label-as="tooltip"
+              :text="tArgs.serverUrl"
+              class="icon-btn"
+              action-color="bg-transparent"
+            />
+          </li>
+          <li><b>{{ t(`authConfig.${NAME}.form.description.label`) }}</b>: <span v-clean-html="t(`authConfig.${NAME}.form.description.value`, tArgs, true)" /></li>
+          <li>
+            <b>{{ t(`authConfig.${NAME}.form.callback.label`) }}</b>: {{ tArgs.serverUrl }} <CopyToClipboard
+              :text="tArgs.serverUrl"
+              label-as="tooltip"
+              class="icon-btn"
+              action-color="bg-transparent"
+            />
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </InfoBox>
+  <InfoBox
+    :step="3"
+    class="mb-20"
+  >
+    <ul class="step-list">
+      <li v-clean-html="t(`authConfig.${NAME}.form.suffix.1`, tArgs, true)" />
+      <li v-clean-html="t(`authConfig.${NAME}.form.suffix.2`, tArgs, true)" />
+    </ul>
+  </InfoBox>
+</template>
+
+<style lang="scss" scoped>
+  .step-list li:not(:last-child) {
+    margin-bottom: 8px;
+  }
+</style>
