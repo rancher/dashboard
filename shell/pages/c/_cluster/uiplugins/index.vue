@@ -845,18 +845,6 @@ export default {
     getStatuses(plugin) {
       const statuses = [];
 
-      if (plugin.installed && !plugin.builtin && !plugin.installing) {
-        statuses.push({
-          icon: 'icon-confirmation-alt', color: 'success', tooltip: { key: 'generic.installed' }
-        });
-      }
-
-      if (plugin.upgrade) {
-        statuses.push({
-          icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
-        });
-      }
-
       const errorTooltip = plugin.installedError || plugin.incompatibilityMessage || (plugin.helmError ? this.t('plugins.helmError') : null);
       const isDeprecated = plugin?.chart?.deprecated;
 
@@ -875,6 +863,18 @@ export default {
           icon:  'icon-alert-alt',
           color: 'error',
           tooltip
+        });
+      }
+
+      if (plugin.upgrade) {
+        statuses.push({
+          icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
+        });
+      }
+
+      if (plugin.installed && !plugin.builtin && !plugin.installing) {
+        statuses.push({
+          icon: 'icon-confirmation-alt', color: 'success', tooltip: { key: 'generic.installed' }
         });
       }
 

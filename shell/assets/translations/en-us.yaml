@@ -825,6 +825,10 @@ asyncButton:
     action: Download
     success: Saving
     waiting: Downloading&hellip;
+  downgrade:
+    action: Downgrade
+    success: Downgraded
+    waiting: Downgrading&hellip;
   drain:
     action: Drain
     success: Drained
@@ -833,6 +837,10 @@ asyncButton:
     action: Save
     success: Saved
     waiting: Saving&hellip;
+  editVersion:
+    action: Save changes
+    success: Saved
+    waiting: Saving changes&hellip;
   editAndContinue:
     action: Save and Continue
     success: Saved
@@ -851,6 +859,10 @@ asyncButton:
     waiting: Importing&hellip;
   install:
     action: Install
+    success: Installed
+    waiting: Installing&hellip;
+  installVersion:
+    action: Install this version
     success: Installed
     waiting: Installing&hellip;
   load:
@@ -928,6 +940,10 @@ asyncButton:
     action: Upgrade
     success: Upgrading
     waiting: Starting&hellip;
+  upgradeVersion:
+    action: Upgrade
+    success: Upgraded
+    waiting: Upgrading&hellip;
   generate:
     action: Generate
     success: Generated
@@ -1062,6 +1078,12 @@ catalog:
     deprecatedWarning: '{chartName} has been marked as deprecated. Use caution when installing this helm chart as it might be removed in the future.'
     experimentalWarning: '{chartName} has been marked as experimental. Use caution when installing this helm chart as it might not function as expected.'
     deprecatedAndExperimentalWarning: '{chartName} has been marked as deprecated and experimental. Use caution when installing this helm chart as it might be removed in the future and might not function as expected.'
+    chartButton:
+      action:
+        install: Install this version
+        edit: Edit the current version
+        upgrade: Upgrade to this version
+        downgrade: Downgrade to this version
   charts:
     browseAriaLabel: Show only charts grid
     iconAlt: Icon for {app} card/grid item
@@ -1234,7 +1256,9 @@ catalog:
         description: This process will help {action, select,
             install { create }
             upgrade { upgrade }
-            update { update }
+            downgrade { upgrade }
+            editVersion { update }
+            upgradeVersion { upgrade }
           } the {existing, select,
             true { app}
             false { chart}
@@ -1326,8 +1350,9 @@ catalog:
     noTools: "No Cluster Tools found"
     action:
       install: Install
-      upgrade: Upgrade/Edit
-      edit: Edit
+      upgrade: Upgrade
+      edit: Edit current version
+      downgrade: Downgrade
       remove: Remove
       manage: Manage
   os:
@@ -6958,6 +6983,9 @@ wizard:
   edit: Edit
   create: Create
   view: View
+  install: Install
+  upgrade: Upgrade
+  downgrade: Downgrade
 wm:
   connection:
     connected: Connected

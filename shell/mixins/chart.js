@@ -1,6 +1,5 @@
 
 import { mapGetters } from 'vuex';
-
 import {
   REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, DEPRECATED as DEPRECATED_QUERY, HIDDEN, _FLAGGED, _CREATE, _EDIT
 } from '@shell/config/query-params';
@@ -9,10 +8,9 @@ import { SHOW_PRE_RELEASE, mapPref } from '@shell/store/prefs';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
-
 import { formatSi, parseSi } from '@shell/utils/units';
 import { CAPI, CATALOG } from '@shell/config/types';
-import { isPrerelease } from '@shell/utils/version';
+import { isPrerelease, compare } from '@shell/utils/version';
 import difference from 'lodash/difference';
 import { LINUX, APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import { clone } from '@shell/utils/object';
@@ -230,11 +228,27 @@ export default {
     },
 
     action() {
-      if (this.existing) {
-        return this.currentVersion === this.targetVersion ? 'update' : 'upgrade';
+      if (!this.existing) {
+        return {
+          name: 'install', tKey: 'install', icon: 'icon-plus'
+        };
       }
 
-      return 'install';
+      if (this.currentVersion === this.targetVersion) {
+        return {
+          name: 'editVersion', tKey: 'edit', icon: 'icon-edit'
+        };
+      }
+
+      if (compare(this.currentVersion, this.targetVersion) < 0) {
+        return {
+          name: 'upgradeVersion', tKey: 'upgrade', icon: 'icon-upgrade-alt'
+        };
+      }
+
+      return {
+        name: 'downgrade', tKey: 'downgrade', icon: 'icon-history'
+      };
     },
 
     isChartTargeted() {
@@ -276,7 +290,10 @@ export default {
     async fetchChart() {
       this.versionInfoError = null;
 
-      await this.$store.dispatch('catalog/load'); // not the problem
+      await Promise.all([
+        this.$store.dispatch('catalog/load'),
+        this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
+      ]);
 
       this.fetchStoreChart();
 
@@ -315,6 +332,15 @@ export default {
         } catch (e) {
           this.mode = _CREATE;
           this.existing = null;
+        }
+      } else if (this.chart) {
+        const matching = this.chart.matchingInstalledApps;
+
+        if (matching.length === 1) {
+          this.existing = matching[0];
+          this.mode = _EDIT;
+        } else {
+          this.mode = _CREATE;
         }
       } else {
         // Regular create
