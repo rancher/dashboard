@@ -44,7 +44,7 @@ export default class ClusterToolsPagePo extends PagePo {
   }
 
   editChart(name: string) {
-    return this.clickAction(name, 'Edit');
+    return this.clickAction(name, 'Edit current version');
   }
 
   getChartVersion(name: string) {
