@@ -1,5 +1,7 @@
 /* eslint-disable */
-import type ShellApi from '@shell/plugins/internal-api/shell/shell.api';
+
+// Include the types for the APIs
+/// <reference path="../apis/vue-shim.d.ts" />
 
 export {};
 
@@ -17,7 +19,6 @@ declare module 'vue' {
       getters: Record<string, any>,
       dispatch: (action: string, payload?: any) => Promise<any>,
       commit: (mutation: string, payload?: any) => void,
-    },
-    $shell: ShellApi,
+    }
   }
 }
