@@ -205,6 +205,7 @@ fieldset[disabled] .btn {
 
     &:hover {
       background: var(--active-hover) !important;
+      color: var(--toggle-on-color, var(--primary-hover-text)) !important;
     }
   }
 
