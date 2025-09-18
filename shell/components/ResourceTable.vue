@@ -304,6 +304,7 @@ export default {
     },
 
     _headers() {
+      // :TableColumn[]
       let headers;
       const showNamespace = this.showNamespaceColumn;
 
@@ -316,6 +317,7 @@ export default {
       // add custom table columns provided by the extensions ExtensionPoint.TABLE_COL hook
       // gate it so that we prevent errors on older versions of dashboard
       if (this.$store.$plugin?.getUIConfig) {
+        //
         const extensionCols = getApplicableExtensionEnhancements(this, ExtensionPoint.TABLE_COL, TableColumnLocation.RESOURCE, this.$route);
 
         // Try and insert the columns before the Age column
@@ -376,6 +378,18 @@ export default {
           headers.splice(idx, 1);
         }
       }
+
+      // Validate headers
+      headers.forEach((h) => {
+        if (this.externalPaginationEnabled && typeof h.value !== 'string') {
+          // If we are sorting and searching via api we need `value` which should represent the path in the resource to sort/search on server side
+          // If we don't have value or it's not a string we can't sort/search by api, so disable
+          // This does not also check other invalid scenarios like a value exists but it's not a path in the object, or that the field supports sort/search via api (some basic non-breaking checks done lower down)
+          h.sort = false;
+          h.search = false;
+          console.warn(`Unable to support server-side sort / search for extension provided column "${ h.name || h.label || h.labelKey }" (column must provide \`value\` and be a path to a property in the resource).`); // eslint-disable-line no-console
+        }
+      });
 
       return headers;
     },
