@@ -85,8 +85,6 @@ export const mutations = {
   loggedInAs(state, principalId) {
     state.loggedIn = true;
     state.principalId = principalId;
-
-    this.$cookies.remove(KEY);
   },
 
   loggedOut(state) {
@@ -183,13 +181,17 @@ export const actions = {
    * Save nonce details. Information it contains will be used to validate auth requests/responses
    * Note - this may be structurally different than the nonce we encode and send
    */
-  saveNonce(ctx, opt) {
+  saveNonce({ commit }, opt) {
     const strung = JSON.stringify(opt);
 
-    this.$cookies.set(KEY, strung, {
+    const options = {
       path:     '/',
       sameSite: true,
       secure:   true,
+    };
+
+    commit('cookies/set', {
+      key: KEY, value: strung, options
     });
 
     return strung;
@@ -265,8 +267,8 @@ export const actions = {
     }
   },
 
-  verifyOAuth({ dispatch }, { nonce, code, provider }) {
-    const expectJSON = this.$cookies.get(KEY, { parseJSON: false });
+  verifyOAuth({ dispatch, rootGetters }, { nonce, code, provider }) {
+    const expectJSON = rootGetters['cookies/get']({ key: KEY, options: { parseJSON: false } });
     let parsed;
 
     try {
@@ -349,6 +351,12 @@ export const actions = {
 
       return Promise.reject(LOGIN_ERRORS.SERVER);
     }
+  },
+
+  loggedInAs({ commit }, principalId) {
+    commit('loggedInAs', principalId);
+
+    commit('cookies/remove', { key: KEY });
   },
 
   uiLogout({ commit, dispatch }) {

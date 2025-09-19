@@ -39,6 +39,7 @@ let store = {};
   resolveStoreModules(require('../store/customisation.js'), 'customisation.js');
   resolveStoreModules(require('../store/cru-resource.ts'), 'cru-resource.ts');
   resolveStoreModules(require('../store/notifications.ts'), 'notifications.ts');
+  resolveStoreModules(require('../store/cookies.ts'), 'cookies.ts');
 
   // If the environment supports hot reloading...
 
@@ -69,6 +70,7 @@ let store = {};
       '../store/customisation.js',
       '../store/cru-resource.ts',
       '../store/notifications.ts',
+      '../store/cookies.ts',
     ], () => {
       // Update `root.modules` with the latest definitions.
       updateModules();

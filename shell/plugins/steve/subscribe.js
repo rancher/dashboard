@@ -369,13 +369,15 @@ const sharedActions = {
       if (!this.$workers[getters.storeName]) {
         await createWorker(this, ctx);
       }
+      const options = { parseJSON: false };
+      const csrf = rootGetters['cookies/get']({ key: CSRF, options });
 
       // if the worker is in advanced mode then it'll contain it's own socket which it calls a 'watcher'
       this.$workers[getters.storeName].postMessage({
         createWatcher: {
           metadata,
-          url:  `${ state.config.baseUrl }/subscribe`,
-          csrf: this.$cookies.get(CSRF, { parseJSON: false }),
+          url: `${ state.config.baseUrl }/subscribe`,
+          csrf,
           maxTries
         }
       });
