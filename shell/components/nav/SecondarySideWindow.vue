@@ -145,13 +145,10 @@ onMounted(() => {
       border-bottom: 1px solid var(--primary);
       padding-bottom: 2px;
     }
-  }
 
-  .body {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    .actions {
+      padding-right: 4px;
+    }
   }
 }
 </style>
