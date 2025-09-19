@@ -33,10 +33,13 @@ export default {
   },
 
   async fetch() {
-    this.allNamespaces = await this.$store.dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } });
+    this.allNamespaces = (await this.$store.dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } })) || [];
 
     if (this.selectedNamespace === undefined) {
-      this.selectedNamespace = this.allNamespaces?.[0]?.name;
+      const defaultNamespace = 'default';
+      const hasAccessToDefaultNamespace = this.allNamespaces.some((ns) => ns.name === defaultNamespace);
+
+      this.selectedNamespace = hasAccessToDefaultNamespace ? defaultNamespace : this.allNamespaces[0]?.name;
     }
   },
 
