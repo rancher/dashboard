@@ -1,7 +1,7 @@
 import { _EDIT } from '@shell/config/query-params';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { AFTER_SAVE_HOOKS, BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
-import { BASE_SCOPES } from '@shell/store/auth';
+import { BASE_SCOPES, SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 import { addObject, findBy } from '@shell/utils/array';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import difference from 'lodash/difference';
@@ -28,6 +28,10 @@ export default {
     if (query.mode !== _EDIT) {
       this.$router.applyQuery({ mode: _EDIT });
     }
+  },
+
+  created() {
+    this.registerAfterHook(this.updateAuthProviders, 'force-update-auth-providers');
   },
 
   async fetch() {
@@ -88,6 +92,13 @@ export default {
   },
 
   methods: {
+    updateAuthProviders() {
+      // we need to forcefully re-fetch the authProviders list so that we can update the logout method
+      // this is to satisfy the SLO usecase where after setting an auth provider the logout method
+      // wasn't being updated because the resource is not watchable
+      this.$store.dispatch('auth/getAuthProviders', { force: true });
+    },
+
     async mixinFetch() {
       this.authConfigName = this.$route.params.id;
 
@@ -115,7 +126,9 @@ export default {
       if (this.model.openLdapConfig) {
         this.showLdap = true;
       }
-      if (this.value.configType === 'saml') {
+
+      // Logic for Single Logout/SLO for auth providers
+      if (this.value?.configType && SLO_AUTH_PROVIDERS.includes(this.value?.configType)) {
         if (!this.model.rancherApiHost || !this.model.rancherApiHost.length) {
           this.model['rancherApiHost'] = this.serverUrl;
         }
