@@ -237,6 +237,15 @@ export default {
             </div>
             <div class="col span-6">
               <LabeledInput
+                v-model:value="model.installationId"
+                :label="t(`authConfig.${NAME}.app.installationId.label`)"
+                :mode="mode"
+              />
+            </div>
+          </div>
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
                 v-model:value="model.privateKey"
                 type="multiline"
                 :label="t(`authConfig.${NAME}.app.privateKey.label`)"
@@ -246,15 +255,6 @@ export default {
                 class="btn btn-sm bg-primary mt-10"
                 :label="t('generic.readFromFile')"
                 @selected="updatePrivateKey"
-              />
-            </div>
-          </div>
-          <div class="row mb-20">
-            <div class="col span-6">
-              <LabeledInput
-                v-model:value="model.installationId"
-                :label="t(`authConfig.${NAME}.app.installationId.label`)"
-                :mode="mode"
               />
             </div>
           </div>
