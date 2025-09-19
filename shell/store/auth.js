@@ -7,6 +7,7 @@ import { base64Encode } from '@shell/utils/crypto';
 import { removeEmberPage } from '@shell/utils/ember-page';
 import { randomStr } from '@shell/utils/string';
 import { addParams, parse as parseUrl, removeParam } from '@shell/utils/url';
+import { SLO_TOKENS_ENDPOINT_LOGOUT_RES_BASETYPE } from '@shell/mixins/auth-config';
 
 export const BASE_SCOPES = {
   github:       ['read:org'],
@@ -398,8 +399,17 @@ export const actions = {
         redirectUnauthorized: false,
       }, { root: true });
 
-      // Single-sign logout for SAML providers that allow for it
-      if (res.baseType === 'samlConfigLogoutOutput' && res.idpRedirectUrl) {
+      // eslint-disable-next-line no-console
+      console.error('TOKENS AUTH RESPONSE', res);
+      // eslint-disable-next-line no-console
+      console.error('TOKENS AUTH RESPONSE baseType', res.baseType);
+      // eslint-disable-next-line no-console
+      console.error('TOKENS AUTH RESPONSE idpRedirectUrl', res.idpRedirectUrl);
+
+      // Single-sign logout redirect for SLO compatible auth providers
+      if (SLO_TOKENS_ENDPOINT_LOGOUT_RES_BASETYPE.includes(res.baseType) && res.idpRedirectUrl) {
+        // eslint-disable-next-line no-console
+        console.error('WE ARE ON SLO WORLD!!!!');
         window.location.href = res.idpRedirectUrl;
 
         return;
