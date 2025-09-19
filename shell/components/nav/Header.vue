@@ -274,12 +274,6 @@ export default {
   },
 
   methods: {
-    updateAuthProviders() {
-      // we need to forcefully re-fetch the authProviders list so that we can update the logout method
-      // this is to satisfy the SLO usecase where after setting an auth provider the logout method
-      // wasn't being updated because the resource is not watchable
-      this.$store.dispatch('auth/getAuthProviders', { force: true });
-    },
     showSloModal() {
       this.$store.dispatch('management/promptModal', {
         component:      'SloDialog',
@@ -674,7 +668,6 @@ export default {
         <rc-dropdown
           v-if="showUserMenu"
           :aria-label="t('nav.userMenu.label')"
-          @update:open="updateAuthProviders"
         >
           <rc-dropdown-trigger
             ghost

@@ -15,7 +15,6 @@ import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 import { BASE_SCOPES } from '@shell/store/auth';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
-import FormValidation from '@shell/mixins/form-validation';
 import isUrl from 'is-url';
 
 export default {
@@ -37,7 +36,7 @@ export default {
 
   emits: ['validationChanged'],
 
-  mixins: [CreateEditView, AuthConfig, FormValidation],
+  mixins: [CreateEditView, AuthConfig],
 
   data() {
     return {
@@ -60,11 +59,8 @@ export default {
         userInfoEndpoint: null,
       },
       // TODO #13457: this is duplicated due wrong format
-      oidcScope:      [],
-      SLO_OPTION_VALUES,
-      fvFormRuleSets: [
-        { path: 'endSessionEndpoint', rules: ['required', 'url'] },
-      ]
+      oidcScope: [],
+      SLO_OPTION_VALUES
     };
   },
 
@@ -594,7 +590,6 @@ export default {
                 :mode="mode"
                 required
                 data-testid="oidc-endSessionEndpoint"
-                :rules="fvGetAndReportPathRules('endSessionEndpoint')"
               />
             </div>
           </div>

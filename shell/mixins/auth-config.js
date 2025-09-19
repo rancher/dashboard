@@ -30,6 +30,10 @@ export default {
     }
   },
 
+  created() {
+    this.registerAfterHook(this.updateAuthProviders, 'force-update-auth-providers');
+  },
+
   async fetch() {
     await this.mixinFetch();
   },
@@ -88,6 +92,13 @@ export default {
   },
 
   methods: {
+    updateAuthProviders() {
+      // we need to forcefully re-fetch the authProviders list so that we can update the logout method
+      // this is to satisfy the SLO usecase where after setting an auth provider the logout method
+      // wasn't being updated because the resource is not watchable
+      this.$store.dispatch('auth/getAuthProviders', { force: true });
+    },
+
     async mixinFetch() {
       this.authConfigName = this.$route.params.id;
 
