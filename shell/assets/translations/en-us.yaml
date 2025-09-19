@@ -498,6 +498,7 @@ authConfig:
         label: Installation ID
       privateKey:
         label: Private Key
+      warning: The GitHub App authentication provider only works with <a href="https://docs.github.com/en/get-started/learning-about-github/types-of-github-accounts" target="_blank" rel="noopener noreferrer nofollow">GitHub Organization accounts</a>. It does not support User accounts.
       form:
         prefix:
           1: <li><a href="{baseUrl}/settings/organizations" target="_blank" rel="noopener noreferrer nofollow">Click here</a> to go to GitHub organization settings in a new window.</li>

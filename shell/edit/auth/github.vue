@@ -170,7 +170,14 @@ export default {
         <AuthProviderWarningBanners
           v-if="!model.enabled"
           :t-args="tArgs"
-        />
+        >
+          <template
+            v-if="isGithubApp"
+            #additional-warning
+          >
+            <span v-clean-html="t(`authConfig.${NAME}.app.warning`, {}, true)" />
+          </template>
+        </AuthProviderWarningBanners>
 
         <h3 v-t="`authConfig.${NAME}.target.label`" />
         <RadioGroup
