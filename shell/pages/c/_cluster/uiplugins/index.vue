@@ -1,9 +1,10 @@
 <script>
 import { mapGetters } from 'vuex';
+import day from 'dayjs';
 import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
-import { CATALOG, UI_PLUGIN, MANAGEMENT } from '@shell/config/types';
+import { CATALOG, UI_PLUGIN, MANAGEMENT, ZERO_TIME } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { fetchOrCreateSetting } from '@shell/utils/settings';
 import { getVersionData, isRancherPrime } from '@shell/config/version';
@@ -294,6 +295,7 @@ export default {
           item.displayVersion = latestCompatible.version;
           item.displayVersionLabel = getPluginChartVersionLabel(latestCompatible);
           item.icon = latestCompatible.icon;
+          item.created = latestCompatible.created;
         } else {
           item.experimental = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true');
           item.certified = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER);
@@ -301,6 +303,7 @@ export default {
           item.displayVersion = item.versions?.[0]?.version;
           item.displayVersionLabel = getPluginChartVersionLabel(item.versions?.[0]);
           item.icon = chart.icon || latestCompatible?.annotations?.['catalog.cattle.io/ui-icon'];
+          item.created = item.versions?.[0]?.created;
         }
 
         // add message of extension card if there's a newer version of the extension, but it's not available to be installed
@@ -349,6 +352,7 @@ export default {
             displayVersion:      p.metadata?.version,
             displayVersionLabel: p.metadata?.version || '-',
             installed:           true,
+            installedVersion:    p.metadata?.version,
             builtin:             !!p.builtin,
             experimental:        rancher?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
             certified:           rancher?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER
@@ -369,8 +373,7 @@ export default {
         if (chart) {
           chart.installed = true;
           chart.uiplugin = p;
-          chart.displayVersion = p.version;
-          let displayVersionLabel = p.version;
+          chart.installedVersion = p.version;
 
           // Can't do this here
           chart.installing = this.installing[chart.name];
@@ -385,13 +388,10 @@ export default {
             if (installedVersion) {
               chart.experimental = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true';
               chart.certified = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER;
-              displayVersionLabel = getPluginChartVersionLabel(installedVersion);
             }
 
             chart.upgrade = getPluginChartVersionLabel(latestInstallableVersion);
           }
-
-          chart.displayVersionLabel = displayVersionLabel;
         } else {
           // No chart, so add a card for the plugin based on its Custom resource being present
           const item = {
@@ -780,11 +780,24 @@ export default {
 
     getSubHeaderItems(plugin) {
       const items = [{
-        icon:         'icon-version-alt',
-        iconTooltip:  { key: 'tableHeaders.version' },
-        label:        plugin.displayVersionLabel,
-        labelTooltip: plugin.upgrade ? this.t('plugins.upgradeAvailableTooltip', { version: plugin.upgrade }) : ''
+        icon:        'icon-version-alt',
+        iconTooltip: { key: 'tableHeaders.version' },
+        label:       plugin.displayVersionLabel,
       }];
+
+      if (plugin.created) {
+        const hasZeroTime = plugin.created === ZERO_TIME;
+        const lastUpdatedItem = {
+          icon:        'icon-refresh-alt',
+          iconTooltip: { key: 'tableHeaders.lastUpdated' },
+          label:       hasZeroTime ? this.t('generic.na') : day(plugin.created).format('MMM D, YYYY')
+        };
+
+        if (hasZeroTime) {
+          lastUpdatedItem.labelTooltip = this.t('catalog.charts.appChartCard.subHeaderItem.missingVersionDate');
+        }
+        items.push(lastUpdatedItem);
+      }
 
       if (plugin.installing) {
         let label;
@@ -870,7 +883,7 @@ export default {
 
       if (plugin.installed && !plugin.builtin && !plugin.installing) {
         statuses.push({
-          icon: 'icon-confirmation-alt', color: 'success', tooltip: { key: 'generic.installed' }
+          icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: `${ this.t('generic.installed') } ${ plugin.installedVersion }` }
         });
       }
 

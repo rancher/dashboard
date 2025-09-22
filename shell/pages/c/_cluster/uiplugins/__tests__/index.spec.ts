@@ -120,13 +120,6 @@ describe('page: UI plugins/Extensions', () => {
       expect(items[0].label).toBe('v1.0.0');
     });
 
-    it('should include upgrade availability in tooltip', () => {
-      const plugin = { displayVersionLabel: 'v1.0.0', upgrade: 'v1.1.0' };
-      const items = wrapper.vm.getSubHeaderItems(plugin);
-
-      expect(items[0].labelTooltip).toBe('plugins.upgradeAvailableTooltip with {"version":"v1.1.0"}');
-    });
-
     it('should show installing status', () => {
       const plugin = { displayVersionLabel: 'v1.0.0', installing: 'install' };
       const items = wrapper.vm.getSubHeaderItems(plugin);
