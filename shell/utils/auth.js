@@ -263,7 +263,7 @@ export async function tryInitialSetup(store, password = 'admin') {
  */
 export async function isLoggedIn(store, userData) {
   store.commit('auth/hasAuth', true);
-  store.commit('auth/loggedInAs', userData.id);
+  store.dispatch('auth/loggedInAs', userData.id);
 
   // Init the notification center now that we know who the user is
   await store.dispatch('notifications/init', userData);
