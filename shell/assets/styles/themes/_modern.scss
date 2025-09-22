@@ -1060,7 +1060,7 @@ BODY, .theme-dark {
   --warning-text  : #{$warning};
 
   --success-badge     : #{rgba($success, 10%)};
-  --on-success-banner : #{$success};
+  --on-success-banner : #00B752;
 
   --warning-badge     : #ffcc00;
   --on-warning-banner : #{darken($warning, 60%)};
