@@ -96,7 +96,19 @@ export default {
 
     steps() {
       return this.isGithubApp ? GithubAppSteps : GithubSteps;
-    }
+    },
+
+    validationPassed() {
+      if (!this.model.clientId || !this.model.clientSecret) {
+        return false;
+      }
+
+      if (this.isGithubApp && (!this.model.appId || !this.model.privateKey)) {
+        return false;
+      }
+
+      return true;
+    },
 
   },
 
@@ -136,7 +148,7 @@ export default {
       :mode="mode"
       :resource="model"
       :subtypes="[]"
-      :validation-passed="true"
+      :validation-passed="validationPassed"
       :finish-button-mode="model.enabled ? 'edit' : 'enable'"
       :can-yaml="false"
       :errors="errors"
@@ -175,7 +187,10 @@ export default {
             v-if="isGithubApp"
             #additional-warning
           >
-            <span v-clean-html="t(`authConfig.${NAME}.app.warning`, {}, true)" />
+            <span
+              v-clean-html="t(`authConfig.${NAME}.app.warning`, {}, true)"
+              data-testid="github-app-banner"
+            />
           </template>
         </AuthProviderWarningBanners>
 
@@ -213,6 +228,8 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model:value="model.clientId"
+              required
+              data-testid="client-id"
               :label="t(`authConfig.${NAME}.clientId.label`)"
               :mode="mode"
             />
@@ -220,6 +237,8 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model:value="model.clientSecret"
+              required
+              data-testid="client-secret"
               type="password"
               :label="t(`authConfig.${NAME}.clientSecret.label`)"
               :mode="mode"
@@ -231,6 +250,8 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.appId"
+                required
+                data-testid="app-id"
                 :label="t(`authConfig.${NAME}.app.githubAppId.label`)"
                 :mode="mode"
               />
@@ -238,6 +259,7 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.installationId"
+                data-testid="installation-id"
                 :label="t(`authConfig.${NAME}.app.installationId.label`)"
                 :mode="mode"
               />
@@ -247,6 +269,8 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.privateKey"
+                required
+                data-testid="private-key"
                 type="multiline"
                 :label="t(`authConfig.${NAME}.app.privateKey.label`)"
                 :mode="mode"
