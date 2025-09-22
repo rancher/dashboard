@@ -276,7 +276,7 @@ export default {
                 :mode="mode"
               />
               <FileSelector
-                class="btn btn-sm bg-primary mt-10"
+                class="btn btn-sm role-secondary mt-10"
                 :label="t('generic.readFromFile')"
                 @selected="updatePrivateKey"
               />
