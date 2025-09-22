@@ -10,7 +10,8 @@ export default function({
   $axios.onRequest((config) => {
     const csrf = $cookies.get(CSRF, { parseJSON: false });
 
-    if ( csrf ) {
+    // Request can ask not to send the CSRF header
+    if (csrf && !config.noApiCsrf) {
       config.headers['x-api-csrf'] = csrf;
     }
   });
