@@ -44,13 +44,37 @@ export type UpcomingSupportInfo = {
 };
 
 export type SettingsInfo = {
-  status: {
-    eom: string,
-    eol: string,
+  status?: {
+    eom?: string,
+    eol?: string,
   },
-  upcoming: {
-    eom: UpcomingSupportInfo,
-    eol: UpcomingSupportInfo,
+  upcoming?: {
+    eom?: UpcomingSupportInfo,
+    eol?: UpcomingSupportInfo,
+  }
+};
+
+/**
+ * Call to action for an announcement
+ */
+export type CallToAction = {
+  action: string;
+  link: string;
+};
+
+/**
+ * Announcements to be shown in the notification center or on the home page
+ */
+export type Announcement = {
+  id: string; // Unique id for this announcement
+  title: string;
+  message: string;
+  target: string;
+  version?: string;
+  audience?: 'admin' | 'all';
+  cta?: {
+    primary: CallToAction, // Must have a primary call to action, if we have a cta field
+    secondary?: CallToAction,
   }
 };
 
@@ -58,5 +82,6 @@ export type DynamicContent = {
   version: string;
   releases: ReleaseInfo,
   support: SupportInfo,
-  settings: SettingsInfo,
+  announcements: Announcement[],
+  settings?: Partial<SettingsInfo>,
 };

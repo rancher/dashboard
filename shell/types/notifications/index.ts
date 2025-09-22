@@ -23,12 +23,25 @@ export type NotificationAction = {
 };
 
 /**
+ * Interface for notification handler
+ */
+export interface NotificationHandler {
+  /**
+   * Called when a notification with this handler has its read status is updated (read or unread)
+   *
+   * @param notification Notification that was makred read or unread
+   * @param read Indicates whether the notification was updated to be read or unread
+   */
+  onReadUpdated(notification: Notification, read: boolean): void;
+}
+
+/**
  * Defines the User Preference linked to a notification
  */
 export type NotificationPreference = {
   key: string; // User preference key to use when setting the preference when the notification is marked as read/unread
   value: string; // User preference value to use when setting the preference when the notification is marked as read
-  unsetValue?: string; // User preference value to use when setting the preference when the notification is marked as unread - defaults to empty string
+  unsetValue?: string; // User preference value to use when setting the preference when the notification is marked as unread - defaults to empty string. Ignored if 'value' provides the notification preference function
 };
 
 /**
