@@ -938,10 +938,6 @@ asyncButton:
     waiting: Updating&hellip;
   upgrade:
     action: Upgrade
-    success: Upgrading
-    waiting: Starting&hellip;
-  upgradeVersion:
-    action: Upgrade
     success: Upgraded
     waiting: Upgrading&hellip;
   generate:
@@ -1258,7 +1254,6 @@ catalog:
             upgrade { upgrade }
             downgrade { upgrade }
             editVersion { update }
-            upgradeVersion { upgrade }
           } the {existing, select,
             true { app}
             false { chart}
@@ -5130,8 +5125,8 @@ plugins:
     image: Image
     installing: Installing ...
     uninstalling: Uninstalling ...
-    updating: Updating ...
-    rollingBack: Rolling back ...
+    upgrading: Upgrading ...
+    downgrading: Downgrading ...
     menu: Extensions menu
     reloadRancher: Reload Rancher
   descriptions:
@@ -5237,14 +5232,14 @@ plugins:
     prompt: "Are you sure that you want to install this Extension?"
     version: Version
     warnNotCertified: Please ensure that you are aware of the risks of installing Extensions from untrusted authors
-  update:
-    label: Update
-    title: Update Extension {name}
-    prompt: "Are you sure that you want to update this Extension?"
-  rollback:
-    label: Rollback
-    title: Rollback Extension {name}
-    prompt: "Are you sure that you want to rollback this Extension?"
+  upgrade:
+    label: Upgrade
+    title: Upgrade Extension {name}
+    prompt: "Are you sure that you want to upgrade this Extension?"
+  downgrade:
+    label: Downgrade
+    title: Downgrade Extension {name}
+    prompt: "Are you sure that you want to downgrade this Extension?"
   uninstall:
     label: Uninstall
     title: "Uninstall Extension: {name}"

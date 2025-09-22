@@ -470,10 +470,10 @@ export default {
 
             if (active) {
             // Can use the status directly, apart from upgrade, which maps to update
-              const status = op.status.action === 'upgrade' ? 'update' : op.status.action;
+              const status = op.status.action;
 
-              if (status === 'update' && this.installing[plugin.name] === 'rollback') {
-                // Helm op is an upgrade, but we initiated a rollback, so keep the 'rollback' status
+              if (status === 'upgrade' && this.installing[plugin.name] === 'downgrade') {
+                // Helm op is an upgrade, but we initiated a downgrade, so keep the 'downgrade' status
               } else {
                 this.updatePluginInstallStatus(plugin.name, status);
               }
@@ -737,42 +737,46 @@ export default {
     getPluginActions(plugin) {
       const actions = [];
 
-      const canInstall = !plugin.installed && plugin.installableVersions?.length;
-      const canUninstall = plugin.installed && !plugin.builtin;
-      const canUpdate = plugin.installed && plugin.upgrade;
-      const canRollback = plugin.installed && !plugin.upgrade && plugin.installableVersions?.length > 1;
+      if (plugin.installed) {
+        const canUpdate = !!plugin.upgrade;
+        const canDowngrade = plugin.installableVersions?.some((v) => isChartVersionHigher(plugin.installedVersion, v.version));
+        const canUninstall = !plugin.builtin;
 
-      if (canUninstall) {
-        actions.push({
-          label:  this.t('plugins.uninstall.label'),
-          action: 'uninstall',
-          icon:   'icon-delete',
-        });
-      }
+        if (canUpdate) {
+          actions.push({
+            label:  this.t('plugins.upgrade.label'),
+            action: 'upgrade',
+            icon:   'icon-upgrade-alt',
+          });
+        }
 
-      if (canUpdate) {
-        actions.push({
-          label:  this.t('plugins.update.label'),
-          action: 'update',
-          icon:   'icon-edit',
-        });
-      }
+        if (canDowngrade) {
+          actions.push({
+            label:  this.t('plugins.downgrade.label'),
+            action: 'downgrade',
+            icon:   'icon-downgrade-alt',
+          });
+        }
 
-      if (canRollback) {
-        actions.push({
-          label:  this.t('plugins.rollback.label'),
-          action: 'rollback',
-          icon:   'icon-history',
-        });
-      }
-
-      if (canInstall) {
-        actions.push({
-          label:   this.t('plugins.install.label'),
-          action:  'install',
-          icon:    'icon-plus',
-          enabled: true,
-        });
+        if (canUninstall) {
+          if (actions.length > 0) {
+            actions.push({ divider: true });
+          }
+          actions.push({
+            label:  this.t('plugins.uninstall.label'),
+            action: 'uninstall',
+            icon:   'icon-delete',
+          });
+        }
+      } else {
+        if (plugin.installableVersions?.length) {
+          actions.push({
+            label:   this.t('plugins.install.label'),
+            action:  'install',
+            icon:    'icon-plus',
+            enabled: true,
+          });
+        }
       }
 
       return actions;
@@ -809,11 +813,11 @@ export default {
         case 'uninstall':
           label = this.t('plugins.labels.uninstalling');
           break;
-        case 'update':
-          label = this.t('plugins.labels.updating');
+        case 'upgrade':
+          label = this.t('plugins.labels.upgrading');
           break;
-        case 'rollback':
-          label = this.t('plugins.labels.rollingBack');
+        case 'downgrade':
+          label = this.t('plugins.labels.downgrading');
           break;
         default:
           label = this.t('plugins.labels.installing');
@@ -1079,8 +1083,8 @@ export default {
               :clickable="true"
               @card-click="showPluginDetail(card.plugin)"
               @uninstall="({event}) => showUninstallDialog(card.plugin, event)"
-              @update="({event}) => showInstallDialog(card.plugin, 'update', event)"
-              @rollback="({event}) => showInstallDialog(card.plugin, 'rollback', event)"
+              @upgrade="({event}) => showInstallDialog(card.plugin, 'upgrade', event)"
+              @downgrade="({event}) => showInstallDialog(card.plugin, 'downgrade', event)"
               @install="({event}) => showInstallDialog(card.plugin, 'install', event)"
             >
               <template #item-card-sub-header>

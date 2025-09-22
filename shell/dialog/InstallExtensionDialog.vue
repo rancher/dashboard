@@ -8,7 +8,7 @@ import Banner from '@components/Banner/Banner.vue';
 import { SETTING } from '@shell/config/settings';
 import { getPluginChartVersion, getPluginChartVersionLabel } from '@shell/utils/uiplugins';
 
-// Note: This dialog handles installation and update of a plugin
+// Note: This dialog handles installation and upgrade of a plugin
 
 export default {
   emits: ['close'],
@@ -29,7 +29,7 @@ export default {
       required: true
     },
     /**
-     * The action to perform (install, update, rollback)
+     * The action to perform (install, upgrade, downgrade)
      */
     action: {
       type:     String,
@@ -68,14 +68,14 @@ export default {
     // Default to latest version on install (this is default on the plugin)
     this.version = chartVersion;
 
-    if (this.action === 'update') {
+    if (this.action === 'upgrade') {
       this.currentVersion = chartVersion;
 
-      // Update to latest version, so take the first version
+      // Upgrade to latest version, so take the first version
       if (this.plugin?.installableVersions?.length > 0) {
         this.version = this.plugin?.installableVersions?.[0]?.version;
       }
-    } else if (this.action === 'rollback') {
+    } else if (this.action === 'downgrade') {
       // Find the newest version once we remove the current version
       const versionNames = this.plugin.installableVersions.filter((v) => v.version !== chartVersion);
 
@@ -94,7 +94,7 @@ export default {
     }
 
     this.busy = false;
-    this.update = this.action !== 'install';
+    this.update = this.action !== 'install'; // will be true if it's either a downgrade or an upgrade
 
     this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
@@ -123,7 +123,7 @@ export default {
         return [];
       }
 
-      // Don't allow update/rollback to current version
+      // Don't allow upgrade/downgrade to current version
       const versions = this.plugin?.installableVersions?.filter((v) => {
         if (this.currentVersion) {
           return v.version !== this.currentVersion;
@@ -141,12 +141,12 @@ export default {
     },
 
     buttonMode() {
-      if (this.action === 'rollback') {
-        return 'rollback';
+      if (this.action === 'downgrade') {
+        return 'downgrade';
       }
 
-      if (this.action === 'update') {
-        return 'update';
+      if (this.action === 'upgrade') {
+        return 'upgrade';
       }
 
       return 'install';
