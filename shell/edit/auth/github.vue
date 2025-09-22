@@ -14,8 +14,6 @@ import FileSelector from '@shell/components/form/FileSelector';
 import GithubSteps from '@shell/edit/auth/github-steps.vue';
 import GithubAppSteps from '@shell/edit/auth/github-app-steps.vue';
 
-const NAME = 'github';
-
 export default {
   components: {
     Loading,
@@ -62,7 +60,7 @@ export default {
     },
 
     displayName() {
-      return this.t(`model.authConfig.provider.${ NAME }`);
+      return this.t(`model.authConfig.provider.${ this.NAME }`);
     },
 
     tArgs() {
@@ -75,7 +73,7 @@ export default {
     },
 
     NAME() {
-      return NAME;
+      return this.isGithubApp ? 'githubapp' : 'github';
     },
 
     AUTH_CONFIG() {
@@ -188,7 +186,7 @@ export default {
             #additional-warning
           >
             <span
-              v-clean-html="t(`authConfig.${NAME}.app.warning`, {}, true)"
+              v-clean-html="t(`authConfig.${NAME}.warning`, {}, true)"
               data-testid="github-app-banner"
             />
           </template>
@@ -252,7 +250,7 @@ export default {
                 v-model:value="model.appId"
                 required
                 data-testid="app-id"
-                :label="t(`authConfig.${NAME}.app.githubAppId.label`)"
+                :label="t(`authConfig.${NAME}.githubAppId.label`)"
                 :mode="mode"
               />
             </div>
@@ -260,7 +258,7 @@ export default {
               <LabeledInput
                 v-model:value="model.installationId"
                 data-testid="installation-id"
-                :label="t(`authConfig.${NAME}.app.installationId.label`)"
+                :label="t(`authConfig.${NAME}.installationId.label`)"
                 :mode="mode"
               />
             </div>
@@ -272,7 +270,7 @@ export default {
                 required
                 data-testid="private-key"
                 type="multiline"
-                :label="t(`authConfig.${NAME}.app.privateKey.label`)"
+                :label="t(`authConfig.${NAME}.privateKey.label`)"
                 :mode="mode"
               />
               <FileSelector
