@@ -10,7 +10,7 @@ type TArgs = {
 }
 
 defineProps<{
-  NAME: string;
+  name: string;
   tArgs: TArgs;
 }>();
 
@@ -22,11 +22,11 @@ defineProps<{
     class="step-box"
   >
     <ul class="step-list">
-      <li v-clean-html="t(`authConfig.${NAME}.app.form.prefix.1`, tArgs, true)" />
-      <li v-clean-html="t(`authConfig.${NAME}.app.form.prefix.2`, tArgs, true)" />
-      <li v-clean-html="t(`authConfig.${NAME}.app.form.prefix.3`, tArgs, true)" />
-      <li v-clean-html="t(`authConfig.${NAME}.app.form.prefix.4`, tArgs, true)" />
-      <li v-clean-html="t(`authConfig.${NAME}.app.form.prefix.5`, tArgs, true)" />
+      <li v-clean-html="t(`authConfig.${name}.app.form.prefix.1`, tArgs, true)" />
+      <li v-clean-html="t(`authConfig.${name}.app.form.prefix.2`, tArgs, true)" />
+      <li v-clean-html="t(`authConfig.${name}.app.form.prefix.3`, tArgs, true)" />
+      <li v-clean-html="t(`authConfig.${name}.app.form.prefix.4`, tArgs, true)" />
+      <li v-clean-html="t(`authConfig.${name}.app.form.prefix.5`, tArgs, true)" />
     </ul>
   </InfoBox>
   <InfoBox
@@ -35,17 +35,17 @@ defineProps<{
   >
     <ul class="step-list">
       <li>
-        {{ t(`authConfig.${NAME}.app.form.instruction`, tArgs, true) }}
+        {{ t(`authConfig.${name}.app.form.instruction`, tArgs, true) }}
         <ul class="mt-10">
           <li>
             <b>
-              {{ t(`authConfig.${NAME}.app.form.app.label`) }}
+              {{ t(`authConfig.${name}.app.form.app.label`) }}
             </b>:
-            <span v-clean-html="t(`authConfig.${NAME}.app.form.app.value`, tArgs, true)" />
+            <span v-clean-html="t(`authConfig.${name}.app.form.app.value`, tArgs, true)" />
           </li>
           <li>
             <b>
-              {{ t(`authConfig.${NAME}.app.form.homepage.label`) }}
+              {{ t(`authConfig.${name}.app.form.homepage.label`) }}
             </b>: {{ tArgs.serverUrl }}
             <CopyToClipboard
               label-as="tooltip"
@@ -56,13 +56,13 @@ defineProps<{
           </li>
           <li>
             <b>
-              {{ t(`authConfig.${NAME}.app.form.description.label`) }}
+              {{ t(`authConfig.${name}.app.form.description.label`) }}
             </b>:
-            <span v-clean-html="t(`authConfig.${NAME}.app.form.description.value`, tArgs, true)" />
+            <span v-clean-html="t(`authConfig.${name}.app.form.description.value`, tArgs, true)" />
           </li>
           <li>
             <b>
-              {{ t(`authConfig.${NAME}.app.form.callback.label`) }}
+              {{ t(`authConfig.${name}.app.form.callback.label`) }}
             </b>:
             {{ tArgs.serverUrl }}
             <CopyToClipboard
@@ -81,10 +81,10 @@ defineProps<{
     class="mb-20"
   >
     <ul class="step-list">
-      <li v-clean-html="t(`authConfig.${NAME}.app.form.suffix.1`, tArgs, true)" />
-      <li v-clean-html="t(`authConfig.${NAME}.app.form.suffix.2`, tArgs, true)" />
-      <li v-clean-html="t(`authConfig.${NAME}.app.form.suffix.3`, tArgs, true)" />
-      <li v-clean-html="t(`authConfig.${NAME}.app.form.suffix.4`, tArgs, true)" />
+      <li v-clean-html="t(`authConfig.${name}.app.form.suffix.1`, tArgs, true)" />
+      <li v-clean-html="t(`authConfig.${name}.app.form.suffix.2`, tArgs, true)" />
+      <li v-clean-html="t(`authConfig.${name}.app.form.suffix.3`, tArgs, true)" />
+      <li v-clean-html="t(`authConfig.${name}.app.form.suffix.4`, tArgs, true)" />
     </ul>
   </InfoBox>
 </template>
