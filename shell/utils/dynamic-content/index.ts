@@ -15,6 +15,8 @@ import { Context, DynamicContent, VersionInfo } from './types';
 import { createLogger, LOCAL_STORAGE_CONTENT_DEBUG_LOG } from './util';
 import { getConfig } from './config';
 import { SystemInfoProvider } from './info';
+import { processAnnouncements } from './announcement';
+import { DynamicContentNotificationHandlerName } from '@shell/utils/dynamic-content/notification-handler';
 
 const FETCH_DELAY = 3 * 1000; // Short delay to let UI settle before we fetch the updates document
 const FETCH_REQUEST_TIMEOUT = 15000; // Time out the request after 15 seconds
@@ -103,7 +105,7 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
     // If the cached content has a debug version then use that as an override for the current version number
     // This is only for debug and testing purposes
     if (content.settings?.debugVersion) {
-      versionInfo.version = semver.coerce(content.settings.debugVersion);
+      versionInfo.version = semver.coerce(content.settings.debugVersion) || version;
       logger.debug(`Overriding version number to ${ content.settings.debugVersion }`);
     }
 
@@ -116,6 +118,9 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
 
       // EOM, EOL notifications
       processSupportNotices(context, content.support, versionInfo);
+
+      // Announcements
+      processAnnouncements(context, content.announcements, versionInfo);
     }
   } catch (e) {
     logger.error('Error reading or processing dynamic content', e);
