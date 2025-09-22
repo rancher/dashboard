@@ -278,7 +278,7 @@ export default class MgmtCluster extends SteveModel {
 
   // Color to use as the underline for the icon in the app bar
   get iconColor() {
-    return this.metadata?.annotations[CLUSTER_BADGE.COLOR];
+    return this.metadata?.annotations?.[CLUSTER_BADGE.COLOR];
   }
 
   // Custom badge to show for the Cluster (if the appropriate annotations are set)
