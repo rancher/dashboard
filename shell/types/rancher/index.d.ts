@@ -7,3 +7,12 @@ declare module '@shell/store/type-map' {
 }
 
 declare module '@shell/plugins/dashboard-store';
+
+declare module '@shell/config/query-params' {
+  export const _DETAIL: string;
+}
+
+declare module '@shell/config/version' {
+  export const CURRENT_RANCHER_VERSION: string;
+  export function getVersionData(): any;
+}
