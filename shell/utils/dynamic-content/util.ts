@@ -31,7 +31,7 @@ export async function removeMatchingNotifications(context: Context, prefix: stri
   const id = `${ prefix }${ currentId }`;
   let found = false;
   let removed = 0;
-  const all = getters['notifications/all'];
+  const all = getters['notifications/all'] || [];
 
   for (let i = 0; i < all.length; i++) {
     const notification = all[i];
@@ -91,7 +91,12 @@ function log(config: Configuration, level: string, message: string, arg?: any) {
   if (config.log) {
     // Add the log message to the log we keep in local storage
     try {
-      const data = JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_CONTENT_DEBUG_LOG) || '[]');
+      let data = [];
+
+      // If we can't parse the data in local storage, then we will reset to an emptry array
+      try {
+        data = JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_CONTENT_DEBUG_LOG) || '[]');
+      } catch {}
 
       const item = {
         level,

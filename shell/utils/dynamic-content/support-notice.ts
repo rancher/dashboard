@@ -20,6 +20,7 @@ import { NotificationLevel } from '@shell/types/notifications';
 import { READ_SUPPORT_NOTICE, READ_UPCOMING_SUPPORT_NOTICE } from '@shell/store/prefs';
 import { removeMatchingNotifications } from './util';
 import { Context, VersionInfo, UpcomingSupportInfo, SupportInfo } from './types';
+import { UPDATE_DATE_FORMAT } from './index';
 
 // Number of days ahead of upcoming EOM or EOL that we will notify the user
 const DEFAULT_UPCOMING_WINDOW = 30;
@@ -120,8 +121,8 @@ export async function processSupportNotices(context: Context, statusInfo: Suppor
 }
 
 async function checkAndAddUpcomingNotification(context: Context, info: UpcomingSupportInfo, config: Config, majorMinor: string): Promise<boolean> {
-  const now = day();
-  const upcomingDate = day(info.date);
+  const now = day(day().format(UPDATE_DATE_FORMAT));
+  const upcomingDate = day(day(info.date).format(UPDATE_DATE_FORMAT));
   const distance = upcomingDate.diff(now, 'day');
   const noticeWindow = info.noticeDays || DEFAULT_UPCOMING_WINDOW;
 

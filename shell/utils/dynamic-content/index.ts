@@ -20,7 +20,7 @@ const FETCH_DELAY = 3 * 1000; // Short delay to let UI settle before we fetch th
 const FETCH_REQUEST_TIMEOUT = 15000; // Time out the request after 15 seconds
 const FETCH_CONCURRENT_SECONDS = 30; // Time to wait to ignore another in-porgress fetch (seconds)
 
-const UPDATE_DATE_FORMAT = 'YYYY-MM-DD'; // Format of the fetch date
+export const UPDATE_DATE_FORMAT = 'YYYY-MM-DD'; // Format of the fetch date
 
 const LOCAL_STORAGE_UPDATE_FETCH_DATE = 'rancher-updates-fetch-next'; // Local storage setting that holds the date when we should next try and fetch content
 const LOCAL_STORAGE_UPDATE_CONTENT = 'rancher-updates-last-content'; // Local storage setting that holds the last fetched content
@@ -78,6 +78,9 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
     const version = semver.coerce(versionData.Version);
 
     if (!version) {
+      // REMOVE
+      logger.debug('No version', context.config);
+
       return;
     }
 
@@ -193,8 +196,10 @@ export async function fetchDynamicContent(context: Context): Promise<DynamicCont
     // Just in case next day gets reset to the past or corrupt, otherwise next fetch needs to not be in the future
     if (!nextFetchDay.isValid() || !nextFetchDay.isAfter(today)) {
       logger.info(`Performing update check on ${ todayString }`);
+      logger.debug(`Performing update check on ${ todayString }`);
 
       const activeFetch = window.localStorage.getItem(LOCAL_STORAGE_UPDATE_FETCHING);
+      
 
       if (activeFetch) {
         const activeFetchDate = day(activeFetch);
@@ -258,6 +263,8 @@ export async function fetchDynamicContent(context: Context): Promise<DynamicCont
     // We had an error, so update data in local storage so that we try again appropriately next time
     updateFetchInfo(true);
   }
+
+  logger.debug('End');
 
   // Remove the local storage key that indicates a tab is fetching the content
   window.localStorage.removeItem(LOCAL_STORAGE_UPDATE_FETCHING);
