@@ -221,7 +221,7 @@ export default {
         <component
           :is="steps"
           :t-args="tArgs"
-          :NAME="NAME"
+          :name="NAME"
         />
 
         <div class="row mb-20">
