@@ -40,10 +40,8 @@ const MAX_DESCRIPTION_LENGTH = 200;
 
 const TABS_VALUES = {
   INSTALLED: 'installed',
-  UPDATES:   'updates',
   AVAILABLE: 'available',
   BUILTIN:   'builtin',
-  ALL:       'all',
 };
 
 export default {
@@ -211,8 +209,6 @@ export default {
       case TABS_VALUES.INSTALLED:
         // We never show built-in extensions as installed - installed are just the ones the user has installed
         return all.filter((p) => !p.builtin && (!!p.installed || !!p.installing));
-      case TABS_VALUES.UPDATES:
-        return this.updates;
       case TABS_VALUES.AVAILABLE:
         return all.filter((p) => !p.installed);
       case TABS_VALUES.BUILTIN:
@@ -232,8 +228,8 @@ export default {
       return this.t(`plugins.empty.${ this.view }`);
     },
 
-    updates() {
-      return this.available.filter((plugin) => !!plugin.upgrade);
+    installed() {
+      return this.available.filter((p) => !p.builtin && (!!p.installed || !!p.installing));
     },
 
     pluginCards() {
@@ -1014,9 +1010,11 @@ export default {
           @changed="filterChanged"
         >
           <Tab
+            v-if="installed.length"
             :name="TABS_VALUES.INSTALLED"
             data-testid="extension-tab-installed"
             label-key="plugins.tabs.installed"
+            :badge="installed.length"
             :weight="20"
           />
           <Tab
@@ -1026,21 +1024,10 @@ export default {
             :weight="19"
           />
           <Tab
-            :name="TABS_VALUES.UPDATES"
-            label-key="plugins.tabs.updates"
-            :weight="18"
-            :badge="updates.length"
-          />
-          <Tab
             v-if="pluginDeveloper"
             :name="TABS_VALUES.BUILTIN"
             label-key="plugins.tabs.builtin"
             :weight="17"
-          />
-          <Tab
-            :name="TABS_VALUES.ALL"
-            label-key="plugins.tabs.all"
-            :weight="16"
           />
         </Tabbed>
         <div
