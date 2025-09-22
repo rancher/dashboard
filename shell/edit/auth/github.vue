@@ -163,7 +163,7 @@ export default {
         >
           <template #rows>
             <tr><td>{{ t(`authConfig.${ NAME }.table.server`) }}: </td><td>{{ baseUrl }}</td></tr>
-            <tr><td>{{ t(`authConfig.${ NAME }.table.clientId`) }}: </td><td>{{ value.clientId }}</td></tr>
+            <tr><td>{{ t(`authConfig.${ NAME }.table.clientId`) }}: </td><td>{{ model.clientId }}</td></tr>
           </template>
         </AuthBanner>
 
