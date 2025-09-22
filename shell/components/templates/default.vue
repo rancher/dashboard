@@ -47,7 +47,7 @@ export default {
     AzureWarning,
     DraggableZone,
     Inactivity,
-    
+
     SideNav,
   },
 
@@ -120,19 +120,32 @@ export default {
      * When navigation involves unloading one cluster and loading another, clusterReady toggles from true->false->true in middleware (before new route content renders)
      * Prevent rendering "outlet" until the route changes to avoid re-rendering old route content after its cluster is unloaded
      */
-    routeReady() {
+
+    /**
+     * Product config specifies what vuex store is being used to generate its side nav, generally "management" or "cluster"
+     * If the current product or root product are using a "cluster" store, this component should render router-view conditional on the clusterReady store property
+     * If neither current nor root product is in the cluster store, this component falls back to using managementReady, as specified in the template
+     */
+    productStoreReady() {
+      const currentInStore = this.currentProduct?.inStore;
+      const rootInStore = this.rootProduct?.inStore;
+
+      if (currentInStore === 'cluster' || rootInStore === 'cluster') {
+        return this.clusterReady;
+      }
+
+      return this.managementReady;
+    },
+
+    clusterAndRouteReady() {
       const targetRoute = this.$store.getters['targetRoute'];
       const routeReady = targetRoute ? this.currentProduct?.name === getProductFromRoute(this.$route) && this.currentProduct?.name === getProductFromRoute(targetRoute) : this.currentProduct?.name === getProductFromRoute(this.$route);
-
-      console.log('*** clouster and route ready targetRoute', targetRoute);
-      // console.log('*** clouster and route ready routeReady', routeReady);
-      // console.log('*** clouster and route ready clusterId', this.clusterId);
 
       // console.log('clouster and route ready getClusterFromRoute', getClusterFromRoute(targetRoute));
 
       // return this.clusterReady &&
       //   this.clusterId === getClusterFromRoute(targetRoute) && routeReady;
-      return routeReady;
+      return routeReady && this.productStoreReady;
     },
 
     pinClass() {
@@ -219,23 +232,20 @@ export default {
       :class="{[pinClass]: true, 'dashboard-padding-left': showTopLevelMenu}"
     >
       <Header />
-      <!-- <SideNav
-        v-if="clusterReady"
-        class="default-side-nav"
-      /> -->
-      <!-- <main
-        v-if="clusterAndRouteReady"
-        class="main-layout"
-        :aria-label="t('layouts.default')"
-      > -->
-            <SideNav
+      <SideNav
+        v-if="productStoreReady"
         class="default-side-nav"
       />
       <main
-        v-if="routeReady"
+        v-if="clusterAndRouteReady"
         class="main-layout"
         :aria-label="t('layouts.default')"
       >
+        <!-- <main
+        v-if="routeReady"
+        class="main-layout"
+        :aria-label="t('layouts.default')"
+      > -->
         <router-view
           :key="$route.path"
           class="outlet"

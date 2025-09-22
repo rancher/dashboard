@@ -90,12 +90,17 @@ export default {
       }
     },
 
-    // clusterReady(a, b) {
-    //   if ( !isEqual(a, b) ) {
-    //     // Immediately update because you'll see it come in later
-    //     this.getGroups();
-    //   }
-    // },
+    clusterReady(a, b) {
+      const currentInStore = this.currentProduct?.inStore;
+      const rootInStore = this.rootProduct?.inStore;
+
+      const isClusterBasedNav = currentInStore === 'cluster' || rootInStore === 'cluster';
+
+      if ( isClusterBasedNav && !isEqual(a, b) ) {
+        // Immediately update because you'll see it come in later
+        this.getGroups();
+      }
+    },
 
     rootProduct(a, b) {
       if (a?.name !== b?.name) {
