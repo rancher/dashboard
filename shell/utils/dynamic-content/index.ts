@@ -79,6 +79,9 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
     const version = semver.coerce(versionData.Version);
 
     if (!version || !content) {
+      // REMOVE
+      logger.debug('No version', context.config);
+
       return;
     }
 
@@ -199,6 +202,7 @@ export async function fetchDynamicContent(context: Context): Promise<Partial<Dyn
       logger.debug(`Performing update check on ${ todayString }`);
 
       const activeFetch = window.localStorage.getItem(LOCAL_STORAGE_UPDATE_FETCHING);
+      
 
       if (activeFetch) {
         const activeFetchDate = day(activeFetch);
@@ -263,6 +267,8 @@ export async function fetchDynamicContent(context: Context): Promise<Partial<Dyn
     // We had an error, so update data in local storage so that we try again appropriately next time
     updateFetchInfo(true);
   }
+
+  logger.debug('End');
 
   logger.debug('End fetchDynamicContent');
 
