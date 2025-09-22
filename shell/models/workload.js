@@ -43,7 +43,7 @@ export default class Workload extends WorkloadService {
       insertAt(out, 0, {
         action:  'toggleRollbackModal',
         label:   this.t('action.rollback'),
-        icon:    'icon icon-history',
+        icon:    'icon icon-downgrade-alt',
         enabled: !!this.links.update,
       });
 
