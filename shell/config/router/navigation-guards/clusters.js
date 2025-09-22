@@ -3,8 +3,9 @@ import { ClusterNotFoundError, RedirectToError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
-import { validateResource, setProduct } from '@shell/utils/auth';
 import { getClusterFromRoute, getProductFromRoute, getPackageFromRoute, routeRequiresAuthentication } from '@shell/utils/router';
+import { setProduct } from '@shell/utils/product';
+import { validateResource } from '@shell/utils/resource';
 
 export function install(router, context) {
   router.beforeEach((to, from, next) => loadClusters(to, from, next, context));

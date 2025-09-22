@@ -495,7 +495,8 @@ export function init(store) {
 
   headers(MANAGEMENT.PSA, [STATE, NAME_COL, {
     ...DESCRIPTION,
-    width: undefined
+    width:     undefined,
+    formatter: undefined,
   }, AGE]);
 
   headers(STORAGE_CLASS,
