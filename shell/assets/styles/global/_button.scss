@@ -198,7 +198,7 @@ fieldset[disabled] .btn {
   padding: 0;
   border-radius: var(--border-radius);
 
-  //TODO: Remove important specifier here and in bg-primary/bg-disabled
+  //TODO: #15503 Remove important specifier here and in bg-primary/bg-disabled
   .bg-primary {
     background: var(--toggle-on-bg, var(--primary));
     color: var(--toggle-on-color, var(--primary-hover-text));
