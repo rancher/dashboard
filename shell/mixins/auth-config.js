@@ -99,6 +99,16 @@ export default {
       this.$store.dispatch('auth/getAuthProviders', { force: true });
     },
 
+    setSloType(selectedModel) {
+      if (!selectedModel.logoutAllEnabled && !selectedModel.logoutAllForced) {
+        this.sloType = SLO_OPTION_VALUES.rancher;
+      } else if (selectedModel.logoutAllEnabled && selectedModel.logoutAllForced) {
+        this.sloType = SLO_OPTION_VALUES.all;
+      } else if (selectedModel.logoutAllEnabled && !selectedModel.logoutAllForced) {
+        this.sloType = SLO_OPTION_VALUES.both;
+      }
+    },
+
     async mixinFetch() {
       this.authConfigName = this.$route.params.id;
 
@@ -135,13 +145,7 @@ export default {
 
         // setting data for SLO
         if (this.model && Object.keys(this.model).includes('logoutAllSupported')) {
-          if (!this.model.logoutAllEnabled && !this.model.logoutAllForced) {
-            this.sloType = SLO_OPTION_VALUES.rancher;
-          } else if (this.model.logoutAllEnabled && this.model.logoutAllForced) {
-            this.sloType = SLO_OPTION_VALUES.all;
-          } else if (this.model.logoutAllEnabled && !this.model.logoutAllForced) {
-            this.sloType = SLO_OPTION_VALUES.both;
-          }
+          this.setSloType(this.model);
         }
       }
 
@@ -305,6 +309,12 @@ export default {
         // must be cancelling edit of an enabled config; reset any changes and return to add users/groups view for that config
         this.$store.dispatch(`rancher/clone`, { resource: this.originalModel }).then((cloned) => {
           this.model = cloned;
+
+          // reset SLO type (radio option)
+          if (cloned && Object.keys(cloned).includes('logoutAllSupported')) {
+            this.setSloType(cloned);
+          }
+
           this.editConfig = false;
         });
       }
