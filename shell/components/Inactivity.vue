@@ -204,6 +204,8 @@ export default {
           type: EXT.USER_ACTIVITY, id: this.sessionTokenName, opt: { force: true }
         });
 
+        console.error('userActivityData on INIT', userActivityData);
+
         // is it really needed?
         storeUserActivity(userActivityData);
 
