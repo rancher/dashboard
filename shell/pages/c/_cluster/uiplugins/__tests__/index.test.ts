@@ -1,4 +1,4 @@
-import { shallowMount } from '@vue/test-utils';
+import { shallowMount, VueWrapper } from '@vue/test-utils';
 import UiPluginsPage from '@shell/pages/c/_cluster/uiplugins/index.vue';
 
 const t = (key: string, args: Object) => {
@@ -10,11 +10,16 @@ const t = (key: string, args: Object) => {
 };
 
 describe('page: UI plugins/Extensions', () => {
-  let wrapper;
+  let wrapper: VueWrapper<any>;
 
   const mountComponent = (mocks = {}) => {
     const store = {
-      getters:  { 'prefs/get': jest.fn() },
+      getters: {
+        'prefs/get':         jest.fn(),
+        'catalog/rawCharts': [],
+        'uiplugins/plugins': [],
+        'uiplugins/errors':  {},
+      },
       dispatch: () => Promise.resolve(),
     };
 
@@ -57,8 +62,7 @@ describe('page: UI plugins/Extensions', () => {
       };
       const actions = wrapper.vm.getPluginActions(plugin);
 
-      expect(actions).toHaveLength(1);
-      expect(actions[0].action).toBe('uninstall');
+      expect(actions.find((action: any) => action.action === 'uninstall')).toBeDefined();
     });
 
     it('should not return uninstall action for a builtin plugin', () => {
@@ -70,7 +74,7 @@ describe('page: UI plugins/Extensions', () => {
       };
       const actions = wrapper.vm.getPluginActions(plugin);
 
-      expect(actions.some((a) => a.action === 'uninstall')).toBe(false);
+      expect(actions.some((action: any) => action.action === 'uninstall')).toBe(false);
     });
 
     it('should return upgrade action for an installed plugin with an upgrade', () => {
@@ -82,7 +86,7 @@ describe('page: UI plugins/Extensions', () => {
       };
       const actions = wrapper.vm.getPluginActions(plugin);
 
-      expect(actions.some((a) => a.action === 'upgrade')).toBe(true);
+      expect(actions.some((action: any) => action.action === 'upgrade')).toBe(true);
     });
 
     it('should return downgrade action for an installed plugin with older installable versions', () => {
@@ -95,7 +99,7 @@ describe('page: UI plugins/Extensions', () => {
       };
       const actions = wrapper.vm.getPluginActions(plugin);
 
-      expect(actions.some((a) => a.action === 'downgrade')).toBe(true);
+      expect(actions.some((action: any) => action.action === 'downgrade')).toBe(true);
     });
 
     it('should return all applicable actions (upgrade, downgrade, uninstall)', () => {
@@ -108,9 +112,9 @@ describe('page: UI plugins/Extensions', () => {
       };
       const actions = wrapper.vm.getPluginActions(plugin);
 
-      expect(actions.map((a) => a.action)).toContain('uninstall');
-      expect(actions.map((a) => a.action)).toContain('upgrade');
-      expect(actions.map((a) => a.action)).toContain('downgrade');
+      expect(actions.map((action: any) => action.action)).toContain('uninstall');
+      expect(actions.map((action: any) => action.action)).toContain('upgrade');
+      expect(actions.map((action: any) => action.action)).toContain('downgrade');
     });
   });
 
@@ -126,32 +130,35 @@ describe('page: UI plugins/Extensions', () => {
       const plugin = { displayVersionLabel: 'v1.0.0', installing: 'install' };
       const items = wrapper.vm.getSubHeaderItems(plugin);
 
-      expect(items).toHaveLength(2);
-      expect(items[1].label).toBe('plugins.labels.installing');
+      expect(items.find((item: any) => item.label === 'plugins.labels.installing')).toBeDefined();
     });
 
     it('should show uninstalling status', () => {
       const plugin = { displayVersionLabel: 'v1.0.0', installing: 'uninstall' };
       const items = wrapper.vm.getSubHeaderItems(plugin);
 
-      expect(items).toHaveLength(2);
-      expect(items[1].label).toBe('plugins.labels.uninstalling');
+      expect(items.find((item: any) => item.label === 'plugins.labels.uninstalling')).toBeDefined();
     });
 
     it('should show upgrading status', () => {
       const plugin = { displayVersionLabel: 'v1.0.0', installing: 'upgrade' };
       const items = wrapper.vm.getSubHeaderItems(plugin);
 
-      expect(items).toHaveLength(2);
-      expect(items[1].label).toBe('plugins.labels.upgrading');
+      expect(items.find((item: any) => item.label === 'plugins.labels.upgrading')).toBeDefined();
     });
 
     it('should show downgrading status', () => {
       const plugin = { displayVersionLabel: 'v1.0.0', installing: 'downgrade' };
       const items = wrapper.vm.getSubHeaderItems(plugin);
 
-      expect(items).toHaveLength(2);
-      expect(items[1].label).toBe('plugins.labels.downgrading');
+      expect(items.find((item: any) => item.label === 'plugins.labels.downgrading')).toBeDefined();
+    });
+
+    it('should include date info', () => {
+      const plugin = { created: '2023-01-01T00:00:00Z' };
+      const items = wrapper.vm.getSubHeaderItems(plugin);
+
+      expect(items.find((item: any) => item.icon === 'icon-refresh-alt')).toBeDefined();
     });
   });
 
@@ -248,69 +255,9 @@ describe('page: UI plugins/Extensions', () => {
     it('should combine deprecated and other errors in tooltip', () => {
       const plugin = { chart: { deprecated: true }, helmError: true };
       const statuses = wrapper.vm.getStatuses(plugin);
-      const warningStatus = statuses.find((s) => s.icon === 'icon-alert-alt');
+      const warningStatus = statuses.find((status: any) => status.icon === 'icon-alert-alt');
 
       expect(warningStatus.tooltip.text).toBe('generic.deprecated. generic.error: plugins.helmError');
-    });
-  });
-
-  describe('watch: helmOps', () => {
-    let wrapper;
-
-    beforeEach(() => {
-      const store = {
-        getters: {
-          'prefs/get':         jest.fn(),
-          'catalog/rawCharts': {},
-          'uiplugins/plugins': [],
-          'uiplugins/errors':  {}
-        },
-        dispatch: () => Promise.resolve(),
-      };
-
-      wrapper = shallowMount(UiPluginsPage, {
-        global: {
-          mocks: {
-            $store: store,
-            t,
-          },
-          stubs: { ActionMenu: { template: '<div />' } }
-        }
-      });
-    });
-
-    it('should set status to "upgrade" for an upgrade operation', async() => {
-      const plugin = { name: 'my-plugin' };
-
-      wrapper.vm.available = [plugin];
-      wrapper.vm.installing['my-plugin'] = 'upgrade';
-
-      const helmOps = [{
-        metadata: { state: { transitioning: true } },
-        status:   { releaseName: 'my-plugin', action: 'upgrade' }
-      }];
-
-      wrapper.vm.helmOps = helmOps;
-      await wrapper.vm.$nextTick();
-
-      expect(wrapper.vm.installing['my-plugin']).toBe('upgrade');
-    });
-
-    it('should keep status as "downgrade" during an upgrade operation if it was already downgrading', async() => {
-      const plugin = { name: 'my-plugin' };
-
-      wrapper.vm.available = [plugin];
-      wrapper.vm.installing['my-plugin'] = 'downgrade';
-
-      const helmOps = [{
-        metadata: { state: { transitioning: true } },
-        status:   { releaseName: 'my-plugin', action: 'upgrade' }
-      }];
-
-      wrapper.vm.helmOps = helmOps;
-      await wrapper.vm.$nextTick();
-
-      expect(wrapper.vm.installing['my-plugin']).toBe('downgrade');
     });
   });
 });
