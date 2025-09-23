@@ -294,6 +294,13 @@ export default {
     },
 
     emitDraggable(event) {
+      const isSecondaryOpen = this.$store.getters['wm/secondary/isOpen'];
+
+      // If the SecondarySideWindow is open, prevent dragging to the right or left
+      if (isSecondaryOpen) {
+        return;
+      }
+
       this.$emit('draggable', event);
     },
 
@@ -331,6 +338,7 @@ export default {
     v-if="open"
     id="primary-side-window"
     data-testid="primary-side-window"
+    draggable="false"
     class="primary-side-window"
     :class="{[pinClass]: true}"
   >
@@ -340,6 +348,7 @@ export default {
       :class="{
         'resizer-left': userPin == 'left',
       }"
+      draggable="false"
       role="tablist"
       @keyup.right.prevent="selectNext(1)"
       @keyup.left.prevent="selectNext(-1)"
