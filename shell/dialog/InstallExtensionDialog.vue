@@ -322,12 +322,12 @@ export default {
 <template>
   <div class="plugin-install-dialog">
     <h4 class="mt-10">
-      {{ t(`plugins.${ action }.title`, { name: plugin?.label }) }}
+      {{ t(`plugins.${ buttonMode }.title`, { name: `"${plugin?.label}"` }, true) }}
     </h4>
     <div class="custom mt-10">
       <div class="dialog-panel">
         <p>
-          {{ t(`plugins.${ action }.prompt`) }}
+          {{ t(`plugins.${ buttonMode }.prompt`) }}
         </p>
         <Banner
           v-if="chartVersionLoadsWithoutAuth"

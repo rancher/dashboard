@@ -5248,7 +5248,7 @@ plugins:
     prompt: "Are you sure that you want to downgrade this extension?"
   uninstall:
     label: Uninstall
-    title: "Uninstall extension: {name}"
+    title: Uninstall extension {name}
     prompt: "Are you sure that you want to uninstall this extension?"
     catalog: "Are you sure that you want to uninstall this Extension Catalog Image? This will also remove any Extensions provided by this image."
   upgradeAvailable: A newer version of this Extension is available

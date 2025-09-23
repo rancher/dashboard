@@ -103,7 +103,7 @@ export default {
 <template>
   <div class="plugin-install-dialog">
     <h4 class="mt-10">
-      {{ t('plugins.uninstall.title', { name: plugin?.label }) }}
+      {{ t('plugins.uninstall.title', { name: `"${plugin?.label}"` }, true) }}
     </h4>
     <div class="mt-10 dialog-panel">
       <div class="dialog-info">
