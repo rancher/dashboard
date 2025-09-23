@@ -1,9 +1,11 @@
-import { WorkloadsCronJobsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-cronjobs.po';
+import { WorkloadsCronJobsListPagePo, WorkloadsCronJobDetailPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-cronjobs.po';
+import { WorkLoadsJobDetailsPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-jobs.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateCronJobsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/cronjobs/cronjobs-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { MEDIUM_TIMEOUT_OPT, LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -15,9 +17,11 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueCronJob = SortableTablePo.firstByDefaultName('cronjob');
+    let detailsPageCronJob = SortableTablePo.firstByDefaultName('detailscron');
     let cronJobNamesList = [];
     let nsName1: string;
     let nsName2: string;
+    let nsName3: string;
     let rootResourceName: string;
 
     before('set up', () => {
@@ -75,6 +79,15 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
           nsName2 = ns;
 
           cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
+        })
+        .then(() => cy.createManyNamespacedResources({
+          context:        'cronjobs3',
+          createResource: createCronJob(detailsPageCronJob),
+          count:          1
+        }))
+        .then(({ ns, workloadNames }) => {
+          detailsPageCronJob = workloadNames[0];
+          nsName3 = ns;
         });
     });
 
@@ -87,7 +100,7 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
       // check cronjobs count
       const count = cronJobNamesList.length + 1;
 
-      cy.waitForRancherResources('v1', 'batch.cronjob', count - 1, true).then((resp: Cypress.Response<any>) => {
+      cy.waitForRancherResources('v1', 'batch.cronjob', count, true).then((resp: Cypress.Response<any>) => {
         // pagination is visible
         cronJobListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();
@@ -267,12 +280,53 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
         .checkNotExists();
     });
 
+    it('Cronjob details page refresh dashboard', () => {
+      // Set namespace filter to include the test cronjob namespace
+      cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName3 }\"]}`);
+
+      WorkloadsCronJobsListPagePo.navTo();
+      cronJobListPage.waitForPage();
+
+      cronJobListPage.runNow(detailsPageCronJob);
+
+      cy.url().should('include', '/explorer/batch.job/', MEDIUM_TIMEOUT_OPT);
+
+      const jobDetailsPage = new WorkLoadsJobDetailsPagePo('dummy-job');
+
+      jobDetailsPage.resourceDetail().masthead().resourceStatus().should('be.visible', LONG_TIMEOUT_OPT)
+        .and(($el) => {
+          const status = $el.text().trim();
+
+          expect(['Running', 'Active', 'Pending', 'Creating', 'Succeeded']).to.include(status);
+        });
+
+      jobDetailsPage.resourceDetail().masthead().resourceStatus().should('not.be.empty');
+
+      WorkloadsCronJobsListPagePo.navTo();
+      cronJobListPage.waitForPage();
+
+      cronJobListPage.goToDetailsPage(detailsPageCronJob);
+
+      cy.url(MEDIUM_TIMEOUT_OPT).should('include', '/explorer/batch.cronjob/');
+
+      const cronJobDetailsPage = new WorkloadsCronJobDetailPagePo(detailsPageCronJob, 'local', nsName3);
+
+      cronJobDetailsPage.resourceDetail().masthead().resourceStatus().should('be.visible', MEDIUM_TIMEOUT_OPT);
+
+      // CronJob should NOT show stale "In Progress" status
+      cronJobDetailsPage.resourceDetail().masthead().resourceStatus().should('not.contain', 'In Progress');
+
+      cy.reload();
+      cy.url(MEDIUM_TIMEOUT_OPT).should('include', '/explorer/batch.cronjob/');
+
+      cronJobDetailsPage.resourceDetail().masthead().resourceStatus().should('be.visible', MEDIUM_TIMEOUT_OPT);
+    });
+
     after('clean up', () => {
       // Ensure the default rows per page value is set after running the tests
       cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
-
-      // delete namespace (this will also delete all cronjobs in it)
-      cy.deleteNamespace([nsName1, nsName2]);
+      // Delete namespaces (this will also delete all cronjobs including detailsPageCronJob)
+      cy.deleteNamespace([nsName1, nsName2, nsName3]);
     });
   });
 });
