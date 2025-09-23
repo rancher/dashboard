@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import authConfigMixin from '@shell/mixins/auth-config';
-
+import childHook from '@shell/mixins/child-hook';
+//
 describe('mixin: authConfigMixin', () => {
   describe('method: save', () => {
     const componentMock = (model: any) => ({
@@ -21,7 +22,7 @@ describe('mixin: authConfigMixin', () => {
     });
     const FakeComponent = {
       render() {},
-      mixins:  [authConfigMixin],
+      mixins:  [authConfigMixin, childHook],
       methods: { applyHooks: jest.fn() },
     };
 
