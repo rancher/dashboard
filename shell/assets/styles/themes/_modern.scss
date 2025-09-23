@@ -876,7 +876,7 @@ BODY, .theme-dark {
   --modal-bg                   : #{$body-bg};
   --modal-border               : #{$medium};
   --subtle-overlay-bg          : #{rgba($darkest, 0.75)};
-  --overlay-bg                 : #{rgba($darkest, 0.75)};
+  --overlay-bg                 : rgba(47, 51, 61, .75);
   --shadow                     : #{rgba($darkest, 0.9)};
 
   --checkbox-tick              : var(--on-active);
