@@ -172,6 +172,19 @@ export default {
 
     returnFocusSelector() {
       return `[data-testid="extension-card-${ this.action }-btn-${ this.plugin?.name }"]`;
+    },
+
+    buttonIcon() {
+      switch (this.buttonMode) {
+      case 'install':
+        return 'icon-plus';
+      case 'upgrade':
+        return 'icon-upgrade-alt';
+      case 'downgrade':
+        return 'icon-downgrade-alt';
+      default:
+        return '';
+      }
     }
   },
 
@@ -349,6 +362,7 @@ export default {
         </button>
         <AsyncButton
           :mode="buttonMode"
+          :icon="buttonIcon"
           data-testid="install-ext-modal-install-btn"
           @click="install"
         />
