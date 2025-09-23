@@ -73,9 +73,9 @@ export default {
 
     sloOptions() {
       return [
-        { value: SLO_OPTION_VALUES.rancher, label: this.t('authConfig.saml.sloOptions.onlyRancher', { name: this.model?.nameDisplay }) },
-        { value: SLO_OPTION_VALUES.all, label: this.t('authConfig.saml.sloOptions.logoutAll', { name: this.model?.nameDisplay }) },
-        { value: SLO_OPTION_VALUES.both, label: this.t('authConfig.saml.sloOptions.choose') },
+        { value: SLO_OPTION_VALUES.rancher, label: this.t('authConfig.slo.sloOptions.onlyRancher', { name: this.model?.nameDisplay }) },
+        { value: SLO_OPTION_VALUES.all, label: this.t('authConfig.slo.sloOptions.logoutAll', { name: this.model?.nameDisplay }) },
+        { value: SLO_OPTION_VALUES.both, label: this.t('authConfig.slo.sloOptions.choose') },
       ];
     },
 
@@ -175,7 +175,7 @@ export default {
             <tr><td>{{ t(`authConfig.saml.api`) }}: </td><td>{{ model.rancherApiHost }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.groups`) }}: </td><td>{{ model.groupsField }}</td></tr>
             <tr v-if="isLogoutAllSupported">
-              <td>{{ t(`authConfig.saml.sloTitle`) }}: </td><td>{{ sloTypeText }}</td>
+              <td>{{ t(`authConfig.slo.sloTitle`) }}: </td><td>{{ sloTypeText }}</td>
             </tr>
           </template>
 
@@ -357,7 +357,7 @@ export default {
         >
           <div class="row">
             <div class="col span-12">
-              <h3>{{ t('authConfig.saml.sloTitle') }}</h3>
+              <h3>{{ t('authConfig.slo.sloTitle') }}</h3>
             </div>
           </div>
           <div class="row">

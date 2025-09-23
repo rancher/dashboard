@@ -404,8 +404,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         importClusterPage.create();
 
         cy.wait('@importRequest').then((intercept) => {
-          cy.wrap(intercept.response.body.id).as('importedClusterId');
-
+          expect(intercept.response.statusCode).to.eq(201);
           expect(intercept.request.body).to.deep.equal({
             type:           importType,
             agentEnvVars:   [],
@@ -416,8 +415,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           });
         });
 
-        cy.get('@importedClusterId').then((importedClusterId) => {
-          const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(undefined, importedClusterId.toString());
+        cy.getClusterIdByName(importGenericName).then((clusterId) => {
+          const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(undefined, clusterId);
 
           detailClusterPage.waitForPage(undefined, 'registration');
           detailClusterPage.kubectlCommandForImported().contains('--insecure').then(($value) => {
