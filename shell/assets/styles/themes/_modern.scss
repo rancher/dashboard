@@ -210,8 +210,8 @@ BODY, .theme-light {
       }
   }
 
-  --muted                      : #{$dark};
-  --deemphasized               : #717179;
+  --muted                      : #6F6F8B;
+  --deemphasized               : #6F6F8B;
 
   .text-muted {
     color: var(--muted) !important;
@@ -825,8 +825,8 @@ BODY, .theme-dark {
   --slider-light-bg            : #{rgba($darker, 1)};
   --slider-light-bg-right      : #{rgba($darker, 0)};
 
-  --muted                      : #{$disabled};
-  --deemphasized               : #{$disabled};
+  --muted                      : #8F8F9C;
+  --deemphasized               : #8F8F9C;
 
   --body-bg                    : #{$body-bg};
   --body-text                  : #FFFAFA;
