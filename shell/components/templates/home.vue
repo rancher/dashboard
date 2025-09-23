@@ -83,9 +83,7 @@ export default {
           class="outlet"
         />
       </main>
-      <div class="wm2">
-        <SecondarySideWindow />
-      </div>
+      <SecondarySideWindow />
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
