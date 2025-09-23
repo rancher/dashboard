@@ -244,7 +244,7 @@ export default {
           statuses: this.getStatuses(plugin),
         },
         image: {
-          src: plugin.icon,
+          src: plugin.icon || this.defaultIcon,
           alt: { text: this.t('plugins.altIcon', { extension: plugin.name }) },
         },
         content:        { text: plugin.description },
@@ -473,10 +473,14 @@ export default {
             this.errors[plugin.name] = error;
 
             if (active) {
-            // Can use the status directly, apart from upgrade, which maps to install
-              const status = op.status.action === 'upgrade' ? 'install' : op.status.action;
+            // Can use the status directly, apart from upgrade, which maps to update
+              const status = op.status.action === 'upgrade' ? 'update' : op.status.action;
 
-              this.updatePluginInstallStatus(plugin.name, status);
+              if (status === 'update' && this.installing[plugin.name] === 'rollback') {
+                // Helm op is an upgrade, but we initiated a rollback, so keep the 'rollback' status
+              } else {
+                this.updatePluginInstallStatus(plugin.name, status);
+              }
             } else if (op.status.action === 'uninstall') {
             // Uninstall has finished
               this.updatePluginInstallStatus(plugin.name, false);
@@ -619,7 +623,7 @@ export default {
       });
     },
 
-    showInstallDialog(plugin, mode, ev) {
+    showInstallDialog(plugin, action, ev) {
       ev.target?.blur();
       ev.preventDefault();
       ev.stopPropagation();
@@ -627,11 +631,11 @@ export default {
       this.$store.dispatch('management/promptModal', {
         component:                            'InstallExtensionDialog',
         testId:                               'install-extension-modal',
-        returnFocusSelector:                  `[data-testid="extension-card-${ mode }-btn-${ plugin?.name }"]`,
+        returnFocusSelector:                  `[data-testid="extension-card-${ action }-btn-${ plugin?.name }"]`,
         returnFocusFirstIterableNodeSelector: '#extensions-main-page',
         componentProps:                       {
           plugin,
-          mode,
+          action,
           updateStatus: (pluginName, type) => {
             this.updatePluginInstallStatus(pluginName, type);
           },
@@ -787,10 +791,29 @@ export default {
       }];
 
       if (plugin.installing) {
+        let label;
+
+        switch (plugin.installing) {
+        case 'install':
+          label = this.t('plugins.labels.installing');
+          break;
+        case 'uninstall':
+          label = this.t('plugins.labels.uninstalling');
+          break;
+        case 'update':
+          label = this.t('plugins.labels.updating');
+          break;
+        case 'rollback':
+          label = this.t('plugins.labels.rollingBack');
+          break;
+        default:
+          label = this.t('plugins.labels.installing');
+          break;
+        }
         items.push({
           icon:        'icon-spinner icon-spin',
           iconTooltip: { key: 'plugins.tooltips.installing' },
-          label:       plugin.installing === 'install' ? this.t('plugins.labels.installing') : this.t('plugins.labels.uninstalling'),
+          label,
         });
       }
 
@@ -822,18 +845,6 @@ export default {
     getStatuses(plugin) {
       const statuses = [];
 
-      if (plugin.installed && !plugin.builtin && !plugin.installing) {
-        statuses.push({
-          icon: 'icon-confirmation-alt', color: 'success', tooltip: { key: 'generic.installed' }
-        });
-      }
-
-      if (plugin.upgrade) {
-        statuses.push({
-          icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
-        });
-      }
-
       const errorTooltip = plugin.installedError || plugin.incompatibilityMessage || (plugin.helmError ? this.t('plugins.helmError') : null);
       const isDeprecated = plugin?.chart?.deprecated;
 
@@ -852,6 +863,18 @@ export default {
           icon:  'icon-alert-alt',
           color: 'error',
           tooltip
+        });
+      }
+
+      if (plugin.upgrade) {
+        statuses.push({
+          icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
+        });
+      }
+
+      if (plugin.installed && !plugin.builtin && !plugin.installing) {
+        statuses.push({
+          icon: 'icon-confirmation-alt', color: 'success', tooltip: { key: 'generic.installed' }
         });
       }
 

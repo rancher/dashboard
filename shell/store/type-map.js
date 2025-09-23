@@ -103,8 +103,6 @@
 //                               depaginate: undefined -- Use this to depaginate requests for this type
 //                               resourceEditMasthead: true   -- Show the Masthead in the edit resource component
 //                               customRoute: undefined,
-//                               hasGraph: undefined   -- If true, render ForceDirectedTreeChart graph (ATTENTION: option graphConfig is needed also!!!)
-//                               graphConfig: undefined   -- Use this to pass along the graph configuration
 //                               notFilterNamespace:  undefined -- Define namespaces that do not need to be filtered
 //                               localOnly: False -- Hide this type from the nav/search bar on downstream clusters
 //                               custom: any - Custom options for a given type
@@ -208,7 +206,6 @@ export const SPOOFED_PREFIX = '__[[spoofed]]__';
 export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 
 const instanceMethods = {};
-const graphConfigMap = {};
 
 export const IF_HAVE = {
   V2_MONITORING:            'v2-monitoring',
@@ -291,10 +288,6 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     configureType(match, options) {
-      if (options.graphConfig) {
-        graphConfigMap[match] = options.graphConfig;
-        delete options.graphConfig;
-      }
       store.commit(`${ module }/configureType`, { ...options, match });
     },
 
@@ -1178,14 +1171,9 @@ export const getters = {
     };
   },
 
-  hasGraph(state, getters) {
-    return (resource) => {
-      const typeOptions = getters['optionsFor'](resource);
-
-      if (typeOptions && typeOptions.hasGraph) {
-        return graphConfigMap[resource];
-      }
-
+  // This has to be left in to support extensions which use shell version 3.0.5-rc.8 or earlier, this extensions have a version of ResourceDetail/index.vue which still invokes this method.
+  hasGraph() {
+    return () => {
       return null;
     };
   },

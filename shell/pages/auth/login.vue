@@ -134,7 +134,8 @@ export default {
   },
 
   async fetch() {
-    const username = this.$cookies.get(USERNAME, { parseJSON: false }) || '';
+    const cookie = this.$store.getters['cookies/get']({ key: USERNAME, options: { parseJSON: false } });
+    const username = cookie || '';
 
     this.username = username;
     this.remember = !!username;
@@ -272,15 +273,19 @@ export default {
         }
 
         if ( this.remember ) {
-          this.$cookies.set(USERNAME, this.username, {
+          const options = {
             encode:   (x) => x,
             maxAge:   86400 * 365,
             path:     '/',
             sameSite: true,
             secure:   true,
+          };
+
+          this.$store.commit('cookies/set', {
+            key: USERNAME, value: this.username, options
           });
         } else {
-          this.$cookies.remove(USERNAME);
+          this.$store.commit('cookies/remove', { key: USERNAME });
         }
 
         // User logged with local login - we don't do any redirect/reload, so the boot-time plugin will not run again to laod the plugins

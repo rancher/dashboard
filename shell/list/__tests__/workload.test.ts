@@ -37,6 +37,7 @@ describe('component: workload', () => {
               'prefs/get':                   () => resource,
               'cluster/schemaFor':           () => {},
               'cluster/all':                 () => [{}],
+              'features/get':                () => false,
             }
           },
           $fetchState: {

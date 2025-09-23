@@ -595,6 +595,9 @@ export default class Workload extends WorkloadService {
     return selector;
   }
 
+  /**
+   * Match Expression version of the podSelector
+   */
   get podMatchExpression() {
     return this.podSelector ? parse(this.podSelector) : null;
   }

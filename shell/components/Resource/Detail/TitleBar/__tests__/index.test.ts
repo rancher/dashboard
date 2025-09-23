@@ -9,7 +9,7 @@ describe('component: TitleBar/index', () => {
   const resourceTypeLabel = 'RESOURCE_TYPE_LABEL';
   const resourceTo = 'RESOURCE_TO';
   const resourceName = 'RESOURCE_NAME';
-  const store = createStore({});
+  const store = createStore({ getters: {} });
 
   it('should render container with class title-bar', async() => {
     const wrapper = mount(TitleBar, {

@@ -1,4 +1,4 @@
-import { setProduct } from '@shell/utils/auth';
+import { setProduct } from '@shell/utils/product';
 import { applyProducts } from '@shell/store/type-map';
 
 export function install(router, context) {

@@ -304,6 +304,7 @@ export default {
     },
 
     _headers() {
+      // :TableColumn[]
       let headers;
       const showNamespace = this.showNamespaceColumn;
 
@@ -339,6 +340,29 @@ export default {
 
         // adding extension defined cols to the correct header config
         extensionCols.forEach((col) => {
+          if (this.externalPaginationEnabled) {
+            // validate that the required settings are supplied to enable search and sort server-side
+            // these do not check other invalid scenarios like a path is a string but to a model property, or that the field supports sort/search via api (some basic non-breaking checks are done further on)
+            if (
+              col.search !== false && // search is explicitly disabled
+              (typeof col.search !== 'string' && !Array.isArray(col.search)) && // primary property path to search on
+              typeof col.value !== 'string' // secondary property path to search on
+            ) {
+              console.warn(`Unable to support server-side search for extension provided column "${ col.name || col.label || col.labelKey }" (column must provide \`search\` or \`value\` property containing a path to a property in the resource. search can be an array).`); // eslint-disable-line no-console
+
+              col.search = false;
+            }
+
+            if (
+              col.sort !== false && // sort is explicitly disabled
+              (typeof col.sort !== 'string' && !Array.isArray(col.sort)) // primary property path to sort on
+            ) {
+              console.warn(`Unable to support server-side sort for extension provided column "${ col.name || col.label || col.labelKey }" (column must provide \`sort\` property containing a path to a property, or array of paths, in the resource)`); // eslint-disable-line no-console
+
+              col.sort = false;
+            }
+          }
+
           // we need the 'value' prop to be populated in order for the rows to show the values
           if (!col.value && col.getValue) {
             col.value = col.getValue;

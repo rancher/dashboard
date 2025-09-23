@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import Loading from '@shell/components/Loading';
 import { _FLAGGED, DEPRECATED as DEPRECATED_QUERY, HIDDEN, FROM_TOOLS } from '@shell/config/query-params';
-import { filterAndArrangeCharts } from '@shell/store/catalog';
+import { filterAndArrangeCharts, APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import { CATALOG, NORMAN } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { isAlternate } from '@shell/utils/platform';
@@ -11,10 +11,11 @@ import TabTitle from '@shell/components/TabTitle';
 import { get } from '@shell/utils/object';
 import { RcItemCard } from '@components/RcItemCard';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
+import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 
 export default {
   components: {
-    Loading, IconMessage, TabTitle, RcItemCard, AppChartCardSubHeader
+    Loading, IconMessage, TabTitle, RcItemCard, AppChartCardSubHeader, AppChartCardFooter
   },
 
   async fetch() {
@@ -96,9 +97,14 @@ export default {
             statuses: chart.cardContent.statuses
           },
           subHeaderItems: chart.cardContent.subHeaderItems.slice(0, 1),
-          image:          { src: chart.versions[0].icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
-          content:        { text: chart.chartDescription },
-          rawChart:       chart,
+          footerItems:    chart.deploysOnWindows ? [{
+            icon:        'icon-tag-alt',
+            iconTooltip: { key: 'generic.tags' },
+            labels:      [this.t('catalog.charts.deploysOnWindows')],
+          }] : [],
+          image:    { src: chart.versions[0].icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
+          content:  { text: chart.chartDescription },
+          rawChart: chart,
           installedApp,
         };
 
@@ -128,18 +134,44 @@ export default {
       const { installedApp, rawChart } = card;
 
       if (installedApp) {
-        return [
-          {
+        const actions = [];
+        const upgradeAvailable = installedApp.upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE;
+
+        if (upgradeAvailable) {
+          actions.push({
             label:  this.t('catalog.tools.action.upgrade'),
-            icon:   'icon-edit',
-            action: 'edit',
-          },
-          {
-            label:  this.t('catalog.tools.action.remove'),
-            icon:   'icon-delete',
-            action: 'remove',
-          }
-        ];
+            icon:   'icon-upgrade-alt',
+            action: 'upgrade',
+          });
+        }
+
+        actions.push({
+          label:  this.t('catalog.tools.action.edit'),
+          icon:   'icon-edit',
+          action: 'edit',
+        });
+
+        const currentVersion = installedApp.spec.chart.metadata.version;
+        const versions = rawChart.versions;
+        const currentIndex = versions.findIndex((v) => v.version === currentVersion);
+
+        if (currentIndex !== -1 && currentIndex < versions.length - 1) {
+          actions.push({
+            label:  this.t('catalog.tools.action.downgrade'),
+            icon:   'icon-history',
+            action: 'downgrade',
+          });
+        }
+
+        actions.push({ divider: true });
+
+        actions.push({
+          label:  this.t('catalog.tools.action.remove'),
+          icon:   'icon-delete',
+          action: 'remove',
+        });
+
+        return actions;
       }
 
       return [
@@ -151,6 +183,24 @@ export default {
         }
       ];
     },
+    upgrade(app, chart) {
+      const latestVersion = chart.versions[0].version;
+
+      this.edit(app, latestVersion);
+    },
+
+    downgrade(app, chart) {
+      const currentVersion = app.spec.chart.metadata.version;
+      const versions = chart.versions;
+      const currentIndex = versions.findIndex((v) => v.version === currentVersion);
+
+      if (currentIndex !== -1 && currentIndex < versions.length - 1) {
+        const downgradeVersion = versions[currentIndex + 1].version;
+
+        this.edit(app, downgradeVersion);
+      }
+    },
+
     edit(app, version) {
       app.goToUpgrade(version, true);
     },
@@ -193,6 +243,8 @@ export default {
         :content="card.content"
         :actions="getCardActions(card)"
         :class="{ 'single-card': appChartCards.length === 1 }"
+        @upgrade="() => upgrade(card.installedApp, card.rawChart)"
+        @downgrade="() => downgrade(card.installedApp, card.rawChart)"
         @edit="() => edit(card.installedApp)"
         @remove="(payload) => remove(card.installedApp, payload.event)"
         @install="() => install(card.rawChart)"
@@ -202,6 +254,12 @@ export default {
           #item-card-sub-header
         >
           <AppChartCardSubHeader :items="card.subHeaderItems" />
+        </template>
+        <template
+          v-once
+          #item-card-footer
+        >
+          <AppChartCardFooter :items="card.footerItems" />
         </template>
       </rc-item-card>
     </div>

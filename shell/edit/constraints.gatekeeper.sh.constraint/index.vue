@@ -17,6 +17,7 @@ import { saferDump } from '@shell/utils/create-yaml';
 import NamespaceList, { NAMESPACE_FILTERS_HELPER } from './NamespaceList';
 import MatchKinds from './MatchKinds';
 import Scope, { SCOPE_OPTIONS } from './Scope';
+import Banner from '@components/Banner/Banner';
 
 function findConstraintTypes(schemas) {
   return schemas
@@ -43,7 +44,8 @@ export default {
     Scope,
     Tab,
     Tabbed,
-    YamlEditor
+    YamlEditor,
+    Banner
   },
 
   mixins: [CreateEditView],
@@ -230,11 +232,17 @@ export default {
 };
 </script>
 <template>
+  <Banner
+    v-if="templateSubtypes.length === 0"
+    color="warning"
+  >
+    {{ t('gatekeeperConstraint.templateRequired') }}
+  </Banner>
   <CruResource
+    v-else
     :done-route="doneRoute"
     :mode="mode"
     :resource="value"
-    :selected-subtype="value.kind"
     :subtypes="templateSubtypes"
     :validation-passed="true"
     :errors="errors"

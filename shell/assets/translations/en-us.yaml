@@ -159,7 +159,7 @@ generic:
   showLess: Show less
   showMore: Show more
   opensInNewTab: Opens in a new tab
-  
+
 tabs:
   addItem: Add a new tab item
   removeItem: Remove selected tab item
@@ -282,7 +282,6 @@ nav:
     filteringDescription: Using this input will immediately filter the results in the list below
   header:
     setLoginPage: Set as login page
-    restoreCards: Restore hidden cards
     showHideBanner: Show/Hide Banner
   userMenu:
     preferences: Preferences
@@ -479,6 +478,12 @@ addProjectMemberDialog:
   title: Add Project Member
 
 authConfig:
+  slo:
+    sloTitle: Log Out behavior
+    sloOptions:
+      onlyRancher: Log out of Rancher and not {name}
+      logoutAll: Log out of Rancher and {name} (includes all other applications registered with {name})
+      choose: Allow the user to choose one of the above in an additional log out step
   accessMode:
     label: 'Configure who should be able to login and use {vendor}'
     required: Restrict access to only the authorized users & groups
@@ -608,7 +613,7 @@ authConfig:
     starttls:
       label: Start TLS
       tip: Upgrades non-encrypted connections by wrapping with TLS during the connection process. Can not be used in conjunction with TLS.
-    searchUsingServiceAccount: 
+    searchUsingServiceAccount:
       label: Enable Service Account Search
       tip: When enabled, Rancher will use the service account instead of the user account to search for users and groups.
     tls: TLS
@@ -628,11 +633,6 @@ authConfig:
     UID: UID Field
     adfs: Configure an AD FS account
     api: '{vendor} API Host'
-    sloTitle: Log Out behavior
-    sloOptions:
-      onlyRancher: Log out of Rancher and not {name}
-      logoutAll: Log out of Rancher and {name} (includes all other applications registered with {name})
-      choose: Allow the user to choose one of the above in an additional log out step
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
@@ -699,6 +699,9 @@ authConfig:
         title: Are you sure? This update is irreversible.
         body: '<p><b>You may need to make some additional changes</b>. Please ensure the Azure AD app has the Directory.Read.All <b>Application</b> permission added to Microsoft Graph.<br> If any endpoints were customized while configuring Azure AD authentication in Rancher, they will not be automatically updated. </p>'
   oidc:
+    endSessionEndpoint: 
+      title: End Session Endpoint
+      tooltip: Provider specific URL used for logging a user out of their session
     genericoidc: Configure an OIDC account
     keycloakoidc: Configure a Keycloak OIDC account
     cognito: Configure an Amazon Cognito account
@@ -826,6 +829,10 @@ asyncButton:
     action: Download
     success: Saving
     waiting: Downloading&hellip;
+  downgrade:
+    action: Downgrade
+    success: Downgraded
+    waiting: Downgrading&hellip;
   drain:
     action: Drain
     success: Drained
@@ -834,6 +841,10 @@ asyncButton:
     action: Save
     success: Saved
     waiting: Saving&hellip;
+  editVersion:
+    action: Save changes
+    success: Saved
+    waiting: Saving changes&hellip;
   editAndContinue:
     action: Save and Continue
     success: Saved
@@ -852,6 +863,10 @@ asyncButton:
     waiting: Importing&hellip;
   install:
     action: Install
+    success: Installed
+    waiting: Installing&hellip;
+  installVersion:
+    action: Install this version
     success: Installed
     waiting: Installing&hellip;
   load:
@@ -898,9 +913,9 @@ asyncButton:
     success: Redeployed
     waiting: Redeploying Workload
   rollback:
-    action: Roll Back
+    action: Rollback
     success: Rolled Back
-    waiting: Rolling Back Workload
+    waiting: Rolling Back&hellip;
   rotate:
     action: Rotate
     waiting: Rotating&hellip;
@@ -929,6 +944,10 @@ asyncButton:
     action: Upgrade
     success: Upgrading
     waiting: Starting&hellip;
+  upgradeVersion:
+    action: Upgrade
+    success: Upgraded
+    waiting: Upgrading&hellip;
   generate:
     action: Generate
     success: Generated
@@ -1063,6 +1082,12 @@ catalog:
     deprecatedWarning: '{chartName} has been marked as deprecated. Use caution when installing this helm chart as it might be removed in the future.'
     experimentalWarning: '{chartName} has been marked as experimental. Use caution when installing this helm chart as it might not function as expected.'
     deprecatedAndExperimentalWarning: '{chartName} has been marked as deprecated and experimental. Use caution when installing this helm chart as it might be removed in the future and might not function as expected.'
+    chartButton:
+      action:
+        install: Install this version
+        edit: Edit the current version
+        upgrade: Upgrade to this version
+        downgrade: Downgrade to this version
   charts:
     browseAriaLabel: Show only charts grid
     iconAlt: Icon for {app} card/grid item
@@ -1140,7 +1165,7 @@ catalog:
       customizeInstall: Customize Install Options
       viewLogs: View Installation Logs
       waitForLogs: Installation initialized; waiting for logs...
-      canNotCreateRepos: It looks like you don't have permission to add repositories and install helm charts. 
+      canNotCreateRepos: It looks like you don't have permission to add repositories and install helm charts.
       canNotInstallApps: The {repo} repository has been added, but you don't have permission to install charts from it.
       stages:
         addRepo:
@@ -1235,7 +1260,9 @@ catalog:
         description: This process will help {action, select,
             install { create }
             upgrade { upgrade }
-            update { update }
+            downgrade { upgrade }
+            editVersion { update }
+            upgradeVersion { upgrade }
           } the {existing, select,
             true { app}
             false { chart}
@@ -1327,8 +1354,9 @@ catalog:
     noTools: "No Cluster Tools found"
     action:
       install: Install
-      upgrade: Upgrade/Edit
-      edit: Edit
+      upgrade: Upgrade
+      edit: Edit current version
+      downgrade: Downgrade
       remove: Remove
       manage: Manage
   os:
@@ -1605,7 +1633,7 @@ cluster:
         placeholder: Service Account private key JSON file
         gke: GKE
         gce: GCE
-        help: 
+        help:
           shared: <p>Create a <a href="https://console.cloud.google.com/projectselector/iam-admin/serviceaccounts" target="_blank" rel="noopener noreferrer nofollow">Service Account</a> with a JSON private key and provide the JSON here.</p>
           gke: |-
             <p>These IAM roles are required for GKE:</p>
@@ -3229,6 +3257,7 @@ footer:
   slack: Slack
 
 gatekeeperConstraint:
+  templateRequired: You must have at least one Template before attempting to create a Constraint.
   downloadViolations: Download Violations
   match:
     title: Match
@@ -5105,6 +5134,8 @@ plugins:
     image: Image
     installing: Installing ...
     uninstalling: Uninstalling ...
+    updating: Updating ...
+    rollingBack: Rolling back ...
     menu: Extensions menu
     reloadRancher: Reload Rancher
   descriptions:
@@ -6956,6 +6987,9 @@ wizard:
   edit: Edit
   create: Create
   view: View
+  install: Install
+  upgrade: Upgrade
+  downgrade: Downgrade
 wm:
   connection:
     connected: Connected
@@ -7536,6 +7570,8 @@ model:
       saml: SAML
       oauth: OAuth
       oidc: OIDC
+      keycloakoidc: Keycloak
+      genericoidc: OIDC provider
       cognito: Amazon Cognito
     name:
       keycloak: Keycloak (SAML)
@@ -8884,6 +8920,9 @@ component:
         title: Config
   resource:
     detail:
+      copyToClipboard:
+        ariaLabel:
+          copy: Copy to clipboard
       card:
         resourceUsage:
           used: Used
@@ -8938,3 +8977,82 @@ component:
         keyValue:
           noRows: There are no {propertyName} configured on this resource.
           showConfiguration: Show Configuration
+          ariaLabel:
+            showPreview: Show Preview
+      glance:
+        state: State
+        age: Age
+        namespace: Namespace
+        project: Project
+        type: Type
+        ariaLabel:
+          showDetails: Show Resource Information about { resource } named { name }
+          actionMenu: Resource Actions - { resource }
+  cron:
+    expressionEditor:
+      label:
+        minute: "Minute"
+        hour: "Hour"
+        dayOfMonth: "Day of Month"
+        month: "Month"
+        dayOfWeek: "Day of Week"
+      invalidValue: "Invalid value"
+      invalidCronExpression: "Invalid Cron Expression"
+      minute:
+        any: "any value (every minute)"
+        at1and5: "at 1 and 5 min past the hour"
+        range: "every minute from 1 to 5"
+        every5: "every 5 minutes"
+        start8: "every 5 minutes, starting at 8 minutes past the hour"
+        allowed: "Allowed literal values: 0-59"
+      hour:
+        any: "any value (every hour)"
+        at1and5: "at 1 AM and 5 AM"
+        range: "every hour from 1 to 5 AM"
+        every5: "every 5 hours"
+        start8: "every 5 hours starting at 8 AM"
+        allowed: "Allowed literal values: 0-23"
+      dayOfMonth:
+        any: "any value (every day of the month)"
+        omit: "omit"
+        1and5: "on the 1st and 5th days of the month"
+        range: "every day from 1st to 5th"
+        every5: "every 5 days"
+        start8: "every 5 days starting at the 8th"
+        allowed: "Allowed literal values: 1-31"
+      month:
+        any: "any value (every month)"
+        1and5: "on months 1 and 5 (January and May)"
+        range: "every month from January to May"
+        every2: "every 2 months"
+        start3: "every 2 months, starting on month 3 (March)"
+        allowed: "Allowed literal values: 1-12"
+        alias: "Allowed alias values: jan-dec"
+      dayOfWeek:
+        any: "any value (every day of the week)"
+        omit: "omit"
+        1and5: "on days 1 and 5 (Monday and Friday)"
+        range: "every day from Monday to Friday"
+        allowed: "Allowed literal values: 0-7"
+        alias: "Allowed alias values: mon-sun"
+      a11y:
+        examples: "Edit {label}. Examples:"
+    expressionEditorModal:
+      title: "Define Cron expression"
+      description: "Click on any field to get hints about valid values and wildcard symbols."
+      wildcards:
+        title: "Generic Wildcards"
+        anyValue: "any value"
+        xAndY: "X and Y"
+        fromXtoY: "from X to Y"
+        everyX: "every X"
+        everyXStartingY: "every X starting at Y"
+        everyXFromYtoZ: "every X, from Y to Z"
+      examples:
+        title: "Examples"
+        dailyMidnight: "At 12:00 AM"
+        every5Hours: "At 0 minutes past the hour, every 5 hours"
+        day1At1745: "At 05:45 PM, on day 1 of the month"
+        weekdaysAt0830: "At 30 minutes past the hour, every 1 hours, starting at 08:00 AM, Monday through Friday"
+        marchToMayHourly: "Every hour, only in March, April, and May"
+        every4Hours9to17: "At 0 minutes past the hour, every 4 hours, between 09:00 AM and 05:00 PM"

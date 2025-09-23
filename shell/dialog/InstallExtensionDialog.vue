@@ -29,9 +29,9 @@ export default {
       required: true
     },
     /**
-     * Modal mode
+     * The action to perform (install, update, rollback)
      */
-    mode: {
+    action: {
       type:     String,
       default:  '',
       required: true
@@ -68,14 +68,14 @@ export default {
     // Default to latest version on install (this is default on the plugin)
     this.version = chartVersion;
 
-    if (this.mode === 'update') {
+    if (this.action === 'update') {
       this.currentVersion = chartVersion;
 
       // Update to latest version, so take the first version
       if (this.plugin?.installableVersions?.length > 0) {
         this.version = this.plugin?.installableVersions?.[0]?.version;
       }
-    } else if (this.mode === 'rollback') {
+    } else if (this.action === 'rollback') {
       // Find the newest version once we remove the current version
       const versionNames = this.plugin.installableVersions.filter((v) => v.version !== chartVersion);
 
@@ -94,7 +94,7 @@ export default {
     }
 
     this.busy = false;
-    this.update = this.mode !== 'install';
+    this.update = this.action !== 'install';
 
     this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
@@ -141,7 +141,15 @@ export default {
     },
 
     buttonMode() {
-      return this.update ? 'update' : 'install';
+      if (this.action === 'rollback') {
+        return 'rollback';
+      }
+
+      if (this.action === 'update') {
+        return 'update';
+      }
+
+      return 'install';
     },
 
     chartVersionLoadsWithoutAuth() {
@@ -149,7 +157,7 @@ export default {
     },
 
     returnFocusSelector() {
-      return `[data-testid="extension-card-${ this.mode }-btn-${ this.plugin?.name }"]`;
+      return `[data-testid="extension-card-${ this.action }-btn-${ this.plugin?.name }"]`;
     }
   },
 
@@ -190,7 +198,7 @@ export default {
 
       const plugin = this.plugin;
 
-      this.updateStatus(plugin.name, 'install');
+      this.updateStatus(plugin.name, this.action);
 
       // Find the version that the user wants to install
       const version = plugin.versions?.find((v) => v.version === this.version);
@@ -287,12 +295,12 @@ export default {
 <template>
   <div class="plugin-install-dialog">
     <h4 class="mt-10">
-      {{ t(`plugins.${ mode }.title`, { name: plugin?.label }) }}
+      {{ t(`plugins.${ action }.title`, { name: plugin?.label }) }}
     </h4>
     <div class="custom mt-10">
       <div class="dialog-panel">
         <p>
-          {{ t(`plugins.${ mode }.prompt`) }}
+          {{ t(`plugins.${ action }.prompt`) }}
         </p>
         <Banner
           v-if="chartVersionLoadsWithoutAuth"

@@ -615,6 +615,13 @@
     "@storybook/global" "^5.0.0"
     ts-dedent "^2.0.0"
 
+"@storybook/addon-themes@^8.4.2":
+  version "8.6.14"
+  resolved "http://localhost:4873/@storybook/addon-themes/-/addon-themes-8.6.14.tgz#37630b8e719a0237b6e2514ee2e58ac387f0f619"
+  integrity sha512-/HJCgskA3OFGectuoLEBQ3JX1nQhE7lnpSv5gH13CWyyaMEk/mP8JYF1uO25YQqwGuSgL2gaEox+aK7UmglAmQ==
+  dependencies:
+    ts-dedent "^2.0.0"
+
 "@storybook/addon-toolbars@8.4.5":
   version "8.4.5"
   resolved "https://registry.npmjs.org/@storybook/addon-toolbars/-/addon-toolbars-8.4.5.tgz#ebe20f0577a3e399858ba591066dbc8ac9636a5c"
@@ -731,6 +738,11 @@
   version "5.0.0"
   resolved "https://registry.npmjs.org/@storybook/global/-/global-5.0.0.tgz#b793d34b94f572c1d7d9e0f44fac4e0dbc9572ed"
   integrity sha512-FcOqPAXACP0I3oJ/ws6/rrPT9WGhu915Cg8D02a9YxLo0DE9zI+a9A5gRGvmQ09fiWPukqI8ZAEoQEdWUKMQdQ==
+
+"@storybook/icons@^1.2.10":
+  version "1.4.0"
+  resolved "http://localhost:4873/@storybook/icons/-/icons-1.4.0.tgz#7cf7ab3dfb41943930954c4ef493a73798d8b31d"
+  integrity sha512-Td73IeJxOyalzvjQL+JXx72jlIYHgs+REaHiREOqfpo3A2AYYG71AUbcv+lg7mEDIweKVCxsMQ0UKo634c8XeA==
 
 "@storybook/icons@^1.2.12":
   version "1.2.12"
@@ -4370,6 +4382,13 @@ static-extend@^0.1.1:
   dependencies:
     define-property "^0.2.5"
     object-copy "^0.1.0"
+
+storybook-addon-pseudo-states@4.0.3:
+  version "4.0.3"
+  resolved "http://localhost:4873/storybook-addon-pseudo-states/-/storybook-addon-pseudo-states-4.0.3.tgz#7c24d84cb3dbcc42813c633ba6f77a1ce5940baa"
+  integrity sha512-QppSJsRK0oWeTtVHJKxSCxGwyh1r6vMBxgCWFgUffFA+NOwVvfsBhi9A7xKI2z/0fmweiqSZhBafRIAMlT6X5Q==
+  dependencies:
+    "@storybook/icons" "^1.2.10"
 
 storybook-vue3-router@^5.0.0:
   version "5.0.0"

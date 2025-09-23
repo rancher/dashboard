@@ -107,6 +107,8 @@ const config: StorybookConfig = {
     getAbsolutePath("@storybook/addon-essentials"),
     getAbsolutePath("@storybook/addon-interactions"),
     getAbsolutePath('@storybook/addon-webpack5-compiler-babel'),
+    getAbsolutePath('@storybook/addon-themes'),
+    getAbsolutePath('storybook-addon-pseudo-states'),
     // Add support for table generation from markdown using MDX files
     {
       name: '@storybook/addon-docs',
