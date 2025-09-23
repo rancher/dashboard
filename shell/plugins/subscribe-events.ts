@@ -91,7 +91,7 @@ export class SteveWatchEventListenerManager {
   /**
    * Set if this type has a standard non-listener watch associated with it
    */
-  public setWatchStarted({ standardWatch, args }: { standardWatch: boolean, args: SubscribeEventWatchArgs}) {
+  public setStandardWatch({ standardWatch, args }: { standardWatch: boolean, args: SubscribeEventWatchArgs}) {
     const { params } = args;
 
     let watch = this.getWatch({ params });
@@ -106,7 +106,7 @@ export class SteveWatchEventListenerManager {
 
     watch.hasStandardWatch = standardWatch;
 
-    // is watch empty, if so get rid of the entry
+    // if we've just set this to false and there's no listeners, tidy up the entry
     if (!watch.hasStandardWatch && watch.listeners.length === 0) {
       this.deleteWatch({ params });
     }

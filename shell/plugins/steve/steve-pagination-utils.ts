@@ -623,7 +623,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
         res.push(`filter=!${ labelKey }`);
         break;
       case 'Gt':
-        // Currently broken - see https://github.com/rancher/rancher/issues/50057
         // Only applicable to node affinity (atm) - https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
 
         if (typeof exp.values !== 'string') {
@@ -636,7 +635,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
         res.push(`filter=${ labelKey } > (${ exp.values })`);
         break;
       case 'Lt':
-        // Currently broken - see https://github.com/rancher/rancher/issues/50057
         // Only applicable to node affinity (atm) - https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
         if (typeof exp.values !== 'string') {
           console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(Lt) as no value was supplied`); // eslint-disable-line no-console

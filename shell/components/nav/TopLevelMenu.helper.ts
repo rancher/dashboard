@@ -151,7 +151,7 @@ export abstract class BaseTopLevelMenuHelper {
       iconColor:       mgmtCluster.iconColor,
       isLocal:         mgmtCluster.isLocal,
       pinned:          mgmtCluster.pinned,
-      description:     provCluster?.description || mgmtCluster.description, // If description is the only thing we care about, don't bother watching...
+      description:     provCluster?.description || mgmtCluster.description,
       pin:             () => mgmtCluster.pin(),
       unpin:           () => mgmtCluster.unpin(),
       clusterRoute:    { name: 'c-cluster-explorer', params: { cluster: mgmtCluster.id } }

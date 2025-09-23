@@ -461,10 +461,11 @@ const sharedActions = {
     const hasStandardWatch = ctx.getters.listenerManager.hasStandardWatch({ params });
 
     if (!hasStandardWatch) {
+      // If there's nothing to piggy back on... start a watch to do so.
       ctx.dispatch('watch', {
         ...params,
-        standardWatch: false // <-- is just a mechanism to not call listenerManager.setWatchStarted --> sets up listenerManager.hasStandardWatch
-      }); // Ensure something is watching (no-op if exists)
+        standardWatch: false // Ensure that we don't treat this as a standard watch
+      });
     }
   },
 
@@ -604,7 +605,7 @@ const sharedActions = {
     if (!stop && standardWatch) {
       // Track that this watch is just a normal one, not one kicked off by listeners
       // This helps us keep the watch going (for listeners) instead of in unwatch just stopping it
-      getters.listenerManager.setWatchStarted({ standardWatch: true, args: { event: msg.mode, params: msg } });
+      getters.listenerManager.setStandardWatch({ standardWatch: true, args: { event: msg.mode, params: msg } });
     }
 
     return dispatch('send', msg);
@@ -637,7 +638,7 @@ const sharedActions = {
 
         if (hasStandardWatch) {
           // If we have listeners for this watch... make sure it knows there's now no root standard watch
-          ctx.getters.listenerManager.setWatchStarted({ standardWatch: false, args: { params: obj } });
+          ctx.getters.listenerManager.setStandardWatch({ standardWatch: false, args: { params: obj } });
         }
 
         if (watchHasListeners) {

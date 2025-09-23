@@ -58,8 +58,8 @@ describe('steveWatchEventListenerManager', () => {
       expect(watch).toBeUndefined();
     });
 
-    it('should create a watch when setWatchStarted is called with standardWatch true and no watch exists', () => {
-      manager.setWatchStarted({ standardWatch: true, args: { params: mockParams1 } });
+    it('should create a watch when setStandardWatch is called with standardWatch true and no watch exists', () => {
+      manager.setStandardWatch({ standardWatch: true, args: { params: mockParams1 } });
       const watch = (manager as any).watches[mockKeyForSubscribe({ params: mockParams1 })];
 
       expect(watch).toBeDefined();
@@ -67,16 +67,16 @@ describe('steveWatchEventListenerManager', () => {
       expect(watch.listeners).toStrictEqual([]);
     });
 
-    it('should not create a watch when setWatchStarted is called with standardWatch false and no watch exists', () => {
-      manager.setWatchStarted({ standardWatch: false, args: { params: mockParams1 } });
+    it('should not create a watch when setStandardWatch is called with standardWatch false and no watch exists', () => {
+      manager.setStandardWatch({ standardWatch: false, args: { params: mockParams1 } });
       const watch = (manager as any).watches[mockKeyForSubscribe({ params: mockParams1 })];
 
       expect(watch).toBeUndefined();
     });
 
     it('should delete a watch when hasStandardWatch becomes false and there are no listeners', () => {
-      manager.setWatchStarted({ standardWatch: true, args: { params: mockParams1 } });
-      manager.setWatchStarted({ standardWatch: false, args: { params: mockParams1 } });
+      manager.setStandardWatch({ standardWatch: true, args: { params: mockParams1 } });
+      manager.setStandardWatch({ standardWatch: false, args: { params: mockParams1 } });
       const watch = (manager as any).watches[mockKeyForSubscribe({ params: mockParams1 })];
 
       expect(watch).toBeUndefined();
