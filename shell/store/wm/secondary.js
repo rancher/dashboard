@@ -84,14 +84,6 @@ export const actions = {
     commit('setOpen', false);
   },
 
-  // {
-  //   id:  shell-<pod id> -- A string that is be unique for this instance;
-  //                           if a window with this key exists it will be focused instead of creating another
-  //   label: Shown on the tab
-  //   icon:  Shown on the tab
-  //   component: 'ContainerShell',
-  //   attrs: { whateverTheComponent: wants }
-  // }
   open({ commit }, tab) {
     if ( !tab.id ) {
       throw new Error('Window must have an id property');
