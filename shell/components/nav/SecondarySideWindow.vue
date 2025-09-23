@@ -81,7 +81,7 @@ onMounted(() => {
     v-if="open"
     id="secondary-side-window"
     data-testid="secondary-side-window"
-    class="secondary-side-window"
+    class="wm2 secondary-side-window"
   >
     <div
       ref="header"

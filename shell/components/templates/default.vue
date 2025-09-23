@@ -261,9 +261,7 @@ export default {
       >
         <PrimarySideWindow @draggable="draggable=$event" />
       </div>
-      <div class="wm2">
-        <SecondarySideWindow />
-      </div>
+      <SecondarySideWindow />
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
