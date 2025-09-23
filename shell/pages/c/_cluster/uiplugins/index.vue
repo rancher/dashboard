@@ -531,6 +531,16 @@ export default {
   },
 
   methods: {
+    handlePanelAction(button) {
+      const { action, plugin, version } = button;
+
+      if (action === 'uninstall') {
+        this.showUninstallDialog(plugin, {});
+      } else {
+        this.showInstallDialog(plugin, action, {}, version);
+      }
+    },
+
     async refreshCharts(forceChartsUpdate = false) {
       // we might need to force the request, so that we know at all times if what's the status of the offical and partners repos (installed or not)
       // tied to the SetupUIPlugins, AddExtensionRepos checkboxes
@@ -619,10 +629,10 @@ export default {
       });
     },
 
-    showInstallDialog(plugin, action, ev) {
-      ev.target?.blur();
-      ev.preventDefault();
-      ev.stopPropagation();
+    showInstallDialog(plugin, action, ev, initialVersion = null) {
+      ev?.target?.blur();
+      ev?.preventDefault?.();
+      ev?.stopPropagation?.();
 
       this.$store.dispatch('management/promptModal', {
         component:                            'InstallExtensionDialog',
@@ -632,6 +642,7 @@ export default {
         componentProps:                       {
           plugin,
           action,
+          initialVersion,
           updateStatus: (pluginName, type) => {
             this.updatePluginInstallStatus(pluginName, type);
           },
@@ -643,9 +654,9 @@ export default {
     },
 
     showUninstallDialog(plugin, ev) {
-      ev.target?.blur();
-      ev.preventDefault();
-      ev.stopPropagation();
+      ev?.target?.blur();
+      ev?.preventDefault?.();
+      ev?.stopPropagation?.();
 
       this.$store.dispatch('management/promptModal', {
         component:                            'UninstallExtensionDialog',
@@ -971,7 +982,10 @@ export default {
     </div>
 
     <!-- extensions slide-in panel -->
-    <PluginInfoPanel ref="infoPanel" />
+    <PluginInfoPanel
+      ref="infoPanel"
+      @action="handlePanelAction"
+    />
 
     <!-- extensions not enabled by feature flag -->
     <div v-if="!hasFeatureFlag">

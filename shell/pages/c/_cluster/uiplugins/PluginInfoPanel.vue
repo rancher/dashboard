@@ -7,8 +7,12 @@ import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
 import { getPluginChartVersionLabel, getPluginChartVersion } from '@shell/utils/uiplugins';
+import { isChartVersionHigher } from '@shell/config/uiplugins';
+import RcButton from '@pkg/rancher-components/src/components/RcButton/RcButton.vue';
 
 export default {
+  emits: ['action'],
+
   async fetch() {
     const bannerSetting = await this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
     const { showHeader, bannerHeader } = JSON.parse(bannerSetting.value);
@@ -22,7 +26,8 @@ export default {
   components: {
     Banner,
     ChartReadme,
-    LazyImage
+    LazyImage,
+    RcButton
   },
   data() {
     return {
@@ -49,6 +54,60 @@ export default {
 
       return {};
     },
+
+    panelActions() {
+      const actions = [];
+
+      if (!this.info) {
+        return actions;
+      }
+
+      const activeVersion = this.infoVersion;
+      const installedVersion = this.info.installedVersion;
+
+      if (!this.info.installed) {
+        if (this.info.installableVersions?.length) {
+          actions.push({
+            label:   this.t('catalog.chart.chartButton.action.install'),
+            action:  'install',
+            role:    'primary',
+            version: activeVersion,
+            icon:    'icon-plus'
+          });
+        }
+      } else {
+        if (activeVersion && installedVersion && activeVersion !== installedVersion) {
+          if (isChartVersionHigher(activeVersion, installedVersion)) {
+            actions.push({
+              label:   this.t('catalog.chart.chartButton.action.upgrade'),
+              action:  'upgrade',
+              role:    'primary',
+              version: activeVersion,
+              icon:    'icon-upgrade-alt'
+            });
+          } else {
+            actions.push({
+              label:   this.t('catalog.chart.chartButton.action.downgrade'),
+              action:  'downgrade',
+              role:    'primary',
+              version: activeVersion,
+              icon:    'icon-downgrade-alt'
+            });
+          }
+        }
+
+        if (!this.info.builtin) {
+          actions.push({
+            label:  this.t('plugins.uninstall.label'),
+            action: 'uninstall',
+            role:   'secondary',
+            icon:   'icon-delete'
+          });
+        }
+      }
+
+      return actions;
+    }
   },
   watch: {
     showSlideIn: {
@@ -65,12 +124,18 @@ export default {
     }
   },
   methods: {
+    onButtonClick(button) {
+      this.$emit('action', { ...button, plugin: this.info });
+      this.hide();
+    },
+
     show(info) {
       this.info = info;
       this.showSlideIn = true;
       this.version = null;
       this.versionInfo = null;
       this.versionError = null;
+      this.infoVersion = undefined;
 
       this.loadPluginVersionInfo();
     },
@@ -153,7 +218,13 @@ export default {
     },
 
     getVersionLabel(version) {
-      return getPluginChartVersionLabel(version);
+      let label = getPluginChartVersionLabel(version);
+
+      if (this.info.installed && version.version === this.info.installedVersion) {
+        label += ` (${ this.t('plugins.labels.current') })`;
+      }
+
+      return label;
     }
   }
 };
@@ -235,44 +306,78 @@ export default {
               v-if="info.builtin"
               color="warning"
               :label="t('plugins.descriptions.built-in')"
-              class="mt-10"
             />
             <template v-else>
               <Banner
                 v-if="!info.certified"
                 color="warning"
                 :label="t('plugins.descriptions.third-party')"
-                class="mt-10"
               />
               <Banner
                 v-if="info.experimental"
                 color="warning"
                 :label="t('plugins.descriptions.experimental')"
-                class="mt-10"
               />
             </template>
           </div>
 
-          <h3 v-if="info.versions.length">
-            {{ t('plugins.info.versions') }}
-          </h3>
-          <div class="plugin-versions mb-10">
+          <div class="plugin-versions-container">
+            <h3>
+              {{ t('plugins.info.versions') }}
+            </h3>
+            <div v-if="!info.versions.length">
+              <div class="version-link version-active version-builtin">
+                {{ info.displayVersion }}
+              </div>
+            </div>
             <div
-              v-for="v in info.versions"
-              :key="`${v.name}-${v.version}`"
+              v-else
+              class="plugin-versions"
             >
-              <a
-                v-clean-tooltip="handleVersionBtnTooltip(v)"
-                class="version-link"
-                :class="handleVersionBtnClass(v)"
-                :tabindex="!v.isVersionCompatible ? -1 : 0"
-                role="button"
-                :aria-label="t('plugins.viewVersionDetails', {name: v.name, version: v.version})"
-                @click="loadPluginVersionInfo(v.version)"
-                @keyup.enter.space="loadPluginVersionInfo(v.version)"
+              <div
+                v-for="v in info.versions"
+                :key="`${v.name}-${v.version}`"
               >
-                {{ getVersionLabel(v) }}
-              </a>
+                <a
+                  v-clean-tooltip="handleVersionBtnTooltip(v)"
+                  class="version-link"
+                  :class="handleVersionBtnClass(v)"
+                  :tabindex="!v.isVersionCompatible ? -1 : 0"
+                  role="button"
+                  :aria-label="t('plugins.viewVersionDetails', {name: v.name, version: v.version})"
+                  @click="loadPluginVersionInfo(v.version)"
+                  @keyup.enter.space="loadPluginVersionInfo(v.version)"
+                >
+                  {{ getVersionLabel(v) }}
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="plugin-actions-container">
+            <h3>
+              {{ t('plugins.info.actions') }}
+            </h3>
+            <div class="plugin-actions">
+              <template v-if="panelActions.length">
+                <RcButton
+                  v-for="btn in panelActions"
+                  :key="btn.action"
+                  class="mmr-3 mmb-3"
+                  :[btn.role]="true"
+                  @click="onButtonClick(btn)"
+                >
+                  <template #before>
+                    <i :class="['icon', btn.icon, 'mmr-2']" />
+                  </template>
+                  {{ btn.label }}
+                </RcButton>
+              </template>
+              <div
+                v-else
+                class="no-actions"
+              >
+                {{ t('sortableTable.noActions') }}
+              </div>
             </div>
           </div>
 
@@ -291,14 +396,6 @@ export default {
               :version-info="versionInfo"
             />
           </div>
-          <div v-if="!info.versions.length">
-            <h3>
-              {{ t('plugins.info.versions') }}
-            </h3>
-            <div class="version-link version-active version-builtin">
-              {{ info.displayVersion }}
-            </div>
-          </div>
         </div>
       </aside>
     </transition>
@@ -312,8 +409,6 @@ export default {
     z-index: 1;
 
     $slideout-width: 35%;
-    $title-height: 50px;
-    $padding: 5px;
     $slideout-width: 35%;
     --banner-top-offset: 0;
     $header-height: calc(54px + var(--banner-top-offset));
@@ -339,7 +434,7 @@ export default {
       z-index: 10;
       display: flex;
       flex-direction: column;
-      padding: 10px;
+      padding: 12px;
 
       &.active {
         right: 0;
@@ -373,6 +468,10 @@ export default {
         flex-direction: column;
         overflow: hidden;
 
+        .banner.warning {
+          margin-top: 0;
+        }
+
         .plugin-info-detail {
           overflow: auto;
         }
@@ -380,15 +479,16 @@ export default {
 
       h3 {
         font-size: 14px;
-        margin: 15px 0 10px 0;
-        opacity: 0.7;
+        margin-bottom: 12px;
+        color: var(--disabled-text);
         text-transform: uppercase;
       }
 
       .plugin-header {
         border-bottom: 1px solid var(--border);
         display: flex;
-        padding-bottom: 20px;
+        padding-bottom: 16px;
+        margin-bottom: 16px;
 
         .plugin-title {
           flex: 1;
@@ -397,8 +497,7 @@ export default {
 
       .plugin-icon {
         font-size: 40px;
-        margin-right:10px;
-        color: #888;
+        margin-right: 12px;
         width: 44px;
         height: 44px;
 
@@ -419,9 +518,19 @@ export default {
         }
       }
 
-      .plugin-versions {
+      .plugin-versions-container,
+      .plugin-actions-container {
+        margin-bottom: 16px;
+      }
+
+      .plugin-versions,
+      .plugin-actions {
         display: flex;
         flex-wrap: wrap;
+      }
+
+      .no-actions {
+        color: var(--disabled-text);
       }
 
       .plugin-description {
@@ -434,7 +543,7 @@ export default {
         padding: 2px 8px;
         border-radius: 5px;
         user-select: none;
-        margin: 0 5px 5px 0;
+        margin: 0 4px 4px 0;
         display: block;
 
         &.version-active {
@@ -498,7 +607,7 @@ export default {
 
         height: 0;
 
-        padding-bottom: 10px;
+        padding-bottom: 12px;
 
         :deep() .chart-readmes {
           flex: 1;
