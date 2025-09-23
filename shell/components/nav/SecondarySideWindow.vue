@@ -1,7 +1,10 @@
 <script lang="ts" setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import {
+  ref, computed, watch, onMounted, markRaw
+} from 'vue';
 import { useStore } from 'vuex';
 import RcButton from '@components/RcButton/RcButton.vue';
+import { BOTTOM } from '@shell/utils/position';
 
 const _warn = (msg: string, ...args: any[]) => {
   console.warn(`[wm2] ${ msg } ${ args?.reduce((acc, v) => `${ acc } '${ v }'`, '') }`); /* eslint-disable-line no-console */
@@ -16,7 +19,15 @@ const open = computed(() => store.getters['wm/secondary/isOpen']);
 const tabs = computed(() => store.getters['wm/secondary/tabs'] || []);
 const userWidth = computed(() => store.getters['wm/secondary/userWidth'] || window.localStorage.getItem('wm2-width') || '600px');
 
-function loadComponent(name: string, extensionId: string) {
+function setupPrimaryWindow() {
+  // When the SecondarySideWindow is opened, pin the PrimarySideWindow to the bottom
+  window.localStorage.setItem('wm-pin', BOTTOM);
+  store.commit('wm/setUserPin', BOTTOM);
+}
+
+function loadComponent(tab: { componentName?: string, extensionId?: string }) {
+  const { componentName: name, extensionId } = tab;
+
   if (!name) {
     _warn(`component name not provided`);
 
@@ -33,10 +44,10 @@ function loadComponent(name: string, extensionId: string) {
 
   if (!!extensionId) {
     _warn(`loading component from extension`, name, extensionId);
-    component.value = (store as any).$extension?.getDynamic('component', name);
+    component.value = markRaw((store as any).$extension?.getDynamic('component', name));
   } else if (store.getters['type-map/hasCustomWindowComponent'](name)) {
     _warn(`loading component from TypeMap`, name);
-    component.value = store.getters['type-map/importWindowComponent'](name);
+    component.value = markRaw(store.getters['type-map/importWindowComponent'](name));
   }
 
   if (!component.value) {
@@ -44,13 +55,13 @@ function loadComponent(name: string, extensionId: string) {
   }
 }
 
-function setupWindow(isOpen: boolean) {
+function setupLayout(isOpen: boolean) {
   document.documentElement.style.setProperty('--wm2-width', isOpen ? userWidth.value : '0');
 
   if (isOpen) {
-    const { componentName: name, extensionId } = tabs.value[0] || {};
+    setupPrimaryWindow();
 
-    loadComponent(name, extensionId);
+    loadComponent(tabs.value[0] || {});
   }
 }
 
@@ -58,7 +69,7 @@ function close() {
   store.dispatch('wm/secondary/close');
 }
 
-watch(open, (val) => setupWindow(val), { immediate: true });
+watch(open, (val) => setupLayout(val), { immediate: true });
 
 onMounted(() => {
   // No logic needed here for now
@@ -116,8 +127,11 @@ onMounted(() => {
         v-bind="{}"
         @close="close"
       />
-      <div v-else>
-        <span>No component found for {{ componentName }}</span>
+      <div
+        v-else
+        class="no-component"
+      >
+        <h1>{{ `Component '${ componentName }' not found` }}</h1>
       </div>
     </div>
   </div>
@@ -149,6 +163,14 @@ onMounted(() => {
     .actions {
       padding-right: 4px;
     }
+  }
+
+  .no-component {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
   }
 }
 </style>

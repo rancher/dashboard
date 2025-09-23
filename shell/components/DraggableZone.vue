@@ -51,7 +51,13 @@ export default defineComponent({
     },
 
     onDragOver(event: DragEvent, zone: Zone) {
-      this.drag.zone = zone;
+      const isSecondaryOpen = this.$store.getters['wm/secondary/isOpen'];
+
+      // If the SecondarySideWindow is open, only allow dragging to bottom or keeping the current position
+      if (!isSecondaryOpen || (zone !== RIGHT && zone !== LEFT)) {
+        this.drag.zone = zone;
+      }
+
       if (zone !== CENTER) {
         event.preventDefault();
       }
