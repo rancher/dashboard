@@ -1,6 +1,6 @@
 <script>
 import { mapState } from 'vuex';
-import debounce from 'lodash/debounce';
+import { debounce, throttle } from 'lodash';
 import {
   screenRect, boundingRect, BOTTOM, RIGHT, LEFT
 } from '@shell/utils/position';
@@ -111,6 +111,15 @@ export default {
     this.queueUpdate = debounce(this.setReportedHeight, 250);
   },
 
+  beforeUnmount() {
+    if (this.timeoutX) {
+      clearTimeout(this.timeoutX);
+    }
+    if (this.timeoutY) {
+      clearTimeout(this.timeoutY);
+    }
+  },
+
   methods: {
     switchTo(id) {
       this.$store.commit('wm/setActive', id);
@@ -174,7 +183,7 @@ export default {
 
       this.height = neu;
       this.dragging = true;
-      this.queueUpdate();
+      throttle(this.setReportedHeight, 250, { leading: true })();
     },
 
     dragYEnd(event) {
@@ -188,9 +197,10 @@ export default {
       doc.removeEventListener('touchstart', this.dragYEnd, true);
 
       this.setReportedHeight();
-      setTimeout(() => {
+
+      debounce(() => {
         this.dragging = false;
-      }, 100);
+      }, 100)();
     },
 
     dragXStart(event) {
@@ -236,7 +246,7 @@ export default {
       neu = Math.max(min, Math.min(neu, max));
       this.width = neu;
       this.dragging = true;
-      debounce(this.setReportedWidth, 250)();
+      throttle(this.setReportedWidth, 250, { leading: true })();
     },
 
     dragXEnd(event) {
@@ -250,9 +260,10 @@ export default {
       doc.removeEventListener('touchstart', this.dragXEnd, true);
 
       this.setReportedWidth();
-      setTimeout(() => {
+
+      debounce(() => {
         this.dragging = false;
-      }, 100);
+      }, 100)();
     },
 
     setReportedHeight(height = this.height) {
