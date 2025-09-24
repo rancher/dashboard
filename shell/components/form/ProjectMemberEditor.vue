@@ -286,6 +286,7 @@ export default {
       <template v-slot:body>
         <RadioGroup
           v-model:value="value.permissionGroup"
+          :mode="mode"
           data-testid="permission-options"
           :options="options"
           name="permission-group"
@@ -301,6 +302,7 @@ export default {
           >
             <Checkbox
               v-model:value="permission.value"
+              :mode="mode"
               :data-testid="`custom-permission-${i}`"
               :disabled="permission.locked"
               class="mb-5"

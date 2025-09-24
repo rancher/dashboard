@@ -99,6 +99,7 @@ export default {
         ref="yaml-values"
         data-testid="addon-yaml-editor"
         :value="initYamlEditor(addonVersion.name)"
+        :mode="mode"
         :scrolling="true"
         :as-object="true"
         :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"

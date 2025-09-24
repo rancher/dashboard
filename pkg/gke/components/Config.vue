@@ -504,6 +504,7 @@ export default defineComponent({
           :key="i"
           :label="zoneOpt.name"
           :value="locations.includes(zoneOpt.name)"
+          :mode="mode"
           :data-testid="`gke-extra-zones-${zoneOpt.name}`"
           :disabled="isView"
           class="extra-zone-checkbox"
