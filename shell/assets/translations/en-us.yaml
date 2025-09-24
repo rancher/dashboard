@@ -6484,6 +6484,7 @@ tableHeaders:
   endpoints: Endpoints
   expires: Expires
   firstSeen: First Seen
+  firstSeenTooltip: The time at which the event was first recorded
   flow: Flow
   fingerprint: Fingerprint
   gitRepos: Git Repos
