@@ -8,7 +8,7 @@ import Banner from '@components/Banner/Banner.vue';
 import { SETTING } from '@shell/config/settings';
 import { getPluginChartVersionLabel } from '@shell/utils/uiplugins';
 
-// Note: This dialog handles installation and upgrade of a plugin
+// Note: This dialog handles installation, upgrade and downgrade of a plugin
 
 export default {
   emits: ['close'],
@@ -29,7 +29,7 @@ export default {
       required: true
     },
     /**
-     * Pre-selected version in the dropdown
+     * The pre-selected version in the dropdown
      */
     initialVersion: {
       type:    String,
@@ -79,22 +79,15 @@ export default {
     if (this.initialVersion) {
       this.version = this.initialVersion;
     } else if (this.action === 'upgrade') {
-      // Default to the latest installable version for upgrades
+      // Upgrade to the latest version, so take the first version
       this.version = this.plugin?.installableVersions?.[0]?.version;
     } else if (this.action === 'downgrade') {
       const versions = this.plugin.installableVersions;
       const currentIndex = versions.findIndex((v) => v.version === this.currentVersion);
 
       if (currentIndex !== -1 && currentIndex < versions.length - 1) {
-        // Select the next version in the list, which is the one just below the current one
+        // Select the version just below the current version
         this.version = versions[currentIndex + 1].version;
-      } else {
-        // Fallback: select the first version that is not the current one
-        const otherVersions = versions.filter((v) => v.version !== this.currentVersion);
-
-        if (otherVersions.length > 0) {
-          this.version = otherVersions[0].version;
-        }
       }
     } else {
       // Default to the latest installable version for new installs
@@ -136,6 +129,7 @@ export default {
         return [];
       }
 
+      // Don't allow upgrade/downgrade to current version by disabling the option
       return this.plugin.installableVersions.map((v) => {
         const isCurrent = v.version === this.currentVersion;
 
