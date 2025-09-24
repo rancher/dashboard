@@ -62,7 +62,7 @@ export default {
         return actions;
       }
 
-      const activeVersion = this.infoVersion;
+      const selectedVersion = this.infoVersion;
       const installedVersion = this.info.installedVersion;
 
       if (!this.info.installed) {
@@ -71,18 +71,18 @@ export default {
             label:   this.t('catalog.chart.chartButton.action.install'),
             action:  'install',
             role:    'primary',
-            version: activeVersion,
+            version: selectedVersion,
             icon:    'icon-plus'
           });
         }
       } else {
-        if (activeVersion && installedVersion && activeVersion !== installedVersion) {
-          if (isChartVersionHigher(activeVersion, installedVersion)) {
+        if (selectedVersion && installedVersion && selectedVersion !== installedVersion) {
+          if (isChartVersionHigher(selectedVersion, installedVersion)) {
             actions.push({
               label:   this.t('catalog.chart.chartButton.action.upgrade'),
               action:  'upgrade',
               role:    'primary',
-              version: activeVersion,
+              version: selectedVersion,
               icon:    'icon-upgrade-alt'
             });
           } else {
@@ -90,7 +90,7 @@ export default {
               label:   this.t('catalog.chart.chartButton.action.downgrade'),
               action:  'downgrade',
               role:    'primary',
-              version: activeVersion,
+              version: selectedVersion,
               icon:    'icon-downgrade-alt'
             });
           }
@@ -218,10 +218,10 @@ export default {
     },
 
     getVersionLabel(version) {
-      let label = getPluginChartVersionLabel(version);
+      const label = getPluginChartVersionLabel(version);
 
       if (this.info.installed && version.version === this.info.installedVersion) {
-        label += ` (${ this.t('plugins.labels.current') })`;
+        return `${ label } (${ this.t('plugins.labels.current') })`;
       }
 
       return label;
@@ -352,17 +352,14 @@ export default {
                   :[btn.role]="true"
                   @click="onButtonClick(btn)"
                 >
-                  <template #before>
-                    <i :class="['icon', btn.icon, 'mmr-2']" />
-                  </template>
-                  {{ btn.label }}
+                  <i :class="['icon', btn.icon, 'mmr-2']" />{{ btn.label }}
                 </RcButton>
               </template>
               <div
                 v-else
                 class="no-actions"
               >
-                {{ t('sortableTable.noActions') }}
+                {{ t('plugins.info.noActions') }}
               </div>
             </div>
           </div>

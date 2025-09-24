@@ -5163,6 +5163,7 @@ plugins:
       persist: Persist extension by creating custom resource
   info:
     actions: Actions
+    noActions: No actions available
     detail: Detail
     versions: Versions
     versionError: Could not load version information
