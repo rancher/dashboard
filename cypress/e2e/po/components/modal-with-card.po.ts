@@ -10,7 +10,11 @@ export default class ModalWithCardPo {
     this.card = new CardPo();
   }
 
-  getModal(): CypressChainable {
+  getModal(opt?: any): CypressChainable {
+    if (opt) {
+      return cy.get(this.modalSelector, opt).should('exist');
+    }
+
     return cy.get(this.modalSelector).should('exist');
   }
 

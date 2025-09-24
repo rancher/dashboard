@@ -222,6 +222,8 @@ export const MANAGEMENT = {
   OIDC_CLIENT:                   'management.cattle.io.oidcclient'
 };
 
+export const EXT = { USER_ACTIVITY: 'ext.cattle.io.useractivity' };
+
 export const CAPI = {
   CAPI_CLUSTER:         'cluster.x-k8s.io.cluster',
   MACHINE_DEPLOYMENT:   'cluster.x-k8s.io.machinedeployment',
