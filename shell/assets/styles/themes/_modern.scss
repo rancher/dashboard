@@ -906,7 +906,7 @@ BODY, .theme-dark {
   --input-text                 : #{$lightest};
   --input-label                : #{$lighter};
   --input-placeholder          : #{$disabled};
-  --input-border               : var(--border);
+  --input-border               : #627084;
   --input-bg                   : var(--body-bg);
   --input-bg-accent            : #{darken($dark, 3%)};
   --input-hover-bg             : var(--box-bg);
