@@ -398,7 +398,7 @@ export default {
       >
         <i
           v-if="tab.icon"
-          class="icon"
+          class="icon tab-icon"
           :class="{['icon-'+ tab.icon]: true}"
           :alt="t('console.containerShell.tabIcon')"
         />
@@ -498,6 +498,8 @@ export default {
       display: flex;
       align-content: stretch;
 
+      cursor: grab;
+
       .tab {
         cursor: pointer;
         user-select: none;
@@ -514,6 +516,11 @@ export default {
         .tab-label{
           overflow: hidden;
           text-overflow: ellipsis;
+          cursor: grab;
+        }
+
+        .tab-icon {
+          cursor: grab;
         }
 
         &.active {
