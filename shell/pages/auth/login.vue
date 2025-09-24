@@ -10,7 +10,7 @@ import CopyCode from '@shell/components/CopyCode';
 import { Banner } from '@components/Banner';
 import {
   LOCAL, LOGGED_OUT, TIMED_OUT, IS_SSO, _FLAGGED,
-  IS_SLO
+  IS_SLO, IS_SESSION_IDLE
 } from '@shell/config/query-params';
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
@@ -47,6 +47,7 @@ export default {
 
       timedOut:           this.$route.query[TIMED_OUT] === _FLAGGED,
       loggedOut:          this.$route.query[LOGGED_OUT] === _FLAGGED,
+      isSessionIdle:      this.$route.query[IS_SESSION_IDLE] === _FLAGGED,
       isSsoLogout:        this.$route.query[IS_SSO] === _FLAGGED,
       isSlo:              this.$route.query[IS_SLO] === _FLAGGED,
       err:                this.$route.query.err,
@@ -67,7 +68,9 @@ export default {
     ...mapGetters({ t: 'i18n/t', hasMultipleLocales: 'i18n/hasMultipleLocales' }),
 
     loggedOutSuccessMsg() {
-      if (this.isSlo) {
+      if (this.isSessionIdle) {
+        return this.t('login.loggedOutSessionIdle');
+      } else if (this.isSlo) {
         return this.t('login.loggedOutFromSlo');
       } else if (this.isSsoLogout) {
         return this.t('login.loggedOutFromSso');

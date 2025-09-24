@@ -375,11 +375,11 @@ export const actions = {
     commit('cookies/remove', { key: KEY }, { root: true });
   },
 
-  uiLogout({ commit, dispatch }) {
+  uiLogout({ commit, dispatch }, options = {}) {
     removeEmberPage();
 
     commit('loggedOut');
-    dispatch('onLogout', null, { root: true });
+    dispatch('onLogout', options, { root: true });
 
     dispatch('uiplugins/setReady', false, { root: true });
   },
@@ -431,6 +431,10 @@ export const actions = {
     } catch (e) {
     }
 
-    dispatch('uiLogout');
+    const propagateOptions = {};
+
+    propagateOptions.sessionIdle = options.sessionIdle;
+
+    dispatch('uiLogout', propagateOptions);
   }
 };
