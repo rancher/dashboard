@@ -199,7 +199,7 @@ export default {
         }
 
         // Filter in if this cluster
-        if (metadata.namespace.startsWith(this.currentCluster.id)) {
+        if (metadata.namespace?.startsWith(this.currentCluster.id)) {
           return true;
         }
 
