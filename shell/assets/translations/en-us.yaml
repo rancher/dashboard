@@ -5123,7 +5123,7 @@ plugins:
   closePluginPanel: Close plugin description panel
   viewVersionDetails: View extension {name} version {version} details/Readme
   labels:
-    builtin: Built-in
+    builtin: Built-In
     experimental: Experimental
     third-party: Third-Party
     image: Image
@@ -5226,7 +5226,7 @@ plugins:
   tabs:
     all: All
     available: Available
-    builtin: Built-in
+    builtin: Built-In
     images: Images
     installed: Installed
     updates: Updates
