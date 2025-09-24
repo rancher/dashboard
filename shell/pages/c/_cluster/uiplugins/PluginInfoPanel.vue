@@ -1,7 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
 import ChartReadme from '@shell/components/ChartReadme';
-import { Banner } from '@components/Banner';
 import LazyImage from '@shell/components/LazyImage';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
@@ -9,6 +8,7 @@ import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composa
 import { getPluginChartVersionLabel, getPluginChartVersion } from '@shell/utils/uiplugins';
 import { isChartVersionHigher } from '@shell/config/uiplugins';
 import RcButton from '@pkg/rancher-components/src/components/RcButton/RcButton.vue';
+import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter.vue';
 
 export default {
   emits: ['action'],
@@ -24,10 +24,10 @@ export default {
     }
   },
   components: {
-    Banner,
     ChartReadme,
     LazyImage,
-    RcButton
+    RcButton,
+    AppChartCardFooter
   },
   data() {
     return {
@@ -301,25 +301,11 @@ export default {
               </div>
             </div>
           </div>
-          <div>
-            <Banner
-              v-if="info.builtin"
-              color="warning"
-              :label="t('plugins.descriptions.built-in')"
-            />
-            <template v-else>
-              <Banner
-                v-if="!info.certified"
-                color="warning"
-                :label="t('plugins.descriptions.third-party')"
-              />
-              <Banner
-                v-if="info.experimental"
-                color="warning"
-                :label="t('plugins.descriptions.experimental')"
-              />
-            </template>
-          </div>
+          <AppChartCardFooter
+            v-if="info.tags && info.tags.length"
+            :items="info.tags"
+            class="plugin-tags-container"
+          />
 
           <div class="plugin-versions-container">
             <h3>
@@ -518,9 +504,14 @@ export default {
         }
       }
 
+      .plugin-tags-container {
+        margin-top: -8px;
+      }
+
+      .plugin-tags-container,
       .plugin-versions-container,
       .plugin-actions-container {
-        margin-bottom: 16px;
+        margin-bottom: 24px;
       }
 
       .plugin-versions,

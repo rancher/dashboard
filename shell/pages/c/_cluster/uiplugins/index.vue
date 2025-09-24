@@ -699,7 +699,9 @@ export default {
     },
 
     showPluginDetail(plugin) {
-      this.$refs.infoPanel.show(plugin);
+      const tags = this.getFooterItems(plugin);
+
+      this.$refs.infoPanel.show({ ...plugin, tags });
     },
 
     updatePluginInstallStatus(name, status) {
