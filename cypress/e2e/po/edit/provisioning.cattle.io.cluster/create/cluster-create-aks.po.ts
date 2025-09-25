@@ -40,7 +40,7 @@ export default class ClusterManagerCreateAKSPagePo extends ClusterManagerCreateR
     return new LabeledSelectPo('[data-testid="cruaks-resourcelocation"]');
   }
 
-  getVersion() {
+  getKubernetesVersion() {
     return new LabeledSelectPo('[data-testid="cruaks-kubernetesversion"]');
   }
 
@@ -112,8 +112,8 @@ export default class ClusterManagerCreateAKSPagePo extends ClusterManagerCreateR
     return LabeledInputPo.byLabel(cy.get('[data-testid="cruaks-form"]'), 'DNS Prefix');
   }
 
-  getDNSprefix() {
-    return LabeledSelectPo.byLabel(cy.get('.labeled-select'), 'DNS Prefix');
+  getOutboundType() {
+    return LabeledSelectPo.byLabel(cy.get('.labeled-select'), 'Outbound Type');
   }
 
   getNetworkPlugin() {
@@ -162,5 +162,34 @@ export default class ClusterManagerCreateAKSPagePo extends ClusterManagerCreateR
 
   getContainerMonitoring() {
     return new CheckboxInputPo('[data-testid="aks-monitoring-checkbox"]');
+  }
+
+  getLatestAKSversion(versions: string[]): string {
+    // Helper function to compare versions
+    function compareVersions(a: string, b: string): number {
+      const aParts = a.split('.').map(Number);
+      const bParts = b.split('.').map(Number);
+
+      for (let i = 0; i < 3; i++) {
+        const diff = (aParts[i] || 0) - (bParts[i] || 0);
+
+        if (diff !== 0) return diff;
+      }
+
+      return 0;
+    }
+
+    if (!versions || versions.length === 0) {
+      throw new Error('No versions found');
+    }
+    let latest = versions[0];
+
+    for (const version of versions) {
+      if (compareVersions(version, latest) > 0) {
+        latest = version;
+      }
+    }
+
+    return latest;
   }
 }

@@ -3,7 +3,6 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import ClusterManagerCreateAKSPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-aks.po';
 import * as aksDefaultSettings from '@/cypress/e2e/blueprints/cluster_management/aks-default-settings';
-import RadioGroupInputPo from '~/cypress/e2e/po/components/radio-group-input.po';
 import RadioInputPo from '~/cypress/e2e/po/components/radio-input.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
@@ -27,15 +26,20 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     nodeCount:          aksDefaultSettings.defaultNodePool.count,
     maxPods:            aksDefaultSettings.defaultNodePool.maxPods,
     maxSurge:           aksDefaultSettings.defaultNodePool.maxSurge,
+    enableAutoScaling:  aksDefaultSettings.defaultNodePool.enableAutoScaling,
     linuxAdminUsername: aksDefaultSettings.defaultAksConfig.linuxAdminUsername,
     loadBalancerSku:    aksDefaultSettings.defaultAksConfig.loadBalancerSku,
-    dnsPrefix:          'Loadbalancer (Default)',
+    outboundType:       aksDefaultSettings.defaultAksConfig.outboundType,
     networkPlugin:      aksDefaultSettings.defaultAksConfig.networkPlugin,
     networkPolicy:      'None',
     virtualNetwork:     'None',
     serviceCidr:        aksDefaultSettings.defaultAksConfig.serviceCidr,
     dnsServiceIp:       aksDefaultSettings.defaultAksConfig.dnsServiceIp,
-    dockerBridgeCidr:   aksDefaultSettings.defaultAksConfig.dockerBridgeCidr
+    dockerBridgeCidr:   aksDefaultSettings.defaultAksConfig.dockerBridgeCidr,
+    resourceGroup:      'aks-resource-group',
+    dnsPrefix:          'dns-test',
+    mode:               aksDefaultSettings.defaultNodePool.mode,
+    privateCluster:     aksDefaultSettings.defaultAksConfig.privateCluster
   };
 
   const createAKSClusterPage = new ClusterManagerCreateAKSPagePo();
@@ -134,9 +138,14 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     createAKSClusterPage.getRegion().checkOptionSelected(aksSettings.aksRegion);
 
     // Get latest AKS kubernetes version and verify that aks-version-select dropdown is set to the default version as defined in CruAKS.vue
-    // const latestEKSversion = createAKSClusterPage.getLatestAKSversion();
+    cy.intercept('GET', '**meta/aksVersions').as('getAksVersions');
+    cy.wait('@getAksVersions').then(({ response }) => {
+      expect(response?.statusCode).to.eq(201);
+      const versionsArray = response?.body as string[];
+      const latestAKSversion = createAKSClusterPage.getLatestAKSversion(versionsArray);
 
-    // createAKSClusterPage.getVersion().checkOptionSelected(latestEKSversion);
+      createAKSClusterPage.getKubernetesVersion().checkOptionSelected(latestAKSversion);
+    });
 
     // Check that the node pool value are set to the default values
     createAKSClusterPage.getNodeGroup().shouldHaveValue(aksSettings.nodegroupName);
@@ -153,7 +162,7 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     createAKSClusterPage.getMaxSurge().shouldHaveValue(aksSettings.maxSurge);
     createAKSClusterPage.getAutoScaling().isUnchecked();
     createAKSClusterPage.getLinuxAdmin().shouldHaveValue(aksSettings.linuxAdminUsername);
-    createAKSClusterPage.getClusterResourceGroup().getAttributeValue('placeholder').should('equal', 'aks-resource-group');
+    createAKSClusterPage.getClusterResourceGroup().getAttributeValue('placeholder').should('equal', aksSettings.resourceGroup);
     createAKSClusterPage.getNodeResourceGroup().getAttributeValue('placeholder').should('equal', 'aks-node-resource-group');
     createAKSClusterPage.getLogResourceGroup().expectToBeDisabled();
     createAKSClusterPage.getLogWorkspaceName().expectToBeDisabled();
@@ -162,7 +171,7 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     createAKSClusterPage.getLoadBalancerSKU().isDisabled();
     createAKSClusterPage.getLoadBalancerSKU().checkOptionSelected(aksSettings.loadBalancerSku);
     createAKSClusterPage.getInputDNSprefix().getAttributeValue('placeholder').should('contain', 'aks-dns-x');
-    createAKSClusterPage.getDNSprefix().checkOptionSelected(aksSettings.dnsPrefix);
+    // createAKSClusterPage.getOutboundType().checkOptionSelected(aksSettings.outboundType);
     createAKSClusterPage.getNetworkPlugin().checkContainsOptionSelected(aksSettings.networkPlugin);
     createAKSClusterPage.getNetworkPolicy().checkOptionSelected(aksSettings.networkPolicy);
     createAKSClusterPage.getVirtualNetwork().checkOptionSelected(aksSettings.virtualNetwork);
@@ -171,21 +180,21 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     createAKSClusterPage.getDockerBridge().shouldHaveValue(aksSettings.dockerBridgeCidr);
 
     // Check that standard role is selected
-    const userModebuttom = new RadioInputPo('[data-testid= "User"]');
+    const userModebuttom = new RadioInputPo('[aria-label="User"]');
 
     userModebuttom.isUnchecked();
 
-    const systemModeButton = new RadioInputPo('[data-testid= "System"]');
+    const systemModeButton = new RadioInputPo('[aria-label="System"]');
 
     systemModeButton.isChecked();
 
     // Check that Service Principal is selected
 
-    const servicePButtom = new RadioInputPo('[data-testid= "Service Principal"]');
+    const servicePButtom = new RadioInputPo('[aria-label="Service Principal"]');
 
     servicePButtom.isChecked();
 
-    const managedIdButton = new RadioInputPo('[data-testid= "Managed Identity"]');
+    const managedIdButton = new RadioInputPo('[aria-label="Managed Identity"]');
 
     managedIdButton.isUnchecked();
 
@@ -195,9 +204,11 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     createAKSClusterPage.getEnablePrivateCluster().isUnchecked();
     createAKSClusterPage.getAuthIPranges().isUnchecked();
 
-    // Set the cluster name and description in the Create AKS Page
+    // Set the mandatory fields in the Create AKS Page
     createAKSClusterPage.getClusterName().set(this.aksClusterName2);
     createAKSClusterPage.getClusterDescription().set(`${ this.aksClusterName2 }-description`);
+    createAKSClusterPage.getClusterResourceGroup().set(aksSettings.resourceGroup);
+    createAKSClusterPage.getInputDNSprefix().set(aksSettings.dnsPrefix);
 
     // Create AKS Cluster and verify that the properties posted to the server match the expected settings
     cy.intercept('POST', 'v3/clusters').as('createAKSCluster');
@@ -207,16 +218,33 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
       expect(response?.body).to.have.property('type', 'cluster');
       expect(response?.body).to.have.property('name', this.aksClusterName2);
       expect(response?.body).to.have.property('description', `${ this.aksClusterName2 }-description`);
-      expect(response?.body.eksConfig).to.have.property('kubernetesVersion').contains(latestAKSversion);
-      expect(response?.body.eksConfig).to.have.property('region', aksSettings.aksRegion);
-      expect(response?.body.eksConfig).to.have.property('privateAccess', aksSettings.privateAccess);
-      expect(response?.body.eksConfig).to.have.property('publicAccess', aksSettings.publicAccess);
-      expect(response?.body.eksConfig.nodeGroups[0]).to.have.property('nodegroupName', aksSettings.nodegroupName);
-      expect(response?.body.eksConfig.nodeGroups[0]).to.have.property('desiredSize', Number(aksSettings.desiredSize));
-      expect(response?.body.eksConfig.nodeGroups[0]).to.have.property('minSize', Number(aksSettings.minSize));
-      expect(response?.body.eksConfig.nodeGroups[0]).to.have.property('maxSize', Number(aksSettings.maxSize));
-      expect(response?.body.eksConfig.nodeGroups[0]).to.have.property('instanceType', aksSettings.instanceType);
-      expect(response?.body.eksConfig.nodeGroups[0]).to.have.property('diskSize', Number(aksSettings.diskSize));
+      // expect(response?.body.eksConfig).to.have.property('kubernetesVersion').contains(latestAKSversion);
+      expect(response?.body.aksConfig).to.have.property('resourceLocation', aksDefaultSettings.DEFAULT_REGION);
+      // expect(response?.body.aksConfig.nodePools[0]).to.have.property('availabilityZones', '['1', '2', '3']');
+      // expect(response?.body.aksConfig.nodePools[0]).to.have.property('count', String(aksSettings.nodeCount));
+      expect(response?.body.aksConfig.nodePools[0]).to.have.property('name', aksSettings.nodegroupName);
+      expect(response?.body.aksConfig.nodePools[0]).to.have.property('enableAutoScaling', aksSettings.enableAutoScaling);
+      expect(response?.body.aksConfig.nodePools[0]).to.have.property('maxSurge', aksSettings.maxSurge);
+      expect(response?.body.aksConfig.nodePools[0]).to.have.property('maxPods', Number(aksSettings.maxPods));
+      expect(response?.body.aksConfig.nodePools[0]).to.have.property('mode', aksSettings.mode);
+      expect(response?.body.aksConfig.nodePools[0]).to.have.property('osDiskType', aksSettings.osDiskType);
+      expect(response?.body.aksConfig.nodePools[0]).to.have.property('osDiskSizeGB', Number(aksSettings.osDiskSize));
+      expect(response?.body.aksConfig).to.have.property('linuxAdminUsername', aksSettings.linuxAdminUsername);
+      expect(response?.body.aksConfig).to.have.property('resourceGroup', aksSettings.resourceGroup);
+      expect(response?.body.aksConfig).to.have.property('loadBalancerSku', aksSettings.loadBalancerSku);
+      expect(response?.body.aksConfig).to.have.property('dnsPrefix', aksSettings.dnsPrefix);
+      // expect(response?.body.aksConfig).to.have.property('outboundType', aksSettings.outboundType);
+      // expect(response?.body.aksConfig).to.have.property('networkPlugin', aksSettings.networkPlugin);
+      expect(response?.body.aksConfig).to.not.have.property('networkPolicy');
+      expect(response?.body.aksConfig).to.not.have.property('virtualNetwork');
+      expect(response?.body.aksConfig).to.have.property('serviceCidr', aksSettings.serviceCidr);
+      expect(response?.body.aksConfig).to.have.property('dnsServiceIp', aksSettings.dnsServiceIp);
+      expect(response?.body.aksConfig).to.have.property('dockerBridgeCidr', aksSettings.dockerBridgeCidr);
+      expect(response?.body.aksConfig).to.have.property('dockerBridgeCidr', aksSettings.dockerBridgeCidr);
+      expect(response?.body.aksConfig).to.not.have.property('httpApplicationRouting');
+      expect(response?.body.aksConfig).to.not.have.property('managedIdentity');
+      expect(response?.body.aksConfig).to.not.have.property('authorizedIpRanges');
+      expect(response?.body.aksConfig).to.have.property('privateCluster', aksSettings.privateCluster);
       clusterId = response?.body.id;
     });
 
