@@ -37,6 +37,7 @@ let store = {};
   resolveStoreModules(require('../store/uiplugins.ts'), 'uiplugins.ts');
   resolveStoreModules(require('../store/wm/index.js'), 'wm/index.js');
   resolveStoreModules(require('../store/wm/secondary.js'), 'wm/secondary.js');
+  resolveStoreModules(require('../store/ui-context.ts'), 'ui-context.ts');
   resolveStoreModules(require('../store/customisation.js'), 'customisation.js');
   resolveStoreModules(require('../store/cru-resource.ts'), 'cru-resource.ts');
   resolveStoreModules(require('../store/notifications.ts'), 'notifications.ts');
@@ -69,6 +70,7 @@ let store = {};
       '../store/uiplugins.ts',
       '../store/wm/index.js',
       '../store/wm/secondary.js',
+      '../store/ui-context.ts',
       '../store/customisation.js',
       '../store/cru-resource.ts',
       '../store/notifications.ts',
