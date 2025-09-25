@@ -20,6 +20,10 @@ const hasOptions = (options: DropdownOption[]) => {
 };
 </script>
 
+<script lang="ts">
+export default { inheritAttrs: false };
+</script>
+
 <template>
   <rc-dropdown
     :aria-label="dropdownAriaLabel"
