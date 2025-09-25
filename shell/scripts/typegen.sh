@@ -39,6 +39,8 @@ ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/plugins/steve/hybrid-class.js --d
 # # mixins
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/mixins/create-edit-view/index.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/mixins/create-edit-view > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/mixins/resource-fetch.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/mixins > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/mixins/resource-fetch-namespaced.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/mixins > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/mixins/resource-fetch-api-pagination.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/mixins > /dev/null
 
 # # models
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/models/namespace.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/models/ > /dev/null
