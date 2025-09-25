@@ -140,7 +140,7 @@ export default defineComponent({
       errorMessage,
       handleBlur,
       handleChange,
-    } = props.name ? useField(() => props.name, undefined, { initialValue: props.value }) : {
+    } = props.name ? useField(() => props.name ?? '', undefined, { initialValue: props.value }) : {
       value:        localValue,
       errorMessage: ref(''),
       handleBlur:   () => {},
