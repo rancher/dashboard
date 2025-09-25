@@ -59,6 +59,7 @@ generic:
   na: n/a
   name: Name
   never: Never
+  next: Next
   none: None
   notFound: Not Found
   number: '{prefix}{value, number}{suffix}'
