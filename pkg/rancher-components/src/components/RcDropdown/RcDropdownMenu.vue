@@ -21,6 +21,7 @@ const hasOptions = (options: DropdownOption[]) => {
 </script>
 
 <script lang="ts">
+// TODO: address the root cause of this in https://github.com/rancher/dashboard/issues/13553
 export default { inheritAttrs: false };
 </script>
 

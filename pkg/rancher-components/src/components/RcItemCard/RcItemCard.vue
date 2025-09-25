@@ -282,6 +282,7 @@ const cardMeta = computed(() => ({
                 <ActionMenu
                   data-testid="item-card-header-action-menu"
                   :custom-actions="actions"
+                  :resource="value"
                   v-on="actionListeners"
                 />
               </rc-item-card-action>
