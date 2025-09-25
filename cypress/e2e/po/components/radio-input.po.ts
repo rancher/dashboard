@@ -19,10 +19,10 @@ export default class RadioInputPo extends ComponentPo {
   }
 
   isChecked() {
-    return this.self().find('.radio-container > span').then(($el) => expect($el).have.attr('aria-checked', 'true'));
+    return this.self().should('have.attr', 'aria-checked', 'true');
   }
 
   isUnchecked() {
-    return this.self().find('.radio-container > span').then(($el) => expect($el).have.attr('aria-checked', 'false'));
+    return this.self().should('have.attr', 'aria-checked', 'false');
   }
 }
