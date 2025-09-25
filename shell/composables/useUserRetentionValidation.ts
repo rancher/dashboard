@@ -1,4 +1,4 @@
-import { Ref, ComputedRef, ref, computed } from 'vue';
+import { ref, Ref } from 'vue';
 import { useStore } from 'vuex';
 
 import { SETTING } from '@shell/config/settings';
