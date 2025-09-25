@@ -66,7 +66,7 @@ export default {
     return {
       TABS_VALUES,
       kubeVersion:                    null,
-      view:                           '',
+      activeTab:                      '',
       installing:                     {},
       errors:                         {},
       plugins:                        [], // The installed plugins
@@ -120,11 +120,6 @@ export default {
     this.kubeVersion = res.localCluster?.kubernetesVersionBase || [];
 
     this.addExtensionReposBannerSetting = await fetchOrCreateSetting(this.$store, SETTING.ADD_EXTENSION_REPOS_BANNER_DISPLAY, 'true', true) || {};
-
-    // If there are no plugins installed, default to the catalog view
-    if (this.plugins.length === 0) {
-      this.$refs.tabs?.select(TABS_VALUES.AVAILABLE);
-    }
 
     this.loading = false;
   },
@@ -206,7 +201,7 @@ export default {
       // If not an extension developer, then don't include built-in extensions
       const all = this.pluginDeveloper ? this.available : this.available.filter((p) => !p.builtin);
 
-      switch (this.view) {
+      switch (this.activeTab) {
       case TABS_VALUES.INSTALLED:
         // We never show built-in extensions as installed - installed are just the ones the user has installed
         return all.filter((p) => !p.builtin && (!!p.installed || !!p.installing));
@@ -223,10 +218,10 @@ export default {
       return this.menuActions?.length > 0;
     },
 
-    // Message to display when the tab view is empty (depends on the tab)
+    // Message to display when the active tab is empty (depends on the tab)
     emptyMessage() {
       // i18n-uses plugins.empty.*
-      return this.t(`plugins.empty.${ this.view }`);
+      return this.t(`plugins.empty.${ this.activeTab }`);
     },
 
     installed() {
@@ -566,8 +561,8 @@ export default {
       return hasFeatureFlag;
     },
 
-    filterChanged(f) {
-      this.view = f.selectedName;
+    tabChanged(f) {
+      this.activeTab = f.selectedName;
     },
 
     // Developer Load is in the action menu
@@ -690,7 +685,7 @@ export default {
 
     didInstall(plugin) {
       if (plugin) {
-        // Change the view to installed if we started installing a plugin
+        // Change the activeTab to installed if we started installing a plugin
         this.$refs.tabs?.select(TABS_VALUES.INSTALLED);
 
         // Clear the load error, if there was one previously
@@ -1037,10 +1032,11 @@ export default {
         </Banner>
 
         <Tabbed
+          v-if="!loading"
           ref="tabs"
           :tabs-only="true"
           data-testid="extension-tabs"
-          @changed="filterChanged"
+          @changed="tabChanged"
         >
           <Tab
             v-if="installed.length"
