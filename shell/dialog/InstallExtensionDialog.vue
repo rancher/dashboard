@@ -169,6 +169,10 @@ export default {
     },
 
     buttonIcon() {
+      if (this.busy) {
+        return '';
+      }
+
       switch (this.buttonMode) {
       case 'install':
         return 'icon-plus';
