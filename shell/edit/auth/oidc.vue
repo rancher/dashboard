@@ -545,21 +545,20 @@ export default {
             </div>
 
             <template v-if="isGenericOidc">
+              <h4>{{ t('authConfig.oidc.customClaims.label') }}</h4>
               <div class="row mb-20">
                 <div class="col span-6">
                   <LabeledInput
                     v-model:value="model.nameClaim"
-                    :label="t(`authConfig.oidc.nameClaim`)"
+                    :label="t(`authConfig.oidc.customClaims.nameClaim.label`)"
                     :mode="mode"
-                    :disabled="!customEndpoint.value"
                   />
                 </div>
                 <div class="col span-6">
                   <LabeledInput
                     v-model:value="model.groupsClaim"
-                    :label="t(`authConfig.oidc.groupsClaim`)"
+                    :label="t(`authConfig.oidc.customClaims.groupsClaim.label`)"
                     :mode="mode"
-                    :disabled="!customEndpoint.value"
                   />
                 </div>
               </div>
@@ -567,9 +566,8 @@ export default {
                 <div class="col span-6">
                   <LabeledInput
                     v-model:value="model.emailClaim"
-                    :label="t(`authConfig.oidc.emailClaim`)"
+                    :label="t(`authConfig.oidc.customClaims.emailClaim.label`)"
                     :mode="mode"
-                    :disabled="!customEndpoint.value"
                   />
                 </div>
               </div>

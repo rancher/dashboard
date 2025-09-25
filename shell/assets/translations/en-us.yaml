@@ -723,9 +723,14 @@ authConfig:
     tokenEndpoint: Token Endpoint
     userInfoEndpoint: User Info Endpoint
     acrValue: Authorization Context Reference
-    nameClaim: Name
-    groupsClaim: Groups
-    emailClaim: Email
+    customClaims:
+      label: Custom Claims
+      nameClaim: 
+        label: Custom Name Claim
+      groupsClaim: 
+        label: Custom Groups Claim
+      emailClaim: 
+        label: Custom Email Claim
     cognitoIssuer: Issuer URL
     cognitoHelp: "You will need to create an application client in Cognito of type <b>Traditional web application</b> with the Return URL set to the URL shown below."
     scope:
