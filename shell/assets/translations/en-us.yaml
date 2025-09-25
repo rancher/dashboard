@@ -498,7 +498,7 @@ authConfig:
     clientSecret:
       label: Client Secret
     githubAppId:
-      label: Github APP ID
+      label: Github App ID
     installationId:
       label: Installation ID
     privateKey:
