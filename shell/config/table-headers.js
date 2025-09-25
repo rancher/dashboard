@@ -541,6 +541,15 @@ export const LAST_SEEN_TIME = {
   tooltip:  'tableHeaders.lastSeenTooltip'
 };
 
+export const EVENT_FIRST_SEEN_TIME = {
+  name:     'firstSeen',
+  labelKey: 'tableHeaders.firstSeen',
+  tooltip:  'tableHeaders.firstSeenTooltip',
+
+  value: 'firstSeen',
+  sort:  'firstSeen:desc',
+};
+
 export const EVENT_LAST_SEEN_TIME = {
   ...LAST_SEEN_TIME,
   defaultSort: true,
