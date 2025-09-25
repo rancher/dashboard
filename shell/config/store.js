@@ -36,6 +36,7 @@ let store = {};
   resolveStoreModules(require('../store/type-map.js'), 'type-map.js');
   resolveStoreModules(require('../store/uiplugins.ts'), 'uiplugins.ts');
   resolveStoreModules(require('../store/wm.ts'), 'wm.ts');
+  resolveStoreModules(require('../store/ui-context.ts'), 'ui-context.ts');
   resolveStoreModules(require('../store/customisation.js'), 'customisation.js');
   resolveStoreModules(require('../store/cru-resource.ts'), 'cru-resource.ts');
   resolveStoreModules(require('../store/notifications.ts'), 'notifications.ts');
@@ -67,6 +68,7 @@ let store = {};
       '../store/type-map.js',
       '../store/uiplugins.ts',
       '../store/wm.ts',
+      '../store/ui-context.ts',
       '../store/customisation.js',
       '../store/cru-resource.ts',
       '../store/notifications.ts',
