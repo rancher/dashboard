@@ -933,8 +933,8 @@ export default {
       :deep() div .btn.role-tertiary {
         border: 1px solid var(--header-btn-bg);
         border: none;
-        background: var(--header-btn-bg);
-        color: var(--header-btn-text);
+        background: var(--tertiary-header, var(--header-btn-bg));
+        color: var(--on-tertiary-header, var(--header-btn-text));
         padding: 0 10px;
         line-height: 32px;
         min-height: 32px;
@@ -945,8 +945,8 @@ export default {
         }
 
         &:hover {
-          background: var(--primary);
-          color: #fff;
+          background: var(--tertiary-header-hover, var(--primary));
+          color: var(--on-tertiary-header-hover, #fff);
         }
 
         &[disabled=disabled] {
@@ -1079,7 +1079,7 @@ export default {
   .user-name {
     display: flex;
     align-items: center;
-    color: var(--secondary);
+    color: var(--body-text, var(--secondary));
   }
 
   .user-menu {
