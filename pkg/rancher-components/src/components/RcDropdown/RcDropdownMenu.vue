@@ -15,7 +15,6 @@ withDefaults(defineProps<RcDropdownMenuComponentProps>(), {
 
 const emit = defineEmits(['update:open', 'select']);
 
-// TODO: address the root cause of this in https://github.com/rancher/dashboard/issues/13553
 defineOptions({ inheritAttrs: false });
 
 const hasOptions = (options: DropdownOption[]) => {
