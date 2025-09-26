@@ -189,6 +189,7 @@ export default function(
       protocol,
       authority,
       host,
+      port,
       path
     } = parse(url);
 
@@ -203,7 +204,7 @@ export default function(
     }
 
     // Test ssh, authority must be valid (SSH user + host)
-    if (!protocol && !authority.endsWith(':')) {
+    if (!protocol && !port && (!authority.endsWith(':') || path.startsWith('/'))) {
       return message;
     }
 
