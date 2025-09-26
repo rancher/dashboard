@@ -130,26 +130,27 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     createAKSClusterPage.selectKubeProvider(1);
     loadingPo.checkNotExists();
     createAKSClusterPage.rke2PageTitle().should('include', 'Create Azure AKS');
+    cy.intercept('GET', '**/meta/aksVersions*').as('getAksVersions');
     createAKSClusterPage.waitForPage('type=azureaks&rkeType=rke2');
-
-    createAKSClusterPage.create();
 
     // Verify that aks-zone-select dropdown is set to the default zone
     createAKSClusterPage.getRegion().checkOptionSelected(aksSettings.aksRegion);
 
     // Get latest AKS kubernetes version and verify that aks-version-select dropdown is set to the default version as defined in CruAKS.vue
-    cy.intercept('GET', '**meta/aksVersions').as('getAksVersions');
+
     cy.wait('@getAksVersions').then(({ response }) => {
-      expect(response?.statusCode).to.eq(201);
+      expect(response?.statusCode).to.eq(200);
       const versionsArray = response?.body as string[];
       const latestAKSversion = createAKSClusterPage.getLatestAKSversion(versionsArray);
+
+      cy.wrap(latestAKSversion).as('latestAKSversion');
 
       createAKSClusterPage.getKubernetesVersion().checkOptionSelected(latestAKSversion);
     });
 
     // Check that the node pool value are set to the default values
     createAKSClusterPage.getNodeGroup().shouldHaveValue(aksSettings.nodegroupName);
-    // createAKSClusterPage.getVMsize().checkOptionSelected(aksSettings.vmSize);
+    createAKSClusterPage.getVMsize().checkContainsOptionSelected(aksSettings.vmSize);
 
     const avZones = createAKSClusterPage.getAvailabiltyZones();
 
@@ -171,7 +172,7 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     createAKSClusterPage.getLoadBalancerSKU().isDisabled();
     createAKSClusterPage.getLoadBalancerSKU().checkOptionSelected(aksSettings.loadBalancerSku);
     createAKSClusterPage.getInputDNSprefix().getAttributeValue('placeholder').should('contain', 'aks-dns-x');
-    // createAKSClusterPage.getOutboundType().checkOptionSelected(aksSettings.outboundType);
+    createAKSClusterPage.getOutboundType().checkOptionSelected(aksSettings.outboundType);
     createAKSClusterPage.getNetworkPlugin().checkContainsOptionSelected(aksSettings.networkPlugin);
     createAKSClusterPage.getNetworkPolicy().checkOptionSelected(aksSettings.networkPolicy);
     createAKSClusterPage.getVirtualNetwork().checkOptionSelected(aksSettings.virtualNetwork);
@@ -214,27 +215,39 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     cy.intercept('POST', 'v3/clusters').as('createAKSCluster');
     createAKSClusterPage.create();
     cy.wait('@createAKSCluster').then(({ response }) => {
+      cy.get('@latestAKSversion').then((latestAKSversion) => {
+        expect(response?.body.aksConfig).to.have.property('kubernetesVersion').equals(latestAKSversion);
+      });
       expect(response?.statusCode).to.eq(201);
       expect(response?.body).to.have.property('type', 'cluster');
       expect(response?.body).to.have.property('name', this.aksClusterName2);
       expect(response?.body).to.have.property('description', `${ this.aksClusterName2 }-description`);
-      // expect(response?.body.eksConfig).to.have.property('kubernetesVersion').contains(latestAKSversion);
       expect(response?.body.aksConfig).to.have.property('resourceLocation', aksDefaultSettings.DEFAULT_REGION);
-      // expect(response?.body.aksConfig.nodePools[0]).to.have.property('availabilityZones', '['1', '2', '3']');
-      // expect(response?.body.aksConfig.nodePools[0]).to.have.property('count', String(aksSettings.nodeCount));
+      // extract the availability zone numbers to match with the obejct sent in the request
+      const zoneNumbers = aksSettings.availabilityZones.match(/\d+/g);
+      const availabilityZones = response?.body.aksConfig.nodePools[0]?.availabilityZones;
+
+      expect(availabilityZones).to.deep.include.members(zoneNumbers);
+      const nodeCount = response?.body.aksConfig.nodePools[0]?.count;
+
+      expect(nodeCount.toString()).to.equal(aksSettings.nodeCount);
       expect(response?.body.aksConfig.nodePools[0]).to.have.property('name', aksSettings.nodegroupName);
       expect(response?.body.aksConfig.nodePools[0]).to.have.property('enableAutoScaling', aksSettings.enableAutoScaling);
       expect(response?.body.aksConfig.nodePools[0]).to.have.property('maxSurge', aksSettings.maxSurge);
       expect(response?.body.aksConfig.nodePools[0]).to.have.property('maxPods', Number(aksSettings.maxPods));
       expect(response?.body.aksConfig.nodePools[0]).to.have.property('mode', aksSettings.mode);
+      expect(response?.body.aksConfig.nodePools[0]).to.have.property('vmSize', aksSettings.vmSize);
       expect(response?.body.aksConfig.nodePools[0]).to.have.property('osDiskType', aksSettings.osDiskType);
       expect(response?.body.aksConfig.nodePools[0]).to.have.property('osDiskSizeGB', Number(aksSettings.osDiskSize));
       expect(response?.body.aksConfig).to.have.property('linuxAdminUsername', aksSettings.linuxAdminUsername);
       expect(response?.body.aksConfig).to.have.property('resourceGroup', aksSettings.resourceGroup);
       expect(response?.body.aksConfig).to.have.property('loadBalancerSku', aksSettings.loadBalancerSku);
       expect(response?.body.aksConfig).to.have.property('dnsPrefix', aksSettings.dnsPrefix);
-      // expect(response?.body.aksConfig).to.have.property('outboundType', aksSettings.outboundType);
-      // expect(response?.body.aksConfig).to.have.property('networkPlugin', aksSettings.networkPlugin);
+      expect(response?.body.aksConfig).to.have.property('outboundType', aksSettings.outboundType);
+
+      const networkPlugin = response.body.aksConfig.networkPlugin;
+
+      expect(networkPlugin.toLowerCase()).to.equal(aksSettings.networkPlugin.toLowerCase());
       expect(response?.body.aksConfig).to.not.have.property('networkPolicy');
       expect(response?.body.aksConfig).to.not.have.property('virtualNetwork');
       expect(response?.body.aksConfig).to.have.property('serviceCidr', aksSettings.serviceCidr);
@@ -252,7 +265,7 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     clusterList.list().state(this.aksClusterName).should('contain.text', 'Provisioning');
   });
 
- /*  after('clean up', () => {
+  after('clean up', () => {
     // delete cluster
     cy.deleteRancherResource('v1', 'provisioning.cattle.io.clusters', `fleet-default/${ clusterId }`, false);
 
@@ -272,5 +285,5 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
         });
       }
     });
-  }); */
+  });
 });
