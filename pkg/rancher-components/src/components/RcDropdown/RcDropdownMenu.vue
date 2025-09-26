@@ -15,14 +15,12 @@ withDefaults(defineProps<RcDropdownMenuComponentProps>(), {
 
 const emit = defineEmits(['update:open', 'select']);
 
+// TODO: address the root cause of this in https://github.com/rancher/dashboard/issues/13553
+defineOptions({ inheritAttrs: false });
+
 const hasOptions = (options: DropdownOption[]) => {
   return options.length !== undefined ? options.length : Object.keys(options).length > 0;
 };
-</script>
-
-<script lang="ts">
-// TODO: address the root cause of this in https://github.com/rancher/dashboard/issues/13553
-export default { inheritAttrs: false };
 </script>
 
 <template>
