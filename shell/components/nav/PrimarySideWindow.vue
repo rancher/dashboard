@@ -1,5 +1,5 @@
 <script>
-import { mapState } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 import { debounce, throttle } from 'lodash';
 import {
   screenRect, boundingRect, BOTTOM, RIGHT, LEFT
@@ -21,6 +21,7 @@ export default {
 
   computed: {
     ...mapState('wm', ['tabs', 'active', 'open', 'userHeight', 'userWidth', 'userPin']),
+    ...mapGetters({ isSecondaryOpen: 'wm/secondary/isOpen' }),
 
     height: {
       get() {
@@ -305,10 +306,8 @@ export default {
     },
 
     emitDraggable(event) {
-      const isSecondaryOpen = this.$store.getters['wm/secondary/isOpen'];
-
       // If the SecondarySideWindow is open, prevent dragging to the right or left
-      if (isSecondaryOpen) {
+      if (this.isSecondaryOpen) {
         return;
       }
 
@@ -358,6 +357,7 @@ export default {
       class="tabs"
       :class="{
         'resizer-left': userPin == 'left',
+        'draggable': !isSecondaryOpen
       }"
       draggable="false"
       role="tablist"
@@ -398,11 +398,19 @@ export default {
       >
         <i
           v-if="tab.icon"
-          class="icon tab-icon"
-          :class="{['icon-'+ tab.icon]: true}"
+          class="icon"
+          :class="{
+            ['icon-'+ tab.icon]: true,
+            'draggable': !isSecondaryOpen
+          }"
           :alt="t('console.containerShell.tabIcon')"
         />
-        <span class="tab-label"> {{ tab.label }}</span>
+        <span
+          class="tab-label"
+          :class="{ 'draggable': !isSecondaryOpen }"
+        >
+          {{ tab.label }}
+        </span>
         <i
           data-testid="wm-tab-close-button"
           class="closer icon icon-x wm-closer-button"
@@ -498,8 +506,6 @@ export default {
       display: flex;
       align-content: stretch;
 
-      cursor: grab;
-
       .tab {
         cursor: pointer;
         user-select: none;
@@ -513,14 +519,9 @@ export default {
         display: flex;
         min-width: 0;
 
-        .tab-label{
+        .tab-label {
           overflow: hidden;
           text-overflow: ellipsis;
-          cursor: grab;
-        }
-
-        .tab-icon {
-          cursor: grab;
         }
 
         &.active {
@@ -612,6 +613,10 @@ export default {
     &.pin-left {
       border-right: var(--nav-border-size) solid var(--nav-border);
     }
+  }
+
+  .draggable {
+    cursor: grab;
   }
 
 </style>

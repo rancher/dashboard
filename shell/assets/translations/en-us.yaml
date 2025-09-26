@@ -6989,6 +6989,10 @@ wizard:
   upgrade: Upgrade
   downgrade: Downgrade
 
+sideWindow:
+  secondary:
+    resize: Resize secondary window
+
 console:
   closeTab: Close tab {tabId}
   connection:
