@@ -98,12 +98,11 @@ createTestComponent() {
   # Add test list component to the test package
   # Validates rancher-components imports
 
-  # NOTE - This fails if importing some components with TS imports...
-  # cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
-  # See https://github.com/rancher/dashboard/issues/12918
-
-  # Use a basic list instead
+  # Basic list instead
   cp ${SHELL_DIR}/list/namespace.vue pkg/test-pkg/list
+
+  # More complex list
+  cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
 }
 
 # Publish shell pkg (tag is needed as publish-shell is optimized to work with release-shell-pkg workflow)

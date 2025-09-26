@@ -1,7 +1,8 @@
 /* eslint-disable */
-
 // Include the types for the APIs
 /// <reference path="../apis/vue-shim.d.ts" />
+
+import { VuexStore } from '@shell/types/store/vuex';
 
 export {};
 
@@ -15,10 +16,6 @@ declare module 'vue' {
       (key: string, args?: Record<string, any>, raw?: boolean): string;
       (options: { k: string; raw?: boolean; tag?: string | Record<string, any>; escapehtml?: boolean }): string;
     },
-    $store: {
-      getters: Record<string, any>,
-      dispatch: (action: string, payload?: any) => Promise<any>,
-      commit: (mutation: string, payload?: any) => void,
-    }
+    $store: VuexStore
   }
 }
