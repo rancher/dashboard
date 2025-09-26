@@ -10,7 +10,7 @@ import { AUTH_BROADCAST_CHANNEL_NAME } from '@shell/utils/auth';
 
 const samlProviders = ['ping', 'adfs', 'keycloak', 'okta', 'shibboleth'];
 
-const oauthProviders = ['github', 'googleoauth', 'azuread'];
+const oauthProviders = ['github', 'githubapp', 'googleoauth', 'azuread'];
 
 function reply(err, code) {
   try {
