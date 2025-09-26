@@ -130,9 +130,6 @@ export type Card = {
   component: Function;
 };
 
-// Duplication of HeaderOptions?
-export type TableColumn = any;
-
 /** Definition of a tab (options that can be passed when defining an extension tab enhancement) */
 export type Tab = {
   name: string;
@@ -281,6 +278,9 @@ export interface ProductOptions {
   // typeStoreMap: string;
 }
 
+/**
+ * Configuration required to show a header in a ResourceTable
+ */
 export interface HeaderOptions {
   /**
    * Name of the header. This should be unique.
@@ -335,6 +335,21 @@ export interface HeaderOptions {
    */
   getValue?: (row: any) => string | number | null | undefined;
 }
+
+/**
+ * Configuration required to show a header in a ResourceTable when server-side pagination is enable
+ */
+export type PaginationHeaderOptions = Omit<HeaderOptions, 'getValue'>
+
+/**
+ * External extension configuration for @HeaderOptions
+ */
+export type TableColumn = HeaderOptions;
+
+/**
+ * External extension configuration for @PaginationHeaderOptions
+ */
+export type PaginationTableColumn = PaginationHeaderOptions;
 
 export interface ConfigureTypeOptions {
   /**
@@ -621,9 +636,17 @@ export interface IPlugin {
   addCard(where: CardLocation | string, when: LocationConfig | string, action: Card): void;
 
   /**
-   * Adds a new column to the SortableTable component
+   * Adds a new column to a ResourceTable
+   *
+   * @param where
+   * @param when
+   * @param action
+   * @param column
+   *  The information required to show a header and values for a column in a table
+   * @param paginationColumn
+   *  As per `column`, but is used where server-side pagination is enabled
    */
-  addTableColumn(where: TableColumnLocation | string, when: LocationConfig | string, action: TableColumn): void;
+  addTableColumn(where: TableColumnLocation | string, when: LocationConfig | string, column: TableColumn, paginationColumn?: TableColumn): void;
 
   /**
    * Set the component to use for the landing home page
