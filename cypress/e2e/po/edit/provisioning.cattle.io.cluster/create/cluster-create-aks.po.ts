@@ -4,7 +4,6 @@ import ClusterManagerCreateRke2AzurePagePo from '@/cypress/e2e/po/edit/provision
 import AzureCloudCredentialsCreateEditPo from '@/cypress/e2e/po/edit/cloud-credentials-azure.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
-import eksVersions from '@/pkg/eks/assets/data/eks-versions.js';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 
