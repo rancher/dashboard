@@ -1,7 +1,7 @@
 import { Component } from 'vue';
 
 export type GrowlMessage = {
-  title: string;
+  title?: string;
 
   message?: string;
 
