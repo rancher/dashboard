@@ -140,6 +140,10 @@ export default {
       return this.model?.id === 'cognito';
     },
 
+    isGenericOidc() {
+      return this.model?.id === 'genericoidc';
+    },
+
     isLogoutAllSupported() {
       return this.model?.logoutAllSupported;
     },
@@ -539,6 +543,35 @@ export default {
                 />
               </div>
             </div>
+
+            <template v-if="isGenericOidc">
+              <h4>{{ t('authConfig.oidc.customClaims.label') }}</h4>
+              <div class="row mb-20">
+                <div class="col span-6">
+                  <LabeledInput
+                    v-model:value="model.nameClaim"
+                    :label="t(`authConfig.oidc.customClaims.nameClaim.label`)"
+                    :mode="mode"
+                  />
+                </div>
+                <div class="col span-6">
+                  <LabeledInput
+                    v-model:value="model.groupsClaim"
+                    :label="t(`authConfig.oidc.customClaims.groupsClaim.label`)"
+                    :mode="mode"
+                  />
+                </div>
+              </div>
+              <div class="row mb-20">
+                <div class="col span-6">
+                  <LabeledInput
+                    v-model:value="model.emailClaim"
+                    :label="t(`authConfig.oidc.customClaims.emailClaim.label`)"
+                    :mode="mode"
+                  />
+                </div>
+              </div>
+            </template>
           </AdvancedSection>
         </template>
 
