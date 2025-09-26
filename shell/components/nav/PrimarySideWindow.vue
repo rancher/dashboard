@@ -1,11 +1,13 @@
 <script>
-import { mapState } from 'vuex';
-import debounce from 'lodash/debounce';
+import { mapState, mapGetters } from 'vuex';
+import { debounce, throttle } from 'lodash';
 import {
   screenRect, boundingRect, BOTTOM, RIGHT, LEFT
 } from '@shell/utils/position';
 
 export default {
+  name: 'PrimarySideWindow',
+
   emits: ['draggable'],
 
   data() {
@@ -19,6 +21,7 @@ export default {
 
   computed: {
     ...mapState('wm', ['tabs', 'active', 'open', 'userHeight', 'userWidth', 'userPin']),
+    ...mapGetters({ isSecondaryOpen: 'wm/secondary/isOpen' }),
 
     height: {
       get() {
@@ -83,7 +86,7 @@ export default {
   watch: {
     userPin(v) {
       if (this.open) {
-        this.setWmDimensions();
+        this.setDimensions();
         if (v === LEFT || v === RIGHT) {
           this.setReportedHeight(window.innerHeight - 55);
         }
@@ -109,6 +112,15 @@ export default {
     this.queueUpdate = debounce(this.setReportedHeight, 250);
   },
 
+  beforeUnmount() {
+    if (this.timeoutX) {
+      clearTimeout(this.timeoutX);
+    }
+    if (this.timeoutY) {
+      clearTimeout(this.timeoutY);
+    }
+  },
+
   methods: {
     switchTo(id) {
       this.$store.commit('wm/setActive', id);
@@ -127,7 +139,7 @@ export default {
     },
 
     show() {
-      this.setWmDimensions();
+      this.setDimensions();
       this.$store.commit('wm/setOpen', true);
     },
 
@@ -172,7 +184,7 @@ export default {
 
       this.height = neu;
       this.dragging = true;
-      this.queueUpdate();
+      throttle(this.setReportedHeight, 250, { leading: true })();
     },
 
     dragYEnd(event) {
@@ -186,9 +198,10 @@ export default {
       doc.removeEventListener('touchstart', this.dragYEnd, true);
 
       this.setReportedHeight();
-      setTimeout(() => {
+
+      debounce(() => {
         this.dragging = false;
-      }, 100);
+      }, 100)();
     },
 
     dragXStart(event) {
@@ -234,7 +247,7 @@ export default {
       neu = Math.max(min, Math.min(neu, max));
       this.width = neu;
       this.dragging = true;
-      debounce(this.setReportedWidth, 250)();
+      throttle(this.setReportedWidth, 250, { leading: true })();
     },
 
     dragXEnd(event) {
@@ -248,9 +261,10 @@ export default {
       doc.removeEventListener('touchstart', this.dragXEnd, true);
 
       this.setReportedWidth();
-      setTimeout(() => {
+
+      debounce(() => {
         this.dragging = false;
-      }, 100);
+      }, 100)();
     },
 
     setReportedHeight(height = this.height) {
@@ -261,7 +275,7 @@ export default {
       this.reportedWidth = this.width;
     },
 
-    setWmDimensions(forceValue) {
+    setDimensions(forceValue) {
       switch (this.userPin) {
       case RIGHT:
       case LEFT:
@@ -292,6 +306,11 @@ export default {
     },
 
     emitDraggable(event) {
+      // If the SecondarySideWindow is open, prevent dragging to the right or left
+      if (this.isSecondaryOpen) {
+        return;
+      }
+
       this.$emit('draggable', event);
     },
 
@@ -301,7 +320,7 @@ export default {
 
       this.height = height;
 
-      this.setWmDimensions(height);
+      this.setDimensions(height);
       this.setReportedHeight(height);
     },
 
@@ -317,7 +336,7 @@ export default {
 
       this.width = width;
 
-      this.setWmDimensions(width);
+      this.setDimensions(width);
       this.setReportedWidth(width);
     }
   }
@@ -327,9 +346,10 @@ export default {
 <template>
   <div
     v-if="open"
-    id="windowmanager"
-    data-testid="windowmanager"
-    class="windowmanager"
+    id="primary-side-window"
+    data-testid="primary-side-window"
+    draggable="false"
+    class="primary-side-window"
     :class="{[pinClass]: true}"
   >
     <div
@@ -337,7 +357,9 @@ export default {
       class="tabs"
       :class="{
         'resizer-left': userPin == 'left',
+        'draggable': !isSecondaryOpen
       }"
+      draggable="false"
       role="tablist"
       @keyup.right.prevent="selectNext(1)"
       @keyup.left.prevent="selectNext(-1)"
@@ -349,7 +371,7 @@ export default {
         class="resizer resizer-x"
         role="button"
         tabindex="0"
-        :aria-label="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
+        :aria-label="t('console.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
         aria-expanded="true"
         @mousedown.prevent.stop="dragXStart($event)"
         @touchstart.prevent.stop="dragXStart($event)"
@@ -358,7 +380,7 @@ export default {
       >
         <i
           class="icon icon-code"
-          :alt="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
+          :alt="t('console.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
         />
       </div>
       <div
@@ -377,16 +399,24 @@ export default {
         <i
           v-if="tab.icon"
           class="icon"
-          :class="{['icon-'+ tab.icon]: true}"
-          :alt="t('wm.containerShell.tabIcon')"
+          :class="{
+            ['icon-'+ tab.icon]: true,
+            'draggable': !isSecondaryOpen
+          }"
+          :alt="t('console.containerShell.tabIcon')"
         />
-        <span class="tab-label"> {{ tab.label }}</span>
+        <span
+          class="tab-label"
+          :class="{ 'draggable': !isSecondaryOpen }"
+        >
+          {{ tab.label }}
+        </span>
         <i
           data-testid="wm-tab-close-button"
           class="closer icon icon-x wm-closer-button"
-          :alt="t('wm.containerShell.closeShellTab', { tab: tab.label })"
+          :alt="t('console.containerShell.closeShellTab', { tab: tab.label })"
           tabindex="0"
-          :aria-label="t('windowmanager.closeTab', { tabId: tab.id })"
+          :aria-label="t('console.closeTab', { tabId: tab.id })"
           @click.stop="close(tab.id)"
           @keyup.enter.space.stop="close(tab.id)"
         />
@@ -396,7 +426,7 @@ export default {
         class="resizer resizer-y"
         role="button"
         tabindex="0"
-        :aria-label="t('wm.containerShell.resizeShellWindow', {arrow1: 'up', arrow2: 'down'})"
+        :aria-label="t('console.containerShell.resizeShellWindow', {arrow1: 'up', arrow2: 'down'})"
         aria-expanded="true"
         @mousedown.prevent.stop="dragYStart($event)"
         @touchstart.prevent.stop="dragYStart($event)"
@@ -406,7 +436,7 @@ export default {
       >
         <i
           class="icon icon-sort"
-          :alt="t('wm.containerShell.resizeShellWindow', {arrow1: 'up', arrow2: 'down'})"
+          :alt="t('console.containerShell.resizeShellWindow', {arrow1: 'up', arrow2: 'down'})"
         />
       </div>
       <div
@@ -414,7 +444,7 @@ export default {
         class="resizer resizer-x resizer-align-right"
         role="button"
         tabindex="0"
-        :aria-label="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
+        :aria-label="t('console.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
         aria-expanded="true"
         @mousedown.prevent.stop="dragXStart($event)"
         @touchstart.prevent.stop="dragXStart($event)"
@@ -423,7 +453,7 @@ export default {
       >
         <i
           class="icon icon-code"
-          :alt="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
+          :alt="t('console.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
         />
       </div>
     </div>
@@ -453,7 +483,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .windowmanager {
+  .primary-side-window {
     display: grid;
     height: var(--wm-height, 0);
 
@@ -489,7 +519,7 @@ export default {
         display: flex;
         min-width: 0;
 
-        .tab-label{
+        .tab-label {
           overflow: hidden;
           text-overflow: ellipsis;
         }
@@ -583,6 +613,10 @@ export default {
     &.pin-left {
       border-right: var(--nav-border-size) solid var(--nav-border);
     }
+  }
+
+  .draggable {
+    cursor: grab;
   }
 
 </style>
