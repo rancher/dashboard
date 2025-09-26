@@ -305,7 +305,7 @@ export interface HeaderOptions {
   /**
    * A string which represents the path to access the value from the row object which we'll use to sort i.e. `row.meta.value`
    */
-  sort?: string | string[];
+  sort?: string | string[] | boolean;
 
   /**
    * A string which represents the path to access the value from the row object which we'll use to search i.e. `row.meta.value`.
