@@ -161,7 +161,7 @@ onMounted(() => {
           class="resizer resizer-x"
           role="button"
           tabindex="0"
-          :aria-label="'Resize Secondary Window'"
+          :aria-label="t('sideWindow.secondary.resize')"
           aria-expanded="true"
           @mousedown.prevent.stop="dragXStart($event)"
           @touchstart.prevent.stop="dragXStart($event)"
@@ -187,9 +187,9 @@ onMounted(() => {
         <RcButton
           small
           ghost
-          class=""
           @click="close"
           @keydown.enter.stop="close"
+          @keydown.space.enter.stop="close"
         >
           <i
             class="icon icon-close"
@@ -205,8 +205,6 @@ onMounted(() => {
       <component
         :is="component"
         v-if="component"
-        :tab="{}"
-        v-bind="{}"
         @close="close"
       />
       <div
