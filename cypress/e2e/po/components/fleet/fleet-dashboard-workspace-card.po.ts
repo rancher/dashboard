@@ -12,7 +12,7 @@ class ResourcePanelPo extends ComponentPo {
   }
 
   stateBadge(state: string) {
-    return this.self().find(`.bg-${ state }`);
+    return this.self().find(`.badge.bg-${ state }`);
   }
 }
 
@@ -32,6 +32,14 @@ class ExpandedPanelPo extends ComponentPo {
   tablePanel() {
     return new TablePanelPo(this.self(), this.workspace);
   }
+
+  gitReposFilter() {
+    return CheckboxInputPo.byLabel(this.self(), 'Show Git Repos');
+  }
+
+  helmOpsFilter() {
+    return CheckboxInputPo.byLabel(this.self(), 'Show Helm Ops');
+  }
 }
 
 class CardPanelPo extends ComponentPo {
@@ -41,14 +49,6 @@ class CardPanelPo extends ComponentPo {
     super('.cards-panel', parent);
 
     this.workspace = workspace;
-  }
-
-  gitReposFilter() {
-    return CheckboxInputPo.byLabel(this.self(), 'Show Git Repos');
-  }
-
-  helmOpsFilter() {
-    return CheckboxInputPo.byLabel(this.self(), 'Show Helm Ops');
   }
 
   statePanel(stateDisplay) {
@@ -76,11 +76,11 @@ class StatePanelPo extends ComponentPo {
   }
 
   title() {
-    return this.self().find(`.title .label`);
+    return this.self().find('.title .state-title');
   }
 
-  card(name) {
-    return this.self().find(`[data-testid="card-${ this.workspace }/${ name }"]`);
+  card(name: string) {
+    return this.self().find(`[data-testid="item-card-header-title"]`).contains(name);
   }
 }
 
@@ -102,6 +102,6 @@ export default class FleetDashboardWorkspaceCardPo extends ComponentPo {
   }
 
   expandButton() {
-    return this.self().find('[data-testid="expand-button"]');
+    return this.self().find(`[data-testid="workspace-expand-btn-${ this.workspace }"]`);
   }
 }
