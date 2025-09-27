@@ -122,7 +122,7 @@ export default {
         </button>
         <AsyncButton
           mode="uninstall"
-          icon="icon-delete"
+          :icon="busy ? '' : 'icon-delete'"
           data-testid="uninstall-ext-modal-uninstall-btn"
           @click="uninstall()"
         />
