@@ -213,7 +213,7 @@ describe('chartMixin', () => {
       });
 
       expect(wrapper.vm.action).toStrictEqual({
-        name: 'upgradeVersion',
+        name: 'upgrade',
         tKey: 'upgrade',
         icon: 'icon-upgrade-alt',
       });

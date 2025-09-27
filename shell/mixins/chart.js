@@ -242,7 +242,7 @@ export default {
 
       if (compare(this.currentVersion, this.targetVersion) < 0) {
         return {
-          name: 'upgradeVersion', tKey: 'upgrade', icon: 'icon-upgrade-alt'
+          name: 'upgrade', tKey: 'upgrade', icon: 'icon-upgrade-alt'
         };
       }
 

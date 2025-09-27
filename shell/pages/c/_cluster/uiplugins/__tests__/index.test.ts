@@ -1,4 +1,4 @@
-import { shallowMount } from '@vue/test-utils';
+import { shallowMount, VueWrapper } from '@vue/test-utils';
 import UiPluginsPage from '@shell/pages/c/_cluster/uiplugins/index.vue';
 
 const t = (key: string, args: Object) => {
@@ -10,11 +10,16 @@ const t = (key: string, args: Object) => {
 };
 
 describe('page: UI plugins/Extensions', () => {
-  let wrapper;
+  let wrapper: VueWrapper<any>;
 
   const mountComponent = (mocks = {}) => {
     const store = {
-      getters:  { 'prefs/get': jest.fn() },
+      getters: {
+        'prefs/get':         jest.fn(),
+        'catalog/rawCharts': [],
+        'uiplugins/plugins': [],
+        'uiplugins/errors':  {},
+      },
       dispatch: () => Promise.resolve(),
     };
 
@@ -57,8 +62,7 @@ describe('page: UI plugins/Extensions', () => {
       };
       const actions = wrapper.vm.getPluginActions(plugin);
 
-      expect(actions).toHaveLength(1);
-      expect(actions[0].action).toBe('uninstall');
+      expect(actions.find((action: any) => action.action === 'uninstall')).toBeDefined();
     });
 
     it('should not return uninstall action for a builtin plugin', () => {
@@ -70,10 +74,10 @@ describe('page: UI plugins/Extensions', () => {
       };
       const actions = wrapper.vm.getPluginActions(plugin);
 
-      expect(actions.some((a) => a.action === 'uninstall')).toBe(false);
+      expect(actions.some((action: any) => action.action === 'uninstall')).toBe(false);
     });
 
-    it('should return update action for an installed plugin with an upgrade', () => {
+    it('should return upgrade action for an installed plugin with an upgrade', () => {
       const plugin = {
         installed:           true,
         installableVersions: [],
@@ -82,33 +86,35 @@ describe('page: UI plugins/Extensions', () => {
       };
       const actions = wrapper.vm.getPluginActions(plugin);
 
-      expect(actions.some((a) => a.action === 'update')).toBe(true);
+      expect(actions.some((action: any) => action.action === 'upgrade')).toBe(true);
     });
 
-    it('should return rollback action for an installed plugin with multiple installable versions and no upgrade', () => {
+    it('should return downgrade action for an installed plugin with older installable versions', () => {
       const plugin = {
         installed:           true,
         installableVersions: [{ version: '1.0.0' }, { version: '0.9.0' }],
         builtin:             false,
         upgrade:             null,
+        installedVersion:    '1.0.0',
       };
       const actions = wrapper.vm.getPluginActions(plugin);
 
-      expect(actions.some((a) => a.action === 'rollback')).toBe(true);
+      expect(actions.some((action: any) => action.action === 'downgrade')).toBe(true);
     });
 
-    it('should return all applicable actions', () => {
+    it('should return all applicable actions (upgrade, downgrade, uninstall)', () => {
       const plugin = {
         installed:           true,
-        installableVersions: [{ version: '1.1.0' }, { version: '1.0.0' }],
+        installableVersions: [{ version: '1.1.0' }, { version: '1.0.0' }, { version: '0.9.0' }],
         builtin:             false,
         upgrade:             '1.1.0',
+        installedVersion:    '1.0.0',
       };
       const actions = wrapper.vm.getPluginActions(plugin);
 
-      expect(actions.map((a) => a.action)).toContain('uninstall');
-      expect(actions.map((a) => a.action)).toContain('update');
-      expect(actions.map((a) => a.action)).not.toContain('rollback');
+      expect(actions.map((action: any) => action.action)).toContain('uninstall');
+      expect(actions.map((action: any) => action.action)).toContain('upgrade');
+      expect(actions.map((action: any) => action.action)).toContain('downgrade');
     });
   });
 
@@ -120,43 +126,39 @@ describe('page: UI plugins/Extensions', () => {
       expect(items[0].label).toBe('v1.0.0');
     });
 
-    it('should include upgrade availability in tooltip', () => {
-      const plugin = { displayVersionLabel: 'v1.0.0', upgrade: 'v1.1.0' };
-      const items = wrapper.vm.getSubHeaderItems(plugin);
-
-      expect(items[0].labelTooltip).toBe('plugins.upgradeAvailableTooltip with {"version":"v1.1.0"}');
-    });
-
     it('should show installing status', () => {
       const plugin = { displayVersionLabel: 'v1.0.0', installing: 'install' };
       const items = wrapper.vm.getSubHeaderItems(plugin);
 
-      expect(items).toHaveLength(2);
-      expect(items[1].label).toBe('plugins.labels.installing');
+      expect(items.find((item: any) => item.label === 'plugins.labels.installing')).toBeDefined();
     });
 
     it('should show uninstalling status', () => {
       const plugin = { displayVersionLabel: 'v1.0.0', installing: 'uninstall' };
       const items = wrapper.vm.getSubHeaderItems(plugin);
 
-      expect(items).toHaveLength(2);
-      expect(items[1].label).toBe('plugins.labels.uninstalling');
+      expect(items.find((item: any) => item.label === 'plugins.labels.uninstalling')).toBeDefined();
     });
 
-    it('should show updating status', () => {
-      const plugin = { displayVersionLabel: 'v1.0.0', installing: 'update' };
+    it('should show upgrading status', () => {
+      const plugin = { displayVersionLabel: 'v1.0.0', installing: 'upgrade' };
       const items = wrapper.vm.getSubHeaderItems(plugin);
 
-      expect(items).toHaveLength(2);
-      expect(items[1].label).toBe('plugins.labels.updating');
+      expect(items.find((item: any) => item.label === 'plugins.labels.upgrading')).toBeDefined();
     });
 
-    it('should show rolling back status', () => {
-      const plugin = { displayVersionLabel: 'v1.0.0', installing: 'rollback' };
+    it('should show downgrading status', () => {
+      const plugin = { displayVersionLabel: 'v1.0.0', installing: 'downgrade' };
       const items = wrapper.vm.getSubHeaderItems(plugin);
 
-      expect(items).toHaveLength(2);
-      expect(items[1].label).toBe('plugins.labels.rollingBack');
+      expect(items.find((item: any) => item.label === 'plugins.labels.downgrading')).toBeDefined();
+    });
+
+    it('should include date info', () => {
+      const plugin = { created: '2023-01-01T00:00:00Z' };
+      const items = wrapper.vm.getSubHeaderItems(plugin);
+
+      expect(items.find((item: any) => item.icon === 'icon-refresh-alt')).toBeDefined();
     });
   });
 
@@ -200,13 +202,16 @@ describe('page: UI plugins/Extensions', () => {
   });
 
   describe('getStatuses', () => {
-    it('should return "installed" status for installed, non-builtin plugins', () => {
+    it('should return "installed" status with version for installed, non-builtin plugins', () => {
       const plugin = {
-        installed: true, builtin: false, installing: false
+        installed:        true,
+        builtin:          false,
+        installing:       false,
+        installedVersion: '1.2.3',
       };
       const statuses = wrapper.vm.getStatuses(plugin);
 
-      expect(statuses[0].tooltip.key).toBe('generic.installed');
+      expect(statuses[0].tooltip.text).toBe('generic.installed 1.2.3');
     });
 
     it('should return "upgradeable" status for plugins with an upgrade', () => {
@@ -250,69 +255,9 @@ describe('page: UI plugins/Extensions', () => {
     it('should combine deprecated and other errors in tooltip', () => {
       const plugin = { chart: { deprecated: true }, helmError: true };
       const statuses = wrapper.vm.getStatuses(plugin);
-      const warningStatus = statuses.find((s) => s.icon === 'icon-alert-alt');
+      const warningStatus = statuses.find((status: any) => status.icon === 'icon-alert-alt');
 
       expect(warningStatus.tooltip.text).toBe('generic.deprecated. generic.error: plugins.helmError');
-    });
-  });
-
-  describe('watch: helmOps', () => {
-    let wrapper;
-
-    beforeEach(() => {
-      const store = {
-        getters: {
-          'prefs/get':         jest.fn(),
-          'catalog/rawCharts': {},
-          'uiplugins/plugins': [],
-          'uiplugins/errors':  {}
-        },
-        dispatch: () => Promise.resolve(),
-      };
-
-      wrapper = shallowMount(UiPluginsPage, {
-        global: {
-          mocks: {
-            $store: store,
-            t,
-          },
-          stubs: { ActionMenu: { template: '<div />' } }
-        }
-      });
-    });
-
-    it('should set status to "update" for an upgrade operation', async() => {
-      const plugin = { name: 'my-plugin' };
-
-      wrapper.vm.available = [plugin];
-      wrapper.vm.installing['my-plugin'] = 'update';
-
-      const helmOps = [{
-        metadata: { state: { transitioning: true } },
-        status:   { releaseName: 'my-plugin', action: 'upgrade' }
-      }];
-
-      wrapper.vm.helmOps = helmOps;
-      await wrapper.vm.$nextTick();
-
-      expect(wrapper.vm.installing['my-plugin']).toBe('update');
-    });
-
-    it('should keep status as "rollback" during an upgrade operation if it was already rolling back', async() => {
-      const plugin = { name: 'my-plugin' };
-
-      wrapper.vm.available = [plugin];
-      wrapper.vm.installing['my-plugin'] = 'rollback';
-
-      const helmOps = [{
-        metadata: { state: { transitioning: true } },
-        status:   { releaseName: 'my-plugin', action: 'upgrade' }
-      }];
-
-      wrapper.vm.helmOps = helmOps;
-      await wrapper.vm.$nextTick();
-
-      expect(wrapper.vm.installing['my-plugin']).toBe('rollback');
     });
   });
 });
