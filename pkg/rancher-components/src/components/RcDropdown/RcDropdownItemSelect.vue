@@ -16,16 +16,16 @@ defineProps({
     default: ''
   },
   disabled: Boolean,
-  options:  {
+  label:    {
+    type:    String,
+    default: ''
+  },
+  options: {
     type: Array,
     default() {
       return [];
     }
   },
-  label: {
-    type:    String,
-    default: ''
-  }
 });
 const emits = defineEmits(['click', 'select']);
 
