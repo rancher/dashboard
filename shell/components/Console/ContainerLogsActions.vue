@@ -49,6 +49,7 @@ defineEmits([
       <rc-dropdown-item-select
         :model-value="range"
         :options="rangeOptions"
+        :label="t('console.containerLogs.range.label')"
         @select="$emit('toggleRange', $event)"
       />
       <rc-dropdown-item-checkbox
