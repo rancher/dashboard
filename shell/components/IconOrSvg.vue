@@ -24,16 +24,20 @@ const cssCache = {};
 
 const colors = {
   header: {
-    color:         '--on-tertiary-header',
-    hover:         '--on-tertiary-header-hover',
-    colorFallback: '--header-btn-text',
-    hoverFallback: '--header-btn-text-hover',
+    color:          '--on-tertiary-header',
+    hover:          '--on-tertiary-header-hover',
+    colorFallback:  '--header-btn-text',
+    hoverFallback:  '--header-btn-text-hover',
+    active:         '--on-tertiary-header-hover',
+    activeFallback: '--header-btn-text-hover',
   },
   primary: {
-    color:         '--link',
-    hover:         '--primary-hover-text',
-    colorFallback: '--link',
-    hoverFallback: '--primary-hover-text',
+    color:          '--link',
+    hover:          '--link',
+    colorFallback:  '--link',
+    hoverFallback:  '--primary-hover-text',
+    active:         '--on-active',
+    activeFallback: '--primary-hover-text',
   }
 };
 
@@ -93,13 +97,15 @@ export default {
       const colorConfig = colors[this.color];
       const uiColor = this.getComputedStyleFor(colorConfig.color, colorConfig.colorFallback);
       const hoverColor = this.getComputedStyleFor(colorConfig.hover, colorConfig.hoverFallback);
+      const activeColor = this.getComputedStyleFor(colorConfig.active, colorConfig.activeFallback);
 
-      if (!uiColor || !hoverColor) {
+      if (!uiColor || !hoverColor || !activeColor) {
         return;
       }
 
       const uiColorRGB = colorToRgb(uiColor);
       const hoverColorRGB = colorToRgb(hoverColor);
+      const activeColorRGB = colorToRgb(activeColor);
       const uiColorStr = `${ uiColorRGB.r }-${ uiColorRGB.g }-${ uiColorRGB.b }`;
       const hoverColorStr = `${ hoverColorRGB.r }-${ hoverColorRGB.g }-${ hoverColorRGB.b }`;
 
@@ -108,7 +114,7 @@ export default {
       if (!cssCache[className]) {
         let hoverFilter = filterCache[hoverColor];
 
-        if (!hoverFilter) {
+        const activeFilter = this.resolveColorFilter(activeColor, activeColorRGB);
           const solver = new Solver(hoverColorRGB);
           const res = solver.solve();
 
@@ -144,7 +150,7 @@ export default {
             ${ hoverFilter };
           }
           a.option.active-menu-link > img.${ className } {
-            ${ hoverFilter };
+            ${ activeFilter };
           }
         `;
 
