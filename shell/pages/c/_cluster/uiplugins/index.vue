@@ -204,7 +204,7 @@ export default {
       switch (this.activeTab) {
       case TABS_VALUES.INSTALLED:
         // We never show built-in extensions as installed - installed are just the ones the user has installed
-        return all.filter((p) => !p.builtin && (!!p.installed || !!p.installing));
+        return all.filter((p) => !p.builtin && (!!p.installed || !!p.installing) && p.installableVersions?.length > 0);
       case TABS_VALUES.AVAILABLE:
         return all.filter((p) => !p.installed);
       case TABS_VALUES.BUILTIN:
