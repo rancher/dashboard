@@ -112,25 +112,9 @@ export default {
       const className = `svg-icon-${ uiColorStr }-${ hoverColorStr }`;
 
       if (!cssCache[className]) {
-        let hoverFilter = filterCache[hoverColor];
-
+        const hoverFilter = this.resolveColorFilter(hoverColor, hoverColorRGB);
+        const mainFilter = this.resolveColorFilter(uiColor, uiColorRGB);
         const activeFilter = this.resolveColorFilter(activeColor, activeColorRGB);
-          const solver = new Solver(hoverColorRGB);
-          const res = solver.solve();
-
-          hoverFilter = res?.filter;
-          filterCache[hoverColor] = hoverFilter;
-        }
-
-        let mainFilter = filterCache[uiColor];
-
-        if (!mainFilter) {
-          const solver = new Solver(uiColorRGB);
-          const res = solver.solve();
-
-          mainFilter = res?.filter;
-          filterCache[uiColor] = mainFilter;
-        }
 
         // Add stylesheet (added as global styles)
         const styles = `
