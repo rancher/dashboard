@@ -19,7 +19,7 @@ export default class UsersPo extends ClusterPage {
     return sideNav.navToSideMenuEntryByLabel('Users');
   }
 
-  constructor(private clusterId = '_') {
+  constructor(private clusterId = 'local') {
     super(clusterId, 'auth/management.cattle.io.user');
   }
 
