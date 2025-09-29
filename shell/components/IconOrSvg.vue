@@ -75,6 +75,20 @@ export default {
       return normalizeHex(mapStandardColors(value ?? fallback));
     },
 
+    resolveColorFilter(cacheKey, rgb) {
+      if (filterCache[cacheKey]) {
+        return filterCache[cacheKey];
+      }
+
+      const solver = new Solver(rgb);
+      const res = solver.solve();
+      const filter = res?.filter;
+
+      filterCache[cacheKey] = filter;
+
+      return filter;
+    },
+
     setColor() {
       const colorConfig = colors[this.color];
       const uiColor = this.getComputedStyleFor(colorConfig.color, colorConfig.colorFallback);
