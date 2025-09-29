@@ -34,6 +34,12 @@ export function init(store) {
     removable:           false,
     showClusterSwitcher: false,
     category:            'configuration',
+    to:                  {
+      name:   'c-cluster-product-resource',
+      params: {
+        product: 'auth', resource: 'management.cattle.io.user', cluster: 'local'
+      }
+    }
   });
 
   virtualType({
