@@ -26,7 +26,6 @@ defineProps<{
       <li v-clean-html="t(`authConfig.${name}.form.prefix.2`, tArgs, true)" />
       <li v-clean-html="t(`authConfig.${name}.form.prefix.3`, tArgs, true)" />
       <li v-clean-html="t(`authConfig.${name}.form.prefix.4`, tArgs, true)" />
-      <li v-clean-html="t(`authConfig.${name}.form.prefix.5`, tArgs, true)" />
     </ul>
   </InfoBox>
   <InfoBox
@@ -64,7 +63,7 @@ defineProps<{
             <b>
               {{ t(`authConfig.${name}.form.callback.label`) }}
             </b>:
-            {{ tArgs.serverUrl }}
+            {{ t(`authConfig.${name}.form.callback.value`, tArgs, true) }}
             <CopyToClipboard
               :text="tArgs.serverUrl"
               label-as="tooltip"
@@ -73,6 +72,9 @@ defineProps<{
             />
           </li>
         </ul>
+      </li>
+      <li>
+        {{ t(`authConfig.${name}.form.create`, tArgs, true) }}
       </li>
     </ul>
   </InfoBox>
@@ -84,7 +86,6 @@ defineProps<{
       <li v-clean-html="t(`authConfig.${name}.form.suffix.1`, tArgs, true)" />
       <li v-clean-html="t(`authConfig.${name}.form.suffix.2`, tArgs, true)" />
       <li v-clean-html="t(`authConfig.${name}.form.suffix.3`, tArgs, true)" />
-      <li v-clean-html="t(`authConfig.${name}.form.suffix.4`, tArgs, true)" />
     </ul>
   </InfoBox>
 </template>
