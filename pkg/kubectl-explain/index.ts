@@ -26,7 +26,7 @@ export default function(plugin: IPlugin, internal: IInternal): void {
     tooltipKey: 'kubectl-explain.tooltip',
     svg:        require('./explain.svg'),
     invoke:     (opts, res, globals) => {
-      explain(store, globals.$route);
+      explain(store, globals.$route, `[data-testid="extension-header-action-kubectl-explain.action"]`);
     }
   });
 }
