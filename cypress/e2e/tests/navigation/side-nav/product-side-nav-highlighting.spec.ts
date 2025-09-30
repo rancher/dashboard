@@ -62,7 +62,7 @@ describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser']
     const productNavPo = new ProductNavPo();
 
     usersPo.goTo();
-    usersPo.waitForPage();
+    usersPo.waitForMastheadTitle('Users');
     productNavPo.activeNavItem().should('equal', 'Users');
 
     usersPo.userRetentionLink().click();
