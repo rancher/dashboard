@@ -17,12 +17,6 @@ interface ParsedInactivitySetting {
   showModalAfter: number | undefined
 }
 
-// store in memory the userActivity resource
-let storedUserActivityResponse: UserActivityResponse = {
-  metadata: { name: '' },
-  status:   { expiresAt: '' }
-};
-
 // store in memory the session token name (this is the identifier for the correct user activity resource)
 let sessionTokenName: string;
 
@@ -34,23 +28,12 @@ export function storeSessionTokenName(tokenName: string) {
   sessionTokenName = tokenName;
 }
 
-export function getStoredUserActivity():UserActivityResponse {
-  return storedUserActivityResponse;
-}
-
-export function storeUserActivity(userActivity: UserActivityResponse) {
-  storedUserActivityResponse = userActivity;
-}
-
 export async function checkUserActivityData(store: any, sessionTokenName: string): Promise<UserActivityResponse> {
   // needs "force" for reactivity
   try {
     const updatedData = await store.dispatch('management/find', {
       type: EXT.USER_ACTIVITY, id: sessionTokenName, opt: { force: true }
     });
-
-    // update stored data
-    storedUserActivityResponse = updatedData;
 
     return updatedData;
   } catch (e: any) {
@@ -66,14 +49,11 @@ export async function updateUserActivityToken(store: any, sessionTokenName: stri
     kind:       'UserActivity',
     type:       EXT.USER_ACTIVITY,
     metadata:   { name: sessionTokenName },
-    spec:       { tokenId: sessionTokenName }
+    spec:       { tokenId: sessionTokenName, seenAt: new Date().toISOString() }
   });
 
   try {
     const savedData = await updateUserActivity.save({ force: true });
-
-    // update stored data
-    storedUserActivityResponse = savedData;
 
     return savedData;
   } catch (e: any) {
