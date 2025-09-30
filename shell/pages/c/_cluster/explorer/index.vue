@@ -641,6 +641,7 @@ export default {
       </div>
     </header>
     <div
+      v-ui-context="{ tag: 'cluster', path: 'currentCluster.name', icon: 'icon-cluster', description: 'Cluster name' }"
       class="cluster-dashboard-glance"
     >
       <div data-testid="clusterProvider__label">

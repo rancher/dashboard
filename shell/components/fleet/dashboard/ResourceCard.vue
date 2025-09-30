@@ -133,6 +133,8 @@ export default {
 <template>
   <RcItemCard
     :id="`${ value.metadata.namespace }-${ value.type }-${ value.id }`"
+
+    v-ui-context="{ icon: value.dashboardIcon, value: value.id, tag: value.type, description: 'Fleet resource' }"
     class="dashboard-resource-card"
     variant="small"
     :header="{
