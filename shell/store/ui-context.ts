@@ -23,8 +23,10 @@ export const state = function(): State {
 };
 
 export const getters = {
-  all: (state: State) => () => {
-    return Object.values(state.elements).map((e) => e.context);
+  all: (state: State) => {
+    return Object.values(state.elements)
+      .map((e) => e.context)
+      .sort((a, b) => (a.tag || '').localeCompare(b.tag || '') || 0);
   },
 };
 
