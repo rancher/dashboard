@@ -1,19 +1,15 @@
 <script>
 import { resourceNames } from '@shell/utils/string';
 import { Banner } from '@components/Banner';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import ButtonDropdown from '@shell/components/ButtonDropdown';
 import { mapGetters, mapState } from 'vuex';
-import { isEmpty } from 'lodash';
 
 export default {
   name: 'PromptRemoveWorkloadDialog',
 
   emits: ['errors'],
 
-  components: {
-    Banner,
-    Checkbox
-  },
+  components: { Banner, ButtonDropdown },
 
   props: {
     value: {
@@ -51,6 +47,9 @@ export default {
   computed: {
     ...mapState('action-menu', ['toRemove']),
     ...mapGetters({ t: 'i18n/t' }),
+    propagationPolicyOptions() {
+      return ['Orphan', 'Foreground', 'Background'];
+    }
   },
 
   methods: {
@@ -81,33 +80,11 @@ export default {
         {{ t('promptRemove.propagationPolicyLabel') }}
       </label>
       <div class="mb-10" />
-      <select
-        v-model="propagationPolicy"
-        class="propagation-policy-select"
-      >
-        <option value="Foreground">
-          Foreground
-        </option>
-        <option value="Background">
-          Background
-        </option>
-        <option value="Orphan">
-          Orphan
-        </option>
-      </select>
-      <div class="mt-10" />
-      <div>
-        <div v-if="propagationPolicy === 'Foreground'">
-          Foreground: Deletes dependents before removing the current resource.
-        </div>
-        <div v-else-if="propagationPolicy === 'Background'">
-          Background: Deletes the current resource immediately and dependents in the background.
-        </div>
-        <div v-else-if="propagationPolicy === 'Orphan'">
-          Orphan: Removes the current resource but leaves dependents orphaned.
-        </div>
-      </div>
     </div>
+    <ButtonDropdown
+      v-model="propagationPolicy"
+      :dropdown-options="propagationPolicyOptions"
+    />
     <Banner
       v-for="(error, i) in errors"
       :key="i"
