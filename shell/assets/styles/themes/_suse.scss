@@ -10,6 +10,7 @@
     --primary-text: #FFFFFF;
     --primary-hover: #006B46;
     --primary-hover-bg: #006B46;
+    --primary-border: #{$green-120};
 
     --link: #4871C7;
     --active-nav: #{$green-140};
@@ -24,7 +25,11 @@
 
     --tertiary: transparent;
     --on-tertiary: var(--non-primary-text);
+    --on-tertiary-hover: var(--non-primary-text);
+    --on-tertiary-header: var(--non-primary-text);
+    --on-tertiary-header-hover: var(--non-primary-text);
     --tertiary-hover: var(--non-primary-hover);
+    --tertiary-hover-app-bar: var(--non-primary-text);
 
     $super-light-green: #F4F6F5;
     --active: #{$green-140};
@@ -48,6 +53,7 @@
     --primary-text: #{$grey-90};
     --primary-hover: #{$lighter-green-jungle};
     --primary-hover-bg: #{$lighter-green-jungle};
+    --primary-border: #{$lighter-green-jungle};
 
     --non-primary-text: #{$lighter-green-jungle};
     --non-primary-hover: #323C52;
@@ -59,7 +65,11 @@
 
     --tertiary: transparent;
     --on-tertiary: var(--non-primary-text);
+    --on-tertiary-hover: var(--non-primary-text);
+    --on-tertiary-header: var(--non-primary-text);
+    --on-tertiary-header-hover: var(--non-primary-text);
     --tertiary-hover: var(--non-primary-hover);
+    --tertiary-hover-app-bar: var(--non-primary-text);
 
     $category-active: #212523;
     --active: #{$green-40};

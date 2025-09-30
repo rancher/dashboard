@@ -32,9 +32,9 @@ const colors = {
     activeFallback: '--header-btn-text-hover',
   },
   primary: {
-    color:          '--link',
+    color:          '--on-tertiary',
     hover:          '--link',
-    colorFallback:  '--link',
+    colorFallback:  '--on-tertiary',
     hoverFallback:  '--primary-hover-text',
     active:         '--on-active',
     activeFallback: '--primary-hover-text',
