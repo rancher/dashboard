@@ -4,8 +4,6 @@ import { Banner } from '@components/Banner';
 import PercentageBar from '@shell/components/PercentageBar.vue';
 import throttle from 'lodash/throttle';
 import {
-  getStoredUserActivity,
-  storeUserActivity,
   getSessionTokenName,
   storeSessionTokenName,
   updateUserActivityToken,
@@ -19,6 +17,9 @@ import { allHash } from 'utils/promise';
 
 let globalId;
 
+const MODAL_VISIBILITY_CHECK_DELAY_SECONDS = 10;
+const BEFORE_LOGOUT_CHECK_DELAY_SECONDS = 3;
+
 export default {
   name:       'Inactivity',
   components: {
@@ -26,19 +27,20 @@ export default {
   },
   data() {
     return {
-      sessionTokenName:      null,
-      tokens:                [],
-      isUserActive:          false,
-      tenSecondToGoCheckRan: false,
-      isOpen:                false,
-      showModalAfter:        null,
-      expiresAt:             null,
-      inactivityTimeoutId:   null,
-      courtesyTimer:         null,
-      courtesyTimerId:       null,
-      courtesyCountdown:     null,
-      trackInactivity:       throttle(this._trackInactivity, 1000),
-      id:                    null
+      sessionTokenName:        null,
+      tokens:                  [],
+      isUserActive:            false,
+      modalVisibilityCheckRan: false,
+      beforeLogoutCheckRan:    false,
+      isOpen:                  false,
+      showModalAfter:          null,
+      expiresAt:               null,
+      inactivityTimeoutId:     null,
+      courtesyTimer:           null,
+      courtesyTimerId:         null,
+      courtesyCountdown:       null,
+      trackInactivity:         throttle(this._trackInactivity, 1000),
+      id:                      null
     };
   },
   async mounted() {
@@ -73,9 +75,11 @@ export default {
       return this.$store.getters['management/byId'](EXT.USER_ACTIVITY, this.sessionTokenName);
     },
     ttlIdleValue() {
+      // USE DEFAULT VALUE IF UNDEFINED... to be double-checked
       return parseInt(this.userSessionTtlIdleSetting?.value || 0);
     },
     ttlValue() {
+      // USE DEFAULT VALUE IF UNDEFINED... to be double-checked
       return parseInt(this.userSessionTtlSetting?.value || 0);
     },
     userActivityExpiresAt() {
@@ -126,7 +130,7 @@ export default {
         // but the userActivity hasn't updated yet because it's an async operation
         if (neu?.ttlIdleValue !== old?.ttlIdleValue && neu?.userActivityExpiresAt === old?.userActivityExpiresAt) {
           this.stopInactivity();
-          // this means that all conditions are met to start the timers
+          // this means that all conditions are met to start/stop the timers
         } else if (endDate > currDate && neu?.sessionTokenName) {
           console.error('watcherData passed gate 1!!!');
           console.error('neu.ttlIdleValue < neu.ttlValue', neu.ttlIdleValue < neu.ttlValue);
@@ -199,15 +203,9 @@ export default {
         }
 
         // get the latest userActivity data so that get reactivity on all this logic
-        const userActivityData = await this.$store.dispatch('management/find', {
-          // needs to be forced so that "this.userActivityExpiresAt" is updated and the watcher runs again (reactivity in the component)
-          type: EXT.USER_ACTIVITY, id: this.sessionTokenName, opt: { force: true }
-        });
+        const userActivityData = await this.$store.dispatch('management/find', { type: EXT.USER_ACTIVITY, id: this.sessionTokenName });
 
-        console.error('userActivityData on INIT', userActivityData);
-
-        // is it really needed?
-        storeUserActivity(userActivityData);
+        console.error('INIT SESSION IDLE first fetch UserActivity', userActivityData);
 
         const expiresAt = userActivityData?.status?.expiresAt;
         const currDate = Date.now();
@@ -215,8 +213,11 @@ export default {
 
         // something is wrong with the expiration date... it isn't initialised yet '0001-01-01 00:00:00 +0000 UTC'
         // or just passed the 'now' date. We need to update/initialise the UserActivity resource
-        if (currDate > endDate) {
+        // await updateUserActivityToken(this.$store, this.sessionTokenName );
+        if ((currDate > endDate) || !expiresAt) {
           await updateUserActivityToken(this.$store, this.sessionTokenName );
+        } else if (expiresAt) {
+          this.expiresAt = expiresAt;
         }
       }
     },
@@ -244,18 +245,18 @@ export default {
           this.isOpen = true;
           this.startCountdown();
         } else {
-          // When we have 10 seconds to go until we display the modal, check for activity on the backend flag
+          // When we have X seconds to go until we display the modal, check for activity on the backend flag
           // it may have come from another tab in the same browser
-          if (now >= endTime - (10 * 1000) && !this.tenSecondToGoCheckRan) {
-            this.tenSecondToGoCheckRan = true;
+          if (now >= endTime - (MODAL_VISIBILITY_CHECK_DELAY_SECONDS * 1000) && !this.modalVisibilityCheckRan) {
+            this.modalVisibilityCheckRan = true;
 
-            console.error('TEN SECONDS TO GO!!!!');
+            console.error('X SECONDS TO GO BEFORE MODAL IS VISIBLE!!!!');
 
             if (this.isUserActive) {
-              console.error('USER IS ACTIVE, RESETTING USER ACTIVITY');
+              console.error('USER IS ACTIVE, RESETTING USER ACTIVITY before show modal');
               this.resetUserActivity();
             } else {
-              console.error('timer DOUBLE-CHECKING BACKEND INACTIVITY DATA');
+              console.error('timer DOUBLE-CHECKING BACKEND INACTIVITY DATA before show modal');
               this.checkBackendInactivity();
             }
           }
@@ -283,8 +284,21 @@ export default {
         if (now >= endTime) {
           this.clearAllTimeouts();
 
+          console.error('LOGGING OUT USER FROM THE UI!!!!!!');
+
           return this.$store.dispatch('auth/logout', { sessionIdle: true });
         } else {
+          // When we have X seconds to go we log out the user, we check again for activity on the backend flag
+          // it may have come from another tab in the same browser
+          if (now >= endTime - (BEFORE_LOGOUT_CHECK_DELAY_SECONDS * 1000) && !this.beforeLogoutCheckRan) {
+            this.beforeLogoutCheckRan = true;
+
+            console.error('X SECONDS TO GO BEFORE WE LOG USER OUT!');
+
+            console.error('timer DOUBLE-CHECKING BACKEND INACTIVITY DATA before logout');
+            this.checkBackendInactivity();
+          }
+
           this.courtesyCountdown = Math.floor((endTime - now) / 1000);
           this.courtesyTimerId = setTimeout(checkCountdown, 1000);
         }
@@ -315,7 +329,8 @@ export default {
       this.resetInactivityDataAndTimers(userActivityData);
     },
     stopInactivity() {
-      this.tenSecondToGoCheckRan = false;
+      this.modalVisibilityCheckRan = false;
+      this.beforeLogoutCheckRan = false;
       this.isOpen = false;
       this.isUserActive = false;
 
@@ -325,7 +340,8 @@ export default {
     resetInactivityDataAndTimers(userActivityData) {
       const data = parseTTLData(userActivityData);
 
-      this.tenSecondToGoCheckRan = false;
+      this.modalVisibilityCheckRan = false;
+      this.beforeLogoutCheckRan = false;
       this.isOpen = false;
       this.isUserActive = false;
 
