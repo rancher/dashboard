@@ -3,13 +3,15 @@
   $light-green-jungle: #4DD192;
   $lighter-green-jungle: #72EEB3;
 
-  &.theme-light {
-    --primary: #33A86F;
-    --primary-text: #FFFFFF;
-    --primary-hover: #{$green-120};
-    --primary-hover-bg: #{$green-120};
+  $jungle-120: #008657;
 
-    --link: #{$green-120};
+  &.theme-light {
+    --primary: #{$jungle-120};
+    --primary-text: #FFFFFF;
+    --primary-hover: #006B46;
+    --primary-hover-bg: #006B46;
+
+    --link: #4871C7;
     --active-nav: #{$green-140};
 
     --non-primary-text: #{$green-120};
@@ -39,7 +41,7 @@
   }
 
   &.theme-dark {
-    --link: #{$lighter-green-jungle};
+    --link: #9BBFFD;
     --active-nav: #{$green-40};
 
     --primary: #{$light-green-jungle};
@@ -48,7 +50,7 @@
     --primary-hover-bg: #{$lighter-green-jungle};
 
     --non-primary-text: #{$lighter-green-jungle};
-    --non-primary-hover: #1A2A4D;
+    --non-primary-hover: #323C52;
 
     --secondary: var(--body-bg);
     --secondary-border: var(--non-primary-text);
@@ -65,6 +67,8 @@
     --active-hover: #{$green-60};
     --category--active: #{$category-active};
     --category--active-hover: #{lighten($category-active, 10%)};
-  }
 
+    --toggle-off-bg: #{$grey-70};
+    --sortable-table-selected-bg: #3f4350;
+  }
 }
