@@ -661,18 +661,18 @@ BODY, .theme-dark {
   $contrasted-light: $darkest !default;
 
   $drag-over: #DCDEE7;
-  $body-bg: #2F2F42;
+  $body-bg: #25282f;
 
   /*********************/
   
   --body-border: #5A5F6A;
-  --link: #{$primary-55};
+  --link: #9BBFFD;
   
   --primary: #{$primary};
   --primary-text: #{$grey-0};
   --primary-hover: #{$primary-120};
 
-  --non-primary-hover: #{$primary-150};
+  --non-primary-hover: #323C52;
 
   --secondary: var(--body-bg);
   --secondary-border: #{$primary-60};
@@ -689,7 +689,7 @@ BODY, .theme-dark {
   --category--active: #{$primary-75};
   --category--active-hover: #{$grey-70};
 
-  --toggle-OFF-bg: #{$grey-80};
+  --toggle-OFF-bg: #{$grey-70};
   --toggle-OFF-color: #{$grey-30};
   --toggle-OFF-hover: #{$grey-90};
   --toggle-ON-bg: var(--active);
@@ -818,7 +818,7 @@ BODY, .theme-dark {
   --input-text                 : #{$grey-0};
   --input-label                : #{$lighter};
   --input-placeholder          : #{$disabled};
-  --input-border               : var(--border);
+  --input-border               : #627084;
   --input-bg                   : var(--body-bg);
   --input-bg-accent            : #{darken($dark, 3%)};
   --input-hover-bg             : var(--box-bg);
@@ -929,7 +929,7 @@ BODY, .theme-dark {
   --sortable-table-header-bg    : #{darken($body-bg, 15%)};
   --sortable-table-top-divider  : var(--body-border);
   --sortable-table-hover-bg     : #{lighten($body-bg, 5%)};
-  --sortable-table-selected-bg  : #{lighten($body-bg, 15%)};
+  --sortable-table-selected-bg  : #3f4350;
   --sortable-table-group-label  : #{$grey-30};
 
   .text-error {

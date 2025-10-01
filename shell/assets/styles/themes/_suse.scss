@@ -4,22 +4,6 @@
   $lighter-green-jungle: #72EEB3;
 
   &.theme-light {
-    --primary: #33A86F;
-    --primary-text: #FFFFFF;
-    --primary-hover: #{$green-120};
-
-    --non-primary-text: #{$green-120};
-    --non-primary-hover: #{$green-20};
-
-    --secondary: var(--body-bg);
-    --secondary-border: var(--primary);
-    --on-secondary: var(--non-primary-text);
-    --secondary-hover: var(--non-primary-hover);
-
-    --tertiary: transparent;
-    --on-tertiary: var(--non-primary-text);
-    --tertiary-hover: var(--non-primary-hover);
-
     $super-light-green: #F4F6F5;
     --active: #{$green-140};
     --on-active: #{$grey-0};
@@ -28,29 +12,13 @@
     --category--active-hover: #e8eeeb;
 
     --checkbox-tick              : var(--on-active);
-    --checkbox-border            : var(--body-border);
+    --checkbox-border            : var(--input-border);
     --checkbox-tick-disabled     : #{darken($disabled, 40%)};
     --checkbox-disabled-bg       : #{$disabled};
     --checkbox-ticked-bg         : var(--active);
   }
 
   &.theme-dark {
-    --primary: #{$light-green-jungle};
-    --primary-text: #{$grey-90};
-    --primary-hover: #{$lighter-green-jungle};
-
-    --non-primary-text: #{$lighter-green-jungle};
-    --non-primary-hover: #1A2A4D;
-
-    --secondary: var(--body-bg);
-    --secondary-border: var(--non-primary-text);
-    --on-secondary: var(--non-primary-text);
-    --secondary-hover: var(--non-primary-hover);
-
-    --tertiary: transparent;
-    --on-tertiary: var(--non-primary-text);
-    --tertiary-hover: var(--non-primary-hover);
-
     $category-active: #212523;
     --active: #{$green-40};
     --on-active: #{$grey-90};
