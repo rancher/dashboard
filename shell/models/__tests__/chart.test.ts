@@ -14,7 +14,7 @@ type MockChartContext = {
 interface CardContent {
   subHeaderItems: { label: string }[];
   footerItems: { labels: string[]; icon?: string }[];
-  statuses: { tooltip: { key: string }; color: string }[];
+  statuses: { tooltip: { key?: string; text?: string }; color: string }[];
 }
 
 const t = jest.fn((key) => key); // mock translation function
@@ -240,10 +240,11 @@ describe('class Chart', () => {
 
       const result = chart.cardContent as CardContent;
 
-      const installedStatus = result.statuses.find((s) => s.tooltip.key === 'generic.installed');
+      const installedStatus = result.statuses.find((s) => s.tooltip.text?.startsWith('generic.installed'));
 
       expect(installedStatus).toBeDefined();
       expect(installedStatus?.color).toBe('success');
+      expect(installedStatus?.tooltip.text).toContain(installedApp.spec.chart.metadata.version);
     });
 
     it('includes upgradeable status when upgrade is available', () => {
@@ -270,9 +271,16 @@ describe('class Chart', () => {
 
       const result = chart.cardContent as CardContent;
 
-      const keys = result.statuses.map((s) => s.tooltip.key);
+      const statuses = result.statuses.map((s) => {
+        if (s.tooltip.key) {
+          return s.tooltip.key;
+        }
+        if (s.tooltip.text?.startsWith('generic.installed')) {
+          return 'generic.installed';
+        }
+      });
 
-      expect(keys).toStrictEqual(expect.arrayContaining([
+      expect(statuses).toStrictEqual(expect.arrayContaining([
         'generic.deprecated',
         'generic.upgradeable',
         'generic.installed'
