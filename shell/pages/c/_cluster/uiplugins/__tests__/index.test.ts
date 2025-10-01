@@ -211,7 +211,7 @@ describe('page: UI plugins/Extensions', () => {
       };
       const statuses = wrapper.vm.getStatuses(plugin);
 
-      expect(statuses[0].tooltip.text).toBe('generic.installed 1.2.3');
+      expect(statuses[0].tooltip.text).toBe('generic.installed (1.2.3)');
     });
 
     it('should return "upgradeable" status for plugins with an upgrade', () => {
