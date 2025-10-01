@@ -5703,6 +5703,9 @@ promptRemove:
   confirmRelatedResource: "Deleting the {type} will remove all the resources on this particular {type} and this is not revertable, are you sure you want to continue deleting {names}?"
   promptConfirmation: "Do not prompt again for confirmation when scaling down."
   propagationPolicyLabel: "Choose how you want downstream resources to be treated."
+  propagationPolicyOrphan: "Removes the resource but leaves dependents orphaned."
+  propagationPolicyForeground: "Deletes dependents before removing the resource."
+  propagationPolicyBackground: "Deletes the resource immediately and dependents in the background."
 
 promptRemoveApp:
   removeCrd: "Delete the CRD associated with this app"
