@@ -20,11 +20,12 @@
   }
 
   &.theme-dark {
-    --side-menu-link: #{$lighter-green-jungle};
+    $active: #AEEACD;
     $category-active: #2f3e41;
-    --active: #{$green-40};
-    --on-active: #{$grey-90};
-    --active-hover: #{$green-60};
+    --side-menu-link: #{$lighter-green-jungle};
+    --active: #{$active};
+    --on-active: var(--body-bg);
+    --active-hover: #{darken($active, 5%)};
     --category--active: #{$category-active};
     --category--active-hover: #{lighten($category-active, 10%)};
   }
