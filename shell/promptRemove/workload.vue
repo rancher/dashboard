@@ -45,17 +45,17 @@ export default {
         {
           label:       'Orphan',
           value:       'Orphan',
-          description: 'Removes the resource but leaves dependents orphaned.'
+          description: this.t('promptRemove.propagationPolicyOrphan'),
         },
         {
           label:       'Foreground',
           value:       'Foreground',
-          description: 'Deletes dependents before removing the resource.'
+          description: this.t('promptRemove.propagationPolicyForeground'),
         },
         {
           label:       'Background',
           value:       'Background',
-          description: 'Deletes the resource immediately and dependents in the background.'
+          description: this.t('promptRemove.propagationPolicyBackground'),
         }
       ],
     };
