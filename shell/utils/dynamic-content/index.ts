@@ -264,7 +264,7 @@ export async function fetchDynamicContent(context: Context): Promise<DynamicCont
     updateFetchInfo(true);
   }
 
-  logger.debug('End');
+  logger.debug('End fetchDynamicContent');
 
   // Remove the local storage key that indicates a tab is fetching the content
   window.localStorage.removeItem(LOCAL_STORAGE_UPDATE_FETCHING);

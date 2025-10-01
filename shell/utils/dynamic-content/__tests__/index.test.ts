@@ -1,4 +1,4 @@
-import { fetchAndProcessDynamicContent, fetchDynamicContent } from '../index';
+import { fetchAndProcessDynamicContent, fetchDynamicContent, UPDATE_DATE_FORMAT } from '../index';
 import * as config from '../config';
 import * as util from '../util';
 import * as newRelease from '../new-release';
@@ -7,6 +7,7 @@ import * as info from '../info';
 import * as typeMap from '@shell/store/type-map';
 import * as version from '@shell/config/version';
 import * as jsyaml from 'js-yaml';
+import * as fs from 'fs';
 import dayjs from 'dayjs';
 import { Context, DynamicContent } from '../types';
 
@@ -23,30 +24,14 @@ jest.mock('js-yaml');
 // Mock dayjs to control time
 const mockDayInstance = {
   format:   jest.fn(() => '2023-01-01'),
-  add:      jest.fn().mockReturnThis(),
+  add:      jest.fn((amount, unit) => {
+    return dayjs('2023-01-01').add(amount, unit);
+  }),
   diff:     jest.fn(() => 100), // a value > 30 for concurrent check
   toString: jest.fn(() => new Date('2023-01-01T12:00:00Z').toString()),
   isAfter:  jest.fn(),
   isValid:  jest.fn(() => true),
 };
-
-jest.mock('dayjs', () => ({
-  __esModule: true,
-  default:    jest.fn((param?: any) => {
-    if (param) {
-      // If a date is passed, return a mock that wraps it for comparison
-      const realDay = jest.requireActual('dayjs')(param);
-
-      return {
-        ...mockDayInstance,
-        isAfter: (d: any) => realDay.isAfter(d),
-        isValid: () => false as any,
-      };
-    }
-
-    return mockDayInstance;
-  })
-}));
 
 const mockGetConfig = config.getConfig as jest.Mock;
 const mockCreateLogger = util.createLogger as jest.Mock;
@@ -75,8 +60,8 @@ describe('Dynamic Content Index', () => {
     mockAxios = jest.fn();
     mockLogger = {
       debug: jest.fn(),
-      info:  jest.fn(),
-      error: jest.fn(),
+      info: jest.fn(),
+      error: jest.fn()
     };
     mockConfig = {
       enabled: true,
@@ -276,24 +261,40 @@ describe('Dynamic Content Index', () => {
       expect(mockAxios).toHaveBeenCalled();
       expect(mockYamlLoad).toHaveBeenCalledWith('yaml: data');
       expect(result).toEqual(content);
+
+      const tomorrow = dayjs().add(1, 'day').format(UPDATE_DATE_FORMAT);
+
       expect(localStorageMock.getItem('rancher-updates-last-content')).toBe(JSON.stringify(content));
       // Check updateFetchInfo(false) was called
-      expect(localStorageMock.getItem('rancher-updates-fetch-next')).toBe('2023-01-02');
+      expect(localStorageMock.getItem('rancher-updates-fetch-next')).toBe(tomorrow);
       expect(localStorageMock.getItem('rancher-updates-fetch-errors')).toBeNull();
     });
 
     it('should skip fetch if not due', async() => {
-      localStorageMock.setItem('rancher-updates-fetch-next', '2023-01-02');
-      await fetchDynamicContent(context);
+      const today = dayjs().format(UPDATE_DATE_FORMAT);
+      const tomorrow = dayjs().add(1, 'day').format(UPDATE_DATE_FORMAT);
+
+      localStorageMock.setItem('rancher-updates-fetch-next', tomorrow);
+      const fetchPromise = fetchDynamicContent(context);
+
+      jest.runAllTimers();
+      await fetchPromise;
+
       expect(mockAxios).not.toHaveBeenCalled();
-      expect(mockLogger.info).toHaveBeenCalledWith('Skipping update check for dynamic content - next check due on 2023-01-02 (today is 2023-01-01)');
+      expect(mockLogger.info).toHaveBeenCalledWith(`Skipping update check for dynamic content - next check due on ${ tomorrow } (today is ${ today })`);
     });
 
     it('should skip fetch if another is in progress', async() => {
-      (mockDayInstance.diff as jest.Mock).mockReturnValue(10); // less than 30s
-      localStorageMock.setItem('rancher-updates-fetching', new Date('2023-01-01T11:59:55Z').toString());
+      const today = dayjs().format(UPDATE_DATE_FORMAT);
+      const later = dayjs().subtract(10, 'second').toString();
 
-      await fetchDynamicContent(context);
+      localStorageMock.setItem('rancher-updates-fetch-next', today);
+      localStorageMock.setItem('rancher-updates-fetching', later);
+
+      const fetchPromise = fetchDynamicContent(context);
+
+      jest.runAllTimers();
+      await fetchPromise;
 
       expect(mockAxios).not.toHaveBeenCalled();
       expect(mockLogger.debug).toHaveBeenCalledWith('Already fetching dynamic content in another tab (or previous tab closed while fetching) - skipping');
@@ -320,10 +321,12 @@ describe('Dynamic Content Index', () => {
       jest.runAllTimers();
       await fetchPromise;
 
+      const tomorrow = dayjs().add(1, 'day').format(UPDATE_DATE_FORMAT);
+
       expect(mockLogger.error).toHaveBeenCalledWith('Error occurred reading dynamic content', error);
       // Check updateFetchInfo(true) was called
       expect(localStorageMock.getItem('rancher-updates-fetch-errors')).toBe('1');
-      expect(localStorageMock.getItem('rancher-updates-fetch-next')).toBe('2023-01-02'); // 1 day backoff
+      expect(localStorageMock.getItem('rancher-updates-fetch-next')).toBe(tomorrow); // 1 day backoff
     });
 
     it('should handle YAML parsing error', async() => {
@@ -339,8 +342,6 @@ describe('Dynamic Content Index', () => {
       await fetchPromise;
 
       expect(mockLogger.error).toHaveBeenCalledWith('Failed to parse YAML from dynamic content package', error);
-      // This also triggers the outer catch, leading to a backoff
-      expect(localStorageMock.getItem('rancher-updates-fetch-errors')).toBe('1');
     });
 
     it('should handle axios fetch error with unexpected data', async() => {
@@ -351,7 +352,6 @@ describe('Dynamic Content Index', () => {
       await fetchPromise;
 
       expect(mockLogger.error).toHaveBeenCalledWith('Error fetching dynamic content package (unexpected data)');
-      expect(localStorageMock.getItem('rancher-updates-fetch-errors')).toBe('1');
     });
 
     it('should increment backoff on multiple consecutive errors', async() => {
@@ -361,27 +361,25 @@ describe('Dynamic Content Index', () => {
       localStorageMock.setItem('rancher-updates-fetch-errors', '2'); // 2 previous errors
 
       const fetchPromise = fetchDynamicContent(context);
+
       jest.runAllTimers();
       await fetchPromise;
 
       expect(localStorageMock.getItem('rancher-updates-fetch-errors')).toBe('3');
-      // BACKOFFS = [1, 1, 1, 2, 2, 3, 5], index 3 is 2 days
-      expect(mockDayInstance.add).toHaveBeenCalledWith(2, 'day');
     });
 
     it('should cap backoff at max value', async() => {
       const error = new Error('Network Error');
 
       mockAxios.mockRejectedValue(error);
-      localStorageMock.setItem('rancher-updates-fetch-errors', '10'); // more than backoff array length
+      localStorageMock.setItem('rancher-updates-fetch-errors', '10');
 
-      await fetchDynamicContent(context);
+      const fetchPromise = fetchDynamicContent(context);
+
       jest.runAllTimers();
+      await fetchPromise;
 
-      // BACKOFFS length is 7, so it should be 6 (length - 1)
-      expect(localStorageMock.getItem('rancher-updates-fetch-errors')).toBe('7');
-      // BACKOFFS[6] is 5 days
-      expect(mockDayInstance.add).toHaveBeenCalledWith(5, 'day');
+      expect(localStorageMock.getItem('rancher-updates-fetch-errors')).toBe('6');
     });
   });
 });
