@@ -4,6 +4,7 @@
   $lighter-green-jungle: #72EEB3;
 
   &.theme-light {
+    --side-menu-link: #008657;
     $super-light-green: #F4F6F5;
     --active: #{$green-140};
     --on-active: #{$grey-0};
@@ -19,7 +20,8 @@
   }
 
   &.theme-dark {
-    $category-active: #212523;
+    --side-menu-link: #{$lighter-green-jungle};
+    $category-active: #303633;
     --active: #{$green-40};
     --on-active: #{$grey-90};
     --active-hover: #{$green-60};

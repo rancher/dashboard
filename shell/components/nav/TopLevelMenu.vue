@@ -1098,7 +1098,7 @@ export default {
         align-items: center;
         cursor: pointer;
         display: flex;
-        color: var(--on-tertiary, var(--link));
+        color: var(--side-menu-link, var(--link));
         font-size: 14px;
         height: $option-height;
         white-space: nowrap;
