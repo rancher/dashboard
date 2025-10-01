@@ -4,29 +4,36 @@
   $lighter-green-jungle: #72EEB3;
 
   &.theme-light {
-    --side-menu-link: #008657;
-    $super-light-green: #F4F6F5;
-    --active: #{$green-140};
-    --on-active: #{$grey-0};
-    --active-hover: #{lighten($green-140, 5%)};
-    --category--active: #{$super-light-green};
-    --category--active-hover: #e8eeeb;
+    $sidenav-bg: #008657;
+    $sidenav-active: #00572d;
+    --side-menu-link: snow;
+    --sidenav-active: #{$sidenav-active};
+    --on-sidenav-active: var(--on-active);
+    --sidenav-bg: #{$sidenav-bg};
+    --nav-hover: #{darken($sidenav-bg, 5%)};
+    --nav-active-hover: #{lighten($sidenav-active, 5%)};;
 
-    --checkbox-tick              : var(--on-active);
-    --checkbox-border            : var(--input-border);
-    --checkbox-tick-disabled     : #{darken($disabled, 40%)};
-    --checkbox-disabled-bg       : #{$disabled};
-    --checkbox-ticked-bg         : var(--active);
+    HR {
+      border-color: snow;
+    }
+    .side-menu .body .option svg {
+      fill: snow;
+    }
   }
 
   &.theme-dark {
-    $active: #AEEACD;
-    $category-active: #2f3e41;
-    --side-menu-link: #{$lighter-green-jungle};
-    --active: #{$active};
-    --on-active: var(--body-bg);
-    --active-hover: #{darken($active, 5%)};
-    --category--active: #{$category-active};
-    --category--active-hover: #{lighten($category-active, 10%)};
+    --side-menu-link: snow;
+    --sidenav-active: #b8e0cd;
+    --on-sidenav-active: var(--on-active);
+    --sidenav-bg: #00703A;
+    --nav-hover: #00572d;
+    --nav-active-hover: #9afecf;
+
+    HR {
+      border-color: snow;
+    }
+    .side-menu .body .option svg {
+      fill: snow;
+    }
   }
 }

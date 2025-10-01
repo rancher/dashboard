@@ -1019,9 +1019,9 @@ export default {
     left: 0px;
     bottom: 0;
     width: $app-bar-collapsed-width;
-    background-color: var(--topmenu-bg);
+    background-color: var(--sidenav-bg);
     z-index: 100;
-    border-right: 1px solid var(--topmost-border);
+    //border-right: 1px solid var(--topmost-border);
     display: flex;
     flex-direction: column;
     padding: 0;
@@ -1199,8 +1199,8 @@ export default {
             outline-offset: -4px;
           }
 
-          background: var(--active, var(--primary-hover-bg));
-          color: var(--on-active, var(--primary-hover-text));
+          background: var(--sidenav-active, var(--primary-hover-bg));
+          color: var(--on-sidenav-active, var(--primary-hover-text));
 
           i {
             color: var(--on-active, var(--primary-hover-text));

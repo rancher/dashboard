@@ -78,6 +78,9 @@ BODY, .theme-light {
   --category--active: #{$primary-15};
   --category--active-hover: #{$grey-20};
 
+  --sidenav-active: var(--active);
+  --on-sidenav-active: var(--on-active);
+
   --toggle-OFF-bg: #{$grey-5};
   --toggle-OFF-color: #{$grey-50};
   --toggle-ON-bg: var(--active);
@@ -394,6 +397,8 @@ BODY, .theme-light {
   --topmost-shadow             : #{lighten($grey-0, 10%)};
   --topmost-light-hover        : #{$grey-10};
 
+  --sidenav-bg: var(--topmenu-bg);
+
   --disabled-bg                : #{$disabled};
   --disabled-text              : #{$secondary};
   --box-bg                     : #{$grey-5};
@@ -689,6 +694,9 @@ BODY, .theme-dark {
   --category--active: #{$primary-75};
   --category--active-hover: #{$grey-70};
 
+  --sidenav-active: var(--active);
+  --on-sidenav-active: var(--on-active);
+
   --toggle-OFF-bg: #{$grey-70};
   --toggle-OFF-color: #{$grey-30};
   --toggle-OFF-hover: #{$grey-90};
@@ -783,6 +791,8 @@ BODY, .theme-dark {
   --topmost-border             : #{$medium};
   --topmost-shadow             : #{lighten($darkest, 5%)};
   --topmost-light-hover        : #{$medium};
+
+  --sidenav-bg: var(--topmenu-bg);
 
   --accent-btn                 : var(--primary-banner-bg);
   --accent-btn-hover           : var(--primary);
