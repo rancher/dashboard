@@ -35,7 +35,8 @@ defineProps<{
 <style scoped lang="scss">
 .app-chart-card-sub-header {
   display: flex;
-  gap: var(--gap-md);
+  flex-wrap: wrap;
+  gap: var(--gap) var(--gap-md);
   color: var(--link-text-secondary);
   margin-bottom: 8px;
 
