@@ -61,14 +61,17 @@ export default {
     },
     inStore: {
       type:    String,
-      default: 'cluster',
+      default: undefined,
     }
   },
 
   data() {
+    const validInStore = this.inStore || this.$store.getters['currentStore']() || 'cluster';
+
     return {
       secrets:            null,
       SECRET,
+      validInStore,
       allSecretsSettings: {
         updateResources: (secrets) => {
           const allSecretsInNamespace = secrets.filter((secret) => this.types.includes(secret._type) && secret.namespace === this.namespace);
@@ -221,7 +224,7 @@ export default {
         :label="secretNameLabel"
         :mode="mode"
         :resource-type="SECRET"
-        :in-store="inStore"
+        :in-store="validInStore"
         :paginated-resource-settings="paginateSecretsSetting"
         :all-resources-settings="allSecretsSettings"
       />
