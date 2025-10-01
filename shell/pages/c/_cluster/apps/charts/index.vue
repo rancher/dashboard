@@ -125,9 +125,10 @@ export default {
     repoOptions() {
       let out = this.$store.getters['catalog/repos'].map((r) => {
         return {
-          value:  r._key,
-          label:  r.nameDisplay,
-          weight: ( r.isRancher ? 1 : ( r.isPartner ? 2 : 3 ) ),
+          value:        r._key,
+          label:        r.nameDisplay,
+          labelTooltip: r.nameDisplay,
+          weight:       ( r.isRancher ? 1 : ( r.isPartner ? 2 : 3 ) ),
         };
       });
 
