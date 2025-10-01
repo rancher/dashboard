@@ -895,7 +895,7 @@ export default {
 
       if (plugin.installed && !plugin.builtin && !plugin.installing) {
         statuses.push({
-          icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: `${ this.t('generic.installed') } ${ plugin.installedVersion }` }
+          icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: `${ this.t('generic.installed') } (${ plugin.installedVersion })` }
         });
       }
 
