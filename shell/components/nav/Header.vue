@@ -842,16 +842,15 @@ export default {
       align-items: center;
       display: flex;
       margin-right: 8px;
-      height: 55px;
-      margin-left: 5px;
       max-width: 200px;
+      width: 200px;
       padding: 12px 0;
     }
 
     .side-menu-logo-img {
       object-fit: contain;
-      height: 21px;
       max-width: 200px;
+      width: 200px;
     }
 
     > * {

@@ -1578,8 +1578,8 @@ export default {
     overflow: hidden;
     & IMG {
       object-fit: contain;
-      height: 21px;
       max-width: 200px;
+      width: 200px;
     }
   }
 
