@@ -5,15 +5,11 @@ import * as version from '@shell/config/version';
 import { sha256 } from '@shell/utils/crypto';
 
 // Mock dependencies from @shell
-jest.mock('@shell/config/version', () => ({
-  getVersionData: jest.fn(),
-}));
+jest.mock('@shell/config/version', () => ({ getVersionData: jest.fn() }));
 
-jest.mock('@shell/utils/crypto', () => ({
-  sha256: jest.fn((val: string) => `hashed_${val}`),
-}));
+jest.mock('@shell/utils/crypto', () => ({ sha256: jest.fn((val: string) => `hashed_${ val }`) }));
 
-describe('SystemInfoProvider', () => {
+describe('systemInfoProvider', () => {
   let mockGetters: any;
   let mockSettings: any[];
   let mockClusters: any[];
@@ -29,7 +25,7 @@ describe('SystemInfoProvider', () => {
   });
 
   afterAll(() => {
-     (window as any).location = originalWindowLocation;
+    (window as any).location = originalWindowLocation;
   });
 
   beforeEach(() => {
@@ -65,11 +61,7 @@ describe('SystemInfoProvider', () => {
       }
     ];
 
-    mockCounts = [{
-      counts: {
-        [MANAGEMENT.CLUSTER]: { summary: { count: 2 } }
-      }
-    }];
+    mockCounts = [{ counts: { [MANAGEMENT.CLUSTER]: { summary: { count: 2 } } } }];
 
     mockPlugins = [
       { name: 'harvester', builtin: false },
@@ -92,10 +84,10 @@ describe('SystemInfoProvider', () => {
 
         return [];
       }),
-      'auth/principalId':   'user-123',
-      'uiplugins/plugins':  mockPlugins,
-      'isSingleProduct':    false,
-      'management/byId':    jest.fn(),
+      'auth/principalId':     'user-123',
+      'uiplugins/plugins':    mockPlugins,
+      isSingleProduct:        false,
+      'management/byId':      jest.fn(),
       'management/schemaFor': jest.fn(),
     };
 
@@ -135,16 +127,12 @@ describe('SystemInfoProvider', () => {
       RancherPrime: 'true',
     });
 
-    mockGetters['management/all'] = jest.fn((type: string) => {
+    mockGetters['management/all'].mockImplementation((type: string) => {
       if (type === MANAGEMENT.SETTING) {
         return [{ id: 'install-uuid', value: 'only-uuid' }]; // No server-url
       }
       if (type === COUNT) {
-        return [{
-          counts: {
-            [MANAGEMENT.CLUSTER]: { summary: { count: 27 } }
-          }
-        }];
+        return [{ counts: { [MANAGEMENT.CLUSTER]: { summary: { count: 27 } } } }];
       }
       if (type === MANAGEMENT.CLUSTER) {
         return []; // No clusters
@@ -180,8 +168,8 @@ describe('SystemInfoProvider', () => {
     });
 
     // Simulate that the management types are not registered in the store
-    mockGetters['management/typeRegistered'] = jest.fn().mockReturnValue(false);
-    mockGetters['management/all'] = jest.fn(); // This should not be called
+    mockGetters['management/typeRegistered'].mockReturnValue(false);
+    mockGetters['management/all'].mockImplementation();
 
     mockGetters['auth/principalId'] = 'user-456';
     mockGetters['uiplugins/plugins'] = []; // No plugins
@@ -212,7 +200,7 @@ describe('SystemInfoProvider', () => {
       RancherPrime: 'false',
     });
 
-    mockGetters['management/all'] = jest.fn((type: string) => {
+    mockGetters['management/all'].mockImplementation((type: string) => {
       if (type === MANAGEMENT.SETTING) {
         // Return settings, but with empty values
         return [

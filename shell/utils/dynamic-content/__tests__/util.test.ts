@@ -91,7 +91,7 @@ describe('util.ts', () => {
     beforeEach(() => {
       // Mock localStorage
       mockLocalStorage = {};
-      jest.spyOn(Storage.prototype, 'getItem').mockImplementation(key => mockLocalStorage[key] || null);
+      jest.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => mockLocalStorage[key] || null);
       jest.spyOn(Storage.prototype, 'setItem').mockImplementation((key, value) => {
         mockLocalStorage[key] = value;
       });
@@ -208,7 +208,7 @@ describe('util.ts', () => {
 
       const logs = JSON.parse(mockLocalStorage[LOCAL_STORAGE_CONTENT_DEBUG_LOG]);
 
-      expect(logs.length).toBe(50);
+      expect(logs).toHaveLength(50);
       expect(logs[0].message).toBe('message 59'); // Most recent
       expect(logs[49].message).toBe('message 10'); // Oldest
     });
@@ -228,7 +228,7 @@ describe('util.ts', () => {
       // It should have overwritten the bad data
       const logs = JSON.parse(mockLocalStorage[LOCAL_STORAGE_CONTENT_DEBUG_LOG]);
 
-      expect(logs.length).toBe(1);
+      expect(logs).toHaveLength(1);
       expect(logs[0].message).toBe('test message');
     });
   });

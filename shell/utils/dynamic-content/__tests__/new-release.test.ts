@@ -16,43 +16,43 @@ describe('processReleaseVersion', () => {
     mockDispatch = jest.fn();
     mockGetters = {
       'prefs/get': jest.fn(),
-      'i18n/t': jest.fn((key: string, params?: any) => {
+      'i18n/t':    jest.fn((key: string, params?: any) => {
         // Simple mock for i18n/t to return predictable strings
         const { version, version1, version2 } = params || {};
 
         if (key === 'dynamicContent.newRelease.title') return `A new Rancher release is available`;
-        if (key === 'dynamicContent.newRelease.message') return `Rancher ${version} has been released`;
+        if (key === 'dynamicContent.newRelease.message') return `Rancher ${ version } has been released`;
         if (key === 'dynamicContent.newRelease.moreInfo') return `More Info`;
         if (key === 'dynamicContent.multipleNewReleases.title') return 'New Rancher releases are available';
-        if (key === 'dynamicContent.multipleNewReleases.message') return `Message for ${version1} and ${version2}`;
-        if (key === 'dynamicContent.multipleNewReleases.moreInfo') return `More Info for ${version}`;
+        if (key === 'dynamicContent.multipleNewReleases.message') return `Message for ${ version1 } and ${ version2 }`;
+        if (key === 'dynamicContent.multipleNewReleases.moreInfo') return `More Info for ${ version }`;
 
         return key;
       }),
     };
     mockLogger = {
-      info: jest.fn(),
+      info:  jest.fn(),
       debug: jest.fn(),
       error: jest.fn(),
     };
 
     mockContext = {
       dispatch: mockDispatch,
-      getters: mockGetters,
-      axios: {}, // Not used in this file's logic
-      logger: mockLogger,
-      isAdmin: true, // Not directly used in this file's logic for notifications
-      config: { // Minimal config needed
-        enabled: true,
-        debug: false,
-        log: false,
-        endpoint: '',
-        prime: false,
+      getters:  mockGetters,
+      axios:    {},
+      logger:   mockLogger,
+      isAdmin:  true,
+      config:   {
+        enabled:      true,
+        debug:        false,
+        log:          false,
+        endpoint:     '',
+        prime:        false,
         distribution: 'community',
       },
       settings: {
         releaseNotesUrl: 'https://example.com/releases/v$version',
-        suseExtensions: [],
+        suseExtensions:  [],
       },
     };
 
@@ -65,7 +65,7 @@ describe('processReleaseVersion', () => {
     jest.restoreAllMocks();
   });
 
-  it('should return early if releaseInfo is null/undefined or empty', async () => {
+  it('should return early if releaseInfo is null/undefined or empty', async() => {
     const versionInfo: VersionInfo = { version: semver.coerce('2.12.0')!, isPrime: false };
 
     await processReleaseVersion(mockContext, null as any, versionInfo);
@@ -77,7 +77,7 @@ describe('processReleaseVersion', () => {
     expect(mockLogger.info).not.toHaveBeenCalled();
   });
 
-  it('should return early if versionInfo is null/undefined or version is missing', async () => {
+  it('should return early if versionInfo is null/undefined or version is missing', async() => {
     const releaseInfo = [{ name: '2.12.1' }];
 
     await processReleaseVersion(mockContext, releaseInfo, null as any);
@@ -89,7 +89,7 @@ describe('processReleaseVersion', () => {
     expect(mockLogger.info).not.toHaveBeenCalled();
   });
 
-  it('should not add notification if no newer release exists', async () => {
+  it('should not add notification if no newer release exists', async() => {
     const releaseInfo = [{ name: '2.12.0' }, { name: '2.11.0' }];
     const versionInfo: VersionInfo = { version: semver.coerce('2.12.0')!, isPrime: false };
 
@@ -99,7 +99,7 @@ describe('processReleaseVersion', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('should add a single new release notification for a newer patch version', async () => {
+  it('should add a single new release notification for a newer patch version', async() => {
     const releaseInfo = [{ name: '2.12.1' }, { name: '2.12.0' }, { name: '2.11.0' }];
     const versionInfo: VersionInfo = { version: semver.coerce('2.12.0')!, isPrime: false };
 
@@ -109,23 +109,23 @@ describe('processReleaseVersion', () => {
     expect(mockLogger.info).not.toHaveBeenCalledWith(expect.stringContaining('Also found a newer patch release')); // Because newer and newerPatch are the same
     expect(mockDispatch).toHaveBeenCalledTimes(1);
     expect(mockDispatch).toHaveBeenCalledWith('notifications/add', {
-      id: 'new-release-2.12.1',
-      level: NotificationLevel.Announcement,
-      title: 'A new Rancher release is available',
-      message: 'Rancher 2.12.1 has been released',
+      id:         'new-release-2.12.1',
+      level:      NotificationLevel.Announcement,
+      title:      'A new Rancher release is available',
+      message:    'Rancher 2.12.1 has been released',
       preference: {
-        key: READ_NEW_RELEASE,
+        key:   READ_NEW_RELEASE,
         value: '2.12.1',
       },
       primaryAction: {
-        label: 'More Info',
+        label:  'More Info',
         target: 'https://example.com/releases/v2.12.1',
       },
     });
     expect(mockRemoveMatchingNotifications).toHaveBeenCalledWith(mockContext, 'new-release-', '2.12.1');
   });
 
-  it('should add a single new release notification for a newer major/minor version (no patch)', async () => {
+  it('should add a single new release notification for a newer major/minor version (no patch)', async() => {
     const releaseInfo = [{ name: '2.13.0' }, { name: '2.12.0' }];
     const versionInfo: VersionInfo = { version: semver.coerce('2.12.0')!, isPrime: false };
 
@@ -135,23 +135,23 @@ describe('processReleaseVersion', () => {
     expect(mockLogger.info).not.toHaveBeenCalledWith(expect.stringContaining('Also found a newer patch release'));
     expect(mockDispatch).toHaveBeenCalledTimes(1);
     expect(mockDispatch).toHaveBeenCalledWith('notifications/add', {
-      id: 'new-release-2.13.0',
-      level: NotificationLevel.Announcement,
-      title: 'A new Rancher release is available',
-      message: 'Rancher 2.13.0 has been released',
+      id:         'new-release-2.13.0',
+      level:      NotificationLevel.Announcement,
+      title:      'A new Rancher release is available',
+      message:    'Rancher 2.13.0 has been released',
       preference: {
-        key: READ_NEW_RELEASE,
+        key:   READ_NEW_RELEASE,
         value: '2.13.0',
       },
       primaryAction: {
-        label: 'More Info',
+        label:  'More Info',
         target: 'https://example.com/releases/v2.13.0',
       },
     });
     expect(mockRemoveMatchingNotifications).toHaveBeenCalledWith(mockContext, 'new-release-', '2.13.0');
   });
 
-  it('should add a multiple new releases notification when both newer patch and newer major/minor exist', async () => {
+  it('should add a multiple new releases notification when both newer patch and newer major/minor exist', async() => {
     const releaseInfo = [{ name: '2.13.0' }, { name: '2.12.1' }, { name: '2.12.0' }];
     const versionInfo: VersionInfo = { version: semver.coerce('2.12.0')!, isPrime: false };
 
@@ -161,27 +161,27 @@ describe('processReleaseVersion', () => {
     expect(mockLogger.info).toHaveBeenCalledWith('Also found a newer patch release: 2.12.1');
     expect(mockDispatch).toHaveBeenCalledTimes(1);
     expect(mockDispatch).toHaveBeenCalledWith('notifications/add', {
-      id: 'new-release-2.12.1-2.13.0',
-      level: NotificationLevel.Announcement,
-      title: 'New Rancher releases are available',
-      message: 'Message for 2.12.1 and 2.13.0',
+      id:         'new-release-2.12.1-2.13.0',
+      level:      NotificationLevel.Announcement,
+      title:      'New Rancher releases are available',
+      message:    'Message for 2.12.1 and 2.13.0',
       preference: {
-        key: READ_NEW_RELEASE,
+        key:   READ_NEW_RELEASE,
         value: '2.12.1-2.13.0',
       },
       primaryAction: {
-        label: 'More Info for 2.12.1',
+        label:  'More Info for 2.12.1',
         target: 'https://example.com/releases/v2.12.1',
       },
       secondaryAction: {
-        label: 'More Info for 2.13.0',
+        label:  'More Info for 2.13.0',
         target: 'https://example.com/releases/v2.13.0',
       },
     });
     expect(mockRemoveMatchingNotifications).toHaveBeenCalledWith(mockContext, 'new-release-', '2.12.1-2.13.0');
   });
 
-  it('should not add notification if it was already read (single release)', async () => {
+  it('should not add notification if it was already read (single release)', async() => {
     mockGetters['prefs/get'].mockReturnValue('2.12.1'); // Simulate already read
     const releaseInfo = [{ name: '2.12.1' }];
     const versionInfo: VersionInfo = { version: semver.coerce('2.12.0')!, isPrime: false };
@@ -192,7 +192,7 @@ describe('processReleaseVersion', () => {
     expect(mockLogger.debug).not.toHaveBeenCalledWith(expect.stringContaining('Adding new release notification'));
   });
 
-  it('should not add notification if it was already read (multiple releases)', async () => {
+  it('should not add notification if it was already read (multiple releases)', async() => {
     mockGetters['prefs/get'].mockReturnValue('2.12.1-2.13.0'); // Simulate already read
     const releaseInfo = [{ name: '2.13.0' }, { name: '2.12.1' }];
     const versionInfo: VersionInfo = { version: semver.coerce('2.12.0')!, isPrime: false };
@@ -203,7 +203,7 @@ describe('processReleaseVersion', () => {
     expect(mockLogger.info).not.toHaveBeenCalledWith(expect.stringContaining('Adding new multiple release notification'));
   });
 
-  it('should not add notification if removeMatchingNotifications indicates it exists', async () => {
+  it('should not add notification if removeMatchingNotifications indicates it exists', async() => {
     mockRemoveMatchingNotifications.mockResolvedValue(true); // Simulate notification already exists
     const releaseInfo = [{ name: '2.12.1' }];
     const versionInfo: VersionInfo = { version: semver.coerce('2.12.0')!, isPrime: false };

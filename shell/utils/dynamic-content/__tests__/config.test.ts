@@ -3,9 +3,7 @@ import { SETTING } from '@shell/config/settings';
 import * as version from '@shell/config/version';
 
 // Mock dependencies
-jest.mock('@shell/config/version', () => ({
-  getVersionData: jest.fn(),
-}));
+jest.mock('@shell/config/version', () => ({ getVersionData: jest.fn() }));
 
 describe('getConfig', () => {
   let mockGetters: any;
@@ -18,7 +16,7 @@ describe('getConfig', () => {
     mockGetters = { 'management/byId': jest.fn() };
   });
 
-  describe('Community Distribution', () => {
+  describe('community distribution', () => {
     beforeEach(() => {
       (version.getVersionData as jest.Mock).mockReturnValue({ RancherPrime: 'false' });
     });
@@ -90,7 +88,7 @@ describe('getConfig', () => {
     });
   });
 
-  describe('Prime Distribution', () => {
+  describe('prime distribution', () => {
     beforeEach(() => {
       (version.getVersionData as jest.Mock).mockReturnValue({ RancherPrime: 'true' });
     });
@@ -156,13 +154,14 @@ describe('getConfig', () => {
     });
   });
 
-  describe('General', () => {
+  describe('general', () => {
     it('should be disabled if no endpoint is configured, regardless of other settings', () => {
       (version.getVersionData as jest.Mock).mockReturnValue({ RancherPrime: 'true' });
       mockGetters['management/byId'].mockImplementation((type: string, id: string) => {
         if (id === SETTING.DYNAMIC_CONTENT_ENABLED) {
           return { value: 'true' }; // Explicitly enabled
         }
+
         // No endpoint setting
         return null;
       });

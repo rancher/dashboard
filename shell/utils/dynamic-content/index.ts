@@ -199,7 +199,6 @@ export async function fetchDynamicContent(context: Context): Promise<DynamicCont
       logger.debug(`Performing update check on ${ todayString }`);
 
       const activeFetch = window.localStorage.getItem(LOCAL_STORAGE_UPDATE_FETCHING);
-      
 
       if (activeFetch) {
         const activeFetchDate = day(activeFetch);

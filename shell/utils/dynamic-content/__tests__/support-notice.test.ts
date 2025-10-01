@@ -6,21 +6,6 @@ import * as util from '../util'; // To mock removeMatchingNotifications
 import semver from 'semver';
 import day from 'dayjs';
 
-function dateFromNow(days: number) {
-  const now = day();
-  // const midnight = day(now.format('YYYY-MM-DD'));
-
-  // console.error(now.toDate());
-  // console.error(midnight.toDate());
-
-  //const ret = now.add(1, 'hour').add(days, 'day').toDate();
-
-  const ret = now.add(days, 'day').toDate();
-
-  //return midnight.add(days, 'day').toDate();
-  return ret;
-}
-
 describe('processSupportNotices', () => {
   let mockContext: Context;
   let mockDispatch: jest.Mock;
@@ -148,7 +133,6 @@ describe('processSupportNotices', () => {
   });
 
   it('should add upcoming EOL notification', async() => {
-    //console.log(day().
     const versionInfo: VersionInfo = { version: semver.coerce('2.12.0')!, isPrime: false };
     const statusInfo: SupportInfo = {
       status:   { eol: '<= 2.11.x', eom: '<= 2.11.x' },
@@ -172,7 +156,9 @@ describe('processSupportNotices', () => {
     const statusInfo: SupportInfo = {
       status:   { eol: '<= 2.12.x', eom: '<= 2.12.x' },
       upcoming: {
-        eom: { version: '= 2.13.x', date: dateFromNow(20), noticeDays: 25 },
+        eom: {
+          version: '= 2.13.x', date: day().add(20, 'day').toDate(), noticeDays: 25
+        },
         eol: {} as any,
       }
     };
@@ -199,7 +185,7 @@ describe('processSupportNotices', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  describe('User Preferences', () => {
+  describe('user preferences', () => {
     it('should not add EOL notification if it was already read', async() => {
       mockGetters['prefs/get'].mockImplementation((key: string) => {
         if (key === READ_SUPPORT_NOTICE) return 'eol-2.11';
@@ -243,7 +229,7 @@ describe('processSupportNotices', () => {
       const versionInfo: VersionInfo = { version: semver.coerce('2.12.0')!, isPrime: false };
       const statusInfo: SupportInfo = {
         status:   { eol: '<= 2.11.x', eom: '<= 2.11.x' },
-        upcoming: { eol: { version: '= 2.12.x', date: dateFromNow(145) }, eom: {} as any }
+        upcoming: { eol: { version: '= 2.12.x', date: day().add(145, 'day').toDate() }, eom: {} as any }
       };
 
       await processSupportNotices(mockContext, statusInfo, versionInfo);
@@ -260,7 +246,12 @@ describe('processSupportNotices', () => {
       const versionInfo: VersionInfo = { version: semver.coerce('2.13.0')!, isPrime: false };
       const statusInfo: SupportInfo = {
         status:   { eol: '<= 2.12.x', eom: '<= 2.12.x' },
-        upcoming: { eom: { version: '= 2.13.x', date: day().add(20, 'day').toDate(), noticeDays: 25 }, eol: {} as any }
+        upcoming: {
+          eom: {
+            version: '= 2.13.x', date: day().add(20, 'day').toDate(), noticeDays: 25
+          },
+          eol: {} as any
+        }
       };
 
       await processSupportNotices(mockContext, statusInfo, versionInfo);

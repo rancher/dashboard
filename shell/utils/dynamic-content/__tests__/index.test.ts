@@ -7,9 +7,8 @@ import * as info from '../info';
 import * as typeMap from '@shell/store/type-map';
 import * as version from '@shell/config/version';
 import * as jsyaml from 'js-yaml';
-import * as fs from 'fs';
 import dayjs from 'dayjs';
-import { Context, DynamicContent } from '../types';
+import { Context } from '../types';
 
 // Mock dependencies
 jest.mock('../config');
@@ -23,8 +22,8 @@ jest.mock('js-yaml');
 
 // Mock dayjs to control time
 const mockDayInstance = {
-  format:   jest.fn(() => '2023-01-01'),
-  add:      jest.fn((amount, unit) => {
+  format: jest.fn(() => '2023-01-01'),
+  add:    jest.fn((amount, unit) => {
     return dayjs('2023-01-01').add(amount, unit);
   }),
   diff:     jest.fn(() => 100), // a value > 30 for concurrent check
@@ -42,32 +41,29 @@ const mockGetVersionData = version.getVersionData as jest.Mock;
 const mockYamlLoad = jsyaml.load as jest.Mock;
 const mockSystemInfoProvider = info.SystemInfoProvider as jest.Mock;
 
-describe('Dynamic Content Index', () => {
+describe('dynamic content', () => {
   let mockDispatch: jest.Mock;
   let mockGetters: any;
   let mockAxios: jest.Mock;
   let mockLogger: any;
   let mockConfig: any;
   let localStorageMock: any;
-  let consoleErrorSpy: jest.SpyInstance;
-  let consoleInfoSpy: jest.SpyInstance;
-  let consoleDebugSpy: jest.SpyInstance;
   let consoleLogSpy: jest.SpyInstance;
 
   beforeEach(() => {
     mockDispatch = jest.fn();
-    mockGetters = { 'isSingleProduct': false };
+    mockGetters = { isSingleProduct: false };
     mockAxios = jest.fn();
     mockLogger = {
       debug: jest.fn(),
-      info: jest.fn(),
+      info:  jest.fn(),
       error: jest.fn()
     };
     mockConfig = {
-      enabled: true,
-      debug:   false,
-      log:     false,
-      prime:   false,
+      enabled:  true,
+      debug:    false,
+      log:      false,
+      prime:    false,
       endpoint: '$dist'
     };
 
@@ -81,8 +77,8 @@ describe('Dynamic Content Index', () => {
     let store: { [key: string]: string } = {};
 
     localStorageMock = {
-      getItem:    (key: string) => store[key] || null,
-      setItem:    (key: string, value: string) => {
+      getItem: (key: string) => store[key] || null,
+      setItem: (key: string, value: string) => {
         store[key] = value.toString();
       },
       removeItem: (key: string) => {
@@ -97,9 +93,6 @@ describe('Dynamic Content Index', () => {
     jest.useFakeTimers();
 
     // Mock console
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
-    consoleDebugSpy = jest.spyOn(console, 'debug').mockImplementation(() => {});
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
@@ -150,8 +143,8 @@ describe('Dynamic Content Index', () => {
       jest.runAllTimers();
       await ret;
 
-      expect(mockProcessReleaseVersion).toHaveBeenCalled();
-      expect(mockProcessSupportNotices).toHaveBeenCalled();
+      expect(mockProcessReleaseVersion).toHaveBeenCalledTimes(1);
+      expect(mockProcessSupportNotices).toHaveBeenCalledTimes(1);
     });
 
     it('should process content for prime admin users', async() => {
@@ -163,11 +156,12 @@ describe('Dynamic Content Index', () => {
       mockYamlLoad.mockReturnValue(content);
 
       const ret = fetchAndProcessDynamicContent(mockDispatch, mockGetters, mockAxios);
+
       jest.runAllTimers();
       await ret;
 
-      expect(mockProcessReleaseVersion).toHaveBeenCalled();
-      expect(mockProcessSupportNotices).toHaveBeenCalled();
+      expect(mockProcessReleaseVersion).toHaveBeenCalledTimes(1);
+      expect(mockProcessSupportNotices).toHaveBeenCalledTimes(1);
     });
 
     it('should NOT process content for prime non-admin users', async() => {
@@ -179,6 +173,7 @@ describe('Dynamic Content Index', () => {
       mockYamlLoad.mockReturnValue(content);
 
       const ret = fetchAndProcessDynamicContent(mockDispatch, mockGetters, mockAxios);
+
       jest.runAllTimers();
       await ret;
 
@@ -193,10 +188,13 @@ describe('Dynamic Content Index', () => {
       mockYamlLoad.mockReturnValue(content);
 
       const ret = fetchAndProcessDynamicContent(mockDispatch, mockGetters, mockAxios);
+
       jest.runAllTimers();
       await ret;
 
-      expect(mockLogger.debug).toHaveBeenCalledWith('Read configuration', {"debug": false, "enabled": true, "endpoint": "$dist", "log": false, "prime": false});
+      expect(mockLogger.debug).toHaveBeenCalledWith('Read configuration', {
+        debug: false, enabled: true, endpoint: '$dist', log: false, prime: false
+      });
       expect(mockLogger.debug).toHaveBeenCalledWith('Overriding version number to 2.10.0');
       expect(mockProcessReleaseVersion).toHaveBeenCalledWith(
         expect.any(Object),
@@ -211,6 +209,7 @@ describe('Dynamic Content Index', () => {
       mockAxios.mockResolvedValue({ data: '' });
 
       const ret = fetchAndProcessDynamicContent(mockDispatch, mockGetters, mockAxios);
+
       jest.runAllTimers();
       await ret;
 
@@ -226,6 +225,7 @@ describe('Dynamic Content Index', () => {
       mockAxios.mockResolvedValue({ data: '' });
 
       const ret = fetchAndProcessDynamicContent(mockDispatch, mockGetters, mockAxios);
+
       jest.runAllTimers();
       await ret;
 
@@ -255,12 +255,13 @@ describe('Dynamic Content Index', () => {
       mockYamlLoad.mockReturnValue(content);
 
       const fetchPromise = fetchDynamicContent(context);
+
       jest.runAllTimers();
       const result = await fetchPromise;
 
-      expect(mockAxios).toHaveBeenCalled();
+      expect(mockAxios).toHaveBeenCalledTimes(1);
       expect(mockYamlLoad).toHaveBeenCalledWith('yaml: data');
-      expect(result).toEqual(content);
+      expect(result).toStrictEqual(content);
 
       const tomorrow = dayjs().add(1, 'day').format(UPDATE_DATE_FORMAT);
 
@@ -304,12 +305,13 @@ describe('Dynamic Content Index', () => {
       (mockDayInstance.diff as jest.Mock).mockReturnValue(100); // more than 30s
       localStorageMock.setItem('rancher-updates-fetching', new Date('2023-01-01T11:00:00Z').toString());
       mockAxios.mockResolvedValue({ data: '' });
-      
+
       const fetchPromise = fetchDynamicContent(context);
+
       jest.runAllTimers();
       await fetchPromise;
 
-      expect(mockAxios).toHaveBeenCalled();
+      expect(mockAxios).toHaveBeenCalledTimes(1);
     });
 
     it('should handle axios fetch error and backoff', async() => {
@@ -318,6 +320,7 @@ describe('Dynamic Content Index', () => {
       mockAxios.mockRejectedValue(error);
 
       const fetchPromise = fetchDynamicContent(context);
+
       jest.runAllTimers();
       await fetchPromise;
 
@@ -338,6 +341,7 @@ describe('Dynamic Content Index', () => {
       });
 
       const fetchPromise = fetchDynamicContent(context);
+
       jest.runAllTimers();
       await fetchPromise;
 
@@ -348,6 +352,7 @@ describe('Dynamic Content Index', () => {
       mockAxios.mockResolvedValue({ data: null });
 
       const fetchPromise = fetchDynamicContent(context);
+
       jest.runAllTimers();
       await fetchPromise;
 

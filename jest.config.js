@@ -56,7 +56,7 @@ module.exports = {
     '!<rootDir>/shell/scripts/',
   ],
   coveragePathIgnorePatterns: [
-    "\\.d\\.ts"
+    '\\.d\\.ts'
   ],
 
   // Globals
