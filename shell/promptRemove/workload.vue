@@ -40,23 +40,46 @@ export default {
   data() {
     return {
       errors:            [],
-      propagationPolicy: 'Orphan'
+      propagationPolicy: 'Orphan',
+      options:           [
+        {
+          label:       'Orphan',
+          value:       'Orphan',
+          description: 'Removes the resource but leaves dependents orphaned.'
+        },
+        {
+          label:       'Foreground',
+          value:       'Foreground',
+          description: 'Deletes dependents before removing the resource.'
+        },
+        {
+          label:       'Background',
+          value:       'Background',
+          description: 'Deletes the resource immediately and dependents in the background.'
+        }
+      ],
     };
   },
 
   computed: {
     ...mapState('action-menu', ['toRemove']),
     ...mapGetters({ t: 'i18n/t' }),
-    propagationPolicyOptions() {
-      return ['Orphan', 'Foreground', 'Background'];
+    selectedPolicyDescription() {
+      const opt = this.options.find((o) => o.value === this.propagationPolicy);
+
+      return opt ? opt.description : '';
     }
   },
 
   methods: {
     resourceNames,
+    select({ value }) {
+      this.propagationPolicy = value;
+    },
     async remove(confirm) {
       try {
-        await Promise.all(this.value.map((resource) => resource.remove({ params: { propagationPolicy: this.propagationPolicy } })));
+        await Promise.all(this.value.map((resource) => resource.remove({ params: { propagationPolicy: this.propagationPolicy } })
+        ));
         this.close();
       } catch (err) {
         this.$emit('errors', err);
@@ -82,9 +105,14 @@ export default {
       <div class="mb-10" />
     </div>
     <ButtonDropdown
-      v-model="propagationPolicy"
-      :dropdown-options="propagationPolicyOptions"
+      :button-label="propagationPolicy"
+      :dropdown-options="options"
+      size="sm"
+      @click-action="select"
     />
+    <div class="policy-description mt-10">
+      {{ selectedPolicyDescription }}
+    </div>
     <Banner
       v-for="(error, i) in errors"
       :key="i"
