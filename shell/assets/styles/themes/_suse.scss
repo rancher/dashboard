@@ -35,8 +35,8 @@
     --active: #{$green-140};
     --on-active: #{$grey-0};
     --active-hover: #{lighten($green-140, 5%)};
-    --category--active: #{$super-light-green};
-    --category--active-hover: #e8eeeb;
+    --category-active: #{$super-light-green};
+    --category-active-hover: #e8eeeb;
 
     --checkbox-tick              : var(--on-active);
     --checkbox-border            : var(--body-border);
@@ -71,12 +71,12 @@
     --tertiary-hover: var(--non-primary-hover);
     --tertiary-hover-app-bar: var(--non-primary-text);
 
-    $category-active: #212523;
+    $category-active:#303633;
     --active: #{$green-40};
     --on-active: #{$grey-90};
     --active-hover: #{$green-60};
-    --category--active: #{$category-active};
-    --category--active-hover: #{lighten($category-active, 10%)};
+    --category-active: #{$category-active};
+    --category-active-hover: #{lighten($category-active, 10%)};
 
     --toggle-off-bg: #{$grey-70};
     --sortable-table-selected-bg: #3f4350;
