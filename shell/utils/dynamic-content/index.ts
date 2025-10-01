@@ -268,7 +268,7 @@ export async function fetchDynamicContent(context: Context): Promise<Partial<Dyn
     updateFetchInfo(true);
   }
 
-  logger.debug('End');
+  logger.debug('End fetchDynamicContent');
 
   logger.debug('End fetchDynamicContent');
 
