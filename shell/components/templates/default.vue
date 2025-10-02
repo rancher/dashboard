@@ -106,20 +106,9 @@ export default {
     //   const targetRoute = this.$store.getters['targetRoute'];
     //   const routeReady = targetRoute ? this.currentProduct?.name === getProductFromRoute(this.$route) && this.currentProduct?.name === getProductFromRoute(targetRoute) : this.currentProduct?.name === getProductFromRoute(this.$route);
 
-    //   console.log('*** clouster and route ready targetRoute', targetRoute);
-    //   console.log('*** clouster and route ready routeReady', routeReady);
-    //   console.log('*** clouster and route ready clusterId', this.clusterId);
-
-    //   console.log('clouster and route ready getClusterFromRoute', getClusterFromRoute(targetRoute));
-
     //   return this.clusterReady &&
     //     this.clusterId === getClusterFromRoute(targetRoute) && routeReady;
     // },
-
-    /**
-     * When navigation involves unloading one cluster and loading another, clusterReady toggles from true->false->true in middleware (before new route content renders)
-     * Prevent rendering "outlet" until the route changes to avoid re-rendering old route content after its cluster is unloaded
-     */
 
     /**
      * Product config specifies what vuex store is being used to generate its side nav, generally "management" or "cluster"
@@ -137,14 +126,14 @@ export default {
       return this.managementReady;
     },
 
+    /**
+     * When navigation involves unloading one cluster and loading another, clusterReady toggles from true->false->true in middleware (before new route content renders)
+     * Prevent rendering "outlet" until the route changes to avoid re-rendering old route content after its cluster is unloaded
+     */
     clusterAndRouteReady() {
       const targetRoute = this.$store.getters['targetRoute'];
       const routeReady = targetRoute ? this.currentProduct?.name === getProductFromRoute(this.$route) && this.currentProduct?.name === getProductFromRoute(targetRoute) : this.currentProduct?.name === getProductFromRoute(this.$route);
 
-      // console.log('clouster and route ready getClusterFromRoute', getClusterFromRoute(targetRoute));
-
-      // return this.clusterReady &&
-      //   this.clusterId === getClusterFromRoute(targetRoute) && routeReady;
       return routeReady && this.productStoreReady;
     },
 
