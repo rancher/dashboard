@@ -40,7 +40,7 @@ export default {
   data() {
     return {
       errors:            [],
-      propagationPolicy: 'Orphan',
+      propagationPolicy: 'Background',
       options:           [
         {
           label:       'Orphan',
