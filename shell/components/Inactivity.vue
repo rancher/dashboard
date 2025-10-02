@@ -18,7 +18,7 @@ import { allHash } from 'utils/promise';
 let globalId;
 
 const MODAL_VISIBILITY_CHECK_DELAY_SECONDS = 10;
-const BEFORE_LOGOUT_CHECK_DELAY_SECONDS = 3;
+const BEFORE_LOGOUT_CHECK_DELAY_SECONDS = 5;
 
 export default {
   name:       'Inactivity',
@@ -30,6 +30,7 @@ export default {
       sessionTokenName:        null,
       tokens:                  [],
       isUserActive:            false,
+      userActivityIsoDate:     '',
       modalVisibilityCheckRan: false,
       beforeLogoutCheckRan:    false,
       isOpen:                  false,
@@ -75,11 +76,9 @@ export default {
       return this.$store.getters['management/byId'](EXT.USER_ACTIVITY, this.sessionTokenName);
     },
     ttlIdleValue() {
-      // USE DEFAULT VALUE IF UNDEFINED... to be double-checked
       return parseInt(this.userSessionTtlIdleSetting?.value || 0);
     },
     ttlValue() {
-      // USE DEFAULT VALUE IF UNDEFINED... to be double-checked
       return parseInt(this.userSessionTtlSetting?.value || 0);
     },
     userActivityExpiresAt() {
@@ -107,17 +106,10 @@ export default {
   },
 
   watch: {
-    // every time the Idle setting changes, we need to update userActivity
+    // every time the Idle setting changes, we need to fetch the updated userActivity
     async ttlIdleValue(neu) {
       console.error('ttlIdleValue value updated!!!', neu);
-      await updateUserActivityToken(this.$store, this.sessionTokenName );
-    },
-    async ttlValue(neu) {
-      // this means that the feature is disabled, which should merit the update of userActivity
-      if (neu === this.ttlIdleValue) {
-        console.error('ttlValue value updated - feature disabled !!!', neu);
-        await updateUserActivityToken(this.$store, this.sessionTokenName );
-      }
+      await checkUserActivityData(this.$store, this.sessionTokenName);
     },
     watcherData: {
       async handler(neu, old) {
@@ -126,12 +118,14 @@ export default {
         const currDate = Date.now();
         const endDate = new Date(neu.userActivityExpiresAt || '0001-01-01 00:00:00 +0000 UTC').getTime();
 
-        // this covers the scenario where the TTL setting have changed
-        // but the userActivity hasn't updated yet because it's an async operation
-        if (neu?.ttlIdleValue !== old?.ttlIdleValue && neu?.userActivityExpiresAt === old?.userActivityExpiresAt) {
-          this.stopInactivity();
-          // this means that all conditions are met to start/stop the timers
-        } else if (endDate > currDate && neu?.sessionTokenName) {
+        // // this covers the scenario where the TTL setting have changed
+        // // but the userActivity hasn't updated yet because it's an async operation
+        // if (neu?.ttlIdleValue !== old?.ttlIdleValue && neu?.userActivityExpiresAt === old?.userActivityExpiresAt) {
+        //   console.error('HERE, THE SETTNG cHANGED!!!!');
+        //   this.stopInactivity();
+        //   // this means that all conditions are met to start/stop the timers
+        // } else
+        if (endDate > currDate && neu?.sessionTokenName) {
           console.error('watcherData passed gate 1!!!');
           console.error('neu.ttlIdleValue < neu.ttlValue', neu.ttlIdleValue < neu.ttlValue);
           // feature is considered as enabled
@@ -211,11 +205,12 @@ export default {
         const currDate = Date.now();
         const endDate = new Date(expiresAt).getTime();
 
-        // something is wrong with the expiration date... it isn't initialised yet '0001-01-01 00:00:00 +0000 UTC'
-        // or just passed the 'now' date. We need to update/initialise the UserActivity resource
-        // await updateUserActivityToken(this.$store, this.sessionTokenName );
+        // If expiresAt isn't initialised yet '0001-01-01 00:00:00 +0000 UTC' || '', or just passed the 'now' date
+        // We need to update/initialise the UserActivity resource
         if ((currDate > endDate) || !expiresAt) {
-          await updateUserActivityToken(this.$store, this.sessionTokenName );
+          const updatedData = await updateUserActivityToken(this.$store, this.sessionTokenName, new Date().toISOString());
+
+          this.expiresAt = updatedData?.status?.expiresAt;
         } else if (expiresAt) {
           this.expiresAt = expiresAt;
         }
@@ -256,7 +251,7 @@ export default {
               console.error('USER IS ACTIVE, RESETTING USER ACTIVITY before show modal');
               this.resetUserActivity();
             } else {
-              console.error('timer DOUBLE-CHECKING BACKEND INACTIVITY DATA before show modal');
+              console.error('BEFORE OPEN MODAL TIMER, DOUBLE-CHECKING BACKEND INACTIVITY DATA before show modal');
               this.checkBackendInactivity();
             }
           }
@@ -292,7 +287,6 @@ export default {
           // it may have come from another tab in the same browser
           if (now >= endTime - (BEFORE_LOGOUT_CHECK_DELAY_SECONDS * 1000) && !this.beforeLogoutCheckRan) {
             this.beforeLogoutCheckRan = true;
-
             console.error('X SECONDS TO GO BEFORE WE LOG USER OUT!');
 
             console.error('timer DOUBLE-CHECKING BACKEND INACTIVITY DATA before logout');
@@ -308,6 +302,7 @@ export default {
     },
     setUserAsActive() {
       this.isUserActive = true;
+      this.userActivityIsoDate = new Date().toISOString();
     },
     addIdleListeners() {
       document.addEventListener('mousemove', this.setUserAsActive);
@@ -323,8 +318,16 @@ export default {
       document.removeEventListener('touchmove', this.setUserAsActive);
       document.removeEventListener('visibilitychange', this.setUserAsActive);
     },
-    async resetUserActivity() {
-      const userActivityData = await updateUserActivityToken(this.$store, this.sessionTokenName);
+    async resetUserActivity(useCurrDate = false) {
+      let seenAt;
+
+      if (useCurrDate) {
+        seenAt = new Date().toISOString();
+      } else {
+        seenAt = this.userActivityIsoDate;
+      }
+
+      const userActivityData = await updateUserActivityToken(this.$store, this.sessionTokenName, seenAt);
 
       this.resetInactivityDataAndTimers(userActivityData);
     },
@@ -333,6 +336,7 @@ export default {
       this.beforeLogoutCheckRan = false;
       this.isOpen = false;
       this.isUserActive = false;
+      this.userActivityIsoDate = '';
 
       this.removeEventListeners();
       this.clearAllTimeouts();
@@ -344,6 +348,7 @@ export default {
       this.beforeLogoutCheckRan = false;
       this.isOpen = false;
       this.isUserActive = false;
+      this.userActivityIsoDate = '';
 
       this.courtesyTimer = data.courtesyTimer;
       this.courtesyCountdown = data.courtesyCountdown;
@@ -396,7 +401,7 @@ export default {
       <div class="card-actions">
         <button
           class="btn role-tertiary bg-primary"
-          @click.prevent="resetUserActivity"
+          @click.prevent="resetUserActivity(true)"
         >
           <t k="inactivity.cta" />
         </button>
