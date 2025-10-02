@@ -43,13 +43,24 @@ export async function checkUserActivityData(store: any, sessionTokenName: string
   }
 }
 
-export async function updateUserActivityToken(store: any, sessionTokenName: string):Promise<UserActivityResponse> {
+export async function updateUserActivityToken(store: any, sessionTokenName: string, seenAt: string):Promise<UserActivityResponse> {
+  interface SpecData {
+    tokenId: string,
+    seenAt?: string
+}
+
+  const spec: SpecData = { tokenId: sessionTokenName };
+
+  if (seenAt) {
+    spec.seenAt = seenAt;
+  }
+
   const updateUserActivity = await store.dispatch('management/create', {
     apiVersion: 'ext.cattle.io/v1',
     kind:       'UserActivity',
     type:       EXT.USER_ACTIVITY,
     metadata:   { name: sessionTokenName },
-    spec:       { tokenId: sessionTokenName, seenAt: new Date().toISOString() }
+    spec
   });
 
   try {
