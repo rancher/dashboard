@@ -82,10 +82,10 @@ export default {
           label: {
             component:      markRaw(StatusLabel),
             componentProps: {
-              label:     this.t('generic.installed'),
-              icon:      'icon-warning',
-              iconColor: 'warning',
-              tooltip:   this.t('catalog.charts.statusFilterCautions.installation')
+              label:       this.t('generic.installed'),
+              icon:        'icon-warning',
+              iconColor:   'warning',
+              iconTooltip: this.t('catalog.charts.statusFilterCautions.installation')
             }
           }
         },
@@ -98,10 +98,10 @@ export default {
           label: {
             component:      markRaw(StatusLabel),
             componentProps: {
-              label:     this.t('generic.upgradeable'),
-              icon:      'icon-warning',
-              iconColor: 'warning',
-              tooltip:   this.t('catalog.charts.statusFilterCautions.upgradeable')
+              label:       this.t('generic.upgradeable'),
+              icon:        'icon-warning',
+              iconColor:   'warning',
+              iconTooltip: this.t('catalog.charts.statusFilterCautions.upgradeable')
             }
           }
         }
