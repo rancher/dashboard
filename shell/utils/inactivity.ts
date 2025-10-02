@@ -17,86 +17,90 @@ interface ParsedInactivitySetting {
   showModalAfter: number | undefined
 }
 
-// store in memory the session token name (this is the identifier for the correct user activity resource)
-let sessionTokenName: string;
-
-export function getSessionTokenName():string {
-  return sessionTokenName;
+interface SpecData {
+  tokenId: string;
+  seenAt?: string;
 }
 
-export function storeSessionTokenName(tokenName: string) {
-  sessionTokenName = tokenName;
-}
+export class Inactivity {
+  private sessionTokenName: string | undefined = undefined;
 
-export async function checkUserActivityData(store: any, sessionTokenName: string): Promise<UserActivityResponse> {
-  // needs "force" for reactivity
-  try {
-    const updatedData = await store.dispatch('management/find', {
-      type: EXT.USER_ACTIVITY, id: sessionTokenName, opt: { force: true }
+  public getSessionTokenName(): string | undefined {
+    return this.sessionTokenName;
+  }
+
+  public storeSessionTokenName(tokenName: string): void {
+    this.sessionTokenName = tokenName;
+  }
+
+  public async checkUserActivityData(store: any, sessionTokenName: string): Promise<UserActivityResponse> {
+    try {
+      const updatedData = await store.dispatch('management/find', {
+        type: EXT.USER_ACTIVITY,
+        id:   sessionTokenName,
+        opt:  { force: true }
+      });
+
+      return updatedData;
+    } catch (e: any) {
+      console.error(`Could not GET UserActivity for session token ${ sessionTokenName }`, e); // eslint-disable-line no-console
+      throw new Error(e);
+    }
+  }
+
+  public async updateUserActivityToken(store: any, sessionTokenName: string, seenAt: string): Promise<UserActivityResponse> {
+    const spec: SpecData = { tokenId: sessionTokenName };
+
+    if (seenAt) {
+      spec.seenAt = seenAt;
+    }
+
+    const updateUserActivity = await store.dispatch('management/create', {
+      apiVersion: 'ext.cattle.io/v1',
+      kind:       'UserActivity',
+      type:       EXT.USER_ACTIVITY,
+      metadata:   { name: sessionTokenName },
+      spec
     });
 
-    return updatedData;
-  } catch (e: any) {
-    console.error(`Could not GET UserActivity for session token ${ sessionTokenName }`, e); // eslint-disable-line no-console
+    try {
+      const savedData = await updateUserActivity.save({ force: true });
 
-    throw new Error(e);
+      return savedData;
+    } catch (e: any) {
+      console.error(`Could not update (POST) UserActivity for session token ${ sessionTokenName }`, e); // eslint-disable-line no-console
+      throw new Error(e);
+    }
+  }
+
+  public parseTTLData(userActivityData: UserActivityResponse): ParsedInactivitySetting {
+    const currDate = Date.now();
+    const endDate = new Date(userActivityData.status?.expiresAt).getTime();
+
+    // let's give this a 3 second buffer so that we can make sure the logout happens by the frontend
+    const thresholdSeconds = Math.floor((endDate - currDate) / 1000) - 3;
+
+    // Amount of time the user sees the inactivity warning
+    const courtesyTimerVal = Math.floor(thresholdSeconds * 0.1); // the modal is shown for 10% of the total time to display
+    const courtesyTimer = Math.min(courtesyTimerVal, 60 * 5); // Never show the modal more than 5 minutes
+
+    const courtesyCountdown = courtesyTimer;
+
+    // Amount of time before the user sees the inactivity warning
+    // Note - time before warning is shown + time warning is shown = settings threshold (total amount of time)
+    const showModalAfter = thresholdSeconds - courtesyTimer;
+
+    return {
+      enabled:          true,
+      expiresAt:        userActivityData.status?.expiresAt,
+      sessionTokenName: userActivityData.metadata?.name,
+      courtesyTimer,
+      courtesyCountdown,
+      showModalAfter
+    };
   }
 }
 
-export async function updateUserActivityToken(store: any, sessionTokenName: string, seenAt: string):Promise<UserActivityResponse> {
-  interface SpecData {
-    tokenId: string,
-    seenAt?: string
-}
+const instance = new Inactivity();
 
-  const spec: SpecData = { tokenId: sessionTokenName };
-
-  if (seenAt) {
-    spec.seenAt = seenAt;
-  }
-
-  const updateUserActivity = await store.dispatch('management/create', {
-    apiVersion: 'ext.cattle.io/v1',
-    kind:       'UserActivity',
-    type:       EXT.USER_ACTIVITY,
-    metadata:   { name: sessionTokenName },
-    spec
-  });
-
-  try {
-    const savedData = await updateUserActivity.save({ force: true });
-
-    return savedData;
-  } catch (e: any) {
-    console.error(`Could not update (POST) UserActivity for session token ${ sessionTokenName }`, e); // eslint-disable-line no-console
-
-    throw new Error(e);
-  }
-}
-
-export function parseTTLData(userActivityData: UserActivityResponse): ParsedInactivitySetting {
-  const currDate = Date.now();
-  const endDate = new Date(userActivityData.status?.expiresAt).getTime();
-
-  // let's give this a 3 second buffer so that we can make sure the logout happens by the frontend
-  const thresholdSeconds = Math.floor((endDate - currDate) / 1000) - 3;
-
-  // Amount of time the user sees the inactivity warning
-  const courtesyTimerVal = Math.floor(thresholdSeconds * 0.1); // the modal is shown for 10% of the total time to display
-  const courtesyTimer = Math.min(courtesyTimerVal, 60 * 5); // Never show the modal more than 5 minutes
-
-  const courtesyCountdown = courtesyTimer;
-
-  // Amount of time before the user sees the inactivity warning
-  // Note - time before warning is shown + time warning is shown = settings threshold (total amount of time)
-  const showModalAfter = thresholdSeconds - courtesyTimer;
-
-  return {
-    enabled:          true,
-    expiresAt:        userActivityData.status?.expiresAt,
-    sessionTokenName: userActivityData.metadata?.name,
-    courtesyTimer,
-    courtesyCountdown,
-    showModalAfter
-  };
-}
+export default instance;

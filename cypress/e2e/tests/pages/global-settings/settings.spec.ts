@@ -38,30 +38,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     it('should show the the inactivity modal and be able to set the setting "auth-user-session-idle-ttl-minutes" properly in Settings', { tags: ['@globalSettings', '@adminUser'] }, () => {
       let callCount = 0;
 
-      // Update setting "auth-user-session-idle-ttl-minutes" for the e2e test
-      const sessionIdleSetting = 'auth-user-session-idle-ttl-minutes';
-      const newSettingsPage = new SettingsPagePo('_');
-
-      // Update setting
-      SettingsPagePo.navTo();
-      newSettingsPage.editSettingsByLabel(sessionIdleSetting);
-
-      const settingsEdit = newSettingsPage.editSettings('_', sessionIdleSetting);
-
-      settingsEdit.waitForPage();
-      settingsEdit.title().contains(`Setting: ${ sessionIdleSetting }`).should('be.visible');
-      settingsEdit.settingsInput().set(settings[sessionIdleSetting].new);
-      settingsEdit.saveAndWait(sessionIdleSetting).then(({ request, response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(request.body).to.have.property('value', settings[sessionIdleSetting].new);
-        expect(response?.body).to.have.property('value', settings[sessionIdleSetting].new);
-      });
-      newSettingsPage.waitForPage();
-      newSettingsPage.settingsValue(sessionIdleSetting).contains(settings[sessionIdleSetting].new);
-
-      // We need to reload the page to get the new settings to take effect.
-      cy.reload();
-
+      // Prepare for the update of the UserActivity after the update of "auth-user-session-idle-ttl-minutes" setting
       // Let's increment the curr ISO date in 30 seconds so that we can test the feature in a timely manner
       // we need to give it 30 seconds so that the timer on the modal doesn't go out too quickly
       // not giving enough time to assert the contents of the modal
@@ -70,11 +47,15 @@ describe('Settings', { testIsolation: 'off' }, () => {
       now.setSeconds(now.getSeconds() + 30);
       const newIsoDate = now.toISOString();
 
-      // we intercept the POST to UserActivity that runs on every refresh
-      cy.intercept('POST', `/v1/ext.cattle.io.useractivities`, (req) => {
+      // we intercept the GET to UserActivity that runs on every setting update
+      cy.intercept('GET', `/v1/ext.cattle.io.useractivities/*`, (req) => {
         callCount++;
 
-        if (callCount === 1) {
+        // we need to intercept the 2nd request (which is the first after we change the setting)
+        // and also the 3rd request because of all the clicking around, the user is considered active
+        // so we need to "trick" the timer again so that when it checks again the user activity (mouse clicks, wiggles)
+        // we are really making sure we are displaying the modal that we want to assert
+        if (callCount === 2 || callCount === 3) {
           req.continue((res) => {
             res.body.status.expiresAt = newIsoDate;
             res.send(res.body);
@@ -82,14 +63,37 @@ describe('Settings', { testIsolation: 'off' }, () => {
         } else {
           req.continue();
         }
-      }).as('updateUserActivity');
-      cy.wait('@updateUserActivity', { timeout: 15000 });
+      }).as('getUpdatedUserActivity');
+
+      // Update setting "auth-user-session-idle-ttl-minutes" for the e2e test
+      const sessionIdleSetting = 'auth-user-session-idle-ttl-minutes';
+      const newSettingsPage = new SettingsPagePo('local');
+
+      // Update setting
+      SettingsPagePo.navTo();
+      newSettingsPage.editSettingsByLabel(sessionIdleSetting);
+
+      const settingsEdit = newSettingsPage.editSettings('local', sessionIdleSetting);
+
+      settingsEdit.waitForPage();
+      settingsEdit.title().contains(`Setting: ${ sessionIdleSetting }`).should('be.visible');
+      settingsEdit.settingsInput().set(settings[sessionIdleSetting].new);
+
+      settingsEdit.saveAndWait(sessionIdleSetting).then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body).to.have.property('value', settings[sessionIdleSetting].new);
+        expect(response?.body).to.have.property('value', settings[sessionIdleSetting].new);
+      });
+      newSettingsPage.waitForPage();
+      newSettingsPage.settingsValue(sessionIdleSetting).contains(settings[sessionIdleSetting].new);
 
       // this wait is a delicate balance with the 30 seconds of the intercept
       // we need to do this so that the timer on the modal doesn't go out too quickly
       // not giving enough time to assert the contents of the modal
       // eslint-disable-next-line cypress/no-unnecessary-waiting
-      cy.wait(15000);
+      cy.wait(5000);
+
+      cy.wait('@getUpdatedUserActivity', { timeout: 15000 });
 
       expect(newSettingsPage.inactivityModalCard().getModal().should('exist'));
 
