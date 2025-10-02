@@ -1,9 +1,9 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import JWTAuthenticationListPo from '@/cypress/e2e/po/lists/jwt-authentication-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
-export default class JWTAuthenticationPagePo extends PagePo {
+export default class JWTAuthenticationPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/manager/jwt.authentication`;
   }
@@ -24,11 +24,7 @@ export default class JWTAuthenticationPagePo extends PagePo {
     sideNav.navToSideMenuEntryByLabel('JWT Authentication');
   }
 
-  title() {
-    return cy.contains('.title > h1', 'JWT Authentication');
-  }
-
   list(): JWTAuthenticationListPo {
-    return new JWTAuthenticationListPo(this.self().find('[data-testid="jwt-authentication-list"]'));
+    return new JWTAuthenticationListPo('[data-testid="jwt-authentication-list"]');
   }
 }
