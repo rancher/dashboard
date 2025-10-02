@@ -19,7 +19,7 @@ defineProps<{
       v-for="(subHeaderItem, i) in items"
       :key="i"
       class="app-chart-card-sub-header-item"
-      data-testid="app-chart-card-version"
+      data-testid="app-chart-card-sub-header-item"
     >
       <i
         v-clean-tooltip="t(subHeaderItem.iconTooltip.key)"
