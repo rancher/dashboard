@@ -353,7 +353,7 @@ export default class MgmtCluster extends SteveModel {
   openShell() {
     this.$dispatch('wm/open', {
       id:        `kubectl-${ this.id }`,
-      label:     this.$rootGetters['i18n/t']('console.kubectlShell.title', { name: this.nameDisplay }),
+      label:     this.$rootGetters['i18n/t']('wm.kubectlShell.title', { name: this.nameDisplay }),
       icon:      'terminal',
       component: 'KubectlShell',
       attrs:     {

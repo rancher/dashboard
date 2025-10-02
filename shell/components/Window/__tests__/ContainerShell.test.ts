@@ -3,7 +3,7 @@ import ContainerShell from '@shell/components/Console/ContainerShell.vue';
 import Socket, {
   addEventListener, EVENT_CONNECTED, EVENT_CONNECTING, EVENT_DISCONNECTED, EVENT_MESSAGE, EVENT_CONNECT_ERROR
 } from '@shell/utils/socket';
-import Window from '@shell/components/Console/Window.vue';
+import Window from '@shell/components/Window/Window.vue';
 
 jest.mock('@shell/utils/socket');
 jest.mock('@shell/utils/crypto', () => {
@@ -148,10 +148,10 @@ describe('component: ContainerShell', () => {
     const disconnectedStatus = wrapper.find('[data-testid="shell-status-disconnected"]');
 
     expect(clearButton.exists()).toBe(true);
-    expect(clearButton.attributes().k).toBe('console.containerShell.clear');
+    expect(clearButton.attributes().k).toBe('wm.containerShell.clear');
 
     expect(disconnectedStatus.exists()).toBe(true);
-    expect(disconnectedStatus.attributes().k).toBe('console.connection.disconnected');
+    expect(disconnectedStatus.attributes().k).toBe('wm.connection.disconnected');
   });
 
   it('the socket is instantiated', async() => {

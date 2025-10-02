@@ -6993,7 +6993,7 @@ sideWindow:
   secondary:
     resize: Resize secondary window
 
-console:
+wm:
   closeTab: Close tab {tabId}
   connection:
     connected: Connected

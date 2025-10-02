@@ -112,15 +112,6 @@ export default {
     this.queueUpdate = debounce(this.setReportedHeight, 250);
   },
 
-  beforeUnmount() {
-    if (this.timeoutX) {
-      clearTimeout(this.timeoutX);
-    }
-    if (this.timeoutY) {
-      clearTimeout(this.timeoutY);
-    }
-  },
-
   methods: {
     switchTo(id) {
       this.$store.commit('wm/setActive', id);
@@ -371,7 +362,7 @@ export default {
         class="resizer resizer-x"
         role="button"
         tabindex="0"
-        :aria-label="t('console.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
+        :aria-label="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
         aria-expanded="true"
         @mousedown.prevent.stop="dragXStart($event)"
         @touchstart.prevent.stop="dragXStart($event)"
@@ -380,7 +371,7 @@ export default {
       >
         <i
           class="icon icon-code"
-          :alt="t('console.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
+          :alt="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
         />
       </div>
       <div
@@ -403,7 +394,7 @@ export default {
             ['icon-'+ tab.icon]: true,
             'draggable': !isSecondaryOpen
           }"
-          :alt="t('console.containerShell.tabIcon')"
+          :alt="t('wm.containerShell.tabIcon')"
         />
         <span
           class="tab-label"
@@ -414,9 +405,9 @@ export default {
         <i
           data-testid="wm-tab-close-button"
           class="closer icon icon-x wm-closer-button"
-          :alt="t('console.containerShell.closeShellTab', { tab: tab.label })"
+          :alt="t('wm.containerShell.closeShellTab', { tab: tab.label })"
           tabindex="0"
-          :aria-label="t('console.closeTab', { tabId: tab.id })"
+          :aria-label="t('wm.closeTab', { tabId: tab.id })"
           @click.stop="close(tab.id)"
           @keyup.enter.space.stop="close(tab.id)"
         />
@@ -426,7 +417,7 @@ export default {
         class="resizer resizer-y"
         role="button"
         tabindex="0"
-        :aria-label="t('console.containerShell.resizeShellWindow', {arrow1: 'up', arrow2: 'down'})"
+        :aria-label="t('wm.containerShell.resizeShellWindow', {arrow1: 'up', arrow2: 'down'})"
         aria-expanded="true"
         @mousedown.prevent.stop="dragYStart($event)"
         @touchstart.prevent.stop="dragYStart($event)"
@@ -436,7 +427,7 @@ export default {
       >
         <i
           class="icon icon-sort"
-          :alt="t('console.containerShell.resizeShellWindow', {arrow1: 'up', arrow2: 'down'})"
+          :alt="t('wm.containerShell.resizeShellWindow', {arrow1: 'up', arrow2: 'down'})"
         />
       </div>
       <div
@@ -444,7 +435,7 @@ export default {
         class="resizer resizer-x resizer-align-right"
         role="button"
         tabindex="0"
-        :aria-label="t('console.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
+        :aria-label="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
         aria-expanded="true"
         @mousedown.prevent.stop="dragXStart($event)"
         @touchstart.prevent.stop="dragXStart($event)"
@@ -453,7 +444,7 @@ export default {
       >
         <i
           class="icon icon-code"
-          :alt="t('console.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
+          :alt="t('wm.containerShell.resizeShellWindow', {arrow1: 'left', arrow2: 'right'})"
         />
       </div>
     </div>

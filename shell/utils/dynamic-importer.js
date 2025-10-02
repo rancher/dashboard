@@ -81,7 +81,7 @@ export function importWindowComponent(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "components" */ `@shell/components/Console/${name}`));
+  return defineAsyncComponent(() => import(/* webpackChunkName: "components" */ `@shell/components/Window/${name}`));
 }
 
 export function loadProduct(name) {
@@ -130,7 +130,7 @@ export function resolveDetail(key) {
 }
 
 export function resolveWindowComponent(key) {
-  return require.resolve(`@shell/components/Console/${ key }`);
+  return require.resolve(`@shell/components/Window/${ key }`);
 }
 
 export function resolveMachineConfigComponent(key) {

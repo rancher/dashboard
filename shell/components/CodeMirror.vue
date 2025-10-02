@@ -292,7 +292,7 @@ export default {
         v-show="isCodeMirrorFocused"
         class="escape-text"
         role="alert"
-        :aria-describedby="t('console.containerShell.escapeText')"
+        :aria-describedby="t('wm.containerShell.escapeText')"
       >{{ t('codeMirror.escapeText') }}</span>
     </div>
     <div v-else>
