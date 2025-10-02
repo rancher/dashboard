@@ -4,7 +4,7 @@ import { Configuration, Distribution } from './types';
 import { MANAGEMENT } from '@shell/config/types';
 
 // Default endpoint ($dist is either 'community' or 'prime')
-// const DEFAULT_ENDPOINT = 'https://SERVER//rancher/$dist';
+// const DEFAULT_ENDPOINT = 'https://SERVER/rancher/$dist';
 
 // TODO: Update with the default production endpoint
 const DEFAULT_ENDPOINT = '';
