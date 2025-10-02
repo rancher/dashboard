@@ -67,13 +67,13 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
       // Update setting "auth-user-session-idle-ttl-minutes" for the e2e test
       const sessionIdleSetting = 'auth-user-session-idle-ttl-minutes';
-      const newSettingsPage = new SettingsPagePo('local');
+      const newSettingsPage = new SettingsPagePo('_');
 
       // Update setting
       SettingsPagePo.navTo();
       newSettingsPage.editSettingsByLabel(sessionIdleSetting);
 
-      const settingsEdit = newSettingsPage.editSettings('local', sessionIdleSetting);
+      const settingsEdit = newSettingsPage.editSettings('_', sessionIdleSetting);
 
       settingsEdit.waitForPage();
       settingsEdit.title().contains(`Setting: ${ sessionIdleSetting }`).should('be.visible');
