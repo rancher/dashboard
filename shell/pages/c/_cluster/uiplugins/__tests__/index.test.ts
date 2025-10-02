@@ -1,5 +1,6 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import UiPluginsPage from '@shell/pages/c/_cluster/uiplugins/index.vue';
+import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
 const t = (key: string, args: Object) => {
   if (args) {
@@ -258,6 +259,126 @@ describe('page: UI plugins/Extensions', () => {
       const warningStatus = statuses.find((status: any) => status.icon === 'icon-alert-alt');
 
       expect(warningStatus.tooltip.text).toBe('generic.deprecated. generic.error: plugins.helmError');
+    });
+  });
+
+  describe('watch: helmOps', () => {
+    let wrapper: VueWrapper<any>;
+    let updatePluginInstallStatusMock: jest.Mock;
+
+    beforeEach(() => {
+      const store = {
+        getters: {
+          'prefs/get':         jest.fn(),
+          'catalog/rawCharts': {},
+          'uiplugins/plugins': [],
+          'uiplugins/errors':  {},
+          'features/get':      () => true,
+        },
+        dispatch: () => Promise.resolve(true),
+      };
+
+      wrapper = shallowMount(UiPluginsPage, {
+        global: {
+          mocks: {
+            $store: store,
+            t,
+          },
+          stubs: { ActionMenu: { template: '<div />' } }
+        },
+        computed: {
+          // Override the computed property for this test suite
+          available: () => [
+            { name: 'plugin1' },
+            { name: 'plugin2' },
+            { name: 'plugin3' },
+            { name: 'plugin4' },
+          ],
+          hasMenuActions: () => true,
+          menuActions:    () => []
+        }
+      });
+
+      updatePluginInstallStatusMock = jest.fn();
+      wrapper.vm.updatePluginInstallStatus = updatePluginInstallStatusMock;
+
+      // Set the 'installing' status on the component instance
+      wrapper.vm.installing = {
+        plugin1: 'install',
+        plugin2: 'downgrade',
+        plugin3: 'uninstall',
+      };
+
+      // Reset errors
+      wrapper.vm.errors = {};
+    });
+
+    it('should update status for an active operation', async() => {
+      const helmOps = [{
+        namespace: UI_PLUGIN_NAMESPACE,
+        status:    { releaseName: 'plugin1', action: 'install' },
+        metadata:  { creationTimestamp: '1', state: { transitioning: true } }
+      }];
+
+      wrapper.vm.helmOps = helmOps;
+      await wrapper.vm.$nextTick();
+
+      expect(updatePluginInstallStatusMock).toHaveBeenCalledWith('plugin1', 'install');
+    });
+
+    it('should not update status for an upgrade op when a downgrade was initiated', async() => {
+      const helmOps = [{
+        namespace: UI_PLUGIN_NAMESPACE,
+        status:    { releaseName: 'plugin2', action: 'upgrade' },
+        metadata:  { creationTimestamp: '1', state: { transitioning: true } }
+      }];
+
+      wrapper.vm.helmOps = helmOps;
+      await wrapper.vm.$nextTick();
+
+      // It should not be called with 'upgrade' for plugin2
+      expect(updatePluginInstallStatusMock).not.toHaveBeenCalledWith('plugin2', 'upgrade');
+    });
+
+    it('should clear status for a completed uninstall operation', async() => {
+      const helmOps = [{
+        namespace: UI_PLUGIN_NAMESPACE,
+        status:    { releaseName: 'plugin3', action: 'uninstall' },
+        metadata:  { creationTimestamp: '1', state: { transitioning: false } }
+      }];
+
+      wrapper.vm.helmOps = helmOps;
+      await wrapper.vm.$nextTick();
+
+      expect(updatePluginInstallStatusMock).toHaveBeenCalledWith('plugin3', false);
+    });
+
+    it('should set error and clear status for a failed operation', async() => {
+      const helmOps = [{
+        namespace: UI_PLUGIN_NAMESPACE,
+        status:    { releaseName: 'plugin1', action: 'install' },
+        metadata:  { creationTimestamp: '1', state: { transitioning: false, error: true } }
+      }];
+
+      wrapper.vm.helmOps = helmOps;
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.vm.errors.plugin1).toBe(true);
+      expect(updatePluginInstallStatusMock).toHaveBeenCalledWith('plugin1', false);
+    });
+
+    it('should clear status for plugins with no active operation', async() => {
+      const helmOps = [{
+        namespace: UI_PLUGIN_NAMESPACE,
+        status:    { releaseName: 'plugin1', action: 'install' },
+        metadata:  { creationTimestamp: '1', state: { transitioning: true } }
+      }];
+
+      wrapper.vm.helmOps = helmOps;
+      await wrapper.vm.$nextTick();
+
+      // plugin4 has no op, so its status should be cleared
+      expect(updatePluginInstallStatusMock).toHaveBeenCalledWith('plugin4', false);
     });
   });
 });
