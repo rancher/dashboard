@@ -9,7 +9,7 @@ import { settings } from '@/cypress/e2e/blueprints/global_settings/settings-data
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 
 // If there's more than one cluster the currentCluster used in links can be different to `local`
-const settingsClusterId = '_';
+const settingsClusterId = 'local';
 const settingsPage = new SettingsPagePo(settingsClusterId);
 const accountPage = new AccountPagePo();
 const createKeyPage = new CreateKeyPagePo();

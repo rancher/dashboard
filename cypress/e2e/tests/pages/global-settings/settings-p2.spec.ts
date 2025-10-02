@@ -9,7 +9,7 @@ import {
 } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 
 // If there's more than one cluster the currentCluster used in links can be different to `local`
-const settingsClusterId = '_';
+const settingsClusterId = 'local';
 const settingsPage = new SettingsPagePo(settingsClusterId);
 const homePage = new HomePagePo();
 const accountPage = new AccountPagePo();
