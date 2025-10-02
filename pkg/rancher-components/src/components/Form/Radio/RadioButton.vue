@@ -274,7 +274,7 @@ $fontColor: var(--input-label);
     min-width: 14px;
     background-color: var(--input-bg);
     border-radius: 50%;
-    border: 1.5px solid var(--border);
+    border: 1.5px solid var(--input-border);
     margin-top: 5px;
   }
 

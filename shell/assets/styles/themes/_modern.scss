@@ -48,6 +48,7 @@ $primary-55      : #81AEFC;
 $primary-50      : #A7BFF1; // Active dark
 $primary-20      : #EDF2FC;
 $primary-15      : #EEF1F6; // Category active light
+
 $secondary       : $grey-50;
 $link            : $primary-80;
 
@@ -130,7 +131,7 @@ BODY, .theme-light {
       }
   }
 
-  --link                    : #{$link};
+  --link                    : #3458a8;
   --link-text               : #{contrast-color($link)};
   --link-text-secondary     : #{$darker};
   --link-hover-bg           : #{darken($link, 10%)};
@@ -471,7 +472,7 @@ BODY, .theme-light {
   --shadow                     : #{rgba($medium, 0.85)};
 
   --checkbox-tick              : var(--on-active);
-  --checkbox-border            : #{$medium};
+  --checkbox-border            : var(--active);
   --checkbox-tick-disabled     : #{darken($disabled, 40%)};
   --checkbox-disabled-bg       : #{$disabled};
   --checkbox-ticked-bg         : var(--active);
@@ -776,7 +777,7 @@ BODY, .theme-dark {
   $slate: #4B4F6B;
 
   --body-border: #38404B;
-  --link       : #{$primary-55};
+  --link       : #9BBFFD;
 
   --primary-border: var(--link);
 
@@ -807,7 +808,7 @@ BODY, .theme-dark {
 
   --toggle-on-bg      : var(--active);
   --toggle-on-color   : var(--on-active);
-  --toggle-off-bg     : #303542;
+  --toggle-off-bg     : #{$grey-70};
   --toggle-off-color  : #{$grey-30};
   --toggle-off-hover  : #{$grey-90};
 
@@ -880,7 +881,7 @@ BODY, .theme-dark {
   --shadow                     : #{rgba($darkest, 0.9)};
 
   --checkbox-tick              : var(--on-active);
-  --checkbox-border            : #{$medium};
+  --checkbox-border            : #627084;
   --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
   --checkbox-disabled-bg       : #{$disabled};
   --checkbox-ticked-bg         : var(--active);
@@ -928,7 +929,7 @@ BODY, .theme-dark {
   --sortable-table-header-bg    : #171C22;
   --sortable-table-top-divider  : var(--body-border);
   --sortable-table-hover-bg     : #{lighten($body-bg, 5%)};
-  --sortable-table-selected-bg  : #{lighten($body-bg, 15%)};
+  --sortable-table-selected-bg  : #3f4350;
   --sortable-table-group-label  : #{$grey-30};
 
   --tag-primary                : #{$lightest};
