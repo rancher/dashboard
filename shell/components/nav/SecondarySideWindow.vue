@@ -40,13 +40,6 @@ function loadComponent(tab: { componentName?: string, extensionId?: string }) {
     return;
   }
 
-  // This should work at tab level, not global
-  // if (!!component.value || componentName.value === name) {
-  //   _warn(`component is already loaded`, name, extensionId);
-
-  //   return;
-  // }
-
   componentName.value = name;
 
   if (!!extensionId) {
@@ -119,11 +112,8 @@ function dragXMove(event: MouseEvent | TouchEvent) {
 
   neu = Math.max(min, Math.min(neu, max));
 
-  throttle(() => {
-    store.commit('wm/secondary/setUserWidth', `${ neu }px`);
-    window.localStorage.setItem('wm2-width', `${ neu }px`);
-    document.documentElement.style.setProperty('--wm2-width', `${ neu }px`);
-  }, 250, { leading: true })();
+  document.documentElement.style.setProperty('--wm2-width', `${ neu }px`);
+  storeSize(neu);
 }
 
 function dragXEnd(event: MouseEvent | TouchEvent) {
@@ -137,6 +127,11 @@ function dragXEnd(event: MouseEvent | TouchEvent) {
   doc.removeEventListener('touchcancel', dragXEnd, true);
   doc.removeEventListener('touchstart', dragXEnd, true);
 }
+
+const storeSize = throttle((width) => {
+  store.commit('wm/secondary/setUserWidth', `${ width }px`);
+  window.localStorage.setItem('wm2-width', `${ width }px`);
+}, 500, { leading: true });
 
 watch(open, (val) => setupLayout(val), { immediate: true });
 
