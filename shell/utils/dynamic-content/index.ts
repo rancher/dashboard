@@ -79,9 +79,6 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
     const version = semver.coerce(versionData.Version);
 
     if (!version || !content) {
-      // REMOVE
-      logger.debug('No version', context.config);
-
       return;
     }
 
