@@ -154,7 +154,7 @@ const updateFilter = (key: string, value: string[]) => {
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
-        color: var(--body-text);
+        color: var(--link-text-secondary);
         margin-left: 4px;
       }
     }

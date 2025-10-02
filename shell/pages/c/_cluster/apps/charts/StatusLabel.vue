@@ -26,7 +26,6 @@ defineProps<{
   align-items: flex-end;
   gap: var(--gap);
   margin-left: 4px;
-  color: var(--body-text);
 
   .icon {
     &.warning  { color: var(--warning); }
