@@ -855,7 +855,7 @@ BODY, .theme-dark {
   // Header, Footer and Consent banner defaults
   --banner-text-color          : #{$lightest};
 
-  --primary-keyboard-focus     : #6889EE;
+  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l + 10));
 
   --nav-bg                     : #{$body-bg};
   --nav-active                 : #333;
