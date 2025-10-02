@@ -19,7 +19,7 @@ import { Context, VersionInfo } from './types';
 import { removeMatchingNotifications } from './util';
 
 export async function processReleaseVersion(context: Context, releaseInfo: any, versionInfo: VersionInfo) {
-  if (!releaseInfo || !versionInfo?.version) {
+  if (!releaseInfo || !versionInfo?.version || !Array.isArray(releaseInfo)) {
     return;
   }
 
