@@ -3,14 +3,7 @@ import ModalWithCard from '@shell/components/ModalWithCard';
 import { Banner } from '@components/Banner';
 import PercentageBar from '@shell/components/PercentageBar.vue';
 import throttle from 'lodash/throttle';
-import {
-  getSessionTokenName,
-  storeSessionTokenName,
-  updateUserActivityToken,
-  checkUserActivityData,
-  parseTTLData
-} from '@shell/utils/inactivity';
-
+import Inactivity from '@shell/utils/inactivity';
 import { MANAGEMENT, EXT, NORMAN } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { allHash } from 'utils/promise';
@@ -45,7 +38,7 @@ export default {
     };
   },
   async mounted() {
-    const tokenName = getSessionTokenName();
+    const tokenName = Inactivity.getSessionTokenName();
 
     if (tokenName) {
       this.sessionTokenName = tokenName;
@@ -109,7 +102,7 @@ export default {
     // every time the Idle setting changes, we need to fetch the updated userActivity
     async ttlIdleValue(neu) {
       console.error('ttlIdleValue value updated!!!', neu);
-      await checkUserActivityData(this.$store, this.sessionTokenName);
+      await Inactivity.checkUserActivityData(this.$store, this.sessionTokenName);
     },
     watcherData: {
       async handler(neu, old) {
@@ -118,13 +111,7 @@ export default {
         const currDate = Date.now();
         const endDate = new Date(neu.userActivityExpiresAt || '0001-01-01 00:00:00 +0000 UTC').getTime();
 
-        // // this covers the scenario where the TTL setting have changed
-        // // but the userActivity hasn't updated yet because it's an async operation
-        // if (neu?.ttlIdleValue !== old?.ttlIdleValue && neu?.userActivityExpiresAt === old?.userActivityExpiresAt) {
-        //   console.error('HERE, THE SETTNG cHANGED!!!!');
-        //   this.stopInactivity();
         //   // this means that all conditions are met to start/stop the timers
-        // } else
         if (endDate > currDate && neu?.sessionTokenName) {
           console.error('watcherData passed gate 1!!!');
           console.error('neu.ttlIdleValue < neu.ttlValue', neu.ttlIdleValue < neu.ttlValue);
@@ -134,7 +121,7 @@ export default {
             this.clearAllTimeouts();
 
             console.error('LETS START THE PARTY!!!!');
-            const data = parseTTLData(this.userActivityResource);
+            const data = Inactivity.parseTTLData(this.userActivityResource);
 
             console.error('parseTTLData data', data);
 
@@ -192,7 +179,7 @@ export default {
           if (sessionToken?.name) {
             console.error('SETTING TOKEN NAME', sessionToken.name);
             this.sessionTokenName = sessionToken.name;
-            storeSessionTokenName(sessionToken.name);
+            Inactivity.storeSessionTokenName(sessionToken.name);
           }
         }
 
@@ -208,7 +195,7 @@ export default {
         // If expiresAt isn't initialised yet '0001-01-01 00:00:00 +0000 UTC' || '', or just passed the 'now' date
         // We need to update/initialise the UserActivity resource
         if ((currDate > endDate) || !expiresAt) {
-          const updatedData = await updateUserActivityToken(this.$store, this.sessionTokenName, new Date().toISOString());
+          const updatedData = await Inactivity.updateUserActivityToken(this.$store, this.sessionTokenName, new Date().toISOString());
 
           this.expiresAt = updatedData?.status?.expiresAt;
         } else if (expiresAt) {
@@ -263,7 +250,7 @@ export default {
       checkInactivityTimer();
     },
     async checkBackendInactivity() {
-      const userActivityData = await checkUserActivityData(this.$store, this.sessionTokenName);
+      const userActivityData = await Inactivity.checkUserActivityData(this.$store, this.sessionTokenName);
 
       // this means that something updated the backend expiresAt, which means we must now reset the timers and adjust for new data
       if (userActivityData?.status?.expiresAt && (userActivityData?.status?.expiresAt !== this.expiresAt)) {
@@ -327,7 +314,7 @@ export default {
         seenAt = this.userActivityIsoDate;
       }
 
-      const userActivityData = await updateUserActivityToken(this.$store, this.sessionTokenName, seenAt);
+      const userActivityData = await Inactivity.updateUserActivityToken(this.$store, this.sessionTokenName, seenAt);
 
       this.resetInactivityDataAndTimers(userActivityData);
     },
@@ -342,7 +329,7 @@ export default {
       this.clearAllTimeouts();
     },
     resetInactivityDataAndTimers(userActivityData) {
-      const data = parseTTLData(userActivityData);
+      const data = Inactivity.parseTTLData(userActivityData);
 
       this.modalVisibilityCheckRan = false;
       this.beforeLogoutCheckRan = false;
