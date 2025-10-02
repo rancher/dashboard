@@ -172,7 +172,7 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     createAKSClusterPage.getLoadBalancerSKU().isDisabled();
     createAKSClusterPage.getLoadBalancerSKU().checkOptionSelected(aksSettings.loadBalancerSku);
     createAKSClusterPage.getInputDNSprefix().getAttributeValue('placeholder').should('contain', 'aks-dns-x');
-    createAKSClusterPage.getOutboundType().checkOptionSelected(aksSettings.outboundType);
+    createAKSClusterPage.getOutboundType().checkContainsOptionSelected(aksSettings.outboundType);
     createAKSClusterPage.getNetworkPlugin().checkContainsOptionSelected(aksSettings.networkPlugin);
     createAKSClusterPage.getNetworkPolicy().checkOptionSelected(aksSettings.networkPolicy);
     createAKSClusterPage.getVirtualNetwork().checkOptionSelected(aksSettings.virtualNetwork);
