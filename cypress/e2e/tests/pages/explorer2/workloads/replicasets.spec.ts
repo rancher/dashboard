@@ -1,5 +1,5 @@
 import { WorkloadsReplicasetsListPagePo, WorkloadsReplicasetsEditPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-replicasets.po';
-import ResourceSearchDialog from '@/cypress/e2e/po/prompts/ResourceSearchDialog.po';
+
 
 describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
   beforeEach(() => {
@@ -25,8 +25,6 @@ describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser'] }, () => {
           .set(replicasetName);
         workloadsDaemonsetsEditPage.containerImageInput().set('nginx');
         workloadsDaemonsetsEditPage.resourceDetail().createEditView().save();
-
-        ResourceSearchDialog.goToResource('ReplicaSets');
 
         workloadsReplicasetsListPage.waitForPage();
 
