@@ -48,6 +48,6 @@ export default class ClusterToolsPagePo extends PagePo {
   }
 
   getChartVersion(name: string) {
-    return this.getCardByName(name).self().find('[data-testid="app-chart-card-version"]');
+    return this.getCardByName(name).self().find('[data-testid="app-chart-card-sub-header-item"]').first();
   }
 }

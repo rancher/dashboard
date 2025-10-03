@@ -139,7 +139,8 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   extensionCardVersion(extensionTitle: string): Cypress.Chainable<string> {
-    return this.extensionCard(extensionTitle).self().find('[data-testid="app-chart-card-version"]').invoke('text');
+    return this.extensionCard(extensionTitle).self().find('[data-testid="app-chart-card-sub-header-item"]').first()
+      .invoke('text');
   }
 
   extensionCardClick(extensionTitle: string): void {

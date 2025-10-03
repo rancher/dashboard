@@ -96,7 +96,7 @@ export default {
             title:    { text: chart.chartNameDisplay },
             statuses: chart.cardContent.statuses
           },
-          subHeaderItems: chart.cardContent.subHeaderItems.slice(0, 1),
+          subHeaderItems: chart.cardContent.subHeaderItems,
           footerItems:    chart.deploysOnWindows ? [{
             icon:        'icon-tag-alt',
             iconTooltip: { key: 'generic.tags' },
