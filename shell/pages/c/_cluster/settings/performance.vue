@@ -105,7 +105,7 @@ export default {
         if (settings.resources.enableAll) {
           resources.push(this.t('performance.serverPagination.resources.all'));
         } else {
-          settings.resources.enableSome.enabled.forEach((resource) => {
+          settings.resources.enableSome.enabled?.forEach((resource) => {
             resources.push(!!resource.length ? resource : `${ resource.resource } (${ resource.context })`);
           });
           if (settings.resources.enableSome.generic) {

@@ -17,24 +17,31 @@ import {
   PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig,
   NavHooks, OnNavToPackage, OnNavAwayFromPackage, OnLogIn, OnLogOut,
   PaginationTableColumn,
-  ExtensionEnvironment
+  ExtensionEnvironment,
+  ServerSidePaginationExtensionConfig
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import { defineAsyncComponent, markRaw, Component } from 'vue';
 import { getVersionData, CURRENT_RANCHER_VERSION } from '@shell/config/version';
+import { ExtensionManagerTypes } from '@shell/types/extension-manager';
 
-// Registration IDs used for different extension points in the extensions catalog
+/** Registration IDs used for different extension points in the extensions catalog */
 export const EXT_IDS = {
-  MODELS:          'models',
-  MODEL_EXTENSION: 'model-extension',
-};
+  MODELS:                           'models',
+  MODEL_EXTENSION:                  'model-extension',
+  /**
+   * Extension can provide resources that use server-side-pagination
+   */
+  SERVER_SIDE_PAGINATION_RESOURCES: 'server-side-pagination',
+} as const;
+export type EXT_IDS_VALUES = (typeof EXT_IDS)[keyof typeof EXT_IDS];
 
 export type ProductFunction = (plugin: IPlugin, store: any) => void;
 
 export class Plugin implements IPlugin {
   public id: string;
   public name: string;
-  public types: any = {};
+  public types: ExtensionManagerTypes = {};
   public l10n: { [key: string]: Function[] } = {};
   public modelExtensions: { [key: string]: Function[] } = {};
   public locales: { locale: string, label: string}[] = [];
@@ -358,6 +365,11 @@ export class Plugin implements IPlugin {
       this._onLogOut = onLogOut || (() => Promise.resolve());
       this.onLogIn = onLogIn || (() => Promise.resolve());
     }
+  }
+
+  public enableServerSidePagination(config: ServerSidePaginationExtensionConfig) {
+    console.info(`Extension "${ this.name || this.id }" is enabling server-side pagination for some resources`, config); // eslint-disable-line no-console
+    this.register(EXT_IDS.SERVER_SIDE_PAGINATION_RESOURCES, this.id, () => config);
   }
 
   public async onLogOut(store: any) {

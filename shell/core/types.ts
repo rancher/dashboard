@@ -1,6 +1,7 @@
 import { ProductFunction } from './plugin';
 import { RouteRecordRaw } from 'vue-router';
 import type { ExtensionManager } from '@shell/types/extension-manager';
+import { PaginationSettingsStores } from '@shell/types/resources/settings';
 
 // Cluster Provisioning types
 export * from './types-provisioning';
@@ -351,6 +352,11 @@ export type TableColumn = HeaderOptions;
  */
 export type PaginationTableColumn = PaginationHeaderOptions;
 
+/**
+ * External extension configuration for @PaginationSettingsStores
+ */
+export type ServerSidePaginationExtensionConfig = PaginationSettingsStores;
+
 export interface ConfigureTypeOptions {
   /**
    * Override for the create button string on a list view
@@ -692,6 +698,8 @@ export interface IPlugin {
     onLogIn?: OnLogIn,
   ): void;
   addNavHooks(hooks: NavHooks): void;
+
+  enableServerSidePagination(config: ServerSidePaginationExtensionConfig): void;
 
   /**
    * Adds a model extension
