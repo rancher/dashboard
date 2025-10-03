@@ -231,6 +231,7 @@ export default {
     pluginCards() {
       return this.list.map((plugin) => ({
         id:     plugin.id,
+        value:  plugin,
         header: {
           title:    { text: plugin.label },
           statuses: this.getStatuses(plugin),
@@ -969,6 +970,7 @@ export default {
             button-role="tertiary"
             :button-aria-label="t('plugins.labels.menu')"
             :custom-actions="menuActions"
+            :resource="{}"
             @devLoad="showDeveloperLoadDialog"
             @manageRepos="manageRepos"
             @addRancherRepos="showAddExtensionReposDialog"
@@ -1091,6 +1093,7 @@ export default {
               :header="card.header"
               :image="card.image"
               :content="card.content"
+              :value="card.value"
               :actions="card.actions"
               :clickable="true"
               @card-click="showPluginDetail(card.plugin)"
