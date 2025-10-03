@@ -447,7 +447,7 @@ export default {
       >
         <router-link
           :to="createNamespaceLocationFlatList()"
-          class="btn-xl role-secondary mr-10"
+          class="btn role-primary mr-10"
           data-testid="create_project_namespaces"
         >
           {{ t('projectNamespaces.createNamespace') }}

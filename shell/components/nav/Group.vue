@@ -363,9 +363,7 @@ export default {
       position: relative;
       cursor: pointer;
       color: var(--body-text);
-      /* Theme testing fix
       height: 33px;
-      */
       outline: none;
 
       .toggle-accordion:focus-visible {
@@ -423,7 +421,7 @@ export default {
         }
       }
 
-      .toggle-accordion {
+      .accordion-item > I {
         position: absolute;
         right: 0;
         top: 0;

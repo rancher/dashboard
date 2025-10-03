@@ -1835,7 +1835,7 @@ export default {
   }
 
   .search-box {
-    height: 32px;
+    height: 40px;
     margin-left: 10px;
     min-width: 180px;
   }

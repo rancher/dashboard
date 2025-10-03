@@ -201,7 +201,7 @@ export default {
             <router-link
               v-if="hasEditComponent && _isCreatable"
               :to="_createLocation"
-              class="btn-xl role-primary"
+              class="btn role-primary"
               :data-testid="componentTestid+'-create'"
             >
               {{ _createButtonlabel }}
@@ -209,7 +209,7 @@ export default {
             <router-link
               v-else-if="_isYamlCreatable"
               :to="_yamlCreateLocation"
-              class="btn-xl role-primary"
+              class="btn role-primary"
               :data-testid="componentTestid+'-create-yaml'"
             >
               {{ t("resourceList.head.createFromYaml") }}

@@ -1,11 +1,7 @@
-$btn-padding: 0 12px;
-$btn-xl-padding: 0 16px;
-$btn-sm-padding: 0 8px;
-
-$btn-height: 32px;
-$btn-xl-height: 40px;
+$btn-padding: 0 21px;
+$btn-sm-padding: 0 12px;
+$btn-height: 40px;
 $btn-sm-height: 24px;
-
 $btn-radius: 4px;
 
 // -----------------------------------------------------------------------------
@@ -70,14 +66,6 @@ button,
   padding: $btn-sm-padding;
   height: $btn-sm-height;
   line-height: $btn-sm-height;
-}
-
-.btn-xl,
-.btn-group-xl > .btn,
-.btn-xl .btn-label {
-  padding: $btn-xl-padding;
-  height: $btn-xl-height;
-  line-height: $btn-xl-height;
 }
 
 //btn roles
@@ -186,6 +174,7 @@ fieldset[disabled] .btn {
 .btn-group {
   position: relative;
   display: flex;
+  gap: 4px;
   text-align: initial;
   vertical-align: middle;
   padding: 0;
@@ -199,7 +188,7 @@ fieldset[disabled] .btn {
     padding: 0 12px;
     justify-content: center;
     align-items: center;
-    border-radius: 0;
+    border-radius: var(--border-radius);
     background: var(--toggle-OFF-bg, var(--disabled-bg));
     color: var(--toggle-OFF-color, var(--body-text));
 
@@ -226,14 +215,6 @@ fieldset[disabled] .btn {
       @include focus-outline;
     }
 
-    &:first-child {
-      border-top-left-radius: var(--border-radius);
-      border-bottom-left-radius: var(--border-radius);
-    }
-    &:last-child {
-      border-top-right-radius: var(--border-radius);
-      border-bottom-right-radius: var(--border-radius);
-    }
   }
 
   .btn-disabled,

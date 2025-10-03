@@ -192,7 +192,7 @@ export default {
       >
         <router-link
           :to="importLocation"
-          class="btn-xl role-secondary mr-10"
+          class="btn role-primary mr-10"
           data-testid="cluster-manager-list-import"
         >
           {{ t('cluster.importAction') }}

@@ -130,7 +130,7 @@ export default {
       >
         <n-link
           :to="importLocation"
-          class="btn-xl role-secondary"
+          class="btn role-primary"
         >
           {{ t('cluster.importAction') }}
         </n-link>
