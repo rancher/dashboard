@@ -1,4 +1,6 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import { CypressChainable } from '@/cypress/e2e/po/po.types';
+
 export default class LabeledSelectPo extends ComponentPo {
   toggle() {
     return this.self().click();
@@ -73,5 +75,14 @@ export default class LabeledSelectPo extends ComponentPo {
    */
   filterByName(name: string) {
     return this.self().type(name);
+  }
+
+  static byLabel(self: CypressChainable, label: string): LabeledSelectPo {
+    return new LabeledSelectPo(
+      self
+        .contains('label', label)
+        .closest('div')
+        .next('.v-select')
+    );
   }
 }

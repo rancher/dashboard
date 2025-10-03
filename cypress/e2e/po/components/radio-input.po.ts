@@ -17,4 +17,12 @@ export default class RadioInputPo extends ComponentPo {
     return this.self()
       .find('.radio-label');
   }
+
+  isChecked() {
+    return this.self().should('have.attr', 'aria-checked', 'true');
+  }
+
+  isUnchecked() {
+    return this.self().should('have.attr', 'aria-checked', 'false');
+  }
 }
