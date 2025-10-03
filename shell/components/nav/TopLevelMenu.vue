@@ -1021,7 +1021,7 @@ export default {
     width: $app-bar-collapsed-width;
     background-color: var(--topmenu-bg);
     z-index: 100;
-    //border-right: 1px solid var(--topmost-border);
+    border-right: 1px solid var(--topmost-border);
     display: flex;
     flex-direction: column;
     padding: 0;
