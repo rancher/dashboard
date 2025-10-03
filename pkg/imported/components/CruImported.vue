@@ -443,7 +443,7 @@ export default defineComponent({
         v-if="showBasics"
         :title="providerTabKey"
         :open-initially="true"
-        class="mb-20 accordion"
+        class="mb-20"
       >
         <Basics
           :value="normanCluster"
@@ -468,7 +468,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        class="mb-20 accordion"
+        class="mb-20"
         title-key="members.memberRoles"
         :open-initially="true"
       >
@@ -492,7 +492,7 @@ export default defineComponent({
       </Accordion>
       <Accordion
         v-if="schedulingCustomizationVisible"
-        class="mb-20 accordion"
+        class="mb-20"
         title-key="cluster.agentConfig.tabs.cluster"
         :open-initially="false"
       >
@@ -509,7 +509,7 @@ export default defineComponent({
         />
       </Accordion>
       <Accordion
-        class="mb-20 accordion"
+        class="mb-20"
         title-key="imported.accordions.labels"
         :open-initially="false"
       >
@@ -520,7 +520,7 @@ export default defineComponent({
       </Accordion>
       <Accordion
         v-if="!isCreate & !isRKE1"
-        class="mb-20 accordion"
+        class="mb-20"
         title-key="imported.accordions.networking"
         data-testid="network-accordion"
         :open-initially="false"
@@ -551,7 +551,7 @@ export default defineComponent({
       </Accordion>
       <Accordion
         v-if="!isRKE1"
-        class="mb-20 accordion"
+        class="mb-20"
         title-key="imported.accordions.registries"
         data-testid="registries-accordion"
         :open-initially="false"
@@ -581,7 +581,7 @@ export default defineComponent({
       </Accordion>
       <Accordion
         v-if="!isRKE1"
-        class="mb-20 accordion"
+        class="mb-20"
         title-key="imported.accordions.advanced"
         :open-initially="false"
       >
@@ -604,9 +604,3 @@ export default defineComponent({
     </div>
   </CruResource>
 </template>
-
-<style lang="scss" scoped>
-    .accordion {
-        border-radius: 16px;
-    }
-</style>
