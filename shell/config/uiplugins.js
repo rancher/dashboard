@@ -107,7 +107,7 @@ export function uiPluginAnnotation(chart, name) {
 /**
  * Parse the Rancher version string
  */
-function parseRancherVersion(v) {
+export function parseRancherVersion(v) {
   let parsedVersion = semver.coerce(v)?.version;
   const splitArr = parsedVersion?.split('.');
 

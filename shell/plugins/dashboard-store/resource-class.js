@@ -1,4 +1,7 @@
 import { NORMAN_NAME } from '@shell/config/labels-annotations';
+import { getVersionData } from '@shell/config/version';
+import { parseRancherVersion } from '@shell/config/uiplugins';
+import semver from 'semver';
 import {
   _CLONE,
   _CONFIG,
@@ -929,12 +932,20 @@ export default class Resource {
     const currentRoute = this.currentRouter().currentRoute.value;
     const extensionMenuActions = getApplicableExtensionEnhancements(this.$rootState, ExtensionPoint.ACTION, ActionLocation.TABLE, currentRoute, this);
 
+    const currRancherVersionData = getVersionData();
+    const parsedRancherVersion = parseRancherVersion(currRancherVersionData.Version);
+
+    // "showConfiguration" table action is only compatible with Rancher 2.13 and onwards
+    // defence against extension issue https://github.com/rancher/dashboard/issues/15564
+    // where mostly likely extension CRD model is extending from resource-class
+    const isResourceDetailDrawerCompatibleWithRancherSystem = semver.satisfies(parsedRancherVersion, '>= 2.13.0');
+
     const all = [
       {
         action:  'showConfiguration',
         label:   this.t('action.showConfiguration'),
         icon:    'icon icon-document',
-        enabled: this.disableResourceDetailDrawer !== true && (this.canCustomEdit || this.canYaml), // If the resource can't show an edit or a yaml we don't want to show the configuration drawer
+        enabled: isResourceDetailDrawerCompatibleWithRancherSystem && this.disableResourceDetailDrawer !== true && (this.canCustomEdit || this.canYaml), // If the resource can't show an edit or a yaml we don't want to show the configuration drawer
       },
       { divider: true },
       {

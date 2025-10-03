@@ -78,6 +78,7 @@ export default {
     <div class="row">
       <Checkbox
         :value="showCustomRegistryInput"
+        :mode="mode"
         :label="t('cluster.privateRegistry.label')"
         data-testid="registries-enable-checkbox"
         @update:value="$emit('custom-registry-changed', $event)"
@@ -90,6 +91,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           :value="registryHost"
+          :mode="mode"
           label-key="catalog.chart.registry.custom.inputLabel"
           placeholder-key="catalog.chart.registry.custom.placeholder"
           :min-height="30"

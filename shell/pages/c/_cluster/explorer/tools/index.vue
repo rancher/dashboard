@@ -158,7 +158,7 @@ export default {
         if (currentIndex !== -1 && currentIndex < versions.length - 1) {
           actions.push({
             label:  this.t('catalog.tools.action.downgrade'),
-            icon:   'icon-history',
+            icon:   'icon-downgrade-alt',
             action: 'downgrade',
           });
         }

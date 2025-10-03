@@ -13,12 +13,12 @@ This method adds a table column to a `ResourceTable` element-based table on the 
 Method:
 
 ```ts
-plugin.addTableColumn(where: String, when: LocationConfig, options: Object);
+plugin.addTableColumn(where: String, when: LocationConfig, column: TableColumn);
 ```
 
 _Arguments_
 
-`where` string parameter admissable values for this method:
+`where` string parameter admissible values for this method:
 
 | Key | Type | Description |
 |---|---|---|
@@ -26,28 +26,35 @@ _Arguments_
 
 <br/>
 
-`when` Object admissable values:
+`when` Object admissible values:
 
 `LocationConfig` as described above for the [LocationConfig object](./common#locationconfig).
 
-<br/>
-<br/>
+*(Rancher version v2.13.0)*
 
-### TableColumnLocation.RESOURCE options
+An addition parameter can be provided which will be used to support the column when server-side pagination is enabled. For more information and other changes required to server-side pagination see [here](../performance/scaling/lists.md).
+
+```ts
+plugin.addTableColumn(where: String, when: LocationConfig, column: TableColumn, paginationColumn?: PaginationTableColumn));
+```
+
+### TableColumnLocation.RESOURCE column
 
 ![Table Col](../screenshots/table-cols.png)
 
-`options` config object. Admissable parameters for the `options` with `'TableColumnLocation.RESOURCE'` are:
+`column` config object. Admissible parameters for the `column` with `'TableColumnLocation.RESOURCE'` are:
 
 | Key | Type | Description |
 |---|---|---|
 |`name`| String | Label for column |
-|`labelKey`| String | Same as "name" but allows for translation. Will superseed "name" |
+|`labelKey`| String | Same as "name" but allows for translation. Will supersede "name" |
 |`value`| String | Object property to obtain the value from |
-|`getValue`| Fuction | Same as "value", but it can be a function. Will superseed "value" |
+|`getValue`| Function | Same as "value", but it can be a function. Will supersede "value" |
 |`width`| Int | Column width (in `px`). Optional |
-|`sort`| Array | Object properties to be bound to the table sorting. Optional |
-|`search`| Array | Object properties to be bound to the table search. Optional |
+|`sort`| boolean,string,Array | Object properties to be bound to the table sorting. Optional |
+|`search`| boolean,string,Array | Object properties to be bound to the table search. Optional |
+| `formatter`| string | Name of a `formatter` component used to render the cell. Components should be in the extension `formatters` folder
+| `formatterOpts`| any | Provide additional values to the `formatter` component via a `formatterOpts` component param
 
 Usage example for `'TableColumnLocation.RESOURCE'`:
 
