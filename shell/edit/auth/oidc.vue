@@ -59,9 +59,14 @@ export default {
         userInfoEndpoint: null,
       },
       // TODO #13457: this is duplicated due wrong format
-      oidcScope: [],
-      SLO_OPTION_VALUES
+      oidcScope:       [],
+      SLO_OPTION_VALUES,
+      addCustomClaims: false,
     };
+  },
+
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
   },
 
   computed: {
@@ -224,6 +229,15 @@ export default {
         this.model.logoutAllForced = false;
         break;
       }
+    },
+
+    model: {
+      handler(newVal) {
+        if (newVal?.nameClaim || newVal?.groupsClaim || newVal?.emailClaim) {
+          this.addCustomClaims = true;
+        }
+      },
+      once: true
     }
   },
 
@@ -252,6 +266,14 @@ export default {
 
     updateScope() {
       this.model.scope = this.oidcScope.join(' ');
+    },
+
+    willSave() {
+      if (this.isGenericOidc && !this.addCustomClaims) {
+        this.model.nameClaim = undefined;
+        this.model.groupsClaim = undefined;
+        this.model.emailClaim = undefined;
+      }
     }
   }
 };
@@ -394,21 +416,60 @@ export default {
           </div>
         </div>
 
-        <!-- Allow group search -->
-        <div
-          v-if="supportsGroupSearch"
-          class="row mb-20"
-        >
-          <div class="col span-6">
-            <Checkbox
-              v-model:value="model.groupSearchEnabled"
-              data-testid="input-group-search"
-              :label="t('authConfig.oidc.groupSearch.label')"
-              :tooltip="t('authConfig.oidc.groupSearch.tooltip')"
-              :mode="mode"
-            />
+        <template v-if="isGenericOidc || supportsGroupSearch">
+          <div
+            class="row mb-20"
+          >
+            <div class="col span-6 checkbox-flex">
+              <!-- Allow group search -->
+              <Checkbox
+                v-if="supportsGroupSearch"
+                v-model:value="model.groupSearchEnabled"
+                data-testid="input-group-search"
+                :label="t('authConfig.oidc.groupSearch.label')"
+                :tooltip="t('authConfig.oidc.groupSearch.tooltip')"
+                :mode="mode"
+              />
+              <Checkbox
+                v-if="isGenericOidc"
+                v-model:value="addCustomClaims"
+                data-testid="input-add-custom-claims"
+                :label="t('authConfig.oidc.customClaims.enable.label')"
+                :tooltip="t('authConfig.oidc.customClaims.enable.tooltip')"
+                :mode="mode"
+              />
+            </div>
           </div>
-        </div>
+        </template>
+
+        <template v-if="addCustomClaims">
+          <h4>{{ t('authConfig.oidc.customClaims.label') }}</h4>
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.nameClaim"
+                :label="t(`authConfig.oidc.customClaims.nameClaim.label`)"
+                :mode="mode"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.groupsClaim"
+                :label="t(`authConfig.oidc.customClaims.groupsClaim.label`)"
+                :mode="mode"
+              />
+            </div>
+          </div>
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.emailClaim"
+                :label="t(`authConfig.oidc.customClaims.emailClaim.label`)"
+                :mode="mode"
+              />
+            </div>
+          </div>
+        </template>
 
         <!-- Scopes -->
         <div class="row mb-20">
@@ -543,35 +604,6 @@ export default {
                 />
               </div>
             </div>
-
-            <template v-if="isGenericOidc">
-              <h4>{{ t('authConfig.oidc.customClaims.label') }}</h4>
-              <div class="row mb-20">
-                <div class="col span-6">
-                  <LabeledInput
-                    v-model:value="model.nameClaim"
-                    :label="t(`authConfig.oidc.customClaims.nameClaim.label`)"
-                    :mode="mode"
-                  />
-                </div>
-                <div class="col span-6">
-                  <LabeledInput
-                    v-model:value="model.groupsClaim"
-                    :label="t(`authConfig.oidc.customClaims.groupsClaim.label`)"
-                    :mode="mode"
-                  />
-                </div>
-              </div>
-              <div class="row mb-20">
-                <div class="col span-6">
-                  <LabeledInput
-                    v-model:value="model.emailClaim"
-                    :label="t(`authConfig.oidc.customClaims.emailClaim.label`)"
-                    :mode="mode"
-                  />
-                </div>
-              </div>
-            </template>
           </AdvancedSection>
         </template>
 
@@ -640,5 +672,10 @@ export default {
       padding: 0 3px;
       margin: 0 3px;
     }
+  }
+
+  .checkbox-flex {
+    display: flex;
+    flex-direction: column;
   }
 </style>

@@ -725,6 +725,9 @@ authConfig:
     acrValue: Authorization Context Reference
     customClaims:
       label: Custom Claims
+      enable:
+        label: Add custom claims
+        tooltip: Manually map OIDC claims when your provider doesn’t use standard claim names in tokens.
       nameClaim: 
         label: Custom Name Claim
       groupsClaim: 
