@@ -8,7 +8,7 @@
         "skipLibCheck": true,
     },
     "include": [
-        "../shell/apis/shell/*"
+        "../shell/apis/intf/shell.ts"
     ],
     "exclude": [
         "node_modules"
