@@ -68,6 +68,7 @@ export default {
 
   data() {
     let sortBy = null;
+    let descending = false;
 
     this._defaultSortBy = this.defaultSortBy;
 
@@ -78,6 +79,7 @@ export default {
 
       if ( markedColumn ) {
         this._defaultSortBy = markedColumn.name;
+        descending = markedColumn.defaultSortDescending;
       } else if ( nameColumn ) {
         // Use the name column if there is one
         this._defaultSortBy = nameColumn.name;
@@ -101,7 +103,7 @@ export default {
 
     return {
       sortBy,
-      descending: false,
+      descending,
       cachedRows: null,
       cacheKey:   null,
     };
