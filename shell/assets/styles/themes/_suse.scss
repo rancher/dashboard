@@ -3,37 +3,82 @@
   $light-green-jungle: #4DD192;
   $lighter-green-jungle: #72EEB3;
 
-  &.theme-light {
-    $sidenav-bg: #008657;
-    $sidenav-active: #00572d;
-    --side-menu-link: snow;
-    --sidenav-active: #{$sidenav-active};
-    --on-sidenav-active: var(--on-active);
-    --sidenav-bg: #{$sidenav-bg};
-    --nav-hover: #{darken($sidenav-bg, 5%)};
-    --nav-active-hover: #{lighten($sidenav-active, 5%)};;
+  $jungle-120: #008657;
 
-    HR {
-      border-color: snow;
-    }
-    .side-menu .body .option svg {
-      fill: snow;
-    }
+  &.theme-light {
+    --primary: #{$jungle-120};
+    --primary-text: #FFFFFF;
+    --primary-hover: #006B46;
+    --primary-hover-bg: #006B46;
+    --primary-border: #{$green-120};
+
+    --link: #4871C7;
+    --active-nav: #{$green-140};
+
+    --non-primary-text: #{$green-120};
+    --non-primary-hover: #{$green-20};
+
+    --secondary: var(--body-bg);
+    --secondary-border: var(--primary);
+    --on-secondary: var(--non-primary-text);
+    --secondary-hover: var(--non-primary-hover);
+
+    --tertiary: transparent;
+    --on-tertiary: var(--non-primary-text);
+    --on-tertiary-hover: var(--non-primary-text);
+    --on-tertiary-header: var(--non-primary-text);
+    --on-tertiary-header-hover: var(--non-primary-text);
+    --tertiary-hover: var(--non-primary-hover);
+    --tertiary-hover-app-bar: var(--non-primary-text);
+
+    $super-light-green: #F4F6F5;
+    --active: #{$green-140};
+    --on-active: #{$grey-0};
+    --active-hover: #{lighten($green-140, 5%)};
+    --category-active: #{$super-light-green};
+    --category-active-hover: #e8eeeb;
+
+    --checkbox-tick              : var(--on-active);
+    --checkbox-border            : var(--body-border);
+    --checkbox-tick-disabled     : #{darken($disabled, 40%)};
+    --checkbox-disabled-bg       : #{$disabled};
+    --checkbox-ticked-bg         : var(--active);
   }
 
   &.theme-dark {
-    --side-menu-link: snow;
-    --sidenav-active: #b8e0cd;
-    --on-sidenav-active: var(--on-active);
-    --sidenav-bg: #00703A;
-    --nav-hover: #00572d;
-    --nav-active-hover: #9afecf;
+    --link: #9BBFFD;
+    --active-nav: #{$green-40};
 
-    HR {
-      border-color: snow;
-    }
-    .side-menu .body .option svg {
-      fill: snow;
-    }
+    --primary: #{$light-green-jungle};
+    --primary-text: #{$grey-90};
+    --primary-hover: #{$lighter-green-jungle};
+    --primary-hover-bg: #{$lighter-green-jungle};
+    --primary-border: #{$lighter-green-jungle};
+
+    --non-primary-text: #{$lighter-green-jungle};
+    --non-primary-hover: #323C52;
+
+    --secondary: var(--body-bg);
+    --secondary-border: var(--non-primary-text);
+    --on-secondary: var(--non-primary-text);
+    --secondary-hover: var(--non-primary-hover);
+
+    --tertiary: transparent;
+    --on-tertiary: var(--non-primary-text);
+    --on-tertiary-hover: var(--non-primary-text);
+    --on-tertiary-header: var(--non-primary-text);
+    --on-tertiary-header-hover: var(--non-primary-text);
+    --tertiary-hover: var(--non-primary-hover);
+    --tertiary-hover-app-bar: var(--non-primary-text);
+
+    $category-active:#303633;
+    --active: #{$green-40};
+    --on-active: #{$grey-90};
+    --active-hover: #{$green-60};
+    --category-active: #{$category-active};
+    --category-active-hover: #{lighten($category-active, 10%)};
+
+    --toggle-off-bg: #{$grey-70};
+    --sortable-table-selected-bg: #3f4350;
   }
 }
