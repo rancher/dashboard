@@ -87,7 +87,7 @@ export default {
       },
       paginateSecretsSetting: {
         requestSettings: this.paginatePageOptions,
-        updateResources:       (secrets) => {
+        updateResources: (secrets) => {
           const mappedSecrets = this.mapSecrets(secrets);
 
           this.secrets = secrets; // We need the key from the selected secret. When paginating we won't touch the store, so just pass back here
