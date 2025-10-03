@@ -294,7 +294,7 @@ export function init(store) {
       STEVE_NAMESPACE_COL,
       {
         ...INGRESS_TARGET,
-        sort:   'spec.rules[0].host', // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+        sort:   'spec.rules[0].host',
         search: false, // This is broken in normal world, so disable here
       },
       {
@@ -359,10 +359,10 @@ export function init(store) {
       STEVE_STATE_COL,
       STEVE_NAME_COL,
       STEVE_NAMESPACE_COL,
-      HPA_REFERENCE, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
-      MIN_REPLICA, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
-      MAX_REPLICA, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
-      CURRENT_REPLICA, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
+      HPA_REFERENCE,
+      MIN_REPLICA,
+      MAX_REPLICA,
+      CURRENT_REPLICA,
       STEVE_AGE_COL
     ]
   );
@@ -495,7 +495,8 @@ export function init(store) {
 
   headers(MANAGEMENT.PSA, [STATE, NAME_COL, {
     ...DESCRIPTION,
-    width: undefined
+    width:     undefined,
+    formatter: undefined,
   }, AGE]);
 
   headers(STORAGE_CLASS,

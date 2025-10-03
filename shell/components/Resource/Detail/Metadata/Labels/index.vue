@@ -26,6 +26,7 @@ const i18n = useI18n(store);
   <KeyValue
     :propertyName="i18n.t('component.resource.detail.metadata.labels.title')"
     :rows="labels"
+    type="active"
     @show-configuration="(returnFocusSelector: string) => emit('show-configuration', returnFocusSelector)"
   />
 </template>

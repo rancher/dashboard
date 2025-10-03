@@ -210,8 +210,8 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.extensionReloadClick();
       extensionsPo.loading().should('not.exist');
 
-      // check harvester version on card - should not be older version
-      extensionsPo.extensionCardVersion(harvesterTitle).should('contain', versions[1]);
+      // check harvester version on card - should be the latest available version
+      extensionsPo.extensionCardVersion(harvesterTitle).should('contain', versions[0]);
 
       harvesterPo.goTo();
       harvesterPo.waitForPage();

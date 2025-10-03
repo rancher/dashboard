@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import Loading from '@shell/components/Loading';
 import { _FLAGGED, DEPRECATED as DEPRECATED_QUERY, HIDDEN, FROM_TOOLS } from '@shell/config/query-params';
-import { filterAndArrangeCharts } from '@shell/store/catalog';
+import { filterAndArrangeCharts, APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import { CATALOG, NORMAN } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { isAlternate } from '@shell/utils/platform';
@@ -134,18 +134,44 @@ export default {
       const { installedApp, rawChart } = card;
 
       if (installedApp) {
-        return [
-          {
+        const actions = [];
+        const upgradeAvailable = installedApp.upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE;
+
+        if (upgradeAvailable) {
+          actions.push({
             label:  this.t('catalog.tools.action.upgrade'),
-            icon:   'icon-edit',
-            action: 'edit',
-          },
-          {
-            label:  this.t('catalog.tools.action.remove'),
-            icon:   'icon-delete',
-            action: 'remove',
-          }
-        ];
+            icon:   'icon-upgrade-alt',
+            action: 'upgrade',
+          });
+        }
+
+        actions.push({
+          label:  this.t('catalog.tools.action.edit'),
+          icon:   'icon-edit',
+          action: 'edit',
+        });
+
+        const currentVersion = installedApp.spec.chart.metadata.version;
+        const versions = rawChart.versions;
+        const currentIndex = versions.findIndex((v) => v.version === currentVersion);
+
+        if (currentIndex !== -1 && currentIndex < versions.length - 1) {
+          actions.push({
+            label:  this.t('catalog.tools.action.downgrade'),
+            icon:   'icon-downgrade-alt',
+            action: 'downgrade',
+          });
+        }
+
+        actions.push({ divider: true });
+
+        actions.push({
+          label:  this.t('catalog.tools.action.remove'),
+          icon:   'icon-delete',
+          action: 'remove',
+        });
+
+        return actions;
       }
 
       return [
@@ -157,6 +183,24 @@ export default {
         }
       ];
     },
+    upgrade(app, chart) {
+      const latestVersion = chart.versions[0].version;
+
+      this.edit(app, latestVersion);
+    },
+
+    downgrade(app, chart) {
+      const currentVersion = app.spec.chart.metadata.version;
+      const versions = chart.versions;
+      const currentIndex = versions.findIndex((v) => v.version === currentVersion);
+
+      if (currentIndex !== -1 && currentIndex < versions.length - 1) {
+        const downgradeVersion = versions[currentIndex + 1].version;
+
+        this.edit(app, downgradeVersion);
+      }
+    },
+
     edit(app, version) {
       app.goToUpgrade(version, true);
     },
@@ -199,6 +243,8 @@ export default {
         :content="card.content"
         :actions="getCardActions(card)"
         :class="{ 'single-card': appChartCards.length === 1 }"
+        @upgrade="() => upgrade(card.installedApp, card.rawChart)"
+        @downgrade="() => downgrade(card.installedApp, card.rawChart)"
         @edit="() => edit(card.installedApp)"
         @remove="(payload) => remove(card.installedApp, payload.event)"
         @install="() => install(card.rawChart)"

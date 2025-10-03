@@ -2,6 +2,7 @@
 import { defineComponent } from 'vue';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import ResourceTable from '@shell/components/ResourceTable.vue';
+import { VuexStore } from '@shell/types/store/vuex';
 
 /**
  * This is meant to enable ResourceList like capabilities outside of List pages / components
@@ -130,13 +131,17 @@ export default defineComponent({
     safeHeaders(): any[] {
       const customHeaders: any[] = this.canPaginate ? this.paginationHeaders : this.headers;
 
-      return customHeaders || this.$store.getters['type-map/headersFor'](this.schema, this.canPaginate);
+      const $store = this.$store as VuexStore;
+
+      return customHeaders || $store.getters['type-map/headersFor'](this.schema, this.canPaginate);
     }
   },
 
   methods: {
     clearSelection() {
-      this.$refs.table.clearSelection();
+      const table = this.$refs.table as { clearSelection: () => void };
+
+      table.clearSelection();
     },
   }
 });

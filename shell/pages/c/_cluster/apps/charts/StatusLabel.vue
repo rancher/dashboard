@@ -2,9 +2,9 @@
 
 defineProps<{
   label: string;
-  icon: string;
+  icon?: string;
   iconColor?: string;
-  tooltip?: string;
+  iconTooltip?: string;
 }>();
 
 </script>
@@ -13,7 +13,8 @@ defineProps<{
   <div class="status-label">
     {{ label }}
     <i
-      v-clean-tooltip.right="tooltip"
+      v-if="!!icon"
+      v-clean-tooltip.right="iconTooltip"
       :class="['icon', icon, iconColor]"
     />
   </div>

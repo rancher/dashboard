@@ -2,14 +2,16 @@
 import RcButton from '@components/RcButton/RcButton.vue';
 import { RcTagProps } from './types';
 
-const props = withDefaults(defineProps<RcTagProps>(), { disabled: false, showClose: false });
+const props = withDefaults(defineProps<RcTagProps>(), {
+  disabled: false, showClose: false, highlight: undefined
+});
 const emit = defineEmits(['close']);
 </script>
 
 <template>
   <div
     class="rc-tag"
-    :class="{[props.type]: true, disabled: props.disabled}"
+    :class="{[props.type]: true, disabled: props.disabled, highlight: props.highlight}"
   >
     <slot name="default" />
     <RcButton
@@ -65,7 +67,7 @@ const emit = defineEmits(['close']);
         background: var(--rc-active-background);
         cursor: pointer;
 
-        &:hover {
+        &.highlight, &:hover {
             border-color: var(--rc-primary-hover);
             background: var(--rc-active-background);
         }

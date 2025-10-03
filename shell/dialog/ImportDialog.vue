@@ -28,12 +28,19 @@ export default {
   props: {
     defaultNamespace: {
       type:    String,
-      default: 'default'
+      default: undefined
     },
   },
 
   async fetch() {
-    this.allNamespaces = await this.$store.dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } });
+    this.allNamespaces = (await this.$store.dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } })) || [];
+
+    if (this.selectedNamespace === undefined) {
+      const defaultNamespace = 'default';
+      const hasAccessToDefaultNamespace = this.allNamespaces.some((ns) => ns.name === defaultNamespace);
+
+      this.selectedNamespace = hasAccessToDefaultNamespace ? defaultNamespace : this.allNamespaces[0]?.name;
+    }
   },
 
   data() {

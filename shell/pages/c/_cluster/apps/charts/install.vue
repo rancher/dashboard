@@ -629,19 +629,19 @@ export default {
     step1Description() {
       const descriptionKey = this.steps.find((s) => s.name === 'basics').descriptionKey;
 
-      return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action, existing: !!this.existing }, '');
+      return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action.name, existing: !!this.existing }, '');
     },
 
     step2Description() {
       const descriptionKey = this.steps.find((s) => s.name === 'helmValues').descriptionKey;
 
-      return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action, existing: !!this.existing }, '');
+      return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action.name, existing: !!this.existing }, '');
     },
 
     step3Description() {
       const descriptionKey = this.steps.find((s) => s.name === 'helmCli').descriptionKey;
 
-      return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action, existing: !!this.existing }, '');
+      return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action.name, existing: !!this.existing }, '');
     },
 
     steps() {
@@ -1299,7 +1299,8 @@ export default {
       :edit-first-step="true"
       :banner-title="stepperName"
       :banner-title-subtext="stepperSubtext"
-      :finish-mode="action"
+      :finish-mode="action.name"
+      :header-mode="action.tKey"
       class="wizard"
       :class="{'windowsIncompatible': windowsIncompatible}"
       @cancel="cancel"
@@ -1427,7 +1428,7 @@ export default {
           <Checkbox
             v-model:value="showCommandStep"
             class="mb-20"
-            :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })"
+            :label="t('catalog.install.steps.helmCli.checkbox', { action: action.name, existing: !!existing })"
           />
 
           <Checkbox

@@ -29,6 +29,7 @@ import {
   RcDropdownSeparator,
   RcDropdownTrigger
 } from '@components/RcDropdown';
+import { SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 
 export default {
 
@@ -99,10 +100,10 @@ export default {
       'showWorkspaceSwitcher'
     ]),
 
-    samlAuthProviderEnabled() {
+    sloAuthProviderEnabled() {
       const publicAuthProviders = this.$store.getters['rancher/all']('authProvider');
 
-      return publicAuthProviders.find((authProvider) => configType[authProvider.id] === 'saml') || {};
+      return publicAuthProviders.find((authProvider) => SLO_AUTH_PROVIDERS.includes(configType[authProvider?.id])) || {};
     },
 
     shouldShowSloLogoutModal() {
@@ -111,7 +112,7 @@ export default {
         return false;
       }
 
-      const { logoutAllSupported, logoutAllEnabled, logoutAllForced } = this.samlAuthProviderEnabled;
+      const { logoutAllSupported, logoutAllEnabled, logoutAllForced } = this.sloAuthProviderEnabled;
 
       return logoutAllSupported && logoutAllEnabled && !logoutAllForced;
     },
@@ -276,8 +277,8 @@ export default {
     showSloModal() {
       this.$store.dispatch('management/promptModal', {
         component:      'SloDialog',
-        componentProps: { authProvider: this.samlAuthProviderEnabled },
-        modalWidth:     '500px'
+        componentProps: { authProvider: this.sloAuthProviderEnabled },
+        modalWidth:     '600px'
       });
     },
     // Sizes the product area of the header such that it shrinks to ensure the whole header bar can be shown

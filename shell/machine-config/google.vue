@@ -79,7 +79,11 @@ export default {
     disabled: {
       type:    Boolean,
       default: false
-    }
+    },
+    poolCreateMode: {
+      type:    Boolean,
+      default: true
+    },
   },
 
   async fetch() {
@@ -123,7 +127,7 @@ export default {
     };
   },
   created() {
-    if (this.mode === _CREATE) {
+    if (this.poolCreateMode) {
       this.$emit('validationChanged', false);
       this.value.project = this.projectId;
       for (const key in this.defaultConfig) {
@@ -157,7 +161,7 @@ export default {
     'value.setExternalFirewallRulePrefix'(neu) {
       if (!neu) {
         this.value.openPort = [];
-      } else if (this.isCreate) {
+      } else if (this.poolCreateMode) {
         this.value.openPort.push('6443');
       } else {
         this.value.openPort = this.originalOpenPort.length > 0 ? this.originalOpenPort : ['6443'];
@@ -334,7 +338,7 @@ export default {
 
         if (!cur ) {
           // If default is not actually available, reset
-          if (this.isCreate) {
+          if (this.poolCreateMode) {
             this.value.diskType = '';
           }
         } else {
@@ -446,6 +450,7 @@ export default {
         :credentialId="credentialId"
         :projectId="value.project"
         :originalMachineImage="originalMachineImage"
+        :pool-create-mode="poolCreateMode"
         :mode="mode"
         :location="location"
         :rules="{machineImage: fvGetAndReportPathRules('machineImage')}"
@@ -494,7 +499,7 @@ export default {
           label-key="cluster.machineConfig.gce.network.label"
           :mode="mode"
           :options="networkOptions"
-          :disabled="!isCreate"
+          :disabled="!poolCreateMode"
           option-key="name"
           option-label="label"
           :loading="loadingNetworks"
@@ -508,7 +513,7 @@ export default {
           label-key="cluster.machineConfig.gce.subnetwork.label"
           :mode="mode"
           :options="subnetworkOptions"
-          :disabled="!isCreate"
+          :disabled="!poolCreateMode"
           option-key="name"
           option-label="name"
           :loading="loadingNetworks"

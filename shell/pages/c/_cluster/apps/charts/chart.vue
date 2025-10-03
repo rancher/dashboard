@@ -50,7 +50,14 @@ export default {
     ...mapGetters(['currentCluster']),
 
     headerContent() {
-      return this.chart.cardContent;
+      return {
+        ...this.chart.cardContent,
+        subHeaderItems: this.chart.cardContent.subHeaderItems.map((item, i) => i === 0 ? ({
+          icon:        'icon-version-alt',
+          iconTooltip: { key: 'tableHeaders.version' },
+          label:       this.query.versionName
+        }) : item)
+      };
     },
 
     versions() {
@@ -211,17 +218,6 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <main v-else>
-    <Banner
-      v-if="versionInfoError"
-      color="error"
-      :label="versionInfoError"
-    />
-    <Banner
-      v-if="warningMessage"
-      color="warning"
-      :label="warningMessage"
-      data-testid="deprecation-and-experimental-banner"
-    />
     <div
       v-if="chart"
       class="chart-header"
@@ -285,6 +281,7 @@ export default {
         </div>
         <div class="header-bottom">
           <AppChartCardFooter
+            :clickable="true"
             :items="headerContent.footerItems"
             @click:item="handleHeaderItemClick"
           />
@@ -297,14 +294,25 @@ export default {
         @click.prevent="install"
       >
         <i
-          v-if="action === 'upgrade'"
-          class="icon icon-upgrade-alt mmr-2"
+          :class="['icon', action.icon, 'mmr-2']"
         />
-        {{ t(`asyncButton.${action}.action` ) }}
+        {{ t(`catalog.chart.chartButton.action.${action.tKey}` ) }}
       </RcButton>
     </div>
 
     <div class="dashed-spacer" />
+
+    <Banner
+      v-if="versionInfoError"
+      color="error"
+      :label="versionInfoError"
+    />
+    <Banner
+      v-if="warningMessage"
+      color="warning"
+      :label="warningMessage"
+      data-testid="deprecation-and-experimental-banner"
+    />
 
     <div
       v-if="requires.length || warnings.length || targetedAppWarning || osWarning"

@@ -45,6 +45,7 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
       class="labels-and-annotations-empty"
     >
       <KeyValue
+        type="active"
         :rows="[]"
         :propertyName="i18n.t('component.resource.detail.metadata.labelsAndAnnotations')"
         @show-configuration="(returnFocusSelector: string) => emit('show-configuration', returnFocusSelector)"

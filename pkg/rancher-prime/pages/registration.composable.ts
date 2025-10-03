@@ -13,6 +13,7 @@ type RegistrationStatus = 'loading' | 'registering-online' | 'registration-reque
 type AsyncButtonFunction = (val: boolean) => void;
 type RegistrationMode = 'online' | 'offline';
 interface RegistrationDashboard {
+  id: string;
   active: boolean;
   product: string;
   mode: RegistrationMode | '--';
@@ -38,6 +39,7 @@ interface PartialCondition {
  * Partial of the registration interface used for this page
  */
 interface PartialRegistration {
+  id: string;
   metadata: {
     labels: Record<string, string>;
     namespace: string;
@@ -81,6 +83,7 @@ interface PartialSecret {
 }
 
 const emptyRegistration: RegistrationDashboard = {
+  id:         '--',
   active:     false,
   product:    '--',
   mode:       '--',
@@ -324,7 +327,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     const isError = lastCondition.type === 'RegistrationActivated';
     const isError2 = lastCondition.type === 'RegistrationAnnounced';
     const isCompleteOnline = mode === 'online' && lastCondition.type === 'Done';
-    const isCompleteOffline = mode === 'offline' && lastCondition.type === 'OfflineActivationDone';
+    const isCompleteOffline = mode === 'offline' && lastCondition.type === 'Done';
 
     return isError || isError2 || isCompleteOnline || isCompleteOffline;
   };
@@ -370,13 +373,14 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
       return emptyRegistration;
     } else {
       const isActive = registration.status?.activationStatus?.activated === true;
-      const resourceLink = registration.links.view.replace('/apis/scc.cattle.io/v1/registrations/', '/c/local/explorer/scc.cattle.io.registration/');
+
       // Common values for every registration
       const commonRegistration = {
+        id:               registration.id,
         active:           isActive,
         mode:             registration.spec.mode,
         registrationLink: registration.status?.activationStatus?.systemUrl,
-        resourceLink,
+        resourceLink:     registration.links.view,
       };
 
       if (isActive) {

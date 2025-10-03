@@ -15,7 +15,7 @@ describe('page: Registration', () => {
           $store: {
             getters: {
               'i18n/exists': jest.fn().mockReturnValue(true),
-              'i18n/t':      (t: string) => t
+              'i18n/t':      (t: string) => t,
             },
           },
           $route:  { hash: 'online' },
@@ -80,6 +80,12 @@ describe('page: Registration', () => {
   describe('given registration', () => {
     beforeEach(() => {
       wrapper.vm.registrationStatus = 'registered';
+    });
+
+    it('should display registration URL', () => {
+      const registrationLink = wrapper.find('[data-testid="registration-link"]');
+
+      expect(registrationLink).toBeDefined();
     });
 
     it('should not display online registration button', () => {

@@ -16,6 +16,7 @@ import { STEVE_CACHE } from '@shell/store/features';
 import { getPerformanceSetting } from '@shell/utils/settings';
 import { PAGINATION_SETTINGS_STORE_DEFAULTS } from '@shell/plugins/steve/steve-pagination-utils';
 import { MANAGEMENT } from '@shell/config/types';
+import { DEFAULT_PERF_SETTING } from '@shell/config/settings';
 
 /**
  * Helper functions for server side pagination
@@ -43,7 +44,15 @@ class PaginationUtils {
   public getStoreSettings(arg: any | PaginationSettings): PaginationSettingsStore {
     const serverPagination: PaginationSettings = arg?.rootGetters !== undefined ? this.getSettings(arg) : arg;
 
-    return serverPagination?.useDefaultStores ? this.getStoreDefault() : serverPagination?.stores || this.getStoreDefault();
+    // Ensure we use the current default store settings if
+    // 1. from 2.11.0 user saved `ui-performance` setting and it's applied the default pagination settings containing useDefaultStores
+    // 2. before 2.11.0 user has saved `ui-performance` setting and it's applied an obsolete pagination settings that lack useDefaultStore
+    // 3. user has manually set the `ui-performance` pagination setting useDefaultStores value
+    if (serverPagination?.useDefaultStores || serverPagination?.useDefaultStores === undefined) {
+      return this.getStoreDefault();
+    }
+
+    return serverPagination?.stores || this.getStoreDefault();
   }
 
   public getStoreDefault(): PaginationSettingsStore {
@@ -168,7 +177,7 @@ class PaginationUtils {
   resourceChangesDebounceMs({ rootGetters }: any): number | undefined {
     const settings = this.getSettings({ rootGetters });
 
-    return settings.resourceChangesDebounceMs;
+    return settings.resourceChangesDebounceMs || DEFAULT_PERF_SETTING.serverPagination.resourceChangesDebounceMs;
   }
 
   validateNsProjectFilters(nsProjectFilters: string[]) {

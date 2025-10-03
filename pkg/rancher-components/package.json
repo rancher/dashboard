@@ -39,7 +39,7 @@
     "cronstrue": "2.53.0",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-node": "11.1.0",
-    "eslint-plugin-promise": "5.2.0",
+    "eslint-plugin-promise": "7.2.1",
     "eslint-plugin-standard": "5.0.0",
     "eslint-plugin-vue": "9.32.0",
     "eslint": "7.32.0",

@@ -98,12 +98,11 @@ createTestComponent() {
   # Add test list component to the test package
   # Validates rancher-components imports
 
-  # NOTE - This fails if importing some components with TS imports...
-  # cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
-  # See https://github.com/rancher/dashboard/issues/12918
-
-  # Use a basic list instead
+  # Basic list instead
   cp ${SHELL_DIR}/list/namespace.vue pkg/test-pkg/list
+
+  # More complex list
+  cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
 }
 
 # Publish shell pkg (tag is needed as publish-shell is optimized to work with release-shell-pkg workflow)
@@ -239,7 +238,6 @@ function clone_repo_test_extension_build() {
 clone_repo_test_extension_build "rancher" "kubewarden-ui" "kubewarden"
 clone_repo_test_extension_build "rancher" "elemental-ui" "elemental"
 clone_repo_test_extension_build "neuvector" "manager-ext" "neuvector-ui-ext"
-clone_repo_test_extension_build "rancher" "capi-ui-extension" "capi"
 clone_repo_test_extension_build "StackVista" "rancher-extension-stackstate" "observability"
 clone_repo_test_extension_build "harvester" "harvester-ui-extension" "harvester"
 

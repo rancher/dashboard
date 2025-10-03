@@ -221,6 +221,8 @@ export default {
   },
 
   data() {
+    const isGoogle = this.provider === GOOGLE;
+
     return {
       loadedOnce:                      false,
       lastIdx:                         0,
@@ -270,7 +272,8 @@ export default {
       clusterAgentDefaultPC:                    null,
       clusterAgentDefaultPDB:                   null,
       activeTab:                                null,
-      isAuthenticated:                          this.provider !== GOOGLE || this.mode === _EDIT,
+      isGoogle,
+      isAuthenticated:                          !isGoogle || this.mode === _EDIT,
       projectId:                                null,
       REGISTRIES_TAB_NAME,
       labelForAddon,
@@ -1059,6 +1062,9 @@ export default {
 
       if (!this.machinePools) {
         await this.initMachinePools(this.value.spec.rkeConfig.machinePools);
+        if (this.isEdit && this.isGoogle && this.machinePools?.length > 0 && this.machinePools[0]?.config?.project) {
+          this.projectId = this.machinePools[0]?.config?.project;
+        }
         if (this.mode === _CREATE && !this.machinePools.length) {
           await this.addMachinePool();
         }
@@ -2251,7 +2257,7 @@ export default {
     </div>
     <AccountAccess
       v-if="!isAuthenticated"
-      v-model:credential="credential"
+      v-model:credential="credentialId"
       v-model:project="projectId"
       v-model:is-authenticated="isAuthenticated"
       :mode="mode"
