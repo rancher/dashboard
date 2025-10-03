@@ -20,6 +20,7 @@ import { Schema } from '@shell/plugins/steve/schema';
 import { PaginationSettingsStore } from '@shell/types/resources/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';
+import { parseField } from '@shell/utils/sort';
 
 /**
  * This is a workaround for a ts build issue found in check-plugins-build.
@@ -401,9 +402,13 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
       const joined = opt.pagination.sort
         .map((s) => {
-          this.validateField(validateFields, schema, s.field);
+          // Use the same mechanism as local sorting to flip logic for asc/des
+          const { field, reverse } = parseField(s.field);
+          const asc = reverse ? !s.asc : s.asc;
 
-          return `${ s.asc ? '' : '-' }${ this.convertArrayPath(s.field) }`;
+          this.validateField(validateFields, schema, field);
+
+          return `${ asc ? '' : '-' }${ this.convertArrayPath(field) }`;
         })
         .join(',');
 
