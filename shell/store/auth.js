@@ -17,6 +17,7 @@ const SLO_TOKENS_ENDPOINT_LOGOUT_RES_BASETYPE = ['authConfigLogoutOutput'];
 
 export const BASE_SCOPES = {
   github:       ['read:org'],
+  githubapp:    ['read:org'],
   googleoauth:  ['openid profile email'],
   azuread:      [],
   keycloakoidc: ['openid profile email'],
