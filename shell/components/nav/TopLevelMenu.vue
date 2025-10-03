@@ -1579,7 +1579,7 @@ export default {
     & IMG {
       object-fit: contain;
       max-width: 200px;
-      width: 200px;
+      height: 36px;
     }
   }
 

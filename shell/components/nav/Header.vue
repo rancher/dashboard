@@ -843,14 +843,13 @@ export default {
       display: flex;
       margin-right: 8px;
       max-width: 200px;
-      width: 200px;
       padding: 12px 0;
     }
 
     .side-menu-logo-img {
       object-fit: contain;
       max-width: 200px;
-      width: 200px;
+      height: 36px;
     }
 
     > * {
