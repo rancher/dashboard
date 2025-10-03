@@ -30,5 +30,6 @@ export interface KubeMetadata {
 }
 
 export interface RancherKubeMetadata extends KubeMetadata {
-  namespace: string,
+  namespace?: string,
+  name: string
 }
