@@ -942,10 +942,6 @@ asyncButton:
     waiting: Updating&hellip;
   upgrade:
     action: Upgrade
-    success: Upgrading
-    waiting: Starting&hellip;
-  upgradeVersion:
-    action: Upgrade
     success: Upgraded
     waiting: Upgrading&hellip;
   generate:
@@ -1262,7 +1258,6 @@ catalog:
             upgrade { upgrade }
             downgrade { upgrade }
             editVersion { update }
-            upgradeVersion { upgrade }
           } the {existing, select,
             true { app}
             false { chart}
@@ -5128,16 +5123,17 @@ plugins:
   closePluginPanel: Close plugin description panel
   viewVersionDetails: View extension {name} version {version} details/Readme
   labels:
-    builtin: Built-in
+    builtin: Built-In
     experimental: Experimental
     third-party: Third-Party
     image: Image
     installing: Installing ...
     uninstalling: Uninstalling ...
-    updating: Updating ...
-    rollingBack: Rolling back ...
+    upgrading: Upgrading ...
+    downgrading: Downgrading ...
     menu: Extensions menu
     reloadRancher: Reload Rancher
+    current: current
   descriptions:
     experimental: This Extension is marked as experimental
     third-party: This Extension is provided by a Third-Party
@@ -5166,6 +5162,8 @@ plugins:
       name: Extension module name
       persist: Persist extension by creating custom resource
   info:
+    actions: Actions
+    noActions: No actions available
     detail: Detail
     versions: Versions
     versionError: Could not load version information
@@ -5229,7 +5227,7 @@ plugins:
   tabs:
     all: All
     available: Available
-    builtin: Built-in
+    builtin: Built-In
     images: Images
     installed: Installed
     updates: Updates
@@ -5237,22 +5235,22 @@ plugins:
   version: "Version: {version}"
   install:
     label: Install
-    title: Install Extension {name}
-    prompt: "Are you sure that you want to install this Extension?"
+    title: Install extension {name}
+    prompt: "Are you sure that you want to install this extension?"
     version: Version
     warnNotCertified: Please ensure that you are aware of the risks of installing Extensions from untrusted authors
-  update:
-    label: Update
-    title: Update Extension {name}
-    prompt: "Are you sure that you want to update this Extension?"
-  rollback:
-    label: Rollback
-    title: Rollback Extension {name}
-    prompt: "Are you sure that you want to rollback this Extension?"
+  upgrade:
+    label: Upgrade
+    title: Upgrade extension {name}
+    prompt: "Are you sure that you want to upgrade this extension?"
+  downgrade:
+    label: Downgrade
+    title: Downgrade extension {name}
+    prompt: "Are you sure that you want to downgrade this extension?"
   uninstall:
     label: Uninstall
-    title: "Uninstall Extension: {name}"
-    prompt: "Are you sure that you want to uninstall this Extension?"
+    title: Uninstall extension {name}
+    prompt: "Are you sure that you want to uninstall this extension?"
     catalog: "Are you sure that you want to uninstall this Extension Catalog Image? This will also remove any Extensions provided by this image."
   upgradeAvailable: A newer version of this Extension is available
   reload: Extensions changed - reload required
