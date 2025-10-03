@@ -1,7 +1,7 @@
 <script lang="ts">
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
-import ClusterRepo from '@shell/models/catalog.cattle.io.clusterrepo';
+import { RancherKubeMetadata } from '@shell/types/kube/kube-api';
 import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { defineComponent } from 'vue';
 
@@ -25,7 +25,7 @@ export default defineComponent({
     /**
      * Filter out hidden repos from list of all repos
      */
-    filterRowsLocal(rows: ClusterRepo[]) {
+    filterRowsLocal(rows: { metadata: RancherKubeMetadata}[]) {
       return rows.filter((repo) => !(repo?.metadata?.annotations?.[CATALOG_ANNOTATIONS.HIDDEN_REPO] === 'true'));
     },
 

@@ -20,6 +20,7 @@ import { VuexStore } from '@shell/types/store/vuex';
 import { ServerSidePaginationExtensionConfig } from '@shell/core/types';
 import { EXT_IDS } from '@shell/core/plugin';
 import { ExtensionManager } from '@shell/types/extension-manager';
+import { DEFAULT_PERF_SETTING } from '@shell/config/settings';
 
 /**
  * Helper functions for server side pagination
@@ -47,7 +48,15 @@ class PaginationUtils {
   public getStoreSettings(arg: any | PaginationSettings): PaginationSettingsStores {
     const serverPagination: PaginationSettings = arg?.rootGetters !== undefined ? this.getSettings(arg) : arg;
 
-    return serverPagination?.useDefaultStores ? this.getStoreDefault() : serverPagination?.stores || this.getStoreDefault();
+    // Ensure we use the current default store settings if
+    // 1. from 2.11.0 user saved `ui-performance` setting and it's applied the default pagination settings containing useDefaultStores
+    // 2. before 2.11.0 user has saved `ui-performance` setting and it's applied an obsolete pagination settings that lack useDefaultStore
+    // 3. user has manually set the `ui-performance` pagination setting useDefaultStores value
+    if (serverPagination?.useDefaultStores || serverPagination?.useDefaultStores === undefined) {
+      return this.getStoreDefault();
+    }
+
+    return serverPagination?.stores || this.getStoreDefault();
   }
 
   public getStoreDefault(): PaginationSettingsStores {
@@ -227,7 +236,7 @@ class PaginationUtils {
   resourceChangesDebounceMs({ rootGetters }: any): number | undefined {
     const settings = this.getSettings({ rootGetters });
 
-    return settings.resourceChangesDebounceMs;
+    return settings.resourceChangesDebounceMs || DEFAULT_PERF_SETTING.serverPagination.resourceChangesDebounceMs;
   }
 
   validateNsProjectFilters(nsProjectFilters: string[]) {
