@@ -3770,6 +3770,7 @@ landing:
   homepage: Homepage
   clusters:
     title: Clusters
+    tooMany: "{total} clusters present, showing {rows} most recently created"
     provider: Provider
     distro: Distro
     kubernetesVersion: Kubernetes Version
