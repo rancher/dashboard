@@ -34,7 +34,7 @@ describe('component: Accordion', () => {
   it('displays a chevron when closed', async() => {
     const wrapper = shallowMount(Accordion, { propsData: { } });
 
-    expect(wrapper.find('[data-testid="accordion-header"] .icon-chevron-up').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="accordion-header"] .icon-chevron-right').exists()).toBe(true);
   });
 
   it('displays an inverted chevron when open', async() => {
