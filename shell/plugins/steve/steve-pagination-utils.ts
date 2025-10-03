@@ -679,8 +679,8 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
       enableAll:  false,
       enableSome: {
         enabled: [
-          // { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] },
-          // { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
+          { resource: CAPI.RANCHER_CLUSTER, context: ['side-bar'] },
+          { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
           { resource: CATALOG.APP, context: ['branding'] },
           SECRET
         ],
