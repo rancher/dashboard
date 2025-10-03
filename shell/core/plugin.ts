@@ -16,6 +16,7 @@ import {
   ModelExtensionConstructor,
   PluginRouteRecordRaw, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig,
   NavHooks, OnNavToPackage, OnNavAwayFromPackage, OnLogIn, OnLogOut,
+  PaginationTableColumn,
   ExtensionEnvironment
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
@@ -247,10 +248,21 @@ export class Plugin implements IPlugin {
   }
 
   /**
-   * Adds a new column to a table on the UI
+   * Adds a new column to a ResourceTable
+   *
+   * @param where
+   * @param when
+   * @param action
+   * @param column
+   *  The information required to show a header and values for a column in a table
+   * @param paginationColumn
+   *  As per `column`, but is used where server-side pagination is enabled
    */
-  addTableColumn(where: string, when: LocationConfig | string, column: TableColumn): void {
-    this._addUIConfig(ExtensionPoint.TABLE_COL, where, when, column);
+  addTableColumn(where: string, when: LocationConfig | string, column: TableColumn, paginationColumn?: PaginationTableColumn): void {
+    this._addUIConfig(ExtensionPoint.TABLE_COL, where, when, {
+      column,
+      paginationColumn
+    });
   }
 
   setHomePage(component: any) {
