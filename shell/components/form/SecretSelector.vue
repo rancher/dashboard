@@ -66,12 +66,9 @@ export default {
   },
 
   data() {
-    const validInStore = this.inStore || this.$store.getters['currentStore']() || 'cluster';
-
     return {
       secrets:            null,
       SECRET,
-      validInStore,
       allSecretsSettings: {
         updateResources: (secrets) => {
           const allSecretsInNamespace = secrets.filter((secret) => this.types.includes(secret._type) && secret.namespace === this.namespace);
@@ -130,6 +127,10 @@ export default {
         label: key,
         value: key
       }));
+    },
+
+    validInStore() {
+      return this.inStore || this.$store.getters['currentStore']() || 'cluster';
     },
 
     isView() {
