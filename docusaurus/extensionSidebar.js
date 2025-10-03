@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Define the absolute path to the sidebar file that `docusaurus-plugin-typedoc` generates.
-const typedocSidebarPath = path.resolve(__dirname, './docs/extensions/advanced/typedoc-sidebar.cjs');
+const typedocSidebarPath = path.resolve(__dirname, './docs/extensions/frameworks-api/typedoc-sidebar.cjs');
 
 /**
  * Recursively processes an array of Docusaurus sidebar items.
@@ -123,6 +123,15 @@ const sidebars = {
         },
         {
           type:  'category',
+          label: 'Frameworks API',
+          link:  {
+            type: 'doc',
+            id:   'frameworks-api',
+          },
+          items: typedocSidebarItems
+        },
+        {
+          type:  'category',
           label: 'Extensions API',
           link:  {
             type: 'doc',
@@ -193,16 +202,7 @@ const sidebars = {
             'advanced/stores',
             'advanced/version-compatibility',
             'advanced/safe-mode',
-            'advanced/yarn-link',
-            {
-              type:  'category',
-              label: 'Samples docs',
-              link:  {
-                type: 'doc',
-                id:   'advanced/sample-docs',
-              },
-              items: typedocSidebarItems
-            }
+            'advanced/yarn-link'
           ]
         },
         'publishing',

@@ -46,9 +46,20 @@ const config = {
     [
       'docusaurus-plugin-typedoc',
       {
+        // Set to true to hide the source path information entirely.
+        disableSources: true,
+
+        // This removes the prefix from the title of a generated page
+        // Ex: "Interface: GrowlApi" vs "GrowlApi"
+        textContentMappings: { 'title.memberPage': '{name}' },
+
+        // show params as code blocks
+        useCodeBlocks: true,
+
         // The entry point for TypeDoc to start scanning for files.
         // The path is relative to the `docusaurus` directory.
-        entryPoints: ['../shell/apis/shell/*'],
+        // entryPoints: ['../shell/apis/shell/*'],
+        entryPoints: ['../shell/apis/intf/shell.ts'],
 
         // The tsconfig file for TypeDoc to use.
         // This is CRITICAL to point to our special, isolated config
@@ -58,7 +69,7 @@ const config = {
         // The output directory for the generated markdown files.
         // We are targeting the specific versioned folder for the "next" version
         // and placing it directly into the "advanced" subfolder.
-        out: 'docs/extensions/advanced',
+        out: 'docs/extensions/frameworks-api',
 
         // disables REAME as default entry point
         readme: 'none',
