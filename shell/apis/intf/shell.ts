@@ -16,13 +16,14 @@ export type GrowlMessage = {
 }
 
 /**
- * API for displaying growls
+ * API for displaying growls in Rancher UI
+ * * ![Growl Example](/img/growl.png)
  */
 export interface GrowlApi {
   /**
-   * Shows a growl
+   * Method to display a growl in Rancher UI
    *
-   * @param message Message to show in the growl
+   * @param message Message object to configure growl being displayed
    */
   show(message: GrowlMessage): void;
 }
@@ -104,7 +105,8 @@ export interface ModalConfig {
 }
 
 /**
- * API for displaying modals
+ * API for displaying modals in Rancher UI
+ * * ![modal Example](/img/modal.png)
  */
 export interface ModalApi {
   /**
@@ -129,6 +131,10 @@ export interface SlideInConfig {
   componentProps?: Record<string, any>;
 }
 
+/**
+ * API for displaying Slide In panels in Rancher UI
+ * * ![slidein Example](/img/slidein.png)
+ */
 export interface SlideInApi {
   /**
    * Opens the slide in
