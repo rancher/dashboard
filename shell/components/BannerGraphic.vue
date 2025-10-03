@@ -70,6 +70,7 @@ export default {
       > img.banner {
         flex: 1;
         object-fit: cover;
+        object-position: right;
       }
     }
     h1.title {
