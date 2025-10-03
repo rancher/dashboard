@@ -583,6 +583,18 @@ Cypress.Commands.add('waitForRancherResources', (prefix, resourceType, expectedR
 });
 
 /**
+ * Wait for repository to be downloaded and ready
+ */
+Cypress.Commands.add('waitForRepositoryDownload', (prefix, resourceType, resourceId, retries = 20) => {
+  return cy.waitForRancherResource(prefix, resourceType, resourceId, (resp) => {
+    const conditions = resp.body.status?.conditions || [];
+
+    return conditions.some((condition) => condition.type === 'Downloaded' && condition.status === 'True'
+    );
+  }, retries);
+});
+
+/**
  * delete a node template
  */
 Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId, timeout = 30000, failOnStatusCode = false) => {

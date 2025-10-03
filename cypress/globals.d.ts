@@ -119,6 +119,7 @@ declare global {
       createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any, failOnStatusCode?: boolean): Chainable;
       waitForRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, testFn: (resp: any) => boolean, retries?: number, config?: {failOnStatusCode?: boolean}): Chainable;
       waitForRancherResources(prefix: 'v3' | 'v1', resourceType: string, expectedResourcesTotal: number, greaterThan?: boolean): Chainable;
+      waitForRepositoryDownload(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, retries?: number): Chainable;
       deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
       getClusterIdByName(clusterName: string): Chainable<string>;
       deleteNodeTemplate(nodeTemplateId: string, timeout?: number, failOnStatusCode?: boolean)
