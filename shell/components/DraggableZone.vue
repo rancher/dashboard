@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { mapState } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import { BOTTOM, CENTER, LEFT, RIGHT } from '@shell/utils/position';
 
 type Zone = null | typeof CENTER | typeof RIGHT | typeof BOTTOM | typeof LEFT;
@@ -25,8 +25,8 @@ export default defineComponent({
   },
 
   computed: {
-
     ...mapState('wm', ['userPin']),
+    ...mapGetters({ isSecondaryOpen: 'wm/secondary/isOpen' }),
 
     pin: {
       get(): Zone {
@@ -51,7 +51,11 @@ export default defineComponent({
     },
 
     onDragOver(event: DragEvent, zone: Zone) {
-      this.drag.zone = zone;
+      // If the SecondarySideWindow is open, only allow dragging to bottom or keeping the current position
+      if (!this.isSecondaryOpen || (zone !== RIGHT && zone !== LEFT)) {
+        this.drag.zone = zone;
+      }
+
       if (zone !== CENTER) {
         event.preventDefault();
       }

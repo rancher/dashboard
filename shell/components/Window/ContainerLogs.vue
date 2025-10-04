@@ -10,7 +10,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import Select from '@shell/components/form/Select';
 import VirtualList from 'vue3-virtual-scroll-list';
 import LogItem from '@shell/components/LogItem';
-import ContainerLogsActions from '@shell/components/nav/WindowManager/ContainerLogsActions.vue';
+import ContainerLogsActions from '@shell/components/Window/ContainerLogsActions.vue';
 import { shallowRef } from 'vue';
 import { useStore } from 'vuex';
 import { debounce } from 'lodash';
