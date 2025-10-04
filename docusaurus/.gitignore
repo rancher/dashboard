@@ -8,6 +8,9 @@
 .docusaurus
 .cache-loader
 
+# Typedoc integration
+docs/extensions/frameworks-api
+
 # Misc
 .DS_Store
 .env.local
