@@ -23,11 +23,13 @@
  * Successfully flow - watch
  * 1. UI --> Rancher: _watch_ request
  * 2. Rancher --> UI: `resource.start`. UI sets watch as started
+ * ...
  * 3. Rancher --> UI: `resource.change` (contains data). UI caches data
  *
  * Successful flow - watch - new mode
  * 1. UI --> Rancher: _watch_ request
  * 2. Rancher --> UI: `resource.start`. UI sets watch as started
+ * ...
  * 3. Rancher --> UI: `resource.changes` (contains no data). UI makes a HTTP request to fetch data
  *
  * Successful flow - unwatch
@@ -84,9 +86,10 @@ import { WORKER_MODES } from './worker';
 import acceptOrRejectSocketMessage from './accept-or-reject-socket-message';
 import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
 import { _MERGE } from '@shell/plugins/dashboard-store/actions';
-import { STEVE_WATCH_EVENT, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
+import { STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import paginationUtils from '@shell/utils/pagination-utils';
 import backOff from '@shell/utils/back-off';
+import { SteveWatchEventListenerManager } from '@shell/plugins/subscribe-events';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
@@ -313,24 +316,6 @@ function growlsDisabled(rootGetters) {
 }
 
 /**
- * Supported events are listed
- *
- * of type { [key: STEVE_WATCH_EVENT]: STEVE_WATCH_EVENT_LISTENER[]}
- */
-const listeners = { [STEVE_WATCH_EVENT.CHANGES]: [] };
-
-/**
- * Given a started or error entry, is it compatible with the given change in mode?
- */
-const shouldUnwatchIncompatible = (messageMeta, mode) => {
-  if (messageMeta.mode === STEVE_WATCH_EVENT.CHANGES) {
-    return mode !== STEVE_WATCH_EVENT.CHANGES;
-  }
-
-  return mode === STEVE_WATCH_EVENT.CHANGES;
-};
-
-/**
  * clear the provided error, but also ensure any backoff request associated with it is cleared as well
  */
 const clearInError = ({ getters, commit }, error) => {
@@ -452,7 +437,7 @@ const sharedActions = {
    * @param {STEVE_WATCH_EVENT_PARAMS} event
    */
   watchEvent(ctx, {
-    event = STEVE_WATCH_EVENT.CHANGES,
+    event = STEVE_WATCH_EVENT_TYPES.CHANGES,
     id,
     callback,
     /**
@@ -460,26 +445,27 @@ const sharedActions = {
      */
     params
   }) {
-    if (!listeners[event]) {
-      console.error(`Unknown event type "${ event }", only ${ Object.keys(listeners).join(',') } are supported`); // eslint-disable-line no-console
+    if (!ctx.getters.listenerManager.isSupportedEventType(event)) {
+      console.error(`Unknown event type "${ event }", only ${ Object.keys(ctx.getters.listenerManager.supportedEventTypes).join(',') } are supported`); // eslint-disable-line no-console
 
       return;
     }
 
-    // STEVE_WATCH_EVENT_LISTENER | undefined
-    let listener = listeners[event].find((l) => equivalentWatch(l.params, params));
+    ctx.getters.listenerManager.addEventListenerCallback({
+      callback,
+      args: {
+        event, params, id
+      }
+    });
 
-    if (!listener) {
-      listener = {
-        params,
-        callbacks: { }
-      };
-      listeners[event].push(listener);
-    }
+    const hasStandardWatch = ctx.getters.listenerManager.hasStandardWatch({ params });
 
-    if (!listener.callbacks[id]) {
-      listener.callbacks[id] = callback;
-      ctx.dispatch('watch', params);
+    if (!hasStandardWatch) {
+      // If there's nothing to piggy back on... start a watch to do so.
+      ctx.dispatch('watch', {
+        ...params,
+        standardWatch: false // Ensure that we don't treat this as a standard watch
+      });
     }
   },
 
@@ -488,24 +474,26 @@ const sharedActions = {
    * @param {STEVE_UNWATCH_EVENT_PARAMS} event
    */
   unwatchEvent(ctx, {
-    event = STEVE_WATCH_EVENT.CHANGES,
+    event = STEVE_WATCH_EVENT_TYPES.CHANGES,
     id,
     /**
      * of type @STEVE_WATCH_PARAMS
      */
     params
   }) {
-    if (!listeners[event]) {
+    if (!ctx.getters.listenerManager.isSupportedEventType(event)) {
       console.info(`Attempted to unwatch for an event "${ event }" but it had no watchers`); // eslint-disable-line no-console
 
       return;
     }
 
-    const existing = listeners[event].find((l) => equivalentWatch(l.params, params));
+    ctx.getters.listenerManager.removeEventListenerCallback({
+      event, params, id
+    });
 
-    if (existing) {
-      delete existing.callbacks[id];
-    }
+    // Unwatch the underlying standard watch
+    // Note - If we were piggybacking on a watch that previously existed we won't unwatch it
+    ctx.dispatch('unwatch', params);
   },
 
   /**
@@ -517,7 +505,7 @@ const sharedActions = {
     state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
     let {
       // eslint-disable-next-line prefer-const
-      type, selector, id, revision, namespace, stop, force, mode
+      type, selector, id, revision, namespace, stop, force, mode, standardWatch = true
     } = params;
 
     namespace = acceptOrRejectSocketMessage.subscribeNamespace(namespace);
@@ -560,10 +548,6 @@ const sharedActions = {
       });
 
       return;
-    }
-
-    if (!stop) {
-      dispatch('unwatchIncompatible', messageMeta);
     }
 
     // Watch errors mean we make a http request to get latest revision (which is still missing) and try to re-watch with it...
@@ -618,6 +602,12 @@ const sharedActions = {
       return;
     }
 
+    if (!stop && standardWatch) {
+      // Track that this watch is just a normal one, not one kicked off by listeners
+      // This helps us keep the watch going (for listeners) instead of in unwatch just stopping it
+      getters.listenerManager.setStandardWatch({ standardWatch: true, args: { event: msg.mode, params: msg } });
+    }
+
     return dispatch('send', msg);
   },
 
@@ -642,6 +632,21 @@ const sharedActions = {
       };
 
       const unwatch = (obj) => {
+        // Has this normal watch got listeners? If so
+        const hasStandardWatch = ctx.getters.listenerManager.hasStandardWatch({ params: obj });
+        const watchHasListeners = ctx.getters.listenerManager.hasEventListeners({ params: obj });
+
+        if (hasStandardWatch) {
+          // If we have listeners for this watch... make sure it knows there's now no root standard watch
+          ctx.getters.listenerManager.setStandardWatch({ standardWatch: false, args: { params: obj } });
+        }
+
+        if (watchHasListeners) {
+          // Does this watch have listeners? if so we shouldn't stop it (they still need it)
+
+          return;
+        }
+
         if (getters['watchStarted'](obj)) {
           // Set that we don't want to watch this type
           // Otherwise, the dispatch to unwatch below will just cause a re-watch when we
@@ -651,45 +656,28 @@ const sharedActions = {
           // Make sure anything in the pending queue for the type is removed, since we've now removed the type
           commit('clearFromQueue', type);
         }
-        // Ensure anything pinging in the background is stopped
-        backOff.resetPrefix(getters.backOffId(obj));
       };
+
+      const objKey = keyForSubscribe(obj);
+      const reset = [];
 
       if (isAdvancedWorker(ctx)) {
         dispatch('watch', obj); // Ask the backend to stop watching the type
       } else if (all) {
-        getters['watchesOfType'](type).forEach((obj) => {
-          unwatch({ ...obj, stop: true });
-        });
+        reset.push(...getters['watchesOfType'](type));
       } else if (getters['watchStarted'](obj)) {
-        unwatch(obj);
+        reset.push(obj);
       }
-    }
-  },
 
-  /**
-   * Unwatch watches that are incompatible with the new type
-   */
-  unwatchIncompatible({
-    state, dispatch, getters, commit
-  }, messageMeta) {
-    // Step 1 - Clear incompatible watches that have STARTED
-    const watchesOfType = getters.watchesOfType(messageMeta.type);
-
-    watchesOfType
-      .filter((entry) => shouldUnwatchIncompatible(messageMeta, entry.mode))
-      .forEach((entry) => {
-        dispatch('unwatch', entry);
+      reset.forEach((obj) => {
+        unwatch(obj);
+        // Ensure anything pinging in the background is stopped
+        dispatch('resetWatchBackOff', {
+          type,
+          compareWatches: (entry) => objKey === keyForSubscribe(entry)
+        });
       });
-
-    // Step 2 - Clear inError state for incompatible watches (these won't appear in watchesOfType / state.started)
-    // (important for the backoff case... for example backoff request to find would overwrite findPage res if executed after nav from detail to list)
-    const inErrorOfType = Object.values(state.inError || {})
-      .filter((error) => error.obj.type === messageMeta.type);
-
-    inErrorOfType
-      .filter((error) => shouldUnwatchIncompatible(messageMeta, error.obj.mode))
-      .forEach((error) => clearInError({ getters, commit }, error));
+    }
   },
 
   /**
@@ -704,7 +692,7 @@ const sharedActions = {
     if (resetStarted && state.started?.length) {
       let entries = state.started;
 
-      if (type) { // Filter out ones for types we're no interested in
+      if (type || compareWatches) { // Filter out ones for types we're no interested in
         entries = entries
           .filter((obj) => compareWatches ? compareWatches(obj) : obj.type === type);
       }
@@ -718,7 +706,7 @@ const sharedActions = {
       // however resource.stop clears `started` and we need the settings to persist over start-->error-->stop-->start cycles
       let entries = Object.values(state.inError || {});
 
-      if (type) { // Filter out ones for types we're no interested in
+      if (type || compareWatches) { // Filter out ones for types we're no interested in
         entries = entries
           .filter((error) => compareWatches ? compareWatches(error.obj) : error.obj.type === type);
       }
@@ -817,6 +805,7 @@ const defaultActions = {
 
       if ( getters.schemaFor(entry.type) ) {
         commit('setWatchStopped', entry);
+        // Delete the cached socket revision, forcing the watch to get latest revision from cached resources instead
         delete entry.revision;
         promises.push(dispatch('watch', entry));
       }
@@ -901,11 +890,7 @@ const defaultActions = {
         }
 
         // Should any listeners be notified of this request for them to kick off their own event handling?
-        const listener = listeners[STEVE_WATCH_MODE.RESOURCE_CHANGES].find((sl) => equivalentWatch(sl.params, params));
-
-        if (listener) {
-          Object.values(listener.callbacks).forEach((cb) => cb());
-        }
+        getters.listenerManager.triggerEventListener({ event: STEVE_WATCH_MODE.RESOURCE_CHANGES, params });
       } else {
         have = getters['all'](resourceType).slice();
 
@@ -1086,10 +1071,16 @@ const defaultActions = {
       mode:      msg.mode,
     };
 
+    // Unwatch watches that are incompatible with the new type
+    // This is mainly to prevent the cache being polluted with resources that aren't compatible with it's aim
+    // For instance if the store/cache for pods contains a namespace X and we watch another namespace Y... we don't want ns X resources added to cache
+
+    // Unwatch incompatible watches
     state.started.filter((entry) => {
       if (
-        entry.type === newWatch.type &&
-        entry.namespace !== newWatch.namespace
+        (entry.type === newWatch.type) &&
+        (entry.namespace !== newWatch.namespace) &&
+        (!entry.mode && !newWatch.mode) // mode watches will be handled when they become an issue
       ) {
         return true;
       }
@@ -1178,7 +1169,25 @@ const defaultActions = {
         commit('setWatchStopped', obj);
       }
 
-      dispatch('watch', obj);
+      // Now re-watch
+      const hasEventListeners = getters.listenerManager.hasEventListeners({ params: obj });
+      const hasStandardWatch = getters.listenerManager.hasStandardWatch({ params: obj });
+
+      dispatch('watch', {
+        ...obj,
+        // hasEventListeners && !hasStandardWatch ? false : true
+        // if this watch isn't associated with a normal watch... (there are no listeners, or there are listeners but also a normal watch)
+        standardWatch: !(hasEventListeners && !hasStandardWatch)
+      });
+
+      if (hasEventListeners) {
+        // If there's event listeners always kick them off
+        // - The re-watch associated with normal watches will watch from a revision from it's own cache
+        // - The revision in that cache might be ahead of the state the listeners have, so the watch won't ping something for the listeners to trigger on
+        // - so to work around this whenever we start the watches again trigger off the changes for it
+        // Improvement - we only do one event here (currently the only one supported), could expand to others
+        getters.listenerManager.triggerEventListener({ event: STEVE_WATCH_EVENT_TYPES.CHANGES, params: obj });
+      }
     }
   },
 
@@ -1208,6 +1217,15 @@ const defaultActions = {
         // No further processing - let the web worker check the schema updates
         return;
       }
+    }
+
+    const havePage = ctx.getters['havePage'](type);
+
+    if (havePage) {
+      console.warn(`Prevented watch \`resource.change\` data from polluting the cache for type "${ type }" (currently represents a page). To prevent any further issues the watch has been stopped.`, data); // eslint-disable-line no-console
+      ctx.dispatch('unwatch', data);
+
+      return;
     }
 
     queueChange(ctx, msg, true, 'Change');
@@ -1344,6 +1362,7 @@ const defaultMutations = {
     clearTimeout(state.queueTimer);
     state.deferredRequests = {};
     state.queueTimer = null;
+    state.socketListenerManager = new SteveWatchEventListenerManager(state.config.namespace);
   },
 
   clearFromQueue(state, type) {
@@ -1443,6 +1462,15 @@ const defaultGetters = {
     }
 
     return revision || null;
+  },
+
+  /**
+   * Get the watch listener manager for this store
+   *
+   * Instance of @SteveWatchEventListenerManager . See it's description for more info
+   */
+  listenerManager: (state) => {
+    return state.socketListenerManager;
   },
 };
 
