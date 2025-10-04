@@ -24,12 +24,20 @@ const cssCache = {};
 
 const colors = {
   header: {
-    color: '--header-btn-text',
-    hover: '--header-btn-text-hover'
+    color:          '--on-tertiary-header',
+    hover:          '--on-tertiary-header-hover',
+    colorFallback:  '--header-btn-text',
+    hoverFallback:  '--header-btn-text-hover',
+    active:         '--on-tertiary-header-hover',
+    activeFallback: '--header-btn-text-hover',
   },
   primary: {
-    color: '--link',
-    hover: '--primary-hover-text'
+    color:          '--link',
+    hover:          '--link',
+    colorFallback:  '--link',
+    hoverFallback:  '--primary-hover-text',
+    active:         '--on-active',
+    activeFallback: '--primary-hover-text',
   }
 };
 
@@ -65,45 +73,48 @@ export default {
   },
 
   methods: {
-    getComputedStyleFor(cssVar) {
-      return normalizeHex(mapStandardColors((window.getComputedStyle(document.body).getPropertyValue(cssVar)).trim()));
+    getComputedStyleFor(cssVar, fallback) {
+      const value = window.getComputedStyle(document.body).getPropertyValue(cssVar).trim();
+
+      return normalizeHex(mapStandardColors(value ?? fallback));
+    },
+
+    resolveColorFilter(cacheKey, rgb) {
+      if (filterCache[cacheKey]) {
+        return filterCache[cacheKey];
+      }
+
+      const solver = new Solver(rgb);
+      const res = solver.solve();
+      const filter = res?.filter;
+
+      filterCache[cacheKey] = filter;
+
+      return filter;
     },
 
     setColor() {
-      const uiColor = this.getComputedStyleFor(colors[this.color].color);
-      const hoverColor = this.getComputedStyleFor(colors[this.color].hover);
+      const colorConfig = colors[this.color];
+      const uiColor = this.getComputedStyleFor(colorConfig.color, colorConfig.colorFallback);
+      const hoverColor = this.getComputedStyleFor(colorConfig.hover, colorConfig.hoverFallback);
+      const activeColor = this.getComputedStyleFor(colorConfig.active, colorConfig.activeFallback);
 
-      if (!uiColor || !hoverColor) {
+      if (!uiColor || !hoverColor || !activeColor) {
         return;
       }
 
       const uiColorRGB = colorToRgb(uiColor);
       const hoverColorRGB = colorToRgb(hoverColor);
+      const activeColorRGB = colorToRgb(activeColor);
       const uiColorStr = `${ uiColorRGB.r }-${ uiColorRGB.g }-${ uiColorRGB.b }`;
       const hoverColorStr = `${ hoverColorRGB.r }-${ hoverColorRGB.g }-${ hoverColorRGB.b }`;
 
       const className = `svg-icon-${ uiColorStr }-${ hoverColorStr }`;
 
       if (!cssCache[className]) {
-        let hoverFilter = filterCache[hoverColor];
-
-        if (!hoverFilter) {
-          const solver = new Solver(hoverColorRGB);
-          const res = solver.solve();
-
-          hoverFilter = res?.filter;
-          filterCache[hoverColor] = hoverFilter;
-        }
-
-        let mainFilter = filterCache[uiColor];
-
-        if (!mainFilter) {
-          const solver = new Solver(uiColorRGB);
-          const res = solver.solve();
-
-          mainFilter = res?.filter;
-          filterCache[uiColor] = mainFilter;
-        }
+        const hoverFilter = this.resolveColorFilter(hoverColor, hoverColorRGB);
+        const mainFilter = this.resolveColorFilter(uiColor, uiColorRGB);
+        const activeFilter = this.resolveColorFilter(activeColor, activeColorRGB);
 
         // Add stylesheet (added as global styles)
         const styles = `
@@ -123,7 +134,7 @@ export default {
             ${ hoverFilter };
           }
           a.option.active-menu-link > img.${ className } {
-            ${ hoverFilter };
+            ${ activeFilter };
           }
         `;
 

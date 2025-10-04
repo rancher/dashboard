@@ -231,12 +231,13 @@ $icon-size: 24px;
     .warning & {
       background: var(--warning-banner-bg);
       border-color: var(--warning);
+      color: var(--warning-banner-text, var(--body-text));
     }
 
     .error & {
       background: var(--error-banner-bg);
       border-color: var(--error);
-      color: var(--error);
+      color: var(--error-banner-text, var(--error));
     }
 
     &.stacked {

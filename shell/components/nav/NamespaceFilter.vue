@@ -1069,7 +1069,7 @@ export default {
           &.ns-selected:not(:hover) {
             .ns-item {
               > * {
-                color: var(--primary);
+                color: var(--link);
               }
             }
 
