@@ -1073,11 +1073,19 @@ export default {
       width: 300px;
       overflow: auto;
 
+      & .category {
+        & a.router-link-active {
+          &:hover {
+            color: var(--on-active, var(--default));
+          }
+        }
+      }
+
       .option {
         align-items: center;
         cursor: pointer;
         display: flex;
-        color: var(--link);
+        color: var(--on-tertiary, var(--link));
         font-size: 14px;
         height: $option-height;
         white-space: nowrap;
@@ -1115,6 +1123,15 @@ export default {
               font-size: 12px;
               padding-right: 8px;
               color: var(--darker);
+            }
+          }
+        }
+
+        &:not(.active-menu-link) {
+          &:hover {
+            .pin {
+              display: block;
+              color: var(--body-text-hover);
             }
           }
         }
@@ -1159,7 +1176,7 @@ export default {
         .rancher-provider-icon,
         svg {
           margin-right: 16px;
-          fill: var(--link);
+          fill: var(--on-tertiary, var(--link));
         }
 
         .top-menu-icon {
@@ -1178,19 +1195,31 @@ export default {
             outline-offset: -4px;
           }
 
-          background: var(--primary-hover-bg);
-          color: var(--primary-hover-text);
+          background: var(--active-nav, var(--primary-hover-bg));
+          color: var(--on-active, var(--primary-hover-text));
 
           svg {
-            fill: var(--primary-hover-text);
+            fill: var(--on-active, var(--primary-hover-text));
           }
 
           i {
-            color: var(--primary-hover-text);
+            color: var(--on-active, var(--primary-hover-text));
           }
 
           div .description {
-            color: var(--default);
+            color: var(--on-active, var(--default));
+          }
+
+          &:hover {
+            background: var(--active-hover, var(--primary-hover-bg));
+
+            div {
+              color: var(--on-active, var(--default));
+            }
+
+            svg {
+              fill: var(--on-active, var(--primary-hover-text));
+            }
           }
         }
 
@@ -1201,8 +1230,8 @@ export default {
         }
 
         &:hover {
-          color: var(--primary-hover-text);
-          background: var(--primary-hover-bg);
+          color: var(--tertiary-hover-app-bar, var(--primary-hover-text));
+          background: var(--nav-hover-top-level, var(--primary-hover-bg));
           > div {
             color: var(--primary-hover-text);
 
@@ -1211,10 +1240,10 @@ export default {
             }
           }
           svg {
-            fill: var(--primary-hover-text);
+            fill: var(--tertiary-hover-app-bar, var(--primary-hover-text));
           }
           div {
-            color: var(--primary-hover-text);
+            color: var(--tertiary-hover-app-bar, var(--primary-hover-text));
           }
           &.disabled {
             background: transparent;
@@ -1549,8 +1578,8 @@ export default {
     overflow: hidden;
     & IMG {
       object-fit: contain;
-      height: 21px;
       max-width: 200px;
+      height: 36px;
     }
   }
 
@@ -1592,7 +1621,7 @@ export default {
       padding: 8px 20px;
 
       &:hover {
-        background-color: var(--primary-hover-bg);
+        background-color: var(--active-hover, var(--primary-hover-bg));
         color: var(--primary-hover-text);
         text-decoration: none;
       }

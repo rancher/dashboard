@@ -39,7 +39,7 @@
   max-height: 350px;
   min-width: 160px;
   overflow-y: auto;
-  border: 1px solid var(--outline);
+  border: 1px solid var(--primary-border);
   border-radius: var(--border-radius);
   border-top-left-radius: 0;
   border-top-right-radius: 0;
@@ -157,7 +157,6 @@
     font-family: 'icons';
     height: 32px;
     padding-top: 8px;
-    color: var(--secondary);
     margin-right: 8px;
   }
 }

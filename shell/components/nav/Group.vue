@@ -381,21 +381,21 @@ export default {
       }
 
       &.active {
-        color: var(--primary-hover-text);
-        background-color: var(--primary-hover-bg);
+        color: var(--on-active, var(--primary-hover-text));
+        background-color: var(--active-nav, var(--primary-hover-bg));
 
         h6 {
           padding: 8px 0 8px 16px;
           font-weight: bold;
-          color: var(--primary-hover-text);
+          color: var(--on-active, var(--primary-hover-text));
         }
 
         &:hover {
-          background-color: var(--primary-hover-bg);
+          background-color: var(--nav-active-hover, var(--primary-hover-bg));
         }
 
         ~ I {
-          color: var(--primary-hover-text);
+          color: var(--on-active, var(--primary-hover-text));
         }
       }
       &:hover:not(.active) {
@@ -433,8 +433,24 @@ export default {
         margin-left: 0;
       }
 
+      .child:hover {
+        background: var(--nav-hover, var(--nav-active));
+      }
+
       &.group-highlight {
-        background: var(--nav-active);
+        background: var(--category-active, var(--nav-active));
+
+        .active.header {
+          &:hover {
+            background-color: var(--nav-active-hover)
+          }
+        }
+
+        .child, .header {
+          &:hover {
+            background: var(--category-active-hover, var(--primary));
+          }
+        }
       }
     }
 
@@ -480,13 +496,17 @@ export default {
     padding: 0;
 
     A, A I {
-      color: var(--primary-hover-text);
+      color: var(--on-active, var(--primary-hover-text));
     }
 
     A {
-      color: var(--primary-hover-text);
-      background-color: var(--primary-hover-bg);
+      color: var(--on-active, var(--primary-hover-text));
+      background-color: var(--active-nav, var(--primary-hover-bg));
       font-weight: bold;
+
+      &:hover {
+        background: var(--nav-active-hover);
+      }
     }
   }
 
