@@ -18,6 +18,7 @@ export interface Tab {
   extensionId?: string,
   position: Position,
   layouts: Layout[],
+  showHeader: boolean,
   containerHeight: number,
   containerWidth: number,
   attrs?: Record<string, any>,

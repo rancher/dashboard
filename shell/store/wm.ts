@@ -56,6 +56,10 @@ export const mutations = {
         tab.layouts = ['default'];
       }
 
+      if (tab.showHeader === undefined) {
+        tab.showHeader = true;
+      }
+
       addObject(state.tabs, tab);
     }
 
