@@ -26,7 +26,6 @@ const {
   onTabBarDragOver,
   onTabBarDragLeave,
   onTabBarDrop,
-  onTabBarDragEnter,
   onDragPositionStart,
   onDragPositionEnd,
   lockedPosition,
@@ -49,7 +48,6 @@ const {
       :class="['tabs', { 'tab-bar-highlight': dragOverTabBarActive }]"
       role="tablist"
       @dragover="onTabBarDragOver"
-      @dragenter="onTabBarDragEnter"
       @dragleave="onTabBarDragLeave"
       @drop="onTabBarDrop"
     >
