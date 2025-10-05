@@ -1,5 +1,5 @@
 import { flushPromises, mount, Wrapper } from '@vue/test-utils';
-import ContainerShell from '@shell/components/Console/ContainerShell.vue';
+import ContainerShell from '@shell/components/Window/ContainerShell.vue';
 import Socket, {
   addEventListener, EVENT_CONNECTED, EVENT_CONNECTING, EVENT_DISCONNECTED, EVENT_MESSAGE, EVENT_CONNECT_ERROR
 } from '@shell/utils/socket';

@@ -29,6 +29,7 @@ export default () => {
   }
 
   function onTabClose(id: string) {
+    tabs.value = tabs.value.filter(({ tab }) => tab.id !== id);
     store.commit('wm/closeTab', { id });
   }
 

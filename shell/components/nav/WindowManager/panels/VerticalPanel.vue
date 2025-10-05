@@ -27,7 +27,6 @@ const {
   onTabBarDragOver,
   onTabBarDragLeave,
   onTabBarDrop,
-  onTabBarDragEnter,
   onDragPositionStart,
   onDragPositionEnd,
 } = usePanelHandler({ position: props.position });
@@ -57,7 +56,6 @@ const {
       ]"
       role="tablist"
       @dragover="onTabBarDragOver"
-      @dragenter="onTabBarDragEnter"
       @dragleave="onTabBarDragLeave"
       @drop="onTabBarDrop"
     >

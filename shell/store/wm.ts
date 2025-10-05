@@ -13,24 +13,6 @@ export interface State {
   lockedPositions: Position[];
 }
 
-function switchTabInternal(state: State, tabId: string, targetPosition: Position | string) {
-  const current = { ...(state.tabs.find((x) => x.id === tabId) || {}) };
-
-  if (current) {
-    moveTabByReference(state.tabs, current.position, targetPosition, tabId);
-
-    state.active[targetPosition] = tabId;
-    state.open = { ...state.open, [targetPosition]: true };
-
-    if (current.position !== targetPosition) {
-      const oldPositionTabs = state.tabs.filter((t) => t.position === current.position);
-
-      state.active[current.position] = oldPositionTabs[0]?.id || null;
-      state.open[current.position] = oldPositionTabs.length > 0;
-    }
-  }
-}
-
 function moveTabByReference(tabs: any[], fromPosition: string, toPosition: string, tabId: string) {
   const idx = tabs.findIndex((t) => t.id === tabId && t.position === fromPosition);
 
@@ -92,18 +74,30 @@ export const mutations = {
 
     state.active[tab.position] = tab.id;
     state.open = { ...state.open, [tab.position]: true };
+
+    state.userPin = tab.position;
+    window.localStorage.setItem(STORAGE_KEY['pin'], tab.position);
   },
 
   switchTab(state: State, { tabId, targetPosition }: { tabId: string, targetPosition: Position | string }) {
-    switchTabInternal(state, tabId, targetPosition);
-  },
+    const current = { ...(state.tabs.find((x) => x.id === tabId) || {}) };
 
-  switchAllTab(state: State, { targetPosition }: { targetPosition: Position | string }) {
-    const tabs = [...state.tabs.filter((tab) => tab.position !== targetPosition)];
+    if (current) {
+      moveTabByReference(state.tabs, current.position, targetPosition, tabId);
 
-    tabs.forEach((tab) => {
-      switchTabInternal(state, tab.id, targetPosition);
-    });
+      state.active[targetPosition] = tabId;
+      state.open = { ...state.open, [targetPosition]: true };
+
+      if (current.position !== targetPosition) {
+        const oldPositionTabs = state.tabs.filter((t) => t.position === current.position);
+
+        state.active[current.position] = oldPositionTabs[0]?.id || null;
+        state.open[current.position] = oldPositionTabs.length > 0;
+      }
+    }
+
+    state.userPin = targetPosition;
+    window.localStorage.setItem(STORAGE_KEY['pin'], targetPosition);
   },
 
   closeTab(state: State, { id }: { id: string }) {
@@ -166,9 +160,9 @@ export const mutations = {
     }
   },
 
-  setUserPin(state: State, pin: string | null) {
+  setUserPin(state: State, pin: string) {
     state.userPin = pin;
-    window.localStorage.setItem(STORAGE_KEY['pin'], pin as string);
+    window.localStorage.setItem(STORAGE_KEY['pin'], pin);
   },
 
   setLockedPositions(state: State, positions: Position[]) {
