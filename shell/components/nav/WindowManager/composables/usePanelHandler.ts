@@ -31,7 +31,6 @@ export default (props: { position: Position }) => {
     onTabBarDragOver,
     onTabBarDragLeave,
     onTabBarDrop,
-    onTabBarDragEnter,
     onDragPositionStart,
     onDragPositionEnd,
     lockedPosition
@@ -63,7 +62,6 @@ export default (props: { position: Position }) => {
     onTabBarDragOver,
     onTabBarDragLeave,
     onTabBarDrop,
-    onTabBarDragEnter,
     onDragPositionStart,
     onDragPositionEnd,
     lockedPosition
