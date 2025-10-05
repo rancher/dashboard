@@ -15,6 +15,7 @@ const props = defineProps({
 const {
   tabs,
   activeTab,
+  isTabsHeaderEnabled,
   dragOverPositionsActive,
   dragOverTabBarActive,
   setTabActive,
@@ -38,10 +39,12 @@ const {
     class="horizontal-window-manager wm"
     :class="{
       'drag-start': dragOverPositionsActive,
-      'drag-end': !dragOverPositionsActive
+      'drag-end': !dragOverPositionsActive,
+      'tabs-header-enabled': isTabsHeaderEnabled,
     }"
   >
     <div
+      v-if="isTabsHeaderEnabled"
       :class="['tabs', { 'tab-bar-highlight': dragOverTabBarActive }]"
       role="tablist"
       @dragover="onTabBarDragOver"
@@ -119,13 +122,19 @@ const {
 <style lang="scss" scoped>
   .horizontal-window-manager {
     display: grid;
-    z-index: var(--drag-area-wm-z-index);
+    // z-index: var(--drag-area-wm-z-index);
 
     grid-template-areas:
-      "tabs"
       "body";
+    grid-template-rows: auto;
 
-    grid-template-rows: var(--wm-tab-height) auto;
+    &.tabs-header-enabled {
+      grid-template-areas:
+        "tabs"
+        "body";
+
+      grid-template-rows: var(--wm-tab-height) auto;
+    }
 
     &.vm {
       height: var(--wm-height, 0);

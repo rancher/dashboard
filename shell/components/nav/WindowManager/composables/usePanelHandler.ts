@@ -11,6 +11,8 @@ export default (props: { position: Position }) => {
 
   const tabs = computed(() => store.getters['wm/tabs'].filter((t: Tab) => t.position === props.position));
 
+  const isTabsHeaderEnabled = computed(() => tabs.value.every((t: Tab) => t.showHeader));
+
   const {
     activeTab, setTabActive, onTabReady, onTabClose, onPanelClose
   } = useTabsHandler();
@@ -46,6 +48,7 @@ export default (props: { position: Position }) => {
   return {
     tabs,
     activeTab,
+    isTabsHeaderEnabled,
     height,
     width,
     dragOverPositionsActive,
