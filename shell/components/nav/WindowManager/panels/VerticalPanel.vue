@@ -23,6 +23,7 @@ const {
   onTabClose,
   mouseResizeXStart,
   keyboardResizeX,
+  lockedPosition,
   onTabBarDragOver,
   onTabBarDragLeave,
   onTabBarDrop,
@@ -47,7 +48,13 @@ const {
   >
     <div
       v-if="isTabsHeaderEnabled"
-      :class="['tabs', { 'tab-bar-highlight': dragOverTabBarActive, 'resizer-left': props.position === LEFT, }]"
+      :class="[
+        'tabs',
+        {
+          'tab-bar-highlight': dragOverTabBarActive,
+          'resizer-left': props.position === LEFT,
+        }
+      ]"
       role="tablist"
       @dragover="onTabBarDragOver"
       @dragenter="onTabBarDragEnter"
@@ -75,8 +82,11 @@ const {
         v-for="(tab, i) in tabs"
         :key="i"
         class="tab"
-        :class="{'active': tab.id === activeTab[props.position]}"
-        :draggable="tab.id === activeTab[props.position]"
+        :class="{
+          'active': tab.id === activeTab[props.position],
+          'draggable': !lockedPosition,
+        }"
+        :draggable="tab.id === activeTab[props.position] && !lockedPosition"
         role="tab"
         :aria-selected="tab.id === activeTab[props.position]"
         :aria-label="tab.label"
@@ -202,6 +212,9 @@ const {
           background-color: var(--wm-body-bg);
           outline: 1px solid var(--wm-body-bg);
           z-index: 1;
+        }
+
+        &.draggable {
           cursor: grab;
         }
 

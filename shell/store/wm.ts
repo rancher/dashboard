@@ -10,6 +10,35 @@ export interface State {
   panelHeight: Record<Position | string, number | null>;
   panelWidth: Record<Position | string, number | null>;
   userPin: Position | string | null;
+  lockedPositions: Position[];
+}
+
+function switchTabInternal(state: State, tabId: string, targetPosition: Position | string) {
+  const current = { ...(state.tabs.find((x) => x.id === tabId) || {}) };
+
+  if (current) {
+    moveTabByReference(state.tabs, current.position, targetPosition, tabId);
+
+    state.active[targetPosition] = tabId;
+    state.open = { ...state.open, [targetPosition]: true };
+
+    if (current.position !== targetPosition) {
+      const oldPositionTabs = state.tabs.filter((t) => t.position === current.position);
+
+      state.active[current.position] = oldPositionTabs[0]?.id || null;
+      state.open[current.position] = oldPositionTabs.length > 0;
+    }
+  }
+}
+
+function moveTabByReference(tabs: any[], fromPosition: string, toPosition: string, tabId: string) {
+  const idx = tabs.findIndex((t) => t.id === tabId && t.position === fromPosition);
+
+  if (idx === -1) return;
+  const [tab] = tabs.splice(idx, 1);
+
+  tab.position = toPosition;
+  tabs.push(tab);
 }
 
 export const state = function() {
@@ -22,29 +51,19 @@ export const state = function() {
       [LEFT]:  window.localStorage.getItem(STORAGE_KEY[LEFT]),
       [RIGHT]: window.localStorage.getItem(STORAGE_KEY[RIGHT]),
     },
-    userPin: null,
+    userPin:         null,
+    lockedPositions: [],
   };
 };
 
-function moveTabByReference(tabs: any[], fromPosition: string, toPosition: string, tabId: string) {
-  const idx = tabs.findIndex((t) => t.id === tabId && t.position === fromPosition);
-
-  if (idx === -1) return;
-  const [tab] = tabs.splice(idx, 1);
-
-  tab.position = toPosition;
-  tabs.push(tab);
-}
-
 export const getters = {
-  byId: (state: State) => (id: string) => {
-    return state.tabs.find((x) => x.id === id);
-  },
-  tabs:        (state: State) => state.tabs,
-  isOpen:      (state: State) => (position: string) => state.open[position],
-  panelWidth:  (state: State) => state.panelWidth,
-  panelHeight: (state: State) => state.panelHeight,
-  userPin:     (state: State) => state.userPin,
+  byId:            (state: State) => (id: string) => state.tabs.find((x) => x.id === id),
+  tabs:            (state: State) => state.tabs,
+  isOpen:          (state: State) => (position: string) => state.open[position],
+  panelWidth:      (state: State) => state.panelWidth,
+  panelHeight:     (state: State) => state.panelHeight,
+  userPin:         (state: State) => state.userPin,
+  lockedPositions: (state: State) => state.lockedPositions,
 };
 
 export const mutations = {
@@ -54,6 +73,10 @@ export const mutations = {
     if (!existing) {
       if (tab.position === undefined) {
         tab.position = window.localStorage.getItem(STORAGE_KEY['pin']) || BOTTOM;
+      }
+
+      if (state.lockedPositions.includes(BOTTOM)) {
+        tab.position = BOTTOM;
       }
 
       if (tab.layouts === undefined) {
@@ -72,21 +95,15 @@ export const mutations = {
   },
 
   switchTab(state: State, { tabId, targetPosition }: { tabId: string, targetPosition: Position | string }) {
-    const current = { ...(state.tabs.find((x) => x.id === tabId) || {}) };
+    switchTabInternal(state, tabId, targetPosition);
+  },
 
-    if (current) {
-      moveTabByReference(state.tabs, current.position, targetPosition, tabId);
+  switchAllTab(state: State, { targetPosition }: { targetPosition: Position | string }) {
+    const tabs = [...state.tabs.filter((tab) => tab.position !== targetPosition)];
 
-      state.active[targetPosition] = tabId;
-      state.open = { ...state.open, [targetPosition]: true };
-
-      if (current.position !== targetPosition) {
-        const oldPositionTabs = state.tabs.filter((t) => t.position === current.position);
-
-        state.active[current.position] = oldPositionTabs[0]?.id || null;
-        state.open[current.position] = oldPositionTabs.length > 0;
-      }
-    }
+    tabs.forEach((tab) => {
+      switchTabInternal(state, tab.id, targetPosition);
+    });
   },
 
   closeTab(state: State, { id }: { id: string }) {
@@ -152,6 +169,10 @@ export const mutations = {
   setUserPin(state: State, pin: string | null) {
     state.userPin = pin;
     window.localStorage.setItem(STORAGE_KEY['pin'], pin as string);
+  },
+
+  setLockedPositions(state: State, positions: Position[]) {
+    state.lockedPositions = positions;
   }
 };
 

@@ -24,7 +24,5 @@ const emit = defineEmits(['ready']);
 
 const contentId = `wm-panel-body-${ props.position }-${ props.id.replace(/[^a-zA-Z0-9_-]/g, '-') }`;
 
-onMounted(() => {
-  emit('ready', contentId);
-});
+onMounted(() => emit('ready', contentId));
 </script>
