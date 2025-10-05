@@ -42,7 +42,6 @@ const {
     }"
   >
     <div
-      ref="tabs"
       :class="['tabs', { 'tab-bar-highlight': dragOverTabBarActive }]"
       role="tablist"
       @dragover="onTabBarDragOver"

@@ -44,7 +44,6 @@ const {
     }"
   >
     <div
-      ref="tabs"
       :class="['tabs', { 'tab-bar-highlight': dragOverTabBarActive, 'resizer-left': props.position === LEFT, }]"
       role="tablist"
       @dragover="onTabBarDragOver"

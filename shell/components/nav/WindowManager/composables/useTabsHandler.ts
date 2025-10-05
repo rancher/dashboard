@@ -7,7 +7,6 @@ const tabs = ref<{ tab: Tab, containerId: string }[]>([]);
 export default () => {
   const store = useStore();
 
-  const isPanelOpen = computed(() => store.state.wm.open);
   const activeTab = computed(() => store.state.wm.active);
 
   function onTabReady(arg: { tab: Tab, containerId: string }) {
@@ -39,7 +38,6 @@ export default () => {
 
   return {
     tabs,
-    isPanelOpen,
     activeTab,
     setTabActive,
     onTabReady,

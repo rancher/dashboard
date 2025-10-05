@@ -52,6 +52,10 @@ export const mutations = {
         tab.position = window.localStorage.getItem('wm-pin') || BOTTOM;
       }
 
+      if (tab.layouts === undefined) {
+        tab.layouts = ['default'];
+      }
+
       addObject(state.tabs, tab);
     }
 
