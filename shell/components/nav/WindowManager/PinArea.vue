@@ -5,7 +5,7 @@ import useDragHandler from './composables/useDragHandler';
 import { Z_INDEX } from './constants';
 
 const {
-  dragOverPositionsActive, pin, zone, onDragPositionOver
+  dragOverPositionsActive, pin, pinArea, lockedPositions, onDragPositionOver
 } = useDragHandler();
 
 onMounted(() => {
@@ -23,23 +23,26 @@ onMounted(() => {
     class="pin-area-container"
   >
     <span
-      v-if="zone != pin"
+      v-if="pinArea != pin"
       class="pin-effect-area"
-      :class="zone"
+      :class="pinArea"
     />
     <span
       class="drag-area center"
       @dragover="onDragPositionOver($event, CENTER)"
     />
     <span
+      v-if="!lockedPositions.includes(RIGHT)"
       class="drag-area right"
       @dragover="onDragPositionOver($event, RIGHT)"
     />
     <span
+      v-if="!lockedPositions.includes(LEFT)"
       class="drag-area left"
       @dragover="onDragPositionOver($event, LEFT)"
     />
     <span
+      v-if="!lockedPositions.includes(BOTTOM)"
       class="drag-area bottom"
       @dragover="onDragPositionOver($event, BOTTOM)"
     />

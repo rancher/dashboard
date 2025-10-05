@@ -33,7 +33,8 @@ export default (props: { position: Position }) => {
     onTabBarDrop,
     onTabBarDragEnter,
     onDragPositionStart,
-    onDragPositionEnd
+    onDragPositionEnd,
+    lockedPosition
   } = useDragHandler({ position: props.position });
 
   onMounted(() => openPanel(props.position));
@@ -64,6 +65,7 @@ export default (props: { position: Position }) => {
     onTabBarDrop,
     onTabBarDragEnter,
     onDragPositionStart,
-    onDragPositionEnd
+    onDragPositionEnd,
+    lockedPosition
   };
 };

@@ -4,10 +4,14 @@ import { computed, ref } from 'vue';
 import { CENTER } from '@shell/utils/position';
 
 const dragOverPositionsActive = ref(false);
-const zone = ref(CENTER as Position);
+const pinArea = ref(CENTER as Position);
 
 export default (props?: { position: Position }) => {
   const store = useStore();
+
+  const lockedPositions = computed(() => (store.state.wm.lockedPositions || []) as Position[]);
+
+  const lockedPosition = computed(() => props?.position ? lockedPositions.value.includes(props?.position) : false);
 
   const pin = computed({
     get(): Position {
@@ -33,7 +37,7 @@ export default (props?: { position: Position }) => {
   }
 
   function onDragPositionOver(event: DragEvent, position: Position) {
-    zone.value = position;
+    pinArea.value = position;
 
     if (position !== CENTER) {
       event.preventDefault();
@@ -41,14 +45,14 @@ export default (props?: { position: Position }) => {
   }
 
   function onDragPositionEnd(value: { event: DragEvent, tab: Tab }) {
-    pin.value = zone.value;
+    pin.value = pinArea.value;
 
-    if (zone.value !== CENTER) {
-      store.commit('wm/switchTab', { tabId: value.tab.id, targetPosition: zone.value });
+    if (pinArea.value !== CENTER) {
+      store.commit('wm/switchTab', { tabId: value.tab.id, targetPosition: pinArea.value });
     }
 
     dragOverPositionsActive.value = false;
-    zone.value = CENTER;
+    pinArea.value = CENTER;
   }
 
   const dragOverTabBarActive = ref(false);
@@ -82,8 +86,10 @@ export default (props?: { position: Position }) => {
   return {
     dragOverPositionsActive,
     dragOverTabBarActive,
-    zone,
+    pinArea,
     pin,
+    lockedPositions,
+    lockedPosition,
     onTabBarDragOver,
     onTabBarDragLeave,
     onTabBarDrop,
