@@ -5,7 +5,9 @@ import VerticalPanel from './panels/VerticalPanel.vue';
 import PinArea from './PinArea.vue';
 import useComponentsMount from './composables/useComponentsMount';
 import useTabsHandler from './composables/useTabsHandler';
+import usePanelsHandler from '@shell/components/nav/WindowManager/composables/usePanelsHandler';
 
+export type Layout = 'home' | 'default';
 export type Position = typeof BOTTOM | typeof LEFT | typeof RIGHT | typeof CENTER;
 
 export interface Tab {
@@ -15,12 +17,17 @@ export interface Tab {
   component?: string,
   extensionId?: string,
   position: Position,
+  layouts: Layout[],
   containerHeight: number,
   containerWidth: number,
   attrs?: Record<string, any>,
 }
 
 const props = defineProps({
+  layout: {
+    type:    String as () => Layout,
+    default: 'default'
+  },
   positions: {
     type:    Array as () => Position[],
     default: () => [BOTTOM, LEFT, RIGHT]
@@ -29,36 +36,37 @@ const props = defineProps({
 
 const { loadComponent } = useComponentsMount();
 
-const { tabs, isPanelOpen } = useTabsHandler();
+const { isPanelEnabled } = usePanelsHandler({ layout: props.layout, positions: props.positions });
+const { tabs } = useTabsHandler();
 </script>
 
 <template>
   <HorizontalPanel
-    v-if="props.positions.includes(BOTTOM) && isPanelOpen[BOTTOM]"
+    v-if="isPanelEnabled[BOTTOM]"
     :position="BOTTOM"
   />
   <VerticalPanel
-    v-if="props.positions.includes(LEFT) && isPanelOpen[LEFT]"
+    v-if="isPanelEnabled[LEFT]"
     :position="LEFT"
   />
   <VerticalPanel
-    v-if="props.positions.includes(RIGHT) && isPanelOpen[RIGHT]"
+    v-if="isPanelEnabled[RIGHT]"
     :position="RIGHT"
   />
   <Teleport
-    v-for="tab in tabs"
-    :key="tab.tab.id"
-    :to="`#${ tab.containerId }`"
+    v-for="{ tab, containerId } in tabs"
+    :key="tab.id"
+    :to="`#${ containerId }`"
   >
     <keep-alive>
       <component
-        :is="loadComponent(tab.tab)"
-        :key="tab.tab.id"
+        :is="loadComponent(tab)"
+        :key="tab.id"
         :tab="tab"
         :active="true"
-        :height="tab.tab.containerHeight"
-        :width="tab.tab.containerWidth"
-        v-bind="tab.tab.attrs"
+        :height="tab.containerHeight"
+        :width="tab.containerWidth"
+        v-bind="tab.attrs"
       />
     </keep-alive>
   </Teleport>
