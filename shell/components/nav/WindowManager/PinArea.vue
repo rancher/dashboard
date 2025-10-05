@@ -2,21 +2,13 @@
 import { onMounted } from 'vue';
 import { BOTTOM, CENTER, LEFT, RIGHT } from '@shell/utils/position';
 import useDragHandler from './composables/useDragHandler';
+import { Z_INDEX } from './constants';
 
 const {
   dragOverPositionsActive, pin, zone, onDragPositionOver
 } = useDragHandler();
 
 onMounted(() => {
-  const Z_INDEX = {
-    WM:         1000,
-    PIN_EFFECT: 996,
-    RIGHT:      999,
-    LEFT:       999,
-    BOTTOM:     998,
-    CENTER:     997,
-  };
-
   Object.keys(Z_INDEX).forEach((key) => {
     document.documentElement.style.setProperty(
       `--drag-area-${ key.toLowerCase().replaceAll('_', '-') }-z-index`, (Z_INDEX as any)[key].toString()

@@ -18,7 +18,6 @@ export default (props?: { position: Position }) => {
       if (pin === CENTER) {
         return;
       }
-      window.localStorage.setItem('wm-pin', pin as string);
       store.commit('wm/setUserPin', pin);
     },
   });
