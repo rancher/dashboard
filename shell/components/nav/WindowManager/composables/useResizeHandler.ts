@@ -1,10 +1,11 @@
-import { debounce } from 'lodash';
-import { Ref, ref } from 'vue';
+import { ref } from 'vue';
 import { boundingRect, LEFT, RIGHT, screenRect } from '@shell/utils/position';
 import { Position } from '@shell/components/nav/WindowManager/index.vue';
+import { useStore } from 'vuex';
 
-export default (props: { position: Position, height: Ref<number>, width: Ref<number>, setDimensions: (forceValue: number | string) => void }) => {
-  const resizing = ref(false);
+export default (props: { position: Position, setDimensions: (args: { width?: number, height?: number }) => void }) => {
+  const store = useStore();
+
   const dragOffset = ref(0);
 
   function mouseResizeYStart(event: MouseEvent | TouchEvent) {
@@ -54,8 +55,7 @@ export default (props: { position: Position, height: Ref<number>, width: Ref<num
 
     neu = Math.max(min, Math.min(neu, max));
 
-    props.height.value = neu;
-    resizing.value = true;
+    props.setDimensions({ height: neu });
   }
 
   function mouseResizeYEnd(event: MouseEvent | TouchEvent) {
@@ -68,10 +68,6 @@ export default (props: { position: Position, height: Ref<number>, width: Ref<num
     doc.removeEventListener('touchend', mouseResizeYEnd, true);
     doc.removeEventListener('touchcancel', mouseResizeYEnd, true);
     doc.removeEventListener('touchstart', mouseResizeYEnd, true);
-
-    debounce(() => {
-      resizing.value = false;
-    }, 100)();
   }
 
   function mouseResizeXStart(event: MouseEvent | TouchEvent) {
@@ -109,15 +105,13 @@ export default (props: { position: Position, height: Ref<number>, width: Ref<num
     switch (props.position) {
     case RIGHT:
       neu = Math.max(min, Math.min((screen.width - eventX + dragOffset.value) || 0, max));
-      document.documentElement.style.setProperty('--wm-vr-width', `${ neu }px`);
       break;
     case LEFT:
       neu = Math.max(min, Math.min((eventX + dragOffset.value) || 0, max));
-      document.documentElement.style.setProperty('--wm-vl-width', `${ neu }px`);
       break;
     }
 
-    props.width.value = neu || 0;
+    props.setDimensions({ width: neu || 0 });
   }
 
   function mouseResizeXEnd(event: MouseEvent | TouchEvent) {
@@ -133,27 +127,28 @@ export default (props: { position: Position, height: Ref<number>, width: Ref<num
   }
 
   function keyboardResizeY(arrowUp: boolean) {
+    const panelHeight = store.state.wm.panelHeight?.[props.position];
     const resizeStep = 20;
-    const newHeight = arrowUp ? (props.height.value || 0) + resizeStep : (props.height.value || 0) - resizeStep;
+    const newHeight = arrowUp ? (panelHeight || 0) + resizeStep : (panelHeight || 0) - resizeStep;
 
-    props.height.value = newHeight;
-
-    props.setDimensions(newHeight);
+    props.setDimensions({ height: newHeight });
   }
 
   function keyboardResizeX(arrowLeft: boolean) {
+    const panelWidth = store.state.wm.panelWidth?.[props.position];
     const resizeStep = 20;
-    let newWidth;
+    let width;
 
-    if (props.position === LEFT) {
-      newWidth = arrowLeft ? (props.width.value || 0) - resizeStep : (props.width.value || 0) + resizeStep;
-    } else {
-      newWidth = arrowLeft ? (props.width.value || 0) + resizeStep : (props.width.value || 0) - resizeStep;
+    switch (props.position) {
+    case RIGHT:
+      width = arrowLeft ? (panelWidth || 0) + resizeStep : (panelWidth || 0) - resizeStep;
+      break;
+    case LEFT:
+      width = arrowLeft ? (panelWidth || 0) - resizeStep : (panelWidth || 0) + resizeStep;
+      break;
     }
 
-    props.width.value = newWidth;
-
-    props.setDimensions(newWidth);
+    props.setDimensions({ width });
   }
 
   return {

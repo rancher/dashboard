@@ -1,6 +1,7 @@
+import { STORAGE_KEY } from '@shell/components/nav/WindowManager/constants';
 import { Position } from '@shell/components/nav/WindowManager/index.vue';
 import { addObject, removeObject } from '@shell/utils/array';
-import { BOTTOM } from '@shell/utils/position';
+import { BOTTOM, LEFT, RIGHT } from '@shell/utils/position';
 
 export interface State {
   tabs: Array<any>;
@@ -16,9 +17,12 @@ export const state = function() {
     tabs:        [],
     active:      {},
     open:        {},
-    panelHeight: {},
-    panelWidth:  {},
-    userPin:     null,
+    panelHeight: { [BOTTOM]: window.localStorage.getItem(STORAGE_KEY[BOTTOM]) },
+    panelWidth:  {
+      [LEFT]:  window.localStorage.getItem(STORAGE_KEY[LEFT]),
+      [RIGHT]: window.localStorage.getItem(STORAGE_KEY[RIGHT]),
+    },
+    userPin: null,
   };
 };
 
@@ -49,7 +53,7 @@ export const mutations = {
 
     if (!existing) {
       if (tab.position === undefined) {
-        tab.position = window.localStorage.getItem('wm-pin') || BOTTOM;
+        tab.position = window.localStorage.getItem(STORAGE_KEY['pin']) || BOTTOM;
       }
 
       if (tab.layouts === undefined) {
@@ -125,6 +129,8 @@ export const mutations = {
 
   setPanelHeight(state: State, { position, height }: { position: string, height: number | null }) {
     state.panelHeight[position] = height;
+    window.localStorage.setItem(STORAGE_KEY[BOTTOM], `${ height }`);
+
     for (const tab of state.tabs) {
       if (tab.position === position) {
         tab.containerHeight = height;
@@ -132,8 +138,10 @@ export const mutations = {
     }
   },
 
-  setPanelWidth(state: State, { position, width }: { position: string, width: number | null }) {
+  setPanelWidth(state: State, { position, width }: { position: Position, width: number | null }) {
     state.panelWidth[position] = width;
+    window.localStorage.setItem(STORAGE_KEY[position as keyof typeof STORAGE_KEY], `${ width }`);
+
     for (const tab of state.tabs) {
       if (tab.position === position) {
         tab.containerWidth = width;
@@ -143,6 +151,7 @@ export const mutations = {
 
   setUserPin(state: State, pin: string | null) {
     state.userPin = pin;
+    window.localStorage.setItem(STORAGE_KEY['pin'], pin as string);
   }
 };
 

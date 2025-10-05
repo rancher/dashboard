@@ -18,14 +18,12 @@ export default (props: { position: Position }) => {
   } = useTabsHandler();
 
   const {
-    height, width, setDimensions, closePanel
+    height, width, setDimensions, openPanel, closePanel
   } = useDimensionsHandler({ position: props.position });
 
   const {
     mouseResizeYStart, keyboardResizeY, mouseResizeXStart, keyboardResizeX
-  } = useResizeHandler({
-    position: props.position, height, width, setDimensions
-  });
+  } = useResizeHandler({ position: props.position, setDimensions });
 
   const {
     dragOverPositionsActive,
@@ -38,10 +36,10 @@ export default (props: { position: Position }) => {
     onDragPositionEnd
   } = useDragHandler({ position: props.position });
 
-  onMounted(setDimensions);
+  onMounted(() => openPanel(props.position));
 
   onBeforeUnmount(() => {
-    closePanel();
+    closePanel(props.position);
     onPanelClose(props.position);
   });
 
