@@ -15,6 +15,7 @@ const props = defineProps({
 const {
   tabs,
   activeTab,
+  isTabsHeaderEnabled,
   dragOverPositionsActive,
   dragOverTabBarActive,
   setTabActive,
@@ -40,10 +41,12 @@ const {
       'wm-vr': props.position === RIGHT,
       'wm-vl': props.position === LEFT,
       'drag-start': dragOverPositionsActive,
-      'drag-end': !dragOverPositionsActive
+      'drag-end': !dragOverPositionsActive,
+      'tabs-header-enabled': isTabsHeaderEnabled,
     }"
   >
     <div
+      v-if="isTabsHeaderEnabled"
       :class="['tabs', { 'tab-bar-highlight': dragOverTabBarActive, 'resizer-left': props.position === LEFT, }]"
       role="tablist"
       @dragover="onTabBarDragOver"
@@ -139,13 +142,19 @@ const {
 <style lang="scss" scoped>
   .vertical-window-manager {
     display: grid;
-    z-index: var(--drag-area-wm-z-index);
+    // z-index: var(--drag-area-wm-z-index);
 
     grid-template-areas:
-      "tabs"
       "body";
+    grid-template-rows: auto;
 
-    grid-template-rows: var(--wm-tab-height) auto;
+    &.tabs-header-enabled {
+      grid-template-areas:
+        "tabs"
+        "body";
+
+      grid-template-rows: var(--wm-tab-height) auto;
+    }
 
     &.wm-vr {
       width: var(--wm-vr-width, 0);
