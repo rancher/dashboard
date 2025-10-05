@@ -83,7 +83,7 @@ export default {
           class="outlet"
         />
       </main>
-      <WindowManager :positions="[]" />
+      <WindowManager :layout="'home'" />
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />

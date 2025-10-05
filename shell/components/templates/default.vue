@@ -220,7 +220,7 @@ export default {
           class="outlet"
         />
       </main>
-      <WindowManager />
+      <WindowManager :layout="'default'" />
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
