@@ -2,6 +2,7 @@ import { Store } from 'vuex';
 import { GrowlApi, ModalApi, ShellApi, SlideInApi } from '@shell/apis/intf/shell';
 import { GrowlApiImpl } from './growl';
 import { ModalApiImpl } from './modal';
+import { SlideInApiImpl } from './slide-in';
 
 export class ShellApiImpl implements ShellApi {
   private growlApi: GrowlApi;
@@ -11,7 +12,7 @@ export class ShellApiImpl implements ShellApi {
   constructor(store: Store<any>) {
     this.growlApi = new GrowlApiImpl(store);
     this.modalApi = new ModalApiImpl(store);
-    this.slideInApi = new ModalApiImpl(store);
+    this.slideInApi = new SlideInApiImpl(store);
   }
 
   get growl(): GrowlApi {
@@ -19,10 +20,10 @@ export class ShellApiImpl implements ShellApi {
   }
 
   get modal(): ModalApi {
-    throw this.modalApi;
+    return this.modalApi;
   }
 
   get slideIn(): SlideInApi {
-    throw this.slideInApi;
+    return this.slideInApi;
   }
 }
