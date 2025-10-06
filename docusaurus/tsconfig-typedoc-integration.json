@@ -1,7 +1,7 @@
 {
-    "extends": "../tsconfig.paths.json",
+    "extends": "./tsconfig.paths.json",
     "compilerOptions": {
-        "baseUrl": "../",
+        "baseUrl": ".",
         "module": "commonjs",
         "target": "es6",
         "esModuleInterop": true,

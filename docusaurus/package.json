@@ -28,7 +28,8 @@
     "docusaurus-plugin-typedoc": "^1.4.2",
     "typedoc": "^0.28.13",
     "typedoc-plugin-markdown": "^4.9.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vue": "3.5.18"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.8.1",
