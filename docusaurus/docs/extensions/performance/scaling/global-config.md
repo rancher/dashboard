@@ -9,7 +9,7 @@ There's already of a lot of resources that are ready, however some are not or ar
 To resolves this use the plugin `enableServerSidePagination` method to provide a set of scenarios where the resource can be supported by server-side pagination. 
 
 ```
- plugin.enableServerSidePagination({
+ plugin.enableServerSidePagination?({
     cluster: {
       resources: {
         enableSome: {
@@ -19,6 +19,8 @@ To resolves this use the plugin `enableServerSidePagination` method to provide a
     }
   })
 ```
+
+> Notice that this uses optional chaining `?` on enableServerSidePagination. This avoids errors when running the extension in older versions of rancher where rancher does not expose `plugin.enableServerSidePagination`. For that scenario the resource would continue to be unsupported by server-side pagination.
 
 In the above code the extension is stating that the `rbac.authorization.k8s.io.clusterrolebinding` resource can be listed, sorted and searched using server-side pagination.
 
