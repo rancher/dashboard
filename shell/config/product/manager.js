@@ -1,4 +1,4 @@
-import { AGE, NAME as NAME_COL, STATE } from '@shell/config/table-headers';
+import { AGE, AUTOSCALER_ENABLED, NAME as NAME_COL, STATE } from '@shell/config/table-headers';
 import {
   CAPI,
   CATALOG,
@@ -165,6 +165,7 @@ export function init(store) {
       sort:      ['machineProvider', 'provisioner'],
       formatter: 'ClusterProvider',
     },
+    AUTOSCALER_ENABLED,
     MACHINE_SUMMARY,
     AGE,
     {

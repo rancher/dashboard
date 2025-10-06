@@ -10,6 +10,8 @@ import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@shell/store/feature
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { BadgeState } from '@components/BadgeState';
+import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
+import { AUTOSCALER_ENABLED } from '@shell/config/table-headers';
 
 export default {
   components: {
@@ -153,6 +155,17 @@ export default {
       return this.filteredRows.some((c) => c.metadata.namespace !== 'fleet-local' && c.metadata.namespace !== 'fleet-default');
     },
 
+    headers() {
+      const headers = this.$store.getters['type-map/headersFor'](this.schema);
+
+      // Remove autoscaler if the feature isn't enabled
+      if (!isAutoscalerFeatureFlagEnabled(this.$store)) {
+        return headers.filter((h) => h.name !== AUTOSCALER_ENABLED.name);
+      }
+
+      return headers;
+    }
+
   },
 
   $loadingResources() {
@@ -201,7 +214,7 @@ export default {
     </Masthead>
 
     <ResourceTable
-      :schema="schema"
+      :headers="headers"
       :rows="filteredRows"
       :namespaced="nonStandardNamespaces"
       :loading="loading"
@@ -237,7 +250,7 @@ export default {
       </template>
       <template #cell:explorer="{row}">
         <router-link
-          v-if="row.mgmt && row.mgmt.isReady && !row.hasError"
+          v-if="row.isExplorerAvailable"
           data-testid="cluster-manager-list-explore-management"
           class="btn btn-sm role-secondary"
           :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}"

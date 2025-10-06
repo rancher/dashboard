@@ -19,7 +19,7 @@ export const useNamespace = (resource: any): ComputedRef<Row> | undefined => {
   const i18n = useI18n(store);
   const resourceValue = toValue(resource);
 
-  if (!resourceValue.namespace || resourceValue.namespaces || resourceValue.isProjectScoped) {
+  if (!resourceValue.namespace || resourceValue.namespaces || resourceValue.isProjectScoped || !store.getters['currentCluster']) {
     return;
   }
 
@@ -139,6 +139,10 @@ export const useResourceDetails = (resource: any): undefined | ComputedRef<Row[]
   }
 
   const extractValueOverride = (detail: any) => {
+    if (detail.valueOverride) {
+      return detail.valueOverride;
+    }
+
     if (!detail.formatter) {
       return;
     }

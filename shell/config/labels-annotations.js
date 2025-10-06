@@ -69,7 +69,12 @@ export const CAPI = {
   /**
    * Annotation for overriding the cluster provider,
    */
-  UI_CUSTOM_PROVIDER:   'ui.rancher/provider'
+  UI_CUSTOM_PROVIDER:   'ui.rancher/provider',
+
+  /**
+   * Annotations for autoscaler
+   */
+  AUTOSCALER_CLUSTER_PAUSE: 'provisioning.cattle.io/cluster-autoscaler-paused'
 };
 
 export const CATALOG = {

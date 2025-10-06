@@ -1,37 +1,20 @@
 <script lang="ts">
-import Card from '@shell/components/Resource/Detail/Card/index.vue';
-import { useStore } from 'vuex';
-import ActionMenu from '@shell/components/ActionMenuShell.vue';
-import { useI18n } from '@shell/composables/useI18n';
-
 export interface Props {
   resource: any;
 }
 </script>
 
 <script setup lang="ts">
-const emit = defineEmits(['action-invoked']);
 const props = defineProps<Props>();
-const store = useStore();
-const i18n = useI18n(store);
 
 const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.label }:${ glanceItem.content }`.toLowerCase().replaceAll(' ', '');
 </script>
 
 <template>
-  <Card
+  <div
     class="resource-popover-card"
     :title="resource.nameDisplay"
   >
-    <template #heading-action>
-      <ActionMenu
-        :resource="props.resource"
-        :button-aria-label="i18n.t('component.resource.detail.glance.ariaLabel.actionMenu', { resource: props.resource.nameDisplay })"
-        data-testid="resource-popover-action-menu"
-        @action-invoked="emit('action-invoked')"
-      />
-    </template>
-
     <div>
       <div
         v-for="(glanceItem, i) in props.resource.glance"
@@ -64,7 +47,7 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
         </div>
       </div>
     </div>
-  </Card>
+  </div>
 </template>
 
 <style lang="scss" scoped>
