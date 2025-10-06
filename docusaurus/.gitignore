@@ -9,7 +9,7 @@
 .cache-loader
 
 # Typedoc integration
-docs/extensions/frameworks-api
+docs/extensions/shell-api
 
 # Misc
 .DS_Store
