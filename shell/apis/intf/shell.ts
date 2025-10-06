@@ -1,31 +1,85 @@
 import { Component } from 'vue';
 
-export type GrowlMessage = {
-  title?: string;
-
-  message?: string;
-
-  // Use enums not strings
-  type?: 'success' | 'info' | 'warning' | 'error';
-
-  /**
-   * Optional duration (in milliseconds) for which the notification should be displayed.
-   * Defaults to `5000` milliseconds. A value of `0` keeps the notification indefinitely.
-   */
-  timeout?: number;
+enum VALID_GROWL_TYPES {
+  SUCCESS = 'success',
+  INFO = 'info',
+  WARNING = 'warning',
+  ERROR = 'error'
 }
 
 /**
- * API for displaying growls in Rancher UI
+ * API for displaying growls in Rancher UI. Here's what a Growl looks like in Rancher UI:
  * * ![Growl Example](/img/growl.png)
  */
 export interface GrowlApi {
   /**
    * Method to display a growl in Rancher UI
    *
+   * Example:
+   * ```ts
+   * this.$shell.growl.show({
+   *   message: 'Hello world!'
+   * });
+   * ```
+   *
    * @param message Message object to configure growl being displayed
    */
-  show(message: GrowlMessage): void;
+  show(message: GrowlConfig): void;
+}
+
+/**
+ * Growl Message configuration object
+ */
+export interface GrowlConfig {
+  /**
+   * Property that defines the title of the Growl
+   */
+  title?: string;
+
+  /**
+   * Property that defines the message content of the Growl
+   */
+  message: string;
+
+  /**
+   * Property that defines the Growl type, which also defines different base colors for the Growl
+   *
+   * Available types:
+   * - `VALID_GROWL_TYPES.SUCCESS`: Indicates a successful operation (green color).
+   * - `VALID_GROWL_TYPES.INFO`: Provides general information or a non-critical update (blue/teal color).
+   * - `VALID_GROWL_TYPES.WARNING`: Signals a potential issue or action required (orange/yellow color).
+   * - `VALID_GROWL_TYPES.ERROR`: Indicates a critical failure or necessary intervention (red color).
+   */
+  type?: VALID_GROWL_TYPES.SUCCESS | VALID_GROWL_TYPES.INFO | VALID_GROWL_TYPES.WARNING | VALID_GROWL_TYPES.ERROR;
+
+  /**
+   * Property that defines the duration (in milliseconds) for which the Growl should be displayed.
+   * Defaults to `5000` milliseconds. A value of `0` keeps the Growl indefinitely.
+   */
+  timeout?: number;
+}
+
+/**
+ * API for displaying modals in Rancher UI. Here's what a Modal looks like in Rancher UI:
+ * * ![modal Example](/img/modal.png)
+ */
+export interface ModalApi {
+  /**
+   * Opens a modal dialog in Rancher UI
+   *
+   * @param config Modal configuration
+   *
+   * Example:
+   * ```ts
+   * import MyCustomModal from '@/components/MyCustomModal.vue';
+   *
+   * this.$shell.modal.show({
+   *   component: MyCustomModal,
+   *   componentProps: { title: 'Hello Modal' }
+   * });
+   * ```
+   */
+  open(config: ModalConfig): void;
 }
 
 /**
@@ -40,7 +94,7 @@ export interface ModalConfig {
    * ```ts
    * import MyCustomModal from '@/components/MyCustomModal.vue';
    *
-   * this.$shell.modal({
+   * this.$shell.modal.show({
    *   component: MyCustomModal,
    *   componentProps: { title: 'Hello Modal' }
    * });
@@ -49,7 +103,7 @@ export interface ModalConfig {
   component: Component;
 
   /**
-   * Optional props to pass directly to the component rendered inside the modal.
+   * Props to pass directly to the component rendered inside the modal.
    *
    * Example:
    * ```ts
@@ -59,7 +113,7 @@ export interface ModalConfig {
   componentProps?: Record<string, any>;
 
   /**
-   * Optional array of resources that the modal component might need.
+   * Array of resources that the modal component might need.
    * These are passed directly into the modal's `resources` prop.
    *
    * Example:
@@ -105,58 +159,83 @@ export interface ModalConfig {
 }
 
 /**
- * API for displaying modals in Rancher UI
- * * ![modal Example](/img/modal.png)
- */
-export interface ModalApi {
-  /**
-   * Opens a modal dialog
-   *
-   * @param config Modal configuration
-   */
-  open(config: ModalConfig): void;
-}
-
-/**
- * Configuration object for opening a slide-in panel.
- *
- * @property component - The Vue component to render in the slide-in panel.
- *                       This should be a valid Vue Component, such as an imported SFC or functional component.
- *
- * @property componentProps - (Optional) An object containing props to be passed to the component rendered in the slide-in panel.
- *                            Keys should match the props defined in the provided component.
- */
-export interface SlideInConfig {
-  component: Component | null;
-  componentProps?: Record<string, any>;
-}
-
-/**
  * API for displaying Slide In panels in Rancher UI
  * * ![slidein Example](/img/slidein.png)
  */
 export interface SlideInApi {
   /**
-   * Opens the slide in
+   * Opens a slide in panel in Rancher UI
    *
-   * @param config Slide-in configuration
+   * @param config Slide-In configuration
+   *
+   *
+   * Example:
+   * ```ts
+   * import MyCustomSlideIn from '@/components/MyCustomSlideIn.vue';
+   *
+   * this.$shell.slideIn.open({
+   *   component: MyCustomSlideIn,
+   *   componentProps: { title: 'Hello from SlideIn panel!' }
+   * });
+   * ```
    */
   open(config: SlideInConfig): void;
 }
 
+/**
+ * Configuration object for opening a Slide-In panel. Here's what a Slide-In looks like in Rancher UI:
+ *
+ * @property component - The Vue component to render in the Slide-In panel.
+ *                       This should be a valid Vue Component, such as an imported SFC or functional component.
+ *
+ * @property componentProps - (Optional) An object containing props to be passed to the component rendered in the Slide-In panel.
+ *                            Keys should match the props defined in the provided component.
+ */
+export interface SlideInConfig {
+  /**
+   * The Vue component to be displayed inside the slide in panel.
+   * This can be any SFC (Single-File Component) imported and passed in as a `Component`.
+   *
+   * Example:
+   * ```ts
+   * import MyCustomSlideIn from '@/components/MyCustomSlideIn.vue';
+   *
+   * this.$shell.slideIn.open({
+   *   component: MyCustomSlideIn,
+   *   componentProps: { title: 'Hello from SlideIn panel!' }
+   * });
+   * ```
+   */
+  component: Component;
+
+  /**
+   * Props to pass directly to the component rendered inside the slide in panel.
+   *
+   * Example:
+   * ```ts
+   * componentProps: { title: 'Hello from SlideIn panel!', isVisible: true }
+   * ```
+   */
+  componentProps?: Record<string, any>;
+}
+
+/**
+ * @internal
+ * Available "API's" inside Shell API
+ */
 export interface ShellApi {
   /**
-   * Provides access to the growl API
+   * Provides access to the Growl API
    */
   get growl(): GrowlApi;
 
   /**
-   * Provides access to the modal API
+   * Provides access to the Modal API
    */
   get modal(): ModalApi;
 
   /**
-   * Provides access to the slide-in API
+   * Provides access to the Slide-In API
    */
   get slideIn(): SlideInApi;
 }

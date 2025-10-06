@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Define the absolute path to the sidebar file that `docusaurus-plugin-typedoc` generates.
-const typedocSidebarPath = path.resolve(__dirname, './docs/extensions/frameworks-api/typedoc-sidebar.cjs');
+const typedocSidebarPath = path.resolve(__dirname, './docs/extensions/shell-api/typedoc-sidebar.cjs');
 
 /**
  * Recursively processes an array of Docusaurus sidebar items.
@@ -123,10 +123,10 @@ const sidebars = {
         },
         {
           type:  'category',
-          label: 'Frameworks API',
+          label: 'Shell API',
           link:  {
             type: 'doc',
-            id:   'frameworks-api',
+            id:   'shell-api',
           },
           items: typedocSidebarItems
         },
