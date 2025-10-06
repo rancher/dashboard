@@ -6,7 +6,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import { MEDIUM_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
 
 const EXTENSION_NAME = 'elemental';
-const EXTENSION_VERSION = '2.0.0-rc2';
+const EXTENSION_VERSION = '3.0.1';
 const EXTENSION_REPO = 'https://github.com/rancher/elemental-ui';
 const EXTENSION_BRANCH = 'gh-pages';
 const EXTENSION_CLUSTER_REPO_NAME = 'elemental-ui-extension';
