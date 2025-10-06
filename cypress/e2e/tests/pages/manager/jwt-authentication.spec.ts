@@ -8,7 +8,7 @@ const jwtAuthenticationPage = new JWTAuthenticationPagePo();
 
 // Go the JWT Authentication page and ensure the page is fully loaded
 function goToJWTAuthenticationPageAndSettle() {
-  cy.intercept('GET', '/v1/management.cattle.io.clusterproxyconfigs?*').as('fetchJWTAuthentication');
+  cy.intercept('GET', '/v1/management.cattle.io.clusterproxyconfigs*').as('fetchJWTAuthentication');
   jwtAuthenticationPage.goTo();
   jwtAuthenticationPage.waitForPage();
   cy.wait('@fetchJWTAuthentication');
@@ -30,7 +30,6 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
 
   before(() => {
     cy.login();
-    HomePagePo.goTo();
     cy.createE2EResourceName('rke2cluster0').as('rke2Ec2ClusterName0');
     cy.createE2EResourceName('rke2cluster1').as('rke2Ec2ClusterName1');
 
