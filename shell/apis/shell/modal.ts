@@ -29,6 +29,12 @@ export class ModalApiImpl implements ModalApi {
      * ```
      */
   public open(config: ModalConfig): void {
+    // this.store.dispatch('management/promptModal', {
+    //   component:      'SloDialog',
+    //   componentProps: { authProvider: true },
+    //   modalWidth:     '600px'
+    // });
+
     this.store.commit('modal/openModal', {
       component:           config.component,
       componentProps:      config.componentProps || {},

@@ -1,5 +1,5 @@
 import { Store } from 'vuex';
-import { GrowlApi, GrowlMessage } from '@shell/apis/intf/shell';
+import { GrowlApi, GrowlConfig } from '@shell/apis/intf/shell';
 
 export class GrowlApiImpl implements GrowlApi {
   private store: Store<any>;
@@ -21,7 +21,7 @@ export class GrowlApiImpl implements GrowlApi {
    * this.$shell.growl({ message: { title: 'Warning', description: 'Check your input.' }, type: 'warning' });
    * ```
    */
-  public show(config: GrowlMessage): void {
+  public show(config: GrowlConfig): void {
     const { type = 'error' } = config;
 
     this.store.dispatch(
