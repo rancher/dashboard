@@ -14,7 +14,7 @@ import { SETTING } from '@shell/config/settings';
 import { getProductFromRoute } from '@shell/utils/router';
 import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
-import { TopLevelMenuHelperPagination, TopLevelMenuHelperLegacy } from '@shell/components/nav/TopLevelMenu.helper';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { debounce } from 'lodash';
 import { sameContents } from '@shell/utils/array';
 
@@ -27,6 +27,8 @@ export default {
   },
 
   data() {
+    sideNavService.init(this.$store);
+
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
     const hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
@@ -37,7 +39,7 @@ export default {
       id:      CAPI.RANCHER_CLUSTER,
       context: 'side-bar',
     });
-    const helper = canPagination ? new TopLevelMenuHelperPagination({ $store: this.$store }) : new TopLevelMenuHelperLegacy({ $store: this.$store });
+    const helper = sideNavService.helper;
     const provClusters = !canPagination && hasProvCluster ? this.$store.getters[`management/all`](CAPI.RANCHER_CLUSTER) : [];
     const mgmtClusters = !canPagination ? this.$store.getters[`management/all`](MANAGEMENT.CLUSTER) : [];
 
@@ -327,7 +329,6 @@ export default {
 
   beforeUnmount() {
     document.removeEventListener('keyup', this.handler);
-    this.helper?.destroy();
   },
 
   methods: {
