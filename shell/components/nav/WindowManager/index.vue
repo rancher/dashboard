@@ -1,33 +1,17 @@
 <script setup lang="ts">
-import { BOTTOM, CENTER, LEFT, RIGHT } from '@shell/utils/position';
+import { BOTTOM, LEFT, RIGHT } from '@shell/utils/position';
 import HorizontalPanel from './panels/HorizontalPanel.vue';
 import VerticalPanel from './panels/VerticalPanel.vue';
 import PinArea from './PinArea.vue';
 import useComponentsMount from './composables/useComponentsMount';
 import useTabsHandler from './composables/useTabsHandler';
 import usePanelsHandler from '@shell/components/nav/WindowManager/composables/usePanelsHandler';
-
-export type Layout = 'home' | 'default';
-export type Position = typeof BOTTOM | typeof LEFT | typeof RIGHT | typeof CENTER;
-
-export interface Tab {
-  id: string,
-  icon: string,
-  label: string,
-  component?: string,
-  extensionId?: string,
-  position: Position,
-  layouts: Layout[],
-  showHeader: boolean,
-  containerHeight: number,
-  containerWidth: number,
-  attrs?: Record<string, any>,
-}
+import { Layout, Position } from '@shell/types/window-manager';
 
 const props = defineProps({
   layout: {
     type:    String as () => Layout,
-    default: 'default'
+    default: Layout.default,
   },
   positions: {
     type:    Array as () => Position[],

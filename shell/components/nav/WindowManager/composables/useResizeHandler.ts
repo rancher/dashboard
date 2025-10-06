@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { boundingRect, LEFT, RIGHT, screenRect } from '@shell/utils/position';
-import { Position } from '@shell/components/nav/WindowManager/index.vue';
+import { Position } from '@shell/types/window-manager';
 import { useStore } from 'vuex';
 
 export default (props: { position: Position, setDimensions: (args: { width?: number, height?: number }) => void }) => {

@@ -25,6 +25,7 @@ import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import { getClusterFromRoute, getProductFromRoute } from '@shell/utils/router';
 import SideNav from '@shell/components/SideNav';
+import { Layout } from '@shell/types/window-manager';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -52,6 +53,7 @@ export default {
   // Note - This will not run on route change
   data() {
     return {
+      layout:           Layout.default,
       noLocaleShortcut: process.env.dev || false,
       wantNavSync:      false,
     };
@@ -220,7 +222,7 @@ export default {
           class="outlet"
         />
       </main>
-      <WindowManager :layout="'default'" />
+      <WindowManager :layout="layout" />
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />

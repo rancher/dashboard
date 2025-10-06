@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RIGHT, LEFT } from '@shell/utils/position';
 import { PropType } from 'vue';
-import { Position } from '../index.vue';
+import { Position } from '@shell/types/window-manager';
 import TabBodyContainer from './TabBodyContainer.vue';
 import usePanelHandler from '../composables/usePanelHandler';
 

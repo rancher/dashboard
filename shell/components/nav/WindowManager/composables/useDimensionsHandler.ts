@@ -2,7 +2,7 @@ import { computed } from 'vue';
 import debounce from 'lodash/debounce';
 import { useStore } from 'vuex';
 import { BOTTOM, LEFT, RIGHT } from '@shell/utils/position';
-import { Position } from '../index.vue';
+import { Position } from '@shell/types/window-manager';
 import { CSS_KEY } from '../constants';
 
 export default (props: { position: Position }) => {
