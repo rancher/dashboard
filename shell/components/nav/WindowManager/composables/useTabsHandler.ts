@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
-import { Tab } from '../index.vue';
+import { Tab } from '@shell/types/window-manager';
 
 const tabs = ref<{ tab: Tab, containerId: string }[]>([]);
 

@@ -1,6 +1,6 @@
 import { computed, onMounted, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
-import { Position, Tab } from '../index.vue';
+import { Position, Tab } from '@shell/types/window-manager';
 import useResizeHandler from '../composables/useResizeHandler';
 import useDimensionsHandler from '../composables/useDimensionsHandler';
 import useDragHandler from '../composables/useDragHandler';

@@ -1,5 +1,5 @@
 import { useStore } from 'vuex';
-import { Position, Tab } from '../index.vue';
+import { Position, Tab } from '@shell/types/window-manager';
 import { computed, ref } from 'vue';
 import { CENTER } from '@shell/utils/position';
 

@@ -1,10 +1,10 @@
 import { STORAGE_KEY } from '@shell/components/nav/WindowManager/constants';
-import { Position } from '@shell/components/nav/WindowManager/index.vue';
+import { Layout, Position, Tab } from '@shell/types/window-manager';
 import { addObject, removeObject } from '@shell/utils/array';
 import { BOTTOM, LEFT, RIGHT } from '@shell/utils/position';
 
 export interface State {
-  tabs: Array<any>;
+  tabs: Array<Tab>;
   active: Record<Position | string, string>;
   open: Record<Position | string, boolean>;
   panelHeight: Record<Position | string, number | null>;
@@ -13,13 +13,14 @@ export interface State {
   lockedPositions: Position[];
 }
 
-function moveTabByReference(tabs: any[], fromPosition: string, toPosition: string, tabId: string) {
+function moveTabByReference(tabs: Tab[], fromPosition: Position | undefined, toPosition: Position, tabId: string) {
   const idx = tabs.findIndex((t) => t.id === tabId && t.position === fromPosition);
 
   if (idx === -1) return;
   const [tab] = tabs.splice(idx, 1);
 
   tab.position = toPosition;
+
   tabs.push(tab);
 }
 
@@ -49,12 +50,12 @@ export const getters = {
 };
 
 export const mutations = {
-  addTab(state: State, tab: any) {
+  addTab(state: State, tab: Tab) {
     const existing = state.tabs.find((x) => x.id === tab.id);
 
     if (!existing) {
       if (tab.position === undefined) {
-        tab.position = window.localStorage.getItem(STORAGE_KEY['pin']) || BOTTOM;
+        tab.position = (window.localStorage.getItem(STORAGE_KEY['pin']) || BOTTOM) as Position;
       }
 
       if (state.lockedPositions.includes(BOTTOM)) {
@@ -62,7 +63,7 @@ export const mutations = {
       }
 
       if (tab.layouts === undefined) {
-        tab.layouts = ['default'];
+        tab.layouts = [Layout.default];
       }
 
       if (tab.showHeader === undefined) {
@@ -79,7 +80,7 @@ export const mutations = {
     window.localStorage.setItem(STORAGE_KEY['pin'], tab.position);
   },
 
-  switchTab(state: State, { tabId, targetPosition }: { tabId: string, targetPosition: Position | string }) {
+  switchTab(state: State, { tabId, targetPosition }: { tabId: string, targetPosition: Position }) {
     const current = { ...(state.tabs.find((x) => x.id === tabId) || {}) };
 
     if (current) {
@@ -91,8 +92,10 @@ export const mutations = {
       if (current.position !== targetPosition) {
         const oldPositionTabs = state.tabs.filter((t) => t.position === current.position);
 
-        state.active[current.position] = oldPositionTabs[0]?.id || null;
-        state.open[current.position] = oldPositionTabs.length > 0;
+        if (current.position) {
+          state.active[current.position] = oldPositionTabs[0]?.id || '';
+          state.open[current.position] = oldPositionTabs.length > 0;
+        }
       }
     }
 
@@ -122,11 +125,13 @@ export const mutations = {
 
     const oldPositionTabs = state.tabs.filter((t) => t.position === tab.position);
 
-    state.active[tab.position] = oldPositionTabs[0]?.id || null;
-    state.open[tab.position] = oldPositionTabs.length > 0;
+    if (tab.position) {
+      state.active[tab.position] = oldPositionTabs[0]?.id || '';
+      state.open[tab.position] = oldPositionTabs.length > 0;
+    }
   },
 
-  removeTab(state: State, tab: any) {
+  removeTab(state: State, tab: Tab) {
     removeObject(state.tabs, tab);
   },
 
@@ -178,7 +183,7 @@ export const actions = {
     commit('closeTab', { id });
   },
 
-  open({ commit }: { commit: any }, tab: any) {
+  open({ commit }: { commit: any }, tab: Tab) {
     if ( !tab.id ) {
       throw new Error('[wm] id is not provided');
     }
