@@ -416,7 +416,7 @@ $fontColor: var(--input-label);
     width: 14px;
     background-color: var(--body-bg);
     border-radius: var(--border-radius);
-    border: 1px solid var(--border);
+    border: 1px solid var(--input-border);
     flex-shrink: 0;
 
     &:focus-visible {
@@ -440,12 +440,12 @@ $fontColor: var(--input-label);
   }
 
   input:checked ~ .checkbox-custom {
-    background-color:var(--primary);
+    background-color: var(--active, var(--primary));
     -webkit-transform: rotate(0deg) scale(1);
     -ms-transform: rotate(0deg) scale(1);
     transform: rotate(0deg) scale(1);
     opacity:1;
-    border: 1px solid var(--primary);
+    border: 1px solid var(--active, var(--primary));
   }
 
   // Custom Checkbox tick
