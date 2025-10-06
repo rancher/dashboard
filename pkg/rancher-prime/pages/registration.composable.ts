@@ -8,6 +8,7 @@ import {
 } from '../config/constants';
 import { SECRET } from '@shell/config/types';
 import { dateTimeFormat } from '@shell/utils/time';
+import { useI18n } from '@shell/composables/useI18n';
 
 type RegistrationStatus = 'loading' | 'registering-online' | 'registration-request' | 'registering-offline' | 'registered' | null;
 type AsyncButtonFunction = (val: boolean) => void;
@@ -112,6 +113,7 @@ const registrationBannerCases = {
 
 export const usePrimeRegistration = (storeArg?: Store<any>) => {
   const store = storeArg ?? useStore();
+  const { t } = useI18n(store);
 
   /**
    * Registration mapped value used in the UI
@@ -490,20 +492,20 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const checkErrors = (polling?: boolean): string => {
     if (polling && !secret.value?.data?.regCode) {
-      return 'Registration code as Secret is missing';
+      return t('registration.errors.missing-code');
     }
 
     // Fallback in case of logic changes
     if (polling && registration.value.active && secret.value?.data?.regCode !== registration.value?.code) {
-      return `Registration active but does not match Secret registration code.`;
+      return t('registration.errors.mismatch-code');
     }
 
     if (secret.value && !registration.value.active) {
-      return `Unhandled registration error. Please verify your secret is correct.`;
+      return t('registration.errors.generic-registration');
     }
 
     if (polling) {
-      return 'Timeout reached while waiting for resource.';
+      return t('registration.errors.timeout-registration');
     }
 
     return '';
