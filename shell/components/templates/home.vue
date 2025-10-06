@@ -13,6 +13,7 @@ import Inactivity from '@shell/components/Inactivity';
 import { mapState, mapGetters } from 'vuex';
 import PromptModal from '@shell/components/PromptModal';
 import WindowManager from '@shell/components/nav/WindowManager';
+import { Layout } from '@shell/types/window-manager';
 
 export default {
 
@@ -33,6 +34,7 @@ export default {
 
   data() {
     return {
+      layout:           Layout.home,
       // Assume home pages have routes where the name is the key to use for string lookup
       name:             this.$route.name,
       noLocaleShortcut: process.env.dev || false,
@@ -83,7 +85,7 @@ export default {
           class="outlet"
         />
       </main>
-      <WindowManager :layout="'home'" />
+      <WindowManager :layout="layout" />
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
