@@ -69,7 +69,7 @@ const config = {
         // The output directory for the generated markdown files.
         // We are targeting the specific versioned folder for the "next" version
         // and placing it directly into the "advanced" subfolder.
-        out: 'docs/extensions/frameworks-api',
+        out: 'docs/extensions/shell-api',
 
         // disables REAME as default entry point
         readme: 'none',
@@ -84,7 +84,10 @@ const config = {
         entryFileName: '_api-index.md',
 
         // A unique ID for this plugin instance. Needed so that it generates all the files successfully (including sidebar entries)
-        id: 'api-docs'
+        id: 'api-docs',
+
+        // exclude all code comments marked as @internal
+        excludeInternal: true
       },
     ],
     [require.resolve('docusaurus-lunr-search'), { excludeRoutes: ['internal/*', 'internal/**/*', '/internal/*', '/internal/**/*', 'blog/*', 'blog/**/*', '/blog/*', '/blog/**/*'] }
