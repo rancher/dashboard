@@ -21,6 +21,7 @@ interface RegistrationDashboard {
   color: 'error' | 'success';
   message: string;
   status: 'valid' | 'error' | 'none';
+  code: string | null;
   registrationLink?: string; // not generated on failure or reset
   resourceLink?: string; // not generated on empty registration
 }
@@ -89,6 +90,7 @@ const emptyRegistration: RegistrationDashboard = {
   mode:       '--',
   expiration: '--',
   color:      'error',
+  code:       null,
   message:    'registration.list.table.badge.none',
   status:     'none'
 };
@@ -338,12 +340,12 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const findRegistration = async(hash: string | null): Promise<PartialRegistration | undefined> => {
     const registrations: PartialRegistration[] = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME }).catch(() => []) || [];
-    const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === hash &&
+    const newRegistration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === hash &&
       !isRegistrationOfflineProgress(registration) &&
       isRegistrationCompleted(registration)
     );
 
-    return registration;
+    return newRegistration;
   };
 
   /**
@@ -381,6 +383,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
         mode:             registration.spec.mode,
         registrationLink: registration.status?.activationStatus?.systemUrl,
         resourceLink:     registration.links.view,
+        code:             registration?.metadata?.labels[REGISTRATION_LABEL],
       };
 
       if (isActive) {
@@ -481,6 +484,32 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   };
 
   /**
+   * Generic fallback in case of unhandled errors based on existing resources
+   * @param polling
+   * @returns
+   */
+  const checkErrors = (polling?: boolean): string => {
+    if (polling && !secret.value?.data?.regCode) {
+      return 'Registration code as Secret is missing';
+    }
+
+    // Fallback in case of logic changes
+    if (polling && registration.value.active && secret.value?.data?.regCode !== registration.value?.code) {
+      return `Registration active but does not match Secret registration code.`;
+    }
+
+    if (secret.value && !registration.value.active) {
+      return `Unhandled registration error. Please verify your secret is correct.`;
+    }
+
+    if (polling) {
+      return 'Timeout reached while waiting for resource.';
+    }
+
+    return '';
+  };
+
+  /**
  * Polls periodically until a condition is met or timeout is reached.
  * @param fetchFn Function to fetch the resource (e.g., findRegistration or findOfflineRequest)
  * @param mapResult Function to map the result before resolving
@@ -503,7 +532,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
       const interval = setInterval(async() => {
         if (Date.now() - startTime > timeout) {
           clearInterval(interval);
-          reject(new Error('Timeout reached while waiting for resource'));
+          reject(new Error(checkErrors(true)));
 
           return;
         }
@@ -532,6 +561,11 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     secret.value = await getSecret();
     registrationCode.value = secret.value?.data?.regCode ? atob(secret.value.data.regCode) : null; // Get registration code from secret
     registrationStatus.value = await getRegistration();
+    const errors = checkErrors();
+
+    if (errors) {
+      onError(new Error(errors));
+    }
   };
 
   return {
