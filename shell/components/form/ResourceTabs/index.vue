@@ -7,7 +7,7 @@ import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Conditions from '@shell/components/form/Conditions';
-import { EVENT } from '@shell/config/types';
+import { EVENT, NAMESPACE } from '@shell/config/types';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { _VIEW } from '@shell/config/query-params';
 import RelatedResources from '@shell/components/RelatedResources';
@@ -119,6 +119,9 @@ export default {
   },
 
   computed: {
+    isNamespace() {
+      return this.value?.type === NAMESPACE;
+    },
     showEvents() {
       return this.isView && this.needEvents && this.eventSchema;
     },
@@ -190,7 +193,9 @@ export default {
      * Filter out hidden repos from list of all repos
      */
     filterEventsLocal(rows) {
-      return rows.filter((event) => event.involvedObject?.uid === this.value?.metadata?.uid);
+      return rows.filter((event) => {
+        return this.isNamespace ? event.metadata?.namespace === this.value?.metadata?.name : event.involvedObject?.uid === this.value?.metadata?.uid;
+      });
     },
 
     /**
@@ -204,27 +209,22 @@ export default {
         pagination.filters = [];
       }
 
-      const field = `involvedObject.uid`;
+      // Determine the field and value based on type
+      const field = this.isNamespace ? 'metadata.namespace' : 'involvedObject.uid';
+      const value = this.isNamespace ? this.value.metadata.name : this.value.metadata.uid;
 
-      // of type PaginationParamFilter
-      let existing = null;
+      // Check if a filter for this field already exists
+      const existing = pagination.filters.find((f) => f.fields.some((ff) => ff.field === field));
 
-      for (let i = 0; i < pagination.filters.length; i++) {
-        const filter = pagination.filters[i];
-
-        if (!!filter.fields.find((f) => f.field === field)) {
-          existing = filter;
-          break;
-        }
-      }
-
+      // Create the required filter
       const required = PaginationParamFilter.createSingleField({
         field,
         exact:  true,
-        value:  this.value.metadata.uid,
+        value,
         equals: true
       });
 
+      // Merge or add the filter
       if (!!existing) {
         Object.assign(existing, required);
       } else {
@@ -260,10 +260,16 @@ export default {
 
     <Tab
       v-if="showEvents"
-      label-key="resourceTabs.events.tab"
+      :label="isNamespace ? t('resourceTabs.events.namespaceTab') : t('resourceTabs.events.tab')"
       name="events"
       :weight="-2"
     >
+      <!-- Caption for namespace pages -->
+      <div
+        v-if="isNamespace"
+        v-clean-html="t('resourceTabs.events.namespaceCaption', { namespace: value.metadata.name }, true)"
+        class="tab-caption"
+      />
       <!-- namespaced: false given we don't want the default handling of namespaced resource (apply header filter)  -->
       <PaginatedResourceTable
         :schema="eventSchema"
@@ -316,6 +322,19 @@ export default {
       padding: 0;
       padding-top: 24px;
     }
+  }
+}
+/* Caption for namespace events tab */
+.tab-caption {
+  align-items: center;
+  font-size: 16px;
+  margin-bottom: 24px;
+
+  .namespace-name {
+    display: inline;
+    font-weight: bold;
+    margin-right: 0 4px;
+    white-space: nowrap;
   }
 }
 </style>
