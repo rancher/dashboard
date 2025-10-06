@@ -40,6 +40,7 @@ import { isDevBuild } from '@shell/utils/version';
 import { markRaw } from 'vue';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { addReleaseNotesNotification } from '@shell/utils/release-notes';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -260,11 +261,8 @@ export const state = () => {
     $router:                 markRaw({}),
     $route:                  markRaw({}),
     $plugin:                 markRaw({}),
-    /**
-     * Cache state of side nav clusters. This avoids flickering when the user changes pages and the side nav component re-renders
-     */
-    sideNavCache:            undefined,
     showWorkspaceSwitcher:   true,
+
   };
 };
 
@@ -629,10 +627,6 @@ export const getters = {
     return `${ base }/latest`;
   },
 
-  sideNavCache(state) {
-    return state.sideNavCache;
-  },
-
   ...gcGetters
 };
 
@@ -771,10 +765,6 @@ export const mutations = {
 
   setPlugin(state, pluginDefinition) {
     state.$plugin = markRaw(pluginDefinition || {});
-  },
-
-  setSideNavCache(state, sideNavCache) {
-    state.sideNavCache = sideNavCache;
   },
 
   showWorkspaceSwitcher(state, value) {
@@ -1187,6 +1177,8 @@ export const actions = {
       }
     });
 
+    sideNavService.reset();
+
     await dispatch('management/unsubscribe');
     commit('managementChanged', { ready: false });
     commit('management/reset');
@@ -1306,10 +1298,6 @@ export const actions = {
         dispatch(`${ storeName }/unsubscribe`);
       }
     });
-  },
-
-  setSideNavCache({ commit }, sideNavCache) {
-    commit('setSideNavCache', sideNavCache);
   },
 
   showWorkspaceSwitcher({ commit }, value) {
