@@ -190,7 +190,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       // So we can't use anything indexed based related to it (new, incompatible versions are introduced at the top)
       // So just hardcode it instead
       const initialVersion = '1.5.0';
-      const upgradeVersion = '1.5.1';
+      const upgradeVersion = '1.5.2';
 
       // select older version and click install
       extensionsPo.installModalSelectVersionLabel(initialVersion);
