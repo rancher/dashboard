@@ -1,12 +1,7 @@
 import { mount, RouterLinkStub } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import ResourcePopover from '@shell/components/Resource/Detail/ResourcePopover/index.vue';
-
-const mockI18n = { t: (key: string, args: any) => JSON.stringify({ key, args }) };
-const mockFocusTrap = jest.fn();
-
-jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => mockI18n }));
-jest.mock('@shell/composables/focusTrap', () => ({ useWatcherBasedSetupFocusTrapWithDestroyIncluded: (...args: any) => mockFocusTrap(...args) }));
+import PopoverCard from '@shell/components/PopoverCard.vue';
 
 const mockResource = {
   id:                 'test-ns/test-pod',
@@ -14,7 +9,6 @@ const mockResource = {
   nameDisplay:        'My Test Pod',
   stateBackground:    'bg-success',
   detailLocation:     { name: 'pod-detail', params: { id: 'test-pod' } },
-  glance:             [{ label: 'Status', content: 'Active' }],
   parentNameOverride: 'Overridden Pod',
 };
 
@@ -23,223 +17,211 @@ describe('component: ResourcePopover/index.vue', () => {
   const mockClusterFind = jest.fn();
   const mockSomethingFind = jest.fn();
 
-  const createWrapper = async(props: any = { type: 'pod', id: 'test-ns/test-pod' }) => {
-    store = createStore({
-      getters: {
-        'i18n/t':            () => (key: string) => key,
-        currentStore:        () => () => 'cluster',
-        'cluster/schemaFor': () => () => ({ id: 'pod' }),
-        'type-map/labelFor': () => () => 'Pod',
-      },
-      actions: { 'cluster/find': mockClusterFind, 'something/find': mockSomethingFind }
-    });
+  const defaultStore = {
+    getters: {
+      'i18n/t':            () => (key: string) => key,
+      currentStore:        () => () => 'cluster',
+      'cluster/schemaFor': () => () => ({ id: 'pod' }),
+      'type-map/labelFor': () => () => 'Pod',
+    },
+    actions: { 'cluster/find': mockClusterFind, 'something/find': mockSomethingFind }
+  };
 
-    const wrapper = mount(ResourcePopover, {
-      props,
+  const PopoverCardStub = {
+    PopoverCard: {
+      template: `
+              <div>
+                <slot />
+                <slot name="heading-action" :close="() => {}" />
+                <slot name="card-body" />
+              </div>
+            `,
+    },
+  };
+
+  const createWrapper = (props: any = {}, storeConfig: any = defaultStore, stubs: any = {}) => {
+    store = createStore(storeConfig);
+
+    return mount(ResourcePopover, {
+      props: {
+        type: 'pod',
+        id:   'test-ns/test-pod',
+        ...props,
+      },
       global: {
         plugins: [store],
         stubs:   {
-          'v-dropdown':        { name: 'v-dropdown', template: '<div><slot /><slot name="popper" /></div>' },
-          'router-link':       RouterLinkStub,
-          ResourcePopoverCard: {
-            name:     'ResourcePopoverCard',
-            template: '<div id="resource-popover-card" />'
-          },
-          RcStatusIndicator: true,
+          RouterLink:          RouterLinkStub,
+          RcStatusIndicator:   true,
+          ActionMenu:          true,
+          ResourcePopoverCard: true,
+          VDropdown:           true,
+          ...stubs
         },
       },
     });
-
-    // Requires two so the fetch can be resolved
-    await wrapper.vm.$nextTick();
-    await wrapper.vm.$nextTick();
-
-    return wrapper;
   };
 
-  // Reset mocks before each test
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('data Fetching and Initial State', () => {
-    it('should show loading state initially', async() => {
-      const wrapper = await createWrapper(); // Override default fetch value
+  describe('data Fetching and Rendering', () => {
+    it('should display a loading indicator while fetching data', async() => {
+      mockClusterFind.mockImplementation(() => new Promise(() => { }));
+      const wrapper = createWrapper(undefined, undefined, PopoverCardStub);
 
-      expect(wrapper.find('.display').exists()).toBe(false);
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+
       expect(wrapper.text()).toContain('...');
+      expect(wrapper.find('.display').exists()).toBe(false);
     });
 
-    it('should call the fetch composable and dispatch a store action', async() => {
-      await createWrapper();
+    it('should fetch data using the default store', async() => {
+      const wrapper = createWrapper();
 
-      expect(mockClusterFind).toHaveBeenCalledWith(expect.objectContaining({}), expect.objectContaining({ type: 'pod', id: 'test-ns/test-pod' }));
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+
+      expect(mockClusterFind).toHaveBeenCalledWith(expect.any(Object), { type: 'pod', id: 'test-ns/test-pod' });
     });
 
-    it('should dispatch to the specified store', async() => {
-      await createWrapper({
-        type: 'pod', id: 'test-ns/test-pod', currentStore: 'something'
-      });
-
-      expect(mockSomethingFind).toHaveBeenCalledWith(expect.objectContaining({}), expect.objectContaining({ type: 'pod', id: 'test-ns/test-pod' }));
-    });
-
-    it('should render resource name and link when data is loaded', async() => {
+    it('should fetch data using the store specified in props', async() => {
       mockClusterFind.mockReturnValue(mockResource);
-      const wrapper = await createWrapper();
+      const wrapper = createWrapper({ currentStore: 'something' });
+
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+
+      expect(mockSomethingFind).toHaveBeenCalledWith(expect.any(Object), { type: 'pod', id: 'test-ns/test-pod' });
+      expect(mockClusterFind).not.toHaveBeenCalled();
+    });
+
+    it('should display resource details after data is fetched', async() => {
+      mockClusterFind.mockReturnValue(mockResource);
+      const wrapper = createWrapper(undefined, undefined, PopoverCardStub);
+
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+
       const link = wrapper.findComponent(RouterLinkStub);
 
-      expect(link.exists()).toBe(true);
       expect(link.text()).toBe(mockResource.nameDisplay);
       expect(link.props('to')).toStrictEqual(mockResource.detailLocation);
     });
 
-    it('should use `detailLocation` prop for router-link if provided', async() => {
-      const detailLocationProp = { name: 'custom-route' };
+    it('should use detailLocation prop for the link if provided', async() => {
+      const customLocation = { name: 'custom-route' };
 
-      const wrapper = await createWrapper({
-        type:           'pod',
-        id:             'test-ns/test-pod',
-        detailLocation: detailLocationProp
-      });
+      mockClusterFind.mockReturnValue(mockResource);
+      const wrapper = createWrapper({ detailLocation: customLocation }, undefined, PopoverCardStub);
+
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
 
       const link = wrapper.findComponent(RouterLinkStub);
 
-      expect(link.props('to')).toStrictEqual(detailLocationProp);
+      expect(link.props('to')).toStrictEqual(customLocation);
     });
   });
 
   describe('computed Properties', () => {
-    it('should return empty resourceTypeLabel if no data', async() => {
-      mockClusterFind.mockReturnValue(null);
+    it('resourceTypeLabel: should be empty if data is not loaded', async() => {
+      mockClusterFind.mockReturnValue(undefined);
+      const wrapper = createWrapper();
 
-      const wrapper = await createWrapper();
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
 
-      expect(wrapper.vm.resourceTypeLabel).toBe('');
+      const popoverCard = wrapper.findComponent(PopoverCard);
+      const ariaLabel = popoverCard.props('showPopoverAriaLabel');
+
+      expect(ariaLabel).toBe('component.resource.detail.glance.ariaLabel.showDetails-{\"name\":\"\",\"resource\":\"\"}');
     });
 
-    it('should return resourceTypeLabel from type-map getter', async() => {
-      const resourceWithoutOverride = { ...mockResource, parentNameOverride: undefined };
+    it('resourceTypeLabel: should use parentNameOverride when available', async() => {
+      mockClusterFind.mockResolvedValue(mockResource);
+      const wrapper = createWrapper();
 
-      mockClusterFind.mockReturnValue(resourceWithoutOverride);
-      const wrapper = await createWrapper();
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
 
-      expect(wrapper.vm.resourceTypeLabel).toBe('Pod');
+      const popoverCard = wrapper.findComponent(PopoverCard);
+      const ariaLabel = popoverCard.props('showPopoverAriaLabel');
+
+      expect(ariaLabel).toBe('component.resource.detail.glance.ariaLabel.showDetails-{\"name\":\"My Test Pod\",\"resource\":\"Overridden Pod\"}');
     });
 
-    it('should generate correct aria-labels', async() => {
-      mockClusterFind.mockReturnValue(mockResource);
-      const wrapper = await createWrapper();
+    it('resourceTypeLabel: should use type-map label as a fallback', async() => {
+      const resourceWithoutOverride = { ...mockResource, parentNameOverride: null };
 
-      const expectedAriaLabel = JSON.stringify({ key: 'component.resource.detail.glance.ariaLabel.showDetails', args: { name: mockResource.nameDisplay, resource: mockResource.parentNameOverride } });
-      const dropdown = wrapper.findComponent({ name: 'v-dropdown' });
-      const button = wrapper.find('.focus-button');
+      mockClusterFind.mockResolvedValue(resourceWithoutOverride);
+      const wrapper = createWrapper();
 
-      expect(dropdown.attributes('aria-label')).toBe(expectedAriaLabel);
-      expect(button.attributes('aria-label')).toBe(expectedAriaLabel);
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+
+      const popoverCard = wrapper.findComponent(PopoverCard);
+      const ariaLabel = popoverCard.props('showPopoverAriaLabel');
+
+      expect(ariaLabel).toBe('component.resource.detail.glance.ariaLabel.showDetails-{\"name\":\"My Test Pod\",\"resource\":\"Pod\"}');
     });
   });
 
-  describe('popover Visibility', () => {
-    it('should not show popover card initially', async() => {
-      mockClusterFind.mockReturnValue(mockResource);
-      const wrapper = await createWrapper();
+  describe('props passed to child components', () => {
+    it('should pass correct props to PopoverCard', async() => {
+      mockClusterFind.mockResolvedValue(mockResource);
+      const wrapper = createWrapper();
 
-      expect(wrapper.findComponent({ name: 'ResourcePopoverCard' }).exists()).toBe(false);
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+
+      const popoverCard = wrapper.findComponent(PopoverCard);
+
+      expect(popoverCard.props('cardTitle')).toBe(mockResource.nameDisplay);
+      expect(popoverCard.props('fallbackFocus')).toBe("[data-testid='resource-popover-action-menu']");
+
+      const expectedAriaLabel = 'component.resource.detail.glance.ariaLabel.showDetails-{\"name\":\"My Test Pod\",\"resource\":\"Overridden Pod\"}';
+
+      expect(popoverCard.props('showPopoverAriaLabel')).toBe(expectedAriaLabel);
     });
 
-    it('should show popover on mouseenter', async() => {
-      mockClusterFind.mockReturnValue(mockResource);
-      const wrapper = await createWrapper();
+    it('should pass correct props to ActionMenu', async() => {
+      mockClusterFind.mockResolvedValue(mockResource);
+      const wrapper = createWrapper(undefined, undefined, PopoverCardStub);
 
-      await wrapper.find('.display').trigger('mouseenter');
-      expect(wrapper.vm.showPopover).toBe(true);
       await wrapper.vm.$nextTick();
-      expect(wrapper.findComponent({ name: 'ResourcePopoverCard' }).exists()).toBe(true);
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+
+      const actionMenu = wrapper.findComponent({ name: 'ActionMenu' });
+
+      expect(actionMenu.props('resource')).toStrictEqual(mockResource);
+
+      const expectedAriaLabel = 'component.resource.detail.glance.ariaLabel.actionMenu-{\"resource\":\"My Test Pod\"}';
+
+      expect(actionMenu.props('buttonAriaLabel')).toBe(expectedAriaLabel);
     });
 
-    it('should hide popover on mouseleave', async() => {
-      mockClusterFind.mockReturnValue(mockResource);
-      const wrapper = await createWrapper();
+    it('should pass correct props to ResourcePopoverCard', async() => {
+      mockClusterFind.mockResolvedValue(mockResource);
+      const wrapper = createWrapper(undefined, undefined, PopoverCardStub);
 
-      await wrapper.find('.display').trigger('mouseenter');
-      expect(wrapper.vm.showPopover).toBe(true);
-
-      await wrapper.find('.resource-popover').trigger('mouseleave');
-      expect(wrapper.vm.showPopover).toBe(false);
       await wrapper.vm.$nextTick();
-      expect(wrapper.findComponent({ name: 'ResourcePopoverCard' }).exists()).toBe(false);
-    });
-
-    it('should show popover on focus button click', async() => {
-      mockClusterFind.mockReturnValue(mockResource);
-      const wrapper = await createWrapper();
-
-      await wrapper.find('.focus-button').trigger('click');
-      expect(wrapper.vm.showPopover).toBe(true);
-      expect(wrapper.vm.focusOpen).toBe(true);
       await wrapper.vm.$nextTick();
-      expect(wrapper.findComponent({ name: 'ResourcePopoverCard' }).exists()).toBe(true);
-    });
-
-    it('should hide popover when action is invoked from card', async() => {
-      mockClusterFind.mockReturnValue(mockResource);
-      const wrapper = await createWrapper();
-
-      await wrapper.find('.display').trigger('mouseenter');
       await wrapper.vm.$nextTick();
 
-      const card = wrapper.findComponent({ name: 'ResourcePopoverCard' });
+      const resourceCard = wrapper.findComponent({ name: 'ResourcePopoverCard' });
 
-      await card.vm.$emit('action-invoked');
-      expect(wrapper.vm.showPopover).toBe(false);
-      await wrapper.vm.$nextTick();
-      expect(wrapper.findComponent({ name: 'ResourcePopoverCard' }).exists()).toBe(false);
-    });
-
-    it('should hide popover on Escape keydown', async() => {
-      mockClusterFind.mockReturnValue(mockResource);
-      const wrapper = await createWrapper();
-
-      await wrapper.find('.focus-button').trigger('click');
-      await wrapper.vm.$nextTick();
-
-      const card = wrapper.findComponent({ name: 'ResourcePopoverCard' });
-
-      await card.trigger('keydown.escape');
-      await wrapper.vm.$nextTick();
-
-      expect(wrapper.findComponent({ name: 'ResourcePopoverCard' }).exists()).toBe(false);
-    });
-  });
-
-  describe('focus Trap', () => {
-    it('should not setup focus trap on mouseenter', async() => {
-      mockClusterFind.mockReturnValue(mockResource);
-      const wrapper = await createWrapper();
-
-      await wrapper.find('.display').trigger('mouseenter');
-      await wrapper.vm.$nextTick();
-
-      expect(wrapper.vm.focusOpen).toBe(false);
-      expect(mockFocusTrap).not.toHaveBeenCalled();
-    });
-
-    it('should setup focus trap when opened via focus button', async() => {
-      mockClusterFind.mockReturnValue(mockResource);
-      const wrapper = await createWrapper();
-
-      await wrapper.find('.focus-button').trigger('click');
-      await wrapper.vm.$nextTick(); // Triggers the watch
-
-      expect(wrapper.vm.focusOpen).toBe(true);
-      expect(mockFocusTrap).toHaveBeenCalledTimes(1);
-
-      // Verify the options passed to the focus trap
-      const focusTrapOptions = mockFocusTrap.mock.calls[0][2];
-
-      expect(focusTrapOptions.fallbackFocus).toBe('#first-glance-item');
-      expect(focusTrapOptions.setReturnFocus()).toBe('.focus-button');
+      expect(resourceCard.props('resource')).toStrictEqual(mockResource);
     });
   });
 });

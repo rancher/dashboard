@@ -139,6 +139,10 @@ export const useResourceDetails = (resource: any): undefined | ComputedRef<Row[]
   }
 
   const extractValueOverride = (detail: any) => {
+    if (detail.valueOverride) {
+      return detail.valueOverride;
+    }
+
     if (!detail.formatter) {
       return;
     }

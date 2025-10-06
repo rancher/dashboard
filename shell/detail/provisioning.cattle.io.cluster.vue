@@ -33,6 +33,8 @@ import { isAlternate } from '@shell/utils/platform';
 import DetailPage from '@shell/components/Resource/Detail/Page.vue';
 import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
 import { useDefaultMastheadProps } from '@shell/components/Resource/Detail/Masthead/composable';
+import AutoscalerTab from '@shell/components/AutoscalerTab.vue';
+import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -62,6 +64,7 @@ export default {
   emits: ['input'],
 
   components: {
+    AutoscalerTab,
     Banner,
     ResourceTable,
     ResourceTabs,
@@ -620,6 +623,10 @@ export default {
 
     extDetailTabsConditions() {
       return this.extDetailTabs?.conditions;
+    },
+
+    showAutoScalerTab() {
+      return isAutoscalerFeatureFlagEnabled(this.$store);
     }
   },
 
@@ -1119,6 +1126,10 @@ export default {
               </template>
             </SortableTable>
           </Tab>
+          <AutoscalerTab
+            v-if="showAutoScalerTab"
+            :value="value"
+          />
         </ResourceTabs>
       </div>
     </template>
