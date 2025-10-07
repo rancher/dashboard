@@ -17,9 +17,10 @@ import {
 } from '@shell/config/types';
 import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
-import { PaginationSettingsStore } from '@shell/types/resources/settings';
+import { PaginationSettingsStores } from '@shell/types/resources/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';
+import { parseField } from '@shell/utils/sort';
 
 /**
  * This is a workaround for a ts build issue found in check-plugins-build.
@@ -401,9 +402,13 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
       const joined = opt.pagination.sort
         .map((s) => {
-          this.validateField(validateFields, schema, s.field);
+          // Use the same mechanism as local sorting to flip logic for asc/des
+          const { field, reverse } = parseField(s.field);
+          const asc = reverse ? !s.asc : s.asc;
 
-          return `${ s.asc ? '' : '-' }${ this.convertArrayPath(s.field) }`;
+          this.validateField(validateFields, schema, field);
+
+          return `${ asc ? '' : '-' }${ this.convertArrayPath(field) }`;
         })
         .join(',');
 
@@ -615,7 +620,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
         res.push(`filter=!${ labelKey }`);
         break;
       case 'Gt':
-        // Currently broken - see https://github.com/rancher/rancher/issues/50057
         // Only applicable to node affinity (atm) - https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
 
         if (typeof exp.values !== 'string') {
@@ -628,7 +632,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
         res.push(`filter=${ labelKey } > (${ exp.values })`);
         break;
       case 'Lt':
-        // Currently broken - see https://github.com/rancher/rancher/issues/50057
         // Only applicable to node affinity (atm) - https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
         if (typeof exp.values !== 'string') {
           console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(Lt) as no value was supplied`); // eslint-disable-line no-console
@@ -649,7 +652,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
   }
 }
 
-export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
+export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStores = {
   cluster: {
     resources: {
       enableAll:  false,
@@ -662,7 +665,7 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
           CATALOG.APP, CATALOG.OPERATION,
           HPA, INGRESS, SERVICE,
           PV, CONFIG_MAP, STORAGE_CLASS, PVC, SECRET,
-          WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER
+          WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER,
         ],
         generic: true,
       }
@@ -673,8 +676,8 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
       enableAll:  false,
       enableSome: {
         enabled: [
-          // { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
-          // { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
+          // { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] },
+          // { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
           { resource: CATALOG.APP, context: ['branding'] },
           SECRET
         ],

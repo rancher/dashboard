@@ -61,7 +61,7 @@ export default {
     },
     inStore: {
       type:    String,
-      default: 'cluster',
+      default: undefined,
     }
   },
 
@@ -127,6 +127,10 @@ export default {
         label: key,
         value: key
       }));
+    },
+
+    validInStore() {
+      return this.inStore || this.$store.getters['currentStore']() || 'cluster';
     },
 
     isView() {
@@ -221,7 +225,7 @@ export default {
         :label="secretNameLabel"
         :mode="mode"
         :resource-type="SECRET"
-        :in-store="inStore"
+        :in-store="validInStore"
         :paginated-resource-settings="paginateSecretsSetting"
         :all-resources-settings="allSecretsSettings"
       />
