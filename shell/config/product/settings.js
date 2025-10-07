@@ -112,6 +112,16 @@ export function init(store) {
     route:      { name: 'c-cluster-settings-fleet' }
   });
 
+  virtualType({
+    ifHaveType: MANAGEMENT.SETTING,
+    labelKey:   'aiAssistant.label',
+    name:       'ai-assistant',
+    namespaced: false,
+    weight:     94,
+    icon:       'folder',
+    route:      { name: 'c-cluster-settings-ai-assistant' }
+  });
+
   basicType([
     'settings',
     'features',
@@ -119,7 +129,8 @@ export function init(store) {
     'banners',
     'performance',
     'links',
-    'fleet-settings'
+    'fleet-settings',
+    'ai-assistant'
   ]);
 
   configureType(MANAGEMENT.SETTING, {

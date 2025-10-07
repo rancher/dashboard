@@ -8596,6 +8596,32 @@ banner:
   htmlContent: HTML Content
   toggleTextHtml: Toggle between text and html
 
+aiAssistant:
+  label: AI Assistant
+  form:
+    header: Rancher AI Assistant Settings
+    description: Configure the Rancher AI Assistant
+    EMBEDDINGS_MODEL:
+      label: Embeddings Model
+    ENABLE_RAG:
+      label: Enable RAG
+    GOOGLE_API_KEY:
+      label: Google API Key
+    LANGFUSE_HOST:
+      label: Langfuse Host
+    LANGFUSE_PUBLIC_KEY:
+      label: Langfuse Public Key
+    LANGFUSE_SECRET_KEY:
+      label: Langfuse Secret Key
+    MODEL:
+      label: Model
+    OLLAMA_URL:
+      label: Ollama URL
+    OPENAI_API_KEY:
+      label: OpenAI Key
+    SYSTEM_PROMPT:
+      label: System Prompt
+
 branding:
   label: Branding
   directoryName: Brand Asset Directory Name

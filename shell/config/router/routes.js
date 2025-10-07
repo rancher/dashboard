@@ -400,6 +400,10 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/settings/index.vue')),
         name:      'c-cluster-settings-fleet'
       }, {
+        path:      '/c/:cluster/settings/ai-assistant',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/settings/ai-assistant.vue')),
+        name:      'c-cluster-settings-ai-assistant'
+      }, {
         path:      '/c/:cluster/auth/group.principal/assign-edit',
         component: () => interopDefault(import('@shell/pages/c/_cluster/auth/group.principal/assign-edit.vue')),
         name:      'c-cluster-auth-group.principal-assign-edit'
