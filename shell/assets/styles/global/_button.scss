@@ -83,29 +83,27 @@ BUTTON.role-primary, A.role-primary {
     outline-offset: 2px;
   }
 
-  &.btn {
-    &:disabled {
-      background: var(--primary) !important;
-      color: var(--primary-text) !important;
-      opacity: 0.5;
-    }
+  &.btn:disabled {
+    background: var(--primary);
+    color: var(--primary-text);
+    opacity: 0.5;
   }
 }
 
-.role-secondary {
+.btn.role-secondary {
   background: var(--secondary, transparent);
-  color: var(--on-secondary, var(--primary)) !important;
+  color: var(--on-secondary, var(--primary));
   border: solid 1px var(--secondary-border, var(--primary));
   line-height: $btn-height - 2px;
 
   &:hover, &._hover {
     background: var(--secondary-hover, transparent);
-    color: var(--on-secondary, var(--lightest)) !important;
+    color: var(--on-secondary, var(--lightest));
   }
 
   &:focus, &.focused {
     background-color: var(--secondary-hover, var(--primary-hover-bg));
-    color: var(--on-secondary, var(--primary-text)) !important;
+    color: var(--on-secondary, var(--primary-text));
   }
 
   &.btn-sm {
@@ -179,15 +177,15 @@ BUTTON.role-primary, A.role-primary {
 }
 
 //disabled
-.btn-disabled,
+.btn.btn-disabled,
 .btn.disabled,
 .btn[disabled],
 fieldset[disabled] .btn {
   cursor: not-allowed;
-  color: var(--disabled-text) !important;
+  color: var(--disabled-text);
   &:not(.role-link){
-    background-color: var(--disabled-bg) !important;
-    border-color: var(--disabled-bg) !important;
+    background-color: var(--disabled-bg);
+    border-color: var(--disabled-bg);
   }
 }
 
@@ -197,27 +195,6 @@ fieldset[disabled] .btn {
   vertical-align: middle;
   padding: 0;
   border-radius: var(--border-radius);
-
-  //TODO: #15503 Remove important specifier here and in bg-primary/bg-disabled
-  .bg-primary {
-    background: var(--toggle-on-bg, var(--primary));
-    color: var(--toggle-on-color, var(--primary-hover-text));
-
-    &:hover {
-      background: var(--active-hover) !important;
-      color: var(--toggle-on-color, var(--primary-hover-text)) !important;
-    }
-  }
-
-  .bg-disabled {
-    background: var(--toggle-off-bg, var(--disabled-bg)) !important; 
-    color: var(--toggle-off-color, var(--body-text));
-
-    &:hover {
-      background: var(--toggle-off-hover, var(--disabled-bg)) !important;
-      color: var(--toggle-off-color, var(--disabled-hover-text)) !important;
-    }
-  }
 
   .btn {
     position: relative;
@@ -247,6 +224,26 @@ fieldset[disabled] .btn {
     &:last-child {
       border-top-right-radius: var(--border-radius);
       border-bottom-right-radius: var(--border-radius);
+    }
+
+    &.bg-primary {
+      background: var(--toggle-on-bg, var(--primary));
+      color: var(--toggle-on-color, var(--primary-hover-text));
+  
+      &:hover {
+        background: var(--active-hover);
+        color: var(--toggle-on-color, var(--primary-hover-text));
+      }
+    }
+  
+    &.bg-disabled {
+      background: var(--toggle-off-bg, var(--disabled-bg)); 
+      color: var(--toggle-off-color, var(--body-text));
+  
+      &:hover {
+        background: var(--toggle-off-hover, var(--disabled-bg));
+        color: var(--toggle-off-color, var(--disabled-hover-text));
+      }
     }
   }
 
