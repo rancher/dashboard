@@ -1,12 +1,6 @@
 import { Component } from 'vue';
 
-enum VALID_GROWL_TYPES {
-  SUCCESS = 'success',
-  INFO = 'info',
-  WARNING = 'warning',
-  ERROR = 'error'
-}
-
+export type VALID_GROWL_TYPES = 'success' | 'info' | 'warning' | 'error';
 /**
  * Growl Message configuration object
  */
@@ -25,12 +19,12 @@ export interface GrowlConfig {
    * Property that defines the Growl type, which also defines different base colors for the Growl
    *
    * Available types:
-   * - `VALID_GROWL_TYPES.SUCCESS`: Indicates a successful operation (green color).
-   * - `VALID_GROWL_TYPES.INFO`: Provides general information or a non-critical update (blue/teal color).
-   * - `VALID_GROWL_TYPES.WARNING`: Signals a potential issue or action required (orange/yellow color).
-   * - `VALID_GROWL_TYPES.ERROR`: Indicates a critical failure or necessary intervention (red color).
+   * - `success`: Indicates a successful operation (green color).
+   * - `info`: Provides general information or a non-critical update (blue/teal color).
+   * - `warning`: Signals a potential issue or action required (orange/yellow color).
+   * - `error`: Indicates a critical failure or necessary intervention (red color).
    */
-  type?: VALID_GROWL_TYPES.SUCCESS | VALID_GROWL_TYPES.INFO | VALID_GROWL_TYPES.WARNING | VALID_GROWL_TYPES.ERROR;
+  type?: VALID_GROWL_TYPES;
 
   /**
    * Property that defines the duration (in milliseconds) for which the Growl should be displayed.
