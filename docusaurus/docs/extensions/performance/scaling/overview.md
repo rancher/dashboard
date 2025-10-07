@@ -30,7 +30,7 @@ However this does not scale when the resource count increases.
 ### New
 From `v2.12.0` a new process is targeted to be released which will improve performance at scale.
 
-- Fetch only the the resources required by the current view
+- Fetch only the resources required by the current view
   - Lists will fetch a single page's worth of resources via server-side pagination, 
   - Outside of lists resources are filtered server-side to only fetch the required resources 
 - Watch the resource type and update when required 

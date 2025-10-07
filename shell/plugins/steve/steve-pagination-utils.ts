@@ -17,7 +17,7 @@ import {
 } from '@shell/config/types';
 import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
-import { PaginationSettingsStore } from '@shell/types/resources/settings';
+import { PaginationSettingsStores } from '@shell/types/resources/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';
 import { parseField } from '@shell/utils/sort';
@@ -652,7 +652,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
   }
 }
 
-export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
+export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStores = {
   cluster: {
     resources: {
       enableAll:  false,
@@ -665,7 +665,7 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
           CATALOG.APP, CATALOG.OPERATION,
           HPA, INGRESS, SERVICE,
           PV, CONFIG_MAP, STORAGE_CLASS, PVC, SECRET,
-          WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER
+          WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER,
         ],
         generic: true,
       }

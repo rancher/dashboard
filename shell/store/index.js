@@ -231,8 +231,8 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
 /**
  * Are we in the vai enabled world where mgmt clusters are paginated?
  */
-const paginateClusters = (rootGetters) => {
-  return paginationUtils.isEnabled({ rootGetters }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
+const paginateClusters = ({ rootGetters, state }) => {
+  return paginationUtils.isEnabled({ rootGetters, $plugin: state.$plugin }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
 };
 
 export const state = () => {
@@ -845,7 +845,7 @@ export const actions = {
 
     res = await allHash(promises);
 
-    if (!res[MANAGEMENT.SETTING] || !paginateClusters(rootGetters)) {
+    if (!res[MANAGEMENT.SETTING] || !paginateClusters({ rootGetters, state })) {
       // This introduces a synchronous request, however we need settings to determine if SSP is enabled
       // Eventually it will be removed when SSP is always on
       res[MANAGEMENT.CLUSTER] = await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { watch: false } });
@@ -1023,7 +1023,7 @@ export const actions = {
     await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
 
     // If SSP is on we won't have requested all clusters
-    if (!paginateClusters(rootGetters)) {
+    if (!paginateClusters({ rootGetters, state })) {
       await dispatch('management/waitForHaveAll', { type: MANAGEMENT.CLUSTER });
     }
 
@@ -1122,8 +1122,10 @@ export const actions = {
     commit('updateNamespaces', { filters: ids, getters });
   },
 
-  async cleanNamespaces({ getters, dispatch, rootGetters }) {
-    if (paginateClusters(rootGetters)) {
+  async cleanNamespaces({
+    getters, dispatch, rootGetters, state
+  }) {
+    if (paginateClusters({ rootGetters, state })) {
       // See https://github.com/rancher/dashboard/issues/12864
       // old world...
       // - loadManagement makes a request to fetch all mgmt clusters

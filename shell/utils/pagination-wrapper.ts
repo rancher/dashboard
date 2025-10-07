@@ -69,7 +69,7 @@ class PaginationWrapper<T extends object> {
     this.classify = formatResponse?.classify || false;
     this.reactive = formatResponse?.reactive || false;
 
-    this.isEnabled = paginationUtils.isEnabled({ rootGetters: $store.getters }, enabledFor);
+    this.isEnabled = paginationUtils.isEnabled({ rootGetters: $store.getters, $plugin: this.$store.$plugin }, enabledFor);
   }
 
   async request(args: {
