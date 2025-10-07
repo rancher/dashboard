@@ -1,4 +1,3 @@
-// We use Node's built-in 'fs' and 'path' modules to handle file system operations.
 const fs = require('fs');
 const path = require('path');
 
@@ -51,7 +50,8 @@ function fixTypedocIds(items) {
 }
 
 // Initialize an empty array for the TypeDoc sidebar items.
-let typedocSidebarItems = [];
+// UNCOMMENT THIS!!! AUTO-DOCS GENERATION
+// const typedocSidebarItems = [];
 
 // Safely check if the generated `typedoc-sidebar.cjs` file exists.
 // This prevents build errors if the file hasn't been generated yet.
@@ -60,7 +60,9 @@ if (fs.existsSync(typedocSidebarPath)) {
   const originalTypedocSidebar = require(typedocSidebarPath);
 
   // Run the imported items through our correction function.
-  typedocSidebarItems = fixTypedocIds(originalTypedocSidebar);
+  fixTypedocIds(originalTypedocSidebar);
+  // UNCOMMENT THIS AND DELETE LINE ABOVE!!! AUTO-DOCS GENERATION
+  // typedocSidebarItems = fixTypedocIds(originalTypedocSidebar);
 }
 
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
