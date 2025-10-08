@@ -8621,6 +8621,8 @@ aiAssistant:
       label: OpenAI Key
     SYSTEM_PROMPT:
       label: System Prompt
+    ACTIVE_CHATBOT:
+      label: AI Chatbot
 
 branding:
   label: Branding
