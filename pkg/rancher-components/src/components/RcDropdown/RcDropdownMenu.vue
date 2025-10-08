@@ -15,6 +15,8 @@ withDefaults(defineProps<RcDropdownMenuComponentProps>(), {
 
 const emit = defineEmits(['update:open', 'select']);
 
+defineOptions({ inheritAttrs: false });
+
 const hasOptions = (options: DropdownOption[]) => {
   return options.length !== undefined ? options.length : Object.keys(options).length > 0;
 };
