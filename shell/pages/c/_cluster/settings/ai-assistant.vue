@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, watch, markRaw } from 'vue';
+import { ref, watch, markRaw } from 'vue';
 import { useStore } from 'vuex';
 import { cloneDeep } from 'lodash';
 
@@ -49,18 +49,21 @@ const models = {
   ]
 };
 
-const schema = reactive({
-  [Settings.ACTIVE_CHATBOT]:      { type: markRaw(LabeledSelect), args: { options: ['Local', 'OpenAI', 'Gemini'] } },
-  [Settings.OLLAMA_URL]:          { type: markRaw(LabeledInput) },
-  [Settings.MODEL]:               { type: markRaw(LabeledSelect), args: { options: models.Local } },
-  [Settings.EMBEDDINGS_MODEL]:    { type: markRaw(LabeledInput) },
-  [Settings.ENABLE_RAG]:          { type: markRaw(Checkbox), args: { valueWhenTrue: 'true' } },
-  [Settings.GOOGLE_API_KEY]:      { type: markRaw(LabeledInput) },
-  [Settings.LANGFUSE_HOST]:       { type: markRaw(LabeledInput) },
-  [Settings.LANGFUSE_PUBLIC_KEY]: { type: markRaw(LabeledInput) },
-  [Settings.LANGFUSE_SECRET_KEY]: { type: markRaw(LabeledInput) },
-  [Settings.OPENAI_API_KEY]:      { type: markRaw(LabeledInput) },
-});
+const schema = ref<any>([
+  {
+    key: Settings.ACTIVE_CHATBOT, type: markRaw(LabeledSelect), args: { options: ['Local', 'OpenAI', 'Gemini'] }
+  },
+  {
+    key: Settings.MODEL, type: markRaw(LabeledSelect), args: { options: models.Local }
+  },
+  { key: Settings.EMBEDDINGS_MODEL, type: markRaw(LabeledInput) },
+  {
+    key: Settings.ENABLE_RAG, type: markRaw(Checkbox), args: { valueWhenTrue: 'true' }
+  },
+  { key: Settings.LANGFUSE_HOST, type: markRaw(LabeledInput) },
+  { key: Settings.LANGFUSE_PUBLIC_KEY, type: markRaw(LabeledInput) },
+  { key: Settings.LANGFUSE_SECRET_KEY, type: markRaw(LabeledInput) },
+]);
 
 const resource = useFetch(async() => {
   return await store.dispatch(`cluster/find`, {
@@ -72,29 +75,59 @@ const resource = useFetch(async() => {
 
 const formData = ref({});
 
+function updateSchema(chatbot: string) {
+  const oldSchema = schema.value;
+  const newSchema = cloneDeep(oldSchema).filter((item) => {
+    return item.key !== Settings.OLLAMA_URL &&
+           item.key !== Settings.OPENAI_API_KEY &&
+           item.key !== Settings.GOOGLE_API_KEY;
+  });
+
+  newSchema.forEach((item) => {
+    item.type = markRaw(item.type);
+  });
+
+  const modelField = newSchema.find((item) => item.key === Settings.MODEL);
+
+  if (modelField) {
+    switch (chatbot) {
+    case 'OpenAI':
+      modelField.args.options = models.OpenAI;
+      newSchema.splice(1, 0, { key: Settings.OPENAI_API_KEY, type: markRaw(LabeledInput) });
+      break;
+    case 'Gemini':
+      modelField.args.options = models.Gemini;
+      newSchema.splice(1, 0, { key: Settings.GOOGLE_API_KEY, type: markRaw(LabeledInput) });
+      break;
+    case 'Local':
+    default:
+      modelField.args.options = models.Local;
+      newSchema.splice(1, 0, { key: Settings.OLLAMA_URL, type: markRaw(LabeledInput) });
+      break;
+    }
+    formData.value[Settings.MODEL] = base64Encode(models[chatbot][0]);
+  }
+
+  schema.value = newSchema;
+}
+
 watch(resource, (newResource) => {
   formData.value = cloneDeep(newResource.data.data);
 
   if (!formData.value[Settings.ACTIVE_CHATBOT]) {
     formData.value[Settings.ACTIVE_CHATBOT] = base64Encode('Local');
   }
+
+  const activeChatbot = base64Decode(formData.value[Settings.ACTIVE_CHATBOT]);
+
+  updateSchema(activeChatbot);
 });
 
 const updateValue = (key: string, val: string) => {
   formData.value[key] = base64Encode(val);
 
   if (key === Settings.ACTIVE_CHATBOT) {
-    switch (val) {
-    case 'OpenAi':
-      schema[Settings.MODEL].args.options = models.OpenAI;
-      break;
-    case 'Gemini':
-      schema[Settings.MODEL].args.options = models.Gemini;
-      break;
-    case 'Local':
-      schema[Settings.MODEL].args.options = models.Local;
-      break;
-    }
+    updateSchema(val);
   }
 };
 
@@ -111,15 +144,15 @@ const save = () => {
     <label class="text-label mb-20">{{ t('aiAssistant.form.description') }}</label>
     <div class="form-values">
       <template
-        v-for="(value, key) in schema"
-        :key="key"
+        v-for="field in schema"
+        :key="field.key"
       >
         <component
-          :is="value.type"
-          v-bind="value.args"
-          :value="base64Decode(formData[key])"
-          :label="t(`aiAssistant.form.${ key }.label`)"
-          @update:value="(val: string) => updateValue(key, val)"
+          :is="field.type"
+          v-bind="field.args"
+          :value="base64Decode(formData[field.key])"
+          :label="t(`aiAssistant.form.${ field.key }.label`)"
+          @update:value="(val: string) => updateValue(field.key, val)"
         />
         <br>
       </template>
