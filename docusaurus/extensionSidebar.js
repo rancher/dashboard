@@ -51,7 +51,7 @@
 // }
 
 // // Initialize an empty array for the TypeDoc sidebar items.
-// const typedocSidebarItems = [];
+// let typedocSidebarItems = [];
 
 // // Safely check if the generated `typedoc-sidebar.cjs` file exists.
 // // This prevents build errors if the file hasn't been generated yet.
