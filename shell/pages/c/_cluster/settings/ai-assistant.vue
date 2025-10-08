@@ -49,22 +49,6 @@ const models = {
   ]
 };
 
-const schema = ref<any>([
-  {
-    key: Settings.ACTIVE_CHATBOT, type: markRaw(LabeledSelect), args: { options: ['Local', 'OpenAI', 'Gemini'] }
-  },
-  {
-    key: Settings.MODEL, type: markRaw(LabeledSelect), args: { options: models.Local }
-  },
-  { key: Settings.EMBEDDINGS_MODEL, type: markRaw(LabeledInput) },
-  {
-    key: Settings.ENABLE_RAG, type: markRaw(Checkbox), args: { valueWhenTrue: 'true' }
-  },
-  { key: Settings.LANGFUSE_HOST, type: markRaw(LabeledInput) },
-  { key: Settings.LANGFUSE_PUBLIC_KEY, type: markRaw(LabeledInput) },
-  { key: Settings.LANGFUSE_SECRET_KEY, type: markRaw(LabeledInput) },
-]);
-
 const resource = useFetch(async() => {
   return await store.dispatch(`cluster/find`, {
     type: 'secret',
@@ -74,41 +58,30 @@ const resource = useFetch(async() => {
 });
 
 const formData = ref({});
+const modelOptions = ref(models.Local);
+const chatbotConfigKey = ref(Settings.OLLAMA_URL);
 
-function updateSchema(chatbot: string) {
-  const oldSchema = schema.value;
-  const newSchema = cloneDeep(oldSchema).filter((item) => {
-    return item.key !== Settings.OLLAMA_URL &&
-           item.key !== Settings.OPENAI_API_KEY &&
-           item.key !== Settings.GOOGLE_API_KEY;
-  });
-
-  newSchema.forEach((item) => {
-    item.type = markRaw(item.type);
-  });
-
-  const modelField = newSchema.find((item) => item.key === Settings.MODEL);
+const updateFormConfig = (chatbot: string) => {
+  const modelField = formData.value[Settings.MODEL];
 
   if (modelField) {
     switch (chatbot) {
     case 'OpenAI':
-      modelField.args.options = models.OpenAI;
-      newSchema.splice(1, 0, { key: Settings.OPENAI_API_KEY, type: markRaw(LabeledInput) });
+      chatbotConfigKey.value = Settings.OPENAI_API_KEY;
+      modelOptions.value = models.OpenAI;
       break;
     case 'Gemini':
-      modelField.args.options = models.Gemini;
-      newSchema.splice(1, 0, { key: Settings.GOOGLE_API_KEY, type: markRaw(LabeledInput) });
+      chatbotConfigKey.value = Settings.GOOGLE_API_KEY;
+      modelOptions.value = models.Gemini;
       break;
     case 'Local':
     default:
-      modelField.args.options = models.Local;
-      newSchema.splice(1, 0, { key: Settings.OLLAMA_URL, type: markRaw(LabeledInput) });
+      chatbotConfigKey.value = Settings.OLLAMA_URL;
+      modelOptions.value = models.Local;
       break;
     }
   }
-
-  schema.value = newSchema;
-}
+};
 
 watch(resource, (newResource) => {
   formData.value = cloneDeep(newResource.data.data);
@@ -119,15 +92,14 @@ watch(resource, (newResource) => {
 
   const activeChatbot = base64Decode(formData.value[Settings.ACTIVE_CHATBOT]);
 
-  updateSchema(activeChatbot);
+  updateFormConfig(activeChatbot);
 });
 
 const updateValue = (key: string, val: string) => {
   formData.value[key] = base64Encode(val);
 
   if (key === Settings.ACTIVE_CHATBOT) {
-    updateSchema(val);
-
+    updateFormConfig(val);
     formData.value[Settings.MODEL] = base64Encode(models[val][0]);
   }
 };
@@ -150,19 +122,56 @@ const save = async(btnCB: (arg: boolean) => void) => {
     </h1>
     <label class="text-label mb-20">{{ t('aiAssistant.form.description') }}</label>
     <div class="form-values">
-      <template
-        v-for="field in schema"
-        :key="field.key"
-      >
-        <component
-          :is="field.type"
-          v-bind="field.args"
-          :value="base64Decode(formData[field.key])"
-          :label="t(`aiAssistant.form.${ field.key }.label`)"
-          @update:value="(val: string) => updateValue(field.key, val)"
-        />
-        <br>
-      </template>
+      <labeled-select
+        :value="base64Decode(formData[Settings.ACTIVE_CHATBOT])"
+        :label="t(`aiAssistant.form.${ Settings.ACTIVE_CHATBOT }.label`)"
+        :options="['Local', 'OpenAI', 'Gemini']"
+        @update:value="(val: string) => updateValue(Settings.ACTIVE_CHATBOT, val)"
+      />
+
+      <labeled-input
+        :value="base64Decode(formData[chatbotConfigKey])"
+        :label="t(`aiAssistant.form.${ chatbotConfigKey }.label`)"
+        @update:value="(val: string) => updateValue(chatbotConfigKey, val)"
+      />
+
+      <labeled-select
+        :value="base64Decode(formData[Settings.MODEL])"
+        :label="t(`aiAssistant.form.${ Settings.MODEL}.label`)"
+        :options="modelOptions"
+        @update:value="(val: string) => updateValue(Settings.MODEL, val)"
+      />
+
+      <labeled-input
+        :value="base64Decode(formData[Settings.EMBEDDINGS_MODEL])"
+        :label="t(`aiAssistant.form.${ Settings.EMBEDDINGS_MODEL}.label`)"
+        @update:value="(val: string) => updateValue(Settings.EMBEDDINGS_MODEL, val)"
+      />
+
+      <checkbox
+        :value="base64Decode(formData[Settings.ENABLE_RAG])"
+        :label="t(`aiAssistant.form.${ Settings.ENABLE_RAG}.label`)"
+        value-when-true="true"
+        @update:value="(val: string) => updateValue(Settings.ENABLE_RAG, val)"
+      />
+
+      <labeled-input
+        :value="base64Decode(formData[Settings.LANGFUSE_HOST])"
+        :label="t(`aiAssistant.form.${ Settings.LANGFUSE_HOST}.label`)"
+        @update:value="(val: string) => updateValue(Settings.LANGFUSE_HOST, val)"
+      />
+
+      <labeled-input
+        :value="base64Decode(formData[Settings.LANGFUSE_PUBLIC_KEY])"
+        :label="t(`aiAssistant.form.${ Settings.LANGFUSE_PUBLIC_KEY}.label`)"
+        @update:value="(val: string) => updateValue(Settings.LANGFUSE_PUBLIC_KEY, val)"
+      />
+
+      <labeled-input
+        :value="base64Decode(formData[Settings.LANGFUSE_SECRET_KEY])"
+        :label="t(`aiAssistant.form.${ Settings.LANGFUSE_SECRET_KEY}.label`)"
+        @update:value="(val: string) => updateValue(Settings.LANGFUSE_SECRET_KEY, val)"
+      />
     </div>
     <div class="form-footer">
       <async-button
