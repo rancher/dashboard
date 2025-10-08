@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, markRaw } from 'vue';
+import { ref, watch, markRaw, toValue } from 'vue';
 import { useStore } from 'vuex';
 import { cloneDeep } from 'lodash';
 
@@ -105,7 +105,6 @@ function updateSchema(chatbot: string) {
       newSchema.splice(1, 0, { key: Settings.OLLAMA_URL, type: markRaw(LabeledInput) });
       break;
     }
-    formData.value[Settings.MODEL] = base64Encode(models[chatbot][0]);
   }
 
   schema.value = newSchema;
@@ -128,11 +127,19 @@ const updateValue = (key: string, val: string) => {
 
   if (key === Settings.ACTIVE_CHATBOT) {
     updateSchema(val);
+
+    formData.value[Settings.MODEL] = base64Encode(models[val][0]);
   }
 };
 
-const save = () => {
-
+const save = async(btnCB: (arg: boolean) => void) => {
+  try {
+    resource.value.data.data = toValue(formData.value);
+    await resource.value.data.save();
+    btnCB(true);
+  } catch (err) {
+    btnCB(false);
+  }
 };
 </script>
 
