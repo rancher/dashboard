@@ -1,69 +1,67 @@
-const fs = require('fs');
-const path = require('path');
+// UNCOMMENT THIS TO ENABLE NEW API PAGE ON SIDEBAR (FIXES PATHS)
+// const fs = require('fs');
+// const path = require('path');
 
-// Define the absolute path to the sidebar file that `docusaurus-plugin-typedoc` generates.
-const typedocSidebarPath = path.resolve(__dirname, './docs/extensions/shell-api/typedoc-sidebar.cjs');
+// // Define the absolute path to the sidebar file that `docusaurus-plugin-typedoc` generates.
+// const typedocSidebarPath = path.resolve(__dirname, './docs/extensions/shell-api/typedoc-sidebar.cjs');
 
-/**
- * Recursively processes an array of Docusaurus sidebar items.
- * It finds any 'doc' items and removes the incorrect 'extensions/' prefix
- * from their ID, which is a known issue with the plugin in multi-instance setups.
- *
- * @param {Array<object>} items The array of sidebar items from the generated file.
- * @returns {Array<object>} The corrected array of sidebar items.
- */
-function fixTypedocIds(items) {
-  return items.map((item) => {
-    // 1. Start with a shallow copy of the item.
-    const newItem = { ...item };
+// /**
+//  * Recursively processes an array of Docusaurus sidebar items.
+//  * It finds any 'doc' items and removes the incorrect 'extensions/' prefix
+//  * from their ID, which is a known issue with the plugin in multi-instance setups.
+//  *
+//  * @param {Array<object>} items The array of sidebar items from the generated file.
+//  * @returns {Array<object>} The corrected array of sidebar items.
+//  */
+// function fixTypedocIds(items) {
+//   return items.map((item) => {
+//     // 1. Start with a shallow copy of the item.
+//     const newItem = { ...item };
 
-    // --- FIX 1: Remove 'extensions/' prefix from 'doc' IDs ---
-    if (newItem.type === 'doc' && newItem.id && newItem.id.startsWith('extensions/')) {
-      newItem.id = newItem.id.replace('extensions/', '');
-    }
+//     // --- FIX 1: Remove 'extensions/' prefix from 'doc' IDs ---
+//     if (newItem.type === 'doc' && newItem.id && newItem.id.startsWith('extensions/')) {
+//       newItem.id = newItem.id.replace('extensions/', '');
+//     }
 
-    // --- RECURSION: Process sub-items if it's a 'category' ---
-    if (newItem.type === 'category' && newItem.items) {
-      newItem.items = fixTypedocIds(newItem.items);
-    }
+//     // --- RECURSION: Process sub-items if it's a 'category' ---
+//     if (newItem.type === 'category' && newItem.items) {
+//       newItem.items = fixTypedocIds(newItem.items);
+//     }
 
-    // --- FIX 2: Remove 'link' property if it points to an '_api-index' document ---
-    const link = newItem.link;
+//     // --- FIX 2: Remove 'link' property if it points to an '_api-index' document ---
+//     const link = newItem.link;
 
-    if (
-      link &&
-      typeof link === 'object' && link !== null &&
-      link.id &&
-      typeof link.id === 'string' &&
-      link.id.endsWith('_api-index')
-    ) {
-      // Use object destructuring to create a new object without the 'link' property
-      // and return it immediately.
-      const { link: removedLink, ...rest } = newItem;
+//     if (
+//       link &&
+//       typeof link === 'object' && link !== null &&
+//       link.id &&
+//       typeof link.id === 'string' &&
+//       link.id.endsWith('_api-index')
+//     ) {
+//       // Use object destructuring to create a new object without the 'link' property
+//       // and return it immediately.
+//       const { link: removedLink, ...rest } = newItem;
 
-      return rest;
-    }
+//       return rest;
+//     }
 
-    // Return the (potentially) modified item.
-    return newItem;
-  });
-}
+//     // Return the (potentially) modified item.
+//     return newItem;
+//   });
+// }
 
-// Initialize an empty array for the TypeDoc sidebar items.
-// UNCOMMENT THIS!!! AUTO-DOCS GENERATION
+// // Initialize an empty array for the TypeDoc sidebar items.
 // const typedocSidebarItems = [];
 
-// Safely check if the generated `typedoc-sidebar.cjs` file exists.
-// This prevents build errors if the file hasn't been generated yet.
-if (fs.existsSync(typedocSidebarPath)) {
-  // If the file exists, import its contents.
-  const originalTypedocSidebar = require(typedocSidebarPath);
+// // Safely check if the generated `typedoc-sidebar.cjs` file exists.
+// // This prevents build errors if the file hasn't been generated yet.
+// if (fs.existsSync(typedocSidebarPath)) {
+//   // If the file exists, import its contents.
+//   const originalTypedocSidebar = require(typedocSidebarPath);
 
-  // Run the imported items through our correction function.
-  fixTypedocIds(originalTypedocSidebar);
-  // UNCOMMENT THIS AND DELETE LINE ABOVE!!! AUTO-DOCS GENERATION
-  // typedocSidebarItems = fixTypedocIds(originalTypedocSidebar);
-}
+//   // Run the imported items through our correction function.
+//   typedocSidebarItems = fixTypedocIds(originalTypedocSidebar);
+// }
 
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
