@@ -8645,6 +8645,16 @@ aiAssistant:
       label: System Prompt
     ACTIVE_CHATBOT:
       label: AI Chatbot
+      options:
+        local:
+          name: Local
+          description: Run models locally with Ollama
+        openAi:
+          name: OpenAI
+          description: Use OpenAI's GPT models
+        gemini:
+          name: Gemini
+          description: Use Google's Gemini models
 
 branding:
   label: Branding

@@ -54,6 +54,27 @@ const models = {
   ]
 };
 
+const activeChatbotOptions = [
+  {
+    name:        t(`aiAssistant.form.${ Settings.ACTIVE_CHATBOT }.options.local.name`),
+    description: t(`aiAssistant.form.${ Settings.ACTIVE_CHATBOT }.options.local.description`, {}, true),
+    icon:        require('@shell/assets/images/providers/local.svg'),
+    value:       'Local',
+  },
+  {
+    name:        t(`aiAssistant.form.${ Settings.ACTIVE_CHATBOT }.options.openAi.name`),
+    description: t(`aiAssistant.form.${ Settings.ACTIVE_CHATBOT }.options.openAi.description`, {}, true),
+    icon:        require('@shell/assets/images/providers/OpenAI.svg'),
+    value:       'OpenAI',
+  },
+  {
+    name:        t(`aiAssistant.form.${ Settings.ACTIVE_CHATBOT }.options.gemini.name`),
+    description: t(`aiAssistant.form.${ Settings.ACTIVE_CHATBOT }.options.gemini.description`, {}, true),
+    icon:        require('@shell/assets/images/providers/Gemini.svg'),
+    value:       'Gemini',
+  },
+];
+
 const resource = useFetch(async() => {
   return await store.dispatch(`cluster/find`, {
     type: 'secret',
@@ -164,11 +185,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
     <div class="form-values">
       <ToggleGroup
         :model-value="formData[Settings.ACTIVE_CHATBOT]"
-        :items="[
-          { name: 'Local', description: 'Run models locally with Ollama', icon: require('@shell/assets/images/providers/local.svg'), value: 'Local' },
-          { name: 'OpenAI', description: `Use OpenAI's GPT models`, icon: require('@shell/assets/images/providers/OpenAI.svg'), value: 'OpenAI' },
-          { name: 'Gemini', description: `Use Google's Gemini models`, icon: require('@shell/assets/images/providers/Gemini.svg'), value: 'Gemini' },
-        ]"
+        :items="activeChatbotOptions"
         @update:model-value="(val: string | undefined) => updateValue(Settings.ACTIVE_CHATBOT, val)"
       />
       <banner
