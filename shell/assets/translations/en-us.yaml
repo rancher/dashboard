@@ -8604,21 +8604,28 @@ aiAssistant:
     EMBEDDINGS_MODEL:
       label: Embeddings Model
     ENABLE_RAG:
-      label: Enable RAG
+      label: Enable RAG for this assistant
     GOOGLE_API_KEY:
       label: Google API Key
+      description: The key to authenticate requests to Gemini
     LANGFUSE_HOST:
       label: Langfuse Host
+      description: The URL of your Langfuse server (e.g., https://cloud.langfuse.com)
     LANGFUSE_PUBLIC_KEY:
       label: Langfuse Public Key
+      description: Public API key for client-side events and user feedback (safe to expose)
     LANGFUSE_SECRET_KEY:
       label: Langfuse Secret Key
+      description: Private API key for server-to-server communication (keep confidential)
     MODEL:
       label: Model
+      description: Choose the AI model to use for generating responses
     OLLAMA_URL:
       label: Ollama URL
+      description: The URL where your Ollama instance is hosted
     OPENAI_API_KEY:
       label: OpenAI Key
+      description: The key to authenticate requests to OpenAI’s services
     SYSTEM_PROMPT:
       label: System Prompt
     ACTIVE_CHATBOT:
