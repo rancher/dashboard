@@ -69,6 +69,14 @@ button {
     border-color: #3B82F6;
     background: rgba(59, 130, 246, 0.05);
   }
+
+  &:hover {
+    > img {
+      &.svg-icon {
+        filter: initial;
+      }
+    }
+  }
 }
 
 .toggle-group-item-name {

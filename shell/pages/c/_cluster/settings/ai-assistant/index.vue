@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, markRaw, toValue } from 'vue';
+import { ref, watch, toValue } from 'vue';
 import { useStore } from 'vuex';
 import { cloneDeep } from 'lodash';
 
@@ -10,8 +10,10 @@ import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import { Banner } from '@components/Banner';
+import { _EDIT } from '@shell/config/query-params';
 import AsyncButton from '@shell/components/AsyncButton';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
+import Loading from '@shell/components/Loading.vue';
 import ToggleGroup from '@shell/pages/c/_cluster/settings/ai-assistant/toggle-group.vue';
 
 const store = useStore();
@@ -89,7 +91,7 @@ const updateFormConfig = (chatbot: string) => {
 watch(resource, (newResource) => {
   formData.value = cloneDeep(newResource.data.data);
 
-  if (!formData.value[Settings.ACTIVE_CHATBOT]) {
+  if (!base64Decode(formData.value[Settings.ACTIVE_CHATBOT])) {
     formData.value[Settings.ACTIVE_CHATBOT] = base64Encode('Local');
   }
 
@@ -119,15 +121,15 @@ const save = async(btnCB: (arg: boolean) => void) => {
 </script>
 
 <template>
-  <div>
+  <loading v-if="resource.loading" />
+  <div v-else>
     <h1>
       {{ t('aiAssistant.form.header') }}
     </h1>
     <label class="text-label">{{ t('aiAssistant.form.description') }}</label>
     <hr class="mb-20">
-    <h4>AI Chatbot Provider</h4>
-    <label class="text-label">Select the AI provider for your chatbot</label>
-    <hr class="mb-20">
+    <h4>{{ t('aiAssistant.form.section.provider.header') }}</h4>
+    <label class="text-label mb-20">{{ t('aiAssistant.form.section.provider.description') }}</label>
     <div class="form-values">
       <ToggleGroup
         :model-value="base64Decode(formData[Settings.ACTIVE_CHATBOT])"
@@ -142,13 +144,14 @@ const save = async(btnCB: (arg: boolean) => void) => {
         v-if="base64Decode(formData[Settings.ACTIVE_CHATBOT]) !== 'Local'"
         icon="icon-warning"
         color="warning"
+        class="mt-0 mb-0"
       >
         Privacy Notice:
         <br>
         When using external providers like Gemini, your prompts and data will be sent to third-party servers. These providers may use your data according to their own privacy policies. For sensitive or confidential information, consider using a local provider instead.
       </banner>
 
-      <div class="field">
+      <div class="form-field">
         <labeled-input
           :value="base64Decode(formData[chatbotConfigKey])"
           :label="t(`aiAssistant.form.${ chatbotConfigKey }.label`)"
@@ -159,7 +162,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
         </label>
       </div>
 
-      <div class="field">
+      <div class="form-field">
         <labeled-select
           :value="base64Decode(formData[Settings.MODEL])"
           :label="t(`aiAssistant.form.${ Settings.MODEL}.label`)"
@@ -171,17 +174,22 @@ const save = async(btnCB: (arg: boolean) => void) => {
         </label>
       </div>
 
-      <advanced-section>
-        <h4>RAG (Retrieval-Augmented Generation)</h4>
-        <label class="text-label">Enable RAG to make your chatbot smarter by giving it access to external knowledge</label>
+      <advanced-section
+        :mode="_EDIT"
+        class="mt-0 font-bold"
+      >
+        <h4 class="mt-30">
+          {{ t('aiAssistant.form.section.rag.header') }}
+        </h4>
+        <label class="text-label">{{ t('aiAssistant.form.section.rag.description') }}</label>
         <hr>
         <banner
           icon="icon-notify-warning"
           color="info"
         >
-          RAG (Retrieval-Augmented Generation) allows the chatbot to search a knowledge base before generating responses. This reduces hallucinations and provides more accurate, up-to-date answers grounded in your specific data.
+          {{ t('aiAssistant.form.section.rag.banner') }}
         </banner>
-        <div class="form-values mb-20">
+        <div class="form-values mb-30">
           <checkbox
             :value="base64Decode(formData[Settings.ENABLE_RAG])"
             :label="t(`aiAssistant.form.${ Settings.ENABLE_RAG}.label`)"
@@ -189,7 +197,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
             @update:value="(val: string) => updateValue(Settings.ENABLE_RAG, val)"
           />
 
-          <div class="field">
+          <div class="form-field">
             <labeled-input
               :value="base64Decode(formData[Settings.EMBEDDINGS_MODEL])"
               :label="t(`aiAssistant.form.${ Settings.EMBEDDINGS_MODEL}.label`)"
@@ -200,19 +208,21 @@ const save = async(btnCB: (arg: boolean) => void) => {
             </label>
           </div>
         </div>
-        <h4>Langfuse Configuration</h4>
+        <h4>
+          {{ t('aiAssistant.form.section.langfuse.header') }}
+        </h4>
         <label class="text-label">
-          Connect to Langfuse to monitor, trace, and debug your AI assistant
+          {{ t('aiAssistant.form.section.langfuse.description') }}
         </label>
         <hr>
         <banner
           icon="icon-notify-warning"
           color="info"
         >
-          Langfuse is an open-source tool for monitoring LLM applications. These settings connect your chatbot to a Langfuse server so you can analyze performance and troubleshoot issues. The host is the server address, while the secret and public keys authenticate your application.
+          {{ t('aiAssistant.form.section.langfuse.banner') }}
         </banner>
         <div class="form-values">
-          <div class="field">
+          <div class="form-field">
             <labeled-input
               :value="base64Decode(formData[Settings.LANGFUSE_HOST])"
               :label="t(`aiAssistant.form.${ Settings.LANGFUSE_HOST}.label`)"
@@ -223,7 +233,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
             </label>
           </div>
 
-          <div class="field">
+          <div class="form-field">
             <labeled-input
               :value="base64Decode(formData[Settings.LANGFUSE_PUBLIC_KEY])"
               :label="t(`aiAssistant.form.${ Settings.LANGFUSE_PUBLIC_KEY}.label`)"
@@ -234,7 +244,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
             </label>
           </div>
 
-          <div class="field">
+          <div class="form-field">
             <labeled-input
               :value="base64Decode(formData[Settings.LANGFUSE_SECRET_KEY])"
               :label="t(`aiAssistant.form.${ Settings.LANGFUSE_SECRET_KEY}.label`)"
@@ -278,9 +288,17 @@ const save = async(btnCB: (arg: boolean) => void) => {
   flex-direction: row-reverse;
 }
 
-.field {
+.form-field {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+div.mt-0 {
+  margin-top: 0 !important;
+}
+
+div.mb-0 {
+  margin-bottom: 0 !important;
 }
 </style>

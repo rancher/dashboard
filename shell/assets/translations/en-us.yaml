@@ -8599,8 +8599,20 @@ banner:
 aiAssistant:
   label: AI Assistant
   form:
-    header: Rancher AI Assistant Settings
-    description: Configure the Rancher AI Assistant
+    header: AI Model Configuration
+    description: Configure the AI model and provider for your assistant
+    section:
+      provider:
+        header: AI Chatbot Provider
+        description: Select the AI provider for your chatbot
+      rag:
+        header: RAG (Retrieval-Augmented Generation)
+        description: Enable RAG to make your chatbot smarter by giving it access to external knowledge 
+        banner: RAG (Retrieval-Augmented Generation) allows the chatbot to search a knowledge base before generating responses. This reduces hallucinations and provides more accurate, up-to-date answers grounded in your specific data. 
+      langfuse:
+        header: Langfuse Configuration
+        description: Connect to Langfuse to monitor, trace, and debug your AI assistant 
+        banner: Langfuse is an open-source tool for monitoring LLM applications. These settings connect your chatbot to a Langfuse server so you can analyze performance and troubleshoot issues. The host is the server address, while the secret and public keys authenticate your application. 
     EMBEDDINGS_MODEL:
       label: Embeddings Model
     ENABLE_RAG:
