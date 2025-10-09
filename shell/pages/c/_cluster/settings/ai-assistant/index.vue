@@ -62,11 +62,25 @@ const resource = useFetch(async() => {
   });
 });
 
-const formData = ref({});
-const modelOptions = ref(models.Local);
-const chatbotConfigKey = ref(Settings.OLLAMA_URL);
+interface FormData {
+  [Settings.EMBEDDINGS_MODEL]?: string;
+  [Settings.ENABLE_RAG]?: string;
+  [Settings.GOOGLE_API_KEY]?: string;
+  [Settings.LANGFUSE_HOST]?: string;
+  [Settings.LANGFUSE_PUBLIC_KEY]?: string;
+  [Settings.LANGFUSE_SECRET_KEY]?: string;
+  [Settings.MODEL]?: string;
+  [Settings.OLLAMA_URL]?: string;
+  [Settings.OPENAI_API_KEY]?: string;
+  [Settings.SYSTEM_PROMPT]?: string;
+  [Settings.ACTIVE_CHATBOT]?: keyof typeof models;
+}
 
-const updateFormConfig = (chatbot: string) => {
+const formData = ref<FormData>({});
+const modelOptions = ref(models.Local);
+const chatbotConfigKey = ref<Settings.OLLAMA_URL | Settings.GOOGLE_API_KEY | Settings.OPENAI_API_KEY>(Settings.OLLAMA_URL);
+
+const updateFormConfig = (chatbot: string | undefined) => {
   const modelField = formData.value[Settings.MODEL];
 
   if (modelField) {
@@ -100,12 +114,12 @@ watch(resource, (newResource) => {
   updateFormConfig(activeChatbot);
 });
 
-const updateValue = (key: string, val: string) => {
+const updateValue = (key: Settings, val: string | undefined) => {
   formData.value[key] = base64Encode(val);
 
   if (key === Settings.ACTIVE_CHATBOT) {
     updateFormConfig(val);
-    formData.value[Settings.MODEL] = base64Encode(models[val][0]);
+    formData.value[Settings.MODEL] = base64Encode(models[val as keyof typeof models][0]);
   }
 };
 
@@ -138,7 +152,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
           { name: 'OpenAI', description: `Use OpenAI's GPT models`, icon: require('@shell/assets/images/providers/OpenAI.svg'), value: 'OpenAI' },
           { name: 'Gemini', description: `Use Google's Gemini models`, icon: require('@shell/assets/images/providers/Gemini.svg'), value: 'Gemini' },
         ]"
-        @update:model-value="(val: string) => updateValue(Settings.ACTIVE_CHATBOT, val)"
+        @update:model-value="(val: string | undefined) => updateValue(Settings.ACTIVE_CHATBOT, val)"
       />
       <banner
         v-if="base64Decode(formData[Settings.ACTIVE_CHATBOT]) !== 'Local'"
