@@ -10,6 +10,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton from '@shell/components/AsyncButton';
+import ToggleGroup from '@shell/pages/c/_cluster/settings/ai-assistant/toggle-group.vue';
 
 const store = useStore();
 const { t } = useI18n(store);
@@ -122,11 +123,14 @@ const save = async(btnCB: (arg: boolean) => void) => {
     </h1>
     <label class="text-label mb-20">{{ t('aiAssistant.form.description') }}</label>
     <div class="form-values">
-      <labeled-select
-        :value="base64Decode(formData[Settings.ACTIVE_CHATBOT])"
-        :label="t(`aiAssistant.form.${ Settings.ACTIVE_CHATBOT }.label`)"
-        :options="['Local', 'OpenAI', 'Gemini']"
-        @update:value="(val: string) => updateValue(Settings.ACTIVE_CHATBOT, val)"
+      <ToggleGroup
+        :model-value="base64Decode(formData[Settings.ACTIVE_CHATBOT])"
+        :items="[
+          { name: 'Local', description: 'Run models locally with Ollama', icon: require('@shell/assets/images/providers/local.svg'), value: 'Local' },
+          { name: 'OpenAI', description: `Use OpenAI's GPT models`, icon: require('@shell/assets/images/providers/OpenAI.svg'), value: 'OpenAI' },
+          { name: 'Gemini', description: `Use Google's Gemini models`, icon: require('@shell/assets/images/providers/Gemini.svg'), value: 'Gemini' },
+        ]"
+        @update:model-value="(val: string) => updateValue(Settings.ACTIVE_CHATBOT, val)"
       />
 
       <labeled-input
@@ -193,7 +197,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  max-width: 24rem;
+  max-width: 48rem;
   flex-grow: 1;
 }
 
