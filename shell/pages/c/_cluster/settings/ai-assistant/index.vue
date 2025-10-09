@@ -73,7 +73,7 @@ interface FormData {
   [Settings.OLLAMA_URL]?: string;
   [Settings.OPENAI_API_KEY]?: string;
   [Settings.SYSTEM_PROMPT]?: string;
-  [Settings.ACTIVE_CHATBOT]?: keyof typeof models;
+  [Settings.ACTIVE_CHATBOT]?: string;
 }
 
 const formData = ref<FormData>({});
@@ -131,13 +131,18 @@ const updateValue = (key: Settings, val: string | undefined) => {
 
 const save = async(btnCB: (arg: boolean) => void) => {
   try {
-    const formDataClone = cloneDeep(toValue(formData.value));
+    const formDataToSave: { [key: string]: string } = {};
+    const formDataObject = toValue(formData.value);
 
-    for (const entry in formDataClone) {
-      formDataClone[entry] = base64Encode(formDataClone[entry]);
+    for (const key of Object.keys(formDataObject) as Array<keyof FormData>) {
+      const value = formDataObject[key];
+
+      if (value) {
+        formDataToSave[key] = base64Encode(value);
+      }
     }
 
-    resource.value.data.data = formDataClone;
+    resource.value.data.data = formDataToSave;
     await resource.value.data.save();
     btnCB(true);
   } catch (err) {
