@@ -103,29 +103,41 @@ const updateFormConfig = (chatbot: string | undefined) => {
 };
 
 watch(resource, (newResource) => {
-  formData.value = cloneDeep(newResource.data.data);
+  const resourceClone = cloneDeep(newResource?.data?.data);
 
-  if (!base64Decode(formData.value[Settings.ACTIVE_CHATBOT])) {
-    formData.value[Settings.ACTIVE_CHATBOT] = base64Encode('Local');
+  for (const entry in resourceClone) {
+    resourceClone[entry] = base64Decode(resourceClone[entry]);
   }
 
-  const activeChatbot = base64Decode(formData.value[Settings.ACTIVE_CHATBOT]);
+  formData.value = resourceClone;
+
+  if (!formData.value[Settings.ACTIVE_CHATBOT]) {
+    formData.value[Settings.ACTIVE_CHATBOT] = 'Local';
+  }
+
+  const activeChatbot = formData.value[Settings.ACTIVE_CHATBOT];
 
   updateFormConfig(activeChatbot);
 });
 
 const updateValue = (key: Settings, val: string | undefined) => {
-  formData.value[key] = base64Encode(val);
+  formData.value[key] = val;
 
   if (key === Settings.ACTIVE_CHATBOT) {
     updateFormConfig(val);
-    formData.value[Settings.MODEL] = base64Encode(models[val as keyof typeof models][0]);
+    formData.value[Settings.MODEL] = models[val as keyof typeof models][0];
   }
 };
 
 const save = async(btnCB: (arg: boolean) => void) => {
   try {
-    resource.value.data.data = toValue(formData.value);
+    const formDataClone = cloneDeep(toValue(formData.value));
+
+    for (const entry in formDataClone) {
+      formDataClone[entry] = base64Encode(formDataClone[entry]);
+    }
+
+    resource.value.data.data = formDataClone;
     await resource.value.data.save();
     btnCB(true);
   } catch (err) {
@@ -146,7 +158,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
     <label class="text-label mb-20">{{ t('aiAssistant.form.section.provider.description') }}</label>
     <div class="form-values">
       <ToggleGroup
-        :model-value="base64Decode(formData[Settings.ACTIVE_CHATBOT])"
+        :model-value="formData[Settings.ACTIVE_CHATBOT]"
         :items="[
           { name: 'Local', description: 'Run models locally with Ollama', icon: require('@shell/assets/images/providers/local.svg'), value: 'Local' },
           { name: 'OpenAI', description: `Use OpenAI's GPT models`, icon: require('@shell/assets/images/providers/OpenAI.svg'), value: 'OpenAI' },
@@ -155,7 +167,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
         @update:model-value="(val: string | undefined) => updateValue(Settings.ACTIVE_CHATBOT, val)"
       />
       <banner
-        v-if="base64Decode(formData[Settings.ACTIVE_CHATBOT]) !== 'Local'"
+        v-if="formData[Settings.ACTIVE_CHATBOT] !== 'Local'"
         icon="icon-warning"
         color="warning"
         class="mt-0 mb-0"
@@ -167,7 +179,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
 
       <div class="form-field">
         <labeled-input
-          :value="base64Decode(formData[chatbotConfigKey])"
+          :value="formData[chatbotConfigKey]"
           :label="t(`aiAssistant.form.${ chatbotConfigKey }.label`)"
           @update:value="(val: string) => updateValue(chatbotConfigKey, val)"
         />
@@ -178,7 +190,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
 
       <div class="form-field">
         <labeled-select
-          :value="base64Decode(formData[Settings.MODEL])"
+          :value="formData[Settings.MODEL]"
           :label="t(`aiAssistant.form.${ Settings.MODEL}.label`)"
           :options="modelOptions"
           @update:value="(val: string) => updateValue(Settings.MODEL, val)"
@@ -205,7 +217,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
         </banner>
         <div class="form-values mb-30">
           <checkbox
-            :value="base64Decode(formData[Settings.ENABLE_RAG])"
+            :value="formData[Settings.ENABLE_RAG]"
             :label="t(`aiAssistant.form.${ Settings.ENABLE_RAG}.label`)"
             value-when-true="true"
             @update:value="(val: string) => updateValue(Settings.ENABLE_RAG, val)"
@@ -213,7 +225,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
 
           <div class="form-field">
             <labeled-input
-              :value="base64Decode(formData[Settings.EMBEDDINGS_MODEL])"
+              :value="formData[Settings.EMBEDDINGS_MODEL]"
               :label="t(`aiAssistant.form.${ Settings.EMBEDDINGS_MODEL}.label`)"
               @update:value="(val: string) => updateValue(Settings.EMBEDDINGS_MODEL, val)"
             />
@@ -238,7 +250,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
         <div class="form-values">
           <div class="form-field">
             <labeled-input
-              :value="base64Decode(formData[Settings.LANGFUSE_HOST])"
+              :value="formData[Settings.LANGFUSE_HOST]"
               :label="t(`aiAssistant.form.${ Settings.LANGFUSE_HOST}.label`)"
               @update:value="(val: string) => updateValue(Settings.LANGFUSE_HOST, val)"
             />
@@ -249,7 +261,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
 
           <div class="form-field">
             <labeled-input
-              :value="base64Decode(formData[Settings.LANGFUSE_PUBLIC_KEY])"
+              :value="formData[Settings.LANGFUSE_PUBLIC_KEY]"
               :label="t(`aiAssistant.form.${ Settings.LANGFUSE_PUBLIC_KEY}.label`)"
               @update:value="(val: string) => updateValue(Settings.LANGFUSE_PUBLIC_KEY, val)"
             />
@@ -260,7 +272,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
 
           <div class="form-field">
             <labeled-input
-              :value="base64Decode(formData[Settings.LANGFUSE_SECRET_KEY])"
+              :value="formData[Settings.LANGFUSE_SECRET_KEY]"
               :label="t(`aiAssistant.form.${ Settings.LANGFUSE_SECRET_KEY}.label`)"
               @update:value="(val: string) => updateValue(Settings.LANGFUSE_SECRET_KEY, val)"
             />
