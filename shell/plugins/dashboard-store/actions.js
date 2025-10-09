@@ -220,6 +220,9 @@ export default {
       )
     ) {
       if (opt.watch !== false ) {
+        // Note - Empty revision here seems broken
+        // - list page (watch all) --> detail page (stop watch all, watch one) --> list page (watch all - no revision)
+        // - the missing revision means watch start from now... instead of the point the clusters were last monitored (cache contains stale data)
         const args = {
           type,
           revision:  '',

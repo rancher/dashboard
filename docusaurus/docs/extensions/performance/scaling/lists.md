@@ -39,12 +39,14 @@ A compatible column will contain `value`, `sort` and `search` properties that re
   - see `headers(SERVICE,` in `shell/config/product/explorer.js` 
 - rancher/dashboard `shell/list/node.vue`
   - see `headers(NODE,` in `shell/config/product/explorer.js` 
+- rancher/ui-plugin-examples
+  - see `headers(UI_PLUGIN,` in `pkg/extension-crd/product.js`
 - rancher/dashboard `shell/pages/c/_cluster/explorer/EventsTable.vue`
   - see `:pagination-headers="paginationHeaders"` 
 - rancher/dashboard `shell/pages/home.vue`
   - see `:pagination-headers="paginationHeaders"` 
 
-### Support for addTableColumn
+### Support for `addTableColumn`
 
 Extensions can insert additional columns to existing tables by using the `addTableColumn` method.
 

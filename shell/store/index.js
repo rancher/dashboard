@@ -40,6 +40,7 @@ import { isDevBuild } from '@shell/utils/version';
 import { markRaw } from 'vue';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { addReleaseNotesNotification } from '@shell/utils/release-notes';
+import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -230,8 +231,8 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
 /**
  * Are we in the vai enabled world where mgmt clusters are paginated?
  */
-const paginateClusters = (rootGetters) => {
-  return paginationUtils.isEnabled({ rootGetters }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
+const paginateClusters = ({ rootGetters, state }) => {
+  return paginationUtils.isEnabled({ rootGetters, $plugin: state.$plugin }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
 };
 
 export const state = () => {
@@ -260,11 +261,8 @@ export const state = () => {
     $router:                 markRaw({}),
     $route:                  markRaw({}),
     $plugin:                 markRaw({}),
-    /**
-     * Cache state of side nav clusters. This avoids flickering when the user changes pages and the side nav component re-renders
-     */
-    sideNavCache:            undefined,
     showWorkspaceSwitcher:   true,
+
   };
 };
 
@@ -629,10 +627,6 @@ export const getters = {
     return `${ base }/latest`;
   },
 
-  sideNavCache(state) {
-    return state.sideNavCache;
-  },
-
   ...gcGetters
 };
 
@@ -773,10 +767,6 @@ export const mutations = {
     state.$plugin = markRaw(pluginDefinition || {});
   },
 
-  setSideNavCache(state, sideNavCache) {
-    state.sideNavCache = sideNavCache;
-  },
-
   showWorkspaceSwitcher(state, value) {
     state.showWorkspaceSwitcher = value;
   },
@@ -855,7 +845,7 @@ export const actions = {
 
     res = await allHash(promises);
 
-    if (!res[MANAGEMENT.SETTING] || !paginateClusters(rootGetters)) {
+    if (!res[MANAGEMENT.SETTING] || !paginateClusters({ rootGetters, state })) {
       // This introduces a synchronous request, however we need settings to determine if SSP is enabled
       // Eventually it will be removed when SSP is always on
       res[MANAGEMENT.CLUSTER] = await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { watch: false } });
@@ -1033,7 +1023,7 @@ export const actions = {
     await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
 
     // If SSP is on we won't have requested all clusters
-    if (!paginateClusters(rootGetters)) {
+    if (!paginateClusters({ rootGetters, state })) {
       await dispatch('management/waitForHaveAll', { type: MANAGEMENT.CLUSTER });
     }
 
@@ -1132,8 +1122,10 @@ export const actions = {
     commit('updateNamespaces', { filters: ids, getters });
   },
 
-  async cleanNamespaces({ getters, dispatch, rootGetters }) {
-    if (paginateClusters(rootGetters)) {
+  async cleanNamespaces({
+    getters, dispatch, rootGetters, state
+  }) {
+    if (paginateClusters({ rootGetters, state })) {
       // See https://github.com/rancher/dashboard/issues/12864
       // old world...
       // - loadManagement makes a request to fetch all mgmt clusters
@@ -1186,6 +1178,8 @@ export const actions = {
         p.onLogOut(store);
       }
     });
+
+    sideNavService.reset();
 
     await dispatch('management/unsubscribe');
     commit('managementChanged', { ready: false });
@@ -1306,10 +1300,6 @@ export const actions = {
         dispatch(`${ storeName }/unsubscribe`);
       }
     });
-  },
-
-  setSideNavCache({ commit }, sideNavCache) {
-    commit('setSideNavCache', sideNavCache);
   },
 
   showWorkspaceSwitcher({ commit }, value) {

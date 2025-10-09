@@ -1,5 +1,6 @@
 import {
-  REGISTRATION_LABEL, REGISTRATION_NAMESPACE, REGISTRATION_SECRET, REGISTRATION_REQUEST_FILENAME, REGISTRATION_REQUEST_PREFIX
+  REGISTRATION_LABEL, REGISTRATION_NAMESPACE, REGISTRATION_SECRET, REGISTRATION_REQUEST_FILENAME, REGISTRATION_REQUEST_PREFIX,
+  REGISTRATION_NOTIFICATION_ID
 } from '../config/constants';
 import { usePrimeRegistration } from './registration.composable';
 
@@ -236,17 +237,18 @@ describe('registration composable', () => {
       const {
         registrationCode,
         registerOnline,
-        registration,
+        registration
       } = usePrimeRegistration();
 
       registrationCode.value = 'test-code';
 
       await registerOnline((val: boolean) => true);
 
-      expect(dispatchSpy).toHaveBeenCalledTimes(3);
+      expect(dispatchSpy).toHaveBeenCalledTimes(4);
       expect(dispatchSpy).toHaveBeenCalledWith('management/find', namespaceRequest);
       expect(dispatchSpy).toHaveBeenCalledWith('management/create', secretRequest);
       expect(dispatchSpy).toHaveBeenCalledWith('management/findAll', { type: 'scc.cattle.io.registration' });
+      expect(dispatchSpy).toHaveBeenCalledWith('notifications/remove', REGISTRATION_NOTIFICATION_ID);
       expect(registration.value.active).toStrictEqual(true);
     });
   });
@@ -296,9 +298,10 @@ describe('registration composable', () => {
 
       await registerOffline(certificate);
 
-      expect(dispatchSpy).toHaveBeenCalledTimes(3);
+      expect(dispatchSpy).toHaveBeenCalledTimes(4);
       expect(dispatchSpy).toHaveBeenCalledWith('management/find', namespaceRequest);
       expect(dispatchSpy).toHaveBeenCalledWith('management/findAll', { type: 'scc.cattle.io.registration' });
+      expect(dispatchSpy).toHaveBeenCalledWith('notifications/remove', REGISTRATION_NOTIFICATION_ID);
       expect(registration.value.active).toStrictEqual(true);
     });
 
