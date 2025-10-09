@@ -168,13 +168,12 @@ const save = async(btnCB: (arg: boolean) => void) => {
       />
       <banner
         v-if="formData[Settings.ACTIVE_CHATBOT] !== 'Local'"
-        icon="icon-warning"
         color="warning"
         class="mt-0 mb-0"
       >
-        Privacy Notice:
+        {{ t('aiAssistant.form.section.provider.banner.header') }}
         <br>
-        When using external providers like Gemini, your prompts and data will be sent to third-party servers. These providers may use your data according to their own privacy policies. For sensitive or confidential information, consider using a local provider instead.
+        {{ t('aiAssistant.form.section.provider.banner.description') }}
       </banner>
 
       <div class="form-field">
@@ -210,7 +209,6 @@ const save = async(btnCB: (arg: boolean) => void) => {
         <label class="text-label">{{ t('aiAssistant.form.section.rag.description') }}</label>
         <hr>
         <banner
-          icon="icon-notify-warning"
           color="info"
         >
           {{ t('aiAssistant.form.section.rag.banner') }}
@@ -242,7 +240,6 @@ const save = async(btnCB: (arg: boolean) => void) => {
         </label>
         <hr>
         <banner
-          icon="icon-notify-warning"
           color="info"
         >
           {{ t('aiAssistant.form.section.langfuse.banner') }}
