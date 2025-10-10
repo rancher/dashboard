@@ -74,6 +74,11 @@ If you want your tests to be tracked on Cypress dashboards you will have to enab
 - `TEST_PROJECT_ID` // Project ID used by Cypress/Sorry cypress to run the tests
 - `TEST_RUN_ID` (optional) // Identifier for your dashboard run, default value is timestamp
 
+### Test Retries
+
+Use the `TEST_RETRIES` environment variable to configure how many times a failing test should be retried when using the `yarn cy:open` command. When tests fail in our CI suite they are re-run twice. Read more about cypress test retries in the [official documentation](https://docs.cypress.io/app/guides/test-retries).
+
+
 ### Skip and only features
 
 Existing `TEST_SKIP_SETUP` logic has been replaced with something more generic included in the `cypress.ts` script/utility.
