@@ -209,6 +209,31 @@ export interface SlideInApi {
   open(component: Component, config?: SlideInConfig): void;
 }
 
+export interface NotificationsApi {
+  /**
+   * Opens a slide in panel in Rancher UI
+   *
+   * Example:
+   * ```ts
+   * import MyCustomSlideIn from '@/components/MyCustomSlideIn.vue';
+   *
+   * this.$shell.slideIn.open(MyCustomSlideIn, {
+   *   title: 'Hello from SlideIn panel!'
+   * });
+   * ```
+   *
+   * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).
+   *
+   * @param component
+   * The Vue component to be displayed inside the slide in panel.
+   * This can be any SFC (Single-File Component) imported and passed in as a `Component`.
+   *
+   * @param config Slide-In configuration object
+   *
+   */
+  send(notification: any): void;
+}
+
 /**
  * @internal
  * Available "API's" inside Shell API
@@ -228,4 +253,9 @@ export interface ShellApi {
    * Provides access to the Slide-In API
    */
   get slideIn(): SlideInApi;
+
+  /**
+   * Provides access to the Notification Center API
+   */
+  get notifications(): NotificationsApi;
 }
