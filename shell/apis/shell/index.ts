@@ -1,23 +1,23 @@
 import { Store } from 'vuex';
 import {
-  GrowlApi, ModalApi, ShellApi, SlideInApi, NotificationsApi
+  GrowlApi, ModalApi, ShellApi, SlideInApi, NotificationApi
 } from '@shell/apis/intf/shell';
 import { GrowlApiImpl } from './growl';
 import { ModalApiImpl } from './modal';
 import { SlideInApiImpl } from './slide-in';
-import { NotificationsApiImpl } from './notifications';
+import { NotificationApiImpl } from './notifications';
 
 export class ShellApiImpl implements ShellApi {
   private growlApi: GrowlApi;
   private modalApi: ModalApi;
   private slideInApi: SlideInApi;
-  private notificationsApi: SlideInApi;
+  private notificationApi: NotificationApi;
 
   constructor(store: Store<any>) {
     this.growlApi = new GrowlApiImpl(store);
     this.modalApi = new ModalApiImpl(store);
     this.slideInApi = new SlideInApiImpl(store);
-    this.notificationsApi = new NotificationsApiImpl(store);
+    this.notificationApi = new NotificationApiImpl(store);
   }
 
   get growl(): GrowlApi {
@@ -32,7 +32,7 @@ export class ShellApiImpl implements ShellApi {
     return this.slideInApi;
   }
 
-  get notifications(): NotificationsApi {
-    return this.notificationsApi;
+  get notification(): NotificationApi {
+    return this.notificationApi;
   }
 }
