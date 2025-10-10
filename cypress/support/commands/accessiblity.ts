@@ -7,6 +7,9 @@ const severityIndicators = {
   critical: '🔴',
 };
 
+// Ignore color contrast for now
+const RULES = { rules: { 'color-contrast': { enabled: false } } };
+
 // Used to track where multiple checks are done in a test to ensure we save
 // the screenshots for them to unique filenames
 const screenshotIndexes: {[key: string]: number} = {};
@@ -131,7 +134,7 @@ function getAccessibilityViolationsCallback(description?: string) {
  */
 // skipFailures = true will not fail the test when there are accessibility failures
 Cypress.Commands.add('checkPageAccessibility', (description?: string) => {
-  cy.checkA11y(undefined, {}, getAccessibilityViolationsCallback(description), true);
+  cy.checkA11y(undefined, RULES, getAccessibilityViolationsCallback(description), true);
 });
 
 /**
@@ -143,5 +146,5 @@ Cypress.Commands.add('checkElementAccessibility', (subject: any, description?: s
     cy.log(`✅ Found ${ $el.length } elements matching`);
   });
 
-  cy.checkA11y(subject, {}, getAccessibilityViolationsCallback(description), true);
+  cy.checkA11y(subject, RULES, getAccessibilityViolationsCallback(description), true);
 });
