@@ -28,10 +28,12 @@ import { PaginationParamFilter, FilterArgs, PaginationFilterField, PaginationArg
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import { sameContents } from '@shell/utils/array';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
-import { CURRENT_RANCHER_VERSION } from '@shell/config/version';
+import { CURRENT_RANCHER_VERSION, getVersionData } from '@shell/config/version';
 import { CAPI as CAPI_LAB_AND_ANO } from '@shell/config/labels-annotations';
 import paginationUtils from '@shell/utils/pagination-utils';
 import ResourceTable from '@shell/components/ResourceTable.vue';
+import Preset from '@shell/mixins/preset';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 export default defineComponent({
   name:       'Home',
@@ -44,10 +46,11 @@ export default defineComponent({
     CommunityLinks,
     SingleClusterInfo,
     TabTitle,
-    ResourceTable
+    ResourceTable,
+    Checkbox,
   },
 
-  mixins: [PageHeaderActions],
+  mixins: [PageHeaderActions, Preset],
 
   data() {
     const options = this.$store.getters[`type-map/optionsFor`](CAPI.RANCHER_CLUSTER)?.custom || {};
@@ -205,9 +208,24 @@ export default defineComponent({
 
       CURRENT_RANCHER_VERSION,
 
-      altClusterList:     undefined as boolean | undefined,
-      altClusterListRows: undefined as any[] | undefined,
+      /**
+       * User has decided to disable the alt list
+       */
+      altClusterListDisabled: false,
+      /**
+       * There are too many clusters to show in the home page list.
+       *
+       * If not disabled, show alt table
+       */
+      tooManyClusters:        undefined as boolean | undefined,
+      altClusterListRows:     undefined as any[] | undefined,
+
+      presetVersion: getVersionData()?.Version,
     };
+  },
+
+  mounted() {
+    this.preset('altClusterListDisabled', 'boolean');
   },
 
   computed: {
@@ -229,6 +247,21 @@ export default defineComponent({
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
     homePageCards:   mapPref(HIDE_HOME_PAGE_CARDS),
 
+    /**
+     * Show the alt table
+     */
+    altClusterList() {
+      return this.tooManyClusters && !this.altClusterListDisabled;
+    }
+
+  },
+
+  watch: {
+    async altClusterList(neu) {
+      if (neu) {
+        await this.initAltClusters();
+      }
+    },
   },
 
   async created() {
@@ -241,10 +274,10 @@ export default defineComponent({
     // otherwise we always take them to the home page to see the release notes
     markSeenReleaseNotes(this.$store);
 
-    this.altClusterList = this.useAltClusterList();
+    this.tooManyClusters = this.isTooManyClusters();
 
     if (this.altClusterList) {
-      await this.setAltClusters();
+      await this.initAltClusters();
     }
   },
 
@@ -479,12 +512,18 @@ export default defineComponent({
       return pagination;
     },
 
+    async toggleAltClusterListDisabled(disabled: boolean) {
+      // Clear the cache so the table doesn't show the previous mode's results
+      await this.$store.dispatch('management/forgetType', CAPI.RANCHER_CLUSTER);
+
+      this.altClusterListDisabled = disabled;
+    },
     /**
-     * Determine if we should use an alternative cluster list
+     * Determine if we should use an alternative cluster list // TODO: RC
      *
      * Basically if vai is on and there's a LOT of clusters... use vai to find most recent clusters and show instead
      */
-    useAltClusterList(): boolean {
+    isTooManyClusters(): boolean {
       if (!this.provClusterSchema || !this.canViewMgmtClusters) {
         return false;
       }
@@ -508,7 +547,7 @@ export default defineComponent({
       return this.clusterCount > threshold;
     },
 
-    async setAltClusters() {
+    async initAltClusters() {
       const featureConfig = paginationUtils.getFeature({ rootGetters: this.$store.getters }, 'homePageCluster');
       const rows = featureConfig?.configuration?.rows || 50;
 
@@ -596,9 +635,23 @@ export default defineComponent({
                     <h2 class="mb-0">
                       {{ t('landing.clusters.title') }}
                     </h2>
+                    <BadgeState
+                      v-if="clusterCount"
+                      :label="clusterCount.toString()"
+                      color="role-tertiary ml-20 mr-20"
+                    />
                   </div>
-                  <div class="row ">
-                    {{ t('landing.clusters.tooMany', { rows: altClusterListRows?.length || '...', total: clusterCount}) }}
+                </template>
+                <template #sub-header-row>
+                  <div class="too-many-clusters">
+                    <div class="row too-many-clusters-msg">
+                      {{ t('landing.clusters.tooMany.showingSome', { rows: altClusterListRows?.length || '...', total: clusterCount}) }}
+                    </div>
+                    <Checkbox
+                      :value="altClusterListDisabled"
+                      label-key="landing.clusters.tooMany.showAll"
+                      @update:value="toggleAltClusterListDisabled($event)"
+                    />
                   </div>
                 </template>
                 <!--
@@ -754,6 +807,21 @@ export default defineComponent({
                   </div>
                 </template>
                 <template
+                  v-if="tooManyClusters"
+                  #sub-header-row
+                >
+                  <div class="too-many-clusters">
+                    <div class="row too-many-clusters-msg">
+                      {{ t('landing.clusters.tooMany.showingAll', { rows: altClusterListRows?.length || '...', total: clusterCount}) }}
+                    </div>
+                    <Checkbox
+                      :value="altClusterListDisabled"
+                      label-key="landing.clusters.tooMany.showAll"
+                      @update:value="toggleAltClusterListDisabled($event)"
+                    />
+                  </div>
+                </template>
+                <template
                   v-if="canCreateCluster || !!provClusterSchema"
                   #header-middle
                 >
@@ -895,6 +963,15 @@ export default defineComponent({
     }
     .main-panel {
       flex: auto;
+
+      .too-many-clusters {
+        display: flex;
+        flex-direction: column;
+        &-msg {
+          font-size: $font-size-h2;
+          margin-bottom: 10px;
+        }
+      }
     }
 
     .side-panel {
