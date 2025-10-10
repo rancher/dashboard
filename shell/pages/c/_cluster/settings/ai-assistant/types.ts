@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 export enum Settings {
   EMBEDDINGS_MODEL = 'EMBEDDINGS_MODEL',
   ENABLE_RAG = 'ENABLE_RAG',
