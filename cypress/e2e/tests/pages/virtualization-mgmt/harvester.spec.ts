@@ -14,6 +14,27 @@ const harvesterTitle = 'Harvester';
 const branchName = 'gh-pages';
 const harvesterGitRepoUrl = 'https://github.com/harvester/harvester-ui-extension.git';
 
+/**
+ * Conditional retry for Harvester extension installation based on UI warning message
+ * Checks for the "Warning, Harvester UI extension automatic installation failed" message
+ * and reloads the page to retry if detected
+ * Need conditional retry until this is resolved https://github.com/rancher/dashboard/issues/13093
+ */
+function conditionalRetryHarvesterInstallation() {
+  // Check if the installation failed warning is displayed
+  harvesterPo.extensionWarning().then(($warning) => {
+    if ($warning.text().includes('Warning, Harvester UI extension automatic installation failed')) {
+      cy.log('Detected Harvester installation failed warning, reloading page and retrying...');
+      cy.reload();
+      harvesterPo.waitForPage();
+      // Second attempt at installation after reload...
+      harvesterPo.updateOrInstallButton().click();
+    } else {
+      cy.log('No installation failed warning detected, proceeding normally');
+    }
+  });
+}
+
 describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
@@ -45,10 +66,22 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     harvesterPo.updateOrInstallButton().click();
     cy.wait('@createHarvesterChart', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 201);
     cy.wait('@updateHarvesterChart', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-    cy.wait('@installHarvesterExtension', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 201);
+    // Wait for the installation request and handle 500 errors
+    cy.wait('@installHarvesterExtension', MEDIUM_TIMEOUT_OPT).then((interception) => {
+      const statusCode = interception.response?.statusCode;
+
+      if (statusCode === 201) {
+        cy.log('Harvester extension installation succeeded on first attempt');
+      } else if (statusCode === 500) {
+        cy.log('Harvester extension installation failed with 500 error, lets retry...');
+        conditionalRetryHarvesterInstallation();
+      } else {
+        throw new Error(`Unexpected status code: ${ statusCode }`);
+      }
+    });
     harvesterPo.waitForPage();
     cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
-    harvesterPo.extensionWarning().should('not.exist');
+    harvesterPo.extensionWarning(MEDIUM_TIMEOUT_OPT).should('not.exist');
 
     // verify harvester extension added to extensions page
     extensionsPo.goTo();
@@ -109,7 +142,9 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       }
     });
 
-    // verify harvester repo is added to repos list page
+    // Wait for repository to be downloaded and ready
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', harvesterGitRepoName);
+
     appRepoList.goTo();
     appRepoList.waitForPage();
     appRepoList.sortableTable().rowElementWithName(harvesterGitRepoName).should('be.visible');
@@ -178,7 +213,9 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       }
     });
 
-    // verify harvester repo is added to repos list page
+    // Wait for repository to be downloaded and ready
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', harvesterGitRepoName);
+
     appRepoList.goTo();
     appRepoList.waitForPage();
     appRepoList.sortableTable().rowElementWithName(harvesterGitRepoName).should('be.visible');
@@ -213,6 +250,9 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       // check harvester version on card - should be the latest available version
       extensionsPo.extensionCardVersion(harvesterTitle).should('contain', versions[0]);
 
+      // hover checkmark - tooltip should have older version
+      extensionsPo.extensionCardHeaderStatusTooltip(harvesterTitle, 1).waitForTooltipWithText(`Installed (${ versions[1] })`);
+
       harvesterPo.goTo();
       harvesterPo.waitForPage();
       cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT);
@@ -237,6 +277,9 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       extensionsPo.loading().should('not.exist');
       // check harvester version on card after update - should be latest
       extensionsPo.extensionCardVersion(harvesterTitle).should('contain', versions[0]);
+
+      // hover checkmark - tooltip should have latest version
+      extensionsPo.extensionCardHeaderStatusTooltip(harvesterTitle, 0).waitForTooltipWithText(`Installed (${ versions[0] })`);
     });
   });
 
