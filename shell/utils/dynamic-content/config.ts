@@ -4,7 +4,7 @@ import { Configuration, Distribution } from './types';
 import { MANAGEMENT } from '@shell/config/types';
 
 // Default endpoint ($dist is either 'community' or 'prime')
-const DEFAULT_ENDPOINT = 'https://updates.rancher.io/rancher/$dist/index.yaml';
+const DEFAULT_ENDPOINT = 'https://updates.rancher.io/rancher/$dist/updates';
 
 // We only support retrieving content from secure endpoints
 const HTTPS_PREFIX = 'https://';
