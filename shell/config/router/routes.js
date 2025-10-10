@@ -16,6 +16,7 @@ import { NAME as LOGGING_NAME, CHART_NAME as LOGGING_CHART_NAME } from '@shell/c
 import { NAME as MONITORING_NAME, CHART_NAME as MONITORING_CHART_NAME } from '@shell/config/product/monitoring';
 import { NAME as NEUVECTOR_NAME, CHART_NAME as NEUVECTOR_CHART_NAME } from '@shell/config/product/neuvector';
 import { NAME as LONGHORN_NAME, CHART_NAME as LONGHORN_CHART_NAME } from '@shell/config/product/longhorn';
+import { getVersionData } from '@shell/config/version';
 
 const interopDefault = (promise) => promise.then((page) => page.default || page);
 
@@ -400,9 +401,16 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/fleet/settings/index.vue')),
         name:      'c-cluster-settings-fleet'
       }, {
-        path:      '/c/:cluster/settings/ai-assistant',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/settings/ai-assistant/index.vue')),
-        name:      'c-cluster-settings-ai-assistant'
+        path:        '/c/:cluster/settings/ai-assistant',
+        component:   () => interopDefault(import('@shell/pages/c/_cluster/settings/ai-assistant/index.vue')),
+        name:        'c-cluster-settings-ai-assistant',
+        beforeEnter: (_to, _from, next) => {
+          if (getVersionData().RancherPrime === 'true') {
+            next();
+          } else {
+            next({ name: 'c-cluster-settings', params: { cluster: 'local' } });
+          }
+        }
       }, {
         path:      '/c/:cluster/auth/group.principal/assign-edit',
         component: () => interopDefault(import('@shell/pages/c/_cluster/auth/group.principal/assign-edit.vue')),

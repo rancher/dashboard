@@ -7,6 +7,7 @@ import {
   NAME_UNLINKED,
 } from '@shell/config/table-headers';
 import { getVendor } from '@shell/config/private-label';
+import { getVersionData } from '@shell/config/version';
 
 export const NAME = 'settings';
 
@@ -112,15 +113,17 @@ export function init(store) {
     route:      { name: 'c-cluster-settings-fleet' }
   });
 
-  virtualType({
-    ifHaveType: MANAGEMENT.SETTING,
-    labelKey:   'aiAssistant.label',
-    name:       'ai-assistant',
-    namespaced: false,
-    weight:     94,
-    icon:       'folder',
-    route:      { name: 'c-cluster-settings-ai-assistant' }
-  });
+  if (getVersionData().RancherPrime === 'true') {
+    virtualType({
+      ifHaveType: MANAGEMENT.SETTING,
+      labelKey:   'aiAssistant.label',
+      name:       'ai-assistant',
+      namespaced: false,
+      weight:     94,
+      icon:       'folder',
+      route:      { name: 'c-cluster-settings-ai-assistant' }
+    });
+  }
 
   basicType([
     'settings',
