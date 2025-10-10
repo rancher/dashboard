@@ -74,6 +74,12 @@ const formData = ref<FormData>({});
 const modelOptions = ref(models.Local);
 const chatbotConfigKey = ref<Settings.OLLAMA_URL | Settings.GOOGLE_API_KEY | Settings.OPENAI_API_KEY>(Settings.OLLAMA_URL);
 
+/**
+ * Updates the form configuration based on the selected chatbot.
+ * Sets the appropriate model options and config key for the selected chatbot.
+ * @param chatbot The selected chatbot provider ('OpenAI', 'Gemini', or
+ * 'Local').
+ */
 const updateFormConfig = (chatbot: string | undefined) => {
   const modelField = formData.value[Settings.MODEL];
 
@@ -96,6 +102,11 @@ const updateFormConfig = (chatbot: string | undefined) => {
   }
 };
 
+/**
+ * Watches for changes in the resource and updates the form data.
+ * Decodes base64-encoded values and initializes the form with the decoded data.
+ * Sets the default chatbot if none is selected.
+ */
 watch(resource, (newResource) => {
   const resourceClone = cloneDeep(newResource?.data?.data);
 
@@ -114,6 +125,14 @@ watch(resource, (newResource) => {
   updateFormConfig(activeChatbot);
 });
 
+/**
+ * Updates the form data value for a given key.
+ * If the key is the active chatbot, update the form configuration and set the
+ * default model.
+ *
+ * @param key The key in the form data to update.
+ * @param val The value to set for the key.
+ */
 const updateValue = (key: Settings, val: string | undefined) => {
   formData.value[key] = val;
 
@@ -123,6 +142,12 @@ const updateValue = (key: Settings, val: string | undefined) => {
   }
 };
 
+/**
+ * Saves the form data by encoding values in base64 and dispatching the save
+ * action.
+ *
+ * @param btnCB Callback function to notify the result of the save operation.
+ */
 const save = async(btnCB: (arg: boolean) => void) => {
   try {
     const formDataToSave: { [key: string]: string } = {};
