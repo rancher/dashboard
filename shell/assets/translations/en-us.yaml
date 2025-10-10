@@ -3776,6 +3776,10 @@ landing:
   homepage: Homepage
   clusters:
     title: Clusters
+    tooMany:
+      showAll: Show all clusters (may increase load time)
+      showingAll: Showing {total} clusters
+      showingSome: "Showing {rows} of {total} recently created clusters"
     provider: Provider
     distro: Distro
     kubernetesVersion: Kubernetes Version

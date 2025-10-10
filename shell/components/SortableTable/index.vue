@@ -1090,7 +1090,7 @@ export default {
       <div
         v-if="showHeaderRow"
         class="fixed-header-actions"
-        :class="{button: !!$slots['header-button'], 'advanced-filtering': hasAdvancedFiltering}"
+        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering}"
       >
         <div
           :class="bulkActionsClass"
@@ -1295,6 +1295,12 @@ export default {
           >
           <slot name="header-button" />
         </div>
+      </div>
+      <div
+        v-if="!!$slots['sub-header-row']"
+        class="sub-header-row"
+      >
+        <slot name="sub-header-row" />
       </div>
     </div>
     <table
@@ -2047,8 +2053,17 @@ export default {
     grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 350px);
   }
 
+  $header-padding: 20px;
+  .sub-header-row {
+    padding: 0 0 $header-padding / 2 0;
+  }
+
   .fixed-header-actions {
-    padding: 0 0 20px 0;
+    padding: 0 0 $header-padding 0;
+    &.with-sub-header {
+      padding: 0 0 $header-padding / 4 0;
+    }
+
     width: 100%;
     z-index: z-index('fixedTableHeader');
     background: transparent;
