@@ -458,7 +458,16 @@ export default defineComponent({
       }
 
       return pagination;
-    }
+    },
+    testmodal() {
+      this.$shell.modal.open(CommunityLinks);
+    },
+    testslide() {
+      this.$shell.slideIn.open(CommunityLinks, { showHeader: false });
+    },
+    testgrowl() {
+      this.$shell.growl.show('success', 'Hello!');
+    },
   }
 });
 
@@ -490,6 +499,15 @@ export default defineComponent({
               v-if="mcm"
               class="col span-12"
             >
+              <button @click="testmodal">
+                modal
+              </button>
+              <button @click="testslide">
+                slide
+              </button>
+              <button @click="testgrowl">
+                growl
+              </button>
               <PaginatedResourceTable
                 v-if="provClusterSchema"
                 :schema="provClusterSchema"
