@@ -195,8 +195,10 @@ export default class Chart extends SteveModel {
       }
 
       if (this.isInstalled) {
+        const installedVersion = this.matchingInstalledApps[0]?.spec?.chart?.metadata?.version;
+
         statuses.push({
-          icon: 'icon-confirmation-alt', color: 'success', tooltip: { key: 'generic.installed' }
+          icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: `${ this.t('generic.installed') } (${ installedVersion })` }
         });
       }
 
