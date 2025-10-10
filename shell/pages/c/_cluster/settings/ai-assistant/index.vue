@@ -324,7 +324,7 @@ const save = async(btnCB: (arg: boolean) => void) => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  max-width: 48rem;
+  max-width: 50rem;
   flex-grow: 1;
 }
 

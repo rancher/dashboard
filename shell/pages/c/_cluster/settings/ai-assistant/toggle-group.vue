@@ -46,8 +46,9 @@ const update = (value: string) => {
 <style lang="scss" scoped>
 .toggle-group {
   display: flex;
+  flex-wrap: wrap;
   flex-direction: row;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 button {
@@ -55,9 +56,10 @@ button {
     display: flex;
     flex-direction: column;
     align-items: center;
+    flex-grow: 1;
     gap: 0.5rem;
 
-    width: 16rem;
+    min-width: 16rem;
     padding: 14px 0;
     border: 2px solid #E2E8F0;
     border-radius: 0.5rem;
