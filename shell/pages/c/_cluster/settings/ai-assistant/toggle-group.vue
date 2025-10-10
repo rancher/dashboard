@@ -32,12 +32,14 @@ const update = (value: string) => {
         @click="update(item.value)"
       >
         <icon-or-svg :src="item.icon" />
-        <div class="toggle-group-item-name">
-          {{ item.name }}
+        <div toggle-group-content>
+          <div class="toggle-group-item-name">
+            {{ item.name }}
+          </div>
+          <label class="text-label toggle-group-item-description">
+            {{ item.description }}
+          </label>
         </div>
-        <label class="text-label toggle-group-item-description">
-          {{ item.description }}
-        </label>
       </rc-button>
     </template>
   </div>
@@ -48,7 +50,7 @@ const update = (value: string) => {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
-  gap: 0.75rem;
+  gap: .75rem;
 }
 
 button {
@@ -57,7 +59,7 @@ button {
     flex-direction: column;
     align-items: center;
     flex-grow: 1;
-    gap: 0.5rem;
+    gap: 0.75rem;
 
     min-width: 16rem;
     padding: 14px 0;
