@@ -315,7 +315,7 @@ describe('registration composable', () => {
   });
 
   describe('deregistering', () => {
-    it('should reset all de values', async() => {
+    it('should reset all the values', async() => {
       const {
         registerOffline,
         registrationStatus
@@ -324,6 +324,40 @@ describe('registration composable', () => {
       registerOffline('');
 
       expect(registrationStatus.value).toStrictEqual('registering-offline');
+    });
+  });
+
+  describe('should display an error message', () => {
+    it('given no registration code', async() => {
+      const expectation = 'registration.errors.generic-registration';
+      const store = { state: {}, dispatch: dispatchSpy } as any;
+      const { errors } = usePrimeRegistration(store);
+
+      expect(errors.value[0]).toStrictEqual(expectation);
+    });
+
+    it('given a mismatched registration code', async() => {
+      const expectation = 'registration.errors.mismatch-code';
+      const store = { state: {}, dispatch: dispatchSpy } as any;
+      const { errors } = usePrimeRegistration(store);
+
+      expect(errors.value[0]).toStrictEqual(expectation);
+    });
+
+    it('given a malformed file', async() => {
+      const expectation = 'registration.errors.generic-registration';
+      const store = { state: {}, dispatch: dispatchSpy } as any;
+      const { errors } = usePrimeRegistration(store);
+
+      expect(errors.value[0]).toStrictEqual(expectation);
+    });
+
+    it('given a timeout', async() => {
+      const expectation = 'registration.errors.timeout-registration';
+      const store = { state: {}, dispatch: dispatchSpy } as any;
+      const { errors } = usePrimeRegistration(store);
+
+      expect(errors.value[0]).toStrictEqual(expectation);
     });
   });
 });

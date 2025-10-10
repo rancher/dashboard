@@ -490,7 +490,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * @param polling
    * @returns
    */
-  const checkErrors = (polling?: boolean): string => {
+  const getError = (polling?: boolean): string => {
     if (polling && !secret.value?.data?.regCode) {
       return t('registration.errors.missing-code');
     }
@@ -534,7 +534,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
       const interval = setInterval(async() => {
         if (Date.now() - startTime > timeout) {
           clearInterval(interval);
-          reject(new Error(checkErrors(true)));
+          reject(new Error(getError(true)));
 
           return;
         }
@@ -563,10 +563,10 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     secret.value = await getSecret();
     registrationCode.value = secret.value?.data?.regCode ? atob(secret.value.data.regCode) : null; // Get registration code from secret
     registrationStatus.value = await getRegistration();
-    const errors = checkErrors();
+    const message = getError();
 
-    if (errors) {
-      onError(new Error(errors));
+    if (message) {
+      onError(new Error(message));
     }
   };
 
