@@ -65,9 +65,9 @@ button {
 
     min-width: 16rem;
     padding: 14px 0;
-    border: 2px solid #E2E8F0;
+    border: 2px solid var(--input-border);
     border-radius: 0.5rem;
-    background: #FFFFFF;
+    background: var(--body-bg);
     line-height: initial;
   }
 
