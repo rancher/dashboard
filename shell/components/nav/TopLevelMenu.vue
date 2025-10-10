@@ -1086,7 +1086,7 @@ export default {
         align-items: center;
         cursor: pointer;
         display: flex;
-        color: var(--link);
+        color: var(--on-tertiary, var(--link));
         font-size: 14px;
         height: $option-height;
         white-space: nowrap;
@@ -1177,7 +1177,7 @@ export default {
         .rancher-provider-icon,
         svg {
           margin-right: 16px;
-          fill: var(--link);
+          fill: var(--on-tertiary, var(--link));
         }
 
         .top-menu-icon {

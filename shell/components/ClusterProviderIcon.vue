@@ -79,7 +79,7 @@ export default {
 
 <style lang="scss" scoped>
   .rancher-icon-fill {
-    fill: var(--link, var(--primary));
+    fill: var(--on-tertiary, var(--primary));
   }
   .cluster-icon {
     align-items: center;
