@@ -193,9 +193,11 @@ const save = async(btnCB: (arg: boolean) => void) => {
         color="warning"
         class="mt-0 mb-0"
       >
-        {{ t('aiAssistant.form.section.provider.banner.header') }}
-        <br>
-        {{ t('aiAssistant.form.section.provider.banner.description') }}
+        <span>
+          <b>{{ t('aiAssistant.form.section.provider.banner.header', {}, true) }}</b>
+          <br>
+          {{ t('aiAssistant.form.section.provider.banner.description') }}
+        </span>
       </banner>
 
       <div class="form-field">

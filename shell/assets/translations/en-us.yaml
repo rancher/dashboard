@@ -8606,7 +8606,7 @@ aiAssistant:
         header: AI Chatbot Provider
         description: Select the AI provider for your chatbot
         banner:
-          header: Privacy Notice
+          header: "Privacy Notice:"
           description: When using external providers like Gemini, your prompts and data will be sent to third-party servers. These providers may use your data according to their own privacy policies. For sensitive or confidential information, consider using a local provider instead.
       rag:
         header: RAG (Retrieval-Augmented Generation)
