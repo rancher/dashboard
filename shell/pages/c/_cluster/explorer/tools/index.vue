@@ -151,7 +151,7 @@ export default {
           action: 'edit',
         });
 
-        const currentVersion = installedApp.spec.chart.metadata.version;
+        const currentVersion = installedApp.spec?.chart?.metadata?.version;
         const versions = rawChart.versions;
         const currentIndex = versions.findIndex((v) => v.version === currentVersion);
 
@@ -190,7 +190,7 @@ export default {
     },
 
     downgrade(app, chart) {
-      const currentVersion = app.spec.chart.metadata.version;
+      const currentVersion = app.spec?.chart?.metadata?.version;
       const versions = chart.versions;
       const currentIndex = versions.findIndex((v) => v.version === currentVersion);
 
