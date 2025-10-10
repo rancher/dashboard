@@ -230,7 +230,7 @@ export async function fetchDynamicContent(context: Context): Promise<DynamicCont
         signal:          newRequestAbortSignal(FETCH_REQUEST_TIMEOUT),
       });
 
-      // The data should be YAML in the 'data' attribute
+      // The data should be YAML (or JSON) in the 'data' attribute
       if (res?.data) {
         try {
           content = jsyaml.load(res.data) as any;
@@ -240,7 +240,7 @@ export async function fetchDynamicContent(context: Context): Promise<DynamicCont
           // Update the last date now
           updateFetchInfo(false);
         } catch (e) {
-          logger.error('Failed to parse YAML from dynamic content package', e);
+          logger.error('Failed to parse YAML/JSON from dynamic content package', e);
         }
       } else {
         logger.error('Error fetching dynamic content package (unexpected data)');
