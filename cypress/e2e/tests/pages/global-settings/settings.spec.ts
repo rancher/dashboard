@@ -51,7 +51,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
       callCount++;
 
       // we need to intercept the 2nd request (which is the first after we change the setting)
-      // and also the 3rd request because of all the clicking around, the user is considered active
+      //
+      // we intercept the 3rd request because of all the clicking around, the user is considered active
       // so we need to "trick" the timer again so that when it checks again the user activity (mouse clicks, wiggles)
       // we are really making sure we are displaying the modal that we want to assert
       if (callCount === 2 || callCount === 3) {
@@ -63,6 +64,20 @@ describe('Settings', { testIsolation: 'off' }, () => {
         req.continue();
       }
     }).as('getUpdatedUserActivity');
+
+    // this to intercept "resume session" click and get another low expiresAt so that we can assert that
+    // after a click on the UI, on the next check for userActivity, it gets pushed further in time because the user is not active
+    cy.intercept('POST', `/v1/ext.cattle.io.useractivities`, (req) => {
+      req.continue((res) => {
+        const now = new Date();
+
+        now.setSeconds(now.getSeconds() + 20);
+        const updatedIsoDate = now.toISOString();
+
+        res.body.status.expiresAt = updatedIsoDate;
+        res.send(res.body);
+      });
+    }).as('postUpdatedUserActivity');
 
     // Update setting "auth-user-session-idle-ttl-minutes" for the e2e test
     const sessionIdleSetting = 'auth-user-session-idle-ttl-minutes';
@@ -108,7 +123,19 @@ describe('Settings', { testIsolation: 'off' }, () => {
     expect(newSettingsPage.inactivityModalCard().getCardActions().contains('Resume Session').click());
     expect(newSettingsPage.inactivityModalCard().shouldNotExist());
 
-    // Reset
+    // at this point the intercept for the XHR of resume session kicks in
+    // let's check that the user being active doesn't really trigger the modal display
+    // for that let's click on something in the UI
+    SettingsPagePo.navTo();
+
+    // let's wait so that we could give time for the modal to appear
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(20000);
+
+    // assert that the modal didn't appear
+    expect(newSettingsPage.inactivityModalCard().shouldNotExist());
+
+    // Reset setting value
     SettingsPagePo.navTo();
     newSettingsPage.waitForPage();
     newSettingsPage.editSettingsByLabel(sessionIdleSetting);
