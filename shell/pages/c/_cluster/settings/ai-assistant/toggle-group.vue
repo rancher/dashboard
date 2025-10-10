@@ -31,7 +31,9 @@ const update = (value: string) => {
         :class="{ active: modelValue === item.value }"
         @click="update(item.value)"
       >
-        <icon-or-svg :src="item.icon" />
+        <icon-or-svg
+          :src="item.icon"
+        />
         <div toggle-group-content>
           <div class="toggle-group-item-name">
             {{ item.name }}
