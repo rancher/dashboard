@@ -4,9 +4,23 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import JWTAuthenticationPagePo from '@/cypress/e2e/po/pages/cluster-manager/jwt-authentication.po';
 
-describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
-  const jwtAuthenticationPage = new JWTAuthenticationPagePo();
+const jwtAuthenticationPage = new JWTAuthenticationPagePo();
 
+// Go the JWT Authentication page and ensure the page is fully loaded
+function goToJWTAuthenticationPageAndSettle() {
+  cy.intercept('GET', '/v1/management.cattle.io.clusterproxyconfigs*').as('fetchJWTAuthentication');
+  jwtAuthenticationPage.goTo();
+  jwtAuthenticationPage.waitForPage();
+  cy.wait('@fetchJWTAuthentication');
+
+  // Wait for the jwt table to load and filter so there are no rows
+  jwtAuthenticationPage.list().resourceTable().sortableTable().filter('random text', 200);
+  jwtAuthenticationPage.list().resourceTable().sortableTable().rowElements()
+    .should((el) => expect(el).to.contain.text('There are no rows which match your search query.'));
+  jwtAuthenticationPage.list().resourceTable().sortableTable().resetFilter();
+}
+
+describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@jenkins'] }, () => {
   let instance0 = '';
   let instance1 = '';
   let removeCluster0 = false;
@@ -16,7 +30,6 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
 
   before(() => {
     cy.login();
-    HomePagePo.goTo();
     cy.createE2EResourceName('rke2cluster0').as('rke2Ec2ClusterName0');
     cy.createE2EResourceName('rke2cluster1').as('rke2Ec2ClusterName1');
 
@@ -61,80 +74,84 @@ describe('JWT Authentication', { testIsolation: 'off', tags: ['@manager', '@admi
   });
 
   it('should show the JWT Authentication list page', () => {
-    JWTAuthenticationPagePo.navTo();
-    jwtAuthenticationPage.waitForPage();
-    jwtAuthenticationPage.title().should('be.visible');
+    goToJWTAuthenticationPageAndSettle();
+    jwtAuthenticationPage.list().masthead().title().should('contain', 'JWT Authentication');
     jwtAuthenticationPage.list().resourceTable().sortableTable().checkVisible();
     jwtAuthenticationPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
-    jwtAuthenticationPage.list().state(instance0).should('contain', 'Disabled');
-    jwtAuthenticationPage.list().state(instance1).should('contain', 'Disabled');
+    jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance0, 1).should('contain', 'Disabled');
+    jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance1, 1).should('contain', 'Disabled');
   });
+
   it('should be able to enable JWT Authentication for a cluster', () => {
-    JWTAuthenticationPagePo.navTo();
-    jwtAuthenticationPage.waitForPage();
+    goToJWTAuthenticationPageAndSettle();
     cy.intercept('POST', `/v1/management.cattle.io.clusterproxyconfigs`).as('enableJWT');
-    jwtAuthenticationPage.list().clickRowActionMenuItem(instance0, 'Enable');
+    jwtAuthenticationPage.list().resourceTable().sortableTable().rowActionMenuOpen(instance0)
+      .getMenuItem('Enable')
+      .click();
 
     cy.wait('@enableJWT', { requestTimeout: 10000 }).then(({ request, response }) => {
       expect(response?.statusCode).to.eq(201);
       expect(request.body.enabled).to.equal(true);
     });
 
-    jwtAuthenticationPage.list().state(instance0).should('contain', 'Enabled');
-    jwtAuthenticationPage.list().state(instance1).should('contain', 'Disabled');
+    jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance0, 1).should('contain', 'Enabled');
+    jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance1, 1).should('contain', 'Disabled');
   });
+
   it('should be able to disable JWT Authentication for a cluster', () => {
-    JWTAuthenticationPagePo.navTo();
-    jwtAuthenticationPage.waitForPage();
+    goToJWTAuthenticationPageAndSettle();
 
     cy.intercept('PUT', `/v1/management.cattle.io.clusterproxyconfigs/**`).as('disableJWT');
-    jwtAuthenticationPage.list().clickRowActionMenuItem(instance0, 'Disable');
+    jwtAuthenticationPage.list().resourceTable().sortableTable().rowActionMenuOpen(instance0)
+      .getMenuItem('Disable')
+      .click();
 
     cy.wait('@disableJWT', { requestTimeout: 10000 }).then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(request.body.enabled).to.equal(false);
     });
 
-    jwtAuthenticationPage.list().state(instance0).should('contain', 'Disabled');
-    jwtAuthenticationPage.list().state(instance1).should('contain', 'Disabled');
+    jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance0, 1).should('contain', 'Disabled');
+    jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance1, 1).should('contain', 'Disabled');
   });
+
   it('should be able to enable JWT Authentication in bulk', () => {
-    JWTAuthenticationPagePo.navTo();
-    jwtAuthenticationPage.waitForPage();
-    cy.intercept('PUT', `/v1/management.cattle.io.clusterproxyconfigs/**`).as('enableJWT');
+    goToJWTAuthenticationPageAndSettle();
+    cy.intercept('POST', `/v1/management.cattle.io.clusterproxyconfigs`).as('enableJWT');
 
     jwtAuthenticationPage.list().resourceTable().sortableTable().rowSelectCtlWithName(instance0)
       .set();
     jwtAuthenticationPage.list().resourceTable().sortableTable().rowSelectCtlWithName(instance1)
       .set();
-    jwtAuthenticationPage.list().activate();
+    jwtAuthenticationPage.list().resourceTable().sortableTable().bulkActionButton('Enable')
+      .click();
 
     cy.wait('@enableJWT', { requestTimeout: 10000 }).then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
+      expect(response?.statusCode).to.eq(201);
       expect(request.body.enabled).to.equal(true);
     });
-    jwtAuthenticationPage.list().state(instance0).should('contain', 'Enabled');
-    jwtAuthenticationPage.list().state(instance1).should('contain', 'Enabled');
+    jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance0, 1).should('contain', 'Enabled');
+    jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance1, 1).should('contain', 'Enabled');
   });
 
   it('should be able to disable JWT Authentication in bulk', () => {
-    JWTAuthenticationPagePo.navTo();
-    jwtAuthenticationPage.waitForPage();
+    goToJWTAuthenticationPageAndSettle();
     cy.intercept('PUT', `/v1/management.cattle.io.clusterproxyconfigs/**`).as('disableJWT');
 
     jwtAuthenticationPage.list().resourceTable().sortableTable().rowSelectCtlWithName(instance0)
       .set();
     jwtAuthenticationPage.list().resourceTable().sortableTable().rowSelectCtlWithName(instance1)
       .set();
-    jwtAuthenticationPage.list().deactivate();
+    jwtAuthenticationPage.list().resourceTable().sortableTable().bulkActionButton('Disable')
+      .click();
 
     cy.wait('@disableJWT', { requestTimeout: 10000 }).then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(request.body.enabled).to.equal(false);
     });
 
-    jwtAuthenticationPage.list().state(instance0).should('contain', 'Disabled');
-    jwtAuthenticationPage.list().state(instance1).should('contain', 'Disabled');
+    jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance0, 1).should('contain', 'Disabled');
+    jwtAuthenticationPage.list().resourceTable().resourceTableDetails(instance1, 1).should('contain', 'Disabled');
   });
 
   after('clean up', () => {

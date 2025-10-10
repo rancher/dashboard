@@ -2,7 +2,12 @@
 
 def branch = "master"
 def test_tags = "${env.TEST_TAGS}".split(',')
+def k8s_versions = "${env.K3S_KUBERNETES_VERSIONS}".split(',')
 def all_cypress_tags = "${env.CYPRESS_TAGS}".split('\\|')
+
+if (test_tags.length != k8s_versions.length) {
+    error("Number of Rancher versions (${test_tags.length}) must match number of K8s versions (${k8s_versions.length}). TEST_TAGS and K3S_KUBERNETES_VERSIONS must correspond positionally - first version pairs with first tag, second with second, etc.")
+}
 if ("${env.branch}" != "null" && "${env.branch}" != "") {
   branch = "${env.branch}"
 }
@@ -35,7 +40,8 @@ node {
             try {
                 stage('Run Tests') {
                     jobs = [:]
-                    for( String val : test_tags ) {
+                    test_tags.eachWithIndex { String rancher_version, int i ->
+                        String k8s_version = k8s_versions[i]
                         for ( String ct : all_cypress_tags ) {
                             params = null
                             params = [  string(name: 'JOB_TYPE', value: "${JOB_TYPE}"),
@@ -60,7 +66,7 @@ node {
                                         string(name: 'RANCHER_HOST', value: ""),
                                         string(name: 'RANCHER_USERNAME', value: "${RANCHER_USERNAME}"),
                                         string(name: 'RANCHER_PASSWORD', value: "${RANCHER_PASSWORD}"),
-                                        string(name: 'K3S_KUBERNETES_VERSION', value: "${K3S_KUBERNETES_VERSION}"),
+                                        string(name: 'K3S_KUBERNETES_VERSION', value: k8s_version),
                                         string(name: 'CERT_MANAGER_VERSION', value: "${CERT_MANAGER_VERSION}"),
                                         string(name: 'SERVER_COUNT', value: "${SERVER_COUNT}"),
                                         string(name: 'AGENT_COUNT', value: "${AGENT_COUNT}"),
@@ -71,8 +77,8 @@ node {
                                         string(name: 'CHROME_VERSION', value: "${CHROME_VERSION}"),
                                         string(name: 'QASE_PROJECT', value: "${QASE_PROJECT}"),
                                         string(name: 'QASE_REPORT', value: "${QASE_REPORT}"),
-                                        string(name: 'RANCHER_IMAGE_TAG', value: val)]
-                            echo "TAG: ${params}"
+                                        string(name: 'RANCHER_IMAGE_TAG', value: rancher_version)]
+                            echo "RANCHER_TAG: ${rancher_version}, K8S_VERSION: ${k8s_version}, CYPRESS_TAGS: ${ct}"
                             build (job: 'ui-automation-job', parameters: params, propagate: false, wait: false)
                         }
                         

@@ -18,6 +18,10 @@ if [[ $BRANCH_NAME =~ ^release-(.*)$ ]]; then
   # Update scripts/e2e-docker-start
   sed -i "s|RANCHER_IMG_VERSION=head|RANCHER_IMG_VERSION=${NEW_TAG}|g" scripts/e2e-docker-start
   echo "Updated scripts/e2e-docker-start"
+
+  # Update scripts/build-e2e
+  sed -i "s|ui/latest2/index.html|ui/${RELEASE_VERSION}/index.html|g" scripts/build-e2e
+  echo "Updated scripts/build-e2e"
 else
   echo "Not a release branch, no changes made."
 fi

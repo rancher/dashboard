@@ -150,12 +150,12 @@ export default class ExtensionsPagePo extends PagePo {
     return this.clickAction(extensionTitle, 'Install');
   }
 
-  extensionCardUpdateClick(extensionTitle: string): Cypress.Chainable {
-    return this.clickAction(extensionTitle, 'Update');
+  extensionCardUpgradeClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Upgrade');
   }
 
-  extensionCardRollbackClick(extensionTitle: string): Cypress.Chainable {
-    return this.clickAction(extensionTitle, 'Rollback');
+  extensionCardDowngradeClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Downgrade');
   }
 
   extensionCardUninstallClick(extensionTitle: string): Cypress.Chainable {
@@ -227,19 +227,11 @@ export default class ExtensionsPagePo extends PagePo {
 
   // ------------------ extension tabs ------------------
   extensionTabInstalledClick(): Cypress.Chainable {
-    return this.extensionTabs.clickNthTab(1);
+    return this.extensionTabs.clickTabWithName('installed');
   }
 
   extensionTabAvailableClick(): Cypress.Chainable {
-    return this.extensionTabs.clickNthTab(2);
-  }
-
-  extensionTabUpdatesClick(): Cypress.Chainable {
-    return this.extensionTabs.clickNthTab(3);
-  }
-
-  extensionTabAllClick(): Cypress.Chainable {
-    return this.extensionTabs.clickTabWithName('all');
+    return this.extensionTabs.clickTabWithName('available');
   }
 
   extensionTabBuiltinClick(): Cypress.Chainable {

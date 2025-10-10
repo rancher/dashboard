@@ -213,7 +213,7 @@ describe('chartMixin', () => {
       });
 
       expect(wrapper.vm.action).toStrictEqual({
-        name: 'upgradeVersion',
+        name: 'upgrade',
         tKey: 'upgrade',
         icon: 'icon-upgrade-alt',
       });
@@ -235,7 +235,7 @@ describe('chartMixin', () => {
       expect(wrapper.vm.action).toStrictEqual({
         name: 'downgrade',
         tKey: 'downgrade',
-        icon: 'icon-history',
+        icon: 'icon-downgrade-alt',
       });
     });
   });

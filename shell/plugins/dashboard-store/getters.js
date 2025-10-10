@@ -526,7 +526,7 @@ export default {
     const store = state.config.namespace;
     const resource = id || context ? { id, context } : null;
 
-    return paginationUtils.isEnabled({ rootGetters }, { store, resource });
+    return paginationUtils.isEnabled({ rootGetters, $plugin: rootState.$plugin }, { store, resource });
   },
 
   /**

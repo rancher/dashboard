@@ -723,6 +723,17 @@ authConfig:
     tokenEndpoint: Token Endpoint
     userInfoEndpoint: User Info Endpoint
     acrValue: Authorization Context Reference
+    customClaims:
+      label: Custom Claims
+      enable:
+        label: Add custom claims
+        tooltip: Manually map OIDC claims when your provider doesn’t use standard claim names in tokens.
+      nameClaim: 
+        label: Custom Name Claim
+      groupsClaim: 
+        label: Custom Groups Claim
+      emailClaim: 
+        label: Custom Email Claim
     cognitoIssuer: Issuer URL
     cognitoHelp: "You will need to create an application client in Cognito of type <b>Traditional web application</b> with the Return URL set to the URL shown below."
     scope:
@@ -941,10 +952,6 @@ asyncButton:
     success: Updated
     waiting: Updating&hellip;
   upgrade:
-    action: Upgrade
-    success: Upgrading
-    waiting: Starting&hellip;
-  upgradeVersion:
     action: Upgrade
     success: Upgraded
     waiting: Upgrading&hellip;
@@ -1262,7 +1269,6 @@ catalog:
             upgrade { upgrade }
             downgrade { upgrade }
             editVersion { update }
-            upgradeVersion { upgrade }
           } the {existing, select,
             true { app}
             false { chart}
@@ -5129,16 +5135,17 @@ plugins:
   closePluginPanel: Close plugin description panel
   viewVersionDetails: View extension {name} version {version} details/Readme
   labels:
-    builtin: Built-in
+    builtin: Built-In
     experimental: Experimental
     third-party: Third-Party
     image: Image
     installing: Installing ...
     uninstalling: Uninstalling ...
-    updating: Updating ...
-    rollingBack: Rolling back ...
+    upgrading: Upgrading ...
+    downgrading: Downgrading ...
     menu: Extensions menu
     reloadRancher: Reload Rancher
+    current: current
   descriptions:
     experimental: This Extension is marked as experimental
     third-party: This Extension is provided by a Third-Party
@@ -5167,6 +5174,8 @@ plugins:
       name: Extension module name
       persist: Persist extension by creating custom resource
   info:
+    actions: Actions
+    noActions: No actions available
     detail: Detail
     versions: Versions
     versionError: Could not load version information
@@ -5230,7 +5239,7 @@ plugins:
   tabs:
     all: All
     available: Available
-    builtin: Built-in
+    builtin: Built-In
     images: Images
     installed: Installed
     updates: Updates
@@ -5238,22 +5247,22 @@ plugins:
   version: "Version: {version}"
   install:
     label: Install
-    title: Install Extension {name}
-    prompt: "Are you sure that you want to install this Extension?"
+    title: Install extension {name}
+    prompt: "Are you sure that you want to install this extension?"
     version: Version
     warnNotCertified: Please ensure that you are aware of the risks of installing Extensions from untrusted authors
-  update:
-    label: Update
-    title: Update Extension {name}
-    prompt: "Are you sure that you want to update this Extension?"
-  rollback:
-    label: Rollback
-    title: Rollback Extension {name}
-    prompt: "Are you sure that you want to rollback this Extension?"
+  upgrade:
+    label: Upgrade
+    title: Upgrade extension {name}
+    prompt: "Are you sure that you want to upgrade this extension?"
+  downgrade:
+    label: Downgrade
+    title: Downgrade extension {name}
+    prompt: "Are you sure that you want to downgrade this extension?"
   uninstall:
     label: Uninstall
-    title: "Uninstall Extension: {name}"
-    prompt: "Are you sure that you want to uninstall this Extension?"
+    title: Uninstall extension {name}
+    prompt: "Are you sure that you want to uninstall this extension?"
     catalog: "Are you sure that you want to uninstall this Extension Catalog Image? This will also remove any Extensions provided by this image."
   upgradeAvailable: A newer version of this Extension is available
   reload: Extensions changed - reload required
@@ -5853,6 +5862,8 @@ resourceTabs:
     tab: Conditions
   events:
     tab: Recent Events
+    namespaceTab: "Events in Namespace"
+    namespaceCaption: "Shows all events from resources in <span class='namespace-name'><b>{namespace}</b></span> namespace"
   related:
     tab: Related Resources
     from: Referred To By
@@ -6559,6 +6570,7 @@ tableHeaders:
   endpoints: Endpoints
   expires: Expires
   firstSeen: First Seen
+  firstSeenTooltip: The time at which the event was first recorded
   flow: Flow
   fingerprint: Fingerprint
   gitRepos: Git Repos

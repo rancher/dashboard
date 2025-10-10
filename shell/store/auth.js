@@ -207,7 +207,7 @@ export const actions = {
 
     commit('cookies/set', {
       key: KEY, value: strung, options
-    });
+    }, { root: true });
 
     return strung;
   },
@@ -371,7 +371,7 @@ export const actions = {
   loggedInAs({ commit }, principalId) {
     commit('loggedInAs', principalId);
 
-    commit('cookies/remove', { key: KEY });
+    commit('cookies/remove', { key: KEY }, { root: true });
   },
 
   uiLogout({ commit, dispatch }) {
