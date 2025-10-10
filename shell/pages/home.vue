@@ -632,21 +632,16 @@ export default defineComponent({
               >
                 <template #header-left>
                   <div class="row table-heading">
-                    <h2 class="mb-0">
+                    <h1 class="mb-0">
                       {{ t('landing.clusters.title') }}
-                    </h2>
-                    <BadgeState
-                      v-if="clusterCount"
-                      :label="clusterCount.toString()"
-                      color="role-tertiary ml-20 mr-20"
-                    />
+                    </h1>
                   </div>
                 </template>
                 <template #sub-header-row>
                   <div class="too-many-clusters">
-                    <div class="row too-many-clusters-msg">
+                    <h2 class="too-many-clusters-msg">
                       {{ t('landing.clusters.tooMany.showingSome', { rows: altClusterListRows?.length || '...', total: clusterCount}) }}
-                    </div>
+                    </h2>
                     <Checkbox
                       :value="altClusterListDisabled"
                       label-key="landing.clusters.tooMany.showAll"
@@ -796,11 +791,11 @@ export default defineComponent({
               >
                 <template #header-left>
                   <div class="row table-heading">
-                    <h2 class="mb-0">
+                    <h1 class="mb-0">
                       {{ t('landing.clusters.title') }}
-                    </h2>
+                    </h1>
                     <BadgeState
-                      v-if="clusterCount"
+                      v-if="clusterCount && !tooManyClusters"
                       :label="clusterCount.toString()"
                       color="role-tertiary ml-20 mr-20"
                     />
@@ -811,9 +806,9 @@ export default defineComponent({
                   #sub-header-row
                 >
                   <div class="too-many-clusters">
-                    <div class="row too-many-clusters-msg">
+                    <h2 class="too-many-clusters-msg">
                       {{ t('landing.clusters.tooMany.showingAll', { rows: altClusterListRows?.length || '...', total: clusterCount}) }}
-                    </div>
+                    </h2>
                     <Checkbox
                       :value="altClusterListDisabled"
                       label-key="landing.clusters.tooMany.showAll"
@@ -968,7 +963,6 @@ export default defineComponent({
         display: flex;
         flex-direction: column;
         &-msg {
-          font-size: $font-size-h2;
           margin-bottom: 10px;
         }
       }
