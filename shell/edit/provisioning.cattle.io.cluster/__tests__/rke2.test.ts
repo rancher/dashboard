@@ -1,4 +1,4 @@
-import { mount, shallowMount } from '@vue/test-utils';
+import { mount, shallowMount, VueWrapper } from '@vue/test-utils';
 import { SECRET } from '@shell/config/types';
 import { _CREATE } from '@shell/config/query-params';
 import rke2 from '@shell/edit/provisioning.cattle.io.cluster/rke2.vue';
@@ -475,16 +475,17 @@ describe('component: rke2', () => {
         },
         provider: 'custom'
       },
-      data: () => ({
-        agentArgs: {
+      computed: {
+        ...rke2.computed,
+        agentArgs: () => ({
           'cloud-provider-name': {
             options: [
               'azure',
               'amazon'
             ]
           }
-        }
-      }),
+        })
+      },
       global: {
         mocks: {
           ...defaultMocks,
@@ -519,9 +520,10 @@ describe('component: rke2', () => {
         },
         provider: 'custom'
       },
-      data: () => ({
-        canAzureMigrateOnEdit: true,
-        agentArgs:             {
+      computed: {
+        ...rke2.computed,
+        canAzureMigrateOnEdit: () => true,
+        agentArgs:             () => ({
           'cloud-provider-name': {
             options: [
               'azure',
@@ -529,8 +531,8 @@ describe('component: rke2', () => {
               'external'
             ]
           }
-        }
-      }),
+        })
+      },
       global: {
         mocks: {
           ...defaultMocks,
@@ -609,5 +611,216 @@ describe('component: rke2', () => {
     wrapper.vm.applyChartValues(wrapper.vm.value.spec.rkeConfig);
 
     expect(wrapper.vm.value.spec.rkeConfig.chartValues).toStrictEqual(expected);
+  });
+
+  describe('preserveAddonConfigs', () => {
+    const ADDON_NAME = 'rke2-my-addon';
+    const mockOldVersion = {
+      charts: {
+        [ADDON_NAME]: {
+          repo:    'repo',
+          version: '1.0.0'
+        }
+      }
+    };
+
+    const mockNewVersion = {
+      charts: {
+        [ADDON_NAME]: {
+          repo:    'repo',
+          version: '1.1.0'
+        }
+      }
+    };
+
+    const mockNewVersionNoChange = {
+      charts: {
+        [ADDON_NAME]: {
+          repo:    'repo',
+          version: '1.0.0'
+        }
+      }
+    };
+
+    const mockOldVersionInfo = {
+      values: {
+        replicas: 1,
+        service:  { type: 'ClusterIP' }
+      }
+    };
+
+    const mockNewVersionInfo = {
+      values: {
+        replicas:    2, // changed
+        service:     { type: 'ClusterIP' },
+        persistence: true // new
+      }
+    };
+
+    let wrapper: VueWrapper<any>;
+
+    beforeEach(() => {
+      const mockDispatch = jest.fn((action, payload) => {
+        if (action === 'catalog/getVersionInfo') {
+          if (payload.versionName === '1.0.0') {
+            return Promise.resolve(mockOldVersionInfo);
+          }
+          if (payload.versionName === '1.1.0') {
+            return Promise.resolve(mockNewVersionInfo);
+          }
+        }
+
+        return Promise.resolve({});
+      });
+
+      wrapper = shallowMount(rke2, {
+        props: {
+          mode:  'edit',
+          value: {
+            spec: {
+              rkeConfig: {
+                ...defaultSpec.rkeConfig,
+                machineGlobalConfig: { cni: 'my-addon' }
+              },
+              chartValues: {}
+            },
+            agentConfig: { 'cloud-provider-name': 'any' }
+          },
+          provider: 'custom'
+        },
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store: {
+              dispatch: mockDispatch,
+              getters:  defaultGetters
+            },
+            $plugin: { getDynamic: jest.fn(() => undefined) },
+          },
+          stubs: defaultStubs,
+        },
+      });
+    });
+
+    it('should do nothing if not in edit mode', async() => {
+      await wrapper.setProps({ mode: 'create' });
+      const spy = jest.spyOn(wrapper.vm, '_processAddonVersionChange');
+
+      await wrapper.vm.preserveAddonConfigs(mockOldVersion, mockNewVersion);
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing if oldVersion is not provided', async() => {
+      const spy = jest.spyOn(wrapper.vm, '_processAddonVersionChange');
+
+      await wrapper.vm.preserveAddonConfigs(null, mockNewVersion);
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should not process addon if version has not changed', async() => {
+      const spy = jest.spyOn(wrapper.vm, '_processAddonVersionChange');
+
+      await wrapper.vm.preserveAddonConfigs(mockOldVersion, mockNewVersionNoChange);
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should identify no relevant changes if user has no custom values', async() => {
+      // No user overrides means no relevant differences.
+      wrapper.setData({ userChartValues: {} });
+      await wrapper.vm.preserveAddonConfigs(mockOldVersion, mockNewVersion);
+
+      expect(wrapper.vm.addonConfigDiffs[ADDON_NAME]).toStrictEqual({});
+      expect(wrapper.vm.userChartValues[`${ ADDON_NAME }-1.1.0`]).toBeUndefined();
+    });
+
+    it('should identify no relevant changes if user custom values are for different fields', async() => {
+      // User overrides for non-differing fields should not be considered relevant.
+      wrapper.setData({ userChartValues: { [`${ ADDON_NAME }-1.0.0`]: { service: { type: 'NodePort' } } } });
+      await wrapper.vm.preserveAddonConfigs(mockOldVersion, mockNewVersion);
+
+      expect(wrapper.vm.addonConfigDiffs[ADDON_NAME]).toStrictEqual({});
+      // Since diffs are empty, user values should be preserved
+      expect(wrapper.vm.userChartValues[`${ ADDON_NAME }-1.1.0`]).toStrictEqual({ service: { type: 'NodePort' } });
+    });
+
+    it('should identify relevant changes if user has customized a changed field', async() => {
+      // A user override on a changed default should be flagged as a relevant difference.
+      wrapper.setData({ userChartValues: { [`${ ADDON_NAME }-1.0.0`]: { replicas: 3 } } });
+      await wrapper.vm.preserveAddonConfigs(mockOldVersion, mockNewVersion);
+
+      expect(wrapper.vm.addonConfigDiffs[ADDON_NAME]).toStrictEqual({ replicas: 2 });
+      // Since diffs are NOT empty, user values should NOT be preserved
+      expect(wrapper.vm.userChartValues[`${ ADDON_NAME }-1.1.0`]).toBeUndefined();
+    });
+
+    it('should not identify relevant changes for new fields not customized by user', async() => {
+      // New fields in the addon default values are not relevant if not customized by the user.
+      wrapper.setData({ userChartValues: { [`${ ADDON_NAME }-1.0.0`]: {} } });
+      await wrapper.vm.preserveAddonConfigs(mockOldVersion, mockNewVersion);
+
+      // The only diff is `replicas`, which user didn't touch. `persistence` is new but also not touched.
+      // So final diffs should be empty.
+      expect(wrapper.vm.addonConfigDiffs[ADDON_NAME]).toStrictEqual({});
+      expect(wrapper.vm.userChartValues[`${ ADDON_NAME }-1.1.0`]).toStrictEqual({});
+    });
+
+    it('should preserve user values if there are no relevant differences', async() => {
+      // User values should be carried over to the new version if no relevant diffs are found.
+      wrapper.setData({ userChartValues: { [`${ ADDON_NAME }-1.0.0`]: { service: { type: 'NodePort' } } } });
+      await wrapper.vm.preserveAddonConfigs(mockOldVersion, mockNewVersion);
+
+      expect(wrapper.vm.addonConfigDiffs[ADDON_NAME]).toStrictEqual({});
+      expect(wrapper.vm.userChartValues[`${ ADDON_NAME }-1.1.0`]).toStrictEqual({ service: { type: 'NodePort' } });
+    });
+
+    it('should not preserve user values if there are relevant differences', async() => {
+      // User values should not be carried over if relevant diffs are found.
+      wrapper.setData({ userChartValues: { [`${ ADDON_NAME }-1.0.0`]: { replicas: 3 } } });
+      await wrapper.vm.preserveAddonConfigs(mockOldVersion, mockNewVersion);
+
+      expect(wrapper.vm.addonConfigDiffs[ADDON_NAME]).toStrictEqual({ replicas: 2 });
+      expect(wrapper.vm.userChartValues[`${ ADDON_NAME }-1.1.0`]).toBeUndefined();
+    });
+
+    it('should handle catalog API errors gracefully', async() => {
+      // Errors from fetching chart info should be caught and handled.
+      const error = new Error('catalog fetch failed');
+      const mockDispatch = jest.fn().mockRejectedValue(error);
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
+
+      wrapper = shallowMount(rke2, {
+        props: {
+          mode:  'edit',
+          value: {
+            spec: {
+              rkeConfig: {
+                ...defaultSpec.rkeConfig,
+                machineGlobalConfig: { cni: 'my-addon' }
+              },
+              chartValues: {}
+            },
+            agentConfig: { 'cloud-provider-name': 'any' }
+          },
+          provider: 'custom'
+        },
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store: {
+              dispatch: mockDispatch,
+              getters:  defaultGetters
+            },
+            $plugin: { getDynamic: jest.fn(() => undefined) },
+          },
+          stubs: defaultStubs,
+        },
+      });
+
+      await wrapper.vm.preserveAddonConfigs(mockOldVersion, mockNewVersion);
+
+      expect(wrapper.vm.addonConfigDiffs[ADDON_NAME]).toBeUndefined();
+      expect(errorSpy).toHaveBeenCalledWith(`Failed to get chart version info for diff for chart ${ ADDON_NAME }`, error);
+      errorSpy.mockRestore();
+    });
   });
 });
