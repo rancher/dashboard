@@ -9,7 +9,6 @@ interface UserActivityResponse {
 }
 
 interface ParsedInactivitySetting {
-  enabled: boolean,
   expiresAt: string | undefined,
   sessionTokenName: string | undefined,
   courtesyTimer: number | undefined,
@@ -29,26 +28,32 @@ export class Inactivity {
     return this.sessionTokenName;
   }
 
-  public storeSessionTokenName(tokenName: string): void {
+  public setSessionTokenName(tokenName: string): void {
     this.sessionTokenName = tokenName;
   }
 
-  public async checkUserActivityData(store: any, sessionTokenName: string): Promise<UserActivityResponse> {
+  public async getUserActivity(store: any, sessionTokenName: string, force = true): Promise<UserActivityResponse> {
     try {
       const updatedData = await store.dispatch('management/find', {
         type: EXT.USER_ACTIVITY,
         id:   sessionTokenName,
-        opt:  { force: true }
+        opt:  {
+          force, watch: false, logoutOnError: false
+        }
       });
 
       return updatedData;
     } catch (e: any) {
+      if (e._status === 401) {
+        return store.dispatch('auth/logout', { sessionIdle: true });
+      }
+
       console.error(`Could not GET UserActivity for session token ${ sessionTokenName }`, e); // eslint-disable-line no-console
       throw new Error(e);
     }
   }
 
-  public async updateUserActivityToken(store: any, sessionTokenName: string, seenAt: string): Promise<UserActivityResponse> {
+  public async updateUserActivity(store: any, sessionTokenName: string, seenAt: string): Promise<UserActivityResponse> {
     const spec: SpecData = { tokenId: sessionTokenName };
 
     if (seenAt) {
@@ -91,7 +96,6 @@ export class Inactivity {
     const showModalAfter = thresholdSeconds - courtesyTimer;
 
     return {
-      enabled:          true,
       expiresAt:        userActivityData.status?.expiresAt,
       sessionTokenName: userActivityData.metadata?.name,
       courtesyTimer,

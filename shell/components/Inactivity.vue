@@ -6,7 +6,6 @@ import throttle from 'lodash/throttle';
 import Inactivity from '@shell/utils/inactivity';
 import { MANAGEMENT, EXT, NORMAN } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
-import { allHash } from 'utils/promise';
 
 let globalId;
 
@@ -77,17 +76,6 @@ export default {
     userActivityExpiresAt() {
       return this.userActivityResource?.status?.expiresAt || '';
     },
-    sessionToken() {
-      return this.tokens.find((token) => {
-        // this can be improved once https://github.com/rancher/rancher/issues/51580 is fixed
-        // we should not need to store the UI session token name globally
-        if (this.sessionTokenName) {
-          return token.name === this.sessionTokenName;
-        } else {
-          return token.description === 'UI session' && token.current;
-        }
-      });
-    },
     watcherData() {
       return {
         userActivityExpiresAt: this.userActivityExpiresAt,
@@ -102,7 +90,7 @@ export default {
     // every time the Idle setting changes, we need to fetch the updated userActivity
     async ttlIdleValue(neu) {
       console.error('ttlIdleValue value updated!!!', neu);
-      await Inactivity.checkUserActivityData(this.$store, this.sessionTokenName);
+      await Inactivity.getUserActivity(this.$store, this.sessionTokenName);
     },
     watcherData: {
       async handler(neu, old) {
@@ -154,21 +142,13 @@ export default {
   methods: {
     async initializeInactivityData() {
       console.error('initializeInactivityData!!!');
-      const canListSettings = this.$store.getters[`management/canList`](MANAGEMENT.SETTING);
       const canListUserAct = this.$store.getters[`management/canList`](EXT.USER_ACTIVITY);
       const canListTokens = this.$store.getters[`rancher/canList`](NORMAN.TOKEN);
 
-      if (canListUserAct && canListTokens && canListSettings) {
-        // fetching all resources needed to start inactivity logic
-        const hash = {
-          userSessionTtlIdleSetting: this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.AUTH_USER_SESSION_TTL_MINUTES }),
-          userSessionTtlSetting:     this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.AUTH_USER_SESSION_TTL_MINUTES }),
-          tokens:                    this.$store.dispatch('rancher/findAll', { type: NORMAN.TOKEN }),
-        };
+      if (canListUserAct && canListTokens) {
+        const tokens = await this.$store.dispatch('rancher/findAll', { type: NORMAN.TOKEN, opt: { watch: false } });
 
-        const res = await allHash(hash);
-
-        this.tokens = res.tokens;
+        this.tokens = tokens;
 
         // handle the fetching/storage of session token name
         if (!this.sessionTokenName) {
@@ -179,12 +159,12 @@ export default {
           if (sessionToken?.name) {
             console.error('SETTING TOKEN NAME', sessionToken.name);
             this.sessionTokenName = sessionToken.name;
-            Inactivity.storeSessionTokenName(sessionToken.name);
+            Inactivity.setSessionTokenName(sessionToken.name);
           }
         }
 
         // get the latest userActivity data so that get reactivity on all this logic
-        const userActivityData = await this.$store.dispatch('management/find', { type: EXT.USER_ACTIVITY, id: this.sessionTokenName });
+        const userActivityData = await Inactivity.getUserActivity(this.$store, this.sessionTokenName, false);
 
         console.error('INIT SESSION IDLE first fetch UserActivity', userActivityData);
 
@@ -195,7 +175,7 @@ export default {
         // If expiresAt isn't initialised yet '0001-01-01 00:00:00 +0000 UTC' || '', or just passed the 'now' date
         // We need to update/initialise the UserActivity resource
         if ((currDate > endDate) || !expiresAt) {
-          const updatedData = await Inactivity.updateUserActivityToken(this.$store, this.sessionTokenName, new Date().toISOString());
+          const updatedData = await Inactivity.updateUserActivity(this.$store, this.sessionTokenName, new Date().toISOString());
 
           this.expiresAt = updatedData?.status?.expiresAt;
         } else if (expiresAt) {
@@ -250,7 +230,7 @@ export default {
       checkInactivityTimer();
     },
     async checkBackendInactivity() {
-      const userActivityData = await Inactivity.checkUserActivityData(this.$store, this.sessionTokenName);
+      const userActivityData = await Inactivity.getUserActivity(this.$store, this.sessionTokenName);
 
       // this means that something updated the backend expiresAt, which means we must now reset the timers and adjust for new data
       if (userActivityData?.status?.expiresAt && (userActivityData?.status?.expiresAt !== this.expiresAt)) {
@@ -314,7 +294,7 @@ export default {
         seenAt = this.userActivityIsoDate;
       }
 
-      const userActivityData = await Inactivity.updateUserActivityToken(this.$store, this.sessionTokenName, seenAt);
+      const userActivityData = await Inactivity.updateUserActivity(this.$store, this.sessionTokenName, seenAt);
 
       this.resetInactivityDataAndTimers(userActivityData);
     },
