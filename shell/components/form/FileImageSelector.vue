@@ -7,7 +7,8 @@ export default {
   emits: ['update:value', 'error'],
 
   components: { FileSelector, LazyImage },
-  props:      {
+
+  props: {
     value: {
       type:    String,
       default: null,
@@ -36,12 +37,20 @@ export default {
     accept: {
       type:    String,
       default: 'image/*'
-    }
+    },
+
+    class: {
+      type:    [String, Array],
+      default: 'role-primary',
+    },
   },
   computed: {
     isView() {
       return this.mode === _VIEW;
-    }
+    },
+    customClass() {
+      return [...(Array.isArray(this.class) ? this.class : [this.class])];
+    },
   },
   methods: {
     /**
@@ -62,7 +71,7 @@ export default {
   <FileSelector
     v-if="!value && !isView"
     :value="value"
-    class="btn role-primary"
+    :class="customClass"
     :mode="mode"
     :read-as-data-url="true"
     :byte-limit="byteLimit"
