@@ -58,7 +58,7 @@ registration:
   errors:
     missing-code: Registration code as Secret is missing
     mismatch-code: Registration active but does not match Secret registration code. Please verify the <a href="${ url }">registration</a>
-    unhandled-registration: Unhandled registration error. Please verify your secret is correct.
+    generic-registration: No registration found for existing registration code (Secret).
     timeout-registration: Timeout reached while waiting for resource.
 
 prime:

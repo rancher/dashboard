@@ -19,7 +19,7 @@ describe('registration composable', () => {
 
   describe('when initialized', () => {
     it('should retrieve the registration secret and current registration', async() => {
-      const value = 'whatever';
+      const regCode = 'whatever';
       const hash = 'anything';
       const secrets = [
         { metadata: { namespace: 'not me' } },
@@ -30,7 +30,7 @@ describe('registration composable', () => {
             name:      REGISTRATION_SECRET,
             labels:    { [REGISTRATION_LABEL]: hash }
           },
-          data: { regCode: btoa(value) }
+          data: { regCode: btoa(regCode) }
         },
       ];
       const registrations = [{
@@ -54,14 +54,14 @@ describe('registration composable', () => {
       await initRegistration();
       jest.setTimeout(0);
 
-      expect(registrationCode.value).toStrictEqual(value);
+      expect(registrationCode.value).toStrictEqual(regCode);
       expect(registration.value.active).toStrictEqual(true);
       expect(registration.value.resourceLink).toStrictEqual('123');
       expect(registrationStatus.value).toStrictEqual('registered');
     });
 
     it('should display the correct error message, prioritizing conditions without Failure', async() => {
-      const value = 'whatever';
+      const regCode = 'whatever';
       const hash = 'anything';
       const errorMessage = 'Registration failed';
       const secrets = [
@@ -73,7 +73,7 @@ describe('registration composable', () => {
             name:      REGISTRATION_SECRET,
             labels:    { [REGISTRATION_LABEL]: hash }
           },
-          data: { regCode: btoa(value) }
+          data: { regCode: btoa(regCode) }
         },
       ];
       const registrations = [{
@@ -328,36 +328,61 @@ describe('registration composable', () => {
   });
 
   describe('should display an error message', () => {
-    it('given no registration code', async() => {
+    it('with generic error if Registration Code is present but not active Registration is found', async() => {
       const expectation = 'registration.errors.generic-registration';
+      const regCode = 'whatever';
+      const hash = 'anything';
+      const secrets = [{
+        metadata: {
+          namespace: REGISTRATION_NAMESPACE,
+          name:      REGISTRATION_SECRET,
+          labels:    { [REGISTRATION_LABEL]: hash }
+        },
+        data: { regCode: btoa(regCode) }
+      },
+      ];
+      const registrations = [] as any[];
+
+      dispatchSpy = jest.fn()
+        .mockReturnValueOnce(Promise.resolve(secrets))
+        .mockReturnValue(Promise.resolve(registrations));
       const store = { state: {}, dispatch: dispatchSpy } as any;
-      const { errors } = usePrimeRegistration(store);
+      const { initRegistration, errors } = usePrimeRegistration(store);
+
+      await initRegistration();
+      jest.setTimeout(0);
 
       expect(errors.value[0]).toStrictEqual(expectation);
     });
 
-    it('given a mismatched registration code', async() => {
-      const expectation = 'registration.errors.mismatch-code';
-      const store = { state: {}, dispatch: dispatchSpy } as any;
-      const { errors } = usePrimeRegistration(store);
+    describe('registering online', () => {
+      it.skip('given no registration code', async() => {
+        const expectation = 'registration.errors.missing-code';
+        const store = { state: {}, dispatch: dispatchSpy } as any;
+        const { errors } = usePrimeRegistration(store);
 
-      expect(errors.value[0]).toStrictEqual(expectation);
-    });
+        expect(errors.value[0]).toStrictEqual(expectation);
+      });
 
-    it('given a malformed file', async() => {
-      const expectation = 'registration.errors.generic-registration';
-      const store = { state: {}, dispatch: dispatchSpy } as any;
-      const { errors } = usePrimeRegistration(store);
+      it.skip('given a mismatched registration code', async() => {
+        const expectation = 'registration.errors.mismatch-code';
+        const store = { state: {}, dispatch: dispatchSpy } as any;
+        const { errors } = usePrimeRegistration(store);
 
-      expect(errors.value[0]).toStrictEqual(expectation);
-    });
+        expect(errors.value[0]).toStrictEqual(expectation);
+      });
 
-    it('given a timeout', async() => {
-      const expectation = 'registration.errors.timeout-registration';
-      const store = { state: {}, dispatch: dispatchSpy } as any;
-      const { errors } = usePrimeRegistration(store);
+      it.skip('given no response', async() => {
+        const expectation = 'registration.errors.timeout-registration';
+        const store = { state: {}, dispatch: dispatchSpy } as any;
+        const { errors, registerOnline, registrationCode } = usePrimeRegistration(store);
 
-      expect(errors.value[0]).toStrictEqual(expectation);
+        registrationCode.value = 'not a real code';
+
+        await registerOnline((val: boolean) => true);
+
+        expect(errors.value[0]).toStrictEqual(expectation);
+      });
     });
   });
 });

@@ -404,7 +404,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
         if (errorMessage) {
           onError(errorMessage);
         } else {
-          onError(new Error('Registration failed without a specific error message'));
+          onError(new Error(t('registration.errors.generic-registration')));
         }
 
         return {
@@ -526,7 +526,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     mapResult: (resource: any) => T,
     extraConditionFn?: (resource: any) => boolean,
     frequency = 250,
-    timeout = 10000
+    timeout = 10000 // First initialization is slow, which is most of the cases
   ): Promise<T> => {
     return new Promise<T>((resolve, reject) => {
       const startTime = Date.now();
