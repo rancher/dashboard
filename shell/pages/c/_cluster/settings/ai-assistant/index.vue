@@ -233,11 +233,12 @@ const save = async(btnCB: (arg: boolean) => void) => {
         <label class="text-label">{{ t('aiAssistant.form.section.rag.description') }}</label>
         <hr>
         <banner
+          class="form-sub"
           color="info"
         >
           {{ t('aiAssistant.form.section.rag.banner') }}
         </banner>
-        <div class="form-values mb-30">
+        <div class="form-values form-sub mb-30">
           <checkbox
             :value="formData[Settings.ENABLE_RAG]"
             :label="t(`aiAssistant.form.${ Settings.ENABLE_RAG}.label`)"
@@ -264,11 +265,12 @@ const save = async(btnCB: (arg: boolean) => void) => {
         </label>
         <hr>
         <banner
+          class="form-sub"
           color="info"
         >
           {{ t('aiAssistant.form.section.langfuse.banner') }}
         </banner>
-        <div class="form-values">
+        <div class="form-values form-sub">
           <div class="form-field">
             <labeled-input
               :value="formData[Settings.LANGFUSE_HOST]"
@@ -339,6 +341,10 @@ const save = async(btnCB: (arg: boolean) => void) => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.form-sub {
+  padding-left: 1.5rem;
 }
 
 div.mt-0 {
