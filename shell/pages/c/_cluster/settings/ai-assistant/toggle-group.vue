@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import IconOrSvg from '@shell/components/IconOrSvg';
 import { RcButton } from '@components/RcButton';
 
 type ToggleGroupItem = {
@@ -31,9 +30,7 @@ const update = (value: string) => {
         :class="{ active: modelValue === item.value }"
         @click="update(item.value)"
       >
-        <icon-or-svg
-          :src="item.icon"
-        />
+        <i :class="['icon', 'icon-2x', item.icon]" />
         <div toggle-group-content>
           <div class="toggle-group-item-name">
             {{ item.name }}
@@ -76,11 +73,17 @@ button {
     background: rgba(59, 130, 246, 0.05);
   }
 
+  > .icon {
+    color: var(--active);
+  }
+
+  > .icon:not(:only-child) {
+    margin-right: initial;
+  }
+
   &:hover {
-    > img {
-      &.svg-icon {
-        filter: initial;
-      }
+    > .icon {
+      color: var(--active-hover);
     }
   }
 }

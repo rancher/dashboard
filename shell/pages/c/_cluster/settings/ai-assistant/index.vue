@@ -45,19 +45,19 @@ const activeChatbotOptions = [
   {
     name:        t(`aiAssistant.form.${ Settings.ACTIVE_CHATBOT }.options.local.name`),
     description: t(`aiAssistant.form.${ Settings.ACTIVE_CHATBOT }.options.local.description`, {}, true),
-    icon:        require('@shell/assets/images/providers/local.svg'),
+    icon:        'icon-ollama',
     value:       'Local',
   },
   {
     name:        t(`aiAssistant.form.${ Settings.ACTIVE_CHATBOT }.options.openAi.name`),
     description: t(`aiAssistant.form.${ Settings.ACTIVE_CHATBOT }.options.openAi.description`, {}, true),
-    icon:        require('@shell/assets/images/providers/OpenAI.svg'),
+    icon:        'icon-openai',
     value:       'OpenAI',
   },
   {
     name:        t(`aiAssistant.form.${ Settings.ACTIVE_CHATBOT }.options.gemini.name`),
     description: t(`aiAssistant.form.${ Settings.ACTIVE_CHATBOT }.options.gemini.description`, {}, true),
-    icon:        require('@shell/assets/images/providers/Gemini.svg'),
+    icon:        'icon-gemini',
     value:       'Gemini',
   },
 ];
