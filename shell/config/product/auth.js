@@ -177,6 +177,7 @@ export function init(store) {
   });
 
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/github`, 'auth/github');
+  componentForType(`${ MANAGEMENT.AUTH_CONFIG }/githubapp`, 'auth/github');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/openldap`, 'auth/ldap/index');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/freeipa`, 'auth/ldap/index');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/activedirectory`, 'auth/ldap/index');
