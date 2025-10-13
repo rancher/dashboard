@@ -117,7 +117,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     expect(newSettingsPage.inactivityModalCard().getCardTitle().should('contain', 'Session expiring'));
     expect(newSettingsPage.inactivityModalCard().getCardBody().should('contain', 'Your session is about to expire due to inactivity. Any unsaved changes will be lost'));
-    expect(newSettingsPage.inactivityModalCard().getCardBody().should('contain', 'Click “Resume Session” to keep the session in this tab active or refresh the browser after the session has expired'));
+    expect(newSettingsPage.inactivityModalCard().getCardBody().should('contain', 'Click “Resume Session” to keep the session in this browser active'));
 
     // Clicking the resume button should close the modal and reset the timer
     expect(newSettingsPage.inactivityModalCard().getCardActions().contains('Resume Session').click());
@@ -126,7 +126,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     // at this point the intercept for the XHR of resume session kicks in
     // let's check that the user being active doesn't really trigger the modal display
     // for that let's click on something in the UI
-    SettingsPagePo.navTo();
+    AccountPagePo.navTo();
 
     // let's wait so that we could give time for the modal to appear
     // eslint-disable-next-line cypress/no-unnecessary-waiting

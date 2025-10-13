@@ -5173,7 +5173,7 @@ podDisruptionBudget:
 inactivity:
   title: Session expiring
   banner: Your session is about to expire due to inactivity. Any unsaved changes will be lost.
-  content: Click “Resume Session” to keep the session in this tab active or refresh the browser after the session has expired.
+  content: Click “Resume Session” to keep the session in this browser active.
   cta: Resume Session
 
 # Rancher Extensions
