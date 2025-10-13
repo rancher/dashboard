@@ -980,7 +980,6 @@ export const actions = {
     }
 
     if ( id ) {
-      console.log('Remembering current cluster...');
       // Remember the current cluster
       dispatch('prefs/set', { key: CLUSTER_PREF, value: id });
       commit('clusterId', id);
