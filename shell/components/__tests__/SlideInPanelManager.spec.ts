@@ -22,9 +22,8 @@ describe('slideInPanelManager.vue with Teleport', () => {
     getters = {
       'slideInPanel/isOpen':         () => true,
       'slideInPanel/component':      () => MockComponent,
-      'slideInPanel/componentProps': () => ({
-        width: '40%', title: 'Test Title', extraProp: 'extra'
-      })
+      'slideInPanel/panelOptions':   () => ({ width: '40%', title: 'Test Title' }),
+      'slideInPanel/componentProps': () => ({ extraProp: 'extra' })
     };
 
     store = createStore({
@@ -69,7 +68,7 @@ describe('slideInPanelManager.vue with Teleport', () => {
 
   it('renders default panel title when no title is provided', async() => {
     // Update getter so that no title is provided
-    getters['slideInPanel/componentProps'] = () => ({ width: '40%' });
+    getters['slideInPanel/panelOptions'] = () => ({ width: '40%' });
     store = createStore({
       getters,
       mutations: { 'slideInPanel/close': jest.fn() }
