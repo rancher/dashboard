@@ -47,6 +47,6 @@ const sendNotification = () => shellApi.notification.send(NotificationLevel.Succ
 
 | API | Description | Example |
 | :--- | :--- | :--- |
-| [Slide-In API](../next/shell-api/interfaces/SlideInApi) | Responsible for interacting with slide-in panels | <img src={require('/img/slidein.png').default} alt="slidein example" width="500" /> |
-| [Modal API](../next/shell-api/interfaces/ModalApi) | Responsible for interacting with modals | <img src={require('/img/modal.png').default} alt="modal example" width="500" /> |
-| [Notification API](../next/shell-api/interfaces/NotificationApi) | Responsible for interacting with the Rancher UI Notification Center | <img src={require('/img/notification.png').default} alt="notification example" width="500" /> |
+| [Slide-In API](./shell-api/interfaces/SlideInApi) | Responsible for interacting with slide-in panels | <img src={require('/img/slidein.png').default} alt="slidein example" width="500" /> |
+| [Modal API](./shell-api/interfaces/ModalApi) | Responsible for interacting with modals | <img src={require('/img/modal.png').default} alt="modal example" width="500" /> |
+| [Notification API](./shell-api/interfaces/NotificationApi) | Responsible for interacting with the Rancher UI Notification Center | <img src={require('/img/notification.png').default} alt="notification example" width="500" /> |
