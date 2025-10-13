@@ -166,6 +166,7 @@ export default {
     <AzureWarning v-if="managementReady" />
     <div
       v-if="managementReady"
+      v-ui-context="{ tag: 'cluster', path: 'clusterId', icon: 'icon-cluster', description: 'Cluster name' }"
       class="dashboard-content"
       :class="{'dashboard-padding-left': showTopLevelMenu}"
     >

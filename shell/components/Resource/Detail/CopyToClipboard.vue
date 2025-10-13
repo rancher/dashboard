@@ -5,7 +5,7 @@ import { ref } from 'vue';
 import { useStore } from 'vuex';
 
 export interface Props {
-    value: string;
+  value: string;
 }
 
 const props = defineProps<Props>();
