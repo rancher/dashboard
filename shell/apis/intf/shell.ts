@@ -1,56 +1,11 @@
 import { Component } from 'vue';
+import { RouteLocationRaw } from 'vue-router';
 import { NotificationLevel } from '@shell/types/notifications';
-
-export type VALID_GROWL_TYPES = 'success' | 'info' | 'warning' | 'error';
-/**
- * Growl Message configuration object
- */
-export interface GrowlConfig {
-  /**
-   * Property that defines the title of the Growl
-   */
-  title?: string;
-
-  /**
-   * Property that defines the duration (in milliseconds) for which the Growl should be displayed.
-   * Defaults to `5000` milliseconds. A value of `0` keeps the Growl indefinitely.
-   */
-  timeout?: number;
-}
-
-/**
- * API for displaying growls in Rancher UI. Here's what a Growl looks like in Rancher UI:
- * * ![Growl Example](/img/growl.png)
- */
-export interface GrowlApi {
-  /**
-   * Method to display a Growl notification in Rancher UI
-   *
-   * Example:
-   * ```ts
-   * this.$shell.growl.show('success', 'Hello world!');
-   * ```
-   *
-   * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).
-   *
-   * @param type - Type of Growl notification
-   *
-   * Available types:
-   * - `success`: Indicates a successful operation (green color).
-   * - `info`: Provides general information or a non-critical update (blue/teal color).
-   * - `warning`: Signals a potential issue or action required (orange/yellow color).
-   * - `error`: Indicates a critical failure or necessary intervention (red color).
-   *
-   * @param message - Message to be displayed on the Growl notification
-   * @param config - Growl configuration object
-   */
-  show(type: VALID_GROWL_TYPES, message:string, config?: GrowlConfig): void;
-}
 
 /**
  * Configuration object for opening a modal.
  */
-export interface ModalConfig {
+export interface ModalApiConfig {
   /**
    * Props to pass directly to the component rendered inside the modal.
    *
@@ -133,7 +88,7 @@ export interface ModalApi {
    * @param config Modal configuration object
    *
    */
-  open(component: Component, config?: ModalConfig): void;
+  open(component: Component, config?: ModalApiConfig): void;
 }
 
 /**
@@ -141,7 +96,7 @@ export interface ModalApi {
  * Configuration object for opening a Slide-In panel. Here's what a Slide-In looks like in Rancher UI:
  *
  */
-export interface SlideInConfig {
+export interface SlideInApiConfig {
   /**
    *
    * Width of the Slide In panel in percentage, related to the window width. Defaults to `33%`
@@ -207,9 +162,121 @@ export interface SlideInApi {
    * @param config Slide-In configuration object
    *
    */
-  open(component: Component, config?: SlideInConfig): void;
+  open(component: Component, config?: SlideInApiConfig): void;
 }
 
+/**
+ * Notification Action definition
+ */
+export interface NotificationApiAction {
+  /**
+   * Button label for the action
+   */
+  label: string;
+  /**
+   * Href target when the button is clicked
+   */
+  target?: string;
+  /**
+   * Vue Route to navigate to when the button is clicked
+   */
+  route?: RouteLocationRaw;
+}
+
+/**
+ * Notification Preference definition
+ */
+export interface NotificationApiPreference {
+  /**
+   * User preference key to use when setting the preference when the notification is marked as read
+   */
+  key: string;
+  /**
+   * User preference value to use when setting the preference when the notification is marked as read
+   */
+  value: string;
+  /**
+   * User preference value to use when setting the preference when the notification is marked as unread - defaults to empty string
+   */
+  unsetValue?: string;
+}
+
+/**
+ * Configuration object for the Notification Center
+ *
+ */
+export interface NotificationApiConfig {
+  /**
+   * - **{@link NotificationApiAction}**
+   *
+   * Primary action to be shown in the notification
+   */
+  primaryAction?: NotificationApiAction;
+  /**
+   * - **{@link NotificationApiAction}**
+   *
+   * Secondary to be shown in the notification
+   */
+  secondaryAction?: NotificationApiAction;
+  /**
+   * Unique ID for the notification
+   */
+  id?: string;
+  /**
+   * Progress (0-100) for notifications of type `Task`
+   */
+  progress?: number;
+  /**
+   * - **{@link NotificationApiPreference}**
+   *
+   * User Preference tied to the notification (the preference will be updated when the notification is marked read)
+   */
+  preference?: NotificationApiPreference;
+}
+
+/**
+ * Notification Level for a notification in the Notification Center
+ */
+export enum NotificationApiLevel {
+  /**
+   * An announcement. To be used when we want to inform on high-interest topics - news, updates, changes, scheduled maintenance, etc. E.g. “New version available!” <img class="svg-blue" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-announcement.svg" width="20" />
+   */
+  Announcement = 0, // eslint-disable-line no-unused-vars
+  /**
+   * A task that is underway. To be used when we want to inform on a process taking place - on-going actions that might take a while. E.g. “Cluster provisioning in progress”. The progress bar will also be shown if the `progress` field is set <img class="svg-blue" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-busy.svg" width="20" />
+   */
+  Task, // eslint-disable-line no-unused-vars
+  /**
+   * Information notification. To be used when we want to inform on low-interest topics. E.g. “Welcome to Rancher v2.8" <img class="svg-blue" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-info.svg"/>
+   */
+  Info, // eslint-disable-line no-unused-vars
+  /**
+   * Notification that something has completed successfully. To be used when we want to confirm a successful action was completed. E.g. “Cluster provisioning completed” <img class="svg-green" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-tick.svg"/>
+   *
+   * A notification of type `Success` will also show a growl notication on Rancher UI
+   * * ![success Example](/img/notifications/success.png)
+   */
+  Success, // eslint-disable-line no-unused-vars
+  /**
+   * Notification of a warning. To be used when we want to warn about a potential risk. E.g. “Nodes limitation warning” <img class="svg-orange" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-warning.svg"/>
+   *
+   * A notification of type `Warning` will also show a growl notication on Rancher UI
+   * * ![warning Example](/img/notifications/warning.png)
+   */
+  Warning, // eslint-disable-line no-unused-vars
+  /**
+   * Notification of an error. To be used when we want to alert on a confirmed risk. E.g. “Extension failed to load” <img class="svg-red" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-error.svg"/>
+   *
+   * A notification of type `Error` will also show a growl notication on Rancher UI
+   * * ![error Example](/img/notifications/error.png)
+   */
+  Error, // eslint-disable-line no-unused-vars
+}
+
+/**
+ * API for notifications in the Rancher UI Notification Center
+ * * ![notification Example](/img/notification.png)
+ */
 export interface NotificationApi {
   /**
    * Sends a notification to the Rancher UI Notification Center
@@ -223,25 +290,32 @@ export interface NotificationApi {
    *
    * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).
    *
-   * @param level
-   * Notification level
-   * The `level` specifies the importance of the notification and determines the icon that is shown in the notification
-   *
-   * |Level|Purpose|Icon|
-   * |---|---|---|
-   * |Announcement|An announcement. To be used when we want to inform on high-interest topics - news, updates, changes, scheduled maintenance, etc. E.g. “New version available!”|<img class="svg-blue" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-announcement.svg"/>|
-   * |Task|A task that is underway. To be used when we want to inform on a process taking place - on-going actions that might take a while. E.g. “Cluster provisioning in progress”. The progress bar will also be shown if the `progress` field is set|<img class="svg-blue" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-busy.svg"/>|
-   * |Info|Information notification. To be used when we want to inform on low-interest topics. E.g. “Welcome to Rancher v2.8"|<img class="svg-blue" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-info.svg"/>|
-   * |Success|Notification that something has completed successfully. To be used when we want to confirm a successful action was completed. E.g. “Cluster provisioning completed”|<img class="svg-green" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-tick.svg"/>|
-   * |Warning|Notification of a warning. To be used when we want to warn about a potential risk. E.g. “Nodes limitation warning”|<img class="svg-orange" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-warning.svg"/>|
-   * |Error|Notification of an error. To be used when we want to alert on a confirmed risk. E.g. “Extension failed to load”|<img class="svg-red" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-error.svg"/>|
-   *
+   * @param level The `level` specifies the importance of the notification and determines the icon that is shown in the notification
    * @param title The notification title
    * @param message The notification message to be displayed
    * @param config Notifications configuration object
    *
+   * @returns notification ID
+   *
    */
-  send(level: NotificationLevel, title: string, message?:string, config?: any): void;
+  send(level: NotificationApiLevel | NotificationLevel, title: string, message?:string, config?: NotificationApiConfig): Promise<string>;
+
+  /**
+   * Update notification progress (Only valid for notifications of type `Task`)
+   *
+   * Example:
+   * ```ts
+   * this.$shell.notification.updateProgress('some-notification-id', 80)
+   * ```
+   *
+   * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).
+   *
+   * @param notificationId Unique ID for the notification
+   * @param progress Progress (0-100) for notifications of type `Task`
+   *
+   */
+
+  updateProgress(notificationId: string, progress: number): void;
 }
 
 /**
@@ -249,11 +323,6 @@ export interface NotificationApi {
  * Available "API's" inside Shell API
  */
 export interface ShellApi {
-  /**
-   * Provides access to the Growl API
-   */
-  get growl(): GrowlApi;
-
   /**
    * Provides access to the Modal API
    */

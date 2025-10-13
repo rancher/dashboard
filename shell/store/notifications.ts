@@ -267,6 +267,8 @@ export const actions = {
 
     // Show a growl for the notification if necessary
     dispatch('growl/notification', notification, { root: true });
+
+    return notification.id;
   },
 
   async fromGrowl( { commit, getters }: any, notification: Notification) {

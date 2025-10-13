@@ -3,7 +3,7 @@ import { Component } from 'vue';
 /**
  * Configuration object for opening a modal.
  */
-export interface ModalConfig {
+export interface ModalApiConfig {
   /**
    * The Vue component to be displayed inside the modal.
    * This can be any SFC (Single-File Component) imported and passed in as a `Component`.
