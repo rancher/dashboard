@@ -24,7 +24,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import { markSeenReleaseNotes } from '@shell/utils/version';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
-import { getClusterFromRoute, getProductFromRoute } from '@shell/utils/router';
+import { getProductFromRoute } from '@shell/utils/router';
 import { BOTTOM } from '@shell/utils/position';
 import SideNav from '@shell/components/SideNav';
 

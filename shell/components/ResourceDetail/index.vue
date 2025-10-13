@@ -244,8 +244,6 @@ export default {
     }
   },
   data() {
-    console.log('*** resourcedetail data running');
-
     return {
       resourceSubtype: null,
 
