@@ -1474,6 +1474,7 @@ export default {
                     <td
                       v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.col.isColVisible)"
                       :key="col.col.name"
+                      v-ui-context="col.col.name === 'state' ? { icon: 'icon-folder', hookable: true, value: row.row, tag: '__sortable-table-row', description: 'Row' } : undefined"
                       :data-title="col.col.label"
                       :data-testid="`sortable-cell-${ i }-${ j }`"
                       :align="col.col.align || 'left'"
