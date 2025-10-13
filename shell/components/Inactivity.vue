@@ -10,7 +10,6 @@ import { SETTING } from '@shell/config/settings';
 let globalId;
 
 const MODAL_VISIBILITY_CHECK_DELAY_SECONDS = 10;
-const BEFORE_LOGOUT_CHECK_DELAY_SECONDS = 5;
 
 export default {
   name:       'Inactivity',
@@ -24,7 +23,6 @@ export default {
       isUserActive:            false,
       userActivityIsoDate:     '',
       modalVisibilityCheckRan: false,
-      beforeLogoutCheckRan:    false,
       isOpen:                  false,
       showModalAfter:          null,
       expiresAt:               null,
@@ -73,6 +71,9 @@ export default {
     ttlValue() {
       return parseInt(this.userSessionTtlSetting?.value || 0);
     },
+    isFeatureEnabled() {
+      return this.ttlIdleValue < this.ttlValue;
+    },
     userActivityExpiresAt() {
       return this.userActivityResource?.status?.expiresAt || '';
     },
@@ -80,8 +81,7 @@ export default {
       return {
         userActivityExpiresAt: this.userActivityExpiresAt,
         sessionTokenName:      this.sessionTokenName,
-        ttlIdleValue:          this.ttlIdleValue,
-        ttlValue:              this.ttlValue,
+        isFeatureEnabled:      this.isFeatureEnabled
       };
     }
   },
@@ -99,39 +99,37 @@ export default {
         const currDate = Date.now();
         const endDate = new Date(neu.userActivityExpiresAt || '0001-01-01 00:00:00 +0000 UTC').getTime();
 
-        //   // this means that all conditions are met to start/stop the timers
-        if (endDate > currDate && neu?.sessionTokenName) {
-          console.error('watcherData passed gate 1!!!');
-          console.error('neu.ttlIdleValue < neu.ttlValue', neu.ttlIdleValue < neu.ttlValue);
+        if (endDate > currDate && neu?.sessionTokenName && neu?.isFeatureEnabled) {
+          console.error('watcherData passed gate 2!!!');
           // feature is considered as enabled
-          if (neu.ttlIdleValue < neu.ttlValue) {
-            console.error('watcherData passed gate 2!!!');
-            this.clearAllTimeouts();
+          // make sure we always clean up first so that we don't get duplicate timers running
+          this.stopInactivity();
 
-            console.error('LETS START THE PARTY!!!!');
-            const data = Inactivity.parseTTLData(this.userActivityResource);
+          console.error('LETS START THE PARTY!!!!');
+          const data = Inactivity.parseTTLData(this.userActivityResource);
 
-            console.error('parseTTLData data', data);
+          console.error('parseTTLData data', data);
 
-            // set all the data required for the timers to work properly
-            this.courtesyTimer = data.courtesyTimer;
-            this.courtesyCountdown = data.courtesyCountdown;
-            this.showModalAfter = data.showModalAfter;
-            this.sessionTokenName = data.sessionTokenName;
-            this.expiresAt = data.expiresAt;
+          // set all the data required for the timers to work properly
+          this.courtesyTimer = data.courtesyTimer;
+          this.courtesyCountdown = data.courtesyCountdown;
+          this.showModalAfter = data.showModalAfter;
+          this.sessionTokenName = data.sessionTokenName;
+          this.expiresAt = data.expiresAt;
 
-            const shownAfter = Math.round(((data.showModalAfter || 0) / 60) * 100) / 100;
-            const shownFor = Math.round(((data.courtesyTimer || 0) / 60) * 100) / 100;
+          const shownAfter = Math.round(((data.showModalAfter || 0) / 60) * 100) / 100;
+          const shownFor = Math.round(((data.courtesyTimer || 0) / 60) * 100) / 100;
 
-            console.debug(`UI inactivity modal (backend-based) will show after ${ shownAfter }(m) and be shown for ${ shownFor }(m)`); // eslint-disable-line no-console
+          console.debug(`UI inactivity modal (backend-based) will show after ${ shownAfter }(m) and be shown for ${ shownFor }(m)`); // eslint-disable-line no-console
 
-            // start timers
-            this.trackInactivity();
-            // add event listeners for UI interaction
-            this.addIdleListeners();
-          } else {
-            this.stopInactivity();
-          }
+          // start timers
+          this.trackInactivity();
+          // add event listeners for UI interaction
+          this.addIdleListeners();
+        }
+
+        if (!neu?.isFeatureEnabled) {
+          this.stopInactivity();
         }
       },
       immediate: true,
@@ -230,36 +228,33 @@ export default {
       checkInactivityTimer();
     },
     async checkBackendInactivity() {
+      let isUserActive = false;
       const userActivityData = await Inactivity.getUserActivity(this.$store, this.sessionTokenName);
 
       // this means that something updated the backend expiresAt, which means we must now reset the timers and adjust for new data
       if (userActivityData?.status?.expiresAt && (userActivityData?.status?.expiresAt !== this.expiresAt)) {
+        isUserActive = true;
         this.resetInactivityDataAndTimers(userActivityData);
       }
+
+      return isUserActive;
     },
     startCountdown() {
       const endTime = Date.now() + (this.courtesyCountdown * 1000);
 
-      const checkCountdown = () => {
+      const checkCountdown = async() => {
         const now = Date.now();
 
         if (now >= endTime) {
           this.clearAllTimeouts();
+          const isUserActive = await this.checkBackendInactivity();
 
-          console.error('LOGGING OUT USER FROM THE UI!!!!!!');
+          if (!isUserActive) {
+            console.error('LOGGING OUT USER FROM THE UI!!!!!!');
 
-          return this.$store.dispatch('auth/logout', { sessionIdle: true });
-        } else {
-          // When we have X seconds to go we log out the user, we check again for activity on the backend flag
-          // it may have come from another tab in the same browser
-          if (now >= endTime - (BEFORE_LOGOUT_CHECK_DELAY_SECONDS * 1000) && !this.beforeLogoutCheckRan) {
-            this.beforeLogoutCheckRan = true;
-            console.error('X SECONDS TO GO BEFORE WE LOG USER OUT!');
-
-            console.error('timer DOUBLE-CHECKING BACKEND INACTIVITY DATA before logout');
-            this.checkBackendInactivity();
+            return this.$store.dispatch('auth/logout', { sessionIdle: true });
           }
-
+        } else {
           this.courtesyCountdown = Math.floor((endTime - now) / 1000);
           this.courtesyTimerId = setTimeout(checkCountdown, 1000);
         }
@@ -300,7 +295,6 @@ export default {
     },
     stopInactivity() {
       this.modalVisibilityCheckRan = false;
-      this.beforeLogoutCheckRan = false;
       this.isOpen = false;
       this.isUserActive = false;
       this.userActivityIsoDate = '';
@@ -312,7 +306,6 @@ export default {
       const data = Inactivity.parseTTLData(userActivityData);
 
       this.modalVisibilityCheckRan = false;
-      this.beforeLogoutCheckRan = false;
       this.isOpen = false;
       this.isUserActive = false;
       this.userActivityIsoDate = '';
