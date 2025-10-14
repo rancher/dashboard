@@ -8,8 +8,8 @@ import { compare, sortable } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
 import { HARVESTER_CONTAINER, SCHEDULING_CUSTOMIZATION } from '@shell/store/features';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
-import isEmpty from 'lodash/isEmpty';
-import { set } from '@shell/utils/object';
+import isEmptyLodash from 'lodash/isEmpty';
+import { set, diff, isEmpty, clone } from '@shell/utils/object';
 
 /**
  * Combination of paginationFilterHiddenLocalCluster and paginationFilterOnlyKubernetesClusters
@@ -323,7 +323,7 @@ export async function initSchedulingCustomization(value, features, store, mode) 
     errors.push(e);
   }
 
-  if (schedulingCustomizationFeatureEnabled && mode === _CREATE && isEmpty(value?.clusterAgentDeploymentCustomization?.schedulingCustomization)) {
+  if (schedulingCustomizationFeatureEnabled && mode === _CREATE && isEmptyLodash(value?.clusterAgentDeploymentCustomization?.schedulingCustomization)) {
     set(value, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: clusterAgentDefaultPC, podDisruptionBudget: clusterAgentDefaultPDB });
   }
 
@@ -334,4 +334,131 @@ export async function initSchedulingCustomization(value, features, store, mode) 
   return {
     clusterAgentDefaultPC, clusterAgentDefaultPDB, schedulingCustomizationFeatureEnabled, schedulingCustomizationOriginallyEnabled, errors
   };
+}
+
+/**
+ * Recursively filters a `diffs` object to only include differences that are relevant to the user.
+ * A difference is considered relevant if the user has provided a custom value for that specific field.
+ *
+ * @param {object} diffs - The object representing the differences between two chart versions' default values.
+ * @param {object} userVals - The object containing the user's custom values.
+ * @returns {object} A new object containing only the relevant differences.
+ */
+function _filterRelevantDifferences(diffs, userVals) {
+  const filtered = {};
+
+  for (const key of Object.keys(diffs)) {
+    const diffVal = diffs[key];
+    const userVal = userVals?.[key];
+
+    const isDiffObject = typeof diffVal === 'object' && diffVal !== null && !Array.isArray(diffVal);
+    const isUserObject = typeof userVal === 'object' && userVal !== null && !Array.isArray(userVal);
+
+    // If both the diff and user value are objects, we need to recurse into them.
+    if (isDiffObject && isUserObject) {
+      const nestedFiltered = _filterRelevantDifferences(diffVal, userVal);
+
+      if (!isEmpty(nestedFiltered)) {
+        filtered[key] = nestedFiltered;
+      }
+    } else if (userVal !== undefined) {
+      // If the user has provided a value for this key, the difference is relevant.
+      filtered[key] = diffVal;
+    }
+  }
+
+  return filtered;
+}
+
+/**
+ * Processes a single add-on version change. It fetches the old and new chart information,
+ * calculates the differences in default values, and filters them based on user's customizations.
+ * If there are no significant differences, it preserves the user's custom values for the new version.
+ */
+async function _processAddonVersionChange(store, userChartValues, chartName, oldAddon, newAddon) {
+  try {
+    const [oldVersionInfo, newVersionInfo] = await Promise.all([
+      store.dispatch('catalog/getVersionInfo', {
+        repoType:    'cluster',
+        repoName:    oldAddon.repo,
+        chartName,
+        versionName: oldAddon.version,
+      }),
+      store.dispatch('catalog/getVersionInfo', {
+        repoType:    'cluster',
+        repoName:    newAddon.repo,
+        chartName,
+        versionName: newAddon.version,
+      })
+    ]);
+
+    const oldDefaults = oldVersionInfo.values;
+    const newDefaults = newVersionInfo.values;
+    const differences = diff(oldDefaults, newDefaults);
+
+    const userOldValues = userChartValues[`${ chartName }-${ oldAddon.version }`];
+
+    // We only care about differences in values that the user has actually customized.
+    // If the user hasn't touched a value, a change in its default should not be considered a breaking change.
+    const finalDifferences = userOldValues ? _filterRelevantDifferences(differences, userOldValues) : {};
+
+    const result = {
+      diff:     finalDifferences,
+      preserve: isEmpty(finalDifferences)
+    };
+
+    return result;
+  } catch (e) {
+    console.error(`Failed to get chart version info for diff for chart ${ chartName }`, e); // eslint-disable-line no-console
+
+    return null;
+  }
+}
+
+/**
+ * When the Kubernetes version is changed, this method is called to handle the add-on configurations
+ * for all enabled addons. It checks if an addon's version has changed and, if so, determines if the
+ * user's custom configurations should be preserved for the new version.
+ *
+ * The goal is to avoid showing a confirmation dialog for changes in default values that the user has not customized.
+ */
+export async function preserveAddonConfigs(component, oldVersion, newVersion) {
+  if (!component.isEdit || !oldVersion) {
+    return;
+  }
+
+  component.addonConfigDiffs = {};
+  const oldChartVersions = oldVersion.charts || {};
+  const newChartVersions = newVersion.charts || {};
+
+  // Iterate through the addons that are enabled for the cluster.
+  for (const chartName of component.addonNames) {
+    const oldAddon = oldChartVersions[chartName];
+    const newAddon = newChartVersions[chartName];
+
+    // If the addon didn't exist in the old K8s version, there's nothing to compare.
+    if (!oldAddon) {
+      continue;
+    }
+
+    // Check if the add-on version has changed.
+    if (newAddon && newAddon.version !== oldAddon.version) {
+      const result = await _processAddonVersionChange(component.$store, component.userChartValues, chartName, oldAddon, newAddon);
+
+      if (result) {
+        component.addonConfigDiffs[chartName] = result.diff;
+
+        if (result.preserve) {
+          const oldKey = `${ chartName }-${ oldAddon.version }`;
+          const newKey = `${ chartName }-${ newAddon.version }`;
+
+          // If custom values exist for the old version, and none exist for the new version,
+          // copy the values to the new key to preserve them.
+          if (component.userChartValues[oldKey] && !component.userChartValues[newKey]) {
+            component.userChartValues[newKey] = clone(component.userChartValues[oldKey]);
+          }
+        }
+      }
+    }
+  }
 }

@@ -28,7 +28,7 @@ import {
 } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
 import {
-  getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon, initSchedulingCustomization
+  getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon, initSchedulingCustomization, preserveAddonConfigs
 } from '@shell/utils/cluster';
 
 import { BadgeState } from '@components/BadgeState';
@@ -924,8 +924,8 @@ export default {
 
     selectedVersion: {
       async handler(neu, old) {
-        await this.preserveAddonConfigs(old, neu);
-        this.versionInfo = {}; // Invalidate cache such that version info relevent to selected kube version is updated
+        await preserveAddonConfigs(this, old, neu);
+        this.versionInfo = {}; // Invalidate cache such that version info relevant to selected kube version is updated
 
         // Allow time for addonNames to update... then fetch any missing addons
         this.$nextTick(() => this.initAddons());
@@ -976,123 +976,6 @@ export default {
   },
 
   methods: {
-    /**
-     * When the Kubernetes version is changed, this method is called to handle the add-on configurations
-     * for all enabled addons. It checks if an addon's version has changed and, if so, determines if the
-     * user's custom configurations should be preserved for the new version.
-     *
-     * The goal is to avoid showing a confirmation dialog for changes in default values that the user has not customized.
-     */
-    async preserveAddonConfigs(oldVersion, newVersion) {
-      if (!this.isEdit || !oldVersion) {
-        return;
-      }
-
-      this.addonConfigDiffs = {};
-      const oldChartVersions = oldVersion.charts || {};
-      const newChartVersions = newVersion.charts || {};
-
-      // Iterate through the addons that are enabled for the cluster.
-      for (const chartName of this.addonNames) {
-        const oldAddon = oldChartVersions[chartName];
-        const newAddon = newChartVersions[chartName];
-
-        // If the addon didn't exist in the old K8s version, there's nothing to compare.
-        if (!oldAddon) {
-          continue;
-        }
-
-        // Check if the add-on version has changed.
-        if (newAddon && newAddon.version !== oldAddon.version) {
-          await this._processAddonVersionChange(chartName, oldAddon, newAddon);
-        }
-      }
-    },
-
-    /**
-     * Processes a single add-on version change. It fetches the old and new chart information,
-     * calculates the differences in default values, and filters them based on user's customizations.
-     * If there are no significant differences, it preserves the user's custom values for the new version.
-     */
-    async _processAddonVersionChange(chartName, oldAddon, newAddon) {
-      try {
-        const [oldVersionInfo, newVersionInfo] = await Promise.all([
-          this.$store.dispatch('catalog/getVersionInfo', {
-            repoType:    'cluster',
-            repoName:    oldAddon.repo,
-            chartName,
-            versionName: oldAddon.version,
-          }),
-          this.$store.dispatch('catalog/getVersionInfo', {
-            repoType:    'cluster',
-            repoName:    newAddon.repo,
-            chartName,
-            versionName: newAddon.version,
-          })
-        ]);
-
-        const oldDefaults = oldVersionInfo.values;
-        const newDefaults = newVersionInfo.values;
-        const differences = diff(oldDefaults, newDefaults);
-
-        const userOldValues = this.userChartValues[`${ chartName }-${ oldAddon.version }`];
-
-        // We only care about differences in values that the user has actually customized.
-        // If the user hasn't touched a value, a change in its default should not be considered a breaking change.
-        const finalDifferences = userOldValues ? this._filterRelevantDifferences(differences, userOldValues) : {};
-
-        this.addonConfigDiffs[chartName] = finalDifferences;
-
-        // If there are no relevant differences, we can safely preserve the user's custom values.
-        if (isEmpty(finalDifferences)) {
-          const oldKey = `${ chartName }-${ oldAddon.version }`;
-          const newKey = `${ chartName }-${ newAddon.version }`;
-
-          // If custom values exist for the old version, and none exist for the new version,
-          // copy the values to the new key to preserve them.
-          if (this.userChartValues[oldKey] && !this.userChartValues[newKey]) {
-            this.userChartValues[newKey] = clone(this.userChartValues[oldKey]);
-          }
-        }
-      } catch (e) {
-        console.error(`Failed to get chart version info for diff for chart ${ chartName }`, e); // eslint-disable-line no-console
-      }
-    },
-
-    /**
-     * Recursively filters a `diffs` object to only include differences that are relevant to the user.
-     * A difference is considered relevant if the user has provided a custom value for that specific field.
-     *
-     * @param {object} diffs - The object representing the differences between two chart versions' default values.
-     * @param {object} userVals - The object containing the user's custom values.
-     * @returns {object} A new object containing only the relevant differences.
-     */
-    _filterRelevantDifferences(diffs, userVals) {
-      const filtered = {};
-
-      for (const key of Object.keys(diffs)) {
-        const diffVal = diffs[key];
-        const userVal = userVals?.[key];
-
-        const isDiffObject = typeof diffVal === 'object' && diffVal !== null && !Array.isArray(diffVal);
-        const isUserObject = typeof userVal === 'object' && userVal !== null && !Array.isArray(userVal);
-
-        // If both the diff and user value are objects, we need to recurse into them.
-        if (isDiffObject && isUserObject) {
-          const nestedFiltered = this._filterRelevantDifferences(diffVal, userVal);
-
-          if (!isEmpty(nestedFiltered)) {
-            filtered[key] = nestedFiltered;
-          }
-        } else if (userVal !== undefined) {
-          // If the user has provided a value for this key, the difference is relevant.
-          filtered[key] = diffVal;
-        }
-      }
-
-      return filtered;
-    },
-
     set,
 
     async handleVsphereCpiSecret() {
