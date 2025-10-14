@@ -48,6 +48,10 @@ export default {
     initYamlEditor: {
       type:     Function,
       required: true,
+    },
+    hasDiff: {
+      type:    Boolean,
+      default: false
     }
 
   },
@@ -73,7 +77,7 @@ export default {
 <template>
   <div>
     <Banner
-      v-if="isEdit"
+      v-if="isEdit && hasDiff"
       color="warning"
     >
       {{ t('cluster.addOns.dependencyBanner') }}

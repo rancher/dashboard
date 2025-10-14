@@ -279,6 +279,7 @@ export default {
       labelForAddon,
       etcdConfigValid:                          true,
       addonConfigDiffs:                         {},
+      isEmpty,
     };
   },
 
@@ -2529,6 +2530,7 @@ export default {
               :addons-rev="addonsRev"
               :user-chart-values-temp="userChartValuesTemp"
               :init-yaml-editor="initYamlEditor"
+              :has-diff="!isEmpty(addonConfigDiffs[v.name])"
               @update:value="$emit('input', $event)"
               @update-questions="syncChartValues"
               @update-values="updateValues"
