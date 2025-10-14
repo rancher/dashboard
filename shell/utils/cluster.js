@@ -398,17 +398,17 @@ async function _processAddonVersionChange(store, userChartValues, chartName, old
 
     const oldDefaults = oldVersionInfo.values;
     const newDefaults = newVersionInfo.values;
-    const differences = diff(oldDefaults, newDefaults);
+    const defaultsDifferences = diff(oldDefaults, newDefaults);
 
     const userOldValues = userChartValues[`${ chartName }-${ oldAddon.version }`];
 
     // We only care about differences in values that the user has actually customized.
     // If the user hasn't touched a value, a change in its default should not be considered a breaking change.
-    const finalDifferences = userOldValues ? _filterRelevantDifferences(differences, userOldValues) : {};
+    const defaultsAndUserDifferences = userOldValues ? _filterRelevantDifferences(defaultsDifferences, userOldValues) : {};
 
     const result = {
-      diff:     finalDifferences,
-      preserve: isEmpty(finalDifferences)
+      diff:     defaultsAndUserDifferences,
+      preserve: isEmpty(defaultsAndUserDifferences)
     };
 
     return result;
