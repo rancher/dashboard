@@ -376,6 +376,10 @@ function _filterRelevantDifferences(diffs, userVals) {
  * If there are no significant differences, it preserves the user's custom values for the new version.
  */
 async function _processAddonVersionChange(store, userChartValues, chartName, oldAddon, newAddon) {
+  if (chartName.includes('none')) {
+    return null;
+  }
+
   try {
     const [oldVersionInfo, newVersionInfo] = await Promise.all([
       store.dispatch('catalog/getVersionInfo', {
