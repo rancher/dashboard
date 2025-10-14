@@ -1559,7 +1559,7 @@ export default {
       const isEditVersion = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
 
       if (isEditVersion) {
-        const hasDiffs = Object.values(this.addonConfigDiffs).includes(true);
+        const hasDiffs = Object.values(this.addonConfigDiffs).some((d) => !isEmpty(d));
 
         if (hasDiffs) {
           const shouldContinue = await this.showAddonConfirmation();

@@ -407,8 +407,8 @@ async function _processAddonVersionChange(store, userChartValues, chartName, old
     const defaultsAndUserDifferences = userOldValues ? _filterRelevantDifferences(defaultsDifferences, userOldValues) : {};
 
     return {
-      hasDiff:        !isEmpty(defaultsAndUserDifferences),
-      shouldPreserve: isEmpty(defaultsAndUserDifferences)
+      diff:     defaultsAndUserDifferences,
+      preserve: isEmpty(defaultsAndUserDifferences)
     };
   } catch (e) {
     console.error(`Failed to get chart version info for diff for chart ${ chartName }`, e); // eslint-disable-line no-console
@@ -448,9 +448,9 @@ export async function preserveAddonConfigs(component, oldVersion, newVersion) {
       const result = await _processAddonVersionChange(component.$store, component.userChartValues, chartName, oldAddon, newAddon);
 
       if (result) {
-        component.addonConfigDiffs[chartName] = result.hasDiff;
+        component.addonConfigDiffs[chartName] = result.diff;
 
-        if (result.shouldPreserve) {
+        if (result.preserve) {
           const oldKey = `${ chartName }-${ oldAddon.version }`;
           const newKey = `${ chartName }-${ newAddon.version }`;
 
