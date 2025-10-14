@@ -1,4 +1,4 @@
-import * as plugin from 'index';
+import * as plugin from './index';
 
 describe('extension: rancher-prime', () => {
   it('should enable routing for admin users', () => {
