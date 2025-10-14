@@ -1,5 +1,5 @@
 import {
-  PaginationFeature, PaginationFeatureName, PaginationSettings, PaginationSettingsFeatures, PaginationSettingsStore, PaginationSettingsStores
+  PaginationFeature, PaginationFeatureHomePageClusterConfig, PaginationFeatureName, PaginationSettings, PaginationSettingsFeatures, PaginationSettingsStore, PaginationSettingsStores
 } from '@shell/types/resources/settings';
 import {
   NAMESPACE_FILTER_ALL_USER as ALL_USER,
@@ -24,13 +24,14 @@ import { EXT_IDS } from '@shell/core/plugin';
 import { ExtensionManager } from '@shell/types/extension-manager';
 import { DEFAULT_PERF_SETTING } from '@shell/config/settings';
 
-const PAGINATION_SETTINGS_FEATURE_DEFAULTS: PaginationSettingsFeatures = {
-  homePageCluster: {
-    version:       1,
-    enabled:       true,
-    configuration: { threshold: 2, rows: 2 } // TODO: RC
+const homePageClusterFeature: PaginationFeature<PaginationFeatureHomePageClusterConfig> = {
+  version:       1,
+  enabled:       true,
+  configuration: {
+    threshold: 500, results: 250, pagesPerRow: 25
   }
 };
+const PAGINATION_SETTINGS_FEATURE_DEFAULTS: PaginationSettingsFeatures = { homePageCluster: homePageClusterFeature };
 
 /**
  * Helper functions for server side pagination
@@ -232,7 +233,7 @@ class PaginationUtils {
     return this.isFeatureEnabled({ rootGetters }, 'listManualRefresh');
   }
 
-  getFeature({ rootGetters }: any, featureName: PaginationFeatureName): PaginationFeature | undefined {
+  getFeature<Config = any>({ rootGetters }: any, featureName: PaginationFeatureName): PaginationFeature<Config> | undefined {
     // Cache must be enabled to support pagination api
     if (!this.isSteveCacheEnabled({ rootGetters })) {
       return undefined;

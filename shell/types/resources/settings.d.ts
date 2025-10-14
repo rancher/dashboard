@@ -32,13 +32,19 @@ export interface PaginationSettingsStores {
  */
 export type PaginationFeatureName = 'listAutoRefreshToggle' | 'listManualRefresh' | 'homePageCluster'
 
+export type PaginationFeatureHomePageClusterConfig = {
+  threshold: number,
+  results: number,
+  pagesPerRow: number
+}
+
 /**
  * Details of a specific pagination feature
  */
-export type PaginationFeature = {
+export type PaginationFeature<Config = any> = {
   version: number,
   enabled: boolean,
-  configuration?: any,
+  configuration?: Config,
 }
 
 /**

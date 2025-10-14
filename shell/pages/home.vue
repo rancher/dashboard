@@ -33,7 +33,7 @@ import { CAPI as CAPI_LAB_AND_ANO } from '@shell/config/labels-annotations';
 import paginationUtils from '@shell/utils/pagination-utils';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import Preset from '@shell/mixins/preset';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import { PaginationFeatureHomePageClusterConfig } from '@shell/types/resources/settings';
 
 export default defineComponent({
   name:       'Home',
@@ -47,7 +47,6 @@ export default defineComponent({
     SingleClusterInfo,
     TabTitle,
     ResourceTable,
-    Checkbox,
   },
 
   mixins: [PageHeaderActions, Preset],
@@ -219,6 +218,7 @@ export default defineComponent({
        */
       tooManyClusters:        undefined as boolean | undefined,
       altClusterListRows:     undefined as any[] | undefined,
+      altClusterListFeature:  paginationUtils.getFeature<PaginationFeatureHomePageClusterConfig>({ rootGetters: this.$store.getters }, 'homePageCluster'),
 
       presetVersion: getVersionData()?.Version,
     };
@@ -518,17 +518,22 @@ export default defineComponent({
 
       this.altClusterListDisabled = disabled;
     },
+
     /**
-     * Determine if we should use an alternative cluster list // TODO: RC
+     * Determine if we should use an alternative cluster list which contains most recently created clusters
      *
-     * Basically if vai is on and there's a LOT of clusters... use vai to find most recent clusters and show instead
+     * Checks
+     * - can view clusters
+     * - if vai is on
+     * - if alt list feature is on
+     * - if cluster count exceeds threshold
      */
     isTooManyClusters(): boolean {
       if (!this.provClusterSchema || !this.canViewMgmtClusters) {
         return false;
       }
 
-      const featureConfig = paginationUtils.getFeature({ rootGetters: this.$store.getters }, 'homePageCluster');
+      const featureConfig = this.altClusterListFeature;
 
       if (!featureConfig || !featureConfig.enabled) { // vai is off, or feature is explicitly disabled
         return false;
@@ -547,9 +552,12 @@ export default defineComponent({
       return this.clusterCount > threshold;
     },
 
+    /**
+     * Fetch clusters used to populate alt table
+     */
     async initAltClusters() {
-      const featureConfig = paginationUtils.getFeature({ rootGetters: this.$store.getters }, 'homePageCluster');
-      const rows = featureConfig?.configuration?.rows || 50;
+      const featureConfig = this.altClusterListFeature;
+      const results = featureConfig?.configuration?.results || 50;
 
       // Fetch a limited number of provisioning clusters
       const opt1: ActionFindPageArgs = {
@@ -557,9 +565,8 @@ export default defineComponent({
           projectsOrNamespaces: [],
           filters:              paginationFilterClusters(this.$store, false),
           page:                 1,
-          pageSize:             rows,
+          pageSize:             results, // We're fetching the total results... then paging locally
           sort:                 [{ field: 'metadata.creationTimestamp', asc: false }]
-          // sort:                 [{ field: 'metadata.fields.3', asc: true }] // TODO: RC, https://github.com/rancher/rancher/issues/52121
         },
         watch: false,
       };
@@ -626,6 +633,7 @@ export default defineComponent({
                 :loading="!altClusterListRows"
 
                 :rows="altClusterListRows || []"
+                :rowsPerPage="altClusterListFeature?.configuration.pagesPerRow || 10"
 
                 :namespaced="false"
                 :groupable="false"
@@ -638,16 +646,10 @@ export default defineComponent({
                   </div>
                 </template>
                 <template #sub-header-row>
-                  <div class="too-many-clusters">
-                    <h2 class="too-many-clusters-msg">
-                      {{ t('landing.clusters.tooMany.showingSome', { rows: altClusterListRows?.length || '...', total: clusterCount}) }}
-                    </h2>
-                    <Checkbox
-                      :value="altClusterListDisabled"
-                      label-key="landing.clusters.tooMany.showAll"
-                      @update:value="toggleAltClusterListDisabled($event)"
-                    />
-                  </div>
+                  <h2 class="too-many-clusters">
+                    {{ t('landing.clusters.tooMany.showingSome', { rows: altClusterListRows?.length || '...', total: clusterCount}) }}
+                    <a @click="toggleAltClusterListDisabled(true)">{{ t('landing.clusters.tooMany.showAll') }}</a>
+                  </h2>
                 </template>
                 <!--
                   Below is a big copy & paste from PaginatedResourceTable, however should be temporary (altClusterList removed in 2.14 once full SSP support for clusters if available)
@@ -805,16 +807,10 @@ export default defineComponent({
                   v-if="tooManyClusters"
                   #sub-header-row
                 >
-                  <div class="too-many-clusters">
-                    <h2 class="too-many-clusters-msg">
-                      {{ t('landing.clusters.tooMany.showingAll', { rows: altClusterListRows?.length || '...', total: clusterCount}) }}
-                    </h2>
-                    <Checkbox
-                      :value="altClusterListDisabled"
-                      label-key="landing.clusters.tooMany.showAll"
-                      @update:value="toggleAltClusterListDisabled($event)"
-                    />
-                  </div>
+                  <h2 class="too-many-clusters">
+                    {{ t('landing.clusters.tooMany.showingAll', { rows: altClusterListRows?.length || '...', total: clusterCount}) }}
+                    <a @click="toggleAltClusterListDisabled(false)">{{ t('landing.clusters.tooMany.showSome') }}</a>
+                  </h2>
                 </template>
                 <template
                   v-if="canCreateCluster || !!provClusterSchema"
@@ -960,10 +956,10 @@ export default defineComponent({
       flex: auto;
 
       .too-many-clusters {
-        display: flex;
-        flex-direction: column;
-        &-msg {
-          margin-bottom: 10px;
+        margin-bottom: 5px;
+
+        a {
+          cursor: pointer;
         }
       }
     }
