@@ -9,6 +9,7 @@ import {
 } from '../config/constants';
 import { SECRET } from '@shell/config/types';
 import { dateTimeFormat } from '@shell/utils/time';
+import { useI18n } from '@shell/composables/useI18n';
 
 type RegistrationStatus = 'loading' | 'registering-online' | 'registration-request' | 'registering-offline' | 'registered' | null;
 type AsyncButtonFunction = (val: boolean) => void;
@@ -22,6 +23,7 @@ interface RegistrationDashboard {
   color: 'error' | 'success';
   message: string;
   status: 'valid' | 'error' | 'none';
+  code: string | null;
   registrationLink?: string; // not generated on failure or reset
   resourceLink?: string; // not generated on empty registration
 }
@@ -90,6 +92,7 @@ const emptyRegistration: RegistrationDashboard = {
   mode:       '--',
   expiration: '--',
   color:      'error',
+  code:       null,
   message:    'registration.list.table.badge.none',
   status:     'none'
 };
@@ -111,6 +114,7 @@ const registrationBannerCases = {
 
 export const usePrimeRegistration = (storeArg?: Store<any>) => {
   const store = storeArg ?? useStore();
+  const { t } = useI18n(store);
 
   /**
    * Registration mapped value used in the UI
@@ -341,12 +345,12 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const findRegistration = async(hash: string | null): Promise<PartialRegistration | undefined> => {
     const registrations: PartialRegistration[] = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME }).catch(() => []) || [];
-    const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === hash &&
+    const newRegistration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === hash &&
       !isRegistrationOfflineProgress(registration) &&
       isRegistrationCompleted(registration)
     );
 
-    return registration;
+    return newRegistration;
   };
 
   /**
@@ -384,6 +388,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
         mode:             registration.spec.mode,
         registrationLink: registration.status?.activationStatus?.systemUrl,
         resourceLink:     registration.links.view,
+        code:             registration?.metadata?.labels[REGISTRATION_LABEL],
       };
 
       if (isActive) {
@@ -402,7 +407,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
         if (errorMessage) {
           onError(errorMessage);
         } else {
-          onError(new Error('Registration failed without a specific error message'));
+          onError(new Error(t('registration.errors.generic-registration')));
         }
 
         return {
@@ -484,6 +489,32 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   };
 
   /**
+   * Generic fallback in case of unhandled errors based on existing resources
+   * @param polling
+   * @returns
+   */
+  const getError = (polling?: boolean): string => {
+    if (polling && !secret.value?.data?.regCode) {
+      return t('registration.errors.missing-code');
+    }
+
+    // Fallback in case of logic changes
+    if (polling && registration.value.active && secret.value?.data?.regCode !== registration.value?.code) {
+      return t('registration.errors.mismatch-code');
+    }
+
+    if (secret.value && !registration.value.active) {
+      return t('registration.errors.generic-registration');
+    }
+
+    if (polling) {
+      return t('registration.errors.timeout-registration');
+    }
+
+    return '';
+  };
+
+  /**
  * Polls periodically until a condition is met or timeout is reached.
  * @param fetchFn Function to fetch the resource (e.g., findRegistration or findOfflineRequest)
  * @param mapResult Function to map the result before resolving
@@ -498,7 +529,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     mapResult: (resource: any) => T,
     extraConditionFn?: (resource: any) => boolean,
     frequency = 250,
-    timeout = 10000
+    timeout = 10000 // First initialization is slow, which is most of the cases
   ): Promise<T> => {
     return new Promise<T>((resolve, reject) => {
       const startTime = Date.now();
@@ -506,7 +537,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
       const interval = setInterval(async() => {
         if (Date.now() - startTime > timeout) {
           clearInterval(interval);
-          reject(new Error('Timeout reached while waiting for resource'));
+          reject(new Error(getError(true)));
 
           return;
         }
@@ -535,6 +566,11 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     secret.value = await getSecret();
     registrationCode.value = secret.value?.data?.regCode ? atob(secret.value.data.regCode) : null; // Get registration code from secret
     registrationStatus.value = await getRegistration();
+    const message = getError();
+
+    if (message) {
+      onError(new Error(message));
+    }
   };
 
   return {

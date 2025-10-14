@@ -259,11 +259,11 @@ export default {
               class="status"
             >
               <i
-                v-clean-tooltip="t(status.tooltip.key)"
+                v-clean-tooltip="status.tooltip.key ? t(status.tooltip.key) : status.tooltip.text"
                 :class="['icon', status.icon, status.color]"
                 :style="{color: status.customColor}"
                 role="img"
-                :aria-label="t(status.tooltip.key)"
+                :aria-label="status.tooltip.key ? t(status.tooltip.key) : status.tooltip.text"
               />
             </div>
           </div>

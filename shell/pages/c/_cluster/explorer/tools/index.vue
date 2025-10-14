@@ -96,7 +96,7 @@ export default {
             title:    { text: chart.chartNameDisplay },
             statuses: chart.cardContent.statuses
           },
-          subHeaderItems: chart.cardContent.subHeaderItems.slice(0, 1),
+          subHeaderItems: chart.cardContent.subHeaderItems,
           footerItems:    chart.deploysOnWindows ? [{
             icon:        'icon-tag-alt',
             iconTooltip: { key: 'generic.tags' },
@@ -151,7 +151,7 @@ export default {
           action: 'edit',
         });
 
-        const currentVersion = installedApp.spec.chart.metadata.version;
+        const currentVersion = installedApp.spec?.chart?.metadata?.version;
         const versions = rawChart.versions;
         const currentIndex = versions.findIndex((v) => v.version === currentVersion);
 
@@ -190,7 +190,7 @@ export default {
     },
 
     downgrade(app, chart) {
-      const currentVersion = app.spec.chart.metadata.version;
+      const currentVersion = app.spec?.chart?.metadata?.version;
       const versions = chart.versions;
       const currentIndex = versions.findIndex((v) => v.version === currentVersion);
 
