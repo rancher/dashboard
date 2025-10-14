@@ -4,9 +4,9 @@ import { machinePoolConfigResponse } from '@/cypress/e2e/blueprints/manager/mach
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-generic.po';
 import ClusterManagerCreateRke2AzurePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-azure.po';
-import CloudCredentialsCreatePagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials-create.po';
+import CloudCredentialsPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials.po';
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
-import CloudCredentialsCreateAWSPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials-create-aws.po';
+import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 
 describe('Cloud Credential', { testIsolation: 'off' }, () => {
   const clusterList = new ClusterManagerListPagePo();
@@ -235,24 +235,26 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
     const secret = 'secret';
     const errorMessage = 'Authentication test failed, please check your credentials';
 
-    CloudCredentialsCreatePagePo.goTo();
-    const createCredentialsPo = new CloudCredentialsCreatePagePo();
+    const cloudCredentialsPage = new CloudCredentialsPagePo();
 
-    createCredentialsPo.waitForPageWithExactUrl();
+    cloudCredentialsPage.goTo();
+    cloudCredentialsPage.waitForPage();
+    cloudCredentialsPage.create();
+    cloudCredentialsPage.createEditCloudCreds().waitForPage();
+    cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
+    cloudCredentialsPage.createEditCloudCreds().waitForPage('type=aws');
 
-    const createCredentialsAwsPo = createCredentialsPo.selectAws();
+    cloudCredentialsPage.createEditCloudCreds().accessKey().set(access);
+    cloudCredentialsPage.createEditCloudCreds().secretKey().set(secret);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(name);
 
-    createCredentialsAwsPo.waitForPageWithExactUrl();
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().value()
+      .should('eq', name);
 
-    createCredentialsAwsPo.accessKeyInput().set(access);
-    createCredentialsAwsPo.secretKeyInput().set(secret);
-    createCredentialsAwsPo.credentialNameInput().set(name);
-
-    createCredentialsAwsPo.credentialNameInput().value().should('eq', name);
-
-    createCredentialsAwsPo.clickCreate();
+    cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveOrCreate()
+      .click();
     // In the previous bug this text would get truncated to the first letter
-    createCredentialsAwsPo.errorBanner().should('contain.text', errorMessage);
+    cloudCredentialsPage.resourceDetail().createEditView().errorBanner().should('contain.text', errorMessage);
   });
 
   it('Ensure we validate credentials and show an error when invalid when creating a credential from the create cluster page', { tags: ['@manager', '@adminUser'] }, () => {
@@ -263,23 +265,28 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
     const errorMessage = 'Authentication test failed, please check your credentials';
 
     const clusterCreate = new ClusterManagerCreatePagePo();
+    const loadingPo = new LoadingPo('.loading-indicator');
 
     clusterCreate.goTo();
     clusterCreate.waitForPage();
     clusterCreate.selectCreate(0);
+    loadingPo.checkNotExists();
     clusterCreate.rke2PageTitle().should('include', 'Create Amazon EC2');
+    clusterCreate.waitForPage('type=amazonec2&rkeType=rke2');
 
-    const createCredentialsAwsPo = new CloudCredentialsCreateAWSPagePo();
+    const cloudCredentialsPage = new CloudCredentialsPagePo();
 
-    createCredentialsAwsPo.accessKeyInput().set(access);
-    createCredentialsAwsPo.secretKeyInput().set(secret);
-    createCredentialsAwsPo.credentialNameInput().set(name);
+    cloudCredentialsPage.createEditCloudCreds().accessKey().set(access);
+    cloudCredentialsPage.createEditCloudCreds().secretKey().set(secret);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(name);
 
-    createCredentialsAwsPo.credentialNameInput().value().should('eq', name);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().value()
+      .should('eq', name);
 
-    createCredentialsAwsPo.clickCreate();
+    cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveOrCreate()
+      .click();
     // In the previous bug this text would get truncated to the first letter
-    createCredentialsAwsPo.errorBanner().should('contain.text', errorMessage);
+    cloudCredentialsPage.resourceDetail().createEditView().errorBanner().should('contain.text', errorMessage);
   });
 
   after(() => {
