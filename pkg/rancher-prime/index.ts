@@ -8,7 +8,6 @@ import { usePrimeRegistration } from './pages/registration.composable';
 import { type Store } from 'vuex';
 import { NotificationLevel } from '@shell/types/notifications';
 import { REGISTRATION_NOTIFICATION_ID } from './config/constants';
-import { isAdminUser } from '@shell/store/type-map';
 
 /**
  * Trigger notification on plugin loaded and no active registration is found.
@@ -79,23 +78,18 @@ export default function(plugin: IPlugin) {
   // Add the handler that will intercept and replace doc links with their Prime doc counterpart
   installDocHandler(plugin);
 
-  const isAdmin = isAdminUser(store.getters);
-  const isFeatureActive = store.getters['features/get']('rancher-scc-registration-extension');
+  // Load the navigation page
+  plugin.addProduct(require('./config/navigation'));
 
-  if (isFeatureActive && isAdmin) {
-    // Load the navigation page
-    plugin.addProduct(require('./config/navigation'));
+  // Add routes
+  plugin.addRoutes(routing);
 
-    // Add routes
-    plugin.addRoutes(routing);
+  // About page panel
+  plugin.addPanel(PanelLocation.ABOUT_TOP, {}, { component: () => import('./components/AboutPanel.vue') });
 
-    // About page panel
-    plugin.addPanel(PanelLocation.ABOUT_TOP, {}, { component: () => import('./components/AboutPanel.vue') });
-
-    plugin.addNavHooks({
-      onLogin: async(store: any) => {
-        poolRegistration(store);
-      }
-    });
-  }
+  plugin.addNavHooks({
+    onLogin: async(store: any) => {
+      poolRegistration(store);
+    }
+  });
 }

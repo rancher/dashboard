@@ -1,19 +1,20 @@
 import * as plugin from 'index';
 
 describe('extension: rancher-prime', () => {
-  it('should load only for admin users', () => {
-    const pluginSpy = {
+  it('should enable routing for admin users', () => {
+    const navigationSpy = jest.fn();
+    const pluginMock = {
       environment: { isPrime: true },
-      addProduct:  jest.fn(),
+      addProduct:  navigationSpy,
       addRoutes:   jest.fn(),
       addPanel:    jest.fn(),
       addNavHooks: jest.fn(),
       metadata:    {}
     } as any;
 
-    plugin.default(pluginSpy);
+    plugin.default(pluginMock);
 
-    // eslint-disable-next-line jest/prefer-called-with
-    expect(pluginSpy.addNavHooks).toHaveBeenCalled();
+    expect(pluginMock.addProduct).toHaveBeenCalledWith(navigationSpy);
+    expect(navigationSpy).toHaveBeenCalledWith(navigationSpy);
   });
 });
