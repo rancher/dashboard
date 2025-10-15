@@ -28,7 +28,7 @@ import {
 } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
 import {
-  getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon, initSchedulingCustomization, preserveAddonConfigs
+  getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon, initSchedulingCustomization, addonConfigPreserve
 } from '@shell/utils/cluster';
 
 import { BadgeState } from '@components/BadgeState';
@@ -925,7 +925,21 @@ export default {
 
     selectedVersion: {
       async handler(neu, old) {
-        await preserveAddonConfigs(this, old, neu);
+        const {
+          isEdit,
+          addonConfigDiffs,
+          addonNames,
+          userChartValues
+        } = this;
+        const context = {
+          isEdit,
+          addonConfigDiffs,
+          addonNames,
+          $store: this.$store,
+          userChartValues
+        };
+
+        await addonConfigPreserve(context, old, neu);
         this.versionInfo = {}; // Invalidate cache such that version info relevant to selected kube version is updated
 
         // Allow time for addonNames to update... then fetch any missing addons
@@ -1519,7 +1533,7 @@ export default {
     showAddonConfirmation(addonNames, previousKubeVersion, newKubeVersion) {
       return new Promise((resolve) => {
         this.$store.dispatch('cluster/promptModal', {
-          component: 'AddonConfigConfirmationDialog',
+          component:      'AddonConfigConfirmationDialog',
           componentProps: {
             addonNames,
             previousKubeVersion,

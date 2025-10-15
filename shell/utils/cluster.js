@@ -344,7 +344,7 @@ export async function initSchedulingCustomization(value, features, store, mode) 
  * @param {object} userVals - The object containing the user's custom values.
  * @returns {object} A new object containing only the relevant differences.
  */
-function _filterRelevantDifferences(diffs, userVals) {
+function _addonConfigPreserveFilter(diffs, userVals) {
   const filtered = {};
 
   for (const key of Object.keys(diffs)) {
@@ -356,7 +356,7 @@ function _filterRelevantDifferences(diffs, userVals) {
 
     // If both the diff and user value are objects, we need to recurse into them.
     if (isDiffObject && isUserObject) {
-      const nestedFiltered = _filterRelevantDifferences(diffVal, userVal);
+      const nestedFiltered = _addonConfigPreserveFilter(diffVal, userVal);
 
       if (!isEmpty(nestedFiltered)) {
         filtered[key] = nestedFiltered;
@@ -375,7 +375,7 @@ function _filterRelevantDifferences(diffs, userVals) {
  * calculates the differences in default values, and filters them based on user's customizations.
  * If there are no significant differences, it preserves the user's custom values for the new version.
  */
-async function _processAddonVersionChange(store, userChartValues, chartName, oldAddon, newAddon) {
+async function _addonConfigPreserveProcess(store, userChartValues, chartName, oldAddon, newAddon) {
   if (chartName.includes('none')) {
     return null;
   }
@@ -404,7 +404,7 @@ async function _processAddonVersionChange(store, userChartValues, chartName, old
 
     // We only care about differences in values that the user has actually customized.
     // If the user hasn't touched a value, a change in its default should not be considered a breaking change.
-    const defaultsAndUserDifferences = userOldValues ? _filterRelevantDifferences(defaultsDifferences, userOldValues) : {};
+    const defaultsAndUserDifferences = userOldValues ? _addonConfigPreserveFilter(defaultsDifferences, userOldValues) : {};
 
     return {
       diff:     defaultsAndUserDifferences,
@@ -424,17 +424,29 @@ async function _processAddonVersionChange(store, userChartValues, chartName, old
  *
  * The goal is to avoid showing a confirmation dialog for changes in default values that the user has not customized.
  */
-export async function preserveAddonConfigs(component, oldVersion, newVersion) {
-  if (!component.isEdit || !oldVersion) {
+export async function addonConfigPreserve(context, oldVersion, newVersion) {
+  const {
+    isEdit,
+    addonConfigDiffs,
+    addonNames,
+    $store,
+    userChartValues
+  } = context;
+
+  if (!isEdit || !oldVersion) {
     return;
   }
 
-  component.addonConfigDiffs = {};
+  // Clear the diffs object for the new run
+  for (const key in addonConfigDiffs) {
+    delete addonConfigDiffs[key];
+  }
+
   const oldChartVersions = oldVersion.charts || {};
   const newChartVersions = newVersion.charts || {};
 
   // Iterate through the addons that are enabled for the cluster.
-  for (const chartName of component.addonNames) {
+  for (const chartName of addonNames) {
     const oldAddon = oldChartVersions[chartName];
     const newAddon = newChartVersions[chartName];
 
@@ -445,10 +457,10 @@ export async function preserveAddonConfigs(component, oldVersion, newVersion) {
 
     // Check if the add-on version has changed.
     if (newAddon && newAddon.version !== oldAddon.version) {
-      const result = await _processAddonVersionChange(component.$store, component.userChartValues, chartName, oldAddon, newAddon);
+      const result = await _addonConfigPreserveProcess($store, userChartValues, chartName, oldAddon, newAddon);
 
       if (result) {
-        component.addonConfigDiffs[chartName] = result.diff;
+        addonConfigDiffs[chartName] = result.diff;
 
         if (result.preserve) {
           const oldKey = `${ chartName }-${ oldAddon.version }`;
@@ -456,8 +468,8 @@ export async function preserveAddonConfigs(component, oldVersion, newVersion) {
 
           // If custom values exist for the old version, and none exist for the new version,
           // copy the values to the new key to preserve them.
-          if (component.userChartValues[oldKey] && !component.userChartValues[newKey]) {
-            component.userChartValues[newKey] = clone(component.userChartValues[oldKey]);
+          if (userChartValues[oldKey] && !userChartValues[newKey]) {
+            userChartValues[newKey] = clone(userChartValues[oldKey]);
           }
         }
       }
