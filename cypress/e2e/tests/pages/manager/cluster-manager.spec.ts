@@ -243,6 +243,13 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       });
 
       it('can copy config to clipboard', () => {
+        // Stub clipboard methods to avoid permission prompts
+        cy.visit('/', {
+          onBeforeLoad(win) {
+            cy.stub(win.navigator.clipboard, 'writeText').resolves();
+          },
+        });
+
         ClusterManagerListPagePo.navTo();
 
         cy.intercept('POST', '*action=generateKubeconfig').as('copyKubeConfig');
