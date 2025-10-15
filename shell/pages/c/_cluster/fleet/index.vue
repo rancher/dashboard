@@ -147,6 +147,12 @@ export default {
   mounted() {
     this.preset('cardsCount', 'object');
     this.preset('viewMode', 'string');
+
+    // this.$store.dispatch('wm/secondary/open', {
+    //   id:            'test',
+    //   label:         'Test',
+    //   componentName: '',
+    // }, { root: true });
   },
 
   beforeUnmount() {
@@ -154,6 +160,13 @@ export default {
   },
 
   computed: {
+    // wscoll() {
+    //   const context = this.$store.getters['ui-context/all']();
+
+    //   console.log(context);
+
+    //   return context?.find((e) => e.tag === 'isWorkspaceCollapsed');
+    // },
     ...mapState(['workspace', 'allNamespaces']),
     ...mapGetters({ isOpenSlideInPanel: 'slideInPanel/isOpen' }),
     ...mapGetters({ isClosingSlideInPanel: 'slideInPanel/isClosing' }),
@@ -488,6 +501,10 @@ export default {
           <t k="fleet.dashboard.pageTitle" />
         </h1>
 
+        <!-- <h1>
+          {{ wscoll }}
+        </h1> -->
+
         <div class="dashboard-main-actions">
           <ButtonGroup
             :data-testid="'view-button'"
@@ -537,6 +554,7 @@ export default {
                 <span>{{ t('fleet.dashboard.workspace') }} : &nbsp;</span>
               </span>
               <router-link
+                v-ui-context="{ icon: 'icon-folder', value: workspace.id, tag: 'workspace', description: 'Fleet workspace' }"
                 class="name"
                 role="link"
                 tabindex="0"
