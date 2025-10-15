@@ -29,4 +29,4 @@ Fixes #
 - [ ] The PR has automated tests or clear instructions for manual tests and the linked issue has appropriate QA labels, or tests are not needed
 - [ ] The PR has reviewed with UX and tested in light and dark mode, or there are no UX changes
 - [ ] The PR has been reviewed in terms of Accessibility
-- [ ] The PR has been tested with Admin, Standard and Base User roles
+- [ ] The PR has been tested with `Admin`, `Standard` and `Base` user roles
