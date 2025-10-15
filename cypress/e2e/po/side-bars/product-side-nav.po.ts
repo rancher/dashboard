@@ -95,7 +95,7 @@ export default class ProductNavPo extends ComponentPo {
    * Active navigation item
    */
   activeNavItem() {
-    return this.groups().get('.router-link-active').should('exist').invoke('text')
+    return this.groups().find('.router-link-active').should('exist').invoke('text')
       .then((s) => s.trim());
   }
 }
