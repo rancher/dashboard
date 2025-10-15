@@ -2,8 +2,9 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import GithubAppPo from '@/cypress/e2e/po/edit/auth/githubapp.po';
 import { AuthProvider, AuthProviderPo } from '@/cypress/e2e/po/pages/users-and-auth/authProvider.po';
 
-const authProviderPo = new AuthProviderPo('local');
-const githubAppPo = new GithubAppPo('local');
+const authClusterId = '_';
+const authProviderPo = new AuthProviderPo(authClusterId);
+const githubAppPo = new GithubAppPo(authClusterId);
 
 const clientId = 'test-client-id';
 const clientSecret = 'test-client-secret';
