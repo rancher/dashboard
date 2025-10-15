@@ -923,31 +923,29 @@ export default {
       }
     },
 
-    selectedVersion: {
-      async handler(neu, old) {
-        const {
-          isEdit,
-          addonConfigDiffs,
-          addonNames,
-          userChartValues
-        } = this;
-        const context = {
-          isEdit,
-          addonConfigDiffs,
-          addonNames,
-          $store: this.$store,
-          userChartValues
-        };
+    async selectedVersion(neu, old) {
+      const {
+        isEdit,
+        addonConfigDiffs,
+        addonNames,
+        userChartValues
+      } = this;
+      const context = {
+        isEdit,
+        addonConfigDiffs,
+        addonNames,
+        $store: this.$store,
+        userChartValues
+      };
 
-        await addonConfigPreserve(context, old, neu);
-        this.versionInfo = {}; // Invalidate cache such that version info relevant to selected kube version is updated
+      await addonConfigPreserve(context, old, neu);
+      this.versionInfo = {}; // Invalidate cache such that version info relevant to selected kube version is updated
 
-        // Allow time for addonNames to update... then fetch any missing addons
-        this.$nextTick(() => this.initAddons());
-        if (this.mode === _CREATE) {
-          this.initServerAgentArgs();
-        }
-      },
+      // Allow time for addonNames to update... then fetch any missing addons
+      this.$nextTick(() => this.initAddons());
+      if (this.mode === _CREATE) {
+        this.initServerAgentArgs();
+      }
     },
 
     showCni(neu) {
