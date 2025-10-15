@@ -11,6 +11,16 @@ import { handleKubeApiHeaderWarnings } from '@shell/plugins/steve/header-warning
 import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
 import paginationUtils from '@shell/utils/pagination-utils';
 
+/**
+ * TODO: RC
+ */
+export const STEVE_HTTP_CODES = {
+  /**
+   * TODO: RC
+   */
+  UNKNOWN_REVISION: 'invalid revision query param'
+};
+
 export default {
 
   // Need to override this, so that the 'this' context is correct (this class not the base class)
