@@ -4,16 +4,15 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import CopyToClipboard from '@shell/components/CopyToClipboard';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import { MANAGEMENT } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
 import AuthConfig from '@shell/mixins/auth-config';
 import AuthBanner from '@shell/components/auth/AuthBanner';
-import InfoBox from '@shell/components/InfoBox';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
-
-const NAME = 'github';
+import FileSelector from '@shell/components/form/FileSelector';
+import GithubSteps from '@shell/edit/auth/github-steps.vue';
+import GithubAppSteps from '@shell/edit/auth/github-app-steps.vue';
 
 export default {
   components: {
@@ -21,11 +20,12 @@ export default {
     CruResource,
     RadioGroup,
     LabeledInput,
-    CopyToClipboard,
     AllowedPrincipals,
     AuthBanner,
-    InfoBox,
-    AuthProviderWarningBanners
+    AuthProviderWarningBanners,
+    FileSelector,
+    GithubSteps,
+    GithubAppSteps,
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -60,7 +60,7 @@ export default {
     },
 
     displayName() {
-      return this.t(`model.authConfig.provider.${ NAME }`);
+      return this.t(`model.authConfig.provider.${ this.NAME }`);
     },
 
     tArgs() {
@@ -73,7 +73,7 @@ export default {
     },
 
     NAME() {
-      return NAME;
+      return this.isGithubApp ? 'githubapp' : 'github';
     },
 
     AUTH_CONFIG() {
@@ -86,7 +86,27 @@ export default {
         githubConfig: this.model,
         description:  'Enable GitHub',
       };
-    }
+    },
+
+    isGithubApp() {
+      return this.model?.id === 'githubapp';
+    },
+
+    steps() {
+      return this.isGithubApp ? GithubAppSteps : GithubSteps;
+    },
+
+    validationPassed() {
+      if (!this.model.clientId || !this.model.clientSecret) {
+        return false;
+      }
+
+      if (this.isGithubApp && (!this.model.appId || !this.model.privateKey)) {
+        return false;
+      }
+
+      return true;
+    },
 
   },
 
@@ -109,6 +129,10 @@ export default {
         this.model.hostname = match[4] || 'github.com';
       }
     },
+
+    updatePrivateKey(content) {
+      this.model.privateKey = content;
+    },
   },
 };
 </script>
@@ -122,7 +146,7 @@ export default {
       :mode="mode"
       :resource="model"
       :subtypes="[]"
-      :validation-passed="true"
+      :validation-passed="validationPassed"
       :finish-button-mode="model.enabled ? 'edit' : 'enable'"
       :can-yaml="false"
       :errors="errors"
@@ -139,7 +163,7 @@ export default {
         >
           <template #rows>
             <tr><td>{{ t(`authConfig.${ NAME }.table.server`) }}: </td><td>{{ baseUrl }}</td></tr>
-            <tr><td>{{ t(`authConfig.${ NAME }.table.clientId`) }}: </td><td>{{ value.clientId }}</td></tr>
+            <tr><td>{{ t(`authConfig.${ NAME }.table.clientId`) }}: </td><td>{{ model.clientId }}</td></tr>
           </template>
         </AuthBanner>
 
@@ -156,7 +180,17 @@ export default {
         <AuthProviderWarningBanners
           v-if="!model.enabled"
           :t-args="tArgs"
-        />
+        >
+          <template
+            v-if="isGithubApp"
+            #additional-warning
+          >
+            <span
+              v-clean-html="t(`authConfig.${NAME}.warning`, {}, true)"
+              data-testid="github-app-banner"
+            />
+          </template>
+        </AuthProviderWarningBanners>
 
         <h3 v-t="`authConfig.${NAME}.target.label`" />
         <RadioGroup
@@ -182,60 +216,18 @@ export default {
           </div>
         </div>
 
-        <InfoBox
-          :step="1"
-          class="step-box"
-        >
-          <ul class="step-list">
-            <li v-clean-html="t(`authConfig.${NAME}.form.prefix.1`, tArgs, true)" />
-            <li v-clean-html="t(`authConfig.${NAME}.form.prefix.2`, tArgs, true)" />
-            <li v-clean-html="t(`authConfig.${NAME}.form.prefix.3`, tArgs, true)" />
-          </ul>
-        </InfoBox>
-        <InfoBox
-          :step="2"
-          class="step-box"
-        >
-          <ul class="step-list">
-            <li>
-              {{ t(`authConfig.${NAME}.form.instruction`, tArgs, true) }}
-              <ul class="mt-10">
-                <li><b>{{ t(`authConfig.${NAME}.form.app.label`) }}</b>: <span v-clean-html="t(`authConfig.${NAME}.form.app.value`, tArgs, true)" /></li>
-                <li>
-                  <b>{{ t(`authConfig.${NAME}.form.homepage.label`) }}</b>: {{ serverUrl }} <CopyToClipboard
-                    label-as="tooltip"
-                    :text="serverUrl"
-                    class="icon-btn"
-                    action-color="bg-transparent"
-                  />
-                </li>
-                <li><b>{{ t(`authConfig.${NAME}.form.description.label`) }}</b>: <span v-clean-html="t(`authConfig.${NAME}.form.description.value`, tArgs, true)" /></li>
-                <li>
-                  <b>{{ t(`authConfig.${NAME}.form.callback.label`) }}</b>: {{ serverUrl }} <CopyToClipboard
-                    :text="serverUrl"
-                    label-as="tooltip"
-                    class="icon-btn"
-                    action-color="bg-transparent"
-                  />
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </InfoBox>
-        <InfoBox
-          :step="3"
-          class="mb-20"
-        >
-          <ul class="step-list">
-            <li v-clean-html="t(`authConfig.${NAME}.form.suffix.1`, tArgs, true)" />
-            <li v-clean-html="t(`authConfig.${NAME}.form.suffix.2`, tArgs, true)" />
-          </ul>
-        </InfoBox>
+        <component
+          :is="steps"
+          :t-args="tArgs"
+          :name="NAME"
+        />
 
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
               v-model:value="model.clientId"
+              required
+              data-testid="client-id"
               :label="t(`authConfig.${NAME}.clientId.label`)"
               :mode="mode"
             />
@@ -243,21 +235,58 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model:value="model.clientSecret"
+              required
+              data-testid="client-secret"
               type="password"
               :label="t(`authConfig.${NAME}.clientSecret.label`)"
               :mode="mode"
             />
           </div>
         </div>
+        <template v-if="isGithubApp">
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.appId"
+                required
+                data-testid="app-id"
+                :label="t(`authConfig.${NAME}.githubAppId.label`)"
+                :mode="mode"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.installationId"
+                data-testid="installation-id"
+                :label="t(`authConfig.${NAME}.installationId.label`)"
+                :mode="mode"
+              />
+            </div>
+          </div>
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="model.privateKey"
+                required
+                data-testid="private-key"
+                type="multiline"
+                :label="t(`authConfig.${NAME}.privateKey.label`)"
+                :mode="mode"
+              />
+              <FileSelector
+                class="btn btn-sm role-secondary mt-10"
+                :label="t('generic.readFromFile')"
+                @selected="updatePrivateKey"
+              />
+            </div>
+          </div>
+        </template>
       </template>
     </CruResource>
   </div>
 </template>
 
 <style lang="scss" scoped>
-  .step-list li:not(:last-child) {
-    margin-bottom: 8px;
-  }
   .banner {
     display: block;
 

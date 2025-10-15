@@ -698,7 +698,7 @@ export default {
 
     const res = await dispatch('request', { opt, type });
 
-    await dispatch('load', { data: res });
+    await dispatch('load', { data: res, invalidatePageCache: opt.invalidatePageCache });
 
     if ( opt.watch !== false ) {
       dispatch('watch', createFindWatchArg({

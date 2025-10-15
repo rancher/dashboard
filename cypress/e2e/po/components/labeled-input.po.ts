@@ -26,6 +26,7 @@ export default class LabeledInputPo extends ComponentPo {
    * @returns
    */
   set(value: any, secret?: boolean, parseSpecialCharSequences?: boolean): Cypress.Chainable {
+    this.input().scrollIntoView();
     this.input().should('be.visible');
     this.input().focus();
     this.input().clear();

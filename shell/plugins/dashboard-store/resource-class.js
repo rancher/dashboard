@@ -1264,6 +1264,12 @@ export default class Resource {
       delete opt.replace;
     }
 
+    // Will loading this resource invalidate the resources in the cache that represent a page (resource is not from page)
+    // By default we set this to no, it won't pollute the cache. Most likely either
+    // 1. The resource came from a list already (loaded resource is already in the page that is in the cache)
+    // 2. UI is not on a page with a list (cache doesn't represent a list)
+    const invalidatePageCache = opt.invalidatePageCache || false;
+
     try {
       const res = await this.$dispatch('request', { opt, type: this.type } );
 
@@ -1272,7 +1278,9 @@ export default class Resource {
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {
-        await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined ) });
+        await this.$dispatch('load', {
+          data: res, existing: (forNew ? this : undefined ), invalidatePageCache
+        });
       }
     } catch (e) {
       if ( this.type && this.id && e?._status === 409) {
@@ -1280,7 +1288,14 @@ export default class Resource {
         await this.$dispatch('find', {
           type: this.type,
           id:   this.id,
-          opt:  { force: true }
+          opt:  {
+            // We want to update the value in cache, so force the request
+            force: true,
+            // We're not interested in opening a watch for this specific resource
+            watch: false,
+            // Unless overridden, this will be false, we're probably from a list and we don't want to clear it's state
+            invalidatePageCache
+          }
         });
       }
 
