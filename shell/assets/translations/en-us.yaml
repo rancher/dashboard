@@ -3374,6 +3374,9 @@ glance:
   clusterInfo: Cluster Information
   eventsTable: Full events list
   secretsTable: Full secrets list
+  changeEventsListRowCount: Update events table row count
+  showXEvents: Show {count} events
+  useUserPreference: "Use table preference ({count})"
 
 clusterBadge:
   badgeAppearance: Cluster Badge Appearance
