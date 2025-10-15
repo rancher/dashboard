@@ -374,6 +374,13 @@ function _addonConfigPreserveFilter(diffs, userVals) {
  * Processes a single add-on version change. It fetches the old and new chart information,
  * calculates the differences in default values, and filters them based on user's customizations.
  * If there are no significant differences, it preserves the user's custom values for the new version.
+ *
+ * @param {object} store The Vuex store.
+ * @param {object} userChartValues The user's customized chart values.
+ * @param {string} chartName The name of the chart to process.
+ * @param {object} oldAddon The addon information from the previous Kubernetes version.
+ * @param {object} newAddon The addon information from the new Kubernetes version.
+ * @returns {object|null} An object containing the diff and a preserve flag, or null on error.
  */
 async function _addonConfigPreserveProcess(store, userChartValues, chartName, oldAddon, newAddon) {
   if (chartName.includes('none')) {
@@ -418,11 +425,22 @@ async function _addonConfigPreserveProcess(store, userChartValues, chartName, ol
 }
 
 /**
+ * @typedef {object} AddonPreserveContext
+ * @property {boolean} isEdit - Edit mode indicator.
+ * @property {object} addonConfigDiffs - An object that stores the diffs.
+ * @property {string[]} addonNames - An array of addon names to check.
+ * @property {object} $store - The Vuex store.
+ * @property {object} userChartValues - The user's customized chart values.
+ *
  * When the Kubernetes version is changed, this method is called to handle the add-on configurations
  * for all enabled addons. It checks if an addon's version has changed and, if so, determines if the
  * user's custom configurations should be preserved for the new version.
  *
  * The goal is to avoid showing a confirmation dialog for changes in default values that the user has not customized.
+ *
+ * @param {AddonPreserveContext} context The context object from the component.
+ * @param {object} oldVersion The full K8s release object being changed from.
+ * @param {object} newVersion The full K8s release object being changed to.
  */
 export async function addonConfigPreserve(context, oldVersion, newVersion) {
   const {
