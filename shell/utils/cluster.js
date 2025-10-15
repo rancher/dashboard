@@ -426,7 +426,6 @@ async function _addonConfigPreserveProcess(store, userChartValues, chartName, ol
 
 /**
  * @typedef {object} AddonPreserveContext
- * @property {boolean} isEdit - Edit mode indicator.
  * @property {object} addonConfigDiffs - An object that stores the diffs.
  * @property {string[]} addonNames - An array of addon names to check.
  * @property {object} $store - The Vuex store.
@@ -439,19 +438,18 @@ async function _addonConfigPreserveProcess(store, userChartValues, chartName, ol
  * The goal is to avoid showing a confirmation dialog for changes in default values that the user has not customized.
  *
  * @param {AddonPreserveContext} context The context object from the component.
- * @param {object} oldVersion The full K8s release object being changed from.
- * @param {object} newVersion The full K8s release object being changed to.
+ * @param {object} oldCharts The charts object from the K8s release object being changed from.
+ * @param {object} newCharts The charts object from the K8s release object being changed to.
  */
-export async function addonConfigPreserve(context, oldVersion, newVersion) {
+export async function addonConfigPreserve(context, oldCharts, newCharts) {
   const {
-    isEdit,
     addonConfigDiffs,
     addonNames,
     $store,
     userChartValues
   } = context;
 
-  if (!isEdit || !oldVersion) {
+  if (!oldCharts || !newCharts) {
     return;
   }
 
@@ -460,13 +458,10 @@ export async function addonConfigPreserve(context, oldVersion, newVersion) {
     delete addonConfigDiffs[key];
   }
 
-  const oldChartVersions = oldVersion.charts || {};
-  const newChartVersions = newVersion.charts || {};
-
   // Iterate through the addons that are enabled for the cluster.
   for (const chartName of addonNames) {
-    const oldAddon = oldChartVersions[chartName];
-    const newAddon = newChartVersions[chartName];
+    const oldAddon = oldCharts[chartName];
+    const newAddon = newCharts[chartName];
 
     // If the addon didn't exist in the old K8s version, there's nothing to compare.
     if (!oldAddon) {

@@ -162,6 +162,10 @@ export default {
     this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
     this.errors = this.errors.concat(sc.errors);
 
+    if (this.isEdit) {
+      this.originalKubeVersion = this.versionOptions.find((v) => v.value === this.liveValue.spec.kubernetesVersion);
+    }
+
     Object.entries(this.chartValues).forEach(([name, value]) => {
       const key = this.chartVersionKey(name);
 
@@ -279,6 +283,7 @@ export default {
       labelForAddon,
       etcdConfigValid:                          true,
       addonConfigDiffs:                         {},
+      originalKubeVersion:                      null,
       isEmpty,
     };
   },
@@ -924,21 +929,22 @@ export default {
     },
 
     async selectedVersion(neu, old) {
-      const {
-        isEdit,
-        addonConfigDiffs,
-        addonNames,
-        userChartValues
-      } = this;
-      const context = {
-        isEdit,
-        addonConfigDiffs,
-        addonNames,
-        $store: this.$store,
-        userChartValues
-      };
+      if (this.isEdit) {
+        const { addonConfigDiffs, addonNames, userChartValues } = this;
+        const context = {
+          addonConfigDiffs,
+          addonNames,
+          $store: this.$store,
+          userChartValues
+        };
 
-      await addonConfigPreserve(context, old, neu);
+        await addonConfigPreserve(
+          context,
+          this.originalKubeVersion?.charts,
+          neu?.charts
+        );
+      }
+
       this.versionInfo = {}; // Invalidate cache such that version info relevant to selected kube version is updated
 
       // Allow time for addonNames to update... then fetch any missing addons
