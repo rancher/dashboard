@@ -50,3 +50,4 @@ const sendNotification = () => shellApi.notification.send(NotificationLevel.Succ
 | [Slide-In API](./shell-api/interfaces/SlideInApi) | Responsible for interacting with slide-in panels | <img src={require('/img/slidein.png').default} alt="slidein example" width="500" /> |
 | [Modal API](./shell-api/interfaces/ModalApi) | Responsible for interacting with modals | <img src={require('/img/modal.png').default} alt="modal example" width="500" /> |
 | [Notification API](./shell-api/interfaces/NotificationApi) | Responsible for interacting with the Rancher UI Notification Center | <img src={require('/img/notification.png').default} alt="notification example" width="500" /> |
+| [System API](./shell-api/interfaces/SystemApi) | API for system related information | <img src={require('/img/system.png').default} alt="system example" width="500" /> |
