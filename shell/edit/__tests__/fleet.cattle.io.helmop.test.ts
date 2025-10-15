@@ -229,27 +229,37 @@ describe.each([
     expect(pollingIntervalInput.value).toBe(displayValue);
   });
 
-  it('should update secretListField when FleetSecretSelector emits update event', async() => {
-    const wrapper = mount(HelmOpComponent, initHelmOp({ realMode: mode }));
-
-    const fleetSecretSelector = wrapper.findComponent(FleetSecretSelector);
-
-    expect(fleetSecretSelector.exists()).toBe(true);
-
-    await fleetSecretSelector.vm.$emit('update:value', ['secret2', 'secret3']);
-
-    expect(wrapper.vm.value.spec.helm.secretListField).toStrictEqual(['secret2', 'secret3']);
-  });
-
-  it('should update configMapListField when FleetConfigMapSelector emits update event', async() => {
+  it('should update downstreamResources with new Secrets when FleetSecretSelector emits update event', async() => {
     const wrapper = mount(HelmOpComponent, initHelmOp({ realMode: mode }));
 
     const fleetConfigMapSelector = wrapper.findComponent(FleetConfigMapSelector);
+    const fleetSecretSelector = wrapper.findComponent(FleetSecretSelector);
 
+    expect(fleetSecretSelector.exists()).toBe(true);
     expect(fleetConfigMapSelector.exists()).toBe(true);
+
+    await fleetSecretSelector.vm.$emit('update:value', []);
+    await fleetConfigMapSelector.vm.$emit('update:value', []);
+
+    await fleetSecretSelector.vm.$emit('update:value', ['secret2', 'secret3']);
+
+    expect(wrapper.vm.value.spec.helm.downstreamResources).toStrictEqual([{ name: 'secret2', kind: 'Secret' }, { name: 'secret3', kind: 'Secret' }]);
+  });
+
+  it('should update downstreamResources with new ConfigMaps when FleetConfigMapSelector emits update event', async() => {
+    const wrapper = mount(HelmOpComponent, initHelmOp({ realMode: mode }));
+
+    const fleetConfigMapSelector = wrapper.findComponent(FleetConfigMapSelector);
+    const fleetSecretSelector = wrapper.findComponent(FleetSecretSelector);
+
+    expect(fleetSecretSelector.exists()).toBe(true);
+    expect(fleetConfigMapSelector.exists()).toBe(true);
+
+    await fleetSecretSelector.vm.$emit('update:value', []);
+    await fleetConfigMapSelector.vm.$emit('update:value', []);
 
     await fleetConfigMapSelector.vm.$emit('update:value', ['configMap2', 'configMap3']);
 
-    expect(wrapper.vm.value.spec.helm.configMapListField).toStrictEqual(['configMap2', 'configMap3']);
+    expect(wrapper.vm.value.spec.helm.downstreamResources).toStrictEqual([{ name: 'configMap2', kind: 'ConfigMap' }, { name: 'configMap3', kind: 'ConfigMap' }]);
   });
 });

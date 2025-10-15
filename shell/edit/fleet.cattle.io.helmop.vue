@@ -234,7 +234,15 @@ export default {
       }
 
       return null;
-    }
+    },
+
+    downstreamSecretsList() {
+      return (this.value.spec.helm.downstreamResources || []).filter((r) => r.kind === 'Secret').map((r) => r.name);
+    },
+
+    downstreamConfigMapsList() {
+      return (this.value.spec.helm.downstreamResources || []).filter((r) => r.kind === 'ConfigMap').map((r) => r.name);
+    },
   },
 
   watch: {
@@ -433,7 +441,24 @@ export default {
         }];
         break;
       }
-    }
+    },
+
+    updateDownstreamResources(kind, list) {
+      switch (kind) {
+      case 'Secret':
+        this.value.spec.helm.downstreamResources = [
+          ...(this.value.spec.helm.downstreamResources || []).filter((r) => r.kind !== 'Secret'),
+          ...(list || []).map((name) => ({ name, kind: 'Secret' })),
+        ];
+        break;
+      case 'ConfigMap':
+        this.value.spec.helm.downstreamResources = [
+          ...(this.value.spec.helm.downstreamResources || []).filter((r) => r.kind !== 'ConfigMap'),
+          ...(list || []).map((name) => ({ name, kind: 'ConfigMap' })),
+        ];
+        break;
+      }
+    },
   },
 };
 </script>
@@ -718,20 +743,20 @@ export default {
       <div class="row mt-20 mb-20">
         <div class="col span-6">
           <FleetSecretSelector
-            :value="value.spec.helm.secretListField || []"
+            :value="downstreamSecretsList"
             :namespace="value.metadata.namespace"
             :mode="mode"
-            @update:value="value.spec.helm.secretListField = $event"
+            @update:value="updateDownstreamResources('Secret', $event)"
           />
         </div>
       </div>
       <div class="row mt-20 mb-20">
         <div class="col span-6">
           <FleetConfigMapSelector
-            :value="value.spec.helm.configMapListField || []"
+            :value="downstreamConfigMapsList"
             :namespace="value.metadata.namespace"
             :mode="mode"
-            @update:value="value.spec.helm.configMapListField = $event"
+            @update:value="updateDownstreamResources('ConfigMap', $event)"
           />
         </div>
       </div>
