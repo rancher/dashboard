@@ -55,7 +55,7 @@ export default {
         return '';
       }
 
-      const translatedNames = this.addonNames.map(name => labelForAddon(this.$store, name, true));
+      const translatedNames = this.addonNames.map((name) => labelForAddon(this.$store, name, true));
 
       return resourceNames(translatedNames, null, this.t, false);
     }
