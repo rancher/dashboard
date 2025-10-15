@@ -12,6 +12,7 @@ import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import { GetOptions } from '@/cypress/e2e/po/components/component.po';
 import RcItemCardPo from '@/cypress/e2e/po/components/rc-item-card.po';
+import TooltipPo from '@/cypress/e2e/po/components/tooltip.po';
 
 export default class ExtensionsPagePo extends PagePo {
   static url = '/c/local/uiplugins'
@@ -139,7 +140,8 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   extensionCardVersion(extensionTitle: string): Cypress.Chainable<string> {
-    return this.extensionCard(extensionTitle).self().find('[data-testid="app-chart-card-version"]').invoke('text');
+    return this.extensionCard(extensionTitle).self().find('[data-testid="app-chart-card-sub-header-item"]').first()
+      .invoke('text');
   }
 
   extensionCardClick(extensionTitle: string): void {
@@ -160,6 +162,14 @@ export default class ExtensionsPagePo extends PagePo {
 
   extensionCardUninstallClick(extensionTitle: string): Cypress.Chainable {
     return this.clickAction(extensionTitle, 'Uninstall');
+  }
+
+  extensionCardHeaderStatusIcons(extensionTitle: string, index: number): Cypress.Chainable {
+    return this.extensionCard(extensionTitle).self().find(`[data-testid="item-card-header-status-${ index }"]`);
+  }
+
+  extensionCardHeaderStatusTooltip(extensionTitle: string, index: number): TooltipPo {
+    return new TooltipPo(this.extensionCardHeaderStatusIcons(extensionTitle, index));
   }
 
   // ------------------ extension install modal ------------------

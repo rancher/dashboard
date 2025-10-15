@@ -220,7 +220,7 @@ export default {
     },
 
     currentVersion() {
-      return this.existing?.spec.chart.metadata.version;
+      return this.existing?.spec?.chart?.metadata?.version;
     },
 
     targetVersion() {
