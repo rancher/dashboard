@@ -14,6 +14,7 @@ export const configType = {
   googleoauth:     'oauth',
   local:           '',
   github:          'oauth',
+  githubapp:       'oauth',
   keycloakoidc:    'oidc',
   genericoidc:     'oidc',
   cognito:         'oidc',

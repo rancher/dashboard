@@ -492,6 +492,51 @@ authConfig:
   allowedPrincipalIds:
     title: Authorized Users & Groups
   associatedWarning: 'The {provider} account that is used to enable the external provider will be granted admin permissions. If you use a test account or non-admin account, that account will still be granted admin-level permissions. See <a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config#external-authentication-configuration-and-principal-users" target="_blank" rel="noopener noreferrer nofollow">External Authentication Configuration and Principal Users</a> to understand why.'
+  githubapp:
+    clientId:
+      label: Client ID
+    clientSecret:
+      label: Client Secret
+    githubAppId:
+      label: Github App ID
+    installationId:
+      label: Installation ID
+    privateKey:
+      label: Private Key
+    warning: The GitHub App authentication provider only works with <a href="https://docs.github.com/en/get-started/learning-about-github/types-of-github-accounts" target="_blank" rel="noopener noreferrer nofollow">GitHub Organization accounts</a>. It does not support User accounts.
+    form:
+      prefix:
+        1: <li>Open your <a href="{baseUrl}/settings/organizations" target="_blank" rel="noopener noreferrer nofollow">GitHub organization settings</a> in a new window</li>
+        2: <li>To the right of the organization, click "Settings"</li>
+        3: <li>In the left sidebar, click "Developer settings" -> "GitHub Apps"</li>
+        4: <li>Click "New Github App"</li>
+      instruction: 'Fill in the form with these values:'
+      app:
+        label: GitHub App name 
+        value: 'Anything you like, e.g. My {vendor}'
+      callback:
+        label: Callback URL
+        value: '{serverUrl}/verify-auth'
+      description:
+        label: Application description
+        value: 'Optional, can be left blank'
+      homepage:
+        label: Homepage URL
+      create: Click "Create Github App"
+      suffix:
+        1: <li>Under Client Secrets, click "Generate a new client secret"</li>
+        2: <li>Under Private Keys, click "Generate a private key"</li>
+        3: <li>Copy and paste the "App ID", "Client ID", "Client Secret", and "Private Key" of your newly created OAuth app into the fields below</li>
+    host:
+      label: GitHub Enterprise Host
+      placeholder: e.g. github.mycompany.example
+    target:
+      label: Which version of GitHub do you want to use?
+      private: A private installation of GitHub Enterprise
+      public: Public GitHub.com
+    table:
+      server: Server
+      clientId: Client ID
   github:
     clientId:
       label: Client ID
@@ -7595,6 +7640,7 @@ model:
       activedirectory: ActiveDirectory
       azuread: AzureAD
       github: GitHub
+      githubapp: GitHub App
       keycloak: Keycloak
       ldap: LDAP
       openldap: OpenLDAP
@@ -9068,3 +9114,4 @@ component:
         weekdaysAt0830: "At 30 minutes past the hour, every 1 hours, starting at 08:00 AM, Monday through Friday"
         marchToMayHourly: "Every hour, only in March, April, and May"
         every4Hours9to17: "At 0 minutes past the hour, every 4 hours, between 09:00 AM and 05:00 PM"
+
