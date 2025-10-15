@@ -1516,10 +1516,15 @@ export default {
       });
     },
 
-    showAddonConfirmation() {
-      return new Promise((resolve, reject) => {
+    showAddonConfirmation(addonNames, previousKubeVersion, newKubeVersion) {
+      return new Promise((resolve) => {
         this.$store.dispatch('cluster/promptModal', {
           component: 'AddonConfigConfirmationDialog',
+          componentProps: {
+            addonNames,
+            previousKubeVersion,
+            newKubeVersion
+          },
           resources: [(value) => resolve(value)]
         });
       });
@@ -1563,7 +1568,21 @@ export default {
         const hasDiffs = Object.values(this.addonConfigDiffs).some((d) => !isEmpty(d));
 
         if (hasDiffs) {
-          const shouldContinue = await this.showAddonConfirmation();
+          const addonNamesWithDiffs = [];
+
+          for (const name in this.addonConfigDiffs) {
+            const diff = this.addonConfigDiffs[name];
+
+            if (!isEmpty(diff)) {
+              addonNamesWithDiffs.push(name);
+            }
+          }
+
+          const shouldContinue = await this.showAddonConfirmation(
+            addonNamesWithDiffs,
+            this.liveValue.spec.kubernetesVersion,
+            this.value.spec.kubernetesVersion
+          );
 
           if (!shouldContinue) {
             return btnCb('cancelled');
@@ -2531,6 +2550,8 @@ export default {
               :user-chart-values-temp="userChartValuesTemp"
               :init-yaml-editor="initYamlEditor"
               :has-diff="!isEmpty(addonConfigDiffs[v.name])"
+              :previous-kube-version="liveValue.spec.kubernetesVersion"
+              :new-kube-version="value.spec.kubernetesVersion"
               @update:value="$emit('input', $event)"
               @update-questions="syncChartValues"
               @update-values="updateValues"
