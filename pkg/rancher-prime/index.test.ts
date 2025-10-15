@@ -1,14 +1,11 @@
 import { SCC } from '@shell/store/features';
 const { IF_HAVE } = require('@shell/store/type-map');
-const mockAutoImport = jest.fn();
 
-jest.doMock('@rancher/auto-import', () => ({ importTypes: mockAutoImport }), { virtual: true });
+jest.doMock('@rancher/auto-import', () => ({ importTypes: jest.fn() }), { virtual: true });
 
 describe('extension: rancher-prime', () => {
   it('should enable routing for admin users with SCC feature', async() => {
-    // Dynamically import the plugin after the mock is set up
-    const plugin = await import('./index');
-
+    const plugin = await import('./index'); // initialized after the mock
     const virtualTypeSpy = jest.fn();
     const basicTypeSpy = jest.fn();
     const dslMock = jest.fn().mockReturnValue({
@@ -22,6 +19,7 @@ describe('extension: rancher-prime', () => {
       addRoutes:   jest.fn(),
       addPanel:    jest.fn(),
       addNavHooks: jest.fn(),
+      register:    jest.fn(), // Used in installDocHandler
       metadata:    {},
       DSL:         dslMock
     } as any;
