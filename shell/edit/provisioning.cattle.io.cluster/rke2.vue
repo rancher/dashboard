@@ -2562,7 +2562,7 @@ export default {
               :user-chart-values-temp="userChartValuesTemp"
               :init-yaml-editor="initYamlEditor"
               :has-diff="!isEmpty(addonConfigDiffs[v.name])"
-              :previous-kube-version="liveValue.spec.kubernetesVersion"
+              :previous-kube-version="liveValue?.spec?.kubernetesVersion"
               :new-kube-version="value.spec.kubernetesVersion"
               @update:value="$emit('input', $event)"
               @update-questions="syncChartValues"
