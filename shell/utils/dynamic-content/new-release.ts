@@ -18,7 +18,7 @@ import { READ_NEW_RELEASE } from '@shell/store/prefs';
 import { Context, ReleaseInfo, VersionInfo } from './types';
 import { removeMatchingNotifications } from './util';
 
-export async function processReleaseVersion(context: Context, releaseInfo: ReleaseInfo | undefined, versionInfo: VersionInfo) {
+export async function processReleaseVersion(context: Context, releaseInfo: ReleaseInfo[] | undefined, versionInfo: VersionInfo) {
   if (!releaseInfo || !versionInfo?.version || !Array.isArray(releaseInfo)) {
     return;
   }

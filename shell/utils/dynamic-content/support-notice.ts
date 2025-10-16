@@ -52,7 +52,7 @@ type Config = {
  * @param versionInfo Version information
  */
 
-export async function processSupportNotices(context: Context, statusInfo: SupportInfo, versionInfo: VersionInfo): Promise<void> {
+export async function processSupportNotices(context: Context, statusInfo: SupportInfo | undefined, versionInfo: VersionInfo): Promise<void> {
   if (!statusInfo || !versionInfo?.version) {
     return;
   }

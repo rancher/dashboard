@@ -78,7 +78,7 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
     const versionData = getVersionData();
     const version = semver.coerce(versionData.Version);
 
-    if (!version) {
+    if (!version || !content) {
       return;
     }
 
@@ -177,7 +177,7 @@ function updateFetchInfo(didError: boolean) {
 /**
  * Fetch dynamic content (if needed)
  */
-export async function fetchDynamicContent(context: Context): Promise<DynamicContent> {
+export async function fetchDynamicContent(context: Context): Promise<Partial<DynamicContent> | undefined> {
   const { getters, logger, config } = context;
 
   // Check if we already have done an update check today
@@ -206,7 +206,7 @@ export async function fetchDynamicContent(context: Context): Promise<DynamicCont
         if (activeFetchDate.isValid() && today.diff(activeFetchDate, 'second') < FETCH_CONCURRENT_SECONDS) {
           logger.debug('Already fetching dynamic content in another tab (or previous tab closed while fetching) - skipping');
 
-          return content as DynamicContent;
+          return content;
         }
       }
 
@@ -268,5 +268,5 @@ export async function fetchDynamicContent(context: Context): Promise<DynamicCont
   // Remove the local storage key that indicates a tab is fetching the content
   window.localStorage.removeItem(LOCAL_STORAGE_UPDATE_FETCHING);
 
-  return content as DynamicContent;
+  return content;
 }
