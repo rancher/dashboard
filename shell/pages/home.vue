@@ -770,10 +770,11 @@ export default defineComponent({
               </ResourceTable>
             </div>
             <div
-              v-else-if="mcm && provClusterSchema"
+              v-else-if="mcm"
               class="col span-12"
             >
               <PaginatedResourceTable
+                v-if="provClusterSchema"
                 :schema="provClusterSchema"
                 :table-actions="false"
                 :row-actions="false"
