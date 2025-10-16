@@ -554,7 +554,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       const clusterList = new ClusterManagerListPagePo('_');
 
       clusterList.waitForPage();
-      clusterList.clickOnClusterName('local');
+      clusterList.list().resourceTable().sortableTable().filter('local', 100);
+      clusterList.waitForPage('q=local');
+      clusterList.goToDetailsPage('local', '.cluster-link a');
+      clusterDetail.waitForPage();
     });
 
     it('can navigate to Cluster Conditions Page', () => {
@@ -587,7 +590,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
 
     it(`Show Configuration allows to edit config and view yaml for local cluster`, () => {
-      clusterDetail.waitForPage();
       clusterDetail.openShowConfiguration();
       const drawer = clusterDetail.detailDrawer();
 
@@ -605,8 +607,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
 
     it('can navigate to namespace from cluster detail view', () => {
-      clusterDetail.waitForPage();
-
       clusterDetail.namespace().should('contain.text', 'fleet-local');
       clusterDetail.namespace().click();
 
@@ -826,7 +826,7 @@ describe('Cluster Manager as standard user', { testIsolation: 'off', tags: ['@ma
       const clusterList = new ClusterManagerListPagePo('_');
 
       clusterList.waitForPage();
-      clusterList.clickOnClusterName('local');
+      clusterList.goToDetailsPage('local', '.cluster-link a');
     });
 
     it(`Show Configuration allows to view but not edit config and yaml for local cluster`, () => {
