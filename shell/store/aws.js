@@ -213,12 +213,13 @@ export const actions = {
 
       list.push({
         apiName,
-        currentGeneration:     row.CurrentGeneration || false,
+        currentGeneration:      row.CurrentGeneration || false,
         groupLabel,
         instanceClass,
-        memoryBytes:           row.MemoryInfo.SizeInMiB * 1024 * 1024,
-        supportedUsageClasses: row.SupportedUsageClasses,
-        label:                 rootGetters['i18n/t']('cluster.machineConfig.aws.sizeLabel', {
+        memoryBytes:            row.MemoryInfo.SizeInMiB * 1024 * 1024,
+        supportedUsageClasses:  row.SupportedUsageClasses,
+        supportedArchitectures: row.ProcessorInfo.SupportedArchitectures || [],
+        label:                  rootGetters['i18n/t']('cluster.machineConfig.aws.sizeLabel', {
           apiName,
           cpu:    row.VCpuInfo.DefaultVCpus,
           memory: row.MemoryInfo.SizeInMiB / 1024,
