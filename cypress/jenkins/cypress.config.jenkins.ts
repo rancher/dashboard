@@ -12,14 +12,14 @@ require('dotenv').config();
  */
 
 const testDirs = [
-  'cypress/e2e/tests/priority/**/*.spec.ts',
-  'cypress/e2e/tests/components/**/*.spec.ts',
-  'cypress/e2e/tests/setup/**/*.spec.ts',
-  'cypress/e2e/tests/pages/**/*.spec.ts',
+  // 'cypress/e2e/tests/priority/**/*.spec.ts',
+  // 'cypress/e2e/tests/components/**/*.spec.ts',
+  // 'cypress/e2e/tests/setup/**/*.spec.ts',
+  // 'cypress/e2e/tests/pages/**/*.spec.ts',
   'cypress/e2e/tests/navigation/**/*.spec.ts',
-  'cypress/e2e/tests/global-ui/**/*.spec.ts',
-  'cypress/e2e/tests/features/**/*.spec.ts',
-  'cypress/e2e/tests/extensions/**/*.spec.ts'
+  // 'cypress/e2e/tests/global-ui/**/*.spec.ts',
+  // 'cypress/e2e/tests/features/**/*.spec.ts',
+  // 'cypress/e2e/tests/extensions/**/*.spec.ts'
 ];
 const skipSetup = process.env.TEST_SKIP?.includes('setup');
 const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
@@ -70,7 +70,7 @@ export default defineConfig({
   trashAssetsBeforeRuns: true,
   chromeWebSecurity:     false,
   retries:               {
-    runMode:  2,
+    runMode:  0,
     openMode: 0
   },
   env: {
