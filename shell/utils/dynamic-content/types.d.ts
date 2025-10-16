@@ -5,7 +5,7 @@
 import { SemVer } from 'semver';
 
 /**
- * Loger interface
+ * Logger interface for dynamic content
  */
 export interface Logger {
   error: Function,
@@ -72,7 +72,7 @@ export type ReleaseInfo = {
  */
 export type UpcomingSupportInfo = {
   version: string, // Version number: semver (e.g. '<= 2.12')
-  date: Date, // Date when the eom/eol takes place
+  date: Date, // Date when the eom/eol takes place (note, only the day part is used, time is ignored)
   noticeDays?: number, // Number of days in advance to notify the user (if not specified, the default is used)
 };
 

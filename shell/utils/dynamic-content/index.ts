@@ -18,7 +18,7 @@ import { SystemInfoProvider } from './info';
 
 const FETCH_DELAY = 3 * 1000; // Short delay to let UI settle before we fetch the updates document
 const FETCH_REQUEST_TIMEOUT = 15000; // Time out the request after 15 seconds
-const FETCH_CONCURRENT_SECONDS = 30; // Time to wait to ignore another in-porgress fetch (seconds)
+const FETCH_CONCURRENT_SECONDS = 30; // Time to wait to ignore another in-progress fetch (seconds)
 
 export const UPDATE_DATE_FORMAT = 'YYYY-MM-DD'; // Format of the fetch date
 
@@ -44,6 +44,14 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
   }
 
   const config = getConfig(getters);
+
+  // If not enabled via the configuration, then just return
+  if (!config.enabled) {
+    console.log('Dynamic content disabled through configuration'); // eslint-disable-line no-console
+
+    return;
+  }
+
   const logger = createLogger(config);
 
   // Common context to pass through to functions for store access, logging, etc
@@ -59,13 +67,6 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
       suseExtensions:  [],
     }
   };
-
-  // If not enabled via the configuration, then just return
-  if (!config.enabled) {
-    console.log('Dynamic content disabled through configuration'); // eslint-disable-line no-console
-
-    return;
-  }
 
   logger.debug('Read configuration', context.config);
 
@@ -83,7 +84,7 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
 
     const versionInfo: VersionInfo = {
       version,
-      isPrime: versionData.RancherPrime === 'true',
+      isPrime: config.prime,
     };
 
     // If not logging, then clear out any log data from local storage
@@ -91,11 +92,13 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
       window.localStorage.removeItem(LOCAL_STORAGE_CONTENT_DEBUG_LOG);
     }
 
-    // Update the settings data from the content, so that it is has the settings with their defaults or values from the dynamic content payload
-    context.settings = {
-      ...context.settings,
-      ...content.settings
-    };
+    if (content?.settings) {
+      // Update the settings data from the content, so that it is has the settings with their defaults or values from the dynamic content payload
+      context.settings = {
+        ...context.settings,
+        ...content.settings
+      };
+    }
 
     // If the cached content has a debug version then use that as an override for the current version number
     // This is only for debug and testing purposes
@@ -122,7 +125,7 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
 /**
  * We use a signal to timeout the connection
  * For air-gapped environments, this ensures the request will timeout after FETCH_REQUEST_TIMEOUT
- * This timeout is set relaively low (15s). The default, otherwise, is 2 minutes.
+ * This timeout is set relatively low (15s). The default, otherwise, is 2 minutes.
  *
  * @param timeoutMs Time in milliseconds after which the abort signal should signal
  */
@@ -153,7 +156,7 @@ function updateFetchInfo(didError: boolean) {
 
     let contiguousErrors = parseInt(contiguousErrorsString, 10);
 
-    // Increase the number of errors that have happenned in a row
+    // Increase the number of errors that have happened in a row
     contiguousErrors++;
 
     // Once we reach the max backoff, just stick with it

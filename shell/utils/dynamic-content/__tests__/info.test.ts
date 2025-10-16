@@ -5,7 +5,7 @@ import * as version from '@shell/config/version';
 import { sha256 } from '@shell/utils/crypto';
 
 // Mock dependencies from @shell
-jest.mock('@shell/config/version', () => ({ getVersionData: jest.fn() }));
+jest.mock('@shell/config/version', () => ({ getVersionData: jest.fn(), isRancherPrime: jest.fn() }));
 
 jest.mock('@shell/utils/crypto', () => ({ sha256: jest.fn((val: string) => `hashed_${ val }`) }));
 
@@ -31,6 +31,7 @@ describe('systemInfoProvider', () => {
   beforeEach(() => {
     // Reset mocks
     (version.getVersionData as jest.Mock).mockClear();
+    (version.isRancherPrime as jest.Mock).mockClear();
     (sha256 as jest.Mock).mockClear();
 
     // Mock window properties
@@ -84,10 +85,16 @@ describe('systemInfoProvider', () => {
 
         return [];
       }),
-      'auth/principalId':     'user-123',
-      'uiplugins/plugins':    mockPlugins,
-      isSingleProduct:        false,
-      'management/byId':      jest.fn(),
+      'auth/principalId':  'user-123',
+      'uiplugins/plugins': mockPlugins,
+      isSingleProduct:     false,
+      'management/byId':   jest.fn((type: string, id: string) => {
+        if (type === MANAGEMENT.SETTING) {
+          return mockSettings.find((s) => s.id === id) || null;
+        }
+
+        return undefined;
+      }),
       'management/schemaFor': jest.fn(),
     };
 
@@ -95,6 +102,8 @@ describe('systemInfoProvider', () => {
       Version:      '2.8.0-rc1',
       RancherPrime: 'false',
     });
+
+    (version.isRancherPrime as jest.Mock).mockReturnValue(false);
   });
 
   it('should build a complete query string with all available data', () => {
@@ -126,6 +135,7 @@ describe('systemInfoProvider', () => {
       Version:      '2.9.0', // Not a dev version
       RancherPrime: 'true',
     });
+    (version.isRancherPrime as jest.Mock).mockReturnValue(true);
 
     mockGetters['management/all'].mockImplementation((type: string) => {
       if (type === MANAGEMENT.SETTING) {
@@ -140,6 +150,12 @@ describe('systemInfoProvider', () => {
 
       return [];
     });
+    mockGetters['management/byId'].mockImplementation((type: string, id: string) => {
+      if (type === MANAGEMENT.SETTING && id === 'install-uuid') {
+        return { id: 'install-uuid', value: 'only-uuid' }; // No server-url
+      }
+    });
+
     mockGetters['uiplugins/plugins'] = null; // No plugins
     mockGetters['auth/principalId'] = null; // No user
 
@@ -170,6 +186,7 @@ describe('systemInfoProvider', () => {
     // Simulate that the management types are not registered in the store
     mockGetters['management/typeRegistered'].mockReturnValue(false);
     mockGetters['management/all'].mockImplementation();
+    mockGetters['management/byId'].mockImplementation();
 
     mockGetters['auth/principalId'] = 'user-456';
     mockGetters['uiplugins/plugins'] = []; // No plugins
@@ -177,8 +194,9 @@ describe('systemInfoProvider', () => {
     const infoProvider = new SystemInfoProvider(mockGetters, {});
     const qs = infoProvider.buildQueryString();
 
-    // Verify that 'typeRegistered' was checked and 'all' was not called
-    expect(mockGetters['management/typeRegistered']).toHaveBeenCalledWith(MANAGEMENT.SETTING);
+    expect(mockGetters['management/byId']).toHaveBeenCalledWith(MANAGEMENT.SETTING, 'server-url');
+    expect(mockGetters['management/byId']).toHaveBeenCalledWith(MANAGEMENT.SETTING, 'install-uuid');
+    expect(mockGetters['management/byId']).toHaveBeenCalledWith(MANAGEMENT.SETTING, 'server-version-type');
     expect(mockGetters['management/typeRegistered']).toHaveBeenCalledWith(COUNT);
     expect(mockGetters['management/typeRegistered']).toHaveBeenCalledWith(MANAGEMENT.CLUSTER);
     expect(mockGetters['management/all']).not.toHaveBeenCalled();
@@ -199,7 +217,13 @@ describe('systemInfoProvider', () => {
       Version:      '2.9.0',
       RancherPrime: 'false',
     });
+    (version.isRancherPrime as jest.Mock).mockReturnValue(false);
 
+    mockGetters['management/byId'].mockImplementation((type: string, id: string) => {
+      if (type === MANAGEMENT.SETTING) {
+        return { id, value: '' }; // Empty values for all settings
+      }
+    });
     mockGetters['management/all'].mockImplementation((type: string) => {
       if (type === MANAGEMENT.SETTING) {
         // Return settings, but with empty values

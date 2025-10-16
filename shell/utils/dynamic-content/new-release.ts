@@ -5,7 +5,7 @@
  * We handle two cases:
  *
  * 1. There is a new patch release available for the current Rancher version (e.g. user is in 2.12.0 and we release 2.12.1)
- * 2. There is a new patch release available for the current Rancher version AND there is a newer version for a high minor relases
+ * 2. There is a new patch release available for the current Rancher version AND there is a newer version for a high minor releases
  *    > this often occurs because we release monthly releases in parallel with the new minor releases
  *
  * We show slightly different messages in these 2 cases.
@@ -15,10 +15,10 @@
 import semver from 'semver';
 import { NotificationLevel } from '@shell/types/notifications';
 import { READ_NEW_RELEASE } from '@shell/store/prefs';
-import { Context, VersionInfo } from './types';
+import { Context, ReleaseInfo, VersionInfo } from './types';
 import { removeMatchingNotifications } from './util';
 
-export async function processReleaseVersion(context: Context, releaseInfo: any, versionInfo: VersionInfo) {
+export async function processReleaseVersion(context: Context, releaseInfo: ReleaseInfo | undefined, versionInfo: VersionInfo) {
   if (!releaseInfo || !versionInfo?.version || !Array.isArray(releaseInfo)) {
     return;
   }

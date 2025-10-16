@@ -345,7 +345,7 @@ describe('dynamic content', () => {
       jest.runAllTimers();
       await fetchPromise;
 
-      expect(mockLogger.error).toHaveBeenCalledWith('Failed to parse YAML from dynamic content package', error);
+      expect(mockLogger.error).toHaveBeenCalledWith('Failed to parse YAML/JSON from dynamic content package', error);
     });
 
     it('should handle axios fetch error with unexpected data', async() => {

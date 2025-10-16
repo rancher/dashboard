@@ -65,33 +65,29 @@ export class SystemInfoProvider {
    * @returns System data
    */
   private getSystemData(getters: any, settingsInfo: Partial<SettingsInfo>): SystemInfo {
-    const settings = this.getAll(getters, MANAGEMENT.SETTING);
     let url;
     let systemUUID = UNKNOWN;
     let serverVersionType = UNKNOWN;
 
-    // Get server URL and UUID if we can access settings
-    if (settings) {
-      // Get the server URL if we can can
-      const server = settings.find((setting: any) => setting.id === SETTING.SERVER_URL);
+    const serverUrlSetting = getters['management/byId'](MANAGEMENT.SETTING, SETTING.SERVER_URL);
 
-      if (server) {
-        url = server.value || UNKNOWN;
-      }
+    // Server URL
+    if (serverUrlSetting) {
+      url = serverUrlSetting.value || UNKNOWN;
+    }
 
-      // UUID
-      const uuidSetting = settings.find((setting: any) => setting.id === 'install-uuid');
+    // UUID
+    const uuidSetting = getters['management/byId'](MANAGEMENT.SETTING, 'install-uuid');
 
-      if (uuidSetting) {
-        systemUUID = uuidSetting.value || UNKNOWN;
-      }
+    if (uuidSetting) {
+      systemUUID = uuidSetting.value || UNKNOWN;
+    }
 
-      // Server Version Type
-      const serverVersionTypeSetting = settings.find((setting: any) => setting.id === 'server-version-type');
+    // Server Version Type
+    const serverVersionTypeSetting = getters['management/byId'](MANAGEMENT.SETTING, 'server-version-type');
 
-      if (serverVersionTypeSetting) {
-        serverVersionType = serverVersionTypeSetting.value || UNKNOWN;
-      }
+    if (serverVersionTypeSetting) {
+      serverVersionType = serverVersionTypeSetting.value || UNKNOWN;
     }
 
     // Otherwise, use the window location's host

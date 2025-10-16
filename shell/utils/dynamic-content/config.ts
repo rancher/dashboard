@@ -1,5 +1,5 @@
 import { SETTING } from '@shell/config/settings';
-import { getVersionData } from '@shell/config/version';
+import { isRancherPrime } from '@shell/config/version';
 import { Configuration, Distribution } from './types';
 import { MANAGEMENT } from '@shell/config/types';
 
@@ -10,13 +10,13 @@ const DEFAULT_ENDPOINT = 'https://updates.rancher.io/rancher/$dist/updates';
 const HTTPS_PREFIX = 'https://';
 
 /**
- * Get congiuration data based on the distribution and Rancher settings
+ * Get configuration data based on the distribution and Rancher settings
  *
  * @param getters Store getters to access the store
  * @returns Dynamic Content configuration
  */
 export function getConfig(getters: any): Configuration {
-  const prime = getVersionData().RancherPrime === 'true';
+  const prime = isRancherPrime();
   const distribution: Distribution = prime ? 'prime' : 'community';
 
   // Default configuration

@@ -9,7 +9,7 @@
  * 3. Current release is approaching End of Maintenance (EOL)
  * 4. Current release is approaching End of Maintenance (EOM)
  *
- * Note that we process in the order to that shown above, and stop at the first one that is actuve - so reaching EOL wil show a notification
+ * Note that we process in the order to that shown above, and stop at the first one that is active - so reaching EOL will show a notification
  * and we won't look at the others.
  *
  */
