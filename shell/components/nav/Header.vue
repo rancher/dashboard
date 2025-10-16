@@ -842,6 +842,7 @@ export default {
     .side-menu-logo {
       align-items: center;
       display: flex;
+      height: 55px;
       margin-right: 8px;
       max-width: 200px;
       padding: 12px 0;

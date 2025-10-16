@@ -595,6 +595,17 @@ Cypress.Commands.add('waitForRepositoryDownload', (prefix, resourceType, resourc
 });
 
 /**
+ * Wait for repository to be state
+ */
+Cypress.Commands.add('waitForResourceState', (prefix, resourceType, resourceId, resourceState = 'active', retries = 20) => {
+  return cy.waitForRancherResource(prefix, resourceType, resourceId, (resp) => {
+    const state = resp.body.metadata?.state;
+
+    return state && state.transitioning === false && state.name === resourceState;
+  }, retries);
+});
+
+/**
  * delete a node template
  */
 Cypress.Commands.add('deleteNodeTemplate', (nodeTemplateId, timeout = 30000, failOnStatusCode = false) => {

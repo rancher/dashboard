@@ -3,7 +3,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import ChartRepositoriesPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
-import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 const chartBranch = `release-v${ CURRENT_RANCHER_VERSION }`;
@@ -62,6 +62,7 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     // check list details
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
     repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', this.repoName);
     repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).should('be.visible');
   });
 
@@ -268,18 +269,8 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     // check list details
     repositoriesPage.list().details(this.repoName, 2).should('be.visible');
 
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Delete').click();
-
-    const promptRemove = new PromptRemove();
-
-    cy.intercept('DELETE', `v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('deleteRepository');
-
-    promptRemove.remove();
-    cy.wait('@deleteRepository');
-    repositoriesPage.waitForPage();
-
-    // check list details
-    cy.contains(this.repoName).should('not.exist');
+    // delete repo
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.repoName);
   });
 
   it('can disable/enable a repository', function() {
@@ -300,45 +291,34 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     repositoriesPage.waitForPage();
 
     // check list details
-    repositoriesPage.list().details(this.repoName, 2).should('be.visible');
-    repositoriesPage.list().details(this.repoName, 1).contains('In Progress').should('be.visible');
-
-    // refresh should be displayed for an enabled repo
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').should('be.visible');
-    // close action menu
-    repositoriesPage.list().closeActionMenu();
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', this.repoName).then(() => {
+      repositoriesPage.list().details(this.repoName, 1).contains('Active', MEDIUM_TIMEOUT_OPT).should('be.visible');
+      // refresh should be displayed for an enabled repo
+      repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').should('be.visible');
+      // close action menu
+      repositoriesPage.list().actionMenuClose(this.repoName);
+    });
 
     // disable repo
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(1500);
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Disable').click();
-    repositoriesPage.list().details(this.repoName, 1).contains('Disabled', { timeout: 10000 }).scrollIntoView()
-      .should('be.visible');
+    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', this.repoName).then(() => {
+      repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Disable').click();
+      repositoriesPage.list().details(this.repoName, 1).contains('Disabled').should('be.visible');
+    });
 
     // refresh should NOT be displayed for a disabled repo
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').should('not.exist');
-    // close action menu
-    repositoriesPage.list().closeActionMenu();
+    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', this.repoName).then(() => {
+      repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').should('not.exist');
+      // close action menu
+      repositoriesPage.list().actionMenuClose(this.repoName);
+    });
 
     // enable repo
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(1500);
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Enable').click();
-    repositoriesPage.list().details(this.repoName, 1).contains('Active', LONG_TIMEOUT_OPT).scrollIntoView()
-      .should('be.visible');
+    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', this.repoName).then(() => {
+      repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Enable').click();
+      repositoriesPage.list().details(this.repoName, 1).contains('Active', MEDIUM_TIMEOUT_OPT).should('be.visible');
+    });
 
     // delete repo
-    repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Delete').click();
-
-    const promptRemove = new PromptRemove();
-
-    cy.intercept('DELETE', `v1/catalog.cattle.io.clusterrepos/${ this.repoName }`).as('deleteRepository');
-
-    promptRemove.remove();
-    cy.wait('@deleteRepository');
-    repositoriesPage.waitForPage();
-
-    // check list details
-    cy.contains(this.repoName).should('not.exist');
+    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.repoName);
   });
 });

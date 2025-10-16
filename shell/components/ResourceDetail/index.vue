@@ -481,7 +481,7 @@ export default {
     </div>
 
     <ResourceYaml
-      v-else-if="isYaml"
+      v-if="isYaml"
       ref="resourceyaml"
       :value="value"
       :mode="mode"

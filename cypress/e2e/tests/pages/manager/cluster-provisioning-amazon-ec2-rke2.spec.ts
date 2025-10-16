@@ -154,9 +154,10 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { testIsolation:
     // check cluster details page > recent events
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
-    clusterList.clickOnClusterName(this.rke2Ec2ClusterName);
+    clusterList.goToDetailsPage(this.rke2Ec2ClusterName, '.cluster-link a');
     clusterDetails.waitForPage(null, 'machine-pools');
     clusterDetails.selectTab(tabbedPo, '[data-testid="btn-events"]');
+    clusterDetails.waitForPage(null, 'events');
     clusterDetails.recentEventsList().checkTableIsEmpty();
   });
 
@@ -167,9 +168,10 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { testIsolation:
     // check cluster details page > snapshots
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
-    clusterList.clickOnClusterName(this.rke2Ec2ClusterName);
+    clusterList.goToDetailsPage(this.rke2Ec2ClusterName, '.cluster-link a');
     clusterDetails.waitForPage(null, 'machine-pools');
     clusterDetails.selectTab(tabbedPo, '[data-testid="btn-snapshots"]');
+    clusterDetails.waitForPage(null, 'snapshots');
     clusterDetails.snapshotsList().checkTableIsEmpty();
 
     // create on demand snapshot
@@ -182,8 +184,10 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { testIsolation:
     clusterList.list().state(this.rke2Ec2ClusterName).contains('Active', { timeout: 700000 });
 
     // check snapshot exist
-    clusterList.clickOnClusterName(this.rke2Ec2ClusterName);
+    clusterList.goToDetailsPage(this.rke2Ec2ClusterName, '.cluster-link a');
+    clusterDetails.waitForPage(null, 'machine-pools');
     clusterDetails.selectTab(tabbedPo, '[data-testid="btn-snapshots"]');
+    clusterDetails.waitForPage(null, 'snapshots');
     clusterDetails.snapshotsList().checkSnapshotExist(`on-demand-${ this.rke2Ec2ClusterName }`);
   });
 

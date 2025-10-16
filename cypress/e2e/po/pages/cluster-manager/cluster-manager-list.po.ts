@@ -1,11 +1,11 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import ProvClusterListPo from '@/cypress/e2e/po/lists/provisioning.cattle.io.cluster.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 /**
  * List page for provisioning.cattle.io.cluster resources
  */
-export default class ClusterManagerListPagePo extends PagePo {
+export default class ClusterManagerListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/manager/provisioning.cattle.io.cluster`;
   }
@@ -62,9 +62,5 @@ export default class ClusterManagerListPagePo extends PagePo {
 
   editCluster(name: string) {
     this.sortableTable().rowActionMenuOpen(name).getMenuItem('Edit Config').click();
-  }
-
-  clickOnClusterName(name: string) {
-    this.sortableTable().rowWithClusterName(name).click();
   }
 }
