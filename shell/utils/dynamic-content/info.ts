@@ -32,6 +32,7 @@ const SUSE_EXTENSIONS = [
 type SystemInfo = {
   systemUUID: string;
   systemHash: string;
+  serverVersionType: string;
   userHash: string;
   version: string;
   isDeveloperVersion: boolean;
@@ -67,6 +68,7 @@ export class SystemInfoProvider {
     const settings = this.getAll(getters, MANAGEMENT.SETTING);
     let url;
     let systemUUID = UNKNOWN;
+    let serverVersionType = UNKNOWN;
 
     // Get server URL and UUID if we can access settings
     if (settings) {
@@ -82,6 +84,13 @@ export class SystemInfoProvider {
 
       if (uuidSetting) {
         systemUUID = uuidSetting.value || UNKNOWN;
+      }
+
+      // Server Version Type
+      const serverVersionTypeSetting = settings.find((setting: any) => setting.id === 'server-version-type');
+
+      if (serverVersionTypeSetting) {
+        serverVersionType = serverVersionTypeSetting.value || UNKNOWN;
       }
     }
 
@@ -131,6 +140,7 @@ export class SystemInfoProvider {
       systemUUID,
       userHash,
       systemHash,
+      serverVersionType,
       version:            vers[0],
       isDeveloperVersion: vers.length > 1,
       isPrime:            versionData.RancherPrime === 'true',
@@ -167,6 +177,11 @@ export class SystemInfoProvider {
     // Install UUID
     if (systemData.systemUUID !== UNKNOWN) {
       params.push(`uuid=${ systemData.systemUUID }`);
+    }
+
+    // Server Version Type
+    if (systemData.serverVersionType !== UNKNOWN) {
+      params.push(`svt=${ systemData.serverVersionType }`);
     }
 
     // Version info
