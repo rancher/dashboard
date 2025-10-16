@@ -21,8 +21,8 @@ import { nodeDriveResponse } from '@/cypress/e2e/tests/pages/manager/mock-respon
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import { EXTRA_LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
-import KontainerDriversPagePo from '@/cypress/e2e/po/pages/cluster-manager/kontainer-drivers.po';
-import DeactivateDriverDialogPo from '@/cypress/e2e/po/prompts/deactivateDriverDialog.po';
+// import KontainerDriversPagePo from '@/cypress/e2e/po/pages/cluster-manager/kontainer-drivers.po';
+// import DeactivateDriverDialogPo from '@/cypress/e2e/po/prompts/deactivateDriverDialog.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
@@ -36,7 +36,7 @@ const importType = 'cluster';
 const clusterNamePartial = `${ runPrefix }-create`;
 const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
 const importGenericName = `${ clusterNamePartial }-import-generic`;
-let reenableAKS = false;
+const reenableAKS = false;
 
 const downloadsFolder = Cypress.config('downloadsFolder');
 
@@ -48,88 +48,90 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     cy.login();
   });
 
-  it('deactivating a kontainer driver should hide its card from the cluster creation page', () => {
-    cy.intercept('GET', '/v3/kontainerdrivers').as('getKontainerDrivers');
-    cy.intercept('POST', 'v3/kontainerDrivers/azurekubernetesservice?action=deactivate').as('deactivateDriver');
-    cy.intercept('POST', 'v3/kontainerDrivers/azurekubernetesservice?action=activate').as('activateDriver');
+  // Revert commented out tests as part of https://github.com/rancher/dashboard/issues/15391
 
-    const driversPage = new KontainerDriversPagePo();
-    const clusterCreatePage = new ClusterManagerCreatePagePo();
+  // it('deactivating a kontainer driver should hide its card from the cluster creation page', () => {
+  //   cy.intercept('GET', '/v3/kontainerdrivers').as('getKontainerDrivers');
+  //   cy.intercept('POST', 'v3/kontainerDrivers/azurekubernetesservice?action=deactivate').as('deactivateDriver');
+  //   cy.intercept('POST', 'v3/kontainerDrivers/azurekubernetesservice?action=activate').as('activateDriver');
 
-    KontainerDriversPagePo.navTo();
-    driversPage.waitForPage();
+  //   const driversPage = new KontainerDriversPagePo();
+  //   const clusterCreatePage = new ClusterManagerCreatePagePo();
 
-    // assert AKS kontainer driver is in Active state
-    cy.wait('@getKontainerDrivers').then(({ response }) => {
-      response.body.data.forEach((item: any) => {
-        if (item.id === 'azurekubernetesservice') {
-          const state = item['active'];
+  //   KontainerDriversPagePo.navTo();
+  //   driversPage.waitForPage();
 
-          expect(state).to.eq(true);
-        }
-      });
-    });
+  //   // assert AKS kontainer driver is in Active state
+  //   cy.wait('@getKontainerDrivers').then(({ response }) => {
+  //     response.body.data.forEach((item: any) => {
+  //       if (item.id === 'azurekubernetesservice') {
+  //         const state = item['active'];
 
-    // deactivate the AKS driver
-    driversPage.list().actionMenu('Azure AKS').getMenuItem('Deactivate').click();
-    const deactivateDialog = new DeactivateDriverDialogPo();
+  //         expect(state).to.eq(true);
+  //       }
+  //     });
+  //   });
 
-    deactivateDialog.deactivate();
-    cy.wait('@deactivateDriver').its('response.statusCode').should('eq', 200).then(() => {
-      reenableAKS = true;
-    });
+  //   // deactivate the AKS driver
+  //   driversPage.list().actionMenu('Azure AKS').getMenuItem('Deactivate').click();
+  //   const deactivateDialog = new DeactivateDriverDialogPo();
 
-    // verify that the AKS card is not shown
-    clusterList.goTo();
-    clusterList.checkIsCurrentPage();
-    clusterList.createCluster();
-    clusterCreatePage.gridElementExistanceByName('Azure AKS', 'not.exist');
+  //   deactivateDialog.deactivate();
+  //   cy.wait('@deactivateDriver').its('response.statusCode').should('eq', 200).then(() => {
+  //     reenableAKS = true;
+  //   });
 
-    // re-enable the AKS kontainer driver
-    KontainerDriversPagePo.navTo();
-    driversPage.waitForPage();
-    driversPage.list().actionMenu('Azure AKS').getMenuItem('Activate').click();
-    cy.wait('@activateDriver').its('response.statusCode').should('eq', 200).then(() => {
-      reenableAKS = false;
-    });
+  //   // verify that the AKS card is not shown
+  //   clusterList.goTo();
+  //   clusterList.checkIsCurrentPage();
+  //   clusterList.createCluster();
+  //   clusterCreatePage.gridElementExistanceByName('Azure AKS', 'not.exist');
 
-    // verify that the AKS card is back
-    clusterList.goTo();
-    clusterList.checkIsCurrentPage();
-    clusterList.createCluster();
-    clusterCreatePage.gridElementExistanceByName('Azure AKS', 'exist');
-  });
+  //   // re-enable the AKS kontainer driver
+  //   KontainerDriversPagePo.navTo();
+  //   driversPage.waitForPage();
+  //   driversPage.list().actionMenu('Azure AKS').getMenuItem('Activate').click();
+  //   cy.wait('@activateDriver').its('response.statusCode').should('eq', 200).then(() => {
+  //     reenableAKS = false;
+  //   });
 
-  it('deleting a kontainer driver should hide its card from the cluster creation page', () => {
-    // intercept get request for kontainer drivers
-    cy.intercept('GET', '/v1/management.cattle.io.kontainerdriver*', (req) => {
-      req.reply( {
-        type:         'collection',
-        resourceType: 'management.cattle.io.kontainerdriver',
-        count:        0,
-        data:         []
-      });
-    } ).as('kontainerDrivers');
+  //   // verify that the AKS card is back
+  //   clusterList.goTo();
+  //   clusterList.checkIsCurrentPage();
+  //   clusterList.createCluster();
+  //   clusterCreatePage.gridElementExistanceByName('Azure AKS', 'exist');
+  // });
 
-    const clusterCreatePage = new ClusterManagerCreatePagePo();
+  // it('deleting a kontainer driver should hide its card from the cluster creation page', () => {
+  //   // intercept get request for kontainer drivers
+  //   cy.intercept('GET', '/v1/management.cattle.io.kontainerdriver*', (req) => {
+  //     req.reply( {
+  //       type:         'collection',
+  //       resourceType: 'management.cattle.io.kontainerdriver',
+  //       count:        0,
+  //       data:         []
+  //     });
+  //   } ).as('kontainerDrivers');
 
-    // verify that the AKS card is not shown
-    clusterList.goTo();
-    clusterList.checkIsCurrentPage();
-    clusterList.createCluster();
+  //   const clusterCreatePage = new ClusterManagerCreatePagePo();
 
-    clusterCreatePage.waitForPage();
-    cy.wait('@kontainerDrivers');
+  //   // verify that the AKS card is not shown
+  //   clusterList.goTo();
+  //   clusterList.checkIsCurrentPage();
+  //   clusterList.createCluster();
 
-    clusterCreatePage.gridElementExistanceByName('Azure AKS', 'not.exist');
+  //   clusterCreatePage.waitForPage();
+  //   cy.wait('@kontainerDrivers');
 
-    clusterCreatePage.gridElementGroupTitles().should('have.length', 2);
+  //   clusterCreatePage.gridElementExistanceByName('Azure AKS', 'not.exist');
 
-    clusterCreatePage.gridElementGroupTitles().eq(0).should('not.contain.text', 'Create a cluster');
+  //   clusterCreatePage.gridElementGroupTitles().should('have.length', 2);
 
-    clusterCreatePage.gridElementGroupTitles().eq(0).should('contain.text', 'Provision new nodes');
-    clusterCreatePage.gridElementGroupTitles().eq(1).should('contain.text', 'Use existing nodes');
-  });
+  //   clusterCreatePage.gridElementGroupTitles().eq(0).should('not.contain.text', 'Create a cluster');
+
+  //   clusterCreatePage.gridElementGroupTitles().eq(0).should('contain.text', 'Provision new nodes');
+  //   clusterCreatePage.gridElementGroupTitles().eq(1).should('contain.text', 'Use existing nodes');
+  // });
 
   describe('RKE2 providers', () => {
     providersList.forEach((prov) => {
