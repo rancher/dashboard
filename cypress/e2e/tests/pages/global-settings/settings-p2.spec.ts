@@ -8,7 +8,9 @@ import {
   settings, serverUrlLocalhostCases, urlWithTrailingForwardSlash, httpUrl, nonUrlCases
 } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 
-const settingsPage = new SettingsPagePo('local');
+// If there's more than one cluster the currentCluster used in links can be different to `local`
+const settingsClusterId = '_';
+const settingsPage = new SettingsPagePo(settingsClusterId);
 const homePage = new HomePagePo();
 const accountPage = new AccountPagePo();
 const clusterList = new ClusterManagerListPagePo();
