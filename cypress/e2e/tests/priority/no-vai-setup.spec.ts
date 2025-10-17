@@ -4,7 +4,7 @@ import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/featu
 
 // Vai ('ui-sql-cache') is now on by default. This sets up the `noVai` test suite by disabling it
 
-const featureFlagsPage = new FeatureFlagsPagePo('local');
+const featureFlagsPage = new FeatureFlagsPagePo('_');
 
 describe('Disable Vai', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
   before(() => {
