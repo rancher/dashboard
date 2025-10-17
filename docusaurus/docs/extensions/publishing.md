@@ -165,7 +165,7 @@ git push origin production
 
 Once the files are accessible on Github, add the repository within the Rancher "local" cluster - The charts will then be available on the Extensions page, under the "Available" tab.
 
-### Consuming the Helm chart
+## Consuming the Helm chart
 
 After releasing the Helm chart you will be able to consume this from the Rancher UI by adding your Helm repository's URL to the `Apps` -> `Repositories` list. If you used the automated workflow to release the Helm chart, you can find the URL within your Github repository under the `gh-pages` branch.
 
