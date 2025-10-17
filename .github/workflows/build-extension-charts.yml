@@ -121,6 +121,7 @@ jobs:
       contents: write
       deployments: write
       pages: write
+      pull-requests: write
     outputs:
       release-status: ${{ job.status }}
     steps:
