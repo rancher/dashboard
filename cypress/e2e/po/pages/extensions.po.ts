@@ -94,6 +94,8 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoCreate.saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
 
     appRepoList.waitForPage();
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', name);
+    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', name);
     appRepoList.list().state(name).should('contain', 'Active');
 
     return cy.wrap(appRepoList.list());
