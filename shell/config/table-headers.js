@@ -1183,3 +1183,11 @@ export const PROJECT = {
   name:     'project',
   labelKey: 'tableHeaders.project',
 };
+
+export const AUTOSCALER_ENABLED = {
+  name:      'autoscaler',
+  labelKey:  'tableHeaders.autoscaler',
+  value:     'isAutoscalerEnabled',
+  sort:      ['autoscaler'],
+  formatter: 'Autoscaler',
+};

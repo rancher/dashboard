@@ -6,7 +6,7 @@ import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 
 const mockStore = {
   getters: {
-    productId: 'PRODUCT_ID', clusterId: 'CLUSTER_ID', 'type-map/optionsFor': jest.fn()
+    productId: 'PRODUCT_ID', clusterId: 'CLUSTER_ID', 'type-map/optionsFor': jest.fn(), currentCluster: 'CLUSTER_ID'
   }
 };
 const mockRoute = { params: { cluster: 'CLUSTER', namespace: 'NAMESPACE' } };
