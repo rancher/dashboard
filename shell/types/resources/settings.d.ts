@@ -20,7 +20,7 @@ export interface PaginationSettingsStore {
   }
 }
 
-/*
+/**
  * Determine which resources can utilise server-side pagination
  */
 export interface PaginationSettingsStores {
