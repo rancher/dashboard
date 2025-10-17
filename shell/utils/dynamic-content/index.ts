@@ -231,6 +231,7 @@ export async function fetchDynamicContent(context: Context): Promise<Partial<Dyn
         noApiCsrf:       true,
         withCredentials: false,
         signal:          newRequestAbortSignal(FETCH_REQUEST_TIMEOUT),
+        responseType:    'text' // We always want the raw text back - otherwise YAML gives text and JSON gives object
       });
 
       // The data should be YAML (or JSON) in the 'data' attribute
