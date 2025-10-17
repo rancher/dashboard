@@ -163,6 +163,7 @@ export default defineComponent({
     :loading="$fetchState.pending"
     :options="allOfType"
     :paginate="paginateType"
+    :multiple="$attrs.multiple || false"
     @update:value="$emit('update:value', $event)"
   />
 </template>

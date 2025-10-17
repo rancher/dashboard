@@ -2,18 +2,22 @@ import { mount } from '@vue/test-utils';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import HelmOp from '@shell/models/fleet.cattle.io.helmop';
 import HelmOpComponent from '@shell/edit/fleet.cattle.io.helmop.vue';
+import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
+import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
 
 const mockStore = {
   dispatch: jest.fn(),
   commit:   jest.fn(),
   getters:  {
-    'i18n/t':                  (text: string) => text,
-    'i18n/exists':             jest.fn(),
-    t:                         (text: string) => text,
-    currentStore:              () => 'current_store',
-    'current_store/schemaFor': jest.fn(),
-    'current_store/all':       jest.fn(),
-    workspace:                 'test',
+    'i18n/t':                       (text: string) => text,
+    'i18n/exists':                  jest.fn(),
+    t:                              (text: string) => text,
+    currentStore:                   () => 'current_store',
+    'current_store/schemaFor':      jest.fn(),
+    'current_store/all':            jest.fn(),
+    workspace:                      'test',
+    'management/paginationEnabled': () => false,
+    'management/all':               () => [],
   },
   rootGetters: { 'i18n/t': jest.fn() },
 };
@@ -63,19 +67,22 @@ const mockHelmOp = {
   currentRoute: () => {},
 };
 
-const initHelmOp = (props: any, value?: any) => {
-  const initValue = new HelmOp({
+const initHelmOp = (props: any, options = {}) => {
+  const value = new HelmOp({
     ...mockHelmOp,
-    ...(value || {})
+    ...options
   }, {
     getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
     dispatch:    jest.fn(),
     rootGetters: { 'i18n/t': jest.fn() },
   });
 
+  value.applyDefaults = () => {};
+  value.metadata = { namespace: '' };
+
   return {
     props: {
-      value: initValue,
+      value,
       ...props
     },
     computed: mockComputed,
@@ -220,5 +227,39 @@ describe.each([
     const pollingIntervalInput = wrapper.find('[data-testid="helmOp-pollingInterval-input"]').element as HTMLInputElement;
 
     expect(pollingIntervalInput.value).toBe(displayValue);
+  });
+
+  it('should update downstreamResources with new Secrets when FleetSecretSelector emits update event', async() => {
+    const wrapper = mount(HelmOpComponent, initHelmOp({ realMode: mode }));
+
+    const fleetConfigMapSelector = wrapper.findComponent(FleetConfigMapSelector);
+    const fleetSecretSelector = wrapper.findComponent(FleetSecretSelector);
+
+    expect(fleetSecretSelector.exists()).toBe(true);
+    expect(fleetConfigMapSelector.exists()).toBe(true);
+
+    await fleetSecretSelector.vm.$emit('update:value', []);
+    await fleetConfigMapSelector.vm.$emit('update:value', []);
+
+    await fleetSecretSelector.vm.$emit('update:value', ['secret2', 'secret3']);
+
+    expect(wrapper.vm.value.spec.helm.downstreamResources).toStrictEqual([{ name: 'secret2', kind: 'Secret' }, { name: 'secret3', kind: 'Secret' }]);
+  });
+
+  it('should update downstreamResources with new ConfigMaps when FleetConfigMapSelector emits update event', async() => {
+    const wrapper = mount(HelmOpComponent, initHelmOp({ realMode: mode }));
+
+    const fleetConfigMapSelector = wrapper.findComponent(FleetConfigMapSelector);
+    const fleetSecretSelector = wrapper.findComponent(FleetSecretSelector);
+
+    expect(fleetSecretSelector.exists()).toBe(true);
+    expect(fleetConfigMapSelector.exists()).toBe(true);
+
+    await fleetSecretSelector.vm.$emit('update:value', []);
+    await fleetConfigMapSelector.vm.$emit('update:value', []);
+
+    await fleetConfigMapSelector.vm.$emit('update:value', ['configMap2', 'configMap3']);
+
+    expect(wrapper.vm.value.spec.helm.downstreamResources).toStrictEqual([{ name: 'configMap2', kind: 'ConfigMap' }, { name: 'configMap3', kind: 'ConfigMap' }]);
   });
 });
