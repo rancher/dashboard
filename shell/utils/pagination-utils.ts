@@ -1,4 +1,6 @@
-import { PaginationFeature, PaginationSettings, PaginationSettingsStore } from '@shell/types/resources/settings';
+import {
+  PaginationFeature, PaginationFeatureHomePageClusterConfig, PaginationFeatureName, PaginationSettings, PaginationSettingsFeatures, PaginationSettingsStore
+} from '@shell/types/resources/settings';
 import {
   NAMESPACE_FILTER_ALL_USER as ALL_USER,
   NAMESPACE_FILTER_ALL as ALL,
@@ -17,6 +19,15 @@ import { getPerformanceSetting } from '@shell/utils/settings';
 import { PAGINATION_SETTINGS_STORE_DEFAULTS } from '@shell/plugins/steve/steve-pagination-utils';
 import { MANAGEMENT } from '@shell/config/types';
 import { DEFAULT_PERF_SETTING } from '@shell/config/settings';
+
+const homePageClusterFeature: PaginationFeature<PaginationFeatureHomePageClusterConfig> = {
+  version:       1,
+  enabled:       true,
+  configuration: {
+    threshold: 500, results: 250, pagesPerRow: 25
+  }
+};
+const PAGINATION_SETTINGS_FEATURE_DEFAULTS: PaginationSettingsFeatures = { homePageCluster: homePageClusterFeature };
 
 /**
  * Helper functions for server side pagination
@@ -163,15 +174,19 @@ class PaginationUtils {
     return this.isFeatureEnabled({ rootGetters }, 'listManualRefresh');
   }
 
-  private isFeatureEnabled({ rootGetters }: any, featureName: PaginationFeature): boolean {
+  getFeature<Config = any>({ rootGetters }: any, featureName: PaginationFeatureName): PaginationFeature<Config> | undefined {
     // Cache must be enabled to support pagination api
     if (!this.isSteveCacheEnabled({ rootGetters })) {
-      return false;
+      return undefined;
     }
 
     const settings = this.getSettings({ rootGetters });
 
-    return !!settings.features?.[featureName]?.enabled;
+    return settings.features?.[featureName] || PAGINATION_SETTINGS_FEATURE_DEFAULTS[featureName];
+  }
+
+  private isFeatureEnabled({ rootGetters }: any, featureName: PaginationFeatureName): boolean {
+    return !!this.getFeature({ rootGetters }, featureName)?.enabled;
   }
 
   resourceChangesDebounceMs({ rootGetters }: any): number | undefined {
