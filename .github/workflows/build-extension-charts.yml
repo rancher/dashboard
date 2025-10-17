@@ -121,6 +121,7 @@ jobs:
       contents: write
       deployments: write
       pages: write
+      pull-requests: write
     outputs:
       release-status: ${{ job.status }}
     steps:
@@ -154,6 +155,8 @@ jobs:
 
       - if: inputs.create_pr == 'true'
         name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           # Create the PR using the GitHub CLI
           pr_number=$(gh pr create \

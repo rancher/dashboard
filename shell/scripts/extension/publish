@@ -164,7 +164,7 @@ if [ "${HAVE_COMMANDS}" == "false" ]; then
 fi
 
 # --------------------------------------------------------------------------------
-# Only do conatiner args checks if not GitHub publish
+# Only do container args checks if not GitHub publish
 # --------------------------------------------------------------------------------
 if [ "${GITHUB_BUILD}" == "false" ]; then
   BASE_EXT=$(jq -r .name ${BASE_DIR}/package.json)
