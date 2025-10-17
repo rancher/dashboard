@@ -21,13 +21,9 @@ on:
       test_ext_branch:
         required: false
         type: string
-    secrets:
-      github_token:
-        required: false
     outputs:
       build-job-status: 
         value: ${{ jobs.build-extension-artifact.outputs.build-status }}
-
 
 env:
   ACTIONS_RUNNER_DEBUG: false
@@ -88,7 +84,7 @@ jobs:
         if: github.ref_type == 'tag' || inputs.is_test == 'true'
         id: parsed-name
         env:
-          GH_TOKEN: ${{ secrets.github_token || github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           yarn parse-tag-name ${{ inputs.tagged_release }} ${{ github.run_id }} "charts"
 
@@ -96,7 +92,7 @@ jobs:
         shell: bash
         id: build_script
         env:
-          GH_TOKEN: ${{ secrets.github_token || github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           publish="yarn publish-pkgs -s ${{ github.repository }} -b ${{ inputs.target_branch }}"
 
