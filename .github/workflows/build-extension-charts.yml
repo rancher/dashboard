@@ -91,8 +91,6 @@ jobs:
       - name: Run build script
         shell: bash
         id: build_script
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           publish="yarn publish-pkgs -s ${{ github.repository }} -b ${{ inputs.target_branch }}"
 
@@ -156,6 +154,8 @@ jobs:
 
       - if: inputs.create_pr == 'true'
         name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           # Create the PR using the GitHub CLI
           pr_number=$(gh pr create \
