@@ -114,6 +114,12 @@ export const PROVISIONER = create('provisioner', _RKE2, { options: [_RKE1, _RKE2
 export const MENU_MAX_CLUSTERS = 10;
 // Prompt for confirm when scaling down node pool in GUI and save the pref
 export const SCALE_POOL_PROMPT = create('scale-pool-prompt', null, { parseJSON });
+
+// Dynamic content
+export const READ_NEW_RELEASE = create('read-new-release', '', { parseJSON });
+export const READ_SUPPORT_NOTICE = create('read-support-notice', '', { parseJSON });
+export const READ_UPCOMING_SUPPORT_NOTICE = create('read-upcoming-support-notice', '', { parseJSON });
+
 // --------------------
 
 const cookiePrefix = 'R_';

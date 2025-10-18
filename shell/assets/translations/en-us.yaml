@@ -2763,6 +2763,28 @@ drainNode:
     placeholder: e.g. 60
     custom: "Give up after:"
 
+dynamicContent:
+  newRelease:
+    title: A new Rancher release is available!
+    message: Rancher {version} has been released!
+    moreInfo: Release Notes
+  multipleNewReleases:
+    title: New Rancher releases are available!
+    message: A new {version1} patch version has been released and a newer {version2} version is also avaialble.
+    moreInfo: "{version} Release Notes"
+  upcomingEom:
+    title: End of Maintainence in {days, plural, =1 {1 day} other {{days} days}}
+    message: This version of Rancher ({version}) will reach End of Maintainence in {days} day(s). Consider upgrading to a supported version soon.
+  eom:
+    title: End of Maintainence reached
+    message: This version of Rancher ({version}) has reached End of Maintainence. Consider upgrading to a supported version.
+  upcomingEol:
+    title: End of Life in {days, plural, =1 {1 day} other {{days} days}}
+    message: This version of Rancher ({version}) will reach End of Life in {days} day(s). Consider upgrading to a supported version soon.
+  eol:
+    title: End of Life reached
+    message: This version of Rancher ({version}) has reached End of Life. Consider upgrading to a supported version.
+
 etcdInfoBanner:
   hasLeader: "Etcd has a leader:"
   leaderChanges: "Number of leader changes:"

@@ -11,7 +11,8 @@ export default function({
     const options = { parseJSON: false };
     const csrf = store.getters['cookies/get']({ key: CSRF, options });
 
-    if ( csrf ) {
+    // Request can ask not to send the CSRF header
+    if (csrf && !config.noApiCsrf) {
       config.headers['x-api-csrf'] = csrf;
     }
   });
