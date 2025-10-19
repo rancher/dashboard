@@ -84,7 +84,9 @@ export default {
     },
 
     scrollTop() {
-      this.$refs.main.$el.scrollTop = 0;
+      if (this.$refs.main?.$el) {
+        this.$refs.main.$el.scrollTop = 0;
+      }
     },
 
     addCloseKeyHandler() {

@@ -119,7 +119,7 @@ export default {
           </a>
         </div>
         <div
-          v-if="field.type && field.type !== 'array'"
+          v-if="field.type && field.type !== 'array' && !field.$refName"
           class="field-type"
         >
           <div>
