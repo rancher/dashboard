@@ -12,8 +12,6 @@ export enum NotificationLevel {
   Success, // eslint-disable-line no-unused-vars
   Warning, // eslint-disable-line no-unused-vars
   Error, // eslint-disable-line no-unused-vars
-  // Hidden is a special level that indicates the notification should not be shown in the Notification Center
-  // We can leverage this level to show notifications in other parts of the UI (e.g. announcements on the home page)
 }
 
 /**
