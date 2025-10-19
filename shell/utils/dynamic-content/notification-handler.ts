@@ -1,7 +1,13 @@
-import { Notification, NotificationHandler } from "@shell/types/notifications";
-import { READ_ANNOUNCEMENTS } from "@shell/store/prefs";
+/**
+ * Notification handler for dynamic content announcements
+ *
+ * This provides custom handling for read/unread state using a single user preference
+ */
+import { Notification, NotificationHandler } from '@shell/types/notifications';
+import { READ_ANNOUNCEMENTS } from '@shell/store/prefs';
 import { ANNOUNCEMENT_PREFIX } from './announcement';
 
+// Global name for this handler that can be used when creating notifications to associate them with this handler
 export const DynamicContentNotificationHandlerName = 'dc-announcements';
 
 /**
@@ -13,6 +19,7 @@ export const DynamicContentNotificationHandlerName = 'dc-announcements';
  * When a notification is read/unread that specifies this handler, we will add or remove its ID from the list of
  * read IDs that we maintain in the user preference value.
  *
+ * This allows us to use a single user preference to track read announcements
  */
 export function createHandler(store: any): NotificationHandler {
   return {
@@ -25,15 +32,17 @@ export function createHandler(store: any): NotificationHandler {
       const announcements = store.getters['notifications/all'].filter((n: any) => n.id.startsWith(ANNOUNCEMENT_PREFIX));
       const pref = store.getters['prefs/get'](READ_ANNOUNCEMENTS) || '';
       const values = !pref.length ? [] : pref.split(',').filter((v: string) => !announcements.includes(v));
+      const valuesUnique = new Set(values);
 
       if (read) {
-        values.push(id);
-        values.sort();
+        valuesUnique.add(id);
       } else {
-        values.splice(values.indexOf(id), 1);
+        valuesUnique.delete(id);
       }
 
-      await store.dispatch('prefs/set', { key: READ_ANNOUNCEMENTS, value: values.join(',') });
+      const newValues = Array.from(valuesUnique).sort();
+
+      await store.dispatch('prefs/set', { key: READ_ANNOUNCEMENTS, value: newValues.join(',') });
     }
   };
-};
+}

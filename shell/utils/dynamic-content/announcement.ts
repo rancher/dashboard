@@ -2,6 +2,8 @@
  *
  * The code in this file is responsible for adding 'announcement 'notifications driven off of the dynamic content metadata
  *
+ * Announcements will be able to be shown in different places in the UI
+ *
  */
 
 import semver from 'semver';
@@ -14,9 +16,9 @@ import { DynamicContentNotificationHandlerName } from './notification-handler';
 export const ANNOUNCEMENT_PREFIX = 'announcement-';
 
 const ALLOWED_NOTIFICATIONS: Record<string, NotificationLevel> = {
-  'announcement': NotificationLevel.Announcement,
-  'info'        : NotificationLevel.Info,
-  'warning'     : NotificationLevel.Warning,
+  announcement: NotificationLevel.Announcement,
+  info:         NotificationLevel.Info,
+  warning:      NotificationLevel.Warning,
 };
 
 /**
@@ -26,8 +28,7 @@ const ALLOWED_NOTIFICATIONS: Record<string, NotificationLevel> = {
  * @param announcements Announcement information
  * @param versionInfo Version information
  */
-
-export async function processAnnouncements(context: Context, announcements: Announcement[], versionInfo: VersionInfo): Promise<void> {
+export async function processAnnouncements(context: Context, announcements: Announcement[] | undefined, versionInfo: VersionInfo): Promise<void> {
   if (!announcements || !announcements.length || !versionInfo?.version) {
     return;
   }
@@ -57,9 +58,9 @@ export async function processAnnouncements(context: Context, announcements: Anno
         // Show a notification
         const subType = targetSplit.length === 2 ? targetSplit[1] : 'announcement';
 
-        // Because 0 is a falsey, see if we find something of type number to check for existence
+        // Because 0 is a falsy, see if we find something of type number to check for existence
         if (typeof ALLOWED_NOTIFICATIONS[subType] !== 'number') {
-          logger.error(`Announcement notification type ${subType} is not supported`);
+          logger.error(`Announcement notification type ${ subType } is not supported`);
         } else {
           logger.info(`Going to add a notification for announcement ${ announcement.target }`);
 
@@ -67,7 +68,7 @@ export async function processAnnouncements(context: Context, announcements: Anno
             logger.error(`No ID For announcement - not going to add a notification for the announcement`);
           } else {
             // We should check if the notification already exists
-            const id = `${ANNOUNCEMENT_PREFIX}${announcement.id}`;
+            const id = `${ ANNOUNCEMENT_PREFIX }${ announcement.id }`;
             const existing = getters['notifications/item'](id);
 
             // Check if the pref for 'read announcements' has the id
@@ -75,7 +76,7 @@ export async function processAnnouncements(context: Context, announcements: Anno
             const prefExists = pref.split(',').includes(announcement.id);
 
             if (existing || prefExists) {
-              logger.info(`Not adding announcement with ID ${ id } as it already exists or has been read previously (title: ${ announcement.title})`);
+              logger.info(`Not adding announcement with ID ${ id } as it already exists or has been read previously (title: ${ announcement.title })`);
             } else {
               const notification: Notification = {
                 id,
@@ -89,24 +90,24 @@ export async function processAnnouncements(context: Context, announcements: Anno
                 notification.primaryAction = {
                   label:  announcement.cta.primary.action,
                   target: announcement.cta.primary.link,
-                }
+                };
               }
 
               if (announcement.cta?.secondary) {
                 notification.secondaryAction = {
                   label:  announcement.cta.secondary.action,
                   target: announcement.cta.secondary.link,
-                }
+                };
               }
 
-              logger.info(`Adding announcement with ID ${ id } (title: ${ announcement.title})`);
+              logger.info(`Adding announcement with ID ${ id } (title: ${ announcement.title })`);
 
               await dispatch('notifications/add', notification);
             }
           }
         }
       } else {
-        logger.error(`Announcement type ${announcement.target} is not supported}`);
+        logger.error(`Announcement type ${ announcement.target } is not supported`);
       }
     }
   });

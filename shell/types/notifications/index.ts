@@ -14,6 +14,8 @@ export enum NotificationLevel {
   Success, // eslint-disable-line no-unused-vars
   Warning, // eslint-disable-line no-unused-vars
   Error, // eslint-disable-line no-unused-vars
+  // Hidden is a special level that indicates the notification should not be shown in the Notification Center
+  // We can leverage this level to show notifications in other parts of the UI (e.g. announcements on the home page)
 }
 
 /**
@@ -24,19 +26,6 @@ export type NotificationAction = {
   target?: string; // HREF target when the button is clicked
   route?: RouteLocationRaw; // Route to navigate to when the button is clicked
 };
-
-/**
- * Interface for notification handler
- */
-export interface NotificationHandler {
-  /**
-   * Called when a notification with this handler has its read status is updated (read or unread)
-   *
-   * @param notification Notification that was makred read or unread
-   * @param read Indicates whether the notification was updated to be read or unread
-   */
-  onReadUpdated(notification: Notification, read: boolean): void;
-}
 
 /**
  * Defines the User Preference linked to a notification
@@ -88,3 +77,16 @@ export type StoredNotification = {
   created: Date;
   read: Boolean;
 } & Notification;
+
+/**
+ * Interface for notification handler
+ */
+export interface NotificationHandler {
+  /**
+   * Called when a notification with this handler has its read status is updated (read or unread)
+   *
+   * @param notification Notification that was makred read or unread
+   * @param read Indicates whether the notification was updated to be read or unread
+   */
+  onReadUpdated(notification: Notification, read: boolean): void;
+}

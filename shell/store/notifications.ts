@@ -65,6 +65,8 @@ async function saveEncryptedNotification(getters: any, notification: Notificatio
     level:           notification.level,
     primaryAction:   notification.primaryAction,
     secondaryAction: notification.secondaryAction,
+    preference:      notification.preference,
+    handlerName:     notification.handlerName
   };
 
   const localStorageKey = getters['localStorageKey'];
@@ -252,6 +254,20 @@ export const mutations = {
   },
 };
 
+async function callNotifyHandler({ $extension }: any, notification: Notification, read: boolean) {
+  if (notification?.handlerName) {
+    const handler = $extension.getDynamic('notificationHandler', notification.handlerName);
+
+    if (handler) {
+      try {
+        await handler.onReadUpdated(notification, read);
+      } catch (e) {
+        console.error('Error invoking notification handler', e); // eslint-disable-line no-console
+      }
+    }
+  }
+}
+
 export const actions = {
   async add( { commit, dispatch, getters }: any, notification: Notification) {
     // We encrypt the notification on add - this is the only time we will encrypt it
@@ -295,6 +311,10 @@ export const actions = {
     if (notification?.preference) {
       await dispatch('prefs/set', notification.preference, { root: true });
     }
+
+    if (notification?.handlerName) {
+      await callNotifyHandler({ $extension: (this as any).$extension }, notification, true);
+    }
   },
 
   async markUnread({ commit, dispatch, getters }: any, id: string) {
@@ -308,6 +328,10 @@ export const actions = {
         key:   notification.preference.key,
         value: notification.preference.unsetValue || '',
       }, { root: true });
+    }
+
+    if (notification?.handlerName) {
+      await callNotifyHandler({ $extension: (this as any).$extension }, notification, false);
     }
   },
 
