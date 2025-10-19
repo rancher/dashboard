@@ -6,6 +6,11 @@ type OpenApIDefinitions = {
   [name: string]: OpenApIDefinition;
 };
 
+type Breadcrumb = {
+  name: string;
+  id: string;
+};
+
 // Regex for more info in descriptions
 // Some kube docs use a common pattern for a URL with more info - we extract these and show a link icon, rather than clogging up the UI
 // with a long URL - this makes it easier to read
@@ -71,7 +76,7 @@ export function makeOpenAPIBreadcrumb(id: string): any {
  * @param definition Definition to expand
  * @param breadcrumbs Current breadcrumbs to use as a breadcrumb path to the definition
  */
-export function expandOpenAPIDefinition(definitions: OpenApIDefinitions, definition: OpenApIDefinition, breadcrumbs = []): void {
+export function expandOpenAPIDefinition(definitions: OpenApIDefinitions, definition: OpenApIDefinition, breadcrumbs: Breadcrumb[] = []): void {
   Object.keys(definition?.properties || {}).forEach((propName) => {
     const prop = definition.properties[propName];
     const propRef = prop.$ref || prop.items?.$ref;
