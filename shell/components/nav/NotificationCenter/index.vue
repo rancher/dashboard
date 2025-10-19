@@ -11,9 +11,11 @@ import {
   RcDropdownSeparator,
   RcDropdownTrigger
 } from '@components/RcDropdown';
+import { NotificationLevel, Notification as NotificationType } from '@shell/types/notifications';
 
 const store = useStore();
-const allNotifications = computed(() => store.getters['notifications/all']);
+// We don't want any hidden notifications showing in the notification center (these are shown elsewhere, e.g. home page dynamic content announcements)
+const allNotifications = computed(() => store.getters['notifications/all'].filter((n: NotificationType) => n.level !== NotificationLevel.Hidden));
 const unreadLevelClass = computed(() => {
   return store.getters['notifications/unreadCount'] === 0 ? '' : 'unread';
 });

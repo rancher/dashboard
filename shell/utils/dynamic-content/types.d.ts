@@ -115,10 +115,16 @@ export type Announcement = {
   target: string; // Where the announcement should be shown
   version?: string; // Version or semver expression for when to show this announcement
   audience?: 'admin' | 'all'; // Audience - show for just Admins or for all users
+  icon?: string;
   cta?: {
     primary: CallToAction, // Must have a primary call to action, if we have a cta field
     secondary?: CallToAction,
   }
+};
+
+export type AnnouncementNotificationData = {
+  icon?: string;
+  location: string;
 };
 
 /**

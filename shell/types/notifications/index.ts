@@ -12,6 +12,7 @@ export enum NotificationLevel {
   Success, // eslint-disable-line no-unused-vars
   Warning, // eslint-disable-line no-unused-vars
   Error, // eslint-disable-line no-unused-vars
+  Hidden, // eslint-disable-line no-unused-vars
 }
 
 /**
@@ -54,6 +55,8 @@ export type Notification = {
   // Handler to be associated with this notification that can invoke additional behaviour when the notification changes
   // This is the name of the handler (the handlers are added as extensions). Notifications are persisted in the store, so can't use functions.
   handlerName?: string;
+  // Additional data to be stored with the notification (optional)
+  data?: any;
 };
 
 

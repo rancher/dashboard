@@ -15,10 +15,15 @@ import { DynamicContentAnnouncementHandlerName } from './notification-handler';
 // Prefixes used in the notifications IDs created here
 export const ANNOUNCEMENT_PREFIX = 'announcement-';
 
+const TARGET_NOTIFICATION_CENTER = 'notification';
+const TARGET_HOME_PAGE = 'homepage';
+const ALLOWED_TARGETS = [TARGET_NOTIFICATION_CENTER, TARGET_HOME_PAGE];
+
 const ALLOWED_NOTIFICATIONS: Record<string, NotificationLevel> = {
   announcement: NotificationLevel.Announcement,
   info:         NotificationLevel.Info,
   warning:      NotificationLevel.Warning,
+  homepage:     NotificationLevel.Hidden,
 };
 
 /**
@@ -49,6 +54,7 @@ export async function processAnnouncements(context: Context, announcements: Anno
 
     // Check type
     const targetSplit = announcement.target.split('/');
+      const target = targetSplit[0];
 
     if (targetSplit[0] === 'notification') {
       // Show a notification
@@ -85,6 +91,7 @@ export async function processAnnouncements(context: Context, announcements: Anno
           title:       announcement.title,
           message:     announcement.message,
           handlerName: DynamicContentAnnouncementHandlerName,
+            data,
         };
 
         if (announcement.cta?.primary) {
@@ -101,7 +108,7 @@ export async function processAnnouncements(context: Context, announcements: Anno
           };
         }
 
-        logger.info(`Adding announcement with ID ${ id } (title: ${ announcement.title })`);
+          logger.info(`Adding announcement with ID ${ id } (title: ${ announcement.title }, target: ${ announcement.target })`);
 
         await dispatch('notifications/add', notification);
       }

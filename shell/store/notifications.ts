@@ -66,7 +66,8 @@ async function saveEncryptedNotification(getters: any, notification: Notificatio
     primaryAction:   notification.primaryAction,
     secondaryAction: notification.secondaryAction,
     preference:      notification.preference,
-    handlerName:     notification.handlerName
+    handlerName:     notification.handlerName,
+    data:            notification.data,
   };
 
   const localStorageKey = getters['localStorageKey'];
