@@ -474,6 +474,9 @@ addonConfigConfirmation:
   title: Add-On Reset
   body: Add-On Configuration has changed between Kubernetes versions <b>{previousKubeVersion}</b> and <b>{newKubeVersion}</b> and conflict with your previous values for Add-On {addons}. As a result please re-apply them before continuing.
 
+addProjectMemberDialog:
+  title: Add Project Member
+
 authConfig:
   slo:
     sloTitle: Log Out behavior

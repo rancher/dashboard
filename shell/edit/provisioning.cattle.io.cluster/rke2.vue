@@ -928,18 +928,16 @@ export default {
       }
     },
 
-    async selectedVersion(neu, old) {
+    async selectedVersion(neu) {
       if (this.isEdit) {
-        const { addonConfigDiffs, addonNames, userChartValues } = this;
-        const context = {
-          addonConfigDiffs,
-          addonNames,
-          $store: this.$store,
-          userChartValues
-        };
+        const {
+          addonConfigDiffs, addonNames, userChartValues, $store
+        } = this;
 
         await addonConfigPreserve(
-          context,
+          {
+            addonConfigDiffs, addonNames, userChartValues, $store
+          },
           this.originalKubeVersion?.charts,
           neu?.charts
         );
