@@ -412,9 +412,10 @@ export default defineComponent({
         const groupOption = { label: groupLabel, kind: 'group' };
         const instanceTypeOptions = instances.map((instance: AWS.InstanceType) => {
           return {
-            value: instance.apiName,
-            label: instance.label,
-            group: instance.groupLabel
+            value:                  instance.apiName,
+            label:                  instance.label,
+            group:                  instance.groupLabel,
+            supportedArchitectures: instance.supportedArchitectures
           };
         });
 
@@ -436,9 +437,10 @@ export default defineComponent({
             return spotInstances;
           }
           const opt = {
-            value: instance.apiName,
-            label: instance.label,
-            group: instance.groupLabel
+            value:                  instance.apiName,
+            label:                  instance.label,
+            group:                  instance.groupLabel,
+            supportedArchitectures: instance.supportedArchitectures
           };
 
           spotInstances.push(opt);
