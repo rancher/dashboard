@@ -1841,7 +1841,7 @@ cluster:
         } / {memory, number} GiB Memory / {storageSize, plural,
           =0 {EBS-Only}
           other {{storageSize, number} {storageUnit} {storageType}}
-        }
+        } - {architecture}
     azure:
       acceleratedNetworking:
         label: Accelerated Networking

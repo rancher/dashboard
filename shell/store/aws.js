@@ -221,11 +221,12 @@ export const actions = {
         supportedArchitectures: row.ProcessorInfo.SupportedArchitectures || [],
         label:                  rootGetters['i18n/t']('cluster.machineConfig.aws.sizeLabel', {
           apiName,
-          cpu:    row.VCpuInfo.DefaultVCpus,
-          memory: row.MemoryInfo.SizeInMiB / 1024,
+          cpu:          row.VCpuInfo.DefaultVCpus,
+          memory:       row.MemoryInfo.SizeInMiB / 1024,
           storageSize,
           storageUnit,
           storageType,
+          architecture: (row.ProcessorInfo.SupportedArchitectures || []).map((a) => (a === 'arm64' ? 'ARM' : a)).join(', ')
         }),
       });
     }
