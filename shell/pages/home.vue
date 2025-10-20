@@ -7,7 +7,7 @@ import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue
 import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks.vue';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo.vue';
-import HomePageDynamicContent from '@shell/components/HomePageDynamicContent.vue';
+import DynamicContentBanner from '@shell/components/DynamicContent/DynamicContentBanner.vue';
 import { mapGetters, mapState } from 'vuex';
 import { MANAGEMENT, CAPI, COUNT } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
@@ -48,7 +48,7 @@ export default defineComponent({
     SingleClusterInfo,
     TabTitle,
     ResourceTable,
-    HomePageDynamicContent,
+    DynamicContentBanner,
   },
 
   mixins: [PageHeaderActions, Preset],
@@ -612,7 +612,7 @@ export default defineComponent({
       pref-key="welcomeBanner"
       data-testid="home-banner-graphic"
     />
-    <HomePageDynamicContent location="banner" />
+    <DynamicContentBanner location="banner" />
     <IndentedPanel class="mt-20 mb-20">
       <div class="row home-panels">
         <div class="col main-panel">

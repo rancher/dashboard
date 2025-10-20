@@ -1,8 +1,11 @@
 <script>
 import { NotificationLevel } from '@shell/types/notifications';
+import DynamicContentIcon from './DynamicContentIcon'
 
 export default {
-  name: 'HomePageDynamicContent',
+  name: 'DynamicContentBanner',
+
+  components: { DynamicContentIcon },
 
   props: {
     location: {
@@ -49,6 +52,12 @@ export default {
     v-if="dynamicContent"
     class="home-page-dynamic-content"
   >
+    <template v-if="dynamicContent.data">
+      <DynamicContentIcon
+        v-if="dynamicContent.data.icon"
+        :class="{'mr-10': dynamicContent.data.icon }"
+      />
+    </template>
     <div class="dc-content">
       <div class="dc-title">
         {{ dynamicContent.title }}
