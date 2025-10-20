@@ -3246,7 +3246,7 @@ fleet:
       none: None
       local: Local
     resources:
-      label: 'Resource Handling'
+      label: 'Resources'
       keepResources: Always keep resources
       keepResourcesTooltip: When enabled, resources will be kept when deleting a HelmOp or Bundle - only Helm release secrets will be deleted.
       correctDrift: Enable self-healing
@@ -3300,6 +3300,10 @@ fleet:
           =0 { Adding namespaces here will create a GitRepoRestriction. }
           other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction}
         }"
+  configMaps:
+    label: Config Maps
+  secrets:
+    label: Secrets
 footer:
   docs: Docs
   download: Download CLI
@@ -3824,6 +3828,11 @@ landing:
   homepage: Homepage
   clusters:
     title: Clusters
+    tooMany:
+      showAll: Show all clusters (may increase load time)
+      showSome: Show some clusters (may improve load time)
+      showingAll: Showing {total} clusters.
+      showingSome: Showing {rows} of {total} recently created clusters.
     provider: Provider
     distro: Distro
     kubernetesVersion: Kubernetes Version

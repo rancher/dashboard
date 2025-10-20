@@ -29,6 +29,8 @@ import UnitInput from '@shell/components/form/UnitInput';
 import FleetClusterTargets from '@shell/components/fleet/FleetClusterTargets/index.vue';
 import { toSeconds } from '@shell/utils/duration';
 import FleetValuesFrom from '@shell/components/fleet/FleetValuesFrom.vue';
+import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
+import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
 
 const MINIMUM_POLLING_INTERVAL = 15;
 
@@ -50,6 +52,8 @@ export default {
     Checkbox,
     CruResource,
     FleetClusterTargets,
+    FleetConfigMapSelector,
+    FleetSecretSelector,
     FleetValuesFrom,
     YamlEditor,
     LabeledInput,
@@ -230,7 +234,15 @@ export default {
       }
 
       return null;
-    }
+    },
+
+    downstreamSecretsList() {
+      return (this.value.spec.helm.downstreamResources || []).filter((r) => r.kind === 'Secret').map((r) => r.name);
+    },
+
+    downstreamConfigMapsList() {
+      return (this.value.spec.helm.downstreamResources || []).filter((r) => r.kind === 'ConfigMap').map((r) => r.name);
+    },
   },
 
   watch: {
@@ -429,7 +441,24 @@ export default {
         }];
         break;
       }
-    }
+    },
+
+    updateDownstreamResources(kind, list) {
+      switch (kind) {
+      case 'Secret':
+        this.value.spec.helm.downstreamResources = [
+          ...(this.value.spec.helm.downstreamResources || []).filter((r) => r.kind !== 'Secret'),
+          ...(list || []).map((name) => ({ name, kind: 'Secret' })),
+        ];
+        break;
+      case 'ConfigMap':
+        this.value.spec.helm.downstreamResources = [
+          ...(this.value.spec.helm.downstreamResources || []).filter((r) => r.kind !== 'ConfigMap'),
+          ...(list || []).map((name) => ({ name, kind: 'ConfigMap' })),
+        ];
+        break;
+      }
+    },
   },
 };
 </script>
@@ -711,6 +740,26 @@ export default {
 
       <h2 v-t="'fleet.helmOp.resources.label'" />
 
+      <div class="row mt-20 mb-20">
+        <div class="col span-6">
+          <FleetSecretSelector
+            :value="downstreamSecretsList"
+            :namespace="value.metadata.namespace"
+            :mode="mode"
+            @update:value="updateDownstreamResources('Secret', $event)"
+          />
+        </div>
+      </div>
+      <div class="row mt-20 mb-20">
+        <div class="col span-6">
+          <FleetConfigMapSelector
+            :value="downstreamConfigMapsList"
+            :namespace="value.metadata.namespace"
+            :mode="mode"
+            @update:value="updateDownstreamResources('ConfigMap', $event)"
+          />
+        </div>
+      </div>
       <div class="resource-handling mb-30">
         <Checkbox
           v-model:value="correctDriftEnabled"
