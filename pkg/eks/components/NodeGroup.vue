@@ -292,7 +292,7 @@ export default defineComponent({
         this.$emit('update:instanceType', null);
       } else {
         this.$emit('update:spotInstanceTypes', []);
-        // when disabling spot instances, we want to make sure we have a default on-demand instance type selected
+        // when disabling spot instances, we want to make sure we have a default instance type selected
         this.$emit('update:instanceType', this.instanceType || this.defaultInstanceType);
       }
     },
@@ -494,8 +494,9 @@ export default defineComponent({
 
   methods: {
     filterByArchitecture(options) {
-      // If no architecture is selected or 'all' is selected, return the original options
-      if (!this.architecture || this.architecture === 'all') {
+      const { architecture } = this;
+
+      if (!architecture || architecture === 'all') {
         return options;
       }
 
@@ -515,12 +516,11 @@ export default defineComponent({
         }
       }
 
-      // Now, filter the items within each group based on the selected architecture.
-      // We'll build a new flat list containing only the groups that have matching items.
+      // Filter groups to only include those with items matching the selected architecture.
       const out = [];
 
       for (const group of grouped) {
-        const matchingItems = group.items.filter((item) => (item.supportedArchitectures || ['x86_64']).includes(this.architecture)
+        const matchingItems = group.items.filter((item) => (item.supportedArchitectures || ['x86_64']).includes(architecture)
         );
 
         // If a group has at least one matching item, add the group header and the matching items to the output.
