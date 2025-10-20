@@ -53,23 +53,19 @@ export class Inactivity {
     }
   }
 
-  public async updateUserActivity(store: any, sessionTokenName: string, seenAt: string): Promise<UserActivityResponse> {
+  public async updateUserActivity(userActivityResource: any, sessionTokenName: string, seenAt: string): Promise<UserActivityResponse> {
+    console.error('****** updateUserActivity userActivityResource', userActivityResource);
+
     const spec: SpecData = { tokenId: sessionTokenName };
 
     if (seenAt) {
       spec.seenAt = seenAt;
     }
 
-    const updateUserActivity = await store.dispatch('management/create', {
-      apiVersion: 'ext.cattle.io/v1',
-      kind:       'UserActivity',
-      type:       EXT.USER_ACTIVITY,
-      metadata:   { name: sessionTokenName },
-      spec
-    });
+    userActivityResource.spec = spec;
 
     try {
-      const savedData = await updateUserActivity.save({ force: true });
+      const savedData = await userActivityResource.save({ force: true });
 
       return savedData;
     } catch (e: any) {
@@ -86,7 +82,7 @@ export class Inactivity {
     const thresholdSeconds = Math.floor((endDate - currDate) / 1000) - 3;
 
     // Amount of time the user sees the inactivity warning
-    const courtesyTimerVal = Math.floor(thresholdSeconds * 0.1); // the modal is shown for 10% of the total time to display
+    const courtesyTimerVal = Math.floor(thresholdSeconds * 0.2); // the modal is shown for 10% of the total time to display
     const courtesyTimer = Math.min(courtesyTimerVal, 60 * 5); // Never show the modal more than 5 minutes
 
     const courtesyCountdown = courtesyTimer;

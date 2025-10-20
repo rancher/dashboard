@@ -34,15 +34,6 @@ export default {
       id:                      null
     };
   },
-  async mounted() {
-    const tokenName = Inactivity.getSessionTokenName();
-
-    if (tokenName) {
-      this.sessionTokenName = tokenName;
-    }
-
-    await this.initializeInactivityData();
-  },
   beforeUnmount() {
     this.removeEventListeners();
     this.clearAllTimeouts();
@@ -96,34 +87,29 @@ export default {
       async handler(neu, old) {
         console.error('watcherData RAN neu!!!', neu);
         console.error('watcherData RAN old!!!', old);
+
+        if (!old?.isFeatureEnabled && neu?.isFeatureEnabled) {
+          const tokenName = Inactivity.getSessionTokenName();
+
+          if (tokenName) {
+            this.sessionTokenName = tokenName;
+          }
+
+          await this.initializeInactivityData();
+        }
+
         const currDate = Date.now();
         const endDate = new Date(neu.userActivityExpiresAt || '0001-01-01 00:00:00 +0000 UTC').getTime();
 
         if (endDate > currDate && neu?.sessionTokenName && neu?.isFeatureEnabled) {
-          console.error('watcherData passed gate 2!!!');
+          console.error('LETS START THE PARTY!!!!');
           // feature is considered as enabled
           // make sure we always clean up first so that we don't get duplicate timers running
           this.stopInactivity();
 
-          console.error('LETS START THE PARTY!!!!');
-          const data = Inactivity.parseTTLData(this.userActivityResource);
+          // resets inactivity data and timers, starting the inactivity again with the proper data
+          this.resetInactivityDataAndTimers(this.userActivityResource);
 
-          console.error('parseTTLData data', data);
-
-          // set all the data required for the timers to work properly
-          this.courtesyTimer = data.courtesyTimer;
-          this.courtesyCountdown = data.courtesyCountdown;
-          this.showModalAfter = data.showModalAfter;
-          this.sessionTokenName = data.sessionTokenName;
-          this.expiresAt = data.expiresAt;
-
-          const shownAfter = Math.round(((data.showModalAfter || 0) / 60) * 100) / 100;
-          const shownFor = Math.round(((data.courtesyTimer || 0) / 60) * 100) / 100;
-
-          console.debug(`UI inactivity modal (backend-based) will show after ${ shownAfter }(m) and be shown for ${ shownFor }(m)`); // eslint-disable-line no-console
-
-          // start timers
-          this.trackInactivity();
           // add event listeners for UI interaction
           this.addIdleListeners();
         }
@@ -173,7 +159,7 @@ export default {
         // If expiresAt isn't initialised yet '0001-01-01 00:00:00 +0000 UTC' || '', or just passed the 'now' date
         // We need to update/initialise the UserActivity resource
         if ((currDate > endDate) || !expiresAt) {
-          const updatedData = await Inactivity.updateUserActivity(this.$store, this.sessionTokenName, new Date().toISOString());
+          const updatedData = await Inactivity.updateUserActivity(this.userActivityResource, this.sessionTokenName, new Date().toISOString());
 
           this.expiresAt = updatedData?.status?.expiresAt;
         } else if (expiresAt) {
@@ -217,7 +203,7 @@ export default {
               this.resetUserActivity();
             } else {
               console.error('BEFORE OPEN MODAL TIMER, DOUBLE-CHECKING BACKEND INACTIVITY DATA before show modal');
-              this.checkBackendInactivity();
+              this.checkBackendInactivity(this.expiresAt);
             }
           }
 
@@ -227,18 +213,6 @@ export default {
 
       checkInactivityTimer();
     },
-    async checkBackendInactivity() {
-      let isUserActive = false;
-      const userActivityData = await Inactivity.getUserActivity(this.$store, this.sessionTokenName);
-
-      // this means that something updated the backend expiresAt, which means we must now reset the timers and adjust for new data
-      if (userActivityData?.status?.expiresAt && (userActivityData?.status?.expiresAt !== this.expiresAt)) {
-        isUserActive = true;
-        this.resetInactivityDataAndTimers(userActivityData);
-      }
-
-      return isUserActive;
-    },
     startCountdown() {
       const endTime = Date.now() + (this.courtesyCountdown * 1000);
 
@@ -247,7 +221,9 @@ export default {
 
         if (now >= endTime) {
           this.clearAllTimeouts();
-          const isUserActive = await this.checkBackendInactivity();
+          const isUserActive = await this.checkBackendInactivity(this.expiresAt);
+
+          console.error('countdown isUserActive response - right before logout', isUserActive);
 
           if (!isUserActive) {
             console.error('LOGGING OUT USER FROM THE UI!!!!!!');
@@ -261,6 +237,22 @@ export default {
       };
 
       checkCountdown();
+    },
+    async checkBackendInactivity(currExpiresAt) {
+      let isUserActive = false;
+      const userActivityData = await Inactivity.getUserActivity(this.$store, this.sessionTokenName);
+
+      console.error('check backend inactivity data', JSON.stringify(userActivityData, null, 2));
+      console.error('backend inactivity data expiresAt', JSON.stringify(userActivityData?.status?.expiresAt, null, 2));
+      console.error('curr expiresAt', JSON.stringify(currExpiresAt, null, 2));
+
+      // this means that something updated the backend expiresAt, which means we must now reset the timers and adjust for new data
+      if (userActivityData?.status?.expiresAt && (userActivityData?.status?.expiresAt !== currExpiresAt)) {
+        isUserActive = true;
+        this.resetInactivityDataAndTimers(userActivityData);
+      }
+
+      return isUserActive;
     },
     setUserAsActive() {
       this.isUserActive = true;
@@ -289,7 +281,7 @@ export default {
         seenAt = this.userActivityIsoDate;
       }
 
-      const userActivityData = await Inactivity.updateUserActivity(this.$store, this.sessionTokenName, seenAt);
+      const userActivityData = await Inactivity.updateUserActivity(this.userActivityResource, this.sessionTokenName, seenAt);
 
       this.resetInactivityDataAndTimers(userActivityData);
     },
@@ -301,6 +293,7 @@ export default {
 
       this.removeEventListeners();
       this.clearAllTimeouts();
+      console.error('finshed stopping inactivity!');
     },
     resetInactivityDataAndTimers(userActivityData) {
       const data = Inactivity.parseTTLData(userActivityData);
@@ -316,12 +309,18 @@ export default {
       this.sessionTokenName = data.sessionTokenName;
       this.expiresAt = data.expiresAt;
 
+      const shownAfter = Math.round(((data.showModalAfter || 0) / 60) * 100) / 100;
+      const shownFor = Math.round(((data.courtesyTimer || 0) / 60) * 100) / 100;
+
+      console.debug(`UI inactivity modal (backend-based) will show after ${ shownAfter }(m) and be shown for ${ shownFor }(m)`); // eslint-disable-line no-console
+
       this.clearAllTimeouts();
       this.trackInactivity();
     },
     clearAllTimeouts() {
       clearTimeout(this.inactivityTimeoutId);
       clearTimeout(this.courtesyTimerId);
+      console.error('finshed clearing timeouts!');
     }
   },
 };
