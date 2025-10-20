@@ -2,8 +2,9 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import AzureadPo from '@/cypress/e2e/po/edit/auth/azuread.po';
 import { AuthProvider, AuthProviderPo } from '@/cypress/e2e/po/pages/users-and-auth/authProvider.po';
 
-const authProviderPo = new AuthProviderPo('local');
-const azureadPo = new AzureadPo('local');
+const authClusterId = '_';
+const authProviderPo = new AuthProviderPo(authClusterId);
+const azureadPo = new AzureadPo(authClusterId);
 
 const tenantId = '564b6f53-ebf4-43c3-8077-44c56a44990a';
 const applicationId = '18cca356-170e-4bd9-a4a4-2e349855f96b';

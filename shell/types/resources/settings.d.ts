@@ -20,14 +20,39 @@ export interface PaginationSettingsStore {
   }
 }
 
-/**
+/*
  * Determine which resources can utilise server-side pagination
  */
 export interface PaginationSettingsStores {
   [store: string]: PaginationSettingsStore
 }
 
-export type PaginationFeature = 'listAutoRefreshToggle' | 'listManualRefresh'
+/**
+ * Names of pagination features used in pagination settings (not featureflags)
+ */
+export type PaginationFeatureName = 'listAutoRefreshToggle' | 'listManualRefresh' | 'homePageCluster'
+
+export type PaginationFeatureHomePageClusterConfig = {
+  threshold: number,
+  results: number,
+  pagesPerRow: number
+}
+
+/**
+ * Details of a specific pagination feature
+ */
+export type PaginationFeature<Config = any> = {
+  version: number,
+  enabled: boolean,
+  configuration?: Config,
+}
+
+/**
+ * List of specific features that can be enabled / disabled
+ */
+export type PaginationSettingsFeatures = {
+  [key in PaginationFeatureName]?: PaginationFeature
+}
 
 /**
  * Settings to handle server side pagination
@@ -45,11 +70,7 @@ export interface PaginationSettings {
   /**
    * List of specific features that can be enabled / disabled
    */
-  features?: {
-    [key in PaginationFeature]: {
-      enabled: boolean,
-    }
-  },
+  features?: PaginationSettingsFeatures,
 
   /**
    * Debounce the amount of time between a resource changing and the backend sending a resource.changes message
@@ -82,6 +103,7 @@ type ManagedFields = {
   time: string;
 };
 
+// Note - this should now be @RancherKubeMetadata
 type Metadata = {
   creationTimestamp: string;
   fields: string[];

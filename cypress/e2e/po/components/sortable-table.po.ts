@@ -20,8 +20,8 @@ export default class SortableTablePo extends ComponentPo {
   /**
    * Returns the link for resource details for a table row with a given name
    */
-  detailsPageLinkWithName(name: string) {
-    return this.rowElementWithName(name).find('td.col-link-detail a');
+  detailsPageLinkWithName(name: string, selector = 'td.col-link-detail a') {
+    return this.rowElementWithName(name).find(selector);
   }
 
   /**
