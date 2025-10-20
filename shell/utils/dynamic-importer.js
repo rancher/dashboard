@@ -25,7 +25,7 @@ export function importLogin(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "login" */ `@shell/components/auth/login/${name}`));
+  return defineAsyncComponent(resolveLogin(name));
 }
 
 export function importChart(name) {
@@ -65,7 +65,7 @@ export function importDialog(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "dialog" */ `@shell/dialog/${name}`));
+  return defineAsyncComponent(resolveDialog(name));
 }
 
 export function importDrawer(name) {
@@ -73,7 +73,7 @@ export function importDrawer(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "drawer" */ `@shell/components/Drawer/${name}`));
+  return defineAsyncComponent(resolveDrawer(name));
 }
 
 export function importWindowComponent(name) {
@@ -110,7 +110,7 @@ export function loadTranslation(name) {
 }
 
 export function importCustomPromptRemove(name) {
-  return defineAsyncComponent(() => import(/* webpackChunkName: "custom-prompt-remove" */ `@shell/promptRemove/${ name }`));
+  return defineAsyncComponent(resolveCustomPromptRemove(name));
 }
 
 export function resolveList(key) {
@@ -139,4 +139,20 @@ export function resolveMachineConfigComponent(key) {
 
 export function resolveCloudCredentialComponent(key) {
   return () => import(/* webpackChunkName: "cloud-credential" */ `@shell/cloud-credential/${key}`)
+}
+
+export function resolveLogin(key) {
+  return () => import(/* webpackChunkName: "login" */ `@shell/components/auth/login/${key}`)
+}
+
+export function resolveDialog(key) {
+  return () => import(/* webpackChunkName: "dialog" */ `@shell/dialog/${key}`)
+}
+
+export function resolveDrawer(key) {
+  return () => import(/* webpackChunkName: "drawer" */ `@shell/components/Drawer/${key}`)
+}
+
+export function resolveCustomPromptRemove(key) {
+  return () => import(/* webpackChunkName: "custom-prompt-remove" */ `@shell/promptRemove/${ key }`)
 }
