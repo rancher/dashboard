@@ -1151,7 +1151,13 @@ export const getters = {
     return (rawType) => {
       const key = getters.componentFor(rawType);
 
-      return hasCustom(state, rootState, 'list', key, (key) => resolveList(key));
+      return hasCustom(
+        state,
+        rootState,
+        'list',
+        key,
+        defineAsyncComponent(resolveList(key)),
+      );
     };
   },
 
@@ -1159,7 +1165,13 @@ export const getters = {
     return (rawType) => {
       const key = getters.componentFor(rawType);
 
-      return hasCustom(state, rootState, 'chart', key, (key) => resolveChart(key));
+      return hasCustom(
+        state,
+        rootState,
+        'chart',
+        key,
+        defineAsyncComponent(resolveChart(key)),
+      );
     };
   },
 
@@ -1167,7 +1179,13 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'detail', key, (key) => resolveDetail(key));
+      return hasCustom(
+        state,
+        rootState,
+        'detail',
+        key,
+        defineAsyncComponent(resolveDetail(key)),
+      );
     };
   },
 
@@ -1182,13 +1200,25 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'edit', key, (key) => resolveEdit(key));
+      return hasCustom(
+        state,
+        rootState,
+        'edit',
+        key,
+        defineAsyncComponent(resolveEdit(key)),
+      );
     };
   },
 
   hasComponent(state, getters, rootState) {
     return (path) => {
-      return hasCustom(state, rootState, 'edit', path, (path) => resolveEdit(path));
+      return hasCustom(
+        state,
+        rootState,
+        'edit',
+        path,
+        defineAsyncComponent(resolveEdit(path)),
+      );
     };
   },
 
@@ -1204,7 +1234,13 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'windowComponents', key, (key) => resolveWindowComponent(key));
+      return hasCustom(
+        state,
+        rootState,
+        'windowComponents',
+        key,
+        defineAsyncComponent(resolveWindowComponent(key)),
+      );
     };
   },
 
@@ -1212,7 +1248,13 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'machine-config', key, (key) => resolveMachineConfigComponent(key));
+      return hasCustom(
+        state,
+        rootState,
+        'machine-config',
+        key,
+        defineAsyncComponent(resolveMachineConfigComponent(key)),
+      );
     };
   },
 
@@ -1220,7 +1262,13 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'cloud-credential', key, (key) => resolveCloudCredentialComponent(key));
+      return hasCustom(
+        state,
+        rootState,
+        'cloud-credential',
+        key,
+        defineAsyncComponent(resolveCloudCredentialComponent(key)),
+      );
     };
   },
 
