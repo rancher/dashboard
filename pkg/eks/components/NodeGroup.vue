@@ -297,8 +297,8 @@ export default defineComponent({
       }
     },
 
-    'architecture'(neu, old) {
-      if (neu === old || this.templateValue('instanceType')) {
+    'architecture'() {
+      if (this.templateValue('instanceType')) {
         return;
       }
 
