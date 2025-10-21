@@ -59,6 +59,8 @@ export default {
           :side-tabs="true"
           :show-tabs-add-remove="mode !== 'view'"
           :use-hash="useTabbedHash"
+          :default-tab="defaultTab"
+
           @addTab="addPolicyRule"
           @removeTab="removePolicyRule"
         >
