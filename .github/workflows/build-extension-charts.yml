@@ -113,7 +113,7 @@ jobs:
 
   release:
     name: Release Build
-    if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') || inputs.is_test != 'true'
+    if: inputs.create_pr != 'true' && (github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') || inputs.is_test != 'true')
     needs: build-extension-artifact
     runs-on: ubuntu-latest
     permissions:
@@ -183,7 +183,6 @@ jobs:
         with:
           name: charts
 
-      # this is if we want to create a PR instead of push directly to a branch
       - name: Generate branch name based on date and time
         run: echo "NOW=$(date +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_ENV
 
@@ -212,18 +211,3 @@ jobs:
             echo "Failed to create PR."
             exit 1
           fi
-      # end of PR creation
-
-      - name: Commit build
-        run: |
-          git add ./{assets,charts,extensions,index.yaml}
-          git commit -a -m "${{ env.CI_COMMIT_MESSAGE }}"
-          git push
-
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.7.0
-        with:
-          charts_dir: ./charts/*
-        env:
-          CR_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-          CR_SKIP_EXISTING: true
