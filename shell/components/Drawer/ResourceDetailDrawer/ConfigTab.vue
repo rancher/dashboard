@@ -3,17 +3,21 @@ import { useI18n } from '@shell/composables/useI18n';
 import { _VIEW } from '@shell/config/query-params';
 import { useStore } from 'vuex';
 import Tab from '@shell/components/Tabbed/Tab.vue';
+import { provide } from 'vue';
 
 export interface Props {
   resource: any;
   component: any;
   resourceType: string;
+  defaultTab?: string;
 }
 </script>
 <script setup lang="ts">
 const props = defineProps<Props>();
 const store = useStore();
 const i18n = useI18n(store);
+
+provide('default-tab', props.defaultTab);
 </script>
 <template>
   <Tab

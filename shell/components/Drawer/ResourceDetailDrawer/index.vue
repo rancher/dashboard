@@ -12,6 +12,7 @@ import StateDot from '@shell/components/StateDot/index.vue';
 
 export interface Props {
   resource: any;
+  defaultTab?: string;
 
   onClose?: () => void;
 }
@@ -85,6 +86,7 @@ const canEdit = computed(() => {
         <ConfigTab
           v-if="configTabProps"
           v-bind="configTabProps"
+          :defaultTab="props.defaultTab"
         />
         <YamlTab
           v-if="yamlTabProps"

@@ -36,7 +36,7 @@ export const useDefaultMetadataProps = (resource: any, additionalIdentifyingInfo
       identifyingInformation: identifyingInformation.value,
       labels:                 basicMetaData.value.labels,
       annotations:            basicMetaData.value.annotations,
-      onShowConfiguration:    (returnFocusSelector: string) => resourceValue.showConfiguration(returnFocusSelector)
+      onShowConfiguration:    (returnFocusSelector: string, defaultTab?: string) => resourceValue.showConfiguration(returnFocusSelector, defaultTab)
     };
   });
 };
@@ -71,7 +71,7 @@ export const useDefaultMetadataForLegacyPagesProps = (resource: any) => {
       identifyingInformation: identifyingInformation.value,
       labels:                 basicMetaData.value.labels,
       annotations:            basicMetaData.value.annotations,
-      onShowConfiguration:    (returnFocusSelector?: string) => resourceValue.showConfiguration(returnFocusSelector)
+      onShowConfiguration:    (returnFocusSelector?: string, defaultTab?: string) => resourceValue.showConfiguration(returnFocusSelector, defaultTab)
     };
   });
 };
