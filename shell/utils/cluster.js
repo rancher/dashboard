@@ -344,7 +344,7 @@ export async function initSchedulingCustomization(value, features, store, mode) 
  * @param {object} userVals - The object containing the user's custom values.
  * @returns {object} A new object containing only the relevant differences.
  */
-function _addonConfigPreserveFilter(diffs, userVals) {
+export function _addonConfigPreserveFilter(diffs, userVals) {
   const filtered = {};
 
   for (const key of Object.keys(diffs)) {
