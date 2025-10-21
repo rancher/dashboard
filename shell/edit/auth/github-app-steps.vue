@@ -65,7 +65,7 @@ defineProps<{
             </b>:
             {{ t(`authConfig.${name}.form.callback.value`, tArgs, true) }}
             <CopyToClipboard
-              :text="tArgs.serverUrl"
+              :text="t(`authConfig.${name}.form.callback.value`, tArgs, true)"
               label-as="tooltip"
               class="icon-btn"
               action-color="bg-transparent"
