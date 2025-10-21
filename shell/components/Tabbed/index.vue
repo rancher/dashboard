@@ -7,6 +7,7 @@ import findIndex from 'lodash/findIndex';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import Tab from '@shell/components/Tabbed/Tab';
+import { inject } from 'vue';
 
 export default {
   name: 'Tabbed',
@@ -115,6 +116,7 @@ export default {
     });
 
     return {
+      initialTab:    inject('default-tab', null) || this.defaultTab,
       tabs:          [...parsedExtTabs],
       extensionTabs: parsedExtTabs,
       activeTabName: null
@@ -136,7 +138,7 @@ export default {
   watch: {
     sortedTabs(tabs) {
       const {
-        defaultTab,
+        initialTab,
         useHash
       } = this;
       const activeTab = tabs.find((t) => t.active);
@@ -149,8 +151,8 @@ export default {
       if (isEmpty(activeTab)) {
         if (useHash && !isEmpty(windowHashTabMatch)) {
           this.select(windowHashTabMatch.name);
-        } else if (!isEmpty(defaultTab) && !isEmpty(tabs.find((t) => t.name === defaultTab))) {
-          this.select(defaultTab);
+        } else if (!isEmpty(initialTab) && !isEmpty(tabs.find((t) => t.name === initialTab))) {
+          this.select(initialTab);
         } else if (firstTab?.name) {
           this.select(firstTab.name);
         }

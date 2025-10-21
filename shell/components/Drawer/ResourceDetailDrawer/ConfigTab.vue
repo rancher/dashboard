@@ -4,10 +4,13 @@ import { _VIEW } from '@shell/config/query-params';
 import { useStore } from 'vuex';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import { ConfigProps } from '@shell/components/Drawer/ResourceDetailDrawer/types';
+import { provide } from 'vue';
 
 const props = defineProps<ConfigProps>();
 const store = useStore();
 const i18n = useI18n(store);
+
+provide('default-tab', props.defaultTab);
 </script>
 <template>
   <Tab

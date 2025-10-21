@@ -79,6 +79,7 @@ const canEdit = computed(() => {
         <ConfigTab
           v-if="configTabProps"
           v-bind="configTabProps"
+          :defaultTab="props.defaultTab"
         />
         <YamlTab
           v-if="yamlTabProps"
