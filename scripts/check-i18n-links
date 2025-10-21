@@ -71,7 +71,7 @@ if (docsBaseUrl.length === 0) {
   process.exit(1);
 }
 
-const versionFile = fs.readFileSync(path.join(srcFolder, 'config', 'version.js'), 'utf8');
+const versionFile = fs.readFileSync(path.join(srcFolder, 'config', 'version.ts'), 'utf8');
 const versionFileMatches = versionFile.match(VERSION_REGEX);
 
 if (versionFileMatches && versionFileMatches.length === 2) {
