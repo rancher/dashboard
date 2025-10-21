@@ -54,8 +54,6 @@ export class Inactivity {
   }
 
   public async updateUserActivity(userActivityResource: any, sessionTokenName: string, seenAt: string): Promise<UserActivityResponse> {
-    console.error('****** updateUserActivity userActivityResource', userActivityResource);
-
     const spec: SpecData = { tokenId: sessionTokenName };
 
     if (seenAt) {

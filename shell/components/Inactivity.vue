@@ -79,15 +79,11 @@ export default {
 
   watch: {
     // every time the Idle setting changes, we need to fetch the updated userActivity
-    async ttlIdleValue(neu) {
-      console.error('ttlIdleValue value updated!!!', neu);
+    async ttlIdleValue() {
       await Inactivity.getUserActivity(this.$store, this.sessionTokenName);
     },
     watcherData: {
       async handler(neu, old) {
-        console.error('watcherData RAN neu!!!', neu);
-        console.error('watcherData RAN old!!!', old);
-
         if (!old?.isFeatureEnabled && neu?.isFeatureEnabled) {
           const tokenName = Inactivity.getSessionTokenName();
 
@@ -102,7 +98,6 @@ export default {
         const endDate = new Date(neu.userActivityExpiresAt || '0001-01-01 00:00:00 +0000 UTC').getTime();
 
         if (endDate > currDate && neu?.sessionTokenName && neu?.isFeatureEnabled) {
-          console.error('LETS START THE PARTY!!!!');
           // feature is considered as enabled
           // make sure we always clean up first so that we don't get duplicate timers running
           this.stopInactivity();
@@ -125,7 +120,6 @@ export default {
 
   methods: {
     async initializeInactivityData() {
-      console.error('initializeInactivityData!!!');
       const canListUserAct = this.$store.getters[`management/canList`](EXT.USER_ACTIVITY);
       const canListTokens = this.$store.getters[`rancher/canList`](NORMAN.TOKEN);
 
@@ -141,7 +135,6 @@ export default {
           });
 
           if (sessionToken?.name) {
-            console.error('SETTING TOKEN NAME', sessionToken.name);
             this.sessionTokenName = sessionToken.name;
             Inactivity.setSessionTokenName(sessionToken.name);
           }
@@ -149,8 +142,6 @@ export default {
 
         // get the latest userActivity data so that get reactivity on all this logic
         const userActivityData = await Inactivity.getUserActivity(this.$store, this.sessionTokenName, false);
-
-        console.error('INIT SESSION IDLE first fetch UserActivity', userActivityData);
 
         const expiresAt = userActivityData?.status?.expiresAt;
         const currDate = Date.now();
@@ -184,10 +175,7 @@ export default {
           return;
         }
 
-        console.log(`****** checkInactivityTimer diff`, Math.floor((endTime - now) / 1000));
-
         if (now >= endTime) {
-          console.error('OPENING MODAL');
           this.isOpen = true;
           this.startCountdown();
         } else {
@@ -196,13 +184,9 @@ export default {
           if (now >= endTime - (MODAL_VISIBILITY_CHECK_DELAY_SECONDS * 1000) && !this.modalVisibilityCheckRan) {
             this.modalVisibilityCheckRan = true;
 
-            console.error('X SECONDS TO GO BEFORE MODAL IS VISIBLE!!!!');
-
             if (this.isUserActive) {
-              console.error('USER IS ACTIVE, RESETTING USER ACTIVITY before show modal');
               this.resetUserActivity();
             } else {
-              console.error('BEFORE OPEN MODAL TIMER, DOUBLE-CHECKING BACKEND INACTIVITY DATA before show modal');
               this.checkBackendInactivity(this.expiresAt);
             }
           }
@@ -223,11 +207,7 @@ export default {
           this.clearAllTimeouts();
           const isUserActive = await this.checkBackendInactivity(this.expiresAt);
 
-          console.error('countdown isUserActive response - right before logout', isUserActive);
-
           if (!isUserActive) {
-            console.error('LOGGING OUT USER FROM THE UI!!!!!!');
-
             return this.$store.dispatch('auth/logout', { sessionIdle: true });
           }
         } else {
@@ -241,10 +221,6 @@ export default {
     async checkBackendInactivity(currExpiresAt) {
       let isUserActive = false;
       const userActivityData = await Inactivity.getUserActivity(this.$store, this.sessionTokenName);
-
-      console.error('check backend inactivity data', JSON.stringify(userActivityData, null, 2));
-      console.error('backend inactivity data expiresAt', JSON.stringify(userActivityData?.status?.expiresAt, null, 2));
-      console.error('curr expiresAt', JSON.stringify(currExpiresAt, null, 2));
 
       // this means that something updated the backend expiresAt, which means we must now reset the timers and adjust for new data
       if (userActivityData?.status?.expiresAt && (userActivityData?.status?.expiresAt !== currExpiresAt)) {
@@ -293,7 +269,6 @@ export default {
 
       this.removeEventListeners();
       this.clearAllTimeouts();
-      console.error('finshed stopping inactivity!');
     },
     resetInactivityDataAndTimers(userActivityData) {
       const data = Inactivity.parseTTLData(userActivityData);
@@ -320,7 +295,6 @@ export default {
     clearAllTimeouts() {
       clearTimeout(this.inactivityTimeoutId);
       clearTimeout(this.courtesyTimerId);
-      console.error('finshed clearing timeouts!');
     }
   },
 };

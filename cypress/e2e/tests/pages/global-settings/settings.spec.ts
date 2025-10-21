@@ -35,29 +35,29 @@ describe('Settings', { testIsolation: 'off' }, () => {
   });
 
   it('Inactivity ::: can update the setting "auth-user-session-idle-ttl-minutes" and should show the the inactivity modal', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    let callCount = 0;
+    let callCountGet = 0;
+    let callCountPut = 0;
 
     // Prepare for the update of the UserActivity after the update of "auth-user-session-idle-ttl-minutes" setting
     // Let's increment the curr ISO date in 30 seconds so that we can test the feature in a timely manner
     // we need to give it 30 seconds so that the timer on the modal doesn't go out too quickly
     // not giving enough time to assert the contents of the modal
+    // but it needs to be a "fixed" date so that when backend inactivity checks are done, dates are the same
+    // and there's no backend change
     const now = new Date();
 
     now.setSeconds(now.getSeconds() + 30);
-    const newIsoDate = now.toISOString();
+    const updatedIsoDateFixed = now.toISOString();
 
     // we intercept the GET to UserActivity that runs on every setting update
     cy.intercept('GET', `/v1/ext.cattle.io.useractivities/*`, (req) => {
-      callCount++;
+      callCountGet++;
 
-      // we need to intercept the 2nd request (which is the first after we change the setting)
-      //
-      // we intercept the 3rd request because of all the clicking around, the user is considered active
-      // so we need to "trick" the timer again so that when it checks again the user activity (mouse clicks, wiggles)
-      // we are really making sure we are displaying the modal that we want to assert
-      if (callCount === 2 || callCount === 3) {
+      // we need to intercept the 1st request - findAll (first check of setting)
+      // we intercept the 2nd request because it's re-checking if the user is active before showing the modal
+      if (callCountGet <= 2) {
         req.continue((res) => {
-          res.body.status.expiresAt = newIsoDate;
+          res.body.status.expiresAt = updatedIsoDateFixed;
           res.send(res.body);
         });
       } else {
@@ -65,18 +65,19 @@ describe('Settings', { testIsolation: 'off' }, () => {
       }
     }).as('getUpdatedUserActivity');
 
-    // this to intercept "resume session" click and get another low expiresAt so that we can assert that
-    // after a click on the UI, on the next check for userActivity, it gets pushed further in time because the user is not active
-    cy.intercept('POST', `/v1/ext.cattle.io.useractivities`, (req) => {
-      req.continue((res) => {
-        const now = new Date();
+    // we need to intercept the first request here because of the clicking around the user is considered active
+    // so we need to make sure date doesn't change so that we can show the modal
+    cy.intercept('PUT', `/v1/ext.cattle.io.useractivities/*`, (req) => {
+      callCountPut++;
 
-        now.setSeconds(now.getSeconds() + 20);
-        const updatedIsoDate = now.toISOString();
-
-        res.body.status.expiresAt = updatedIsoDate;
-        res.send(res.body);
-      });
+      if (callCountPut === 1) {
+        req.continue((res) => {
+          res.body.status.expiresAt = updatedIsoDateFixed;
+          res.send(res.body);
+        });
+      } else {
+        req.continue();
+      }
     }).as('postUpdatedUserActivity');
 
     // Update setting "auth-user-session-idle-ttl-minutes" for the e2e test
