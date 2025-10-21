@@ -25,6 +25,7 @@ const i18n = useI18n(store);
         :real-mode="_VIEW"
         :initial-value="props.resource"
         :use-tabbed-hash="false /* Have to disable hashing on child components or it modifies the url and closes the drawer */"
+        :default-tab="props.defaultTab"
         as="config"
       />
     </div>

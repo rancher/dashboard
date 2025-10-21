@@ -155,6 +155,7 @@ export default {
         :default-tab="defaultTab"
         :flat="true"
         :use-hash="useTabbedHash"
+
         data-testid="workload-horizontal-tabs"
         @changed="changed"
       >
@@ -171,6 +172,7 @@ export default {
             :weight="99"
             :data-testid="`workload-container-tabs-${i}`"
             :use-hash="useTabbedHash"
+            :default-tab="defaultTab"
           >
             <Tab
               :label="t('workload.container.titles.general')"
@@ -368,6 +370,7 @@ export default {
             data-testid="workload-general-tabs"
             :side-tabs="true"
             :use-hash="useTabbedHash"
+            :default-tab="defaultTab"
           >
             <Tab
               name="labels"
@@ -410,6 +413,7 @@ export default {
             data-testid="workload-pod-tabs"
             :side-tabs="true"
             :use-hash="useTabbedHash"
+            :default-tab="defaultTab"
           >
             <Tab
               :label="t('workload.storage.title')"
