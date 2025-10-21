@@ -97,6 +97,11 @@ export default {
     },
 
     validationPassed() {
+      // Allows for configuring authorized users and groups
+      if ( this.model.enabled && !this.editConfig ) {
+        return true;
+      }
+
       if (!this.model.clientId || !this.model.clientSecret) {
         return false;
       }
