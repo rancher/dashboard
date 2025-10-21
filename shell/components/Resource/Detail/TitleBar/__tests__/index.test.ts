@@ -3,8 +3,6 @@ import TitleBar from '@shell/components/Resource/Detail/TitleBar/index.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { createStore } from 'vuex';
 
-jest.mock(`@shell/assets/images/icons/document.svg`, () => `@shell/assets/images/icons/document.svg`);
-
 describe('component: TitleBar/index', () => {
   const resourceTypeLabel = 'RESOURCE_TYPE_LABEL';
   const resourceTo = 'RESOURCE_TO';
