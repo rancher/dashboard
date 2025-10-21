@@ -16,7 +16,7 @@ export function getVersionData() {
   return _versionData;
 }
 
-export function setVersionData(v) {
+export function setVersionData(v: any) {
   // Remove any properties on 'v' we don't want
   _versionData = JSON.parse(JSON.stringify(v));
 }
@@ -25,7 +25,7 @@ export function getKubeVersionData() {
   return _kubeVersionData;
 }
 
-export function setKubeVersionData(v) {
+export function setKubeVersionData(v: any) {
   // Remove any properties on 'v' we don't want
   _kubeVersionData = JSON.parse(JSON.stringify(v));
 }

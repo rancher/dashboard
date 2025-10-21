@@ -33,6 +33,10 @@ export function importDialog(name) {
   return () => undefined;
 }
 
+export function importDrawer(name) {
+  return () => undefined;
+}
+
 export function listProducts() {
   return [];
 }
