@@ -1,7 +1,7 @@
 {
   "name": "@rancher/create-extension",
   "description": "Rancher UI Extension generator",
-  "version": "3.0.7",
+  "version": "3.0.8",
   "license": "Apache-2.0",
   "author": "SUSE",
   "packageManager": "yarn@4.5.0",
