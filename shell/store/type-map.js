@@ -1149,10 +1149,10 @@ export const getters = {
   // Note 2: Yes these are editing state in a getter for caching... it's ok, probably.
   // ------------------------------------
   hasCustomList(state, getters, rootState) {
-    return (rawType) => {
+    return async(rawType) => {
       const key = getters.componentFor(rawType);
 
-      return hasCustom(
+      return await hasCustom(
         state,
         rootState,
         'list',
@@ -1163,10 +1163,10 @@ export const getters = {
   },
 
   hasCustomChart(state, getters, rootState) {
-    return (rawType) => {
+    return async(rawType) => {
       const key = getters.componentFor(rawType);
 
-      return hasCustom(
+      return await hasCustom(
         state,
         rootState,
         'chart',
@@ -1177,10 +1177,10 @@ export const getters = {
   },
 
   hasCustomDetail(state, getters, rootState) {
-    return (rawType, subType) => {
+    return async(rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(
+      return await hasCustom(
         state,
         rootState,
         'detail',
@@ -1198,10 +1198,10 @@ export const getters = {
   },
 
   hasCustomEdit(state, getters, rootState) {
-    return (rawType, subType) => {
+    return async(rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(
+      return await hasCustom(
         state,
         rootState,
         'edit',
@@ -1212,8 +1212,8 @@ export const getters = {
   },
 
   hasComponent(state, getters, rootState) {
-    return (path) => {
-      return hasCustom(
+    return async(path) => {
+      return await hasCustom(
         state,
         rootState,
         'edit',
@@ -1224,10 +1224,10 @@ export const getters = {
   },
 
   hasCustomPromptRemove(state, getters, rootState) {
-    return (rawType, subType) => {
+    return async(rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(
+      return await hasCustom(
         state,
         rootState,
         'promptRemove',
@@ -1238,10 +1238,10 @@ export const getters = {
   },
 
   hasCustomWindowComponent(state, getters, rootState) {
-    return (rawType, subType) => {
+    return async(rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(
+      return await hasCustom(
         state,
         rootState,
         'windowComponents',
@@ -1252,10 +1252,10 @@ export const getters = {
   },
 
   hasCustomMachineConfigComponent(state, getters, rootState) {
-    return (rawType, subType) => {
+    return async(rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(
+      return await hasCustom(
         state,
         rootState,
         'machine-config',
@@ -1266,10 +1266,10 @@ export const getters = {
   },
 
   hasCustomCloudCredentialComponent(state, getters, rootState) {
-    return (rawType, subType) => {
+    return async(rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(
+      return await hasCustom(
         state,
         rootState,
         'cloud-credential',
@@ -2073,7 +2073,7 @@ export function project(getters) {
   return project;
 }
 
-function hasCustom(state, rootState, kind, key, fallback) {
+async function hasCustom(state, rootState, kind, key, fallback) {
   const cache = state.cache[kind];
 
   if ( cache[key] !== undefined ) {
@@ -2091,7 +2091,7 @@ function hasCustom(state, rootState, kind, key, fallback) {
 
   // Fallback
   try {
-    const importFunc = fallback(key);
+    const importFunc = await fallback.__asyncLoader();
 
     // We're not actually importing here, just checking if the function exists
     if (typeof importFunc === 'function') {
