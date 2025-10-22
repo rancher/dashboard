@@ -11,6 +11,7 @@ import { FLEET as FLEET_LABELS, CAPI } from '@shell/config/labels-annotations';
 import { NAME as EXPLORER_NAME } from '@shell/config/product/explorer';
 import { FleetDashboardState, FleetResourceState, Target, TargetMode } from '@shell/types/fleet';
 import { FLEET, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
+import { HARVESTER_CONTAINER } from '@shell/store/features';
 
 interface Resource extends BundleDeploymentResource {
   state: string,
@@ -33,6 +34,13 @@ function conditionIsTrue(conditions: Condition[] | undefined, type: string): boo
 }
 
 class Application {
+  /**
+   * gitrepos/helmops are already restricted to clusters in their own namespace
+   *
+   * this empty selector means all applicable clusters will be selected
+   */
+  includeAllWorkgroupRule = { clusterSelector: { matchExpressions: [] } }
+
   excludeHarvesterRule = {
     clusterSelector: {
       matchExpressions: [{
@@ -45,7 +53,7 @@ class Application {
     },
   };
 
-  getTargetMode(targets: Target[], namespace: string): TargetMode {
+  getTargetMode(targets: Target[], namespace: string, areHarvesterHostsVisible: boolean): TargetMode {
     if (namespace === 'fleet-local') {
       return 'local';
     }
@@ -84,7 +92,7 @@ class Application {
     });
 
     // Check if targets contains only harvester rule after name normalizing
-    if (isEqual(normalized, [this.excludeHarvesterRule])) {
+    if (!areHarvesterHostsVisible && isEqual(normalized, [this.excludeHarvesterRule])) {
       mode = 'all';
     }
 
