@@ -184,7 +184,9 @@ export class SystemInfoProvider {
     params.push(`v=${ systemData.version }`);
     params.push(`dev=${ systemData.isDeveloperVersion }`);
     params.push(`p=${ systemData.isPrime }`);
-    params.push(`lts=${ systemData.isLTS }`);
+
+    // Remove LTS for now, until we can determine LTS status
+    // params.push(`lts=${ systemData.isLTS }`);
 
     // Clusters
     params.push(`cc=${ systemData.clusterCount }`);
@@ -198,7 +200,7 @@ export class SystemInfoProvider {
     // Extensions
     if (systemData.extensions) {
       params.push(`xkn=${ systemData.extensions.knownInstalled.join(',') }`);
-      params.push(`xcc=${ systemData.extensions.customCount } `);
+      params.push(`xcc=${ systemData.extensions.customCount }`);
     }
 
     // Browser Language

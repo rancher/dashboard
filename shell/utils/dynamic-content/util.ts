@@ -10,6 +10,7 @@
 
 import { randomStr } from '@shell/utils/string';
 import { Configuration, Context } from './types';
+import { Notification } from '@shell/types/notifications';
 
 const MAX_LOG_MESSAGES = 50;
 
@@ -32,18 +33,19 @@ export async function removeMatchingNotifications(context: Context, prefix: stri
   let found = false;
   let removed = 0;
   const all = getters['notifications/all'] || [];
+  const ids = all.map((n: Notification) => n.id);
 
-  for (let i = 0; i < all.length; i++) {
-    const notification = all[i];
+  for (let i = 0; i < ids.length; i++) {
+    const notificationId = ids[i];
 
-    if (notification.id.startsWith(prefix)) {
-      if (notification.id === id) {
+    if (notificationId.startsWith(prefix)) {
+      if (notificationId === id) {
         found = true;
       } else {
-        await dispatch('notifications/remove', notification.id);
+        await dispatch('notifications/remove', notificationId);
         removed++;
 
-        logger.debug(`Remove matching notifications ${ prefix }, ${ currentId } - removed notification ${ notification.id }`);
+        logger.debug(`Remove matching notifications ${ prefix }, ${ currentId } - removed notification ${ notificationId }`);
       }
     }
   }
@@ -64,9 +66,9 @@ export async function removeMatchingNotifications(context: Context, prefix: stri
  */
 export function createLogger(config: Configuration) {
   return {
-    error: (message: string, arg?: any) => log(config, 'error', message, arg),
-    info:  (message: string, arg?: any) => log(config, 'info', message, arg),
-    debug: (message: string, arg?: any) => log(config, 'debug', message, arg),
+    error: (message: string, ...args: any[]) => log(config, 'error', message, ...args),
+    info:  (message: string, ...args: any[]) => log(config, 'info', message, ...args),
+    debug: (message: string, ...args: any[]) => log(config, 'debug', message, ...args),
   };
 }
 
@@ -77,14 +79,14 @@ export function createLogger(config: Configuration) {
  * @param message Log message
  * @param arg Optional argument to be logged
  */
-function log(config: Configuration, level: string, message: string, arg?: any) {
+function log(config: Configuration, level: string, message: string, ...args: any[]) {
   // Log to the console when appropriate
   if (level === 'error') {
-    arg ? console.error(message, arg) : console.error(message); // eslint-disable-line no-console
+    console.error(message, ...args); // eslint-disable-line no-console
   } else if (level === 'info' && config.log) {
-    arg ? console.info(message, arg) : console.info(message); // eslint-disable-line no-console
+    console.info(message, ...args); // eslint-disable-line no-console
   } else if (level === 'debug' && config.debug) {
-    arg ? console.debug(message, arg) : console.debug(message); // eslint-disable-line no-console
+    console.debug(message, ...args); // eslint-disable-line no-console
   }
 
   // Only log to local storage if the configuration says we should
@@ -102,7 +104,7 @@ function log(config: Configuration, level: string, message: string, arg?: any) {
         level,
         message,
         timestamp: new Date().toISOString(),
-        arg,
+        args,
         uuid:      randomStr(),
       };
 
