@@ -167,7 +167,18 @@ export default {
         this.$emit('validationChanged', newValue);
       },
       deep: true
-    }
+    },
+
+    'value.pool.etcdRole'(neu) {
+      if (neu) {
+        this.isAutoscalerEnabled = false;
+      }
+    },
+    'value.pool.controlPlaneRole'(neu) {
+      if (neu) {
+        this.isAutoscalerEnabled = false;
+      }
+    },
   },
 
   /**
@@ -423,11 +434,16 @@ export default {
             <h4>
               {{ t('cluster.machinePool.autoscaler.heading') }}
             </h4>
+            <Banner
+              v-if="value.pool.etcdRole || value.pool.controlPlaneRole"
+              color="warning"
+              label-key="cluster.machinePool.autoscaler.etcdControlPlaneWarning"
+            />
             <Checkbox
               v-model:value="isAutoscalerEnabled"
               :mode="mode"
               :label="t('cluster.machinePool.autoscaler.enable', undefined, true)"
-              :disabled="busy"
+              :disabled="value.pool.etcdRole || value.pool.controlPlaneRole"
             />
           </div>
         </div>
@@ -444,6 +460,7 @@ export default {
               :mode="mode"
               :base-unit="t('cluster.machinePool.autoscaler.baseUnit')"
               :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.AUTOSCALER_MIN)"
+              :disabled="value.pool.etcdRole || value.pool.controlPlaneRole"
             />
           </div>
           <div class="col span-4">
@@ -455,6 +472,7 @@ export default {
               :mode="mode"
               :base-unit="t('cluster.machinePool.autoscaler.baseUnit')"
               :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.AUTOSCALER_MAX)"
+              :disabled="value.pool.etcdRole || value.pool.controlPlaneRole"
             />
           </div>
         </div>
