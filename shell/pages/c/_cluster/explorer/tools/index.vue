@@ -92,7 +92,6 @@ export default {
         const installedApp = this.installedAppForChart[chart.id];
         const card = {
           id:     chart.id,
-          value:  chart,
           header: {
             title:    { text: chart.chartNameDisplay },
             statuses: chart.cardContent.statuses
@@ -239,7 +238,6 @@ export default {
         v-for="card in appChartCards"
         :id="card.id"
         :key="card.id"
-        :value="card.value"
         :header="card.header"
         :image="card.image"
         :content="card.content"

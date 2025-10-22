@@ -72,7 +72,7 @@ interface RcItemCardProps {
   id: string;
 
   /** Any object value associated with this card */
-  value: ItemValue;
+  value?: ItemValue;
 
   /** Card title, status icons and action menu. Image will be included in the header in small variant too */
   header: Header;
@@ -282,7 +282,6 @@ const cardMeta = computed(() => ({
                 <ActionMenu
                   data-testid="item-card-header-action-menu"
                   :custom-actions="actions"
-                  :resource="value"
                   v-on="actionListeners"
                 />
               </rc-item-card-action>
