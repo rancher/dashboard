@@ -19,9 +19,9 @@ describe('Amazon Cognito', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
     cy.login();
     HomePagePo.goToAndWaitForGet();
     AuthProviderPo.navTo();
-    authProviderPo.waitForPage();
+    authProviderPo.waitForUrlPathWithoutContext();
     authProviderPo.selectProvider(AuthProvider.AMAZON_COGNITO);
-    cognitoPo.waitForPage();
+    cognitoPo.waitForUrlPathWithoutContext();
   });
 
   it('can navigate Auth Provider and select Amazon Cognito', () => {

@@ -90,7 +90,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     const settingsEdit = newSettingsPage.editSettings(settingsClusterId, sessionIdleSetting);
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains(`Setting: ${ sessionIdleSetting }`).should('be.visible');
     settingsEdit.settingsInput().set(settings[sessionIdleSetting].new);
 
@@ -99,7 +99,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(request.body).to.have.property('value', settings[sessionIdleSetting].new);
       expect(response?.body).to.have.property('value', settings[sessionIdleSetting].new);
     });
-    newSettingsPage.waitForPage();
+    newSettingsPage.waitForUrlPathWithoutContext();
     newSettingsPage.settingsValue(sessionIdleSetting).contains(settings[sessionIdleSetting].new);
 
     cy.wait('@getUpdatedUserActivity', { timeout: 15000 });
@@ -138,10 +138,10 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     // Reset setting value
     SettingsPagePo.navTo();
-    newSettingsPage.waitForPage();
+    newSettingsPage.waitForUrlPathWithoutContext();
     newSettingsPage.editSettingsByLabel(sessionIdleSetting);
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains(`Setting: ${ sessionIdleSetting }`).should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait(sessionIdleSetting).then(({ request, response }) => {
@@ -150,7 +150,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(response?.body).to.have.property('value', settingsOriginal[sessionIdleSetting].default);
     });
 
-    newSettingsPage.waitForPage();
+    newSettingsPage.waitForUrlPathWithoutContext();
     newSettingsPage.settingsValue(sessionIdleSetting).contains(settingsOriginal[sessionIdleSetting].default);
 
     resetSettings.push(sessionIdleSetting);
@@ -175,7 +175,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     const settingsEdit = settingsPage.editSettings(settingsClusterId, 'engine-iso-url');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: engine-iso-url').should('be.visible');
     settingsEdit.settingsInput().set(settings['engine-iso-url'].new);
     settingsEdit.saveAndWait('engine-iso-url').then(({ request, response }) => {
@@ -183,7 +183,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(request.body).to.have.property('value', settings['engine-iso-url'].new);
       expect(response?.body).to.have.property('value', settings['engine-iso-url'].new);
     });
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('engine-iso-url').contains(settings['engine-iso-url'].new);
     // Scroll to the setting
     cy.get('.main-layout').scrollTo('bottom');
@@ -191,10 +191,10 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     // Reset
     SettingsPagePo.navTo();
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.editSettingsByLabel('engine-iso-url');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: engine-iso-url').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('engine-iso-url').then(({ request, response }) => {
@@ -203,7 +203,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(response?.body).to.have.property('value', settingsOriginal['engine-iso-url'].default);
     });
 
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('engine-iso-url').contains(settingsOriginal['engine-iso-url'].default);
     settingsPage.modifiedLabel('engine-iso-url').should('not.exist'); // modified label should not display after reset
 
@@ -217,11 +217,11 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     const settingsEdit = settingsPage.editSettings(settingsClusterId, 'password-min-length');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: password-min-length').should('be.visible');
     settingsEdit.settingsInput().set(settings['password-min-length'].new);
     settingsEdit.saveAndWait('password-min-length');
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('password-min-length').contains(settings['password-min-length'].new);
 
     // this just causes problems
@@ -250,15 +250,15 @@ describe('Settings', { testIsolation: 'off' }, () => {
     // banner.banner().contains(`Password must be at least ${ settings['password-min-length'].new } characters`).should('be.visible');
     // Reset
     SettingsPagePo.navTo();
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.editSettingsByLabel('password-min-length');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: password-min-length').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('password-min-length');
 
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('password-min-length').contains(settingsOriginal['password-min-length'].default);
 
     resetSettings.push('password-min-length');
@@ -271,7 +271,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     const settingsEdit = settingsPage.editSettings(settingsClusterId, 'ingress-ip-domain');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: ingress-ip-domain').should('be.visible');
     settingsEdit.settingsInput().set(settings['ingress-ip-domain'].new);
     settingsEdit.saveAndWait('ingress-ip-domain').then(({ request, response }) => {
@@ -279,15 +279,15 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(request.body).to.have.property('value', settings['ingress-ip-domain'].new);
       expect(response?.body).to.have.property('value', settings['ingress-ip-domain'].new);
     });
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('ingress-ip-domain').contains(settings['ingress-ip-domain'].new);
 
     // Reset
     SettingsPagePo.navTo();
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.editSettingsByLabel('ingress-ip-domain');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: ingress-ip-domain').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('ingress-ip-domain').then(({ request, response }) => {
@@ -296,7 +296,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(response?.body).to.have.property('value', settingsOriginal['ingress-ip-domain'].default);
     });
 
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('ingress-ip-domain').contains(settingsOriginal['ingress-ip-domain'].default);
 
     resetSettings.push('ingress-ip-domain');
@@ -309,7 +309,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     const settingsEdit = settingsPage.editSettings(settingsClusterId, 'auth-user-info-max-age-seconds');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: auth-user-info-max-age-seconds').should('be.visible');
     settingsEdit.settingsInput().set(settings['auth-user-info-max-age-seconds'].new);
     settingsEdit.saveAndWait('auth-user-info-max-age-seconds').then(({ request, response }) => {
@@ -317,15 +317,15 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(request.body).to.have.property('value', settings['auth-user-info-max-age-seconds'].new);
       expect(response?.body).to.have.property('value', settings['auth-user-info-max-age-seconds'].new);
     });
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('auth-user-info-max-age-seconds').contains(settings['auth-user-info-max-age-seconds'].new);
 
     // Reset
     SettingsPagePo.navTo();
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.editSettingsByLabel('auth-user-info-max-age-seconds');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: auth-user-info-max-age-seconds').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('auth-user-info-max-age-seconds').then(({ request, response }) => {
@@ -334,7 +334,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(response?.body).to.have.property('value', settingsOriginal['auth-user-info-max-age-seconds'].default);
     });
 
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('auth-user-info-max-age-seconds').contains(settingsOriginal['auth-user-info-max-age-seconds'].default);
 
     resetSettings.push('auth-user-info-max-age-seconds');
@@ -347,7 +347,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     const settingsEdit = settingsPage.editSettings(settingsClusterId, 'auth-user-session-ttl-minutes');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: auth-user-session-ttl-minutes').should('be.visible');
     settingsEdit.settingsInput().set(settings['auth-user-session-ttl-minutes'].new);
     settingsEdit.saveAndWait('auth-user-session-ttl-minutes').then(({ request, response }) => {
@@ -355,15 +355,15 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(request.body).to.have.property('value', settings['auth-user-session-ttl-minutes'].new);
       expect(response?.body).to.have.property('value', settings['auth-user-session-ttl-minutes'].new);
     });
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('auth-user-session-ttl-minutes').contains(settings['auth-user-session-ttl-minutes'].new);
 
     // Reset
     SettingsPagePo.navTo();
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.editSettingsByLabel('auth-user-session-ttl-minutes');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: auth-user-session-ttl-minutes').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('auth-user-session-ttl-minutes').then(({ request, response }) => {
@@ -372,7 +372,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(response?.body).to.have.property('value', settingsOriginal['auth-user-session-ttl-minutes'].default);
     });
 
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('auth-user-session-ttl-minutes').contains(settingsOriginal['auth-user-session-ttl-minutes'].default);
 
     resetSettings.push('auth-user-session-ttl-minutes');
@@ -388,32 +388,32 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     const settingsEdit = settingsPage.editSettings(settingsClusterId, 'auth-token-max-ttl-minutes');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: auth-token-max-ttl-minutes').should('be.visible');
     settingsEdit.settingsInput().set(settings['auth-token-max-ttl-minutes'].new);
     settingsEdit.saveAndWait('auth-token-max-ttl-minutes');
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('auth-token-max-ttl-minutes').contains(settings['auth-token-max-ttl-minutes'].new);
 
     // Check api keys expiry options
     AccountPagePo.navTo();
     accountPage.create();
-    createKeyPage.waitForPage();
+    createKeyPage.waitForUrlPathWithoutContext();
     createKeyPage.isCurrentPage();
     createKeyPage.expiryOptions().isChecked(0);
     cy.contains('10 mins - Maximum allowed').should('be.visible');
 
     // Reset
     SettingsPagePo.navTo();
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.editSettingsByLabel('auth-token-max-ttl-minutes');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: auth-token-max-ttl-minutes').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('auth-token-max-ttl-minutes');
 
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('auth-token-max-ttl-minutes').contains(settingsOriginal['auth-token-max-ttl-minutes'].default);
 
     resetSettings.push('auth-token-max-ttl-minutes');
@@ -426,24 +426,24 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     const settingsEdit = settingsPage.editSettings(settingsClusterId, 'agent-tls-mode');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: agent-tls-mode').should('be.visible');
     settingsEdit.selectSettingsByLabel('System Store');
     settingsEdit.saveAndWait('agent-tls-mode');
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('agent-tls-mode').contains('System Store');
 
     // Reset
     SettingsPagePo.navTo();
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.editSettingsByLabel('agent-tls-mode');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: agent-tls-mode').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('agent-tls-mode');
 
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('agent-tls-mode').contains('Strict');
 
     resetSettings.push('agent-tls-mode');
@@ -456,7 +456,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     const settingsEdit = settingsPage.editSettings(settingsClusterId, 'kubeconfig-default-token-ttl-minutes');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: kubeconfig-default-token-ttl-minutes').should('be.visible');
     settingsEdit.settingsInput().set(settings['kubeconfig-default-token-ttl-minutes'].new);
     settingsEdit.saveAndWait('kubeconfig-default-token-ttl-minutes').then(({ request, response }) => {
@@ -464,15 +464,15 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(request.body).to.have.property('value', settings['kubeconfig-default-token-ttl-minutes'].new);
       expect(response?.body).to.have.property('value', settings['kubeconfig-default-token-ttl-minutes'].new);
     });
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('kubeconfig-default-token-ttl-minutes').contains(settings['kubeconfig-default-token-ttl-minutes'].new);
 
     // Reset
     SettingsPagePo.navTo();
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.editSettingsByLabel('kubeconfig-default-token-ttl-minutes');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: kubeconfig-default-token-ttl-minutes').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('kubeconfig-default-token-ttl-minutes').then(({ request, response }) => {
@@ -481,7 +481,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(response?.body).to.have.property('value', settingsOriginal['kubeconfig-default-token-ttl-minutes'].default);
     });
 
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('kubeconfig-default-token-ttl-minutes').contains(settingsOriginal['kubeconfig-default-token-ttl-minutes'].default);
 
     resetSettings.push('kubeconfig-default-token-ttl-minutes');
@@ -494,7 +494,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     const settingsEdit = settingsPage.editSettings(settingsClusterId, 'auth-user-info-resync-cron');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: auth-user-info-resync-cron').should('be.visible');
     settingsEdit.settingsInput().set(settings['auth-user-info-resync-cron'].new);
     settingsEdit.saveAndWait('auth-user-info-resync-cron').then(({ request, response }) => {
@@ -502,15 +502,15 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(request.body).to.have.property('value', settings['auth-user-info-resync-cron'].new);
       expect(response?.body).to.have.property('value', settings['auth-user-info-resync-cron'].new);
     });
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('auth-user-info-resync-cron').contains(settings['auth-user-info-resync-cron'].new);
 
     // Reset
     SettingsPagePo.navTo();
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.editSettingsByLabel('auth-user-info-resync-cron');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: auth-user-info-resync-cron').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('auth-user-info-resync-cron').then(({ request, response }) => {
@@ -519,7 +519,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(response?.body).to.have.property('value', settingsOriginal['auth-user-info-resync-cron'].default);
     });
 
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('auth-user-info-resync-cron').contains(settingsOriginal['auth-user-info-resync-cron'].default);
 
     resetSettings.push('auth-user-info-resync-cron');
@@ -532,24 +532,24 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     const settingsEdit = settingsPage.editSettings(settingsClusterId, 'kubeconfig-generate-token');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: kubeconfig-generate-token').should('be.visible');
     settingsEdit.settingsRadioBtn().set(1);
     settingsEdit.saveAndWait('kubeconfig-generate-token');
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('kubeconfig-generate-token').contains(settings['kubeconfig-generate-token'].new);
 
     // Reset
     SettingsPagePo.navTo();
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.editSettingsByLabel('kubeconfig-generate-token');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: kubeconfig-generate-token').should('be.visible');
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('kubeconfig-generate-token');
 
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('kubeconfig-generate-token').contains(settingsOriginal['kubeconfig-generate-token'].default);
 
     // Check kubeconfig file

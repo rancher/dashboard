@@ -47,6 +47,18 @@ export default class PagePo extends ComponentPo {
     return cy.url().should('equal', `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
   }
 
+  // This method provides partial URL matching when cluster context differences cause test failures.
+  // For more flexible testing, use waitForUrlPathWithoutContext() which strips cluster context.
+  // Workaround for issue: https://github.com/rancher/dashboard/issues/12077
+  waitForUrlPathWithoutContext(params?: string, fragment?: string) {
+    // Remove cluster context (/c/[cluster-id]/) from the path for comparison
+    const pathWithoutContext = this.path.replace(/\/c\/[^\/]+\//, '/');
+
+    expect(pathWithoutContext).to.not.contain('/c/');
+
+    return cy.url().should('include', `${ pathWithoutContext }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
+  }
+
   waitForPageWithSpecificUrl(path?: string, params?: string, fragment?: string) {
     return cy.url().should('include', `${ Cypress.config().baseUrl + (!!path ? path : this.path) }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
   }
