@@ -120,7 +120,7 @@ export type Announcement = {
 export type DynamicContent = {
   version: string;
   releases: ReleaseInfo[],
-  support: SupportInfo
+  support: SupportInfo,
   announcements: Announcement[],
   settings?: Partial<SettingsInfo>,
 };
