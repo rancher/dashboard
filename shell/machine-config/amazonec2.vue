@@ -10,19 +10,21 @@ import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 import { NORMAN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
-import { addObject, addObjects, findBy } from '@shell/utils/array';
 import { convertStringToKV, convertKVToString } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
+import EC2Networking from './components/EC2Networking.vue';
 
 const DEFAULT_GROUP = 'rancher-nodes';
 
 export default {
   components: {
-    Banner, Loading, LabeledInput, LabeledSelect, Checkbox, RadioGroup, UnitInput, KeyValue
+    Banner, Loading, LabeledInput, LabeledSelect, Checkbox, RadioGroup, UnitInput, KeyValue, EC2Networking,
   },
 
   mixins: [CreateEditView],
+
+  emits: ['validationChanged'],
 
   props: {
     uuid: {
@@ -44,6 +46,11 @@ export default {
       type:    Boolean,
       default: false
     },
+
+    machinePools: {
+      type:    Array,
+      default: () => []
+    }
   },
 
   async fetch() {
@@ -108,7 +115,7 @@ export default {
         this.value['instanceType'] = this.$store.getters['aws/defaultInstanceType'];
       }
 
-      this.initNetwork();
+      // this.initNetwork();
       this.initTags();
 
       if ( !this.value.securityGroup?.length ) {
@@ -204,64 +211,64 @@ export default {
       }).sort();
     },
 
-    networkOptions() {
-      if ( !this.vpcInfo || !this.subnetInfo ) {
-        return [];
-      }
+    // networkOptions() {
+    //   if ( !this.vpcInfo || !this.subnetInfo ) {
+    //     return [];
+    //   }
 
-      let vpcs = [];
-      const subnetsByVpc = {};
+    //   let vpcs = [];
+    //   const subnetsByVpc = {};
 
-      for ( const obj of this.vpcInfo.Vpcs ) {
-        const name = obj.Tags && obj.Tags?.length ? obj.Tags.find((t) => t.Key === 'Name')?.Value : null;
+    //   for ( const obj of this.vpcInfo.Vpcs ) {
+    //     const name = obj.Tags && obj.Tags?.length ? obj.Tags.find((t) => t.Key === 'Name')?.Value : null;
 
-        vpcs.push({
-          label:     name || obj.VpcId,
-          subLabel:  name ? obj.VpcId : obj.CidrBlock,
-          isDefault: obj.IsDefault || false,
-          kind:      'vpc',
-          value:     obj.VpcId,
-        });
-      }
+    //     vpcs.push({
+    //       label:     name || obj.VpcId,
+    //       subLabel:  name ? obj.VpcId : obj.CidrBlock,
+    //       isDefault: obj.IsDefault || false,
+    //       kind:      'vpc',
+    //       value:     obj.VpcId,
+    //     });
+    //   }
 
-      vpcs = sortBy(vpcs, ['isDefault:desc', 'label']);
+    //   vpcs = sortBy(vpcs, ['isDefault:desc', 'label']);
 
-      for ( const obj of this.subnetInfo.Subnets ) {
-        if ( obj.AvailabilityZone !== `${ this.value.region }${ this.value.zone }` ) {
-          continue;
-        }
+    //   for ( const obj of this.subnetInfo.Subnets ) {
+    //     if ( obj.AvailabilityZone !== `${ this.value.region }${ this.value.zone }` ) {
+    //       continue;
+    //     }
 
-        let entry = subnetsByVpc[obj.VpcId];
+    //     let entry = subnetsByVpc[obj.VpcId];
 
-        if ( !entry ) {
-          entry = [];
-          subnetsByVpc[obj.VpcId] = entry;
-        }
+    //     if ( !entry ) {
+    //       entry = [];
+    //       subnetsByVpc[obj.VpcId] = entry;
+    //     }
 
-        const name = obj.Tags && obj.Tags?.length ? obj.Tags.find((t) => t.Key === 'Name')?.Value : null;
+    //     const name = obj.Tags && obj.Tags?.length ? obj.Tags.find((t) => t.Key === 'Name')?.Value : null;
 
-        entry.push({
-          label:     name || obj.SubnetId,
-          subLabel:  name ? obj.SubnetId : obj.CidrBlock,
-          kind:      'subnet',
-          isDefault: obj.DefaultForAz || false,
-          value:     obj.SubnetId,
-          vpcId:     obj.VpcId,
-        });
-      }
+    //     entry.push({
+    //       label:     name || obj.SubnetId,
+    //       subLabel:  name ? obj.SubnetId : obj.CidrBlock,
+    //       kind:      'subnet',
+    //       isDefault: obj.DefaultForAz || false,
+    //       value:     obj.SubnetId,
+    //       vpcId:     obj.VpcId,
+    //     });
+    //   }
 
-      const out = [];
+    //   const out = [];
 
-      for ( const obj of vpcs ) {
-        addObject(out, obj);
+    //   for ( const obj of vpcs ) {
+    //     addObject(out, obj);
 
-        if ( subnetsByVpc[obj.value] ) {
-          addObjects(out, sortBy(subnetsByVpc[obj.value], ['isDefault:desc', 'label']));
-        }
-      }
+    //     if ( subnetsByVpc[obj.value] ) {
+    //       addObjects(out, sortBy(subnetsByVpc[obj.value], ['isDefault:desc', 'label']));
+    //     }
+    //   }
 
-      return out;
-    },
+    //   return out;
+    // },
 
     securityGroupOptions() {
       if ( !this.securityGroupInfo ) {
@@ -304,7 +311,6 @@ export default {
     },
 
     'value.region'() {
-      this.updateNetwork();
       this.$fetch();
     },
 
@@ -320,33 +326,33 @@ export default {
   methods: {
     stringify,
 
-    initNetwork() {
-      const id = this.value.subnetId || this.value.vpcId;
+    // initNetwork() {
+    //   const id = this.value.subnetId || this.value.vpcId;
 
-      this.selectedNetwork = id;
-    },
+    //   this.selectedNetwork = id;
+    // },
 
-    updateNetwork(value) {
-      let obj;
+    // updateNetwork(value) {
+    //   let obj;
 
-      if ( value ) {
-        obj = findBy(this.networkOptions, 'value', value);
-      }
+    //   if ( value ) {
+    //     obj = findBy(this.networkOptions, 'value', value);
+    //   }
 
-      if ( obj?.kind === 'subnet' ) {
-        this.value.subnetId = value;
-        this.value.vpcId = obj.vpcId;
-        this.selectedNetwork = value;
-      } else if ( obj ) {
-        this.value.subnetId = null;
-        this.value.vpcId = value;
-        this.selectedNetwork = value;
-      } else {
-        this.value.subnetId = null;
-        this.value.vpcId = null;
-        this.selectedNetwork = null;
-      }
-    },
+    //   if ( obj?.kind === 'subnet' ) {
+    //     this.value.subnetId = value;
+    //     this.value.vpcId = obj.vpcId;
+    //     this.selectedNetwork = value;
+    //   } else if ( obj ) {
+    //     this.value.subnetId = null;
+    //     this.value.vpcId = value;
+    //     this.selectedNetwork = value;
+    //   } else {
+    //     this.value.subnetId = null;
+    //     this.value.vpcId = null;
+    //     this.selectedNetwork = null;
+    //   }
+    // },
 
     initTags() {
       this.tags = convertStringToKV(this.value.tags);
@@ -443,7 +449,36 @@ export default {
             />
           </div>
         </div>
+
+        <EC2Networking
+          :key="value.region"
+          v-model:enable-primary-ipv6="value.enablePrimaryIpv6"
+          v-model:ipv6-address-count="value.ipv6AddressCount"
+          v-model:ipv6-address-only="value.ipv6AddressOnly"
+          v-model:vpc-id="value.vpcId"
+          v-model:subnet-id="value.subnetId"
+          :mode="mode"
+          :vpc-info="vpcInfo"
+          :subnet-info="subnetInfo"
+          :zone="value.zone"
+          :region="value.region"
+          :machine-pools="machinePools"
+          @validation-changed="e=>$emit('validationChanged',e)"
+        />
+
         <div class="row mt-20 mb-20">
+          <div class="col span-6">
+            <LabeledInput
+              v-model:value="value.iamInstanceProfile"
+              :mode="mode"
+              :disabled="disabled"
+              :required="isIamInstanceProfileNameRequired"
+              :tooltip="t('cluster.machineConfig.amazonEc2.iamInstanceProfile.tooltip')"
+              :label="t('cluster.machineConfig.amazonEc2.iamInstanceProfile.label')"
+            />
+          </div>
+        </div>
+        <!-- <div class="row mt-20 mb-20">
           <div class="col span-6">
             <LabeledSelect
               :mode="mode"
@@ -475,7 +510,7 @@ export default {
               :label="t('cluster.machineConfig.amazonEc2.iamInstanceProfile.label')"
             />
           </div>
-        </div>
+        </div> -->
 
         <portal :to="'advanced-'+uuid">
           <div class="row mt-20">
@@ -658,24 +693,3 @@ export default {
     </template>
   </div>
 </template>
-<style scoped lang="scss">
-  .vpc, .vpc-subnet {
-    display: flex;
-    line-height: 30px;
-
-    .vpc-name {
-      font-weight: bold;
-      flex: 1;
-    }
-
-    .vpc-info {
-      font-size: 12px;
-      opacity: 0.7;
-    }
-  }
-
-  .vpc-subnet .vpc-name {
-    font-weight: normal;
-    padding-left: 15px;
-  }
-</style>

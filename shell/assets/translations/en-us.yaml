@@ -2077,6 +2077,16 @@ cluster:
       httpEndpoint: Allow access to EC2 metadata
       httpTokens: Use tokens for metadata
       tagTitle: EC2 Tags
+      enableIpv6:
+        label: Use VPCs and Subnets with IPv6 addresses
+      ipv6AddressCount:
+        label: IPv6 Address Count
+        tooltip: Specifies the number of IPv6 addresses to assign to the network interface
+      enablePrimaryIpv6:
+        label: Enable Primary Ipv6
+      ipv6AddressOnly:
+        label: Use IPv6 Only
+      ipv6ValidationWarning: When one pool uses an IPv6 or dual-stack subnet/vpc, all pools must use an IPv6 or dual-stack subnet/vpc.
     pnap:
       serverLocation:
         label: Location
