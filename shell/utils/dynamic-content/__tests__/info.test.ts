@@ -117,7 +117,8 @@ describe('systemInfoProvider', () => {
     expect(qs).toContain('v=2.8.0');
     expect(qs).toContain('dev=true');
     expect(qs).toContain('p=false');
-    expect(qs).toContain('lts=false');
+    // Add back when LTS is added
+    // expect(qs).toContain('lts=false');
     expect(qs).toContain('cc=2');
     expect(qs).toContain('lkv=1.25');
     expect(qs).toContain('lcp=k3s');
@@ -206,7 +207,7 @@ describe('systemInfoProvider', () => {
     expect(qs).toContain('u=hashed_user-456');
     expect(qs).toContain('v=2.9.1');
     expect(qs).toContain('p=false');
-    expect(qs).toContain('xcc=0 '); // Note the trailing space from the implementation
+    expect(qs).toContain('xcc=0');
     expect(qs).not.toContain('uuid=');
     expect(qs).not.toContain('lkv=');
   });
