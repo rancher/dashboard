@@ -800,7 +800,7 @@ export default defineComponent({
                     <BadgeState
                       v-if="clusterCount && !tooManyClusters"
                       :label="clusterCount.toString()"
-                      color="role-tertiary ml-20 mr-20"
+                      color="bg-info ml-20 mr-20"
                     />
                   </div>
                 </template>
