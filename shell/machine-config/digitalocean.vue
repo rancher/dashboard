@@ -16,6 +16,8 @@ export default {
 
   mixins: [CreateEditView],
 
+  emits: ['update:hasIpv6'],
+
   props: {
     credentialId: {
       type:     String,
@@ -23,6 +25,11 @@ export default {
     },
 
     disabled: {
+      type:    Boolean,
+      default: false
+    },
+
+    hasIpv6: {
       type:    Boolean,
       default: false
     },
@@ -110,6 +117,10 @@ export default {
     },
 
     'value.image': 'updateUsername',
+
+    'value.ipv6'(neu) {
+      this.$emit('update:hasIpv6', neu);
+    }
   },
 
   computed: {
