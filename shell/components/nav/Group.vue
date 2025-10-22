@@ -455,7 +455,7 @@ export default {
     }
 
     &.depth-1 {
-      > .header {
+      > .accordion-item > .header {
         padding-left: 20px;
         > H6 {
           line-height: 18px;
@@ -474,7 +474,7 @@ export default {
     }
 
     &:not(.depth-0) {
-      > .header {
+      > .accordion-item > .header {
         > H6 {
           // Child groups that aren't linked themselves
           display: inline-block;
