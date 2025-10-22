@@ -52,12 +52,14 @@ export default {
   computed: {
     linuxCommand() {
       const out = this.insecure ? [this.clusterToken.insecureNodeCommand] : [this.clusterToken.nodeCommand];
+      const sanitizedAddresses = this.address.split(',').map((a) => sanitizeIP(a)).join(',');
+      const sanitizedInternalAddresses = this.internalAddress.split(',').map((a) => sanitizeIP(a)).join(',');
 
       this.etcd && out.push('--etcd');
       this.controlPlane && out.push('--controlplane');
       this.worker && out.push('--worker');
-      this.address && out.push(`--address ${ sanitizeIP(this.address) }`);
-      this.internalAddress && out.push(`--internal-address ${ sanitizeIP(this.internalAddress) }`);
+      this.address && out.push(`--address ${ sanitizedAddresses }`);
+      this.internalAddress && out.push(`--internal-address ${ sanitizedInternalAddresses }`);
       this.nodeName && out.push(`--node-name ${ sanitizeValue(this.nodeName) }`);
 
       for ( const key in this.labels ) {
