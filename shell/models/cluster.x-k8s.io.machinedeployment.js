@@ -4,7 +4,7 @@ import { sortBy } from '@shell/utils/sort';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
-import { MACHINE_ROLES } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_ANNOTATIONS, MACHINE_ROLES } from '@shell/config/labels-annotations';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 import { KIND } from '../config/elemental-types';
 import { KIND as HARVESTER_KIND } from '../config/harvester-manager-types';
@@ -171,6 +171,10 @@ export default class CapiMachineDeployment extends SteveModel {
         }, { root: true });
       });
     }, 1000);
+  }
+
+  get isAutoscalerEnabled() {
+    return this.annotations?.[CAPI_ANNOTATIONS.AUTOSCALER_MACHINE_POOL_MIN_SIZE] || this.annotations?.[CAPI_ANNOTATIONS.AUTOSCALER_MACHINE_POOL_MAX_SIZE];
   }
 
   // prevent scaling pool to 0 if it would scale down the only etcd or control plane node
