@@ -113,15 +113,17 @@ export default {
     },
 
     enableIpv6(neu) {
-      const opts = neu ? this.ipv6NetworkOptions : this.ipv4OnlyNetworkOptions;
-
-      if (!opts.find((opt) => opt.value === this.selectedNetwork)) {
-        this.updateNetwork();
-      }
+      const obj = this.allNetworkOptions.find((opt) => opt.value === this.selectedNetwork) || {};
 
       if (neu) {
         this.$emit('update:ipv6AddressCount', 1);
+        if (!obj.hasIpv6) {
+          this.updateNetwork();
+        }
       } else {
+        if (obj.hasIpv6) {
+          this.updateNetwork();
+        }
         this.$emit('update:ipv6AddressCount', 0);
         this.$emit('update:ipv6AddressOnly', false);
         this.$emit('update:enablePrimaryIpv6', false);
@@ -167,6 +169,8 @@ export default {
 
       for ( const obj of this.vpcInfo.Vpcs ) {
         const name = obj.Tags && obj.Tags?.length ? obj.Tags.find((t) => t.Key === 'Name')?.Value : null;
+        const hasIpv6 = !!obj.Ipv6CidrBlockAssociationSet && !isEmpty(obj.Ipv6CidrBlockAssociationSet);
+        const hasIpv4 = !!obj.CidrBlock;
 
         vpcs.push({
           label:     name || obj.VpcId,
@@ -174,6 +178,9 @@ export default {
           isDefault: obj.IsDefault || false,
           kind:      'vpc',
           value:     obj.VpcId,
+          disabled:  this.enableIpv6 !== hasIpv6,
+          hasIpv6,
+          hasIpv4
         });
       }
 
@@ -181,6 +188,13 @@ export default {
 
       for ( const obj of this.subnetInfo.Subnets ) {
         if ( obj.AvailabilityZone !== `${ this.region }${ this.zone }` ) {
+          continue;
+        }
+
+        const hasIpv6 = !!obj.Ipv6CidrBlockAssociationSet && !isEmpty(obj.Ipv6CidrBlockAssociationSet);
+        const hasIpv4 = !!obj.CidrBlock;
+
+        if (this.enableIpv6 !== hasIpv6) {
           continue;
         }
 
@@ -200,15 +214,18 @@ export default {
           isDefault: obj.DefaultForAz || false,
           value:     obj.SubnetId,
           vpcId:     obj.VpcId,
-          hasIpv6:   obj.Ipv6CidrBlockAssociationSet && !isEmpty(obj.Ipv6CidrBlockAssociationSet),
-          hasIpv4:   !!obj.CidrBlock
+          hasIpv6,
+          hasIpv4
         });
       }
 
       const out = [];
 
       for ( const obj of vpcs ) {
-        addObject(out, obj);
+        // addObject(out, obj);
+        if (!obj.disabled || subnetsByVpc[obj.value]) {
+          addObject(out, obj);
+        }
 
         if ( subnetsByVpc[obj.value] ) {
           addObjects(out, sortBy(subnetsByVpc[obj.value], ['isDefault:desc', 'label']));
@@ -218,35 +235,40 @@ export default {
       return out;
     },
 
-    // ipv4-only subnets and vpcs with at least one ipv4-only subnet
+    // ipv4-only subnets and vpcs
     ipv4OnlyNetworkOptions() {
-      const ipv4SubnetsOnly = this.allNetworkOptions.filter((opt) => {
-        const isSubnet = opt.kind === 'subnet';
+    //   const ipv4SubnetsOnly = this.allNetworkOptions.filter((opt) => {
+    //     const isSubnet = opt.kind === 'subnet';
 
-        return isSubnet && opt.hasIpv4 && !opt.hasIpv6;
-      });
+      //     return isSubnet && opt.hasIpv4 && !opt.hasIpv6;
+      //   });
 
-      return this.allNetworkOptions.filter((opt) => {
+      return this.allNetworkOptions.reduce((opts, opt) => {
         if (opt.kind === 'vpc') {
-          return ipv4SubnetsOnly.find((subnetOpt) => subnetOpt.vpcId === opt.value);
+        //   return ipv4SubnetsOnly.find((subnetOpt) => subnetOpt.vpcId === opt.value);
+          opts.push({ ...opt, disabled: opt.hasIpv6 });
+        } else if (!opt.hasIpv6) {
+          opts.push(opt);
         }
 
-        return opt.hasIpv4 && !opt.hasIpv6;
-      });
+        // return opt.hasIpv4 && !opt.hasIpv6;
+
+        return opts;
+      }, []);
     },
 
-    // ipv6-enabled subnets and vpcs that have at least one ipv6 subnet
+    // ipv6-enabled subnets and vpcs - some of these may be both ipv4 and ipv6 (dual-stack)
     ipv6NetworkOptions() {
-      const ipv6SubnetsOnly = this.allNetworkOptions.filter((opt) => {
-        const isSubnet = opt.kind === 'subnet';
+    //   const ipv6SubnetsOnly = this.allNetworkOptions.filter((opt) => {
+    //     const isSubnet = opt.kind === 'subnet';
 
-        return isSubnet && opt.hasIpv6;
-      });
+      //     return isSubnet && opt.hasIpv6;
+      //   });
 
       return this.allNetworkOptions.filter((opt) => {
-        if (opt.kind === 'vpc') {
-          return ipv6SubnetsOnly.find((subnetOpt) => subnetOpt.vpcId === opt.value);
-        }
+        // if (opt.kind === 'vpc') {
+        //   return ipv6SubnetsOnly.find((subnetOpt) => subnetOpt.vpcId === opt.value);
+        // }
 
         return opt.hasIpv6;
       });
@@ -256,22 +278,22 @@ export default {
       return this.enableIpv6 ? this.ipv6NetworkOptions : this.ipv4OnlyNetworkOptions;
     },
 
-    // ipv4 and ipv6 subnet selected, or vpc with at least one subnet that has both ipv4 and ipv6
+    // ipv4 and ipv6 subnet or vpc selected
     dualStackSelected() {
       const opt = this.allNetworkOptions.find((o) => o.value === this.selectedNetwork);
 
-      if (opt?.kind === 'vpc') {
-        const subnetOpts = this.allNetworkOptions.filter((o) => {
-          return o.vpcId === this.selectedNetwork;
-        });
+      //   if (opt?.kind === 'vpc') {
+      //     const subnetOpts = this.allNetworkOptions.filter((o) => {
+      //       return o.vpcId === this.selectedNetwork;
+      //     });
 
-        const hasIpv4 = subnetOpts.find((o) => o.hasIpv4);
-        const hasIpv6 = subnetOpts.find((o) => o.hasIpv6);
+      //     const hasIpv4 = subnetOpts.find((o) => o.hasIpv4);
+      //     const hasIpv6 = subnetOpts.find((o) => o.hasIpv6);
 
-        return hasIpv4 && hasIpv6;
-      } else {
-        return opt?.hasIpv4 && opt?.hasIpv6;
-      }
+      //     return hasIpv4 && hasIpv6;
+      //   } else {
+      return opt?.hasIpv4 && opt?.hasIpv6;
+    //   }
     },
 
     // ipv6-only subnet selected
@@ -341,7 +363,7 @@ export default {
       <LabeledSelect
         :mode="mode"
         :value="selectedNetwork"
-        :options="networkOptions"
+        :options="allNetworkOptions"
         :searchable="true"
         :required="true"
         :disabled="disabled"
