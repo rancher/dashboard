@@ -219,6 +219,10 @@ export default {
       this.value.spec.rkeConfig.machineGlobalConfig = {};
     }
 
+    if (!this.value.spec.rkeConfig.networking) {
+      this.value.spec.rkeConfig.networking = {};
+    }
+
     if (!this.value.spec.rkeConfig.machineSelectorConfig?.length) {
       this.value.spec.rkeConfig.machineSelectorConfig = [{ config: {} }];
     }
@@ -2508,6 +2512,7 @@ export default {
               @local-cluster-auth-endpoint-changed="enableLocalClusterAuthEndpoint"
               @ca-certs-changed="(val)=>localValue.spec.localClusterAuthEndpoint.caCerts = val"
               @fqdn-changed="(val)=>localValue.spec.localClusterAuthEndpoint.fqdn = val"
+              @stack-preference-changed="(val)=>localValue.spec.rkeConfig.networking.stackPreference = val"
             />
           </Tab>
 

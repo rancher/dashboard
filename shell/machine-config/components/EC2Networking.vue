@@ -126,6 +126,10 @@ export default {
   },
 
   computed: {
+    isCreate() {
+      return this.mode === _CREATE;
+    },
+
     allNetworkOptions() {
       if ( !this.vpcInfo || !this.subnetInfo ) {
         return [];
@@ -316,7 +320,9 @@ export default {
     </div>
     <div class="col span-6">
       <Checkbox
+        v-if="isCreate || enableIpv6"
         v-model:value="enableIpv6"
+        :disabled="!isCreate"
         :label="t('cluster.machineConfig.amazonEc2.enableIpv6.label')"
         :mode="mode"
       />
@@ -328,6 +334,7 @@ export default {
   >
     <div class="col span-3">
       <LabeledInput
+        :disabled="!isCreate"
         type="number"
         min="1"
         :mode="mode"
@@ -338,6 +345,7 @@ export default {
     </div>
     <div class="col span-3">
       <Checkbox
+        :disabled="!isCreate"
         :value="enablePrimaryIpv6"
         :label="t('cluster.machineConfig.amazonEc2.enablePrimaryIpv6.label')"
         :mode="mode"
@@ -347,6 +355,7 @@ export default {
     <div class="col span-3">
       <Checkbox
         v-if="dualStackSelected"
+        :disabled="!isCreate"
         :value="ipv6AddressOnly"
         :label="t('cluster.machineConfig.amazonEc2.ipv6AddressOnly.label')"
         :mode="mode"

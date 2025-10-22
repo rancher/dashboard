@@ -5,15 +5,22 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import ArrayList from '@shell/components/form/ArrayList';
 import ACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/ACE';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 const NETBIOS_TRUNCATION_LENGTH = 15;
+
+const STACK_PREFS = {
+  IPV4: 'ipv4',
+  IPV6: 'ipv6',
+  DUAL: 'dual'
+};
 
 export default {
   emits: [
     'update:value', 'cluster-cidr-changed', 'local-cluster-auth-endpoint-changed',
     'service-cidr-changed', 'cluster-domain-changed', 'cluster-dns-changed',
     'truncate-hostname-changed', 'ca-certs-changed', 'service-node-port-range-changed',
-    'fqdn-changed', 'tls-san-changed'
+    'fqdn-changed', 'tls-san-changed', 'stack-preference-changed'
   ],
 
   components: {
@@ -21,7 +28,8 @@ export default {
     Banner,
     Checkbox,
     ArrayList,
-    ACE
+    ACE,
+    LabeledSelect
   },
 
   props: {
@@ -45,6 +53,10 @@ export default {
     }
   },
 
+  data() {
+    return { STACK_PREFS };
+  },
+
   computed: {
     truncateHostnames() {
       return this.truncateLimit === NETBIOS_TRUNCATION_LENGTH;
@@ -55,7 +67,21 @@ export default {
     serverArgs() {
       return this.selectedVersion?.serverArgs || {};
     },
-
+    stackPreferenceOptions() {
+      return [{
+        label: this.t('cluster.rke2.stackPreference.options.ipv4'),
+        value: STACK_PREFS.IPV4
+      },
+      {
+        label: this.t('cluster.rke2.stackPreference.options.ipv6'),
+        value: STACK_PREFS.IPV6
+      }, {
+        label: this.t('cluster.rke2.stackPreference.options.dual'),
+        value: STACK_PREFS.DUAL
+      },
+      ];
+    },
+    // TODO nb do we need to do something with the cilium ipv6 checkbox too
     showIpv6Warning() {
       const clusterCIDR = this.serverConfig['cluster-cidr'] || '';
       const serviceCIDR = this.serverConfig['service-cidr'] || '';
@@ -77,6 +103,18 @@ export default {
       },
       set(newValue) {
         this.$emit('update:value', newValue);
+      }
+    },
+
+    stackPreference: {
+      get() {
+        return this.localValue.spec.networking.stackPreference || STACK_PREFS.IPV4;
+      },
+      set(neu) {
+        if (!this.localValue.spec.networking) {
+          this.localValue.spec.networking = {};
+        }
+        this.localValue.spec.networking.stackPreference = neu;
       }
     },
   }
@@ -210,5 +248,25 @@ export default {
       @caCerts-changed="$emit('ca-certs-changed', $event)"
       @local-cluster-auth-endpoint-changed="$emit('local-cluster-auth-endpoint-changed', $event)"
     />
+
+    <h3
+      v-t="'cluster.rke2.stackPreference.label'"
+      class="mt-20"
+    />
+    <t
+      k="cluster.rke2.stackPreference.description"
+      raw
+      class="text-muted mb-10"
+    />
+    <div class="row mb-20">
+      <div class="col span-3">
+        <LabeledSelect
+          :value="localValue?.spec?.rkeConfig?.networking?.stackPreference || STACK_PREFS.IPV4"
+          :mode="mode"
+          :options="stackPreferenceOptions"
+          @selecting="e=>$emit('stack-preference-changed', e)"
+        />
+      </div>
+    </div>
   </div>
 </template>

@@ -365,7 +365,7 @@ export default {
     test() {
       const errors = [];
 
-      if (!this.selectedNetwork) {
+      if (!this.value.subnetId && !this.value.vpcId) {
         errors.push(this.t('validation.required', { key: 'VPC/Subnet' }, true));
       }
 

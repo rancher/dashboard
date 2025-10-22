@@ -2542,6 +2542,13 @@ cluster:
           label: Accept any certificate (insecure)
         endpointCA:
           label: Endpoint CA Cert
+    stackPreference:
+      label: Stack Preference
+      description: "Stack preference determines the networking stack used by the cluster. The selected value configures the address used for health and readiness probes of calico, etcd, kube-apiserver, kube-scheduler, kube-controller-manager, and kubelet. It also defines the server URL in the <code>authentication-token-webhook-config-file</code> for the Authorized Cluster Endpoint and the advertise-client-urls for etcd during snapshot restore. When set to <code>dual</code>, the cluster uses <code>localhost</code>; when set to <code>ipv6</code>, it uses <code>[::1]</code>; and when set to <code>ipv4</code>, it uses <code>127.0.0.1</code>."
+      options:
+        ipv4: IPv4
+        ipv6: IPv6
+        dual: Dual-Stack
   k3s:
     systemService:
       coredns: 'CoreDNS'
