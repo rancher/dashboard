@@ -188,9 +188,6 @@ export class SystemInfoProvider {
     // Remove LTS for now, until we can determine LTS status
     // params.push(`lts=${ systemData.isLTS }`);
 
-    // Remove LTS for now, until we can determine LTS status
-    // params.push(`lts=${ systemData.isLTS }`);
-
     // Clusters
     params.push(`cc=${ systemData.clusterCount }`);
 
