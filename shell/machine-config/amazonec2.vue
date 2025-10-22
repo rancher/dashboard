@@ -211,65 +211,6 @@ export default {
       }).sort();
     },
 
-    // networkOptions() {
-    //   if ( !this.vpcInfo || !this.subnetInfo ) {
-    //     return [];
-    //   }
-
-    //   let vpcs = [];
-    //   const subnetsByVpc = {};
-
-    //   for ( const obj of this.vpcInfo.Vpcs ) {
-    //     const name = obj.Tags && obj.Tags?.length ? obj.Tags.find((t) => t.Key === 'Name')?.Value : null;
-
-    //     vpcs.push({
-    //       label:     name || obj.VpcId,
-    //       subLabel:  name ? obj.VpcId : obj.CidrBlock,
-    //       isDefault: obj.IsDefault || false,
-    //       kind:      'vpc',
-    //       value:     obj.VpcId,
-    //     });
-    //   }
-
-    //   vpcs = sortBy(vpcs, ['isDefault:desc', 'label']);
-
-    //   for ( const obj of this.subnetInfo.Subnets ) {
-    //     if ( obj.AvailabilityZone !== `${ this.value.region }${ this.value.zone }` ) {
-    //       continue;
-    //     }
-
-    //     let entry = subnetsByVpc[obj.VpcId];
-
-    //     if ( !entry ) {
-    //       entry = [];
-    //       subnetsByVpc[obj.VpcId] = entry;
-    //     }
-
-    //     const name = obj.Tags && obj.Tags?.length ? obj.Tags.find((t) => t.Key === 'Name')?.Value : null;
-
-    //     entry.push({
-    //       label:     name || obj.SubnetId,
-    //       subLabel:  name ? obj.SubnetId : obj.CidrBlock,
-    //       kind:      'subnet',
-    //       isDefault: obj.DefaultForAz || false,
-    //       value:     obj.SubnetId,
-    //       vpcId:     obj.VpcId,
-    //     });
-    //   }
-
-    //   const out = [];
-
-    //   for ( const obj of vpcs ) {
-    //     addObject(out, obj);
-
-    //     if ( subnetsByVpc[obj.value] ) {
-    //       addObjects(out, sortBy(subnetsByVpc[obj.value], ['isDefault:desc', 'label']));
-    //     }
-    //   }
-
-    //   return out;
-    // },
-
     securityGroupOptions() {
       if ( !this.securityGroupInfo ) {
         return [];
@@ -325,34 +266,6 @@ export default {
 
   methods: {
     stringify,
-
-    // initNetwork() {
-    //   const id = this.value.subnetId || this.value.vpcId;
-
-    //   this.selectedNetwork = id;
-    // },
-
-    // updateNetwork(value) {
-    //   let obj;
-
-    //   if ( value ) {
-    //     obj = findBy(this.networkOptions, 'value', value);
-    //   }
-
-    //   if ( obj?.kind === 'subnet' ) {
-    //     this.value.subnetId = value;
-    //     this.value.vpcId = obj.vpcId;
-    //     this.selectedNetwork = value;
-    //   } else if ( obj ) {
-    //     this.value.subnetId = null;
-    //     this.value.vpcId = value;
-    //     this.selectedNetwork = value;
-    //   } else {
-    //     this.value.subnetId = null;
-    //     this.value.vpcId = null;
-    //     this.selectedNetwork = null;
-    //   }
-    // },
 
     initTags() {
       this.tags = convertStringToKV(this.value.tags);
@@ -478,40 +391,6 @@ export default {
             />
           </div>
         </div>
-        <!-- <div class="row mt-20 mb-20">
-          <div class="col span-6">
-            <LabeledSelect
-              :mode="mode"
-              :value="selectedNetwork"
-              :options="networkOptions"
-              :searchable="true"
-              :required="true"
-              :disabled="disabled"
-              :placeholder="t('cluster.machineConfig.amazonEc2.selectedNetwork.placeholder')"
-              :label="t('cluster.machineConfig.amazonEc2.selectedNetwork.label')"
-              data-testid="amazonEc2__selectedNetwork"
-              option-key="value"
-              @update:value="updateNetwork($event)"
-            >
-              <template v-slot:option="opt">
-                <div :class="{'vpc': opt.kind === 'vpc', 'vpc-subnet': opt.kind !== 'vpc'}">
-                  <span class="vpc-name">{{ opt.label }}</span><span class="vpc-info">{{ opt.subLabel }}</span>
-                </div>
-              </template>
-            </LabeledSelect>
-          </div>
-          <div class="col span-6">
-            <LabeledInput
-              v-model:value="value.iamInstanceProfile"
-              :mode="mode"
-              :disabled="disabled"
-              :required="isIamInstanceProfileNameRequired"
-              :tooltip="t('cluster.machineConfig.amazonEc2.iamInstanceProfile.tooltip')"
-              :label="t('cluster.machineConfig.amazonEc2.iamInstanceProfile.label')"
-            />
-          </div>
-        </div> -->
-
         <portal :to="'advanced-'+uuid">
           <div class="row mt-20">
             <div class="col span-6">
