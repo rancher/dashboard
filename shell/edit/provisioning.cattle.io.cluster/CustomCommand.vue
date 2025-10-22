@@ -207,6 +207,7 @@ export default {
       <Banner
         v-if="isIpv6OrDualStack"
         color="warning"
+        data-testid="rke2-custom-command-ipv6-banner"
       >
         <t
           k="cluster.custom.advanced.ipv6"
@@ -218,6 +219,7 @@ export default {
           <LabeledInput
             v-model:value="nodeName"
             label-key="cluster.custom.advanced.nodeName"
+            data-testid="rke2-custom-command-node-name"
           />
         </div>
         <div class="col span-4">
