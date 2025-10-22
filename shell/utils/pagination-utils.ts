@@ -1,4 +1,6 @@
-import { PaginationFeature, PaginationSettings, PaginationSettingsStore } from '@shell/types/resources/settings';
+import {
+  PaginationFeature, PaginationFeatureHomePageClusterConfig, PaginationFeatureName, PaginationSettings, PaginationSettingsFeatures, PaginationSettingsStore, PaginationSettingsStores
+} from '@shell/types/resources/settings';
 import {
   NAMESPACE_FILTER_ALL_USER as ALL_USER,
   NAMESPACE_FILTER_ALL as ALL,
@@ -16,6 +18,20 @@ import { STEVE_CACHE } from '@shell/store/features';
 import { getPerformanceSetting } from '@shell/utils/settings';
 import { PAGINATION_SETTINGS_STORE_DEFAULTS } from '@shell/plugins/steve/steve-pagination-utils';
 import { MANAGEMENT } from '@shell/config/types';
+import { VuexStore } from '@shell/types/store/vuex';
+import { ServerSidePaginationExtensionConfig } from '@shell/core/types';
+import { EXT_IDS } from '@shell/core/plugin';
+import { ExtensionManager } from '@shell/types/extension-manager';
+import { DEFAULT_PERF_SETTING } from '@shell/config/settings';
+
+const homePageClusterFeature: PaginationFeature<PaginationFeatureHomePageClusterConfig> = {
+  version:       1,
+  enabled:       true,
+  configuration: {
+    threshold: 500, results: 250, pagesPerRow: 25
+  }
+};
+const PAGINATION_SETTINGS_FEATURE_DEFAULTS: PaginationSettingsFeatures = { homePageCluster: homePageClusterFeature };
 
 /**
  * Helper functions for server side pagination
@@ -38,15 +54,23 @@ class PaginationUtils {
     return perf.serverPagination;
   }
 
-  public getStoreSettings(ctx: any): PaginationSettingsStore
-  public getStoreSettings(serverPagination: PaginationSettings): PaginationSettingsStore
-  public getStoreSettings(arg: any | PaginationSettings): PaginationSettingsStore {
+  public getStoreSettings(ctx: any): PaginationSettingsStores
+  public getStoreSettings(serverPagination: PaginationSettings): PaginationSettingsStores
+  public getStoreSettings(arg: any | PaginationSettings): PaginationSettingsStores {
     const serverPagination: PaginationSettings = arg?.rootGetters !== undefined ? this.getSettings(arg) : arg;
 
-    return serverPagination?.useDefaultStores ? this.getStoreDefault() : serverPagination?.stores || this.getStoreDefault();
+    // Ensure we use the current default store settings if
+    // 1. from 2.11.0 user saved `ui-performance` setting and it's applied the default pagination settings containing useDefaultStores
+    // 2. before 2.11.0 user has saved `ui-performance` setting and it's applied an obsolete pagination settings that lack useDefaultStore
+    // 3. user has manually set the `ui-performance` pagination setting useDefaultStores value
+    if (serverPagination?.useDefaultStores || serverPagination?.useDefaultStores === undefined) {
+      return this.getStoreDefault();
+    }
+
+    return serverPagination?.stores || this.getStoreDefault();
   }
 
-  public getStoreDefault(): PaginationSettingsStore {
+  public getStoreDefault(): PaginationSettingsStores {
     return PAGINATION_SETTINGS_STORE_DEFAULTS;
   }
 
@@ -73,28 +97,17 @@ class PaginationUtils {
   }
 
   /**
-   * Is pagination enabled at a global level or for a specific resource
+   * Helper - check if a specific resource in a specific store is enabled given the provided settings
    */
-  isEnabled({ rootGetters }: any, enabledFor: PaginationResourceContext) {
-    // Cache must be enabled to support pagination api
-    if (!this.isSteveCacheEnabled({ rootGetters })) {
-      return false;
-    }
-
-    const settings = this.getSettings({ rootGetters });
-
-    // No setting, not enabled
-    if (!settings) {
-      return false;
-    }
-
-    // Missing required params, not enabled
-    if (!enabledFor) {
-      return false;
-    }
-
-    const storeSettings = this.getStoreSettings(settings)?.[enabledFor.store];
-
+  private isEnabledInStore({
+    ctx: { rootGetters },
+    storeSettings,
+    enabledFor
+  }: {
+    ctx: Partial<VuexStore>,
+    storeSettings: PaginationSettingsStore,
+    enabledFor: PaginationResourceContext
+  }): boolean {
     // No pagination setting for target store, not enabled
     if (!storeSettings) {
       return false;
@@ -121,16 +134,19 @@ class PaginationUtils {
       !rootGetters['type-map/configuredPaginationHeaders'](enabledFor.resource.id) &&
       !rootGetters['type-map/hasCustomList'](enabledFor.resource.id);
 
-    if (storeSettings.resources.enableSome.generic && isGeneric) {
+    // Store says generic resource with no custom pagination settings are supported
+    if (storeSettings.resources.enableSome?.generic && isGeneric) {
       return true;
     }
 
-    if (storeSettings.resources.enableSome.enabled.find((setting) => {
+    // Store says some specific resources are enabled
+    if (storeSettings.resources.enableSome?.enabled?.find((setting) => {
       if (typeof setting === 'string') {
         return setting === enabledFor.resource?.id;
       }
 
       if (setting.resource === enabledFor.resource?.id) {
+        // Store says only specific usages of this resource are enabled
         if (!!setting.context) {
           return enabledFor.resource?.context ? setting.context.includes(enabledFor.resource.context) : false;
         }
@@ -146,6 +162,69 @@ class PaginationUtils {
     return false;
   }
 
+  /**
+   * Is pagination enabled at a global level or for a specific resource
+   */
+  isEnabled({ rootGetters, $plugin }: any, enabledFor: PaginationResourceContext) {
+    // Cache must be enabled to support pagination api
+    if (!this.isSteveCacheEnabled({ rootGetters })) {
+      return false;
+    }
+
+    const settings = this.getSettings({ rootGetters });
+
+    // No setting, not enabled
+    if (!settings) {
+      return false;
+    }
+
+    // Missing required params, not enabled
+    if (!enabledFor) {
+      return false;
+    }
+
+    // Does an extension say this type is enabled?
+    const plugin = $plugin as ExtensionManager;
+    const paginationExtensionPoints = plugin.getAll()[EXT_IDS.SERVER_SIDE_PAGINATION_RESOURCES];
+
+    if (paginationExtensionPoints) {
+      const allowed = Object.entries(paginationExtensionPoints).find(([_, settingsFn]) => {
+        if (!settingsFn) {
+          return false;
+        }
+
+        const settings: ServerSidePaginationExtensionConfig = settingsFn();
+        const allowed = Object.entries(settings).find(([store, settings]) => {
+          if (store !== enabledFor.store) {
+            return false;
+          }
+
+          return this.isEnabledInStore({
+            ctx:           { rootGetters },
+            storeSettings: settings,
+            enabledFor
+          });
+        });
+
+        if (allowed) {
+          return true;
+        }
+      });
+
+      if (allowed) {
+        return true;
+      }
+    }
+
+    const storeSettings = this.getStoreSettings(settings)?.[enabledFor.store];
+
+    return this.isEnabledInStore({
+      ctx: { rootGetters },
+      storeSettings,
+      enabledFor
+    });
+  }
+
   listAutoRefreshToggleEnabled({ rootGetters }: any): boolean {
     return this.isFeatureEnabled({ rootGetters }, 'listAutoRefreshToggle');
   }
@@ -154,21 +233,25 @@ class PaginationUtils {
     return this.isFeatureEnabled({ rootGetters }, 'listManualRefresh');
   }
 
-  private isFeatureEnabled({ rootGetters }: any, featureName: PaginationFeature): boolean {
+  getFeature<Config = any>({ rootGetters }: any, featureName: PaginationFeatureName): PaginationFeature<Config> | undefined {
     // Cache must be enabled to support pagination api
     if (!this.isSteveCacheEnabled({ rootGetters })) {
-      return false;
+      return undefined;
     }
 
     const settings = this.getSettings({ rootGetters });
 
-    return !!settings.features?.[featureName]?.enabled;
+    return settings.features?.[featureName] || PAGINATION_SETTINGS_FEATURE_DEFAULTS[featureName];
+  }
+
+  private isFeatureEnabled({ rootGetters }: any, featureName: PaginationFeatureName): boolean {
+    return !!this.getFeature({ rootGetters }, featureName)?.enabled;
   }
 
   resourceChangesDebounceMs({ rootGetters }: any): number | undefined {
     const settings = this.getSettings({ rootGetters });
 
-    return settings.resourceChangesDebounceMs;
+    return settings.resourceChangesDebounceMs || DEFAULT_PERF_SETTING.serverPagination.resourceChangesDebounceMs;
   }
 
   validateNsProjectFilters(nsProjectFilters: string[]) {

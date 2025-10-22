@@ -1,26 +1,58 @@
-
 export interface PaginationSettingsStore {
-  [name: string]: {
-    resources: {
+  resources: {
+    /**
+     * Enable for all resources in this store
+     */
+    enableAll?: boolean,
+    /**
+     * Enable for only some resources in this store
+     */
+    enableSome?: {
       /**
-       * Enable for all resources in this store
+       * Specific resource type to enable
        */
-      enableAll: boolean,
-      enableSome: {
-        /**
-         * Specific resource type to enable
-         */
-        enabled: (string | { resource: string, context: string[]})[],
-        /**
-         * There's no hardcoded headers or custom list for the resource type, headers will be generated from schema attributes.columns
-         */
-        generic: boolean,
-      },
-    }
+      enabled?: (string | { resource: string, context: string[]})[],
+      /**
+       * Additional resource types that do not have any custom pagination settings (headers, lists, etc) but can be generated automatically (headers from CRD additionalPrinterColumns) can be enabled
+       */
+      generic?: boolean,
+    },
   }
 }
 
-export type PaginationFeature = 'listAutoRefreshToggle' | 'listManualRefresh'
+/*
+ * Determine which resources can utilise server-side pagination
+ */
+export interface PaginationSettingsStores {
+  [store: string]: PaginationSettingsStore
+}
+
+/**
+ * Names of pagination features used in pagination settings (not featureflags)
+ */
+export type PaginationFeatureName = 'listAutoRefreshToggle' | 'listManualRefresh' | 'homePageCluster'
+
+export type PaginationFeatureHomePageClusterConfig = {
+  threshold: number,
+  results: number,
+  pagesPerRow: number
+}
+
+/**
+ * Details of a specific pagination feature
+ */
+export type PaginationFeature<Config = any> = {
+  version: number,
+  enabled: boolean,
+  configuration?: Config,
+}
+
+/**
+ * List of specific features that can be enabled / disabled
+ */
+export type PaginationSettingsFeatures = {
+  [key in PaginationFeatureName]?: PaginationFeature
+}
 
 /**
  * Settings to handle server side pagination
@@ -33,16 +65,12 @@ export interface PaginationSettings {
   /**
    * Should pagination be enabled for resources in a store
    */
-  stores?: PaginationSettingsStore,
+  stores?: PaginationSettingsStores,
 
   /**
    * List of specific features that can be enabled / disabled
    */
-  features?: {
-    [key in PaginationFeature]: {
-      enabled: boolean,
-    }
-  },
+  features?: PaginationSettingsFeatures,
 
   /**
    * Debounce the amount of time between a resource changing and the backend sending a resource.changes message
@@ -75,6 +103,7 @@ type ManagedFields = {
   time: string;
 };
 
+// Note - this should now be @RancherKubeMetadata
 type Metadata = {
   creationTimestamp: string;
   fields: string[];

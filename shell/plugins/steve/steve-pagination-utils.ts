@@ -15,13 +15,12 @@ import {
   HPA,
   SECRET
 } from '@shell/config/types';
-import {
-  CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY
-} from '@shell/config/labels-annotations';
+import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
-import { PaginationSettingsStore } from '@shell/types/resources/settings';
+import { PaginationSettingsStores } from '@shell/types/resources/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';
+import { parseField } from '@shell/utils/sort';
 
 /**
  * This is a workaround for a ts build issue found in check-plugins-build.
@@ -158,6 +157,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'id' },
       { field: 'metadata.state.name' },
       { field: 'metadata.creationTimestamp' },
+      { field: 'metadata.labels', startsWith: true },
     ],
     [NODE]: [
       { field: 'status.nodeInfo.kubeletVersion' },
@@ -180,18 +180,12 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.internal' },
       { field: 'spec.displayName' },
       { field: `status.provider` },
-      { field: `metadata.labels["${ CAPI_LAB_AND_ANO.PROVIDER }]` },
       { field: `status.connected` },
     ],
-    [CONFIG_MAP]: [
-      { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
-    ],
     [SECRET]: [
-      { field: `metadata.labels[${ UI_PROJECT_SECRET }]` },
       { field: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]` },
     ],
     [NAMESPACE]: [
-      { field: 'metadata.labels[field.cattle.io/projectId]' }
     ],
     [CAPI.MACHINE]: [
       { field: 'spec.clusterName' }
@@ -214,7 +208,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'status.releaseName' },
     ],
     [CAPI.RANCHER_CLUSTER]: [
-      { field: `metadata.labels[${ CAPI_LAB_AND_ANO.PROVIDER }]` },
       { field: `status.provider` },
       { field: 'status.clusterName' },
       { field: `metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]` }
@@ -224,14 +217,14 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.clusterIP' },
     ],
     [INGRESS]: [
-      { field: 'spec.rules.host' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.rules.host' },
       { field: 'spec.ingressClassName' },
     ],
     [HPA]: [
-      { field: 'spec.scaleTargetRef.name' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
-      { field: 'spec.minReplicas' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
-      { field: 'spec.maxReplicas' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
-      { field: 'spec.currentReplicas' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
+      { field: 'spec.scaleTargetRef.name' },
+      { field: 'spec.minReplicas' },
+      { field: 'spec.maxReplicas' },
+      { field: 'spec.currentReplicas' },
     ],
     [PVC]: [
       { field: 'spec.volumeName' },
@@ -249,29 +242,29 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     ],
     [WORKLOAD_TYPES.CRON_JOB]: [
       { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.DAEMON_SET]: [
       { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.DEPLOYMENT]: [
       { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.JOB]: [
       { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.STATEFUL_SET]: [
       { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.REPLICA_SET]: [
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: [
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
   }
 
@@ -409,9 +402,13 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
       const joined = opt.pagination.sort
         .map((s) => {
-          this.validateField(validateFields, schema, s.field);
+          // Use the same mechanism as local sorting to flip logic for asc/des
+          const { field, reverse } = parseField(s.field);
+          const asc = reverse ? !s.asc : s.asc;
 
-          return `${ s.asc ? '' : '-' }${ this.convertArrayPath(s.field) }`;
+          this.validateField(validateFields, schema, field);
+
+          return `${ asc ? '' : '-' }${ this.convertArrayPath(field) }`;
         })
         .join(',');
 
@@ -623,7 +620,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
         res.push(`filter=!${ labelKey }`);
         break;
       case 'Gt':
-        // Currently broken - see https://github.com/rancher/rancher/issues/50057
         // Only applicable to node affinity (atm) - https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
 
         if (typeof exp.values !== 'string') {
@@ -636,7 +632,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
         res.push(`filter=${ labelKey } > (${ exp.values })`);
         break;
       case 'Lt':
-        // Currently broken - see https://github.com/rancher/rancher/issues/50057
         // Only applicable to node affinity (atm) - https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
         if (typeof exp.values !== 'string') {
           console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(Lt) as no value was supplied`); // eslint-disable-line no-console
@@ -657,7 +652,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
   }
 }
 
-export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
+export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStores = {
   cluster: {
     resources: {
       enableAll:  false,
@@ -670,7 +665,7 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
           CATALOG.APP, CATALOG.OPERATION,
           HPA, INGRESS, SERVICE,
           PV, CONFIG_MAP, STORAGE_CLASS, PVC, SECRET,
-          WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER
+          WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER,
         ],
         generic: true,
       }
@@ -681,8 +676,8 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
       enableAll:  false,
       enableSome: {
         enabled: [
-          // { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
-          // { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
+          { resource: CAPI.RANCHER_CLUSTER, context: ['side-bar'] },
+          { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
           { resource: CATALOG.APP, context: ['branding'] },
           SECRET
         ],

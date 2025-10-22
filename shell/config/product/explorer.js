@@ -22,11 +22,12 @@ import {
   ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, LAST_USED, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
   DURATION, MESSAGE, REASON, EVENT_TYPE, OBJECT, ROLE, ROLES, VERSION, INTERNAL_EXTERNAL_IP, KUBE_NODE_OS, CPU, RAM, SECRET_DATA,
   EVENT_LAST_SEEN_TIME,
+  EVENT_FIRST_SEEN_TIME,
 } from '@shell/config/table-headers';
 
 import { DSL } from '@shell/store/type-map';
 import {
-  STEVE_AGE_COL, STEVE_EVENT_LAST_SEEN, STEVE_EVENT_OBJECT, STEVE_EVENT_TYPE, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL
+  STEVE_AGE_COL, STEVE_EVENT_FIRST_SEEN, STEVE_EVENT_LAST_SEEN, STEVE_EVENT_OBJECT, STEVE_EVENT_TYPE, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL
 } from '@shell/config/pagination-table-headers';
 
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
@@ -294,7 +295,7 @@ export function init(store) {
       STEVE_NAMESPACE_COL,
       {
         ...INGRESS_TARGET,
-        sort:   'spec.rules[0].host', // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+        sort:   'spec.rules[0].host',
         search: false, // This is broken in normal world, so disable here
       },
       {
@@ -337,7 +338,7 @@ export function init(store) {
   );
 
   headers(EVENT,
-    [STATE, EVENT_LAST_SEEN_TIME, EVENT_TYPE, REASON, OBJECT, 'Subobject', 'Source', MESSAGE, 'First Seen', 'Count', NAME_COL, NAMESPACE_COL],
+    [STATE, EVENT_LAST_SEEN_TIME, EVENT_TYPE, REASON, OBJECT, 'Subobject', 'Source', MESSAGE, EVENT_FIRST_SEEN_TIME, 'Count', NAME_COL, NAMESPACE_COL],
     [
       STEVE_STATE_COL,
       STEVE_EVENT_LAST_SEEN,
@@ -347,7 +348,7 @@ export function init(store) {
       'Subobject',
       'Source',
       MESSAGE,
-      'First Seen',
+      STEVE_EVENT_FIRST_SEEN,
       'Count',
       STEVE_NAME_COL,
       STEVE_NAMESPACE_COL,
@@ -359,10 +360,10 @@ export function init(store) {
       STEVE_STATE_COL,
       STEVE_NAME_COL,
       STEVE_NAMESPACE_COL,
-      HPA_REFERENCE, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
-      MIN_REPLICA, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
-      MAX_REPLICA, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
-      CURRENT_REPLICA, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
+      HPA_REFERENCE,
+      MIN_REPLICA,
+      MAX_REPLICA,
+      CURRENT_REPLICA,
       STEVE_AGE_COL
     ]
   );

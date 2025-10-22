@@ -117,7 +117,7 @@ export default {
 
       // server url and project ids are used in global values
       try {
-        this.serverUrlSetting = await this.$store.dispatch(`${ this.store }/find`, {
+        this.serverUrlSetting = await this.$store.dispatch(`management/find`, {
           type: MANAGEMENT.SETTING,
           id:   SETTING.SERVER_URL,
         });
@@ -125,7 +125,7 @@ export default {
         this.$store.dispatch('growl/fromError', { err: e });
       }
 
-      await this.$store.dispatch(`${ this.store }/findAll`, { type: MANAGEMENT.PROJECT });
+      await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.PROJECT });
     }
   },
 

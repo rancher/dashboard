@@ -1,9 +1,10 @@
 <script>
 import { mapGetters } from 'vuex';
+import day from 'dayjs';
 import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
-import { CATALOG, UI_PLUGIN, MANAGEMENT } from '@shell/config/types';
+import { CATALOG, UI_PLUGIN, MANAGEMENT, ZERO_TIME } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { fetchOrCreateSetting } from '@shell/utils/settings';
 import { getVersionData, isRancherPrime } from '@shell/config/version';
@@ -40,10 +41,8 @@ const MAX_DESCRIPTION_LENGTH = 200;
 
 const TABS_VALUES = {
   INSTALLED: 'installed',
-  UPDATES:   'updates',
   AVAILABLE: 'available',
   BUILTIN:   'builtin',
-  ALL:       'all',
 };
 
 export default {
@@ -67,7 +66,7 @@ export default {
     return {
       TABS_VALUES,
       kubeVersion:                    null,
-      view:                           '',
+      activeTab:                      '',
       installing:                     {},
       errors:                         {},
       plugins:                        [], // The installed plugins
@@ -121,11 +120,6 @@ export default {
     this.kubeVersion = res.localCluster?.kubernetesVersionBase || [];
 
     this.addExtensionReposBannerSetting = await fetchOrCreateSetting(this.$store, SETTING.ADD_EXTENSION_REPOS_BANNER_DISPLAY, 'true', true) || {};
-
-    // If there are no plugins installed, default to the catalog view
-    if (this.plugins.length === 0) {
-      this.$refs.tabs?.select(TABS_VALUES.AVAILABLE);
-    }
 
     this.loading = false;
   },
@@ -207,12 +201,10 @@ export default {
       // If not an extension developer, then don't include built-in extensions
       const all = this.pluginDeveloper ? this.available : this.available.filter((p) => !p.builtin);
 
-      switch (this.view) {
+      switch (this.activeTab) {
       case TABS_VALUES.INSTALLED:
         // We never show built-in extensions as installed - installed are just the ones the user has installed
-        return all.filter((p) => !p.builtin && (!!p.installed || !!p.installing));
-      case TABS_VALUES.UPDATES:
-        return this.updates;
+        return all.filter((p) => !p.builtin && (!!p.installed || !!p.installing) && p.installableVersions?.length > 0);
       case TABS_VALUES.AVAILABLE:
         return all.filter((p) => !p.installed);
       case TABS_VALUES.BUILTIN:
@@ -226,14 +218,14 @@ export default {
       return this.menuActions?.length > 0;
     },
 
-    // Message to display when the tab view is empty (depends on the tab)
+    // Message to display when the active tab is empty (depends on the tab)
     emptyMessage() {
       // i18n-uses plugins.empty.*
-      return this.t(`plugins.empty.${ this.view }`);
+      return this.t(`plugins.empty.${ this.activeTab }`);
     },
 
-    updates() {
-      return this.available.filter((plugin) => !!plugin.upgrade);
+    installed() {
+      return this.available.filter((p) => !p.builtin && (!!p.installed || !!p.installing));
     },
 
     pluginCards() {
@@ -299,6 +291,7 @@ export default {
           item.displayVersion = latestCompatible.version;
           item.displayVersionLabel = getPluginChartVersionLabel(latestCompatible);
           item.icon = latestCompatible.icon;
+          item.created = latestCompatible.created;
         } else {
           item.experimental = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true');
           item.certified = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER);
@@ -306,6 +299,7 @@ export default {
           item.displayVersion = item.versions?.[0]?.version;
           item.displayVersionLabel = getPluginChartVersionLabel(item.versions?.[0]);
           item.icon = chart.icon || latestCompatible?.annotations?.['catalog.cattle.io/ui-icon'];
+          item.created = item.versions?.[0]?.created;
         }
 
         // add message of extension card if there's a newer version of the extension, but it's not available to be installed
@@ -354,6 +348,7 @@ export default {
             displayVersion:      p.metadata?.version,
             displayVersionLabel: p.metadata?.version || '-',
             installed:           true,
+            installedVersion:    p.metadata?.version,
             builtin:             !!p.builtin,
             experimental:        rancher?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
             certified:           rancher?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER
@@ -374,8 +369,7 @@ export default {
         if (chart) {
           chart.installed = true;
           chart.uiplugin = p;
-          chart.displayVersion = p.version;
-          let displayVersionLabel = p.version;
+          chart.installedVersion = p.version;
 
           // Can't do this here
           chart.installing = this.installing[chart.name];
@@ -390,13 +384,10 @@ export default {
             if (installedVersion) {
               chart.experimental = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true';
               chart.certified = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER;
-              displayVersionLabel = getPluginChartVersionLabel(installedVersion);
             }
 
             chart.upgrade = getPluginChartVersionLabel(latestInstallableVersion);
           }
-
-          chart.displayVersionLabel = displayVersionLabel;
         } else {
           // No chart, so add a card for the plugin based on its Custom resource being present
           const item = {
@@ -475,10 +466,10 @@ export default {
 
             if (active) {
             // Can use the status directly, apart from upgrade, which maps to update
-              const status = op.status.action === 'upgrade' ? 'update' : op.status.action;
+              const status = op.status.action;
 
-              if (status === 'update' && this.installing[plugin.name] === 'rollback') {
-                // Helm op is an upgrade, but we initiated a rollback, so keep the 'rollback' status
+              if (status === 'upgrade' && this.installing[plugin.name] === 'downgrade') {
+                // Helm op is an upgrade, but we initiated a downgrade, so keep the 'downgrade' status
               } else {
                 this.updatePluginInstallStatus(plugin.name, status);
               }
@@ -536,6 +527,16 @@ export default {
   },
 
   methods: {
+    handlePanelAction(button) {
+      const { action, plugin, version } = button;
+
+      if (action === 'uninstall') {
+        this.showUninstallDialog(plugin, {});
+      } else {
+        this.showInstallDialog(plugin, action, {}, version);
+      }
+    },
+
     async refreshCharts(forceChartsUpdate = false) {
       // we might need to force the request, so that we know at all times if what's the status of the offical and partners repos (installed or not)
       // tied to the SetupUIPlugins, AddExtensionRepos checkboxes
@@ -561,8 +562,8 @@ export default {
       return hasFeatureFlag;
     },
 
-    filterChanged(f) {
-      this.view = f.selectedName;
+    tabChanged(f) {
+      this.activeTab = f.selectedName;
     },
 
     // Developer Load is in the action menu
@@ -624,10 +625,10 @@ export default {
       });
     },
 
-    showInstallDialog(plugin, action, ev) {
-      ev.target?.blur();
-      ev.preventDefault();
-      ev.stopPropagation();
+    showInstallDialog(plugin, action, ev, initialVersion = null) {
+      ev?.target?.blur();
+      ev?.preventDefault?.();
+      ev?.stopPropagation?.();
 
       this.$store.dispatch('management/promptModal', {
         component:                            'InstallExtensionDialog',
@@ -637,6 +638,7 @@ export default {
         componentProps:                       {
           plugin,
           action,
+          initialVersion,
           updateStatus: (pluginName, type) => {
             this.updatePluginInstallStatus(pluginName, type);
           },
@@ -648,9 +650,9 @@ export default {
     },
 
     showUninstallDialog(plugin, ev) {
-      ev.target?.blur();
-      ev.preventDefault();
-      ev.stopPropagation();
+      ev?.target?.blur();
+      ev?.preventDefault?.();
+      ev?.stopPropagation?.();
 
       this.$store.dispatch('management/promptModal', {
         component:                            'UninstallExtensionDialog',
@@ -684,7 +686,7 @@ export default {
 
     didInstall(plugin) {
       if (plugin) {
-        // Change the view to installed if we started installing a plugin
+        // Change the activeTab to installed if we started installing a plugin
         this.$refs.tabs?.select(TABS_VALUES.INSTALLED);
 
         // Clear the load error, if there was one previously
@@ -693,7 +695,9 @@ export default {
     },
 
     showPluginDetail(plugin) {
-      this.$refs.infoPanel.show(plugin);
+      const tags = this.getFooterItems(plugin);
+
+      this.$refs.infoPanel.show({ ...plugin, tags });
     },
 
     updatePluginInstallStatus(name, status) {
@@ -742,42 +746,46 @@ export default {
     getPluginActions(plugin) {
       const actions = [];
 
-      const canInstall = !plugin.installed && plugin.installableVersions?.length;
-      const canUninstall = plugin.installed && !plugin.builtin;
-      const canUpdate = plugin.installed && plugin.upgrade;
-      const canRollback = plugin.installed && !plugin.upgrade && plugin.installableVersions?.length > 1;
+      if (plugin.installed) {
+        const canUpdate = !!plugin.upgrade;
+        const canDowngrade = plugin.installableVersions?.some((v) => isChartVersionHigher(plugin.installedVersion, v.version));
+        const canUninstall = !plugin.builtin;
 
-      if (canUninstall) {
-        actions.push({
-          label:  this.t('plugins.uninstall.label'),
-          action: 'uninstall',
-          icon:   'icon-delete',
-        });
-      }
+        if (canUpdate) {
+          actions.push({
+            label:  this.t('plugins.upgrade.label'),
+            action: 'upgrade',
+            icon:   'icon-upgrade-alt',
+          });
+        }
 
-      if (canUpdate) {
-        actions.push({
-          label:  this.t('plugins.update.label'),
-          action: 'update',
-          icon:   'icon-edit',
-        });
-      }
+        if (canDowngrade) {
+          actions.push({
+            label:  this.t('plugins.downgrade.label'),
+            action: 'downgrade',
+            icon:   'icon-downgrade-alt',
+          });
+        }
 
-      if (canRollback) {
-        actions.push({
-          label:  this.t('plugins.rollback.label'),
-          action: 'rollback',
-          icon:   'icon-history',
-        });
-      }
-
-      if (canInstall) {
-        actions.push({
-          label:   this.t('plugins.install.label'),
-          action:  'install',
-          icon:    'icon-plus',
-          enabled: true,
-        });
+        if (canUninstall) {
+          if (actions.length > 0) {
+            actions.push({ divider: true });
+          }
+          actions.push({
+            label:  this.t('plugins.uninstall.label'),
+            action: 'uninstall',
+            icon:   'icon-delete',
+          });
+        }
+      } else {
+        if (plugin.installableVersions?.length) {
+          actions.push({
+            label:   this.t('plugins.install.label'),
+            action:  'install',
+            icon:    'icon-plus',
+            enabled: true,
+          });
+        }
       }
 
       return actions;
@@ -785,11 +793,24 @@ export default {
 
     getSubHeaderItems(plugin) {
       const items = [{
-        icon:         'icon-version-alt',
-        iconTooltip:  { key: 'tableHeaders.version' },
-        label:        plugin.displayVersionLabel,
-        labelTooltip: plugin.upgrade ? this.t('plugins.upgradeAvailableTooltip', { version: plugin.upgrade }) : ''
+        icon:        'icon-version-alt',
+        iconTooltip: { key: 'tableHeaders.version' },
+        label:       plugin.displayVersionLabel,
       }];
+
+      if (plugin.created) {
+        const hasZeroTime = plugin.created === ZERO_TIME;
+        const lastUpdatedItem = {
+          icon:        'icon-refresh-alt',
+          iconTooltip: { key: 'tableHeaders.lastUpdated' },
+          label:       hasZeroTime ? this.t('generic.na') : day(plugin.created).format('MMM D, YYYY')
+        };
+
+        if (hasZeroTime) {
+          lastUpdatedItem.labelTooltip = this.t('catalog.charts.appChartCard.subHeaderItem.missingVersionDate');
+        }
+        items.push(lastUpdatedItem);
+      }
 
       if (plugin.installing) {
         let label;
@@ -801,11 +822,11 @@ export default {
         case 'uninstall':
           label = this.t('plugins.labels.uninstalling');
           break;
-        case 'update':
-          label = this.t('plugins.labels.updating');
+        case 'upgrade':
+          label = this.t('plugins.labels.upgrading');
           break;
-        case 'rollback':
-          label = this.t('plugins.labels.rollingBack');
+        case 'downgrade':
+          label = this.t('plugins.labels.downgrading');
           break;
         default:
           label = this.t('plugins.labels.installing');
@@ -875,7 +896,7 @@ export default {
 
       if (plugin.installed && !plugin.builtin && !plugin.installing) {
         statuses.push({
-          icon: 'icon-confirmation-alt', color: 'success', tooltip: { key: 'generic.installed' }
+          icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: `${ this.t('generic.installed') } (${ plugin.installedVersion })` }
         });
       }
 
@@ -960,7 +981,10 @@ export default {
     </div>
 
     <!-- extensions slide-in panel -->
-    <PluginInfoPanel ref="infoPanel" />
+    <PluginInfoPanel
+      ref="infoPanel"
+      @action="handlePanelAction"
+    />
 
     <!-- extensions not enabled by feature flag -->
     <div v-if="!hasFeatureFlag">
@@ -1010,15 +1034,18 @@ export default {
         </Banner>
 
         <Tabbed
+          v-if="!loading"
           ref="tabs"
           :tabs-only="true"
           data-testid="extension-tabs"
-          @changed="filterChanged"
+          @changed="tabChanged"
         >
           <Tab
+            v-if="installed.length"
             :name="TABS_VALUES.INSTALLED"
             data-testid="extension-tab-installed"
             label-key="plugins.tabs.installed"
+            :badge="installed.length"
             :weight="20"
           />
           <Tab
@@ -1028,21 +1055,10 @@ export default {
             :weight="19"
           />
           <Tab
-            :name="TABS_VALUES.UPDATES"
-            label-key="plugins.tabs.updates"
-            :weight="18"
-            :badge="updates.length"
-          />
-          <Tab
             v-if="pluginDeveloper"
             :name="TABS_VALUES.BUILTIN"
             label-key="plugins.tabs.builtin"
             :weight="17"
-          />
-          <Tab
-            :name="TABS_VALUES.ALL"
-            label-key="plugins.tabs.all"
-            :weight="16"
           />
         </Tabbed>
         <div
@@ -1082,8 +1098,8 @@ export default {
               :clickable="true"
               @card-click="showPluginDetail(card.plugin)"
               @uninstall="({event}) => showUninstallDialog(card.plugin, event)"
-              @update="({event}) => showInstallDialog(card.plugin, 'update', event)"
-              @rollback="({event}) => showInstallDialog(card.plugin, 'rollback', event)"
+              @upgrade="({event}) => showInstallDialog(card.plugin, 'upgrade', event)"
+              @downgrade="({event}) => showInstallDialog(card.plugin, 'downgrade', event)"
               @install="({event}) => showInstallDialog(card.plugin, 'install', event)"
             >
               <template #item-card-sub-header>

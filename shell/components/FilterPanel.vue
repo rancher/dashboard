@@ -20,6 +20,8 @@ type FilterOption = {
   componentProps?: Record<string, unknown>;
   /** Label to show next to the checkbox, or a custom component next to the checkbox */
   label?: string | { component: ComponentType; componentProps: Record<string, unknown>; };
+  /** Tooltip to be displayed above the checkbox on hover */
+  labelTooltip?: string;
 };
 
 /**
@@ -97,7 +99,12 @@ const updateFilter = (key: string, value: string[]) => {
             @update:value="updateFilter(filter.key, $event)"
           >
             <template #label>
-              <span v-if="typeof option.label === 'string'">{{ option.label }}</span>
+              <span
+                v-if="typeof option.label === 'string'"
+                v-clean-tooltip="{content: option.labelTooltip, delay: { show: 1000 }}"
+              >
+                {{ option.label }}
+              </span>
               <component
                 :is="option.label.component"
                 v-else

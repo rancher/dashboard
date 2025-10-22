@@ -9,7 +9,7 @@ import {
 } from '@/cypress/e2e/blueprints/global_settings/settings-data';
 
 // If there's more than one cluster the currentCluster used in links can be different to `local`
-const settingsClusterId = 'local';
+const settingsClusterId = '_';
 const settingsPage = new SettingsPagePo(settingsClusterId);
 const homePage = new HomePagePo();
 const accountPage = new AccountPagePo();
@@ -260,8 +260,8 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
   it('can update ui-brand', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // We probably want a better way to distinguish between rancher and suse logos. I'm doing this as part of the vue3 migration and trying to keep things as similar as possible.
-    const rancherLogoWidth = 142;
-    const suseRancherLogoWidth = 82;
+    const rancherLogoWidth = 167;
+    const suseRancherLogoWidth = 140;
 
     // Update setting
     SettingsPagePo.navTo();

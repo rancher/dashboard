@@ -82,10 +82,10 @@ export default {
           label: {
             component:      markRaw(StatusLabel),
             componentProps: {
-              label:     this.t('generic.installed'),
-              icon:      'icon-warning',
-              iconColor: 'warning',
-              tooltip:   this.t('catalog.charts.statusFilterCautions.installation')
+              label:       this.t('generic.installed'),
+              icon:        'icon-warning',
+              iconColor:   'warning',
+              iconTooltip: this.t('catalog.charts.statusFilterCautions.installation')
             }
           }
         },
@@ -98,10 +98,10 @@ export default {
           label: {
             component:      markRaw(StatusLabel),
             componentProps: {
-              label:     this.t('generic.upgradeable'),
-              icon:      'icon-warning',
-              iconColor: 'warning',
-              tooltip:   this.t('catalog.charts.statusFilterCautions.upgradeable')
+              label:       this.t('generic.upgradeable'),
+              icon:        'icon-warning',
+              iconColor:   'warning',
+              iconTooltip: this.t('catalog.charts.statusFilterCautions.upgradeable')
             }
           }
         }
@@ -125,9 +125,10 @@ export default {
     repoOptions() {
       let out = this.$store.getters['catalog/repos'].map((r) => {
         return {
-          value:  r._key,
-          label:  r.nameDisplay,
-          weight: ( r.isRancher ? 1 : ( r.isPartner ? 2 : 3 ) ),
+          value:        r._key,
+          label:        r.nameDisplay,
+          labelTooltip: r.nameDisplay,
+          weight:       ( r.isRancher ? 1 : ( r.isPartner ? 2 : 3 ) ),
         };
       });
 

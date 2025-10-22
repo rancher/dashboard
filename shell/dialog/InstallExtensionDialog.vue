@@ -3,12 +3,12 @@ import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
+import { UI_PLUGIN_NAMESPACE, isChartVersionHigher } from '@shell/config/uiplugins';
 import Banner from '@components/Banner/Banner.vue';
 import { SETTING } from '@shell/config/settings';
-import { getPluginChartVersion, getPluginChartVersionLabel } from '@shell/utils/uiplugins';
+import { getPluginChartVersionLabel } from '@shell/utils/uiplugins';
 
-// Note: This dialog handles installation and update of a plugin
+// Note: This dialog handles installation, upgrade and downgrade of a plugin
 
 export default {
   emits: ['close'],
@@ -29,7 +29,14 @@ export default {
       required: true
     },
     /**
-     * The action to perform (install, update, rollback)
+     * The pre-selected version in the dropdown
+     */
+    initialVersion: {
+      type:    String,
+      default: null
+    },
+    /**
+     * The action to perform (install, upgrade, downgrade)
      */
     action: {
       type:     String,
@@ -63,33 +70,32 @@ export default {
   },
 
   async fetch() {
-    const chartVersion = getPluginChartVersion(this.plugin);
-
-    // Default to latest version on install (this is default on the plugin)
-    this.version = chartVersion;
-
-    if (this.action === 'update') {
-      this.currentVersion = chartVersion;
-
-      // Update to latest version, so take the first version
-      if (this.plugin?.installableVersions?.length > 0) {
-        this.version = this.plugin?.installableVersions?.[0]?.version;
-      }
-    } else if (this.action === 'rollback') {
-      // Find the newest version once we remove the current version
-      const versionNames = this.plugin.installableVersions.filter((v) => v.version !== chartVersion);
-
-      this.currentVersion = chartVersion;
-
-      if (versionNames.length > 0) {
-        this.version = versionNames[0].version;
-      }
+    // Determine the currently installed version, if any
+    if (this.plugin.installed) {
+      this.currentVersion = this.plugin.installedVersion;
     }
 
-    // Make sure we have the version available
-    const versionChart = this.plugin?.installableVersions?.find((v) => v.version === this.version);
+    // Determine the initial version to select in the dropdown
+    if (this.initialVersion) {
+      this.version = this.initialVersion;
+    } else if (this.action === 'upgrade') {
+      // Upgrade to the latest version, so take the first version
+      this.version = this.plugin?.installableVersions?.[0]?.version;
+    } else if (this.action === 'downgrade') {
+      const versions = this.plugin.installableVersions;
+      const currentIndex = versions.findIndex((v) => v.version === this.currentVersion);
 
-    if (!versionChart) {
+      if (currentIndex !== -1 && currentIndex < versions.length - 1) {
+        // Select the version just below the current version
+        this.version = versions[currentIndex + 1].version;
+      }
+    } else {
+      // Default to the latest installable version for new installs
+      this.version = this.plugin?.installableVersions?.[0]?.version;
+    }
+
+    // Fallback if no version could be determined
+    if (!this.version) {
       this.version = this.plugin?.installableVersions?.[0]?.version;
     }
 
@@ -119,37 +125,39 @@ export default {
     },
 
     versionOptions() {
-      if (!this.plugin) {
+      if (!this.plugin?.installableVersions) {
         return [];
       }
 
-      // Don't allow update/rollback to current version
-      const versions = this.plugin?.installableVersions?.filter((v) => {
-        if (this.currentVersion) {
-          return v.version !== this.currentVersion;
-        }
+      // Don't allow upgrade/downgrade to current version by disabling the option
+      return this.plugin.installableVersions.map((v) => {
+        const isCurrent = v.version === this.currentVersion;
 
-        return true;
-      });
-
-      return versions.map((version) => {
         return {
-          label: getPluginChartVersionLabel(version),
-          value: version.version,
+          label:    getPluginChartVersionLabel(v) + (isCurrent ? ` (${ this.t('plugins.labels.current') })` : ''),
+          value:    v.version,
+          disabled: isCurrent,
         };
       });
     },
 
     buttonMode() {
-      if (this.action === 'rollback') {
-        return 'rollback';
+      if (this.action === 'install') {
+        return 'install';
       }
 
-      if (this.action === 'update') {
-        return 'update';
+      if (this.currentVersion && this.version) {
+        if (isChartVersionHigher(this.version, this.currentVersion)) {
+          return 'upgrade';
+        }
+
+        if (isChartVersionHigher(this.currentVersion, this.version)) {
+          return 'downgrade';
+        }
       }
 
-      return 'install';
+      // Fallback for safety, though should not be reached if version is selected
+      return this.action;
     },
 
     chartVersionLoadsWithoutAuth() {
@@ -158,6 +166,23 @@ export default {
 
     returnFocusSelector() {
       return `[data-testid="extension-card-${ this.action }-btn-${ this.plugin?.name }"]`;
+    },
+
+    buttonIcon() {
+      if (this.busy) {
+        return '';
+      }
+
+      switch (this.buttonMode) {
+      case 'install':
+        return 'icon-plus';
+      case 'upgrade':
+        return 'icon-upgrade-alt';
+      case 'downgrade':
+        return 'icon-downgrade-alt';
+      default:
+        return '';
+      }
     }
   },
 
@@ -295,12 +320,12 @@ export default {
 <template>
   <div class="plugin-install-dialog">
     <h4 class="mt-10">
-      {{ t(`plugins.${ action }.title`, { name: plugin?.label }) }}
+      {{ t(`plugins.${ buttonMode }.title`, { name: `"${plugin?.label}"` }, true) }}
     </h4>
     <div class="custom mt-10">
       <div class="dialog-panel">
         <p>
-          {{ t(`plugins.${ action }.prompt`) }}
+          {{ t(`plugins.${ buttonMode }.prompt`) }}
         </p>
         <Banner
           v-if="chartVersionLoadsWithoutAuth"
@@ -335,6 +360,7 @@ export default {
         </button>
         <AsyncButton
           :mode="buttonMode"
+          :icon="buttonIcon"
           data-testid="install-ext-modal-install-btn"
           @click="install"
         />

@@ -55,6 +55,11 @@ registration:
         invalid: Invalid
         expired: Expired
         valid: Active
+  errors:
+    missing-code: Registration code as Secret is missing
+    mismatch-code: Registration active but does not match Secret registration code. Please verify the <a href="${ url }">registration</a>
+    generic-registration: No registration found for existing registration code (Secret).
+    timeout-registration: Timeout reached while waiting for resource.
 
 prime:
   installed: This is a SUSE Rancher Prime installation

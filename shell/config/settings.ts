@@ -52,6 +52,7 @@ export const SETTING = {
   RKE_METADATA_CONFIG:                           'rke-metadata-config',
   EULA_AGREED:                                   'eula-agreed',
   AUTH_USER_INFO_MAX_AGE_SECONDS:                'auth-user-info-max-age-seconds',
+  AUTH_USER_SESSION_IDLE_TTL_MINUTES:            'auth-user-session-idle-ttl-minutes',
   AUTH_USER_SESSION_TTL_MINUTES:                 'auth-user-session-ttl-minutes',
   AUTH_USER_INFO_RESYNC_CRON:                    'auth-user-info-resync-cron',
   AUTH_LOCAL_VALIDATE_DESC:                      'auth-password-requirements-description',
@@ -109,7 +110,12 @@ export const SETTING = {
   SYSTEM_AGENT_UPGRADER_INSTALL_CONCURRENCY:     'system-agent-upgrader-install-concurrency',
   IMPORTED_CLUSTER_VERSION_MANAGEMENT:           'imported-cluster-version-management',
   CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS:          'cluster-agent-default-priority-class',
-  CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET: 'cluster-agent-default-pod-disruption-budget'
+  CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET: 'cluster-agent-default-pod-disruption-budget',
+  /**
+   * Dynamic Content settings
+   */
+  DYNAMIC_CONTENT_ENABLED:                       'ui-content-enabled',
+  DYNAMIC_CONTENT_ENDPOINT:                      'ui-content-endpoint',
 } as const;
 
 // These are the settings that are allowed to be edited via the UI
@@ -140,6 +146,7 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   },
   [SETTING.INGRESS_IP_DOMAIN]:                    {},
   [SETTING.AUTH_USER_INFO_MAX_AGE_SECONDS]:       {},
+  [SETTING.AUTH_USER_SESSION_IDLE_TTL_MINUTES]:   {},
   [SETTING.AUTH_USER_SESSION_TTL_MINUTES]:        {},
   [SETTING.AUTH_TOKEN_MAX_TTL_MINUTES]:           {},
   [SETTING.KUBECONFIG_GENERATE_TOKEN]:            { kind: 'boolean' },

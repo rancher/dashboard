@@ -323,7 +323,7 @@ export default class CatalogApp extends SteveModel {
 
   get relatedResourcesToRemove() {
     return async() => {
-      const crd = this.spec.chart.metadata.annotations[CATALOG_ANNOTATIONS.AUTO_INSTALL].replace('=match', '');
+      const crd = this.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL]?.replace('=match', '');
 
       return await this.$dispatch('find', {
         type: CATALOG.APP,

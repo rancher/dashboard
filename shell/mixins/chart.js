@@ -220,7 +220,7 @@ export default {
     },
 
     currentVersion() {
-      return this.existing?.spec.chart.metadata.version;
+      return this.existing?.spec?.chart?.metadata?.version;
     },
 
     targetVersion() {
@@ -242,7 +242,7 @@ export default {
 
       if (compare(this.currentVersion, this.targetVersion) < 0) {
         return {
-          name: 'upgradeVersion', tKey: 'upgrade', icon: 'icon-upgrade-alt'
+          name: 'upgrade', tKey: 'upgrade', icon: 'icon-upgrade-alt'
         };
       }
 

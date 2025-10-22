@@ -1,3 +1,16 @@
+$grey-100   : #000000;
+$grey-90    : #141619;
+$grey-80    : #25282D;
+$grey-70    : #31353F;
+$grey-60    : #4A4D52;
+$grey-50    : #6C6F76;
+$grey-40    : #92959B;
+$grey-30    : #B6BAC2;
+$grey-20    : #DCDFE7;
+$grey-10    : #EEF0F4;
+$grey-5     : #F5F7FA;
+$grey-0     : #FFFFFF;
+
 // Local variables for reused colors
 //light main text
 $darkest   : #141419;
@@ -23,15 +36,27 @@ $lightest  : #FFFFFF;
 //color for items that are not enabled
 $disabled  : $medium;
 
-$primary         : #3D98D3;
-$secondary       : $darker;
-$link            : #3D98D3;
+$primary         : #2F68DF;
+$primary-150     : #1A2A4D;
+$primary-140     : #304778; // Active light
+$primary-120     : #3459A8;
+$primary-110     : #496192;
+$primary-80      : #4871C7;
+$primary-75      : #454F68; // Category active dark
+$primary-60      : #75A1FF;
+$primary-55      : #81AEFC;
+$primary-50      : #A7BFF1; // Active dark
+$primary-20      : #EDF2FC;
+$primary-15      : #EEF1F6; // Category active light
+
+$secondary       : $grey-50;
+$link            : $primary-80;
 
 // Status colors
-$success         : #5D995D;
-$warning         : #DAC342;
-$error           : #F64747;
-$info            : #3D98D3;
+$success         : #007032;
+$warning         : #FFE47A;
+$error           : #B13333;
+$info            : #1F67DB;
 
 $contrasted-dark: $darkest !default;
 $contrasted-light: $lightest !default;
@@ -55,6 +80,36 @@ BODY, .theme-light {
   --primary-light-bg           : #{rgba($primary, 0.05)};
   --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
 
+  --non-primary-hover: #{$primary-20};
+
+  --secondary        : var(--body-bg);
+  --secondary-border : #{$primary};
+  --on-secondary     : #{$primary};
+  --secondary-hover  : var(--non-primary-hover);
+
+  --tertiary                  : transparent;
+  --tertiary-header           : transparent;
+  --tertiary-border           : transparent;
+  --tertiary-header-hover     : var(--non-primary-hover);
+  --on-tertiary               : var(--link);
+  --on-tertiary-header        : var(--link);
+  --on-tertiary-header-hover  : var(--link);
+  --on-tertiary-hover         : var(--link);
+  --tertiary-hover            : var(--non-primary-hover);
+  --tertiary-hover-app-bar    : var(--link);
+
+  --active            : #{$primary-110};
+  --active-nav        : #{$primary-110};
+  --on-active         : #{$grey-0};
+  --toggle-on-bg      : var(--active);
+  --toggle-on-color   : var(--on-active);
+  --toggle-off-bg     : #{$grey-5};
+  --toggle-off-color  : #{$grey-50};
+  --toggle-off-hover  : #{$grey-10};
+
+  --active-hover          : #{lighten($primary-110, 5%)};
+  --category-active       : #{$primary-15};
+  --category-active-hover : #{$grey-20};
 
   .text-primary {
     color: var(--primary) !important;
@@ -76,7 +131,7 @@ BODY, .theme-light {
       }
   }
 
-  --link                    : #{$link};
+  --link                    : #3458a8;
   --link-text               : #{contrast-color($link)};
   --link-text-secondary     : #{$darker};
   --link-hover-bg           : #{darken($link, 10%)};
@@ -156,8 +211,8 @@ BODY, .theme-light {
       }
   }
 
-  --muted                      : #{$dark};
-  --deemphasized               : #717179;
+  --muted                      : #6F6F8B;
+  --deemphasized               : #6F6F8B;
 
   .text-muted {
     color: var(--muted) !important;
@@ -357,6 +412,7 @@ BODY, .theme-light {
 
   --body-bg                    : #{$lightest};
   --body-text                  : #{$darkest};
+  --body-text-hover            : var(--body-text);
   --scrollbar-thumb            : #{$dark};
   --scrollbar-thumb-dropdown   : #{$lighter};
   --scrollbar-track            : transparent;
@@ -372,10 +428,13 @@ BODY, .theme-light {
   --header-height              : 55px;
   --header-border              : #{$medium};
   --header-border-size         : 1px;
+
   --nav-width                  : 250px;
   --nav-bg                     : #{$lightest};
   --nav-active                 : #{$light};
-  --nav-hover                  : #{$medium};
+  --nav-hover                  : #{$grey-10};
+  --nav-active-hover           : var(--active-hover);
+  --nav-hover-top-level        : var(--nav-hover);
   --nav-expander-hover         : #{darken($medium, 10%)};
   --nav-border                 : #{$medium};
   --nav-border-size            : 1px;
@@ -412,11 +471,11 @@ BODY, .theme-light {
   --overlay-bg                 : rgba(38, 42, 64, 0.35);
   --shadow                     : #{rgba($medium, 0.85)};
 
-  --checkbox-tick              : #{$lightest};
-  --checkbox-border            : #{$medium};
+  --checkbox-tick              : var(--on-active);
+  --checkbox-border            : var(--active);
   --checkbox-tick-disabled     : #{darken($disabled, 40%)};
   --checkbox-disabled-bg       : #{$disabled};
-  --checkbox-ticked-bg         : var(--link);
+  --checkbox-ticked-bg         : var(--active);
 
   --drag-over-inner-bg         : #{rgba($drag-over, 0.9)};
   --drag-over-outer-bg         : #{rgba($drag-over, 0)};
@@ -462,17 +521,15 @@ BODY, .theme-light {
   --progress-bg                : #{$medium};
   --progress-divider           : #{$medium};
 
-  --sortable-table-bg          : #{darken($lightest, 5%)};
-  --sortable-table-row-bg      : #{$lightest};
-  --sortable-table-header-bg   : #{$lighter};
+  --sortable-table-bg          : #{darken($grey-0, 5%)};
+  --sortable-table-row-bg      : #{$grey-0};
+  --sortable-table-header-bg   : #{$grey-5};
   --sortable-table-top-divider : var(--border);
-  --sortable-table-body-divider : #{$medium};
-
-  --sortable-table-hover-bg    : #{$lighter};
-  //--sortable-table-selected-bg : #{rgba($primary, 0.02)};
-
+  --sortable-table-hover-bg    : #{$grey-5};
   --sortable-table-selected-bg : var(--primary-light-bg);
+  --sortable-table-group-label : #{$lighter};
   --sortable-table-group-label : #{$secondary};
+  --sortable-table-body-divider : #{$medium};
 
   --tag-primary                : #{$darkest};
   --tag-bg                     : #EEEFF5;
@@ -526,9 +583,9 @@ BODY, .theme-light {
 
   --resource-gauge-back-circle : 255, 255, 255, 0.15;
 
-  --simple-box-bg              : #{$lightest};
-  --simple-box-border          : #{$medium};
-  --simple-box-divider         : #{$medium};
+  --simple-box-bg              : #{$grey-0};
+  --simple-box-border          : #{$grey-20};
+  --simple-box-divider         : #{$grey-20};
   --simple-box-shadow          : none;
 
   --terminal-bg                : var(--body-bg);
@@ -658,13 +715,28 @@ BODY, .theme-light {
   --rc-inactive-disabled-border: #{$gray001};
   --rc-disabled-background: #{$gray001};
   --rc-disabled-text-color: #{$gray004};
+
+  --warning-badge    : #{$warning};
+  --on-warning-banner : #{darken($warning, 60%)};
+
+  --success-badge    : #{rgba($success, 0.10)};
+  --on-success-banner : #{$success};
+
+  --info-badge    : #{rgba($info, 0.10)};
+  --on-info-banner : #{$info};
+  
+  --error-badge    :  #{$error};
+  --on-error-banner : #FFFFFF;
+
+  --error-banner-text: #{$error};
+  --warning-banner-text: var(--warning-text);
 }
 
 BODY, .theme-dark {
   // Local variables for reused colors
 
   //dark sidebar
-  $darkest: #141419;
+  $darkest: #171C22;
 
   //dark body
   $darker: #1b1c21;
@@ -687,6 +759,11 @@ BODY, .theme-dark {
   // menu cluster description active+hover
   $desc-light: #EEEFF4;
 
+  $success         : #008F40;
+  $warning         : #EAC431;
+  $error           : #C63434;
+  $info            : #1F67DB;
+
   $secondary: $lighter;
   $disabled: $light;
 
@@ -695,13 +772,50 @@ BODY, .theme-dark {
   $contrasted-light: $darkest !default;
 
   $drag-over: #DCDEE7;
+  $body-bg  : #25282F;
 
   $slate: #4B4F6B;
+
+  --body-border: #38404B;
+  --link       : #9BBFFD;
+
+  --primary-border: var(--link);
+
+  --non-primary-hover: #162D59;
+
+  --secondary: var(--body-bg);
+  --secondary-border: #{$primary-60};
+  --on-secondary: #{$primary-60};
+  --secondary-hover: var(--non-primary-hover);
+
+  --tertiary                  : transparent;
+  --tertiary-header           : transparent;
+  --tertiary-border           : transparent;
+  --tertiary-header-hover     : var(--non-primary-hover);
+  --on-tertiary               : var(--link);
+  --on-tertiary-header        : var(--link);
+  --on-tertiary-header-hover  : var(--link);
+  --on-tertiary-hover         : var(--link);
+  --tertiary-hover            : var(--non-primary-hover);
+  --tertiary-hover-app-bar    : var(--link);
+
+  --active                : #{$primary-50};
+  --active-nav            : #{$primary-50};
+  --on-active             : #{$grey-90};
+  --active-hover          : #{darken($primary-50, 5%)};
+  --category-active       : #{$primary-75};
+  --category-active-hover : #{$grey-70};
+
+  --toggle-on-bg      : var(--active);
+  --toggle-on-color   : var(--on-active);
+  --toggle-off-bg     : #{$grey-70};
+  --toggle-off-color  : #{$grey-30};
+  --toggle-off-hover  : #{$grey-90};
 
   --slate: #{$slate};
 
   --default                    : #{$dark};
-  --default-text               : #{$light};
+  --default-text               : #FFFAFA;
   --default-hover-bg           : #{darken($dark, 10%)};
   --default-hover-text         : #{saturate($lightest, 20%)};
   --default-active-bg          : #{darken($dark, 25%)};
@@ -712,17 +826,18 @@ BODY, .theme-dark {
   --slider-light-bg            : #{rgba($darker, 1)};
   --slider-light-bg-right      : #{rgba($darker, 0)};
 
-  --muted                      : #{$disabled};
-  --deemphasized               : #{$disabled};
+  --muted                      : #8F8F9C;
+  --deemphasized               : #8F8F9C;
 
-  --body-bg                    : #{$darker};
-  --body-text                  : #{$lightest};
+  --body-bg                    : #{$body-bg};
+  --body-text                  : #FFFAFA;
+  --body-text-hover            : var(--body-text);
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$medium};
 
   --side-menu-desc             : #{$desc-light};
 
-  --header-bg                  : #{$darker};
+  --header-bg                  : #{$body-bg};
   --header-border              : #{$medium};
   --header-btn-bg              : transparent;
   --header-btn-text            : #{$lightest};
@@ -732,10 +847,14 @@ BODY, .theme-dark {
   // Header, Footer and Consent banner defaults
   --banner-text-color          : #{$lightest};
 
-  --nav-bg                     : #{$darkest};
+  --primary-keyboard-focus     : #6889EE;
+
+  --nav-bg                     : #{$body-bg};
   --nav-active                 : #333;
   --nav-border                 : #{$medium};
-  --nav-hover                  : var(--primary);
+  --nav-hover                  : #{lighten($body-bg, 10%)};
+  --nav-active-hover           : var(--active-hover);
+  --nav-hover-top-level        : var(--nav-hover);
   --nav-expander-hover         : var(--primary-banner-bg);
   --nav-icon-badge-bg          : #{$dark};
 
@@ -745,7 +864,7 @@ BODY, .theme-dark {
   --subtle-border              : #{$darkest};
   --border                     : #{$medium};
 
-  --topmenu-bg                 : #{$darkest};
+  --topmenu-bg                 : #{$body-bg};
   --topmenu-text               : #{$lightest};
   --topmost-border             : #{$medium};
   --topmost-shadow             : #{lighten($darkest, 5%)};
@@ -755,17 +874,17 @@ BODY, .theme-dark {
   --accent-btn-hover           : var(--primary);
   --accent-btn-hover-text      : #{$lightest};
 
-  --modal-bg                   : #{$dark};
+  --modal-bg                   : #{$body-bg};
   --modal-border               : #{$medium};
   --subtle-overlay-bg          : #{rgba($darkest, 0.75)};
-  --overlay-bg                 : #{rgba($darkest, 0.75)};
+  --overlay-bg                 : rgba(47, 51, 61, .75);
   --shadow                     : #{rgba($darkest, 0.9)};
 
-  --checkbox-tick              : #{$lightest};
-  --checkbox-border            : #{$medium};
+  --checkbox-tick              : var(--on-active);
+  --checkbox-border            : #627084;
   --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
   --checkbox-disabled-bg       : #{$disabled};
-  --checkbox-ticked-bg         : var(--link);
+  --checkbox-ticked-bg         : var(--active);
 
   --drag-over-inner-bg         : #{rgba($drag-over, 0.9)};
   --drag-over-outer-bg         : #{rgba($drag-over, 0)};
@@ -788,7 +907,7 @@ BODY, .theme-dark {
   --input-text                 : #{$lightest};
   --input-label                : #{$lighter};
   --input-placeholder          : #{$disabled};
-  --input-border               : var(--border);
+  --input-border               : #627084;
   --input-bg                   : var(--body-bg);
   --input-bg-accent            : #{darken($dark, 3%)};
   --input-hover-bg             : var(--box-bg);
@@ -805,13 +924,13 @@ BODY, .theme-dark {
   --progress-bg                : #{$medium};
   --progress-divider           : #{$lightest};
 
-  --sortable-table-bg          : #{lighten($darkest, 10%)};
-  --sortable-table-row-bg      : #{$darker};;
-  --sortable-table-header-bg   : #{$darkest};
-  --sortable-table-top-divider : var(--border);
-  --sortable-table-hover-bg    : #{$darkest};
-  --sortable-table-selected-bg : var(--primary-light-bg);
-  --sortable-table-group-label : #{$lighter};
+  --sortable-table-bg           : #171C22;
+  --sortable-table-row-bg       : var(--body-bg);
+  --sortable-table-header-bg    : #171C22;
+  --sortable-table-top-divider  : var(--body-border);
+  --sortable-table-hover-bg     : #{lighten($body-bg, 5%)};
+  --sortable-table-selected-bg  : #3f4350;
+  --sortable-table-group-label  : #{$grey-30};
 
   --tag-primary                : #{$lightest};
   --tag-bg                     : #{$medium};
@@ -865,8 +984,8 @@ BODY, .theme-dark {
 
   --resource-gauge-back-circle : 74, 75, 82, 0.5;
 
-  --simple-box-bg              : #{$darker};
-  --simple-box-border          : #{$medium};
+  --simple-box-bg              : var(--body-bg);
+  --simple-box-border          : var(--body-border);
   --simple-box-divider         : #{$medium};
   --simple-box-shadow          : none;
 
@@ -916,6 +1035,11 @@ BODY, .theme-dark {
 
   --slate: #{$slate};
 
+  --border: var(--body-border);
+  --nav-border: var(--body-border);
+  --topmost-border: var(--body-border);
+  --header-border: var(--body-border);
+
   --link-text-secondary: #{$secondary};
 
   .secondary-text-link {
@@ -932,5 +1056,25 @@ BODY, .theme-dark {
 
   --rc-disabled-background: #{$gray005};
   --rc-disabled-text-color: #{$gray004};
+
+  --error-text    : #FFAC99;
+  --warning-text  : #{contrast-color($warning)};;
+
+  --success-badge     : #{rgba($success, 10%)};
+  --on-success-banner : #00B752;
+
+  --warning-badge     : #ffcc00;
+  --on-warning-banner : #{darken($warning, 60%)};
+
+  --info-badge      : #{rgba($info, 30%)};
+  --on-info-banner  : #{lighten($info, 50%)};
+
+  --error-badge     :  #{$error};
+  --on-error-banner : #FFFFFF;
+
+  --error-banner-bg: #301D1D;
+
+  --warning-banner-text : var(--warning-text);
+  --error-banner-text   : var(--error-text);
 }
 

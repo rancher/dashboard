@@ -220,6 +220,9 @@ export default {
       )
     ) {
       if (opt.watch !== false ) {
+        // Note - Empty revision here seems broken
+        // - list page (watch all) --> detail page (stop watch all, watch one) --> list page (watch all - no revision)
+        // - the missing revision means watch start from now... instead of the point the clusters were last monitored (cache contains stale data)
         const args = {
           type,
           revision:  '',
@@ -695,7 +698,7 @@ export default {
 
     const res = await dispatch('request', { opt, type });
 
-    await dispatch('load', { data: res });
+    await dispatch('load', { data: res, invalidatePageCache: opt.invalidatePageCache });
 
     if ( opt.watch !== false ) {
       dispatch('watch', createFindWatchArg({

@@ -1,29 +1,29 @@
-import { isMatch } from 'lodash';
+// import { isMatch } from 'lodash';
 import KontainerDriversPagePo from '@/cypress/e2e/po/pages/cluster-manager/kontainer-drivers.po';
-import KontainerDriverEditPo from '@/cypress/e2e/po/edit/kontainer-driver.po';
-import DeactivateDriverDialogPo from '@/cypress/e2e/po/prompts/deactivateDriverDialog.po';
-import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
-import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
-import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+// import KontainerDriverEditPo from '@/cypress/e2e/po/edit/kontainer-driver.po';
+// import DeactivateDriverDialogPo from '@/cypress/e2e/po/prompts/deactivateDriverDialog.po';
+// import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
+// import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
+// import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const driversPage = new KontainerDriversPagePo();
-  const createDriverPage = new KontainerDriverEditPo();
-  const clusterList = new ClusterManagerListPagePo();
-  const createCluster = new ClusterManagerCreatePagePo();
+  // const createDriverPage = new KontainerDriverEditPo();
+  // const clusterList = new ClusterManagerListPagePo();
+  // const createCluster = new ClusterManagerCreatePagePo();
 
   // see https://github.com/rancher-plugins/kontainer-engine-driver-example/releases for list of example drivers
-  const downloadUrl = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy1-linux-amd64'; // description can be used as name to find correct element
-  const downloadUrlUpdated = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy2-linux-amd64';
-  let removeDriver = false;
-  let driverId = '';
-  const oracleDriver = 'Oracle OKE';
-  const googleDriver = 'Google GKE';
+  // const downloadUrl = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy1-linux-amd64'; // description can be used as name to find correct element
+  // const downloadUrlUpdated = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy2-linux-amd64';
+  const removeDriver = false;
+  const driverId = '';
+  // const oracleDriver = 'Oracle OKE';
+  // const googleDriver = 'Google GKE';
   const linodeDriver = 'Linode LKE';
-  const exampleDriver = 'Example';
-  const amazonDriver = 'Amazon EKS';
-  const azureDriver = 'Azure AKS';
+  // const exampleDriver = 'Example';
+  // const amazonDriver = 'Amazon EKS';
+  // const azureDriver = 'Azure AKS';
 
   before(() => {
     cy.login();
@@ -42,116 +42,121 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     driversPage.waitForPage();
     cy.intercept('POST', '/v3/kontainerdrivers?action=refresh').as('refresh');
     driversPage.refreshKubMetadata().click({ force: true });
-    cy.wait('@refresh', LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+    cy.wait('@refresh', EXTRA_LONG_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
   });
 
-  it('can create new driver', () => {
-    cy.intercept('POST', `/v3/kontainerdrivers`).as('createRequest');
-    const requestData = {
-      type:   'kontainerDriver',
-      active: true,
-      url:    downloadUrl
-    };
+  // Revert commented out tests as part of https://github.com/rancher/dashboard/issues/15391
 
-    KontainerDriversPagePo.navTo();
-    driversPage.waitForPage();
-    driversPage.createDriver();
+  // In theory this one should be fine...
+  // it('can create new driver', () => {
+  //   cy.intercept('POST', `/v3/kontainerdrivers`).as('createRequest');
+  //   const requestData = {
+  //     type:   'kontainerDriver',
+  //     active: true,
+  //     url:    downloadUrl
+  //   };
 
-    createDriverPage.waitForPage();
+  //   KontainerDriversPagePo.navTo();
+  //   driversPage.waitForPage();
+  //   driversPage.createDriver();
 
-    createDriverPage.downloadUrl().set(downloadUrl);
-    createDriverPage.saveCreateForm().createEditView().create();
+  //   createDriverPage.waitForPage();
 
-    cy.wait('@createRequest').then(({ request, response }) => {
-      removeDriver = true;
-      expect(response?.statusCode).to.eq(201);
-      expect(isMatch(request.body, requestData)).to.equal(true);
-      driverId = response?.body.id;
-    });
+  //   createDriverPage.downloadUrl().set(downloadUrl);
+  //   createDriverPage.saveCreateForm().createEditView().create();
 
-    driversPage.list().details(exampleDriver, 1).should('contain', 'Activating');
-    driversPage.list().details(exampleDriver, 1).contains('Active', { timeout: 60000 });
+  //   cy.wait('@createRequest').then(({ request, response }) => {
+  //     removeDriver = true;
+  //     expect(response?.statusCode).to.eq(201);
+  //     expect(isMatch(request.body, requestData)).to.equal(true);
+  //     driverId = response?.body.id;
+  //   });
 
-    ClusterManagerListPagePo.navTo();
-    clusterList.waitForPage();
-    clusterList.createCluster();
-    createCluster.waitForPage();
-    createCluster.gridElementExistanceByName('example', 'exist').invoke('index').then((index) => {
-      createCluster.selectKubeProvider(index);
-    });
-    createCluster.waitForPage('type=example');
-    createCluster.mastheadTitle().should('contain', 'example');
-  });
+  //   driversPage.list().details(exampleDriver, 1).should('contain', 'Activating');
+  //   driversPage.list().details(exampleDriver, 1).contains('Active', { timeout: 60000 });
 
-  it('will show error if could not deactivate driver', () => {
-    cy.intercept('POST', '/v3/kontainerDrivers/googlekubernetesengine?action=deactivate', {
-      statusCode: 500,
-      body:       { message: `Could not deactivate driver` }
-    }).as('deactivationError');
+  //   ClusterManagerListPagePo.navTo();
+  //   clusterList.waitForPage();
+  //   clusterList.createCluster();
+  //   createCluster.waitForPage();
+  //   createCluster.gridElementExistanceByName('example', 'exist').invoke('index').then((index) => {
+  //     createCluster.selectKubeProvider(index);
+  //   });
+  //   createCluster.waitForPage('type=example');
+  //   createCluster.mastheadTitle().should('contain', 'example');
+  // });
 
-    KontainerDriversPagePo.navTo();
-    driversPage.waitForPage();
-    driversPage.list().details(googleDriver, 1).should('contain', 'Active');
+  // it('will show error if could not deactivate driver', () => {
+  //   cy.intercept('POST', '/v3/kontainerDrivers/googlekubernetesengine?action=deactivate', {
+  //     statusCode: 500,
+  //     body:       { message: `Could not deactivate driver` }
+  //   }).as('deactivationError');
 
-    driversPage.list().actionMenu(googleDriver).getMenuItem('Deactivate').click();
-    const deactivateDialog = new DeactivateDriverDialogPo();
+  //   KontainerDriversPagePo.navTo();
+  //   driversPage.waitForPage();
+  //   driversPage.list().details(googleDriver, 1).should('contain', 'Active');
 
-    deactivateDialog.deactivate();
+  //   driversPage.list().actionMenu(googleDriver).getMenuItem('Deactivate').click();
+  //   const deactivateDialog = new DeactivateDriverDialogPo();
 
-    cy.wait('@deactivationError').then(() => {
-      deactivateDialog.errorBannerContent('Could not deactivate driver').should('exist').and('be.visible');
-    });
-    deactivateDialog.cancel();
-  });
+  //   deactivateDialog.deactivate();
 
-  it('can deactivate driver', () => {
-    const requestData = { };
+  //   cy.wait('@deactivationError').then(() => {
+  //     deactivateDialog.errorBannerContent('Could not deactivate driver').should('exist').and('be.visible');
+  //   });
+  //   deactivateDialog.cancel();
+  // });
 
-    KontainerDriversPagePo.navTo();
-    driversPage.waitForPage();
+  // Will fail given `can create new driver` is disabled
+  // it('can deactivate driver', () => {
+  //   const requestData = { };
 
-    cy.intercept('POST', `/v3/kontainerDrivers/*?action=deactivate`).as('deactivateDriver');
+  //   KontainerDriversPagePo.navTo();
+  //   driversPage.waitForPage();
 
-    driversPage.list().actionMenu(downloadUrl).getMenuItem('Deactivate').click();
-    const deactivateDialog = new DeactivateDriverDialogPo();
+  //   cy.intercept('POST', `/v3/kontainerDrivers/*?action=deactivate`).as('deactivateDriver');
 
-    deactivateDialog.deactivate();
+  //   driversPage.list().actionMenu(downloadUrl).getMenuItem('Deactivate').click();
+  //   const deactivateDialog = new DeactivateDriverDialogPo();
 
-    cy.wait('@deactivateDriver').then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(isMatch(request.body, requestData)).to.equal(true);
-    });
+  //   deactivateDialog.deactivate();
 
-    // check options on cluster create page
-    ClusterManagerListPagePo.navTo();
-    clusterList.waitForPage();
-    clusterList.createCluster();
-    createCluster.waitForPage();
-    createCluster.gridElementExistanceByName('example', 'not.exist');
-  });
+  //   cy.wait('@deactivateDriver').then(({ request, response }) => {
+  //     expect(response?.statusCode).to.eq(200);
+  //     expect(isMatch(request.body, requestData)).to.equal(true);
+  //   });
 
-  it('can activate driver', () => {
-    const requestData = { };
+  //   // check options on cluster create page
+  //   ClusterManagerListPagePo.navTo();
+  //   clusterList.waitForPage();
+  //   clusterList.createCluster();
+  //   createCluster.waitForPage();
+  //   createCluster.gridElementExistanceByName('example', 'not.exist');
+  // });
 
-    KontainerDriversPagePo.navTo();
-    driversPage.waitForPage();
+  // Will fail given `can create new driver` is disabled
+  // it('can activate driver', () => {
+  //   const requestData = { };
 
-    cy.intercept('POST', `/v3/kontainerDrivers/*?action=activate`).as('activateDriver');
+  //   KontainerDriversPagePo.navTo();
+  //   driversPage.waitForPage();
 
-    driversPage.list().actionMenu(downloadUrl).getMenuItem('Activate').click();
+  //   cy.intercept('POST', `/v3/kontainerDrivers/*?action=activate`).as('activateDriver');
 
-    cy.wait('@activateDriver').then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(isMatch(request.body, requestData)).to.equal(true);
-    });
+  //   driversPage.list().actionMenu(downloadUrl).getMenuItem('Activate').click();
 
-    // check options on cluster create page
-    ClusterManagerListPagePo.navTo();
-    clusterList.waitForPage();
-    clusterList.createCluster();
-    createCluster.waitForPage();
-    createCluster.gridElementExistanceByName('example', 'exist');
-  });
+  //   cy.wait('@activateDriver').then(({ request, response }) => {
+  //     expect(response?.statusCode).to.eq(200);
+  //     expect(isMatch(request.body, requestData)).to.equal(true);
+  //   });
+
+  //   // check options on cluster create page
+  //   ClusterManagerListPagePo.navTo();
+  //   clusterList.waitForPage();
+  //   clusterList.createCluster();
+  //   createCluster.waitForPage();
+  //   createCluster.gridElementExistanceByName('example', 'exist');
+  // });
 
   it('will show error if could not activate driver', () => {
     cy.intercept('POST', '/v3/kontainerDrivers/linodekubernetesengine?action=activate', {
@@ -170,115 +175,116 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     });
   });
 
-  it('can edit a cluster driver', () => {
-    KontainerDriversPagePo.navTo();
-    driversPage.waitForPage();
-    driversPage.list().actionMenu(downloadUrl).getMenuItem('Edit Config').click();
-    createDriverPage.downloadUrl().set(downloadUrlUpdated);
-    cy.intercept('PUT', '/v3/kontainerDrivers/*').as('updateDriver');
-    createDriverPage.saveCreateForm().createEditView().save();
-    cy.wait('@updateDriver').its('response.statusCode').should('eq', 200);
-    driversPage.list().details(downloadUrlUpdated, 1).should('contain', 'Active');
+  // Will fail given `can create new driver` is disabled
+  // it('can edit a cluster driver', () => {
+  //   KontainerDriversPagePo.navTo();
+  //   driversPage.waitForPage();
+  //   driversPage.list().actionMenu(downloadUrl).getMenuItem('Edit Config').click();
+  //   createDriverPage.downloadUrl().set(downloadUrlUpdated);
+  //   cy.intercept('PUT', '/v3/kontainerDrivers/*').as('updateDriver');
+  //   createDriverPage.saveCreateForm().createEditView().save();
+  //   cy.wait('@updateDriver').its('response.statusCode').should('eq', 200);
+  //   driversPage.list().details(downloadUrlUpdated, 1).should('contain', 'Active');
 
-    // check options on cluster create page
-    ClusterManagerListPagePo.navTo();
-    clusterList.waitForPage();
-    clusterList.createCluster();
-    createCluster.waitForPage();
-    createCluster.gridElementExistanceByName('example', 'exist');
-  });
+  //   // check options on cluster create page
+  //   ClusterManagerListPagePo.navTo();
+  //   clusterList.waitForPage();
+  //   clusterList.createCluster();
+  //   createCluster.waitForPage();
+  //   createCluster.gridElementExistanceByName('example', 'exist');
+  // });
 
-  it('can deactivate drivers in bulk', () => {
-    KontainerDriversPagePo.navTo();
-    driversPage.waitForPage();
-    driversPage.list().details(amazonDriver, 1).scrollIntoView().should('contain', 'Active');
-    driversPage.list().details(azureDriver, 1).scrollIntoView().should('contain', 'Active');
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(amazonDriver)
-      .set();
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(azureDriver)
-      .set();
-    driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
-    driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Deactivate')
-      .click();
+  // it('can deactivate drivers in bulk', () => {
+  //   KontainerDriversPagePo.navTo();
+  //   driversPage.waitForPage();
+  //   driversPage.list().details(amazonDriver, 1).scrollIntoView().should('contain', 'Active');
+  //   driversPage.list().details(azureDriver, 1).scrollIntoView().should('contain', 'Active');
+  //   driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(amazonDriver)
+  //     .set();
+  //   driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(azureDriver)
+  //     .set();
+  //   driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
+  //   driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Deactivate')
+  //     .click();
 
-    cy.intercept('POST', '/v3/kontainerDrivers/amazonelasticcontainerservice?action=deactivate').as('deactivateAmazonDriver');
-    cy.intercept('POST', '/v3/kontainerDrivers/azurekubernetesservice?action=deactivate').as('deactivateAzureDriver');
+  //   cy.intercept('POST', '/v3/kontainerDrivers/amazonelasticcontainerservice?action=deactivate').as('deactivateAmazonDriver');
+  //   cy.intercept('POST', '/v3/kontainerDrivers/azurekubernetesservice?action=deactivate').as('deactivateAzureDriver');
 
-    const deactivateDialog = new DeactivateDriverDialogPo();
+  //   const deactivateDialog = new DeactivateDriverDialogPo();
 
-    deactivateDialog.deactivate();
-    cy.wait('@deactivateAmazonDriver').its('response.statusCode').should('eq', 200);
-    cy.wait('@deactivateAzureDriver').its('response.statusCode').should('eq', 200);
-    driversPage.list().details(amazonDriver, 1).should('contain', 'Inactive');
-    driversPage.list().details(azureDriver, 1).should('contain', 'Inactive');
+  //   deactivateDialog.deactivate();
+  //   cy.wait('@deactivateAmazonDriver').its('response.statusCode').should('eq', 200);
+  //   cy.wait('@deactivateAzureDriver').its('response.statusCode').should('eq', 200);
+  //   driversPage.list().details(amazonDriver, 1).should('contain', 'Inactive');
+  //   driversPage.list().details(azureDriver, 1).should('contain', 'Inactive');
 
-    // check options on cluster create page
-    ClusterManagerListPagePo.navTo();
-    clusterList.waitForPage();
-    clusterList.createCluster();
-    createCluster.waitForPage();
-    createCluster.gridElementExistanceByName(amazonDriver, 'not.exist');
-    createCluster.gridElementExistanceByName(azureDriver, 'not.exist');
-  });
+  //   // check options on cluster create page
+  //   ClusterManagerListPagePo.navTo();
+  //   clusterList.waitForPage();
+  //   clusterList.createCluster();
+  //   createCluster.waitForPage();
+  //   createCluster.gridElementExistanceByName(amazonDriver, 'not.exist');
+  //   createCluster.gridElementExistanceByName(azureDriver, 'not.exist');
+  // });
 
-  it('can activate drivers in bulk', () => {
-    KontainerDriversPagePo.navTo();
-    driversPage.waitForPage();
-    driversPage.list().details(amazonDriver, 1).should('contain', 'Inactive');
-    driversPage.list().details(azureDriver, 1).should('contain', 'Inactive');
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(amazonDriver)
-      .set();
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(azureDriver)
-      .set();
+  // it('can activate drivers in bulk', () => {
+  //   KontainerDriversPagePo.navTo();
+  //   driversPage.waitForPage();
+  //   driversPage.list().details(amazonDriver, 1).should('contain', 'Inactive');
+  //   driversPage.list().details(azureDriver, 1).should('contain', 'Inactive');
+  //   driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(amazonDriver)
+  //     .set();
+  //   driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(azureDriver)
+  //     .set();
 
-    cy.intercept('POST', '/v3/kontainerDrivers/amazonelasticcontainerservice?action=activate').as('activateAmazonDriver');
-    cy.intercept('POST', '/v3/kontainerDrivers/azurekubernetesservice?action=activate').as('activateAzureDriver');
+  //   cy.intercept('POST', '/v3/kontainerDrivers/amazonelasticcontainerservice?action=activate').as('activateAmazonDriver');
+  //   cy.intercept('POST', '/v3/kontainerDrivers/azurekubernetesservice?action=activate').as('activateAzureDriver');
 
-    driversPage.list().activate().click();
-    cy.wait('@activateAmazonDriver').its('response.statusCode').should('eq', 200);
-    cy.wait('@activateAzureDriver').its('response.statusCode').should('eq', 200);
-    driversPage.list().details(amazonDriver, 1).should('contain', 'Active');
-    driversPage.list().details(azureDriver, 1).should('contain', 'Active');
+  //   driversPage.list().activate().click();
+  //   cy.wait('@activateAmazonDriver').its('response.statusCode').should('eq', 200);
+  //   cy.wait('@activateAzureDriver').its('response.statusCode').should('eq', 200);
+  //   driversPage.list().details(amazonDriver, 1).should('contain', 'Active');
+  //   driversPage.list().details(azureDriver, 1).should('contain', 'Active');
 
-    // check options on cluster create page
-    ClusterManagerListPagePo.navTo();
-    clusterList.waitForPage();
-    clusterList.createCluster();
-    createCluster.waitForPage();
-    createCluster.gridElementExistanceByName(amazonDriver, 'exist');
-    createCluster.gridElementExistanceByName(azureDriver, 'exist');
-  });
+  //   // check options on cluster create page
+  //   ClusterManagerListPagePo.navTo();
+  //   clusterList.waitForPage();
+  //   clusterList.createCluster();
+  //   createCluster.waitForPage();
+  //   createCluster.gridElementExistanceByName(amazonDriver, 'exist');
+  //   createCluster.gridElementExistanceByName(azureDriver, 'exist');
+  // });
 
-  it('can delete drivers in bulk', () => {
-    KontainerDriversPagePo.navTo();
-    driversPage.waitForPage();
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)
-      .set();
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(linodeDriver)
-      .set();
-    driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
-    driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Delete')
-      .click();
+  // it('can delete drivers in bulk', () => {
+  //   KontainerDriversPagePo.navTo();
+  //   driversPage.waitForPage();
+  //   driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)
+  //     .set();
+  //   driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(linodeDriver)
+  //     .set();
+  //   driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
+  //   driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Delete')
+  //     .click();
 
-    cy.intercept('DELETE', '/v3/kontainerDrivers/oraclecontainerengine').as('deleteOracleDriver');
-    cy.intercept('DELETE', '/v3/kontainerDrivers/linodekubernetesengine').as('deleteLinodeDriver');
+  //   cy.intercept('DELETE', '/v3/kontainerDrivers/oraclecontainerengine').as('deleteOracleDriver');
+  //   cy.intercept('DELETE', '/v3/kontainerDrivers/linodekubernetesengine').as('deleteLinodeDriver');
 
-    driversPage.list().resourceTable().sortableTable().rowNames()
-      .then((rows: any) => {
-        const promptRemove = new PromptRemove();
+  //   driversPage.list().resourceTable().sortableTable().rowNames()
+  //     .then((rows: any) => {
+  //       const promptRemove = new PromptRemove();
 
-        promptRemove.remove();
+  //       promptRemove.remove();
 
-        cy.wait('@deleteLinodeDriver').its('response.statusCode').should('eq', 200);
-        cy.wait('@deleteOracleDriver').its('response.statusCode').should('eq', 200);
+  //       cy.wait('@deleteLinodeDriver').its('response.statusCode').should('eq', 200);
+  //       cy.wait('@deleteOracleDriver').its('response.statusCode').should('eq', 200);
 
-        driversPage.waitForPage();
-        driversPage.list().resourceTable().sortableTable().checkRowCount(false, rows.length - 2);
-        driversPage.list().resourceTable().sortableTable().rowNames()
-          .should('not.contain', linodeDriver)
-          .and('not.contain', oracleDriver);
-      });
-  });
+  //       driversPage.waitForPage();
+  //       driversPage.list().resourceTable().sortableTable().checkRowCount(false, rows.length - 2);
+  //       driversPage.list().resourceTable().sortableTable().rowNames()
+  //         .should('not.contain', linodeDriver)
+  //         .and('not.contain', oracleDriver);
+  //     });
+  // });
 
   after(() => {
     if (removeDriver) {

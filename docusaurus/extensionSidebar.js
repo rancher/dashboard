@@ -35,6 +35,11 @@ const sidebars = {
                 'performance/scaling/overview',
                 {
                   type:  'doc',
+                  id:    'performance/scaling/global-config',
+                  label: 'Update Global Config',
+                },
+                {
+                  type:  'doc',
                   id:    'performance/scaling/lists',
                   label: 'Update Lists',
                 },

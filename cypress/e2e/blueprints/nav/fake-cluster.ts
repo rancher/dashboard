@@ -2488,7 +2488,7 @@ export function generateFakeClusterDataAndIntercepts(fakeProvClusterId = 'some-p
         localCluster.metadata.annotations['field.cattle.io/description'] = longClusterDescription;
       }
 
-      res.body.data.unshift(fakeNavClusterData.provClusterObj);
+      res.body.data.push(fakeNavClusterData.provClusterObj);
 
       res.send(res.body);
     });
@@ -2506,7 +2506,7 @@ export function generateFakeClusterDataAndIntercepts(fakeProvClusterId = 'some-p
         localCluster.metadata.annotations['field.cattle.io/description'] = longClusterDescription;
       }
 
-      res.body.data.unshift(fakeNavClusterData.provClusterObj);
+      res.body.data.push(fakeNavClusterData.provClusterObj);
 
       res.send(res.body);
     });
@@ -2515,7 +2515,7 @@ export function generateFakeClusterDataAndIntercepts(fakeProvClusterId = 'some-p
   // add extra cluster to the nav list to test https://github.com/rancher/dashboard/issues/10452
   cy.intercept('GET', `/v1/management.cattle.io.clusters?*`, (req) => {
     req.continue((res) => {
-      res.body.data.unshift(fakeNavClusterData.mgmtClusterObj);
+      res.body.data.push(fakeNavClusterData.mgmtClusterObj);
       res.send(res.body);
     });
   }).as('mgmtClusters');

@@ -472,7 +472,7 @@ addClusterMemberDialog:
 
 addonConfigConfirmation:
   title: Add-On Reset
-  body: Changing the Kubernetes Version can reset Add-On values. You should check that the values are as expected before continuing.
+  body: Add-On Configuration has changed between Kubernetes versions <b>{previousKubeVersion}</b> and <b>{newKubeVersion}</b> and conflict with your previous values for Add-On {addons}. As a result please re-apply them before continuing.
 
 addProjectMemberDialog:
   title: Add Project Member
@@ -492,6 +492,51 @@ authConfig:
   allowedPrincipalIds:
     title: Authorized Users & Groups
   associatedWarning: 'The {provider} account that is used to enable the external provider will be granted admin permissions. If you use a test account or non-admin account, that account will still be granted admin-level permissions. See <a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config#external-authentication-configuration-and-principal-users" target="_blank" rel="noopener noreferrer nofollow">External Authentication Configuration and Principal Users</a> to understand why.'
+  githubapp:
+    clientId:
+      label: Client ID
+    clientSecret:
+      label: Client Secret
+    githubAppId:
+      label: Github App ID
+    installationId:
+      label: Installation ID
+    privateKey:
+      label: Private Key
+    warning: The GitHub App authentication provider only works with <a href="https://docs.github.com/en/get-started/learning-about-github/types-of-github-accounts" target="_blank" rel="noopener noreferrer nofollow">GitHub Organization accounts</a>. It does not support User accounts.
+    form:
+      prefix:
+        1: <li>Open your <a href="{baseUrl}/settings/organizations" target="_blank" rel="noopener noreferrer nofollow">GitHub organization settings</a> in a new window</li>
+        2: <li>To the right of the organization, click "Settings"</li>
+        3: <li>In the left sidebar, click "Developer settings" -> "GitHub Apps"</li>
+        4: <li>Click "New Github App"</li>
+      instruction: 'Fill in the form with these values:'
+      app:
+        label: GitHub App name 
+        value: 'Anything you like, e.g. My {vendor}'
+      callback:
+        label: Callback URL
+        value: '{serverUrl}/verify-auth'
+      description:
+        label: Application description
+        value: 'Optional, can be left blank'
+      homepage:
+        label: Homepage URL
+      create: Click "Create Github App"
+      suffix:
+        1: <li>Under Client Secrets, click "Generate a new client secret"</li>
+        2: <li>Under Private Keys, click "Generate a private key"</li>
+        3: <li>Copy and paste the "App ID", "Client ID", "Client Secret", and "Private Key" of your newly created OAuth app into the fields below</li>
+    host:
+      label: GitHub Enterprise Host
+      placeholder: e.g. github.mycompany.example
+    target:
+      label: Which version of GitHub do you want to use?
+      private: A private installation of GitHub Enterprise
+      public: Public GitHub.com
+    table:
+      server: Server
+      clientId: Client ID
   github:
     clientId:
       label: Client ID
@@ -723,6 +768,17 @@ authConfig:
     tokenEndpoint: Token Endpoint
     userInfoEndpoint: User Info Endpoint
     acrValue: Authorization Context Reference
+    customClaims:
+      label: Custom Claims
+      enable:
+        label: Add custom claims
+        tooltip: Manually map OIDC claims when your provider doesn’t use standard claim names in tokens.
+      nameClaim: 
+        label: Custom Name Claim
+      groupsClaim: 
+        label: Custom Groups Claim
+      emailClaim: 
+        label: Custom Email Claim
     cognitoIssuer: Issuer URL
     cognitoHelp: "You will need to create an application client in Cognito of type <b>Traditional web application</b> with the Return URL set to the URL shown below."
     scope:
@@ -941,10 +997,6 @@ asyncButton:
     success: Updated
     waiting: Updating&hellip;
   upgrade:
-    action: Upgrade
-    success: Upgrading
-    waiting: Starting&hellip;
-  upgradeVersion:
     action: Upgrade
     success: Upgraded
     waiting: Upgrading&hellip;
@@ -1262,7 +1314,6 @@ catalog:
             upgrade { upgrade }
             downgrade { upgrade }
             editVersion { update }
-            upgradeVersion { upgrade }
           } the {existing, select,
             true { app}
             false { chart}
@@ -2110,7 +2161,7 @@ cluster:
         diskSizeWithMax: Disk size has to be between {diskSizeMin} and {diskSizeMax} based on this image and disk type.
         projects: Image projects should be a comma separated list of alphanumeric string which may contain '-' and '.'
   addOns:
-    dependencyBanner: Add-On Configuration can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.
+    dependencyBanner: Add-On Configuration has changed between Kubernetes versions <b>{previousKubeVersion}</b> and <b>{newKubeVersion}</b> and conflict with your previous values. Please re-apply them.
     additionalManifest:
       title: Additional Manifest
       tooltip: 'Additional Kubernetes Manifest YAML to be applied to the cluster on startup.'
@@ -2712,6 +2763,28 @@ drainNode:
     placeholder: e.g. 60
     custom: "Give up after:"
 
+dynamicContent:
+  newRelease:
+    title: A new Rancher release is available!
+    message: Rancher {version} has been released!
+    moreInfo: Release Notes
+  multipleNewReleases:
+    title: New Rancher releases are available!
+    message: A new {version1} patch version has been released and a newer {version2} version is also avaialble.
+    moreInfo: "{version} Release Notes"
+  upcomingEom:
+    title: End of Maintainence in {days, plural, =1 {1 day} other {{days} days}}
+    message: This version of Rancher ({version}) will reach End of Maintainence in {days} day(s). Consider upgrading to a supported version soon.
+  eom:
+    title: End of Maintainence reached
+    message: This version of Rancher ({version}) has reached End of Maintainence. Consider upgrading to a supported version.
+  upcomingEol:
+    title: End of Life in {days, plural, =1 {1 day} other {{days} days}}
+    message: This version of Rancher ({version}) will reach End of Life in {days} day(s). Consider upgrading to a supported version soon.
+  eol:
+    title: End of Life reached
+    message: This version of Rancher ({version}) has reached End of Life. Consider upgrading to a supported version.
+
 etcdInfoBanner:
   hasLeader: "Etcd has a leader:"
   leaderChanges: "Number of leader changes:"
@@ -3195,7 +3268,7 @@ fleet:
       none: None
       local: Local
     resources:
-      label: 'Resource Handling'
+      label: 'Resources'
       keepResources: Always keep resources
       keepResourcesTooltip: When enabled, resources will be kept when deleting a HelmOp or Bundle - only Helm release secrets will be deleted.
       correctDrift: Enable self-healing
@@ -3249,6 +3322,10 @@ fleet:
           =0 { Adding namespaces here will create a GitRepoRestriction. }
           other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction}
         }"
+  configMaps:
+    label: Config Maps
+  secrets:
+    label: Secrets
 footer:
   docs: Docs
   download: Download CLI
@@ -3323,6 +3400,9 @@ glance:
   clusterInfo: Cluster Information
   eventsTable: Full events list
   secretsTable: Full secrets list
+  changeEventsListRowCount: Update events table row count
+  showXEvents: Show {count} events
+  useUserPreference: "Use table preference ({count})"
 
 clusterBadge:
   badgeAppearance: Cluster Badge Appearance
@@ -3770,6 +3850,11 @@ landing:
   homepage: Homepage
   clusters:
     title: Clusters
+    tooMany:
+      showAll: Show all clusters (may increase load time)
+      showSome: Show some clusters (may improve load time)
+      showingAll: Showing {total} clusters.
+      showingSome: Showing {rows} of {total} recently created clusters.
     provider: Provider
     distro: Distro
     kubernetesVersion: Kubernetes Version
@@ -4096,6 +4181,7 @@ login:
   welcome: Welcome to {vendor}
   landscapeAlt: Landscape image
   loggedOut: You have been logged out.
+  loggedOutSessionIdle: You've been logged out of Rancher because your session has expired. Log in again to continue.
   loggedOutFromSso: You've been logged out of Rancher, however you may still be logged in to your single sign-on identity provider.
   loggedOutFromSlo: You've been logged out of Rancher and from your single sign-on identity provider.
   loginAgain: Log in again to continue.
@@ -5108,13 +5194,9 @@ podDisruptionBudget:
 
 inactivity:
   title: Session expiring
-  titleExpired: Session expired
   banner: Your session is about to expire due to inactivity. Any unsaved changes will be lost.
-  bannerExpired: Your session has expired in this tab due to inactivity.
-  content: Click “Resume Session” to keep the session in this tab active or refresh the browser after the session has expired.
-  contentExpired: To return to this page click “Refresh” below or refresh the browser.
+  content: Click “Resume Session” to keep the session in this browser active.
   cta: Resume Session
-  ctaExpired: Refresh
 
 # Rancher Extensions
 plugins:
@@ -5128,16 +5210,17 @@ plugins:
   closePluginPanel: Close plugin description panel
   viewVersionDetails: View extension {name} version {version} details/Readme
   labels:
-    builtin: Built-in
+    builtin: Built-In
     experimental: Experimental
     third-party: Third-Party
     image: Image
     installing: Installing ...
     uninstalling: Uninstalling ...
-    updating: Updating ...
-    rollingBack: Rolling back ...
+    upgrading: Upgrading ...
+    downgrading: Downgrading ...
     menu: Extensions menu
     reloadRancher: Reload Rancher
+    current: current
   descriptions:
     experimental: This Extension is marked as experimental
     third-party: This Extension is provided by a Third-Party
@@ -5166,6 +5249,8 @@ plugins:
       name: Extension module name
       persist: Persist extension by creating custom resource
   info:
+    actions: Actions
+    noActions: No actions available
     detail: Detail
     versions: Versions
     versionError: Could not load version information
@@ -5229,7 +5314,7 @@ plugins:
   tabs:
     all: All
     available: Available
-    builtin: Built-in
+    builtin: Built-In
     images: Images
     installed: Installed
     updates: Updates
@@ -5237,22 +5322,22 @@ plugins:
   version: "Version: {version}"
   install:
     label: Install
-    title: Install Extension {name}
-    prompt: "Are you sure that you want to install this Extension?"
+    title: Install extension {name}
+    prompt: "Are you sure that you want to install this extension?"
     version: Version
     warnNotCertified: Please ensure that you are aware of the risks of installing Extensions from untrusted authors
-  update:
-    label: Update
-    title: Update Extension {name}
-    prompt: "Are you sure that you want to update this Extension?"
-  rollback:
-    label: Rollback
-    title: Rollback Extension {name}
-    prompt: "Are you sure that you want to rollback this Extension?"
+  upgrade:
+    label: Upgrade
+    title: Upgrade extension {name}
+    prompt: "Are you sure that you want to upgrade this extension?"
+  downgrade:
+    label: Downgrade
+    title: Downgrade extension {name}
+    prompt: "Are you sure that you want to downgrade this extension?"
   uninstall:
     label: Uninstall
-    title: "Uninstall Extension: {name}"
-    prompt: "Are you sure that you want to uninstall this Extension?"
+    title: Uninstall extension {name}
+    prompt: "Are you sure that you want to uninstall this extension?"
     catalog: "Are you sure that you want to uninstall this Extension Catalog Image? This will also remove any Extensions provided by this image."
   upgradeAvailable: A newer version of this Extension is available
   reload: Extensions changed - reload required
@@ -5852,6 +5937,8 @@ resourceTabs:
     tab: Conditions
   events:
     tab: Recent Events
+    namespaceTab: "Events in Namespace"
+    namespaceCaption: "Shows all events from resources in <span class='namespace-name'><b>{namespace}</b></span> namespace"
   related:
     tab: Related Resources
     from: Referred To By
@@ -6558,6 +6645,7 @@ tableHeaders:
   endpoints: Endpoints
   expires: Expires
   firstSeen: First Seen
+  firstSeenTooltip: The time at which the event was first recorded
   flow: Flow
   fingerprint: Fingerprint
   gitRepos: Git Repos
@@ -7583,6 +7671,7 @@ model:
       activedirectory: ActiveDirectory
       azuread: AzureAD
       github: GitHub
+      githubapp: GitHub App
       keycloak: Keycloak
       ldap: LDAP
       openldap: OpenLDAP
@@ -8418,8 +8507,9 @@ advancedSettings:
     'auth-user-info-max-age-seconds': 'The maximum age of a users auth tokens before an auth provider group membership sync will be performed.'
     'auth-user-info-resync-cron': 'Default cron schedule for resyncing auth provider group memberships.'
     'cluster-template-enforcement': 'Non-admins will be restricted to launching clusters via preapproved RKE Templates only.'
-    'auth-user-session-ttl-minutes': 'Custom TTL (in minutes) on a user auth session.'
-    'auth-token-max-ttl-minutes': 'Max TTL (in minutes) for all authentication tokens. When set to 0, the token never expires.'
+    'auth-user-session-idle-ttl-minutes': 'Custom idle TTL (in minutes) on a user auth session. This is the maximum duration a session can stay alive when there is no user activity in a browser. This should be smaller than "auth-user-session-ttl-minutes". If "auth-user-session-idle-ttl-minutes" is greater than or equal to "auth-user-session-ttl-minutes" then the session idle feature is considered disabled.'
+    'auth-user-session-ttl-minutes': 'Custom TTL (in minutes) on a user auth session. This is the maximum duration a session can stay alive regardless of user activity in a browser. This should be larger than "auth-user-session-idle-ttl-minutes".'
+    'auth-token-max-ttl-minutes': 'Max TTL (in minutes) for all tokens except those controlled by "auth-user-session-ttl-minutes" (user session tokens). When set to 0, the token never expires.'
     'kubeconfig-generate-token': 'Automatically generate tokens for users when a kubeconfig is requested.'
     'kubeconfig-default-token-ttl-minutes': 'TTL (in minutes) applied on all kubeconfig tokens. When set to 0, the token never expires.'
     'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
@@ -8477,6 +8567,7 @@ featureFlags:
 performance:
   label: UI Performance Settings
   settingName: Performance
+  deprecatedInactivitySetting: The <i class="mr-5">"Inactivity"</i> setting is now deprecated in favor of the <i class="mr-5">auth-user-session-idle-ttl-minutes</i>&nbsp;<a href="{settingsPageUrl}">Setting</a>.
   deprecatedForSSP: The <i class="mr-5">"{setting}"</i> setting is now deprecated and will be removed in a future release.
   incrementalLoad:
     label: Incremental Loading
@@ -9056,3 +9147,4 @@ component:
         weekdaysAt0830: "At 30 minutes past the hour, every 1 hours, starting at 08:00 AM, Monday through Friday"
         marchToMayHourly: "Every hour, only in March, April, and May"
         every4Hours9to17: "At 0 minutes past the hour, every 4 hours, between 09:00 AM and 05:00 PM"
+

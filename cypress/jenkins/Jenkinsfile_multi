@@ -1,67 +1,13 @@
 #!groovy
 
 def branch = "master"
-def test_tags_raw = "${env.TEST_TAGS}".split(',')
-def test_tags = []
-for (String tag : test_tags_raw) {
-    test_tags.add(tag.trim())
-}
+def test_tags = "${env.TEST_TAGS}".split(',')
+def k8s_versions = "${env.K3S_KUBERNETES_VERSIONS}".split(',')
 def all_cypress_tags = "${env.CYPRESS_TAGS}".split('\\|')
 
-// Function to get KDM branch for a Rancher version
-def getKdmBranch(rancherVersion, testTags) {
-    if (rancherVersion == "head") {
-        // Find the highest version from test tags and increment it
-        def latestVersion = ""
-        for (String tag : testTags) {
-            def versionMatch = tag =~ /v(\d+\.\d+)-head/
-            if (versionMatch) {
-                def currentVersion = versionMatch[0][1]
-                if (currentVersion > latestVersion) {
-                    latestVersion = currentVersion
-                }
-            }
-        }
-        // Increment minor version
-        if (latestVersion.isEmpty()) {
-            error("Cannot determine KDM branch for 'head' image. Please provide at least one version tag (e.g., v2.12-head) in TEST_TAGS.")
-        }
-        def parts = latestVersion.split('\\.')
-        def minor = (parts[1] as Integer) + 1
-        return "dev-v${parts[0]}.${minor}"
-    }
-    
-    // Extract version from image tags (e.g."v2.12-head")
-    def versionMatch = rancherVersion =~ /v(\d+\.\d+)-head/
-    if (versionMatch) {
-        def majorMinor = versionMatch[0][1]
-        return "dev-v${majorMinor}"
-    }
-    
-    error("Unable to determine KDM branch for Rancher version: ${rancherVersion}")
+if (test_tags.length != k8s_versions.length) {
+    error("Number of Rancher versions (${test_tags.length}) must match number of K8s versions (${k8s_versions.length}). TEST_TAGS and K3S_KUBERNETES_VERSIONS must correspond positionally - first version pairs with first tag, second with second, etc.")
 }
-
-// Function to fetch latest K3s version from KDM
-def getLatestK3sVersion(rancherVersion, testTags) {
-    def kdmBranch = getKdmBranch(rancherVersion, testTags)
-    def kdmUrl = "https://raw.githubusercontent.com/rancher/kontainer-driver-metadata/${kdmBranch}/data/data.json"
-    
-    try {
-        def kdmData = sh(
-            script: "curl -s '${kdmUrl}' | grep '\"version\":' | grep '+k3s' | sed 's/.*\"version\": \"\\([^\"]*+k3s[0-9]*\\)\".*/\\1/' | tail -1",
-            returnStdout: true
-        ).trim()
-        
-        if (!kdmData || kdmData.isEmpty()) {
-            error("Failed to fetch K3s version from KDM for ${rancherVersion}")
-        }
-        
-        return kdmData
-    } catch (Exception e) {
-        error("Error fetching KDM data for ${rancherVersion}: ${e.getMessage()}")
-    }
-}
-
 if ("${env.branch}" != "null" && "${env.branch}" != "") {
   branch = "${env.branch}"
 }
@@ -91,21 +37,12 @@ node {
                         userRemoteConfigs: scm.userRemoteConfigs
                     ])
             }
-            
-            // Generate K8s versions dynamically from KDM
-            def k8s_versions = []
-            for (String rancherVersion : test_tags) {
-                def k8sVersion = getLatestK3sVersion(rancherVersion, test_tags)
-                k8s_versions.add(k8sVersion)
-            }
-            
             try {
                 stage('Run Tests') {
                     jobs = [:]
                     test_tags.eachWithIndex { String rancher_version, int i ->
                         String k8s_version = k8s_versions[i]
-                        all_cypress_tags.each { String ct ->
-                            echo "RANCHER_TAG: ${rancher_version}, K8S_VERSION: ${k8s_version}, CYPRESS_TAGS: ${ct}"
+                        for ( String ct : all_cypress_tags ) {
                             params = null
                             params = [  string(name: 'JOB_TYPE', value: "${JOB_TYPE}"),
                                         string(name: 'CORRAL_PACKAGES_BRANCH', value: "${CORRAL_PACKAGES_BRANCH}"),
@@ -141,8 +78,10 @@ node {
                                         string(name: 'QASE_PROJECT', value: "${QASE_PROJECT}"),
                                         string(name: 'QASE_REPORT', value: "${QASE_REPORT}"),
                                         string(name: 'RANCHER_IMAGE_TAG', value: rancher_version)]
+                            echo "RANCHER_TAG: ${rancher_version}, K8S_VERSION: ${k8s_version}, CYPRESS_TAGS: ${ct}"
                             build (job: 'ui-automation-job', parameters: params, propagate: false, wait: false)
                         }
+                        
                     }
                 }
             } catch (err) {

@@ -181,6 +181,7 @@ export default {
         if (e.status === 404 || e.status === 403) {
           store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceIdNotFound', { resource: resourceType, fqid }, true)));
         }
+        console.debug(`Could not find '${ resourceType }' with id '${ id }''`, e); // eslint-disable-line no-console
         liveModel = {};
         notFound = fqid;
       }
@@ -480,7 +481,7 @@ export default {
     </div>
 
     <ResourceYaml
-      v-else-if="isYaml"
+      v-if="isYaml"
       ref="resourceyaml"
       :value="value"
       :mode="mode"

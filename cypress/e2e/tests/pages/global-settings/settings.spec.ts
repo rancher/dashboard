@@ -9,7 +9,7 @@ import { settings } from '@/cypress/e2e/blueprints/global_settings/settings-data
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 
 // If there's more than one cluster the currentCluster used in links can be different to `local`
-const settingsClusterId = 'local';
+const settingsClusterId = '_';
 const settingsPage = new SettingsPagePo(settingsClusterId);
 const accountPage = new AccountPagePo();
 const createKeyPage = new CreateKeyPagePo();
@@ -32,6 +32,128 @@ describe('Settings', { testIsolation: 'off' }, () => {
         settingsOriginal[s.id] = s;
       });
     });
+  });
+
+  it('Inactivity ::: can update the setting "auth-user-session-idle-ttl-minutes" and should show the the inactivity modal', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    let callCountGet = 0;
+    let callCountPut = 0;
+
+    // Prepare for the update of the UserActivity after the update of "auth-user-session-idle-ttl-minutes" setting
+    // Let's increment the curr ISO date in 30 seconds so that we can test the feature in a timely manner
+    // we need to give it 30 seconds so that the timer on the modal doesn't go out too quickly
+    // not giving enough time to assert the contents of the modal
+    // but it needs to be a "fixed" date so that when backend inactivity checks are done, dates are the same
+    // and there's no backend change
+    const now = new Date();
+
+    now.setSeconds(now.getSeconds() + 30);
+    const updatedIsoDateFixed = now.toISOString();
+
+    // we intercept the GET to UserActivity that runs on every setting update
+    cy.intercept('GET', `/v1/ext.cattle.io.useractivities/*`, (req) => {
+      callCountGet++;
+
+      // we need to intercept the 1st request - findAll (first check of setting)
+      // we intercept the 2nd request because it's re-checking if the user is active before showing the modal
+      if (callCountGet <= 2) {
+        req.continue((res) => {
+          res.body.status.expiresAt = updatedIsoDateFixed;
+          res.send(res.body);
+        });
+      } else {
+        req.continue();
+      }
+    }).as('getUpdatedUserActivity');
+
+    // we need to intercept the first request here because of the clicking around the user is considered active
+    // so we need to make sure date doesn't change so that we can show the modal
+    cy.intercept('PUT', `/v1/ext.cattle.io.useractivities/*`, (req) => {
+      callCountPut++;
+
+      if (callCountPut === 1) {
+        req.continue((res) => {
+          res.body.status.expiresAt = updatedIsoDateFixed;
+          res.send(res.body);
+        });
+      } else {
+        req.continue();
+      }
+    }).as('postUpdatedUserActivity');
+
+    // Update setting "auth-user-session-idle-ttl-minutes" for the e2e test
+    const sessionIdleSetting = 'auth-user-session-idle-ttl-minutes';
+    const newSettingsPage = new SettingsPagePo(settingsClusterId);
+
+    // Update setting
+    SettingsPagePo.navTo();
+    newSettingsPage.editSettingsByLabel(sessionIdleSetting);
+
+    const settingsEdit = newSettingsPage.editSettings(settingsClusterId, sessionIdleSetting);
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains(`Setting: ${ sessionIdleSetting }`).should('be.visible');
+    settingsEdit.settingsInput().set(settings[sessionIdleSetting].new);
+
+    settingsEdit.saveAndWait(sessionIdleSetting).then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value', settings[sessionIdleSetting].new);
+      expect(response?.body).to.have.property('value', settings[sessionIdleSetting].new);
+    });
+    newSettingsPage.waitForPage();
+    newSettingsPage.settingsValue(sessionIdleSetting).contains(settings[sessionIdleSetting].new);
+
+    cy.wait('@getUpdatedUserActivity', { timeout: 15000 });
+
+    // this wait is a delicate balance with the 30 seconds of the intercept
+    // we need to do this so that the timer on the modal doesn't go out too quickly
+    // not giving enough time to assert the contents of the modal
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(12000);
+
+    expect(newSettingsPage.inactivityModalCard().getModal().should('exist'));
+
+    expect(newSettingsPage.inactivityModalCard().getCardTitle().should('exist'));
+    expect(newSettingsPage.inactivityModalCard().getCardBody().should('exist'));
+    expect(newSettingsPage.inactivityModalCard().getCardActions().should('exist'));
+
+    expect(newSettingsPage.inactivityModalCard().getCardTitle().should('contain', 'Session expiring'));
+    expect(newSettingsPage.inactivityModalCard().getCardBody().should('contain', 'Your session is about to expire due to inactivity. Any unsaved changes will be lost'));
+    expect(newSettingsPage.inactivityModalCard().getCardBody().should('contain', 'Click “Resume Session” to keep the session in this browser active'));
+
+    // Clicking the resume button should close the modal and reset the timer
+    expect(newSettingsPage.inactivityModalCard().getCardActions().contains('Resume Session').click());
+    expect(newSettingsPage.inactivityModalCard().shouldNotExist());
+
+    // at this point the intercept for the XHR of resume session kicks in
+    // let's check that the user being active doesn't really trigger the modal display
+    // for that let's click on something in the UI
+    AccountPagePo.navTo();
+
+    // let's wait so that we could give time for the modal to appear
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(20000);
+
+    // assert that the modal didn't appear
+    expect(newSettingsPage.inactivityModalCard().shouldNotExist());
+
+    // Reset setting value
+    SettingsPagePo.navTo();
+    newSettingsPage.waitForPage();
+    newSettingsPage.editSettingsByLabel(sessionIdleSetting);
+
+    settingsEdit.waitForPage();
+    settingsEdit.title().contains(`Setting: ${ sessionIdleSetting }`).should('be.visible');
+    settingsEdit.useDefaultButton().click();
+    settingsEdit.saveAndWait(sessionIdleSetting).then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body).to.have.property('value', settingsOriginal[sessionIdleSetting].default);
+      expect(response?.body).to.have.property('value', settingsOriginal[sessionIdleSetting].default);
+    });
+
+    newSettingsPage.waitForPage();
+    newSettingsPage.settingsValue(sessionIdleSetting).contains(settingsOriginal[sessionIdleSetting].default);
+
+    resetSettings.push(sessionIdleSetting);
   });
 
   it('has the correct title', { tags: ['@globalSettings', '@adminUser'] }, () => {

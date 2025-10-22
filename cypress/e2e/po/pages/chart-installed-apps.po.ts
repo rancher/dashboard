@@ -36,7 +36,7 @@ export default class ChartInstalledAppsListPagePo extends BaseListPagePo {
     terminal.closeTerminal();
 
     installableParts.forEach((item:string) => {
-      this.appsList().resourceTableDetails(item, 0).should('contain', 'Deployed');
+      this.appsList().resourceTableDetails(item, 1).should('contain', 'Deployed');
     });
 
     // timeout to give time for everything to be setup, otherwise the extension

@@ -149,25 +149,35 @@ export default {
   },
   watch: {
     namespace: {
-      handler:   'debouncedUpdateMatches',
+      handler() {
+        this.debouncedUpdateMatches();
+      },
       immediate: true
     },
     'value.podSelector': {
-      handler:   'debouncedUpdateMatches',
+      handler() {
+        this.debouncedUpdateMatches();
+      },
       immediate: true
     },
     'value.namespaceSelector': {
-      handler:   'debouncedUpdateMatches',
+      handler() {
+        this.debouncedUpdateMatches();
+      },
       immediate: true
     },
     'value.ipBlock.cidr':   'validateCIDR',
     'value.ipBlock.except': 'validateCIDR',
     podSelectorExpressions: {
-      handler:   'debouncedUpdateMatches',
+      handler() {
+        this.debouncedUpdateMatches();
+      },
       immediate: true
     },
     namespaceSelectorExpressions: {
-      handler:   'debouncedUpdateMatches',
+      handler() {
+        this.debouncedUpdateMatches();
+      },
       immediate: true
     }
   },
