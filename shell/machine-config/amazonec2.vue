@@ -368,6 +368,7 @@ export default {
           v-model:enable-primary-ipv6="value.enablePrimaryIpv6"
           v-model:ipv6-address-count="value.ipv6AddressCount"
           v-model:ipv6-address-only="value.ipv6AddressOnly"
+          v-model:http-protocol-ipv6="value.httpProtocolIpv6"
           v-model:vpc-id="value.vpcId"
           v-model:subnet-id="value.subnetId"
           :mode="mode"

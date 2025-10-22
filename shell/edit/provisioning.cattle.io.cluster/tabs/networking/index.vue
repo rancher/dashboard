@@ -256,9 +256,9 @@ export default {
     <t
       k="cluster.rke2.stackPreference.description"
       raw
-      class="text-muted mb-10"
+      class="text-muted"
     />
-    <div class="row mb-20">
+    <div class="ro mt-10 mb-20">
       <div class="col span-3">
         <LabeledSelect
           :value="localValue?.spec?.rkeConfig?.networking?.stackPreference || STACK_PREFS.IPV4"

@@ -2087,6 +2087,8 @@ cluster:
         label: Enable Primary Ipv6
       ipv6AddressOnly:
         label: Use IPv6 Only
+      httpProtocolIpv6: 
+        label: Use an IPv6 endpoint for instance metadata service
       ipv6ValidationWarning: When one pool uses an IPv6 or dual-stack subnet/vpc, all pools must use an IPv6 or dual-stack subnet/vpc.
     pnap:
       serverLocation:

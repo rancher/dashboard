@@ -17,7 +17,7 @@ export default {
     Checkbox, LabeledSelect, LabeledInput, Banner
   },
 
-  emits: ['update:enablePrimaryIpv6', 'update:ipv6AddressCount', 'update:ipv6AddressOnly', 'update:vpcId', 'update:subnetId', 'validationChanged'],
+  emits: ['update:enablePrimaryIpv6', 'update:ipv6AddressCount', 'update:ipv6AddressOnly', 'update:httpProtocolIpv6', 'update:vpcId', 'update:subnetId', 'validationChanged'],
 
   props: {
     mode: {
@@ -36,13 +36,17 @@ export default {
     },
 
     vpcInfo: {
-      type:    Array,
-      default: () => []
+      type:    Object,
+      default: () => {
+        return {};
+      }
     },
 
     subnetInfo: {
-      type:    Array,
-      default: () => []
+      type:    Object,
+      default: () => {
+        return {};
+      }
     },
 
     enablePrimaryIpv6: {
@@ -56,6 +60,11 @@ export default {
     },
 
     ipv6AddressOnly: {
+      type:    Boolean,
+      default: false
+    },
+
+    httpProtocolIpv6: {
       type:    Boolean,
       default: false
     },
@@ -116,7 +125,9 @@ export default {
 
     ipv6Selected(neu) {
       if (neu) {
-        this.$emit('update:ipv6AddressOnly', true);
+        this.$emit('update:ipv6AddressOnly', neu);
+      } else if (!this.dualStackSelected) {
+        this.$emit('update:ipv6AddressOnly', false);
       }
     },
 
@@ -298,6 +309,28 @@ export default {
   />
   <div class="row mb-20">
     <div class="col span-6">
+      <Checkbox
+        v-if="isCreate || enableIpv6"
+        v-model:value="enableIpv6"
+        :disabled="!isCreate"
+        :label="t('cluster.machineConfig.amazonEc2.enableIpv6.label')"
+        data-testid="amazonEc2__enableIpv6"
+        :mode="mode"
+      />
+    </div>
+    <div class="col span-6">
+      <Checkbox
+        :value="httpProtocolIpv6"
+        :disabled="!isCreate"
+        :label="t('cluster.machineConfig.amazonEc2.httpProtocolIpv6.label')"
+        data-testid="amazonEc2__enableIpv6"
+        :mode="mode"
+        @update:value="e=>$emit('update:httpProtocolIpv6', e)"
+      />
+    </div>
+  </div>
+  <div class="row mb-20">
+    <div class="col span-6">
       <LabeledSelect
         :mode="mode"
         :value="selectedNetwork"
@@ -318,19 +351,10 @@ export default {
         </template>
       </LabeledSelect>
     </div>
-    <div class="col span-6">
-      <Checkbox
-        v-if="isCreate || enableIpv6"
-        v-model:value="enableIpv6"
-        :disabled="!isCreate"
-        :label="t('cluster.machineConfig.amazonEc2.enableIpv6.label')"
-        :mode="mode"
-      />
-    </div>
   </div>
   <div
     v-if="enableIpv6"
-    class="row mb-10"
+    class="row mb-10 ipv6-row"
   >
     <div class="col span-3">
       <LabeledInput
@@ -340,6 +364,7 @@ export default {
         :mode="mode"
         :value="ipv6AddressCount"
         label-key="cluster.machineConfig.amazonEc2.ipv6AddressCount.label"
+        data-testid="amazonEc2__ipv6AddressCount"
         @update:value="e=>$emit('update:ipv6AddressCount', e)"
       />
     </div>
@@ -349,6 +374,7 @@ export default {
         :value="enablePrimaryIpv6"
         :label="t('cluster.machineConfig.amazonEc2.enablePrimaryIpv6.label')"
         :mode="mode"
+        data-testid="amazonEc2__enablePrimaryIpv6"
         @update:value="e=>$emit('update:enablePrimaryIpv6', e)"
       />
     </div>
@@ -359,6 +385,7 @@ export default {
         :value="ipv6AddressOnly"
         :label="t('cluster.machineConfig.amazonEc2.ipv6AddressOnly.label')"
         :mode="mode"
+        data-testid="amazonEc2__ipv6AddressOnly"
         @update:value="e=>$emit('update:ipv6AddressOnly', e)"
       />
     </div>
@@ -384,5 +411,10 @@ export default {
   .vpc-subnet .vpc-name {
     font-weight: normal;
     padding-left: 15px;
+  }
+
+  .ipv6-row {
+    display: flex;
+    align-items: center;
   }
 </style>
