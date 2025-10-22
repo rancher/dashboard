@@ -175,7 +175,7 @@ export default class ProvCluster extends SteveModel {
         action:  'toggleAutoscalerRunner',
         label:   this.isAutoscalerPaused ? 'Resume Autoscaler' : 'Pause Autoscaler',
         icon:    `icon ${ this.isAutoscalerPaused ? 'icon-play' : 'icon-pause' }`,
-        enabled: this.isAutoscalerEnabled
+        enabled: this.canPauseResumeAutoscaler
       },
       { divider: true }];
 
@@ -1082,15 +1082,28 @@ export default class ProvCluster extends SteveModel {
     return events.filter((event) => event.involvedObject.name === 'cluster-autoscaler-status');
   }
 
+  get hasAccessToAutoscalerConfigMap() {
+    // This may change but for now this is the best proxy we have for access to the configmap without attempting to access it and getting a 404.
+    return this.canEdit;
+  }
+
   async loadAutoscalerConfigMap() {
     const url = `/k8s/clusters/${ this.mgmtClusterId }/v1/${ CONFIG_MAP }/${ AUTOSCALER_CONFIG_MAP_ID }`;
 
     return await this.$dispatch('cluster/request', { url }, { root: true });
   }
 
+  get canPauseResumeAutoscaler() {
+    return this.isAutoscalerEnabled && this.canExplore && this.hasAccessToAutoscalerConfigMap;
+  }
+
   async loadAutoscalerStatus() {
     if (!this.canExplore) {
       return AUTOSCALER_STATUS.PROVISIONING;
+    }
+
+    if (!this.hasAccessToAutoscalerConfigMap) {
+      return AUTOSCALER_STATUS.UNAVAILABLE;
     }
 
     try {

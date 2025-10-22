@@ -626,7 +626,7 @@ export default {
     },
 
     showAutoScalerTab() {
-      return isAutoscalerFeatureFlagEnabled(this.$store);
+      return isAutoscalerFeatureFlagEnabled(this.$store) && this.value.hasAccessToAutoscalerConfigMap;
     }
   },
 

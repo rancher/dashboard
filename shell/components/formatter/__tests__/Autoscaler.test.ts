@@ -106,8 +106,12 @@ describe('component: formatter/Autoscaler.vue', () => {
     });
 
     it('should render "Pause" button if autoscaler is running', () => {
-      const rowData = { canExplore: true, isAutoscalerPaused: false };
-      const wrapper = createWrapper({ value: true, row: rowData });
+      const rowData = {
+        canExplore: true, isAutoscalerPaused: false, canPauseResumeAutoscaler: true
+      };
+      const wrapper = createWrapper({
+        value: true, row: rowData, canPauseResumeAutoscaler: true
+      });
       const button = wrapper.find('button');
 
       expect(button.exists()).toBe(true);
@@ -116,7 +120,9 @@ describe('component: formatter/Autoscaler.vue', () => {
     });
 
     it('should render "Resume" button if autoscaler is paused', () => {
-      const rowData = { canExplore: true, isAutoscalerPaused: true };
+      const rowData = {
+        canExplore: true, isAutoscalerPaused: true, canPauseResumeAutoscaler: true
+      };
       const wrapper = createWrapper({ value: true, row: rowData });
       const button = wrapper.find('button');
 
@@ -125,8 +131,20 @@ describe('component: formatter/Autoscaler.vue', () => {
       expect(wrapper.find('.icon-play').exists()).toBe(true);
     });
 
+    it('should hide "Resume" button if canPauseResumeAutoscaler is false', () => {
+      const rowData = {
+        canExplore: true, isAutoscalerPaused: true, canPauseResumeAutoscaler: false
+      };
+      const wrapper = createWrapper({ value: true, row: rowData });
+      const button = wrapper.find('button');
+
+      expect(button.exists()).toBe(false);
+    });
+
     it('should call toggleAutoscalerRunner and close on click', async() => {
-      const rowData = { canExplore: true, toggleAutoscalerRunner: mockToggleRunner };
+      const rowData = {
+        canExplore: true, toggleAutoscalerRunner: mockToggleRunner, canPauseResumeAutoscaler: true
+      };
       const wrapper = createWrapper({ value: true, row: rowData });
 
       wrapper.find('button').trigger('click');

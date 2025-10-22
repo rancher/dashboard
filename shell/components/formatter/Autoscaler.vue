@@ -45,6 +45,7 @@ const stopPropagation = (event: Event) => {
         #heading-action="{close}"
       >
         <RcButton
+          v-if="row.canPauseResumeAutoscaler"
           secondary
           small
           class="action"
