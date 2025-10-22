@@ -132,21 +132,19 @@ export default {
   },
 
   methods: {
+    // if ipv6 pools are detected, we enforce dual-stack or ipv6 stack prefs.
+    // If ipv6 pools are not detected we don't know for sure they aren't there so we don't validate the input
     stackPreferenceValidator(val) {
       const value = val?.value || val;
       let isValid;
 
       if (this.hasSomeIpv6Pools) {
         isValid = value !== STACK_PREFS.IPV4;
-      } else {
-        isValid = value === STACK_PREFS.IPV4;
-      }
 
-      if (isValid) {
+        return isValid ? null : this.t('cluster.rke2.stackPreference.errorNeedsIpv6');
+      } else {
         return null;
       }
-
-      return this.hasSomeIpv6Pools ? this.t('cluster.rke2.stackPreference.errorNeedsIpv6') : this.t('cluster.rke2.stackPreference.errorNeedsIpv4');
     }
   }
 };

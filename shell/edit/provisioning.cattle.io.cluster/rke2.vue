@@ -2516,6 +2516,7 @@ export default {
             v-if="haveArgInfo"
             name="networking"
             label-key="cluster.tabs.networking"
+            :error="stackPreferenceError"
           >
             <Networking
               v-model:value="localValue"
