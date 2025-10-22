@@ -352,6 +352,13 @@ export const actions = {
     for (let i = 0; i < withHandler.length; i++) {
       await callNotifyHandler({ $extension: (this as any).$extension }, withHandler[i], true);
     }
+
+    // For all notifications that have a handler, call the handler
+    const withHandler = getters.all.filter((n: Notification) => !!n.handlerName);
+
+    for (let i = 0; i < withHandler.length; i++) {
+      await callNotifyHandler({ $extension: (this as any).$extension }, withHandler[i], true);      
+    }    
   },
 
   remove({ commit, getters }: any, id: string) {
