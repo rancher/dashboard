@@ -475,16 +475,17 @@ describe('component: rke2', () => {
         },
         provider: 'custom'
       },
-      data: () => ({
-        agentArgs: {
+      computed: {
+        ...rke2.computed,
+        agentArgs: () => ({
           'cloud-provider-name': {
             options: [
               'azure',
               'amazon'
             ]
           }
-        }
-      }),
+        })
+      },
       global: {
         mocks: {
           ...defaultMocks,
@@ -519,9 +520,10 @@ describe('component: rke2', () => {
         },
         provider: 'custom'
       },
-      data: () => ({
-        canAzureMigrateOnEdit: true,
-        agentArgs:             {
+      computed: {
+        ...rke2.computed,
+        canAzureMigrateOnEdit: () => true,
+        agentArgs:             () => ({
           'cloud-provider-name': {
             options: [
               'azure',
@@ -529,8 +531,8 @@ describe('component: rke2', () => {
               'external'
             ]
           }
-        }
-      }),
+        })
+      },
       global: {
         mocks: {
           ...defaultMocks,

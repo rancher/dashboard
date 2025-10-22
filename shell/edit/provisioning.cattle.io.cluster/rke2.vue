@@ -28,7 +28,7 @@ import {
 } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
 import {
-  getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon, initSchedulingCustomization
+  getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon, initSchedulingCustomization, addonConfigPreserve
 } from '@shell/utils/cluster';
 
 import { BadgeState } from '@components/BadgeState';
@@ -162,6 +162,10 @@ export default {
     this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
     this.errors = this.errors.concat(sc.errors);
 
+    if (this.isEdit) {
+      this.originalKubeVersion = this.versionOptions.find((v) => v.value === this.liveValue.spec.kubernetesVersion);
+    }
+
     Object.entries(this.chartValues).forEach(([name, value]) => {
       const key = this.chartVersionKey(name);
 
@@ -278,6 +282,9 @@ export default {
       REGISTRIES_TAB_NAME,
       labelForAddon,
       etcdConfigValid:                          true,
+      addonConfigDiffs:                         {},
+      originalKubeVersion:                      null,
+      isEmpty,
     };
   },
 
@@ -921,8 +928,22 @@ export default {
       }
     },
 
-    selectedVersion() {
-      this.versionInfo = {}; // Invalidate cache such that version info relevent to selected kube version is updated
+    async selectedVersion(neu) {
+      if (this.isEdit) {
+        const {
+          addonConfigDiffs, addonNames, userChartValues, $store
+        } = this;
+
+        await addonConfigPreserve(
+          {
+            addonConfigDiffs, addonNames, userChartValues, $store
+          },
+          this.originalKubeVersion?.charts,
+          neu?.charts
+        );
+      }
+
+      this.versionInfo = {}; // Invalidate cache such that version info relevant to selected kube version is updated
 
       // Allow time for addonNames to update... then fetch any missing addons
       this.$nextTick(() => this.initAddons());
@@ -1511,10 +1532,15 @@ export default {
       });
     },
 
-    showAddonConfirmation() {
-      return new Promise((resolve, reject) => {
+    showAddonConfirmation(addonNames, previousKubeVersion, newKubeVersion) {
+      return new Promise((resolve) => {
         this.$store.dispatch('cluster/promptModal', {
-          component: 'AddonConfigConfirmationDialog',
+          component:      'AddonConfigConfirmationDialog',
+          componentProps: {
+            addonNames,
+            previousKubeVersion,
+            newKubeVersion
+          },
           resources: [(value) => resolve(value)]
         });
       });
@@ -1555,10 +1581,28 @@ export default {
       const isEditVersion = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
 
       if (isEditVersion) {
-        const shouldContinue = await this.showAddonConfirmation();
+        const hasDiffs = Object.values(this.addonConfigDiffs).some((d) => !isEmpty(d));
 
-        if (!shouldContinue) {
-          return btnCb('cancelled');
+        if (hasDiffs) {
+          const addonNamesWithDiffs = [];
+
+          for (const name in this.addonConfigDiffs) {
+            const diff = this.addonConfigDiffs[name];
+
+            if (!isEmpty(diff)) {
+              addonNamesWithDiffs.push(name);
+            }
+          }
+
+          const shouldContinue = await this.showAddonConfirmation(
+            addonNamesWithDiffs,
+            this.liveValue.spec.kubernetesVersion,
+            this.value.spec.kubernetesVersion
+          );
+
+          if (!shouldContinue) {
+            return btnCb('cancelled');
+          }
         }
       }
 
@@ -2521,6 +2565,9 @@ export default {
               :addons-rev="addonsRev"
               :user-chart-values-temp="userChartValuesTemp"
               :init-yaml-editor="initYamlEditor"
+              :has-diff="!isEmpty(addonConfigDiffs[v.name])"
+              :previous-kube-version="liveValue?.spec?.kubernetesVersion"
+              :new-kube-version="value.spec.kubernetesVersion"
               @update:value="$emit('input', $event)"
               @update-questions="syncChartValues"
               @update-values="updateValues"

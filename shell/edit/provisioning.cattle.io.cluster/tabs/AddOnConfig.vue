@@ -48,6 +48,27 @@ export default {
     initYamlEditor: {
       type:     Function,
       required: true,
+    },
+    /**
+     * Indicates if a configuration conflict was detected for this addon.
+     */
+    hasDiff: {
+      type:    Boolean,
+      default: false
+    },
+    /**
+     * The Kubernetes version the user is upgrading from.
+     */
+    previousKubeVersion: {
+      type:    String,
+      default: ''
+    },
+    /**
+     * The Kubernetes version the user is upgrading to.
+     */
+    newKubeVersion: {
+      type:    String,
+      default: ''
     }
 
   },
@@ -73,10 +94,15 @@ export default {
 <template>
   <div>
     <Banner
-      v-if="isEdit"
+      v-if="isEdit && hasDiff"
       color="warning"
     >
-      {{ t('cluster.addOns.dependencyBanner') }}
+      <span
+        v-clean-html="t('cluster.addOns.dependencyBanner', {
+          previousKubeVersion,
+          newKubeVersion
+        }, true)"
+      />
     </Banner>
     <div
       v-if="versionInfo && addonVersion"

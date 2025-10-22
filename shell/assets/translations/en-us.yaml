@@ -472,7 +472,7 @@ addClusterMemberDialog:
 
 addonConfigConfirmation:
   title: Add-On Reset
-  body: Changing the Kubernetes Version can reset Add-On values. You should check that the values are as expected before continuing.
+  body: Add-On Configuration has changed between Kubernetes versions <b>{previousKubeVersion}</b> and <b>{newKubeVersion}</b> and conflict with your previous values for Add-On {addons}. As a result please re-apply them before continuing.
 
 addProjectMemberDialog:
   title: Add Project Member
@@ -2161,7 +2161,7 @@ cluster:
         diskSizeWithMax: Disk size has to be between {diskSizeMin} and {diskSizeMax} based on this image and disk type.
         projects: Image projects should be a comma separated list of alphanumeric string which may contain '-' and '.'
   addOns:
-    dependencyBanner: Add-On Configuration can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.
+    dependencyBanner: Add-On Configuration has changed between Kubernetes versions <b>{previousKubeVersion}</b> and <b>{newKubeVersion}</b> and conflict with your previous values. Please re-apply them.
     additionalManifest:
       title: Additional Manifest
       tooltip: 'Additional Kubernetes Manifest YAML to be applied to the cluster on startup.'

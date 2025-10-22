@@ -1,6 +1,10 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
+import { mapGetters } from 'vuex';
+
+import { labelForAddon } from '@shell/utils/cluster';
+import { resourceNames } from '@shell/utils/string';
 
 export default {
   emits: ['close'],
@@ -17,10 +21,44 @@ export default {
     registerBackgroundClosing: {
       type:     Function,
       required: true
+    },
+    /**
+     * The names of the addons that have configuration conflicts.
+     */
+    addonNames: {
+      type:    Array,
+      default: () => []
+    },
+    /**
+     * The Kubernetes version the user is upgrading from.
+     */
+    previousKubeVersion: {
+      type:    String,
+      default: ''
+    },
+    /**
+     * The Kubernetes version the user is upgrading to.
+     */
+    newKubeVersion: {
+      type:    String,
+      default: ''
     }
   },
   created() {
     this.registerBackgroundClosing(this.closing);
+  },
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
+    formattedAddons() {
+      if (!this.addonNames || this.addonNames.length === 0) {
+        return '';
+      }
+
+      const translatedNames = this.addonNames.map((name) => labelForAddon(this.$store, name, true));
+
+      return resourceNames(translatedNames, null, this.t, false);
+    }
   },
   methods: {
     continue(value) {
@@ -59,7 +97,13 @@ export default {
 
     <template #body>
       <slot name="body">
-        {{ t('addonConfigConfirmation.body') }}
+        <span
+          v-clean-html="t('addonConfigConfirmation.body', {
+            addons: formattedAddons,
+            previousKubeVersion,
+            newKubeVersion
+          }, true)"
+        />
       </slot>
     </template>
 
