@@ -25,6 +25,11 @@ export default {
       default: _CREATE
     },
 
+    disabled: {
+      type:    Boolean,
+      default: true
+    },
+
     region: {
       type:    String,
       default: ''
@@ -237,21 +242,12 @@ export default {
 
     // ipv4-only subnets and vpcs
     ipv4OnlyNetworkOptions() {
-    //   const ipv4SubnetsOnly = this.allNetworkOptions.filter((opt) => {
-    //     const isSubnet = opt.kind === 'subnet';
-
-      //     return isSubnet && opt.hasIpv4 && !opt.hasIpv6;
-      //   });
-
       return this.allNetworkOptions.reduce((opts, opt) => {
         if (opt.kind === 'vpc') {
-        //   return ipv4SubnetsOnly.find((subnetOpt) => subnetOpt.vpcId === opt.value);
           opts.push({ ...opt, disabled: opt.hasIpv6 });
         } else if (!opt.hasIpv6) {
           opts.push(opt);
         }
-
-        // return opt.hasIpv4 && !opt.hasIpv6;
 
         return opts;
       }, []);
@@ -259,17 +255,7 @@ export default {
 
     // ipv6-enabled subnets and vpcs - some of these may be both ipv4 and ipv6 (dual-stack)
     ipv6NetworkOptions() {
-    //   const ipv6SubnetsOnly = this.allNetworkOptions.filter((opt) => {
-    //     const isSubnet = opt.kind === 'subnet';
-
-      //     return isSubnet && opt.hasIpv6;
-      //   });
-
       return this.allNetworkOptions.filter((opt) => {
-        // if (opt.kind === 'vpc') {
-        //   return ipv6SubnetsOnly.find((subnetOpt) => subnetOpt.vpcId === opt.value);
-        // }
-
         return opt.hasIpv6;
       });
     },
@@ -282,18 +268,7 @@ export default {
     dualStackSelected() {
       const opt = this.allNetworkOptions.find((o) => o.value === this.selectedNetwork);
 
-      //   if (opt?.kind === 'vpc') {
-      //     const subnetOpts = this.allNetworkOptions.filter((o) => {
-      //       return o.vpcId === this.selectedNetwork;
-      //     });
-
-      //     const hasIpv4 = subnetOpts.find((o) => o.hasIpv4);
-      //     const hasIpv6 = subnetOpts.find((o) => o.hasIpv6);
-
-      //     return hasIpv4 && hasIpv6;
-      //   } else {
       return opt?.hasIpv4 && opt?.hasIpv6;
-    //   }
     },
 
     // ipv6-only subnet selected
@@ -345,6 +320,7 @@ export default {
     v-if="poolsInvalid"
     color="error"
     :label="t('cluster.machineConfig.amazonEc2.ipv6ValidationWarning')"
+    data-testid="amazonEc2__ipv6Warning"
   />
   <div class="row mb-20">
     <div class="col span-6">
@@ -356,6 +332,12 @@ export default {
         data-testid="amazonEc2__enableIpv6"
         :mode="mode"
       />
+      <div class="text-muted">
+        <t
+          raw
+          k="cluster.machineConfig.amazonEc2.enableIpv6.description"
+        />
+      </div>
     </div>
   </div>
   <div class="row mb-20 ipv6-row">

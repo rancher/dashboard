@@ -383,6 +383,7 @@ export default {
           :region="value.region"
           :machine-pools="machinePools"
           :has-ipv6="hasIpv6"
+          :disabled="disabled"
           @update:has-ipv6="e=>$emit('update:hasIpv6', e)"
           @validation-changed="e=>$emit('validationChanged',e)"
         />

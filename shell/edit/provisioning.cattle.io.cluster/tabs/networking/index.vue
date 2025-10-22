@@ -162,6 +162,7 @@ export default {
     <Banner
       v-if="showIpv6Warning"
       color="warning"
+      data-testid="rke2__networking-ipv6StackPreferenceWarning"
     >
       {{ t('cluster.rke2.address.ipv6.warning') }}
     </Banner>
@@ -175,6 +176,7 @@ export default {
           :mode="mode"
           :disabled="isEdit"
           :label="t('cluster.rke2.address.clusterCidr.label')"
+          data-testid="rke2__networking-clusterCidr"
           @update:value="$emit('cluster-cidr-changed', $event)"
         />
       </div>
@@ -187,6 +189,7 @@ export default {
           :mode="mode"
           :disabled="isEdit"
           :label="t('cluster.rke2.address.serviceCidr.label')"
+          data-testid="rke2__networking-serviceCidr"
           @update:value="$emit('service-cidr-changed', $event)"
         />
       </div>
@@ -202,6 +205,7 @@ export default {
           :mode="mode"
           :disabled="isEdit"
           :label="t('cluster.rke2.address.dns.label')"
+          data-testid="rke2__networking-dns"
           @update:value="$emit('cluster-dns-changed', $event)"
         />
       </div>
@@ -214,6 +218,7 @@ export default {
           :mode="mode"
           :disabled="isEdit"
           :label="t('cluster.rke2.address.domain.label')"
+          data-testid="rke2__networking-domain"
           @update:value="$emit('cluster-domain-changed', $event)"
         />
       </div>
@@ -228,6 +233,7 @@ export default {
           :value="serverConfig['service-node-port-range']"
           :mode="mode"
           :label="t('cluster.rke2.address.nodePortRange.label')"
+          data-testid="rke2__networking-nodeport"
           @update:value="$emit('service-node-port-range-changed', $event)"
         />
       </div>
@@ -295,6 +301,7 @@ export default {
           :mode="mode"
           :options="stackPreferenceOptions"
           :rules="[stackPreferenceValidator]"
+          data-testid="rke2__networking-stackpreferences"
           @selecting="e=>$emit('stack-preference-changed', e)"
           @update:validation="e=>$emit('validationChanged', e)"
         />

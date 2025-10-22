@@ -2080,6 +2080,7 @@ cluster:
       tagTitle: EC2 Tags
       enableIpv6:
         label: Enable IPv6
+        description: Checking this automatically sets your <b>Network Stack Preference Order</b> (in Cluster Configuration) to <b>DUAL</b> stack, enabling both IPv4 and IPv6. For an IPv6-only cluster, you can manually change that setting to <b>IPv6</b>.
       ipv6AddressCount:
         label: IPv6 Address Count
         tooltip: Specifies the number of IPv6 addresses to assign to the network interface
@@ -2554,7 +2555,6 @@ cluster:
         ipv6: IPv6
         dual: Dual-Stack
       errorNeedsIpv6: Stack preference must be set to dual-stack or ipv6 if using ipv6 networking in nodepools.
-      errorNeedsIpv4: Stack preference must be set to ipv4 if using ipv4 networking in nodepools.
   k3s:
     systemService:
       coredns: 'CoreDNS'
