@@ -28,7 +28,7 @@ export type NotificationAction = {
 export type NotificationPreference = {
   key: string; // User preference key to use when setting the preference when the notification is marked as read/unread
   value: string; // User preference value to use when setting the preference when the notification is marked as read
-  unsetValue?: string; // User preference value to use when setting the preference when the notification is marked as unread - defaults to empty string. Ignored if 'value' provides the notification preference function
+  unsetValue?: string; // User preference value to use when setting the preference when the notification is marked as unread - defaults to empty string
 };
 
 /**
