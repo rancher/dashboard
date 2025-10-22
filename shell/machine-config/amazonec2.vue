@@ -24,7 +24,7 @@ export default {
 
   mixins: [CreateEditView],
 
-  emits: ['validationChanged'],
+  emits: ['validationChanged', 'update:hasIpv6'],
 
   props: {
     uuid: {
@@ -43,6 +43,11 @@ export default {
     },
 
     disabled: {
+      type:    Boolean,
+      default: false
+    },
+
+    hasIpv6: {
       type:    Boolean,
       default: false
     },
@@ -377,6 +382,8 @@ export default {
           :zone="value.zone"
           :region="value.region"
           :machine-pools="machinePools"
+          :has-ipv6="hasIpv6"
+          @update:has-ipv6="e=>$emit('update:hasIpv6', e)"
           @validation-changed="e=>$emit('validationChanged',e)"
         />
 

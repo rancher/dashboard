@@ -20,7 +20,7 @@ export default {
     'update:value', 'cluster-cidr-changed', 'local-cluster-auth-endpoint-changed',
     'service-cidr-changed', 'cluster-domain-changed', 'cluster-dns-changed',
     'truncate-hostname-changed', 'ca-certs-changed', 'service-node-port-range-changed',
-    'fqdn-changed', 'tls-san-changed', 'stack-preference-changed'
+    'fqdn-changed', 'tls-san-changed', 'stack-preference-changed', 'validationChanged'
   ],
 
   components: {
@@ -42,14 +42,26 @@ export default {
       type:     Object,
       required: true,
     },
+
     selectedVersion: {
       type:     Object,
       required: true,
     },
+
     truncateLimit: {
       type:     Number,
       required: false,
       default:  0
+    },
+
+    machinePools: {
+      type:    Array,
+      default: () => []
+    },
+
+    hasSomeIpv6Pools: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -108,7 +120,7 @@ export default {
 
     stackPreference: {
       get() {
-        return this.localValue.spec.networking.stackPreference || STACK_PREFS.IPV4;
+        return this.localValue.spec?.networking?.stackPreference || STACK_PREFS.IPV4;
       },
       set(neu) {
         if (!this.localValue.spec.networking) {
@@ -117,6 +129,25 @@ export default {
         this.localValue.spec.networking.stackPreference = neu;
       }
     },
+  },
+
+  methods: {
+    stackPreferenceValidator(val) {
+      const value = val?.value || val;
+      let isValid;
+
+      if (this.hasSomeIpv6Pools) {
+        isValid = value !== STACK_PREFS.IPV4;
+      } else {
+        isValid = value === STACK_PREFS.IPV4;
+      }
+
+      if (isValid) {
+        return null;
+      }
+
+      return this.hasSomeIpv6Pools ? this.t('cluster.rke2.stackPreference.errorNeedsIpv6') : this.t('cluster.rke2.stackPreference.errorNeedsIpv4');
+    }
   }
 };
 </script>
@@ -261,10 +292,13 @@ export default {
     <div class="ro mt-10 mb-20">
       <div class="col span-3">
         <LabeledSelect
+          :key="hasSomeIpv6Pools"
           :value="localValue?.spec?.rkeConfig?.networking?.stackPreference || STACK_PREFS.IPV4"
           :mode="mode"
           :options="stackPreferenceOptions"
+          :rules="[stackPreferenceValidator]"
           @selecting="e=>$emit('stack-preference-changed', e)"
+          @update:validation="e=>$emit('validationChanged', e)"
         />
       </div>
     </div>
