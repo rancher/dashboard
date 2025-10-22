@@ -9,7 +9,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 const NETBIOS_TRUNCATION_LENGTH = 15;
 
-const STACK_PREFS = {
+export const STACK_PREFS = {
   IPV4: 'ipv4',
   IPV6: 'ipv6',
   DUAL: 'dual'

@@ -7,6 +7,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import KeyValue from '@shell/components/form/KeyValue';
 import Taints from '@shell/components/form/Taints';
 import { MANAGEMENT } from '@shell/config/types';
+import { STACK_PREFS } from './tabs/networking/index.vue';
 
 import { sanitizeKey, sanitizeIP, sanitizeValue } from '@shell/utils/string';
 
@@ -31,6 +32,12 @@ export default {
 
   async fetch() {
     await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+  },
+
+  created() {
+    if (this.isIpv6OrDualStack) {
+      this.showAdvanced = true;
+    }
   },
 
   data() {
@@ -86,9 +93,11 @@ export default {
 
     windowsCommand() {
       const out = this.insecureWindows ? [this.clusterToken.insecureWindowsNodeCommand] : [this.clusterToken.windowsNodeCommand];
+      const sanitizedAddresses = this.address.split(',').map((a) => sanitizeIP(a)).join(',');
+      const sanitizedInternalAddresses = this.internalAddress.split(',').map((a) => sanitizeIP(a)).join(',');
 
-      this.address && out.push(`-Address "${ sanitizeValue(this.address) }"`);
-      this.internalAddress && out.push(`-InternalAddress "${ sanitizeValue(this.internalAddress) }"`);
+      this.address && out.push(`-Address "${ sanitizedAddresses }"`);
+      this.internalAddress && out.push(`-InternalAddress "${ sanitizedInternalAddresses }"`);
       this.nodeName && out.push(`-NodeName "${ sanitizeValue(this.nodeName) }"`);
 
       for ( const key in this.labels ) {
@@ -137,6 +146,12 @@ export default {
       }, []);
 
       return allRoles.length === 3;
+    },
+
+    isIpv6OrDualStack() {
+      const stackPreference = this.cluster?.spec?.rkeConfig?.networking?.stackPreference;
+
+      return stackPreference === STACK_PREFS.IPV6 || stackPreference === STACK_PREFS.DUAL;
     }
 
   },
@@ -189,7 +204,15 @@ export default {
     >
       <h3 v-t="'cluster.custom.advanced.label'" />
       <h4 v-t="'cluster.custom.advanced.detail'" />
-
+      <Banner
+        v-if="isIpv6OrDualStack"
+        color="warning"
+      >
+        <t
+          k="cluster.custom.advanced.ipv6"
+          raw
+        />
+      </Banner>
       <div class="row mb-10">
         <div class="col span-4">
           <LabeledInput

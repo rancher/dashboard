@@ -1576,6 +1576,7 @@ cluster:
       nodeLabel:
         title: Node Labels
         label: Add Label
+      ipv6: "It looks like this cluster uses IPv6 networking: <code>Node Private IP</code> should be set to the cluster's IPV6 address."
     registrationCommand:
       label: Registration Command
       linuxDetail: Run this command on each of the existing Linux machines you want to register.
