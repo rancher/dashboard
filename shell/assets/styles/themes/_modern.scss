@@ -728,8 +728,8 @@ BODY, .theme-light {
   --error-badge    :  #{$error};
   --on-error-banner : #FFFFFF;
 
-  --error-banner-text: #{$error};
-  --warning-banner-text: var(--warning-text);
+  --error-banner-text: #{$grey-100};
+  --warning-banner-text: #{$grey-100};
 }
 
 BODY, .theme-dark {
@@ -1058,7 +1058,7 @@ BODY, .theme-dark {
   --rc-disabled-text-color: #{$gray004};
 
   --error-text    : #FFAC99;
-  --warning-text  : #{contrast-color($warning)};;
+  --warning-text  : #{contrast-color($warning)};
 
   --success-badge     : #{rgba($success, 10%)};
   --on-success-banner : #00B752;
@@ -1074,7 +1074,7 @@ BODY, .theme-dark {
 
   --error-banner-bg: #301D1D;
 
-  --warning-banner-text : var(--warning-text);
-  --error-banner-text   : var(--error-text);
+  --warning-banner-text : #{$grey-0};
+  --error-banner-text   : #{$grey-0};
 }
 
