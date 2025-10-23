@@ -130,11 +130,20 @@ export default {
           index = (found === -1) ? 0 : found;
         }
 
-        const route = items[index].route;
+        const item = items[index];
+        const route = item.route;
 
         if (route) {
           this.$router.replace(route);
+        } else if (item) {
+          this.routeToFirstChild(item);
         }
+      }
+    },
+
+    routeToFirstChild(item) {
+      if (item.children.length && item.children[0].route) {
+        this.$router.replace(item.children[0].route);
       }
     },
 
