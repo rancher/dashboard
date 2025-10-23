@@ -32,8 +32,6 @@ export interface TitleBarProps {
   actionMenuResource?: any;
   onShowConfiguration?: (returnFocusSelector: string) => void;
 }
-
-const showConfigurationIcon = require(`@shell/assets/images/icons/document.svg`);
 </script>
 
 <script setup lang="ts">
@@ -100,11 +98,10 @@ watch(
           :aria-label="i18n.t('component.resource.detail.titleBar.ariaLabel.showConfiguration', { resource: resourceName })"
           @click="() => emit('show-configuration', showConfigurationReturnFocusSelector)"
         >
-          <img
-            :src="showConfigurationIcon"
-            class="mmr-3"
+          <i
+            class="icon icon-document"
             aria-hidden="true"
-          >
+          />
           {{ i18n.t('component.resource.detail.titleBar.showConfiguration') }}
         </RcButton>
         <ActionMenu
@@ -138,6 +135,12 @@ watch(
     font-size: 16px;
     margin-left: 12px;
     position: relative;
+  }
+
+  .icon-document {
+    width: 15px;
+    font-size: 16px;
+    margin-right: 10px;
   }
 
   .show-configuration {
