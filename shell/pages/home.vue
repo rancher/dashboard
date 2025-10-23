@@ -8,6 +8,7 @@ import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks.vue';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo.vue';
 import DynamicContentBanner from '@shell/components/DynamicContent/DynamicContentBanner.vue';
+import DynamicContentPanel from '@shell/components/DynamicContent/DynamicContentPanel.vue';
 import { mapGetters, mapState } from 'vuex';
 import { MANAGEMENT, CAPI, COUNT } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
@@ -49,6 +50,7 @@ export default defineComponent({
     TabTitle,
     ResourceTable,
     DynamicContentBanner,
+    DynamicContentPanel,
   },
 
   mixins: [PageHeaderActions, Preset],
@@ -939,7 +941,10 @@ export default defineComponent({
             </div>
           </div>
         </div>
-        <CommunityLinks class="col span-3 side-panel" />
+        <div class="col span-3 side-panel">
+          <CommunityLinks />
+          <DynamicContentPanel location="rhs" />
+        </div>
       </div>
     </IndentedPanel>
   </div>

@@ -119,7 +119,9 @@ export type Announcement = {
   cta?: {
     primary: CallToAction, // Must have a primary call to action, if we have a cta field
     secondary?: CallToAction,
-  }
+    primaryStyle?: string;
+  },
+  style?: string; // Styling information that will be interpreted by the rendering component
 };
 
 export type AnnouncementNotificationData = {
