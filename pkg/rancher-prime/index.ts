@@ -53,8 +53,8 @@ const poolRegistration = (store: Store<any>) => {
     if (store.state['managementReady']) {
       setNotification(store);
       clearInterval(id);
+      attempts -= 1;
     }
-    attempts -= 1;
   }, 1000);
 };
 
