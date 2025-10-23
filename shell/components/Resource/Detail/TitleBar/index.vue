@@ -84,6 +84,7 @@ watch(
         </span>
         <BadgeState
           v-if="badge"
+          v-ui-context="{ store: store, icon: 'icon-folder', hookable: true, value: resource, tag: '__details-state', description: 'Details' }"
           class="badge-state"
           :color="badge.color"
           :label="badge.label"

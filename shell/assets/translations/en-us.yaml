@@ -5226,6 +5226,8 @@ plugins:
     third-party: This Extension is provided by a Third-Party
     built-in: This Extension is built-in
     image: This Extension Image has been loaded manually
+  tooltips:
+    installing: Installing...
   error:
     title: Error loading extension
     message: Could not load extension code

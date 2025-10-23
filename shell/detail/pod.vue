@@ -97,6 +97,7 @@ export default {
 
         return {
           ...container,
+          kind:             'Container',
           status:           status || {},
           stateDisplay:     status ? this.value.containerStateDisplay(status) : undefined,
           stateBackground:  status ? this.value.containerStateColor(status).replace('text', 'bg') : undefined,
