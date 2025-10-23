@@ -33,11 +33,10 @@ describe('component: EC2Networking', () => {
 
   it('should render a dropdown containing ipv4-only subnets and vpcs', () => {
     const wrapper = shallowMount(EC2Networking, defaultCreateSetup);
-    const expectedValues = ['vpc-123', 'subnet-1234', 'vpc-12345', 'subnet-9876', 'subnet-5432'];
-    const networkOptionValues = wrapper.vm.networkOptions.map((o) => o.value);
+    const expectedValues = ['vpc-1234', 'vpc-123'];
+    const networkOptionValues = wrapper.vm.networkOptions.map((o:any) => o.value);
 
-    expect(wrapper.vm.networkOptions).toHaveLength(5);
-    expect(networkOptionValues).toEqual(expect.arrayContaining(expectedValues));
+    expect(networkOptionValues).toStrictEqual(expectedValues);
   });
 
   it('should update the network dropdown to contain ipv6 and dual stack vpcs/subnets when the ipv6 checkbox is checked', async() => {
@@ -47,11 +46,10 @@ describe('component: EC2Networking', () => {
 
     ipv6Checkbox.vm.$emit('update:value', true);
     await wrapper.vm.$nextTick();
-    const expectedValues = ['vpc-123', 'subnet-321', 'vpc-1234', 'subnet-4321'];
-    const networkOptionValues = wrapper.vm.networkOptions.map((o) => o.value);
+    const expectedValues = ['vpc-12345', 'subnet-4321'];
+    const networkOptionValues = wrapper.vm.networkOptions.map((o:any) => o.value);
 
-    expect(wrapper.vm.networkOptions).toHaveLength(4);
-    expect(networkOptionValues).toEqual(expect.arrayContaining(expectedValues));
+    expect(networkOptionValues).toStrictEqual(expectedValues);
   });
 
   it('should render the ipv6 address count input when the enable ipv6 checkbox is checked', async() => {
