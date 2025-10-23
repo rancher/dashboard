@@ -1,4 +1,3 @@
-import { nextTick } from 'vue';
 import { mount, shallowMount } from '@vue/test-utils';
 import Networking from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/index.vue';
 
