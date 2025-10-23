@@ -124,9 +124,20 @@ export type Announcement = {
   style?: string; // Styling information that will be interpreted by the rendering component
 };
 
+/**
+ * Icon information
+ */
+export type AnnouncementNotificationIconData = {
+  light: string; // Light mode icon/image
+  dark?: string; // Light mode icon/image
+};
+
+/**
+ * Custom data for announcements stored with the notification
+ */
 export type AnnouncementNotificationData = {
-  icon?: string;
-  location: string;
+  icon?: AnnouncementNotificationIconData; // Icon/Image to show
+  location: string; // Location of the announcement in the UI
 };
 
 /**

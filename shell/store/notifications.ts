@@ -111,6 +111,10 @@ export const getters = {
     return state.notifications;
   },
 
+  visible: (state: NotificationsStore) => {
+    return state.notifications.filter((n) => n.level !== NotificationLevel.Hidden);
+  },
+
   item: (state: NotificationsStore) => {
     return (id: string) => {
       return state.notifications.find((i) => i.id === id);
