@@ -5,6 +5,9 @@ import { BOTTOM, LEFT, RIGHT } from '@shell/utils/position';
 import { Position } from '@shell/types/window-manager';
 import { CSS_KEY } from '../constants';
 
+/**
+ * This composable is responsible for handling the dimensions of the window manager panels.
+ */
 export default (props: { position: Position }) => {
   const store = useStore();
 

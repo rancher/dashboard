@@ -3,6 +3,16 @@ import { Position, Tab } from '@shell/types/window-manager';
 import { computed, ref } from 'vue';
 import { CENTER } from '@shell/utils/position';
 
+/**
+ * This composable is responsible for handling the drag-and-drop behavior of tabs within the window manager.
+ *
+ * dragOverPositionsActive: A reactive reference indicating whether a drag operation is currently over the position areas.
+ * pinArea: A reactive reference representing the current position area being hovered over during a drag operation.
+ *
+ * Both of these references are shared across all instances of this composable (used by Horizontal and Vertical Panels)
+ * to maintain consistent drag-and-drop state.
+ */
+
 const dragOverPositionsActive = ref(false);
 const pinArea = ref(CENTER as Position);
 

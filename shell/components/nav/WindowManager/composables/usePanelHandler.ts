@@ -6,6 +6,9 @@ import useDimensionsHandler from '../composables/useDimensionsHandler';
 import useDragHandler from '../composables/useDragHandler';
 import useTabsHandler from '../composables/useTabsHandler';
 
+/**
+ * This composable is responsible for managing the state and behavior of the window manager panel.
+ */
 export default (props: { position: Position }) => {
   const store = useStore();
 

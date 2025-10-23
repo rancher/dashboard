@@ -4,6 +4,9 @@ import { Tab } from '@shell/types/window-manager';
 
 const tabs = ref<{ tab: Tab, containerId: string }[]>([]);
 
+/**
+ * This composable is responsible for handling the tabs within the window manager.
+ */
 export default () => {
   const store = useStore();
 

@@ -3,6 +3,13 @@ import { Layout, Position, Tab } from '@shell/types/window-manager';
 import { addObject, removeObject } from '@shell/utils/array';
 import { BOTTOM, LEFT, RIGHT } from '@shell/utils/position';
 
+/**
+ * This module defines the Vuex store for the window manager, managing tabs, their positions,
+ * active states, panel dimensions, and user preferences.
+ *
+ * The store can be used to add, switch, and close tabs, as well as manage panel dimensions and locked positions.
+ * The store can be accessed also by Rancher extensions to integrate to handle the window manager.
+ */
 export interface State {
   tabs: Array<Tab>;
   active: Record<Position | string, string>;
@@ -50,6 +57,26 @@ export const getters = {
 };
 
 export const mutations = {
+  /**
+   * Adds a new tab to the window manager.
+   *
+   * Usage:
+   *
+   * store.dispatch('wm/open', {
+   *   id:            PRODUCT_NAME,
+   *   extensionId:   PRODUCT_NAME,
+   *   label:         'Label',
+   *   component:     'LabelComponent',
+   *   position:      'bottom',
+   *   layouts:       [
+   *     Layout.default,
+   *     Layout.home
+   *   ],
+   *   showHeader: false,
+   * }, { root: true });
+   *
+   * This will add a new tab with the specified properties to the window manager and set it as active.
+   */
   addTab(state: State, tab: Tab) {
     const existing = state.tabs.find((x) => x.id === tab.id);
 
@@ -80,6 +107,14 @@ export const mutations = {
     window.localStorage.setItem(STORAGE_KEY['pin'], tab.position);
   },
 
+  /**
+   * Switches a tab to a different position within the window manager.
+   *
+   * Usage:
+   * store.commit('wm/switchTab', { tabId: 'tab1', targetPosition: LEFT });
+   *
+   * This will move the tab with ID 'tab1' to the LEFT position and update the active tab accordingly.
+   */
   switchTab(state: State, { tabId, targetPosition }: { tabId: string, targetPosition: Position }) {
     const current = { ...(state.tabs.find((x) => x.id === tabId) || {}) };
 
@@ -165,11 +200,27 @@ export const mutations = {
     }
   },
 
+  /**
+   * Sets the user's preferred pin position for tabs in the window manager.
+   *
+   * Usage:
+   * store.commit('wm/setUserPin', LEFT);
+   *
+   * This will set the user's preferred pin position to LEFT and store it in local storage.
+   */
   setUserPin(state: State, pin: string) {
     state.userPin = pin;
     window.localStorage.setItem(STORAGE_KEY['pin'], pin);
   },
 
+  /**
+   * Sets the locked positions for tabs in the window manager.
+   *
+   * Usage:
+   * store.commit('wm/setLockedPositions', [LEFT, RIGHT]);
+   *
+   * This will lock tabs to the specified positions, preventing them from being moved elsewhere.
+   */
   setLockedPositions(state: State, positions: Position[]) {
     state.lockedPositions = positions;
   }

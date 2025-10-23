@@ -8,6 +8,21 @@ import useTabsHandler from './composables/useTabsHandler';
 import usePanelsHandler from '@shell/components/nav/WindowManager/composables/usePanelsHandler';
 import { Layout, Position } from '@shell/types/window-manager';
 
+/**
+ * This component is responsible for rendering the window manager panels and tabs.
+ * It uses composables to manage the state and behavior of the panels and tabs.
+ *
+ * Props:
+ * - Layouts define which panels are enabled depending on the UI area configuration.
+ * - Positions define where the panels are located (bottom, left, right).
+ *
+ * Behavior:
+ * - Panels are conditionally rendered based on the current layout and enabled positions.
+ * - Tabs bodies are teleported to their respective containers based on their configuration.
+ *   - The component for each tab is dynamically loaded and rendered within a keep-alive block.
+ * - The PinArea component is included to manage the dragging of tabs.
+ */
+
 const props = defineProps({
   layout: {
     type:    String as () => Layout,

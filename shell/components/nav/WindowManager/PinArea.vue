@@ -4,6 +4,15 @@ import { BOTTOM, CENTER, LEFT, RIGHT } from '@shell/utils/position';
 import useDragHandler from './composables/useDragHandler';
 import { Z_INDEX } from './constants';
 
+/**
+ * This component is responsible for rendering the pin area used during tab dragging.
+ *
+ * Behavior:
+ * - Enable drag areas for each position (left, right, bottom, center) when dragging is active.
+ * - Highlights the area where the tab can be pinned.
+ * - Uses z-index variables to ensure proper layering of drag areas.
+ */
+
 const {
   dragOverPositionsActive, pin, pinArea, lockedPositions, onDragPositionOver
 } = useDragHandler();

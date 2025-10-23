@@ -3,6 +3,9 @@ import { boundingRect, LEFT, RIGHT, screenRect } from '@shell/utils/position';
 import { Position } from '@shell/types/window-manager';
 import { useStore } from 'vuex';
 
+/**
+ * This composable is responsible for handling the resize behavior of the window manager panels.
+ */
 export default (props: { position: Position, setDimensions: (args: { width?: number, height?: number }) => void }) => {
   const store = useStore();
 
