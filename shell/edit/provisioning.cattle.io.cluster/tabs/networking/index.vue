@@ -302,6 +302,7 @@ export default {
           :options="stackPreferenceOptions"
           :rules="[stackPreferenceValidator]"
           data-testid="rke2__networking-stackpreferences"
+          :require-dirty="false"
           @selecting="e=>$emit('stack-preference-changed', e)"
           @update:validation="e=>$emit('validationChanged', e)"
         />
