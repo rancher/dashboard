@@ -1,7 +1,7 @@
 import { processAnnouncements, ANNOUNCEMENT_PREFIX } from '../announcement';
 import { NotificationLevel, Notification } from '@shell/types/notifications';
 import { READ_ANNOUNCEMENTS } from '@shell/store/prefs';
-import { DynamicContentNotificationHandlerName } from '../notification-handler';
+import { DynamicContentAnnouncementHandlerName } from '../notification-handler';
 import { Context, VersionInfo, Announcement } from '../types';
 import semver from 'semver';
 
@@ -126,7 +126,7 @@ describe('processAnnouncements', () => {
         audience: 'admin'
       },
     ];
-    const versionInfo: VersionInfo = { version: 'v2.7.0' };
+    const versionInfo: VersionInfo = { version: VERSION_270.version };
 
     await processAnnouncements(mockContext, announcements, versionInfo);
 
@@ -269,7 +269,7 @@ describe('processAnnouncements', () => {
       level:       NotificationLevel.Announcement,
       title:       'New Announcement',
       message:     'This is a new message.',
-      handlerName: DynamicContentNotificationHandlerName,
+      handlerName: DynamicContentAnnouncementHandlerName,
     };
 
     expect(mockDispatch).toHaveBeenCalledTimes(1);
@@ -298,7 +298,7 @@ describe('processAnnouncements', () => {
       level:       NotificationLevel.Info,
       title:       'Info Title',
       message:     'Info Message',
-      handlerName: DynamicContentNotificationHandlerName,
+      handlerName: DynamicContentAnnouncementHandlerName,
     };
 
     expect(mockDispatch).toHaveBeenCalledTimes(1);
@@ -326,7 +326,7 @@ describe('processAnnouncements', () => {
       level:       NotificationLevel.Warning,
       title:       'Warning Title',
       message:     'Warning Message',
-      handlerName: DynamicContentNotificationHandlerName,
+      handlerName: DynamicContentAnnouncementHandlerName,
     };
 
     expect(mockDispatch).toHaveBeenCalledTimes(1);

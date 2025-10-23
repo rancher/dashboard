@@ -76,13 +76,18 @@ export interface NotificationHandler {
 }
 
 /**
+ * Name to use when registering a custom notification handler
+ */
+export const NotificationHandlerExtensionName = 'notification-handler';
+
+/**
  * Interface for notification handler
  */
 export interface NotificationHandler {
   /**
    * Called when a notification with this handler has its read status is updated (read or unread)
    *
-   * @param notification Notification that was makred read or unread
+   * @param notification Notification that was marked read or unread
    * @param read Indicates whether the notification was updated to be read or unread
    */
   onReadUpdated(notification: Notification, read: boolean): void;
