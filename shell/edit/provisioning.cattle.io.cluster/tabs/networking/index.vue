@@ -88,7 +88,6 @@ export default {
       },
       ];
     },
-    // TODO nb do we need to do something with the cilium ipv6 checkbox too
     showIpv6Warning() {
       const clusterCIDR = this.serverConfig['cluster-cidr'] || '';
       const serviceCIDR = this.serverConfig['service-cidr'] || '';
