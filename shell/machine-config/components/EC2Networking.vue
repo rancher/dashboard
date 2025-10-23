@@ -271,7 +271,7 @@ export default {
       return opt?.hasIpv4 && opt?.hasIpv6;
     },
 
-    // ipv6-only subnet selected
+    // ipv6-only subnet selected (vpc are never ipv6-only)
     ipv6Selected() {
       const opt = this.allNetworkOptions.find((o) => o.value === this.selectedNetwork);
 

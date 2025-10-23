@@ -120,7 +120,6 @@ export default {
         this.value['instanceType'] = this.$store.getters['aws/defaultInstanceType'];
       }
 
-      // this.initNetwork();
       this.initTags();
 
       if ( !this.value.securityGroup?.length ) {
