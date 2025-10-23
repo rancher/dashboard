@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * Component top render an announcement as a banner
+ */
 import DynamicContentIcon from './DynamicContentIcon.vue';
 import DynamicContentCloseButton from './DynamicContentCloseButton.vue';
 import { useDynamicContent, DynamicInputProps } from './content';

@@ -1,11 +1,12 @@
 <script setup lang="ts">
+/**
+ * Icon component to render an icon from the icon data in an announcement
+ */
+
 import { useStore } from 'vuex';
 import { computed } from 'vue';
 
-type AnnouncementIcon = {
-  light: string;
-  dark: string;
-}
+import { AnnouncementNotificationIconData } from '@shell/utils/dynamic-content/types';
 
 type KeyValues = {
   [key: string]: string;
@@ -13,12 +14,21 @@ type KeyValues = {
 
 const ICON_FORMAT = /(@|#|>)/;
 
-const props = defineProps<{icon: AnnouncementIcon}>();
+const props = defineProps<{icon: AnnouncementNotificationIconData}>();
 const store = useStore();
 const theme = computed(() => store.getters['prefs/theme']);
 
-const icon = computed(() => {
-  const decodedIcon = props.icon.light.split(ICON_FORMAT);
+/**
+ * Get the correct url to use for light/dark mode
+ */
+const url = computed(() => {
+  const darkTheme = theme.value === 'dark';
+
+  return darkTheme ? props.icon?.dark || props.icon?.light : props.icon?.light;
+});
+
+const iconName = computed(() => {
+  const decodedIcon = url.value.split(ICON_FORMAT);
 
   if (decodedIcon[0].startsWith('!')) {
     return `icon-${ decodedIcon[0].substring(1) }`;
@@ -27,19 +37,37 @@ const icon = computed(() => {
   return undefined;
 });
 
+/**
+ * Get the src value for an image tag
+ */
 const src = computed(() => {
-  const decodedIcon = props.icon.light.split(ICON_FORMAT);
-  const icon = decodedIcon[0].substring(1);
+  const decodedIcon = url.value.split(ICON_FORMAT);
 
-  const themePrefix = theme.value === 'dark' ? 'dark/' : '';
+  // If the icon name starts with ~, then it references a built-in icon/image
+  if (decodedIcon[0].startsWith('~')) {
+    const img = decodedIcon[0].substring(1);
+    const themePrefix = theme.value === 'dark' ? 'dark/' : '';
 
-  try {
-    return require(`~shell/assets/images/content/${ themePrefix }${ icon }`);
-  } catch {
-    return require(`~shell/assets/images/content/${ icon }`);
+    try {
+      return require(`~shell/assets/images/content/${ themePrefix }${ img }`);
+    } catch {
+      return require(`~shell/assets/images/content/${ img }`);
+    }
   }
+
+  // Regular URL, use it directly
+  return decodedIcon[0];
 });
 
+/**
+ * Icon value can include some custom style information:
+ *
+ * '@wxh' (or @w) To change the width/height
+ * '>x' to set the padding to x px
+ * '<x' to set the margin to x px
+ * '#rrggbb' to set the color
+ *
+ */
 const style = computed(() => {
   const decodedIcon = props.icon.light.split(ICON_FORMAT).slice(1);
   const OPTIONS: { [key: string]: (v: string, result: KeyValues) => void } = {
@@ -83,10 +111,10 @@ const style = computed(() => {
 </script>
 <template>
   <i
-    v-if="icon"
+    v-if="iconName"
     class="icon"
     :style="style"
-    :class="icon"
+    :class="iconName"
   />
   <img
     v-else

@@ -1,3 +1,7 @@
+/**
+ * Composable to provide access to an announcement
+ */
+
 import { computed, ComputedRef } from 'vue';
 import { useStore } from 'vuex';
 import { Notification, StoredNotification, NotificationAction } from '@shell/types/notifications';

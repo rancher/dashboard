@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * Common close button for dynamic component banners and panels
+ */
+
 import { useStore } from 'vuex';
 
 const props = defineProps<{id: string}>();
