@@ -103,11 +103,11 @@ export type CallToAction = {
  */
 export type Announcement = {
   id: string; // Unique id for this announcement
-  title: string;
-  message: string;
-  target: string;
-  version?: string;
-  audience?: 'admin' | 'all';
+  title: string; // Title to be shown
+  message: string; // Message/Body for the announcement
+  target: string; // Where the announcement should be shown
+  version?: string; // Version or semver expression for when to show this announcement
+  audience?: 'admin' | 'all'; // Audience - show for just Admins or for all users
   cta?: {
     primary: CallToAction, // Must have a primary call to action, if we have a cta field
     secondary?: CallToAction,

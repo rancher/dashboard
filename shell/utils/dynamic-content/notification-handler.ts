@@ -8,7 +8,7 @@ import { READ_ANNOUNCEMENTS } from '@shell/store/prefs';
 import { ANNOUNCEMENT_PREFIX } from './announcement';
 
 // Global name for this handler that can be used when creating notifications to associate them with this handler
-export const DynamicContentNotificationHandlerName = 'dc-announcements';
+export const DynamicContentAnnouncementHandlerName = 'dc-announcements';
 
 /**
  * Create the dynamic content notification handler
