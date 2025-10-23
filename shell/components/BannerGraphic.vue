@@ -1,6 +1,9 @@
 <script>
 import Closeable from '@shell/mixins/closeable';
 import BrandImage from '@shell/components/BrandImage';
+import { MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
+import { getBrandMeta } from '@shell/utils/brand';
 
 export default {
   components: { BrandImage },
@@ -21,6 +24,16 @@ export default {
       default: false
     }
   },
+
+  data() {
+    const globalSettings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
+    const setting = globalSettings?.find((gs) => gs.id === SETTING.BRAND);
+    const brandMeta = getBrandMeta(setting?.value);
+    const banner = brandMeta?.banner || {};
+    const align = banner.textAlign || 'center';
+
+    return { alignClass: `banner-text-${ align }` };
+  }
 };
 </script>
 
@@ -28,7 +41,7 @@ export default {
   <div
     v-if="shown"
     class="banner-graphic"
-    :class="{'small': small}"
+    :class="{'small': small, [alignClass]: true}"
   >
     <div class="graphic">
       <BrandImage
@@ -74,15 +87,28 @@ export default {
     }
     .title {
       display: flex;
-      justify-content: center;
       align-items: center;
       position: absolute;
       text-align: center;
       top: 0;
       height: 100%;
       width: 100%;
-      margin-top: -20px;
     }
+
+    &.banner-text-center {
+      .title {
+        justify-content: center;
+        margin-top: -20px;
+      }
+    }
+
+    &.banner-text-left {
+      .title {
+        justify-content: left;
+        padding-left: 20px;
+      }
+    }
+
     &.small {
       .graphic {
         height: $banner-height-small;
