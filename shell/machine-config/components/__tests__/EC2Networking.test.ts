@@ -27,7 +27,6 @@ describe('component: EC2Networking', () => {
     propsData: {
       ...baseSetup.propsData,
       mode: 'create',
-    //   value: { initted: false },
     }
   };
 
