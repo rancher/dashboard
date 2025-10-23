@@ -7,17 +7,80 @@ import ClusterManagerCreateRke2AzurePagePo from '@/cypress/e2e/po/edit/provision
 import CloudCredentialsPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials.po';
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
-describe('Cloud Credential', { testIsolation: 'off' }, () => {
+describe('Cloud Credential', { tags: ['@manager', '@adminUser'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const doCreatedCloudCredsIds = [];
   const azCreatedCloudCredsIds = [];
 
-  before(() => {
+  beforeEach(() => {
     cy.login();
+    HomePagePo.goTo(); // this is needed to ensure we have a valid authentication session
   });
 
-  it('Editing a cluster cloud credential should work with duplicate named cloud credentials', { tags: ['@manager', '@adminUser'] }, () => {
+  it('Ensure we validate credentials and show an error when invalid', () => {
+    // We're doing this odd page navigation and input verification to ensure we don't run into a very specific error which required this order of events described in https://github.com/rancher/dashboard/issues/13802
+    const name = 'name';
+    const access = 'access';
+    const secret = 'secret';
+    const errorMessage = 'Authentication test failed, please check your credentials';
+
+    const cloudCredentialsPage = new CloudCredentialsPagePo();
+
+    cloudCredentialsPage.goTo();
+    cloudCredentialsPage.waitForPage();
+    cloudCredentialsPage.create();
+    cloudCredentialsPage.createEditCloudCreds().waitForPage();
+    cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
+    cloudCredentialsPage.createEditCloudCreds().waitForPage('type=aws');
+
+    cloudCredentialsPage.createEditCloudCreds().accessKey().set(access);
+    cloudCredentialsPage.createEditCloudCreds().secretKey().set(secret);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(name);
+
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().value()
+      .should('eq', name);
+
+    cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveOrCreate()
+      .click();
+    // In the previous bug this text would get truncated to the first letter
+    cloudCredentialsPage.resourceDetail().createEditView().errorBanner().should('contain.text', errorMessage);
+  });
+
+  it('Ensure we validate credentials and show an error when invalid when creating a credential from the create cluster page', () => {
+    // We're doing this odd page navigation and input verification to ensure we don't run into a very specific error which required this order of events described in https://github.com/rancher/dashboard/issues/13802
+    const name = 'name';
+    const access = 'access';
+    const secret = 'secret';
+    const errorMessage = 'Authentication test failed, please check your credentials';
+
+    const clusterCreate = new ClusterManagerCreatePagePo();
+    const loadingPo = new LoadingPo('.loading-indicator');
+
+    clusterCreate.goTo();
+    clusterCreate.waitForPage();
+    clusterCreate.selectCreate(0);
+    loadingPo.checkNotExists();
+    clusterCreate.rke2PageTitle().should('include', 'Create Amazon EC2');
+    clusterCreate.waitForPage('type=amazonec2&rkeType=rke2');
+
+    const cloudCredentialsPage = new CloudCredentialsPagePo();
+
+    cloudCredentialsPage.createEditCloudCreds().accessKey().set(access);
+    cloudCredentialsPage.createEditCloudCreds().secretKey().set(secret);
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(name);
+
+    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().value()
+      .should('eq', name);
+
+    cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveOrCreate()
+      .click();
+    // In the previous bug this text would get truncated to the first letter
+    cloudCredentialsPage.resourceDetail().createEditView().errorBanner().should('contain.text', errorMessage);
+  });
+
+  it('Editing a cluster cloud credential should work with duplicate named cloud credentials', () => {
     const credsName = 'test-do-creds';
     const clusterName = 'test-cluster-digital-ocean';
     const machinePoolId = 'dummy-id';
@@ -98,7 +161,7 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
       });
   });
 
-  it('Changing credential environment should change the list of locations when creating an Azure cluster', { tags: ['@manager', '@adminUser'] }, () => {
+  it('Changing credential environment should change the list of locations when creating an Azure cluster', () => {
     const clusterName = 'test-cluster-azure';
     const machinePoolId = 'dummy-id';
 
@@ -166,7 +229,7 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
       });
     }).as('aksVMSizesV2Load');
 
-    ClusterManagerListPagePo.navTo();
+    clusterList.goTo();
     clusterList.waitForPage();
 
     const create = (cloudCredsToCreate) => {
@@ -226,67 +289,6 @@ describe('Cloud Credential', { testIsolation: 'off' }, () => {
         createRKE2AzureClusterPage.machinePoolTab().environment().should('have.text', cloudCredsToCreate[2].environment );
         createRKE2AzureClusterPage.machinePoolTab().location().checkOptionSelected(cloudCredsToCreate[2].body[0].name );
       });
-  });
-
-  it('Ensure we validate credentials and show an error when invalid', { tags: ['@manager', '@adminUser'] }, () => {
-    // We're doing this odd page navigation and input verification to ensure we don't run into a very specific error which required this order of events described in https://github.com/rancher/dashboard/issues/13802
-    const name = 'name';
-    const access = 'access';
-    const secret = 'secret';
-    const errorMessage = 'Authentication test failed, please check your credentials';
-
-    const cloudCredentialsPage = new CloudCredentialsPagePo();
-
-    cloudCredentialsPage.goTo();
-    cloudCredentialsPage.waitForPage();
-    cloudCredentialsPage.create();
-    cloudCredentialsPage.createEditCloudCreds().waitForPage();
-    cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
-    cloudCredentialsPage.createEditCloudCreds().waitForPage('type=aws');
-
-    cloudCredentialsPage.createEditCloudCreds().accessKey().set(access);
-    cloudCredentialsPage.createEditCloudCreds().secretKey().set(secret);
-    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(name);
-
-    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().value()
-      .should('eq', name);
-
-    cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveOrCreate()
-      .click();
-    // In the previous bug this text would get truncated to the first letter
-    cloudCredentialsPage.resourceDetail().createEditView().errorBanner().should('contain.text', errorMessage);
-  });
-
-  it('Ensure we validate credentials and show an error when invalid when creating a credential from the create cluster page', { tags: ['@manager', '@adminUser'] }, () => {
-    // We're doing this odd page navigation and input verification to ensure we don't run into a very specific error which required this order of events described in https://github.com/rancher/dashboard/issues/13802
-    const name = 'name';
-    const access = 'access';
-    const secret = 'secret';
-    const errorMessage = 'Authentication test failed, please check your credentials';
-
-    const clusterCreate = new ClusterManagerCreatePagePo();
-    const loadingPo = new LoadingPo('.loading-indicator');
-
-    clusterCreate.goTo();
-    clusterCreate.waitForPage();
-    clusterCreate.selectCreate(0);
-    loadingPo.checkNotExists();
-    clusterCreate.rke2PageTitle().should('include', 'Create Amazon EC2');
-    clusterCreate.waitForPage('type=amazonec2&rkeType=rke2');
-
-    const cloudCredentialsPage = new CloudCredentialsPagePo();
-
-    cloudCredentialsPage.createEditCloudCreds().accessKey().set(access);
-    cloudCredentialsPage.createEditCloudCreds().secretKey().set(secret);
-    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(name);
-
-    cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().value()
-      .should('eq', name);
-
-    cloudCredentialsPage.createEditCloudCreds().saveCreateForm().cruResource().saveOrCreate()
-      .click();
-    // In the previous bug this text would get truncated to the first letter
-    cloudCredentialsPage.resourceDetail().createEditView().errorBanner().should('contain.text', errorMessage);
   });
 
   after(() => {
