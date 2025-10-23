@@ -280,6 +280,7 @@ export default {
     <Tabbed
       :side-tabs="true"
       :use-hash="useTabbedHash"
+      :default-tab="defaultTab"
     >
       <Tab
         name="plugin-configuration"
