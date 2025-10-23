@@ -4,8 +4,10 @@
   $lighter-green-jungle: #72EEB3;
 
   $jungle-120: #008657;
-
+  
   &.theme-light {
+    --title-font-family : 'SUSE', 'Lato', sans-serif;  
+
     --primary: #{$jungle-120};
     --primary-text: #FFFFFF;
     --primary-hover: #006B46;
@@ -46,6 +48,8 @@
   }
 
   &.theme-dark {
+    --title-font-family : 'SUSE', 'Lato', sans-serif;  
+
     --link: #9BBFFD;
     --active-nav: #{$green-40};
 

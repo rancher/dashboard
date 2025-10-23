@@ -8,6 +8,7 @@ H1, H2, H3, H4, H5, H6 {
   font-style: normal;
   font-weight: 400;
   margin: 0 0 10px 0;
+  font-family: var(--title-font-family, unset); // Use the var if set, otherwise unset and use the font defined by the parent
 }
 
 H1 {
