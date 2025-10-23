@@ -60,8 +60,8 @@ export default {
     },
 
     ipv6AddressCount: {
-      type:    Number,
-      default: 0
+      type:    String,
+      default: '0'
     },
 
     ipv6AddressOnly: {
@@ -119,18 +119,12 @@ export default {
     },
 
     enableIpv6(neu) {
-      const obj = this.allNetworkOptions.find((opt) => opt.value === this.selectedNetwork) || {};
+      this.updateNetwork();
 
       if (neu) {
-        this.$emit('update:ipv6AddressCount', 1);
-        if (!obj.hasIpv6) {
-          this.updateNetwork();
-        }
+        this.$emit('update:ipv6AddressCount', '1');
       } else {
-        if (obj.hasIpv6) {
-          this.updateNetwork();
-        }
-        this.$emit('update:ipv6AddressCount', 0);
+        this.$emit('update:ipv6AddressCount', '0');
         this.$emit('update:ipv6AddressOnly', false);
         this.$emit('update:enablePrimaryIpv6', false);
       }
@@ -156,8 +150,8 @@ export default {
       }
     },
 
-    poolsInvalid(neu) {
-      this.$emit('validationChanged', !neu);
+    allValid(neu) {
+      this.$emit('validationChanged', neu);
     }
   },
 
@@ -280,13 +274,21 @@ export default {
 
     poolsInvalid() {
       const hasIpv6 = !!this.machinePools.find((p) => {
-        return !!p?.config?.ipv6AddressCount && (p?.config?.subnetId || p?.config?.vpcId);
+        return parseInt(p?.config?.ipv6AddressCount) > 0 && (p?.config?.subnetId || p?.config?.vpcId);
       });
 
-      const hasNotIpv6 = !!this.machinePools.find((p) => !p?.config?.ipv6AddressCount && (p?.config?.subnetId || p?.config?.vpcId));
+      const hasNotIpv6 = !!this.machinePools.find((p) => !parseInt(p?.config?.ipv6AddressCount) && (p?.config?.subnetId || p?.config?.vpcId));
 
       return hasIpv6 && hasNotIpv6;
     },
+
+    addressCountInvalid() {
+      return !!this.ipv6AddressCountValidator(this.ipv6AddressCount);
+    },
+
+    allValid() {
+      return !this.poolsInvalid && !this.addressCountInvalid;
+    }
   },
 
   methods: {
@@ -311,6 +313,14 @@ export default {
         this.selectedNetwork = null;
       }
     },
+
+    ipv6AddressCountValidator(val = '0') {
+      const value = parseInt(val);
+      // 0 or undefined are both acceptable if ipv6 is disabled
+      const isValid = this.enableIpv6 ? value > 0 : !value;
+
+      return isValid ? null : this.t('cluster.machineConfig.amazonEc2.ipv6AddressCount.error');
+    }
   }
 };
 </script>
@@ -398,12 +408,12 @@ export default {
     <div class="col span-3">
       <LabeledInput
         :disabled="!isCreate"
-        type="number"
         min="1"
         :mode="mode"
         :value="ipv6AddressCount"
         label-key="cluster.machineConfig.amazonEc2.ipv6AddressCount.label"
         data-testid="amazonEc2__ipv6AddressCount"
+        :rules="[ipv6AddressCountValidator]"
         @update:value="e=>$emit('update:ipv6AddressCount', e)"
       />
     </div>

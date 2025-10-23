@@ -2084,6 +2084,7 @@ cluster:
       ipv6AddressCount:
         label: IPv6 Address Count
         tooltip: Specifies the number of IPv6 addresses to assign to the network interface
+        error: IPv6 Address Count must be greater than 0 when using an IPv6 vpc or subnet.
       enablePrimaryIpv6:
         label: Enable Static Primary Ipv6
         description: This allows IPv6 communication for components and workloads.
