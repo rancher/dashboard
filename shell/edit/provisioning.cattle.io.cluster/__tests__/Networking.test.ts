@@ -43,7 +43,7 @@ describe('component: RKE2Networking', () => {
       },
     });
 
-    const dropdown = wrapper.findComponent('[data-testid="rke2__networking-stackpreferences"]');
+    const dropdown = wrapper.findComponent('[data-testid="network-tab-stackpreferences"]');
 
     expect(dropdown.props('options')).toHaveLength(3);
   });
@@ -98,7 +98,7 @@ describe('component: RKE2Networking', () => {
       },
     });
 
-    const banner = wrapper.findComponent('[data-testid="rke2__networking-ipv6StackPreferenceWarning"]');
+    const banner = wrapper.findComponent('[data-testid="network-tab-ipv6StackPreferenceWarning"]');
 
     expect(banner.exists()).toBe(true);
   });
@@ -126,7 +126,7 @@ describe('component: RKE2Networking', () => {
       },
     });
 
-    const banner = wrapper.findComponent('[data-testid="rke2__networking-ipv6StackPreferenceWarning"]');
+    const banner = wrapper.findComponent('[data-testid="network-tab-ipv6StackPreferenceWarning"]');
 
     expect(banner.exists()).toBe(false);
   });

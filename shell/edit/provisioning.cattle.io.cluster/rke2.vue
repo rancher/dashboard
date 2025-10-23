@@ -272,7 +272,7 @@ export default {
       machinePoolValidation:                    {}, // map of validation states for each machine pool
       machinePoolErrors:                        {},
       addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
-      stackPreferenceError:                     false, // stack preference validated using hasSomeIpv6
+      stackPreferenceError:                     false, //  spec.networking.stackPreference is validated in conjunction with hasSomeIpv6Pools
       allNamespaces:                            [],
       extensionTabs:                            getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
       clusterAgentDeploymentCustomization:      null,

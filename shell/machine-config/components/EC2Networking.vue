@@ -97,6 +97,7 @@ export default {
 
   created() {
     const subnets = this.subnetInfo?.Subnets || [];
+    const vpcs = this.vpcInfo?.Vpcs || [];
 
     this.selectedNetwork = this.subnetId || this.vpcId;
     if (this.subnetId) {
@@ -104,7 +105,7 @@ export default {
 
       this.enableIpv6 = subnetObj?.Ipv6CidrBlockAssociationSet && !isEmpty(subnetObj?.Ipv6CidrBlockAssociationSet);
     } else if (this.vpcId) {
-      this.enableIpv6 = subnets.find((sn) => sn.VpcId === this.vpcId && sn.Ipv6CidrBlockAssociationSet && !isEmpty(sn.Ipv6CidrBlockAssociationSet));
+      this.enableIpv6 = vpcs.find((vpc) => vpc.VpcId === this.vpcId && vpc.Ipv6CidrBlockAssociationSet && !isEmpty(vpc.Ipv6CidrBlockAssociationSet));
     }
   },
 
@@ -227,7 +228,6 @@ export default {
       const out = [];
 
       for ( const obj of vpcs ) {
-        // addObject(out, obj);
         if (!obj.disabled || subnetsByVpc[obj.value]) {
           addObject(out, obj);
         }
