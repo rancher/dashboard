@@ -69,7 +69,14 @@ export const CAPI = {
   /**
    * Annotation for overriding the cluster provider,
    */
-  UI_CUSTOM_PROVIDER:   'ui.rancher/provider'
+  UI_CUSTOM_PROVIDER:   'ui.rancher/provider',
+
+  /**
+   * Annotations for autoscaler
+   */
+  AUTOSCALER_CLUSTER_PAUSE:         'provisioning.cattle.io/cluster-autoscaler-paused',
+  AUTOSCALER_MACHINE_POOL_MIN_SIZE: 'cluster.x-k8s.io/cluster-api-autoscaler-node-group-min-size',
+  AUTOSCALER_MACHINE_POOL_MAX_SIZE: 'cluster.x-k8s.io/cluster-api-autoscaler-node-group-max-size'
 };
 
 export const CATALOG = {

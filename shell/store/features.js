@@ -38,6 +38,7 @@ export const UIEXTENSION = create('uiextension', true);
 export const PROVISIONING_PRE_BOOTSTRAP = create('provisioningprebootstrap', false);
 export const SCHEDULING_CUSTOMIZATION = create(SCHEDULING_CUSTOMIZATION_FEATURE, false);
 export const SCC = create('rancher-scc-registration-extension', true);
+export const AUTOSCALER = create('cluster-autoscaling', false);
 
 // Not currently used.. no point defining ones we don't use
 // export const EMBEDDED_CLUSTER_API = create('embedded-cluster-api', true);
