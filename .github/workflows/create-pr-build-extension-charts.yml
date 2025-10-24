@@ -156,7 +156,7 @@ jobs:
           pr_number=$(gh pr create \
             --title "Create PR for extension ${{ inputs.tagged_release }} release: ${{ env.NOW }}" \
             --body "This PR was automatically created by a GitHub Action." \
-            --base main \
+            --base "${{ inputs.target_branch }}" \
             --head sync-${{ env.NOW }} \
             --fill \
             --repo ${{ github.repository }} | awk '{print $NF}') # Get the PR URL and Extract the last element (the PR number)
