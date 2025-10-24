@@ -2,6 +2,7 @@ import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import ReposListPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
+import { MEDIUM_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
 
 const chartsPage = new ChartsPage();
 
@@ -24,7 +25,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   it('should call fetch when route query changes with valid parameters', () => {
     const chartName = 'Logging';
 
-    cy.wait('@fetchChartData');
+    cy.wait('@fetchChartData', MEDIUM_TIMEOUT_OPT);
     cy.get('@fetchChartData.all').should('have.length.at.least', 3);
 
     chartsPage.getChartByName(chartName)
@@ -52,7 +53,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   it('should not call fetch when navigating back to charts page', () => {
     const chartName = 'Logging';
 
-    cy.wait('@fetchChartData');
+    cy.wait('@fetchChartData', MEDIUM_TIMEOUT_OPT);
     cy.get('@fetchChartData.all').should('have.length.at.least', 3);
 
     chartsPage.getChartByName(chartName)
@@ -105,10 +106,10 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     chartsPage.getFilterOptionByName('PaaS').set();
     chartsPage.getFilterOptionByName('Installed').set();
     // check empty state to be displayed
-    chartsPage.emptyState().isVisible();
+    chartsPage.emptyState().should('be.visible');
     chartsPage.emptyStateTitle().should('eq', 'No charts to show');
     // reset filters
-    chartsPage.emptyStateResetFilters().isVisible();
+    chartsPage.emptyStateResetFilters().should('be.visible');
     chartsPage.emptyStateResetFilters().click();
     // check empty state is NOT displayed
     chartsPage.emptyState().should('not.exist');
