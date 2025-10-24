@@ -990,9 +990,11 @@ export default {
     },
 
     hasSomeIpv6Pools(neu) {
-      if (neu) { // localValue.spec.rkeConfig.networking is initialized in the beforeCreate hook
+      const stackPreference = this.localValue.spec.rkeConfig.networking.stackPreference;
+
+      if (neu && (stackPreference === STACK_PREFS.IPV4 || !stackPreference)) { // localValue.spec.rkeConfig.networking is initialized in the beforeCreate hook
         this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.DUAL;
-      } else {
+      } else if (stackPreference === STACK_PREFS.DUAL) {
         this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.IPV4;
       }
     },

@@ -9,6 +9,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { Banner } from '@components/Banner';
 
 import { _CREATE } from '@shell/config/query-params';
+import Window from 'components/nav/WindowManager/Window.vue';
 
 export default {
   name: 'Ec2MachinePoolNetworking',
@@ -70,8 +71,8 @@ export default {
     },
 
     httpProtocolIpv6: {
-      type:    Boolean,
-      default: false
+      type:    String,
+      default: 'false'
     },
 
     vpcId: {
@@ -103,9 +104,9 @@ export default {
     if (this.subnetId) {
       const subnetObj = subnets.find((sn) => sn.SubnetId === this.subnetId);
 
-      this.enableIpv6 = subnetObj?.Ipv6CidrBlockAssociationSet && !isEmpty(subnetObj?.Ipv6CidrBlockAssociationSet);
+      this.enableIpv6 = !!subnetObj?.Ipv6CidrBlockAssociationSet && !isEmpty(subnetObj?.Ipv6CidrBlockAssociationSet);
     } else if (this.vpcId) {
-      this.enableIpv6 = vpcs.find((vpc) => vpc.VpcId === this.vpcId && vpc.Ipv6CidrBlockAssociationSet && !isEmpty(vpc.Ipv6CidrBlockAssociationSet));
+      this.enableIpv6 = !!vpcs.find((vpc) => vpc.VpcId === this.vpcId && vpc.Ipv6CidrBlockAssociationSet && !isEmpty(vpc.Ipv6CidrBlockAssociationSet));
     }
   },
 
@@ -115,11 +116,16 @@ export default {
 
   watch: {
     region() {
-      this.updateNetwork();
+      if (this.isCreate) {
+        this.updateNetwork();
+      }
     },
 
     enableIpv6(neu) {
-      this.updateNetwork();
+      if (this.isCreate) {
+        this.updateNetwork();
+      }
+      this.$emit('update:hasIpv6', neu);
 
       if (neu) {
         this.$emit('update:ipv6AddressCount', '1');
@@ -127,26 +133,15 @@ export default {
         this.$emit('update:ipv6AddressCount', '0');
         this.$emit('update:ipv6AddressOnly', false);
         this.$emit('update:enablePrimaryIpv6', false);
+        this.$emit('update:httpProtocolIpv6', 'disabled');
       }
     },
 
     ipv6Selected(neu) {
       if (neu) {
-        this.$emit('update:hasIpv6', true);
-
         this.$emit('update:ipv6AddressOnly', neu);
       } else if (!this.dualStackSelected) {
-        this.$emit('update:hasIpv6', false);
-
         this.$emit('update:ipv6AddressOnly', false);
-      }
-    },
-
-    dualStackSelected(neu) {
-      if (neu) {
-        this.$emit('update:hasIpv6', true);
-      } else if (!this.ipv6Selected) {
-        this.$emit('update:hasIpv6', false);
       }
     },
 
@@ -274,10 +269,10 @@ export default {
 
     poolsInvalid() {
       const hasIpv6 = !!this.machinePools.find((p) => {
-        return parseInt(p?.config?.ipv6AddressCount) > 0 && (p?.config?.subnetId || p?.config?.vpcId);
+        return p.hasIpv6;
       });
 
-      const hasNotIpv6 = !!this.machinePools.find((p) => !parseInt(p?.config?.ipv6AddressCount) && (p?.config?.subnetId || p?.config?.vpcId));
+      const hasNotIpv6 = !!this.machinePools.find((p) => !p.hasIpv6);
 
       return hasIpv6 && hasNotIpv6;
     },
@@ -332,10 +327,15 @@ export default {
     :label="t('cluster.machineConfig.amazonEc2.ipv6ValidationWarning')"
     data-testid="amazonEc2__ipv6Warning"
   />
-  <div class="row mb-20">
-    <div class="col span-6">
+  <div
+    v-if="isCreate || enableIpv6"
+    class="row mb-20"
+  >
+    <div
+
+      class="col span-6"
+    >
       <Checkbox
-        v-if="isCreate || enableIpv6"
         v-model:value="enableIpv6"
         :disabled="!isCreate"
         :label="t('cluster.machineConfig.amazonEc2.enableIpv6.label')"
@@ -392,12 +392,12 @@ export default {
   >
     <div class="col span-6">
       <Checkbox
-        :value="httpProtocolIpv6"
+        :value="httpProtocolIpv6==='enabled'"
         :disabled="!isCreate"
         :label="t('cluster.machineConfig.amazonEc2.httpProtocolIpv6.label')"
         data-testid="amazonEc2__enableIpv6"
         :mode="mode"
-        @update:value="e=>$emit('update:httpProtocolIpv6', e)"
+        @update:value="e=>$emit('update:httpProtocolIpv6', e ? 'enabled' : 'disabled')"
       />
     </div>
   </div>
