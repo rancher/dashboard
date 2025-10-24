@@ -1,3 +1,5 @@
+import { RouteLocationRaw } from 'vue-router';
+
 /**
  * Type definitions for the Notification Center
  */
@@ -21,6 +23,7 @@ export enum NotificationLevel {
 export type NotificationAction = {
   label: string; // Button label for the action
   target?: string; // HREF target when the button is clicked
+  route?: RouteLocationRaw; // Route to navigate to when the button is clicked
 };
 
 /**
@@ -33,19 +36,14 @@ export type NotificationPreference = {
 };
 
 /**
- * Type for Notification that is sent
+ * Type for Encrypted Notification data that is stored in local storage
  */
-export type Notification = {
-  // Unique ID for the notification
-  id: string;
-  // Title to be displayed in the notification
+export type EncryptedNotification = {
   title: string;
   // Message to be shown in the notification (optional)
   message?: string;
   // Notification Level
   level: NotificationLevel;
-  // Progress (0-100) for notifications of type `Task` (optional)
-  progress?: number;
   // Primary action to be shown in the notification (optional)
   primaryAction?: NotificationAction;
   // Secondary to be shown in the notification (optional)
@@ -59,24 +57,27 @@ export type Notification = {
   data?: any;
 };
 
+/**
+ * Type for Notification that is sent
+ */
+export type Notification = {
+  // Unique ID for the notification
+  id: string;
+  // Progress (0-100) for notifications of type `Task` (optional)
+  progress?: number;
+} & EncryptedNotification;
 
 /**
- * Name to use when registering a custom notification handler
+ * Type for notification that is stored
+ *
+ * This should not be used outside of this store or the Notification Center UI components
+ *
+ * Includes extra fields managed by the notification center
  */
-export const NotificationHandlerExtensionName = 'notification-handler';
-
-/**
- * Interface for notification handler
- */
-export interface NotificationHandler {
-  /**
-   * Called when a notification with this handler has its read status is updated (read or unread)
-   *
-   * @param notification Notification that was marked read or unread
-   * @param read Indicates whether the notification was updated to be read or unread
-   */
-  onReadUpdated(notification: Notification, read: boolean): void;
-}
+export type StoredNotification = {
+  created: Date;
+  read: Boolean;
+} & Notification;
 
 /**
  * Name to use when registering a custom notification handler

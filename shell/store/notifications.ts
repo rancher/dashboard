@@ -1,6 +1,6 @@
 import { md5 } from '@shell/utils/crypto';
 import { randomStr } from '@shell/utils/string';
-import { EncryptedNotification, Notification, NotificationHandlerExtensionName, StoredNotification } from '@shell/types/notifications';
+import { EncryptedNotification, Notification, NotificationLevel, NotificationHandlerExtensionName, StoredNotification } from '@shell/types/notifications';
 import { encrypt, decrypt, deriveKey } from '@shell/utils/crypto/encryption';
 
 /**
@@ -113,6 +113,10 @@ export const getters = {
 
   visible: (state: NotificationsStore) => {
     return state.notifications.filter((n) => n.level !== NotificationLevel.Hidden);
+  },  
+
+  hidden: (state: NotificationsStore) => {
+    return state.notifications.filter((n) => n.level === NotificationLevel.Hidden);
   },
 
   item: (state: NotificationsStore) => {
@@ -349,13 +353,6 @@ export const actions = {
 
     for (let i = 0; i < withPreference.length; i++) {
       await dispatch('prefs/set', withPreference[i].preference, { root: true });
-    }
-
-    // For all notifications that have a handler, call the handler
-    const withHandler = getters.all.filter((n: Notification) => !!n.handlerName);
-
-    for (let i = 0; i < withHandler.length; i++) {
-      await callNotifyHandler({ $extension: (this as any).$extension }, withHandler[i], true);
     }
 
     // For all notifications that have a handler, call the handler
