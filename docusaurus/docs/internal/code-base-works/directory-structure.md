@@ -57,9 +57,6 @@ Components in the PromptRemove folder are used to customize the removal prompt f
 ## l10n
 Extension translation strings are merged with those already present in `shell/assets/translations`. Translation strings with duplicate keys of those present in the relevant shell translation file will overwrite those shell translation strings _across the app_: be mindful if adding translation strings that are not explicitly scoped to your extension. Read more about translations [here](./on-screen-text-and-translations.md)
 
-## windowComponents
-Components in this folder can be used within `WindowManager` component, which relies on the `wm` vuex store.
-
 ## The rest
 The rest of the top level directories are mostly Nuxt directories that you can read about [here](https://nuxtjs.org/docs/directory-structure/nuxt). 
 
