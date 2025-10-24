@@ -106,6 +106,8 @@ export type CallToAction = {
  * - `notification/announcement` - Shown with `Announcement` level in the Notification Center
  * - `notification/info` - Shown with `Info` level in the Notification Center
  * - `notification/warning` - Shown with `Warning` level in the Notification Center
+ * - `homepage/banner` - Shown on the home page as a banner beneath the main banner
+ * - `homepage/rhs` - Shown on the home page as a panel beneath the right-hand side links panel
  *
  */
 export type Announcement = {

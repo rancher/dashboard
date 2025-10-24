@@ -131,9 +131,9 @@ export const getters = {
     };
   },
 
-  // Count of unread notifications
+  // Count of unread notifications - only considers visible notifications
   unreadCount: (state: NotificationsStore) => {
-    return state.notifications.filter((n) => !n.read).length;
+    return state.notifications.filter((n) => !n.read && n.level !== NotificationLevel.Hidden).length;
   },
 
   /**

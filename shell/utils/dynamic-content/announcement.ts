@@ -76,7 +76,6 @@ export async function processAnnouncements(context: Context, announcements: Anno
         data = {
           icon:     announcement.icon,
           location: targetSplit.length === 2 ? targetSplit[1] : 'banner',
-          style:    announcement.style,
         };
 
         if (announcement.style) {
@@ -96,34 +95,36 @@ export async function processAnnouncements(context: Context, announcements: Anno
 
       if (existing || prefExists) {
         logger.info(`Not adding announcement with ID ${ id } as it already exists or has been read previously (title: ${ announcement.title })`);
-      } else {
-        const notification: Notification = {
-          id,
-          level,
-          title:       announcement.title,
-          message:     announcement.message,
-          handlerName: DynamicContentAnnouncementHandlerName,
-          data,
-        };
 
-        if (announcement.cta?.primary) {
-          notification.primaryAction = {
-            label:  announcement.cta.primary.action,
-            target: announcement.cta.primary.link,
-          };
-        }
-
-        if (announcement.cta?.secondary) {
-          notification.secondaryAction = {
-            label:  announcement.cta.secondary.action,
-            target: announcement.cta.secondary.link,
-          };
-        }
-
-        logger.info(`Adding announcement with ID ${ id } (title: ${ announcement.title }, target: ${ announcement.target })`);
-
-        await dispatch('notifications/add', notification);
+        return;
       }
+
+      const notification: Notification = {
+        id,
+        level,
+        title:       announcement.title,
+        message:     announcement.message,
+        handlerName: DynamicContentAnnouncementHandlerName,
+        data,
+      };
+
+      if (announcement.cta?.primary) {
+        notification.primaryAction = {
+          label:  announcement.cta.primary.action,
+          target: announcement.cta.primary.link,
+        };
+      }
+
+      if (announcement.cta?.secondary) {
+        notification.secondaryAction = {
+          label:  announcement.cta.secondary.action,
+          target: announcement.cta.secondary.link,
+        };
+      }
+
+      logger.info(`Adding announcement with ID ${ id } (title: ${ announcement.title }, target: ${ announcement.target })`);
+
+      await dispatch('notifications/add', notification);
     } else {
       logger.error(`Announcement type ${ announcement.target } is not supported`);
     }
