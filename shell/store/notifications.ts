@@ -1,6 +1,6 @@
 import { md5 } from '@shell/utils/crypto';
 import { randomStr } from '@shell/utils/string';
-import { EncryptedNotification, Notification, StoredNotification } from '@shell/types/notifications';
+import { EncryptedNotification, Notification, NotificationHandlerExtensionName, StoredNotification } from '@shell/types/notifications';
 import { encrypt, decrypt, deriveKey } from '@shell/utils/crypto/encryption';
 
 /**
@@ -256,7 +256,7 @@ export const mutations = {
 
 async function callNotifyHandler({ $extension }: any, notification: Notification, read: boolean) {
   if (notification?.handlerName) {
-    const handler = $extension.getDynamic('notificationHandler', notification.handlerName);
+    const handler = $extension.getDynamic(NotificationHandlerExtensionName, notification.handlerName);
 
     if (handler) {
       try {

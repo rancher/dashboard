@@ -117,10 +117,10 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
 
       // EOM, EOL notifications
       processSupportNotices(context, content.support, versionInfo);
-
-      // Announcements
-      processAnnouncements(context, content.announcements, versionInfo);
     }
+
+    // Announcements - processed for all users
+    processAnnouncements(context, content.announcements, versionInfo);
   } catch (e) {
     logger.error('Error reading or processing dynamic content', e);
   }

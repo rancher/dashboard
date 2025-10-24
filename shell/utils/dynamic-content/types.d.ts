@@ -100,6 +100,13 @@ export type CallToAction = {
 
 /**
  * Announcements to be shown in the notification center or on the home page
+ *
+ * Target determines where the notification will be shown, supported values:
+ *
+ * - `notification/announcement` - Shown with `Announcement` level in the Notification Center
+ * - `notification/info` - Shown with `Info` level in the Notification Center
+ * - `notification/warning` - Shown with `Warning` level in the Notification Center
+ *
  */
 export type Announcement = {
   id: string; // Unique id for this announcement
