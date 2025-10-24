@@ -140,7 +140,8 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@shell/utils/string';
 import {
-  importChart, importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, importLogin, resolveChart, resolveDetail, importDialog, importMachineConfig, resolveMachineConfigComponent, resolveCloudCredentialComponent, importCloudCredential
+  importChart, importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, importLogin, resolveChart, resolveDetail, importDialog, importMachineConfig, resolveMachineConfigComponent, resolveCloudCredentialComponent, importCloudCredential,
+  resolveCustomPromptRemove
 } from '@shell/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
@@ -1148,26 +1149,44 @@ export const getters = {
   // Note 2: Yes these are editing state in a getter for caching... it's ok, probably.
   // ------------------------------------
   hasCustomList(state, getters, rootState) {
-    return (rawType) => {
+    return async(rawType) => {
       const key = getters.componentFor(rawType);
 
-      return hasCustom(state, rootState, 'list', key, (key) => resolveList(key));
+      return await hasCustom(
+        state,
+        rootState,
+        'list',
+        key,
+        defineAsyncComponent(resolveList(key)),
+      );
     };
   },
 
   hasCustomChart(state, getters, rootState) {
-    return (rawType) => {
+    return async(rawType) => {
       const key = getters.componentFor(rawType);
 
-      return hasCustom(state, rootState, 'chart', key, (key) => resolveChart(key));
+      return await hasCustom(
+        state,
+        rootState,
+        'chart',
+        key,
+        defineAsyncComponent(resolveChart(key)),
+      );
     };
   },
 
   hasCustomDetail(state, getters, rootState) {
-    return (rawType, subType) => {
+    return async(rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'detail', key, (key) => resolveDetail(key));
+      return await hasCustom(
+        state,
+        rootState,
+        'detail',
+        key,
+        defineAsyncComponent(resolveDetail(key)),
+      );
     };
   },
 
@@ -1179,48 +1198,84 @@ export const getters = {
   },
 
   hasCustomEdit(state, getters, rootState) {
-    return (rawType, subType) => {
+    return async(rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'edit', key, (key) => resolveEdit(key));
+      return await hasCustom(
+        state,
+        rootState,
+        'edit',
+        key,
+        defineAsyncComponent(resolveEdit(key)),
+      );
     };
   },
 
   hasComponent(state, getters, rootState) {
-    return (path) => {
-      return hasCustom(state, rootState, 'edit', path, (path) => resolveEdit(path));
+    return async(path) => {
+      return await hasCustom(
+        state,
+        rootState,
+        'edit',
+        path,
+        defineAsyncComponent(resolveEdit(path)),
+      );
     };
   },
 
   hasCustomPromptRemove(state, getters, rootState) {
-    return (rawType, subType) => {
+    return async(rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'promptRemove', key, () => require.resolve(`@shell/promptRemove/${ key }`));
+      return await hasCustom(
+        state,
+        rootState,
+        'promptRemove',
+        key,
+        defineAsyncComponent(resolveCustomPromptRemove(key)),
+      );
     };
   },
 
   hasCustomWindowComponent(state, getters, rootState) {
-    return (rawType, subType) => {
+    return async(rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'windowComponents', key, (key) => resolveWindowComponent(key));
+      return await hasCustom(
+        state,
+        rootState,
+        'windowComponents',
+        key,
+        defineAsyncComponent(resolveWindowComponent(key)),
+      );
     };
   },
 
   hasCustomMachineConfigComponent(state, getters, rootState) {
-    return (rawType, subType) => {
+    return async(rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'machine-config', key, (key) => resolveMachineConfigComponent(key));
+      return await hasCustom(
+        state,
+        rootState,
+        'machine-config',
+        key,
+        defineAsyncComponent(resolveMachineConfigComponent(key)),
+      );
     };
   },
 
   hasCustomCloudCredentialComponent(state, getters, rootState) {
-    return (rawType, subType) => {
+    return async(rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'cloud-credential', key, (key) => resolveCloudCredentialComponent(key));
+      return await hasCustom(
+        state,
+        rootState,
+        'cloud-credential',
+        key,
+        defineAsyncComponent(resolveCloudCredentialComponent(key)),
+      );
     };
   },
 
@@ -2018,7 +2073,7 @@ export function project(getters) {
   return project;
 }
 
-function hasCustom(state, rootState, kind, key, fallback) {
+async function hasCustom(state, rootState, kind, key, fallback) {
   const cache = state.cache[kind];
 
   if ( cache[key] !== undefined ) {
@@ -2036,8 +2091,14 @@ function hasCustom(state, rootState, kind, key, fallback) {
 
   // Fallback
   try {
-    fallback(key);
-    cache[key] = true;
+    const importFunc = await fallback.__asyncLoader();
+
+    // We're not actually importing here, just checking if the function exists
+    if (typeof importFunc === 'function') {
+      cache[key] = true;
+    } else {
+      throw new Error('Import function not returned');
+    }
   } catch (e) {
     cache[key] = false;
   }

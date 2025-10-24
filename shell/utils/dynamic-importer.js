@@ -9,7 +9,7 @@ export function importCloudCredential(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "cloud-credential" */ `@shell/cloud-credential/${name}`));
+  return defineAsyncComponent(resolveCloudCredentialComponent(name));
 }
 
 export function importMachineConfig(name) {
@@ -17,7 +17,7 @@ export function importMachineConfig(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "machine-config" */ `@shell/machine-config/${name}`));
+  return defineAsyncComponent(resolveMachineConfigComponent(name));
 }
 
 export function importLogin(name) {
@@ -25,7 +25,7 @@ export function importLogin(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "login" */ `@shell/components/auth/login/${name}`));
+  return defineAsyncComponent(resolveLogin(name));
 }
 
 export function importChart(name) {
@@ -33,7 +33,7 @@ export function importChart(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "chart" */ `@shell/chart/${name}`));
+  return defineAsyncComponent(resolveChart(name));
 }
 
 export function importList(name) {
@@ -41,7 +41,7 @@ export function importList(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "list" */ `@shell/list/${name}`));
+  return defineAsyncComponent(resolveList(name));
 }
 
 export function importDetail(name) {
@@ -49,7 +49,7 @@ export function importDetail(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "detail" */ `@shell/detail/${name}`));
+  return defineAsyncComponent(resolveDetail(name));
 }
 
 export function importEdit(name) {
@@ -57,7 +57,7 @@ export function importEdit(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "edit" */ `@shell/edit/${name}`));
+  return defineAsyncComponent(resolveEdit(name));
 }
 
 export function importDialog(name) {
@@ -65,7 +65,7 @@ export function importDialog(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "dialog" */ `@shell/dialog/${name}`));
+  return defineAsyncComponent(resolveDialog(name));
 }
 
 export function importDrawer(name) {
@@ -73,7 +73,7 @@ export function importDrawer(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "drawer" */ `@shell/components/Drawer/${name}`));
+  return defineAsyncComponent(resolveDrawer(name));
 }
 
 export function importWindowComponent(name) {
@@ -81,7 +81,7 @@ export function importWindowComponent(name) {
     throw new Error('Name required');
   }
 
-  return defineAsyncComponent(() => import(/* webpackChunkName: "components/nav" */ `@shell/components/nav/WindowManager/${name}`));
+  return defineAsyncComponent(resolveWindowComponent(name));
 }
 
 export function loadProduct(name) {
@@ -110,33 +110,49 @@ export function loadTranslation(name) {
 }
 
 export function importCustomPromptRemove(name) {
-  return defineAsyncComponent(() => import(/* webpackChunkName: "custom-prompt-remove" */ `@shell/promptRemove/${ name }`));
+  return defineAsyncComponent(resolveCustomPromptRemove(name));
 }
 
 export function resolveList(key) {
-  return require.resolve(`@shell/list/${ key }`);
+  return () => import(/* webpackChunkName: "list" */ `@shell/list/${key}`);
 }
 
 export function resolveChart(key) {
-  return require.resolve(`@shell/chart/${ key }`);
+  return () => import(/* webpackChunkName: "chart" */ `@shell/chart/${key}`)
 }
 
 export function resolveEdit(key) {
-  return require.resolve(`@shell/edit/${ key }`);
+  return () => import(/* webpackChunkName: "edit" */ `@shell/edit/${key}`);
 }
 
 export function resolveDetail(key) {
-  return require.resolve(`@shell/detail/${ key }`);
+  return () => import(/* webpackChunkName: "detail" */ `@shell/detail/${key}`)
 }
 
 export function resolveWindowComponent(key) {
-  return require.resolve(`@shell/components/nav/WindowManager/${ key }`);
+  return () => import(/* webpackChunkName: "components/nav" */ `@shell/components/nav/WindowManager/${key}`)
 }
 
 export function resolveMachineConfigComponent(key) {
-  return require.resolve(`@shell/machine-config/${ key }`);
+  return () => import(/* webpackChunkName: "machine-config" */ `@shell/machine-config/${key}`)
 }
 
 export function resolveCloudCredentialComponent(key) {
-  return require.resolve(`@shell/cloud-credential/${ key }`);
+  return () => import(/* webpackChunkName: "cloud-credential" */ `@shell/cloud-credential/${key}`)
+}
+
+export function resolveLogin(key) {
+  return () => import(/* webpackChunkName: "login" */ `@shell/components/auth/login/${key}`)
+}
+
+export function resolveDialog(key) {
+  return () => import(/* webpackChunkName: "dialog" */ `@shell/dialog/${key}`)
+}
+
+export function resolveDrawer(key) {
+  return () => import(/* webpackChunkName: "drawer" */ `@shell/components/Drawer/${key}`)
+}
+
+export function resolveCustomPromptRemove(key) {
+  return () => import(/* webpackChunkName: "custom-prompt-remove" */ `@shell/promptRemove/${ key }`)
 }
