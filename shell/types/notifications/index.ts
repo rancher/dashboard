@@ -29,7 +29,7 @@ export type NotificationAction = {
  * Defines the User Preference linked to a notification
  */
 export type NotificationPreference = {
-  key: string; // User preference key to use when setting the preference when the notification is marked as read
+  key: string; // User preference key to use when setting the preference when the notification is marked as read/unread
   value: string; // User preference value to use when setting the preference when the notification is marked as read
   unsetValue?: string; // User preference value to use when setting the preference when the notification is marked as unread - defaults to empty string
 };
@@ -47,6 +47,11 @@ export type EncryptedNotification = {
   primaryAction?: NotificationAction;
   // Secondary to be shown in the notification (optional)
   secondaryAction?: NotificationAction;
+  // User Preference tied to the notification (optional) (the preference will be updated when the notification is marked read)
+  preference?: NotificationPreference;
+  // Handler to be associated with this notification that can invoke additional behaviour when the notification changes
+  // This is the name of the handler (the handlers are added as extensions). Notifications are persisted in the store, so can't use functions.
+  handlerName?: string;
 };
 
 /**
@@ -57,8 +62,6 @@ export type Notification = {
   id: string;
   // Progress (0-100) for notifications of type `Task` (optional)
   progress?: number;
-  // User Preference tied to the notification (optional) (the preference will be updated when the notification is marked read)
-  preference?: NotificationPreference;
 } & EncryptedNotification;
 
 /**
@@ -72,3 +75,21 @@ export type StoredNotification = {
   created: Date;
   read: Boolean;
 } & Notification;
+
+/**
+ * Name to use when registering a custom notification handler
+ */
+export const NotificationHandlerExtensionName = 'notification-handler';
+
+/**
+ * Interface for notification handler
+ */
+export interface NotificationHandler {
+  /**
+   * Called when a notification with this handler has its read status is updated (read or unread)
+   *
+   * @param notification Notification that was marked read or unread
+   * @param read Indicates whether the notification was updated to be read or unread
+   */
+  onReadUpdated(notification: Notification, read: boolean): void;
+}

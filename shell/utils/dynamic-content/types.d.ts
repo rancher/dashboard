@@ -56,7 +56,7 @@ export type Context = {
  * Version information
  */
 export type VersionInfo = {
-  version: SemVer | null;
+  version: SemVer;
   isPrime: boolean;
 };
 
@@ -91,11 +91,43 @@ export type SupportInfo = {
 };
 
 /**
+ * Call to action for an announcement
+ */
+export type CallToAction = {
+  action: string;
+  link: string;
+};
+
+/**
+ * Announcements to be shown in the notification center or on the home page
+ *
+ * Target determines where the notification will be shown, supported values:
+ *
+ * - `notification/announcement` - Shown with `Announcement` level in the Notification Center
+ * - `notification/info` - Shown with `Info` level in the Notification Center
+ * - `notification/warning` - Shown with `Warning` level in the Notification Center
+ *
+ */
+export type Announcement = {
+  id: string; // Unique id for this announcement
+  title: string; // Title to be shown
+  message: string; // Message/Body for the announcement
+  target: string; // Where the announcement should be shown
+  version?: string; // Version or semver expression for when to show this announcement
+  audience?: 'admin' | 'all'; // Audience - show for just Admins or for all users
+  cta?: {
+    primary: CallToAction, // Must have a primary call to action, if we have a cta field
+    secondary?: CallToAction,
+  }
+};
+
+/**
  * Main type for the metadata that is retrieved from the dynamic content endpoint
  */
 export type DynamicContent = {
   version: string;
   releases: ReleaseInfo[],
   support: SupportInfo,
+  announcements: Announcement[],
   settings?: Partial<SettingsInfo>,
 };
