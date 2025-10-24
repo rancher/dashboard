@@ -146,7 +146,6 @@ export default {
       const fromExtensions = this.extensions?.filter((x) => !!this.getCustomCloudCredentialComponent(x?.id)).map((x) => x?.id) || []; // Add a filter that checks setting is not off
       const providers = [...fromDrivers, ...fromSettings, ...fromExtensions];
 
-      console.log(fromDrivers, fromSettings, fromExtensions);
       let types = uniq(providers.map((x) => this.$store.getters['plugins/credentialDriverFor'](x)));
 
       const schema = this.$store.getters['rancher/schemaFor'](NORMAN.CLOUD_CREDENTIAL);
