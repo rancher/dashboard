@@ -117,9 +117,6 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
 
       // EOM, EOL notifications
       processSupportNotices(context, content.support, versionInfo);
-
-      // Announcements
-      processAnnouncements(context, content.announcements, versionInfo);
     }
 
     // Announcements - processed for all users
@@ -270,8 +267,6 @@ export async function fetchDynamicContent(context: Context): Promise<Partial<Dyn
     // We had an error, so update data in local storage so that we try again appropriately next time
     updateFetchInfo(true);
   }
-
-  logger.debug('End fetchDynamicContent');
 
   logger.debug('End fetchDynamicContent');
 

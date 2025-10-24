@@ -1,6 +1,12 @@
 import { md5 } from '@shell/utils/crypto';
 import { randomStr } from '@shell/utils/string';
-import { EncryptedNotification, Notification, NotificationLevel, NotificationHandlerExtensionName, StoredNotification } from '@shell/types/notifications';
+import {
+  EncryptedNotification,
+  Notification,
+  NotificationLevel,
+  NotificationHandlerExtensionName,
+  StoredNotification
+} from '@shell/types/notifications';
 import { encrypt, decrypt, deriveKey } from '@shell/utils/crypto/encryption';
 
 /**
@@ -113,7 +119,7 @@ export const getters = {
 
   visible: (state: NotificationsStore) => {
     return state.notifications.filter((n) => n.level !== NotificationLevel.Hidden);
-  },  
+  },
 
   hidden: (state: NotificationsStore) => {
     return state.notifications.filter((n) => n.level === NotificationLevel.Hidden);
