@@ -82,9 +82,9 @@ describe('component: EC2Networking', () => {
   });
 
   it.each([
-    [[{ config: { ipv6AddressCount: 1, subnetId: '1234' } }, { config: { ipv6AddressCount: 0, subnetId: '4321' } }], true],
-    [[{ config: { ipv6AddressCount: 0, subnetId: '1234' } }, { config: { ipv6AddressCount: 0, subnetId: '4321' } }], false],
-    [[{ config: { ipv6AddressCount: 1, subnetId: '1234' } }, { config: { ipv6AddressCount: 1, subnetId: '4321' } }], false],
+    [[{ hasIpv6: true }, { hasIpv6: false }], true],
+    [[{ hasIpv6: false }, { hasIpv6: false }], false],
+    [[{ hasIpv6: true }, { hasIpv6: true }], false],
   ])('should show an error banner if pools do not either all have ipv6 or all have ipv4', (pools, shouldShowError) => {
     const wrapper = shallowMount(EC2Networking, { ...defaultCreateSetup, propsData: { ...defaultCreateSetup.propsData, machinePools: pools } });
     const ipv6Warning = wrapper.findComponent('[data-testid="amazonEc2__ipv6Warning"]');

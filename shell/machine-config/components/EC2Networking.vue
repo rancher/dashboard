@@ -71,7 +71,7 @@ export default {
 
     httpProtocolIpv6: {
       type:    String,
-      default: 'false'
+      default: 'disabled'
     },
 
     vpcId: {
