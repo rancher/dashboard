@@ -819,8 +819,6 @@ export const getters = {
   },
 
   getSpoofedInstances(state, getters, rootState, rootGetters) {
-    console.log('weeee');
-
     return async(type, product) => {
       product = product || rootGetters['productId'];
       const getInstances = instanceMethods[product]?.[type] || (() => []);

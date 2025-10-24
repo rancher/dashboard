@@ -1,70 +1,198 @@
 <script>
 import { MANAGEMENT, HOSTED_PROVIDER } from '@shell/config/types';
-import { DEFAULT_PERF_SETTING, PerfSettings, SETTING } from '@shell/config/settings';
-import {
-  STATE, AGE, NAME, NS_SNAPSHOT_QUOTA, DESCRIPTION
-} from '@shell/config/table-headers';
-import { isAdminUser } from '@shell/store/type-map';
+import { SETTING } from '@shell/config/settings';
+import { STATE, NAME } from '@shell/config/table-headers';
 import ResourceTable from '@shell/components/ResourceTable';
-import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import Banner from '@components/Banner/Banner.vue';
 import RcStatusBadge from '@components/Pill/RcStatusBadge/RcStatusBadge.vue';
-import { useStore } from 'vuex';
+import { exceptionToErrorsArray } from '@shell/utils/error';
+import { isRancherPrime } from '@shell/config/version';
+import { stateDisplay, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 export default {
   name:       'HostedProviders',
   components: {
-    ResourceTable, Loading, Masthead, RcStatusBadge
-  },
-  async fetch() {
-    this.allProviders = await this.$store.dispatch('rancher/findAll', { type: HOSTED_PROVIDER }, { root: true });
-    console.log(this.allProviders);
-    // await this.$store.dispatch('rancher/findAll', { type: HOSTED_PROVIDER }, { root: true });
+    ResourceTable, Loading, Masthead, RcStatusBadge, Banner
   },
   data() {
     return {
-
-      allProviders:                     null,
-      resource:                         HOSTED_PROVIDER,
-      schema:                           this.$store.getters['rancher/schemaFor'](HOSTED_PROVIDER),
-      useQueryParamsForSimpleFiltering: false,
-      settings:                         {}
+      errors:          [],
+      rows:            [],
+      allProviders:    null,
+      resource:        HOSTED_PROVIDER,
+      schema:          this.$store.getters['rancher/schemaFor'](HOSTED_PROVIDER),
+      prime:           isRancherPrime(),
+      settingResource: null
     };
   },
-  // computed: {
-  //   allProviders() {
-  //     return this.$store.getters['rancher/all'](HOSTED_PROVIDER);
-  //   }
-  // },
+  fetch() {
+    this.allProviders = this.getProviders();
+    this.getSettings();
+    this.generateRows();
+  },
+  watch: {
+    settings() {
+      this.generateRows();
+    },
+    allProviders() {
+      this.generateRows();
+    }
+  },
+  computed: {
+    headers() {
+      return [
+        STATE,
+        NAME,
+      ];
+    },
+    settings() {
+      const providerTypesJSON = this.settingResource?.value;
+      const providerTypes = providerTypesJSON ? JSON.parse(providerTypesJSON) : [];
+      const settingsDict = {};
+
+      providerTypes.forEach((p) => {
+        settingsDict[p.name] = p.active;
+      });
+
+      return settingsDict;
+    },
+
+  },
+  methods: {
+    getProviders() {
+      const context = {
+        dispatch:   this.$store.dispatch,
+        getters:    this.$store.getters,
+        axios:      this.$store.$axios,
+        $extension: this.$store.app.$extension,
+        t:          (...args) => this.t.apply(this, args),
+        isCreate:   this.isCreate,
+        isEdit:     this.isEdit,
+        isView:     this.isView,
+      };
+
+      return this.$extension.getProviders(context);
+    },
+    getSettings() {
+      this.settingResource = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.KEV2_OPERATORS );
+    },
+    stateDisplay(row) {
+      if (!row.active) {
+        return stateDisplay(STATES_ENUM.INACTIVE);
+      }
+
+      return stateDisplay(STATES_ENUM.ACTIVE);
+    },
+    async setSetting(resources, active) {
+      try {
+        const providerTypes = this.settingResource.value ? JSON.parse(this.settingResource.value) : [];
+        const providerMap = new Map(providerTypes.map((prov) => [prov.name, prov]));
+
+        resources.forEach((resource) => {
+          const provider = providerMap.get(resource.id);
+
+          if (provider) {
+            provider.active = active;
+          } else {
+            providerMap.set(resource.id, { name: resource.id, active });
+          }
+        });
+
+        this.settingResource.value = JSON.stringify(Array.from(providerMap.values()));
+        await this.settingResource.save();
+        this.getSettings();
+      } catch (e) {
+        this.errors = exceptionToErrorsArray(e);
+      }
+    },
+    async generateRows() {
+      this.rows = this.allProviders.filter((p) => p.group === 'hosted').map((p) => {
+        const active = p.id in this.settings ? this.settings[p.id] : true;
+        const canNotPrime = p.prime && !this.prime;
+        const canNotChangeSettings = !this.settingResource?.canUpdate;
+        const enableAction = {
+          action:   'activate',
+          label:    this.t('action.activate'),
+          icon:     'icon icon-play',
+          bulkable: true,
+          enabled:  !active && !canNotPrime && !canNotChangeSettings,
+          invoke:   async(opts, resources) => {
+            await this.setSetting(resources, true);
+          }
+        };
+        const disableAction = {
+          action:   'deactivate',
+          label:    this.t('action.deactivate'),
+          icon:     'icon icon-pause',
+          bulkable: true,
+          enabled:  active && !canNotChangeSettings,
+          weight:   -1,
+          invoke:   async(opts, resources) => {
+            await this.setSetting(resources, false);
+          }
+        };
+        const availableActions = [enableAction, disableAction];
+
+        return {
+          id:          p.id,
+          name:        p.label,
+          nameDisplay: p.label,
+          description: p.description || '',
+          prime:       p.prime,
+          active,
+          availableActions
+        };
+      }) || [];
+    },
+    closeError(index) {
+      this.errors.splice(index, 1);
+    },
+  },
 };
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div>
     <Masthead
       :schema="schema"
       :resource="resource"
       :type-display="t('providers.hosted.title')"
       :is-creatable="false"
     />
+    <Banner
+      v-for="(err, i) in errors"
+      :key="i"
+      color="error"
+      :label="err"
+      :closable="true"
+      @close="closeError(i)"
+    />
     <ResourceTable
       :schema="schema"
       :resource="resource"
-      :rows="allProviders"
-      :tableActions="true"
+      :rows="rows"
+      :headers="headers"
+      :row-actions="true"
+      :table-actions="true"
       :data-testid="'hosted-provider-list'"
       key-field="id"
     >
+      <template #cell:state="{row}">
+        <RcStatusBadge
+          :status="!row.active ? 'error' : 'success'"
+        >
+          {{ stateDisplay(row) }}
+        </RcStatusBadge>
+      </template>
       <template #cell:name="{row}">
         <div class="col">
-          <div class="row prime">
+          <div class="row">
             <span class="mr-10">{{ row.name }}</span>
             <RcStatusBadge
               v-if="row.prime"
-              status="success"
+              status="prime"
             >
               {{ t('providers.hosted.prime') }}
             </RcStatusBadge>
@@ -80,9 +208,3 @@ export default {
     </ResourceTable>
   </div>
 </template>
-
-<style>
-.prime {
-  align-items: baseline;
-}
-</style>

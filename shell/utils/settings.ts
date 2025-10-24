@@ -121,5 +121,6 @@ export const isProviderEnabled = (context: ClusterProvisionerContext, provider: 
     }
   }
 
-  return false;
+  // We want to have providers enabled by default unless they are turned off by a setting
+  return true;
 };

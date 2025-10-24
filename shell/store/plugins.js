@@ -39,19 +39,15 @@ export const rke1Supports = [
   'pnap',
   'vmwarevsphere'
 ];
-// TODO REVIEW THIS LIST AND MAYBE CHANGE BACK PROVISIONERS
 
 // Map a credential driver name to a component name
 // e.g. ec2 and eks both use the 'aws' driver to share the same pool of creds.
 const driverMap = {
-  aks:                             'azure',
   amazonec2:                       'aws',
   amazoneks:                       'aws',
   amazonelasticcontainerservice:   'aws',
-  eks:                             'aws',
   azurekubernetesservice:          'azure',
   google:                          'gcp',
-  gke:                             'gcp',
   googlekubernetesengine:          'gcp',
   huaweicontainercloudengine:      'huawei',
   linodekubernetesengine:          'linode',

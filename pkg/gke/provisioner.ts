@@ -2,13 +2,13 @@ import { IClusterProvisioner, ClusterProvisionerContext } from '@shell/core/type
 import CruGKE from './components/CruGKE.vue';
 import { Component } from 'vue';
 import { isProviderEnabled } from '@shell/utils/settings';
+import { mapDriver } from '@shell/store/plugins';
 
 export class GKEProvisioner implements IClusterProvisioner {
   static ID = 'gke';
-  private readonly context: ClusterProvisionerContext;
 
-  constructor(context: ClusterProvisionerContext) {
-    this.context = context;
+  constructor(private context: ClusterProvisionerContext) {
+    mapDriver(this.id, 'gcp' );
   }
 
   get id(): string {
@@ -36,7 +36,7 @@ export class GKEProvisioner implements IClusterProvisioner {
   }
 
   get hidden(): boolean {
-    return isProviderEnabled(this.context, this.id);
+    return !isProviderEnabled(this.context, this.id);
   }
 
   get detailTabs(): any {

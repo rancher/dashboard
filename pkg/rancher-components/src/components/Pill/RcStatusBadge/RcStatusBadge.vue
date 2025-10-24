@@ -68,7 +68,6 @@ const props = defineProps<RcStatusBadgeProps>();
         color: var(--rc-success);
         font-size: 10px;
         line-height: 15px;
-        //padding-top: 6px;
     }
 }
 </style>

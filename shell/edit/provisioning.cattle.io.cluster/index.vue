@@ -322,9 +322,9 @@ export default {
       // Keeping this for non Rancher-managed kontainer drivers
       this.kontainerDrivers.filter((x) => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
         if ( vueKontainerTypes.includes(obj.driverName) ) {
-          addType(this.$plugin, obj.driverName, 'kontainer', false);
+          addType(this.$plugin, obj.driverName, 'hosted', false);
         } else {
-          addType(this.$plugin, obj.driverName, 'kontainer', false, (isImport ? obj.emberImportPath : obj.emberCreatePath));
+          addType(this.$plugin, obj.driverName, 'hosted', false, (isImport ? obj.emberImportPath : obj.emberCreatePath));
         }
       });
       if (!isImport) {

@@ -2,13 +2,12 @@ import { IClusterProvisioner, ClusterProvisionerContext } from '@shell/core/type
 import CruAks from './components/CruAks.vue';
 import type { Component } from 'vue';
 import { isProviderEnabled } from '@shell/utils/settings';
-
+import { mapDriver } from '@shell/store/plugins';
 export class AKSProvisioner implements IClusterProvisioner {
   static ID = 'aks'
-  private readonly context: ClusterProvisionerContext;
 
-  constructor(context: ClusterProvisionerContext) {
-    this.context = context;
+  constructor(private context: ClusterProvisionerContext) {
+    mapDriver(this.id, 'azure' );
   }
 
   get id(): string {
@@ -32,7 +31,7 @@ export class AKSProvisioner implements IClusterProvisioner {
   }
 
   get hidden(): boolean {
-    return isProviderEnabled(this.context, this.id);
+    return !isProviderEnabled(this.context, this.id);
   }
 
   get detailTabs(): any {
