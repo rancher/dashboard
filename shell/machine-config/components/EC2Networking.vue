@@ -7,9 +7,8 @@ import { addObject, addObjects, findBy } from '@shell/utils/array';
 import { isEmpty } from '@shell/utils/object';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Banner } from '@components/Banner';
-
+import { scrollToBottom } from '@shell/utils/scroll';
 import { _CREATE } from '@shell/config/query-params';
-import Window from 'components/nav/WindowManager/Window.vue';
 
 export default {
   name: 'Ec2MachinePoolNetworking',
@@ -315,6 +314,14 @@ export default {
       const isValid = this.enableIpv6 ? value > 0 : !value;
 
       return isValid ? null : this.t('cluster.machineConfig.amazonEc2.ipv6AddressCount.error');
+    },
+
+    scrollDown(e) {
+      if (e?.target?.localName === 'a') {
+        setTimeout(() => {
+          scrollToBottom();
+        }, 3); // timeout allows the networking tab to render, changing the length of the page, before scrolling
+      }
     }
   }
 };
@@ -342,7 +349,10 @@ export default {
         data-testid="amazonEc2__enableIpv6"
         :mode="mode"
       />
-      <div class="text-muted">
+      <div
+        class="text-muted"
+        @click="scrollDown"
+      >
         <t
           raw
           k="cluster.machineConfig.amazonEc2.enableIpv6.description"

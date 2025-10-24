@@ -2080,7 +2080,7 @@ cluster:
       tagTitle: EC2 Tags
       enableIpv6:
         label: Enable IPv6
-        description: "Checking this automatically sets your  <a href=\"#networking\" @click=\"Window.scrollTo('bottom')\">Network Stack Preference Order</a> to <b>DUAL</b> stack, enabling both IPv4 and IPv6. For an IPv6-only cluster, you can manually change that setting to <b>IPv6</b>."
+        description: "Checking this automatically sets your <a aria-label='scroll to the networking section in cluster configuration' href=\"#networking\">Network Stack Preference Order</a> to <b>DUAL</b> stack, enabling both IPv4 and IPv6. For an IPv6-only cluster, you can manually change that setting to <b>IPv6</b>."
       ipv6AddressCount:
         label: IPv6 Address Count
         tooltip: Specifies the number of IPv6 addresses to assign to the network interface
