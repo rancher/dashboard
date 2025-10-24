@@ -111,6 +111,7 @@ export const SETTING = {
   IMPORTED_CLUSTER_VERSION_MANAGEMENT:           'imported-cluster-version-management',
   CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS:          'cluster-agent-default-priority-class',
   CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET: 'cluster-agent-default-pod-disruption-budget',
+  KEV2_OPERATORS:                                'kev2-operators',
   /**
    * Dynamic Content settings
    */
@@ -178,7 +179,8 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
   },
   [SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT]:           { kind: 'boolean' },
   [SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS]:          { kind: 'json' },
-  [SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]: { kind: 'json' }
+  [SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET]: { kind: 'json' },
+  [SETTING.KEV2_OPERATORS]:                                { kind: 'json' }
 
 };
 
@@ -193,7 +195,8 @@ export const PROVISIONING_SETTINGS = [
   SETTING.K3S_UPGRADER_UNINSTALL_CONCURRENCY,
   SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT,
   SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
-  SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET
+  SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET,
+  SETTING.KEV2_OPERATORS
 ];
 
 /**

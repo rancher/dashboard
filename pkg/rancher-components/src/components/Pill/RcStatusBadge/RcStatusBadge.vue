@@ -61,5 +61,14 @@ const props = defineProps<RcStatusBadgeProps>();
         border-color: var(--rc-none);
         color: var(--rc-none-secondary);
     }
+
+    &.prime {
+        background-color: var(--rc-success-secondary);
+        border-color: var(--rc-success-secondary);
+        color: var(--rc-success);
+        font-size: 10px;
+        line-height: 15px;
+        //padding-top: 6px;
+    }
 }
 </style>

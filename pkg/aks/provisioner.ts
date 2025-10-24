@@ -1,15 +1,14 @@
 import { IClusterProvisioner, ClusterProvisionerContext } from '@shell/core/types';
 import CruAks from './components/CruAks.vue';
-import { mapDriver } from '@shell/store/plugins';
 import type { Component } from 'vue';
-import { MANAGEMENT } from '@shell/config/types';
+import { isProviderEnabled } from '@shell/utils/settings';
 
 export class AKSProvisioner implements IClusterProvisioner {
-  static ID = 'azureaks'
+  static ID = 'aks'
+  private readonly context: ClusterProvisionerContext;
 
-  constructor(private context: ClusterProvisionerContext) {
-    mapDriver(this.id, 'azure' );
-    mapDriver(this.id, 'aks' );
+  constructor(context: ClusterProvisionerContext) {
+    this.context = context;
   }
 
   get id(): string {
@@ -21,7 +20,7 @@ export class AKSProvisioner implements IClusterProvisioner {
   }
 
   get group(): string {
-    return 'kontainer';
+    return 'hosted';
   }
 
   get label(): string {
@@ -33,9 +32,7 @@ export class AKSProvisioner implements IClusterProvisioner {
   }
 
   get hidden(): boolean {
-    const kontainerDriver = this.context.getters['management/byId'](MANAGEMENT.KONTAINER_DRIVER, 'azurekubernetesservice');
-
-    return !kontainerDriver?.spec?.active;
+    return isProviderEnabled(this.context, this.id);
   }
 
   get detailTabs(): any {
@@ -52,5 +49,9 @@ export class AKSProvisioner implements IClusterProvisioner {
 
   get showImport(): boolean {
     return true;
+  }
+
+  get description(): string {
+    return this.context.t('aks.description');
   }
 }

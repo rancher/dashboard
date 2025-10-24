@@ -14,6 +14,7 @@ import SelectIconGrid from '@shell/components/SelectIconGrid';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { set } from '@shell/utils/object';
+import { SETTING } from '@shell/config/settings';
 
 export default {
   name: 'CruCloudCredential',
@@ -139,10 +140,13 @@ export default {
       const fromDrivers = [...this.nodeDrivers, ...this.kontainerDrivers]
         .filter((x) => x.spec.active && x.id !== 'rancherkubernetesengine')
         .map((x) => x.spec.displayName || x.id);
+      const providerTypesJSON = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.KEV2_OPERATORS )?.value;
+      const fromSettings = providerTypesJSON ? JSON.parse(providerTypesJSON).filter((x) => x.active).map((x) => x.name) : [];
 
-      const fromExtensions = this.extensions?.filter((x) => !!this.getCustomCloudCredentialComponent(x?.id)).map((x) => x?.id) || [];
-      const providers = [...fromDrivers, ...fromExtensions];
+      const fromExtensions = this.extensions?.filter((x) => !!this.getCustomCloudCredentialComponent(x?.id)).map((x) => x?.id) || []; // Add a filter that checks setting is not off
+      const providers = [...fromDrivers, ...fromSettings, ...fromExtensions];
 
+      console.log(fromDrivers, fromSettings, fromExtensions);
       let types = uniq(providers.map((x) => this.$store.getters['plugins/credentialDriverFor'](x)));
 
       const schema = this.$store.getters['rancher/schemaFor'](NORMAN.CLOUD_CREDENTIAL);

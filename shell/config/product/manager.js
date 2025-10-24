@@ -6,11 +6,13 @@ import {
   HCI,
   MANAGEMENT,
   SNAPSHOT,
-  VIRTUAL_TYPES
+  VIRTUAL_TYPES,
+  HOSTED_PROVIDER
 } from '@shell/config/types';
 import { MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import { DEFAULT_PERF_SETTING, PerfSettings, SETTING } from '@shell/config/settings';
 
 export const NAME = 'manager';
 
@@ -21,6 +23,7 @@ export function init(store) {
     headers,
     configureType,
     virtualType,
+    spoofedType,
     weightType,
     weightGroup
   } = DSL(store, NAME);
@@ -63,7 +66,7 @@ export function init(store) {
   basicType([
     CAPI.RANCHER_CLUSTER,
     'cloud-credentials',
-    'drivers',
+    'providers',
   ]);
 
   configureType(SNAPSHOT, { depaginate: true });
@@ -73,12 +76,22 @@ export function init(store) {
   });
   weightType(CAPI.RANCHER_CLUSTER, 100, true);
   weightType('cloud-credentials', 99, true);
-  weightType('drivers', 98, true);
+  weightType('providers', 98, true);
   weightType(CATALOG.CLUSTER_REPO, 97, true);
+  // virtualType({
+  //   labelKey:   'providers.hosted.title',
+  //   name:       'hosted-providers',
+  //   group:      'Root',
+  //   weight:     1,
+  //   namespaced: false,
+  //   icon:       'globe',
+  //   route:      { name: 'c-cluster-manager-provider-hostedprovider' },
+  //   exact:      true
+  // });
 
   virtualType({
     labelKey:   'drivers.kontainer.title',
-    name:       'rke-kontainer-drivers',
+    name:       'rke-kontainer-providers',
     group:      'Root',
     namespaced: false,
     icon:       'globe',
@@ -87,7 +100,7 @@ export function init(store) {
   });
   virtualType({
     labelKey:   'drivers.node.title',
-    name:       'rke-node-drivers',
+    name:       'rke-node-providers',
     group:      'Root',
     namespaced: false,
     icon:       'globe',
@@ -107,9 +120,64 @@ export function init(store) {
   });
 
   basicType([
-    'rke-kontainer-drivers',
-    'rke-node-drivers',
-  ], 'drivers');
+    HOSTED_PROVIDER,
+    'rke-kontainer-providers',
+    'rke-node-providers',
+  ], 'providers');
+  spoofedType({
+    labelKey: 'providers.hosted.title',
+    name:     HOSTED_PROVIDER,
+    // group:      'Root',
+    // weight:     1,
+    // namespaced: false,
+    // icon:       'globe',
+    route:    { name: 'c-cluster-manager-hostedprovider' },
+    exact:    true,
+    type:     HOSTED_PROVIDER,
+    schemas:  [
+      {
+        id:                HOSTED_PROVIDER,
+        type:              'schema',
+        collectionMethods: [],
+        resourceFields:    { key: { type: 'string' } },
+      },
+    ],
+    getInstances: async() => {
+      const context = {
+        dispatch:   store.dispatch,
+        getters:    store.getters,
+        axios:      store.$axios,
+        $extension: store.app.$extension,
+        t:          (...args) => store.getters['i18n/t'].apply(this, args),
+        isCreate:   false,
+        isEdit:     false,
+        isView:     true,
+      };
+
+      await store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
+      const providers = store.app.$extension.getProviders(context);
+
+      const providerTypesJSON = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.KEV2_OPERATORS )?.value;
+      const providerTypes = providerTypesJSON ? JSON.parse(providerTypesJSON) : [];
+      const settingsDict = {};
+
+      providerTypes.forEach((p) => {
+        settingsDict[p.name] = p.active;
+      });
+
+      return providers.filter((p) => p.group === 'hosted').map((p) => {
+        return {
+          type:        HOSTED_PROVIDER,
+          id:          p.id,
+          name:        p.label,
+          nameDisplay: p.label,
+          description: p.description || '',
+          prime:       true,
+          active:      settingsDict[p.id] || false,
+        };
+      }) || [];
+    },
+  });
 
   weightType(CAPI.MACHINE_DEPLOYMENT, 4, true);
   weightType(CAPI.MACHINE_SET, 3, true);

@@ -319,6 +319,7 @@ export default {
       const vueKontainerTypes = getters['plugins/clusterDrivers'];
       const machineTypes = this.nodeDrivers.filter((x) => x.spec.active && x.state === 'active');
 
+      // Keeping this for non Rancher-managed kontainer drivers
       this.kontainerDrivers.filter((x) => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
         if ( vueKontainerTypes.includes(obj.driverName) ) {
           addType(this.$plugin, obj.driverName, 'kontainer', false);
