@@ -209,9 +209,10 @@ export const mutations = {
     syncIndex(state);
   },
 
+  // Only mark visible notifications as read via mark all
   markAllRead(state: NotificationsStore) {
     state.notifications.forEach((notification) => {
-      if (!notification.read) {
+      if (!notification.read && notification.level !== NotificationLevel.Hidden) {
         notification.read = true;
       }
     });
