@@ -673,9 +673,16 @@ export default {
     },
 
     removeOption(ns, event) {
-      this.selectOption(ns);
       event.preventDefault();
       event.stopPropagation();
+
+      this.selectOption(ns);
+
+      if (event.type !== 'keydown' || this.value.length !== 0) {
+        return;
+      }
+
+      this.$refs.namespaceFilterInput.focus();
     },
 
     defaultOption() {
