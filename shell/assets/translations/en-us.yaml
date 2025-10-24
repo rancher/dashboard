@@ -2537,9 +2537,6 @@ cluster:
       caCerts:
         label: CA Certificates
         toolTip: Certificates required for the client to successfully verify the validity of the certificate returned by the endpoint.
-      ipv6:
-        warning: It looks like you are using an IPv6 CIDR. Your node driver may require additional configuration to support this.
-        enable: Enable IPv6 support
     etcd:
       disableSnapshots:
         label: Automatic Backups
@@ -2576,6 +2573,10 @@ cluster:
         dual: Dual-Stack
       errorNeedsIpv6: Stack preference must be set to dual-stack or ipv6 if using ipv6 networking in nodepools.
   k3s:
+    flannelMasq:
+      title: IPv6 NAT
+      label: Enable Flannel IPv6 Masquerade
+      banner: If you are using IPv6 addresses and they are not publically routed, for example in the ULA range, you might want to check this option to enable IPv6 NAT; by default, pods use their IPv6 address for outgoing communication.
     systemService:
       coredns: 'CoreDNS'
       local-storage: 'Local Storage'
