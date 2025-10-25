@@ -3,7 +3,6 @@ import { MANAGEMENT, HOSTED_PROVIDER } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { STATE, NAME } from '@shell/config/table-headers';
 import ResourceTable from '@shell/components/ResourceTable';
-import Loading from '@shell/components/Loading';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import Banner from '@components/Banner/Banner.vue';
 import RcStatusBadge from '@components/Pill/RcStatusBadge/RcStatusBadge.vue';
@@ -14,7 +13,7 @@ import { stateDisplay, STATES_ENUM } from '@shell/plugins/dashboard-store/resour
 export default {
   name:       'HostedProviders',
   components: {
-    ResourceTable, Loading, Masthead, RcStatusBadge, Banner
+    ResourceTable, Masthead, RcStatusBadge, Banner
   },
   data() {
     return {
