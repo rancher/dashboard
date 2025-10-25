@@ -31,8 +31,9 @@ export default {
     const brandMeta = getBrandMeta(setting?.value);
     const banner = brandMeta?.banner || {};
     const align = banner.textAlign || 'center';
+    const bannerClass = banner.bannerClass || '';
 
-    return { alignClass: `banner-text-${ align }` };
+    return { alignClass: `banner-text-${ align }`, bannerClass };
   }
 };
 </script>
@@ -43,7 +44,10 @@ export default {
     class="banner-graphic"
     :class="{'small': small, [alignClass]: true}"
   >
-    <div class="graphic">
+    <div
+     :class="bannerClass"
+      class="graphic"
+    >
       <BrandImage
         class="banner"
         data-testid="banner-brand__img"
