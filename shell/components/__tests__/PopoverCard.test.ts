@@ -167,7 +167,7 @@ describe('component: PopoverCard.vue', () => {
       expect(wrapper.find('.card-body-content').text()).toBe('Card Body');
     });
 
-    it('should pass a (buggy) close function to the heading-action slot', async() => {
+    it('should pass a close function to the heading-action slot', async() => {
       const wrapper = createWrapper({}, {
         'heading-action': `
           <template #heading-action="{ close }">
@@ -181,16 +181,12 @@ describe('component: PopoverCard.vue', () => {
       expect(wrapper.vm.showPopover).toBe(true);
       expect(wrapper.vm.focusOpen).toBe(true);
 
-      // Set to closed state to test the "close" function
-      wrapper.vm.showPopover = false;
-      wrapper.vm.focusOpen = false;
-
       // Click the button that uses the `close` slot prop
       await wrapper.find('.close-button').trigger('click');
 
       // Due to the bug, this should be true, not false
-      expect(wrapper.vm.showPopover).toBe(true);
-      expect(wrapper.vm.focusOpen).toBe(true);
+      expect(wrapper.vm.showPopover).toBe(false);
+      expect(wrapper.vm.focusOpen).toBe(false);
     });
 
     it('should allow overriding the entire card via the card slot', async() => {

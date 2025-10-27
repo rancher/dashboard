@@ -42,7 +42,7 @@ watch(
   <div
     class="popover-card-base"
     :class="{open: showPopover}"
-    @mouseleave="showPopover=false"
+    @mouseleave="showPopover=false; focusOpen=false"
     @keydown.escape="showPopover=false; focusOpen=false"
   >
     <v-dropdown
@@ -87,7 +87,7 @@ watch(
             <template #heading-action>
               <slot
                 name="heading-action"
-                :close="() => {showPopover=true; focusOpen=true;}"
+                :close="() => {showPopover=false; focusOpen=false;}"
               />
             </template>
             <slot name="card-body" />
