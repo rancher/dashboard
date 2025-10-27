@@ -29,7 +29,7 @@ export default class Kubectl extends ComponentPo {
   }
 
   waitForTerminalStatus(status: 'Connected' | 'Disconnected', options?: GetOptions) {
-    this.self().find('.active .status').contains(status, options).should('be.visible');
+    this.self().contains('.active .status', status, options);
   }
 
   /**
