@@ -130,11 +130,20 @@ export default {
           index = (found === -1) ? 0 : found;
         }
 
-        const route = items[index].route;
+        const item = items[index];
+        const route = item.route;
 
         if (route) {
           this.$router.replace(route);
+        } else if (item) {
+          this.routeToFirstChild(item);
         }
+      }
+    },
+
+    routeToFirstChild(item) {
+      if (item.children.length && item.children[0].route) {
+        this.$router.replace(item.children[0].route);
       }
     },
 
@@ -455,7 +464,7 @@ export default {
     }
 
     &.depth-1 {
-      > .header {
+      > .accordion-item > .header {
         padding-left: 20px;
         > H6 {
           line-height: 18px;
@@ -474,7 +483,7 @@ export default {
     }
 
     &:not(.depth-0) {
-      > .header {
+      > .accordion-item > .header {
         > H6 {
           // Child groups that aren't linked themselves
           display: inline-block;
