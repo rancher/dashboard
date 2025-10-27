@@ -6,7 +6,7 @@ Custom Node Drivers can be created and registered with Rancher to allow it to pr
 
 To tell Rancher about a new driver, go to:
 
-`Cluster Management -> Drivers -> Node Drivers -> Add Node Driver`
+`Cluster Management -> Providers -> Node Drivers -> Add Node Driver`
 
 You should:
 

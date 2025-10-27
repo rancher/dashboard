@@ -140,11 +140,9 @@ export default {
       const fromDrivers = [...this.nodeDrivers, ...this.kontainerDrivers]
         .filter((x) => x.spec.active && x.id !== 'rancherkubernetesengine')
         .map((x) => x.spec.displayName || x.id);
-      const providerTypesJSON = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.KEV2_OPERATORS )?.value;
-      const fromSettings = providerTypesJSON ? JSON.parse(providerTypesJSON).filter((x) => x.active).map((x) => x.name) : [];
+      const fromExtensions = this.extensions?.filter((x) => !x.hidden && x.group === 'hosted').map((x) => x.id) || [];
 
-      const fromExtensions = this.extensions?.filter((x) => !!this.getCustomCloudCredentialComponent(x?.id)).map((x) => x?.id) || []; // Add a filter that checks setting is not off
-      const providers = [...fromDrivers, ...fromSettings, ...fromExtensions];
+      const providers = [...fromDrivers, ...fromExtensions];
 
       let types = uniq(providers.map((x) => this.$store.getters['plugins/credentialDriverFor'](x)));
 
@@ -225,10 +223,6 @@ export default {
       };
 
       return this.$extension.getProviders(context);
-    },
-
-    getCustomCloudCredentialComponent(driverName) {
-      return this.$store.getters['type-map/hasCustomCloudCredentialComponent'](driverName);
     },
 
     async saveCredential(btnCb) {

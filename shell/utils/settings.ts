@@ -116,7 +116,7 @@ export const isProviderEnabled = (context: ClusterProvisionerContext, provider: 
   const providerTypes = providerTypesJSON ? JSON.parse(providerTypesJSON) : [];
 
   for ( let i = 0; i < providerTypes.length; i++) {
-    if ( providerTypes[i].id === provider) {
+    if ( providerTypes[i].name === provider) {
       return providerTypes[i].active;
     }
   }
