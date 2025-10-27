@@ -290,7 +290,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-if="!isAutoscalerEnabled"
+          v-if="!isAutoscalerFeatureEnabled || !isAutoscalerEnabled"
           v-model:value.number="value.pool.quantity"
           :mode="mode"
           :label="t('cluster.machinePool.quantity.label')"
