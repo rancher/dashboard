@@ -142,6 +142,17 @@ export default {
         this.localValue.spec.networking.stackPreference = neu;
       }
     },
+
+    showFlannelMasq() {
+      const isK3s = (this.selectedVersion?.label || '').includes('k3s');
+      const flannelEnabled = this.value?.rkeConfig?.machineGlobalConfig?.['flannel-backend'] !== 'none';
+
+      return isK3s && flannelEnabled;
+    },
+
+    hasIpv6StackPref() {
+      return [STACK_PREFS.IPV6, STACK_PREFS.DUAL].includes(this.value?.spec?.rkeConfig?.networking?.stackPreference);
+    },
   },
 
   methods: {
@@ -159,18 +170,6 @@ export default {
       } else {
         return null;
       }
-    },
-
-    hasIpv6StackPref() {
-      // TODO nb STACK_PREFS
-      return ['ipv6', 'dual'].includes(this.value?.spec?.rkeConfig?.networking?.stackPreference);
-    },
-
-    showFlannelMasq() {
-      const isK3s = (this.selectedVersion?.label || '').includes('k3s');
-      const flannelEnabled = this.value?.rkeConfig?.machineGlobalConfig?.['flannel-backend'] !== 'none';
-
-      return isK3s && flannelEnabled;
     },
   }
 };
