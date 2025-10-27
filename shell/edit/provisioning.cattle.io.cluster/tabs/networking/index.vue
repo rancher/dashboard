@@ -87,12 +87,15 @@ export default {
     truncateHostnames() {
       return this.truncateLimit === NETBIOS_TRUNCATION_LENGTH;
     },
+
     serverConfig() {
       return this.value.spec.rkeConfig.machineGlobalConfig;
     },
+
     serverArgs() {
       return this.selectedVersion?.serverArgs || {};
     },
+
     stackPreferenceOptions() {
       return [{
         label: this.t('cluster.rke2.stackPreference.options.ipv4'),
@@ -107,21 +110,19 @@ export default {
       },
       ];
     },
-    showIpv6Warning() {
-      const clusterCIDR = this.serverConfig['cluster-cidr'] || '';
-      const serviceCIDR = this.serverConfig['service-cidr'] || '';
 
-      return clusterCIDR.includes(':') || serviceCIDR.includes(':');
-    },
     hostnameTruncationManuallySet() {
       return !!this.truncateLimit && this.truncateLimit !== NETBIOS_TRUNCATION_LENGTH;
     },
+
     isEdit() {
       return this.mode === _EDIT;
     },
+
     isView() {
       return this.mode === _VIEW;
     },
+
     localValue: {
       get() {
         return this.value;
@@ -152,6 +153,13 @@ export default {
 
     hasIpv6StackPref() {
       return [STACK_PREFS.IPV6, STACK_PREFS.DUAL].includes(this.value?.spec?.rkeConfig?.networking?.stackPreference);
+    },
+
+    hasIpv6ServerConfig() {
+      const clusterCIDR = this.serverConfig['cluster-cidr'] || '';
+      const serviceCIDR = this.serverConfig['service-cidr'] || '';
+
+      return clusterCIDR.includes(':') || serviceCIDR.includes(':');
     },
   },
 
