@@ -234,7 +234,18 @@ export function diff(from, to) {
   const missing = difference(fromKeys, toKeys);
 
   for ( const k of missing ) {
-    set(out, k, null);
+    // keys that come from "definedKeys" method are strings with "" chars inside... We need to clean them up
+    // so that we can access the value of the obj property
+    let key = k;
+
+    if (!k.includes('.')) {
+      key = k.replaceAll('"', '');
+    }
+
+    // // if value exists in "from" but is missing in "to", let's add it, otherwise we just ignore it
+    if (from[key] !== undefined && from[key] !== null) {
+      set(out, key, from[key]);
+    }
   }
 
   return out;

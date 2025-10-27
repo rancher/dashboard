@@ -176,7 +176,8 @@ describe('fx: diff', () => {
 
     const result = diff(from, to);
     const expected = {
-      baz:  null,
+      baz:  'bang',
+      // the property "bang" having value !== null covers test case for https://github.com/rancher/dashboard/issues/15710
       bang: 'baz'
     };
 
