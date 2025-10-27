@@ -53,7 +53,10 @@ export default {
     }
 
     if (!isValid(context)) {
-      throw new Error(`Invalid ui-context value: ${ JSON.stringify({ tag: (context as Context).tag, description: (context as Context).description }) }`);
+      // eslint-disable-next-line no-console
+      console.warn(`[ui-context] invalid value: ${ JSON.stringify({ tag: (context as Context).tag, description: (context as Context).description }) }`);
+
+      return;
     }
 
     if (context.path === undefined && context.value === undefined) {
@@ -64,7 +67,10 @@ export default {
       const value = get(binding.instance, context.path);
 
       if (value === undefined) {
-        throw new Error(`[ui-context] path "${ context.path }" is undefined on the component instance`);
+        // eslint-disable-next-line no-console
+        console.warn(`[ui-context] path "${ context.path }" is undefined on the component instance`);
+
+        return;
       }
 
       context.value = value;
