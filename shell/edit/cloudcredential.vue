@@ -14,7 +14,6 @@ import SelectIconGrid from '@shell/components/SelectIconGrid';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { set } from '@shell/utils/object';
-import { SETTING } from '@shell/config/settings';
 
 export default {
   name: 'CruCloudCredential',
