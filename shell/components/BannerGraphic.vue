@@ -18,11 +18,6 @@ export default {
       type:    String,
       default: null,
     },
-
-    small: {
-      type:    Boolean,
-      default: false
-    }
   },
 
   data() {
@@ -42,11 +37,11 @@ export default {
   <div
     v-if="shown"
     class="banner-graphic"
-    :class="{'small': small, [alignClass]: true}"
+    :class="{[alignClass]: true}"
   >
     <div
-     :class="bannerClass"
-      class="graphic"
+      :class="bannerClass"
+      class="graphic banner-graphic-height"
     >
       <BrandImage
         class="banner"
@@ -73,8 +68,7 @@ export default {
 </template>
 
 <style lang="scss">
-  $banner-height: 240px;
-  $banner-height-small: 200px;
+  $banner-height: 200px;
 
   .banner-graphic {
     position: relative;
@@ -82,7 +76,6 @@ export default {
     .graphic {
       display: flex;
       flex-direction: column;
-      height: $banner-height;
       overflow: hidden;
       > img.banner {
         flex: 1;
@@ -112,14 +105,10 @@ export default {
         padding-left: 20px;
       }
     }
+  }
 
-    &.small {
-      .graphic {
-        height: $banner-height-small;
-        img.banner {
-          margin-top: math.div(($banner-height-small - $banner-height), 2);
-        }
-      }
-    }
+  // Use top-level style so that a theme style can easily override via its own style without having to worry about specificity of CSS styles
+  .banner-graphic-height {
+    height: $banner-height;
   }
 </style>

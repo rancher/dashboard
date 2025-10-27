@@ -604,7 +604,6 @@ export default defineComponent({
       {{ `${vendor} - ${t('landing.homepage')}` }}
     </TabTitle>
     <BannerGraphic
-      :small="true"
       :title="t('landing.welcomeToRancher', {vendor})"
       :pref="HIDE_HOME_PAGE_CARDS"
       pref-key="welcomeBanner"
