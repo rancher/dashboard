@@ -9,7 +9,6 @@ import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
-import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import { KEV1 } from '@shell/models/management.cattle.io.kontainerdriver';
@@ -258,26 +257,6 @@ export default class ProvCluster extends SteveModel {
       await harvesterCluster.goToCluster();
     } catch {
     }
-  }
-
-  goToViewYaml() {
-    let location;
-
-    if ( !this.isRke2 ) {
-      location = this.mgmt?.detailLocation;
-    }
-
-    if ( !location ) {
-      location = this.detailLocation;
-    }
-
-    location.query = {
-      ...location.query,
-      [MODE]: _VIEW,
-      [AS]:   _YAML
-    };
-
-    this.currentRouter().push(location);
   }
 
   get canDelete() {
