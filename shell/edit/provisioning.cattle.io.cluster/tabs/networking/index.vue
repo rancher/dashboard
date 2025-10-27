@@ -66,7 +66,7 @@ export default {
   },
 
   watch: {
-    hasIpv6StackPref(neu) {
+    isProbablyIPv6(neu) {
       if (this.mode === _CREATE && this.showFlannelMasq) {
         this.$emit('enable-flannel-masq-changed', neu);
       }
@@ -75,8 +75,11 @@ export default {
     isK3s(neu) {
       if (!neu) {
         this.$emit('enable-flannel-masq-changed', null);
+      } else if (this.isProbablyIPv6) {
+        this.$emit('enable-flannel-masq-changed', true);
       }
-    }
+    },
+
   },
 
   data() {
@@ -160,6 +163,10 @@ export default {
       const serviceCIDR = this.serverConfig['service-cidr'] || '';
 
       return clusterCIDR.includes(':') || serviceCIDR.includes(':');
+    },
+
+    isProbablyIPv6() {
+      return this.hasSomeIpv6Pools || this.hasIpv6StackPref || this.hasIpv6ServerConfig;
     },
   },
 
@@ -335,6 +342,7 @@ export default {
         class="mt-20"
       />
       <Banner
+        v-if="isProbablyIPv6"
         color="warning"
         data-testid="cluster-rke2-flannel-masq-banner"
         :label="t('cluster.k3s.flannelMasq.banner', null, true)"
