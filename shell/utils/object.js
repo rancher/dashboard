@@ -242,9 +242,11 @@ export function diff(from, to) {
       key = k.replaceAll('"', '');
     }
 
-    // // if value exists in "from" but is missing in "to", let's add it, otherwise we just ignore it
+    // // if value exists in "from" but is missing in "to", let's add it, otherwise we just set it null as we did before
     if (from[key] !== undefined && from[key] !== null) {
       set(out, key, from[key]);
+    } else {
+      set(out, key, null);
     }
   }
 
