@@ -85,7 +85,10 @@ watch(
             :title="props.cardTitle"
           >
             <template #heading-action>
-              <slot name="heading-action" />
+              <slot
+                name="heading-action"
+                :close="() => {showPopover=false; focusOpen=false;}"
+              />
             </template>
             <slot name="card-body" />
           </Card>
