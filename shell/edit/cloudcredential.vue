@@ -139,7 +139,7 @@ export default {
       const fromDrivers = [...this.nodeDrivers, ...this.kontainerDrivers]
         .filter((x) => x.spec.active && x.id !== 'rancherkubernetesengine')
         .map((x) => x.spec.displayName || x.id);
-      const fromExtensions = this.extensions?.filter((x) => !x.hidden && x.group === 'hosted').map((x) => x.id) || [];
+      const fromExtensions = this.extensions?.filter((x) => !x.hidden).map((x) => x.id) || [];
 
       const providers = [...fromDrivers, ...fromExtensions];
 
