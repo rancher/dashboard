@@ -224,6 +224,10 @@ export default {
       return this.$extension.getProviders(context);
     },
 
+    getCustomCloudCredentialComponent(driverName) {
+      return this.$store.getters['type-map/hasCustomCloudCredentialComponent'](driverName);
+    },
+
     async saveCredential(btnCb) {
       if ( this.errors ) {
         clear(this.errors);
