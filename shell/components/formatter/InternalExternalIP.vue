@@ -21,7 +21,7 @@ export default {
       return this.row.internalIps?.filter((ip) => this.isIp(ip)) || [];
     },
     internalSameAsExternal() {
-      return this.filteredInternalIps[0] === this.filteredExternalIps[0];
+      return this.externalIp && this.internalIp && this.externalIp === this.internalIp;
     },
     showPopover() {
       return this.filteredExternalIps.length > 1 || this.filteredInternalIps.length > 1;
