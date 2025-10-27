@@ -16,11 +16,11 @@ const RULESETS = [
   },
   {
     path:  FIELDS.AUTOSCALER_MIN,
-    rules: ['requiredInt', 'isPositive', 'isAutoscalerMaxGreaterThanMin'],
+    rules: ['isPositive', 'isAutoscalerMaxGreaterThanMin'],
   },
   {
     path:  FIELDS.AUTOSCALER_MAX,
-    rules: ['requiredInt', 'isPositive', 'isAutoscalerMaxGreaterThanMin'],
+    rules: ['isPositive', 'isAutoscalerMaxGreaterThanMin'],
   },
 ];
 

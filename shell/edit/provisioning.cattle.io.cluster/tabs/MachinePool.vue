@@ -443,7 +443,7 @@ export default {
               v-model:value="isAutoscalerEnabled"
               :mode="mode"
               :label="t('cluster.machinePool.autoscaler.enable', undefined, true)"
-              :disabled="value.pool.etcdRole || value.pool.controlPlaneRole"
+              :disabled="value.pool.etcdRole || value.pool.controlPlaneRole || busy"
             />
           </div>
         </div>
@@ -460,7 +460,7 @@ export default {
               :mode="mode"
               :base-unit="t('cluster.machinePool.autoscaler.baseUnit')"
               :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.AUTOSCALER_MIN)"
-              :disabled="value.pool.etcdRole || value.pool.controlPlaneRole"
+              :disabled="value.pool.etcdRole || value.pool.controlPlaneRole || busy"
             />
           </div>
           <div class="col span-4">
@@ -472,7 +472,7 @@ export default {
               :mode="mode"
               :base-unit="t('cluster.machinePool.autoscaler.baseUnit')"
               :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.AUTOSCALER_MAX)"
-              :disabled="value.pool.etcdRole || value.pool.controlPlaneRole"
+              :disabled="value.pool.etcdRole || value.pool.controlPlaneRole || busy"
             />
           </div>
         </div>
