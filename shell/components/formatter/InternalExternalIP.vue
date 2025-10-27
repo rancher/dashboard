@@ -193,9 +193,10 @@ export default {
 }
 
 .ip-addresses-popover {
-  padding: 8px;
   display: flex;
   flex-direction: column;
+  min-width: 120px;
+  padding: 8px;
   gap: 16px;
 
   .ip-list {
