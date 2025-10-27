@@ -100,6 +100,14 @@ export default {
       MACHINE_POOL_VALIDATION,
 
       fvFormRuleSets: MACHINE_POOL_VALIDATION.RULESETS,
+      fvExtraRules:   {
+        isAutoscalerMaxGreaterThanMin: () => {
+          const min = this.value?.pool?.autoscalingMinSize || 0;
+          const max = this.value?.pool?.autoscalingMaxSize || 0;
+
+          return max - min >= 0 ? undefined : this.t('cluster.machinePool.autoscaler.validation.isAutoscalerMaxGreaterThanMin');
+        }
+      }
     };
   },
 
@@ -435,6 +443,7 @@ export default {
               :placeholder="t('containerResourceLimit.cpuPlaceholder')"
               :mode="mode"
               :base-unit="t('cluster.machinePool.autoscaler.baseUnit')"
+              :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.AUTOSCALER_MIN)"
             />
           </div>
           <div class="col span-4">
@@ -445,7 +454,7 @@ export default {
               :placeholder="t('containerResourceLimit.cpuPlaceholder')"
               :mode="mode"
               :base-unit="t('cluster.machinePool.autoscaler.baseUnit')"
-              :disabled="busy"
+              :rules="fvGetAndReportPathRules(MACHINE_POOL_VALIDATION.FIELDS.AUTOSCALER_MAX)"
             />
           </div>
         </div>
