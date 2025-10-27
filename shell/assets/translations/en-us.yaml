@@ -158,6 +158,8 @@ generic:
     genericRow: row {index}
   showLess: Show less
   showMore: Show more
+  externalIps: External IPs
+  internalIps: Internal IPs
   opensInNewTab: Opens in a new tab
 
 tabs:
@@ -3652,6 +3654,7 @@ internalExternalIP:
   none: None
   copyInternalIp: Copy internal IP address to clipboard
   copyExternalIp: Copy external IP address to clipboard
+  clickToShowMoreIps: "Click to show {count} more {count, plural, one {IP} other {IPs}}"
 
 istio:
   links:
