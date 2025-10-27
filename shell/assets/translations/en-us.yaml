@@ -2576,7 +2576,7 @@ cluster:
     flannelMasq:
       title: IPv6 NAT
       label: Enable Flannel IPv6 Masquerade
-      banner: If you are using IPv6 addresses and they are not publically routed, for example in the ULA range, you might want to check this option to enable IPv6 NAT; by default, pods use their IPv6 address for outgoing communication.
+      banner: It looks like you're using IPv6. If your IPv6 addresses are not publically routed, for example in the ULA range, you might want to check this option to enable IPv6 NAT; by default, pods use their IPv6 address for outgoing communication.
     systemService:
       coredns: 'CoreDNS'
       local-storage: 'Local Storage'
