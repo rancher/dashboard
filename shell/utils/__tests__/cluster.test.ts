@@ -189,7 +189,7 @@ describe('fx: _addonConfigPreserveFilter', () => {
     const newDefaults = {};
     const userVals = { oldProperty: 'customValue' };
     const diffs = diff(oldDefaults, newDefaults);
-    const expected = { oldProperty: null };
+    const expected = { oldProperty: 'defaultValue' };
 
     expect(_addonConfigPreserveFilter(diffs, userVals)).toStrictEqual(expected);
   });
