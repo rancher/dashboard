@@ -335,6 +335,7 @@ export default {
       :is="configComponent"
       v-if="value.config && configComponent"
       ref="configComponent"
+      v-model:has-ipv6="value.hasIpv6"
       :cluster="cluster"
       :uuid="uuid"
       :mode="mode"

@@ -1576,6 +1576,7 @@ cluster:
       nodeLabel:
         title: Node Labels
         label: Add Label
+      ipv6: "It looks like this cluster uses IPv6 networking: <code>Node Private IP</code> should be set to the cluster's IPV6 address."
     registrationCommand:
       label: Registration Command
       linuxDetail: Run this command on each of the existing Linux machines you want to register.
@@ -2077,6 +2078,21 @@ cluster:
       httpEndpoint: Allow access to EC2 metadata
       httpTokens: Use tokens for metadata
       tagTitle: EC2 Tags
+      enableIpv6:
+        label: Enable IPv6
+        description: "Checking this automatically sets your <a aria-label='scroll to the networking section in cluster configuration' href=\"#networking\">Network Stack Preference Order</a> to <b>DUAL</b> stack, enabling both IPv4 and IPv6. For an IPv6-only cluster, you can manually change that setting to <b>IPv6</b>."
+      ipv6AddressCount:
+        label: IPv6 Address Count
+        tooltip: Specifies the number of IPv6 addresses to assign to the network interface
+        error: IPv6 Address Count must be greater than 0 when using an IPv6 vpc or subnet.
+      enablePrimaryIpv6:
+        label: Enable Static Primary Ipv6
+        description: This allows IPv6 communication for components and workloads.
+      ipv6AddressOnly:
+        label: Use IPv6 Only
+      httpProtocolIpv6: 
+        label: Use IPv6 for instance metadata service
+      ipv6ValidationWarning: When one pool uses an IPv6 or dual-stack subnet/vpc, all pools must use an IPv6 or dual-stack subnet/vpc.
     pnap:
       serverLocation:
         label: Location
@@ -2532,6 +2548,14 @@ cluster:
           label: Accept any certificate (insecure)
         endpointCA:
           label: Endpoint CA Cert
+    stackPreference:
+      label: Stack Preference
+      description: "Stack preference determines the networking stack used by the cluster. The selected value configures the address used for health and readiness probes of calico, etcd, kube-apiserver, kube-scheduler, kube-controller-manager, and kubelet. It also defines the server URL in the <code>authentication-token-webhook-config-file</code> for the Authorized Cluster Endpoint and the advertise-client-urls for etcd during snapshot restore. When set to <code>dual</code>, the cluster uses <code>localhost</code>; when set to <code>ipv6</code>, it uses <code>[::1]</code>; and when set to <code>ipv4</code>, it uses <code>127.0.0.1</code>."
+      options:
+        ipv4: IPv4
+        ipv6: IPv6
+        dual: Dual-Stack
+      errorNeedsIpv6: Stack preference must be set to dual-stack or ipv6 if using ipv6 networking in nodepools.
   k3s:
     systemService:
       coredns: 'CoreDNS'
