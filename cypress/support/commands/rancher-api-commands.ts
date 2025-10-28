@@ -1261,3 +1261,19 @@ Cypress.Commands.add('deleteManyResources', <T = any>({ toDelete, deleteFn, wait
     }
   }
 });
+
+/**
+ * Get cluster ID by cluster name
+ */
+Cypress.Commands.add('getClusterIdByName', (clusterName: string) => {
+  return cy.getRancherResource('v3', 'clusters').then((resp: Cypress.Response<any>) => {
+    const body = resp.body;
+    const cluster = body.data.find((item: any) => item.name === clusterName);
+
+    if (cluster) {
+      return cluster.id;
+    } else {
+      throw new Error(`Cluster with name '${ clusterName }' not found`);
+    }
+  });
+});

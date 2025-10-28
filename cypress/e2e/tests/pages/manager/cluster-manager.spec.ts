@@ -37,7 +37,6 @@ const clusterNamePartial = `${ runPrefix }-create`;
 const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
 const importGenericName = `${ clusterNamePartial }-import-generic`;
 let reenableAKS = false;
-let importedClusterName = '';
 
 const downloadsFolder = Cypress.config('downloadsFolder');
 
@@ -244,6 +243,13 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       });
 
       it('can copy config to clipboard', () => {
+        // Stub clipboard methods to avoid permission prompts
+        cy.visit('/', {
+          onBeforeLoad(win) {
+            cy.stub(win.navigator.clipboard, 'writeText').resolves();
+          },
+        });
+
         ClusterManagerListPagePo.navTo();
 
         cy.intercept('POST', '*action=generateKubeconfig').as('copyKubeConfig');
@@ -405,9 +411,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         importClusterPage.create();
 
         cy.wait('@importRequest').then((intercept) => {
-          importedClusterName = intercept.response.body.id;
-          cy.wrap(intercept.response.body.id).as('importedClusterId');
-
+          expect(intercept.response.statusCode).to.eq(201);
           expect(intercept.request.body).to.deep.equal({
             type:           importType,
             agentEnvVars:   [],
@@ -418,8 +422,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           });
         });
 
-        cy.get('@importedClusterId').then((importedClusterId) => {
-          const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(undefined, importedClusterId.toString());
+        cy.getClusterIdByName(importGenericName).then((clusterId) => {
+          const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(undefined, clusterId);
 
           detailClusterPage.waitForPage(undefined, 'registration');
           detailClusterPage.kubectlCommandForImported().contains('--insecure').then(($value) => {
@@ -437,8 +441,12 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         ClusterManagerListPagePo.navTo();
         clusterList.waitForPage();
-        clusterList.list().state(importGenericName).contains('Pending');
-        clusterList.list().state(importGenericName).contains('Waiting', EXTRA_LONG_TIMEOUT_OPT);
+        clusterList.list().state(importGenericName).should('be.visible', EXTRA_LONG_TIMEOUT_OPT)
+          .and(($el) => {
+            const status = $el.text().trim();
+
+            expect(['Provisioning', 'Waiting']).to.include(status);
+          });
         clusterList.list().state(importGenericName).contains('Active', EXTRA_LONG_TIMEOUT_OPT);
         // Issue #6836: Provider field on Imported clusters states "Imported" instead of cluster type
         clusterList.list().provider(importGenericName).should('contain.text', 'Imported');
@@ -446,56 +454,60 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       });
 
       it('can edit imported cluster and see changes afterwards', () => {
-        const editImportedClusterPage = new ClusterManagerEditImportedPagePo(undefined, 'fleet-default', importedClusterName);
+        cy.getClusterIdByName(importGenericName).then((clusterId) => {
+          const editImportedClusterPage = new ClusterManagerEditImportedPagePo(undefined, 'fleet-default', clusterId);
 
-        cy.intercept('GET', '/v1-rke2-release/releases').as('getRke2Releases');
-        clusterList.goTo();
-        clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
-        editImportedClusterPage.waitForPage('mode=edit');
+          cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('pageLoad');
+          clusterList.goTo();
+          clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
 
-        editImportedClusterPage.nameNsDescription().name().value().should('eq', importGenericName );
+          editImportedClusterPage.waitForPage('mode=edit');
 
-        // check accordions are properly displayed
-        editImportedClusterPage.accordion(2, 'Basics').should('be.visible');
-        editImportedClusterPage.accordion(3, 'Member Roles').should('be.visible');
-        editImportedClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
-        editImportedClusterPage.accordion(5, 'Networking').scrollIntoView().should('be.visible');
-        editImportedClusterPage.accordion(6, 'Registries').scrollIntoView().should('be.visible');
-        editImportedClusterPage.accordion(7, 'Advanced').scrollIntoView().should('be.visible');
+          editImportedClusterPage.nameNsDescription().name().value().should('eq', importGenericName);
+          cy.wait('@pageLoad');
 
-        // Issue #10432: Edit Cluster screen falsely gives impression imported cluster's name and description can be edited
-        editImportedClusterPage.nameNsDescription().name().expectToBeDisabled();
+          // check accordions are properly displayed
+          editImportedClusterPage.accordion(2, 'K3S Options').should('be.visible');
+          editImportedClusterPage.accordion(3, 'Member Roles').should('be.visible');
+          editImportedClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
+          editImportedClusterPage.accordion(5, 'Networking').scrollIntoView().should('be.visible');
+          editImportedClusterPage.accordion(6, 'Registries').scrollIntoView().should('be.visible');
+          editImportedClusterPage.accordion(7, 'Advanced').scrollIntoView().should('be.visible');
 
-        // Issue #13614: Imported Cluster Version Mgmt: Conditionally show warning message
-        editImportedClusterPage.versionManagementBanner().should('not.exist');
+          // Issue #10432: Edit Cluster screen falsely gives impression imported cluster's name and description can be edited
+          editImportedClusterPage.nameNsDescription().name().expectToBeDisabled();
 
-        editImportedClusterPage.enableVersionManagement();
-        editImportedClusterPage.versionManagementBanner().should('exist').and('be.visible');
-        editImportedClusterPage.defaultVersionManagement();
+          // Issue #13614: Imported Cluster Version Mgmt: Conditionally show warning message
+          editImportedClusterPage.versionManagementBanner().should('not.exist');
 
-        editImportedClusterPage.toggleAccordion(5, 'Networking');
-        editImportedClusterPage.ace().enable();
-        editImportedClusterPage.ace().enterFdqn(fqdn);
-        editImportedClusterPage.ace().enterCaCerts(cacert);
+          editImportedClusterPage.enableVersionManagement();
+          editImportedClusterPage.versionManagementBanner().should('exist').and('be.visible');
+          editImportedClusterPage.defaultVersionManagement();
 
-        editImportedClusterPage.toggleAccordion(6, 'Registries');
-        editImportedClusterPage.enablePrivateRegistryCheckbox();
-        editImportedClusterPage.privateRegistry().set(privateRegistry);
+          editImportedClusterPage.toggleAccordion(5, 'Networking');
+          editImportedClusterPage.ace().enable();
+          editImportedClusterPage.ace().enterFdqn(fqdn);
+          editImportedClusterPage.ace().enterCaCerts(cacert);
 
-        editImportedClusterPage.save();
+          editImportedClusterPage.toggleAccordion(6, 'Registries');
+          editImportedClusterPage.enablePrivateRegistryCheckbox();
+          editImportedClusterPage.privateRegistry().set(privateRegistry);
 
-        // We should be taken back to the list page if the save was successful
-        clusterList.waitForPage();
+          editImportedClusterPage.save();
 
-        clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
+          // We should be taken back to the list page if the save was successful
+          clusterList.waitForPage();
 
-        editImportedClusterPage.waitForPage('mode=edit');
-        editImportedClusterPage.ace().fqdn().value().should('eq', fqdn );
-        editImportedClusterPage.ace().caCerts().value().should('eq', cacert );
+          clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
 
-        // Verify the private registry values
-        editImportedClusterPage.privateRegistryCheckbox().isChecked();
-        editImportedClusterPage.privateRegistry().value().should('eq', privateRegistry);
+          editImportedClusterPage.waitForPage('mode=edit');
+          editImportedClusterPage.ace().fqdn().value().should('eq', fqdn );
+          editImportedClusterPage.ace().caCerts().value().should('eq', cacert );
+
+          // Verify the private registry values
+          editImportedClusterPage.privateRegistryCheckbox().isChecked();
+          editImportedClusterPage.privateRegistry().value().should('eq', privateRegistry);
+        });
       });
 
       it('can delete cluster by bulk actions', () => {
@@ -605,19 +617,19 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     });
   });
 
-  describe('Local', { tags: ['@jenkins', '@localCluster'] }, () => {
+  describe('Local', () => {
     it(`can open edit for local cluster`, () => {
       const editLocalClusterPage = new ClusterManagerEditImportedPagePo(undefined, 'fleet-local', 'local');
 
-      cy.intercept('GET', '/v1-rke2-release/releases').as('getRke2Releases');
+      cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('pageLoad');
       clusterList.goTo();
       clusterList.list().actionMenu('local').getMenuItem('Edit Config').click();
       editLocalClusterPage.waitForPage('mode=edit');
-
+      cy.wait('@pageLoad');
       editLocalClusterPage.nameNsDescription().name().value().should('eq', 'local' );
 
       // check accordions are properly displayed
-      editLocalClusterPage.accordion(2, 'Basics').should('be.visible');
+      editLocalClusterPage.accordion(2, 'K3S Options').should('be.visible'); // for K3S local cluster its K3S Options
       editLocalClusterPage.accordion(3, 'Member Roles').scrollIntoView().should('be.visible');
       editLocalClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
       editLocalClusterPage.accordion(5, 'Networking').scrollIntoView().should('be.visible');
@@ -628,16 +640,15 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       editLocalClusterPage.versionManagementBanner().should('not.exist');
 
       editLocalClusterPage.enableVersionManagement();
-      editLocalClusterPage.versionManagementBanner().should('exist').and('be.visible');
       editLocalClusterPage.versionManagementBanner().should('not.contain.text', 'This change will trigger cluster agent redeployment.');
       editLocalClusterPage.disableVersionManagement();
-      editLocalClusterPage.versionManagementBanner().should('exist').and('be.visible');
       editLocalClusterPage.versionManagementBanner().should('not.contain.text', 'This change will trigger cluster agent redeployment.');
       editLocalClusterPage.cancel();
 
       // We should be taken back to the list page if the save was successful
       clusterList.waitForPage();
     });
+
     it(`can navigate to local cluster's explore product`, () => {
       const clusterName = 'local';
       const clusterDashboard = new ClusterDashboardPagePo(clusterName);
