@@ -56,7 +56,7 @@ export async function processAnnouncements(context: Context, announcements: Anno
       logger.error(`No ID For announcement - not going to add a notification for the announcement`);
 
       return;
-    }    
+    }
 
     // Check type
     const targetSplit = announcement.target.split('/');
