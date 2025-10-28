@@ -5,6 +5,9 @@
     "textAlign": "left"
   },
   "login": {
-    "bannerClass": "suse-login-banner-graphic"
-  }
+    "bannerClass": "suse-login-banner-graphic",
+    "logo": "rancher-logo.svg",
+    "logoClass": "suse-logo-login",
+    "welcomeLabelKey": "login.login"
+  }  
 }
