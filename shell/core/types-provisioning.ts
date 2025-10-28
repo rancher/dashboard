@@ -158,6 +158,9 @@ export interface IClusterProvisioner {
    */
   hideCreate?: boolean
 
+  /** Is extension Prime-only */
+  prime?: boolean
+
   /**
    * Also show the provider card in the cluster importing flow
    * If not set, the card will only be shown in the cluster creation page

@@ -364,6 +364,10 @@ export default [
         component: () => interopDefault(import('@shell/pages/c/_cluster/manager/drivers/nodeDriver/index.vue')),
         name:      'c-cluster-manager-driver-nodedriver'
       }, {
+        path:      '/c/:cluster/manager/hostedprovider',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/manager/hostedprovider/index.vue')),
+        name:      'c-cluster-manager-hostedprovider'
+      }, {
         path:      '/c/:cluster/monitoring/alertmanagerconfig',
         component: () => interopDefault(import('@shell/pages/c/_cluster/monitoring/alertmanagerconfig/index.vue')),
         name:      'c-cluster-monitoring-alertmanagerconfig'

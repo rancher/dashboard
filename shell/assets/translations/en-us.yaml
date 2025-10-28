@@ -235,7 +235,7 @@ nav:
     workload: Workloads
     monitoring: Monitoring
     advanced: Advanced
-    drivers: Drivers
+    providers: Providers
     RKE1Configuration: RKE1 Configuration
     admission: Admission
     apps: Apps
@@ -2418,8 +2418,8 @@ cluster:
   providerGroup:
     create-custom1: Use existing nodes and create a cluster using RKE
     create-custom2: Use existing nodes and create a cluster using RKE2/K3s
-    create-kontainer: Create a cluster in a hosted Kubernetes provider
-    register-kontainer: Register an existing cluster in a hosted Kubernetes provider
+    create-hosted: Create a cluster in a hosted Kubernetes provider
+    register-hosted: Register an existing cluster in a hosted Kubernetes provider
     create-rke1: Provision new nodes and create a cluster using RKE
     create-rke2: Provision new nodes and create a cluster using RKE2/K3s
     create-template: Use a Catalog Template to create a cluster
@@ -2717,6 +2717,10 @@ cruResource:
   previewYaml: Edit as YAML
   showYaml: View as YAML
 
+providers:
+  hosted: 
+    title: Hosted Providers
+    prime: Prime only
 drivers:
   kontainer:
     title: Cluster Drivers

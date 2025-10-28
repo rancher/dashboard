@@ -41,6 +41,7 @@ export const DRIVER_TO_IMPORT = {
   googlegke: 'gke',
   amazoneks: 'eks',
   azureaks:  'aks',
+  alibaba:   'alibabacloud'
 };
 
 export default class KontainerDriver extends HybridModel {

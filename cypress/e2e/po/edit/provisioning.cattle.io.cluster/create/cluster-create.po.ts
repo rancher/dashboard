@@ -38,11 +38,11 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
   }
 
   selectCreate(index: number) {
-    return this.resourceDetail().cruResource().selectSubType(0, index).click();
+    return this.resourceDetail().cruResource().selectSubType(1, index).click();
   }
 
   selectCustom(index: number) {
-    return this.resourceDetail().cruResource().selectSubType(1, index).click();
+    return this.resourceDetail().cruResource().selectSubType(2, index).click();
   }
 
   commandFromCustomClusterUI() {
