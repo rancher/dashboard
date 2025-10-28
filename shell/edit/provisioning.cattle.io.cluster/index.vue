@@ -389,17 +389,16 @@ export default {
         }
 
         const subtype = {
-          id:          ext.id,
-          label:       ext.label || getters['i18n/t'](`cluster.provider.${ ext.id }`),
-          description: ext.description,
+          id:        ext.id,
+          label:     ext.label || getters['i18n/t'](`cluster.provider.${ ext.id }`),
           icon,
           iconClass,
-          group:       ext.group || _RKE2,
-          disabled:    ext.disabled || false,
-          link:        ext.link,
-          tag:         ext.tag,
-          component:   ext.component,
-          hidden:      ext.hidden,
+          group:     ext.group || _RKE2,
+          disabled:  ext.disabled || false,
+          link:      ext.link,
+          tag:       ext.tag,
+          component: ext.component,
+          hidden:    ext.hidden,
         };
 
         out.push(subtype);
