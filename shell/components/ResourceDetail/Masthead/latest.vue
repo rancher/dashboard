@@ -1,4 +1,5 @@
 <script lang="ts">
+/* eslint-disable */
 import { Banner } from '@components/Banner';
 import TitleBar from '@shell/components/Resource/Detail/TitleBar/index.vue';
 import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
@@ -7,6 +8,7 @@ import { useDefaultMetadataForLegacyPagesProps } from '@shell/components/Resourc
 import { useResourceDetailBannerProps } from '@shell/components/Resource/Detail/composables';
 import { computed } from 'vue';
 
+// We are disabling eslint for this script to allow the use of the Props interface
 export interface Props {
   value?: Object;
   resourceSubtype?: string;
