@@ -1,3 +1,4 @@
+import { useOnShowConfiguration } from '@shell/components/Resource/Detail/composables';
 import { TitleBarProps } from '@shell/components/Resource/Detail/TitleBar/index.vue';
 import { computed, Ref, toValue } from 'vue';
 import { useRoute } from 'vue-router';
@@ -23,7 +24,7 @@ export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: Ref<str
         resource:  resourceValue.type
       }
     };
-    const onShowConfiguration = resourceValue.disableResourceDetailDrawer ? undefined : (returnFocusSelector: string) => resourceValue.showConfiguration(returnFocusSelector);
+    const onShowConfiguration = resourceValue.disableResourceDetailDrawer ? undefined : useOnShowConfiguration(resource);
 
     return {
       resource:           resourceValue,

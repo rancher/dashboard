@@ -6,18 +6,19 @@ import { computed, toValue, Ref } from 'vue';
 import {
   useLiveDate, useNamespace, useProject, useResourceDetails, useWorkspace
 } from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/identifying-fields';
+import { useOnShowConfiguration } from '@shell/components/Resource/Detail/composables';
 
 export const useBasicMetadata = (resource: any) => {
   const labels = useDefaultLabels(resource);
   const annotations = useDefaultAnnotations(resource);
-  const resourceValue = toValue(resource);
+  const onShowConfiguration = useOnShowConfiguration(resource);
 
   return computed(() => {
     return {
-      resource:            toValue(resource),
-      labels:              labels.value,
-      annotations:         annotations.value,
-      onShowConfiguration: () => resourceValue.showConfiguration()
+      resource:    toValue(resource),
+      labels:      labels.value,
+      annotations: annotations.value,
+      onShowConfiguration
     };
   });
 };
@@ -28,7 +29,7 @@ export const useDefaultMetadataProps = (resource: any, additionalIdentifyingInfo
 
   const identifyingInformation = computed(() => [...defaultIdentifyingInformation.value, ...(additionalIdentifyingInformationValue || [])]);
   const basicMetaData = useBasicMetadata(resource);
-  const resourceValue = toValue(resource);
+  const onShowConfiguration = useOnShowConfiguration(resource);
 
   return computed(() => {
     return {
@@ -36,7 +37,7 @@ export const useDefaultMetadataProps = (resource: any, additionalIdentifyingInfo
       identifyingInformation: identifyingInformation.value,
       labels:                 basicMetaData.value.labels,
       annotations:            basicMetaData.value.annotations,
-      onShowConfiguration:    (returnFocusSelector: string) => resourceValue.showConfiguration(returnFocusSelector)
+      onShowConfiguration
     };
   });
 };
@@ -47,7 +48,6 @@ export const useDefaultMetadataForLegacyPagesProps = (resource: any) => {
   const workspace = useWorkspace(resource);
   const namespace = useNamespace(resource);
   const liveDate = useLiveDate(resource);
-  const resourceValue = toValue(resource);
 
   const identifyingInformation = computed((): IdentifyingInformationRow[] => {
     const defaultInfo = [
@@ -71,7 +71,7 @@ export const useDefaultMetadataForLegacyPagesProps = (resource: any) => {
       identifyingInformation: identifyingInformation.value,
       labels:                 basicMetaData.value.labels,
       annotations:            basicMetaData.value.annotations,
-      onShowConfiguration:    (returnFocusSelector?: string) => resourceValue.showConfiguration(returnFocusSelector)
+      onShowConfiguration:    basicMetaData.value.onShowConfiguration
     };
   });
 };
