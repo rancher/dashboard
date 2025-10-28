@@ -515,7 +515,7 @@ export default {
           :options="subnetworkOptions"
           :disabled="!poolCreateMode"
           option-key="name"
-          option-label="name"
+          option-label="label"
           :loading="loadingNetworks"
           data-testid="gce-subnetwork-select"
         />
