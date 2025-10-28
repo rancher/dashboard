@@ -52,6 +52,12 @@ export async function processAnnouncements(context: Context, announcements: Anno
       return;
     }
 
+    if (!announcement.id) {
+      logger.error(`No ID For announcement - not going to add a notification for the announcement`);
+
+      return;
+    }    
+
     // Check type
     const targetSplit = announcement.target.split('/');
     const target = targetSplit[0];
@@ -65,12 +71,13 @@ export async function processAnnouncements(context: Context, announcements: Anno
         // Show a notification
         const subType = targetSplit.length === 2 ? targetSplit[1] : 'announcement';
 
-        // Because 0 is a falsy, see if we find something of type number to check for existence
-        if (typeof ALLOWED_NOTIFICATIONS[subType] !== 'number') {
+        if (!(subType in ALLOWED_NOTIFICATIONS)) {
           logger.error(`Announcement notification type ${ subType } is not supported`);
-        } else {
-          level = ALLOWED_NOTIFICATIONS[subType];
+
+          return;
         }
+
+        level = ALLOWED_NOTIFICATIONS[subType];
       } else if (target === TARGET_HOME_PAGE) {
         level = NotificationLevel.Hidden;
         data = {
@@ -105,8 +112,11 @@ export async function processAnnouncements(context: Context, announcements: Anno
         title:       announcement.title,
         message:     announcement.message,
         handlerName: DynamicContentAnnouncementHandlerName,
-        data,
       };
+
+      if (data && Object.keys(data).length > 0) {
+        notification.data = data;
+      }
 
       if (announcement.cta?.primary) {
         notification.primaryAction = {
