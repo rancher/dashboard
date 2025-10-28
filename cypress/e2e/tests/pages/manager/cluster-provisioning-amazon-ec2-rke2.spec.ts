@@ -97,7 +97,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { testIsolation:
       createRKE2ClusterPage.basicsTab().kubernetesVersions().clickOptionWithLabel(version);
 
       createRKE2ClusterPage.machinePoolTab().networks().toggle();
-      createRKE2ClusterPage.machinePoolTab().networks().clickOptionWithLabel('maxdualstack-vpc');
+      createRKE2ClusterPage.machinePoolTab().networks().clickOptionWithLabel('default');
 
       cy.intercept('POST', 'v1/provisioning.cattle.io.clusters').as('createRke2Cluster');
       createRKE2ClusterPage.create();
