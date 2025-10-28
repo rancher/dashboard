@@ -15,18 +15,45 @@ export interface Props {
 </script>
 
 <script lang="ts" setup>
+import { useStore } from 'vuex';
+
 const props = withDefaults(defineProps<Props>(), { value: () => ({}), resourceSubtype: undefined });
 
+const uiCtxResource = computed(() => {
+  const {
+    name, metadata, kind, state
+  } = (props.value || {}) as any;
+
+  return {
+    name,
+    namespace: metadata?.namespace,
+    kind,
+    state,
+  };
+});
 const resourceSubtype = computed(() => props.resourceSubtype);
 const titleBarProps = useDefaultTitleBarProps(props.value, resourceSubtype);
 const metadataProps = useDefaultMetadataForLegacyPagesProps(props.value);
 const bannerProps = useResourceDetailBannerProps(props.value);
+
+const store = useStore();
 </script>
 
 <template>
   <TitleBar v-bind="titleBarProps" />
   <Banner
     v-if="bannerProps"
+    v-ui-context="{
+      store: store,
+      icon: 'icon-info',
+      hookable: true,
+      value: {
+        bannerProps,
+        resource: uiCtxResource
+      },
+      tag: '__details-state-banner',
+      description: 'Status Message'
+    }"
     class="new state-banner"
     v-bind="bannerProps"
   />
