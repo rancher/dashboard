@@ -176,8 +176,26 @@ describe('fx: diff', () => {
 
     const result = diff(from, to);
     const expected = {
+      baz:  null,
+      bang: 'baz'
+    };
+
+    expect(result).toStrictEqual(expected);
+  });
+  it('should return an object with property "baz" different than "null" if using the flag "preventNull" as true', () => {
+    const from = {
+      foo: 'bar',
+      baz: 'bang',
+    };
+    const to = {
+      foo:  'bar',
+      bang: 'baz'
+    };
+
+    const result = diff(from, to, true);
+    const expected = {
+      // the property "baz" having value !== null covers test case for https://github.com/rancher/dashboard/issues/15710
       baz:  'bang',
-      // the property "bang" having value !== null covers test case for https://github.com/rancher/dashboard/issues/15710
       bang: 'baz'
     };
 
