@@ -185,25 +185,18 @@ export default {
           }
         }
 
-        const userDataOptions = [];
-        const networkDataOptions = [];
+        let userDataOptions = [];
+        let networkDataOptions = [];
 
-        (res.configMaps.value?.data || []).map((O) => {
-          const cloudTemplate =
-            O.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT];
+        (res.configMaps.value?.data || []).map((configMap) => {
+          const cloudTemplate = configMap.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT];
 
           if (cloudTemplate === 'user') {
-            userDataOptions.push({
-              label: O.id,
-              value: O.data.cloudInit
-            });
+            userDataOptions = this.getCloudDataOptions(userDataOptions, configMap);
           }
 
           if (cloudTemplate === 'network') {
-            networkDataOptions.push({
-              label: O.id,
-              value: O.data.cloudInit
-            });
+            networkDataOptions = this.getCloudDataOptions(networkDataOptions, configMap);
           }
         });
 
@@ -591,7 +584,21 @@ export default {
 
   methods: {
     stringify,
+    getCloudDataOptions(options, configMap) {
+      // find duplicated value, merge into the same template label name
+      const duplicatedValue = options.find((opt) => opt.value === configMap.data.cloudInit);
 
+      if (duplicatedValue) {
+        duplicatedValue.label += `, ${ configMap.id }`;
+      } else {
+        options.push({
+          label: configMap.id,
+          value: configMap.data.cloudInit
+        });
+      }
+
+      return options;
+    },
     test() {
       const errors = [];
 
