@@ -3,5 +3,8 @@
   "banner": {
     "bannerClass": "suse-banner-graphic",
     "textAlign": "left"
+  },
+  "login": {
+    "bannerClass": "suse-login-banner-graphic"
   }
 }

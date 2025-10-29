@@ -32,6 +32,7 @@ import loadPlugins from '@shell/plugins/plugin';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import TabTitle from '@shell/components/TabTitle.vue';
+import { getBrandMeta } from '@shell/utils/brand';
 
 export default {
   name:       'Login',
@@ -134,6 +135,19 @@ export default {
     hasLoginMessage() {
       return this.errorToDisplay || this.loggedOut || this.timedOut;
     },
+
+    customizations() {
+      const globalSettings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
+      const setting = globalSettings?.find((gs) => gs.id === SETTING.BRAND);
+      const brandMeta = getBrandMeta(setting?.value);
+      const login = brandMeta?.login || {};
+
+      return login;
+    },
+
+    bannerClass() {
+      return this.customizations.bannerClass;
+    }
   },
 
   async fetch() {
@@ -524,6 +538,7 @@ export default {
         </div>
       </div>
       <BrandImage
+        :class="bannerClass"
         class="col span-6 landscape"
         data-testid="login-landscape__img"
         file-name="login-landscape.svg"

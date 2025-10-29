@@ -92,6 +92,11 @@
       object-position: right;
     }
   }
+
+  // SUSE Theme aligns graphic to left so that the container ship stays visible
+  .suse-login-banner-graphic {
+    object-position: left;
+  }
 }
 
 // Ensure that with a small window size, the banner centers, so that the text does not overlay
