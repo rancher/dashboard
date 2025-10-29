@@ -1,5 +1,18 @@
 #!/usr/bin/env node
 
+/**
+ * This script is used by a GitHub Actions workflow that handles 'issue opened' events.
+ *
+ * When an issue is opened it:
+ *
+ * - Reads the event payload from the issue event
+ * - Ensures the issue has one of the QA labels (QA/dev-automation, QA/manual-test, QA/None). If it does not, then:
+ *   - If the issue has `kind/tech-debt` -> add `QA/None`
+ *   - Else if the issue has `ember` -> add `QA/manual-test`
+ *   - Otherwise -> add `QA/dev-automation`
+ * - Adds the label `area/dashboard` if no other `area/*` labels are present
+ */
+
 const request = require('./request');
 
 const QA_DEV_AUTOMATION_LABEL = 'QA/dev-automation';
@@ -8,6 +21,9 @@ const QA_NONE_LABEL = 'QA/None';
 
 const EMBER_LABEL = 'ember';
 const TECH_DEBT_LABEL = 'kind/tech-debt';
+
+const AREA_LABEL_PREFIX = 'area/';
+const DEFAULT_AREA_LABEL = 'area/dashboard';
 
 // The event object
 const event = require(process.env.GITHUB_EVENT_PATH);
@@ -28,7 +44,6 @@ async function processOpenAction() {
 
   // Check we have a QA label
   if (!labels.includes(QA_DEV_AUTOMATION_LABEL) && !labels.includes(QA_MANUAL_TEST_LABEL) && !labels.includes(QA_NONE_LABEL)) {
-
     // Add the appropriate QA label
     if (labels.includes(TECH_DEBT_LABEL)) {
       console.log('    Issue does not have a QA label, adding QA/None label (as issue is marked as tech-debt)');
@@ -43,6 +58,17 @@ async function processOpenAction() {
 
       labels.push(QA_DEV_AUTOMATION_LABEL);
     }
+
+    didUpdateLabels = true;
+  }
+
+  // If we don't have an `area/*` label, add the default one
+  const hasAreaLabel = labels.find((label) => label.startsWith(AREA_LABEL_PREFIX));
+
+  if (!hasAreaLabel) {
+    console.log(`    Issue does not have an area label, adding default area label: ${ DEFAULT_AREA_LABEL }`);
+
+    labels.push(DEFAULT_AREA_LABEL);
 
     didUpdateLabels = true;
   }
