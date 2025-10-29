@@ -111,6 +111,14 @@ export const mutations = {
     state.modalData = data;
   },
 
+  updateModalData(state, data) {
+    state.modalData = state.modalData || {};
+
+    data.forEach(({ key, value }) => {
+      state.modalData[key] = value;
+    });
+  },
+
   clearCallbackData(state) {
     state.performCallbackData = undefined;
   },
