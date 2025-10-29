@@ -185,23 +185,8 @@ export default {
           }
         }
 
-        let userDataOptions = [];
-        let networkDataOptions = [];
-
-        (res.configMaps.value?.data || []).map((configMap) => {
-          const cloudTemplate = configMap.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT];
-
-          if (cloudTemplate === 'user') {
-            userDataOptions = this.getCloudDataOptions(userDataOptions, configMap);
-          }
-
-          if (cloudTemplate === 'network') {
-            networkDataOptions = this.getCloudDataOptions(networkDataOptions, configMap);
-          }
-        });
-
-        this.userDataOptions = userDataOptions;
-        this.networkDataOptions = networkDataOptions;
+        this.userDataOptions = this.genCloudDataOptions(res.configMaps.value?.data, 'user');
+        this.networkDataOptions = this.genCloudDataOptions(res.configMaps.value?.data, 'network');
         this.images = res.images.value?.data;
         this.storageClass = res.storageClass.value?.data;
         this.networks = res.networks.value?.data;
@@ -584,7 +569,19 @@ export default {
 
   methods: {
     stringify,
-    getCloudDataOptions(options, configMap) {
+    genCloudDataOptions(configMaps = [], type = 'user') {
+      return configMaps.reduce((acc, configMap) => {
+        const cloudTemplate = configMap.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT];
+
+        if (cloudTemplate === type) {
+          acc = this.mergeCloudDataOptions(acc, configMap);
+        }
+
+        return acc;
+      }, []);
+    },
+
+    mergeCloudDataOptions(options, configMap) {
       // find duplicated value, merge into the same template label name
       const duplicatedValue = options.find((opt) => opt.value === configMap.data.cloudInit);
 
