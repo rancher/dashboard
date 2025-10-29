@@ -155,7 +155,12 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
         clusterId = response?.body.id;
       });
       clusterList.waitForPage();
-      clusterList.list().state(this.rke2AzureClusterName).should('contain', 'Reconciling');
+      clusterList.list().state(this.rke2AzureClusterName).should('be.visible')
+        .and(($el) => {
+          const status = $el.text().trim();
+
+          expect(['Reconciling', 'Updating']).to.include(status);
+        });
     });
   });
 

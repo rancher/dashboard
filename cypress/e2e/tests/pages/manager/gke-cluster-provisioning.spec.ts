@@ -83,7 +83,7 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
     createGKEClusterPage.selectKubeProvider(2);
     loadingPo.checkNotExists();
     createGKEClusterPage.rke2PageTitle().should('include', 'Create Google GKE');
-    createGKEClusterPage.waitForPage('type=googlegke&rkeType=rke2');
+    createGKEClusterPage.waitForPage('type=gke&rkeType=rke2');
 
     // create GKE cloud credential
     cloudCredForm.saveButton().expectToBeDisabled();
@@ -98,7 +98,7 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
       cloudcredentialId = req.response?.body.id.replace(':', '%3A');
 
       // Authenticate GKE credential by providing the Project ID
-      createGKEClusterPage.waitForPage('type=googlegke&rkeType=rke2');
+      createGKEClusterPage.waitForPage('type=gke&rkeType=rke2');
       createGKEClusterPage.authProjectId().set( gkeProjectId );
       cy.intercept('POST', `/meta/gkeVersions?cloudCredentialId=${ cloudcredentialId }&projectId=${ gkeProjectId }&zone=${ gkeDefaultZone }`).as('getGKEVersions');
       cloudCredForm.authenticateButton().click();
@@ -106,7 +106,7 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
       loadingPo.checkNotExists();
 
       // Verify that gke-zone-select dropdown is set to the default zone
-      createGKEClusterPage.waitForPage('type=googlegke&rkeType=rke2');
+      createGKEClusterPage.waitForPage('type=gke&rkeType=rke2');
       ClusterManagerCreateGKEPagePo.getGkeZoneSelect().checkOptionSelected(DEFAULT_GCP_ZONE);
 
       // Get latest GKE kubernetes version and verify that gke-version-select dropdown is set to the default version as defined by versionOptions(); in Config.vue
