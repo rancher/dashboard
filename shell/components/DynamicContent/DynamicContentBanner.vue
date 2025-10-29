@@ -4,6 +4,7 @@
  */
 import DynamicContentIcon from './DynamicContentIcon.vue';
 import DynamicContentCloseButton from './DynamicContentCloseButton.vue';
+import Markdown from '@shell/components/Markdown.vue';
 import { useDynamicContent, DynamicInputProps } from './content';
 
 const props = defineProps<DynamicInputProps>();
@@ -31,7 +32,10 @@ const {
         {{ dynamicContent.title }}
       </div>
       <div class="dc-message">
-        {{ dynamicContent.message }}
+        <Markdown
+          v-if="dynamicContent.message"
+          v-model:value="dynamicContent.message"
+        />
       </div>
     </div>
     <div class="dc-actions">
