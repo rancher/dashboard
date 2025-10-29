@@ -1,8 +1,10 @@
-import { compatibleVersionsFor, APP_UPGRADE_STATUS } from '@shell/store/catalog';
+import { APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import {
   REPO_TYPE, REPO, CHART, VERSION, _FLAGGED, HIDE_SIDE_NAV, CATEGORY, TAG, DEPRECATED as DEPRECATED_QUERY
 } from '@shell/config/query-params';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
+import { getLatestCompatibleVersion } from '@shell/utils/chart';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { CATALOG, ZERO_TIME } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
@@ -10,17 +12,7 @@ import day from 'dayjs';
 
 export default class Chart extends SteveModel {
   queryParams(from, hideSideNav) {
-    let version;
-    const chartVersions = this.versions;
-    const currentCluster = this.$rootGetters['currentCluster'];
-    const workerOSs = currentCluster?.workerOSs;
-    const compatibleVersions = compatibleVersionsFor(this, workerOSs);
-
-    if (compatibleVersions.length) {
-      version = compatibleVersions[0].version;
-    } else {
-      version = chartVersions[0].version;
-    }
+    const version = this.latestCompatibleVersion.version;
 
     const out = {
       [REPO_TYPE]: this.repoType,
@@ -116,6 +108,26 @@ export default class Chart extends SteveModel {
   }
 
   /**
+   * Retrieves the latest chart version that is compatible with the current cluster's OS and user's pre-release preference.
+   * It caches the result for efficiency.
+   *
+   * @returns {Object} The latest compatible chart version object.
+   */
+  get latestCompatibleVersion() {
+    if (this._latestCompatibleVersion) {
+      return this._latestCompatibleVersion;
+    }
+
+    const currentCluster = this.$rootGetters['currentCluster'];
+    const workerOSs = currentCluster?.workerOSs;
+    const showPrerelease = this.$rootGetters['prefs/get'](SHOW_PRE_RELEASE);
+
+    this._latestCompatibleVersion = getLatestCompatibleVersion(this, workerOSs, showPrerelease);
+
+    return this._latestCompatibleVersion;
+  }
+
+  /**
    * Builds structured metadata for display in RcItemCard.vue:
    * - Sub-header (version and last updated)
    * - Footer (repository, categories, tags)
@@ -125,7 +137,7 @@ export default class Chart extends SteveModel {
    */
   get cardContent() {
     if (!this._cardContent) {
-      const latestVersion = this.versions?.[0] || {};
+      const latestVersion = this.latestCompatibleVersion;
       const subHeaderItems = [];
 
       if (latestVersion) {
