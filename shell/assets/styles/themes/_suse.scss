@@ -81,4 +81,21 @@
     --toggle-off-bg: #{$grey-70};
     --sortable-table-selected-bg: #3f4350;
   }
+  
+  // SUSE Theme uses a smaller banner graphic
+  .suse-banner-graphic {
+    height: 160px;
+
+    > img {
+      object-position: right;
+    }
+  }
+}
+
+// Ensure that with a small window size, the banner centers, so that the text does not overlay
+// directly on the heavier part of the graphic
+@media (max-width: 860px) {
+  .suse .suse-banner-graphic > img {
+    object-position: center;
+  }  
 }

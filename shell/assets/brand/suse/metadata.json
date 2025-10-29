@@ -1,3 +1,7 @@
 {
-    "hasStylesheet": "true"
+  "hasStylesheet": "true",
+  "banner": {
+    "bannerClass": "suse-banner-graphic",
+    "textAlign": "left"
+  }
 }
