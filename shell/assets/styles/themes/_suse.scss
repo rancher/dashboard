@@ -97,6 +97,16 @@
   .suse-login-banner-graphic {
     object-position: left;
   }
+
+  // Styling for logo image on the login screen
+  .suse-logo-login {
+    $suse-logo-width: 280px;
+
+    width: $suse-logo-width;
+    max-width: $suse-logo-width;
+    align-self: center;
+    margin-bottom: 30px;
+  }  
 }
 
 // Ensure that with a small window size, the banner centers, so that the text does not overlay

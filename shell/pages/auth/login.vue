@@ -142,11 +142,19 @@ export default {
       const brandMeta = getBrandMeta(setting?.value);
       const login = brandMeta?.login || {};
 
-      return login;
+      return {
+        welcomeLabelKey: 'login.welcome',
+        logoClass:       'login-logo',
+        ...login,
+      };
     },
 
     bannerClass() {
       return this.customizations.bannerClass;
+    },
+
+    brandLogo() {
+      return this.customizations.logo;
     }
   },
 
@@ -349,11 +357,20 @@ export default {
     </TabTitle>
     <div class="row gutless mb-20">
       <div class="col span-6 p-20">
-        <p class="text-center">
+        <p
+          v-if="!brandLogo"
+          class="text-center"
+        >
           {{ t('login.howdy') }}
         </p>
+        <BrandImage
+          v-else
+          :class="{[customizations.logoClass]: !!customizations.logoClass}"
+          :file-name="brandLogo"
+          :alt="t('login.landscapeAlt')"
+        />
         <h1 class="text-center login-welcome">
-          {{ t('login.welcome', {vendor}) }}
+          {{ t(customizations.welcomeLabelKey, {vendor}) }}
         </h1>
         <div
           class="login-messages"
@@ -565,6 +582,12 @@ export default {
 
     .login-welcome {
       margin: 0
+    }
+
+    .login-logo {
+      align-self: center;
+      max-width: 260px;
+      margin-bottom: 20px;
     }
 
     .login-messages {
