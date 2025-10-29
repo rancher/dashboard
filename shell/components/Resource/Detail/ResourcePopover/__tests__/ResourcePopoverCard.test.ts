@@ -1,12 +1,6 @@
 import { mount, VueWrapper } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import ResourcePopoverCard from '@shell/components/Resource/Detail/ResourcePopover/ResourcePopoverCard.vue';
-import Card from '@shell/components/Resource/Detail/Card/index.vue';
-import ActionMenu from '@shell/components/ActionMenuShell.vue';
-
-const mockI18n = { t: (key: string) => key };
-
-jest.mock('@shell/composables/useI18n', () => ({ useI18n: () => mockI18n }));
 
 describe('component: ResourcePopoverCard.vue', () => {
   let wrapper: VueWrapper<any>;
@@ -44,7 +38,6 @@ describe('component: ResourcePopoverCard.vue', () => {
       props:  { resource },
       global: {
         plugins:    [store],
-        stubs:      { ActionMenu: true },
         components: { SomeFormatterComponent }
       },
     });
@@ -56,28 +49,6 @@ describe('component: ResourcePopoverCard.vue', () => {
 
   afterEach(() => {
     wrapper.unmount();
-  });
-
-  it('should render the Card with the correct title', () => {
-    const card = wrapper.findComponent(Card);
-
-    expect(card.exists()).toBe(true);
-    expect(card.props('title')).toBe(mockResource.nameDisplay);
-  });
-
-  it('should render the ActionMenu with the correct resource prop', () => {
-    const actionMenu = wrapper.findComponent(ActionMenu);
-
-    expect(actionMenu.exists()).toBe(true);
-    expect(actionMenu.props('resource')).toStrictEqual(mockResource);
-  });
-
-  it('should emit "action-invoked" when ActionMenu emits it', async() => {
-    const actionMenu = wrapper.findComponent(ActionMenu);
-
-    await actionMenu.vm.$emit('action-invoked');
-
-    expect(wrapper.emitted('action-invoked')).toHaveLength(1);
   });
 
   it('should render a row for each item in resource.glance', () => {

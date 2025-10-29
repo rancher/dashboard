@@ -141,7 +141,7 @@ export default {
       }
 
       // blocked-post means you can post through norman, but not through steve.
-      if ( this.schema && !this.schema?.collectionMethods.find((x) => ['blocked-post', 'post'].includes(x.toLowerCase())) ) {
+      if ( this.schema && this.schema?.collectionMethods && !this.schema?.collectionMethods.find((x) => ['blocked-post', 'post'].includes(x.toLowerCase())) ) {
         return false;
       }
 

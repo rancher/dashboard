@@ -7,6 +7,7 @@ export interface InstanceType {
   label: string,
   groupLabel: string,
   supportedUsageClasses: string[]
+  supportedArchitectures: string[]
 }
 
 export interface InstanceTypeOption {

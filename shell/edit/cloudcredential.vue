@@ -139,8 +139,8 @@ export default {
       const fromDrivers = [...this.nodeDrivers, ...this.kontainerDrivers]
         .filter((x) => x.spec.active && x.id !== 'rancherkubernetesengine')
         .map((x) => x.spec.displayName || x.id);
+      const fromExtensions = this.extensions?.filter((x) => !x.hidden).map((x) => x.id) || [];
 
-      const fromExtensions = this.extensions?.filter((x) => !!this.getCustomCloudCredentialComponent(x?.id)).map((x) => x?.id) || [];
       const providers = [...fromDrivers, ...fromExtensions];
 
       let types = uniq(providers.map((x) => this.$store.getters['plugins/credentialDriverFor'](x)));

@@ -400,16 +400,6 @@ export default {
       }
     },
 
-    scrollToBottom() {
-      this.$nextTick(() => {
-        const scrollable = document.getElementsByTagName('main')[0];
-
-        if (scrollable) {
-          scrollable.scrollTop = scrollable.scrollHeight;
-        }
-      });
-    },
-
     updateBeforeSave() {
       this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
 

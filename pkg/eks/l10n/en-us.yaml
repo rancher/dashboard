@@ -1,5 +1,6 @@
 ---
 eks:
+  description: Provision new Amazon EKS (Elastic Kubernetes Service) clusters or register existing ones.
   accordionHeaders:
     cluster: Cluster Options
     clusterAgent: Cluster Agent Configuration
@@ -42,6 +43,14 @@ eks:
     label: Cluster to Register
   label: Amazon EKS
   nodeGroups:
+    architecture:
+      label: Architecture
+      all:
+        label: All
+      x86_64:
+        label: x86_64
+      arm64:
+        label: ARM
     desiredSize:
       label: Desired ASG Size
     diskSize:

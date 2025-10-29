@@ -49,6 +49,14 @@ $primary-50      : #A7BFF1; // Active dark
 $primary-20      : #EDF2FC;
 $primary-15      : #EEF1F6; // Category active light
 
+$green-140    : #025937;
+$green-120    : #008657;
+$green-jungle : #30BA78;
+$green-80     : #42D29F;
+$green-60     : #83E1BE;
+$green-40     : #C0EFDE;
+$green-20     : #EAFAF4;
+
 $secondary       : $grey-50;
 $link            : $primary-80;
 
@@ -728,8 +736,8 @@ BODY, .theme-light {
   --error-badge    :  #{$error};
   --on-error-banner : #FFFFFF;
 
-  --error-banner-text: #{$error};
-  --warning-banner-text: var(--warning-text);
+  --error-banner-text: #{$grey-100};
+  --warning-banner-text: #{$grey-100};
 }
 
 BODY, .theme-dark {
@@ -847,7 +855,7 @@ BODY, .theme-dark {
   // Header, Footer and Consent banner defaults
   --banner-text-color          : #{$lightest};
 
-  --primary-keyboard-focus     : #6889EE;
+  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l + 10));
 
   --nav-bg                     : #{$body-bg};
   --nav-active                 : #333;
@@ -1058,7 +1066,7 @@ BODY, .theme-dark {
   --rc-disabled-text-color: #{$gray004};
 
   --error-text    : #FFAC99;
-  --warning-text  : #{contrast-color($warning)};;
+  --warning-text  : #{contrast-color($warning)};
 
   --success-badge     : #{rgba($success, 10%)};
   --on-success-banner : #00B752;
@@ -1074,7 +1082,7 @@ BODY, .theme-dark {
 
   --error-banner-bg: #301D1D;
 
-  --warning-banner-text : var(--warning-text);
-  --error-banner-text   : var(--error-text);
+  --warning-banner-text : #{$grey-0};
+  --error-banner-text   : #{$grey-0};
 }
 

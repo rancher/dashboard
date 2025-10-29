@@ -119,6 +119,7 @@ export const SCALE_POOL_PROMPT = create('scale-pool-prompt', null, { parseJSON }
 export const READ_NEW_RELEASE = create('read-new-release', '', { parseJSON });
 export const READ_SUPPORT_NOTICE = create('read-support-notice', '', { parseJSON });
 export const READ_UPCOMING_SUPPORT_NOTICE = create('read-upcoming-support-notice', '', { parseJSON });
+export const READ_ANNOUNCEMENTS = create('read-announcements', '', { parseJSON });
 
 // --------------------
 

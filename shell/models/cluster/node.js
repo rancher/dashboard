@@ -4,7 +4,6 @@ import {
   CAPI, MANAGEMENT, METRIC, NORMAN, POD
 } from '@shell/config/types';
 import { parseSi } from '@shell/utils/units';
-import findLast from 'lodash/findLast';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { LOCAL } from '@shell/config/query-params';
@@ -96,15 +95,23 @@ export default class ClusterNode extends SteveModel {
     return this.status?.addresses || [];
   }
 
+  get internalIps() {
+    return this.addresses.filter((address) => address.type === 'InternalIP').map((address) => address.address);
+  }
+
+  get externalIps() {
+    const annotationAddress = this.metadata.annotations[RKE.EXTERNAL_IP];
+    const statusAddresses = this.addresses.filter((address) => address.type === 'ExternalIP').map((address) => address.address);
+
+    return statusAddresses.concat(annotationAddress || []);
+  }
+
   get internalIp() {
-    return findLast(this.addresses, (address) => address.type === 'InternalIP')?.address;
+    return this.internalIps[0];
   }
 
   get externalIp() {
-    const annotationAddress = this.metadata.annotations[RKE.EXTERNAL_IP];
-    const statusAddress = findLast(this.addresses, (address) => address.type === 'ExternalIP')?.address;
-
-    return statusAddress || annotationAddress;
+    return this.externalIps[0];
   }
 
   get labels() {

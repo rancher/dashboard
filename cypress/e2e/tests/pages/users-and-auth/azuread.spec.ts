@@ -27,9 +27,9 @@ describe('AzureAD', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
     cy.login();
     HomePagePo.goToAndWaitForGet();
     AuthProviderPo.navTo();
-    authProviderPo.waitForPage();
+    authProviderPo.waitForUrlPathWithoutContext();
     authProviderPo.selectProvider(AuthProvider.AZURE);
-    azureadPo.waitForPage();
+    azureadPo.waitForUrlPathWithoutContext();
   });
 
   it('can navigate Auth Provider and select AzureAD', () => {

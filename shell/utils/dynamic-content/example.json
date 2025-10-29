@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "releases": [
+    {
+      "name": "2.12.2"
+    },
+    {
+      "name": "2.11.3"
+    },
+    {
+      "name": "2.10.3"
+    }
+  ],
+  "announcements": [
+    {
+      "id": "security-update",
+      "target": "notification/announcement",
+      "title": "Important Security Update",
+      "message": "A critical security vulnerability has been discovered in version 2.10.1. Users are strongly advised to update to version 2.12.2 immediately to ensure their systems remain secure.",
+      "cta": {
+        "primary" : {
+          "action": "Update Now",
+          "link": "https://www.suse.com/"
+        }
+      }
+    },
+    {
+      "id": "suse-rocks",
+      "target": "homepage/banner",
+      "title": "Important Security Update",
+      "message": "A critical security vulnerability has been discovered in version 2.10.1. Users are strongly advised to update to version 2.12.2 immediately to ensure their systems remain secure.",
+      "cta": {
+        "primary" : {
+          "action": "Update Now",
+          "link": "https://www.suse.com/"
+        }
+      }
+    }
+  ]
+}

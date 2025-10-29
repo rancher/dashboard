@@ -1203,7 +1203,7 @@ export default {
         const { allValues, values: crdValues } = versionInfo;
 
         // only save crd values that differ from the defaults defined in chart values.yaml
-        const customizedCrdValues = diff(crdValues, allValues);
+        const customizedCrdValues = diff(crdValues, allValues, true);
 
         // CRD globals should be overwritten by main chart globals
         // we want to avoid including globals present on crd values and not main chart values

@@ -430,6 +430,7 @@ export default {
     :is="showComponent"
     v-else-if="isFullPageOverride"
     v-model:value="value"
+    v-ui-context="{ icon: 'icon-folder', value: value.name, tag: value.kind?.toLowerCase(), description: value.kind }"
     v-bind="$data"
     :done-params="doneParams"
     :done-route="doneRoute"
@@ -446,6 +447,7 @@ export default {
   <div v-else>
     <Masthead
       v-if="showMasthead"
+      v-ui-context="{ icon: 'icon-folder', value: liveModel.name, tag: liveModel.kind?.toLowerCase(), description: liveModel.kind }"
       :resource="resourceType"
       :value="liveModel"
       :mode="mode"
@@ -499,6 +501,7 @@ export default {
       v-else
       ref="comp"
       v-model:value="value"
+      v-ui-context="{ icon: 'icon-folder', value: value.name, tag: value.kind?.toLowerCase(), description: value.kind }"
       v-bind="$data"
       :done-params="doneParams"
       :done-route="doneRoute"
