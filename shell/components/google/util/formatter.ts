@@ -67,10 +67,13 @@ export function formatSubnetworkOptions(t: Translation, network: string, subnetw
   }
 
   const labeled: GKESubnetworkOption[] = out.map((sn: GKESubnetwork) => {
-    const name = sn.name ? sn.name : (sn.subnetwork || '').split('/').pop();
+    const shortName = sn.name ? sn.name : (sn.subnetwork || '').split('/').pop();
+    const fullName = sn.subnetwork || sn.selfLink || shortName;
 
     return {
-      name, label: `${ name } (${ sn.ipCidrRange })`, ...sn
+      ...sn,
+      name:  fullName,
+      label: `${ shortName } (${ sn.ipCidrRange })`
     };
   });
 
