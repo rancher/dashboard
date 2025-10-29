@@ -857,6 +857,7 @@ export default {
 
     .product-name {
       font-size: 16px;
+      font-family: var(--title-font-family, unset); // Use the var if set, otherwise unset and use the font defined by the parent
     }
 
     .side-menu-logo {

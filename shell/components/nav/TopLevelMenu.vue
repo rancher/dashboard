@@ -975,6 +975,8 @@ export default {
   $option-height: $icon-size + $option-padding + $option-padding;
 
   .side-menu {
+    font-family: var(--title-font-family, unset); // Use the var if set, otherwise unset and use the font defined by the parent
+
     .menu {
       position: absolute;
       width: $app-bar-collapsed-width;
