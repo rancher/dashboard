@@ -2721,6 +2721,7 @@ providers:
   hosted: 
     title: Hosted Providers
     prime: Prime only
+    warning: Disabling providers will make any clusters that use them uneditable
 drivers:
   kontainer:
     title: Cluster Drivers

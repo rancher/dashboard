@@ -161,6 +161,11 @@ export default {
       :is-creatable="false"
     />
     <Banner
+      color="warning"
+      :label="t('providers.hosted.warning')"
+      :closable="false"
+    />
+    <Banner
       v-for="(err, i) in errors"
       :key="i"
       color="error"
