@@ -4,7 +4,8 @@ import { type Store, useStore } from 'vuex';
 import { downloadFile } from '@shell/utils/download';
 import {
   REGISTRATION_REQUEST_PREFIX, REGISTRATION_NAMESPACE, REGISTRATION_SECRET, REGISTRATION_RESOURCE_NAME, REGISTRATION_LABEL,
-  REGISTRATION_REQUEST_FILENAME
+  REGISTRATION_REQUEST_FILENAME,
+  REGISTRATION_NOTIFICATION_ID
 } from '../config/constants';
 import { SECRET } from '@shell/config/types';
 import { dateTimeFormat } from '@shell/utils/time';
@@ -244,6 +245,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
     secret.value = await createSecret('online', registrationCode.value);
     registration.value = await pollResource(originalHash, findRegistration, mapRegistration);
     registrationStatus.value = registration.value ? 'registered' : null;
+    store.dispatch('notifications/remove', REGISTRATION_NOTIFICATION_ID);
     asyncButtonResolution(true);
   };
 
@@ -263,6 +265,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
       updateSecret(secret.value, offlineRegistrationCertificate.value);
       registration.value = await pollResource(originalHash, findRegistration, mapRegistration);
       registrationStatus.value = registration.value ? 'registered' : null;
+      store.dispatch('notifications/remove', REGISTRATION_NOTIFICATION_ID);
     } catch (error) {
       onError(error);
     }
