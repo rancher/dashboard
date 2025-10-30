@@ -49,6 +49,7 @@ const {
         v-if="dynamicContent.primaryAction"
         role="button"
         class="btn btn-sm"
+        :aria-label="t('dynamicContent.action.openPrimary')"
         :class="primaryButtonStyle"
         @click.stop.prevent="invokeAction(dynamicContent.primaryAction)"
       >
@@ -57,6 +58,7 @@ const {
       <button
         v-if="dynamicContent.secondaryAction"
         role="button"
+        :aria-label="t('dynamicContent.action.openSecondary')"
         class="btn btn-sm role-secondary"
         @click.stop.prevent="invokeAction(dynamicContent.secondaryAction)"
       >

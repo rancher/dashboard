@@ -4,6 +4,7 @@
  */
 
 import { useStore } from 'vuex';
+import { RcButton } from '@components/RcButton';
 
 const props = defineProps<{id: string}>();
 const store = useStore();
@@ -16,10 +17,15 @@ const markRead = () => {
 };
 </script>
 <template>
-  <i
-    class="dc-close-button icon icon-close"
+  <RcButton
+    ghost
+    small
+    :aria-label="t('dynamicContent.action.close')"
+    tabindex="0"
     @click="markRead()"
-  />
+  >
+    <i class="dc-close-button icon icon-close" />
+  </RcButton>
 </template>
 <style lang="scss" scoped>
   .dc-close-button {
@@ -31,8 +37,6 @@ const markRead = () => {
 
     &:hover {
       opacity: 1;
-      color: var(--primary);
-      border-color: var(--primary);
     }
   }
 </style>

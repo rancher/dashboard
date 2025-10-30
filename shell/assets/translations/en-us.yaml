@@ -2804,6 +2804,10 @@ drainNode:
     custom: "Give up after:"
 
 dynamicContent:
+  action:
+    close: Hide and Mark Announcement as read
+    openPrimary: Open announcement's primary action
+    openSecondary: Open announcement's secondary action
   newRelease:
     title: A new Rancher release is available!
     message: Rancher {version} has been released!
