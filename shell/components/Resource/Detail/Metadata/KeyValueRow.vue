@@ -81,7 +81,7 @@ const previewId = randomStr();
     position: fixed;
 
     right: -20px;
-    top: -9px;
+    top: -6px;
     z-index: 20px;
   }
 
