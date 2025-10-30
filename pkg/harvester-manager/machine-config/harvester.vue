@@ -570,31 +570,26 @@ export default {
   methods: {
     stringify,
     genCloudDataOptions(configMaps = [], type = 'user') {
-      return configMaps.reduce((acc, configMap) => {
+      const valueMap = new Map();
+
+      for (const configMap of configMaps) {
         const cloudTemplate = configMap.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT];
 
-        if (cloudTemplate === type) {
-          acc = this.mergeCloudDataOptions(acc, configMap);
+        if (cloudTemplate !== type) continue;
+
+        const value = configMap.data?.cloudInit;
+        const label = configMap.id;
+
+        if (!value) continue;
+
+        if (valueMap.has(value)) {
+          valueMap.set(value, `${ valueMap.get(value) }, ${ label }`);
+        } else {
+          valueMap.set(value, label);
         }
-
-        return acc;
-      }, []);
-    },
-
-    mergeCloudDataOptions(options, configMap) {
-      // find duplicated value, merge into the same template label name
-      const duplicatedValue = options.find((opt) => opt.value === configMap.data.cloudInit);
-
-      if (duplicatedValue) {
-        duplicatedValue.label += `, ${ configMap.id }`;
-      } else {
-        options.push({
-          label: configMap.id,
-          value: configMap.data.cloudInit
-        });
       }
 
-      return options;
+      return Array.from(valueMap, ([value, label]) => ({ value, label }));
     },
     test() {
       const errors = [];
