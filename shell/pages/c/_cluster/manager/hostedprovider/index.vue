@@ -161,7 +161,6 @@ export default {
       :is-creatable="false"
     />
     <Banner
-      :key="i"
       color="warning"
       :label="t('providers.hosted.warning')"
       :closable="false"
