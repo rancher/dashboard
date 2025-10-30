@@ -306,22 +306,24 @@ export default defineComponent({
     :data-testid="componentTestid + '-async-button'"
     @click="clicked"
   >
-    <span
-      v-if="isManualRefresh"
-      :class="{'mr-10': displayIcon && size !== 'sm', 'mr-5': displayIcon && size === 'sm'}"
-    >{{ t('action.refresh') }}</span>
-    <i
-      v-if="displayIcon"
-      v-clean-tooltip="tooltip"
-      :class="{icon: true, 'icon-lg': true, [displayIcon]: true, 'mr-0': isManualRefresh}"
-      :alt="t('asyncButton.alt.iconAlt')"
-    />
-    <span
-      v-if="labelAs === 'text' && displayLabel"
-      v-clean-tooltip="tooltip"
-      v-clean-html="displayLabel"
-      data-testid="async-btn-display-label"
-    />
+    <slot>
+      <span
+        v-if="isManualRefresh"
+        :class="{'mr-10': displayIcon && size !== 'sm', 'mr-5': displayIcon && size === 'sm'}"
+      >{{ t('action.refresh') }}</span>
+      <i
+        v-if="displayIcon"
+        v-clean-tooltip="tooltip"
+        :class="{icon: true, 'icon-lg': true, [displayIcon]: true, 'mr-0': isManualRefresh}"
+        :alt="t('asyncButton.alt.iconAlt')"
+      />
+      <span
+        v-if="labelAs === 'text' && displayLabel"
+        v-clean-tooltip="tooltip"
+        v-clean-html="displayLabel"
+        data-testid="async-btn-display-label"
+      />
+    </slot>
   </button>
 </template>
 

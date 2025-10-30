@@ -600,7 +600,7 @@ export default {
             />
           </template>
         </Select>
-        <div class="log-action log-action-group ml-5">
+        <div class="log-action log-action-group ml-5 mmr-6">
           <button
             class="btn role-primary wm-btn"
             role="button"
@@ -630,9 +630,16 @@ export default {
           <AsyncButton
             mode="download"
             role="button"
+            class="wm-btn"
             :aria-label="t('asyncButton.download.action')"
             @click="download"
-          />
+          >
+            <t
+              class="wm-btn-large"
+              k="asyncButton.download.action"
+            />
+            <i class="wm-btn-small icon icon-download" />
+          </AsyncButton>
         </div>
 
         <div class="wm-seperator" />
@@ -820,7 +827,8 @@ export default {
       min-width: 200px;
       height: 30px;
       min-height: 30px;
-      width: initial;
+      width: 100%;
+      max-width: 960px;
     }
   }
 
