@@ -36,6 +36,7 @@ const handleClick = (e: MouseEvent) => {
     @click.stop="handleClick"
     @keydown.enter.space="handleActivate"
     @keydown.up.down.prevent.stop="handleKeydown"
+    @mousedown.prevent="() => {/*We use this to prevent clicks from triggering the @focusin below. When we scroll on a click it prevents the action from occurring on the first click.*/}"
     @focusin="scrollIntoView"
   >
     <slot name="before">
