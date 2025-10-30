@@ -1,6 +1,12 @@
 import { md5 } from '@shell/utils/crypto';
 import { randomStr } from '@shell/utils/string';
-import { EncryptedNotification, Notification, NotificationHandlerExtensionName, StoredNotification } from '@shell/types/notifications';
+import {
+  EncryptedNotification,
+  Notification,
+  NotificationLevel,
+  NotificationHandlerExtensionName,
+  StoredNotification
+} from '@shell/types/notifications';
 import { encrypt, decrypt, deriveKey } from '@shell/utils/crypto/encryption';
 
 /**
@@ -66,7 +72,8 @@ async function saveEncryptedNotification(getters: any, notification: Notificatio
     primaryAction:   notification.primaryAction,
     secondaryAction: notification.secondaryAction,
     preference:      notification.preference,
-    handlerName:     notification.handlerName
+    handlerName:     notification.handlerName,
+    data:            notification.data,
   };
 
   const localStorageKey = getters['localStorageKey'];
@@ -110,15 +117,23 @@ export const getters = {
     return state.notifications;
   },
 
+  visible: (state: NotificationsStore) => {
+    return state.notifications.filter((n) => n.level !== NotificationLevel.Hidden);
+  },
+
+  hidden: (state: NotificationsStore) => {
+    return state.notifications.filter((n) => n.level === NotificationLevel.Hidden);
+  },
+
   item: (state: NotificationsStore) => {
     return (id: string) => {
       return state.notifications.find((i) => i.id === id);
     };
   },
 
-  // Count of unread notifications
+  // Count of unread notifications - only considers visible notifications
   unreadCount: (state: NotificationsStore) => {
-    return state.notifications.filter((n) => !n.read).length;
+    return state.notifications.filter((n) => !n.read && n.level !== NotificationLevel.Hidden).length;
   },
 
   /**
@@ -194,9 +209,10 @@ export const mutations = {
     syncIndex(state);
   },
 
+  // Only mark visible notifications as read via mark all
   markAllRead(state: NotificationsStore) {
     state.notifications.forEach((notification) => {
-      if (!notification.read) {
+      if (!notification.read && notification.level !== NotificationLevel.Hidden) {
         notification.read = true;
       }
     });
