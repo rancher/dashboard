@@ -185,30 +185,8 @@ export default {
           }
         }
 
-        const userDataOptions = [];
-        const networkDataOptions = [];
-
-        (res.configMaps.value?.data || []).map((O) => {
-          const cloudTemplate =
-            O.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT];
-
-          if (cloudTemplate === 'user') {
-            userDataOptions.push({
-              label: O.id,
-              value: O.data.cloudInit
-            });
-          }
-
-          if (cloudTemplate === 'network') {
-            networkDataOptions.push({
-              label: O.id,
-              value: O.data.cloudInit
-            });
-          }
-        });
-
-        this.userDataOptions = userDataOptions;
-        this.networkDataOptions = networkDataOptions;
+        this.userDataOptions = this.genCloudDataOptions(res.configMaps.value?.data, 'user');
+        this.networkDataOptions = this.genCloudDataOptions(res.configMaps.value?.data, 'network');
         this.images = res.images.value?.data;
         this.storageClass = res.storageClass.value?.data;
         this.networks = res.networks.value?.data;
@@ -591,7 +569,28 @@ export default {
 
   methods: {
     stringify,
+    genCloudDataOptions(configMaps = [], type = 'user') {
+      const valueMap = new Map();
 
+      for (const configMap of configMaps) {
+        const cloudTemplate = configMap.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT];
+
+        if (cloudTemplate !== type) continue;
+
+        const value = configMap.data?.cloudInit;
+        const label = configMap.id;
+
+        if (!value) continue;
+
+        if (valueMap.has(value)) {
+          valueMap.set(value, `${ valueMap.get(value) }, ${ label }`);
+        } else {
+          valueMap.set(value, label);
+        }
+      }
+
+      return Array.from(valueMap, ([value, label]) => ({ value, label }));
+    },
     test() {
       const errors = [];
 
