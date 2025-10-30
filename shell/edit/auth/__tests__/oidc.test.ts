@@ -221,5 +221,31 @@ describe('oidc.vue', () => {
       expect(issuer).toBe('');
       expect(endpoint).toBe('');
     });
+
+    it('custom claims fields should not appear in UI if Amazon cognito', async() => {
+      wrapper.vm.model.id = 'cognito';
+
+      const nameClaim = wrapper.find('[data-testid="input-name-claim"]');
+      const groupsClaim = wrapper.find('[data-testid="input-groups-claim"]');
+      const emailClaim = wrapper.find('[data-testid="input-email-claim"]');
+
+      expect(nameClaim.exists()).toBe(false);
+      expect(groupsClaim.exists()).toBe(false);
+      expect(emailClaim.exists()).toBe(false);
+    });
+
+    it('custom claims fields should appear in UI if genericoidc', async() => {
+      wrapper.vm.model.id = 'genericoidc';
+      wrapper.vm.addCustomClaims = true;
+      await nextTick();
+
+      const nameClaim = wrapper.find('[data-testid="input-name-claim"]');
+      const groupsClaim = wrapper.find('[data-testid="input-groups-claim"]');
+      const emailClaim = wrapper.find('[data-testid="input-email-claim"]');
+
+      expect(nameClaim.exists()).toBe(true);
+      expect(groupsClaim.exists()).toBe(true);
+      expect(emailClaim.exists()).toBe(true);
+    });
   });
 });
