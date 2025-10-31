@@ -990,15 +990,16 @@ export default {
     },
 
     hasSomeIpv6Pools(neu) {
-      const stackPreference = this.localValue.spec.rkeConfig.networking.stackPreference;
+      if (this.isCreate && this.localValue.spec.rkeConfig.networking.stackPreference !== STACK_PREFS.IPV6) { // if stack pref is ipv6, the user has manually configured that and we shouldn't change it
+        if (neu) {
+          this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.DUAL;
 
-      if (neu && (stackPreference === STACK_PREFS.IPV4 || !stackPreference)) { // localValue.spec.rkeConfig.networking is initialized in the beforeCreate hook
-        this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.DUAL;
-      } else if (stackPreference === STACK_PREFS.DUAL) {
+          return;
+        }
+
         this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.IPV4;
       }
     },
-
   },
 
   created() {
@@ -2256,6 +2257,7 @@ export default {
     handleTabChange(data) {
       this.activeTab = data;
     },
+
   }
 };
 </script>
