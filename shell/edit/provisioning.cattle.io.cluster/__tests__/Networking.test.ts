@@ -47,7 +47,7 @@ describe('component: RKE2Networking', () => {
     expect(dropdown.props('options')).toHaveLength(3);
   });
 
-  it('should show an error when an ipv6 pool is present and the user selects the ipv4-only stack preference', async() => {
+  it('should show an error when an ipv6 pool is present and the user selects the ipv4-only stack preference when creating a new cluster', async() => {
     const spec = { ...defaultSpec, rkeConfig: { ...defaultSpec.rkeConfig, networking: { stackPreference: 'ipv4' } } };
     const wrapper = mount(Networking, {
       propsData: {
@@ -128,5 +128,28 @@ describe('component: RKE2Networking', () => {
     const banner = wrapper.findComponent('[data-testid="network-tab-ipv6StackPreferenceWarning"]');
 
     expect(banner.exists()).toBe(false);
+  });
+
+  it('should not automatically update stack preference or validate it when editing an existing cluster even if its set to ipv4 and the user appears to have ipv6 pools', async() => {
+    const spec = { ...defaultSpec, rkeConfig: { ...defaultSpec.rkeConfig, networking: { stackPreference: 'ipv4' } } };
+    const wrapper = mount(Networking, {
+      propsData: {
+        mode:             'edit',
+        value:            { spec },
+        selectedVersion:  { serverArgs: mockServerArgs },
+        hasSomeIpv6Pools: true,
+      },
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store: { getters: defaultGetters },
+        },
+      },
+    });
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('validationChanged')?.[0]?.[0]).toBe(true);
+    expect(wrapper.emitted('stack-preference-changed')).toBeUndefined();
   });
 });

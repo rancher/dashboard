@@ -55,7 +55,12 @@ export default {
     machinePools: {
       type:    Array,
       default: () => []
-    }
+    },
+
+    poolCreateMode: {
+      type:    Boolean,
+      default: true
+    },
   },
 
   async fetch() {
@@ -383,6 +388,7 @@ export default {
           :machine-pools="machinePools"
           :has-ipv6="hasIpv6"
           :disabled="disabled"
+          :is-new="poolCreateMode"
           @update:has-ipv6="e=>$emit('update:hasIpv6', e)"
           @validation-changed="e=>$emit('validationChanged',e)"
         />

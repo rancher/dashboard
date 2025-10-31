@@ -91,4 +91,34 @@ describe('component: EC2Networking', () => {
 
     expect(ipv6Warning.exists()).toBe(shouldShowError);
   });
+
+  it('should show ipv6 inputs and automatically check the enable ipv6 checkbox when adding a new pool if some other pool in the cluster is using ipv6 or dual stack', () => {
+    const wrapper = shallowMount(EC2Networking, {
+      ...defaultCreateSetup,
+      propsData: {
+        ...defaultCreateSetup.propsData,
+        machinePools: [{ hasIpv6: true }],
+      },
+    });
+
+    const ipv6AddressCountInput = wrapper.findComponent('[data-testid="amazonEc2__ipv6AddressCount"]');
+
+    expect(wrapper.vm.enableIpv6).toBe(true);
+    expect(ipv6AddressCountInput.exists()).toBe(true);
+  });
+
+  it('should not show ipv6 inputs or automatically check the enable ipv6 checkbox when adding a new pool to a cluster that does not have existing ipv6 or dual stack pools', () => {
+    const wrapper = shallowMount(EC2Networking, {
+      ...defaultCreateSetup,
+      propsData: {
+        ...defaultCreateSetup.propsData,
+        machinePools: [{ hasIpv6: false }],
+      },
+    });
+
+    const ipv6AddressCountInput = wrapper.findComponent('[data-testid="amazonEc2__ipv6AddressCount"]');
+
+    expect(wrapper.vm.enableIpv6).toBe(false);
+    expect(ipv6AddressCountInput.exists()).toBe(false);
+  });
 });
