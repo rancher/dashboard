@@ -883,7 +883,6 @@ asyncButton:
     waiting: Saving&hellip;
   download:
     action: Download
-    actionIcon: download
     errorIcon: error
     success: Saving
     successIcon: checkmark

@@ -184,4 +184,110 @@ describe('component: AsyncButton', () => {
     expect(item.find('span[data-testid="async-btn-display-label"]').attributes('id')).toBe(wrapper.vm.describedbyId);
     expect(item.find('i').attributes('alt')).toBeDefined();
   });
+
+  describe('displayIcon logic', () => {
+    const mockTranslations = {
+      'asyncButton.save.waitingIcon': 'spinner-save',
+      'asyncButton.save.successIcon': 'checkmark-save',
+      'asyncButton.save.errorIcon':   'error-save',
+    };
+
+    const createWrapper = (props = {}, phase = ASYNC_BUTTON_STATES.ACTION) => {
+      const mockExists = jest.fn((key) => !!mockTranslations[key]);
+      const mockT = jest.fn((key) => mockTranslations[key] || key.split('.').pop());
+
+      return mount(AsyncButton, {
+        props:  { ...props, currentPhase: phase },
+        global: {
+          mocks: {
+            $store: {
+              getters: {
+                'i18n/exists': mockExists,
+                'i18n/t':      mockT
+              }
+            },
+          }
+        },
+      });
+    };
+
+    it('should use persistentIcon when true, overriding translations', async() => {
+      const wrapper = createWrapper({
+        icon: 'icon-prop', mode: 'save', persistentIcon: true
+      });
+
+      // Action phase
+      expect(wrapper.vm.displayIcon).toBe('icon-prop');
+
+      // Waiting phase
+      await wrapper.setProps({ currentPhase: ASYNC_BUTTON_STATES.WAITING });
+      expect(wrapper.vm.displayIcon).toBe('icon-prop');
+
+      // Success phase
+      await wrapper.setProps({ currentPhase: ASYNC_BUTTON_STATES.SUCCESS });
+      expect(wrapper.vm.displayIcon).toBe('icon-prop');
+
+      // Error phase
+      await wrapper.setProps({ currentPhase: ASYNC_BUTTON_STATES.ERROR });
+      expect(wrapper.vm.displayIcon).toBe('icon-prop');
+    });
+
+    it('should prioritize translated state icons when persistentIcon is false', async() => {
+      const wrapper = createWrapper({
+        icon: 'icon-prop', mode: 'save', persistentIcon: false
+      });
+
+      // Action phase - no translated actionIcon for 'save', so falls back to prop
+      expect(wrapper.vm.displayIcon).toBe('icon-prop');
+
+      // Waiting phase - translated waitingIcon exists
+      await wrapper.setProps({ currentPhase: ASYNC_BUTTON_STATES.WAITING });
+      expect(wrapper.vm.displayIcon).toBe('icon-spinner-save icon-spin');
+
+      // Success phase - translated successIcon exists
+      await wrapper.setProps({ currentPhase: ASYNC_BUTTON_STATES.SUCCESS });
+      expect(wrapper.vm.displayIcon).toBe('icon-checkmark-save');
+
+      // Error phase - translated errorIcon exists
+      await wrapper.setProps({ currentPhase: ASYNC_BUTTON_STATES.ERROR });
+      expect(wrapper.vm.displayIcon).toBe('icon-error-save');
+    });
+
+    it('should default to spinner if no icon prop and no translated icons for waiting state', async() => {
+      const wrapper = createWrapper({ mode: 'custom', persistentIcon: false }); // No icon prop
+
+      // Action phase - no icon
+      expect(wrapper.vm.displayIcon).toBe('');
+
+      // Waiting phase - no icon prop, no translated waitingIcon, should default to spinner
+      await wrapper.setProps({ currentPhase: ASYNC_BUTTON_STATES.WAITING });
+      expect(wrapper.vm.displayIcon).toBe('icon-spinner icon-spin');
+
+      // Success phase - no icon
+      await wrapper.setProps({ currentPhase: ASYNC_BUTTON_STATES.SUCCESS });
+      expect(wrapper.vm.displayIcon).toBe('');
+    });
+
+    it('should use icon prop as fallback when persistentIcon is false and no translated state icons', async() => {
+      // This is really an edge case where you would want to use your passed icon prop spin instead of the spinner icon
+      const wrapper = createWrapper({
+        icon: 'icon-prop', mode: 'custom', persistentIcon: false
+      });
+
+      // Action phase - no translated actionIcon for 'custom', falls back to prop
+      expect(wrapper.vm.displayIcon).toBe('icon-prop');
+
+      // Waiting phase - no translated waitingIcon for 'custom', falls back to prop + spin
+      await wrapper.setProps({ currentPhase: ASYNC_BUTTON_STATES.WAITING });
+      expect(wrapper.vm.displayIcon).toBe('icon-prop icon-spin');
+
+      // Success phase - no translated successIcon for 'custom', falls back to prop
+      await wrapper.setProps({ currentPhase: ASYNC_BUTTON_STATES.SUCCESS });
+      expect(wrapper.vm.displayIcon).toBe('icon-prop');
+
+      // Error phase - no translated errorIcon for 'custom', falls back to prop
+      await wrapper.setProps({ currentPhase: ASYNC_BUTTON_STATES.ERROR });
+      expect(wrapper.vm.displayIcon).toBe('icon-prop');
+    });
+  });
 });

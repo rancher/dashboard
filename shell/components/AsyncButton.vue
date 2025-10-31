@@ -119,7 +119,20 @@ export default defineComponent({
       default: false,
     },
 
+    /**
+     * If true, the button will only show the icon in smaller views and hides the label.
+     */
     showOnlyIconInSmallView: {
+      type:    Boolean,
+      default: false,
+    },
+
+    /**
+     * If true, the 'icon' prop will be used for all button states (action, waiting, success, error),
+     * overriding any state-specific icons defined in translations.
+     * This is useful for buttons that need a static icon regardless of their phase, like Copy to Clipboard.
+     */
+    persistentIcon: {
       type:    Boolean,
       default: false,
     }
@@ -192,15 +205,26 @@ export default defineComponent({
 
       let out = '';
 
-      if ( this.icon ) {
+      // If persistentIcon is true, the icon prop always takes precedence
+      // This ensures a static icon is displayed across all phases
+      if ( this.persistentIcon && this.icon ) {
         out = this.icon;
-      } else if ( exists(key) ) {
-        out = `icon-${ t(key) }`;
-      } else if ( exists(defaultKey) ) {
-        out = `icon-${ t(defaultKey) }`;
+      } else {
+        // Otherwise, prioritize state-specific icons from translations
+        // This allows for dynamic icons based on the button's current phase (e.g., spinner for waiting).
+        if ( exists(key) ) {
+          out = `icon-${ t(key) }`;
+        } else if ( exists(defaultKey) ) {
+          out = `icon-${ t(defaultKey) }`;
+        } else if ( this.icon ) {
+          // Fallback to the generic icon prop if no state-specific translated icon is found
+          out = this.icon;
+        }
       }
 
-      if ( this.isSpinning ) {
+      // Add spinning animation for the waiting phase, unless the icon is persistent.
+      if ( this.isSpinning && !this.persistentIcon ) {
+        // If there's no icon at all, default to a spinner icon for the waiting state.
         if ( !out ) {
           out = 'icon-spinner';
         }

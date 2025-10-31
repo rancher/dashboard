@@ -630,6 +630,7 @@ export default {
           <AsyncButton
             mode="download"
             role="button"
+            icon="icon-download"
             show-only-icon-in-small-view
             :aria-label="t('asyncButton.download.action')"
             @click="download"
