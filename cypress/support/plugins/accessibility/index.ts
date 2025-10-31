@@ -217,21 +217,43 @@ function registerHooks(on, config) {
   });
 
   on('after:run', () => {
+    console.log('=== after:run hook starting ===');
+    console.log('Total violations collected:', allViolations.length);
+    console.log('Screenshots collected:', screenshots.length);
+    console.log('Output folder:', folder);
+
     const root = chain[0];
 
     tidy(root);
 
-    fs.writeFileSync(path.join(folder, 'accessibility.json'), JSON.stringify(root.children, null, 2));
+    try {
+    // Write JSON report
+      const jsonPath = path.join(folder, 'accessibility.json');
 
-    const reportHTML = createHtmlReport({
-      results: { violations: deDuplicate(allViolations) },
-      options: {
-        projectKey:            'Rancher Manager',
-        doNotCreateReportFile: true,
-      },
-    });
+      fs.writeFileSync(jsonPath, JSON.stringify(root.children, null, 2));
+      console.log('✓ JSON report written:', jsonPath);
 
-    fs.writeFileSync(path.join(folder, 'accessibility.html'), reportHTML);
+      // Generate HTML report
+      const dedupedViolations = deDuplicate(allViolations);
+
+      console.log('Violations after deduplication:', dedupedViolations.length);
+
+      const reportHTML = createHtmlReport({
+        results: { violations: dedupedViolations },
+        options: {
+          projectKey:            'Rancher Manager',
+          doNotCreateReportFile: true,
+        },
+      });
+
+      const htmlPath = path.join(folder, 'accessibility.html');
+
+      fs.writeFileSync(htmlPath, reportHTML);
+      console.log('✓ HTML report written:', htmlPath);
+      console.log('=== after:run hook complete ===');
+    } catch (err) {
+      console.error('❌ Error generating reports:', err);
+    }
 
     return null;
   });
