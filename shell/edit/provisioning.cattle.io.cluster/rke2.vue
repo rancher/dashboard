@@ -990,15 +990,16 @@ export default {
     },
 
     hasSomeIpv6Pools(neu) {
-      const stackPreference = this.localValue.spec.rkeConfig.networking.stackPreference;
+      if (this.isCreate && this.localValue.spec.rkeConfig.networking.stackPreference !== STACK_PREFS.IPV6) { // if stack pref is ipv6, the user has manutally configured that and we shouldn't change it
+        if (neu) {
+          this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.DUAL;
 
-      if (neu && (stackPreference === STACK_PREFS.IPV4 || !stackPreference)) { // localValue.spec.rkeConfig.networking is initialized in the beforeCreate hook
-        this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.DUAL;
-      } else if (stackPreference === STACK_PREFS.DUAL) {
+          return;
+        }
+
         this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.IPV4;
       }
     },
-
   },
 
   created() {
@@ -2256,6 +2257,7 @@ export default {
     handleTabChange(data) {
       this.activeTab = data;
     },
+
   }
 };
 </script>
@@ -2537,7 +2539,7 @@ export default {
               @local-cluster-auth-endpoint-changed="enableLocalClusterAuthEndpoint"
               @ca-certs-changed="(val)=>localValue.spec.localClusterAuthEndpoint.caCerts = val"
               @fqdn-changed="(val)=>localValue.spec.localClusterAuthEndpoint.fqdn = val"
-              @stack-preference-changed="(val)=>localValue.spec.rkeConfig.networking.stackPreference = val"
+              @stack-preference-changed="(val)=>{localValue.spec.rkeConfig.networking.stackPreference = val}"
               @validationChanged="(val)=>stackPreferenceError = !val"
             />
           </Tab>
