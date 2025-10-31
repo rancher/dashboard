@@ -2,7 +2,7 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { _EDIT, _VIEW, _CREATE } from '@shell/config/query-params';
 import ArrayList from '@shell/components/form/ArrayList';
 import ACE from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/ACE';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -128,11 +128,12 @@ export default {
   methods: {
     // if ipv6 pools are detected, we enforce dual-stack or ipv6 stack prefs.
     // If ipv6 pools are not detected we don't know for sure they aren't there so we don't validate the input
+    // also not validating the input when editing existing clusters to ensure we don't prevent editing clusters using dual-stack VPCs provisioned before the ipv6 feature was added
     stackPreferenceValidator(val) {
       const value = val?.value || val;
       let isValid;
 
-      if (this.hasSomeIpv6Pools) {
+      if (this.hasSomeIpv6Pools && this.mode === _CREATE) {
         isValid = value !== STACK_PREFS.IPV4;
 
         return isValid ? null : this.t('cluster.rke2.stackPreference.errorNeedsIpv6');
