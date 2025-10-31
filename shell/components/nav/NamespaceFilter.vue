@@ -789,6 +789,7 @@ export default {
             ghost
             class="ns-chip-button"
             :data-testid="`namespaces-values-close-${j}`"
+            :aria-label="t('namespaceFilter.removeNamespace', { name: ns.label })"
             @click="removeOption(ns, $event)"
             @keydown.enter.space.stop="removeOption(ns, $event)"
             @mousedown="handleValueMouseDown(ns, $event)"

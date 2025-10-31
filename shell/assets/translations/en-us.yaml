@@ -4634,6 +4634,7 @@ namespaceFilter:
   button:
     clear: Remove applied namespace filters
     clearFilter: Clear namespace options filter
+  removeNamespace: 'Remove {name} from filter'
 
 namespaceList:
   selectLabel: Namespace
