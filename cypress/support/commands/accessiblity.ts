@@ -94,38 +94,39 @@ function getAccessibilityViolationsCallback(description?: string) {
       });
     });
 
-    cy.screenshot(`a11y_${ Cypress.currentTest.title }_${ index }`);
+    // Take screenshot AFTER borders are added
+    cy.screenshot(`a11y_${ Cypress.currentTest.title }_${ index }`).then(() => {
+      // Screenshot is done, now we can:
+      // 1. Move the screenshot file
+      cy.task('a11yScreenshot', {
+        titlePath: testPath,
+        test:      Cypress.currentTest,
+        name:      `a11y_${ Cypress.currentTest.title }_${ index }`
+      });
 
-    // Record the screenshot against the test and move it into the a11y folder
-    cy.task('a11yScreenshot', {
-      titlePath: testPath,
-      test:      Cypress.currentTest,
-      name:      `a11y_${ Cypress.currentTest.title }_${ index }`
-    });
+      // 2. Reset the borders AFTER screenshot is taken
+      violations.forEach((violation) => {
+        violation.nodes.forEach(({ target }) => {
+          cy.get(target.join(', ')).then(($el) => {
+            const border = $el.data('border');
 
-    screenshotIndexes[title] = index + 1;
+            if (border && !border.startsWith('0px none')) {
+              $el.css('border', border);
+            } else {
+              $el.css('border', '');
+            }
 
-    // Reset the borders that were added to mark the elements with violations
-    violations.forEach((violation) => {
-      violation.nodes.forEach(({ target }) => {
-        cy.get(target.join(', ')).then(($el) => {
-          const border = $el.data('border');
-
-          if (!border.startsWith('0px none')) {
-            $el.css('border', $el.data('border'));
-          } else {
-            $el.css('border', '');
-          }
-
-          if ($el.attr('style')?.length === 0) {
-            $el.removeAttr('style');
-          }
+            if ($el.attr('style')?.length === 0) {
+              $el.removeAttr('style');
+            }
+          });
         });
       });
     });
+
+    screenshotIndexes[title] = index + 1;
   };
 }
-
 /**
  * Checks accessibility of the entire page
  */
