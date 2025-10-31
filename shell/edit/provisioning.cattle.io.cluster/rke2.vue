@@ -990,7 +990,7 @@ export default {
     },
 
     hasSomeIpv6Pools(neu) {
-      if (this.isCreate && this.localValue.spec.rkeConfig.networking.stackPreference !== STACK_PREFS.IPV6) { // if stack pref is ipv6, the user has manutally configured that and we shouldn't change it
+      if (this.isCreate && this.localValue.spec.rkeConfig.networking.stackPreference !== STACK_PREFS.IPV6) { // if stack pref is ipv6, the user has manually configured that and we shouldn't change it
         if (neu) {
           this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.DUAL;
 
@@ -2539,7 +2539,7 @@ export default {
               @local-cluster-auth-endpoint-changed="enableLocalClusterAuthEndpoint"
               @ca-certs-changed="(val)=>localValue.spec.localClusterAuthEndpoint.caCerts = val"
               @fqdn-changed="(val)=>localValue.spec.localClusterAuthEndpoint.fqdn = val"
-              @stack-preference-changed="(val)=>{localValue.spec.rkeConfig.networking.stackPreference = val}"
+              @stack-preference-changed="(val)=>localValue.spec.rkeConfig.networking.stackPreference = val"
               @validationChanged="(val)=>stackPreferenceError = !val"
             />
           </Tab>
