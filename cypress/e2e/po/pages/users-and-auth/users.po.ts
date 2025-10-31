@@ -23,6 +23,10 @@ export default class UsersPo extends ClusterPage {
     super(clusterId, 'auth/management.cattle.io.user');
   }
 
+  mastheadTitle() {
+    return this.self().find('.title h1').invoke('text');
+  }
+
   waitForRequests() {
     UsersPo.goToAndWaitForGet(this.goTo.bind(this), ['/v3/users?limit=0'], 15000);
   }
