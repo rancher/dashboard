@@ -609,11 +609,11 @@ export default {
             :disabled="isFollowing"
             @click="follow"
           >
+            <i class="icon icon-chevron-end" />
             <t
               class="wm-btn-large"
               k="wm.containerLogs.follow"
             />
-            <i class="wm-btn-small icon icon-chevron-end" />
           </button>
           <button
             class="btn role-primary wm-btn"
@@ -621,25 +621,19 @@ export default {
             :aria-label="t('wm.containerLogs.clear')"
             @click="clear"
           >
+            <i class="icon icon-close" />
             <t
               class="wm-btn-large"
               k="wm.containerLogs.clear"
             />
-            <i class="wm-btn-small icon icon-close" />
           </button>
           <AsyncButton
             mode="download"
             role="button"
-            class="wm-btn"
+            show-only-icon-in-small-view
             :aria-label="t('asyncButton.download.action')"
             @click="download"
-          >
-            <t
-              class="wm-btn-large"
-              k="asyncButton.download.action"
-            />
-            <i class="wm-btn-small icon icon-download" />
-          </AsyncButton>
+          />
         </div>
 
         <div class="wm-seperator" />
@@ -894,7 +888,7 @@ export default {
   @media only screen and (max-width: 1060px) {
     .wm-button-bar {
       .wm-btn {
-        padding: 0 10px;
+        padding: 0 4px 0 8px;
 
         .wm-btn-large {
           display: none;

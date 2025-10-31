@@ -119,6 +119,10 @@ export default defineComponent({
       default: false,
     },
 
+    showOnlyIconInSmallView: {
+      type:    Boolean,
+      default: false,
+    }
   },
 
   setup() {
@@ -167,6 +171,10 @@ export default defineComponent({
       // to it's normal state/phase
       if (this.phase === ASYNC_BUTTON_STATES.ACTION) {
         out['ready-for-action'] = true;
+      }
+
+      if (this.showOnlyIconInSmallView) {
+        out['show-only-icon-in-small-view'] = true;
       }
 
       return out;
@@ -306,24 +314,33 @@ export default defineComponent({
     :data-testid="componentTestid + '-async-button'"
     @click="clicked"
   >
-    <slot>
-      <span
-        v-if="isManualRefresh"
-        :class="{'mr-10': displayIcon && size !== 'sm', 'mr-5': displayIcon && size === 'sm'}"
-      >{{ t('action.refresh') }}</span>
-      <i
-        v-if="displayIcon"
-        v-clean-tooltip="tooltip"
-        :class="{icon: true, 'icon-lg': true, [displayIcon]: true, 'mr-0': isManualRefresh}"
-        :alt="t('asyncButton.alt.iconAlt')"
-      />
-      <span
-        v-if="labelAs === 'text' && displayLabel"
-        v-clean-tooltip="tooltip"
-        v-clean-html="displayLabel"
-        data-testid="async-btn-display-label"
-      />
-    </slot>
+    <span
+      v-if="isManualRefresh"
+      :class="{
+        'mr-10': displayIcon && size !== 'sm',
+        'mr-5': displayIcon && size === 'sm',
+        'manual-refresh-label': true
+      }"
+    >{{ t('action.refresh') }}</span>
+    <i
+      v-if="displayIcon"
+      v-clean-tooltip="tooltip"
+      :class="{
+        icon: true,
+        'icon-lg': true,
+        [displayIcon]: true,
+        'mr-0': isManualRefresh,
+        'async-button-icon': true
+      }"
+      :alt="t('asyncButton.alt.iconAlt')"
+    />
+    <span
+      v-if="labelAs === 'text' && displayLabel"
+      v-clean-tooltip="tooltip"
+      v-clean-html="displayLabel"
+      data-testid="async-btn-display-label"
+      class="async-button-label"
+    />
   </button>
 </template>
 
@@ -333,4 +350,18 @@ export default defineComponent({
   margin: 0 0 0 8px !important;
   font-size: 1rem !important;
 }
-</style>
+
+@media only screen and (max-width: 1060px) {
+  .show-only-icon-in-small-view {
+    &.btn {
+      padding: 0 4px 0 8px;
+    }
+    .async-button-label {
+      display: none;
+    }
+
+    .async-button-icon {
+      display: inline-block;
+    }
+  }
+}</style>
