@@ -8,7 +8,7 @@ import {
   _EDIT, _CONFIG, _DETAIL, _LIST, _CREATE
 } from '@shell/config/query-params';
 import { getProductFromRoute } from '@shell/utils/router';
-import { isEqual } from '@shell/utils/object';
+import { isEqual, isLooseEqual } from '@shell/utils/object';
 
 /* eslint-disable no-unused-vars */
 enum LocationConfigParams {
@@ -72,6 +72,7 @@ function checkExtensionRouteBinding($route: any, locationConfig: any, context: a
     'hash',
     // url query params
     'queryParam',
+    'looseQueryParam', // doesn't need to match ALL query params
     // Custom context specific params provided by the extension, not to be confused with location params
     'context',
   ];
@@ -105,6 +106,9 @@ function checkExtensionRouteBinding($route: any, locationConfig: any, context: a
             // evaluate queryParam in route
           } else if (param === 'queryParam') {
             res = isEqual(locationConfigParam, $route.query);
+            // evaluate path in route
+          } else if (param === 'looseQueryParam') {
+            res = isLooseEqual(locationConfigParam, $route.query);
             // evaluate path in route
           } else if (param === 'path' && locationConfigParam.urlPath) {
             if (locationConfigParam.endsWith) {
