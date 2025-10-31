@@ -139,7 +139,7 @@ function registerHooks(on, config) {
       return null;
     },
 
-    a11yScreenshot(options: any ) {
+    a11yScreenshot(options: any) {
       const { titlePath, name } = options;
       const found = createPath(titlePath);
 
@@ -153,9 +153,21 @@ function registerHooks(on, config) {
         found.screenshot = path.join(details.specName, `${ name }.png`);
 
         if (!fs.existsSync(screenFolder)) {
-          fs.mkdirSync(screenFolder);
+          fs.mkdirSync(screenFolder, { recursive: true });
         }
-        fs.renameSync(details.path, destFile);
+
+        if (fs.existsSync(details.path)) {
+          try {
+            fs.renameSync(details.path, destFile);
+          } catch (err) {
+            console.error(`Failed to move screenshot from ${ details.path } to ${ destFile }:`, err);
+          }
+        } else {
+          console.warn(`Screenshot file not found: ${ details.path }`);
+        }
+      } else {
+        console.warn(`Screenshot details not found for: ${ name }`);
+        console.log('Available screenshots:', screenshots.map((s) => s.name));
       }
 
       return null;

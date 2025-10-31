@@ -94,16 +94,16 @@ function getAccessibilityViolationsCallback(description?: string) {
       });
     });
 
-    cy.screenshot(`a11y_${ Cypress.currentTest.title }_${ index }`);
-
-    // Record the screenshot against the test and move it into the a11y folder
-    cy.task('a11yScreenshot', {
-      titlePath: testPath,
-      test:      Cypress.currentTest,
-      name:      `a11y_${ Cypress.currentTest.title }_${ index }`
+    // FIX: Wait for screenshot to complete before calling the task
+    cy.screenshot(`a11y_${ Cypress.currentTest.title }_${ index }`).then(() => {
+      // Now after:screenshot has fired and screenshots array is populated
+      cy.task('a11yScreenshot', {
+        titlePath: testPath,
+        test:      Cypress.currentTest,
+        name:      `a11y_${ Cypress.currentTest.title }_${ index }`
+      });
+      screenshotIndexes[title] = index + 1;
     });
-
-    screenshotIndexes[title] = index + 1;
 
     // Reset the borders that were added to mark the elements with violations
     violations.forEach((violation) => {
