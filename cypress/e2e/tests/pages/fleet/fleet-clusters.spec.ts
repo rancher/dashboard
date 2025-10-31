@@ -30,6 +30,7 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
   let disableFeature = false;
   let clusterId = '';
   let clusterName = '';
+  let cloudcredentialId = '';
   let gitRepo = '';
   let customWorkspace = '';
   const feature = 'provisioningv2-fleet-workspace-back-population';
@@ -70,7 +71,8 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
           namespace,
         },
         metadata: { labels: { foo: 'bar' } }
-      }).then(() => {
+      }).then((req) => {
+        cloudcredentialId = req.body.spec.cloudCredentialSecretName;
         removeCluster = true;
       });
 
@@ -370,6 +372,11 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
       featureFlagsPage.list().clickRowActionMenuItem(feature, 'Deactivate');
       featureFlagsPage.clickCardActionButtonAndWait('Deactivate', feature, false, { waitForModal: true, waitForRequest: true });
       featureFlagsPage.list().details(feature, 0).should('include.text', 'Disabled');
+    }
+
+    if (cloudcredentialId) {
+      // delete cloud credential
+      cy.deleteRancherResource('v3', 'cloudCredentials', cloudcredentialId, false);
     }
   });
 });
