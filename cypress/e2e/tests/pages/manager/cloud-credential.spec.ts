@@ -9,10 +9,33 @@ import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattl
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
+/******
+*  Running this test will delete all Amazon cloud credentials from the target cluster
+******/
 describe('Cloud Credential', { tags: ['@manager', '@adminUser'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const doCreatedCloudCredsIds = [];
   const azCreatedCloudCredsIds = [];
+
+  before(() => {
+    cy.login();
+    // Clean up any orphaned Amazon cloud credentials from previous test runs to ensure tests start with a clean state
+    cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
+      const body = resp.body;
+
+      if (body.pagination['total'] > 0) {
+        body.data.forEach((item: any) => {
+          if (item.amazonec2credentialConfig) {
+            const id = item.id;
+
+            cy.deleteRancherResource('v3', 'cloudcredentials', id, false);
+          } else {
+            cy.log('There are no existing amazon cloud credentials to delete');
+          }
+        });
+      }
+    });
+  });
 
   beforeEach(() => {
     cy.login();

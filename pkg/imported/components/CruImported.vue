@@ -429,7 +429,6 @@ export default defineComponent({
           :mode="mode"
           :namespaced="false"
           :nameEditable="!isEdit"
-          :descriptionDisabled="!enableInstanceDescription"
           nameKey="name"
           descriptionKey="description"
           name-label="cluster.name.label"

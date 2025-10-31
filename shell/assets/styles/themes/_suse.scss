@@ -83,11 +83,12 @@
     --toggle-off-bg: #{$grey-70};
     --sortable-table-selected-bg: #3f4350;
   }
-  
-  // SUSE Theme uses a smaller banner graphic
-  .suse-banner-graphic {
-    height: 160px;
 
+  // SUSE Theme uses a smaller banner graphic
+  --banner-graphic-height: 160px;
+
+  // SUSE Theme positions from right, so ship stays visible as browser width shrinks
+  .suse-banner-graphic {
     > img {
       object-position: right;
     }

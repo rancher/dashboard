@@ -495,7 +495,7 @@ export default {
             :alt="t('branding.logos.label')"
           />
           <div
-            v-if="!currentCluster"
+            v-if="!$route.path.startsWith('/c/')"
             class="simple-title"
           >
             <BrandImage

@@ -163,9 +163,8 @@ export default {
     };
 
     this.extensions = this.$extension.getProviders(context);
-  },
 
-  data() {
+    // At this point, we know we definitely have the mgmt cluster, so we can access `isImported` and `isLocal`
     let subType = null;
 
     subType = this.$route.query[SUB_TYPE] || null;
@@ -176,6 +175,11 @@ export default {
     } else if (this.value.isLocal) {
       subType = LOCAL;
     }
+
+    this.subType = subType;
+  },
+
+  data() {
     const rkeType = this.$route.query[RKE_TYPE] || null;
     const chart = this.$route.query[CHART] || null;
     const isImport = this.realMode === _IMPORT;
@@ -184,7 +188,7 @@ export default {
       nodeDrivers:      [],
       kontainerDrivers: [],
       extensions:       [],
-      subType,
+      subType:          null,
       rkeType,
       chart,
       isImport,
