@@ -36,7 +36,7 @@ export default {
 <template>
   <div
     v-if="shown"
-    class="banner-graphic"
+    class="banner-graphic-area"
     :class="{[alignClass]: true}"
   >
     <div
@@ -67,10 +67,10 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
   $banner-height: 200px;
 
-  .banner-graphic {
+  .banner-graphic-area {
     position: relative;
 
     .graphic {
@@ -109,6 +109,6 @@ export default {
 
   // Use top-level style so that a theme style can easily override via its own style without having to worry about specificity of CSS styles
   .banner-graphic-height {
-    height: $banner-height;
+    height: var(--banner-graphic-height, $banner-height);
   }
 </style>
