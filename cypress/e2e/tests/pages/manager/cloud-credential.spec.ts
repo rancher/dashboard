@@ -7,14 +7,36 @@ import ClusterManagerCreateRke2AzurePagePo from '@/cypress/e2e/po/edit/provision
 import CloudCredentialsCreatePagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials-create.po';
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
 import CloudCredentialsCreateAWSPagePo from '@/cypress/e2e/po/pages/cluster-manager/cloud-credentials-create-aws.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
-describe('Cloud Credential', { testIsolation: 'off' }, () => {
+describe('Cloud Credential', { tags: ['@manager', '@adminUser'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const doCreatedCloudCredsIds = [];
   const azCreatedCloudCredsIds = [];
 
   before(() => {
     cy.login();
+    // Clean up any orphaned Amazon cloud credentials from previous test runs to ensure tests start with a clean state
+    cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
+      const body = resp.body;
+
+      if (body.pagination['total'] > 0) {
+        body.data.forEach((item: any) => {
+          if (item.amazonec2credentialConfig) {
+            const id = item.id;
+
+            cy.deleteRancherResource('v3', 'cloudcredentials', id, false);
+          } else {
+            cy.log('There are no existing amazon cloud credentials to delete');
+          }
+        });
+      }
+    });
+  });
+
+  beforeEach(() => {
+    cy.login();
+    HomePagePo.goTo(); // this is needed to ensure we have a valid authentication session
   });
 
   it('Editing a cluster cloud credential should work with duplicate named cloud credentials', { tags: ['@manager', '@adminUser'] }, () => {
