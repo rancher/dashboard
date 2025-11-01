@@ -378,7 +378,7 @@ export default defineComponent({
 @media only screen and (max-width: 1060px) {
   .show-only-icon-in-small-view {
     &.btn {
-      padding: 0 4px 0 8px;
+      padding: 0 4px 0 10px;
     }
     .async-button-label {
       display: none;

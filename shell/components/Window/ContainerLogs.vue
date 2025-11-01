@@ -889,7 +889,7 @@ export default {
   @media only screen and (max-width: 1060px) {
     .wm-button-bar {
       .wm-btn {
-        padding: 0 4px 0 8px;
+        padding: 0 6px 0 12px;
 
         .wm-btn-large {
           display: none;
