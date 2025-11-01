@@ -195,6 +195,8 @@ export function getApplicableExtensionEnhancements<T>(
                 if (i < keyboardCombo.length - 1) {
                   if (key === 'meta') {
                     key = '\u2318';
+                  } else if (isMac && key === 'alt') {
+                    key = '⌥';
                   } else {
                     key = ucFirst(key);
                   }
