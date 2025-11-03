@@ -112,7 +112,7 @@ export default defineConfig({
     setupNodeEvents(on, config) {
       // For more info: https://docs.cypress.io/guides/tooling/code-coverage
       require('@cypress/code-coverage/task')(on, config);
-      require('@cypress/grep/src/plugin')(config);
+      config = require('@cypress/grep/src/plugin')(config);
       // For more info: https://www.npmjs.com/package/cypress-delete-downloads-folder
 
       console.log('ABOUT TO SETUP A11Y HOOKS');
@@ -120,7 +120,7 @@ export default defineConfig({
       // Load Accessibility plugin if configured
       if (process.env.TEST_A11Y) {
         console.log('A11Y TEST VARIABLE IS TRUE!');
-        require('./cypress/support/plugins/accessibility').default(on, config);
+        config = require('./cypress/support/plugins/accessibility').default(on, config);
       }
 
       on('task', { removeDirectory });
