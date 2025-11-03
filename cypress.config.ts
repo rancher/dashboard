@@ -131,6 +131,8 @@ export default defineConfig({
         // printLogsToFile:      'always', // default prints on failures
       });
 
+      console.log('FINAL CONFIG FILE', config);
+
       return config;
     },
     experimentalSessionAndOrigin: true,
