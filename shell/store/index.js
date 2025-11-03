@@ -263,11 +263,6 @@ export const state = () => {
     $route:                  markRaw({}),
     $plugin:                 markRaw({}),
     showWorkspaceSwitcher:   true,
-    /**
-     * Cache of the mgmt cluster fetched on start up
-     *
-     * We cannot rely on the store to cache this, as the store may contain a page without the local cluster
-     */
     localCluster:            null,
   };
 };
@@ -277,6 +272,11 @@ export const getters = {
     return state.clusterReady === true;
   },
 
+  /**
+   * Cache of the mgmt cluster fetched at start up
+   *
+   * We cannot rely on the store to cache this as the store may contain a page without the local cluster
+   */
   localCluster(state) {
     return state.localCluster;
   },
