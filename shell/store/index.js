@@ -262,6 +262,7 @@ export const state = () => {
     $router:                 markRaw({}),
     $route:                  markRaw({}),
     $plugin:                 markRaw({}),
+    $extension:              markRaw({}),
     showWorkspaceSwitcher:   true,
     localCluster:            null,
   };
@@ -775,6 +776,7 @@ export const mutations = {
   },
 
   setPlugin(state, pluginDefinition) {
+    state.$extension = markRaw(pluginDefinition || {});
     state.$plugin = markRaw(pluginDefinition || {});
   },
 
@@ -1195,7 +1197,7 @@ export const actions = {
 
     store.dispatch('gcStopIntervals');
 
-    Object.values(this.$plugin.getPlugins()).forEach((p) => {
+    Object.values(this.$extension.getPlugins()).forEach((p) => {
       if (p.onLogOut) {
         p.onLogOut(store);
       }
