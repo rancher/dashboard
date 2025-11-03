@@ -127,7 +127,6 @@ function registerHooks(on, config) {
   }
 
   on('task', {
-    console.log('task HOOK RUNNING!!!!');
     a11y(options: Options) {
       const { violations, titlePath } = options;
       const found = createPath(titlePath);
