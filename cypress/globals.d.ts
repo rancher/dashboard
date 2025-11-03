@@ -92,6 +92,7 @@ declare global {
       createGlobalRole(name: string, apiGroups: string[], resourceNames: string[], resources: string[], verbs: string[], newUserDefault: boolean, failOnStatusCode?: boolean, options?: { createNameOptions?: CreateResourceNameOptions }): Chainable;
       createFleetWorkspace(name: string, description?: string, failOnStatusCode?: boolean, options?: { createNameOptions?: CreateResourceNameOptions }): Chainable;
       createAwsCloudCredentials(nsName: string, cloudCredName: string, defaultRegion: string, accessKey: string, secretKey: string): Chainable;
+      getKubernetesReleases(rkeType: 'rke2' | 'k3s'): Chainable;
       createAmazonMachineConfig(instanceType: string, region: string, vpcId: string, zone: string, type: string, clusterName: string, namespace: string): Chainable;
       createAmazonRke2Cluster(params: CreateAmazonRke2ClusterParams): Chainable;
       createAmazonRke2ClusterWithoutMachineConfig(params: CreateAmazonRke2ClusterWithoutMachineConfigParams): Chainable;
