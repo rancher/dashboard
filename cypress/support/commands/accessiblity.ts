@@ -94,6 +94,9 @@ function getAccessibilityViolationsCallback(description?: string) {
       });
     });
 
+    // wait for DOM update (queue)
+    cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
+
     cy.screenshot(`a11y_${ Cypress.currentTest.title }_${ index }`);
 
     // Record the screenshot against the test and move it into the a11y folder
