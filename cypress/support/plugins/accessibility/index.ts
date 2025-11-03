@@ -118,6 +118,8 @@ function deDuplicate(violations: any[]) {
 }
 
 function registerHooks(on, config) {
+  console.log('=== [A11Y] registerHooks function has started ===');
+
   // Get the folder to write the reports into
   folder = config.env.a11yFolder;
 
@@ -257,6 +259,8 @@ function registerHooks(on, config) {
 
     return null;
   });
+
+  console.log('=== [A11Y] "after:run" has been registered. ===');
 
   return config;
 }
