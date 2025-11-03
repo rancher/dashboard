@@ -1,8 +1,10 @@
 import { BOTTOM, CENTER, LEFT, RIGHT } from '@shell/utils/position';
 
+// Defines the possible layouts where the window manager can be used.
 export const enum Layout {
   default = 'default', // eslint-disable-line no-unused-vars
   home = 'home', // eslint-disable-line no-unused-vars
+  plain = 'plain', // eslint-disable-line no-unused-vars
 }
 
 export type Position = typeof BOTTOM | typeof LEFT | typeof RIGHT | typeof CENTER;
