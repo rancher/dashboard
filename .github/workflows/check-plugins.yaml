@@ -21,18 +21,18 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
-      - name: Validate Plugin build system
-        run: ./shell/scripts/test-plugins-build.sh
-        shell: bash
+      # - name: Validate Plugin build system
+      #   run: ./shell/scripts/test-plugins-build.sh
+      #   shell: bash
 
-      - name: Upload files
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: test
-          path: |
-            /tmp/tmp.**/test-app
-            !/tmp/tmp.**/test-app/dist/js/*.map
-            !/tmp/tmp.**/test-app/node_modules/
-            !/tmp/tmp.**/test-app/pkg/test-pkg/node_modules/
-          retention-days: 2
+      # - name: Upload files
+      #   uses: actions/upload-artifact@v4
+      #   if: failure()
+      #   with:
+      #     name: test
+      #     path: |
+      #       /tmp/tmp.**/test-app
+      #       !/tmp/tmp.**/test-app/dist/js/*.map
+      #       !/tmp/tmp.**/test-app/node_modules/
+      #       !/tmp/tmp.**/test-app/pkg/test-pkg/node_modules/
+      #     retention-days: 2

@@ -127,6 +127,7 @@ function registerHooks(on, config) {
   }
 
   on('task', {
+    console.log('task HOOK RUNNING!!!!');
     a11y(options: Options) {
       const { violations, titlePath } = options;
       const found = createPath(titlePath);
@@ -176,6 +177,7 @@ function registerHooks(on, config) {
   });
 
   on('before:spec', (spec) => {
+    console.log('before:spec HOOK RUNNING!!!!');
     const newSpec = {
       name:       spec.baseName,
       children:   [],
@@ -190,11 +192,13 @@ function registerHooks(on, config) {
   });
 
   on('after:spec', () => {
+    console.log('after:spec HOOK RUNNING!!!!');
     // Pop the spec off of the chain
     chain.pop();
   });
 
   on('after:screenshot', (details) => {
+    console.log('after:screenshot HOOK RUNNING!!!!');
     const { name, specName, path } = details;
 
     screenshots.push({
@@ -205,6 +209,7 @@ function registerHooks(on, config) {
   });
 
   on('after:run', () => {
+    console.log('after:run HOOK RUNNING!!!!');
     const root = chain[0];
 
     tidy(root);

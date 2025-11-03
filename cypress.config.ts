@@ -127,7 +127,7 @@ export default defineConfig({
         outputRoot:           `${ config.projectRoot }/browser-logs/`,
         outputTarget:         { 'out.html': 'html' },
         logToFilesOnAfterRun: true,
-        printLogsToConsole:   'never',
+        printLogsToConsole:   'always',
         // printLogsToFile:      'always', // default prints on failures
       });
 
