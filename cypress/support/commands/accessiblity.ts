@@ -94,7 +94,7 @@ function getAccessibilityViolationsCallback(description?: string) {
       });
     });
 
-    // wait for DOM update (queue)
+    // wait for DOM update for red border paint of a11y
     cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
 
     cy.screenshot(`a11y_${ Cypress.currentTest.title }_${ index }`);
@@ -134,6 +134,9 @@ function getAccessibilityViolationsCallback(description?: string) {
  */
 // skipFailures = true will not fail the test when there are accessibility failures
 Cypress.Commands.add('checkPageAccessibility', (description?: string) => {
+  cy.get('.main-layout').should('not.be.empty');
+  cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+
   cy.checkA11y(undefined, {}, getAccessibilityViolationsCallback(description), true);
 });
 
@@ -142,6 +145,9 @@ Cypress.Commands.add('checkPageAccessibility', (description?: string) => {
  */
 // skipFailures = true will not fail the test when there are accessibility failures
 Cypress.Commands.add('checkElementAccessibility', (subject: any, description?: string) => {
+  cy.get('.main-layout').should('not.be.empty');
+  cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+
   cy.get(subject).then(($el) => {
     cy.log(`✅ Found ${ $el.length } elements matching`);
   });
