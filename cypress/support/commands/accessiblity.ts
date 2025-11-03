@@ -132,7 +132,7 @@ function getAccessibilityViolationsCallback(description?: string) {
  */
 // skipFailures = true will not fail the test when there are accessibility failures
 Cypress.Commands.add('checkPageAccessibility', (description?: string) => {
-  cy.get('input[type="password"], main.dashboard-content', { timeout: 10000 }).should('be.visible');
+  cy.get('input[type="password"], .dashboard-content', { timeout: 10000 }).should('be.visible');
   cy.checkA11y(undefined, {}, getAccessibilityViolationsCallback(description), true);
 });
 
@@ -141,7 +141,7 @@ Cypress.Commands.add('checkPageAccessibility', (description?: string) => {
  */
 // skipFailures = true will not fail the test when there are accessibility failures
 Cypress.Commands.add('checkElementAccessibility', (subject: any, description?: string) => {
-  cy.get('input[type="password"], main.dashboard-content', { timeout: 10000 }).should('be.visible');
+  cy.get('input[type="password"], .dashboard-content', { timeout: 10000 }).should('be.visible');
   cy.get(subject).then(($el) => {
     cy.log(`✅ Found ${ $el.length } elements matching`);
   });
