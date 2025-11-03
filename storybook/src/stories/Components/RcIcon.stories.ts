@@ -27,7 +27,7 @@ export const Default: Story = {
     setup() {
       return { args };
     },
-    template: '<div style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;"><RcIcon v-bind="args" /></div>',
+    template: '<RcIcon v-bind="args" />',
   }),
   args: {
     type: 'search',
