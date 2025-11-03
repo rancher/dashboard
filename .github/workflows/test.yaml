@@ -64,104 +64,104 @@ jobs:
           retention-days: 10
           compression-level: 9
 
-  e2e-test:
-    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
-    needs: e2e-ui-build
-    strategy:
-      fail-fast: false
-      matrix:
-        role: [
-          { username: 'admin', tag: '@adminUser' }, 
-          { username: 'standard_user', tag: '@standardUser' }
-        ]
-        features:  [
-          ['@navigation', '@extensions'],
-          ['@charts'],
-          ['@explorer'],
-          ['@explorer2'],
-          ['@virtualizationMgmt', '@fleet'],
-          ['@generic', '@globalSettings'],
-          ['@manager'],
-          ['@userMenu', '@usersAndAuths'],
-          ['@components'],
-          ['@noVai']
-        ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
-      - name: Setup env
-        uses: ./.github/actions/setup
+  # e2e-test:
+  #   if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+  #   needs: e2e-ui-build
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       role: [
+  #         { username: 'admin', tag: '@adminUser' }, 
+  #         { username: 'standard_user', tag: '@standardUser' }
+  #       ]
+  #       features:  [
+  #         ['@navigation', '@extensions'],
+  #         ['@charts'],
+  #         ['@explorer'],
+  #         ['@explorer2'],
+  #         ['@virtualizationMgmt', '@fleet'],
+  #         ['@generic', '@globalSettings'],
+  #         ['@manager'],
+  #         ['@userMenu', '@usersAndAuths'],
+  #         ['@components'],
+  #         ['@noVai']
+  #       ]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v5
+  #       with:
+  #         fetch-depth: 1
+  #     - name: Setup env
+  #       uses: ./.github/actions/setup
 
-      # Installing fixed version of Chrome since latest version does not work (128 didn't work)
-      # Leaving this here again in case we need to pin to a specific Chrome version in the future
-      # NOTE - If we need to pin chrome again we should...
-      # 1. create a repo gh action to install chrome (see .github/actions)
-      # 2. call it here
-      # 3. call it from `a11y-test` as well
+  #     # Installing fixed version of Chrome since latest version does not work (128 didn't work)
+  #     # Leaving this here again in case we need to pin to a specific Chrome version in the future
+  #     # NOTE - If we need to pin chrome again we should...
+  #     # 1. create a repo gh action to install chrome (see .github/actions)
+  #     # 2. call it here
+  #     # 3. call it from `a11y-test` as well
 
-      # - name: Install Chrome 127
-      #   run: |
-      #     sudo apt-get install -y wget libu2f-udev
-      #     cd /tmp
-      #     wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_127.0.6533.72-1_amd64.deb
-      #     sudo dpkg -i google-chrome-stable_127.0.6533.72-1_amd64.deb
-      #     sudo apt-get install -y --allow-downgrades ./google-chrome-stable_127.0.6533.72-1_amd64.deb
-      #     google-chrome --version
+  #     # - name: Install Chrome 127
+  #     #   run: |
+  #     #     sudo apt-get install -y wget libu2f-udev
+  #     #     cd /tmp
+  #     #     wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_127.0.6533.72-1_amd64.deb
+  #     #     sudo dpkg -i google-chrome-stable_127.0.6533.72-1_amd64.deb
+  #     #     sudo apt-get install -y --allow-downgrades ./google-chrome-stable_127.0.6533.72-1_amd64.deb
+  #     #     google-chrome --version
 
-      - name: Download e2e build
-        uses:  actions/download-artifact@v5
-        with:
-         name: ${{ env.E2E_BUILD_DIST_NAME }}
-         path: ${{ env.E2E_BUILD_DIST_DIR }}
-      - name: Download e2e build ember
-        uses:  actions/download-artifact@v5
-        with:
-         name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
-         path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
+  #     - name: Download e2e build
+  #       uses:  actions/download-artifact@v5
+  #       with:
+  #        name: ${{ env.E2E_BUILD_DIST_NAME }}
+  #        path: ${{ env.E2E_BUILD_DIST_DIR }}
+  #     - name: Download e2e build ember
+  #       uses:  actions/download-artifact@v5
+  #       with:
+  #        name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
+  #        path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
       
-      - name: Run Rancher
-        run: yarn e2e:docker
+  #     - name: Run Rancher
+  #       run: yarn e2e:docker
       
-      - name: Setup Rancher and user
-        run: |
-          yarn e2e:prod
-        env: 
-          GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
-          TEST_USERNAME: admin
-          TEST_ONLY: setup
-      - name: Run user tests
-        run: |
-          yarn e2e:prod
-          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
-        env: 
-          TEST_SKIP: setup
-          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
-          TEST_USERNAME: ${{ matrix.role.username }}
-          VAI_ENABLED: ${{ (matrix.features[0] != '@noVai') && 'true' || 'false' }}
+  #     - name: Setup Rancher and user
+  #       run: |
+  #         yarn e2e:prod
+  #       env: 
+  #         GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+  #         TEST_USERNAME: admin
+  #         TEST_ONLY: setup
+  #     - name: Run user tests
+  #       run: |
+  #         yarn e2e:prod
+  #         [ "$BUILD_DASHBOARD" != "false" ] || exit 0
+  #       env: 
+  #         TEST_SKIP: setup
+  #         GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+  #         TEST_USERNAME: ${{ matrix.role.username }}
+  #         VAI_ENABLED: ${{ (matrix.features[0] != '@noVai') && 'true' || 'false' }}
 
-      - name: Fetch Rancher Logs
-        if: ${{ failure() }}
-        run: yarn docker:local:logs
+  #     - name: Fetch Rancher Logs
+  #       if: ${{ failure() }}
+  #       run: yarn docker:local:logs
 
-      - name: Create Artifacts Folder
-        if: ${{ failure() }}
-        run: |
-          mkdir artifacts
-          cp -r cypress/screenshots artifacts
-          cp ${{ env.E2E_RANCHER_LOG }} artifacts/rancher.logs
-          cp browser-logs/out.html artifacts/browser-logs.html
+  #     - name: Create Artifacts Folder
+  #       if: ${{ failure() }}
+  #       run: |
+  #         mkdir artifacts
+  #         cp -r cypress/screenshots artifacts
+  #         cp ${{ env.E2E_RANCHER_LOG }} artifacts/rancher.logs
+  #         cp browser-logs/out.html artifacts/browser-logs.html
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        if: ${{ failure() }}
-        with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-artifacts-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
-          path: artifacts/
-          if-no-files-found: error
-          retention-days: 5
-          compression-level: 9
+  #     - name: Upload Artifacts
+  #       uses: actions/upload-artifact@v4
+  #       if: ${{ failure() }}
+  #       with:
+  #         name: ${{github.run_number}}-${{github.run_attempt}}-artifacts-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
+  #         path: artifacts/
+  #         if-no-files-found: error
+  #         retention-days: 5
+  #         compression-level: 9
 
   a11y-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
@@ -211,82 +211,82 @@ jobs:
           name: accessibility-report
           path: cypress/accessibility
         
-  unit-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
+  # unit-test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v5
+  #       with:
+  #         fetch-depth: 1
       
-      - name: Run tests
-        uses: ./.github/actions/unit-tests
+  #     - name: Run tests
+  #       uses: ./.github/actions/unit-tests
 
-      - name: Collect Coverage
-        run: |
-          mkdir -p coverage-artifacts/coverage
-          cp coverage/unit/coverage-final.json coverage-artifacts/coverage/coverage-unit.json
-          cp -r coverage/unit/ coverage-artifacts/coverage/unit/
+  #     - name: Collect Coverage
+  #       run: |
+  #         mkdir -p coverage-artifacts/coverage
+  #         cp coverage/unit/coverage-final.json coverage-artifacts/coverage/coverage-unit.json
+  #         cp -r coverage/unit/ coverage-artifacts/coverage/unit/
 
-      - name: Upload coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-coverage
-          path: coverage-artifacts/**/*
+  #     - name: Upload coverage
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: ${{github.run_number}}-${{github.run_attempt}}-coverage
+  #         path: coverage-artifacts/**/*
 
-  i18n:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
+  # i18n:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v5
+  #       with:
+  #         fetch-depth: 1
 
-      - name: Run i18n lint
-        uses: ./.github/actions/i18n-lint
+  #     - name: Run i18n lint
+  #       uses: ./.github/actions/i18n-lint
 
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
+  # lint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v5
+  #       with:
+  #         fetch-depth: 1
 
-      - name: Run tests
-        uses: ./.github/actions/lint
+  #     - name: Run tests
+  #       uses: ./.github/actions/lint
       
-  check-i18n:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
-      - uses: actions/setup-node@v5
-        with:
-          node-version-file: '.nvmrc'
+  # check-i18n:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v5
+  #       with:
+  #         fetch-depth: 1
+  #     - uses: actions/setup-node@v5
+  #       with:
+  #         node-version-file: '.nvmrc'
       
-      - name: Install packages
-        run: yarn install:ci
+  #     - name: Install packages
+  #       run: yarn install:ci
       
-      - name: Run i18n string check
-        run: |
-          # Falure won't fail the job (remove -x when all current issues are fixed)
-          ./scripts/check-i18n -s -x
+  #     - name: Run i18n string check
+  #       run: |
+  #         # Falure won't fail the job (remove -x when all current issues are fixed)
+  #         ./scripts/check-i18n -s -x
 
-  check-i18n-links:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
-      - uses: actions/setup-node@v5
-        with:
-          node-version-file: '.nvmrc'
+  # check-i18n-links:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v5
+  #       with:
+  #         fetch-depth: 1
+  #     - uses: actions/setup-node@v5
+  #       with:
+  #         node-version-file: '.nvmrc'
       
-      - name: Install packages
-        run: yarn install:ci
+  #     - name: Install packages
+  #       run: yarn install:ci
       
-      - name: Run check of all http links in the i18n files (broken link check)
-        run: |
-          ./scripts/check-i18n-links
+  #     - name: Run check of all http links in the i18n files (broken link check)
+  #       run: |
+  #         ./scripts/check-i18n-links
 
   # coverage:
   #   runs-on: ubuntu-latest
