@@ -1895,7 +1895,7 @@ function ifHave(getters, option) {
   case IF_HAVE.NOT_V1_ISTIO: {
     return !isV1Istio(getters);
   }
-  case IF_HAVE.MULTI_CLUSTER: {
+  case IF_HAVE.MULTI_CLUSTER: { // Used by harvester extension
     return getters.isMultiCluster;
   }
   case IF_HAVE.NEUVECTOR_NAMESPACE: {
