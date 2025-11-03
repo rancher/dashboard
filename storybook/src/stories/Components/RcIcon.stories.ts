@@ -1,0 +1,57 @@
+import type { Meta, StoryObj } from '@storybook/vue3';
+import { RcIcon } from '@components/RcIcon';
+import { RcIconSize, RcIconType } from '@components/RcIcon/types';
+
+const meta: Meta<typeof RcIcon> = {
+  component: RcIcon,
+  argTypes:  {
+    type: {
+      options:     Object.keys(RcIconType),
+      control:     { type: 'select' },
+      description: `Determines which icon will be shown.`
+    },
+    size: {
+      options:     Object.keys(RcIconSize),
+      control:     { type: 'select' },
+      description: "Determines the size of the icon. `small`, `medium`, and `large` are the standard sizes and 'none' should be used if you plan to style it yourself. We highly discourage using `none` we'd like to limit the amount of sizes we use."
+    },
+  }
+};
+
+export default meta;
+type Story = StoryObj<typeof RcIcon>;
+
+export const Default: Story = {
+  render: (args: any) => ({
+    components: { RcIcon },
+    setup() {
+      return { args };
+    },
+    template: '<div style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;"><RcIcon v-bind="args" /></div>',
+  }),
+  args: {
+    type: 'search',
+    size: 'large'
+  },
+};
+
+export const All: Story = {
+  render: (args: any) => ({
+    components: { RcIcon },
+    setup() {
+      return { args, types: Object.keys(RcIconType) };
+    },
+    template: `<div style="display: flex; max-width: 100%; flex-wrap: wrap; ">
+      <div v-for="type in types" :key="type" style="display: inline-flex; justify-content: center; align-items: center; flex-direction: column; flex-basis: 25%; margin-bottom: 20px;">
+
+        <RcIcon :type="type" size="large" style="margin-bottom: 5px;"/>
+
+        <span style="user-select: all;">{{type}}</span>
+      </div>
+    </div>`,
+  }),
+  parameters: {
+    controls: { disabled: true },
+    docs:     { canvas: { sourceState: 'none' } }
+  },
+};
