@@ -4,6 +4,7 @@ import CruResourcePo from '@/cypress/e2e/po/components/cru-resource.po';
 import ResourceYamlPo from '@/cypress/e2e/po/components/resource-yaml.po';
 import ResourceDetailMastheadPo from '@/cypress/e2e/po/components/resource-detail-masthead.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
+import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 
 export default class ResourceDetailPo extends ComponentPo {
   /**
@@ -42,6 +43,18 @@ export default class ResourceDetailPo extends ComponentPo {
     return new TabbedPo('[data-testid="tabbed"]');
   }
 
+  /**
+   * @param tabId - the id of the tab
+   * @param index - the index of the list (only used for 'related' tab)
+   * @returns the list of the tab
+   */
+  tabbedList(tabId: string, index?: number) {
+    const baseSelector = `#${ tabId } [data-testid="sortable-table-list-container"]`;
+    const selector = tabId === 'related' ? `${ baseSelector }:nth-of-type(${ index })` : baseSelector;
+
+    return new ResourceTablePo(selector);
+  }
+
   title(): Cypress.Chainable<string> {
     return this.self().find('.title-bar h1.title, .primaryheader h1').invoke('text');
   }
@@ -52,5 +65,9 @@ export default class ResourceDetailPo extends ComponentPo {
    */
   masthead() {
     return new ResourceDetailMastheadPo(this.self());
+  }
+
+  resourceGauges() {
+    return this.self().find('.gauges .count-gauge');
   }
 }
