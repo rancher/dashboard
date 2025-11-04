@@ -157,8 +157,11 @@ export default {
       this.$emit('update:hasIpv6', neu);
     },
 
-    allValid(neu) {
-      this.$emit('validationChanged', neu);
+    allValid: {
+      handler(neu) {
+        this.$emit('validationChanged', neu);
+      },
+      immediate: true
     }
   },
 
