@@ -302,8 +302,11 @@ export default defineComponent({
         return Promise.resolve({});
       }
 
+      const promises = [];
+
       if ( this.canViewMgmtClusters ) {
-        this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+        // This is the only one we need to block on (needed for the initial sort on mgmt name)
+        promises.push(this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }));
       }
 
       if ( this.canViewMachine ) {
@@ -323,7 +326,7 @@ export default defineComponent({
         this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
       }
 
-      return Promise.resolve({});
+      return Promise.all(promises);
     },
 
     async fetchPageSecondaryResources({
