@@ -97,13 +97,16 @@ function getAccessibilityViolationsCallback(description?: string) {
     // wait for DOM update for red border paint of a11y
     cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
 
-    cy.screenshot(`a11y_${ Cypress.currentTest.title }_${ index }`);
+    const cleanTestTitle = Cypress.currentTest.title.replace(/[\s"']+/g, '_').replace(/[^a-zA-Z0-9_.-]/g, '');
+    const screenshotName = `a11y_${ cleanTestTitle }_${ index }`;
+
+    cy.screenshot(screenshotName);
 
     // Record the screenshot against the test and move it into the a11y folder
     cy.task('a11yScreenshot', {
       titlePath: testPath,
       test:      Cypress.currentTest,
-      name:      `a11y_${ Cypress.currentTest.title }_${ index }`
+      name:      screenshotName
     });
 
     screenshotIndexes[title] = index + 1;
@@ -135,7 +138,7 @@ function getAccessibilityViolationsCallback(description?: string) {
 // skipFailures = true will not fail the test when there are accessibility failures
 Cypress.Commands.add('checkPageAccessibility', (description?: string) => {
   cy.get('.main-layout').should('not.be.empty');
-  cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
+  // cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
 
   cy.checkA11y(undefined, {}, getAccessibilityViolationsCallback(description), true);
 });
@@ -146,7 +149,7 @@ Cypress.Commands.add('checkPageAccessibility', (description?: string) => {
 // skipFailures = true will not fail the test when there are accessibility failures
 Cypress.Commands.add('checkElementAccessibility', (subject: any, description?: string) => {
   cy.get('.main-layout').should('not.be.empty');
-  cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
+  // cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
 
   cy.get(subject).then(($el) => {
     cy.log(`✅ Found ${ $el.length } elements matching`);

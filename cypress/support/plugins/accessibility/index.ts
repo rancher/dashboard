@@ -228,15 +228,15 @@ function registerHooks(on, config) {
     return null;
   });
 
-  on('before:browser:launch', (browser, launchOptions) => {
-    // Disables GPU hardware acceleration in Chrome/Electron
-    // This is the most common fix for blank screenshots
-    if (browser.name === 'chrome' || browser.name === 'electron') {
-      launchOptions.args.push('--disable-gpu');
-    }
+  // on('before:browser:launch', (browser, launchOptions) => {
+  //   // Disables GPU hardware acceleration in Chrome/Electron
+  //   // This is the most common fix for blank screenshots
+  //   if (browser.name === 'chrome' || browser.name === 'electron') {
+  //     launchOptions.args.push('--disable-gpu');
+  //   }
 
-    return launchOptions;
-  });
+  //   return launchOptions;
+  // });
 
   return config;
 }
