@@ -52,7 +52,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       cy.injectAxe();
       loginPage.username().set('test user');
 
-      cy.checkPageAccessibility(true);
+      cy.checkPageAccessibility();
     });
 
     it('locale selector', () => {
@@ -62,7 +62,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       loginPage.waitForPage();
       cy.injectAxe();
       loginPage.localSelector().click();
-      cy.checkPageAccessibility(true);
+      cy.checkPageAccessibility();
     });
   });
 
@@ -86,6 +86,8 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
     it('About page', () => {
       AboutPagePo.navTo();
       aboutPage.waitForPage();
+      cy.get('.title-block h1').should('be.visible');
+      cy.get('table tr').should('be.visible');
       cy.injectAxe();
 
       cy.checkPageAccessibility();
@@ -95,6 +97,8 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       userMenu.clickMenuItem('Preferences');
       userMenu.isClosed();
       prefPage.waitForPage();
+      cy.get('.outlet h1').should('be.visible');
+      cy.get('div h4').should('be.visible');
       cy.injectAxe();
 
       cy.checkPageAccessibility();

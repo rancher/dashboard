@@ -102,21 +102,3 @@ Cypress.Commands.add('shouldHaveCssVar', { prevSubject: true }, (subject, styleN
 Cypress.Commands.add('hideElementBySelector', (selector:string) => {
   cy.get(selector).invoke('css', 'opacity', '0');
 });
-
-Cypress.Commands.add('waitForAppToLoad', (isLoginPage) => {
-  if (isLoginPage) {
-    cy.get('.main-layout')
-      .children()
-      .should('have.length.greaterThan', 0);
-  } else {
-    cy.get('[data-testid="header"]', { timeout: 30000 })
-      .should('be.visible');
-
-    cy.get('[data-testid="side-menu"]', { timeout: 30000 })
-      .should('be.visible');
-
-    cy.get('.main-layout')
-      .children()
-      .should('have.length.greaterThan', 0);
-  }
-});

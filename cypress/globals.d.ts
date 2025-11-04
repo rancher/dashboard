@@ -198,8 +198,6 @@ declare global {
 
       interceptAllRequests(verbs: Verbs, urls: string[], timeout: number): Chainable<string>;
 
-      waitForAppToLoad(isLoginPage: boolean): Chainable<Element>;
-
       iFrame(): Chainable<Element>;
 
       // Check if an element is visible to the user on the screen.
@@ -227,7 +225,7 @@ declare global {
       /**
        * Run an accessibility check on the current page or the specified element
        */
-      checkPageAccessibility(isLoginPage?: boolean, description?: string);
+      checkPageAccessibility(description?: string);
 
       /**
        * Run an accessibility check on the specified element

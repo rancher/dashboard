@@ -136,9 +136,7 @@ function getAccessibilityViolationsCallback(description?: string) {
  * Checks accessibility of the entire page
  */
 // skipFailures = true will not fail the test when there are accessibility failures
-Cypress.Commands.add('checkPageAccessibility', (isLoginPage = false, description?: string) => {
-  cy.waitForAppToLoad(isLoginPage);
-
+Cypress.Commands.add('checkPageAccessibility', (description?: string) => {
   cy.checkA11y(undefined, {}, getAccessibilityViolationsCallback(description), true);
 });
 
@@ -147,8 +145,6 @@ Cypress.Commands.add('checkPageAccessibility', (isLoginPage = false, description
  */
 // skipFailures = true will not fail the test when there are accessibility failures
 Cypress.Commands.add('checkElementAccessibility', (subject: any, description?: string) => {
-  cy.waitForAppToLoad(false);
-
   cy.get(subject).then(($el) => {
     cy.log(`✅ Found ${ $el.length } elements matching`);
   });
