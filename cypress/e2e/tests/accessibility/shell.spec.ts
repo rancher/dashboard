@@ -86,7 +86,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
     it('About page', () => {
       AboutPagePo.navTo();
       aboutPage.waitForPage();
-      cy.get('.title-block h1').should('be.visible');
+      cy.get('.title-block h1').should('contain', 'About');
       cy.get('table tr').should('be.visible');
       cy.injectAxe();
 
@@ -97,8 +97,8 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       userMenu.clickMenuItem('Preferences');
       userMenu.isClosed();
       prefPage.waitForPage();
-      cy.get('.outlet h1').should('be.visible');
-      cy.get('div h4').should('be.visible');
+      cy.get('.outlet h1').should('contain', 'Preferences');
+      cy.get('.outlet > div:nth-child(1) > h4').should('contain', 'Language');
       cy.injectAxe();
 
       cy.checkPageAccessibility();
