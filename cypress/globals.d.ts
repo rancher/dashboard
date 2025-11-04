@@ -198,6 +198,8 @@ declare global {
 
       interceptAllRequests(verbs: Verbs, urls: string[], timeout: number): Chainable<string>;
 
+      waitForAppToLoad(): Chainable<Element>;
+
       iFrame(): Chainable<Element>;
 
       // Check if an element is visible to the user on the screen.
