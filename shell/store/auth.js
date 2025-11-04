@@ -149,12 +149,16 @@ export const actions = {
       force = true;
     }
 
-    return dispatch('rancher/findAll', {
+    const providers = dispatch('rancher/findAll', {
       type: 'authProvider',
       opt:  {
-        url: `/v3-public/authProviders`, watch: false, force
+        url:   `/v1-public/authproviders`,
+        watch: false,
+        force
       }
     }, { root: true });
+
+    return providers;
   },
 
   getAuthConfigs({ dispatch }) {
