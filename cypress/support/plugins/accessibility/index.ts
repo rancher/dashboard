@@ -155,7 +155,8 @@ function registerHooks(on, config) {
         if (!fs.existsSync(screenFolder)) {
           fs.mkdirSync(screenFolder);
         }
-        fs.renameSync(details.path, destFile);
+
+        fs.copyFileSync(details.path, destFile);
       }
 
       return null;
