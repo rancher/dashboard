@@ -1904,7 +1904,7 @@ function ifHave(getters, option) {
   case IF_HAVE.ADMIN: {
     return isAdminUser(getters);
   }
-  case IF_HAVE.MCM_DISABLED: {
+  case IF_HAVE.MCM_DISABLED: { // There's a general MCM ff, this is conflating it with a harvester concept
     return !getters['isRancherInHarvester'];
   }
   case IF_HAVE.NOT_STANDALONE_HARVESTER: {

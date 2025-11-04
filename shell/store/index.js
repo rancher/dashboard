@@ -602,10 +602,9 @@ export const getters = {
   },
 
   isStandaloneHarvester(state, getters) {
-    const clusters = getters['management/all'](MANAGEMENT.CLUSTER);
-    const cluster = clusters.find((c) => c.id === 'local') || {};
+    const localCluster = getters['localCluster'];
 
-    return getters['isSingleProduct'] && cluster.isHarvester && !getters['isRancherInHarvester'];
+    return getters['isSingleProduct'] && localCluster?.isHarvester && !getters['isRancherInHarvester'];
   },
 
   showTopLevelMenu(getters) {
