@@ -140,5 +140,5 @@ export default defineConfig({
     baseUrl
   },
   videoCompression:    15,
-  videoUploadOnPasses: false,
+  videoUploadOnPasses: true,
 });
