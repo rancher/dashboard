@@ -98,7 +98,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       userMenu.isClosed();
       prefPage.waitForPage();
       cy.get('.outlet h1').should('contain', 'Preferences');
-      cy.get('.outlet > div:nth-child(1) > h4').should('contain', 'Language');
+      cy.get('.outlet :nth-child(1 of div) h4').should('contain', 'Language');
       cy.injectAxe();
 
       cy.checkPageAccessibility();
