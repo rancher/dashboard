@@ -52,7 +52,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       cy.injectAxe();
       loginPage.username().set('test user');
 
-      cy.checkPageAccessibility();
+      cy.checkPageAccessibility(true);
     });
 
     it('locale selector', () => {
@@ -62,7 +62,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       loginPage.waitForPage();
       cy.injectAxe();
       loginPage.localSelector().click();
-      cy.checkPageAccessibility();
+      cy.checkPageAccessibility(true);
     });
   });
 

@@ -198,7 +198,7 @@ declare global {
 
       interceptAllRequests(verbs: Verbs, urls: string[], timeout: number): Chainable<string>;
 
-      waitForAppToLoad(): Chainable<Element>;
+      waitForAppToLoad(isLoginPage: boolean): Chainable<Element>;
 
       iFrame(): Chainable<Element>;
 
@@ -227,7 +227,7 @@ declare global {
       /**
        * Run an accessibility check on the current page or the specified element
        */
-      checkPageAccessibility(description?: string);
+      checkPageAccessibility(isLoginPage?: boolean, description?: string);
 
       /**
        * Run an accessibility check on the specified element
