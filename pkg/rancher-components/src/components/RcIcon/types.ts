@@ -1,3 +1,5 @@
+import { Status } from '../../utils/status';
+
 export const RcIconType = {
   actions:                 'icon-actions',
   ai:                      'icon-ai',
@@ -153,4 +155,5 @@ export const RcIconSize = {
 export interface RcIconProps {
   size: keyof typeof RcIconSize;
   type: keyof typeof RcIconType;
+  status?: Status | 'inherit';
 }

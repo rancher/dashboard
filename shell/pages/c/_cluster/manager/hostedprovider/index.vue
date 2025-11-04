@@ -139,7 +139,7 @@ export default {
           name:        p.label,
           nameDisplay: p.label,
           description: p.description || '',
-          prime:       p.prime,
+          prime:       true || p.prime,
           active,
           availableActions
         };
@@ -196,7 +196,8 @@ export default {
             <span class="mr-10">{{ row.name }}</span>
             <RcStatusBadge
               v-if="row.prime"
-              status="prime"
+              class="prime-badge"
+              status="success"
             >
               {{ t('providers.hosted.prime') }}
             </RcStatusBadge>
@@ -212,3 +213,10 @@ export default {
     </ResourceTable>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.prime-badge {
+  font-size: 10px;
+  line-height: 15px;
+}
+</style>

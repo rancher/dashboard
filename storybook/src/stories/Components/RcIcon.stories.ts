@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { RcIcon } from '@components/RcIcon';
 import { RcIconSize, RcIconType } from '@components/RcIcon/types';
+import { StatusDefinitions } from '@components/../utils/status';
 
 const meta: Meta<typeof RcIcon> = {
   component: RcIcon,
@@ -14,6 +15,11 @@ const meta: Meta<typeof RcIcon> = {
       options:     Object.keys(RcIconSize),
       control:     { type: 'select' },
       description: "Determines the size of the icon. `small`, `medium`, and `large` are the standard sizes and 'none' should be used if you plan to style it yourself. We highly discourage using `none` we'd like to limit the amount of sizes we use."
+    },
+    status: {
+      options:     [...Object.keys(StatusDefinitions), 'inherit'],
+      control:     { type: 'select' },
+      description: 'Determines the color of the text based on the status used. This value can also be `inherit` which means that the color should inherit the text of the surrounding text.'
     },
   }
 };
@@ -30,8 +36,9 @@ export const Default: Story = {
     template: '<RcIcon v-bind="args" />',
   }),
   args: {
-    type: 'search',
-    size: 'large'
+    type:   'search',
+    size:   'large',
+    status: 'success'
   },
 };
 
@@ -44,7 +51,7 @@ export const All: Story = {
     template: `<div style="display: flex; max-width: 100%; flex-wrap: wrap; ">
       <div v-for="type in types" :key="type" style="display: inline-flex; justify-content: center; align-items: center; flex-direction: column; flex-basis: 25%; margin-bottom: 20px;">
 
-        <RcIcon :type="type" size="large" style="margin-bottom: 5px;"/>
+        <RcIcon :type="type" size="large" color="inherit" style="margin-bottom: 5px;"/>
 
         <span style="user-select: all;">{{type}}</span>
       </div>
