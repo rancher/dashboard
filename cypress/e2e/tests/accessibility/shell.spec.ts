@@ -88,6 +88,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       aboutPage.waitForPage();
       cy.get('.title-block h1').should('contain', 'About');
       cy.get('table tr').should('be.visible');
+      cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
       cy.injectAxe();
 
       cy.checkPageAccessibility();
@@ -99,6 +100,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       prefPage.waitForPage();
       cy.get('.outlet h1').should('contain', 'Preferences');
       cy.get('.outlet :nth-child(1 of div) h4').should('contain', 'Language');
+      cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
       cy.injectAxe();
 
       cy.checkPageAccessibility();
