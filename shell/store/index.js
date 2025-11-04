@@ -282,7 +282,7 @@ export const getters = {
   },
 
   isMultiCluster(state, getters) {
-    const clusterCount = getters['management/all'](COUNT)?.[MANAGEMENT.CLUSTER]?.summary?.count || 0;
+    const clusterCount = getters['management/all'](COUNT)?.[0]?.counts?.[MANAGEMENT.CLUSTER]?.summary?.count || 0;
     const localCluster = getters['localCluster'];
 
     if (clusterCount === 1 && !!localCluster) {
