@@ -29,7 +29,7 @@ function goToHomePageAndSettle() {
   cy.wait('@fetchClustersHomePage');
 
   // Wait for the cluster table to load and filter so there are no rows
-  homeClusterList.resourceTable().sortableTable().filter('random text');
+  homeClusterList.resourceTable().sortableTable().filter('random text', 200);
   homeClusterList.resourceTable().sortableTable().rowElements().should((el) => expect(el).to.contain.text('There are no rows which match your search query.'));
 }
 
@@ -302,7 +302,7 @@ describe('Home Page', () => {
       // Hide the main banner graphic
       homePage.toggleBanner();
 
-      // Banner graphic should be visible
+      // Banner graphic should be hidden
       homePage.bannerGraphic().graphicBanner().should('not.exist');
 
       // Show the banner graphic
@@ -362,5 +362,10 @@ describe('Home Page', () => {
         cy.get('@openReleaseNotes').should('be.calledWith', 'https://github.com/rancher/rancher/releases/latest', '_blank');
       });
     });
+  });
+
+  after(() => {
+    // Clear any banner hiding preferences - needed incase of 'Can toggle banner graphic' test failure
+    cy.setUserPreference({ 'home-page-cards': '{}' });
   });
 });

@@ -5,11 +5,13 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
+import { createPrivateLabelSettingsResponse, createPutSettingsResponse } from '@/cypress/e2e/blueprints/settings/branding-settings';
 
 const loginPage = new LoginPagePo();
 const homePage = new HomePagePo();
 const brandingPage = new BrandingPagePo();
 const burgerMenu = new BurgerMenuPo();
+let resetPrivateLabel = false;
 
 const settings = {
   privateLabel: {
@@ -75,7 +77,13 @@ describe('Branding', { testIsolation: 'off' }, () => {
     // Set
     cy.title().should('not.eq', settings.privateLabel.new);
     brandingPage.privateLabel().set(settings.privateLabel.new);
-    brandingPage.applyAndWait('**/ui-pl', 200);
+
+    cy.intercept('PUT', '**/ui-pl', createPutSettingsResponse(settings.privateLabel.new)).as('setPrivateLabel');
+
+    brandingPage.applyButton().click().then(() => {
+      cy.wait('@setPrivateLabel');
+      resetPrivateLabel = true;
+    });
 
     // Visit the Home Page
     BurgerMenuPo.toggle();
@@ -88,15 +96,27 @@ describe('Branding', { testIsolation: 'off' }, () => {
     // Check in session
     cy.title().should('eq', `${ settings.privateLabel.new } - Homepage`);
 
+    // Mock the GET settings request that happens after reload
+    cy.intercept('GET', '**/management.cattle.io.settings?exclude=metadata.managedFields',
+      createPrivateLabelSettingsResponse(settings.privateLabel.new)
+    ).as('getSettingsAfterReload');
+
     // Check over reload
     cy.reload();
+
+    cy.wait('@getSettingsAfterReload');
     cy.title().should('eq', `${ settings.privateLabel.new } - Homepage`);
 
     BrandingPagePo.navTo();
 
     // Reset
     brandingPage.privateLabel().set(settings.privateLabel.original);
-    brandingPage.applyAndWait('**/ui-pl', 200);
+    cy.intercept('PUT', '**/ui-pl', createPutSettingsResponse(settings.privateLabel.original)).as('resetPrivateLabel');
+
+    brandingPage.applyButton().click().then(() => {
+      cy.wait('@resetPrivateLabel');
+    });
+
     BurgerMenuPo.toggle();
     burgerMenuPo.home().click();
     cy.title({ timeout: 2000 }).should('eq', `${ settings.privateLabel.original } - Homepage`);
@@ -181,6 +201,11 @@ describe('Branding', { testIsolation: 'off' }, () => {
 
   it('Banner', { tags: ['@globalSettings', '@adminUser'] }, () => {
     const prefPage = new PreferencesPagePo();
+
+    // Clear any banner hiding preferences
+    // Ensure the banner is visible by resetting any user preferences that might hide it
+    // This prevents the test from failing if the banner was previously hidden
+    cy.setUserPreference({ 'home-page-cards': '{}' });
 
     BrandingPagePo.navTo();
     brandingPage.customBannerCheckbox().set();
@@ -457,5 +482,19 @@ describe('Branding', { testIsolation: 'off' }, () => {
     brandingPage.primaryColorCheckbox().isDisabled();
     brandingPage.linkColorCheckbox().isDisabled();
     brandingPage.applyButton().checkNotExists();
+  });
+
+  after(() => {
+    // Reset Private label to default - needed incase of 'Private Label' test failure
+    if (resetPrivateLabel) {
+      cy.getRancherResource('v1', 'management.cattle.io.settings', 'ui-pl', null).then((resp: Cypress.Response<any>) => {
+        const resourceVersion = resp.body.metadata.resourceVersion;
+
+        cy.setRancherResource('v1', 'management.cattle.io.settings', 'ui-pl', {
+          value:    `${ settings.privateLabel.original }`,
+          metadata: { name: 'ui-pl', resourceVersion }
+        });
+      });
+    }
   });
 });
