@@ -5,7 +5,7 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { generateCronJobsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/cronjobs/cronjobs-get';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
-import { MEDIUM_TIMEOUT_OPT, LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   const localCluster = 'local';
@@ -13,6 +13,115 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
 
   before(() => {
     cy.login();
+  });
+
+  describe('Details', () => {
+    let cronJobName: string;
+    let jobName: string;
+    let podName: string;
+    const defaultNamespace = 'default';
+
+    before('set up', () => {
+      // Create a cronjob for the test
+      cy.getRootE2EResourceName().then((root) => {
+        cronJobName = root;
+
+        return cy.createRancherResource('v1', 'batch.cronjob', JSON.stringify({
+          apiVersion: 'batch/v1',
+          kind:       'CronJob',
+          metadata:   {
+            name:      cronJobName,
+            namespace: defaultNamespace
+          },
+          spec: {
+            schedule:                   '1 1 1 1 1', // basically never
+            concurrencyPolicy:          'Allow',
+            failedJobsHistoryLimit:     1,
+            successfulJobsHistoryLimit: 3,
+            suspend:                    false,
+            jobTemplate:                {
+              spec: {
+                template: {
+                  spec: {
+                    containers:    [SMALL_CONTAINER],
+                    restartPolicy: 'Never'
+                  }
+                }
+              }
+            }
+          }
+        }));
+      });
+    });
+
+    it('Jobs list updates automatically in CronJob details page', () => {
+      // Set namespace filter to include the test cronjob namespace
+      cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ defaultNamespace }\"]}`);
+
+      WorkloadsCronJobsListPagePo.navTo();
+      cronJobListPage.waitForPage();
+
+      // Trigger "Run Now" action which will create a new job and pod from the CronJob
+      cy.intercept('POST', `v1/batch.jobs/${ defaultNamespace }`).as('runNow');
+      cronJobListPage.runNow(cronJobName);
+      cy.wait('@runNow').its('response.statusCode').should('eq', 201);
+
+      // Retrieve the job and pod names created by the CronJob
+      cy.getRancherResource('v1', 'batch.job', `${ defaultNamespace }`).then((resp) => {
+        const job = resp.body.data.find((job: any) => job.metadata.name.startsWith(cronJobName));
+
+        jobName = job.metadata.name;
+        cy.getRancherResource('v1', 'pods', `${ defaultNamespace }`).then((resp) => {
+          const pod = resp.body.data.find((pod: any) => pod.metadata.name.startsWith(cronJobName));
+
+          podName = pod.metadata.name;
+
+          // User is redirected to the job's details page after "Run Now"
+          const jobDetailsPage = new WorkLoadsJobDetailsPagePo(jobName, undefined, 'local', defaultNamespace);
+
+          jobDetailsPage.waitForPage(undefined, 'pods');
+
+          // Verify job details page displays correct status
+          // Job status should be Active
+          jobDetailsPage.resourceDetail().masthead().resourceStatus(MEDIUM_TIMEOUT_OPT)
+            .should('contain', 'Active');
+
+          // Pod status should be Running
+          jobDetailsPage.resourceDetail().resourceGauges().should('contain', 'Running');
+          jobDetailsPage.resourceDetail().tabbedList('pods').resourceTableDetails(podName, 1).contains('Running', MEDIUM_TIMEOUT_OPT);
+        });
+
+        // Navigate back to CronJobs list page
+        WorkloadsCronJobsListPagePo.navTo();
+        cronJobListPage.waitForPage();
+
+        // Verify CronJob status is Active in the list
+        cronJobListPage.resourceTableDetails(cronJobName, 1).contains('Active');
+
+        // Navigate to CronJob details page
+        cronJobListPage.goToDetailsPage(cronJobName);
+
+        const cronJobDetailsPage = new WorkloadsCronJobDetailPagePo(cronJobName, 'local', defaultNamespace);
+
+        cronJobDetailsPage.waitForPage(undefined, 'jobs');
+
+        // Verify CronJob status is Active in details page
+        cronJobDetailsPage.resourceDetail().masthead().resourceStatus()
+          .should('contain', 'Active');
+
+        // Verify the job in the jobs tab shows correct status without manual page refresh
+        // Testing https://github.com/rancher/dashboard/issues/14981:
+        // The job list should update automatically and not show stale "In Progress" status
+        cronJobDetailsPage.resourceDetail().tabbedList('jobs').resourceTableDetails(jobName, 1).contains('Active');
+      });
+    });
+
+    after('clean up', () => {
+      // Ensure the default rows per page value is set after running the tests
+      cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
+      // Delete the cronjob
+      cy.deleteRancherResource('v1', 'batch.cronjob', `${ defaultNamespace }/${ cronJobName }`);
+    });
   });
 
   describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
@@ -278,48 +387,6 @@ describe('CronJobs', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] 
       cronJobListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
       cronJobListPage.list().resourceTable().sortableTable().pagination()
         .checkNotExists();
-    });
-
-    it('Cronjob details page refresh dashboard', () => {
-      // Set namespace filter to include the test cronjob namespace
-      cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName3 }\"]}`);
-
-      WorkloadsCronJobsListPagePo.navTo();
-      cronJobListPage.waitForPage();
-
-      cronJobListPage.runNow(detailsPageCronJob);
-
-      cy.url().should('include', '/explorer/batch.job/', MEDIUM_TIMEOUT_OPT);
-
-      const jobDetailsPage = new WorkLoadsJobDetailsPagePo('dummy-job');
-
-      jobDetailsPage.resourceDetail().masthead().resourceStatus().should('be.visible', LONG_TIMEOUT_OPT)
-        .and(($el) => {
-          const status = $el.text().trim();
-
-          expect(['Running', 'Active', 'Pending', 'Creating', 'Succeeded']).to.include(status);
-        });
-
-      jobDetailsPage.resourceDetail().masthead().resourceStatus().should('not.be.empty');
-
-      WorkloadsCronJobsListPagePo.navTo();
-      cronJobListPage.waitForPage();
-
-      cronJobListPage.goToDetailsPage(detailsPageCronJob);
-
-      cy.url(MEDIUM_TIMEOUT_OPT).should('include', '/explorer/batch.cronjob/');
-
-      const cronJobDetailsPage = new WorkloadsCronJobDetailPagePo(detailsPageCronJob, 'local', nsName3);
-
-      cronJobDetailsPage.resourceDetail().masthead().resourceStatus().should('be.visible', MEDIUM_TIMEOUT_OPT);
-
-      // CronJob should NOT show stale "In Progress" status
-      cronJobDetailsPage.resourceDetail().masthead().resourceStatus().should('not.contain', 'In Progress');
-
-      cy.reload();
-      cy.url(MEDIUM_TIMEOUT_OPT).should('include', '/explorer/batch.cronjob/');
-
-      cronJobDetailsPage.resourceDetail().masthead().resourceStatus().should('be.visible', MEDIUM_TIMEOUT_OPT);
     });
 
     after('clean up', () => {
