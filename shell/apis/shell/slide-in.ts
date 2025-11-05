@@ -1,5 +1,5 @@
 import { Component } from 'vue';
-import { SlideInApi, SlideInConfig } from '@shell/apis/intf/shell';
+import { SlideInApi, SlideInApiConfig } from '@shell/apis/intf/shell';
 import { Store } from 'vuex';
 
 export class SlideInApiImpl implements SlideInApi {
@@ -24,7 +24,7 @@ export class SlideInApiImpl implements SlideInApi {
    * @param component - A Vue component (imported SFC, functional component, etc.) to be rendered in the panel.
    * @param config - Slide-In configuration object
    */
-  public open(component: Component, config?: SlideInConfig): void {
+  public open(component: Component, config?: SlideInApiConfig): void {
     this.store.commit('slideInPanel/open', {
       component,
       slideInConfig: config || {}

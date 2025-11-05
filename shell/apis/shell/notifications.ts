@@ -1,5 +1,6 @@
 import { Store } from 'vuex';
-import { NotificationApi } from '@shell/apis/intf/shell';
+import { NotificationApiLevel, NotificationApi, NotificationApiConfig } from '@shell/apis/intf/shell';
+import { NotificationLevel } from '@shell/types/notifications';
 
 export class NotificationApiImpl implements NotificationApi {
   private store: Store<any>;
@@ -18,25 +19,48 @@ export class NotificationApiImpl implements NotificationApi {
    * this.$shell.notification.send(NotificationLevel.Success, 'Some notification title', 'Hello world! Success!', {})
    * ```
    *
-   * @param level
-   * Notification level
-   * The `level` specifies the importance of the notification and determines the icon that is shown in the notification
+   * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).
    *
-   * |Level|Purpose|Icon|
-   * |---|---|---|
-   * |Announcement|An announcement. To be used when we want to inform on high-interest topics - news, updates, changes, scheduled maintenance, etc. E.g. “New version available!”|<img class="svg-blue" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-announcement.svg"/>|
-   * |Task|A task that is underway. To be used when we want to inform on a process taking place - on-going actions that might take a while. E.g. “Cluster provisioning in progress”. The progress bar will also be shown if the `progress` field is set|<img class="svg-blue" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-busy.svg"/>|
-   * |Info|Information notification. To be used when we want to inform on low-interest topics. E.g. “Welcome to Rancher v2.8"|<img class="svg-blue" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-info.svg"/>|
-   * |Success|Notification that something has completed successfully. To be used when we want to confirm a successful action was completed. E.g. “Cluster provisioning completed”|<img class="svg-green" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-tick.svg"/>|
-   * |Warning|Notification of a warning. To be used when we want to warn about a potential risk. E.g. “Nodes limitation warning”|<img class="svg-orange" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-warning.svg"/>|
-   * |Error|Notification of an error. To be used when we want to alert on a confirmed risk. E.g. “Extension failed to load”|<img class="svg-red" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-error.svg"/>|
-   *
+   * @param level The `level` specifies the importance of the notification and determines the icon that is shown in the notification
    * @param title The notification title
    * @param message The notification message to be displayed
    * @param config Notifications configuration object
    *
+   * * @returns notification ID
+   *
    */
-  public send(notification?: any): void {
-    this.store.dispatch('notifications/add', notification, { root: true });
+  public async send(level: NotificationApiLevel | NotificationLevel, title: string, message?:string, config?: NotificationApiConfig): Promise<string> {
+    const notification = {
+      level,
+      title,
+      message,
+      ...config
+    };
+
+    return await this.store.dispatch('notifications/add', notification, { root: true });
+  }
+
+  /**
+   * Update notification progress (Only valid for notifications of type `Task`)
+   *
+   * Example:
+   * ```ts
+   * this.$shell.notification.updateProgress('some-notification-id', 80)
+   * ```
+   *
+   * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).
+   *
+   * @param notificationId Unique ID for the notification
+   * @param progress Progress (0-100) for notifications of type `Task`
+   *
+   */
+
+  public updateProgress(notificationId: string, progress: number): void {
+    const notification = {
+      id: notificationId,
+      progress
+    };
+
+    this.store.dispatch('notifications/update', notification, { root: true });
   }
 }

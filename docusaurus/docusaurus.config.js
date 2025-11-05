@@ -50,7 +50,7 @@ const config = {
         disableSources: true,
 
         // This removes the prefix from the title of a generated page
-        // Ex: "Interface: GrowlApi" vs "GrowlApi"
+        // Ex: "Interface: ModalApi" vs "ModalApi"
         textContentMappings: { 'title.memberPage': '{name}' },
 
         // show params as code blocks

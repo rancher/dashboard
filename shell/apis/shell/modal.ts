@@ -1,5 +1,5 @@
 import { Component } from 'vue';
-import { ModalApi, ModalConfig } from '@shell/apis/intf/shell';
+import { ModalApi, ModalApiConfig } from '@shell/apis/intf/shell';
 import { Store } from 'vuex';
 
 export class ModalApiImpl implements ModalApi {
@@ -28,7 +28,7 @@ export class ModalApiImpl implements ModalApi {
      * @param config Configuration object for opening a modal.
      *
      */
-  public open(component: Component, config?: ModalConfig): void {
+  public open(component: Component, config?: ModalApiConfig): void {
     this.store.commit('modal/openModal', {
       component,
       componentProps:      config?.componentProps || {},
