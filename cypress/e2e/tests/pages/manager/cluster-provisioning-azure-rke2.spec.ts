@@ -187,7 +187,7 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
 
   it('cluster details page', function() {
     const clusterDetails = new ClusterManagerDetailRke2AzurePagePo(undefined, this.rke2AzureClusterName);
-    const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
+    // const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
