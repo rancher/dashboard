@@ -42,6 +42,9 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
     console.warn('gkeServiceAccount environment variable is undefined or empty.');
   }
 
+  // Convert service account object to JSON string for input field
+  const serviceAccountJsonString = serviceAccount ? JSON.stringify(serviceAccount) : '';
+
   before(() => {
     cy.login();
     HomePagePo.goTo();
@@ -85,9 +88,7 @@ describe('Deploy GKE cluster with default settings', { tags: ['@manager', '@admi
     // create GKE cloud credential
     cloudCredForm.saveButton().expectToBeDisabled();
     cloudCredForm.nameNsDescription().name().set(this.gkeCloudCredentialName);
-    // while issue #1717 in qa-tasks is open, line 91 is duplicated as a workaround. The duplicate line needs to be removed after issue is fixed
-    cloudCredForm.serviceAccount().set(serviceAccount);
-    cloudCredForm.serviceAccount().set(serviceAccount);
+    cloudCredForm.serviceAccount().set(serviceAccountJsonString, false, false);
     cloudCredForm.saveButton().expectToBeEnabled();
 
     cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('pageLoad');
