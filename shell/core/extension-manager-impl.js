@@ -8,9 +8,7 @@ import { addLinkInterceptor, removeLinkInterceptor } from '@shell/plugins/clean-
 
 export const DEVELOPER_LOAD_NAME_SUFFIX = '-developer-load';
 
-let extensionManagerInstance;
-
-const createExtensionManager = (context) => {
+export const createExtensionManager = (context) => {
   const {
     app, store, $axios, redirect
   } = context;
@@ -514,22 +512,3 @@ const createExtensionManager = (context) => {
     },
   };
 };
-
-/**
- * Initializes a new extension manager if one does not exist.
- * @param {*} context The Rancher Dashboard context object
- * @returns The extension manager instance
- */
-export const initExtensionManager = (context) => {
-  if (!extensionManagerInstance) {
-    extensionManagerInstance = createExtensionManager(context);
-  }
-
-  return extensionManagerInstance;
-};
-
-/**
- * Gets the extension manager instance.
- * @returns The extension manager instance
- */
-export const getExtensionManager = () => extensionManagerInstance;
