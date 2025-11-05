@@ -57,9 +57,9 @@ watch(
   /**
    * trigger focus trap
    */
-  () => currentProps?.value?.triggerFocusTrap,
-  (neu) => {
-    if (neu) {
+  () => isOpen?.value,
+  (neu, old) => {
+    if (neu && neu !== old) {
       const opts = {
         ...DEFAULT_FOCUS_TRAP_OPTS,
         /**
@@ -166,6 +166,8 @@ function closePanel() {
             data-testid="slide-in-close"
             :tabindex="isOpen ? 0 : -1"
             @click="closePanel"
+            @keypress.enter="closePanel"
+            @keyup.space="closePanel"
           />
         </div>
         <div class="main-panel">
