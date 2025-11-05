@@ -121,15 +121,16 @@ const sidebars = {
               ],
             }],
         },
-        {
-          type:  'category',
-          label: 'Shell API',
-          link:  {
-            type: 'doc',
-            id:   'shell-api',
-          },
-          items: typedocSidebarItems
-        },
+        // UNCOMMENT THIS TO ENABLE NEW API PAGE ON SIDEBAR
+        // {
+        //   type:  'category',
+        //   label: 'Shell API',
+        //   link:  {
+        //     type: 'doc',
+        //     id:   'shell-api',
+        //   },
+        //   items: typedocSidebarItems
+        // },
         {
           type:  'category',
           label: 'Extensions API',
