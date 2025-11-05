@@ -117,3 +117,4 @@ docusaurus/yarn.lock
 
 # GitHub actions scripts output
 codecov
+cypress.env.json

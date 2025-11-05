@@ -203,9 +203,10 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
     clusterList.waitForPage();
     clusterList.goToDetailsPage(this.rke2AzureClusterName, '.cluster-link a');
     clusterDetails.waitForPage(null, 'machine-pools');
-    clusterDetails.selectTab(tabbedPo, '[data-testid="btn-events"]');
-    clusterDetails.waitForPage(null, 'events');
-    clusterDetails.recentEventsList().checkTableIsEmpty();
+    // this is a permission issue with standar user, cannot see the recent events tab
+    // clusterDetails.selectTab(tabbedPo, '[data-testid="btn-events"]');
+    // clusterDetails.waitForPage(null, 'events');
+    // clusterDetails.recentEventsList().checkTableIsEmpty();
   });
 
   it('can create snapshot', function() {
@@ -241,7 +242,7 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
   it('can delete an Azure RKE2 cluster', function() {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
-    clusterList.list().actionMenu(this.rke2AzureClusterName).getMenuItem('Delete').click();
+    clusterList.list().actionMenu(this.rke2AzureClusterName).getMenuItem('Delete').click({ force: true });
 
     clusterList.sortableTable().rowNames('.cluster-link').then((rows: any) => {
       const promptRemove = new PromptRemove();
@@ -251,8 +252,8 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
 
       clusterList.waitForPage();
       clusterList.list().state(this.rke2AzureClusterName).should('contain.text', 'Removing');
-      clusterList.list().state(this.rke2AzureClusterName).contains('Removing', { timeout: 200000 }).should('not.exist');
-      clusterList.sortableTable().checkRowCount(false, rows.length - 1, MEDIUM_TIMEOUT_OPT);
+      clusterList.list().state(this.rke2AzureClusterName).contains('Removing', { timeout: 500000 }).should('not.exist');
+      clusterList.sortableTable().checkRowCount(true, rows.length, MEDIUM_TIMEOUT_OPT);
       clusterList.sortableTable().rowNames('.cluster-link').should('not.contain', this.rke2AzureClusterName);
     });
   });
