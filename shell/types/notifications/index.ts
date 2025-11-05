@@ -1,18 +1,33 @@
-import { RouteLocationRaw } from 'vue-router';
+import { NotificationApiAction, NotificationApiPreference } from '@shell/apis/intf/shell';
 
 /**
  * Type definitions for the Notification Center
  */
 
-/**
- * Notification Level for a notification in the Notification Center
- */
 export enum NotificationLevel {
+  /**
+   * An announcement. To be used when we want to inform on high-interest topics - news, updates, changes, scheduled maintenance, etc. E.g. “New version available!” <img class="svg-blue" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-announcement.svg" width="20" />
+   */
   Announcement = 0, // eslint-disable-line no-unused-vars
+  /**
+   * A task that is underway. To be used when we want to inform on a process taking place - on-going actions that might take a while. E.g. “Cluster provisioning in progress”. The progress bar will also be shown if the `progress` field is set <img class="svg-blue" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-busy.svg" width="20" />
+   */
   Task, // eslint-disable-line no-unused-vars
+  /**
+   * Information notification. To be used when we want to inform on low-interest topics. E.g. “Welcome to Rancher v2.8" <img class="svg-blue" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-info.svg"/>
+   */
   Info, // eslint-disable-line no-unused-vars
+  /**
+   * Notification that something has completed successfully. To be used when we want to confirm a successful action was completed. E.g. “Cluster provisioning completed” <img class="svg-green" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-tick.svg"/>
+   */
   Success, // eslint-disable-line no-unused-vars
+  /**
+   * Notification of a warning. To be used when we want to warn about a potential risk. E.g. “Nodes limitation warning” <img class="svg-orange" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-warning.svg"/>
+   */
   Warning, // eslint-disable-line no-unused-vars
+  /**
+   * Notification of an error. To be used when we want to alert on a confirmed risk. E.g. “Extension failed to load” <img class="svg-red" src="https://raw.githubusercontent.com/rancher/icons/refs/heads/master/svg/notify-error.svg"/>
+   */
   Error, // eslint-disable-line no-unused-vars
   Hidden, // eslint-disable-line no-unused-vars
 }
@@ -20,20 +35,12 @@ export enum NotificationLevel {
 /**
  * An action that is shown as a button in the Notification Center
  */
-export type NotificationAction = {
-  label: string; // Button label for the action
-  target?: string; // HREF target when the button is clicked
-  route?: RouteLocationRaw; // Route to navigate to when the button is clicked
-};
+export type NotificationAction = NotificationApiAction;
 
 /**
  * Defines the User Preference linked to a notification
  */
-export type NotificationPreference = {
-  key: string; // User preference key to use when setting the preference when the notification is marked as read/unread
-  value: string; // User preference value to use when setting the preference when the notification is marked as read
-  unsetValue?: string; // User preference value to use when setting the preference when the notification is marked as unread - defaults to empty string
-};
+export type NotificationPreference = NotificationApiPreference;
 
 /**
  * Type for Encrypted Notification data that is stored in local storage
