@@ -1,3 +1,68 @@
+// We use Node's built-in 'fs' and 'path' modules to handle file system operations.
+const fs = require('fs');
+const path = require('path');
+
+// Define the absolute path to the sidebar file that `docusaurus-plugin-typedoc` generates.
+const typedocSidebarPath = path.resolve(__dirname, './docs/extensions/advanced/typedoc-sidebar.cjs');
+
+/**
+ * Recursively processes an array of Docusaurus sidebar items.
+ * It finds any 'doc' items and removes the incorrect 'extensions/' prefix
+ * from their ID, which is a known issue with the plugin in multi-instance setups.
+ *
+ * @param {Array<object>} items The array of sidebar items from the generated file.
+ * @returns {Array<object>} The corrected array of sidebar items.
+ */
+function fixTypedocIds(items) {
+  return items.map((item) => {
+    // 1. Start with a shallow copy of the item.
+    const newItem = { ...item };
+
+    // --- FIX 1: Remove 'extensions/' prefix from 'doc' IDs ---
+    if (newItem.type === 'doc' && newItem.id && newItem.id.startsWith('extensions/')) {
+      newItem.id = newItem.id.replace('extensions/', '');
+    }
+
+    // --- RECURSION: Process sub-items if it's a 'category' ---
+    if (newItem.type === 'category' && newItem.items) {
+      newItem.items = fixTypedocIds(newItem.items);
+    }
+
+    // --- FIX 2: Remove 'link' property if it points to an '_api-index' document ---
+    const link = newItem.link;
+
+    if (
+      link &&
+      typeof link === 'object' && link !== null &&
+      link.id &&
+      typeof link.id === 'string' &&
+      link.id.endsWith('_api-index')
+    ) {
+      // Use object destructuring to create a new object without the 'link' property
+      // and return it immediately.
+      const { link: removedLink, ...rest } = newItem;
+
+      return rest;
+    }
+
+    // Return the (potentially) modified item.
+    return newItem;
+  });
+}
+
+// Initialize an empty array for the TypeDoc sidebar items.
+let typedocSidebarItems = [];
+
+// Safely check if the generated `typedoc-sidebar.cjs` file exists.
+// This prevents build errors if the file hasn't been generated yet.
+if (fs.existsSync(typedocSidebarPath)) {
+  // If the file exists, import its contents.
+  const originalTypedocSidebar = require(typedocSidebarPath);
+
+  // Run the imported items through our correction function.
+  typedocSidebarItems = fixTypedocIds(originalTypedocSidebar);
+}
+
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
   extensionsSidebar: [
@@ -129,6 +194,15 @@ const sidebars = {
             'advanced/version-compatibility',
             'advanced/safe-mode',
             'advanced/yarn-link',
+            {
+              type:  'category',
+              label: 'Samples docs',
+              link:  {
+                type: 'doc',
+                id:   'advanced/sample-docs',
+              },
+              items: typedocSidebarItems
+            }
           ]
         },
         'publishing',
