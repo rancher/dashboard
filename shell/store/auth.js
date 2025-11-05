@@ -359,7 +359,8 @@ export const actions = {
           url:    `/v1-public/login`,
           method: 'post',
           data:   {
-            type: driver.type,
+            type:         driver.type,
+            responseType: 'cookie',
             ...body
           },
         },
