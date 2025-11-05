@@ -8,26 +8,6 @@ enum VALID_GROWL_TYPES {
 }
 
 /**
- * API for displaying growls in Rancher UI. Here's what a Growl looks like in Rancher UI:
- * * ![Growl Example](/img/growl.png)
- */
-export interface GrowlApi {
-  /**
-   * Method to display a growl in Rancher UI
-   *
-   * Example:
-   * ```ts
-   * this.$shell.growl.show({
-   *   message: 'Hello world!'
-   * });
-   * ```
-   *
-   * @param message Message object to configure growl being displayed
-   */
-  show(message: GrowlConfig): void;
-}
-
-/**
  * Growl Message configuration object
  */
 export interface GrowlConfig {
@@ -60,26 +40,25 @@ export interface GrowlConfig {
 }
 
 /**
- * API for displaying modals in Rancher UI. Here's what a Modal looks like in Rancher UI:
- * * ![modal Example](/img/modal.png)
+ * API for displaying growls in Rancher UI. Here's what a Growl looks like in Rancher UI:
+ * * ![Growl Example](/img/growl.png)
  */
-export interface ModalApi {
+export interface GrowlApi {
   /**
-   * Opens a modal dialog in Rancher UI
-   *
-   * @param config Modal configuration
+   * Method to display a growl in Rancher UI
    *
    * Example:
    * ```ts
-   * import MyCustomModal from '@/components/MyCustomModal.vue';
-   *
-   * this.$shell.modal.show({
-   *   component: MyCustomModal,
-   *   componentProps: { title: 'Hello Modal' }
+   * this.$shell.growl.show({
+   *   message: 'Hello world!'
    * });
    * ```
+   *
+   * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).
+   *
+   * @param message Message object to configure growl being displayed
    */
-  open(config: ModalConfig): void;
+  show(message: GrowlConfig): void;
 }
 
 /**
@@ -159,27 +138,29 @@ export interface ModalConfig {
 }
 
 /**
- * API for displaying Slide In panels in Rancher UI
- * * ![slidein Example](/img/slidein.png)
+ * API for displaying modals in Rancher UI. Here's what a Modal looks like in Rancher UI:
+ * * ![modal Example](/img/modal.png)
  */
-export interface SlideInApi {
+export interface ModalApi {
   /**
-   * Opens a slide in panel in Rancher UI
+   * Opens a modal dialog in Rancher UI
    *
-   * @param config Slide-In configuration
-   *
+   * @param config Modal configuration
    *
    * Example:
    * ```ts
-   * import MyCustomSlideIn from '@/components/MyCustomSlideIn.vue';
+   * import MyCustomModal from '@/components/MyCustomModal.vue';
    *
-   * this.$shell.slideIn.open({
-   *   component: MyCustomSlideIn,
-   *   componentProps: { title: 'Hello from SlideIn panel!' }
+   * this.$shell.modal.show({
+   *   component: MyCustomModal,
+   *   componentProps: { title: 'Hello Modal' }
    * });
    * ```
+   *
+   * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).
+   *
    */
-  open(config: SlideInConfig): void;
+  open(config: ModalConfig): void;
 }
 
 /**
@@ -217,6 +198,33 @@ export interface SlideInConfig {
    * ```
    */
   componentProps?: Record<string, any>;
+}
+
+/**
+ * API for displaying Slide In panels in Rancher UI
+ * * ![slidein Example](/img/slidein.png)
+ */
+export interface SlideInApi {
+  /**
+   * Opens a slide in panel in Rancher UI
+   *
+   * @param config Slide-In configuration
+   *
+   *
+   * Example:
+   * ```ts
+   * import MyCustomSlideIn from '@/components/MyCustomSlideIn.vue';
+   *
+   * this.$shell.slideIn.open({
+   *   component: MyCustomSlideIn,
+   *   componentProps: { title: 'Hello from SlideIn panel!' }
+   * });
+   * ```
+   *
+   * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).
+   *
+   */
+  open(config: SlideInConfig): void;
 }
 
 /**
