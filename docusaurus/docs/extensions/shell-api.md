@@ -4,6 +4,8 @@ id: shell-api
 
 # Shell API
 
+> Available from Rancher `2.13` and onwards
+
 ## What is the Shell API?
 
 The Shell API is a functional API that helps extension developers to interact with UI elements that are included in Rancher UI that are important for extension development. We have paid special attention on the implementation side of the architecture behind this API so that developers can use features such as Intellisense and auto-completion in your favourite IDE.
@@ -17,7 +19,9 @@ The Shell API is a functional API that helps extension developers to interact wi
 To use the Shell API in the context of the **Options API** of a Vue component, we globally expose the `$shell` property, which is available under the `this` object, such as:
 
 ```ts
-this.$shell.growl.show({ message: 'Hello World!', type: 'success' });
+import { NotificationLevel } from '@shell/types/notifications';
+
+this.$shell.notification.send(NotificationLevel.Success, 'Some notification title', 'Hello world! Success!', {})
 ```
 
 ### Using Composition API in Vue
@@ -31,16 +35,18 @@ import { useShell } from '@shell/apis';
 then just assign to a constant in the context for your component and use it, such as:
 
 ```ts
+import { NotificationLevel } from '@shell/types/notifications';
+
 const shellApi = useShell();
 
 // Example method to display a Growl message
-const displayGrowlMsg = () => shellApi.growl.show({ message: 'Hello World!', type: 'success' });
+const sendNotification = () => shellApi.notification.send(NotificationLevel.Success, 'Some notification title', 'Hello world! Success!', {})
 ```
 
 ## Available API's
 
 | API | Description | Example |
 | :--- | :--- | :--- |
-| [Growl API](./shell-api/interfaces/GrowlApi) | Responsible for interacting with growl messages display | <img src={require('/img/growl.png').default} alt="growl example" width="500" /> |
 | [Slide-In API](./shell-api/interfaces/SlideInApi) | Responsible for interacting with slide-in panels | <img src={require('/img/slidein.png').default} alt="slidein example" width="500" /> |
 | [Modal API](./shell-api/interfaces/ModalApi) | Responsible for interacting with modals | <img src={require('/img/modal.png').default} alt="modal example" width="500" /> |
+| [Notification API](./shell-api/interfaces/NotificationApi) | Responsible for interacting with the Rancher UI Notification Center | <img src={require('/img/notification.png').default} alt="notification example" width="500" /> |
