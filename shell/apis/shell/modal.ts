@@ -1,3 +1,4 @@
+import { Component } from 'vue';
 import { ModalApi, ModalConfig } from '@shell/apis/intf/shell';
 import { Store } from 'vuex';
 
@@ -11,30 +12,29 @@ export class ModalApiImpl implements ModalApi {
   /**
      * Opens a modal by committing to the Vuex store.
      *
-     * This method updates the store's `modal` module to show a modal with the
-     * specified configuration. The modal is rendered using the `ModalManager` component,
-     * and its content is dynamically loaded based on the `component` field in the configuration.
-     *
-     * @param config A `ModalConfig` object defining the modal’s content and behavior.
-     *
      * Example:
      * ```ts
-     * this.$shell.modal.oepn({
-     *   component: MyCustomModal,
-     *   componentProps: { title: 'Hello Modal' },
-     *   resources: [someResource],
-     *   modalWidth: '800px',
-     *   closeOnClickOutside: false
+     * import MyCustomModal from '@/components/MyCustomModal.vue';
+     *
+     * this.$shell.modal.show(MyCustomModal, {
+     *   componentProps: { title: 'Hello Modal' }
      * });
      * ```
+     *
+     * @param component
+     * The Vue component to be displayed inside the modal.
+     * This can be any SFC (Single-File Component) imported and passed in as a `Component`.
+     *
+     * @param config Configuration object for opening a modal.
+     *
      */
-  public open(config: ModalConfig): void {
+  public open(component: Component, config?: ModalConfig): void {
     this.store.commit('modal/openModal', {
-      component:           config.component,
-      componentProps:      config.componentProps || {},
-      resources:           config.resources || [],
-      modalWidth:          config.modalWidth || '600px',
-      closeOnClickOutside: config.closeOnClickOutside ?? true,
+      component,
+      componentProps:      config?.componentProps || {},
+      resources:           config?.resources || [],
+      modalWidth:          config?.modalWidth || '600px',
+      closeOnClickOutside: config?.closeOnClickOutside ?? true,
       // modalSticky:         config.modalSticky ?? false // Not implemented yet
     });
   }
