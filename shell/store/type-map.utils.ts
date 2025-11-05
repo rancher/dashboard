@@ -148,8 +148,8 @@ export function headerFromSchemaCol(col: SchemaAttributeColumn, rootGetters: Vue
 
   if ( col.format === 'date' || col.type === 'date' ) {
     formatter = 'Date';
-    formatterOpts = { multiline: true };
     width = 120;
+    formatterOpts = { multiline: true };
   }
 
   if ( col.type === 'number' || col.type === 'int' ) {
