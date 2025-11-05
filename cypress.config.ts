@@ -127,6 +127,8 @@ export default defineConfig({
       });
 
       // Load Accessibility plugin if configured
+      // as per https://github.com/rancher/dashboard/pull/15865 load order matters
+      // this need to go after "cypress-terminal-report" always
       if (process.env.TEST_A11Y) {
         require('./cypress/support/plugins/accessibility').default(on, config);
       }
