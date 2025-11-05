@@ -476,13 +476,18 @@ export default {
     },
 
     vGpuOptions() {
-      const vGpuTypes = uniq([
-        ...this.vGpusInit,
-        ...Object.values(this.vGpuDevices)
-          .filter((vGpu) => vGpu.enabled && !!vGpu.type && (vGpu.allocatable === null || vGpu.allocatable > 0))
-      ]);
+      const availableDevices = Object.values(this.vGpuDevices)
+        .filter((vGpu) => vGpu.enabled &&
+          vGpu.type &&
+          (vGpu.allocatable === null || vGpu.allocatable > 0)
+        );
 
-      return vGpuTypes;
+      const uniqueTypes = uniq(availableDevices.map((vGpu) => vGpu.type));
+
+      return uniqueTypes.map((type) => ({
+        label: this.vGpuOptionLabel(type),
+        value: type
+      }));
     },
 
     showVGpuAllocationInfo() {
@@ -1486,7 +1491,6 @@ export default {
             :select-props="{
               mode,
               disabled,
-              getOptionLabel: vGpuOptionLabel
             }"
             :options="vGpuOptions"
             label-key="harvesterManager.vGpu.label"
