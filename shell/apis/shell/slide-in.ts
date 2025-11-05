@@ -1,3 +1,4 @@
+import { Component } from 'vue';
 import { SlideInApi, SlideInConfig } from '@shell/apis/intf/shell';
 import { Store } from 'vuex';
 
@@ -9,31 +10,24 @@ export class SlideInApiImpl implements SlideInApi {
   }
 
   /**
-   * Opens the slide-in panel with the specified component and props.
+   * Opens a slide in panel in Rancher UI
    *
-   * This method commits the `open` mutation to the `slideInPanel` Vuex module,
-   * which sets the current component to be rendered and its associated props.
-   * The slide-in panel becomes visible after the mutation.
-   *
-   * @param config - The configuration object for the slide-in panel.
-   *
-   * Example Usage:
+   * Example:
    * ```ts
-   * import MyComponent from '@/components/MyComponent.vue';
+   * import MyCustomSlideIn from '@/components/MyCustomSlideIn.vue';
    *
-   * this.$shell.slideIn.open({
-   *   component: MyComponent,
-   *   componentProps: { foo: 'bar' }
+   * this.$shell.slideIn.open(MyCustomSlideIn, {
+   *   title: 'Hello from SlideIn panel!'
    * });
    * ```
    *
-   * @param config.component - A Vue component (imported SFC, functional component, etc.) to be rendered in the panel.
-   * @param config.componentProps - (Optional) Props to pass to the component. These should align with the component's defined props.
+   * @param component - A Vue component (imported SFC, functional component, etc.) to be rendered in the panel.
+   * @param config - Slide-In configuration object
    */
-  public open(config: SlideInConfig): void {
+  public open(component: Component, config?: SlideInConfig): void {
     this.store.commit('slideInPanel/open', {
-      component:      config.component,
-      componentProps: config.componentProps || {}
+      component,
+      slideInConfig: config || {}
     });
   }
 }

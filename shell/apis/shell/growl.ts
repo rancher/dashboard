@@ -1,5 +1,5 @@
 import { Store } from 'vuex';
-import { GrowlApi, GrowlConfig } from '@shell/apis/intf/shell';
+import { GrowlApi, GrowlConfig, VALID_GROWL_TYPES } from '@shell/apis/intf/shell';
 
 export class GrowlApiImpl implements GrowlApi {
   private store: Store<any>;
@@ -11,25 +11,30 @@ export class GrowlApiImpl implements GrowlApi {
   /**
    * Dispatches a growl notification.
    *
-   * @param config - Configuration for the growl notification.
-   * - If `message` is a string, it is treated as the main content of the notification.
-   * - If `message` is a `DetailedMessage` object, `title` and `description` are extracted.
-   *
    * Example:
    * ```ts
-   * this.$shell.growl({ message: 'Operation successful!', type: 'success' });
-   * this.$shell.growl({ message: { title: 'Warning', description: 'Check your input.' }, type: 'warning' });
+   * this.$shell.growl('success', 'Operation successful!', { timeout: 5000, title: 'Operation X feedback' });
    * ```
+   *
+   * @param type - Type of Growl notification
+   *
+   * Available types:
+   * - `success`: Indicates a successful operation (green color).
+   * - `info`: Provides general information or a non-critical update (blue/teal color).
+   * - `warning`: Signals a potential issue or action required (orange/yellow color).
+   * - `error`: Indicates a critical failure or necessary intervention (red color).
+   *
+   * @param message - Message to be displayed on the Growl notification
+   * @param config - Growl configuration object
+   *
    */
-  public show(config: GrowlConfig): void {
-    const { type = 'error' } = config;
-
+  public show(type: VALID_GROWL_TYPES, message: string, config?: GrowlConfig): void {
     this.store.dispatch(
       `growl/${ type }`,
       {
-        title:   config.title,
-        message: config.message,
-        timeout: config.timeout || 5000,
+        title:   config?.title || '',
+        message,
+        timeout: config?.timeout || 5000,
       },
       { root: true }
     );
