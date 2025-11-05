@@ -116,15 +116,11 @@ export default defineComponent({
   },
 
   async fetch() {
-    const promises = [
-      this.$fetchType(this.resource, [], this.overrideInStore || this.inStore),
-    ];
-
     if (this.fetchSecondaryResources) {
-      promises.push(this.fetchSecondaryResources({ canPaginate: this.canPaginate }));
+      await this.fetchSecondaryResources({ canPaginate: this.canPaginate });
     }
 
-    await Promise.all(promises);
+    await this.$fetchType(this.resource, [], this.overrideInStore || this.inStore);
   },
 
   computed: {
