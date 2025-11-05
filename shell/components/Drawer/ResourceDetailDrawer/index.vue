@@ -1,4 +1,4 @@
-<script lang="ts">
+<script setup lang="ts">
 import Drawer from '@shell/components/Drawer/Chrome.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
@@ -9,17 +9,11 @@ import ConfigTab from '@shell/components/Drawer/ResourceDetailDrawer/ConfigTab.v
 import { computed, ref } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import StateDot from '@shell/components/StateDot/index.vue';
+import { ResourceDetailDrawerProps } from '@shell/components/Drawer/ResourceDetailDrawer/types';
 
-export interface Props {
-  resource: any;
-
-  onClose?: () => void;
-}
-</script>
-<script setup lang="ts">
 const editBttnDataTestId = 'save-configuration-bttn';
 const componentTestid = 'configuration-drawer-tabbed';
-const props = defineProps<Props>();
+const props = defineProps<ResourceDetailDrawerProps>();
 const emit = defineEmits(['close']);
 const store = useStore();
 const i18n = useI18n(store);
