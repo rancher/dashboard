@@ -604,6 +604,7 @@ export default defineComponent({
     v-if="managementReady"
     class="home-page"
   >
+    <h1>NOT FAIL</h1>
     <TabTitle
       :show-child="false"
       :breadcrumb="false"
