@@ -17,13 +17,12 @@ const store = useStore();
 const isOpen = computed(() => store.getters['slideInPanel/isOpen']);
 const isClosing = computed(() => store.getters['slideInPanel/isClosing']);
 const currentComponent = computed(() => store.getters['slideInPanel/component']);
-const currentPanelOptions = computed(() => store.getters['slideInPanel/panelOptions']);
 const currentProps = computed(() => store.getters['slideInPanel/componentProps']);
 
 const panelTop = computed(() => {
   // Some components like the ResourceDetailDrawer are designed to take up the full height of the viewport so we want to be able to specify the top.
-  if (currentPanelOptions?.value?.top) {
-    return currentPanelOptions?.value?.top;
+  if (currentProps?.value?.top) {
+    return currentProps?.value?.top;
   }
 
   const banner = document.getElementById('banner-header');
@@ -37,14 +36,14 @@ const panelTop = computed(() => {
 });
 
 // Some components like the ResourceDetailDrawer are designed to take up the full height of the viewport so we want to be able to specify the height.
-const panelHeight = computed(() => (currentPanelOptions?.value?.height) ? (currentPanelOptions?.value?.height) : `calc(100vh - ${ panelTop?.value })`);
-const panelWidth = computed(() => currentPanelOptions?.value?.width || '33%');
+const panelHeight = computed(() => (currentProps?.value?.height) ? (currentProps?.value?.height) : `calc(100vh - ${ panelTop?.value })`);
+const panelWidth = computed(() => currentProps?.value?.width || '33%');
 const panelRight = computed(() => (isOpen?.value ? '0' : `-${ panelWidth?.value }`));
 
-const showHeader = computed(() => currentPanelOptions?.value?.showHeader ?? true);
-const panelTitle = showHeader.value ? computed(() => currentPanelOptions?.value?.title || 'Details') : null;
+const showHeader = computed(() => currentProps?.value?.showHeader ?? true);
+const panelTitle = showHeader.value ? computed(() => currentProps?.value?.title || 'Details') : null;
 const closeOnRouteChange = computed(() => {
-  const propsCloseOnRouteChange = currentPanelOptions?.value.closeOnRouteChange;
+  const propsCloseOnRouteChange = currentProps?.value.closeOnRouteChange;
 
   if (!propsCloseOnRouteChange) {
     return ['name', 'params', 'hash', 'query'];
@@ -67,7 +66,7 @@ watch(
         initialFocus: slideInPanelManagerClose.value
       };
 
-      const returnFocusSelector = currentPanelOptions?.value?.returnFocusSelector;
+      const returnFocusSelector = currentProps?.value?.returnFocusSelector;
 
       if (returnFocusSelector) {
         /**
@@ -86,8 +85,8 @@ watch(
 
       useWatcherBasedSetupFocusTrapWithDestroyIncluded(
         () => {
-          if (currentPanelOptions?.value?.focusTrapWatcherBasedVariable) {
-            return currentPanelOptions.value.focusTrapWatcherBasedVariable;
+          if (currentProps?.value?.focusTrapWatcherBasedVariable) {
+            return currentProps.value.focusTrapWatcherBasedVariable;
           }
 
           return isOpen?.value && !isClosing?.value;

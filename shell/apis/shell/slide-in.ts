@@ -27,7 +27,7 @@ export class SlideInApiImpl implements SlideInApi {
   public open(component: Component, config?: SlideInApiConfig): void {
     this.store.commit('slideInPanel/open', {
       component,
-      slideInConfig: config || {}
+      componentProps: { ...config || {} }
     });
   }
 }

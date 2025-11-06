@@ -322,9 +322,9 @@ export default {
       this.selectedCard = selected;
 
       this.$shell.slideIn.open(ResourceDetails, {
-        showHeader:     false,
-        width:          window.innerWidth / 3 > 530 ? `${ window.innerWidth / 3 }px` : '530px',
         componentProps: {
+          showHeader: false,
+          width:      window.innerWidth / 3 > 530 ? `${ window.innerWidth / 3 }px` : '530px',
           value,
           statePanel,
           workspace
