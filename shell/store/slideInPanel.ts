@@ -5,7 +5,6 @@ export interface SlideInPanelState {
   isOpen: boolean;
   isClosing: boolean;
   component: Component | null;
-  panelOptions: Record<string, any>;
   componentProps: Record<string, any>;
 }
 
@@ -13,7 +12,6 @@ const state = (): SlideInPanelState => ({
   isOpen:         false,
   isClosing:      false,
   component:      null,
-  panelOptions:   {},
   componentProps: {}
 });
 
