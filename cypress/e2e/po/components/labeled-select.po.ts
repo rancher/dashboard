@@ -77,6 +77,20 @@ export default class LabeledSelectPo extends ComponentPo {
     return this.self().type(name);
   }
 
+  /**
+   * Click the deselect X button for a selected item
+   * @param label The label of the selected item to deselect
+   * @returns
+   */
+  clickDeselectButton(label: string): Cypress.Chainable {
+    return this.self()
+      .find('.vs__selected-options')
+      .contains('span.vs__selected', label)
+      .closest('.vs__selected')
+      .find('.vs__deselect')
+      .click();
+  }
+
   static byLabel(self: CypressChainable, label: string): LabeledSelectPo {
     return new LabeledSelectPo(
       self
