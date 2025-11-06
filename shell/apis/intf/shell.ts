@@ -99,45 +99,68 @@ export interface ModalApi {
 export interface SlideInApiConfig {
   /**
    *
-   * Width of the Slide In panel in percentage, related to the window width. Defaults to `33%`
+   * Width of the Slide-In panel in percentage, related to the window width. Defaults to `33%`
    *
    */
   width?: string;
   /**
    *
-   * Height of the Slide In panel. Can be percentage or vh. Defaults to (window - header) height.
+   * Height of the Slide-In panel. Can be percentage or vh. Defaults to (window - header) height.
    * Can be set as `33%` or `80vh`
    *
    */
   height?: string;
   /**
    *
-   * CSS Top position for the Slide In panel, string using px, as `0px` or `20px`. Default is right below header height
+   * CSS Top position for the Slide-In panel, string using px, as `0px` or `20px`. Default is right below header height
    *
    */
   top?: string;
   /**
    *
-   * title for the Slide In panel
+   * title for the Slide-In panel
    *
    */
   title?: string;
   /**
    *
-   * Wether Slide In header is displayed or not
+   * Wether Slide-In header is displayed or not
    *
    */
   showHeader?: boolean;
   /**
    *
-   * Props to pass directly to the component rendered inside the slide in panel in an object format
+   * Array of props to watch out for in route, when they change, closes Slide-In
+   * @ignore
    *
    */
-  componentProps?: Record<string, any>;
+  closeOnRouteChange?: [string];
+  /**
+   *
+   * Return focus selector for focus trap
+   * @ignore
+   *
+   */
+  returnFocusSelector?: string;
+  /**
+   *
+   * We can pass variable (value) to "force" focus trap to initialize "on-demand"
+   * @ignore
+   *
+   */
+  focusTrapWatcherBasedVariable?: boolean;
+  /**
+   *
+   * Vue Props to pass directly to the component rendered inside the slide in panel in an object format as "props=..."
+   *
+   * Useful for passing additional information or context to the component rendered inside the Slide-In window
+   *
+   */
+  [key: string]: any;
 }
 
 /**
- * API for displaying Slide In panels in Rancher UI
+ * API for displaying Slide-In panels in Rancher UI
  * * ![slidein Example](/img/slidein.png)
  */
 export interface SlideInApi {
