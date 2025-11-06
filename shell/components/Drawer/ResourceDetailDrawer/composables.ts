@@ -1,9 +1,8 @@
-import { Props as YamlTabProps } from '@shell/components/Drawer/ResourceDetailDrawer/YamlTab.vue';
-import { Props as ConfigTabProps } from '@shell/components/Drawer/ResourceDetailDrawer/ConfigTab.vue';
 import { useStore } from 'vuex';
 import { getYaml } from '@shell/components/Drawer/ResourceDetailDrawer/helpers';
+import { ConfigProps, YamlProps } from '@shell/components/Drawer/ResourceDetailDrawer/types';
 
-export async function useDefaultYamlTabProps(resource: any): Promise<YamlTabProps> {
+export async function useDefaultYamlTabProps(resource: any): Promise<YamlProps> {
   const yaml = await getYaml(resource);
 
   return {
@@ -12,7 +11,7 @@ export async function useDefaultYamlTabProps(resource: any): Promise<YamlTabProp
   };
 }
 
-export function useDefaultConfigTabProps(resource: any): ConfigTabProps | undefined {
+export function useDefaultConfigTabProps(resource: any): ConfigProps | undefined {
   const store = useStore();
 
   // You don't want to show the Config tab if there isn't a an edit page to show and you don't want to show it if there isn't

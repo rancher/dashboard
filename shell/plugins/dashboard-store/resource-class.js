@@ -39,7 +39,6 @@ import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
-import { importDrawer } from '@shell/utils/dynamic-importer';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -910,7 +909,7 @@ export default class Resource {
     const onClose = () => this.$ctx.commit('slideInPanel/close', undefined, { root: true });
 
     this.$ctx.commit('slideInPanel/open', {
-      component:      importDrawer('ResourceDetailDrawer'),
+      component:      require(`@shell/components/Drawer/ResourceDetailDrawer/index.vue`).default,
       componentProps: {
         resource:           this,
         onClose,
