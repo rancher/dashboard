@@ -353,13 +353,19 @@ export const actions = {
     const driver = await dispatch('getAuthProvider', provider);
 
     try {
-      const res = await driver.doAction('login', {
-        description:  'UI session',
-        responseType: 'cookie',
-        ...body
-      }, { redirectUnauthorized: false });
-
-      return res;
+      return dispatch(
+        'management/request',
+        {
+          url:    `/v1-public/login`,
+          method: 'post',
+          data:   {
+            type:         driver.type,
+            responseType: 'cookie',
+            ...body
+          },
+        },
+        { root: true }
+      );
     } catch (err) {
       if (err._status === 401) {
         return Promise.reject(LOGIN_ERRORS.CLIENT_UNAUTHORIZED);
