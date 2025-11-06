@@ -28,6 +28,7 @@ interface UpdateArgs {
   searchTerm: string,
   pinnedIds: string[],
   unPinnedMax?: number,
+  forceWatch?: boolean
 }
 
 type MgmtCluster = {
@@ -192,9 +193,12 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.clustersOthersWrapper = new PaginationWrapper({
       $store,
       id:       'tlm-unpinned-clusters',
-      onChange: async() => {
+      onChange: async({ forceWatch }) => {
         if (this.args) {
-          await this.update(this.args);
+          await this.update({
+            ...this.args,
+            forceWatch
+          });
         }
       },
       enabledFor: {
@@ -210,9 +214,12 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.provClusterWrapper = new PaginationWrapper({
       $store,
       id:       'tlm-prov-clusters',
-      onChange: async() => {
+      onChange: async({ forceWatch }) => {
         if (this.args) {
-          await this.update(this.args);
+          await this.update({
+            ...this.args,
+            forceWatch
+          });
         }
       },
       enabledFor: {
@@ -244,7 +251,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       pinned: MgmtCluster[],
       notPinned: MgmtCluster[]
     } = await allHash(promises) as any;
-    const provClusters = await this.updateProvCluster(res.notPinned, res.pinned);
+    const provClusters = await this.updateProvCluster(res.notPinned, res.pinned, args.forceWatch || false);
     const provClustersByMgmtId = provClusters.reduce((res: { [mgmtId: string]: ProvCluster}, provCluster: ProvCluster) => {
       if (provCluster.mgmtClusterId) {
         res[provCluster.mgmtClusterId] = provCluster;
@@ -340,6 +347,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     }
 
     return this.clustersPinnedWrapper.request({
+      forceWatch: args.forceWatch,
       pagination: {
         filters: this.constructParams({
           pinnedIds:     args.pinnedIds,
@@ -357,6 +365,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
    */
   private async updateOthers(args: UpdateArgs): Promise<MgmtCluster[]> {
     return this.clustersOthersWrapper.request({
+      forceWatch: args.forceWatch,
       pagination: {
         filters: this.constructParams({
           searchTerm:        args.searchTerm,
@@ -375,8 +384,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
   /**
    * Find all provisioning clusters associated with the displayed mgmt clusters
    */
-  private async updateProvCluster(notPinned: MgmtCluster[], pinned: MgmtCluster[]): Promise<ProvCluster[]> {
+  private async updateProvCluster(notPinned: MgmtCluster[], pinned: MgmtCluster[], forceWatch: boolean): Promise<ProvCluster[]> {
     return this.provClusterWrapper.request({
+      forceWatch,
       pagination: {
         filters: [
           PaginationParamFilter.createMultipleFields(
