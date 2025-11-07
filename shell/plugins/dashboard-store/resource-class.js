@@ -610,7 +610,7 @@ export default class Resource {
   }
 
   get '$plugin'() {
-    return this.$ctx.rootState?.$plugin;
+    return this.$ctx.rootState?.$extension;
   }
 
   get '$extension'() {
