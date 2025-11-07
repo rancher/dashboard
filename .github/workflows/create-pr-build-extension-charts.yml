@@ -135,7 +135,6 @@ jobs:
         uses: actions/checkout@v5
         with:
           ref: '${{ inputs.target_branch }}'
-          fetch-depth: 0
 
       - name: Configure Git
         run: |

@@ -173,7 +173,7 @@ jobs:
   slack-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [retrieve-tags-master, test-build-extension-charts-master]
+    needs: [retrieve-tags-master, test-build-extension-charts-master, test-create-pr-build-extension-charts-master]
     steps: 
       - name: Slack message for workflow
         if: always()
