@@ -1,0 +1,6 @@
+plugin/img/harvester.20240f8a.png
+plugin/package.json
+plugin/top-level-product-0.2.0.umd.min.60.js
+plugin/top-level-product-0.2.0.umd.min.60.js.map
+plugin/top-level-product-0.2.0.umd.min.js
+plugin/top-level-product-0.2.0.umd.min.js.map
