@@ -365,7 +365,7 @@ export function DSL(store, product, module = 'type-map') {
 
 let called = false;
 
-export async function applyProducts(store, $plugin) {
+export async function applyProducts(store, $extension) {
   if (called) {
     return;
   }
@@ -379,7 +379,7 @@ export async function applyProducts(store, $plugin) {
     }
   }
   // Load the products from all plugins
-  $plugin.loadProducts();
+  $extension.loadProducts();
 }
 
 export function productsLoaded() {
