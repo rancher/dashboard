@@ -1,8 +1,6 @@
 name: Test Extension workflows - Master (3.x)
 
 on:
-  schedule:
-    - cron: "0 0 * * *"
   pull_request:
     branches:
       - master
