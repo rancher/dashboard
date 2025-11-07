@@ -1,7 +1,6 @@
 name: Test Extension workflows - Master (3.x)
 
 on:
-  workflow_dispatch:
   pull_request:
     branches:
       - 'master'
@@ -87,6 +86,7 @@ jobs:
       contents: write
       deployments: write
       pages: write
+      pull-requests: write
     with:
       target_branch: 'gh-pages'
       tagged_release:  ${{ needs.retrieve-tags-master.outputs.EXTENSION_TAG }}
