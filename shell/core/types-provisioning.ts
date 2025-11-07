@@ -61,7 +61,11 @@ export interface ClusterProvisionerContext {
    */
   axios: any,
   /**
-   * Definition of the extension
+   * [Deprecated] Definition of the extension
+   */
+  $extension: any,
+  /**
+   * [Deprecated] Definition of the extension
    */
   $extension: any,
   /**

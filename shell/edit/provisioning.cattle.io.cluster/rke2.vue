@@ -531,12 +531,12 @@ export default {
 
       if (extClass) {
         return new extClass({
-          dispatch: this.$store.dispatch,
-          getters:  this.$store.getters,
-          axios:    this.$store.$axios,
-          $plugin:  this.$store.app.$extension,
-          $t:       this.t,
-          isCreate: this.isCreate
+          dispatch:   this.$store.dispatch,
+          getters:    this.$store.getters,
+          axios:      this.$store.$axios,
+          $extension: this.$store.app.$extension,
+          $t:         this.t,
+          isCreate:   this.isCreate
         });
       }
 

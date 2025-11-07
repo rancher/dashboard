@@ -233,7 +233,7 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
  * Are we in the vai enabled world where mgmt clusters are paginated?
  */
 const paginateClusters = ({ rootGetters, state }) => {
-  return paginationUtils.isEnabled({ rootGetters, $plugin: state.$extension }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
+  return paginationUtils.isEnabled({ rootGetters, $extension: state.$extension }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
 };
 
 export const state = () => {

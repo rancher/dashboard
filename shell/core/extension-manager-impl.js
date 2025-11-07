@@ -35,13 +35,13 @@ const createExtensionManager = (context) => {
   /**
    * When an extension adds a model extension, it provides the class - we will instantiate that class and store and use that
    */
-  function instantiateModelExtension($plugin, clz) {
+  function instantiateModelExtension($extension, clz) {
     const context = {
-      dispatch:   store.dispatch,
-      getters:    store.getters,
-      t:          store.getters['i18n/t'],
+      dispatch: store.dispatch,
+      getters:  store.getters,
+      t:        store.getters['i18n/t'],
       $axios,
-      $extension: $plugin,
+      $extension,
     };
 
     return new clz(context);
