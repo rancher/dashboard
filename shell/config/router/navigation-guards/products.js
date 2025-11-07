@@ -9,7 +9,7 @@ export async function loadProducts(to, from, next, { store }) {
   // GC should be notified of route change before any find/get request is made that might be used for that page
   store.dispatch('gcRouteChanged', to);
 
-  await applyProducts(store, store.$plugin);
+  await applyProducts(store, store.$extension);
   setProduct(store, to);
   next();
 }

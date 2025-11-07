@@ -319,7 +319,7 @@ export default {
         await loadPlugins({
           app:     this.$store.app,
           store:   this.$store,
-          $plugin: this.$store.$plugin
+          $plugin: this.$store.$extension,
         });
 
         if (this.firstLogin || user[0]?.mustChangePassword) {
