@@ -2,7 +2,7 @@
 
 ## Defining a page as a side-menu entry (basicType)
 
-With the `virtualType` and `configureType` we have learned how to configure a page for your Extension product, but that won't make it appear on the side-menu. For that you need to use the function `basicType` coming from `$plugin.DSL`. As an example usage of that method, one could do the following:
+With the `virtualType` and `configureType` we have learned how to configure a page for your Extension product, but that won't make it appear on the side-menu. For that you need to use the function `basicType` coming from `$extension.DSL`. As an example usage of that method, one could do the following:
 
 ```ts
 import { IPlugin } from '@shell/core/types';
@@ -12,7 +12,7 @@ import { IPlugin } from '@shell/core/types';
 const BLANK_CLUSTER = '_';
 
 
-export function init($plugin: IPlugin, store: any) {
+export function init($extension: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
   const YOUR_K8S_RESOURCE_NAME = 'provisioning.cattle.io.cluster';
   const CUSTOM_PAGE_NAME = 'page1';
@@ -22,7 +22,7 @@ export function init($plugin: IPlugin, store: any) {
     configureType,
     virtualType,
     basicType
-  } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
+  } = $extension.DSL(store, YOUR_PRODUCT_NAME);
 
   // registering a top-level product
   product({
@@ -92,7 +92,7 @@ Menu entries can also be grouped under a common "folder/group" in the side menu.
 
 ## Side menu ordering (weightType and weightGroup)
 
-How about if you wanted to change the side-menu ordering for your Extension product? That can be achieved by using the functions `weightType` and `weightGroup` coming from `$plugin.DSL`. Let's then look at the following example:
+How about if you wanted to change the side-menu ordering for your Extension product? That can be achieved by using the functions `weightType` and `weightGroup` coming from `$extension.DSL`. Let's then look at the following example:
 
 ```ts
 import { IPlugin } from '@shell/core/types';
@@ -101,7 +101,7 @@ import { IPlugin } from '@shell/core/types';
 // definition of a "blank cluster" in Rancher Dashboard
 const BLANK_CLUSTER = '_';
 
-export function init($plugin: IPlugin, store: any) {
+export function init($extension: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
   const YOUR_K8S_RESOURCE_NAME = 'provisioning.cattle.io.cluster';
   const CUSTOM_PAGE_NAME_1 = 'page1';
@@ -113,7 +113,7 @@ export function init($plugin: IPlugin, store: any) {
     configureType,
     virtualType,
     basicType
-  } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
+  } = $extension.DSL(store, YOUR_PRODUCT_NAME);
   // registering a top-level product
   product({
     icon: 'gear',
@@ -211,7 +211,7 @@ import { IPlugin } from '@shell/core/types';
 // definition of a "blank cluster" in Rancher Dashboard
 const BLANK_CLUSTER = '_';
 
-export function init($plugin: IPlugin, store: any) {
+export function init($extension: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
   const YOUR_K8S_RESOURCE_NAME = 'provisioning.cattle.io.cluster';
   const CUSTOM_PAGE_NAME_1 = 'page1';
@@ -223,7 +223,7 @@ export function init($plugin: IPlugin, store: any) {
     configureType,
     virtualType,
     basicType
-  } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
+  } = $extension.DSL(store, YOUR_PRODUCT_NAME);
   // registering a top-level product
   product({
     icon: 'gear',
