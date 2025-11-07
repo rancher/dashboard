@@ -145,7 +145,7 @@ export default {
         }
       }
 
-      this.$plugin.loadAsync(name, url).then(() => {
+      this.$extension.loadAsync(name, url).then(() => {
         this.closeDialog(true);
 
         this.$store.dispatch('growl/success', {

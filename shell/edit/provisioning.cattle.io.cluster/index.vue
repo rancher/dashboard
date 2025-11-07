@@ -332,9 +332,9 @@ export default {
       // Keeping this for non Rancher-managed kontainer drivers
       this.kontainerDrivers.filter((x) => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
         if ( vueKontainerTypes.includes(obj.driverName) ) {
-          addType(this.$plugin, obj.driverName, 'hosted', false);
+          addType(this.$extension, obj.driverName, 'hosted', false);
         } else {
-          addType(this.$plugin, obj.driverName, 'hosted', false, (isImport ? obj.emberImportPath : obj.emberCreatePath));
+          addType(this.$extension, obj.driverName, 'hosted', false, (isImport ? obj.emberImportPath : obj.emberCreatePath));
         }
       });
       if (!isImport) {
@@ -351,7 +351,7 @@ export default {
 
         // If Elemental is installed, then add the elemental cluster provider
         if (isElementalActive) {
-          addType(this.$plugin, ELEMENTAL_CLUSTER_PROVIDER, 'custom2', false);
+          addType(this.$extension, ELEMENTAL_CLUSTER_PROVIDER, 'custom2', false);
         }
 
         // Only add the RKE2 options if RKE2 is enabled
@@ -359,10 +359,10 @@ export default {
           machineTypes.forEach((type) => {
             const id = type.spec.displayName || type.id;
 
-            addType(this.$plugin, id, _RKE2, false, null, undefined, type);
+            addType(this.$extension, id, _RKE2, false, null, undefined, type);
           });
 
-          addType(this.$plugin, 'custom', 'custom2', false);
+          addType(this.$extension, 'custom', 'custom2', false);
         }
       }
       // Add from extensions
