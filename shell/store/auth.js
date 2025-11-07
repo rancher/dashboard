@@ -402,7 +402,7 @@ export const actions = {
     }
 
     // Unload plugins - we will load again on login
-    await rootState.$plugin.logout();
+    await rootState.$extension.logout();
 
     let logoutAction = '';
     const data = {};
