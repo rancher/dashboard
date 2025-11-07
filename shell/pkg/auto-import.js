@@ -15,7 +15,7 @@ function registerFile(file, type, pkg, f) {
   const importType = (f === 'models') ? 'require' : 'import';
   const chunkName = (f === 'l10n') ? '' : `/* webpackChunkName: "${ f }" */`;
 
-  return `  $plugin.register('${ f }', '${ type }', () => ${ importType }(${ chunkName }'${ pkg }/${ f }/${ file }'));\n`;
+  return `  $extension.register('${ f }', '${ type }', () => ${ importType }(${ chunkName }'${ pkg }/${ f }/${ file }'));\n`;
 }
 
 function register(file, pkg, f) {
@@ -29,7 +29,7 @@ function register(file, pkg, f) {
 // This ensures that the webpackChunkName is respected (require.context does not support this) - so when build as a library
 // the code splitting will be respected
 function generateTypeImport(pkg, dir) {
-  let content = 'export function importTypes($plugin) { \n';
+  let content = 'export function importTypes($extension) { \n';
 
   // Auto-import if the folder exists
   contextFolders.forEach((f) => {
@@ -77,7 +77,7 @@ function generateTypeImport(pkg, dir) {
 // and then restart the dev server for it to be picked up.
 function generateDynamicTypeImport(pkg, dir) {
   const template = fs.readFileSync(path.join(__dirname, 'import.js'), { encoding: 'utf8' });
-  let content = 'export function importTypes($plugin) { \n';
+  let content = 'export function importTypes($extension) { \n';
 
   // Auto-import if the folder exists
   contextFolders.forEach((f) => {
