@@ -79,14 +79,14 @@ const harvesterClustersLocation = {
   }
 };
 
-export function init($plugin, store) {
+export function init($extension, store) {
   const {
     product,
     basicType,
     headers,
     spoofedType,
     configureType
-  } = $plugin.DSL(store, NAME);
+  } = $extension.DSL(store, NAME);
 
   product({
     ifHaveType:          CAPI.RANCHER_CLUSTER,

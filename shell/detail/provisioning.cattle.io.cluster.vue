@@ -100,11 +100,11 @@ export default {
 
     if (extClass) {
       this.extProvider = new extClass({
-        dispatch: this.$store.dispatch,
-        getters:  this.$store.getters,
-        axios:    this.$store.$axios,
-        $plugin:  this.$store.app.$plugin,
-        $t:       this.t
+        dispatch:   this.$store.dispatch,
+        getters:    this.$store.getters,
+        axios:      this.$store.$axios,
+        $extension: this.$store.app.$extension,
+        $t:         this.t
       });
 
       this.extDetailTabs = {
