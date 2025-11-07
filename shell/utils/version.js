@@ -74,6 +74,21 @@ export function isPrerelease(version = '') {
   return !!semver.prerelease(version);
 }
 
+export function isUpgradeFromPreToStable(currentVersion, targetVersion) {
+  if (!isPrerelease(currentVersion) || isPrerelease(targetVersion)) {
+    return false;
+  }
+
+  const cVersion = semver.clean(currentVersion, { loose: true });
+  const tVersion = semver.clean(targetVersion, { loose: true });
+
+  if (cVersion && tVersion && semver.valid(cVersion) && semver.valid(tVersion)) {
+    return semver.lt(cVersion, tVersion);
+  }
+
+  return false;
+}
+
 export function isDevBuild(version) {
   if ( ['dev', 'master', 'head'].includes(version) || version.endsWith('-head') || version.match(/-rc\d+$/) || version.match(/-alpha\d+$/) ) {
     return true;
