@@ -105,7 +105,7 @@ jobs:
         if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') || inputs.is_test == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: charts
+          name: charts-create-pr
           path: tmp
 
   release-create-pr:
@@ -146,7 +146,7 @@ jobs:
       - name: Download build artifact
         uses: actions/download-artifact@v5
         with:
-          name: charts
+          name: charts-create-pr
 
       - name: Generate branch name based on date and time
         run: echo "NOW=$(date +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_ENV
