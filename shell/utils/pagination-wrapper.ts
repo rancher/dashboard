@@ -19,7 +19,7 @@ interface Args {
   /**
    * Callback called when the resource is changed (notified by socket)
    */
-  onChange?: () => void,
+  onChange?: STEVE_WATCH_EVENT_LISTENER_CALLBACK,
 
   formatResponse?: {
     /**
@@ -72,13 +72,13 @@ class PaginationWrapper<T extends object> {
     this.isEnabled = paginationUtils.isEnabled({ rootGetters: $store.getters, $plugin: this.$store.$plugin }, enabledFor);
   }
 
-  async request(args: {
-      pagination: PaginationArgs,
+  async request({ pagination, forceWatch }: {
+    forceWatch?: boolean,
+    pagination: PaginationArgs,
   }): Promise<Result<T>> {
     if (!this.isEnabled) {
       throw new Error(`Wrapper for type '${ this.enabledFor.store }/${ this.enabledFor.resource?.id }' in context '${ this.enabledFor.resource?.context }' not supported`);
     }
-    const { pagination } = args;
     const opt: ActionFindPageArgs = {
       watch:     false,
       pagination,
@@ -89,14 +89,18 @@ class PaginationWrapper<T extends object> {
     const out: ActionFindPageTransientResult<T> = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
 
     // Watch
-    if (this.onChange && !this.steveWatchParams) {
+    const firstTime = !this.steveWatchParams;
+
+    if (this.onChange && (firstTime || forceWatch) ) { // && !this.steveWatchParams
       this.steveWatchParams = {
         event:  STEVE_WATCH_EVENT_TYPES.CHANGES,
         id:     this.id,
         params: {
-          type: this.enabledFor.resource?.id as string,
-          mode: STEVE_WATCH_MODE.RESOURCE_CHANGES,
-        }
+          type:  this.enabledFor.resource?.id as string,
+          mode:  STEVE_WATCH_MODE.RESOURCE_CHANGES,
+          force: forceWatch,
+        },
+
       };
 
       this.watch();

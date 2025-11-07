@@ -30,5 +30,6 @@ export interface STEVE_WATCH_PARAMS {
   namespace?: string,
   stop?: boolean,
   force?: boolean,
+  forceWatch?: boolean,
   mode?: STEVE_WATCH_MODE
 }

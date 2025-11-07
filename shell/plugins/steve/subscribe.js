@@ -888,16 +888,20 @@ const defaultActions = {
             }
           });
         }
-
         // Should any listeners be notified of this request for them to kick off their own event handling?
-        getters.listenerManager.triggerEventListener({ event: STEVE_WATCH_MODE.RESOURCE_CHANGES, params });
+        getters.listenerManager.triggerEventListener({
+          event:  STEVE_WATCH_MODE.RESOURCE_CHANGES,
+          params: {
+            ...params,
+            forceWatch: opt.forceWatch
+          }
+        });
       } else {
         have = getters['all'](resourceType).slice();
 
         if ( namespace ) {
           have = have.filter((x) => x.metadata?.namespace === namespace);
         }
-
         want = await dispatch('findAll', {
           type:           resourceType,
           watchNamespace: namespace,
@@ -1181,12 +1185,16 @@ const defaultActions = {
       });
 
       if (hasEventListeners) {
-        // If there's event listeners always kick them off
-        // - The re-watch associated with normal watches will watch from a revision from it's own cache
-        // - The revision in that cache might be ahead of the state the listeners have, so the watch won't ping something for the listeners to trigger on
-        // - so to work around this whenever we start the watches again trigger off the changes for it
-        // Improvement - we only do one event here (currently the only one supported), could expand to others
-        getters.listenerManager.triggerEventListener({ event: STEVE_WATCH_EVENT_TYPES.CHANGES, params: obj });
+        const inError = getters.inError(obj); // We don't want to force listeners to resync if the socket is in error (handled by resource.error mechanism)
+
+        if (!inError) {
+          // If there's event listeners kick them off
+          // - The re-watch associated with normal watches will watch from a revision from it's own cache
+          // - The revision in that cache might be ahead of the state the listeners have, so the watch won't ping something for the listeners to trigger on
+          // - so to work around this whenever we start the watches again trigger off the changes for it
+          // Improvement - we only do one event here (currently the only one supported), could expand to others
+          getters.listenerManager.triggerEventListener({ event: STEVE_WATCH_EVENT_TYPES.CHANGES, params: obj });
+        }
       }
     }
   },

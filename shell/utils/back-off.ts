@@ -137,9 +137,9 @@ class BackOff {
 
       // First step is immediate (0.001s)
       // Second and others are exponential
-      // 1,      2,     3,  4,     5,  6,      7,   8,      9
-      // 1,      4,     9, 16,    25, 36,     49,  64,     81
-      // 0.25s, 1s, 2.25s, 4s, 6.25s, 9s, 12.25s, 16s, 20.25s
+      // Try:         1,     2,   3,     4,    5,      6,    7,       8,    9
+      // Multiple:    1,     4,   9,     16,   25,     36,   49,      64,   81
+      // Actual Time: 0.25s, 1s,  2.25s, 4s,   6.25s,  9s,   12.25s,  16s,  20.25s
       const delay = backOffTry === 0 ? 1 : Math.pow(backOffTry, 2) * 250;
 
       this.log('info', id, `Delaying call (attempt ${ backOffTry + 1 }, delayed by ${ delay }ms)`, description);
