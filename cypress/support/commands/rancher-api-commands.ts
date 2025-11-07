@@ -2,7 +2,7 @@ import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2ClusterWithoutMachineConfigParams } from '@/cypress/globals';
 import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
 import { CypressChainable } from '~/cypress/e2e/po/po.types';
-import { MEDIUM_API_DELAY } from '~/cypress/support/utils/api-endpoints';
+import { MEDIUM_API_DELAY, CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 
 // This file contains commands which makes API requests to the rancher API.
 // It includes the `login` command to store the `token` to use
@@ -603,6 +603,44 @@ Cypress.Commands.add('waitForResourceState', (prefix, resourceType, resourceId, 
 
     return state && state.transitioning === false && state.name === resourceState;
   }, retries);
+});
+
+/**
+ * Wait for extension info endpoint to return 200 status code
+ * @param gitRepoName - The repository name (e.g., 'rancher-extensions')
+ * @param extensionName - The extension/chart name (e.g., 'kubewarden')
+ * @param version - The extension version (e.g., '4.0.3')
+ * @param retries - Number of retries (default: 20)
+ */
+Cypress.Commands.add('waitForExtensionInfo', (gitRepoName, extensionName, version, retries = 20) => {
+  const url = `${ Cypress.env('api') }${ CLUSTER_REPOS_BASE_URL }/${ gitRepoName }?link=info&chartName=${ extensionName }&version=${ version }`;
+  let remainingRetries = retries;
+
+  const retry = () => {
+    cy.request({
+      method:  'GET',
+      url,
+      headers: {
+        'x-api-csrf': token.value,
+        Accept:       'application/json'
+      },
+      failOnStatusCode: false,
+    }).then((resp) => {
+      if (resp.status === 200) {
+        return;
+      }
+
+      remainingRetries = remainingRetries - 1;
+      if (remainingRetries > 0) {
+        cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting
+        retry();
+      } else {
+        return Promise.reject(new Error(`Failed to get 200 status from ${ url }. Last status: ${ resp.status }`));
+      }
+    });
+  };
+
+  return retry();
 });
 
 /**

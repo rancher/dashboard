@@ -38,6 +38,13 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.waitForPage(null, 'available');
 
+    // Get the extension version dynamically from the card and wait for the info endpoint to return 200
+    extensionsPo.extensionCardVersion(extensionName).then((version) => {
+      const trimmedVersion = version.trim();
+
+      cy.waitForExtensionInfo(gitRepoName, extensionName, trimmedVersion);
+    });
+
     // click on install button on card
     extensionsPo.extensionCardInstallClick(extensionName);
     extensionsPo.extensionInstallModal().should('be.visible' );
