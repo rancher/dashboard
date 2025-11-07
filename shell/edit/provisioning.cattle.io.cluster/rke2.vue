@@ -534,7 +534,7 @@ export default {
           dispatch: this.$store.dispatch,
           getters:  this.$store.getters,
           axios:    this.$store.$axios,
-          $plugin:  this.$store.app.$plugin,
+          $plugin:  this.$store.app.$extension,
           $t:       this.t,
           isCreate: this.isCreate
         });
