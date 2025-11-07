@@ -1,6 +1,7 @@
 name: Test Extension workflows - Master (3.x)
 
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - 'master'
