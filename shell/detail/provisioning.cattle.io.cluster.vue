@@ -96,7 +96,7 @@ export default {
     await this.value.waitForProvisioner();
 
     // Support for the 'provisioner' extension
-    const extClass = this.$plugin.getDynamic('provisioner', this.value.machineProvider);
+    const extClass = this.$extension.getDynamic('provisioner', this.value.machineProvider);
 
     if (extClass) {
       this.extProvider = new extClass({
