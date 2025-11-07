@@ -3,6 +3,8 @@ name: Test Extension workflows - Master (3.x)
 on:
   pull_request:
     branches:
+      - 'master'
+      - '**'
       - master
 
 defaults:
