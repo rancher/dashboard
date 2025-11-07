@@ -44,7 +44,7 @@ export default async function(context) {
     const res = await allHashSettled(fetches);
 
     // Initialize the built-in extensions now - this is now done here so that built-in extensions get the same, correct environment data (version etc)
-    context.$plugin.loadBuiltinExtensions();
+    context.$extension.loadBuiltinExtensions();
 
     if (res.plugins?.status === 'rejected') {
       throw new Error(res.reason);
@@ -60,7 +60,7 @@ export default async function(context) {
       const shouldNotLoad = shouldNotLoadPlugin(plugin, { rancherVersion, kubeVersion }, context.store.getters['uiplugins/plugins'] || []); // Error key string or boolean
 
       if (!shouldNotLoad) {
-        hash[plugin.name] = context.$plugin.loadPluginAsync(plugin);
+        hash[plugin.name] = context.$extension.loadPluginAsync(plugin);
       } else {
         context.store.dispatch('uiplugins/setError', { name: plugin.name, error: shouldNotLoad });
       }

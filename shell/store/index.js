@@ -233,7 +233,7 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
  * Are we in the vai enabled world where mgmt clusters are paginated?
  */
 const paginateClusters = ({ rootGetters, state }) => {
-  return paginationUtils.isEnabled({ rootGetters, $plugin: state.$plugin }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
+  return paginationUtils.isEnabled({ rootGetters, $plugin: state.$extension }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
 };
 
 export const state = () => {
@@ -1256,7 +1256,7 @@ export const actions = {
   dashboardClientInit({ dispatch, commit, rootState }, context) {
     commit('setRouter', context.app.router);
     commit('setRoute', context.route);
-    commit('setPlugin', context.app.$plugin);
+    commit('setPlugin', context.app.$extension);
 
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');
