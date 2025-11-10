@@ -1,0 +1,104 @@
+name: Test build of extensions in repository
+
+on:
+  workflow_call:
+    inputs:
+      disable_exts_test:
+        required: false
+        type: string
+        default: ''
+        description: 'A comma-separated list of package subfolder names (under pkg/) to exclude from the build matrix.'
+    outputs:
+      build-job-status: 
+        value: ${{ jobs.test-build.outputs.build-status }}
+
+jobs:
+  find-extensions:
+    name: Find Packages to Build
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Find and Filter Subfolders
+        id: set-matrix
+        shell: bash
+        run: |
+          # 1. Define the extensions to ignore from the workflow input
+          # Converts the comma-separated string into a bash array for easy lookup
+          IFS=',' read -r -a DISABLED_PKGS <<< "${{ inputs.disable_exts_test }}"
+          
+          # 2. Find all potential extensions (folders with package.json)
+          # find pkg/ -maxdepth 2 -type f -name "package.json" -printf '%h\n' | sed -E 's/pkg\/(.*)/\1/'
+          ALL_PKGS_STR=$(find pkg/ -maxdepth 2 -type f -name "package.json" -printf '%h\n' | sed -E 's/pkg\/(.*)/\1/')
+          
+          # 3. Filter out disabled extensions
+          PKGS_TO_BUILD=()
+          while IFS= read -r PKG_NAME; do
+            # Check if the current package name is in the DISABLED_PKGS array
+            IS_DISABLED=false
+            for DISABLED in "${DISABLED_PKGS[@]}"; do
+              if [ "$PKG_NAME" == "$DISABLED" ]; then
+                echo "Skipping disabled package: $PKG_NAME"
+                IS_DISABLED=true
+                break
+              fi
+            done
+            
+            # If not disabled, add it to the list to build
+            if ! $IS_DISABLED; then
+              PKGS_TO_BUILD+=("$PKG_NAME")
+            fi
+          done <<< "$ALL_PKGS_STR"
+
+          # 4. Convert the final array into a JSON matrix output
+          if [ ${#PKGS_TO_BUILD[@]} -eq 0 ]; then
+             echo "No packages to build. Setting empty matrix."
+             
+             echo "::warning::The 'disabled_packages' input has excluded all available packages, or no packages with 'package.json' were found."
+             
+             MATRIX="{\"folder\": []}"
+          else
+             # Convert the array to a comma-separated string, then to JSON
+             PKGS_CSV=$(IFS=,; echo "${PKGS_TO_BUILD[*]}")
+             MATRIX="{\"folder\": [\"${PKGS_CSV//, /\",\"}\"]}"
+          fi
+
+          echo "MATRIX=$MATRIX" >> $GITHUB_OUTPUT
+          echo "Final extensions to build: ${PKGS_TO_BUILD[*]}"
+
+  test-build:
+    name: Test build ${{ matrix.folder }}
+    runs-on: ubuntu-latest
+    needs: find-extensions
+    outputs:
+      build-status: ${{ job.status }}
+      
+    strategy:
+      fail-fast: false
+      matrix:
+        ${{ fromJson(needs.find-extensions.outputs.matrix) }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Install Node
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+
+      - name: Install Dependencies
+        shell: bash
+        run: yarn install --frozen-lockfile
+
+      - name: "Build extension: ${{ matrix.folder }}"
+        run: yarn build-pkg ${{ matrix.folder }}
