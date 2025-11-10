@@ -83,17 +83,14 @@ jobs:
         id: set-final-matrix
         shell: bash
         run: |
-          ALL_SKIPPED="${{ steps.set-matrix.outputs.ALL_SKIPPED }}"
-          ORIGINAL_MATRIX="${{ steps.set-matrix.outputs.matrix }}"
-          SKIP_MATRIX='{"folder": ["_skip_"]}'
-          
-          if [ "$ALL_SKIPPED" == "true" ]; then
-            FINAL_JSON="$SKIP_MATRIX"
-          else
-            FINAL_JSON="$ORIGINAL_MATRIX"
-          fi
-          
-          echo "json=$FINAL_JSON" >> $GITHUB_OUTPUT
+          # Use the GHA expression IF function to choose the correct JSON string
+          echo "json=$(
+            if [ "${{ steps.set-matrix.outputs.ALL_SKIPPED }}" == "true" ]; then
+              echo '{"folder": ["_skip_"]}'
+            else
+              echo "${{ steps.set-matrix.outputs.matrix }}"
+            fi
+          )" >> $GITHUB_OUTPUT
 
   test-build:
     name: Test build ${{ matrix.folder }}
