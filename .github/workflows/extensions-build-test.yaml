@@ -3,7 +3,7 @@ name: Test build of extensions in repository
 on:
   workflow_call:
     inputs:
-      disable_exts_test:
+      disable_exts_build:
         required: false
         type: string
         default: ''
@@ -32,7 +32,7 @@ jobs:
         run: |
           # 1. Define the extensions to ignore from the workflow input
           # Converts the comma-separated string into a bash array for easy lookup
-          IFS=',' read -r -a DISABLED_PKGS <<< "${{ inputs.disable_exts_test }}"
+          IFS=',' read -r -a DISABLED_PKGS <<< "${{ inputs.disable_exts_build }}"
           
           # 2. Find all potential extensions (folders with package.json)
           # find pkg/ -maxdepth 2 -type f -name "package.json" -printf '%h\n' | sed -E 's/pkg\/(.*)/\1/'
