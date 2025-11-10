@@ -98,7 +98,7 @@ jobs:
 
       - name: Install Dependencies
         shell: bash
-        run: yarn install --frozen-lockfile
+        run: yarn install
 
       - name: "Build extension: ${{ matrix.folder }}"
         run: yarn build-pkg ${{ matrix.folder }}
