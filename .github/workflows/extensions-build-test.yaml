@@ -57,26 +57,27 @@ jobs:
           done <<< "$ALL_PKGS_STR"
 
           if [ ${#PKGS_TO_BUILD[@]} -eq 0 ]; then
-             # ... (Warning and setting ALL_SKIPPED=true logic)
              echo "::warning::All packages were skipped or not found."
-             MATRIX="{\"folder\": []}"
+             MATRIX='{"folder": []}' # Use single quotes for simple string
              echo "ALL_SKIPPED=true" >> $GITHUB_OUTPUT
           else
-             # 1. Join the array elements with a comma
+             # 1. Join the array elements with a comma and space (e.g., elemental, elemental-v2)
              PKGS_CSV=$(IFS=,; echo "${PKGS_TO_BUILD[*]}")
              
-             # 2. Format the CSV string into a JSON array structure: ["item1", "item2"]
-             # The substitution replaces commas with '","' and wraps the whole string in '["..."]'
-             JSON_ARRAY=$(echo $PKGS_CSV | sed 's/,/","/g' | sed 's/^/["/' | sed 's/$/"]/')
+             # 2. Add quotes around each item and the array brackets.
+             # We replace the comma with '", "' and wrap the whole thing in '["...""]'
+             # This creates: ["elemental", "elemental-v2"]
+             JSON_ARRAY=$(echo "$PKGS_CSV" | sed 's/,/","/g' | sed 's/^/["/' | sed 's/$/"]/')
              
-             # 3. Create the final matrix object
-             MATRIX="{\"folder\": ${JSON_ARRAY}}"
+             # 3. Create the final matrix object using single quotes for the outer JSON string
+             # This ensures the internal double quotes for the array elements are preserved.
+             MATRIX='{"folder": '"$JSON_ARRAY"'}'
              
              echo "ALL_SKIPPED=false" >> $GITHUB_OUTPUT
              echo "Final packages CSV: $PKGS_CSV"
           fi
 
-          echo "MATRIX=$MATRIX" >> $GITHUB_OUTPUT
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
           echo "Final extensions to build: ${PKGS_TO_BUILD[*]}"
       
       - name: Set Final Conditional Matrix
