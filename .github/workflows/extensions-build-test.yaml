@@ -81,6 +81,7 @@ jobs:
           echo "Final extensions to build: ${PKGS_TO_BUILD[*]}"
 
   test-build:
+    if: ${{ steps.set-matrix.outputs.ALL_SKIPPED != 'true' }}
     name: Test build ${{ matrix.folder }}
     runs-on: ubuntu-latest
     needs: find-extensions
