@@ -11,6 +11,7 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { hasPSALabels, getPSATooltipsDescription, getPSALabels } from '@shell/utils/pod-security-admission';
 import { PSAIconsDisplay, PSALabelsNamespaceVersion } from '@shell/config/pod-security-admission';
 
+// TODO: RC do we now unwatch on leaving lists?!
 /**
  * obscure namespaces are reserved and have special meaning if they're also classed as `system`
  *

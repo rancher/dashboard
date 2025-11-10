@@ -81,6 +81,11 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
    * If true don't persist the http response to the store, just pass it back
    */
   transient?: boolean,
+
+  /**
+   *
+   */
+  backOffId?: string // TODO: RC remove
 }
 
 export type ActionFindPageResponse<T = any> = {

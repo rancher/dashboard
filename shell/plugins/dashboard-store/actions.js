@@ -12,6 +12,7 @@ import { conditionalDepaginate } from '@shell/store/type-map.utils';
 import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import { FilterArgs } from '@shell/types/store/pagination.types';
 import { isLabelSelectorEmpty, labelSelectorToSelector } from '@shell/utils/selector-typed';
+import { SteveRevision } from '@shell/plugins/steve/revision';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -461,6 +462,15 @@ export default {
       force:     opt.forceWatch === true,
       mode:      STEVE_WATCH_MODE.RESOURCE_CHANGES,
     };
+
+    // TODO: RC starts to get noodley
+    // let backOffAbort = false;
+    // if (opt.backOff) {
+    //   // const backOffId = opt.backOff.id;
+    //   const targetRevision = new SteveRevision(opt.revision);
+    //   const cacheRevision = new SteveRevision(opt.backOff.revision);
+    //   backOffAbort = cacheRevision.isNewer(targetRevision);
+    // }
 
     // No need to request the resources if we have them already
     if (!opt.transient && !opt.force && getters['havePaginatedPage'](type, opt)) {
