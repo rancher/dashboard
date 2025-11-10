@@ -1,5 +1,5 @@
 /**
- *
+ * TODO: RC
  */
 export class SteveRevision {
   public asNumber: number;
@@ -10,8 +10,8 @@ export class SteveRevision {
     this.isNumber = !Number.isNaN(this.asNumber);
   }
 
-  isLarger(revision: number): boolean {
-    return revision > this.asNumber;
+  isNewer(revision: SteveRevision): boolean {
+    return this.isNumber && revision.isNumber && this.asNumber > revision.asNumber;
   }
 
   max(revision: number) {

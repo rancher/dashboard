@@ -894,24 +894,24 @@ const defaultActions = {
         opt,
       });
     } else {
+      const targetRevision = new SteveRevision(revision);
+
       if (mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
         // Other findX use options (id/ns/selector) from the messages received over socket.
         // However paginated requests have more complex params so grab them from the store.
-        // of type @StorePagination
 
-        // typeEntry
+        // of type @StorePagination
         const storePagination = getters['havePage'](resourceType);
 
         if (!!storePagination) {
           const entry = getters['typeEntry'](resourceType);
 
-          const socketRevision = new SteveRevision(revision);
           const cacheRevision = new SteveRevision(entry.revision);
 
           // HA support scenario 3 - Avoid overwriting store given resource.changes + http request processed by stale replicas
-          if (socketRevision.isNumber && cacheRevision.isNumber && socketRevision.asNumber < cacheRevision.asNumber) {
+          if (cacheRevision.isNewer(targetRevision)) {
             // eslint-disable-next-line no-console
-            console.warn(`Ignoring web socket request to update '${ resourceType }' with revision '${ revision }' (store contains newer revision '${ entry.revision }'). ` +
+            console.warn(`Ignoring web socket request to update '${ resourceType }' with revision '${ revision }' (store contains newer revision of '${ entry.revision }'). ` +
               `This probably means the replica that provided the web socket message has not yet correctly synced it's cache with other fresher replicas.`);
 
             return;
@@ -919,7 +919,6 @@ const defaultActions = {
 
           have = []; // findPage removes stale entries, so we don't need to rely on below process to remove them
 
-          debugger;
           // This could have been kicked off given a resource.changes message
           // If the messages come in quicker than findPage completes (resource.changes debounce time >= http request time),
           // and the request is the same, only the first request will be processed. all others until it finishes will be ignored
@@ -928,19 +927,26 @@ const defaultActions = {
           want = await dispatch('findPage', {
             type: resourceType,
             opt:  {
-              ...opt, // TODO: RC where is revision?
+              ...opt,
               namespaced: namespace,
-              revision:   socketRevision.revision,
+              revision:   targetRevision.revision,
               // This brings in page, page size, filter, etc
-              ...storePagination.request
+              ...storePagination.request,
+              // backOff: {
+              //   id:
+              // }
+
             }
           });
         }
+
+        // TODO: RC handle event listeners.....
         // Should any listeners be notified of this request for them to kick off their own event handling?
         getters.listenerManager.triggerEventListener({
           event:  STEVE_WATCH_MODE.RESOURCE_CHANGES,
           params: {
             ...params,
+            revision:   targetRevision.revision,
             forceWatch: opt.forceWatch
           }
         });
@@ -1304,10 +1310,13 @@ const defaultActions = {
     }
   },
 
-  async 'ws.resource.changes'({ dispatch }, msg, { retry } = { retry: false }) {
-    myLogger.warn('resource.changes', msg);
+  async 'ws.resource.changes'({ dispatch, getters }, params) {
+    const { retry, ...msg } = params;
 
-    const backOffId = getters.backOffId(msg, 'DERP'); // TODO: RC
+    myLogger.warn('resource.changes', params, retry, msg);
+    // msg.revision = Number.MAX_SAFE_INTEGER; // TODO: RC with this in it doesn't repeat... (should backoff repeat after last resource.changes)
+
+    const backOffId = getters.backOffId(msg, STEVE_HTTP_CODES.UNKNOWN_REVISION);
 
     // const constructBackOffId = (revision) => {
     //   return getters.backOffId(msg, 'DERP&revision=' + revision)
@@ -1319,28 +1328,27 @@ const defaultActions = {
     // }
 
     if (!retry) {
-      // is there a backOff currently running with an older revision? if so we should forget it
+      // is there a backOff currently running with an older revision? if so we should forget it and concentrate on this new revision
 
       // don't need to compare revision of running to this new socket prompted call.. subsequent calls will always be higher
       backOff.reset(backOffId);
     }
-
     backOff.execute({
       id:          backOffId,
       description: `Invalid watch revision, re-syncing`, // TODO: RC
       canFn:       () => getters.canBackoff(this.$socket),
       delayedFn:   async() => {
         try {
-          myLogger.warn('resource.changes', msg, 'trying');
+          myLogger.warn('resource.changes', 'trying', msg );
           await dispatch('fetchResources', {
             ...msg,
-            revision: 'STFC',
-            opt:      { force: true, load: _MERGE }
+            // revision: msg.revision,
+            opt: { force: true, load: _MERGE }
           });
         } catch (err) {
-          myLogger.warn('resource.changes', msg, 'err', err);
+          myLogger.warn('resource.changes', 'ERROR', msg, err);
           if (err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION) {
-            await dispatch('ws.resource.changes', msg, { retry: true });
+            await dispatch('ws.resource.changes', { ...msg, retry: true });
           }
         }
       },
@@ -1519,15 +1527,15 @@ const defaultGetters = {
    */
   nextResourceVersion: (state, getters) => (type, id) => {
     type = normalizeType(type);
-    let revision = 0;
+    let nextRevision = 0;
 
     if ( id ) {
       const existing = getters['byId'](type, id);
 
-      revision = existing?.metadata?.resourceVersion;
+      nextRevision = existing?.metadata?.resourceVersion;
     }
 
-    if ( !revision ) {
+    if ( !nextRevision ) {
       const cache = state.types[type];
 
       // No Cache, nothing to compare to, return early
@@ -1542,17 +1550,21 @@ const defaultGetters = {
         return cache.revision || null;
       }
 
-      revision = cacheRevision.asNumber;
+      nextRevision = cacheRevision.asNumber;
 
       for ( const obj of cache.list || [] ) {
         if ( obj && obj.metadata ) {
-          const nueSteveRevision = new SteveRevision(obj.metadata.resourceVersion);
+          const candidateRevision = new SteveRevision(obj.metadata.resourceVersion);
 
-          if (!nueSteveRevision.isNumber) {
-            continue;
+          if (candidateRevision.isNewer(nextRevision)) {
+            nextRevision = candidateRevision;
           }
 
-          revision = nueSteveRevision.max(revision);
+          // if (!candidateRevision.isNumber) {
+          //   continue;
+          // }
+
+          // nextRevision = candidateRevision.max(nextRevision);
 
           // const neu = Number(obj.metadata.resourceVersion);
 
@@ -1565,7 +1577,7 @@ const defaultGetters = {
       }
     }
 
-    return revision || null;
+    return nextRevision || null;
   },
 
   /**

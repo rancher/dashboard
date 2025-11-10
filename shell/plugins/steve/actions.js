@@ -18,7 +18,7 @@ export const STEVE_HTTP_CODES = {
   /**
    * TODO: RC
    */
-  UNKNOWN_REVISION: 'invalid revision query param'
+  UNKNOWN_REVISION: 'unknown revision'
 };
 
 export default {

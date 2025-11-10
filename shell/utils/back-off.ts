@@ -1,9 +1,11 @@
-type BackOffEntry = {
+type BackOffEntry<T = any> = {
   timeoutId?: NodeJS.Timeout,
   try: number,
   retries: number,
   description: string,
   metadata: any,
+  result?: Promise<T>,
+  resultReject?: (reason?: any) => void
 }
 
 /**
@@ -77,7 +79,7 @@ class BackOff {
    *
    * This can be called repeatedly, if the previous delay is still running new requests will be ignored
    */
-  async execute<T = any>({
+  async execute<T = any, Y= any>({
     id, description, retries = 10, delayedFn, canFn = async() => true, metadata
   }: {
     /**
@@ -113,26 +115,28 @@ class BackOff {
      * Anything that might be important outside of this file (used with `getBackOff`)
      */
     metadata?: T,
-  }): Promise<NodeJS.Timeout | undefined> {
+  }): Promise<Y | undefined> {
     const backOff: BackOffEntry = this.map[id];
 
     const cont = await canFn();
 
     if (!cont) {
-      this.log('info', id, 'Skipping (can execute fn test failed)', description);
+      this.log('info', id, 'Skipping (canExecute test failed)', description);
 
-      return undefined;
+      return Promise.reject(new Error('dsfdsf')); // TODO: RC
     } else if (backOff?.timeoutId) {
       this.log('info', id, 'Skipping (previous back off process still running)', description);
 
-      return backOff.timeoutId;
+      return backOff?.result;
     } else {
       const backOffTry = backOff?.try || 0;
 
       if (backOffTry + 1 > retries) {
         this.log('error', id, 'Aborting (too many retries)', description);
 
-        return undefined;
+        backOff?.resultReject?.('Aborting (too many retries)');
+
+        return backOff?.result;
       }
 
       // First step is immediate (0.001s)
@@ -144,29 +148,39 @@ class BackOff {
 
       this.log('info', id, `Delaying call (attempt ${ backOffTry + 1 }, delayed by ${ delay }ms)`, description);
 
-      const timeout = setTimeout(async() => {
-        try {
-          this.log('info', id, `Executing call`, description);
-
-          await delayedFn();
-        } catch (e) {
-          // Error occurred. Don't clear the map. Next time this is called we'll back off before trying ...
-          this.log('error', id, 'Failed call', description, e);
-        }
-
-        // Unblock future calls
-        delete this.map[id]?.timeoutId;
-      }, delay);
-
       this.map[id] = {
-        timeoutId: timeout,
-        try:       backOff?.try ? backOff.try + 1 : 1,
+        timeoutId:    undefined,
+        try:          backOff?.try ? backOff.try + 1 : 1,
         retries,
         description,
-        metadata
+        metadata,
+        result:       undefined,
+        resultReject: undefined,
       };
+      this.map[id].result = new Promise((resolve, reject) => {
+        this.map[id].resultReject = reject;
 
-      return timeout;
+        const timeout = setTimeout(async() => {
+          try {
+            this.log('info', id, `Executing call`, description);
+
+            const res = await delayedFn();
+
+            resolve(res);
+          } catch (e) {
+            // Error occurred. Don't clear the map. Next time this is called we'll back off before trying ...
+            this.log('error', id, 'Failed call', description, e);
+          }
+
+          // Unblock future calls
+          delete this.map[id]?.timeoutId;
+          // this.map[id].result = undefined;
+        }, delay);
+
+        this.map[id].timeoutId = timeout;
+      });
+
+      return this.map[id].result;
     }
   }
 }
