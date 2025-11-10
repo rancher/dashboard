@@ -1,3 +1,3 @@
 export default async(context) => {
-  await context.store.dispatch('nuxtClientInit', context);
+  await context.store.dispatch('dashboardClientInit', context);
 };

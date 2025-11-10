@@ -1251,10 +1251,10 @@ export const actions = {
     }
   },
 
-  nuxtClientInit({ dispatch, commit, rootState }, nuxt) {
-    commit('setRouter', nuxt.app.router);
-    commit('setRoute', nuxt.route);
-    commit('setPlugin', nuxt.app.$plugin);
+  dashboardClientInit({ dispatch, commit, rootState }, context) {
+    commit('setRouter', context.app.router);
+    commit('setRoute', context.route);
+    commit('setPlugin', context.app.$plugin);
 
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');
