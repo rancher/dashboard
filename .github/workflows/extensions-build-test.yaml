@@ -82,16 +82,26 @@ jobs:
       
       - name: Set Final Conditional Matrix
         id: set-final-matrix
+        # 1. Pass the outputs as environment variables
+        # This preserves the quotes and special characters *exactly*.
+        env:
+          ALL_SKIPPED: ${{ steps.set-matrix.outputs.ALL_SKIPPED }}
+          ORIGINAL_MATRIX: ${{ steps.set-matrix.outputs.matrix }}
         shell: bash
         run: |
-          # Use the GHA expression IF function to choose the correct JSON string
-          echo "json=$(
-            if [ "${{ steps.set-matrix.outputs.ALL_SKIPPED }}" == "true" ]; then
-              echo '{"folder": ["_skip_"]}'
-            else
-              echo "${{ steps.set-matrix.outputs.matrix }}"
-            fi
-          )" >> $GITHUB_OUTPUT
+          SKIP_MATRIX='{"folder": ["_skip_"]}'
+          
+          if [ "$ALL_SKIPPED" == "true" ]; then
+            # Use the simple skip matrix
+            FINAL_JSON="$SKIP_MATRIX"
+          else
+            # 2. Use the environment variable. Its value is the *literal*
+            # string {"folder": ["elemental","elemental-v2"]}
+            FINAL_JSON="$ORIGINAL_MATRIX"
+          fi
+          
+          # 3. Set the output
+          echo "json=$FINAL_JSON" >> $GITHUB_OUTPUT
 
   test-build:
     name: Test build ${{ matrix.folder }}
