@@ -17,8 +17,7 @@ jobs:
     name: Find Extensions to Build
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-      all_skipped: ${{ steps.set-matrix.outputs.ALL_SKIPPED }} # Pass through the skip signal
+      final_matrix_json: ${{ steps.set-final-matrix.outputs.json }}
 
     steps:
       - name: Checkout Repository
@@ -79,6 +78,22 @@ jobs:
 
           echo "MATRIX=$MATRIX" >> $GITHUB_OUTPUT
           echo "Final extensions to build: ${PKGS_TO_BUILD[*]}"
+      
+      - name: Set Final Conditional Matrix
+        id: set-final-matrix
+        shell: bash
+        run: |
+          ALL_SKIPPED="${{ steps.set-matrix.outputs.ALL_SKIPPED }}"
+          ORIGINAL_MATRIX="${{ steps.set-matrix.outputs.matrix }}"
+          SKIP_MATRIX='{"folder": ["_skip_"]}'
+          
+          if [ "$ALL_SKIPPED" == "true" ]; then
+            FINAL_JSON="$SKIP_MATRIX"
+          else
+            FINAL_JSON="$ORIGINAL_MATRIX"
+          fi
+          
+          echo "json=$FINAL_JSON" >> $GITHUB_OUTPUT
 
   test-build:
     name: Test build ${{ matrix.folder }}
@@ -89,24 +104,27 @@ jobs:
       
     strategy:
       fail-fast: false
-      matrix:
-        ${{ fromJson(needs.find-extensions.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.find-extensions.outputs.final_matrix_json) }}
 
     steps:
       - name: Checkout Repository
+        if: ${{ matrix.folder != '_skip_' }}
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Install Node
+        if: ${{ matrix.folder != '_skip_' }}
         uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: yarn
 
       - name: Install Dependencies
+        if: ${{ matrix.folder != '_skip_' }}
         shell: bash
         run: yarn install
 
       - name: "Build extension: ${{ matrix.folder }}"
+        if: ${{ matrix.folder != '_skip_' }}
         run: yarn build-pkg ${{ matrix.folder }}
