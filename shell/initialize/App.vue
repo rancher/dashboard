@@ -59,7 +59,7 @@ export default {
 };
 </script>
 <template>
-  <div id="__nuxt">
+  <div id="__root">
     <GlobalLoading ref="loading" />
     <div
       id="__layout"
