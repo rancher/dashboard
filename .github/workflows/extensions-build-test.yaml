@@ -94,23 +94,19 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        if: ${{ jobs.find-extensions.outputs.all_skipped != 'true' }}
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Install Node
-        if: ${{ jobs.find-extensions.outputs.all_skipped != 'true' }}
         uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: yarn
 
       - name: Install Dependencies
-        if: ${{ jobs.find-extensions.outputs.all_skipped != 'true' }}
         shell: bash
         run: yarn install
 
       - name: "Build extension: ${{ matrix.folder }}"
-        if: ${{ jobs.find-extensions.outputs.all_skipped != 'true' }}
         run: yarn build-pkg ${{ matrix.folder }}
