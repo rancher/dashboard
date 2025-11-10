@@ -23,7 +23,7 @@ on:
       - 'shell/config/**/*'
       - 'shell/composables/**/*'
     branches:
-      - master
+      - bananas
 jobs:
   storybook:
     runs-on: ubuntu-latest

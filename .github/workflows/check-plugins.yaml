@@ -2,7 +2,7 @@ name: check-plugins-build
 on:
   pull_request:
     branches:
-      - master
+      - bananas
 env:
   TEST_PERSIST_BUILD: true
 jobs:
