@@ -14,10 +14,11 @@ on:
 
 jobs:
   find-extensions:
-    name: Find Packages to Build
+    name: Find Extensions to Build
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
+      all_skipped: ${{ steps.set-matrix.outputs.ALL_SKIPPED }} # Pass through the skip signal
 
     steps:
       - name: Checkout Repository
@@ -56,17 +57,24 @@ jobs:
             fi
           done <<< "$ALL_PKGS_STR"
 
-          # 4. Convert the final array into a JSON matrix output
           if [ ${#PKGS_TO_BUILD[@]} -eq 0 ]; then
-             echo "No packages to build. Setting empty matrix."
-             
-             echo "::warning::The 'disabled_packages' input has excluded all available packages, or no packages with 'package.json' were found."
-             
+             # ... (Warning and setting ALL_SKIPPED=true logic)
+             echo "::warning::All packages were skipped or not found."
              MATRIX="{\"folder\": []}"
+             echo "ALL_SKIPPED=true" >> $GITHUB_OUTPUT
           else
-             # Convert the array to a comma-separated string, then to JSON
+             # 1. Join the array elements with a comma
              PKGS_CSV=$(IFS=,; echo "${PKGS_TO_BUILD[*]}")
-             MATRIX="{\"folder\": [\"${PKGS_CSV//, /\",\"}\"]}"
+             
+             # 2. Format the CSV string into a JSON array structure: ["item1", "item2"]
+             # The substitution replaces commas with '","' and wraps the whole string in '["..."]'
+             JSON_ARRAY=$(echo $PKGS_CSV | sed 's/,/","/g' | sed 's/^/["/' | sed 's/$/"]/')
+             
+             # 3. Create the final matrix object
+             MATRIX="{\"folder\": ${JSON_ARRAY}}"
+             
+             echo "ALL_SKIPPED=false" >> $GITHUB_OUTPUT
+             echo "Final packages CSV: $PKGS_CSV"
           fi
 
           echo "MATRIX=$MATRIX" >> $GITHUB_OUTPUT
