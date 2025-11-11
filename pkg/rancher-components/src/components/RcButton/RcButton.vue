@@ -8,7 +8,9 @@
  * <rc-button role="primary" @click="doAction">Perform an Action</rc-button>
  */
 import { computed, ref } from 'vue';
-import { ButtonRoleProps, ButtonSizeProps, ButtonRoleNewProps } from './types';
+import {
+  ButtonRoleProps, ButtonSizeProps, ButtonRoleNewProps, ButtonSizeNewProps, ButtonSize
+} from './types';
 
 const buttonRoles: { role: keyof ButtonRoleProps, className: string }[] = [
   { role: 'primary', className: 'role-primary' },
@@ -23,7 +25,13 @@ const buttonSizes: { size: keyof ButtonSizeProps, className: string }[] = [
   { size: 'small', className: 'btn-sm' },
 ];
 
-const props = defineProps<ButtonRoleProps & ButtonSizeProps & ButtonRoleNewProps>();
+const buttonSizesNew: { size: ButtonSize, className: string }[] = [
+  { size: 'small', className: 'btn-small' },
+  { size: 'medium', className: 'btn-medium' },
+  { size: 'large', className: 'btn-large' },
+];
+
+const props = defineProps<ButtonRoleProps & ButtonSizeProps & ButtonRoleNewProps & ButtonSizeNewProps>();
 
 const buttonClass = computed(() => {
   let activeRoleClassName: string;
@@ -48,12 +56,31 @@ const buttonClass = computed(() => {
     activeRoleClassName = activeRole?.className || 'role-primary';
   }
 
-  const isButtonSmall = buttonSizes.some(({ size }) => props[size]);
+  let activeSizeClassName = '';
+
+  // Check if the new size prop is being used
+  if (props.size) {
+    const sizeConfig = buttonSizesNew.find(({ size }) => size === props.size);
+
+    activeSizeClassName = sizeConfig?.className || '';
+  } else {
+    // Fall back to checking the deprecated boolean props
+    const activeSize = buttonSizes.find(({ size }) => props[size]);
+
+    // Emit deprecation warning for old boolean size prop
+    if (activeSize) {
+      console.warn(
+        `[RcButton] The "${ activeSize.size }" prop is deprecated and will be removed in a future version. ` +
+        `Please use size="${ activeSize.size }" instead.`
+      );
+      activeSizeClassName = activeSize.className;
+    }
+  }
 
   return {
     btn:                   true,
     [activeRoleClassName]: true,
-    'btn-sm':              isButtonSmall,
+    [activeSizeClassName]: !!activeSizeClassName,
   };
 });
 
