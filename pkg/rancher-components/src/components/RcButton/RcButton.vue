@@ -31,7 +31,7 @@ const buttonSizesNew: { size: ButtonSize, className: string }[] = [
   { size: 'large', className: 'btn-large' },
 ];
 
-const props = defineProps<ButtonRoleProps & ButtonSizeProps & ButtonRoleNewProps & ButtonSizeNewProps>();
+const props = withDefaults(defineProps<ButtonRoleProps & ButtonSizeProps & ButtonRoleNewProps & ButtonSizeNewProps>(), { size: 'medium' });
 
 const activeRoleClassName = computed(() => {
   const activeRole = buttonRoles.find(({ role }) => props[role]);
