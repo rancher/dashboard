@@ -33,14 +33,12 @@ const buttonSizesNew: { size: ButtonSize, className: string }[] = [
 
 const props = defineProps<ButtonRoleProps & ButtonSizeProps & ButtonRoleNewProps & ButtonSizeNewProps>();
 
-const buttonClass = computed(() => {
-  let activeRoleClassName: string;
-
+const activeRoleClassName = computed(() => {
   // Check if the new role prop is being used
   if (props.role) {
     const roleConfig = buttonRoles.find(({ role }) => role === props.role);
 
-    activeRoleClassName = roleConfig?.className || 'role-primary';
+    return roleConfig?.className || 'role-primary';
   } else {
     // Fall back to checking the deprecated boolean props
     const activeRole = buttonRoles.find(({ role }) => props[role]);
@@ -53,16 +51,16 @@ const buttonClass = computed(() => {
       );
     }
 
-    activeRoleClassName = activeRole?.className || 'role-primary';
+    return activeRole?.className || 'role-primary';
   }
+});
 
-  let activeSizeClassName = '';
-
+const activeSizeClassName = computed(() => {
   // Check if the new size prop is being used
   if (props.size) {
     const sizeConfig = buttonSizesNew.find(({ size }) => size === props.size);
 
-    activeSizeClassName = sizeConfig?.className || '';
+    return sizeConfig?.className || '';
   } else {
     // Fall back to checking the deprecated boolean props
     const activeSize = buttonSizes.find(({ size }) => props[size]);
@@ -73,14 +71,19 @@ const buttonClass = computed(() => {
         `[RcButton] The "${ activeSize.size }" prop is deprecated and will be removed in a future version. ` +
         `Please use size="${ activeSize.size }" instead.`
       );
-      activeSizeClassName = activeSize.className;
-    }
-  }
 
+      return activeSize.className;
+    }
+
+    return '';
+  }
+});
+
+const buttonClass = computed(() => {
   return {
-    btn:                   true,
-    [activeRoleClassName]: true,
-    [activeSizeClassName]: !!activeSizeClassName,
+    btn:                         true,
+    [activeRoleClassName.value]: true,
+    [activeSizeClassName.value]: !!activeSizeClassName.value,
   };
 });
 
