@@ -18,13 +18,24 @@ export default {
     },
   },
 
-  data() {
-    const brandMeta = getBrandMeta(this.$store.getters['management/brand']);
-    const banner = brandMeta?.banner || {};
-    const align = banner.textAlign || 'center';
-    const bannerClass = banner.bannerClass || '';
+  computed: {
+    brandSetting() {
+      return this.$store.getters['management/brand'];
+    },
+    brandMeta() {
+      return getBrandMeta(this.brandSetting);
+    },
+    banner() {
+      return this.brandMeta?.banner || {};
+    },
+    alignClass() {
+      const align = this.banner.textAlign || 'center';
 
-    return { alignClass: `banner-text-${ align }`, bannerClass };
+      return `banner-text-${ align }`;
+    },
+    bannerClass() {
+      return this.banner.bannerClass || '';
+    }
   }
 };
 </script>
