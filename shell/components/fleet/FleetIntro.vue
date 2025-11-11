@@ -32,22 +32,21 @@ export default {
     },
   },
 
-  data() {
-    const to = this.route || {
-      name:   'c-cluster-product-resource-create',
-      params: {
-        product:  NAME,
-        resource: this.schema?.id,
-      },
-    };
+  computed: {
+    to() {
+      return this.route || {
+        name:   'c-cluster-product-resource-create',
+        params: {
+          product:  NAME,
+          resource: this.schema?.id,
+        },
+      };
+    },
 
-    const canCreate = this.isCreatable || this.schema?.resourceMethods?.includes('PUT');
-
-    return {
-      to,
-      canCreate,
-    };
-  },
+    canCreate() {
+      return this.isCreatable || this.schema?.resourceMethods?.includes('PUT');
+    },
+  }
 };
 </script>
 <template>
