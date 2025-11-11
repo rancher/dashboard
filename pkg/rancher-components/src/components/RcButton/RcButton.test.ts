@@ -48,11 +48,50 @@ describe('rcButton.vue', () => {
     expect(button.classes()).toContain('role-secondary');
   });
 
-  it('applies correct size class', () => {
+  it('applies correct size class using deprecated small prop', () => {
     const wrapper = mount(RcButton, { props: { small: true } });
     const button = wrapper.find('button');
 
     expect(button.classes()).toContain('btn-sm');
+  });
+
+  it('applies small size class using new size prop', () => {
+    const wrapper = mount(RcButton, { props: { size: 'small' } });
+    const button = wrapper.find('button');
+
+    expect(button.classes()).toContain('btn-sm');
+  });
+
+  it('applies medium size class using new size prop', () => {
+    const wrapper = mount(RcButton, { props: { size: 'medium' } });
+    const button = wrapper.find('button');
+
+    expect(button.classes()).toContain('btn-md');
+  });
+
+  it('applies large size class using new size prop', () => {
+    const wrapper = mount(RcButton, { props: { size: 'large' } });
+    const button = wrapper.find('button');
+
+    expect(button.classes()).toContain('btn-lg');
+  });
+
+  it('emits deprecation warning for small prop', () => {
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    mount(RcButton, { props: { small: true } });
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      '[RcButton] The "small" prop is deprecated and will be removed in a future version. Please use size="small" instead.'
+    );
+    consoleWarnSpy.mockRestore();
+  });
+
+  it('does not emit deprecation warning when using new size prop', () => {
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    mount(RcButton, { props: { size: 'small' } });
+
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+    consoleWarnSpy.mockRestore();
   });
 
   it('renders slots correctly', () => {

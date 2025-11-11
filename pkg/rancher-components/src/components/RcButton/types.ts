@@ -7,7 +7,7 @@ export type RcButtonType = {
 export type ButtonRole = 'primary' | 'secondary' | 'tertiary' | 'link' | 'multiAction' | 'ghost';
 
 export type ButtonRoleNewProps = {
-  role: ButtonRole;
+  role?: ButtonRole;
 }
 
 /**
@@ -23,6 +23,15 @@ export type ButtonRoleProps = {
 
 }
 
+export type ButtonSize = 'small' | 'medium' | 'large';
+
+export type ButtonSizeNewProps = {
+  size?: ButtonSize;
+}
+
+/**
+ * @deprecated Use the `size` property instead. The `small` boolean prop will be removed in a future version.
+ */
 export type ButtonSizeProps = {
   small?: boolean;
 }
