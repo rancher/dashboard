@@ -31,18 +31,15 @@ export default {
     },
   },
 
-  data() {
-    let resourcesDefaultStates: FleetResourceState | object = {};
-
-    try {
-      resourcesDefaultStates = FleetUtils.getResourcesDefaultState(this.$store.getters['i18n/withFallback'], 'fleet.fleetSummary.state');
-    } catch (error) {
-    }
-
-    return { resourcesDefaultStates };
-  },
-
   computed: {
+    resourcesDefaultStates(): FleetResourceState | object {
+      try {
+        return FleetUtils.getResourcesDefaultState(this.$store.getters['i18n/withFallback'], 'fleet.fleetSummary.state');
+      } catch (error) {
+        return {};
+      }
+    },
+
     statuses() {
       const state = this.statePanel;
 
