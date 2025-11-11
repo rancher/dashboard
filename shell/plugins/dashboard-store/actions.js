@@ -451,6 +451,10 @@ export default {
 
     type = getters.normalizeType(type);
 
+    if (type === 'provisioning.cattle.io.cluster') {
+      debugger;
+    }
+
     if ( !getters.typeRegistered(type) ) {
       commit('registerType', type);
     }
@@ -463,15 +467,6 @@ export default {
       mode:      STEVE_WATCH_MODE.RESOURCE_CHANGES,
     };
 
-    // TODO: RC starts to get noodley
-    // let backOffAbort = false;
-    // if (opt.backOff) {
-    //   // const backOffId = opt.backOff.id;
-    //   const targetRevision = new SteveRevision(opt.revision);
-    //   const cacheRevision = new SteveRevision(opt.backOff.revision);
-    //   backOffAbort = cacheRevision.isNewer(targetRevision);
-    // }
-
     // No need to request the resources if we have them already
     if (!opt.transient && !opt.force && getters['havePaginatedPage'](type, opt)) {
       if (opt.watch !== false ) {
@@ -481,7 +476,7 @@ export default {
       return findAllGetter(getters, type, opt);
     }
 
-    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Size: ${ opt.pagination.pageSize }. Sort: ${ opt.pagination.sort.map((s) => s.field).join(', ') }`); // eslint-disable-line no-console
+    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Revision: ${ opt.revision || 'none' }. Size: ${ opt.pagination.pageSize }. Sort: ${ opt.pagination.sort.map((s) => s.field).join(', ') }`); // eslint-disable-line no-console
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
 

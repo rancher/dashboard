@@ -1,5 +1,5 @@
 /**
- * TODO: RC
+ * Helper class to handle steve vai revisions
  */
 export class SteveRevision {
   public asNumber: number;
@@ -13,10 +13,6 @@ export class SteveRevision {
   isNewerThan(revision: SteveRevision): boolean {
     return SteveRevision.allNumbers([this, revision]) && this.asNumber > revision.asNumber;
   }
-
-  // isSameOrOlderThan(revision: SteveRevision): boolean {
-  //   return SteveRevision.allNumbers([this, revision]) && this.asNumber <= revision.asNumber;
-  // }
 
   private static allNumbers(revisions: SteveRevision[]): boolean {
     return revisions.every((r) => r.isNumber);

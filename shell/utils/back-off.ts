@@ -14,40 +14,14 @@ type BackOffEntry<T = any> = {
  * see `execute` for more info
  */
 class BackOff {
-  /**
-   * TODO: RC
-   */
-  public backOffIdWithSuffix(id: string, suffix: string): { backOffId: string, existingSuffix: string } {
-    const targetBackOffId = this.constructBackOffWithSuffix(id, suffix);
-    const existingSuffix = this.destructBackOffWithSuffix(targetBackOffId);
-
-    return {
-      backOffId: targetBackOffId,
-      existingSuffix
-    };
-  }
-
-  private constructBackOffWithSuffix(id: string, suffix: string): string {
-    return `${ id }-suffix-${ suffix }`;
-  }
-
-  private destructBackOffWithSuffix(id: string): string {
-    const root = this.constructBackOffWithSuffix(id, '');
-    const existingBackOffIds = this.getBackOffWithPrefix(root);
-
-    if (existingBackOffIds.length === 1) {
-      return existingBackOffIds[0].replace(root, '');
-    }
-
-    return '';
-  }
-
   private map: {
    [id: string]: BackOffEntry
   } = {};
 
-  private log(level: 'error' | 'info' | 'debug', id: string, classDescription: string, description: string, ...args: any[]) {
-    console[level](`BackOff... Id: "${ id }". Description: "${ description }"\nStatus: ${ classDescription }\n`, ...args); // eslint-disable-line no-console
+  private log(level: 'error' | 'info' | 'debug', {
+    id, status, description, metadata
+  }: { id: string, status: string, description: string, metadata?: any }, ...args: any[]) {
+    console[level](`BackOff... \nId: "${ id }". Description: "${ description }". Metadata: "${ JSON.stringify(metadata) }"\nStatus: ${ status }\n`, ...args); // eslint-disable-line no-console
   }
 
   /**
@@ -89,11 +63,15 @@ class BackOff {
 
     if (backOff) {
       if (backOff?.timeoutId) {
-        this.log('info', id, 'Stopping (cancelling active back-off)', backOff.description);
+        this.log('info', {
+          id, status: 'Stopping (cancelling active back-off)', description: backOff.description, metadata: backOff.metadata
+        });
 
         clearTimeout(backOff.timeoutId);
       }
-      this.log('debug', id, 'Reset', backOff.description);
+      this.log('debug', {
+        id, status: 'Reset', description: backOff.description, metadata: backOff.metadata
+      });
 
       delete this.map[id];
     }
@@ -110,6 +88,9 @@ class BackOff {
    * 4. Repeat steps 2 and 3, with an exponential increasing delay
    *
    * This can be called repeatedly, if the previous delay is still running new requests will be ignored
+   *
+   * @template T - Type of configuration that can be stored with the backoff record
+   * @template Y - Type of result returned
    */
   async execute<T = any, Y= any>({
     id, description, retries = 10, delayedFn, canFn = async() => true, metadata
@@ -153,18 +134,24 @@ class BackOff {
     const cont = await canFn();
 
     if (!cont) {
-      this.log('info', id, 'Skipping (canExecute test failed)', description);
+      this.log('info', {
+        id, status: 'Skipping (canExecute test failed)', description, metadata
+      });
 
       return Promise.reject(new Error('dsfdsf')); // TODO: RC
     } else if (backOff?.timeoutId) {
-      this.log('info', id, 'Skipping (previous back off process still running)', description);
+      this.log('info', {
+        id, status: 'Skipping (previous back off process still running)', description, metadata
+      });
 
       return backOff?.result;
     } else {
       const backOffTry = backOff?.try || 0;
 
       if (backOffTry + 1 > retries) {
-        this.log('error', id, 'Aborting (too many retries)', description);
+        this.log('error', {
+          id, status: 'Aborting (too many retries)', description, metadata
+        });
 
         backOff?.resultReject?.('Aborting (too many retries)');
 
@@ -178,7 +165,11 @@ class BackOff {
       // Delay:     0.25s, 1s,  2.25s, 4s,   6.25s,  9s,   12.25s,  16s,  20.25s
       const delay = backOffTry === 0 ? 1 : Math.pow(backOffTry, 2) * 250;
 
-      this.log('info', id, `Delaying call (attempt ${ backOffTry + 1 }, delayed by ${ delay }ms)`, description);
+      const logLevel = backOffTry === 0 ? 'debug' : 'info';
+
+      this.log(logLevel, {
+        id, status: `Delaying call (attempt ${ backOffTry + 1 }, delayed by ${ delay }ms)`, description, metadata
+      });
 
       this.map[id] = {
         timeoutId:    undefined,
@@ -194,18 +185,26 @@ class BackOff {
 
         const timeout = setTimeout(async() => {
           try {
-            this.log('info', id, `Executing call`, description);
+            this.log(logLevel, {
+              id, status: `Executing call`, description, metadata
+            });
 
             const res = await delayedFn();
 
             resolve(res);
           } catch (e) {
             // Error occurred. Don't clear the map. Next time this is called we'll back off before trying ...
-            this.log('error', id, 'Failed call', description, e);
+            this.log('error', {
+              id, status: 'Failed call', description, metadata
+            }, e);
           }
 
           // Unblock future calls
-          delete this.map[id]?.timeoutId;
+          delete this.map[id];
+
+          // delete this.map[id]?.timeoutId; // avoids some scary log files in reset()
+          // this.reset(id); // Reset the try counter so next requests with same id don't act same as failed requests
+
           // this.map[id].result = undefined;
         }, delay);
 

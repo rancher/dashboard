@@ -949,7 +949,6 @@ const defaultActions = {
           });
         }
 
-        // TODO: RC handle event listeners.....
         // Should any listeners be notified of this request for them to kick off their own event handling?
         getters.listenerManager.triggerEventListener({
           event:  STEVE_WATCH_MODE.RESOURCE_CHANGES,
@@ -1323,33 +1322,19 @@ const defaultActions = {
   async 'ws.resource.changes'({ dispatch, getters }, params) {
     const { retry, ...msg } = params;
 
-    myLogger.warn('resource.changes', params, retry, msg);
     // msg.revision = Number.MAX_SAFE_INTEGER; // TODO: RC with this in it doesn't repeat... (should backoff repeat after last resource.changes)
 
-    // const backOffId = getters.backOffId(msg, STEVE_HTTP_CODES.UNKNOWN_REVISION);
+    const backOffId = getters.backOffId(msg, `${ STEVE_HTTP_CODES.UNKNOWN_REVISION }`);
 
-    // const constructBackOffId = (revision) => {
-    //   return getters.backOffId(msg, `${ STEVE_HTTP_CODES.UNKNOWN_REVISION }&revision=${ revision }`);
-    // };
-    // const destructBackOffId = () => {
-    //   const root = getters.backOffId(msg, `${ STEVE_HTTP_CODES.UNKNOWN_REVISION }&revision=`);
-    //   const existingBackOffIds = backOff.getBackOffWithPrefix(root);
-
-    //   if (existingBackOffIds.length === 1) {
-    //     return existingBackOffIds[0].replace(existingBackOffIds, root);
-    //   }
-
-    //   return '';
-    // };
-
-    const rootBackOffId = getters.backOffId(msg, `${ STEVE_HTTP_CODES.UNKNOWN_REVISION }`);
-    const { backOffId, existingSuffix: currentRevisionFromBackOffId } = backOff.backOffIdWithSuffix(rootBackOffId, msg.revision);
-
-    // const targetRevisionId = backOff.constructBackOffWithSuffix(rootBackOffId, msg.revision);
+    const activeRevisionSt = backOff.getBackOff(backOffId)?.metadata.revision;
+    const cachedRevisionSt = getters['typeEntry'](msg.resourceType || msg.type)?.revision;
 
     const targetRevision = new SteveRevision(msg.revision);
-    // const currentRevisionFromBackOffId = backOff.destructBackOffWithSuffix(rootBackOffId);
-    const currentRevision = new SteveRevision(currentRevisionFromBackOffId);
+    const currentRevision = new SteveRevision(activeRevisionSt || cachedRevisionSt);
+
+    myLogger.warn('resource.changes', 'start', params, retry, msg);
+    myLogger.warn('resource.changes', 'start', backOffId, msg.revision, activeRevisionSt, cachedRevisionSt);
+    myLogger.warn('resource.changes', 'start', backOffId, targetRevision.revision, currentRevision.revision);
 
     // Three scenarios
     // current version is newer than target revision - abort/ignore (don't overwrite new with old)
@@ -1366,8 +1351,11 @@ const defaultActions = {
       return;
     }
 
-    if (targetRevision.isNewerThan(currentRevision)) {
+    if (targetRevision.isNewerThan(new SteveRevision(activeRevisionSt))) {
       // is there a backOff currently running with an older revision? if so we should forget it and concentrate on this new revision
+
+      // eslint-disable-next-line no-console
+      // console.warn(`Dropping previous web socket request to update '${ msg.type || msg.resourceType }' with revision '${ currentRevision.revision }' (target revision '${ targetRevision.revision }'). `);
 
       // don't need to compare revision of running to this new socket prompted call.. subsequent calls will always be higher
       backOff.reset(backOffId);
@@ -1381,7 +1369,8 @@ const defaultActions = {
     // }
     backOff.execute({
       id:          backOffId,
-      description: `Invalid watch revision, re-syncing`, // TODO: RC
+      metadata:    { revision: msg.revision },
+      description: `Catering for invalid unknown revision in resource.changes`, // TODO: RC
       canFn:       () => getters.canBackoff(this.$socket),
       delayedFn:   async() => {
         try {
