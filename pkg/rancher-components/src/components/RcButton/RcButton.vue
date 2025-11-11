@@ -146,4 +146,24 @@ button {
       outline-offset: 0;
     }
   }
+
+  &.btn-small {
+    line-height: 15px;
+    font-size: 12px;
+    min-height: 24px;
+
+    padding: 0 8px;
+  }
+
+  &.btn-medium {
+    line-height: 18px;
+    font-size: 14px;
+    min-height: 32px;
+
+    padding: 0 12px;
+  }
+
+  &.btn-large {
+    // This is the default size brought by the global button styling
+  }
 }</style>
