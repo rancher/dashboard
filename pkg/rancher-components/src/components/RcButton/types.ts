@@ -1,3 +1,5 @@
+import { RcIconType } from '@components/RcIcon/types';
+
 // TODO: 13211 Investigate why `InstanceType<typeof RcButton>` fails prod builds
 // export type RcButtonType = InstanceType<typeof RcButton>
 export type RcButtonType = {
@@ -34,4 +36,9 @@ export type ButtonSizeNewProps = {
  */
 export type ButtonSizeProps = {
   small?: boolean;
+}
+
+export type IconProps = {
+  leftIcon?: keyof typeof RcIconType;
+  rightIcon?: keyof typeof RcIconType;
 }

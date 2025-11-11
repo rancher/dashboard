@@ -9,8 +9,10 @@
  */
 import { computed, ref } from 'vue';
 import {
-  ButtonRoleProps, ButtonSizeProps, ButtonRoleNewProps, ButtonSizeNewProps, ButtonSize
+  ButtonRoleProps, ButtonSizeProps, ButtonRoleNewProps, ButtonSizeNewProps, ButtonSize,
+  IconProps
 } from './types';
+import RcIcon from '@components/RcIcon/RcIcon.vue';
 
 const buttonRoles: { role: keyof ButtonRoleProps, className: string }[] = [
   { role: 'primary', className: 'role-primary' },
@@ -31,7 +33,7 @@ const buttonSizesNew: { size: ButtonSize, className: string }[] = [
   { size: 'large', className: 'btn-large' },
 ];
 
-const props = withDefaults(defineProps<ButtonRoleProps & ButtonSizeProps & ButtonRoleNewProps & ButtonSizeNewProps>(), { size: 'medium' });
+const props = withDefaults(defineProps<ButtonRoleProps & ButtonSizeProps & ButtonRoleNewProps & ButtonSizeNewProps & IconProps>(), { size: 'medium' });
 
 const activeRoleClassName = computed(() => {
   const activeRole = buttonRoles.find(({ role }) => props[role]);
@@ -90,14 +92,28 @@ defineExpose({ focus });
     role="button"
     :class="{ ...buttonClass }"
   >
-    <slot name="before">
-      <!-- Empty Content -->
+    <slot
+      v-if="$slots.before || props.leftIcon"
+      name="before"
+    >
+      <RcIcon
+        v-if="props.leftIcon"
+        :type="props.leftIcon"
+        size="small"
+      />
     </slot>
     <slot>
       <!-- Empty Content -->
     </slot>
-    <slot name="after">
-      <!-- Empty Content -->
+    <slot
+      v-if="$slots.after || props.rightIcon"
+      name="after"
+    >
+      <RcIcon
+        v-if="props.rightIcon"
+        :type="props.rightIcon"
+        size="small"
+      />
     </slot>
   </button>
 </template>
