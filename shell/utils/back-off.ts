@@ -14,6 +14,34 @@ type BackOffEntry<T = any> = {
  * see `execute` for more info
  */
 class BackOff {
+  /**
+   * TODO: RC
+   */
+  public backOffIdWithSuffix(id: string, suffix: string): { backOffId: string, existingSuffix: string } {
+    const targetBackOffId = this.constructBackOffWithSuffix(id, suffix);
+    const existingSuffix = this.destructBackOffWithSuffix(targetBackOffId);
+
+    return {
+      backOffId: targetBackOffId,
+      existingSuffix
+    };
+  }
+
+  private constructBackOffWithSuffix(id: string, suffix: string): string {
+    return `${ id }-suffix-${ suffix }`;
+  }
+
+  private destructBackOffWithSuffix(id: string): string {
+    const root = this.constructBackOffWithSuffix(id, '');
+    const existingBackOffIds = this.getBackOffWithPrefix(root);
+
+    if (existingBackOffIds.length === 1) {
+      return existingBackOffIds[0].replace(root, '');
+    }
+
+    return '';
+  }
+
   private map: {
    [id: string]: BackOffEntry
   } = {};
@@ -27,6 +55,10 @@ class BackOff {
    */
   getBackOff(id: string): BackOffEntry {
     return this.map[id];
+  }
+
+  getBackOffWithPrefix(prefix: string): String[] {
+    return Object.keys(this.map).filter((id) => id.startsWith(prefix));
   }
 
   /**
