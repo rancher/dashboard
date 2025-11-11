@@ -5,10 +5,10 @@
  *
  * Example:
  *
- * <rc-button primary @click="doAction">Perform an Action</rc-button>
+ * <rc-button role="primary" @click="doAction">Perform an Action</rc-button>
  */
 import { computed, ref } from 'vue';
-import { ButtonRoleProps, ButtonSizeProps } from './types';
+import { ButtonRoleProps, ButtonSizeProps, ButtonRoleNewProps } from './types';
 
 const buttonRoles: { role: keyof ButtonRoleProps, className: string }[] = [
   { role: 'primary', className: 'role-primary' },
@@ -23,18 +23,37 @@ const buttonSizes: { size: keyof ButtonSizeProps, className: string }[] = [
   { size: 'small', className: 'btn-sm' },
 ];
 
-const props = defineProps<ButtonRoleProps & ButtonSizeProps>();
+const props = defineProps<ButtonRoleProps & ButtonSizeProps & ButtonRoleNewProps>();
 
 const buttonClass = computed(() => {
-  const activeRole = buttonRoles.find(({ role }) => props[role]);
+  let activeRoleClassName: string;
+
+  // Check if the new role prop is being used
+  if (props.role) {
+    const roleConfig = buttonRoles.find(({ role }) => role === props.role);
+
+    activeRoleClassName = roleConfig?.className || 'role-primary';
+  } else {
+    // Fall back to checking the deprecated boolean props
+    const activeRole = buttonRoles.find(({ role }) => props[role]);
+
+    // Emit deprecation warnings for old boolean role props
+    if (activeRole) {
+      console.warn(
+        `[RcButton] The "${ activeRole.role }" prop is deprecated and will be removed in a future version. ` +
+        `Please use role="${ activeRole.role }" instead.`
+      );
+    }
+
+    activeRoleClassName = activeRole?.className || 'role-primary';
+  }
+
   const isButtonSmall = buttonSizes.some(({ size }) => props[size]);
 
   return {
-    btn: true,
-
-    [activeRole?.className || 'role-primary']: true,
-
-    'btn-sm': isButtonSmall,
+    btn:                   true,
+    [activeRoleClassName]: true,
+    'btn-sm':              isButtonSmall,
   };
 });
 
