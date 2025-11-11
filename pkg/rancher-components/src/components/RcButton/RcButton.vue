@@ -147,20 +147,26 @@ button {
     }
   }
 
-  &.btn-small {
-    line-height: 15px;
-    font-size: 12px;
-    min-height: 24px;
+  &.btn.btn-small {
+    //:not(.btn-sm) is being used to make the style more specific to override global styles. We may want to get rid of those styles at some point.
+    &, &:not(.btn-sm) {
+      line-height: 15px;
+      font-size: 12px;
+      min-height: 24px;
 
-    padding: 0 8px;
+      padding: 0 8px;
+    }
   }
 
-  &.btn-medium {
-    line-height: 18px;
-    font-size: 14px;
-    min-height: 32px;
+  &.btn.btn-medium {
+    //:not(.btn-sm) is being used to make the style more specific to override global styles. We may want to get rid of those styles at some point.
+    &, &:not(.btn-sm) {
+      line-height: 18px;
+      font-size: 14px;
+      min-height: 32px;
 
-    padding: 0 12px;
+      padding: 0 12px;
+    }
   }
 
   &.btn-large {
