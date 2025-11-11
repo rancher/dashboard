@@ -34,48 +34,36 @@ const buttonSizesNew: { size: ButtonSize, className: string }[] = [
 const props = defineProps<ButtonRoleProps & ButtonSizeProps & ButtonRoleNewProps & ButtonSizeNewProps>();
 
 const activeRoleClassName = computed(() => {
-  // Check if the new role prop is being used
-  if (props.role) {
+  const activeRole = buttonRoles.find(({ role }) => props[role]);
+
+  if (activeRole) {
+    console.warn(
+      `[RcButton] The "${ activeRole.role }" prop is deprecated and will be removed in a future version. ` +
+      `Please use role="${ activeRole.role }" instead.`
+    );
+
+    return activeRole.className;
+  } else {
     const roleConfig = buttonRoles.find(({ role }) => role === props.role);
 
     return roleConfig?.className || 'role-primary';
-  } else {
-    // Fall back to checking the deprecated boolean props
-    const activeRole = buttonRoles.find(({ role }) => props[role]);
-
-    // Emit deprecation warnings for old boolean role props
-    if (activeRole) {
-      console.warn(
-        `[RcButton] The "${ activeRole.role }" prop is deprecated and will be removed in a future version. ` +
-        `Please use role="${ activeRole.role }" instead.`
-      );
-    }
-
-    return activeRole?.className || 'role-primary';
   }
 });
 
 const activeSizeClassName = computed(() => {
-  // Check if the new size prop is being used
-  if (props.size) {
+  const activeSize = buttonSizes.find(({ size }) => props[size]);
+
+  if (activeSize) {
+    console.warn(
+      `[RcButton] The "${ activeSize.size }" prop is deprecated and will be removed in a future version. ` +
+      `Please use size="${ activeSize.size }" instead.`
+    );
+
+    return activeSize.className;
+  } else {
     const sizeConfig = buttonSizesNew.find(({ size }) => size === props.size);
 
     return sizeConfig?.className || '';
-  } else {
-    // Fall back to checking the deprecated boolean props
-    const activeSize = buttonSizes.find(({ size }) => props[size]);
-
-    // Emit deprecation warning for old boolean size prop
-    if (activeSize) {
-      console.warn(
-        `[RcButton] The "${ activeSize.size }" prop is deprecated and will be removed in a future version. ` +
-        `Please use size="${ activeSize.size }" instead.`
-      );
-
-      return activeSize.className;
-    }
-
-    return '';
   }
 });
 
