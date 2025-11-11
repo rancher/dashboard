@@ -45,6 +45,16 @@ export default {
     if (this.registerBeforeHook) {
       this.registerBeforeHook(this.willSave, 'harvesterWillSave');
     }
+
+    HARVESTER_ADD_ON_CONFIG.forEach((c) => {
+      this[c.variableName] = this.value.metadata.annotations[c.key] || c.default;
+    });
+
+    if (this.value.metadata.annotations[HCI_LABELS_ANNOTATIONS.PRIMARY_SERVICE]) {
+      this.showShareIP = true;
+    } else {
+      this.showShareIP = false;
+    }
   },
 
   async fetch() {
@@ -61,24 +71,11 @@ export default {
   },
 
   data() {
-    const harvesterAddOnConfig = {};
-
-    HARVESTER_ADD_ON_CONFIG.forEach((c) => {
-      harvesterAddOnConfig[c.variableName] = this.value.metadata.annotations[c.key] || c.default;
-    });
-
-    let showShareIP;
-
-    if (this.value.metadata.annotations[HCI_LABELS_ANNOTATIONS.PRIMARY_SERVICE]) {
-      showShareIP = true;
-    } else {
-      showShareIP = false;
-    }
-
     return {
-      ...harvesterAddOnConfig,
-      showShareIP,
-      rke2Versions: {},
+      ipam:          HARVESTER_ADD_ON_CONFIG.ipam.default,
+      sharedService: HARVESTER_ADD_ON_CONFIG.sharedService.default,
+      showShareIP:   false,
+      rke2Versions:  {},
     };
   },
 
