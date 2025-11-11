@@ -11,14 +11,15 @@ export default {
       default: false,
     },
   },
-  data() {
-    const formRoute = {
-      name:   `c-cluster-product-resource-create`,
-      params: { resource: FLEET.WORKSPACE, product: NAME }
-    };
 
-    return { hasWorkspaces: false, formRoute };
-  },
+  computed: {
+    formRoute() {
+      return {
+        name:   `c-cluster-product-resource-create`,
+        params: { resource: FLEET.WORKSPACE, product: NAME }
+      };
+    }
+  }
 };
 </script>
 <template>
