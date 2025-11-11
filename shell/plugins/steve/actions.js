@@ -12,11 +12,11 @@ import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
 import paginationUtils from '@shell/utils/pagination-utils';
 
 /**
- * TODO: RC
+ * Collection of string based values returned vis Steve API 'code' field
  */
 export const STEVE_HTTP_CODES = {
   /**
-   * TODO: RC
+   * When the query param `revision` is sent and it's not in the vai cache then return this error
    */
   UNKNOWN_REVISION: 'unknown revision'
 };

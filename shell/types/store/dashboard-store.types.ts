@@ -81,14 +81,10 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
    * If true don't persist the http response to the store, just pass it back
    */
   transient?: boolean,
-
-  // /**
-  //  *
-  //  */
-  // backOffId?: string // TODO: RC remove
-
   /**
-   * TODO: RC
+   * The target minimum revision for the resource.
+   *
+   * If this is higher than known to rancher then an error will be returned
    */
   revision?: string
 }
