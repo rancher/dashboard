@@ -4,6 +4,15 @@ export type RcButtonType = {
   focus: () => void;
 }
 
+export type ButtonRole = 'primary' | 'secondary' | 'tertiary' | 'link' | 'multiAction' | 'ghost';
+
+export type ButtonRoleNewProps = {
+  role: ButtonRole;
+}
+
+/**
+ * @deprecated Use the `role` property instead. These boolean props will be removed in a future version.
+ */
 export type ButtonRoleProps = {
   primary?: boolean;
   secondary?: boolean;
@@ -11,6 +20,7 @@ export type ButtonRoleProps = {
   link?: boolean;
   multiAction?: boolean;
   ghost?: boolean;
+
 }
 
 export type ButtonSizeProps = {
