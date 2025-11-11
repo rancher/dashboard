@@ -515,8 +515,6 @@ export default {
     } : undefined;
 
     if (!opt.transient) {
-      // TODO: RC don't overwrite newere store with older store
-
       commit('loadPage', {
         ctx,
         type,

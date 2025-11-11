@@ -28,7 +28,9 @@ interface UpdateArgs {
   searchTerm: string,
   pinnedIds: string[],
   unPinnedMax?: number,
-  forceWatch?: boolean
+  forceWatch?: boolean,
+  mgmtClusterRevision?: string,
+  provClusterRevision?: string,
 }
 
 type MgmtCluster = {
@@ -193,14 +195,12 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.clustersOthersWrapper = new PaginationWrapper({
       $store,
       id:       'tlm-unpinned-clusters',
-      onChange: async({ forceWatch }) => {
-        // TODO: RC what revision to use?!
-        // update to required mgmt or prov revision.
-        // when making requests use those latest
+      onChange: async({ forceWatch, revision }) => {
         if (this.args) {
           await this.update({
             ...this.args,
-            forceWatch
+            forceWatch,
+            mgmtClusterRevision: revision,
           });
         }
       },
@@ -217,11 +217,12 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.provClusterWrapper = new PaginationWrapper({
       $store,
       id:       'tlm-prov-clusters',
-      onChange: async({ forceWatch }) => {
+      onChange: async({ forceWatch, revision }) => {
         if (this.args) {
           await this.update({
             ...this.args,
-            forceWatch
+            forceWatch,
+            provClusterRevision: revision,
           });
         }
       },
@@ -254,7 +255,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       pinned: MgmtCluster[],
       notPinned: MgmtCluster[]
     } = await allHash(promises) as any;
-    const provClusters = await this.updateProvCluster(res.notPinned, res.pinned, args.forceWatch || false);
+    const provClusters = await this.updateProvCluster(res.notPinned, res.pinned, args);
     const provClustersByMgmtId = provClusters.reduce((res: { [mgmtId: string]: ProvCluster}, provCluster: ProvCluster) => {
       if (provCluster.mgmtClusterId) {
         res[provCluster.mgmtClusterId] = provCluster;
@@ -360,6 +361,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 DEFAULT_SORT,
         projectsOrNamespaces: []
       },
+      revision: args.mgmtClusterRevision
     }).then((r) => r.data);
   }
 
@@ -381,15 +383,16 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 DEFAULT_SORT,
         projectsOrNamespaces: []
       },
+      revision: args.mgmtClusterRevision
     }).then((r) => r.data);
   }
 
   /**
    * Find all provisioning clusters associated with the displayed mgmt clusters
    */
-  private async updateProvCluster(notPinned: MgmtCluster[], pinned: MgmtCluster[], forceWatch: boolean): Promise<ProvCluster[]> {
+  private async updateProvCluster(notPinned: MgmtCluster[], pinned: MgmtCluster[], args: UpdateArgs): Promise<ProvCluster[]> {
     return this.provClusterWrapper.request({
-      forceWatch,
+      forceWatch: args.forceWatch,
       pagination: {
         filters: [
           PaginationParamFilter.createMultipleFields(
@@ -403,6 +406,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 [],
         projectsOrNamespaces: []
       },
+      revision: args.provClusterRevision
     }).then((r) => r.data);
   }
 }

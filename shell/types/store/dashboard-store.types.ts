@@ -82,10 +82,15 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
    */
   transient?: boolean,
 
+  // /**
+  //  *
+  //  */
+  // backOffId?: string // TODO: RC remove
+
   /**
-   *
+   * TODO: RC
    */
-  backOffId?: string // TODO: RC remove
+  revision?: string
 }
 
 export type ActionFindPageResponse<T = any> = {

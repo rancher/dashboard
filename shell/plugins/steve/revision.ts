@@ -10,8 +10,16 @@ export class SteveRevision {
     this.isNumber = !Number.isNaN(this.asNumber);
   }
 
-  isNewer(revision: SteveRevision): boolean {
-    return this.isNumber && revision.isNumber && this.asNumber > revision.asNumber;
+  isNewerThan(revision: SteveRevision): boolean {
+    return SteveRevision.allNumbers([this, revision]) && this.asNumber > revision.asNumber;
+  }
+
+  // isSameOrOlderThan(revision: SteveRevision): boolean {
+  //   return SteveRevision.allNumbers([this, revision]) && this.asNumber <= revision.asNumber;
+  // }
+
+  private static allNumbers(revisions: SteveRevision[]): boolean {
+    return revisions.every((r) => r.isNumber);
   }
 
   max(revision: number) {

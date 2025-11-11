@@ -870,6 +870,7 @@ const defaultActions = {
     }
 
     if ( id ) {
+      // Fetch an individual resource
       await dispatch('find', {
         type: resourceType,
         id,
@@ -887,6 +888,7 @@ const defaultActions = {
     let have = []; let want = [];
 
     if ( selector ) {
+      // Fetch a selection of resources
       have = getters['matching'](resourceType, selector).slice();
       want = await dispatch('findMatching', {
         type: resourceType,
@@ -894,9 +896,12 @@ const defaultActions = {
         opt,
       });
     } else {
-      const targetRevision = new SteveRevision(revision);
+      // Fetch all or a page of resources
 
       if (mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
+        // Fetch a page of resources
+        // const targetRevision = new SteveRevision(revision);
+
         // Other findX use options (id/ns/selector) from the messages received over socket.
         // However paginated requests have more complex params so grab them from the store.
 
@@ -904,18 +909,22 @@ const defaultActions = {
         const storePagination = getters['havePage'](resourceType);
 
         if (!!storePagination) {
-          const entry = getters['typeEntry'](resourceType);
+          // const entry = getters['typeEntry'](resourceType);
 
-          const cacheRevision = new SteveRevision(entry.revision);
+          // const cacheRevision = new SteveRevision(entry.revision);
 
-          // HA support scenario 3 - Avoid overwriting store given resource.changes + http request processed by stale replicas
-          if (cacheRevision.isNewer(targetRevision)) {
-            // eslint-disable-next-line no-console
-            console.warn(`Ignoring web socket request to update '${ resourceType }' with revision '${ revision }' (store contains newer revision of '${ entry.revision }'). ` +
-              `This probably means the replica that provided the web socket message has not yet correctly synced it's cache with other fresher replicas.`);
+          // // version in cache is newer than target revision - abort/ignore
+          // // version in cache is same as target revision - we're retrying
+          // // version in cache is older than target revision - drop older requests, use new target
 
-            return;
-          }
+          // // HA support scenario 3 - Avoid overwriting store given resource.changes + http request processed by stale replicas
+          // if (cacheRevision.isNewerThan(targetRevision)) {
+          //   // eslint-disable-next-line no-console
+          //   console.warn(`Ignoring web socket request to update '${ resourceType }' with revision '${ revision }' (store contains newer revision of '${ entry.revision }'). ` +
+          //     `This probably means the replica that provided the web socket message has not yet correctly synced it's cache with other fresher replicas.`);
+
+          //   return;
+          // }
 
           have = []; // findPage removes stale entries, so we don't need to rely on below process to remove them
 
@@ -929,7 +938,7 @@ const defaultActions = {
             opt:  {
               ...opt,
               namespaced: namespace,
-              revision:   targetRevision.revision,
+              revision,
               // This brings in page, page size, filter, etc
               ...storePagination.request,
               // backOff: {
@@ -946,11 +955,12 @@ const defaultActions = {
           event:  STEVE_WATCH_MODE.RESOURCE_CHANGES,
           params: {
             ...params,
-            revision:   targetRevision.revision,
-            forceWatch: opt.forceWatch
+            revision,
+            forceWatch: opt.forceWatch,
           }
         });
       } else {
+        // Fetch all of a resource
         have = getters['all'](resourceType).slice();
 
         if ( namespace ) {
@@ -1316,23 +1326,59 @@ const defaultActions = {
     myLogger.warn('resource.changes', params, retry, msg);
     // msg.revision = Number.MAX_SAFE_INTEGER; // TODO: RC with this in it doesn't repeat... (should backoff repeat after last resource.changes)
 
-    const backOffId = getters.backOffId(msg, STEVE_HTTP_CODES.UNKNOWN_REVISION);
+    // const backOffId = getters.backOffId(msg, STEVE_HTTP_CODES.UNKNOWN_REVISION);
 
     // const constructBackOffId = (revision) => {
-    //   return getters.backOffId(msg, 'DERP&revision=' + revision)
-    // }
+    //   return getters.backOffId(msg, `${ STEVE_HTTP_CODES.UNKNOWN_REVISION }&revision=${ revision }`);
+    // };
+    // const destructBackOffId = () => {
+    //   const root = getters.backOffId(msg, `${ STEVE_HTTP_CODES.UNKNOWN_REVISION }&revision=`);
+    //   const existingBackOffIds = backOff.getBackOffWithPrefix(root);
 
-    // const destructBackOffId = (backOffId) => {
-    //   const root = getters.backOffId(msg, 'DERP&revision=')
-    //   return
-    // }
+    //   if (existingBackOffIds.length === 1) {
+    //     return existingBackOffIds[0].replace(existingBackOffIds, root);
+    //   }
 
-    if (!retry) {
+    //   return '';
+    // };
+
+    const rootBackOffId = getters.backOffId(msg, `${ STEVE_HTTP_CODES.UNKNOWN_REVISION }`);
+    const { backOffId, existingSuffix: currentRevisionFromBackOffId } = backOff.backOffIdWithSuffix(rootBackOffId, msg.revision);
+
+    // const targetRevisionId = backOff.constructBackOffWithSuffix(rootBackOffId, msg.revision);
+
+    const targetRevision = new SteveRevision(msg.revision);
+    // const currentRevisionFromBackOffId = backOff.destructBackOffWithSuffix(rootBackOffId);
+    const currentRevision = new SteveRevision(currentRevisionFromBackOffId);
+
+    // Three scenarios
+    // current version is newer than target revision - abort/ignore (don't overwrite new with old)
+    // current version in cache is older than target revision - reset previous (drop older requests, use new target (don't )
+    // current version in cache is same as target revision - we're retrying
+
+    if (currentRevision.isNewerThan(targetRevision)) {
+      // HA support scenario 3 - Avoid overwriting store given resource.changes + http request processed by stale replicas
+
+      // eslint-disable-next-line no-console
+      console.warn(`Ignoring web socket request to update '${ msg.type || msg.resourceType }' with revision '${ targetRevision.revision }' (previously processed '${ currentRevision.revision }'). ` +
+              `This probably means the replica that provided the web socket message has not yet correctly synced it's cache with other fresher replicas.`);
+
+      return;
+    }
+
+    if (targetRevision.isNewerThan(currentRevision)) {
       // is there a backOff currently running with an older revision? if so we should forget it and concentrate on this new revision
 
       // don't need to compare revision of running to this new socket prompted call.. subsequent calls will always be higher
       backOff.reset(backOffId);
     }
+
+    // if (!retry) {
+    //   // is there a backOff currently running with an older revision? if so we should forget it and concentrate on this new revision
+
+    //   // don't need to compare revision of running to this new socket prompted call.. subsequent calls will always be higher
+    //   backOff.reset(backOffId);
+    // }
     backOff.execute({
       id:          backOffId,
       description: `Invalid watch revision, re-syncing`, // TODO: RC
@@ -1353,8 +1399,6 @@ const defaultActions = {
         }
       },
     });
-
-    debugger;
   },
 
   'ws.resource.remove'(ctx, msg) {
@@ -1556,7 +1600,7 @@ const defaultGetters = {
         if ( obj && obj.metadata ) {
           const candidateRevision = new SteveRevision(obj.metadata.resourceVersion);
 
-          if (candidateRevision.isNewer(nextRevision)) {
+          if (candidateRevision.isNewerThan(nextRevision)) {
             nextRevision = candidateRevision;
           }
 

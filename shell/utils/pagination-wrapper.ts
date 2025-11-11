@@ -8,6 +8,7 @@ import { STEVE_UNWATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_
 import backOff from '@shell/utils/back-off';
 import { STEVE_HTTP_CODES } from '@shell/plugins/steve/actions';
 import myLogger from '@shell/utils/my-logger';
+import { SteveRevision } from '@shell/plugins/steve/revision';
 
 interface Args {
   $store: VuexStore,
@@ -57,6 +58,7 @@ class PaginationWrapper<T extends object> {
   private backOffId: string;
   private classify: boolean;
   private reactive: boolean;
+  // private currentRevision?: string;
 
   public isEnabled: boolean;
   private steveWatchParams: STEVE_WATCH_EVENT_PARAMS_COMMON | undefined;
@@ -77,34 +79,60 @@ class PaginationWrapper<T extends object> {
     this.isEnabled = paginationUtils.isEnabled({ rootGetters: $store.getters, $extension: this.$store.$extension }, enabledFor);
   }
 
-  async request({ pagination, forceWatch }: {
+  async request(requestArgs: {
     forceWatch?: boolean,
     pagination: PaginationArgs,
+    revision?: string,
   }): Promise<Result<T>> {
+    const { pagination, forceWatch, revision } = requestArgs;
+
     if (!this.isEnabled) {
       throw new Error(`Wrapper for type '${ this.enabledFor.store }/${ this.enabledFor.resource?.id }' in context '${ this.enabledFor.resource?.context }' not supported`);
     }
+
     const opt: ActionFindPageArgs = {
       watch:     false,
       pagination,
       transient: true,
+      revision
     };
 
-    const targetRevision = undefined; // TODO: RC pipe in revision
-    const currentRevision = undefined; // TODO: RC cache locally?
+    const rootBackOffId = this.backOffId;
+    const { backOffId, existingSuffix: currentRevisionFromBackOffId } = backOff.backOffIdWithSuffix(rootBackOffId, revision);
+
+    const targetRevision = new SteveRevision(revision);
+    const currentRevision = new SteveRevision(currentRevisionFromBackOffId);
+
     let out: ActionFindPageTransientResult<T> | undefined;
 
-    // HA support scenario 3 - Avoid overwriting store given resource.changes + http request processed by stale replicas TODO: RC update text
-    if (targetRevision) { // TODO: RC if the new revision is newer kill off any old watch
-      backOff.reset(this.backOffId);
-    }
     // Fetch
     // const out: ActionFindPageTransientResult<T> = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
 
     if (targetRevision) {
+      // Three scenarios
+      // current version is newer than target revision - abort/ignore (don't overwrite new with old)
+      // current version in cache is older than target revision - reset previous (drop older requests, use new target (don't )
+      // current version in cache is same as target revision - we're retrying
+
+      if (currentRevision.isNewerThan(targetRevision)) {
+      // HA support scenario 3 - Avoid overwriting store given resource.changes + http request processed by stale replicas
+
+        // eslint-disable-next-line no-console
+        // TODO: RC
+        // console.warn(`Ignoring web socket request to update '${ msg.type || msg.resourceType }' with revision '${ targetRevision.revision }' (previously processed '${ currentRevision.revision }'). ` +
+        // `This probably means the replica that provided the web socket message has not yet correctly synced it's cache with other fresher replicas.`);
+
+        return Promise.reject(new Error('sdfdsf'));
+      }
+
+      if (targetRevision.isNewerThan(currentRevision)) {
+        backOff.reset(backOffId);
+      }
+
+      // this.currentRevision = targetRevision.revision;
       out = await backOff.execute<any, ActionFindPageTransientResult<T>>({
-        id:          this.backOffId,
-        description: `Invalid watch revision, re-syncing`, // TODO: RC
+        id:          backOffId,
+        description: `Unknown revision used in http request, re-trying`,
         // canFn:       () => getters.canBackoff(this.$socket),
         delayedFn:   async() => {
           try {
@@ -114,7 +142,7 @@ class PaginationWrapper<T extends object> {
           } catch (err: any) {
             myLogger.warn('pagination wrapper', 'request', 'backoff', 'ERROR', this.id, err);
             if (err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION) {
-              return await this.request({ pagination, forceWatch });
+              return await this.request(requestArgs);
             }
           }
         },
