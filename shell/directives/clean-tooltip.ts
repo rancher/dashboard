@@ -1,0 +1,242 @@
+import { DirectiveBinding } from 'vue';
+
+// This is a singleton tooltip implementation.
+// It ensures that only one tooltip is active at a time, preventing multiple tooltips from appearing simultaneously.
+// This improves performance and user experience.
+let singleton: any = null;
+let currentTarget: HTMLElement | null = null;
+
+interface TooltipDelay {
+  show: number;
+  hide: number;
+}
+
+interface TooltipHTMLElement extends HTMLElement {
+  __tooltipValue__: string;
+  __tooltipPlacement__: string;
+  __tooltipPopperClass__: string;
+  __tooltipDelay__: TooltipDelay;
+}
+
+interface TooltipOptions {
+  content: string;
+  placement: string;
+  popperClass: string;
+  delay: TooltipDelay;
+}
+
+/**
+ * Shows a singleton tooltip for the given target element.
+ * If a tooltip is already active, it is hidden before showing the new one.
+ * @param {HTMLElement} target The element to which the tooltip is attached.
+ * @param {string|object} rawValue The content of the tooltip.
+ * @param {string} placement The placement of the tooltip.
+ * @param {string} popperClass Custom CSS class for the popper.
+ * @param {object} delay The delay for showing and hiding the tooltip.
+ */
+function showSingletonTooltip(target: HTMLElement, rawValue: string | { content: string }, placement: string, popperClass: string, delay: TooltipDelay) {
+  // If a tooltip is already active, hide it and reset the singleton instance.
+  if (singleton) {
+    singleton.hide();
+    singleton = null;
+  }
+
+  const content = purifyContent(rawValue);
+
+  // Don't show the tooltip if the content is empty.
+  const finalContent =
+    typeof content === 'object' ? content.content?.trim() : typeof content === 'string' ? content.trim() : '';
+
+  if (!finalContent) {
+    return;
+  }
+
+  // Using 'require' instead of 'import' here to allow Jest to mock 'floating-vue' correctly in unit tests.
+  const { createTooltip } = require('floating-vue');
+
+  // Create a new tooltip instance.
+  singleton = createTooltip(target, {
+    disposeTimeout: 250,
+    content,
+    placement,
+    popperClass,
+    delay
+  });
+
+  singleton.show();
+  currentTarget = target;
+}
+
+/**
+ * Hides the singleton tooltip if it is currently shown for the given target element.
+ * @param {HTMLElement} target The element from which the tooltip should be hidden.
+ */
+function hideSingletonTooltip(target: HTMLElement) {
+  if (!singleton) {
+    return;
+  }
+
+  if (currentTarget === target) {
+    singleton.hide();
+    singleton = null;
+    currentTarget = null;
+  }
+}
+
+/**
+ * Purifies the HTML content of the tooltip to prevent XSS attacks.
+ * @param {string|object} value The content to be purified.
+ * @returns {string|object} The purified content.
+ */
+function purifyContent(value: string | { content: string }): string | { content: string } {
+  // Using 'require' instead of 'import' here to allow Jest to mock '@shell/plugins/clean-html' correctly in unit tests.
+  const { purifyHTML } = require('@shell/plugins/clean-html');
+
+  if (typeof value === 'string') {
+    return purifyHTML(value);
+  } else if (
+    value &&
+    typeof value === 'object' &&
+    typeof value.content === 'string'
+  ) {
+    return { ...(value as object), content: purifyHTML(value.content) };
+  } else {
+    return value;
+  }
+}
+
+/**
+ * A Vue directive that provides a clean singleton tooltip using floating-vue.
+ */
+const cleanTooltipDirective = {
+  /**
+   * Called when the directive is mounted to an element.
+   * It sets up the tooltip options and adds event listeners.
+   * @param {HTMLElement} el The element the directive is bound to.
+   * @param {object} binding The directive binding object.
+   */
+  mounted(el: TooltipHTMLElement, binding: DirectiveBinding) {
+    const { value, modifiers } = binding;
+    const {
+      content, placement, popperClass, delay
+    } = getTooltipOptions(value, modifiers);
+
+    // Store the tooltip options on the element for later use.
+    el.__tooltipValue__ = content;
+    el.__tooltipPlacement__ = placement;
+    el.__tooltipPopperClass__ = popperClass;
+    el.__tooltipDelay__ = delay;
+
+    el.addEventListener('mouseenter', onMouseEnter);
+    el.addEventListener('mouseleave', onMouseLeave);
+    el.addEventListener('focus', onMouseEnter);
+    el.addEventListener('blur', onMouseLeave);
+    // Add a class to the element to indicate that it has a clean tooltip.
+    el.classList.add('has-clean-tooltip');
+  },
+  /**
+   * Called when the directive's binding value is updated.
+   * It updates the tooltip options and shows the tooltip if it is already active.
+   * @param {HTMLElement} el The element the directive is bound to.
+   * @param {object} binding The directive binding object.
+   */
+  updated(el: TooltipHTMLElement, binding: DirectiveBinding) {
+    const { value, modifiers } = binding;
+    const {
+      content, placement, popperClass, delay
+    } = getTooltipOptions(value, modifiers);
+
+    // Update stored content and options
+    el.__tooltipValue__ = content;
+    el.__tooltipPlacement__ = placement;
+    el.__tooltipPopperClass__ = popperClass;
+    el.__tooltipDelay__ = delay;
+
+    // If this element's tooltip is currently shown, update it
+    if (currentTarget === el) {
+      showSingletonTooltip(el, content, placement, popperClass, delay);
+    }
+  },
+  /**
+   * Called when the directive is unmounted from an element.
+   * It removes the event listeners and hides the tooltip if it is active.
+   * @param {HTMLElement} el The element the directive is bound to.
+   */
+  unmounted(el: TooltipHTMLElement) {
+    el.removeEventListener('mouseenter', onMouseEnter);
+    el.removeEventListener('mouseleave', onMouseLeave);
+    el.removeEventListener('focus', onMouseEnter);
+    el.removeEventListener('blur', onMouseLeave);
+    el.classList.remove('has-clean-tooltip');
+
+    // If this element's tooltip is currently shown, hide it
+    if (currentTarget === el) {
+      hideSingletonTooltip(el);
+    }
+  },
+};
+
+/**
+ * Event handler for mouseenter and focus events.
+ * @param {Event} e The event object.
+ */
+function onMouseEnter(e: MouseEvent | FocusEvent) {
+  const el = e.currentTarget as TooltipHTMLElement;
+
+  showSingletonTooltip(el, el.__tooltipValue__, el.__tooltipPlacement__, el.__tooltipPopperClass__, el.__tooltipDelay__);
+}
+
+/**
+ * Event handler for mouseleave and blur events.
+ * @param {Event} e The event object.
+ */
+function onMouseLeave(e: MouseEvent | FocusEvent) {
+  const el = e.currentTarget as TooltipHTMLElement;
+
+  hideSingletonTooltip(el);
+}
+
+/**
+ * Parses the tooltip options from the directive's value and modifiers.
+ * @param {string|object} value The value of the directive.
+ * @param {object} modifiers The modifiers of the directive.
+ * @returns {object} The parsed tooltip options.
+ */
+function getTooltipOptions(value: string | { content?: string, placement?: string, popperClass?: string, delay?: TooltipDelay }, modifiers: Partial<Record<string, boolean>>): TooltipOptions {
+  let content = '';
+  let placement = 'top';
+  let popperClass = '';
+  let delay: TooltipDelay = { show: 250, hide: 100 };
+
+  if (typeof value === 'string') {
+    content = value;
+  } else if (value && typeof value === 'object') {
+    content = value.content || '';
+    placement = value.placement || 'top';
+    popperClass = value.popperClass || '';
+    delay = value.delay || { show: 250, hide: 100 };
+  }
+
+  // Modifiers can also specify placement (e.g., v-clean-tooltip.bottom)
+  if (modifiers.top) {
+    placement = 'top';
+  } else if (modifiers.bottom) {
+    placement = 'bottom';
+  } else if (modifiers.left) {
+    placement = 'left';
+  } else if (modifiers.right) {
+    placement = 'right';
+  }
+
+  return {
+    content, placement, popperClass, delay
+  };
+}
+
+export default cleanTooltipDirective;
+
+// Exporting for unit testing purposes
+export {
+  onMouseEnter,
+  onMouseLeave
+};
