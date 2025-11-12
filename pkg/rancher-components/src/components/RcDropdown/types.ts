@@ -25,18 +25,20 @@ export const defaultContext: DropdownContext = {
 export type DropdownOption = {
   action?: string;
   divider?: boolean;
-  enabled: boolean;
+  enabled?: boolean;
+  disabled?: boolean;
   icon?: string;
   svg?: string;
   label?: string;
-  total: number;
-  allEnabled: boolean;
-  anyEnabled: boolean;
-  available: number;
+  total?: number;
+  allEnabled?: boolean;
+  anyEnabled?: boolean;
+  available?: number;
   bulkable?: boolean;
   bulkAction?: string;
   altAction?: string;
   weight?: number;
+  [key: string]: any;
 }
 
 export type RcDropdownMenuComponentProps = {

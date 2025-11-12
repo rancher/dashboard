@@ -14,14 +14,9 @@
  *   Primary Action
  * </rc-dropdown-button>
  */
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { RcButton } from '@components/RcButton';
-import {
-  RcDropdown,
-  RcDropdownItem,
-  RcDropdownSeparator,
-  RcDropdownTrigger
-} from '@components/RcDropdown';
+import { RcDropdownMenu, RcDropdownTrigger } from '@components/RcDropdown';
 import { RcIcon } from '@components/RcIcon';
 import { RcDropdownButtonProps, DropdownButtonOption } from './types';
 
@@ -34,10 +29,6 @@ const props = withDefaults(defineProps<RcDropdownButtonProps>(), {
 const emit = defineEmits(['click', 'select', 'update:open']);
 
 const dropdownTriggerRef = ref<InstanceType<typeof RcDropdownTrigger> | null>(null);
-
-const hasOptions = computed(() => {
-  return props.options && props.options.length > 0;
-});
 
 const handlePrimaryClick = (e: MouseEvent) => {
   emit('click', e);
@@ -67,52 +58,29 @@ const handleDropdownOpen = (isOpen: boolean) => {
       </slot>
     </RcButton>
 
-    <RcDropdown
+    <RcDropdownMenu
       class="dropdown-section"
-      :aria-label="props.dropdownAriaLabel || 'Dropdown Menu'"
+      :options="props.options"
+      :dropdown-aria-label="props.dropdownAriaLabel || 'Dropdown Menu'"
       @update:open="handleDropdownOpen"
+      @select="handleDropdownSelect"
     >
-      <RcDropdownTrigger
-        ref="dropdownTriggerRef"
-        :role="props.role"
-        :size="props.size"
-        :disabled="props.disabled"
-        class="dropdown-trigger"
-        :aria-label="props.dropdownButtonAriaLabel || 'Open menu'"
-      >
-        <i class="icon icon-chevron-down" />
-      </RcDropdownTrigger>
-      <template #dropdownCollection>
-        <template
-          v-for="(option, index) in props.options"
-          :key="option.label || index"
+      <template #trigger>
+        <RcDropdownTrigger
+          ref="dropdownTriggerRef"
+          :role="props.role"
+          :size="props.size"
+          :disabled="props.disabled"
+          class="dropdown-trigger"
+          :aria-label="props.dropdownButtonAriaLabel || 'Open menu'"
         >
-          <RcDropdownItem
-            v-if="!option.divider"
-            :disabled="option.disabled"
-            @click="(e: MouseEvent) => handleDropdownSelect(e, option)"
-          >
-            <template #before>
-              <RcIcon
-                v-if="option.icon"
-                :type="option.icon"
-                size="none"
-              />
-            </template>
-            {{ option.label }}
-          </RcDropdownItem>
-          <RcDropdownSeparator
-            v-else
+          <RcIcon
+            type="chevron-down"
+            size="none"
           />
-        </template>
-        <RcDropdownItem
-          v-if="!hasOptions"
-          disabled
-        >
-          No actions available
-        </RcDropdownItem>
+        </RcDropdownTrigger>
       </template>
-    </RcDropdown>
+    </RcDropdownMenu>
   </div>
 </template>
 
