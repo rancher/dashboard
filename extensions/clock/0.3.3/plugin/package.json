@@ -1,0 +1,19 @@
+{
+  "name": "clock",
+  "description": "Adds a new feature to the top-level menu that shows a full-page clock",
+  "version": "0.3.3",
+  "private": false,
+  "rancher": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/cli-plugin-typescript": "~5.0.0"
+  },
+  "files": [
+    "**/*"
+  ],
+  "main": "clock-0.3.3.umd.min.js"
+}
