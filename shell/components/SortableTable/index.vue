@@ -395,22 +395,11 @@ export default {
   },
 
   data() {
-    let searchQuery = '';
-    let eventualSearchQuery = '';
-
-    // only allow for filter query param for simple filtering for now...
-    if (!this.hasAdvancedFiltering && this.useQueryParamsForSimpleFiltering && this.$route.query?.q) {
-      searchQuery = this.$route.query?.q;
-      eventualSearchQuery = this.$route.query?.q;
-    }
-
-    const isLoading = this.loading || false;
-
     return {
-      refreshButtonPhase:         isLoading ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION,
+      refreshButtonPhase:         this.loading ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION,
       expanded:                   {},
-      searchQuery,
-      eventualSearchQuery,
+      searchQuery:                '',
+      eventualSearchQuery:        '',
       subMatches:                 null,
       actionOfInterest:           null,
       loadingDelay:               false,
@@ -418,7 +407,7 @@ export default {
       /**
        * The is the bool the DOM uses to show loading state. it's proxied from `loading` to avoid blipping the indicator (see usages)
        */
-      isLoading
+      isLoading:                  this.loading || false
     };
   },
 
@@ -574,6 +563,11 @@ export default {
   },
 
   created() {
+    if (!this.hasAdvancedFiltering && this.useQueryParamsForSimpleFiltering && this.$route.query?.q) {
+      this.searchQuery = this.$route.query?.q;
+      this.eventualSearchQuery = this.$route.query?.q;
+    }
+
     this.debouncedRefreshTableData = debounce(this.refreshTableData, 500);
     this.debouncedPaginationChanged = debounce(this.paginationChanged, 50);
   },
