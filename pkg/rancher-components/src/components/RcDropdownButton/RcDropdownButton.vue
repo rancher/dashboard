@@ -14,7 +14,7 @@
  *   Primary Action
  * </RcDropdownButton>
  */
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { RcButton } from '@components/RcButton';
 import { RcDropdownMenu, RcDropdownTrigger } from '@components/RcDropdown';
 import { RcIcon } from '@components/RcIcon';
@@ -29,6 +29,11 @@ const props = withDefaults(defineProps<RcDropdownButtonProps>(), {
 const emit = defineEmits(['click', 'select', 'update:open']);
 
 const dropdownTriggerRef = ref<InstanceType<typeof RcDropdownTrigger> | null>(null);
+
+// This is only necessary because RcDropdownMenu uses SvgOrIcon so we have to convert our icon while that's still true
+const iconsCorrectedOptions = computed(() => {
+  return props.options.map((o) => ({ ...o, icon: `icon-${ o.icon }` }));
+});
 
 const handlePrimaryClick = (e: MouseEvent) => {
   emit('click', e);
@@ -60,7 +65,7 @@ const handleDropdownOpen = (isOpen: boolean) => {
 
     <RcDropdownMenu
       class="dropdown-section"
-      :options="props.options"
+      :options="iconsCorrectedOptions"
       :dropdown-aria-label="props.dropdownAriaLabel"
       @update:open="handleDropdownOpen"
       @select="handleDropdownSelect"
