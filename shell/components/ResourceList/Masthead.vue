@@ -82,30 +82,26 @@ export default {
     }
   },
 
-  data() {
-    const params = { ...this.$route.params };
-
-    const formRoute = { name: `${ this.$route.name }-create`, params };
-
-    const hasEditComponent = this.$store.getters['type-map/hasCustomEdit'](this.resource);
-
-    const yamlRoute = {
-      name:  `${ this.$route.name }-create`,
-      params,
-      query: { [AS]: _YAML },
-    };
-
-    return {
-      formRoute,
-      yamlRoute,
-      hasEditComponent,
-    };
-  },
-
   computed: {
     get,
     ...mapGetters(['isExplorer', 'currentCluster']),
+    formRoute() {
+      const params = { ...this.$route.params };
 
+      return { name: `${ this.$route.name }-create`, params };
+    },
+    hasEditComponent() {
+      return this.$store.getters['type-map/hasCustomEdit'](this.resource);
+    },
+    yamlRoute() {
+      const params = { ...this.$route.params };
+
+      return {
+        name:  `${ this.$route.name }-create`,
+        params,
+        query: { [AS]: _YAML },
+      };
+    },
     resourceName() {
       if (this.schema) {
         return this.$store.getters['type-map/labelFor'](this.schema);
