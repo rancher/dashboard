@@ -59,21 +59,21 @@ describe('rcButton.vue', () => {
     const wrapper = mount(RcButton, { props: { size: 'small' } });
     const button = wrapper.find('button');
 
-    expect(button.classes()).toContain('btn-sm');
+    expect(button.classes()).toContain('btn-small');
   });
 
   it('applies medium size class using new size prop', () => {
     const wrapper = mount(RcButton, { props: { size: 'medium' } });
     const button = wrapper.find('button');
 
-    expect(button.classes()).toContain('btn-md');
+    expect(button.classes()).toContain('btn-medium');
   });
 
   it('applies large size class using new size prop', () => {
     const wrapper = mount(RcButton, { props: { size: 'large' } });
     const button = wrapper.find('button');
 
-    expect(button.classes()).toContain('btn-lg');
+    expect(button.classes()).toContain('btn-large');
   });
 
   it('emits deprecation warning for small prop', () => {
