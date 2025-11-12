@@ -88,11 +88,11 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   static checkIconTooltipOn(): Cypress.Chainable {
-    return cy.get('.option').get('.cluster-icon-menu').first().should('have.class', 'v-popper--has-tooltip');
+    return cy.get('.option').get('.cluster-icon-menu').first().should('have.class', 'has-clean-tooltip');
   }
 
   static checkIconTooltipOff(): Cypress.Chainable {
-    return cy.get('.option').get('.cluster-icon-menu').first().should('have.not.class', 'v-popper--has-tooltip');
+    return cy.get('.option').get('.cluster-icon-menu').first().should('have.not.class', 'has-clean-tooltip');
   }
 
   /**
