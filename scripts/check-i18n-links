@@ -271,7 +271,7 @@ async function check(links) {
       statusMessage = e.response ? e.response.statusText : e.statusText;
     }
 
-    if (statusCode !== 200) {
+    if (statusCode !== 200 && statusCode !== 202) {
       const sc = `${ statusCode }`.padEnd(5);
 
       console.log(`  ${ link } : ${ sc } ${ statusMessage || '' }`); // eslint-disable-line no-console
