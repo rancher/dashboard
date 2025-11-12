@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { RcButton } from '@components/RcButton';
 import { ButtonRole, ButtonSize } from '@components/RcButton/types';
-import { RcIconType } from '@components/RcIcon/types';
+import { RcIconTypeToClass } from '@components/RcIcon/types';
 
 const meta: Meta<typeof RcButton> = {
   component: RcButton,
@@ -17,12 +17,12 @@ const meta: Meta<typeof RcButton> = {
       description: 'Determines the size of the button. Medium is the default size for most use cases.'
     },
     leftIcon: {
-      options:     ['', ...Object.keys(RcIconType)],
+      options:     ['', ...Object.keys(RcIconTypeToClass)],
       control:     { type: 'select' },
       description: 'Icon to display on the left side of the button text.'
     },
     rightIcon: {
-      options:     ['', ...Object.keys(RcIconType)],
+      options:     ['', ...Object.keys(RcIconTypeToClass)],
       control:     { type: 'select' },
       description: 'Icon to display on the right side of the button text.'
     },

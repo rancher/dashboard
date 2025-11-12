@@ -39,6 +39,6 @@ export type ButtonSizeProps = {
 }
 
 export type IconProps = {
-  leftIcon?: keyof typeof RcIconType;
-  rightIcon?: keyof typeof RcIconType;
+  leftIcon?: RcIconType;
+  rightIcon?: RcIconType;
 }
