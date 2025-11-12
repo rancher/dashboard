@@ -5,14 +5,14 @@
  *
  * Example:
  *
- * <rc-dropdown-button
+ * <RcDropdownButton
  *   role="primary"
  *   :options="dropdownOptions"
  *   @click="performPrimaryAction"
  *   @select="handleDropdownSelection"
  * >
  *   Primary Action
- * </rc-dropdown-button>
+ * </RcDropdownButton>
  */
 import { ref } from 'vue';
 import { RcButton } from '@components/RcButton';
@@ -54,14 +54,14 @@ const handleDropdownOpen = (isOpen: boolean) => {
       @click="handlePrimaryClick"
     >
       <slot>
-        <!-- Button content -->
+        <!-- Primary Button content -->
       </slot>
     </RcButton>
 
     <RcDropdownMenu
       class="dropdown-section"
       :options="props.options"
-      :dropdown-aria-label="props.dropdownAriaLabel || 'Dropdown Menu'"
+      :dropdown-aria-label="props.dropdownAriaLabel"
       @update:open="handleDropdownOpen"
       @select="handleDropdownSelect"
     >
@@ -72,7 +72,7 @@ const handleDropdownOpen = (isOpen: boolean) => {
           :size="props.size"
           :disabled="props.disabled"
           class="dropdown-trigger"
-          :aria-label="props.dropdownButtonAriaLabel || 'Open menu'"
+          :aria-label="props.dropdownButtonAriaLabel"
         >
           <RcIcon
             type="chevron-down"
@@ -101,7 +101,6 @@ const handleDropdownOpen = (isOpen: boolean) => {
     border-left: 1px solid rgba(255, 255, 255, 0.5);
   }
 
-  // Adjust spacing for small size
   & .dropdown-trigger.btn.btn-small {
     padding: 0 4px;
 
@@ -110,7 +109,6 @@ const handleDropdownOpen = (isOpen: boolean) => {
     }
   }
 
-  // Adjust spacing for large size
   & .dropdown-trigger.btn.btn-large {
     padding: 0 8px;
     .dropdown-section :deep(.dropdown-trigger) {
