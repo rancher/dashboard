@@ -33,11 +33,13 @@ export default meta;
 type Story = StoryObj<typeof RcDropdownButton>;
 
 const sampleOptions = [
-  { label: 'Edit', icon: 'icon-edit' },
-  { label: 'Duplicate', icon: 'icon-copy' },
-  { label: 'Download', icon: 'icon-download' },
+  { label: 'Edit', icon: 'edit' },
+  { label: 'Duplicate', icon: 'copy' },
+  { label: 'Download', icon: 'download' },
   { divider: true },
-  { label: 'Delete', icon: 'icon-delete', disabled: false },
+  {
+    label: 'Delete', icon: 'trash', disabled: false
+  },
 ];
 
 export const Default: Story = {
@@ -71,7 +73,9 @@ export const AllRoles: Story = {
       const roles: DropdownButtonRole[] = ['primary', 'secondary'];
       const options = sampleOptions;
 
-      return { args, roles, options };
+      return {
+        args, roles, options
+      };
     },
     template: `<div style="display: flex; flex-direction: column; gap: 20px; max-width: 800px;">
       <div v-for="role in roles" :key="role" style="display: flex; align-items: center; gap: 20px;">
@@ -93,7 +97,9 @@ export const AllSizes: Story = {
       const sizes: ButtonSize[] = ['small', 'medium', 'large'];
       const options = sampleOptions;
 
-      return { args, sizes, options };
+      return {
+        args, sizes, options
+      };
     },
     template: `<div style="display: flex; flex-direction: column; gap: 20px; max-width: 800px;">
       <div v-for="size in sizes" :key="size" style="display: flex; align-items: center; gap: 20px;">
