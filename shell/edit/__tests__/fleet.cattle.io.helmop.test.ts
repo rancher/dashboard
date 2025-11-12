@@ -243,7 +243,7 @@ describe.each([
 
     await fleetSecretSelector.vm.$emit('update:value', ['secret2', 'secret3']);
 
-    expect(wrapper.vm.value.spec.helm.downstreamResources).toStrictEqual([{ name: 'secret2', kind: 'Secret' }, { name: 'secret3', kind: 'Secret' }]);
+    expect(wrapper.vm.value.spec.downstreamResources).toStrictEqual([{ name: 'secret2', kind: 'Secret' }, { name: 'secret3', kind: 'Secret' }]);
   });
 
   it('should update downstreamResources with new ConfigMaps when FleetConfigMapSelector emits update event', async() => {
@@ -260,6 +260,6 @@ describe.each([
 
     await fleetConfigMapSelector.vm.$emit('update:value', ['configMap2', 'configMap3']);
 
-    expect(wrapper.vm.value.spec.helm.downstreamResources).toStrictEqual([{ name: 'configMap2', kind: 'ConfigMap' }, { name: 'configMap3', kind: 'ConfigMap' }]);
+    expect(wrapper.vm.value.spec.downstreamResources).toStrictEqual([{ name: 'configMap2', kind: 'ConfigMap' }, { name: 'configMap3', kind: 'ConfigMap' }]);
   });
 });
