@@ -67,12 +67,12 @@ const handleDropdownOpen = (isOpen: boolean) => {
       </slot>
     </RcButton>
 
-    <rc-dropdown
+    <RcDropdown
       class="dropdown-section"
       :aria-label="props.dropdownAriaLabel || 'Dropdown Menu'"
       @update:open="handleDropdownOpen"
     >
-      <rc-dropdown-trigger
+      <RcDropdownTrigger
         ref="dropdownTriggerRef"
         :role="props.role"
         :size="props.size"
@@ -81,13 +81,13 @@ const handleDropdownOpen = (isOpen: boolean) => {
         :aria-label="props.dropdownButtonAriaLabel || 'Open menu'"
       >
         <i class="icon icon-chevron-down" />
-      </rc-dropdown-trigger>
+      </RcDropdownTrigger>
       <template #dropdownCollection>
         <template
           v-for="(option, index) in props.options"
           :key="option.label || index"
         >
-          <rc-dropdown-item
+          <RcDropdownItem
             v-if="!option.divider"
             :disabled="option.disabled"
             @click="(e: MouseEvent) => handleDropdownSelect(e, option)"
@@ -102,19 +102,19 @@ const handleDropdownOpen = (isOpen: boolean) => {
               />
             </template>
             {{ option.label }}
-          </rc-dropdown-item>
-          <rc-dropdown-separator
+          </RcDropdownItem>
+          <RcDropdownSeparator
             v-else
           />
         </template>
-        <rc-dropdown-item
+        <RcDropdownItem
           v-if="!hasOptions"
           disabled
         >
           No actions available
-        </rc-dropdown-item>
+        </RcDropdownItem>
       </template>
-    </rc-dropdown>
+    </RcDropdown>
   </div>
 </template>
 
@@ -126,33 +126,27 @@ const handleDropdownOpen = (isOpen: boolean) => {
   .primary-button {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
-    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    border-right: none;
   }
 
-  .dropdown-section {
-    display: inline-flex;
-
-    :deep(.dropdown-trigger) {
-      border-top-left-radius: 0;
-      border-bottom-left-radius: 0;
-      padding: 0 8px;
-      min-width: unset;
-
-      .icon {
-        margin: 0;
-      }
-    }
+  .dropdown-trigger {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-left: 1px solid rgba(255, 255, 255, 0.5);
   }
 
   // Adjust spacing for small size
-  &:has(.btn-small) {
+  & .dropdown-trigger.btn.btn-small {
+    padding: 0 4px;
+
     .dropdown-section :deep(.dropdown-trigger) {
       padding: 0 6px;
     }
   }
 
   // Adjust spacing for large size
-  &:has(.btn-large) {
+  & .dropdown-trigger.btn.btn-large {
+    padding: 0 8px;
     .dropdown-section :deep(.dropdown-trigger) {
       padding: 0 10px;
     }
