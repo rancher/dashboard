@@ -14,3 +14,17 @@
     background-color: #ffffff;
   }
 }
+// This allows dropdowns to overflow a canvas
+.sbdocs {
+  z-index: 1000;
+
+  &,
+  .docs-story,
+  .os-host-viewport {
+
+    &,
+    &>div {
+      overflow: visible !important;
+    }
+  }
+}
