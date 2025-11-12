@@ -98,8 +98,9 @@ defineExpose({ focus });
     >
       <RcIcon
         v-if="props.leftIcon"
+        class="left-icon"
         :type="props.leftIcon"
-        size="small"
+        size="none"
       />
     </slot>
     <slot>
@@ -111,14 +112,25 @@ defineExpose({ focus });
     >
       <RcIcon
         v-if="props.rightIcon"
+        class="right-icon"
         :type="props.rightIcon"
-        size="small"
+        size="inherit"
       />
     </slot>
   </button>
 </template>
 
 <style lang="scss" scoped>
+@mixin iconMargins($size) {
+  .left-icon {
+    margin-right: $size;
+  }
+
+  .right-icon {
+    margin-left: $size;
+  }
+}
+
 button {
   &.role-link {
     &:focus, &.focused {
@@ -155,6 +167,8 @@ button {
       min-height: 24px;
 
       padding: 0 8px;
+
+      @include iconMargins(8px);
     }
   }
 
@@ -166,10 +180,21 @@ button {
       min-height: 32px;
 
       padding: 0 12px;
+
+      @include iconMargins(8px);
     }
   }
 
-  &.btn-large {
+  &.btn.btn-large {
     // This is the default size brought by the global button styling
+    &, &:not(.btn-sm) {
+      line-height: 20px;
+      font-size: 16px;
+      min-height: 40px;
+
+      padding: 0 16px;
+
+      @include iconMargins(12px);
+    }
   }
 }</style>
