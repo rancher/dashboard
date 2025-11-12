@@ -45,7 +45,7 @@ function showSingletonTooltip(target: HTMLElement, rawValue: string | { content:
 
   // Don't show the tooltip if the content is empty.
   const finalContent =
-    typeof content === 'object' ? content.content?.trim() : typeof content === 'string' ? content.trim() : '';
+    typeof content === 'object' && content.content ? content.content.trim() : typeof content === 'string' ? content.trim() : '';
 
   if (!finalContent) {
     return;
@@ -131,8 +131,11 @@ const cleanTooltipDirective = {
     el.addEventListener('mouseleave', onMouseLeave);
     el.addEventListener('focus', onMouseEnter);
     el.addEventListener('blur', onMouseLeave);
-    // Add a class to the element to indicate that it has a clean tooltip.
-    el.classList.add('has-clean-tooltip');
+
+    if (content) {
+      // Add a class to the element to indicate that it has a clean tooltip.
+      el.classList.add('has-clean-tooltip');
+    }
   },
   /**
    * Called when the directive's binding value is updated.
