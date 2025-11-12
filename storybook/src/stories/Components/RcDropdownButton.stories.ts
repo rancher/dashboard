@@ -47,10 +47,10 @@ export const Default: Story = {
     components: { RcDropdownButton },
     setup() {
       const handleClick = () => {
-        console.log('Primary action clicked');
+        console.log('Primary action clicked'); // eslint-disable-line no-console
       };
       const handleSelect = (e: MouseEvent, option: any) => {
-        console.log('Dropdown option selected:', option);
+        console.log('Dropdown option selected:', option); // eslint-disable-line no-console
       };
 
       return {

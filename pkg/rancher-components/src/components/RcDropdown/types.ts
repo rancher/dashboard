@@ -38,7 +38,6 @@ export type DropdownOption = {
   bulkAction?: string;
   altAction?: string;
   weight?: number;
-  [key: string]: any;
 }
 
 export type RcDropdownMenuComponentProps = {

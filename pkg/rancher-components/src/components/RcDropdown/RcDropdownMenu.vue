@@ -9,7 +9,7 @@ import { RcDropdownMenuComponentProps, DropdownOption } from './types';
 import IconOrSvg from '@shell/components/IconOrSvg';
 import { computed, useSlots } from 'vue';
 
-const props = withDefaults(defineProps<RcDropdownMenuComponentProps>(), {
+withDefaults(defineProps<RcDropdownMenuComponentProps>(), {
   buttonRole: 'primary',
   buttonSize: undefined,
 });

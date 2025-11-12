@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import RcDropdownButton from './RcDropdownButton.vue';
 import { RcButton } from '@components/RcButton';
 
-describe('RcDropdownButton.vue', () => {
+describe('rcDropdownButton.vue', () => {
   it('renders with default role', () => {
     const wrapper = mount(RcDropdownButton, {
       props: {
@@ -26,7 +26,7 @@ describe('RcDropdownButton.vue', () => {
 
     const buttons = wrapper.findAllComponents(RcButton);
 
-    expect(buttons.length).toBe(2);
+    expect(buttons).toHaveLength(2);
     expect(buttons[0].props('role')).toBe('primary');
     expect(buttons[1].props('role')).toBe('primary');
   });
@@ -60,11 +60,7 @@ describe('RcDropdownButton.vue', () => {
   });
 
   it('emits click event when primary button is clicked', async() => {
-    const wrapper = mount(RcDropdownButton, {
-      props: {
-        options: [{ label: 'Option 1' }]
-      }
-    });
+    const wrapper = mount(RcDropdownButton, { props: { options: [{ label: 'Option 1' }] } });
 
     const primaryButton = wrapper.find('.primary-button');
 
@@ -82,9 +78,7 @@ describe('RcDropdownButton.vue', () => {
       { label: 'Option 3' }
     ];
 
-    const wrapper = mount(RcDropdownButton, {
-      props: { options }
-    });
+    const wrapper = mount(RcDropdownButton, { props: { options } });
 
     expect(wrapper.html()).toContain('Option 1');
     expect(wrapper.html()).toContain('Option 2');
@@ -93,12 +87,8 @@ describe('RcDropdownButton.vue', () => {
 
   it('renders slot content correctly', () => {
     const wrapper = mount(RcDropdownButton, {
-      props: {
-        options: [{ label: 'Option 1' }]
-      },
-      slots: {
-        default: 'Primary Action'
-      }
+      props: { options: [{ label: 'Option 1' }] },
+      slots: { default: 'Primary Action' }
     });
 
     expect(wrapper.text()).toContain('Primary Action');
@@ -132,11 +122,7 @@ describe('RcDropdownButton.vue', () => {
   });
 
   it('shows "No actions available" when options array is empty', () => {
-    const wrapper = mount(RcDropdownButton, {
-      props: {
-        options: []
-      }
-    });
+    const wrapper = mount(RcDropdownButton, { props: { options: [] } });
 
     expect(wrapper.text()).toContain('No actions available');
   });
