@@ -7,7 +7,7 @@ import * as RcDropdownButtonStories from './RcDropdownButton.stories';
 
 Use RcDropdownButton for combining a primary action with additional dropdown options. This split button component provides a primary action button on the left and a dropdown menu on the right, allowing users to perform a main action or choose from alternative actions.
 
-<Canvas of={RcDropdownButtonStories.Default} layout="centered" />
+<Canvas of={RcDropdownButtonStories.Default} layout="centered" additionalActions={[{ title: 'Open canvas in new tab' }]} style={{ minHeight: '300px' }} />
 
 <Controls of={RcDropdownButtonStories.Default} />
 
@@ -15,28 +15,28 @@ Use RcDropdownButton for combining a primary action with additional dropdown opt
 
 Different button roles for different purposes and visual hierarchy:
 
-<Canvas of={RcDropdownButtonStories.AllRoles} />
+<Canvas of={RcDropdownButtonStories.AllRoles} style={{ minHeight: '400px' }} />
 
 ## Button Sizes
 
 Dropdown buttons are available in three sizes: small, medium (default), and large:
 
-<Canvas of={RcDropdownButtonStories.AllSizes} />
+<Canvas of={RcDropdownButtonStories.AllSizes} style={{ minHeight: '400px' }} />
 
 ## Buttons with Icons
 
 Dropdown buttons can include icons on the left side of the primary action button:
 
-<Canvas of={RcDropdownButtonStories.WithIcons} />
+<Canvas of={RcDropdownButtonStories.WithIcons} style={{ minHeight: '400px' }} />
 
 ## Disabled State
 
 Both the primary button and dropdown can be disabled together:
 
-<Canvas of={RcDropdownButtonStories.DisabledState} />
+<Canvas of={RcDropdownButtonStories.DisabledState} style={{ minHeight: '300px' }} />
 
 ## Empty Options
 
 When no options are provided, the dropdown shows a "No actions available" message:
 
-<Canvas of={RcDropdownButtonStories.EmptyOptions} />
+<Canvas of={RcDropdownButtonStories.EmptyOptions} style={{ height: '400px' }} />
