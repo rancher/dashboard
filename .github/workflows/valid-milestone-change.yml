@@ -2,89 +2,58 @@ name: Check for Unexpected Milestone Change
 
 on:
   issues:
-    types: [milestoned]
+    types: [milestoned, demilestoned, edited]
 
 permissions:
   issues: read
-
-env:
-  TEAM_NAME: "rancher/ui"
-
+ 
 jobs:
   notify-on-milestone-change:
+    if: |
+      github.event.action == 'milestoned' ||
+      github.event.action == 'demilestoned' ||
+      (github.event.action == 'edited' && github.event.changes.milestone)
+
     runs-on: ubuntu-latest
     steps:
-    - name: "Check if user is in a team"
-      id: check-team-membership
-      uses: actions/github-script@v7
-      with:
-        script: |
-          try {
-            // Get the team name from the environment variable.
-            const [org, teamSlug] = process.env.TEAM_NAME.split('/');
-            // Check if the user who triggered the event is a member of the specified team.
-            const { status } = await github.rest.teams.getMembershipForUserInOrg({
-                org: org,
-                team_slug: teamSlug,
-                username: context.payload.sender.login,
-            });
-
-            // Set an output variable based on the check.
-            // Status 200 means the user is a member, 404 means they are not.
-            console.log(`Membership check status: ${status}`);
-            if (status === 200) {
-                core.setOutput('is_member', 'true');
-            } else {
-                core.setOutput('is_member', 'false');
-            }
-          } catch (error) {
-            // If the user is not found, or there's an API error,
-            // we assume they are not a member for the purpose of this script.
-            console.error('An error occurred during team membership check:', error);
-            core.setOutput('is_member', 'false');
-          }
+    - name: Set Event Data
+      id: event_data
+      run: |
+        if [ "${{ github.event.action }}" == "milestoned" ]; then
+          echo "OLD_MILESTONE=None"
+          echo "NEW_MILESTONE=${{ github.event.issue.milestone.title }}"
+        
+        elif [ "${{ github.event.action }}" == "demilestoned" ]; then
+          echo "OLD_MILESTONE=${{ github.event.milestone.title }}"
+          echo "NEW_MILESTONE=None"
+        
+        elif [ "${{ github.event.action }}" == "edited" ]; then
+          echo "OLD_MILESTONE=${{ github.event.changes.milestone.from.title || 'None' }}"
+          echo "NEW_MILESTONE=${{ github.event.issue.milestone.title || 'None' }}"
+        fi >> $GITHUB_ENV
+        
+        echo "ACTOR=${{ github.event.sender.login }}" >> $GITHUB_ENV
+        echo "ISSUE_TITLE=${{ github.event.issue.title }}" >> $GITHUB_ENV
+        echo "ISSUE_URL=${{ github.event.issue.html_url }}" >> $GITHUB_ENV
+    - name: Check Team Membership
+      id: check_team
+      continue-on-error: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh api --silent \
+          /orgs/rancher/teams/ui/memberships/${{ github.event.sender.login }}
     - name: "Send Slack message if user is not a team member"
-      # This step only runs if the 'is_member' output from the previous step is 'false'.
-      if: steps.check-team-membership.outputs.is_member == 'false'
+      if: steps.check_team.conclusion == 'success'
       uses: slackapi/slack-github-action@v1.26.0
       with:
         payload: |
-          {
-            "blocks": [
-              {
-                "type": "header",
-                "text": {
-                  "type": "plain_text",
-                  "text": "🚨 Unexpected Milestone Changed on an Issue",
-                  "emoji": true
-                }
-              },
-              {
-                "type": "section",
-                "fields": [
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Issue:* <${{ github.event.issue.html_url }}|${{ github.event.issue.title }}>"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Changed by:* ${{ github.event.sender.login }}"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Old Milestone:* `${{ github.event.issue.milestone.title }}`"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*New Milestone:* `${{ github.event.issue.milestone.title }}`"
-                  },
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Reason:* The user who changed the milestone is not a member of ${{env.TEAM_NAME}}."
-                  }
-                ]
-              }
-            ]
-          }
+            {
+              "actor": "${{ env.ACTOR }}",
+              "issue_title": "${{ env.ISSUE_TITLE }}",
+              "issue_url": "${{ env.ISSUE_URL }}",
+              "milestone_new": "${{ env.NEW_MILESTONE }}",
+              "milestone_old": "${{ env.OLD_MILESTONE }}"
+            }
       env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WORKFLOW_MILESTONE_CHANGED_URL }}
