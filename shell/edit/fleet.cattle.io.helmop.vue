@@ -237,11 +237,11 @@ export default {
     },
 
     downstreamSecretsList() {
-      return (this.value.spec.helm.downstreamResources || []).filter((r) => r.kind === 'Secret').map((r) => r.name);
+      return (this.value.spec.downstreamResources || []).filter((r) => r.kind === 'Secret').map((r) => r.name);
     },
 
     downstreamConfigMapsList() {
-      return (this.value.spec.helm.downstreamResources || []).filter((r) => r.kind === 'ConfigMap').map((r) => r.name);
+      return (this.value.spec.downstreamResources || []).filter((r) => r.kind === 'ConfigMap').map((r) => r.name);
     },
   },
 
@@ -446,14 +446,14 @@ export default {
     updateDownstreamResources(kind, list) {
       switch (kind) {
       case 'Secret':
-        this.value.spec.helm.downstreamResources = [
-          ...(this.value.spec.helm.downstreamResources || []).filter((r) => r.kind !== 'Secret'),
+        this.value.spec.downstreamResources = [
+          ...(this.value.spec.downstreamResources || []).filter((r) => r.kind !== 'Secret'),
           ...(list || []).map((name) => ({ name, kind: 'Secret' })),
         ];
         break;
       case 'ConfigMap':
-        this.value.spec.helm.downstreamResources = [
-          ...(this.value.spec.helm.downstreamResources || []).filter((r) => r.kind !== 'ConfigMap'),
+        this.value.spec.downstreamResources = [
+          ...(this.value.spec.downstreamResources || []).filter((r) => r.kind !== 'ConfigMap'),
           ...(list || []).map((name) => ({ name, kind: 'ConfigMap' })),
         ];
         break;
