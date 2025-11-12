@@ -5,8 +5,7 @@ export type DropdownButtonRole = 'primary' | 'secondary';
 
 export type DropdownButtonOption = {
   label?: string;
-  icon?: string;
-  svg?: string;
+  icon?: RcIconType;
   disabled?: boolean;
   divider?: boolean;
   action?: string;

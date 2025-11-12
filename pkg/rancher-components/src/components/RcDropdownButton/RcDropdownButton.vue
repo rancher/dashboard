@@ -22,8 +22,8 @@ import {
   RcDropdownSeparator,
   RcDropdownTrigger
 } from '@components/RcDropdown';
+import { RcIcon } from '@components/RcIcon';
 import { RcDropdownButtonProps, DropdownButtonOption } from './types';
-import IconOrSvg from '@shell/components/IconOrSvg';
 
 const props = withDefaults(defineProps<RcDropdownButtonProps>(), {
   role:    'primary',
@@ -93,12 +93,10 @@ const handleDropdownOpen = (isOpen: boolean) => {
             @click="(e: MouseEvent) => handleDropdownSelect(e, option)"
           >
             <template #before>
-              <IconOrSvg
-                v-if="option.icon || option.svg"
-                :icon="option.icon"
-                :src="option.svg"
-                class="icon"
-                color="header"
+              <RcIcon
+                v-if="option.icon"
+                :type="option.icon"
+                size="none"
               />
             </template>
             {{ option.label }}
