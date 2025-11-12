@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { RcIcon } from '@components/RcIcon';
-import { RcIconSize, RcIconType } from '@components/RcIcon/types';
+import { RcIconSize, RcIconTypeToClass } from '@components/RcIcon/types';
 import { StatusDefinitions } from '@components/../utils/status';
 
 const meta: Meta<typeof RcIcon> = {
   component: RcIcon,
   argTypes:  {
     type: {
-      options:     Object.keys(RcIconType),
+      options:     Object.keys(RcIconTypeToClass),
       control:     { type: 'select' },
       description: `Determines which icon will be shown.`
     },
