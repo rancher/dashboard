@@ -78,6 +78,7 @@ describe('rcButton.vue', () => {
 
   it('emits deprecation warning for small prop', () => {
     const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
     mount(RcButton, { props: { small: true } });
 
     expect(consoleWarnSpy).toHaveBeenCalledWith(
@@ -88,6 +89,7 @@ describe('rcButton.vue', () => {
 
   it('does not emit deprecation warning when using new size prop', () => {
     const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
     mount(RcButton, { props: { size: 'small' } });
 
     expect(consoleWarnSpy).not.toHaveBeenCalled();
