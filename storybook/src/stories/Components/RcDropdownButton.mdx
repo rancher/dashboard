@@ -1,0 +1,42 @@
+import { Meta, Canvas, Story, Controls } from '@storybook/blocks';
+import * as RcDropdownButtonStories from './RcDropdownButton.stories';
+
+
+
+# RcDropdownButton
+
+Use RcDropdownButton for combining a primary action with additional dropdown options. This split button component provides a primary action button on the left and a dropdown menu on the right, allowing users to perform a main action or choose from alternative actions.
+
+<Canvas of={RcDropdownButtonStories.Default} layout="centered" />
+
+<Controls of={RcDropdownButtonStories.Default} />
+
+## Button Roles
+
+Different button roles for different purposes and visual hierarchy:
+
+<Canvas of={RcDropdownButtonStories.AllRoles} />
+
+## Button Sizes
+
+Dropdown buttons are available in three sizes: small, medium (default), and large:
+
+<Canvas of={RcDropdownButtonStories.AllSizes} />
+
+## Buttons with Icons
+
+Dropdown buttons can include icons on the left side of the primary action button:
+
+<Canvas of={RcDropdownButtonStories.WithIcons} />
+
+## Disabled State
+
+Both the primary button and dropdown can be disabled together:
+
+<Canvas of={RcDropdownButtonStories.DisabledState} />
+
+## Empty Options
+
+When no options are provided, the dropdown shows a "No actions available" message:
+
+<Canvas of={RcDropdownButtonStories.EmptyOptions} />
