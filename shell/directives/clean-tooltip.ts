@@ -1,4 +1,6 @@
-import { DirectiveBinding } from 'vue';
+import { DirectiveBinding, Directive } from 'vue';
+import { destroyTooltip, createTooltip } from 'floating-vue';
+import { purifyHTML } from '@shell/plugins/clean-html';
 
 // This is a singleton tooltip implementation.
 // It ensures that only one tooltip is active at a time, preventing multiple tooltips from appearing simultaneously.
@@ -35,9 +37,9 @@ interface TooltipOptions {
  * @param {object} delay The delay for showing and hiding the tooltip.
  */
 function showSingletonTooltip(target: HTMLElement, rawValue: string | { content: string }, placement: string, popperClass: string, delay: TooltipDelay) {
-  // If a tooltip is already active, hide it and reset the singleton instance.
+  // If a tooltip is already active, it should be hidden before showing the new one.
   if (singleton) {
-    singleton.hide();
+    destroyTooltip(currentTarget);
     singleton = null;
   }
 
@@ -50,10 +52,6 @@ function showSingletonTooltip(target: HTMLElement, rawValue: string | { content:
   if (!finalContent) {
     return;
   }
-
-  // Using 'require' instead of 'import' here to allow Jest to mock 'floating-vue' correctly in unit tests.
-  const { createTooltip } = require('floating-vue');
-
   // Create a new tooltip instance.
   singleton = createTooltip(target, {
     disposeTimeout: 250,
@@ -77,7 +75,7 @@ function hideSingletonTooltip(target: HTMLElement) {
   }
 
   if (currentTarget === target) {
-    singleton.hide();
+    destroyTooltip(target);
     singleton = null;
     currentTarget = null;
   }
@@ -89,9 +87,6 @@ function hideSingletonTooltip(target: HTMLElement) {
  * @returns {string|object} The purified content.
  */
 function purifyContent(value: string | { content: string }): string | { content: string } {
-  // Using 'require' instead of 'import' here to allow Jest to mock '@shell/plugins/clean-html' correctly in unit tests.
-  const { purifyHTML } = require('@shell/plugins/clean-html');
-
   if (typeof value === 'string') {
     return purifyHTML(value);
   } else if (
@@ -108,7 +103,7 @@ function purifyContent(value: string | { content: string }): string | { content:
 /**
  * A Vue directive that provides a clean singleton tooltip using floating-vue.
  */
-const cleanTooltipDirective = {
+const cleanTooltipDirective: Directive = {
   /**
    * Called when the directive is mounted to an element.
    * It sets up the tooltip options and adds event listeners.
