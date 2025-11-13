@@ -204,7 +204,7 @@ export default {
       switch (this.activeTab) {
       case TABS_VALUES.INSTALLED:
         // We never show built-in extensions as installed - installed are just the ones the user has installed
-        return all.filter((p) => !p.builtin && (!!p.installed || !!p.installing) && p.installableVersions?.length > 0);
+        return all.filter((p) => !p.builtin && (!!p.installed || !!p.installing));
       case TABS_VALUES.AVAILABLE:
         return all.filter((p) => !p.installed);
       case TABS_VALUES.BUILTIN:
@@ -284,6 +284,7 @@ export default {
         const latestNotCompatible = item.versions.find((version) => !version.isVersionCompatible);
 
         if (latestCompatible) {
+          item.primeOnly = latestCompatible?.annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true';
           item.experimental = latestCompatible?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true';
           item.certified = latestCompatible?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER;
 
@@ -292,6 +293,7 @@ export default {
           item.icon = latestCompatible.icon;
           item.created = latestCompatible.created;
         } else {
+          item.primeOnly = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.PRIME_ONLY, 'true');
           item.experimental = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true');
           item.certified = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER);
 
@@ -349,6 +351,7 @@ export default {
             installed:           true,
             installedVersion:    p.metadata?.version,
             builtin:             !!p.builtin,
+            primeOnly:           rancher?.annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true',
             experimental:        rancher?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
             certified:           rancher?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER
           };
@@ -381,6 +384,7 @@ export default {
             const installedVersion = (chart.installableVersions || []).find((v) => (v.appVersion ?? v.version) === p.version);
 
             if (installedVersion) {
+              chart.primeOnly = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true';
               chart.experimental = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true';
               chart.certified = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER;
             }
@@ -843,6 +847,10 @@ export default {
 
     getFooterItems(plugin) {
       const labels = [];
+
+      if (plugin.primeOnly) {
+        labels.push(this.t('plugins.labels.primeOnly'));
+      }
 
       if (plugin.builtin) {
         labels.push(this.t('plugins.labels.builtin'));
