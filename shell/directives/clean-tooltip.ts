@@ -18,6 +18,7 @@ interface TooltipHTMLElement extends HTMLElement {
   __tooltipPlacement__: string;
   __tooltipPopperClass__: string;
   __tooltipDelay__: TooltipDelay;
+  __tooltipTriggers__: string[];
 }
 
 interface TooltipOptions {
@@ -25,6 +26,7 @@ interface TooltipOptions {
   placement: string;
   popperClass: string;
   delay: TooltipDelay;
+  triggers: string[];
 }
 
 /**
@@ -113,7 +115,7 @@ const cleanTooltipDirective: Directive = {
   mounted(el: TooltipHTMLElement, binding: DirectiveBinding) {
     const { value, modifiers } = binding;
     const {
-      content, placement, popperClass, delay
+      content, placement, popperClass, delay, triggers
     } = getTooltipOptions(value, modifiers);
 
     // Store the tooltip options on the element for later use.
@@ -121,11 +123,19 @@ const cleanTooltipDirective: Directive = {
     el.__tooltipPlacement__ = placement;
     el.__tooltipPopperClass__ = popperClass;
     el.__tooltipDelay__ = delay;
+    el.__tooltipTriggers__ = triggers;
 
-    el.addEventListener('mouseenter', onMouseEnter);
-    el.addEventListener('mouseleave', onMouseLeave);
-    el.addEventListener('focus', onMouseEnter);
-    el.addEventListener('blur', onMouseLeave);
+    if (triggers.includes('hover')) {
+      el.addEventListener('mouseenter', onMouseEnter);
+      el.addEventListener('mouseleave', onMouseLeave);
+    }
+    if (triggers.includes('focus')) {
+      el.addEventListener('focus', onMouseEnter);
+      el.addEventListener('blur', onMouseLeave);
+    }
+    if (triggers.includes('click')) {
+      el.addEventListener('click', onMouseClick);
+    }
 
     if (content) {
       // Add a class to the element to indicate that it has a clean tooltip.
@@ -141,7 +151,7 @@ const cleanTooltipDirective: Directive = {
   updated(el: TooltipHTMLElement, binding: DirectiveBinding) {
     const { value, modifiers } = binding;
     const {
-      content, placement, popperClass, delay
+      content, placement, popperClass, delay, triggers
     } = getTooltipOptions(value, modifiers);
 
     // Update stored content and options
@@ -149,6 +159,7 @@ const cleanTooltipDirective: Directive = {
     el.__tooltipPlacement__ = placement;
     el.__tooltipPopperClass__ = popperClass;
     el.__tooltipDelay__ = delay;
+    el.__tooltipTriggers__ = triggers;
 
     // If this element's tooltip is currently shown, update it
     if (currentTarget === el) {
@@ -165,6 +176,7 @@ const cleanTooltipDirective: Directive = {
     el.removeEventListener('mouseleave', onMouseLeave);
     el.removeEventListener('focus', onMouseEnter);
     el.removeEventListener('blur', onMouseLeave);
+    el.removeEventListener('click', onMouseClick);
     el.classList.remove('has-clean-tooltip');
 
     // If this element's tooltip is currently shown, hide it
@@ -195,24 +207,43 @@ function onMouseLeave(e: MouseEvent | FocusEvent) {
 }
 
 /**
+ * Event handler for click events.
+ * @param {Event} e The event object.
+ */
+function onMouseClick(e: MouseEvent) {
+  const el = e.currentTarget as TooltipHTMLElement;
+
+  if (currentTarget === el) {
+    hideSingletonTooltip(el);
+  } else {
+    showSingletonTooltip(el, el.__tooltipValue__, el.__tooltipPlacement__, el.__tooltipPopperClass__, el.__tooltipDelay__);
+  }
+}
+
+/**
  * Parses the tooltip options from the directive's value and modifiers.
  * @param {string|object} value The value of the directive.
  * @param {object} modifiers The modifiers of the directive.
  * @returns {object} The parsed tooltip options.
  */
-function getTooltipOptions(value: string | { content?: string, placement?: string, popperClass?: string, delay?: TooltipDelay }, modifiers: Partial<Record<string, boolean>>): TooltipOptions {
+function getTooltipOptions(value: string | { content?: string, placement?: string, popperClass?: string, delay?: TooltipDelay, triggers?: string[] }, modifiers: Partial<Record<string, boolean>>): TooltipOptions {
   let content = '';
   let placement = 'top';
   let popperClass = '';
   let delay: TooltipDelay = { show: 250, hide: 100 };
+  let triggers: string[];
 
   if (typeof value === 'string') {
     content = value;
+    triggers = ['hover'];
   } else if (value && typeof value === 'object') {
     content = value.content || '';
     placement = value.placement || 'top';
     popperClass = value.popperClass || '';
     delay = value.delay || { show: 250, hide: 100 };
+    triggers = value.triggers || ['hover'];
+  } else {
+    triggers = ['hover'];
   }
 
   // Modifiers can also specify placement (e.g., v-clean-tooltip.bottom)
@@ -227,7 +258,7 @@ function getTooltipOptions(value: string | { content?: string, placement?: strin
   }
 
   return {
-    content, placement, popperClass, delay
+    content, placement, popperClass, delay, triggers
   };
 }
 
@@ -236,5 +267,6 @@ export default cleanTooltipDirective;
 // Exporting for unit testing purposes
 export {
   onMouseEnter,
-  onMouseLeave
+  onMouseLeave,
+  onMouseClick
 };
