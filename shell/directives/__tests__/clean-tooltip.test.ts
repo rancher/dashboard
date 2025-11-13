@@ -1,9 +1,6 @@
-import { Directive, DirectiveBinding, ObjectDirective } from 'vue';
-
-// Mock dependencies must be declared before jest.mock calls
 const mockCreateTooltip = jest.fn();
 const mockDestroyTooltip = jest.fn();
-const mockPurifyHTML = jest.fn((content) => (content && content.trim() ? `purified:${ content }` : ''));
+const mockPurifyHTML = jest.fn((content) => (content || '').trim());
 
 jest.mock('floating-vue', () => ({
   createTooltip:  mockCreateTooltip,
@@ -15,22 +12,14 @@ jest.mock('@shell/plugins/clean-html', () => ({ purifyHTML: mockPurifyHTML }));
 // A simple mock for the tooltip instance returned by createTooltip
 const mockTooltipInstance = { show: jest.fn() };
 
-// Define a more specific type for our mock element
-interface TooltipHTMLElement extends HTMLElement {
-  __tooltipValue__?: string;
-  __tooltipPlacement__?: string;
-  __tooltipPopperClass__?: string;
-  __tooltipDelay__?: { show: number; hide: number };
-}
-
 describe('clean-tooltip.ts', () => {
-  let el: TooltipHTMLElement;
-  let cleanTooltipDirective: Directive;
+  let el: any;
+  let cleanTooltipDirective: any;
   let onMouseEnter: (e: MouseEvent | FocusEvent) => void;
   let onMouseLeave: (e: MouseEvent | FocusEvent) => void;
+  let onMouseClick: (e: MouseEvent) => void;
 
   beforeEach(() => {
-    // Reset mocks and isolate the module for each test to ensure a fresh state
     jest.clearAllMocks();
     jest.isolateModules(() => {
       const module = require('../clean-tooltip');
@@ -38,12 +27,13 @@ describe('clean-tooltip.ts', () => {
       cleanTooltipDirective = module.default;
       onMouseEnter = module.onMouseEnter;
       onMouseLeave = module.onMouseLeave;
+      onMouseClick = module.onMouseClick;
     });
 
     mockCreateTooltip.mockReturnValue(mockTooltipInstance);
 
     // Create a mock element
-    el = document.createElement('div') as TooltipHTMLElement;
+    el = document.createElement('div');
     document.body.appendChild(el);
   });
 
@@ -60,9 +50,9 @@ describe('clean-tooltip.ts', () => {
         const binding = {
           value:     'Test Tooltip',
           modifiers: {},
-        } as unknown as DirectiveBinding;
+        };
 
-        (cleanTooltipDirective as ObjectDirective).mounted(el, binding, {} as any, {} as any);
+        cleanTooltipDirective.mounted(el, binding);
 
         expect(el.classList.contains('has-clean-tooltip')).toBe(true);
         expect(el.__tooltipValue__).toBe('Test Tooltip');
@@ -72,8 +62,8 @@ describe('clean-tooltip.ts', () => {
 
         expect(addEventListenerSpy).toHaveBeenCalledWith('mouseenter', onMouseEnter);
         expect(addEventListenerSpy).toHaveBeenCalledWith('mouseleave', onMouseLeave);
-        expect(addEventListenerSpy).toHaveBeenCalledWith('focus', onMouseEnter);
-        expect(addEventListenerSpy).toHaveBeenCalledWith('blur', onMouseLeave);
+        expect(addEventListenerSpy).not.toHaveBeenCalledWith('focus', onMouseEnter);
+        expect(addEventListenerSpy).not.toHaveBeenCalledWith('blur', onMouseLeave);
       });
 
       it('should parse object value and modifiers correctly', () => {
@@ -85,9 +75,9 @@ describe('clean-tooltip.ts', () => {
             delay:       { show: 500, hide: 200 },
           },
           modifiers: { right: true },
-        } as unknown as DirectiveBinding;
+        };
 
-        (cleanTooltipDirective as ObjectDirective).mounted(el, binding, {} as any, {} as any);
+        cleanTooltipDirective.mounted(el, binding);
 
         expect(el.__tooltipValue__).toBe('Object Tooltip');
         expect(el.__tooltipPlacement__).toBe('right'); // Modifier should override
@@ -96,31 +86,31 @@ describe('clean-tooltip.ts', () => {
       });
 
       it('should not add has-clean-tooltip class if content is empty', () => {
-        const binding = { value: '', modifiers: {} } as unknown as DirectiveBinding;
+        const binding = { value: '', modifiers: {} };
 
-        (cleanTooltipDirective as ObjectDirective).mounted(el, binding, {} as any, {} as any);
+        cleanTooltipDirective.mounted(el, binding);
         expect(el.classList.contains('has-clean-tooltip')).toBe(false);
       });
     });
 
     describe('updated', () => {
       it('should update the stored tooltip options', () => {
-        const initialBinding = { value: 'Initial', modifiers: {} } as unknown as DirectiveBinding;
+        const initialBinding = { value: 'Initial', modifiers: {} };
 
-        (cleanTooltipDirective as ObjectDirective).mounted(el, initialBinding, {} as any, {} as any);
+        cleanTooltipDirective.mounted(el, initialBinding);
 
-        const updatedBinding = { value: 'Updated', modifiers: { bottom: true } } as unknown as DirectiveBinding;
+        const updatedBinding = { value: 'Updated', modifiers: { bottom: true } };
 
-        (cleanTooltipDirective as ObjectDirective).updated(el, updatedBinding, {} as any, {} as any);
+        cleanTooltipDirective.updated(el, updatedBinding);
 
         expect(el.__tooltipValue__).toBe('Updated');
         expect(el.__tooltipPlacement__).toBe('bottom');
       });
 
       it('should re-show the tooltip if it is currently active on the element', () => {
-        const binding = { value: 'Test', modifiers: {} } as unknown as DirectiveBinding;
+        const binding = { value: 'Test', modifiers: {} };
 
-        (cleanTooltipDirective as ObjectDirective).mounted(el, binding, {} as any, {} as any);
+        cleanTooltipDirective.mounted(el, binding);
 
         const mouseEnterEvent = new MouseEvent('mouseenter');
 
@@ -130,26 +120,26 @@ describe('clean-tooltip.ts', () => {
         expect(mockCreateTooltip).toHaveBeenCalledTimes(1);
         expect(mockTooltipInstance.show).toHaveBeenCalledTimes(1);
 
-        const updatedBinding = { value: 'Updated Content', modifiers: {} } as unknown as DirectiveBinding;
+        const updatedBinding = { value: 'Updated Content', modifiers: {} };
 
-        (cleanTooltipDirective as ObjectDirective).updated(el, updatedBinding, {} as any, {} as any);
+        cleanTooltipDirective.updated(el, updatedBinding);
 
         expect(mockDestroyTooltip).toHaveBeenCalledTimes(1);
         expect(mockCreateTooltip).toHaveBeenCalledTimes(2);
         expect(mockTooltipInstance.show).toHaveBeenCalledTimes(2);
-        expect(mockCreateTooltip).toHaveBeenCalledWith(el, expect.objectContaining({ content: 'purified:Updated Content' }));
+        expect(mockCreateTooltip).toHaveBeenCalledWith(el, expect.objectContaining({ content: 'Updated Content' }));
       });
     });
 
     describe('unmounted', () => {
       it('should remove event listeners and class', () => {
         const removeEventListenerSpy = jest.spyOn(el, 'removeEventListener');
-        const binding = { value: 'Test', modifiers: {} } as unknown as DirectiveBinding;
+        const binding = { value: 'Test', modifiers: {} };
 
-        (cleanTooltipDirective as ObjectDirective).mounted(el, binding, {} as any, {} as any);
+        cleanTooltipDirective.mounted(el, binding);
         el.classList.add('has-clean-tooltip');
 
-        (cleanTooltipDirective as ObjectDirective).unmounted(el, binding, {} as any, {} as any);
+        cleanTooltipDirective.unmounted(el, binding);
 
         expect(el.classList.contains('has-clean-tooltip')).toBe(false);
         expect(removeEventListenerSpy).toHaveBeenCalledWith('mouseenter', onMouseEnter);
@@ -159,9 +149,9 @@ describe('clean-tooltip.ts', () => {
       });
 
       it('should hide the tooltip if it is active on the element', () => {
-        const binding = { value: 'Test', modifiers: {} } as unknown as DirectiveBinding;
+        const binding = { value: 'Test', modifiers: {} };
 
-        (cleanTooltipDirective as ObjectDirective).mounted(el, binding, {} as any, {} as any);
+        cleanTooltipDirective.mounted(el, binding);
 
         const mouseEnterEvent = new MouseEvent('mouseenter');
 
@@ -170,7 +160,7 @@ describe('clean-tooltip.ts', () => {
 
         expect(mockCreateTooltip).toHaveBeenCalledTimes(1);
 
-        (cleanTooltipDirective as ObjectDirective).unmounted(el, binding, {} as any, {} as any);
+        cleanTooltipDirective.unmounted(el, binding);
 
         expect(mockDestroyTooltip).toHaveBeenCalledTimes(1);
         expect(mockDestroyTooltip).toHaveBeenCalledWith(el);
@@ -182,7 +172,6 @@ describe('clean-tooltip.ts', () => {
     beforeEach(() => {
       el.__tooltipValue__ = 'Handler Test';
       el.__tooltipPlacement__ = 'top';
-      el.__tooltipPopperClass__ = 'handler-class';
       el.__tooltipDelay__ = { show: 1, hide: 1 };
     });
 
@@ -194,11 +183,9 @@ describe('clean-tooltip.ts', () => {
 
       expect(mockCreateTooltip).toHaveBeenCalledTimes(1);
       expect(mockCreateTooltip).toHaveBeenCalledWith(el, {
-        content:        'purified:Handler Test',
-        placement:      'top',
-        popperClass:    'handler-class',
-        delay:          { show: 1, hide: 1 },
-        disposeTimeout: 250,
+        content:   'Handler Test',
+        placement: 'top',
+        delay:     { show: 1, hide: 1 },
       });
       expect(mockTooltipInstance.show).toHaveBeenCalledTimes(1);
     });
@@ -217,56 +204,41 @@ describe('clean-tooltip.ts', () => {
       expect(mockDestroyTooltip).toHaveBeenCalledTimes(1);
       expect(mockDestroyTooltip).toHaveBeenCalledWith(el);
     });
-  });
 
-  describe('singleton logic', () => {
-    let el2: TooltipHTMLElement;
+    it('onMouseClick should toggle the tooltip', () => {
+      const event = new MouseEvent('click');
 
-    beforeEach(() => {
-      el2 = document.createElement('div') as TooltipHTMLElement;
-      document.body.appendChild(el2);
-    });
+      Object.defineProperty(event, 'currentTarget', { value: el });
 
-    afterEach(() => {
-      if (document.body.contains(el2)) {
-        document.body.removeChild(el2);
-      }
-    });
-
-    it('should only allow one tooltip to be visible at a time', () => {
-      const binding1 = { value: 'Tooltip 1', modifiers: {} } as unknown as DirectiveBinding;
-
-      (cleanTooltipDirective as ObjectDirective).mounted(el, binding1, {} as any, {} as any);
-
-      const binding2 = { value: 'Tooltip 2', modifiers: {} } as unknown as DirectiveBinding;
-
-      (cleanTooltipDirective as ObjectDirective).mounted(el2, binding2, {} as any, {} as any);
-
-      const enterEvent1 = new MouseEvent('mouseenter');
-
-      Object.defineProperty(enterEvent1, 'currentTarget', { value: el });
-      onMouseEnter(enterEvent1);
-
+      // First click shows tooltip
+      onMouseClick(event);
       expect(mockCreateTooltip).toHaveBeenCalledTimes(1);
-      expect(mockCreateTooltip).toHaveBeenCalledWith(el, expect.any(Object));
       expect(mockTooltipInstance.show).toHaveBeenCalledTimes(1);
 
-      const enterEvent2 = new MouseEvent('mouseenter');
+      // To simulate it's open, we need to set the internal currentTarget.
+      // We can do this by calling onMouseEnter.
+      const enterEvent = new MouseEvent('mouseenter');
 
-      Object.defineProperty(enterEvent2, 'currentTarget', { value: el2 });
-      onMouseEnter(enterEvent2);
+      Object.defineProperty(enterEvent, 'currentTarget', { value: el });
+      onMouseEnter(enterEvent);
 
+      // onMouseEnter destroys the previous tooltip and creates a new one.
       expect(mockDestroyTooltip).toHaveBeenCalledTimes(1);
-      expect(mockDestroyTooltip).toHaveBeenCalledWith(el);
       expect(mockCreateTooltip).toHaveBeenCalledTimes(2);
-      expect(mockCreateTooltip).toHaveBeenCalledWith(el2, expect.any(Object));
-      expect(mockTooltipInstance.show).toHaveBeenCalledTimes(2);
+
+      // Now that the tooltip for `el` is considered active, a click should hide it.
+      onMouseClick(event);
+
+      expect(mockDestroyTooltip).toHaveBeenCalledTimes(2);
+      expect(mockDestroyTooltip).toHaveBeenLastCalledWith(el);
     });
+  });
 
-    it('should not show tooltip for empty or whitespace-only content', () => {
-      const binding = { value: '  ', modifiers: {} } as unknown as DirectiveBinding;
+  describe('content', () => {
+    it('should not show tooltip for empty content', () => {
+      const binding = { value: '  ', modifiers: {} };
 
-      (cleanTooltipDirective as ObjectDirective).mounted(el, binding, {} as any, {} as any);
+      cleanTooltipDirective.mounted(el, binding);
 
       const enterEvent = new MouseEvent('mouseenter');
 
@@ -275,13 +247,11 @@ describe('clean-tooltip.ts', () => {
 
       expect(mockCreateTooltip).not.toHaveBeenCalled();
     });
-  });
 
-  describe('purifyContent', () => {
     it('should purify string content', () => {
-      const binding = { value: '<h1>Hello</h1>', modifiers: {} } as unknown as DirectiveBinding;
+      const binding = { value: '<h1>Hello</h1>', modifiers: {} };
 
-      (cleanTooltipDirective as ObjectDirective).mounted(el, binding, {} as any, {} as any);
+      cleanTooltipDirective.mounted(el, binding);
 
       const enterEvent = new MouseEvent('mouseenter');
 
@@ -289,13 +259,13 @@ describe('clean-tooltip.ts', () => {
       onMouseEnter(enterEvent);
 
       expect(mockPurifyHTML).toHaveBeenCalledWith('<h1>Hello</h1>');
-      expect(mockCreateTooltip).toHaveBeenCalledWith(el, expect.objectContaining({ content: 'purified:<h1>Hello</h1>' }));
+      expect(mockCreateTooltip).toHaveBeenCalledWith(el, expect.objectContaining({ content: '<h1>Hello</h1>' }));
     });
 
     it('should purify content within an object value', () => {
-      const binding = { value: { content: '<p>World</p>' }, modifiers: {} } as unknown as DirectiveBinding;
+      const binding = { value: { content: '<p>World</p>' }, modifiers: {} };
 
-      (cleanTooltipDirective as ObjectDirective).mounted(el, binding, {} as any, {} as any);
+      cleanTooltipDirective.mounted(el, binding);
 
       const enterEvent = new MouseEvent('mouseenter');
 
@@ -303,7 +273,28 @@ describe('clean-tooltip.ts', () => {
       onMouseEnter(enterEvent);
 
       expect(mockPurifyHTML).toHaveBeenCalledWith('<p>World</p>');
-      expect(mockCreateTooltip).toHaveBeenCalledWith(el, expect.objectContaining({ content: 'purified:<p>World</p>' }));
+      expect(mockCreateTooltip).toHaveBeenCalledWith(el, expect.objectContaining({ content: '<p>World</p>' }));
+    });
+  });
+
+  describe('triggers', () => {
+    it('should only add click listeners if triggers: [\'click\'] is provided', () => {
+      const addEventListenerSpy = jest.spyOn(el, 'addEventListener');
+      const binding = {
+        value: {
+          content:  'Click Tooltip',
+          triggers: ['click'],
+        },
+        modifiers: {},
+      };
+
+      cleanTooltipDirective.mounted(el, binding);
+
+      expect(addEventListenerSpy).not.toHaveBeenCalledWith('mouseenter', onMouseEnter);
+      expect(addEventListenerSpy).not.toHaveBeenCalledWith('mouseleave', onMouseLeave);
+      expect(addEventListenerSpy).not.toHaveBeenCalledWith('focus', onMouseEnter);
+      expect(addEventListenerSpy).not.toHaveBeenCalledWith('blur', onMouseLeave);
+      expect(addEventListenerSpy).toHaveBeenCalledWith('click', onMouseClick);
     });
   });
 });

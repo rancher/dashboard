@@ -56,7 +56,6 @@ function showSingletonTooltip(target: HTMLElement, rawValue: string | { content:
   }
   // Create a new tooltip instance.
   singleton = createTooltip(target, {
-    disposeTimeout: 250,
     content,
     placement,
     popperClass,
