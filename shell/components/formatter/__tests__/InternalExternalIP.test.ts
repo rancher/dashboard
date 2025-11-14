@@ -24,7 +24,7 @@ describe('component: InternalExternalIP', () => {
         components: { 'v-dropdown': { name: 'v-dropdown', template: '<div><slot /><slot name="popper" /></div>' } },
         directives: {
           'clean-tooltip': (el, binding) => {
-            el.setAttribute('v-clean-tooltip', binding.value);
+            el.setAttribute('v-clean-tooltip', binding.value.content);
           }
         },
         mocks: { $store: { getters: mockGetters } }
