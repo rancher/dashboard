@@ -5,7 +5,7 @@ import { purifyHTML } from '@shell/plugins/clean-html';
 // This is a singleton tooltip implementation that improves performance on pages with many tooltips.
 // Instead of instantiating a Vue component for every tooltip on the page, this directive attaches lightweight event listeners.
 // It then imperatively creates and destroys a single tooltip instance as needed, avoiding the high upfront memory and processing cost of many Vue components.
-let singleton: any = null;
+let singleton: ReturnType<typeof createTooltip> | null = null;
 let currentTarget: HTMLElement | null = null;
 
 interface TooltipDelay {
@@ -60,7 +60,7 @@ function showSingletonTooltip(target: HTMLElement, rawValue: string | { content:
     placement,
     popperClass,
     delay
-  });
+  }, {}); // Pass an empty object for modifiers to fix TypeScript complaint
 
   singleton.show();
   currentTarget = target;
