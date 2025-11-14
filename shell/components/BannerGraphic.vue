@@ -20,15 +20,26 @@ export default {
     },
   },
 
-  data() {
-    const globalSettings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
-    const setting = globalSettings?.find((gs) => gs.id === SETTING.BRAND);
-    const brandMeta = getBrandMeta(setting?.value);
-    const banner = brandMeta?.banner || {};
-    const align = banner.textAlign || 'center';
-    const bannerClass = banner.bannerClass || '';
+  computed: {
+    brandSetting() {
+      const globalSettings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
 
-    return { alignClass: `banner-text-${ align }`, bannerClass };
+      return globalSettings?.find((gs) => gs.id === SETTING.BRAND);
+    },
+    brandMeta() {
+      return getBrandMeta(this.brandSetting?.value);
+    },
+    banner() {
+      return this.brandMeta?.banner || {};
+    },
+    alignClass() {
+      const align = this.banner.textAlign || 'center';
+
+      return `banner-text-${ align }`;
+    },
+    bannerClass() {
+      return this.banner.bannerClass || '';
+    }
   }
 };
 </script>

@@ -30,41 +30,64 @@ export default {
     },
   },
 
-  data() {
-    const t = this.question.type;
+  methods: {
+    mapResourcesToOptions(resources) {
+      return resources.map((r) => {
+        if (r.id) {
+          return {
+            label: r.nameDisplay || r.metadata.name,
+            value: r.metadata.name
+          };
+        } else {
+          return r;
+        }
+      });
+    },
 
-    let typeName;
+  },
 
-    const match = t.match(/^reference\[(.*)\]$/);
+  computed: {
+    typeName() {
+      const t = this.question.type;
+      let typeName;
+      const match = t.match(/^reference\[(.*)\]$/);
 
-    if ( match ) {
-      typeName = match?.[1];
-    } else {
-      typeName = LEGACY_MAP[t] || t;
-    }
+      if ( match ) {
+        typeName = match?.[1];
+      } else {
+        typeName = LEGACY_MAP[t] || t;
+      }
 
-    let typeSchema;
+      return typeName;
+    },
 
-    if ( typeName ) {
-      typeSchema = this.$store.getters[`${ this.inStore }/schemaFor`](typeName);
-    }
+    typeSchema() {
+      let typeSchema;
 
-    return {
-      typeName,
-      typeSchema,
-      all:                 [],
-      allResourceSettings: {
+      if ( this.typeName ) {
+        typeSchema = this.$store.getters[`${ this.inStore }/schemaFor`](this.typeName);
+      }
+
+      return typeSchema;
+    },
+
+    allResourceSettings() {
+      return {
         updateResources: (all) => {
           // Filter to only include required namespaced resources
           const resources = this.isNamespaced ? all.filter((r) => r.metadata.namespace === this.targetNamespace) : all;
 
           return this.mapResourcesToOptions(resources);
         }
-      },
-      paginateResourceSetting: {
+      };
+    },
+
+    paginateResourceSetting() {
+      return {
         updateResources: (resources) => {
           return this.mapResourcesToOptions(resources);
         },
+
         /**
           * of type PaginateTypeOverridesFn
           * @param [LabelSelectPaginationFunctionOptions] opts
@@ -83,27 +106,9 @@ export default {
             classify:         true,
           };
         }
-      },
-    };
-  },
-
-  methods: {
-    mapResourcesToOptions(resources) {
-      return resources.map((r) => {
-        if (r.id) {
-          return {
-            label: r.nameDisplay || r.metadata.name,
-            value: r.metadata.name
-          };
-        } else {
-          return r;
-        }
-      });
+      };
     },
 
-  },
-
-  computed: {
     isNamespaced() {
       return !!this.typeSchema?.attributes?.namespaced;
     },

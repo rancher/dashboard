@@ -69,27 +69,10 @@ export default {
   },
 
   data() {
-    const { initialYamlValues, value } = this;
-    let curValue;
-    let original;
-
-    if ( this.asObject ) {
-      curValue = saferDump(value);
-    } else {
-      curValue = value || '';
-    }
-
-    if ( this.asObject && initialYamlValues) {
-      original = saferDump(initialYamlValues);
-    } else {
-      original = initialYamlValues;
-    }
-
-    if ( isEmpty(original) ) {
-      original = value;
-    }
-
-    return { original, curValue };
+    return {
+      original: null,
+      curValue: null,
+    };
   },
 
   computed: {
@@ -160,6 +143,31 @@ export default {
         this.$refs.yamluploader.click();
       }
     },
+  },
+
+  created() {
+    const { initialYamlValues, value } = this;
+    let curValue;
+    let original;
+
+    if ( this.asObject ) {
+      curValue = saferDump(value);
+    } else {
+      curValue = value || '';
+    }
+
+    if ( this.asObject && initialYamlValues) {
+      original = saferDump(initialYamlValues);
+    } else {
+      original = initialYamlValues;
+    }
+
+    if ( isEmpty(original) ) {
+      original = value;
+    }
+
+    this.original = original;
+    this.curValue = curValue;
   },
 
   methods: {

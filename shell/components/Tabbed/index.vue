@@ -105,6 +105,14 @@ export default {
   },
 
   data() {
+    return {
+      tabs:          [],
+      extensionTabs: [],
+      activeTabName: null
+    };
+  },
+
+  created() {
     const extensionTabs = this.showExtensionTabs ? getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams) || [] : [];
 
     const parsedExtTabs = extensionTabs.map((item) => {
@@ -114,11 +122,8 @@ export default {
       };
     });
 
-    return {
-      tabs:          [...parsedExtTabs],
-      extensionTabs: parsedExtTabs,
-      activeTabName: null
-    };
+    this.tabs.push(...parsedExtTabs);
+    this.extensionTabs = parsedExtTabs;
   },
 
   computed: {
