@@ -321,7 +321,7 @@ export default {
 
       this.selectedCard = selected;
 
-      this.$shell.slideInPanel({
+      this.$shell.slideIn.open({
         component:      ResourceDetails,
         componentProps: {
           value,
