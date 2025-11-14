@@ -1,6 +1,9 @@
 <script lang="ts" setup>
-import { ref, reactive, watch, onMounted } from 'vue';
+import {
+  ref, reactive, watch, onMounted, toValue
+} from 'vue';
 import { useRouter, onBeforeRouteUpdate } from 'vue-router';
+import { useForm, useIsFormValid, useIsFormDirty } from 'vee-validate';
 
 import UserRetentionHeader from '@shell/components/user.retention/user-retention-header.vue';
 import Footer from '@shell/components/form/Footer.vue';
@@ -21,13 +24,6 @@ import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 import dayjs from 'dayjs';
 
 const store = useStore();
-const userRetentionSettings = reactive<{[id: string]: string | null }>({
-  [SETTING.DISABLE_INACTIVE_USER_AFTER]: null,
-  [SETTING.DELETE_INACTIVE_USER_AFTER]:  null,
-  [SETTING.USER_RETENTION_CRON]:         null,
-  [SETTING.USER_RETENTION_DRY_RUN]:      null,
-  [SETTING.USER_LAST_LOGIN_DEFAULT]:     null,
-});
 const authUserSessionTtlMinutes = ref<Setting | null>(null);
 const disableAfterPeriod = ref(false);
 const deleteAfterPeriod = ref(false);
@@ -38,12 +34,46 @@ const {
   validateDeleteInactiveUserAfterDuration,
   validateDeleteInactiveUserAfter,
   validateDurationAgainstAuthUserSession,
-  setValidation,
   removeValidation,
   addValidation,
-  isFormValid,
 } = useUserRetentionValidation(disableAfterPeriod, deleteAfterPeriod, authUserSessionTtlMinutes);
 let settings: { [id: string]: Setting } = {};
+
+const validationSchema = {
+  [SETTING.DISABLE_INACTIVE_USER_AFTER]: (val: string) => {
+    const error = validateDisableInactiveUserAfterDuration(val) ||
+      validateDurationAgainstAuthUserSession(val);
+
+    return error ?? true;
+  },
+  [SETTING.DELETE_INACTIVE_USER_AFTER]: (val: string) => {
+    const error = validateDeleteInactiveUserAfterDuration(val) ||
+      validateDurationAgainstAuthUserSession(val) ||
+      validateDeleteInactiveUserAfter(val);
+
+    return error ?? true;
+  },
+  [SETTING.USER_RETENTION_CRON]: (val: string) => {
+    const error = validateUserRetentionCron(val);
+
+    return error ?? true;
+  },
+};
+
+const userRetentionSettings = reactive<{[id: string]: string | undefined }>({
+  [SETTING.DISABLE_INACTIVE_USER_AFTER]: undefined,
+  [SETTING.DELETE_INACTIVE_USER_AFTER]:  undefined,
+  [SETTING.USER_RETENTION_CRON]:         undefined,
+  [SETTING.USER_RETENTION_DRY_RUN]:      undefined,
+  [SETTING.USER_LAST_LOGIN_DEFAULT]:     undefined,
+});
+
+const { values, errors, meta } = useForm({
+  validationSchema,
+  initialValues: toValue(userRetentionSettings),
+});
+
+const isFormValid = useIsFormDirty() && useIsFormValid();
 
 /**
  * Watches the disable after period and removes the value if the checkbox is
@@ -51,7 +81,7 @@ let settings: { [id: string]: Setting } = {};
  */
 watch(disableAfterPeriod, (newVal) => {
   if (!newVal) {
-    userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER] = null;
+    userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER] = undefined;
 
     return;
   }
@@ -65,7 +95,7 @@ watch(disableAfterPeriod, (newVal) => {
  */
 watch(deleteAfterPeriod, (newVal) => {
   if (!newVal) {
-    userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER] = null;
+    userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER] = undefined;
 
     return;
   }
@@ -81,7 +111,7 @@ watch(deleteAfterPeriod, (newVal) => {
 watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDeleteAfterPeriod]) => {
   if (!newDisableAfterPeriod && !newDeleteAfterPeriod) {
     ids.forEach((key) => {
-      userRetentionSettings[key] = null;
+      userRetentionSettings[key] = undefined;
     });
 
     removeValidation(SETTING.USER_RETENTION_CRON);
@@ -198,13 +228,12 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
           />
           <labeled-input
             v-model:value="userRetentionSettings[SETTING.DISABLE_INACTIVE_USER_AFTER]"
+            :name="SETTING.DISABLE_INACTIVE_USER_AFTER"
             data-testid="disableAfterPeriodInput"
             :tooltip="t('user.retention.edit.form.disableAfter.input.tooltip')"
             class="input-field"
             :label="t('user.retention.edit.form.disableAfter.input.label')"
             :disabled="!disableAfterPeriod"
-            :rules="[validateDisableInactiveUserAfterDuration, validateDurationAgainstAuthUserSession]"
-            @update:validation="e => setValidation(SETTING.DISABLE_INACTIVE_USER_AFTER, e)"
           />
         </div>
         <div class="input-fieldset">
@@ -215,14 +244,13 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
           />
           <labeled-input
             v-model:value="userRetentionSettings[SETTING.DELETE_INACTIVE_USER_AFTER]"
+            :name="SETTING.DELETE_INACTIVE_USER_AFTER"
             data-testid="deleteAfterPeriodInput"
             :tooltip="t('user.retention.edit.form.deleteAfter.input.tooltip')"
             class="input-field"
             :label="t('user.retention.edit.form.deleteAfter.input.label')"
             :sub-label="t('user.retention.edit.form.deleteAfter.input.subLabel')"
             :disabled="!deleteAfterPeriod"
-            :rules="[validateDeleteInactiveUserAfterDuration, validateDurationAgainstAuthUserSession, validateDeleteInactiveUserAfter]"
-            @update:validation="e => setValidation(SETTING.DELETE_INACTIVE_USER_AFTER, e)"
           />
         </div>
         <template
@@ -231,15 +259,14 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
           <div class="input-fieldset pt-12">
             <labeled-input
               v-model:value="userRetentionSettings[SETTING.USER_RETENTION_CRON]"
+              :name="SETTING.USER_RETENTION_CRON"
               data-testid="userRetentionCron"
               class="input-field"
               required
               type="cron"
               :tooltip="t('user.retention.edit.form.cron.subLabel')"
-              :rules="[validateUserRetentionCron]"
               :label="t('user.retention.edit.form.cron.label')"
               :require-dirty="false"
-              @update:validation="e => setValidation(SETTING.USER_RETENTION_CRON, e)"
             />
           </div>
           <div class="input-fieldset condensed pt-12">
@@ -265,6 +292,10 @@ onBeforeRouteUpdate((_to: unknown, _from: unknown) => {
         </template>
       </div>
     </div>
+    <pre>values: {{ values }}</pre>
+    <pre>errors: {{ errors }}</pre>
+    <pre>meta: {{ meta }}</pre>
+    <pre>isFormValid: {{ isFormValid }}</pre>
     <Footer
       class="footer-user-retention"
       mode="edit"
