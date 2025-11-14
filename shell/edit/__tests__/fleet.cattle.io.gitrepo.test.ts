@@ -109,7 +109,7 @@ describe.each([
     const correctDriftCheckbox = wrapper.find('[data-testid="gitRepo-correctDrift-checkbox"]');
     const tooltip = wrapper.find('[data-testid="gitRepo-correctDrift-checkbox"]');
 
-    expect(tooltip.element.classList).toContain('v-popper--has-tooltip');
+    expect(tooltip.element.classList).toContain('has-clean-tooltip');
     expect(correctDriftCheckbox.exists()).toBeTruthy();
     expect(correctDriftCheckbox.attributes().value).toBeFalsy();
   });
@@ -118,7 +118,7 @@ describe.each([
     const correctDriftCheckbox = wrapper.find('[data-testid="gitRepo-keepResources-checkbox"]');
     const tooltip = wrapper.find('[data-testid="gitRepo-keepResources-checkbox"]');
 
-    expect(tooltip.element.classList).toContain('v-popper--has-tooltip');
+    expect(tooltip.element.classList).toContain('has-clean-tooltip');
     expect(correctDriftCheckbox.exists()).toBeTruthy();
     expect(correctDriftCheckbox.attributes().value).toBeFalsy();
   });
