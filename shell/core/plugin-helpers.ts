@@ -147,8 +147,8 @@ export function getApplicableExtensionEnhancements<T>(
   const extensionEnhancements: T[] = [];
 
   // gate it so that we prevent errors on older versions of dashboard
-  if (pluginCtx.$plugin?.getUIConfig) {
-    const actions = pluginCtx.$plugin.getUIConfig(actionType, uiArea);
+  if (pluginCtx.$extension?.getUIConfig) {
+    const actions = pluginCtx.$extension.getUIConfig(actionType, uiArea);
 
     actions.forEach((action: any, i: number) => {
       if (checkExtensionRouteBinding(currRoute, action.locationConfig, context || {})) {

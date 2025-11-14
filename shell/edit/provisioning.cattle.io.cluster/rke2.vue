@@ -502,7 +502,7 @@ export default {
      * 2) Override via hardcoded setting
      */
     cloudCredentialsOverride() {
-      const cloudCredential = this.$plugin.getDynamic('cloud-credential', this.provider);
+      const cloudCredential = this.$extension.getDynamic('cloud-credential', this.provider);
 
       if (cloudCredential === undefined) {
         return CLOUD_CREDENTIAL_OVERRIDE[this.provider];
@@ -527,16 +527,16 @@ export default {
      * Extension provider where being provisioned by an extension
      */
     extensionProvider() {
-      const extClass = this.$plugin.getDynamic('provisioner', this.provider);
+      const extClass = this.$extension.getDynamic('provisioner', this.provider);
 
       if (extClass) {
         return new extClass({
-          dispatch: this.$store.dispatch,
-          getters:  this.$store.getters,
-          axios:    this.$store.$axios,
-          $plugin:  this.$store.app.$plugin,
-          $t:       this.t,
-          isCreate: this.isCreate
+          dispatch:   this.$store.dispatch,
+          getters:    this.$store.getters,
+          axios:      this.$store.$axios,
+          $extension: this.$store.app.$extension,
+          $t:         this.t,
+          isCreate:   this.isCreate
         });
       }
 

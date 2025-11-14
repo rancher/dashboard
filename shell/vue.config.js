@@ -323,16 +323,16 @@ const getVirtualModules = (dir, includePkg) => {
 
         // Package file must have rancher field to be a plugin
         if (includePkg(name) && library.rancher) {
-          reqs += `$plugin.registerBuiltinExtension('${ name }', require(\'~/pkg/${ name }\')); `;
+          reqs += `$extension.registerBuiltinExtension('${ name }', require(\'~/pkg/${ name }\')); `;
         }
       });
   }
 
   Object.keys(librariesIndex).forEach((i) => {
-    reqs += `$plugin.loadAsync('${ i }', '/pkg/${ i }/${ librariesIndex[i] }');`;
+    reqs += `$extension.loadAsync('${ i }', '/pkg/${ i }/${ librariesIndex[i] }');`;
   });
 
-  return new VirtualModulesPlugin({ 'node_modules/@rancher/dynamic.js': `export default function ($plugin) { ${ reqs } };` });
+  return new VirtualModulesPlugin({ 'node_modules/@rancher/dynamic.js': `export default function ($extension) { ${ reqs } };` });
 };
 
 const getAutoImport = () => new webpack.NormalModuleReplacementPlugin(/^@rancher\/auto-import$/, (resource) => {
