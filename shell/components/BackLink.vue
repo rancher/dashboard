@@ -36,9 +36,10 @@ export default {
     margin: 10px 0 20px 0;
     outline: 0;
     width: fit-content;
-    text-decoration: none;
 
     &:hover {
+      text-decoration: none;
+
       i {
         text-decoration: underline;
         text-underline-offset: 2px;
