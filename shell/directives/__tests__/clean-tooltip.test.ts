@@ -32,7 +32,6 @@ describe('clean-tooltip.ts', () => {
 
     mockCreateTooltip.mockReturnValue(mockTooltipInstance);
 
-    // Create a mock element
     el = document.createElement('div');
     document.body.appendChild(el);
   });
