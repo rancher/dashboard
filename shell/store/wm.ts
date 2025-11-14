@@ -80,11 +80,11 @@ export const mutations = {
   addTab(state: State, tab: Tab) {
     const existing = state.tabs.find((x) => x.id === tab.id);
 
-    if (!existing) {
-      if (tab.position === undefined) {
-        tab.position = (window.localStorage.getItem(STORAGE_KEY['pin']) || BOTTOM) as Position;
-      }
+    if (tab.position === undefined || tab.position as string === 'undefined') {
+      tab.position = (window.localStorage.getItem(STORAGE_KEY['pin']) || BOTTOM) as Position;
+    }
 
+    if (!existing) {
       if (state.lockedPositions.includes(BOTTOM)) {
         tab.position = BOTTOM;
       }
