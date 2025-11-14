@@ -33,12 +33,12 @@ interface TooltipOptions {
  * Shows a singleton tooltip for the given target element.
  * If a tooltip is already active, it is hidden before showing the new one.
  * @param {HTMLElement} target The element to which the tooltip is attached.
- * @param {string|object} rawValue The content of the tooltip.
+ * @param {string} rawValue The content of the tooltip.
  * @param {string} placement The placement of the tooltip.
  * @param {string} popperClass Custom CSS class for the popper.
  * @param {object} delay The delay for showing and hiding the tooltip.
  */
-function showSingletonTooltip(target: HTMLElement, rawValue: string | { content: string }, placement: string, popperClass: string, delay: TooltipDelay) {
+function showSingletonTooltip(target: HTMLElement, rawValue: string, placement: string, popperClass: string, delay: TooltipDelay) {
   // If a tooltip is already active, it should be hidden before showing the new one.
   if (singleton) {
     destroyTooltip(currentTarget);
@@ -48,10 +48,7 @@ function showSingletonTooltip(target: HTMLElement, rawValue: string | { content:
   const content = purifyContent(rawValue);
 
   // Don't show the tooltip if the content is empty.
-  const finalContent =
-    typeof content === 'object' && content.content ? content.content.trim() : typeof content === 'string' ? content.trim() : '';
-
-  if (!finalContent) {
+  if (!content) {
     return;
   }
   // Create a new tooltip instance.
@@ -83,22 +80,14 @@ function hideSingletonTooltip(target: HTMLElement) {
 }
 
 /**
- * Purifies the HTML content of the tooltip to prevent XSS attacks.
- * @param {string|object} value The content to be purified.
- * @returns {string|object} The purified content.
+ * Purifies and trims the HTML content of the tooltip to prevent XSS attacks.
+ * @param {string} rawValue The raw content string to be purified and trimmed.
+ * @returns {string} The purified and trimmed content string.
  */
-function purifyContent(value: string | { content: string }): string | { content: string } {
-  if (typeof value === 'string') {
-    return purifyHTML(value);
-  } else if (
-    value &&
-    typeof value === 'object' &&
-    typeof value.content === 'string'
-  ) {
-    return { ...(value as object), content: purifyHTML(value.content) };
-  } else {
-    return value;
-  }
+function purifyContent(rawValue: string): string {
+  const purified = purifyHTML(rawValue);
+
+  return purified.trim();
 }
 
 /**

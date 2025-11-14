@@ -126,7 +126,7 @@ describe('clean-tooltip.ts', () => {
         expect(mockDestroyTooltip).toHaveBeenCalledTimes(1);
         expect(mockCreateTooltip).toHaveBeenCalledTimes(2);
         expect(mockTooltipInstance.show).toHaveBeenCalledTimes(2);
-        expect(mockCreateTooltip).toHaveBeenCalledWith(el, expect.objectContaining({ content: 'Updated Content' }));
+        expect(mockCreateTooltip).toHaveBeenCalledWith(el, expect.objectContaining({ content: 'Updated Content' }), {});
       });
     });
 
@@ -185,7 +185,7 @@ describe('clean-tooltip.ts', () => {
         content:   'Handler Test',
         placement: 'top',
         delay:     { show: 1, hide: 1 },
-      });
+      }, {});
       expect(mockTooltipInstance.show).toHaveBeenCalledTimes(1);
     });
 
@@ -258,7 +258,7 @@ describe('clean-tooltip.ts', () => {
       onMouseEnter(enterEvent);
 
       expect(mockPurifyHTML).toHaveBeenCalledWith('<h1>Hello</h1>');
-      expect(mockCreateTooltip).toHaveBeenCalledWith(el, expect.objectContaining({ content: '<h1>Hello</h1>' }));
+      expect(mockCreateTooltip).toHaveBeenCalledWith(el, expect.objectContaining({ content: '<h1>Hello</h1>' }), {});
     });
 
     it('should purify content within an object value', () => {
@@ -272,7 +272,7 @@ describe('clean-tooltip.ts', () => {
       onMouseEnter(enterEvent);
 
       expect(mockPurifyHTML).toHaveBeenCalledWith('<p>World</p>');
-      expect(mockCreateTooltip).toHaveBeenCalledWith(el, expect.objectContaining({ content: '<p>World</p>' }));
+      expect(mockCreateTooltip).toHaveBeenCalledWith(el, expect.objectContaining({ content: '<p>World</p>' }), {});
     });
   });
 
