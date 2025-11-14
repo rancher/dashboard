@@ -108,10 +108,13 @@ export default {
     >
       <template #default>
         <RcStatusBadge
-          v-clean-tooltip="tooltipContent"
+          v-clean-tooltip="{content: tooltipContent, triggers: ['hover', 'focus']}"
+          :aria-label="t('generic.plusMore', {n: remainingIpCount})"
+          tabindex="0"
           status="info"
           data-testid="plus-more"
           @click.stop
+          @keyup.enter.space="$refs.dropdown.show()"
         >
           {{ t('generic.plusMore', {n: remainingIpCount}) }}
         </RcStatusBadge>
