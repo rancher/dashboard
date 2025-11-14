@@ -2,9 +2,9 @@ import { DirectiveBinding, Directive } from 'vue';
 import { destroyTooltip, createTooltip } from 'floating-vue';
 import { purifyHTML } from '@shell/plugins/clean-html';
 
-// This is a singleton tooltip implementation.
-// It ensures that only one tooltip is active at a time, preventing multiple tooltips from appearing simultaneously.
-// This improves performance and user experience.
+// This is a singleton tooltip implementation that improves performance on pages with many tooltips.
+// Instead of instantiating a Vue component for every tooltip on the page, this directive attaches lightweight event listeners.
+// It then imperatively creates and destroys a single tooltip instance as needed, avoiding the high upfront memory and processing cost of many Vue components.
 let singleton: any = null;
 let currentTarget: HTMLElement | null = null;
 
