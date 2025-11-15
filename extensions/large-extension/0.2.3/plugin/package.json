@@ -1,0 +1,20 @@
+{
+  "name": "large-extension",
+  "description": "Adds a new feature to the top-level menu that shows a large image (extension larger than 20mb - used for testing)",
+  "version": "0.2.3",
+  "private": false,
+  "icon": "https://raw.githubusercontent.com/rancher/ui-plugin-examples/main/pkg/large-extension/clock.svg",
+  "rancher": true,
+  "engines": {
+    "node": ">=12"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/cli-plugin-typescript": "~5.0.0"
+  },
+  "files": [
+    "**/*"
+  ],
+  "main": "large-extension-0.2.3.umd.min.js"
+}
