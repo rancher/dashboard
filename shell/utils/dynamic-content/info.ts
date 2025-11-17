@@ -10,6 +10,7 @@ import {
 import { SETTING } from '@shell/config/settings';
 import { getVersionData } from '@shell/config/version';
 import { SettingsInfo } from '@shell/utils/dynamic-content/types';
+import { STEVE_CACHE } from '@shell/store/features';
 
 const QS_VERSION = 'v1'; // Include a version number in the query string in case we want to version the set of params we are sending
 const UNKNOWN = 'unknown';
@@ -25,6 +26,40 @@ const SUSE_EXTENSIONS = [
   'supportability-review-app',
   'virtual-clusters'
 ];
+
+type FeatureFlagInfos = {
+  [id: string]: {
+    /**
+     * Query param, in format `ff-<param>`
+     */
+    param: string,
+    values: {
+      /**
+       * At some point this has been explicitly set
+       */
+      explicit?: string,
+      /**
+       * The default value of the ff
+       */
+      default?: string;
+      /**
+       * The value used by the UI, roughly explicitValue || defaultValue
+       */
+      practical: string;
+    }
+
+  }
+};
+
+/**
+ * Explicit ff's to send
+ */
+const ffs: FeatureFlagInfos = {
+  [STEVE_CACHE]: {
+    param:  'usc',
+    values: { practical: '' }
+  }
+};
 
 /**
  * System information that is collected and which can then be encoded into a query string in the dyanmic content request
@@ -47,6 +82,7 @@ type SystemInfo = {
   browserSize: string;
   screenSize: string;
   language: string;
+  featureFlags: FeatureFlagInfos
 };
 
 /**
@@ -131,6 +167,16 @@ export class SystemInfoProvider {
     const screenSize = `${ window.screen?.width || '?' }x${ window.screen?.height || '?' }`;
     const browserSize = `${ window.innerWidth }x${ window.innerHeight }`;
 
+    Object.entries(ffs).forEach(([id, ff]) => {
+      const resource = getters['management/byId'](MANAGEMENT.FEATURE, id);
+
+      ff.value = {
+        practical: getters['features/get'](id),
+        default:   resource.status.default,
+        explicit:  resource.spec.value,
+      };
+    });
+
     return {
       systemUUID,
       userHash,
@@ -146,6 +192,7 @@ export class SystemInfoProvider {
       screenSize,
       browserSize,
       language:           window.navigator?.language,
+      featureFlags:       ffs,
     };
   }
 
@@ -212,6 +259,10 @@ export class SystemInfoProvider {
     if (systemData.screenSize !== '?x?') {
       params.push(`ss=${ systemData.screenSize }`);
     }
+
+    Object.values(systemData.featureFlags).forEach((ff) => {
+      params.push(`ff-` + `${ ff.param }=${ ff.values.practical }`);
+    });
 
     return params.join('&');
   }
