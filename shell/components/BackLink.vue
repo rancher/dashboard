@@ -16,7 +16,7 @@ export default {
     role="link"
     :aria-label="t('generic.back')"
   >
-    <i class="icon icon-chevron-left" /> <span>{{ t('generic.back') }}</span>
+    <i class="icon icon-chevron-left" /> {{ t('generic.back') }}
   </router-link>
   <router-link
     v-else
@@ -24,7 +24,7 @@ export default {
     class="back-link"
     :aria-label="t('nav.home')"
   >
-    <i class="icon icon-chevron-left" /> <span>{{ t('nav.home') }}</span>
+    <i class="icon icon-chevron-left" /> {{ t('nav.home') }}
   </router-link>
 </template>
 
@@ -34,21 +34,15 @@ export default {
     display: flex;
     font-size: 16px;
     margin: 10px 0 20px 0;
+    padding: 0 4px 2px 0;
     outline: 0;
     width: fit-content;
+    border-bottom: 2px solid transparent;
 
     &:hover {
       text-decoration: none;
-
-      i {
-        text-decoration: underline;
-        text-underline-offset: 2px;
-      }
-
-      span {
-        text-decoration: underline;
-        text-underline-offset: 4px;
-      }
+      border-bottom: 2px solid;
+      border-bottom-color: inherit;
     }
 
     &:focus-visible {
