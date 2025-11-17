@@ -5,6 +5,13 @@ import { RadioGroup } from '@components/Form/Radio';
 import { _CREATE } from '@shell/config/query-params';
 import { LONGHORN_DRIVER } from '@shell/config/types';
 
+const DEFAULT_VOLUME_ATTRIBUTES = {
+  size:                '2Gi',
+  numberOfReplicas:    '3',
+  staleReplicaTimeout: '20',
+  fromBackup:          ''
+};
+
 export default {
   components: {
     LabeledInput, KeyValue, RadioGroup
@@ -19,33 +26,27 @@ export default {
       required: true,
     },
   },
-  data() {
-    const defaultVolumeAttributes = {
-      size:                '2Gi',
-      numberOfReplicas:    '3',
-      staleReplicaTimeout: '20',
-      fromBackup:          ''
-    };
-
+  created() {
     if (this.mode === _CREATE) {
       this.value.spec['csi'] = this.value.spec.csi || {};
       this.value.spec.csi['driver'] = LONGHORN_DRIVER;
       this.value.spec.csi['readOnly'] = this.value.spec.csi.readOnly || false;
-      this.value.spec.csi['volumeAttributes'] = this.value.spec.csi.volumeAttributes || defaultVolumeAttributes;
+      this.value.spec.csi['volumeAttributes'] = this.value.spec.csi.volumeAttributes || DEFAULT_VOLUME_ATTRIBUTES;
     }
-
-    const readOnlyOptions = [
-      {
-        label: this.t('generic.yes'),
-        value: true
-      },
-      {
-        label: this.t('generic.no'),
-        value: false
-      }
-    ];
-
-    return { readOnlyOptions };
+  },
+  computed: {
+    readOnlyOptions() {
+      return [
+        {
+          label: this.t('generic.yes'),
+          value: true
+        },
+        {
+          label: this.t('generic.no'),
+          value: false
+        }
+      ];
+    }
   },
 };
 </script>
