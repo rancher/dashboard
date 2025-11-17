@@ -1,0 +1,5 @@
+plugin/extension-crd-0.2.1.umd.min.detail.js
+plugin/extension-crd-0.2.1.umd.min.detail.js.map
+plugin/extension-crd-0.2.1.umd.min.js
+plugin/extension-crd-0.2.1.umd.min.js.map
+plugin/package.json
