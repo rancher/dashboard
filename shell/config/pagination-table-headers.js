@@ -4,7 +4,8 @@ import {
   EVENT_LAST_SEEN_TIME,
   EVENT_TYPE,
   SECRET_CLONE,
-  EVENT_FIRST_SEEN_TIME
+  EVENT_FIRST_SEEN_TIME,
+  SECRET_PROJECT_SCOPED
 } from '@shell/config/table-headers';
 
 // This file contains table headers
@@ -92,4 +93,16 @@ export const STEVE_LIST_GROUPS = [{
 export const STEVE_SECRET_CLONE = {
   ...SECRET_CLONE,
   sort: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]`,
+};
+
+export const STEVE_SECRET_PROJECT_SCOPED = {
+  ...SECRET_PROJECT_SCOPED,
+  // We would like to sort on
+  // 1. if this is a project scoped secret
+  //   - Normally achieved by sorting on metadata.labels[management.cattle.io/project-scoped-secret]
+  //   - However this covers both project scoped secrets, and secrets it creates in namespaces in that project
+  //   - To help we first sort by created secrets in that ns, which does lead to an odd experience....
+  // 2. the human name of the project it's associated with
+  //   - the BE connects the label to the project and exposes sorting on it via spec.displayName
+  sort: [`metadata.annotations[${ UI_PROJECT_SECRET_COPY }]`, `spec.displayName:desc`],
 };
