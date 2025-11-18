@@ -5282,7 +5282,7 @@ plugins:
     title: Error loading extension
     message: Could not load extension code
     generic: Extension error
-    primeOnly: Unable to load Extension. This is a Rancher Prime-only extension
+    primeOnly: Unable to load Rancher Prime Extension in Rancher Community
     apiAnnotationMissing: 'Unable to load Extension. The version installed is not compatible with the current Extensions API Version (Extension is missing the annotation catalog.cattle.io/ui-extensions-version which implies incompatibility with Rancher 2.10 and onwards)'
     api: Unable to load Extension. The version installed is not compatible with the current Extensions API version
     host: Unable to load Extension. The version installed is not compatible with this application host
