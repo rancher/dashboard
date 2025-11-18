@@ -54,8 +54,4 @@ export class InstallChartPage extends PagePo {
   chartName() {
     return this.self().get('[data-testid="NameNsDescriptionNameInput"]');
   }
-
-  tabsCountOnInstallQuestions() {
-    return new TabbedPo().allTabs();
-  }
 }
