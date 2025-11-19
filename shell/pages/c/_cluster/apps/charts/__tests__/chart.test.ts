@@ -1,5 +1,7 @@
 import Chart from '@shell/pages/c/_cluster/apps/charts/chart.vue';
 
+jest.mock('clipboard-polyfill', () => ({ writeText: () => {} }));
+
 describe('page: Chart Detail', () => {
   describe('computed: maintainers', () => {
     it('should return an empty array if no maintainers are provided', () => {
