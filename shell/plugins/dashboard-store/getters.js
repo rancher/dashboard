@@ -559,4 +559,14 @@ export default {
    * Can be used to change behaviour given steve cache api functionality
    */
   isSteveCacheUrl: (state) => () => false,
+
+  /**
+   * Get the saved count for the given name
+   *
+   * @param {string} name Name of the saved count
+   * @returns {number|undefined} The saved count or undefined if not found
+   */
+  getSavedCount: (state) => (name) => {
+    return state.savedCounts[name];
+  }
 };
