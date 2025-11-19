@@ -515,8 +515,25 @@ export default {
     cache.generation++;
 
     // Update list
-    clear(cache.list);
-    addObjects(cache.list, proxies);
+    // We want to keep the same cache.list (existing page) but update it with the new array (new page)
+    // The array reference must not be replaced
+    // We want to transfer over the new page into the array
+    // We want to keep the same reference if the current page already contains an entry also in the new page
+    // - this helps anywhere that works with entry references (looking at you sortable table selection)
+    const currentPageMap = new Map(cache.list.map((i) => [i[keyField], i]));
+    const newPage = proxies.map((p) => {
+      const existing = currentPageMap.get(p[keyField]);
+
+      if (existing) {
+        replaceResource(existing, p, ctx.getters);
+
+        return existing;
+      }
+
+      return p;
+    });
+
+    cache.list.splice(0, cache.list.length, ...newPage);
 
     // Update Map (remove stale)
     cache.map.forEach((value, key) => {
