@@ -31,6 +31,11 @@ interface Args {
     classify?: boolean,
     reactive?: boolean,
   }
+
+  /**
+   * Specifies the name to use if we should save the count returned in the paginated request
+   */
+  saveCountAs?: string;
 }
 
 interface Result<T> extends Omit<ActionFindPageTransientResponse<T>, 'data'> {
@@ -57,6 +62,7 @@ class PaginationWrapper<T extends object> {
   private backOffId: string;
   private classify: boolean;
   private reactive: boolean;
+  private saveCountAs: string | undefined;
   private cachedRevision?: string;
   private cachedResult?: Result<T>;
 
@@ -65,7 +71,7 @@ class PaginationWrapper<T extends object> {
 
   constructor(args: Args) {
     const {
-      $store, id, enabledFor, onChange, formatResponse
+      $store, id, enabledFor, onChange, formatResponse, saveCountAs
     } = args;
 
     this.$store = $store;
@@ -75,6 +81,7 @@ class PaginationWrapper<T extends object> {
     this.onChange = onChange;
     this.classify = formatResponse?.classify || false;
     this.reactive = formatResponse?.reactive || false;
+    this.saveCountAs = saveCountAs;
 
     this.isEnabled = paginationUtils.isEnabled({ rootGetters: $store.getters, $extension: this.$store.$extension }, enabledFor);
   }
@@ -155,6 +162,7 @@ class PaginationWrapper<T extends object> {
           watch:     false,
           pagination,
           transient: true,
+          saveCountAs: this.saveCountAs,
           revision
         };
         const res: ActionFindPageTransientResponse<T> = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type });
