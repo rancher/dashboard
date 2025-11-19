@@ -1,5 +1,5 @@
 <script>
-import NuxtLoading from '@shell/components/nav/GlobalLoading.vue';
+import GlobalLoading from '@shell/components/nav/GlobalLoading.vue';
 
 import '@shell/assets/styles/app.scss';
 
@@ -55,12 +55,12 @@ export default {
     },
   },
 
-  components: { NuxtLoading }
+  components: { GlobalLoading }
 };
 </script>
 <template>
-  <div id="__nuxt">
-    <NuxtLoading ref="loading" />
+  <div id="__root">
+    <GlobalLoading ref="loading" />
     <div
       id="__layout"
     >
