@@ -139,7 +139,7 @@ export default {
           name:        p.label,
           nameDisplay: p.label,
           description: p.description || '',
-          prime:       true || p.prime,
+          prime:       p.prime,
           active,
           availableActions
         };
