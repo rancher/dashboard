@@ -51,7 +51,7 @@ export const All: Story = {
     template: `<div style="display: flex; max-width: 100%; flex-wrap: wrap; ">
       <div v-for="type in types" :key="type" style="display: inline-flex; justify-content: center; align-items: center; flex-direction: column; flex-basis: 25%; margin-bottom: 20px;">
 
-        <RcIcon :type="type" size="large" color="inherit" style="margin-bottom: 5px;"/>
+        <RcIcon :type="type" size="large" status="inherit" style="margin-bottom: 5px;"/>
 
         <span style="user-select: all;">{{type}}</span>
       </div>
