@@ -489,7 +489,6 @@ export default {
               v-if="m.email"
               :text="m.email"
               label-as="tooltip"
-              data-testid="copy-maintainer-email"
               :aria-label="t('catalog.chart.info.copyEmailToClipboard')"
               class="icon-btn"
               action-color="bg-transparent"
