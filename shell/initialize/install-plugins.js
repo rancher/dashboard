@@ -17,7 +17,7 @@ import axiosShell from '@shell/plugins/axios';
 import codeMirror from '@shell/plugins/codemirror-loader';
 import { InstallCodeMirror } from 'codemirror-editor-vue3';
 import * as intNumber from '@shell/directives/int-number';
-import nuxtClientInit from '@shell/plugins/nuxt-client-init';
+import dashboardClientInit from '@shell/plugins/dashboard-client-init';
 import plugin from '@shell/plugins/plugin';
 import plugins from '@shell/core/plugins.js';
 import pluginsLoader from '@shell/core/plugins-loader.js';
@@ -48,7 +48,22 @@ export async function installPlugins(vueApp) {
 }
 
 export async function installInjectedPlugins(app, vueApp) {
-  const pluginDefinitions = [config, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, plugin, steveCreateWorker, emberCookie, internalApiPlugin, dynamicContent];
+  const pluginDefinitions = [
+    config,
+    axios,
+    plugins,
+    pluginsLoader,
+    axiosShell,
+    intNumber,
+    codeMirror,
+    dashboardClientInit,
+    replaceAll,
+    plugin,
+    steveCreateWorker,
+    emberCookie,
+    internalApiPlugin,
+    dynamicContent,
+  ];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
     if (typeof pluginDefinition === 'function') {
