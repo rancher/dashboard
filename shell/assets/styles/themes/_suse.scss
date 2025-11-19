@@ -5,6 +5,8 @@
 
   $jungle-120: #008657;
 
+  --title-font-family : 'SUSE', 'Lato', sans-serif;
+  
   &.theme-light {
     --primary: #{$jungle-120};
     --primary-text: #FFFFFF;
@@ -81,4 +83,37 @@
     --toggle-off-bg: #{$grey-70};
     --sortable-table-selected-bg: #3f4350;
   }
+
+  // SUSE Theme uses a smaller banner graphic
+  --banner-graphic-height: 160px;
+
+  // SUSE Theme positions from right, so ship stays visible as browser width shrinks
+  .suse-banner-graphic {
+    > img {
+      object-position: right;
+    }
+  }
+
+  // SUSE Theme aligns graphic to left so that the container ship stays visible
+  .suse-login-banner-graphic {
+    object-position: left;
+  }
+
+  // Styling for logo image on the login screen
+  .suse-logo-login {
+    $suse-logo-width: 280px;
+
+    width: $suse-logo-width;
+    max-width: $suse-logo-width;
+    align-self: center;
+    margin-bottom: 30px;
+  }  
+}
+
+// Ensure that with a small window size, the banner centers, so that the text does not overlay
+// directly on the heavier part of the graphic
+@media (max-width: 860px) {
+  .suse .suse-banner-graphic > img {
+    object-position: center;
+  }  
 }

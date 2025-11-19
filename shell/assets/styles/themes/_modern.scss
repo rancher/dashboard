@@ -220,7 +220,7 @@ BODY, .theme-light {
   }
 
   --muted                      : #6F6F8B;
-  --deemphasized               : #6F6F8B;
+  --deemphasized               : #6C6C76;
 
   .text-muted {
     color: var(--muted) !important;
@@ -835,7 +835,7 @@ BODY, .theme-dark {
   --slider-light-bg-right      : #{rgba($darker, 0)};
 
   --muted                      : #8F8F9C;
-  --deemphasized               : #8F8F9C;
+  --deemphasized               : #B6B6C2;
 
   --body-bg                    : #{$body-bg};
   --body-text                  : #FFFAFA;

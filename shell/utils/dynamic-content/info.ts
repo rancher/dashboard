@@ -107,8 +107,7 @@ export class SystemInfoProvider {
     // High-level information from clusters
     const counts = this.getAll(getters, COUNT)?.[0]?.counts || {};
     const clusterCount = counts[MANAGEMENT.CLUSTER] || {};
-    const all = this.getAll(getters, MANAGEMENT.CLUSTER);
-    const localCluster = all ? all.find((c: any) => c.isLocal) : undefined;
+    const localCluster = getters['localCluster'];
 
     // Stats for installed extensions
     const uiExtensionList = getters['uiplugins/plugins'];

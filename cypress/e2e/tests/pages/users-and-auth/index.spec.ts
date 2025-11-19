@@ -139,7 +139,8 @@ describe('Auth Index', { testIsolation: 'off' }, () => {
       const usersPo = new UsersPo();
 
       cy.logout();
-      cy.login();
+      // Disable session caching to ensure fresh authentication after logout
+      cy.login(undefined, undefined, false);
 
       usersPo.goTo();
       usersPo.waitForPage();

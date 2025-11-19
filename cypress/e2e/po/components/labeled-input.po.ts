@@ -6,7 +6,7 @@ export default class LabeledInputPo extends ComponentPo {
     return new LabeledInputPo(
       self
         .contains('.labeled-input', label, { includeShadowDom: true })
-        .find('input')
+        .find('[id^="input-"], input')
     );
   }
 

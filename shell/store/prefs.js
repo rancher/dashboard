@@ -1,6 +1,7 @@
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, STEVE } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
+import { getBrandMeta } from '@shell/utils/brand';
 
 const definitions = {};
 /**
@@ -526,8 +527,7 @@ export const actions = {
 
         if (brandSetting && brandSetting.value && brandSetting.value !== '') {
           const brand = brandSetting.value;
-
-          const brandMeta = require(`~shell/assets/brand/${ brand }/metadata.json`);
+          const brandMeta = getBrandMeta(brand);
           const hasStylesheet = brandMeta.hasStylesheet === 'true';
 
           if (hasStylesheet) {

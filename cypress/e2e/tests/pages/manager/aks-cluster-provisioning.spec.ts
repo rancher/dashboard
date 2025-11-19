@@ -73,7 +73,7 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     createAKSClusterPage.selectKubeProvider(1);
     loadingPo.checkNotExists();
     createAKSClusterPage.rke2PageTitle().should('include', 'Create Azure AKS');
-    createAKSClusterPage.waitForPage('type=azureaks&rkeType=rke2');
+    createAKSClusterPage.waitForPage('type=aks&rkeType=rke2');
 
     // create azure cloud credential
     cloudCredForm.saveButton().expectToBeDisabled();
@@ -91,7 +91,7 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     });
 
     loadingPo.checkNotExists();
-    createAKSClusterPage.waitForPage('type=azureaks&rkeType=rke2');
+    createAKSClusterPage.waitForPage('type=aks&rkeType=rke2');
   });
 
   beforeEach( () => {
@@ -131,7 +131,7 @@ describe('Create AKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     loadingPo.checkNotExists();
     createAKSClusterPage.rke2PageTitle().should('include', 'Create Azure AKS');
     cy.intercept('GET', '**/meta/aksVersions*').as('getAksVersions');
-    createAKSClusterPage.waitForPage('type=azureaks&rkeType=rke2');
+    createAKSClusterPage.waitForPage('type=aks&rkeType=rke2');
 
     // Verify that aks-zone-select dropdown is set to the default zone
     createAKSClusterPage.getRegion().checkOptionSelected(aksSettings.aksRegion);

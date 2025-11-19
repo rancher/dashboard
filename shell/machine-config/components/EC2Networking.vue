@@ -92,7 +92,12 @@ export default {
     machinePools: {
       type:    Array,
       default: () => []
-    }
+    },
+
+    isNew: {
+      type:    Boolean,
+      default: true
+    },
   },
 
   created() {
@@ -107,6 +112,10 @@ export default {
     } else if (this.vpcId) {
       this.enableIpv6 = !!vpcs.find((vpc) => vpc.VpcId === this.vpcId && vpc.Ipv6CidrBlockAssociationSet && !isEmpty(vpc.Ipv6CidrBlockAssociationSet));
     }
+
+    if (this.isNew && this.somePoolHasIpv6OrDual) {
+      this.enableIpv6 = true;
+    }
   },
 
   data() {
@@ -115,13 +124,13 @@ export default {
 
   watch: {
     region() {
-      if (this.isCreate) {
+      if (this.isNew) {
         this.updateNetwork();
       }
     },
 
     enableIpv6(neu) {
-      if (this.isCreate) {
+      if (this.isNew) {
         this.updateNetwork();
       }
       this.$emit('update:hasIpv6', neu);
@@ -144,16 +153,19 @@ export default {
       }
     },
 
-    allValid(neu) {
-      this.$emit('validationChanged', neu);
+    ipv6AddressOnly(neu) {
+      this.$emit('update:hasIpv6', neu);
+    },
+
+    allValid: {
+      handler(neu) {
+        this.$emit('validationChanged', neu);
+      },
+      immediate: true
     }
   },
 
   computed: {
-    isCreate() {
-      return this.mode === _CREATE;
-    },
-
     allNetworkOptions() {
       if ( !this.vpcInfo || !this.subnetInfo ) {
         return [];
@@ -266,14 +278,18 @@ export default {
       return opt && opt.hasIpv6 && !opt.hasIpv4;
     },
 
+    somePoolHasIpv6OrDual() {
+      return !!this.machinePools.find((p) => p.hasIpv6);
+    },
+
+    showIpv6Options() {
+      return this.mode === _CREATE || (this.isNew && this.somePoolHasIpv6OrDual) || this.enableIpv6;
+    },
+
     poolsInvalid() {
-      const hasIpv6 = !!this.machinePools.find((p) => {
-        return p.hasIpv6;
-      });
+      const somePoolHasIpv4 = !!this.machinePools.find((p) => !p.hasIpv6);
 
-      const hasNotIpv6 = !!this.machinePools.find((p) => !p.hasIpv6);
-
-      return hasIpv6 && hasNotIpv6;
+      return this.somePoolHasIpv6OrDual && somePoolHasIpv4;
     },
 
     addressCountInvalid() {
@@ -335,7 +351,7 @@ export default {
     data-testid="amazonEc2__ipv6Warning"
   />
   <div
-    v-if="isCreate || enableIpv6"
+    v-if="showIpv6Options"
     class="row mb-20"
   >
     <div
@@ -344,7 +360,7 @@ export default {
     >
       <Checkbox
         v-model:value="enableIpv6"
-        :disabled="!isCreate"
+        :disabled="!isNew"
         :label="t('cluster.machineConfig.amazonEc2.enableIpv6.label')"
         data-testid="amazonEc2__enableIpv6"
         :mode="mode"
@@ -387,7 +403,7 @@ export default {
       class="col span-3"
     >
       <Checkbox
-        :disabled="!isCreate || !dualStackSelected"
+        :disabled="!isNew || !dualStackSelected"
         :value="ipv6AddressOnly"
         :label="t('cluster.machineConfig.amazonEc2.ipv6AddressOnly.label')"
         :mode="mode"
@@ -403,7 +419,7 @@ export default {
     <div class="col span-6">
       <Checkbox
         :value="httpProtocolIpv6==='enabled'"
-        :disabled="!isCreate"
+        :disabled="!isNew"
         :label="t('cluster.machineConfig.amazonEc2.httpProtocolIpv6.label')"
         data-testid="amazonEc2__enableIpv6"
         :mode="mode"
@@ -417,7 +433,7 @@ export default {
   >
     <div class="col span-3">
       <LabeledInput
-        :disabled="!isCreate"
+        :disabled="!isNew"
         min="1"
         :mode="mode"
         :value="ipv6AddressCount"
@@ -429,7 +445,7 @@ export default {
     </div>
     <div class="col span-9">
       <Checkbox
-        :disabled="!isCreate"
+        :disabled="!isNew"
         :value="enablePrimaryIpv6"
         :label="t('cluster.machineConfig.amazonEc2.enablePrimaryIpv6.label')"
         :mode="mode"

@@ -2,11 +2,16 @@ import Chart from '@shell/models/chart';
 import { APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { ZERO_TIME } from '@shell/config/types';
+import { getLatestCompatibleVersion } from '@shell/utils/chart';
+
+jest.mock('@shell/utils/chart', () => ({ getLatestCompatibleVersion: jest.fn() }));
 
 type MockChartContext = {
   rootGetters: {
     'cluster/all': () => any[];
     'i18n/t': (key: string) => string;
+    currentCluster: { workerOSs: string[] };
+    'prefs/get': (key: string) => boolean;
   };
   dispatch?: jest.Mock;
 };
@@ -58,11 +63,32 @@ describe('class Chart', () => {
   beforeEach(() => {
     ctx = {
       rootGetters: {
-        'cluster/all': () => [],
-        'i18n/t':      t
+        'cluster/all':  () => [],
+        'i18n/t':       t,
+        currentCluster: { workerOSs: [] },
+        'prefs/get':    () => false,
       },
       dispatch
     };
+    (getLatestCompatibleVersion as jest.Mock).mockImplementation((chart) => chart.versions[0]);
+  });
+
+  describe('queryParams', () => {
+    it('should return query params with the latest compatible version', () => {
+      const chart = new Chart(base, ctx);
+      const query = chart.queryParams();
+
+      expect(getLatestCompatibleVersion).toHaveBeenCalledWith(chart, [], false);
+      expect(query).toHaveProperty('version', '1.3.0');
+    });
+
+    it('should reflect a different latest version from the mock', () => {
+      (getLatestCompatibleVersion as jest.Mock).mockImplementation((chart) => chart.versions[1]);
+      const chart = new Chart(base, ctx);
+      const query = chart.queryParams();
+
+      expect(query).toHaveProperty('version', '1.2.3');
+    });
   });
 
   describe('matchingInstalledApps', () => {
@@ -188,6 +214,7 @@ describe('class Chart', () => {
 
       const result = chart.cardContent as CardContent;
 
+      expect(getLatestCompatibleVersion).toHaveBeenCalledWith(chart, [], false);
       expect(result.subHeaderItems).toHaveLength(2);
       expect(result.subHeaderItems[0].label).toBe('1.3.0');
       expect(result.subHeaderItems[1].label).toBe('Mar 10, 2024');
@@ -297,8 +324,10 @@ describe('class Chart', () => {
       };
       const chart = new Chart(chartWithZeroTime, {
         rootGetters: {
-          'cluster/all': () => [],
-          'i18n/t':      (key: string) => key
+          'cluster/all':  () => [],
+          'i18n/t':       (key: string) => key,
+          currentCluster: { workerOSs: [] },
+          'prefs/get':    () => false,
         },
       });
 

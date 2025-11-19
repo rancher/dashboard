@@ -2721,6 +2721,7 @@ providers:
   hosted: 
     title: Hosted Providers
     prime: Prime only
+    warning: Disabling providers will make any clusters that use them uneditable
 drivers:
   kontainer:
     title: Cluster Drivers
@@ -2804,6 +2805,10 @@ drainNode:
     custom: "Give up after:"
 
 dynamicContent:
+  action:
+    close: Hide and Mark Announcement as read
+    openPrimary: Open announcement's primary action
+    openSecondary: Open announcement's secondary action
   newRelease:
     title: A new Rancher release is available!
     message: Rancher {version} has been released!
@@ -4668,6 +4673,7 @@ namespaceFilter:
   button:
     clear: Remove applied namespace filters
     clearFilter: Clear namespace options filter
+  removeNamespace: 'Remove {name} from filter'
 
 namespaceList:
   selectLabel: Namespace

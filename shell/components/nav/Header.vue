@@ -97,7 +97,6 @@ export default {
       'isSingleProduct',
       'isRancherInHarvester',
       'showTopLevelMenu',
-      'isMultiCluster',
       'showWorkspaceSwitcher'
     ]),
 
@@ -424,7 +423,7 @@ export default {
     data-testid="header"
   >
     <div>
-      <TopLevelMenu v-if="isRancherInHarvester || isMultiCluster || !isSingleProduct" />
+      <TopLevelMenu v-if="showTopLevelMenu" />
     </div>
 
     <div
@@ -495,7 +494,7 @@ export default {
             :alt="t('branding.logos.label')"
           />
           <div
-            v-if="!currentCluster"
+            v-if="!currentCluster && !$route.path.startsWith('/c/')"
             class="simple-title"
           >
             <BrandImage
@@ -857,6 +856,7 @@ export default {
 
     .product-name {
       font-size: 16px;
+      font-family: var(--title-font-family, unset); // Use the var if set, otherwise unset and use the font defined by the parent
     }
 
     .side-menu-logo {

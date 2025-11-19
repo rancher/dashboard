@@ -7,7 +7,7 @@ import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, SORT_BY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, TAG, STATUS
 } from '@shell/config/query-params';
 import { DOCS_BASE } from '@shell/config/private-label';
-import { APP_STATUS, compatibleVersionsFor, filterAndArrangeCharts, normalizeFilterQuery } from '@shell/store/catalog';
+import { APP_STATUS, filterAndArrangeCharts, normalizeFilterQuery } from '@shell/store/catalog';
 import { lcFirst } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import debounce from 'lodash/debounce';
@@ -24,6 +24,7 @@ import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCard
 import AddRepoLink from '@shell/pages/c/_cluster/apps/charts/AddRepoLink';
 import StatusLabel from '@shell/pages/c/_cluster/apps/charts/StatusLabel';
 import RichTranslation from '@shell/components/RichTranslation.vue';
+import { getLatestCompatibleVersion } from '@shell/utils/chart';
 import Select from '@shell/components/form/Select';
 
 const createInitialFilters = () => ({
@@ -190,6 +191,13 @@ export default {
         sort:        this.selectedSortOption
       });
 
+      const OSs = this.currentCluster.workerOSs;
+      const showPrerelease = this.$store.getters['prefs/get'](SHOW_PRE_RELEASE);
+
+      res.forEach((chart) => {
+        chart._latestCompatibleVersion = getLatestCompatibleVersion(chart, OSs, showPrerelease);
+      });
+
       // status filtering is separated from other filters because "isInstalled" and "upgradeable" statuses are already calculated in models/chart.js
       // by doing this we won't need to re-calculate it in filterAndArrangeCharts
       if (!statuses.length) {
@@ -265,7 +273,7 @@ export default {
               statuses: chart.cardContent.statuses
             },
             subHeaderItems: chart.cardContent.subHeaderItems,
-            image:          { src: chart.versions[0].icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
+            image:          { src: chart.latestCompatibleVersion.icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
             content:        { text: chart.chartDescription },
             footerItems:    chart.cardContent.footerItems,
             rawChart:       chart
@@ -343,17 +351,7 @@ export default {
     }, 100),
 
     selectChart(chart) {
-      let version;
-      const OSs = this.currentCluster.workerOSs;
-      const showPrerelease = this.$store.getters['prefs/get'](SHOW_PRE_RELEASE);
-      const compatibleVersions = compatibleVersionsFor(chart, OSs, showPrerelease);
-      const versions = chart.versions;
-
-      if (compatibleVersions.length > 0) {
-        version = compatibleVersions[0].version;
-      } else {
-        version = versions[0].version;
-      }
+      const version = chart.latestCompatibleVersion.version;
 
       const query = {
         [REPO_TYPE]: chart.repoType,

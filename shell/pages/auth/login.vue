@@ -32,6 +32,7 @@ import loadPlugins from '@shell/plugins/plugin';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import TabTitle from '@shell/components/TabTitle.vue';
+import { getBrandMeta } from '@shell/utils/brand';
 
 export default {
   name:       'Login',
@@ -134,6 +135,27 @@ export default {
     hasLoginMessage() {
       return this.errorToDisplay || this.loggedOut || this.timedOut;
     },
+
+    customizations() {
+      const globalSettings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
+      const setting = globalSettings?.find((gs) => gs.id === SETTING.BRAND);
+      const brandMeta = getBrandMeta(setting?.value);
+      const login = brandMeta?.login || {};
+
+      return {
+        welcomeLabelKey: 'login.welcome',
+        logoClass:       'login-logo',
+        ...login,
+      };
+    },
+
+    bannerClass() {
+      return this.customizations.bannerClass;
+    },
+
+    brandLogo() {
+      return this.customizations.logo;
+    }
   },
 
   async fetch() {
@@ -335,11 +357,20 @@ export default {
     </TabTitle>
     <div class="row gutless mb-20">
       <div class="col span-6 p-20">
-        <p class="text-center">
+        <p
+          v-if="!brandLogo"
+          class="text-center"
+        >
           {{ t('login.howdy') }}
         </p>
+        <BrandImage
+          v-else
+          :class="{[customizations.logoClass]: !!customizations.logoClass}"
+          :file-name="brandLogo"
+          :alt="t('login.landscapeAlt')"
+        />
         <h1 class="text-center login-welcome">
-          {{ t('login.welcome', {vendor}) }}
+          {{ t(customizations.welcomeLabelKey, {vendor}) }}
         </h1>
         <div
           class="login-messages"
@@ -524,6 +555,7 @@ export default {
         </div>
       </div>
       <BrandImage
+        :class="bannerClass"
         class="col span-6 landscape"
         data-testid="login-landscape__img"
         file-name="login-landscape.svg"
@@ -550,6 +582,12 @@ export default {
 
     .login-welcome {
       margin: 0
+    }
+
+    .login-logo {
+      align-self: center;
+      max-width: 260px;
+      margin-bottom: 20px;
     }
 
     .login-messages {

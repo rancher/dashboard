@@ -10,7 +10,7 @@ import { NAME as MANAGER } from '@shell/config/product/manager';
 import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
 import { formatSi, parseSi } from '@shell/utils/units';
 import { CAPI, CATALOG } from '@shell/config/types';
-import { isPrerelease, compare } from '@shell/utils/version';
+import { isPrerelease, compare, isUpgradeFromPreToStable } from '@shell/utils/version';
 import difference from 'lodash/difference';
 import { LINUX, APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import { clone } from '@shell/utils/object';
@@ -237,6 +237,12 @@ export default {
       if (this.currentVersion === this.targetVersion) {
         return {
           name: 'editVersion', tKey: 'edit', icon: 'icon-edit'
+        };
+      }
+
+      if (isUpgradeFromPreToStable(this.currentVersion, this.targetVersion)) {
+        return {
+          name: 'upgrade', tKey: 'upgrade', icon: 'icon-upgrade-alt'
         };
       }
 

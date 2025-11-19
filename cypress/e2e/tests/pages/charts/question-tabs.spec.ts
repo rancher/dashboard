@@ -15,7 +15,7 @@ describe('Charts Install', { tags: ['@charts', '@adminUser'] }, () => {
     describe('Vsphere Cpi chart install - Tabs visibility', () => {
       it('Should not show any tabs on "Edit Options" screen if there is only 1 group', () => {
         ChartPage.navTo(null, 'vSphere CPI');
-        chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-vsphere-cpi');
+        chartPage.waitForPage('repo-type=cluster&repo=rancher-rke2-charts&chart=rancher-vsphere-cpi&version=1.12.100');
         chartPage.goToInstall();
         installChart.nextPage();
 

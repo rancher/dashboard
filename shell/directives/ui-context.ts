@@ -89,15 +89,15 @@ export default {
 
     if (store) {
       delete context.store;
-      el._uiContextId = await store.dispatch('ui-context/add', context);
+      const id = await store.dispatch('ui-context/add', context);
+
+      el._uiContextRemove = async() => await store.dispatch('ui-context/remove', id);
     }
   },
 
-  async beforeUnmount(el: any, binding: { value: Context, instance: any }) {
-    const store = binding.value?.store || binding.instance.$store || binding.instance.store;
-
-    if (store && el._uiContextId) {
-      await store.dispatch('ui-context/remove', el._uiContextId);
+  async beforeUnmount(el: any) {
+    if (el._uiContextRemove) {
+      await el._uiContextRemove();
     }
   }
 };

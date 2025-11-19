@@ -1,13 +1,14 @@
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin, PanelLocation } from '@shell/core/types';
 import { installDocHandler } from './docs';
-
 import routing from './routing/index';
 import { useI18n } from '@shell/composables/useI18n';
 import { usePrimeRegistration } from './pages/registration.composable';
 import { type Store } from 'vuex';
 import { NotificationLevel } from '@shell/types/notifications';
 import { REGISTRATION_NOTIFICATION_ID } from './config/constants';
+import { isAdminUser } from '@shell/store/type-map';
+import { SCC } from '@shell/store/features';
 
 /**
  * Trigger notification on plugin loaded and no active registration is found.
@@ -20,7 +21,7 @@ const setNotification = (store: Store<any>) => {
   } = usePrimeRegistration(store);
 
   initRegistration().then(() => {
-    if (!registration.value.active) {
+    if (!registration.value.active && isAdminUser(store.getters) && store.getters['features/get'](SCC)) {
       const { t } = useI18n(store);
 
       const notification = {

@@ -35,6 +35,8 @@ In a production setup these are all handled natively by Rancher.  For developmen
 | `/k8s/clusters/<id>`    | Proxy straight to the native k8s API for the given downstream cluster |
 | `/k8s/clusters/<id>/v1` | Steve API for given downstream cluster via the server proxy           |
 
+> `/` redirects to `/k8s/clusters/local`, which means steve upstream requests using `/v1` are just shortcuts for `/k8s/clusters/local/v1`
+
 The older Norman API is served on `/v3`. The newer Steve API (see [here](https://github.com/rancher/api-spec/blob/master/specification.md) for spec) is served on `/v1` .
 
 In both cases the schemas returned dictate

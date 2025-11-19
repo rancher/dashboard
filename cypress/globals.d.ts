@@ -94,6 +94,7 @@ declare global {
       createAmazonMachineConfig(instanceType: string, region: string, vpcId: string, zone: string, type: string, clusterName: string, namespace: string): Chainable;
       createAmazonRke2Cluster(params: CreateAmazonRke2ClusterParams): Chainable;
       createAmazonRke2ClusterWithoutMachineConfig(params: CreateAmazonRke2ClusterWithoutMachineConfigParams): Chainable;
+      getKubernetesReleases(rkeType: 'rke2' | 'k3s'): Chainable;
       createSecret(namespace: string, name: string, options?: { type?: string; metadata?: any; data?: any }): Chainable;
       createConfigMap(namespace: string, name: string, options?: { metadata?: any; data?: any }): Chainable;
       createService(namespace: string, name: string, options?: { type?: string; ports?: any[]; spec?: any; metadata?: any }): Chainable;

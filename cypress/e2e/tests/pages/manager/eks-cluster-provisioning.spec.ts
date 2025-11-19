@@ -60,7 +60,7 @@ describe('Create EKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     createEKSClusterPage.selectKubeProvider(0);
     loadingPo.checkNotExists();
     createEKSClusterPage.rke2PageTitle().should('include', 'Create Amazon EKS');
-    createEKSClusterPage.waitForPage('type=amazoneks&rkeType=rke2');
+    createEKSClusterPage.waitForPage('type=eks&rkeType=rke2');
 
     // create amazon cloud credential
     cloudCredForm.saveButton().expectToBeDisabled();
@@ -79,7 +79,7 @@ describe('Create EKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
 
     cy.wait('@pageLoad').its('response.statusCode').should('eq', 200);
     loadingPo.checkNotExists();
-    createEKSClusterPage.waitForPage('type=amazoneks&rkeType=rke2');
+    createEKSClusterPage.waitForPage('type=eks&rkeType=rke2');
   });
 
   beforeEach( () => {
@@ -115,7 +115,7 @@ describe('Create EKS cluster', { testIsolation: 'off', tags: ['@manager', '@admi
     createEKSClusterPage.selectKubeProvider(0);
     loadingPo.checkNotExists();
     createEKSClusterPage.rke2PageTitle().should('include', 'Create Amazon EKS');
-    createEKSClusterPage.waitForPage('type=amazoneks&rkeType=rke2');
+    createEKSClusterPage.waitForPage('type=eks&rkeType=rke2');
 
     // Verify that eks-zone-select dropdown is set to the default zone
     createEKSClusterPage.getRegion().checkOptionSelected(eksSettings.eksRegion);
