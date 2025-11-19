@@ -17,6 +17,7 @@ import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartC
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import day from 'dayjs';
 import { RcButton } from '@components/RcButton';
+import CopyToClipboard from '@shell/components/CopyToClipboard';
 
 export default {
   components: {
@@ -26,7 +27,8 @@ export default {
     Loading,
     AppChartCardSubHeader,
     AppChartCardFooter,
-    RcButton
+    RcButton,
+    CopyToClipboard
   },
 
   mixins: [
@@ -86,9 +88,10 @@ export default {
 
       return maintainers.map((m) => {
         return {
-          id:   m.name,
-          text: m.name,
-          url:  m.email ? `mailto:${ m.email }` : m.url
+          id:    m.name,
+          name:  m.name,
+          email: m.email,
+          url:   m.url
         };
       });
     },
@@ -461,13 +464,37 @@ export default {
           class="chart-body__info-section"
         >
           <h4>{{ t('catalog.chart.info.maintainers') }}</h4>
-          <a
+          <div
             v-for="m of maintainers"
             :key="m.id"
-            :href="m.url"
-            rel="nofollow noopener noreferrer"
-            target="_blank"
-          >{{ m.text }}<span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
+            class="maintainer-item"
+          >
+            <a
+              v-if="m.email"
+              v-clean-tooltip="t('catalog.chart.info.maintainerEmailTooltip', {maintainer: m.name})"
+              :href="`mailto:${m.email}`"
+              rel="nofollow noopener noreferrer"
+              target="_blank"
+            >
+              {{ m.name }}
+            </a>
+            <a
+              v-else-if="m.url"
+              :href="m.url"
+              rel="nofollow noopener noreferrer"
+              target="_blank"
+            >{{ m.url }}<i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
+            <span v-else>{{ m.name }}</span>
+            <CopyToClipboard
+              v-if="m.email"
+              :text="m.email"
+              label-as="tooltip"
+              data-testid="copy-maintainer-email"
+              :aria-label="t('catalog.chart.info.copyEmailToClipboard')"
+              class="icon-btn"
+              action-color="bg-transparent"
+            />
+          </div>
         </div>
         <div
           v-if="version.sources"
@@ -701,6 +728,17 @@ export default {
                 margin-left: -2px;
               }
             }
+          }
+        }
+
+        .maintainer-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .icon-btn {
+            padding: 2px;
+            min-height: 24px;
           }
         }
       }

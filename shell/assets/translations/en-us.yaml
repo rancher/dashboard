@@ -31,6 +31,7 @@ generic:
   copy: Copy
   copyToClipboard: Copy text to Clipboard
   copiedToClipboard: Text copied to Clipboard
+  copyEmailToClipboard: Copy email to clipboard
   create: Create
   created: Created
   customize: Customize
@@ -1125,6 +1126,7 @@ catalog:
       home: Homepage
       repository: Repository Page
       maintainers: Maintainers
+      maintainerEmailTooltip: Contact {maintainer}
       related: Related
       chartUrls: Chart
       keywords: Keywords
