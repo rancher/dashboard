@@ -18,7 +18,7 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { setFavIcon } from '@shell/utils/favicon';
 import TabTitle from '@shell/components/TabTitle';
 
-const Color = require('color');
+import Color from 'color';
 
 export default {
   components: {
