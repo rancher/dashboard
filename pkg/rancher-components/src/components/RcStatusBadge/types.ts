@@ -1,4 +1,4 @@
-import { Status } from '@components/utils/status';
+import { Status } from '../utils/status';
 
 export interface RcStatusBadgeProps {
   status: Status;

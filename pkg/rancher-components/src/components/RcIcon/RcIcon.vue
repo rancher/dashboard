@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RcIconProps, RcIconType, RcIconSize } from '@components/RcIcon/types';
 import { computed } from 'vue';
-import { StatusObject, useStatusColors } from '../../utils/status';
+import { StatusObject, useStatusColors } from '@components/utils/status';
 const props = withDefaults(defineProps<RcIconProps>(), { size: 'small' });
 
 const fontSize = computed(() => {

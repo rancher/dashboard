@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RcStatusBadgeProps } from './types';
-import { useStatusColors } from '@components/utils/status';
+import { useStatusColors } from '../utils/status';
 
 const props = defineProps<RcStatusBadgeProps>();
 
