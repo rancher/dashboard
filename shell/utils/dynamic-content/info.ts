@@ -33,21 +33,10 @@ type FeatureFlagInfos = {
      * Query param, in format `ff-<param>`
      */
     param: string,
-    values: {
-      /**
-       * At some point this has been explicitly set
-       */
-      explicit?: string,
-      /**
-       * The default value of the ff
-       */
-      default?: string;
-      /**
-       * The value used by the UI, roughly explicitValue || defaultValue
-       */
-      practical: string;
-    }
-
+    /**
+      * The actual value used by the UI, roughly spec.value || status.default
+      */
+    value: string,
   }
 };
 
@@ -56,8 +45,8 @@ type FeatureFlagInfos = {
  */
 const ffs: FeatureFlagInfos = {
   [STEVE_CACHE]: {
-    param:  'usc',
-    values: { practical: '' }
+    param: 'usc',
+    value: '',
   }
 };
 
@@ -168,13 +157,7 @@ export class SystemInfoProvider {
     const browserSize = `${ window.innerWidth }x${ window.innerHeight }`;
 
     Object.entries(ffs).forEach(([id, ff]) => {
-      const resource = getters['management/byId'](MANAGEMENT.FEATURE, id);
-
-      ff.value = {
-        practical: getters['features/get'](id),
-        default:   resource.status.default,
-        explicit:  resource.spec.value,
-      };
+      ff.value = getters['features/get'](id);
     });
 
     return {
@@ -261,7 +244,7 @@ export class SystemInfoProvider {
     }
 
     Object.values(systemData.featureFlags).forEach((ff) => {
-      params.push(`ff-` + `${ ff.param }=${ ff.values.practical }`);
+      params.push(`ff-` + `${ ff.param }=${ ff.value }`);
     });
 
     return params.join('&');
