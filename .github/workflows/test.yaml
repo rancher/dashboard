@@ -111,12 +111,12 @@ jobs:
       #     google-chrome --version
 
       - name: Download e2e build
-        uses:  actions/download-artifact@v5
+        uses:  actions/download-artifact@v6
         with:
          name: ${{ env.E2E_BUILD_DIST_NAME }}
          path: ${{ env.E2E_BUILD_DIST_DIR }}
       - name: Download e2e build ember
-        uses:  actions/download-artifact@v5
+        uses:  actions/download-artifact@v6
         with:
          name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
@@ -175,12 +175,12 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Download e2e build
-        uses:  actions/download-artifact@v5
+        uses:  actions/download-artifact@v6
         with:
           name: ${{ env.E2E_BUILD_DIST_NAME }}
           path: ${{ env.E2E_BUILD_DIST_DIR }}
       - name: Download e2e build ember
-        uses:  actions/download-artifact@v5
+        uses:  actions/download-artifact@v6
         with:
           name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
           path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
