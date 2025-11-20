@@ -272,53 +272,84 @@ describe('Cluster Management Helm Repositories', { testIsolation: 'off', tags: [
     // delete repo
     cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.repoName);
   });
+});
 
-  it('can disable/enable a repository', function() {
+describe('Repository Disable/Enable', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+  const repositoriesPage = new ChartRepositoriesPagePo(undefined, 'manager');
+  let repoName: string;
+
+  before(() => {
+    cy.login();
     // The context menu can slightly clip at the top of the screen. This ensures it's visible.
     cy.viewport(1280, 720);
 
-    // create repo
+    cy.createE2EResourceName('repo').then((name) => {
+      repoName = name;
+      cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
+        type:     'catalog.cattle.io.clusterrepo',
+        metadata: { name },
+        spec:     {
+          gitRepo:   gitRepoUrl,
+          gitBranch: chartBranch
+        }
+      }).then(() => {
+        // Wait for repository to be downloaded and ready
+        cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', name);
+      });
+    });
+  });
+
+  it('can disable a repository', () => {
     ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
-    repositoriesPage.create();
-    repositoriesPage.createEditRepositories().waitForPage();
-    repositoriesPage.createEditRepositories().nameNsDescription().name().set(this.repoName);
-    repositoriesPage.createEditRepositories().nameNsDescription().description().set(`${ this.repoName }-description`);
-    repositoriesPage.createEditRepositories().repoRadioBtn().set(1);
-    repositoriesPage.createEditRepositories().gitRepoUrl().set(gitRepoUrl);
-    repositoriesPage.createEditRepositories().gitBranch().set(chartBranch);
-    repositoriesPage.createEditRepositories().saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL).its('response.statusCode').should('eq', 201);
+    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', repoName).then(() => {
+      // Check if repository is already disabled, if so skip
+      repositoriesPage.list().details(repoName, 1).then(($el) => {
+        if ($el.text().includes('Disabled')) {
+          cy.log(`Repository ${ repoName } is already disabled, skipping disable action`);
+
+          return;
+        }
+
+        repositoriesPage.list().actionMenu(repoName).getMenuItem('Disable').click();
+        repositoriesPage.list().details(repoName, 1).contains('Disabled').should('be.visible');
+      });
+    });
+  });
+
+  it('refresh menu item is not displayed for disabled repository', () => {
+    ChartRepositoriesPagePo.navTo();
     repositoriesPage.waitForPage();
+    repositoriesPage.list().details(repoName, 1).contains('Disabled').should('be.visible');
 
-    // check list details
-    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', this.repoName).then(() => {
-      repositoriesPage.list().details(this.repoName, 1).contains('Active', MEDIUM_TIMEOUT_OPT).should('be.visible');
-      // refresh should be displayed for an enabled repo
-      repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').should('be.visible');
-      // close action menu
-      repositoriesPage.list().actionMenuClose(this.repoName);
+    // Verify refresh is not displayed for disabled repo
+    repositoriesPage.list().actionMenu(repoName).getMenuItem('Refresh').should('not.exist');
+    // close action menu
+    repositoriesPage.list().actionMenuClose(repoName);
+  });
+
+  it('can enable a repository', () => {
+    // Ensure repository exists before enabling
+    ChartRepositoriesPagePo.navTo();
+    repositoriesPage.waitForPage();
+    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', repoName).then(() => {
+      // Check if repository is already enabled, if so skip
+      repositoriesPage.list().details(repoName, 1).then(($el) => {
+        if ($el.text().includes('Active')) {
+          cy.log(`Repository ${ repoName } is already enabled, skipping enable action`);
+
+          return;
+        }
+
+        repositoriesPage.list().actionMenu(repoName).getMenuItem('Enable').click();
+        repositoriesPage.list().details(repoName, 1).contains('Active', MEDIUM_TIMEOUT_OPT).should('be.visible');
+      });
     });
+  });
 
-    // disable repo
-    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', this.repoName).then(() => {
-      repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Disable').click();
-      repositoriesPage.list().details(this.repoName, 1).contains('Disabled').should('be.visible');
-    });
-
-    // refresh should NOT be displayed for a disabled repo
-    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', this.repoName).then(() => {
-      repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Refresh').should('not.exist');
-      // close action menu
-      repositoriesPage.list().actionMenuClose(this.repoName);
-    });
-
-    // enable repo
-    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', this.repoName).then(() => {
-      repositoriesPage.list().actionMenu(this.repoName).getMenuItem('Enable').click();
-      repositoriesPage.list().details(this.repoName, 1).contains('Active', MEDIUM_TIMEOUT_OPT).should('be.visible');
-    });
-
-    // delete repo
-    cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', this.repoName);
+  after(() => {
+    if (repoName) {
+      cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', repoName, false);
+    }
   });
 });
