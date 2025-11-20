@@ -56,6 +56,7 @@ Cypress.Commands.add('login', (
         {
           username,
           password,
+          description:  'UI session',
           type:         'localProvider',
           responseType: 'cookie'
         }
