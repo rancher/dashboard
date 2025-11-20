@@ -77,7 +77,8 @@ describe('page: Chart Detail', () => {
       const expected = {
         id:    'Full Maintainer-0',
         name:  'Full Maintainer',
-        href:  'http://full.com'
+        href:  'http://full.com',
+        label: 'Full Maintainer'
       };
 
       expect(result[0]).toStrictEqual(expected);
@@ -90,27 +91,44 @@ describe('page: Chart Detail', () => {
             { name: 'No Email Maintainer', url: 'http://noemail.com' },
             { name: 'No URL Maintainer', email: 'nourl@test.com' },
             { name: 'Name Only Maintainer' },
+            { url: 'http://noname.com' },
+            { email: 'noname@test.com' }
           ]
         },
         versionInfo: null,
       };
       const result = (Chart.computed!.maintainers as () => any[]).call(thisContext);
 
-      expect(result).toHaveLength(3);
+      expect(result).toHaveLength(5);
       expect(result[0]).toStrictEqual({
         id:    'No Email Maintainer-0',
         name:  'No Email Maintainer',
-        href:  'http://noemail.com'
+        href:  'http://noemail.com',
+        label: 'No Email Maintainer'
       });
       expect(result[1]).toStrictEqual({
         id:    'No URL Maintainer-1',
         name:  'No URL Maintainer',
-        href:  'mailto:nourl@test.com'
+        href:  'mailto:nourl@test.com',
+        label: 'No URL Maintainer'
       });
       expect(result[2]).toStrictEqual({
         id:    'Name Only Maintainer-2',
         name:  'Name Only Maintainer',
-        href:  null
+        href:  null,
+        label: 'Name Only Maintainer'
+      });
+      expect(result[3]).toStrictEqual({
+        id:    'undefined-3',
+        name:  undefined,
+        href:  'http://noname.com',
+        label: 'http://noname.com'
+      });
+      expect(result[4]).toStrictEqual({
+        id:    'undefined-4',
+        name:  undefined,
+        href:  'mailto:noname@test.com',
+        label: 'noname@test.com'
       });
     });
   });

@@ -85,7 +85,7 @@ export default {
       const maintainers = this.version.maintainers || this.versionInfo?.chart?.maintainers || [];
 
       return maintainers.map((m, i) => {
-        const name = m.name || m.url || m.email || null;
+        const label = m.name || m.url || m.email || this.t('generic.unknown');
         let href = null;
 
         if (m.url) {
@@ -95,8 +95,9 @@ export default {
         }
 
         return {
-          id: `${ m.name }-${ i }`,
-          name,
+          id:   `${ m.name }-${ i }`,
+          name: m.name,
+          label,
           href
         };
       });
@@ -474,14 +475,14 @@ export default {
             >
               <a
                 v-if="m.href"
-                v-clean-tooltip="t('catalog.chart.info.maintainerContactTooltip', { maintainer: m.name })"
+                v-clean-tooltip="m.name ? t('catalog.chart.info.maintainerContactTooltip', { maintainer: m.name }) : undefined"
                 :href="m.href"
                 rel="nofollow noopener noreferrer"
                 target="_blank"
               >
-                {{ m.name }}
+                {{ m.label }}
               </a>
-              <span v-else>{{ m.name }}</span>
+              <span v-else>{{ m.label }}</span>
             </div>
           </template>
           <span v-else>{{ t('generic.unknown') }}</span>
