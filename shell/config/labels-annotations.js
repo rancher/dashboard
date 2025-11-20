@@ -85,6 +85,7 @@ export const CATALOG = {
   _PARTNER:  'partner',
   _OTHER:    'other',
 
+  PRIME_ONLY:   'catalog.cattle.io/prime-only',
   EXPERIMENTAL: 'catalog.cattle.io/experimental',
   NAMESPACE:    'catalog.cattle.io/namespace',
   RELEASE_NAME: 'catalog.cattle.io/release-name',

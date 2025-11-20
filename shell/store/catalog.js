@@ -504,11 +504,16 @@ function addChart(ctx, map, chart, repo) {
 
   if ( !obj ) {
     if ( ctx ) { }
+
+    const primeOnly = chart.annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true';
     const experimental = !!chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL];
     const windowsIncompatible = !(chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || '').includes('windows');
     const deploysOnWindows = (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows');
     const tags = [];
 
+    if (primeOnly) {
+      tags.push(ctx.rootGetters['i18n/withFallback']('generic.primeOnly'));
+    }
     if (experimental) {
       tags.push(ctx.rootGetters['i18n/withFallback']('generic.experimental'));
     }
@@ -542,6 +547,7 @@ function addChart(ctx, map, chart, repo) {
       keywords:         chart.keywords || [],
       categories:       filterCategories(chart.keywords),
       deprecated:       !!chart.deprecated,
+      primeOnly,
       experimental,
       hidden:           !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
       targetNamespace:  chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
