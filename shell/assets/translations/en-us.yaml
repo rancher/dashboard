@@ -7335,6 +7335,14 @@ workload:
       hostIPC: Use Host IPC Namespace
       hostPID: Use Host PID Namespace
       podFsGroup: Pod Filesystem Group
+      seccompProfile:
+        pod: Pod Seccomp Profile
+        container: Seccomp Profile
+        type: Type
+        localhostProfile:
+          label: Localhost Profile
+          tooltip: Indicates a profile defined in a file on the node should be used. The profile must be preconfigured on the node to work. Must be a descending path, relative to the kubelet's configured seccomp profile location.
+          placeholder: e.g. /path/to/json
       privileged:
         label: Privileged
         'false': No

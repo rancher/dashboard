@@ -279,17 +279,32 @@ export default {
       podFsGroup:                 podTemplateSpec.securityContext?.fsGroup,
       savePvcHookName:            'savePvcHook',
       tabWeightMap:               TAB_WEIGHT_MAP,
-      fvFormRuleSets:             [],
-      fvReportedValidationPaths:  ['spec'],
-      isNamespaceNew:             false,
-      idKey:                      ID_KEY
+      fvFormRuleSets:             [{
+        path:           'podTemplateSpec.securityContext.seccompProfile.localhostProfile',
+        rules:          [''],
+        rootObject:     this,
+        translationKey: 'workload.container.security.localhostProfile.label'
+      }],
+      fvReportedValidationPaths: ['spec'],
+      isNamespaceNew:            false,
+      idKey:                     ID_KEY
     };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
+    seccompProfileTypes() {
+      const types = ['None', 'RuntimeDefault', 'Localhost', 'Unconfined'];
+
+      return types.map((value) => ({ label: value, value }));
+    },
+
     tabErrors() {
-      return { general: this.fvGetPathErrors(['image'])?.length > 0 };
+      const tabErrors = {
+        podSecurityContext: this.fvGetPathErrors(['podTemplateSpec.securityContext.seccompProfile.localhostProfile'])?.length > 0, securityContext: this.fvGetPathErrors(['securityContext.seccompProfile.localhostProfile'])?.length > 0, general: this.fvGetPathErrors(['image'])?.length > 0
+      };
+
+      return tabErrors;
     },
 
     defaultTab() {
@@ -560,6 +575,24 @@ export default {
       this.servicesOwned = await this.value.getServicesOwned();
     },
 
+    'podTemplateSpec.securityContext.seccompProfile.type'(neu) {
+      if (neu === 'Localhost') {
+        this.fvFormRuleSets[0] = {
+          path:           'podTemplateSpec.securityContext.seccompProfile.localhostProfile',
+          rules:          ['required'],
+          rootObject:     this,
+          translationKey: 'workload.container.security.localhostProfile.label'
+        };
+      } else {
+        this.fvFormRuleSets[0] = {
+          path:           'podTemplateSpec.securityContext.seccompProfile.localhostProfile',
+          rules:          [''],
+          rootObject:     this,
+          translationKey: 'workload.container.security.localhostProfile.label'
+        };
+      }
+    },
+
     isNamespaceNew(neu, old) {
       if (!old && neu) {
         // As the namespace is new any resource that's been fetched with a namespace is now invalid
@@ -605,11 +638,27 @@ export default {
 
     container: {
       handler(c) {
-        this.fvFormRuleSets = [{
+        this.fvFormRuleSets[1] = {
           path: 'image', rootObject: c, rules: ['required'], translationKey: 'workload.container.image'
-        }];
+        };
+        if (c.securityContext?.seccompProfile?.type === 'Localhost' && c.securityContext?.privileged === false) {
+          this.fvFormRuleSets[2] = {
+            path:           'securityContext.seccompProfile.localhostProfile',
+            rules:          ['required'],
+            rootObject:     c,
+            translationKey: 'workload.container.security.localhostProfile.label'
+          };
+        } else {
+          this.fvFormRuleSets[2] = {
+            path:           'securityContext.seccompProfile.localhostProfile',
+            rules:          [''],
+            rootObject:     c,
+            translationKey: 'workload.container.security.localhostProfile.label'
+          };
+        }
       },
-      immediate: true
+      immediate: true,
+      deep:      true,
     }
   },
 

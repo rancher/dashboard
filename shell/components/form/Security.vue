@@ -4,6 +4,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { _VIEW } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import SeccompProfile from '@shell/components/form/SeccompProfile';
 
 const allCapabilities = ['ALL',
   'AUDIT_CONTROL',
@@ -50,7 +51,8 @@ export default {
   components: {
     RadioGroup,
     LabeledInput,
-    LabeledSelect
+    LabeledSelect,
+    SeccompProfile
   },
 
   props: {
@@ -60,11 +62,16 @@ export default {
         return {};
       }
     },
-    mode: { type: String, default: 'edit' }
+    mode:                { type: String, default: 'edit' },
+    seccompProfileTypes: {
+      type:    Array,
+      default: () => []
+    }
   },
 
   data() {
     return {
+      ...this.value,
       privileged:               this.value.privileged || false,
       allowPrivilegeEscalation: this.value.allowPrivilegeEscalation || false,
       allCapabilities,
@@ -106,6 +113,7 @@ export default {
   methods: {
     update() {
       const securityContext = {
+        ...this.value,
         runAsNonRoot:             this.runAsNonRoot,
         readOnlyRootFilesystem:   this.readOnlyRootFilesystem,
         capabilities:             { add: this.add, drop: this.drop },
@@ -156,6 +164,17 @@ export default {
           />
         </div>
       </div>
+    </div>
+    <div v-if="!privileged">
+      <div class="spacer-small" />
+      <SeccompProfile
+        :value="value"
+        :mode="mode"
+        :initialType="'None'"
+        :seccomp-profile-types="seccompProfileTypes"
+        :title="t('workload.container.security.seccompProfile.container')"
+        @update:value="$emit('update:value', $event)"
+      />
     </div>
     <div class="spacer" />
 

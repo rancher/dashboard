@@ -3,6 +3,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 import { mapGetters } from 'vuex';
+import SeccompProfile from '@shell/components/form/SeccompProfile.vue';
 
 export default {
   name:   'Workload',
@@ -19,6 +20,7 @@ export default {
       default: 'create',
     },
   },
+  components: { SeccompProfile },
   data() {
     return { selectedName: null, errors: [] };
   },
@@ -221,7 +223,6 @@ export default {
                       :mode="mode"
                       :label="t('workload.container.image')"
                       :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
-                      :rules="fvGetAndReportPathRules('image')"
                     />
                   </div>
                   <div class="col span-6">
@@ -333,10 +334,12 @@ export default {
               :label="t('workload.container.titles.securityContext')"
               name="securityContext"
               :weight="tabWeightMap['securityContext']"
+              :error="tabErrors.securityContext"
             >
               <Security
                 v-model:value="allContainers[i].securityContext"
                 :mode="mode"
+                :seccomp-profile-types="seccompProfileTypes"
               />
             </Tab>
             <Tab
@@ -405,6 +408,7 @@ export default {
           :label="t('workload.tabs.labels.pod')"
           :name="'pod'"
           :weight="98"
+          :error="tabErrors.podSecurityContext"
         >
           <Tabbed
             data-testid="workload-pod-tabs"
@@ -520,6 +524,7 @@ export default {
               :label="t('workload.container.titles.securityContext')"
               name="securityContext"
               :weight="tabWeightMap['securityContext']"
+              :error="tabErrors.podSecurityContext"
             >
               <div>
                 <h3>{{ t('workload.container.security.podFsGroup') }}</h3>
@@ -534,6 +539,14 @@ export default {
                   </div>
                 </div>
               </div>
+              <div class="spacer" />
+              <SeccompProfile
+                v-model:value="podTemplateSpec.securityContext"
+                :mode="mode"
+                :initialType="'RuntimeDefault'"
+                :seccomp-profile-types="seccompProfileTypes"
+                :title="t('workload.container.security.seccompProfile.pod')"
+              />
             </Tab>
             <Tab
               :label="t('workload.container.titles.networking')"
