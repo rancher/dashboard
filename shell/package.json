@@ -61,7 +61,7 @@
     "clipboard-polyfill": "4.0.1",
     "codemirror-editor-vue3": "2.8.0",
     "codemirror": ">=5.64.0 <6",
-    "color": "4.2.3",
+    "color": "5.0.3",
     "cookie-universal": "2.2.2",
     "cookie": "0.7.0",
     "core-js": "3.45.0",
