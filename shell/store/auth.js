@@ -360,6 +360,7 @@ export const actions = {
           method: 'post',
           data:   {
             type:         driver.type,
+            description:  'UI session',
             responseType: 'cookie',
             ...body
           },
