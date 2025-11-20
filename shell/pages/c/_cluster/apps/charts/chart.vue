@@ -17,7 +17,6 @@ import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartC
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import day from 'dayjs';
 import { RcButton } from '@components/RcButton';
-import CopyToClipboard from '@shell/components/CopyToClipboard';
 
 export default {
   components: {
@@ -27,8 +26,7 @@ export default {
     Loading,
     AppChartCardSubHeader,
     AppChartCardFooter,
-    RcButton,
-    CopyToClipboard
+    RcButton
   },
 
   mixins: [
@@ -86,12 +84,20 @@ export default {
     maintainers() {
       const maintainers = this.version.maintainers || this.versionInfo?.chart?.maintainers || [];
 
-      return maintainers.map((m) => {
+      return maintainers.map((m, i) => {
+        const name = m.name || m.url || m.email || null;
+        let href = null;
+
+        if (m.url) {
+          href = m.url;
+        } else if (m.email) {
+          href = `mailto:${ m.email }`;
+        }
+
         return {
-          id:    m.name,
-          name:  m.name,
-          email: m.email,
-          url:   m.url
+          id: `${ m.name }-${ i }`,
+          name,
+          href
         };
       });
     },
@@ -459,41 +465,26 @@ export default {
             data-testid="chart-home-link"
           >{{ home }}<i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
         </div>
-        <div
-          v-if="maintainers.length"
-          class="chart-body__info-section"
-        >
+        <div class="chart-body__info-section">
           <h4>{{ t('catalog.chart.info.maintainers') }}</h4>
-          <div
-            v-for="m of maintainers"
-            :key="m.id"
-            class="maintainer-item"
-          >
-            <a
-              v-if="m.email"
-              v-clean-tooltip="t('catalog.chart.info.maintainerEmailTooltip', {maintainer: m.name})"
-              :href="`mailto:${m.email}`"
-              rel="nofollow noopener noreferrer"
-              target="_blank"
+          <template v-if="maintainers.length">
+            <div
+              v-for="m of maintainers"
+              :key="m.id"
             >
-              {{ m.name }}
-            </a>
-            <a
-              v-else-if="m.url"
-              :href="m.url"
-              rel="nofollow noopener noreferrer"
-              target="_blank"
-            >{{ m.url }}<i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
-            <span v-else>{{ m.name }}</span>
-            <CopyToClipboard
-              v-if="m.email"
-              :text="m.email"
-              label-as="tooltip"
-              :aria-label="t('catalog.chart.info.copyEmailToClipboard')"
-              class="icon-btn"
-              action-color="bg-transparent"
-            />
-          </div>
+              <a
+                v-if="m.href"
+                v-clean-tooltip="t('catalog.chart.info.maintainerContactTooltip', { maintainer: m.name })"
+                :href="m.href"
+                rel="nofollow noopener noreferrer"
+                target="_blank"
+              >
+                {{ m.name }}
+              </a>
+              <span v-else>{{ m.name }}</span>
+            </div>
+          </template>
+          <span v-else>{{ t('generic.unknown') }}</span>
         </div>
         <div
           v-if="version.sources"
@@ -727,17 +718,6 @@ export default {
                 margin-left: -2px;
               }
             }
-          }
-        }
-
-        .maintainer-item {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-
-          .icon-btn {
-            padding: 2px;
-            min-height: 24px;
           }
         }
       }
