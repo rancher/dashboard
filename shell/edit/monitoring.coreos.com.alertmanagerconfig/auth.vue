@@ -21,44 +21,61 @@ export default {
     }
   },
   data() {
-    this.value['basicAuth'] = this.value.basicAuth || {};
-
-    const authOptions = [
-      {
-        value: 'none',
-        label: this.t('monitoringReceiver.auth.none.label'),
-      },
-      {
-        value:   'basicAuth',
-        label:   this.t('monitoringReceiver.auth.basicAuth.label'),
-        default: {},
-      },
-      {
-        value:   'bearerTokenSecret',
-        label:   this.t('monitoringReceiver.auth.bearerToken.label'),
-        default: {},
-      },
-    ];
-    const authTypes = authOptions.map((option) => option.value);
-    const authType =
-      authTypes.find((authType) => !isEmpty(this.value[authType])) ||
-      authTypes[0];
-
-    this.initializeType(authOptions, authType);
-
     return {
-      authOptions,
-      authTypes,
-      authType,
-      view:                               _VIEW,
-      none:                               '__[[NONE]]__',
-      initialBearerTokenSecretName:       this.value?.bearerTokenSecret?.name ? this.value.bearerTokenSecret.name : '',
-      initialBearerTokenSecretKey:        this.value?.bearerTokenSecret?.key ? this.value.bearerTokenSecret.key : '',
-      initialBasicAuthUsernameSecretName: this.value?.basicAuth?.username?.name ? this.value.basicAuth.username.name : '',
-      initialBasicAuthUsernameSecretKey:  this.value?.basicAuth?.username?.key ? this.value.basicAuth.username.key : '',
-      initialBasicAuthPasswordSecretName: this.value?.basicAuth?.password?.name ? this.value.basicAuth.password.name : '',
-      initialBasicAuthPasswordSecretKey:  this.value?.basicAuth?.password?.key ? this.value.basicAuth.password.key : ''
+      authType: null,
+      view:     _VIEW,
+      none:     '__[[NONE]]__',
     };
+  },
+  computed: {
+    authOptions() {
+      return [
+        {
+          value: 'none',
+          label: this.t('monitoringReceiver.auth.none.label'),
+        },
+        {
+          value:   'basicAuth',
+          label:   this.t('monitoringReceiver.auth.basicAuth.label'),
+          default: {},
+        },
+        {
+          value:   'bearerTokenSecret',
+          label:   this.t('monitoringReceiver.auth.bearerToken.label'),
+          default: {},
+        },
+      ];
+    },
+    authTypes() {
+      return this.authOptions.map((option) => option.value);
+    },
+    initialBearerTokenSecretName() {
+      return this.value?.bearerTokenSecret?.name ? this.value.bearerTokenSecret.name : '';
+    },
+    initialBearerTokenSecretKey() {
+      return this.value?.bearerTokenSecret?.key ? this.value.bearerTokenSecret.key : '';
+    },
+    initialBasicAuthUsernameSecretName() {
+      return this.value?.basicAuth?.username?.name ? this.value.basicAuth.username.name : '';
+    },
+    initialBasicAuthUsernameSecretKey() {
+      return this.value?.basicAuth?.username?.key ? this.value.basicAuth.username.key : '';
+    },
+    initialBasicAuthPasswordSecretName() {
+      return this.value?.basicAuth?.password?.name ? this.value.basicAuth.password.name : '';
+    },
+    initialBasicAuthPasswordSecretKey() {
+      return this.value?.basicAuth?.password?.key ? this.value.basicAuth.password.key : '';
+    }
+  },
+  created() {
+    this.value.basicAuth = this.value.basicAuth || {};
+    const authType =
+      this.authTypes.find((authType) => !isEmpty(this.value[authType])) ||
+      this.authTypes[0];
+
+    this.authType = authType;
+    this.initializeType(this.authOptions, authType);
   },
   methods: {
     initializeType(authOptions, type) {

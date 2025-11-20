@@ -23,15 +23,13 @@ export default {
       required: true,
     },
   },
-  data() {
-    this.value['http_config'] = this.value.http_config || {};
-    this.value['send_resolved'] = this.value.send_resolved || false;
+  created() {
+    this.value.http_config = this.value.http_config || {};
+    this.value.send_resolved = this.value.send_resolved || false;
 
     if (this.mode === _CREATE) {
       this.value.text = this.value.text || '{{ template "slack.rancher.text" . }}';
     }
-
-    return {};
   },
 };
 </script>
