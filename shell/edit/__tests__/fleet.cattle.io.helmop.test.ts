@@ -174,7 +174,7 @@ describe.each([
 
     expect(pollingCheckbox.exists()).toBe(true);
     expect(pollingCheckbox.vm.value).toBe(enabled);
-    expect(pollingCheckbox.element.classList.value.includes('v-popper--has-tooltip')).toBe(!enabled);
+    expect(pollingCheckbox.element.classList.value.includes('has-clean-tooltip')).toBe(!enabled);
     expect(pollingIntervalInput.exists()).toBe(enabled);
     expect(pollingIntervalMinimumValueWarning.exists()).toBe(minValueWarnVisible);
   });

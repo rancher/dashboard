@@ -269,7 +269,7 @@ export default defineComponent({
     class="checkbox-outer-container"
     data-checkbox-ctrl
     :class="{
-      'v-popper--has-tooltip': hasTooltip,
+      'has-clean-tooltip': hasTooltip,
     }"
   >
     <label

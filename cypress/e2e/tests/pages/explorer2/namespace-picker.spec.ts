@@ -137,7 +137,9 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.selectedValues().find('.ns-value').contains('Project: Default').should('be.visible');
     namespacePicker.namespaceDropdown().find('.ns-more').should('contains.text', '+3');
     namespacePicker.closeDropdown();
+    namespacePicker.selectedValues().realHover();
     namespacePicker.selectedValues().should('have.class', 'v-popper--has-tooltip');
+    namespacePicker.moreOptionsSelected().realHover();
     namespacePicker.moreOptionsSelected().should('have.class', 'v-popper--has-tooltip');
   });
 
