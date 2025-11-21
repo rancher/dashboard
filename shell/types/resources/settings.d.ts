@@ -131,6 +131,6 @@ export type Setting = {
   kind: string;
   metadata: Metadata;
   source: string;
-  value: string | null;
+  value: string | undefined;
   save: () => void;
 };
