@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { RcIconProps, RcIconType, RcIconSize } from '@components/RcIcon/types';
 import { computed } from 'vue';
-import { StatusObject, useStatusColors } from '@components/utils/status';
+import { useStatusColors } from '@components/utils/status';
 const props = withDefaults(defineProps<RcIconProps>(), { size: 'small' });
-
 const fontSize = computed(() => {
   return RcIconSize[props.size];
 });
@@ -12,12 +11,22 @@ const iconClass = computed(() => {
   return RcIconType[props.type];
 });
 
+const status = computed(() => {
+  if (props.status && props.status !== 'inherit') {
+    return props.status;
+  }
+
+  return 'none';
+});
+
+const { textColor } = useStatusColors({ status: status.value }, 'outlined');
+
 const color = computed(() => {
-  if (props.status && props.status === 'inherit') {
+  if (props.status === 'inherit') {
     return 'inherit';
   }
 
-  return useStatusColors(props as StatusObject, 'outlined').textColor.value;
+  return textColor.value;
 });
 </script>
 
