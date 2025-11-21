@@ -268,12 +268,14 @@ export default {
         const latestNotCompatible = item.versions.find((version) => !version.isVersionCompatible);
 
         if (latestCompatible) {
+          item.primeOnly = latestCompatible?.annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true';
           item.experimental = latestCompatible?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true';
           item.certified = latestCompatible?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER;
 
           item.displayVersion = latestCompatible.version;
           item.icon = latestCompatible.icon;
         } else {
+          item.primeOnly = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.PRIME_ONLY, 'true');
           item.experimental = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true');
           item.certified = uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER);
 
@@ -327,6 +329,7 @@ export default {
             displayVersion: p.metadata?.version || '-',
             installed:      true,
             builtin:        !!p.builtin,
+            primeOnly:      rancher?.annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true',
             experimental:   rancher?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true',
             certified:      rancher?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER
           };
@@ -357,6 +360,7 @@ export default {
             const installedVersion = (chart.installableVersions || []).find((v) => v?.version === p.version);
 
             if (installedVersion) {
+              chart.primeOnly = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true';
               chart.experimental = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] === 'true';
               chart.certified = installedVersion?.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] === CATALOG_ANNOTATIONS._RANCHER;
             }
@@ -979,6 +983,12 @@ export default {
                     v-clean-tooltip="t('plugins.descriptions.experimental')"
                   >
                     {{ t('plugins.labels.experimental') }}
+                  </div>
+                  <div
+                    v-if="plugin.primeOnly"
+                    v-clean-tooltip="t('plugins.descriptions.primeOnly')"
+                  >
+                    {{ t('plugins.labels.primeOnly') }}
                   </div>
                 </div>
                 <div class="plugin-spacer" />
