@@ -14,10 +14,8 @@ import ActionMenu from '@shell/components/ActionMenuShell';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import IconMessage from '@shell/components/IconMessage.vue';
-import { BadgeState } from '@components/BadgeState';
 import PluginInfoPanel from './PluginInfoPanel.vue';
 import SetupUIPlugins from './SetupUIPlugins.vue';
-import CatalogList from './CatalogList/index.vue';
 import Banner from '@components/Banner/Banner.vue';
 import {
   isUIPlugin,
@@ -48,9 +46,7 @@ const TABS_VALUES = {
 export default {
   components: {
     ActionMenu,
-    BadgeState,
     IconMessage,
-    CatalogList,
     Banner,
     PluginInfoPanel,
     Tab,
@@ -79,8 +75,7 @@ export default {
       hasFeatureFlag:                 true,
       defaultIcon:                    require('~shell/assets/images/generic-plugin.svg'),
       reloadRequired:                 false,
-      rancherVersion:                 null,
-      showCatalogList:                false
+      rancherVersion:                 null
     };
   },
 
@@ -175,14 +170,11 @@ export default {
         enabled: true
       });
 
-      // Only show Manage Extension Catalogs when on main charts view
-      if (!this.showCatalogList) {
-        menuActions.push({
-          action:  'manageExtensionView',
-          label:   this.t('plugins.manageCatalog.label'),
-          enabled: true
-        });
-      }
+      menuActions.push({
+        action:  'manageExtensionView',
+        label:   this.t('plugins.manageCatalog.label'),
+        enabled: true
+      });
 
       // Only show Developer Load action if the user has this enabled in preferences
       if (this.pluginDeveloper) {
@@ -593,37 +585,6 @@ export default {
       });
     },
 
-    showCatalogLoadDialog() {
-      this.$store.dispatch('management/promptModal', {
-        component:           'ExtensionCatalogInstallDialog',
-        returnFocusSelector: '[data-testid="extensions-catalog-load-dialog"]',
-        componentProps:      {
-          refresh: () => {
-            this.reloadRequired = true;
-          },
-          closed: (res) => {
-            this.didInstall(res);
-          }
-        }
-      });
-    },
-
-    showCatalogUninstallDialog(ev) {
-      this.$store.dispatch('management/promptModal', {
-        component:           'ExtensionCatalogUninstallDialog',
-        returnFocusSelector: '[data-testid="extensions-catalog-load-dialog"]',
-        componentProps:      {
-          catalog: ev,
-          refresh: () => {
-            this.reloadRequired = true;
-          },
-          closed: (res) => {
-            this.didUninstall(res);
-          }
-        }
-      });
-    },
-
     showInstallDialog(plugin, action, ev, initialVersion = null) {
       ev?.target?.blur();
       ev?.preventDefault?.();
@@ -731,7 +692,10 @@ export default {
     },
 
     manageExtensionView() {
-      this.showCatalogList = !this.showCatalogList;
+      this.$router.push({
+        name:   'c-cluster-uiplugins-catalogs',
+        params: { cluster: this.$route.params.cluster }
+      });
     },
 
     updateAddReposSetting() {
@@ -908,39 +872,12 @@ export default {
 <template>
   <div id="extensions-main-page">
     <div class="plugin-header">
-      <!-- catalog view header -->
-      <template v-if="showCatalogList">
-        <div class="catalog-title">
-          <h2
-            class="mb-0 mr-10"
-            data-testid="extensions-catalog-title"
-          >
-            <a
-              class="link"
-              role="link"
-              tabindex="0"
-              :aria-label="t('plugins.manageCatalog.title')"
-              @click="manageExtensionView()"
-            >
-              {{ t('plugins.manageCatalog.title') }}:
-            </a>
-            <t k="plugins.manageCatalog.subtitle" />
-          </h2>
-          <BadgeState
-            color="bg-warning"
-            :label="t('generic.experimental')"
-            class="badge"
-          />
-        </div>
-      </template>
       <!-- normal extensions view header -->
-      <template v-else>
-        <h2 data-testid="extensions-page-title">
-          <TabTitle breadcrumb="vendor-only">
-            {{ t('plugins.title') }}
-          </TabTitle>
-        </h2>
-      </template>
+      <h2 data-testid="extensions-page-title">
+        <TabTitle breadcrumb="vendor-only">
+          {{ t('plugins.title') }}
+        </TabTitle>
+      </h2>
       <div class="actions-container">
         <!-- extensions reload toast/notification -->
         <div
@@ -1005,112 +942,103 @@ export default {
       />
     </div>
     <div v-else>
-      <!-- Extension Catalog list view -->
-      <template v-if="showCatalogList">
-        <CatalogList
-          @showCatalogLoadDialog="showCatalogLoadDialog"
-          @showCatalogUninstallDialog="showCatalogUninstallDialog($event)"
-        />
-      </template>
-      <template v-else>
-        <Banner
-          v-if="!loading && showAddReposBanner"
-          color="warning"
-          class="add-repos-banner mb-20"
-          data-testid="extensions-new-repos-banner"
+      <Banner
+        v-if="!loading && showAddReposBanner"
+        color="warning"
+        class="add-repos-banner mb-20"
+        data-testid="extensions-new-repos-banner"
+      >
+        <span>{{ t('plugins.addRepos.banner', {}, true) }}</span>
+        <button
+          class="ml-10 btn btn-sm role-primary"
+          data-testid="extensions-new-repos-banner-action-btn"
+          role="button"
+          :aria-label="t('plugins.addRepos.bannerBtn')"
+          @click="showAddExtensionReposDialog()"
         >
-          <span>{{ t('plugins.addRepos.banner', {}, true) }}</span>
-          <button
-            class="ml-10 btn btn-sm role-primary"
-            data-testid="extensions-new-repos-banner-action-btn"
-            role="button"
-            :aria-label="t('plugins.addRepos.bannerBtn')"
-            @click="showAddExtensionReposDialog()"
-          >
-            {{ t('plugins.addRepos.bannerBtn') }}
-          </button>
-        </Banner>
+          {{ t('plugins.addRepos.bannerBtn') }}
+        </button>
+      </Banner>
 
-        <Tabbed
-          v-if="!loading"
-          ref="tabs"
-          :tabs-only="true"
-          data-testid="extension-tabs"
-          @changed="tabChanged"
-        >
-          <Tab
-            v-if="installed.length"
-            :name="TABS_VALUES.INSTALLED"
-            data-testid="extension-tab-installed"
-            label-key="plugins.tabs.installed"
-            :badge="installed.length"
-            :weight="20"
-          />
-          <Tab
-            :name="TABS_VALUES.AVAILABLE"
-            data-testid="extension-tab-available"
-            label-key="plugins.tabs.available"
-            :weight="19"
-          />
-          <Tab
-            v-if="pluginDeveloper"
-            :name="TABS_VALUES.BUILTIN"
-            label-key="plugins.tabs.builtin"
-            :weight="17"
-          />
-        </Tabbed>
-        <div
-          v-if="loading"
-          class="data-loading"
-        >
-          <i class="icon-spin icon icon-spinner" />
-          <t
-            k="generic.loading"
-            :raw="true"
-          />
-        </div>
-        <div
-          v-else
-          class="plugin-cards"
-          :class="{'v-margin': !list.length}"
-        >
-          <IconMessage
-            v-if="list.length === 0"
-            :vertical="true"
-            :subtle="true"
-            icon="icon-extension"
-            class="mmt-9"
-            :message="emptyMessage"
-          />
-          <template v-else>
-            <rc-item-card
-              v-for="card in pluginCards"
-              :id="card.id"
-              :key="card.id"
-              :class="{ 'single-card': pluginCards.length === 1 }"
-              :header="card.header"
-              :image="card.image"
-              :content="card.content"
-              :actions="card.actions"
-              :clickable="true"
-              @card-click="showPluginDetail(card.plugin)"
-              @uninstall="({event}) => showUninstallDialog(card.plugin, event)"
-              @upgrade="({event}) => showInstallDialog(card.plugin, 'upgrade', event)"
-              @downgrade="({event}) => showInstallDialog(card.plugin, 'downgrade', event)"
-              @install="({event}) => showInstallDialog(card.plugin, 'install', event)"
-            >
-              <template #item-card-sub-header>
-                <AppChartCardSubHeader
-                  :items="card.subHeaderItems"
-                />
-              </template>
-              <template #item-card-footer>
-                <AppChartCardFooter :items="card.footerItems" />
-              </template>
-            </rc-item-card>
-          </template>
-        </div>
-      </template>
+      <Tabbed
+        v-if="!loading"
+        ref="tabs"
+        :tabs-only="true"
+        data-testid="extension-tabs"
+        @changed="tabChanged"
+      >
+        <Tab
+          v-if="installed.length"
+          :name="TABS_VALUES.INSTALLED"
+          data-testid="extension-tab-installed"
+          label-key="plugins.tabs.installed"
+          :badge="installed.length"
+          :weight="20"
+        />
+        <Tab
+          :name="TABS_VALUES.AVAILABLE"
+          data-testid="extension-tab-available"
+          label-key="plugins.tabs.available"
+          :weight="19"
+        />
+        <Tab
+          v-if="pluginDeveloper"
+          :name="TABS_VALUES.BUILTIN"
+          label-key="plugins.tabs.builtin"
+          :weight="17"
+        />
+      </Tabbed>
+      <div
+        v-if="loading"
+        class="data-loading"
+      >
+        <i class="icon-spin icon icon-spinner" />
+        <t
+          k="generic.loading"
+          :raw="true"
+        />
+      </div>
+      <div
+        v-else
+        class="plugin-cards"
+        :class="{'v-margin': !list.length}"
+      >
+        <IconMessage
+          v-if="list.length === 0"
+          :vertical="true"
+          :subtle="true"
+          icon="icon-extension"
+          class="mmt-9"
+          :message="emptyMessage"
+        />
+        <template v-else>
+          <rc-item-card
+            v-for="card in pluginCards"
+            :id="card.id"
+            :key="card.id"
+            :class="{ 'single-card': pluginCards.length === 1 }"
+            :header="card.header"
+            :image="card.image"
+            :content="card.content"
+            :actions="card.actions"
+            :clickable="true"
+            @card-click="showPluginDetail(card.plugin)"
+            @uninstall="({event}) => showUninstallDialog(card.plugin, event)"
+            @upgrade="({event}) => showInstallDialog(card.plugin, 'upgrade', event)"
+            @downgrade="({event}) => showInstallDialog(card.plugin, 'downgrade', event)"
+            @install="({event}) => showInstallDialog(card.plugin, 'install', event)"
+          >
+            <template #item-card-sub-header>
+              <AppChartCardSubHeader
+                :items="card.subHeaderItems"
+              />
+            </template>
+            <template #item-card-footer>
+              <AppChartCardFooter :items="card.footerItems" />
+            </template>
+          </rc-item-card>
+        </template>
+      </div>
     </div>
   </div>
 </template>

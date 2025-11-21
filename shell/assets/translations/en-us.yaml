@@ -5322,7 +5322,7 @@ plugins:
   warnNoAuth: This version of the extension will be loaded before authentication and will have access to the login process.
   manageCatalog:
     label: Manage Extension Catalogs
-    title: Extension
+    title: Extensions
     subtitle: Catalogs
     imageLoad:
       load: Import Extension Catalog
