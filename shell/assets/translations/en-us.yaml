@@ -124,6 +124,7 @@ generic:
   enable: Enable
   disable: Disable
   experimental: Experimental
+  primeOnly: Prime Only
 
   deprecated: Deprecated
   upgradeable: Upgradeable
@@ -5046,6 +5047,7 @@ inactivity:
 # Rancher Extensions
 plugins:
   altIcon: Icon for {extension} extension card
+  incompatiblePrimeOnly: "The latest version of this extension ({ version }) needs Rancher Prime in order to be installed."
   incompatibleRancherVersion: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ required })."
   incompatibleKubeVersion: "The latest version of this extension ({ version }) is not compatible with the current Kube version ({ required })."
   incompatibleUiExtensionsApiVersionMissing: 'The latest version of this extension ({ version }) is missing the mandatory annotation catalog.cattle.io/ui-extensions-version from Rancher 2.10 and onwards.'
@@ -5055,6 +5057,7 @@ plugins:
   closePluginPanel: Close plugin description panel
   viewVersionDetails: View extension {name} version {version} details/Readme
   labels:
+    primeOnly: Prime Only
     builtin: Built-in
     experimental: Experimental
     third-party: Third-Party
@@ -5064,6 +5067,7 @@ plugins:
     menu: Extensions menu
     reloadRancher: Reload Rancher
   descriptions:
+    primeOnly: This Extension requires Rancher Prime
     experimental: This Extension is marked as experimental
     third-party: This Extension is provided by a Third-Party
     built-in: This Extension is built-in
@@ -5072,6 +5076,7 @@ plugins:
     title: Error loading extension
     message: Could not load extension code
     generic: Extension error
+    primeOnly: Unable to load Rancher Prime Extension in Rancher Community
     apiAnnotationMissing: 'Unable to load Extension. The version installed is not compatible with the current Extensions API Version (Extension is missing the annotation catalog.cattle.io/ui-extensions-version which implies incompatibility with Rancher 2.10 and onwards)'
     api: Unable to load Extension. The version installed is not compatible with the current Extensions API version
     host: Unable to load Extension. The version installed is not compatible with this application host
@@ -5094,6 +5099,7 @@ plugins:
     detail: Detail
     versions: Versions
     versionError: Could not load version information
+    requiresRancherPrime: "Requires Rancher Prime"
     requiresRancherVersion: "Requires Rancher {required}"
     requiresKubeVersion: "Requires Kube version {required}"
     requiresExtensionApiVersionMissing: 'Missing the annotation catalog.cattle.io/ui-extensions-version which implies incompatibility with Rancher 2.10 and onwards'
