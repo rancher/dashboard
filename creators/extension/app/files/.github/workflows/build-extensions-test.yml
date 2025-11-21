@@ -1,0 +1,19 @@
+name: Test extensions build
+
+#
+on:
+  pull_request:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./
+
+jobs:
+  build-extension-charts:
+    uses: rancher/dashboard/.github/workflows/build-extensions-test.yml@master
+    # with this input you can disable this test for any given extension
+    # if an exceptional case occurs. Example:
+    # with:
+    #   disable_exts_build: elemental,elemental-v2
+    # where elemental,elemental-v2 are subfolder names under /pkg
