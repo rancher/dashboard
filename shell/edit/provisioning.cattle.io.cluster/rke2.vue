@@ -2441,7 +2441,6 @@ export default {
           class="min-height"
           :use-hash="useTabbedHash"
           :default-tab="defaultTab"
-
           @changed="handleTabChange"
         >
           <Tab

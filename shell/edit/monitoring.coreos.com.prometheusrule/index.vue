@@ -156,7 +156,6 @@ export default {
         :show-tabs-add-remove="mode !== 'view'"
         :use-hash="useTabbedHash"
         :default-tab="defaultTab"
-
         @addTab="addRuleGroup"
         @removeTab="removeGroupRule"
       >

@@ -204,7 +204,6 @@ export default {
       :side-tabs="true"
       :use-hash="useTabbedHash"
       :default-tab="defaultTab"
-
       @update:value="$emit('input', $event)"
     >
       <Tab
