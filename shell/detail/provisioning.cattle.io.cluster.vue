@@ -578,6 +578,7 @@ export default {
       // Hosted kubernetes providers with private endpoints need the registration tab
       // https://github.com/rancher/dashboard/issues/6036
       // https://github.com/rancher/dashboard/issues/4545
+
       if ( this.value.isHostedKubernetesProvider && this.value.isPrivateHostedProvider && !this.isClusterReady ) {
         return this.extDetailTabs.registration;
       }

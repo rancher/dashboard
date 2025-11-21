@@ -222,7 +222,7 @@ export default {
     displayProvider() {
       const other = 'other';
 
-      let provider = this.currentCluster?.status?.provider || other;
+      let provider = this.currentCluster?.status?.provider || this.currentCluster?.status?.driver.toLowerCase() || other;
 
       if (provider === 'rke.windows') {
         provider = 'rkeWindows';
@@ -484,6 +484,12 @@ export default {
     hasNodes() {
       return this.nodes?.length > 0;
     },
+    kubernetesVersion() {
+      const base = this.currentCluster?.kubernetesVersionBase || '';
+      const extension = this.currentCluster?.kubernetesVersionExtension || '';
+
+      return `${ base }${ extension }`;
+    }
   },
 
   methods: {
@@ -661,11 +667,7 @@ export default {
       </div>
       <div data-testid="kubernetesVersion__label">
         <label>{{ t('glance.version') }}: </label>
-        <span>{{ currentCluster.kubernetesVersionBase }}</span>
-        <span
-          v-if="currentCluster.kubernetesVersionExtension"
-          style="font-size: 0.75em"
-        >{{ currentCluster.kubernetesVersionExtension }}</span>
+        <span>{{ kubernetesVersion }}</span>
       </div>
       <div
         v-if="hasNodes"
