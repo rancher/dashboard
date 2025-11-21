@@ -455,13 +455,32 @@ const createExtensionManager = (context) => {
         try {
           const provisioner = context.$extension.getDynamic('provisioner', name);
 
-          return new provisioner({ ...context });
+          const defaults = {
+            isCreate: false,
+            isEdit:   false,
+            isView:   false
+          };
+
+          return new provisioner({ ...defaults, ...context });
         } catch (e) {
           console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console
         }
       }).filter((ext) => !!ext);
 
       return extensions;
+    },
+
+    getHostedProviders(context) {
+      return this.getProviders(context)?.filter((p) => p.group === 'hosted') || [];
+    },
+
+    isHostedProvider(context, provisioner) {
+      if (!provisioner) {
+        return false;
+      }
+      const provisioners = new Set(this.getHostedProviders(context).map((p) => p.id));
+
+      return provisioners.has(provisioner.toLowerCase());
     },
 
     listDynamic(typeName) {
