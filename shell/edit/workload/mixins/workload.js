@@ -292,7 +292,7 @@ export default {
       return { general: this.fvGetPathErrors(['image'])?.length > 0 };
     },
 
-    defaultTab() {
+    defaultWorkloadTab() {
       if (!!this.$route.query.sidecar || this.$route.query.init || this.mode === _CREATE) {
         const container = this.allContainers.find((c) => c.__active);
 

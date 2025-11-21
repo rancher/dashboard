@@ -152,9 +152,10 @@ export default {
         ref="containersTabbed"
         class="deployment-tabs"
         :show-tabs-add-remove="true"
-        :default-tab="defaultTab"
+        :default-tab="defaultTab || defaultWorkloadTab"
         :flat="true"
         :use-hash="useTabbedHash"
+
         data-testid="workload-horizontal-tabs"
         @changed="changed"
       >
