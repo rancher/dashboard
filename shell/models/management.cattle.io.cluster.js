@@ -15,6 +15,7 @@ import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
+import { getExtensionManager } from '@shell/core/extension-manager-impl';
 
 const DEFAULT_BADGE_COLOR = '#707070';
 
@@ -173,7 +174,9 @@ export default class MgmtCluster extends SteveModel {
 
   get kubernetesVersionRaw() {
     const fromStatus = this.status?.version?.gitVersion;
-    const fromSpec = this.spec?.[`${ this.provisioner }Config`]?.kubernetesVersion;
+    const allKeys = Object.keys(this.spec);
+    const configKey = allKeys.find( (k) => k.endsWith('Config'));
+    const fromSpec = this.mgmt?.spec[configKey]?.kubernetesVersion;
 
     return fromStatus || fromSpec;
   }
@@ -239,9 +242,16 @@ export default class MgmtCluster extends SteveModel {
   }
 
   get isHostedKubernetesProvider() {
-    const providers = ['AKS', 'EKS', 'GKE'];
+    const extensionManager = getExtensionManager();
+    const context = {
+      dispatch:   this.$dispatch,
+      getters:    this.$getters,
+      axios:      this.$axios,
+      $extension: extensionManager,
+      t:          (...args) => this.t.apply(this, args),
+    };
 
-    return providers.includes(this.provisioner);
+    return extensionManager.isHostedProvider(context, this.provisioner);
   }
 
   get providerLogo() {
