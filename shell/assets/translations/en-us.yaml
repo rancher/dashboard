@@ -1126,6 +1126,7 @@ catalog:
       home: Homepage
       repository: Repository Page
       maintainers: Maintainers
+      maintainerContactTooltip: Contact {maintainer}
       related: Related
       chartUrls: Chart
       keywords: Keywords
