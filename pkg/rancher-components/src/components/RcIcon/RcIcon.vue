@@ -2,7 +2,7 @@
 import { RcIconProps, RcIconType, RcIconSize } from '@components/RcIcon/types';
 import { computed } from 'vue';
 import { useStatusColors } from '@components/utils/status';
-const props = withDefaults(defineProps<RcIconProps>(), { size: 'small' });
+const props = withDefaults(defineProps<RcIconProps>(), { size: 'small', ariaHidden: true });
 const fontSize = computed(() => {
   return RcIconSize[props.size];
 });
@@ -34,6 +34,7 @@ const color = computed(() => {
   <i
     class="rc-icon"
     :class="{[props.size]: true, [iconClass]: true}"
+    :aria-hidden="props.ariaHidden"
   />
 </template>
 
