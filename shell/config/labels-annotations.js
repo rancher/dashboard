@@ -37,6 +37,8 @@ export const STORAGE = {
 
 export const MANAGEMENT_NODE = { NODE_NAME: 'management.cattle.io/nodename' };
 
+export const NODE_ROLES_LABEL = 'node-role.kubernetes.io/';
+
 export const NODE_ROLES = {
   CONTROL_PLANE_OLD: 'node-role.kubernetes.io/controlplane',
   CONTROL_PLANE:     'node-role.kubernetes.io/control-plane',
