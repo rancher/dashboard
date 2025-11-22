@@ -505,7 +505,6 @@ export function listNodeRoles(isControlPlane, isWorker, isEtcd, customRoles = []
     }
   }
 
-  // Add custom roles with capitalized first letter
   customRoles.forEach((role) => {
     res.push(role.charAt(0).toUpperCase() + role.slice(1));
   });
