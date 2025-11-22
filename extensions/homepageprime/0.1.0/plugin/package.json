@@ -1,0 +1,20 @@
+{
+  "name": "homepageprime",
+  "description": "Example extension that changes the landing home page - Prime only version",
+  "version": "0.1.0",
+  "private": false,
+  "rancher": true,
+  "icon": "https://raw.githubusercontent.com/rancher/ui-plugin-examples/main/pkg/homepage-prime-only/homepage.svg",
+  "engines": {
+    "node": ">=12"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/cli-plugin-typescript": "~5.0.0"
+  },
+  "files": [
+    "**/*"
+  ],
+  "main": "homepageprime-0.1.0.umd.min.js"
+}
