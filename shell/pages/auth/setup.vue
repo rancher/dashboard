@@ -209,7 +209,7 @@ export default {
       const promises = [];
 
       try {
-        await applyProducts(this.$store, this.$plugin);
+        await applyProducts(this.$store, this.$extension);
         await this.$store.dispatch('loadManagement');
 
         if ( this.mustChangePassword ) {

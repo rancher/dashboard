@@ -365,7 +365,7 @@ export function DSL(store, product, module = 'type-map') {
 
 let called = false;
 
-export async function applyProducts(store, $plugin) {
+export async function applyProducts(store, $extension) {
   if (called) {
     return;
   }
@@ -379,7 +379,7 @@ export async function applyProducts(store, $plugin) {
     }
   }
   // Load the products from all plugins
-  $plugin.loadProducts();
+  $extension.loadProducts();
 }
 
 export function productsLoaded() {
@@ -2026,7 +2026,7 @@ function hasCustom(state, rootState, kind, key, fallback) {
   }
 
   // Check to see if the custom kind is provided by a plugin (ignore booleans)
-  const pluginComponent = rootState.$plugin.getDynamic(kind, key);
+  const pluginComponent = rootState.$extension.getDynamic(kind, key);
 
   if (typeof pluginComponent !== 'boolean' && !!pluginComponent) {
     cache[key] = true;
@@ -2046,7 +2046,7 @@ function hasCustom(state, rootState, kind, key, fallback) {
 }
 
 function loadExtension(rootState, kind, key, fallback) {
-  const ext = rootState.$plugin.getDynamic(kind, key);
+  const ext = rootState.$extension.getDynamic(kind, key);
 
   if (ext) {
     if (typeof ext === 'function') {

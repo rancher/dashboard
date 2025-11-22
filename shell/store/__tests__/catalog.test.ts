@@ -88,7 +88,7 @@ describe('catalog', () => {
           }
         },
         state: {
-          $plugin:            { getDynamic: () => require(`@shell/models/chart`) },
+          $extension:         { getDynamic: () => require(`@shell/models/chart`) },
           [catalogStoreName]: { } as { [key: string]: any},
         },
         getters: {

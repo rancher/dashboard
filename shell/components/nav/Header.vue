@@ -254,7 +254,7 @@ export default {
           this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, neu);
           this.updateExtensionActionsEnabled();
 
-          this.navHeaderRight = this.$plugin?.getDynamic('component', 'NavHeaderRight');
+          this.navHeaderRight = this.$extension?.getDynamic('component', 'NavHeaderRight');
         }
       },
       immediate: true,

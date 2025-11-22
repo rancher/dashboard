@@ -42,7 +42,7 @@ import { IPlugin } from '@shell/core/types';
 const BLANK_CLUSTER = '_';
 
 
-export function init($plugin: IPlugin, store: any) {
+export function init($extension: IPlugin, store: any) {
   const FLEET_PROD_NAME = 'fleet';
   const YOUR_K8S_RESOURCE_NAME = 'provisioning.cattle.io.cluster';
   const CUSTOM_PAGE_NAME = 'page1';
@@ -51,7 +51,7 @@ export function init($plugin: IPlugin, store: any) {
     configureType,
     virtualType,
     basicType
-  } = $plugin.DSL(store, FLEET_PROD_NAME);
+  } = $extension.DSL(store, FLEET_PROD_NAME);
 
   // creating a custom page
   virtualType({
