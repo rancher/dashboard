@@ -85,11 +85,8 @@ export default {
   },
 
   data() {
-    // Initial load with a preview showing no diff isn't very useful
-    this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
-
     return {
-      initialYaml:  this.initialYamlForDiff || this.yaml,
+      initialYaml:  null,
       currentYaml:  this.yaml,
       showPreview:  false,
       errors:       null,
@@ -150,6 +147,12 @@ export default {
         this.currentYaml = this.value.cleanYaml(this.yaml, neu);
       }
     }
+  },
+
+  created() {
+    // Initial load with a preview showing no diff isn't very useful
+    this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
+    this.initialYaml = this.initialYamlForDiff || this.yaml;
   },
 
   methods: {

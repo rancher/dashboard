@@ -26,24 +26,12 @@ export default {
     Pinned
   },
 
-  data() {
+  created() {
     sideNavService.init(this.$store);
 
-    const { displayVersion, fullVersion } = getVersionInfo(this.$store);
-    const hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
+    this.helper = sideNavService.helper;
 
-    const canPagination = this.$store.getters[`management/paginationEnabled`]({
-      id:      MANAGEMENT.CLUSTER,
-      context: 'side-bar',
-    }) && this.$store.getters[`management/paginationEnabled`]({
-      id:      CAPI.RANCHER_CLUSTER,
-      context: 'side-bar',
-    });
-    const helper = sideNavService.helper;
-    const provClusters = !canPagination && hasProvCluster ? this.$store.getters[`management/all`](CAPI.RANCHER_CLUSTER) : [];
-    const mgmtClusters = !canPagination ? this.$store.getters[`management/all`](MANAGEMENT.CLUSTER) : [];
-
-    if (!canPagination) {
+    if (!this.canPagination) {
       // Reduce the impact of the initial load, but only if we're not making a request
       const args = {
         pinnedIds:   this.pinnedIds,
@@ -51,26 +39,21 @@ export default {
         unPinnedMax: this.maxClustersToShow
       };
 
-      helper.update(args);
+      this.helper.update(args);
     }
+  },
 
+  data() {
     return {
       shown:             false,
-      displayVersion,
-      fullVersion,
       clusterFilter:     '',
-      hasProvCluster,
       maxClustersToShow: MENU_MAX_CLUSTERS,
       emptyCluster:      BLANK_CLUSTER,
       routeCombo:        false,
 
-      canPagination,
-      helper,
       debouncedHelperUpdateSlow:   debounce((...args) => this.helper.update(...args), 1000),
       debouncedHelperUpdateMedium: debounce((...args) => this.helper.update(...args), 750),
       debouncedHelperUpdateQuick:  debounce((...args) => this.helper.update(...args), 200),
-      provClusters,
-      mgmtClusters,
     };
   },
 
@@ -78,6 +61,48 @@ export default {
     ...mapGetters(['clusterId']),
     ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct', 'isRancherInHarvester']),
     ...mapGetters({ features: 'features/get' }),
+
+    displayVersion() {
+      const { displayVersion } = getVersionInfo(this.$store);
+
+      return displayVersion;
+    },
+
+    fullVersion() {
+      const { fullVersion } = getVersionInfo(this.$store);
+
+      return fullVersion;
+    },
+
+    hasProvCluster() {
+      return this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
+    },
+
+    isManagementPaginationEnabled() {
+      return this.$store.getters[`management/paginationEnabled`]({
+        id:      MANAGEMENT.CLUSTER,
+        context: 'side-bar',
+      });
+    },
+
+    isCapiPaginationEnabled() {
+      return this.$store.getters[`management/paginationEnabled`]({
+        id:      CAPI.RANCHER_CLUSTER,
+        context: 'side-bar',
+      });
+    },
+
+    canPagination() {
+      return this.isManagementPaginationEnabled && this.isCapiPaginationEnabled;
+    },
+
+    provClusters() {
+      return !this.canPagination && this.hasProvCluster ? this.$store.getters[`management/all`](CAPI.RANCHER_CLUSTER) : [];
+    },
+
+    mgmtClusters() {
+      return !this.canPagination ? this.$store.getters[`management/all`](MANAGEMENT.CLUSTER) : [];
+    },
 
     pinnedIds() {
       return this.$store.getters['prefs/get'](PINNED_CLUSTERS);

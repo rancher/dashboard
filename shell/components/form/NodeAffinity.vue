@@ -40,11 +40,6 @@ export default {
   },
 
   data() {
-    // VolumeNodeAffinity only has 'required' field
-    if (this.value.required) {
-    } else {
-    }
-
     return {
       nodeSelectorTerms:         null,
       allSelectorTerms:          null,
