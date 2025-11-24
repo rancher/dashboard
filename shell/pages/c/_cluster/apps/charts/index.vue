@@ -120,18 +120,18 @@ export default {
           }
         }
       ],
-      appCardsCache:             {},
-      selectedSortOption:        CATALOG_SORT_OPTIONS.RECOMMENDED,
-      initialVisibleChartsCount: 20,
-      visibleChartsCount:        20,
-      hasOverflow:               false,
-      sortOptions:               [
+      appCardsCache:      {},
+      selectedSortOption: CATALOG_SORT_OPTIONS.RECOMMENDED,
+      sortOptions:        [
         { kind: 'group', label: this.t('catalog.charts.sort.prefix') },
         { value: CATALOG_SORT_OPTIONS.RECOMMENDED, label: this.t('catalog.charts.sort.recommended') },
         { value: CATALOG_SORT_OPTIONS.LAST_UPDATED_DESC, label: this.t('catalog.charts.sort.lastUpdatedDesc') },
         { value: CATALOG_SORT_OPTIONS.ALPHABETICAL_ASC, label: this.t('catalog.charts.sort.alphaAscending') },
         { value: CATALOG_SORT_OPTIONS.ALPHABETICAL_DESC, label: this.t('catalog.charts.sort.alphaDescending') },
-      ]
+      ],
+      initialVisibleChartsCount: 20,
+      visibleChartsCount:        20,
+      hasOverflow:               false
     };
   },
 
@@ -323,9 +323,7 @@ export default {
 
   watch: {
     debouncedSearchQuery() {
-      this.visibleChartsCount = this.initialVisibleChartsCount;
-      this.observerInitialized = false;
-      this.hasOverflow = false;
+      this.resetLazyLoadState();
     },
 
     searchQuery: {
@@ -339,9 +337,7 @@ export default {
     filters: {
       deep: true,
       handler(newFilters) {
-        this.visibleChartsCount = this.initialVisibleChartsCount;
-        this.observerInitialized = false;
-        this.hasOverflow = false;
+        this.resetLazyLoadState();
 
         const query = {
           [REPO]:     normalizeFilterQuery(newFilters.repos),
@@ -453,6 +449,12 @@ export default {
       });
     },
 
+    resetLazyLoadState() {
+      this.visibleChartsCount = this.initialVisibleChartsCount;
+      this.observerInitialized = false;
+      this.hasOverflow = false;
+    },
+
     // The lazy loading implementation has two parts
     // 1. Initial Load (ensureOverflow): Having a simple calculation of how many items to load
     //    can fail in edge cases like browser zoom, where element sizing and viewport
@@ -509,7 +511,7 @@ export default {
         this.observer.disconnect();
       }
       const root = document.querySelector('.main-layout');
-      const sentinel = document.querySelector('.sentinel-charts');
+      const sentinel = this.$refs.sentinel;
 
       if (sentinel && root) {
         this.observer = new IntersectionObserver((entries) => {
@@ -722,7 +724,10 @@ export default {
             </template>
           </rc-item-card>
         </div>
-        <div class="sentinel-charts" />
+        <div
+          ref="sentinel"
+          class="sentinel-charts"
+        />
       </div>
     </div>
   </div>
