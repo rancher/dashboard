@@ -1,6 +1,6 @@
 import { Status } from '../utils/status';
 
-export const RcIconTypeToClass = {
+export const RcIconType = {
   actions:                 'icon-actions',
   ai:                      'icon-ai',
   'alert-alt':             'icon-alert-alt',
@@ -146,16 +146,14 @@ export const RcIconTypeToClass = {
 };
 
 export const RcIconSize = {
-  large:   '25px',
-  medium:  '18px',
-  small:   '14px',
-  inherit: 'inherit'
+  large:  '25px',
+  medium: '18px',
+  small:  '14px',
+  none:   undefined
 };
-
-export type RcIconType = keyof typeof RcIconTypeToClass;
 export interface RcIconProps {
   size: keyof typeof RcIconSize;
-  type: keyof typeof RcIconTypeToClass;
+  type: keyof typeof RcIconType;
   ariaHidden?: boolean;
   status?: Status | 'inherit';
 }
