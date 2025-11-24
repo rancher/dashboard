@@ -14,7 +14,7 @@ const meta: Meta<typeof RcIcon> = {
     size: {
       options:     Object.keys(RcIconSize),
       control:     { type: 'select' },
-      description: "Determines the size of the icon. `small`, `medium`, and `large` are the standard sizes and 'none' should be used if you plan to style it yourself. We highly discourage using `none` we'd like to limit the amount of sizes we use."
+      description: "Determines the size of the icon. `small`, `medium`, and `large` are the standard sizes and 'inherit' should be used if you plan to style it yourself. We highly discourage using `inherit` we'd like to limit the amount of sizes we use."
     },
     status: {
       options:     [...Object.keys(StatusDefinitions), 'inherit'],
