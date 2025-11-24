@@ -36,7 +36,7 @@ describe('component: SeccompProfile', () => {
       ...defaultMountOptions,
       props: {
         ...defaultMountOptions.props,
-        value: { seccompProfile: { type: 'Unconfined' } }
+        value: { type: 'Unconfined' }
       }
     });
 
@@ -48,7 +48,7 @@ describe('component: SeccompProfile', () => {
       ...defaultMountOptions,
       props: {
         ...defaultMountOptions.props,
-        value: { seccompProfile: { type: 'Localhost', localhostProfile: '/my/path' } }
+        value: { type: 'Localhost', localhostProfile: '/my/path' }
       }
     });
 
@@ -63,7 +63,7 @@ describe('component: SeccompProfile', () => {
       ...defaultMountOptions,
       props: {
         ...defaultMountOptions.props,
-        value: { runAsUser: 1000, seccompProfile: { type: 'Unconfined' } }
+        value: { seccompProfile: { type: 'Unconfined' } }
       }
     });
 
@@ -74,9 +74,8 @@ describe('component: SeccompProfile', () => {
     const emitted = wrapper.emitted('update:value');
 
     expect(emitted).toHaveLength(1);
-    // It should remove seccompProfile but preserve other properties
-    expect(emitted[0][0]).toStrictEqual({ runAsUser: 1000 });
-    expect(emitted[0][0].seccompProfile).toBeUndefined();
+    // It should remove seccompProfile
+    expect(emitted[0][0]).toBeUndefined();
   });
 
   it('should emit an update event when the type is changed', async() => {
@@ -95,7 +94,7 @@ describe('component: SeccompProfile', () => {
     const emitted = wrapper.emitted('update:value');
 
     expect(emitted).toHaveLength(1);
-    expect(emitted[0][0]).toStrictEqual({ seccompProfile: { type: 'Unconfined' } });
+    expect(emitted[0][0]).toStrictEqual({ type: 'Unconfined' });
   });
 
   it('should emit an update event with localhostProfile when type is Localhost', async() => {
@@ -115,11 +114,11 @@ describe('component: SeccompProfile', () => {
     const emitted = wrapper.emitted('update:value');
 
     expect(emitted).toHaveLength(1);
-    expect(emitted[0][0]).toStrictEqual({
-      seccompProfile: {
+    expect(emitted[0][0]).toStrictEqual(
+      {
         type:             'Localhost',
         localhostProfile: '/my/local/path'
       }
-    });
+    );
   });
 });

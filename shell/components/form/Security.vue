@@ -1,5 +1,5 @@
 <script>
-import { RadioGroup } from '@components/Form/Radio';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { _VIEW } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
@@ -49,7 +49,7 @@ export default {
   emits: ['update:value'],
 
   components: {
-    RadioGroup,
+    Checkbox,
     LabeledInput,
     LabeledSelect,
     SeccompProfile
@@ -62,6 +62,7 @@ export default {
         return {};
       }
     },
+    formType:            { type: String, default: 'container' },
     mode:                { type: String, default: 'edit' },
     seccompProfileTypes: {
       type:    Array,
@@ -70,28 +71,32 @@ export default {
   },
 
   data() {
-    return {
-      ...this.value,
-      privileged:               this.value.privileged || false,
-      allowPrivilegeEscalation: this.value.allowPrivilegeEscalation || false,
-      allCapabilities,
-      runAsNonRoot:             this.value.runAsNonRoot || false,
-      readOnlyRootFilesystem:   this.value.readOnlyRootFilesystem || false,
-      add:                      [],
-      drop:                     [],
-      runAsUser:                this.value.runAsUser
-    };
-  },
-
-  created() {
-    const { capabilities = {} } = this.value;
-    const {
-      add = [],
-      drop = []
-    } = capabilities;
-
-    this.add = add;
-    this.drop = drop;
+    if (this.formType === 'container') {
+      return {
+        allCapabilities,
+        securityContext: {
+          ...this.value,
+          privileged:               this.value.privileged || false,
+          allowPrivilegeEscalation: this.value.allowPrivilegeEscalation || false,
+          runAsNonRoot:             this.value.runAsNonRoot || false,
+          readOnlyRootFilesystem:   this.value.readOnlyRootFilesystem || false,
+          capabilities:             this.value.capabilities || { add: [], drop: [] },
+          runAsUser:                this.value.runAsUser,
+          seccompProfile:           this.value.seccompProfile,
+          fsGroup:                  this.value.fsGroup,
+        }
+      };
+    } else {
+      return {
+        securityContext: {
+          ...this.value,
+          fsGroup:        this.value.fsGroup,
+          runAsNonRoot:   this.value.runAsNonRoot || false,
+          runAsUser:      this.value.runAsUser,
+          seccompProfile: this.value.seccompProfile,
+        }
+      };
+    }
   },
 
   computed: {
@@ -102,25 +107,25 @@ export default {
     ...mapGetters({ t: 'i18n/t' })
   },
 
-  watch: {
-    privileged(neu) {
-      if (neu) {
-        this.allowPrivilegeEscalation = true;
-      }
-    }
-  },
-
   methods: {
     update() {
       const securityContext = {
         ...this.value,
-        runAsNonRoot:             this.runAsNonRoot,
-        readOnlyRootFilesystem:   this.readOnlyRootFilesystem,
-        capabilities:             { add: this.add, drop: this.drop },
-        privileged:               this.privileged,
-        allowPrivilegeEscalation: this.allowPrivilegeEscalation,
-        runAsUser:                this.runAsUser,
+        ...this.securityContext,
       };
+
+      if (securityContext.privileged) {
+        securityContext.allowPrivilegeEscalation = true;
+        delete securityContext.seccompProfile;
+      }
+
+      if (securityContext.fsGroup === '') {
+        delete securityContext.fsGroup;
+      }
+
+      if (securityContext.runAsUser === '') {
+        delete securityContext.runAsUser;
+      }
 
       this.$emit('update:value', securityContext);
     }
@@ -130,114 +135,158 @@ export default {
 </script>
 
 <template>
-  <div>
-    <div>
-      <div class="row">
-        <div
-          data-testid="input-security-privileged"
-          class="col span-6"
-        >
-          <RadioGroup
-            v-model:value="privileged"
-            name="privileged"
-            :label="t('workload.container.security.privileged.label')"
-            :options="[false,true]"
-            :labels="[t('workload.container.security.privileged.false'), t('workload.container.security.privileged.true')]"
-            :mode="mode"
-            @update:value="update"
-          />
-        </div>
-        <div
-          v-if="!privileged"
-          data-testid="input-security-allowPrivilegeEscalation"
-          class="col span-6"
-        >
-          <RadioGroup
-            v-model:value="allowPrivilegeEscalation"
-            name="allowPrivilegeEscalation"
-            :label="t('workload.container.security.allowPrivilegeEscalation.label')"
-            :disabled="privileged"
-            :options="[false,true]"
-            :labels="[t('workload.container.security.allowPrivilegeEscalation.false'), t('workload.container.security.allowPrivilegeEscalation.true')]"
-            :mode="mode"
-            @update:value="update"
-          />
-        </div>
-      </div>
+  <div
+    v-if="formType === 'pod'"
+  >
+    <div class="row">
+      <h3>{{ t('workload.container.security.podFsGroup') }}</h3>
     </div>
-    <div v-if="!privileged">
-      <div class="spacer-small" />
-      <SeccompProfile
-        :value="value"
-        :mode="mode"
-        :initialType="'None'"
-        :seccomp-profile-types="seccompProfileTypes"
-        :title="t('workload.container.security.seccompProfile.container')"
-        @update:value="$emit('update:value', $event)"
-      />
-    </div>
-    <div class="spacer" />
-
-    <div>
-      <div class="row">
-        <div
-          data-testid="input-security-runasNonRoot"
-          class="col span-6"
-        >
-          <RadioGroup
-            v-model:value="runAsNonRoot"
-            name="runasNonRoot"
-            :label="t('workload.container.security.runAsNonRoot.label')"
-            :options="[false, true]"
-            :labels="[t('workload.container.security.runAsNonRoot.false'), t('workload.container.security.runAsNonRoot.true')]"
-            :mode="mode"
-            @update:value="update"
-          />
-        </div>
-        <div
-          data-testid="input-security-readOnlyRootFilesystem"
-          class="col span-6"
-        >
-          <RadioGroup
-            v-model:value="readOnlyRootFilesystem"
-            name="readOnlyRootFilesystem"
-            :label="t('workload.container.security.readOnlyRootFilesystem.label')"
-            :options="[false, true]"
-            :labels="[t('workload.container.security.readOnlyRootFilesystem.false'), t('workload.container.security.readOnlyRootFilesystem.true')]"
-            :mode="mode"
-            @update:value="update"
-          />
-        </div>
-      </div>
-    </div>
-    <div class="spacer" />
-
-    <div
-      data-testid="input-security-runAsUser"
-      class="row mb-10"
-    >
-      <div class="col span-6">
+    <div class="row">
+      <div
+        class="col span-6"
+        data-testid="input-security-fsGroup"
+      >
         <LabeledInput
-          v-model:value.number="runAsUser"
-          :label="t('workload.container.security.runAsUser')"
+          v-model:value.number="securityContext.fsGroup"
+          type="number"
           :mode="mode"
+          :label="t('workload.container.security.fsGroup')"
           @update:value="update"
         />
       </div>
     </div>
-
+  </div>
+  <div
+    v-if="formType === 'container'"
+  >
+    <div
+      v-if="formType === 'pod'"
+      class="spacer"
+    />
+    <div class="row">
+      <div
+        data-testid="input-security-privileged"
+        class="col span-6"
+      >
+        <div class="row">
+          <h3>{{ t('workload.container.security.privileged.title') }}</h3>
+        </div>
+        <div class="row">
+          <Checkbox
+            v-model:value="securityContext.privileged"
+            :mode="mode"
+            label-key="workload.container.security.privileged.true"
+            @update:value="update"
+          />
+        </div>
+      </div>
+      <div
+        v-if="!securityContext.privileged"
+        data-testid="input-security-allowPrivilegeEscalation"
+        class="col span-6"
+      >
+        <div class="row">
+          <h3>{{ t('workload.container.security.allowPrivilegeEscalation.title') }}</h3>
+        </div>
+        <div class="row">
+          <Checkbox
+            v-model:value="securityContext.allowPrivilegeEscalation"
+            :mode="mode"
+            label-key="workload.container.security.allowPrivilegeEscalation.true"
+            @update:value="update"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div v-if="!securityContext.privileged && formType === 'container' || formType === 'pod'">
+    <div class="spacer" />
+    <SeccompProfile
+      v-model:value="securityContext.seccompProfile"
+      :mode="mode"
+      :initialType="'None'"
+      :seccomp-profile-types="seccompProfileTypes"
+      :title="t('workload.container.security.seccompProfile.container')"
+      @update:value="update"
+    />
+  </div>
+  <div>
+    <div class="spacer" />
+    <div class="row">
+      <div
+        data-testid="input-security-runasNonRoot"
+        class="col span-6"
+      >
+        <div class="row">
+          <h3>{{ t('workload.container.security.runAsNonRoot.title') }}</h3>
+        </div>
+        <div class="row">
+          <Checkbox
+            v-model:value="securityContext.runAsNonRoot"
+            :mode="mode"
+            label-key="workload.container.security.runAsNonRoot.true"
+            @update:value="update"
+          />
+        </div>
+      </div>
+      <div
+        class="col span-6"
+        data-testid="input-security-runAsUser"
+      >
+        <div class="row">
+          <h3>{{ t('workload.container.security.runAsUser.title') }}</h3>
+        </div>
+        <div class="row">
+          <LabeledInput
+            v-model:value.number="securityContext.runAsUser"
+            :label="t('workload.container.security.runAsUser.label')"
+            :mode="mode"
+            @update:value="update"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div v-if="formType === 'container'">
+    <div class="spacer" />
+    <div
+      class="row mb-10"
+    >
+      <div
+        data-testid="input-security-readOnlyRootFilesystem"
+        class="col span-6"
+      >
+        <div class="row">
+          <h3>{{ t('workload.container.security.readOnlyRootFilesystem.title') }}</h3>
+        </div>
+        <div class="row">
+          <Checkbox
+            v-model:value="securityContext.readOnlyRootFilesystem"
+            :mode="mode"
+            label-key="workload.container.security.readOnlyRootFilesystem.true"
+            @update:value="update"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div v-if="formType === 'container'">
+    <div class="spacer" />
+    <div class="row">
+      <h3>{{ t('workload.container.security.capabilities.title') }}</h3>
+    </div>
     <div class="row">
       <div
         data-testid="input-security-add"
         class="col span-6"
       >
         <LabeledSelect
-          v-model:value="add"
+          v-model:value="securityContext.capabilities.add"
           :taggable="true"
           :close-on-select="false"
           :mode="mode"
           :multiple="true"
-          :label="t('workload.container.security.addCapabilities')"
+          :label="t('workload.container.security.capabilities.add')"
           :options="allCapabilities"
           :disabled="mode==='view'"
           @update:value="update"
@@ -248,12 +297,12 @@ export default {
         class="col span-6"
       >
         <LabeledSelect
-          v-model:value="drop"
+          v-model:value="securityContext.capabilities.drop"
           :close-on-select="false"
           :taggable="true"
           :multiple="true"
           :mode="mode"
-          :label="t('workload.container.security.dropCapabilities')"
+          :label="t('workload.container.security.capabilities.drop')"
           :options="allCapabilities"
           :disabled="mode==='view'"
           @update:value="update"

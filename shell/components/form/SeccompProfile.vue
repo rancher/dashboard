@@ -35,7 +35,7 @@ export default {
   },
 
   data() {
-    const { type, localhostProfile } = this.value.seccompProfile || {};
+    const { type, localhostProfile } = this.value || {};
 
     return {
       type: type || this.initialType,
@@ -47,31 +47,19 @@ export default {
 
   methods: {
     update() {
-      const securityContext = {
-        ...this.value,
-        seccompProfile: {
-          type:             this.type,
-          localhostProfile: this.localhostProfile,
-        }
-      };
+      if (this.type === 'None') {
+        this.$emit('update:value', undefined);
 
-      if (this.type !== 'None') {
-        securityContext.seccompProfile = { ...securityContext?.seccompProfile, type: this.type };
-        if (this.type === 'Localhost') {
-          securityContext.seccompProfile.localhostProfile = this.localhostProfile;
-        } else {
-          delete securityContext.seccompProfile.localhostProfile;
-        }
-      } else {
-        delete securityContext?.seccompProfile?.type;
-        delete securityContext?.seccompProfile?.localhostProfile;
+        return;
       }
 
-      if (Object.keys(securityContext?.seccompProfile || {}).length === 0) {
-        delete securityContext.seccompProfile;
+      const seccompProfile = { type: this.type };
+
+      if (this.type === 'Localhost') {
+        seccompProfile.localhostProfile = this.localhostProfile;
       }
 
-      this.$emit('update:value', securityContext);
+      this.$emit('update:value', seccompProfile);
     }
   }
 };
@@ -81,7 +69,10 @@ export default {
   <div>
     <h3>{{ title }}</h3>
     <div class="row">
-      <div class="col span-6">
+      <div
+        data-testid="input-security-seccompProfile-type"
+        class="col span-6"
+      >
         <LabeledSelect
           v-model:value="type"
           :mode="mode"
@@ -91,7 +82,10 @@ export default {
           @update:value="update"
         />
       </div>
-      <div class="col span-6">
+      <div
+        data-testid="input-security-seccompProfile-localhostProfile"
+        class="col span-6"
+      >
         <LabeledInput
           v-if="type === 'Localhost'"
           v-model:value="localhostProfile"

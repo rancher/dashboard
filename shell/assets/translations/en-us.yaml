@@ -7324,17 +7324,33 @@ workload:
     removeContainer: Remove Container
     addContainer: Add Container
     security:
-      addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs
       allowPrivilegeEscalation:
-        label: Privilege Escalation
-        'false': No
-        'true': "Yes: container can gain more privileges than its parent process"
-      dropCapabilities: Drop Capabilities
+        title: Privilege Escalation
+        'true': "Container can gain more privileges than its parent process"
+      capabilities:
+        title: Capabilities
+        add: Add Capabilities
+        drop: Drop Capabilities
       fsGroup: Filesystem Group
       hostIPC: Use Host IPC Namespace
       hostPID: Use Host PID Namespace
       podFsGroup: Pod Filesystem Group
+      privileged:
+        title: Privileged
+        'true': "Container has full access to the host"
+      readOnlyRootFilesystem:
+        title: Read-Only Root Filesystem
+        'true': "Container has a read-only root filesystem"
+      runAsGroup: Run as Group ID
+      runAsNonRoot:
+        title: Run as Non-Root
+        'true': "Container must run as a non-root user"
+      runAsNonRootOptions:
+        'true': "Containers must run as non-root-user"
+      runAsUser: 
+        title: Run as User ID
+        label: User ID
       seccompProfile:
         pod: Pod Seccomp Profile
         container: Seccomp Profile
@@ -7343,23 +7359,6 @@ workload:
           label: Localhost Profile
           tooltip: Indicates a profile defined in a file on the node should be used. The profile must be preconfigured on the node to work. Must be a descending path, relative to the kubelet's configured seccomp profile location.
           placeholder: e.g. /path/to/json
-      privileged:
-        label: Privileged
-        'false': No
-        'true': "Yes: container has full access to the host"
-      readOnlyRootFilesystem:
-        label: Read-Only Root Filesystem
-        'false': No
-        'true': "Yes: container has a read-only root filesystem"
-      runAsGroup: Run as Group ID
-      runAsNonRoot:
-        label: Run as Non-Root
-        'false': No
-        'true': "Yes: container must run as a non-root user"
-      runAsNonRootOptions:
-        noOption: "No"
-        yesOption: "Yes: containers must run as non-root-user"
-      runAsUser: Run as User ID
       shareProcessNamespace: Share single process namespace
       supplementalGroups: Additional Group IDs
       sysctls: Sysctls

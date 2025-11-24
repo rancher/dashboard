@@ -45,7 +45,6 @@ describe('component: Workload', () => {
         namespacedConfigMaps:        jest.fn(),
         podAnnotations:              jest.fn(),
         isJob:                       jest.fn(),
-        podFsGroup:                  jest.fn(),
         namespacedSecrets:           jest.fn(),
         registerBeforeHook:          jest.fn(),
         pvcs:                        jest.fn(),

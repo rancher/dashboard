@@ -3,7 +3,6 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 import { mapGetters } from 'vuex';
-import SeccompProfile from '@shell/components/form/SeccompProfile.vue';
 
 export default {
   name:   'Workload',
@@ -20,7 +19,6 @@ export default {
       default: 'create',
     },
   },
-  components: { SeccompProfile },
   data() {
     return { selectedName: null, errors: [] };
   },
@@ -340,6 +338,7 @@ export default {
                 v-model:value="allContainers[i].securityContext"
                 :mode="mode"
                 :seccomp-profile-types="seccompProfileTypes"
+                :form-type="'container'"
               />
             </Tab>
             <Tab
@@ -526,26 +525,11 @@ export default {
               :weight="tabWeightMap['securityContext']"
               :error="tabErrors.podSecurityContext"
             >
-              <div>
-                <h3>{{ t('workload.container.security.podFsGroup') }}</h3>
-                <div class="row">
-                  <div class="col span-6">
-                    <LabeledInput
-                      v-model:value.number="podFsGroup"
-                      type="number"
-                      :mode="mode"
-                      :label="t('workload.container.security.fsGroup')"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div class="spacer" />
-              <SeccompProfile
+              <Security
                 v-model:value="podTemplateSpec.securityContext"
                 :mode="mode"
-                :initialType="'RuntimeDefault'"
                 :seccomp-profile-types="seccompProfileTypes"
-                :title="t('workload.container.security.seccompProfile.pod')"
+                :form-type="'pod'"
               />
             </Tab>
             <Tab

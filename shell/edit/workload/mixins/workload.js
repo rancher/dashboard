@@ -276,7 +276,6 @@ export default {
       container,
       containerChange:            0,
       tabChange:                  0,
-      podFsGroup:                 podTemplateSpec.securityContext?.fsGroup,
       savePvcHookName:            'savePvcHook',
       tabWeightMap:               TAB_WEIGHT_MAP,
       fvFormRuleSets:             [{
@@ -855,7 +854,6 @@ export default {
       }
 
       this.fixPodAffinity(podAntiAffinity);
-      this.fixPodSecurityContext(this.podTemplateSpec);
 
       template.metadata.namespace = this.value.metadata.namespace;
 
@@ -950,20 +948,6 @@ export default {
       });
 
       return podAffinity;
-    },
-
-    fixPodSecurityContext(podTempSpec) {
-      if (this.podFsGroup) {
-        podTempSpec.securityContext = podTempSpec.securityContext || {};
-        podTempSpec.securityContext.fsGroup = this.podFsGroup;
-      } else {
-        if (podTempSpec.securityContext?.fsGroup) {
-          delete podTempSpec.securityContext.fsGroup;
-        }
-        if (Object.keys(podTempSpec.securityContext || {}).length === 0) {
-          delete podTempSpec.securityContext;
-        }
-      }
     },
 
     selectType(type) {
