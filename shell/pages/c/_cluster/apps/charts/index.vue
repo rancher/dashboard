@@ -695,7 +695,6 @@ export default {
             v-for="card in appChartCards"
             :id="card.id"
             :key="card.id"
-            data-testid="chart-card"
             :pill="card.pill"
             :header="card.header"
             :image="card.image"

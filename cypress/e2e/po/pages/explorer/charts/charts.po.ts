@@ -75,7 +75,7 @@ export class ChartsPage extends PagePo {
   }
 
   chartCards() {
-    return this.self().find('[data-testid="chart-card"]');
+    return this.self().find('[data-testid*="item-card-"]');
   }
 
   scrollContainer() {
