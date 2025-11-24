@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { RcStatusIndicatorProps } from './types';
+import { useStatusColors } from '@components/utils/status';
 
 const props = defineProps<RcStatusIndicatorProps>();
+
+const { backgroundColor, borderColor } = useStatusColors(props, 'solid');
 </script>
 
 <template>
@@ -42,34 +45,8 @@ const props = defineProps<RcStatusIndicatorProps>();
             border-radius: 2px;
         }
 
-        &.info {
-            background-color: var(--rc-info);
-            border-color: var(--rc-info);
-        }
-
-        &.success {
-            background-color: var(--rc-success);
-            border-color: var(--rc-success);
-        }
-
-        &.warning {
-            background-color: var(--rc-warning);
-            border-color: var(--rc-warning);
-        }
-
-        &.error {
-            background-color: var(--rc-error);
-            border-color: var(--rc-error);
-        }
-
-        &.unknown {
-            background-color: var(--rc-unknown);
-            border-color: var(--rc-unknown);
-        }
-
-        &.none {
-            border-color: var(--rc-none);
-        }
+        background-color: v-bind(backgroundColor);
+        border-color: v-bind(borderColor);
     }
 }
 </style>

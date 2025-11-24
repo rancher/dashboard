@@ -7,6 +7,14 @@ export class WorkloadsDeploymentsDetailsPagePo extends WorkloadDetailsPageBasePo
   constructor(workloadId: string, protected clusterId: string = 'local', workloadType = 'apps.deployment', namespaceId = 'default', queryParams?: Record<string, string>) {
     super(workloadId, clusterId, workloadType, queryParams, namespaceId);
   }
+
+  openEmptyShowConfigurationAnnotationsLink() {
+    return this.self().find('[data-testid="empty-show-configuration_annotations"]').click();
+  }
+
+  labelsAndAnnotationsTab() {
+    return this.self().find('[data-testid="btn-labels"]');
+  }
 }
 
 export class WorkloadsDeploymentsListPagePo extends WorkloadsListPageBasePo {

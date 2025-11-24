@@ -17,27 +17,26 @@ export default {
       required: true,
     },
   },
-  data() {
-    const yesNoOptions = [
-      {
-        label: this.t('generic.yes'),
-        value: true
-      },
-      {
-        label: this.t('generic.no'),
-        value: false
-      }
-    ];
-
+  created() {
     this.value.spec['iscsi'] = this.value.spec.iscsi || {};
     this.value.spec.iscsi['readOnly'] = this.value.spec.iscsi.readOnly || false;
     this.value.spec.iscsi['secretRef'] = this.value.spec.iscsi.secretRef || {};
     this.value.spec.iscsi['chapAuthDiscovery'] = this.value.spec.iscsi.chapAuthDiscovery || false;
     this.value.spec.iscsi['chapAuthSession'] = this.value.spec.iscsi.chapAuthSession || false;
-
-    return { yesNoOptions };
   },
   computed: {
+    yesNoOptions() {
+      return [
+        {
+          label: this.t('generic.yes'),
+          value: true
+        },
+        {
+          label: this.t('generic.no'),
+          value: false
+        }
+      ];
+    },
     lun: {
       get() {
         return this.value.spec.iscsi.lun;
