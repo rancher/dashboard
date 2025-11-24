@@ -353,7 +353,7 @@ export const actions = {
     const driver = await dispatch('getAuthProvider', provider);
 
     try {
-      return dispatch(
+      return await dispatch(
         'management/request',
         {
           url:    `/v1-public/login`,
