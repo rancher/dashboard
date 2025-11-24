@@ -69,6 +69,7 @@ export default {
     if (!this.observerInitialized && this.filteredCharts.length > 0) {
       this.initIntersectionObserver();
     }
+    this.ensureOverflow();
   },
 
   beforeUnmount() {
@@ -121,10 +122,9 @@ export default {
       ],
       appCardsCache:             {},
       selectedSortOption:        CATALOG_SORT_OPTIONS.RECOMMENDED,
-      visibleChartsCount:        25,
-      initialVisibleChartsCount: 25,
-      observer:                  null,
-      observerInitialized:       false,
+      initialVisibleChartsCount: 20,
+      visibleChartsCount:        20,
+      hasOverflow:               false,
       sortOptions:               [
         { kind: 'group', label: this.t('catalog.charts.sort.prefix') },
         { value: CATALOG_SORT_OPTIONS.RECOMMENDED, label: this.t('catalog.charts.sort.recommended') },
@@ -325,6 +325,7 @@ export default {
     debouncedSearchQuery() {
       this.visibleChartsCount = this.initialVisibleChartsCount;
       this.observerInitialized = false;
+      this.hasOverflow = false;
     },
 
     searchQuery: {
@@ -340,6 +341,7 @@ export default {
       handler(newFilters) {
         this.visibleChartsCount = this.initialVisibleChartsCount;
         this.observerInitialized = false;
+        this.hasOverflow = false;
 
         const query = {
           [REPO]:     normalizeFilterQuery(newFilters.repos),
@@ -448,6 +450,44 @@ export default {
         hideTypes:      [CATALOG._CLUSTER_TPL],
         showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
         sort
+      });
+    },
+
+    // The lazy loading implementation has two parts
+    // 1. Initial Load (ensureOverflow): Having a simple calculation of how many items to load
+    //    can fail in edge cases like browser zoom, where element sizing and viewport
+    //    height can lead to miscalculations. If not enough content is loaded, the page
+    //    won't be scrollable, breaking the IntersectionObserver. This method, called
+    //    iteratively by the `updated` lifecycle hook, adds batches of charts and
+    //    re-measures until the content height factually overflows the container,
+    //    guaranteeing a scrollbar. It then sets `hasOverflow = true` to stop itself.
+    // 2. Scroll-based Load (IntersectionObserver): Once the page is scrollable, a standard
+    //    IntersectionObserver (`initIntersectionObserver` and `loadMore`) takes care of
+    //    loading new batches of charts as the user scrolls to the bottom.
+    ensureOverflow() {
+      this.$nextTick(() => {
+        if (this.hasOverflow || !this.$refs.chartsContainer) {
+          return;
+        }
+
+        const mainLayout = document.querySelector('.main-layout');
+
+        if (!mainLayout) {
+          return;
+        }
+
+        const contentHeight = this.$refs.chartsContainer.offsetHeight;
+        const containerHeight = mainLayout.offsetHeight;
+
+        if (contentHeight > containerHeight) {
+          this.hasOverflow = true;
+        } else if (this.visibleChartsCount < this.filteredCharts.length) {
+          // Load another batch
+          this.visibleChartsCount += this.initialVisibleChartsCount;
+        } else {
+          // All charts are visible
+          this.hasOverflow = true;
+        }
       });
     },
 
@@ -645,6 +685,7 @@ export default {
           </Select>
         </div>
         <div
+          ref="chartsContainer"
           class="app-chart-cards"
           data-testid="app-chart-cards-container"
         >
