@@ -73,4 +73,12 @@ export class ChartsPage extends PagePo {
   emptyStateResetFilters() {
     return this.self().find('[data-testid="charts-empty-state-reset-filters"]');
   }
+
+  chartCards() {
+    return this.self().find('[data-testid="chart-card"]');
+  }
+
+  scrollContainer() {
+    return cy.get('.main-layout');
+  }
 }

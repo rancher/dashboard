@@ -115,6 +115,15 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     // check empty state is NOT displayed
     chartsPage.emptyState().should('not.exist');
   });
+
+  it('should load more charts on scroll', () => {
+    chartsPage.chartCards().should('have.length.greaterThan', 0);
+
+    chartsPage.chartCards().its('length').then((initialCount) => {
+      chartsPage.scrollContainer().scrollTo('bottom');
+      chartsPage.chartCards().should('have.length.greaterThan', initialCount);
+    });
+  });
 });
 
 describe('Chart Details Page', { tags: ['@explorer', '@adminUser'] }, () => {
