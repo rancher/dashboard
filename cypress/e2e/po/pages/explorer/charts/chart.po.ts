@@ -25,6 +25,7 @@ export class ChartPage extends PagePo {
     const chartsPage = new ChartsPage(clusterId);
 
     ChartsPage.navTo();
+    chartsPage.chartsSearchFilterInput().type(chartName);
     chartsPage.clickChart(chartName);
   }
 
