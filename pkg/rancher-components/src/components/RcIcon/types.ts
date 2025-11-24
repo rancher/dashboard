@@ -155,7 +155,7 @@ export const RcIconSize = {
 export type RcIconType = keyof typeof RcIconTypeToClass;
 export interface RcIconProps {
   size: keyof typeof RcIconSize;
-  type: RcIconType;
+  type: keyof typeof RcIconTypeToClass;
   ariaHidden?: boolean;
   status?: Status | 'inherit';
 }

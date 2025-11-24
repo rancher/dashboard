@@ -36,7 +36,7 @@ const color = computed(() => {
 <template>
   <i
     class="rc-icon"
-    :class="[props.size, iconClass]"
+    :class="{[props.size]: true, [iconClass]: true}"
     :aria-hidden="props.ariaHidden"
   />
 </template>
