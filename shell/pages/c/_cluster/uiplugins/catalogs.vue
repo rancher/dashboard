@@ -50,8 +50,7 @@ export default {
 
 <template>
   <div id="extensions-airgapped-main-page">
-    <BackLink :link="extensionsPageLink" />
-    <div class="plugin-header mt-20">
+    <div class="plugin-header">
       <!-- catalog/airgapped header -->
       <div class="catalog-title">
         <h2
