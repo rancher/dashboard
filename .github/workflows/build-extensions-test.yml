@@ -123,7 +123,7 @@ jobs:
 
       - name: Install Node
         if: ${{ matrix.folder != '_skip_' }}
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: yarn
