@@ -14,14 +14,22 @@ const iconClass = computed(() => {
   return RcIconTypeToClass[props.type];
 });
 
+const status = computed(() => {
+  if (props.status && props.status !== 'inherit') {
+    return props.status;
+  }
+
+  return 'none';
+});
+
+const { textColor } = useStatusColors({ status: status.value }, 'outlined');
+
 const color = computed(() => {
   if (props.status === 'inherit') {
     return 'inherit';
   }
 
-  const statusColors = useStatusColors({ status: props.status }, 'outlined');
-
-  return statusColors.textColor.value;
+  return textColor.value;
 });
 </script>
 
