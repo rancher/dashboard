@@ -30,7 +30,7 @@ jobs:
           private-key: ${{ env.PRIVATEKEY }}
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
