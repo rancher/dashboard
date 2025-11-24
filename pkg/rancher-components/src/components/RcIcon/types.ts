@@ -146,10 +146,10 @@ export const RcIconTypeToClass = {
 };
 
 export const RcIconSize = {
-  large:  '25px',
-  medium: '18px',
-  small:  '14px',
-  none:   'inherit'
+  large:   '25px',
+  medium:  '18px',
+  small:   '14px',
+  inherit: 'inherit'
 };
 
 export type RcIconType = keyof typeof RcIconTypeToClass;

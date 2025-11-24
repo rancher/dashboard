@@ -100,7 +100,7 @@ defineExpose({ focus });
         v-if="props.leftIcon"
         class="left-icon"
         :type="props.leftIcon"
-        size="none"
+        size="inherit"
       />
     </slot>
     <slot>
