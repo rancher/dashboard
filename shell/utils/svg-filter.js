@@ -169,9 +169,10 @@ export class Solver {
     const result = this.solveNarrow(this.solveWide());
 
     return {
-      values: result.values,
-      loss:   result.loss,
-      filter: this.css(result.values),
+      values:    result.values,
+      loss:      result.loss,
+      filter:    this.css(result.values),
+      filterVal: this.css(result.values).replace('filter: ', '').replace(';', '')
     };
   }
 
