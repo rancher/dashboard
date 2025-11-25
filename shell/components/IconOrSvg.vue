@@ -90,20 +90,9 @@ export default {
 
       const solver = new Solver(rgb);
       const res = solver.solve();
-      const filter = res?.filter;
-
-      filterCache[cacheKey] = filter;
-
-      return filter;
-    },
-
-    resolveColorFilterVal(cacheKey, rgb) {
-      const solver = new Solver(rgb);
-      const res = solver.solve();
-      const filter = res?.filter;
       const filterVal = res?.filterVal;
 
-      filterCache[cacheKey] = filter;
+      filterCache[cacheKey] = filterVal;
 
       return filterVal;
     },
@@ -126,9 +115,9 @@ export default {
 
       const className = `svg-icon-${ uiColorStr }-${ hoverColorStr }`;
 
-      this.hoverFilter = this.resolveColorFilterVal(hoverColor, hoverColorRGB);
-      this.mainFilter = this.resolveColorFilterVal(uiColor, uiColorRGB);
-      this.activeFilter = this.resolveColorFilterVal(activeColor, activeColorRGB);
+      this.hoverFilter = this.resolveColorFilter(hoverColor, hoverColorRGB);
+      this.mainFilter = this.resolveColorFilter(uiColor, uiColorRGB);
+      this.activeFilter = this.resolveColorFilter(activeColor, activeColorRGB);
 
       this['className'] = className;
     }
