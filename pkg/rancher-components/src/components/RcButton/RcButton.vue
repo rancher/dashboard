@@ -39,10 +39,12 @@ const activeRoleClassName = computed(() => {
   const activeRole = buttonRoles.find(({ role }) => props[role]);
 
   if (activeRole) {
+    /* eslint-disable no-console */
     console.warn(
       `[RcButton] The "${ activeRole.role }" prop is deprecated and will be removed in a future version. ` +
       `Please use role="${ activeRole.role }" instead.`
     );
+    /* eslint-enable no-console */
 
     return activeRole.className;
   } else {
@@ -56,10 +58,12 @@ const activeSizeClassName = computed(() => {
   const activeSize = buttonSizes.find(({ size }) => props[size]);
 
   if (activeSize) {
+    /* eslint-disable no-console */
     console.warn(
       `[RcButton] The "${ activeSize.size }" prop is deprecated and will be removed in a future version. ` +
       `Please use size="${ activeSize.size }" instead.`
     );
+    /* eslint-enable no-console */
 
     return activeSize.className;
   } else {
