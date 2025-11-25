@@ -99,9 +99,9 @@ describe('brandMixin', () => {
             filters: [{
               equals: true,
               fields: [{
-                equals: true, exact: true, exists: false, field: 'metadata.name', value: 'rancher-csp-adapter'
+                equality: '=', equals: true, exact: true, exists: false, field: 'metadata.name', value: 'rancher-csp-adapter'
               }, {
-                equals: true, exact: true, exists: false, field: 'metadata.name', value: 'rancher-csp-billing-adapter'
+                equality: '=', equals: true, exact: true, exists: false, field: 'metadata.name', value: 'rancher-csp-billing-adapter'
               }],
               param: 'filter'
             }],
