@@ -1,7 +1,19 @@
 <script setup lang="ts">
-import { RcIconProps, RcIconSizeToCSS, RcIconTypeToClass } from '@components/RcIcon/types';
+import { RcIconSizeToCSS, RcIconTypeToClass } from '@components/RcIcon/types';
 import { computed } from 'vue';
-import { useStatusColors } from '@components/utils/status';
+import { useStatusColors, Status } from '@components/utils/status';
+
+export type RcIconSize = 'large' | 'medium' | 'small' | 'inherit'; // keyof typeof RcIconSizeToCSS;
+
+export type RcIconType = 'ai' | 'windows'; // keyof typeof RcIconTypeToClass;
+
+export interface RcIconProps {
+  size: RcIconSize;
+  type: RcIconType;
+  ariaHidden: boolean;
+  status: Status | 'inherit';
+}
+
 const props = withDefaults(defineProps<RcIconProps>(), { size: 'small', ariaHidden: true });
 const fontSize = computed(() => {
   return RcIconSizeToCSS[props.size];

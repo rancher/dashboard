@@ -1,4 +1,4 @@
-import { Status } from '../utils/status';
+import { Status } from '@components/utils/status';
 
 export const RcIconTypeToClass = {
   actions:                 'icon-actions',
