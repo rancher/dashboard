@@ -81,4 +81,8 @@ export class ChartsPage extends PagePo {
   scrollContainer() {
     return cy.get('.main-layout');
   }
+
+  sentinel() {
+    return this.self().find('[data-testid="charts-lazy-load-sentinel"]');
+  }
 }

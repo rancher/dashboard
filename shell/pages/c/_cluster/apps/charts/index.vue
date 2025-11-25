@@ -726,6 +726,7 @@ export default {
         <div
           ref="sentinel"
           class="sentinel-charts"
+          data-testid="charts-lazy-load-sentinel"
         />
       </div>
     </div>

@@ -120,7 +120,9 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     chartsPage.chartCards().should('have.length.greaterThan', 0);
 
     chartsPage.chartCards().its('length').then((initialCount) => {
-      chartsPage.scrollContainer().scrollTo('bottom');
+      // Scroll the sentinel into view, which should trigger the IntersectionObserver.
+      // A short duration makes sure the event is fired reliably.
+      chartsPage.sentinel().scrollIntoView({ duration: 200 });
       chartsPage.chartCards().should('have.length.greaterThan', initialCount);
     });
   });
