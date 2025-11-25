@@ -26,6 +26,7 @@ export class ChartPage extends PagePo {
 
     ChartsPage.navTo();
     chartsPage.chartsSearchFilterInput().type(chartName);
+    cy.url().should('include', `q=${ chartName }`);
     chartsPage.clickChart(chartName);
   }
 
