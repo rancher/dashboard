@@ -115,6 +115,17 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     // check empty state is NOT displayed
     chartsPage.emptyState().should('not.exist');
   });
+
+  it('should load more charts on scroll', () => {
+    chartsPage.chartCards().should('have.length.greaterThan', 0);
+
+    chartsPage.chartCards().its('length').then((initialCount) => {
+      // Scroll the sentinel into view, which should trigger the IntersectionObserver.
+      // A short duration makes sure the event is fired reliably.
+      chartsPage.sentinel().scrollIntoView({ duration: 200 });
+      chartsPage.chartCards().should('have.length.greaterThan', initialCount);
+    });
+  });
 });
 
 describe('Chart Details Page', { tags: ['@explorer', '@adminUser'] }, () => {

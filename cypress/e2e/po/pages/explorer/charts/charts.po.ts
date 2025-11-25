@@ -53,13 +53,28 @@ export class ChartsPage extends PagePo {
   }
 
   checkChartGenericIcon(name: string, isGeneric = true) {
+    this.chartsSearchFilterInput().type(name);
+    cy.location().should((loc) => {
+      const params = new URLSearchParams(loc.search);
+
+      expect(params.get('q')).to.eq(name);
+    });
+    this.chartCards().should('have.length.at.least', 1);
+
     const src = RcItemCardPo.getCardByTitle(name).getImage().invoke('attr', 'src');
 
     if (isGeneric) {
-      return src.should('contain', 'generic-catalog');
+      src.should('contain', 'generic-catalog');
+    } else {
+      src.should('not.contain', 'generic-catalog');
     }
 
-    return src.should('not.contain', 'generic-catalog');
+    this.chartsSearchFilterInput().clear();
+    cy.location().should((loc) => {
+      const params = new URLSearchParams(loc.search);
+
+      expect(params.get('q')).to.equal(null);
+    });
   }
 
   emptyState() {
@@ -72,5 +87,17 @@ export class ChartsPage extends PagePo {
 
   emptyStateResetFilters() {
     return this.self().find('[data-testid="charts-empty-state-reset-filters"]');
+  }
+
+  chartCards() {
+    return this.self().find('[data-testid*="item-card-"]');
+  }
+
+  scrollContainer() {
+    return cy.get('.main-layout');
+  }
+
+  sentinel() {
+    return this.self().find('[data-testid="charts-lazy-load-sentinel"]');
   }
 }
