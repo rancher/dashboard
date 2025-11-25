@@ -4,13 +4,15 @@ import { computed } from 'vue';
 import { useStatusColors, Status } from '@components/utils/status';
 
 export interface RcIconProps {
-  size: RcIconSize;
+  size?: RcIconSize;
   type: RcIconType;
-  ariaHidden: boolean;
-  status: Status | 'inherit';
+  ariaHidden?: boolean;
+  status?: Status | 'inherit';
 }
 
-const props = withDefaults(defineProps<RcIconProps>(), { size: 'small', ariaHidden: true });
+const props = withDefaults(defineProps<RcIconProps>(), {
+  size: 'small', ariaHidden: true, status: 'inherit'
+});
 const fontSize = computed(() => {
   return RcIconSizeToCSS[props.size];
 });
