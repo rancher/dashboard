@@ -4,8 +4,8 @@ import { computed } from 'vue';
 import { useStatusColors, Status } from '@components/utils/status';
 
 export interface RcIconProps {
-  size?: RcIconSize;
   type: RcIconType;
+  size?: RcIconSize;
   ariaHidden?: boolean;
   status?: Status | 'inherit';
 }
