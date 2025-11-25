@@ -44,14 +44,18 @@ export default {
       default: null
     }
   },
+
   async fetch() {
-    const [, roleTemplates] = await Promise.all([
+    const [, roleTemplates, crtbs] = await Promise.all([
       this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER }),
-      this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE })
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE }),
+      this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING }),
     ]);
 
-    this.roleTemplates = roleTemplates;
+    this.roleTemplates    = roleTemplates;
+    this.existingBindings = crtbs || [];
   },
+
   data() {
     return {
       customPermissions: [
@@ -115,9 +119,12 @@ export default {
       custom:          {},
       roleTemplates:   [],
       principalId:     '',
-      bindings:        []
+      bindings:        [],
+      // NEW: cache of existing CRTBs so we can de-duplicate
+      existingBindings: [],
     };
   },
+
   computed: {
     customRoles() {
       return this.roleTemplates
@@ -125,6 +132,7 @@ export default {
           return !role.builtin && !role.external && !role.hidden && role.context === 'cluster';
         });
     },
+
     roleTemplateIds() {
       if (this.permissionGroup === 'owner') {
         return ['cluster-owner'];
@@ -142,6 +150,7 @@ export default {
 
       return [this.permissionGroup];
     },
+
     options() {
       const customRoles = this.customRoles.map((role) => ({
         label:       role.nameDisplay,
@@ -168,6 +177,7 @@ export default {
         }
       ];
     },
+
     principal() {
       const principalId = this.principalId.replace(/\//g, '%2F');
 
@@ -177,13 +187,14 @@ export default {
         opt:  { url: `/v3/principals/${ principalId }` }
       }, { root: true });
     },
+
     customPermissionsUpdate() {
       return this.customPermissions.reduce((acc, customPermissionsItem) => {
         const lockedExist = this.roleTemplates.find((roleTemplateItem) => roleTemplateItem.id === customPermissionsItem.key);
 
-        if (lockedExist.locked) {
-          customPermissionsItem['locked'] = true;
-          customPermissionsItem['tooltip'] = this.t('members.clusterPermissions.custom.lockedRole');
+        if (lockedExist?.locked) {
+          customPermissionsItem.locked  = true;
+          customPermissionsItem.tooltip = this.t('members.clusterPermissions.custom.lockedRole');
         }
 
         return [...acc, customPermissionsItem];
@@ -196,6 +207,7 @@ export default {
       this.updateBindings();
     }
   },
+
   methods: {
     async principalProperty() {
       const principal = await this.principal;
@@ -204,28 +216,70 @@ export default {
     },
 
     onAdd(principalId) {
-      this['principalId'] = principalId;
+      this.principalId = principalId;
       this.updateBindings();
     },
 
     async updateBindings() {
-      if (this.principalId) {
-        const principalProperty = await this.principalProperty();
-        const bindingPromises = this.roleTemplateIds.map((id) => this.$store.dispatch(`rancher/create`, {
-          type:                NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING,
-          clusterId:           this.clusterName,
-          roleTemplateId:      id,
-          [principalProperty]: this.principalId
-        }));
-
-        const bindings = await Promise.all(bindingPromises);
-
-        this.$emit('update:value', bindings);
+      if (!this.principalId) {
+        return;
       }
+
+      const principalProperty = await this.principalProperty();
+
+      const allBindings = this.existingBindings || [];
+
+      // Filter out role templates that already have a CRTB for this principal + cluster
+      const idsToCreate = this.roleTemplateIds.filter((roleId) => {
+        return !allBindings.find((binding) => {
+          // Restrict to current cluster if clusterName provided
+          const clusterMatches = this.clusterName
+            ? binding.clusterId === this.clusterName
+            : true;
+
+          if (!clusterMatches) {
+            return false;
+          }
+
+          // Determine which principal field is set
+          const key = binding.userPrincipalId
+            ? 'userPrincipalId'
+            : (binding.groupPrincipalId ? 'groupPrincipalId' : null);
+
+          if (!key) {
+            return false;
+          }
+
+          return binding[key] === this.principalId &&
+                 binding.roleTemplateId === roleId;
+        });
+      });
+
+      // All requested roles already exist – nothing new to create
+      if (!idsToCreate.length) {
+        this.$emit('update:value', []);
+        return;
+      }
+
+      // Create only non-duplicate CRTBs (same workflow as before)
+      const bindingPromises = idsToCreate.map((id) => this.$store.dispatch('rancher/create', {
+        type:                NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING,
+        clusterId:           this.clusterName,
+        roleTemplateId:      id,
+        [principalProperty]: this.principalId
+      }));
+
+      const bindings = await Promise.all(bindingPromises);
+
+      // Update local cache so subsequent adds in this dialog also see these as existing
+      this.existingBindings.push(...bindings);
+
+      this.$emit('update:value', bindings);
     }
   },
 };
 </script>
+
 <template>
   <Loading v-if="$fetchState.pending" />
   <div
@@ -290,6 +344,7 @@ export default {
     </Card>
   </div>
 </template>
+
 <style lang="scss" scoped>
 $detailSize: 11px;
 
@@ -312,3 +367,4 @@ label.radio {
   }
 }
 </style>
+
