@@ -163,6 +163,9 @@ describe('systemInfoProvider', () => {
     mockGetters['uiplugins/plugins'] = null; // No plugins
     mockGetters['auth/principalId'] = null; // No user
     mockGetters['localCluster'] = null; // No clusters
+    mockGetters['features/get'] = () => {
+      throw new Error('unknown feature');
+    };
 
     const infoProvider = new SystemInfoProvider(mockGetters, {});
     const qs = infoProvider.buildQueryString();
@@ -179,6 +182,7 @@ describe('systemInfoProvider', () => {
     expect(qs).not.toContain('lnc=');
     expect(qs).not.toContain('xkn=');
     expect(qs).not.toContain('xcc=');
+    expect(qs).not.toContain('ff-usc=');
   });
 
   it('should handle getAll returning undefined when types are not registered', () => {

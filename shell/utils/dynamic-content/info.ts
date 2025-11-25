@@ -156,9 +156,18 @@ export class SystemInfoProvider {
     const screenSize = `${ window.screen?.width || '?' }x${ window.screen?.height || '?' }`;
     const browserSize = `${ window.innerWidth }x${ window.innerHeight }`;
 
-    Object.entries(ffs).forEach(([id, ff]) => {
-      ff.value = getters['features/get'](id);
-    });
+    const safeFfs = Object.entries(ffs).reduce((res, [id, ff]) => {
+      try {
+        res[id] = {
+          param: ff.param,
+          value: getters['features/get'](id),
+        };
+      } catch (e) {
+        console.debug(`Cannot include Feature Flag "${ id }" in dynamic feature request: `, e); // eslint-disable-line no-console
+      }
+
+      return res;
+    }, {} as FeatureFlagInfos);
 
     return {
       systemUUID,
@@ -175,7 +184,7 @@ export class SystemInfoProvider {
       screenSize,
       browserSize,
       language:           window.navigator?.language,
-      featureFlags:       ffs,
+      featureFlags:       safeFfs,
     };
   }
 
