@@ -152,9 +152,9 @@ export const RcIconSizeToCSS = {
   inherit: 'inherit'
 };
 
-export type RcIconSize = keyof typeof RcIconSizeToCSS;
+export type RcIconSize = 'large' | 'medium' | 'small' | 'inherit'; // keyof typeof RcIconSizeToCSS;
 
-export type RcIconType = keyof typeof RcIconTypeToClass;
+export type RcIconType = 'ai' | 'windows'; // keyof typeof RcIconTypeToClass;
 
 export interface RcIconProps {
   size: RcIconSize;
