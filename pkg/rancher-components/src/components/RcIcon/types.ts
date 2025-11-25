@@ -159,6 +159,6 @@ export type RcIconType = 'ai' | 'windows'; // keyof typeof RcIconTypeToClass;
 export interface RcIconProps {
   size: RcIconSize;
   type: RcIconType;
-  ariaHidden?: boolean;
-  status?: Status | 'inherit';
+  ariaHidden: boolean;
+  status: Status | 'inherit';
 }
