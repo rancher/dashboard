@@ -420,7 +420,7 @@ export const actions = {
 
     // SLO - Single-sign logout - will logout auth provider from all places where it's logged in
     if (options.slo) {
-      logoutAction = '?logoutAll';
+      logoutAction = '?all';
       data.finalRedirectUrl = returnTo({ isSlo: true }, this);
     }
 
