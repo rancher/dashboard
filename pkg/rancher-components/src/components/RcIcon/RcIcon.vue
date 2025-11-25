@@ -1,11 +1,7 @@
 <script setup lang="ts">
-import { RcIconSizeToCSS, RcIconTypeToClass } from '@components/RcIcon/types';
+import { RcIconSizeToCSS, RcIconTypeToClass, RcIconSize, RcIconType } from '@components/RcIcon/types';
 import { computed } from 'vue';
 import { useStatusColors, Status } from '@components/utils/status';
-
-export type RcIconSize = 'large' | 'medium' | 'small' | 'inherit'; // keyof typeof RcIconSizeToCSS;
-
-export type RcIconType = 'ai' | 'windows'; // keyof typeof RcIconTypeToClass;
 
 export interface RcIconProps {
   size: RcIconSize;
