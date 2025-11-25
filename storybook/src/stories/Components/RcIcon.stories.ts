@@ -1,18 +1,18 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { RcIcon } from '@components/RcIcon';
-import { RcIconSize, RcIconType } from '@components/RcIcon/types';
+import { RcIconType, RcIconTypeToClass, RcIconSizeToCSS } from '@components/RcIcon/types';
 import { StatusDefinitions } from '@components/utils/status';
 
 const meta: Meta<typeof RcIcon> = {
   component: RcIcon,
   argTypes:  {
     type: {
-      options:     Object.keys(RcIconType),
+      options:     Object.keys(RcIconTypeToClass),
       control:     { type: 'select' },
       description: `Determines which icon will be shown.`
     },
     size: {
-      options:     Object.keys(RcIconSize),
+      options:     Object.keys(RcIconSizeToCSS),
       control:     { type: 'select' },
       description: "Determines the size of the icon. `small`, `medium`, and `large` are the standard sizes and 'inherit' should be used if you plan to style it yourself. We highly discourage using `inherit` we'd like to limit the amount of sizes we use."
     },
