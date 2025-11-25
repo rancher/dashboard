@@ -12,7 +12,7 @@ import {
   ButtonRoleProps, ButtonSizeProps, ButtonRoleNewProps, ButtonSizeNewProps, ButtonSize,
   IconProps
 } from './types';
-// import RcIcon from '@components/RcIcon/RcIcon.vue';
+import RcIcon from '@components/RcIcon/RcIcon.vue';
 
 const buttonRoles: { role: keyof ButtonRoleProps, className: string }[] = [
   { role: 'primary', className: 'role-primary' },
@@ -100,12 +100,12 @@ defineExpose({ focus });
       v-if="$slots.before || props.leftIcon"
       name="before"
     >
-      <!-- <RcIcon
+      <RcIcon
         v-if="props.leftIcon"
         class="left-icon"
         :type="props.leftIcon"
         size="inherit"
-      /> -->
+      />
     </slot>
     <slot>
       <!-- Empty Content -->
@@ -114,12 +114,12 @@ defineExpose({ focus });
       v-if="$slots.after || props.rightIcon"
       name="after"
     >
-      <!-- <RcIcon
+      <RcIcon
         v-if="props.rightIcon"
         class="right-icon"
         :type="props.rightIcon"
         size="inherit"
-      /> -->
+      />
     </slot>
   </button>
 </template>
