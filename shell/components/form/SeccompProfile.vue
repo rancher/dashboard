@@ -38,8 +38,9 @@ export default {
     const { type, localhostProfile } = this.value || {};
 
     return {
-      type: type || this.initialType,
+      type:                                 type || this.initialType,
       localhostProfile,
+      afterLocalhostProfileSelectedMessage: ''
     };
   },
 
@@ -57,6 +58,9 @@ export default {
 
       if (this.type === 'Localhost') {
         seccompProfile.localhostProfile = this.localhostProfile;
+        this.afterLocalhostProfileSelectedMessage = this.t('workload.container.security.seccompProfile.afterLocalhostProfile.selected');
+      } else {
+        this.afterLocalhostProfileSelectedMessage = this.t('workload.container.security.seccompProfile.afterLocalhostProfile.unselected');
       }
 
       this.$emit('update:value', seccompProfile);
@@ -66,8 +70,10 @@ export default {
 </script>
 
 <template>
-  <div>
-    <h3>{{ title }}</h3>
+  <fieldset>
+    <legend class="h3-legend">
+      {{ title }}
+    </legend>
     <div class="row">
       <div
         data-testid="input-security-seccompProfile-type"
@@ -82,6 +88,14 @@ export default {
           @update:value="update"
         />
       </div>
+      <p
+        id="after-localhostprofile-selected"
+        role="status"
+        aria-live="polite"
+        class="sr-only"
+      >
+        {{ afterLocalhostProfileSelectedMessage }}
+      </p>
       <div
         data-testid="input-security-seccompProfile-localhostProfile"
         class="col span-6"
@@ -99,5 +113,5 @@ export default {
         />
       </div>
     </div>
-  </div>
+  </fieldset>
 </template>

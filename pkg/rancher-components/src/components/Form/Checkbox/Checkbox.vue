@@ -259,6 +259,10 @@ export default defineComponent({
      */
     findTrueValues(value: boolean[]): boolean {
       return value.find((v) => v === this.valueWhenTrue) || false;
+    },
+
+    focus() {
+      this.$refs.checkbox?.focus();
     }
   }
 });
@@ -285,10 +289,12 @@ export default defineComponent({
         :value="valueWhenTrue"
         type="checkbox"
         tabindex="-1"
+        aria-hidden="true"
         @click.stop.prevent
         @keyup.enter.stop.prevent
       >
       <span
+        ref="checkbox"
         class="checkbox-custom"
         :class="{indeterminate: indeterminate}"
         :tabindex="isDisabled ? -1 : 0"
@@ -420,6 +426,11 @@ $fontColor: var(--input-label);
     flex-shrink: 0;
 
     &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
+      border-radius: 0;
+    }
+    &:focus {
       @include focus-outline;
       outline-offset: 2px;
       border-radius: 0;

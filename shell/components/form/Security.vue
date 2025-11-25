@@ -84,7 +84,8 @@ export default {
           runAsUser:                this.value.runAsUser,
           seccompProfile:           this.value.seccompProfile,
           fsGroup:                  this.value.fsGroup,
-        }
+        },
+        afterPrivilegedTickedMessage: ''
       };
     } else {
       return {
@@ -94,7 +95,8 @@ export default {
           runAsNonRoot:   this.value.runAsNonRoot || false,
           runAsUser:      this.value.runAsUser,
           seccompProfile: this.value.seccompProfile,
-        }
+        },
+        afterPrivilegedTickedMessage: ''
       };
     }
   },
@@ -108,6 +110,15 @@ export default {
   },
 
   methods: {
+    focus() {
+      const firstFocusable = this.$refs.firstFocusable;
+
+      // First, try the preferred declarative approach using the ref.
+      if (firstFocusable && typeof firstFocusable.focus === 'function') {
+        firstFocusable.focus();
+      }
+    },
+
     update() {
       const securityContext = {
         ...this.value,
@@ -117,6 +128,9 @@ export default {
       if (securityContext.privileged) {
         securityContext.allowPrivilegeEscalation = true;
         delete securityContext.seccompProfile;
+        this.afterPrivilegedTickedMessage = this.t('workload.container.security.privileged.afterTick.true');
+      } else {
+        this.afterPrivilegedTickedMessage = this.t('workload.container.security.privileged.afterTick.false');
       }
 
       if (securityContext.fsGroup === '') {
@@ -139,20 +153,26 @@ export default {
     v-if="formType === 'pod'"
   >
     <div class="row">
-      <h3>{{ t('workload.container.security.podFsGroup') }}</h3>
-    </div>
-    <div class="row">
       <div
         class="col span-6"
         data-testid="input-security-fsGroup"
       >
-        <LabeledInput
-          v-model:value.number="securityContext.fsGroup"
-          type="number"
-          :mode="mode"
-          :label="t('workload.container.security.fsGroup')"
-          @update:value="update"
-        />
+        <fieldset>
+          <legend
+            id="pod-fs-group-label"
+            class="h3-legend"
+          >
+            {{ t('workload.container.security.podFsGroup') }}
+          </legend>
+          <LabeledInput
+            ref="firstFocusable"
+            v-model:value.number="securityContext.fsGroup"
+            type="number"
+            :mode="mode"
+            :label="t('workload.container.security.fsGroup')"
+            @update:value="update"
+          />
+        </fieldset>
       </div>
     </div>
   </div>
@@ -160,42 +180,58 @@ export default {
     v-if="formType === 'container'"
   >
     <div
-      v-if="formType === 'pod'"
-      class="spacer"
-    />
-    <div class="row">
-      <div
-        data-testid="input-security-privileged"
-        class="col span-6"
-      >
-        <div class="row">
-          <h3>{{ t('workload.container.security.privileged.title') }}</h3>
-        </div>
-        <div class="row">
-          <Checkbox
-            v-model:value="securityContext.privileged"
-            :mode="mode"
-            label-key="workload.container.security.privileged.true"
-            @update:value="update"
-          />
-        </div>
+      class="row"
+    >
+      <div class="col span-6">
+        <fieldset>
+          <legend class="h3-legend">
+            {{ t('workload.container.security.privileged.title') }}
+          </legend>
+          <div data-testid="input-security-privileged">
+            <Checkbox
+              ref="firstFocusable"
+              v-model:value="securityContext.privileged"
+              :mode="mode"
+              label-key="workload.container.security.privileged.true"
+              aria-describedby="privilege-help"
+              @update:value="update"
+            />
+            <p
+              id="privilege-help"
+              class="sr-only"
+              aria-hidden="true"
+            >
+              {{ t('workload.container.security.privileged.help') }}
+            </p>
+          </div>
+        </fieldset>
       </div>
+      <p
+        id="after-privileged-ticked"
+        role="status"
+        aria-live="polite"
+        class="sr-only"
+      >
+        {{ afterPrivilegedTickedMessage }}
+      </p>
+
       <div
         v-if="!securityContext.privileged"
-        data-testid="input-security-allowPrivilegeEscalation"
         class="col span-6"
       >
-        <div class="row">
-          <h3>{{ t('workload.container.security.allowPrivilegeEscalation.title') }}</h3>
-        </div>
-        <div class="row">
-          <Checkbox
-            v-model:value="securityContext.allowPrivilegeEscalation"
-            :mode="mode"
-            label-key="workload.container.security.allowPrivilegeEscalation.true"
-            @update:value="update"
-          />
-        </div>
+        <fieldset>
+          <legend class="h3-legend">
+            {{ t('workload.container.security.allowPrivilegeEscalation.title') }}
+          </legend>
+          <div data-testid="input-security-allowPrivilegeEscalation">
+            <Checkbox
+              v-model:value="securityContext.allowPrivilegeEscalation"
+              :mode="mode"
+              label-key="workload.container.security.allowPrivilegeEscalation.true"
+              @update:value="update"
+            />
+          </div>
+        </fieldset>
       </div>
     </div>
   </div>
@@ -204,7 +240,7 @@ export default {
     <SeccompProfile
       v-model:value="securityContext.seccompProfile"
       :mode="mode"
-      :initialType="'None'"
+      initial-type="None"
       :seccomp-profile-types="seccompProfileTypes"
       :title="t('workload.container.security.seccompProfile.container')"
       @update:value="update"
@@ -213,101 +249,102 @@ export default {
   <div>
     <div class="spacer" />
     <div class="row">
-      <div
-        data-testid="input-security-runasNonRoot"
-        class="col span-6"
-      >
-        <div class="row">
-          <h3>{{ t('workload.container.security.runAsNonRoot.title') }}</h3>
-        </div>
-        <div class="row">
-          <Checkbox
-            v-model:value="securityContext.runAsNonRoot"
-            :mode="mode"
-            label-key="workload.container.security.runAsNonRoot.true"
-            @update:value="update"
-          />
-        </div>
+      <div class="col span-6">
+        <fieldset>
+          <legend class="h3-legend">
+            {{ t('workload.container.security.runAsNonRoot.title') }}
+          </legend>
+          <div data-testid="input-security-runasNonRoot">
+            <Checkbox
+              v-model:value="securityContext.runAsNonRoot"
+              :mode="mode"
+              label-key="workload.container.security.runAsNonRoot.true"
+              @update:value="update"
+            />
+          </div>
+        </fieldset>
       </div>
       <div
         class="col span-6"
         data-testid="input-security-runAsUser"
       >
-        <div class="row">
-          <h3>{{ t('workload.container.security.runAsUser.title') }}</h3>
-        </div>
-        <div class="row">
+        <fieldset>
+          <legend
+            id="run-as-user-label"
+            class="h3-legend"
+          >
+            {{ t('workload.container.security.runAsUser.title') }}
+          </legend>
           <LabeledInput
             v-model:value.number="securityContext.runAsUser"
             :label="t('workload.container.security.runAsUser.label')"
             :mode="mode"
             @update:value="update"
           />
-        </div>
+        </fieldset>
       </div>
     </div>
   </div>
   <div v-if="formType === 'container'">
     <div class="spacer" />
-    <div
-      class="row mb-10"
-    >
-      <div
-        data-testid="input-security-readOnlyRootFilesystem"
-        class="col span-6"
-      >
-        <div class="row">
-          <h3>{{ t('workload.container.security.readOnlyRootFilesystem.title') }}</h3>
-        </div>
-        <div class="row">
-          <Checkbox
-            v-model:value="securityContext.readOnlyRootFilesystem"
+    <div class="row">
+      <div class="col span-6">
+        <fieldset>
+          <legend class="h3-legend">
+            {{ t('workload.container.security.readOnlyRootFilesystem.title') }}
+          </legend>
+          <div data-testid="input-security-readOnlyRootFilesystem">
+            <Checkbox
+              v-model:value="securityContext.readOnlyRootFilesystem"
+              :mode="mode"
+              label-key="workload.container.security.readOnlyRootFilesystem.true"
+              @update:value="update"
+            />
+          </div>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+  <div v-if="formType === 'container'">
+    <div class="spacer" />
+    <fieldset>
+      <legend class="h3-legend">
+        {{ t('workload.container.security.capabilities.title') }}
+      </legend>
+      <div class="row">
+        <div
+          data-testid="input-security-add"
+          class="col span-6"
+        >
+          <LabeledSelect
+            v-model:value="securityContext.capabilities.add"
+            :taggable="true"
+            :close-on-select="false"
             :mode="mode"
-            label-key="workload.container.security.readOnlyRootFilesystem.true"
+            :multiple="true"
+            :label="t('workload.container.security.capabilities.add')"
+            :options="allCapabilities"
+            :disabled="mode==='view'"
+            @update:value="update"
+          />
+        </div>
+        <div
+          data-testid="input-security-drop"
+          class="col span-6"
+        >
+          <LabeledSelect
+            v-model:value="securityContext.capabilities.drop"
+            :close-on-select="false"
+            :taggable="true"
+            :multiple="true"
+            :mode="mode"
+            :label="t('workload.container.security.capabilities.drop')"
+            :options="allCapabilities"
+            :disabled="mode==='view'"
             @update:value="update"
           />
         </div>
       </div>
-    </div>
-  </div>
-  <div v-if="formType === 'container'">
-    <div class="spacer" />
-    <div class="row">
-      <h3>{{ t('workload.container.security.capabilities.title') }}</h3>
-    </div>
-    <div class="row">
-      <div
-        data-testid="input-security-add"
-        class="col span-6"
-      >
-        <LabeledSelect
-          v-model:value="securityContext.capabilities.add"
-          :taggable="true"
-          :close-on-select="false"
-          :mode="mode"
-          :multiple="true"
-          :label="t('workload.container.security.capabilities.add')"
-          :options="allCapabilities"
-          :disabled="mode==='view'"
-          @update:value="update"
-        />
-      </div>
-      <div
-        data-testid="input-security-drop"
-        class="col span-6"
-      >
-        <LabeledSelect
-          v-model:value="securityContext.capabilities.drop"
-          :close-on-select="false"
-          :taggable="true"
-          :multiple="true"
-          :mode="mode"
-          :label="t('workload.container.security.capabilities.drop')"
-          :options="allCapabilities"
-          :disabled="mode==='view'"
-          @update:value="update"
-        />
-      </div>
-    </div>
+    </fieldset>
   </div>
 </template>

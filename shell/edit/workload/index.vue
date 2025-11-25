@@ -24,6 +24,26 @@ export default {
   },
   computed: { ...mapGetters({ t: 'i18n/t' }) },
   methods:  {
+    focusTabContent(tab) {
+      if (tab.selectedName === 'securityContext-pod' || tab.selectedName === 'securityContext') {
+        this.$nextTick(() => {
+          const securityComponent = this.$refs.security;
+
+          if (!securityComponent) {
+            return;
+          }
+          if (Array.isArray(securityComponent)) {
+            const containerIndex = this.containerOptions.findIndex((c) => c.__active);
+
+            if (containerIndex !== -1) {
+              securityComponent[containerIndex]?.focus();
+            }
+          } else {
+            securityComponent.focus();
+          }
+        });
+      }
+    },
     changed(tab) {
       const key = this.idKey;
 
@@ -167,10 +187,12 @@ export default {
           :error="!!tab.error"
         >
           <Tabbed
+            name="containerTabs"
             :side-tabs="true"
             :weight="99"
             :data-testid="`workload-container-tabs-${i}`"
             :use-hash="useTabbedHash"
+            @changed="focusTabContent"
           >
             <Tab
               :label="t('workload.container.titles.general')"
@@ -335,6 +357,7 @@ export default {
               :error="tabErrors.securityContext"
             >
               <Security
+                ref="security"
                 v-model:value="allContainers[i].securityContext"
                 :mode="mode"
                 :seccomp-profile-types="seccompProfileTypes"
@@ -410,9 +433,11 @@ export default {
           :error="tabErrors.podSecurityContext"
         >
           <Tabbed
+            name="podTabs"
             data-testid="workload-pod-tabs"
             :side-tabs="true"
             :use-hash="useTabbedHash"
+            @changed="focusTabContent"
           >
             <Tab
               :label="t('workload.storage.title')"
@@ -436,7 +461,7 @@ export default {
             </Tab>
             <Tab
               :label="t('workload.container.titles.resources')"
-              name="resources"
+              name="resources-pod"
               :weight="tabWeightMap['resources']"
             >
               <div>
@@ -478,7 +503,7 @@ export default {
             </Tab>
             <Tab
               :label="t('workload.container.titles.podScheduling')"
-              name="podScheduling"
+              name="podScheduling-pod"
               :weight="tabWeightMap['podScheduling']"
             >
               <PodAffinity
@@ -490,7 +515,7 @@ export default {
             </Tab>
             <Tab
               :label="t('workload.container.titles.nodeScheduling')"
-              name="nodeScheduling"
+              name="nodeScheduling-pod"
               :weight="tabWeightMap['nodeScheduling']"
             >
               <NodeScheduling
@@ -502,7 +527,7 @@ export default {
             </Tab>
             <Tab
               :label="t('workload.container.titles.upgrading')"
-              name="upgrading"
+              name="upgrading-pod"
               :weight="tabWeightMap['upgrading']"
             >
               <Job
@@ -521,11 +546,12 @@ export default {
             </Tab>
             <Tab
               :label="t('workload.container.titles.securityContext')"
-              name="securityContext"
+              name="securityContext-pod"
               :weight="tabWeightMap['securityContext']"
               :error="tabErrors.podSecurityContext"
             >
               <Security
+                ref="security"
                 v-model:value="podTemplateSpec.securityContext"
                 :mode="mode"
                 :seccomp-profile-types="seccompProfileTypes"
@@ -534,7 +560,7 @@ export default {
             </Tab>
             <Tab
               :label="t('workload.container.titles.networking')"
-              name="networking"
+              name="networking-pod"
               :weight="tabWeightMap['networking']"
             >
               <Networking
@@ -545,7 +571,7 @@ export default {
             <Tab
               v-if="isStatefulSet"
               :label="t('workload.container.titles.volumeClaimTemplates')"
-              name="volumeClaimTemplates"
+              name="volumeClaimTemplates-pod"
               :weight="tabWeightMap['volumeClaimTemplates']"
             >
               <VolumeClaimTemplate
@@ -554,7 +580,7 @@ export default {
               />
             </Tab>
             <Tab
-              name="labels"
+              name="labels-pod"
               label-key="generic.labelsAndAnnotations"
               :weight="tabWeightMap['labels']"
             >

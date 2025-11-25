@@ -121,6 +121,7 @@ generic:
         1d: 1d
         7d: 7d
         30d: 30d
+  tooltip: Tooltip
   completed: Completed
   enable: Enable
   disable: Disable
@@ -7339,6 +7340,10 @@ workload:
       privileged:
         title: Privileged
         'true': "Container has full access to the host"
+        help: Enabling privilege will hide Privilege Escalation and seccompProfile.
+        afterTick: 
+          'true': Privilege Escalation and seccompProfile have been hidden.
+          'false': Privilege Escalation and seccompProfile appeared.
       readOnlyRootFilesystem:
         title: Read-Only Root Filesystem
         'true': "Container has a read-only root filesystem"
@@ -7359,6 +7364,9 @@ workload:
           label: Localhost Profile
           tooltip: Indicates a profile defined in a file on the node should be used. The profile must be preconfigured on the node to work. Must be a descending path, relative to the kubelet's configured seccomp profile location.
           placeholder: e.g. /path/to/json
+        afterLocalhostProfile: 
+          selected: Localhost Profile input appeared.
+          unselected: Localhost Profile input has been hidden.
       shareProcessNamespace: Share single process namespace
       supplementalGroups: Additional Group IDs
       sysctls: Sysctls
