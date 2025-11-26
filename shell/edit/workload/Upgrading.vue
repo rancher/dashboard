@@ -1,6 +1,6 @@
 <script>
 import { get } from '@shell/utils/object';
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioGroup } from '@rc/Form/Radio';
 import UnitInput from '@shell/components/form/UnitInput';
 import { WORKLOAD_TYPES } from '@shell/config/types';
 import { _CREATE } from '@shell/config/query-params';

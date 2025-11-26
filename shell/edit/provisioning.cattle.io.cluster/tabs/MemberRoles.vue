@@ -2,7 +2,7 @@
 
 import ClusterMembershipEditor from '@shell/components/form/Members/ClusterMembershipEditor';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 export default {
   components: { ClusterMembershipEditor, Banner },
   mixins:     [CreateEditView],

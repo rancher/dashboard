@@ -1,6 +1,6 @@
 <script>
 import { _VIEW } from '@shell/config/query-params';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 
 export default {
   name: 'DefaultLinksEditor',

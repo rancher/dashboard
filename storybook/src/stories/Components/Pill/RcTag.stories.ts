@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import RcTag from '@components/Pill/RcTag/RcTag.vue';
+import RcTag from '@rc/Pill/RcTag/RcTag.vue';
 
 const meta: Meta<typeof RcTag> = {
   component: RcTag,

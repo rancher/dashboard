@@ -1,7 +1,7 @@
 <script>
 import debounce from 'lodash/debounce';
-import { RadioGroup } from '@components/Form/Radio';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { RadioGroup } from '@rc/Form/Radio';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ShellInput from '@shell/components/form/ShellInput';
 import { _VIEW } from '@shell/config/query-params';

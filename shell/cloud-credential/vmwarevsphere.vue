@@ -1,6 +1,6 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import { NORMAN } from '@shell/config/types';
 import FormValidation from '@shell/mixins/form-validation';
 

@@ -21,7 +21,7 @@ import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.ut
 import { SETTING } from '@shell/config/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { randomStr } from '@shell/utils/string';
-import { RcButton } from '@components/RcButton';
+import { RcButton } from '@rc/RcButton';
 
 const forcedNamespaceValidTypes = [NAMESPACE_FILTER_KINDS.DIVIDER, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACE_FILTER_KINDS.NAMESPACE];
 

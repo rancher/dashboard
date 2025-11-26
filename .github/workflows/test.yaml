@@ -83,7 +83,7 @@ jobs:
           ['@generic', '@globalSettings'],
           ['@manager'],
           ['@userMenu', '@usersAndAuths'],
-          ['@components'],
+          ['@rc'],
           ['@noVai']
         ]
     runs-on: ubuntu-latest

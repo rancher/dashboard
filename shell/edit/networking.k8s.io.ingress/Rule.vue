@@ -1,6 +1,6 @@
 <script>
 import RulePath from '@shell/edit/networking.k8s.io.ingress/RulePath';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import { random32 } from '@shell/utils/string';
 
 export default {

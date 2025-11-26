@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import RadioButton from '@/pkg/rancher-components/src/components/Form/Radio/RadioButton';
+import RadioButton from '@/shell/rc/Form/Radio/RadioButton';
 
 const meta: Meta<typeof RadioButton> = {
   component: RadioButton,

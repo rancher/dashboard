@@ -1,7 +1,7 @@
 <script>
 import * as d3 from 'd3';
 import { STATES } from '@shell/plugins/dashboard-store/resource-class';
-import { BadgeState } from '@components/BadgeState';
+import { BadgeState } from '@rc/BadgeState';
 
 export default {
   name:       'ForceDirectedTreeChart',

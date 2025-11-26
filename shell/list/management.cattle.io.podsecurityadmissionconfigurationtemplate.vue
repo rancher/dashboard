@@ -2,7 +2,7 @@
 import ResourceTable from '@shell/components/ResourceTable';
 import { STORAGE_CLASS } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 
 export default {
   name:       'PodSecurityAdmission',

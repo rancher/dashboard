@@ -86,7 +86,7 @@ export default defineConfig({
       ],
       include: [
         'shell/**/*.{vue,ts,js}',
-        'pkg/rancher-components/src/components/**/*.{vue,ts,js}',
+        'shell/rc/**/*.{vue,ts,js}',
       ]
     },
     api:                 apiUrl,

@@ -3,9 +3,9 @@ import { ref, watch, computed } from 'vue';
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { removeAt } from '@shell/utils/array';
-import { TextAreaAutoGrow } from '@components/Form/TextArea';
+import { TextAreaAutoGrow } from '@rc/Form/TextArea';
 import { clone } from '@shell/utils/object';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 const DEFAULT_PROTIP = 'Tip: Paste lines into any list field for easy bulk entry';
 
 export default {

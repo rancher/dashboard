@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import Banner from '@/pkg/rancher-components/src/components/Banner/Banner.vue';
+import Banner from '@/shell/rc/Banner/Banner.vue';
 
 const meta: Meta<typeof Banner> = {
   component: Banner,

@@ -1,7 +1,7 @@
 <script>
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import Loading from '@shell/components/Loading';
 import { stringify } from '@shell/utils/error';
 import LazyImage from '@shell/components/LazyImage';

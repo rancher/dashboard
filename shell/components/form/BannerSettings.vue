@@ -1,13 +1,13 @@
 <script>
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import ColorInput from '@shell/components/form/ColorInput';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioGroup } from '@rc/Form/Radio';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
-import { ToggleSwitch } from '@components/Form/ToggleSwitch';
-import { TextAreaAutoGrow } from '@components/Form/TextArea';
-import { Banner } from '@components/Banner';
+import { ToggleSwitch } from '@rc/Form/ToggleSwitch';
+import { TextAreaAutoGrow } from '@rc/Form/TextArea';
+import { Banner } from '@rc/Banner';
 
 export default ({
   name: 'BannerSettings',

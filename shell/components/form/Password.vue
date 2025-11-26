@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import { CHARSET, randomStr } from '@shell/utils/string';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { _CREATE } from '@shell/config/query-params';

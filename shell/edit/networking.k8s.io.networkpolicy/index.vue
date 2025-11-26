@@ -5,13 +5,13 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import CruResource from '@shell/components/CruResource';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import Labels from '@shell/components/form/Labels';
 import { POD } from '@shell/config/types';
 import { convert, simplify } from '@shell/utils/selector';
 import { matching } from '@shell/utils/selector-typed';
 
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import { addObject, removeObject } from '@shell/utils/array';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import PolicyRules from '@shell/edit/networking.k8s.io.networkpolicy/PolicyRules';

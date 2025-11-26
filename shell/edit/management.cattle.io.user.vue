@@ -3,7 +3,7 @@ import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import GlobalRoleBindings from '@shell/components/GlobalRoleBindings.vue';
 import ChangePassword from '@shell/components/form/ChangePassword';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import CruResource from '@shell/components/CruResource';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { _CREATE, _EDIT } from '@shell/config/query-params';

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { DefineComponent } from 'vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
 
 /**
  * Generic type for the passed components as props

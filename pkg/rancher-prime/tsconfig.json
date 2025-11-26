@@ -37,7 +37,7 @@
       "@shell/*": [
         "../../shell/*"
       ],
-      "@components/*": [
+      "@rc/*": [
         "@rancher/components/*"
       ]
     }

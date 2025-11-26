@@ -1,5 +1,5 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import SecretSelector from '@shell/components/form/SecretSelector';
 import { updatePort } from './utils';
 import LabeledSelect from '@shell/components/form/LabeledSelect';

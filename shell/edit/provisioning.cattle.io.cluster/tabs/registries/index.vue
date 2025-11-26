@@ -1,7 +1,7 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { Banner } from '@components/Banner';
-import { Checkbox } from '@components/Form/Checkbox';
+import { LabeledInput } from '@rc/Form/LabeledInput';
+import { Banner } from '@rc/Banner';
+import { Checkbox } from '@rc/Form/Checkbox';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
 import RegistryConfigs from '@shell/edit/provisioning.cattle.io.cluster/tabs/registries/RegistryConfigs';

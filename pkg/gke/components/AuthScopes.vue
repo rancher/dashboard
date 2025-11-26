@@ -3,7 +3,7 @@ import { _CREATE } from '@shell/config/query-params';
 import { PropType, defineComponent } from 'vue';
 import { mapGetters } from 'vuex';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+import RadioGroup from '@rc/Form/Radio/RadioGroup.vue';
 import isEqual from 'lodash/isEqual';
 
 import {

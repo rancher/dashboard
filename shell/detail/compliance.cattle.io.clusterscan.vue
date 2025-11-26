@@ -1,7 +1,7 @@
 <script>
 import Date from '@shell/components/formatter/Date';
 import SortableTable from '@shell/components/SortableTable';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading';
 import day from 'dayjs';

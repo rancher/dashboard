@@ -1,5 +1,5 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import FileSelector, { createOnSelected } from '@shell/components/form/FileSelector';
 
 export default {

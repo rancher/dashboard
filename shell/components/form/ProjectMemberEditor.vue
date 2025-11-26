@@ -3,9 +3,9 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import SelectPrincipal from '@shell/components/auth/SelectPrincipal';
 import { MANAGEMENT } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
-import { Card } from '@components/Card';
-import { RadioGroup } from '@components/Form/Radio';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Card } from '@rc/Card';
+import { RadioGroup } from '@rc/Form/Radio';
+import { Checkbox } from '@rc/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import DOMPurify from 'dompurify';
 

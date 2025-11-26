@@ -1,5 +1,5 @@
 <script>
-import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+import RadioGroup from '@rc/Form/Radio/RadioGroup.vue';
 import Question from './Question';
 
 export default {

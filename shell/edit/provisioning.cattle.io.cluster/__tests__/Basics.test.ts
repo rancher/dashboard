@@ -1,7 +1,7 @@
 import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/tabs/Basics.vue';
-// import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+// import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
 
 const defaultStubs = {
   Banner:        true,

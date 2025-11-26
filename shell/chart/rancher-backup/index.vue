@@ -2,10 +2,10 @@
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import S3 from '@shell/chart/rancher-backup/S3';
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioGroup } from '@rc/Form/Radio';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { Banner } from '@components/Banner';
+import { LabeledInput } from '@rc/Form/LabeledInput';
+import { Banner } from '@rc/Banner';
 import { get } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
 import { STORAGE_CLASS, PV } from '@shell/config/types';

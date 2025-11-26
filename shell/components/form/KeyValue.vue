@@ -4,7 +4,7 @@ import { typeOf } from '@shell/utils/sort';
 import { removeAt, removeObject } from '@shell/utils/array';
 import { base64Encode, base64Decode, binarySize } from '@shell/utils/crypto';
 import { downloadFile } from '@shell/utils/download';
-import { TextAreaAutoGrow } from '@components/Form/TextArea';
+import { TextAreaAutoGrow } from '@rc/Form/TextArea';
 import { get } from '@shell/utils/object';
 import Select from '@shell/components/form/Select';
 import FileSelector from '@shell/components/form/FileSelector';
@@ -12,7 +12,7 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { asciiLike } from '@shell/utils/string';
 import CodeMirror from '@shell/components/CodeMirror';
 import isEqual from 'lodash/isEqual';
-import { LabeledTooltip } from '@components/LabeledTooltip';
+import { LabeledTooltip } from '@rc/LabeledTooltip';
 
 export default {
   name: 'KeyValue',

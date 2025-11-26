@@ -1,8 +1,8 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import ShellInput from '@shell/components/form/ShellInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import EnvVars from '@shell/components/form/EnvVars';
 
 export default {

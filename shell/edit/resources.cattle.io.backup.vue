@@ -2,11 +2,11 @@
 import CruResource from '@shell/components/CruResource';
 import createEditView from '@shell/mixins/create-edit-view';
 import formValidation from '@shell/mixins/form-validation';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import UnitInput from '@shell/components/form/UnitInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { Banner } from '@components/Banner';
-import { RadioGroup } from '@components/Form/Radio';
+import { Banner } from '@rc/Banner';
+import { RadioGroup } from '@rc/Form/Radio';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Loading from '@shell/components/Loading';
 import S3 from '@shell/chart/rancher-backup/S3';

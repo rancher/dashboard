@@ -4,7 +4,7 @@ import CruResource from '@shell/components/CruResource';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import Error from '@shell/components/form/Error';
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioGroup } from '@rc/Form/Radio';
 import Select from '@shell/components/form/Select';
 import ArrayList from '@shell/components/form/ArrayList';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -14,11 +14,11 @@ import { ucFirst } from '@shell/utils/string';
 import SortableTable from '@shell/components/SortableTable';
 import { _CLONE, _DETAIL } from '@shell/config/query-params';
 import { SCOPED_RESOURCES, SCOPED_RESOURCE_GROUPS } from '@shell/config/roles';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import LabeledInput from '@rc/Form/LabeledInput/LabeledInput.vue';
 
 import { SUBTYPE_MAPPING, VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import Loading from '@shell/components/Loading';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@rc/Banner/Banner.vue';
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 const CLUSTER = SUBTYPE_MAPPING.CLUSTER.key;

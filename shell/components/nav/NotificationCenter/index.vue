@@ -10,7 +10,7 @@ import {
   RcDropdown,
   RcDropdownSeparator,
   RcDropdownTrigger
-} from '@components/RcDropdown';
+} from '@rc/RcDropdown';
 
 const store = useStore();
 // We don't want any hidden notifications showing in the notification center (these are shown elsewhere, e.g. home page dynamic content announcements)

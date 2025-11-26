@@ -4,7 +4,7 @@
  */
 
 import { useStore } from 'vuex';
-import { RcButton } from '@components/RcButton';
+import { RcButton } from '@rc/RcButton';
 
 const props = defineProps<{id: string}>();
 const store = useStore();

@@ -104,7 +104,6 @@ tmp
 .todo
 
 # Plugins - temporary
-shell/rancher-components
 shell/types/shell
 
 # standalone script

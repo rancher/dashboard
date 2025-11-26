@@ -384,7 +384,7 @@ More info about cypress-grep plugin can be found [here](https://www.npmjs.com/pa
 ### E2E with feature tags
 
 As part of parallelization process and identification of features, tags have been added following the file tree structure of `cypress/e2e/tests/pages`.
-These are the added specs tags for each category: `@components`, `@navigation`, `@charts`, `@explorer`, `@extensions`, `@fleet`, `@generic`, `@globalSettings`, `@manager`, `@userMenu`, `@usersAndAuths`.
+These are the added specs tags for each category: `@rc`, `@navigation`, `@charts`, `@explorer`, `@extensions`, `@fleet`, `@generic`, `@globalSettings`, `@manager`, `@userMenu`, `@usersAndAuths`.
 
 ### E2E tests parallelization in CI
 
@@ -407,7 +407,7 @@ matrix:
     ['@generic', '@globalSettings'],
     ['@manager'],
     ['@userMenu', '@usersAndAuths'],
-    ['@components'],
+    ['@rc'],
   ]
 ```
 

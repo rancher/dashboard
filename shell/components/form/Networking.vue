@@ -1,7 +1,7 @@
 <script>
 import ArrayList from '@shell/components/form/ArrayList';
 import KeyValue from '@shell/components/form/KeyValue';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { mapGetters } from 'vuex';
 

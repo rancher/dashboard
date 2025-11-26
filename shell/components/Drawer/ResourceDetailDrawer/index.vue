@@ -7,7 +7,7 @@ import YamlTab, { Props as YamlProps } from '@shell/components/Drawer/ResourceDe
 import { useDefaultConfigTabProps, useDefaultYamlTabProps } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
 import ConfigTab from '@shell/components/Drawer/ResourceDetailDrawer/ConfigTab.vue';
 import { computed, ref } from 'vue';
-import RcButton from '@components/RcButton/RcButton.vue';
+import RcButton from '@rc/RcButton/RcButton.vue';
 import StateDot from '@shell/components/StateDot/index.vue';
 import { ResourceDetailDrawerProps } from '@shell/components/Drawer/ResourceDetailDrawer/types';
 

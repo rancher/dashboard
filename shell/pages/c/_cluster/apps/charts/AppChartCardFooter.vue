@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RcItemCardAction } from '@components/RcItemCard';
+import { RcItemCardAction } from '@rc/RcItemCard';
 
 interface FooterItem {
   icon?: string;

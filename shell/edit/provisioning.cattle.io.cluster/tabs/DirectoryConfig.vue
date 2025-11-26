@@ -1,9 +1,9 @@
 
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
-import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
-import { Banner } from '@components/Banner';
+import RadioGroup from '@rc/Form/Radio/RadioGroup.vue';
+import { Banner } from '@rc/Banner';
 
 export const DATA_DIR_RADIO_OPTIONS = {
   DEFAULT: 'defaultDataDir',

@@ -1,6 +1,6 @@
 <script>
-import { Card } from '@components/Card';
-import { Banner } from '@components/Banner';
+import { Card } from '@rc/Card';
+import { Banner } from '@rc/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
 import AppModal from '@shell/components/AppModal.vue';
 

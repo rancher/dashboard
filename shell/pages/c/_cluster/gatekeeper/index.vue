@@ -1,7 +1,7 @@
 <script>
 import ChartHeading from '@shell/components/ChartHeading';
 import SortableTable from '@shell/components/SortableTable';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import { CONSTRAINT_VIOLATION_CONSTRAINT_LINK, CONSTRAINT_VIOLATION_COUNT, CONSTRAINT_VIOLATION_TEMPLATE_LINK } from '@shell/config/table-headers';
 import { GATEKEEPER } from '@shell/config/types';
 import Loading from '@shell/components/Loading';

@@ -1,7 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import AsyncButton from '@shell/components/AsyncButton';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@rc/Banner/Banner.vue';
 import { MANAGEMENT } from '@shell/config/types';
 import { fetchOrCreateSetting } from '@shell/utils/settings';
 import { SETTING } from '@shell/config/settings';

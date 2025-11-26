@@ -2,7 +2,7 @@
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { clone } from '@shell/utils/object';
 import UnitInput from '@shell/components/form/UnitInput';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ShellInput from '@shell/components/form/ShellInput';
 import KeyValue from '@shell/components/form/KeyValue';

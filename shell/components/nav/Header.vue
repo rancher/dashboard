@@ -28,7 +28,7 @@ import {
   RcDropdownItem,
   RcDropdownSeparator,
   RcDropdownTrigger
-} from '@components/RcDropdown';
+} from '@rc/RcDropdown';
 import { SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 
 export default {

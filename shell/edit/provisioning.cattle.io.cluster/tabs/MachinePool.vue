@@ -1,11 +1,11 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { Checkbox } from '@components/Form/Checkbox';
+import { LabeledInput } from '@rc/Form/LabeledInput';
+import { Checkbox } from '@rc/Form/Checkbox';
 import { _EDIT } from '@shell/config/query-params';
 import Taints from '@shell/components/form/Taints.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import { randomStr } from '@shell/utils/string';
 import FormValidation from '@shell/mixins/form-validation';

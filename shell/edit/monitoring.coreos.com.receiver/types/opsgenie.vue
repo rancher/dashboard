@@ -8,9 +8,9 @@
  * located in @shell/edit/monitoring.coreos.com.alertmanagerconfig/types.
  */
 import ArrayList from '@shell/components/form/ArrayList';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import Select from '@shell/components/form/Select';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import InputWithSelect from '@shell/components/form/InputWithSelect';
 import { _VIEW } from '@shell/config/query-params';
 

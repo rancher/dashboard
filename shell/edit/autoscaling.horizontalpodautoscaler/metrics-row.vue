@@ -7,7 +7,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ObjectMetric, { DEFAULT_OBJECT_METRIC } from '@shell/edit/autoscaling.horizontalpodautoscaler/object-metric';
 import PodMetric, { DEFAULT_POD_METRIC } from '@shell/edit/autoscaling.horizontalpodautoscaler/pod-metric';
 import ResourceMetric, { DEFAULT_RESOURCE_METRIC } from '@shell/edit/autoscaling.horizontalpodautoscaler/resource-metric';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 
 const METRIC_TYPES = {
   external: { label: 'External' },

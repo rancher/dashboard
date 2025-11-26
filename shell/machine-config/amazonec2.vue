@@ -1,13 +1,13 @@
 <script>
 import Loading from '@shell/components/Loading';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import KeyValue from '@shell/components/form/KeyValue';
 import UnitInput from '@shell/components/form/UnitInput';
-import { RadioGroup } from '@components/Form/Radio';
-import { Checkbox } from '@components/Form/Checkbox';
+import { RadioGroup } from '@rc/Form/Radio';
+import { Checkbox } from '@rc/Form/Checkbox';
 import { NORMAN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { convertStringToKV, convertKVToString } from '@shell/utils/object';

@@ -2,7 +2,7 @@
 import { PropType } from 'vue';
 import { clone } from '@shell/utils/object';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
-import { RcItemCard } from '@components/RcItemCard';
+import { RcItemCard } from '@rc/RcItemCard';
 import ResourceCardSummary from '@shell/components/fleet/dashboard/ResourceCardSummary.vue';
 import FleetUtils from '@shell/utils/fleet';
 import { FleetDashboardState, FleetResourceState } from '@shell/types/fleet';

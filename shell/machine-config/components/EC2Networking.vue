@@ -1,12 +1,12 @@
 <script>
 
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { sortBy } from '@shell/utils/sort';
 import { addObject, addObjects, findBy } from '@shell/utils/array';
 import { isEmpty } from '@shell/utils/object';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { Banner } from '@components/Banner';
+import { LabeledInput } from '@rc/Form/LabeledInput';
+import { Banner } from '@rc/Banner';
 import { scrollToBottom } from '@shell/utils/scroll';
 import { _CREATE } from '@shell/config/query-params';
 

@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils';
 import { UNITS } from '@shell/utils/units';
 import UnitInput from '@shell/components/form/UnitInput.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import LabeledInput from '@rc/Form/LabeledInput/LabeledInput.vue';
 import { defineComponent } from 'vue';
 
 describe('component: UnitInput', () => {

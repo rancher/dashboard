@@ -5,7 +5,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Labels from '@shell/components/form/Labels';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import ResourceSelector from '@shell/components/form/ResourceSelector';
 import { POD } from '@shell/config/types';
 import FormValidation from '@shell/mixins/form-validation';

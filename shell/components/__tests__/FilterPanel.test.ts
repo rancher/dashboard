@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import FilterPanel from '@shell/components/FilterPanel.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
 
 const filters = [
   {

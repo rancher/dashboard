@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import Select from '@shell/components/form/Select.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import LabeledInput from '@rc/Form/LabeledInput/LabeledInput.vue';
 
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';

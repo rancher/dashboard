@@ -2,8 +2,8 @@
 import { _EDIT } from '@shell/config/query-params';
 import debounce from 'lodash/debounce';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import LabeledInput from '@rc/Form/LabeledInput/LabeledInput.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
 
 export default {
   name: 'ImportEKS',

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useStore } from 'vuex';
-import { RcDropdownMenu } from '@components/RcDropdown';
+import { RcDropdownMenu } from '@rc/RcDropdown';
 
 const store = useStore();
 const pageActions = computed(() => store.getters.pageActions);

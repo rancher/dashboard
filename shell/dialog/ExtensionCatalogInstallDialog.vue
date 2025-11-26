@@ -12,8 +12,8 @@ import ResourceManager from '@shell/mixins/resource-manager';
 import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading.vue';
-import { Banner } from '@components/Banner';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { Banner } from '@rc/Banner';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 
 const DEFAULT_DEPLOYMENT = {
   type:     WORKLOAD_TYPES.DEPLOYMENT,

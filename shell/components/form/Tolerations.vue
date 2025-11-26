@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import Select from '@shell/components/form/Select';
 import UnitInput from '@shell/components/form/UnitInput';
 import { _VIEW } from '@shell/config/query-params';

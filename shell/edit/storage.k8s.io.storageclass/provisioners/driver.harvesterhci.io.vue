@@ -2,8 +2,8 @@
 import { mapGetters } from 'vuex';
 import semver from 'semver';
 
-import { LabeledInput } from '@components/Form/LabeledInput';
-import Banner from '@components/Banner/Banner.vue';
+import { LabeledInput } from '@rc/Form/LabeledInput';
+import Banner from '@rc/Banner/Banner.vue';
 import KeyValue from '@shell/components/form/KeyValue';
 
 import { clone } from '@shell/utils/object';

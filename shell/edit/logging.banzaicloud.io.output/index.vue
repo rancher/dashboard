@@ -8,7 +8,7 @@ import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Labels from '@shell/components/form/Labels';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import { PROVIDERS } from '@shell/models/logging.banzaicloud.io.output';
 import { _VIEW } from '@shell/config/query-params';
 import { clone, set } from '@shell/utils/object';

@@ -2,7 +2,7 @@
 import FleetClusters from '@shell/components/fleet/FleetClusters';
 import { FLEET, MANAGEMENT } from '@shell/config/types';
 import { filterOnlyKubernetesClusters } from '@shell/utils/cluster';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {

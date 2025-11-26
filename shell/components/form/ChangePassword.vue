@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
-import { Banner } from '@components/Banner';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Banner } from '@rc/Banner';
+import { Checkbox } from '@rc/Form/Checkbox';
 import Password from '@shell/components/form/Password';
 import { NORMAN } from '@shell/config/types';
 import { _CREATE, _EDIT } from '@shell/config/query-params';

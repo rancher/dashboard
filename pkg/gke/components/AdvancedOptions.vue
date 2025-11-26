@@ -4,8 +4,8 @@ import { mapGetters } from 'vuex';
 
 import { _CREATE } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import Banner from '@components/Banner/Banner.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
+import Banner from '@rc/Banner/Banner.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 
 const NONE_OPTION = 'none';

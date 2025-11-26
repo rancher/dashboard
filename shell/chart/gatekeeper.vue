@@ -1,6 +1,6 @@
 <script>
 import UnitInput from '@shell/components/form/UnitInput';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import { mapGetters } from 'vuex';
 
 export default {

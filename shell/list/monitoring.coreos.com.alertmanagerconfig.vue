@@ -1,6 +1,6 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 export default {
   name:       'ListApps',

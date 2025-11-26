@@ -5,12 +5,12 @@ import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { _EDIT } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import { Checkbox } from '@components/Form/Checkbox';
+import LabeledInput from '@rc/Form/LabeledInput/LabeledInput.vue';
+import { Checkbox } from '@rc/Form/Checkbox';
 import { getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions } from '@shell/utils/cluster';
 import { mapGetters } from 'vuex';
 import VersionManagement from '@pkg/imported/components/VersionManagement.vue';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@rc/Banner/Banner.vue';
 import { compare } from '@shell/utils/version';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 

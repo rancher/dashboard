@@ -2,9 +2,9 @@
 <script>
 import { mapGetters } from 'vuex';
 
-import { Card } from '@components/Card';
-import { Banner } from '@components/Banner';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { Card } from '@rc/Card';
+import { Banner } from '@rc/Banner';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
 
 import { MANAGEMENT } from '@shell/config/types';

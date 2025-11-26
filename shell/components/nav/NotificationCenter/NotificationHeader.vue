@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useStore } from 'vuex';
 import { computed, inject, ref } from 'vue';
-import { DropdownContext, defaultContext } from '@components/RcDropdown/types';
+import { DropdownContext, defaultContext } from '@rc/RcDropdown/types';
 
 const { dropdownItems } = inject<DropdownContext>('dropdownContext') || defaultContext;
 const store = useStore();

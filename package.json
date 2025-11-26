@@ -9,9 +9,6 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "workspaces": [
-    "pkg/rancher-components"
-  ],
   "scripts": {
     "build-pkg": "yarn lint && ./shell/scripts/build-pkg.sh",
     "publish-pkg": "./shell/scripts/publish-pkg.sh",
@@ -19,7 +16,6 @@
     "publish-shell-reset-reg": "cd shell && npm publish",
     "clean": "./shell/scripts/clean",
     "lint": "./node_modules/.bin/eslint --max-warnings 0 --ext .js,.ts,.vue .",
-    "lint:lib": "cd pkg/rancher-components && yarn lint",
     "lint-l10n": "./node_modules/.bin/yamllint ./shell/assets/translations",
     "test": "NODE_OPTIONS=--max_old_space_size=8192 jest --watch",
     "test:ci": "NODE_OPTIONS=--max_old_space_size=8192 jest --collectCoverage --silent",
@@ -32,7 +28,6 @@
     "k3s:local:start": "./scripts/e2e-k3s-start $RANCHER_VERSION_E2E",
     "k3s:local:logs": "E2E_RANCHER_LOG=$E2E_RANCHER_LOG ./scripts/e2e-k3s-logs",
     "build": "NODE_OPTIONS=--max_old_space_size=4096 ./node_modules/.bin/vue-cli-service build",
-    "build:lib": "cd pkg/rancher-components && yarn build:lib",
     "analyze": "./node_modules/.bin/vue-cli-service build --report",
     "start": "./node_modules/.bin/vue-cli-service serve",
     "start:dev": "NODE_ENV=dev yarn start",
@@ -57,8 +52,7 @@
     "docs:build": "cd docusaurus/ && yarn build",
     "docs:start": "cd docusaurus/ && yarn start",
     "docs:serve": "cd docusaurus/ && yarn serve",
-    "migrate": "node ./shell/scripts/vue-migrate.js",
-    "publish:lib": "cd pkg/rancher-components && npm publish"
+    "migrate": "node ./shell/scripts/vue-migrate.js"
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "3.863.0",
@@ -142,7 +136,8 @@
     "xterm-addon-web-links": "0.9.0",
     "xterm-addon-webgl": "0.16.0",
     "yaml": "2.8.1",
-    "zod": "3.24.3"
+    "zod": "3.24.3",
+    "lodash.debounce": "4.0.8"
   },
   "devDependencies": {
     "@babel/plugin-proposal-optional-chaining": "7.21.0",
@@ -216,7 +211,22 @@
     "worker-loader": "3.0.8",
     "ws": "8.18.0",
     "yaml-lint": "1.7.0",
-    "yarn": "1.22.18"
+    "yarn": "1.22.18",
+    "cron-validator": "1.4.0",
+    "cronstrue": "2.53.0",
+    "eslint-plugin-promise": "7.2.1",
+    "eslint-plugin-standard": "5.0.0",
+    "jsonpath-plus": "10.3.0",
+    "sass": "1.90.0",
+    "sass-loader": "12.6.0",
+    "vee-validate": "4.15.0",
+    "@vue/eslint-config-typescript": "9.1.0",
+    "@vue/cli-plugin-eslint": "5.0.8",
+    "@babel/core": "^7.12.16",
+    "@types/webpack-env": "^1.15.2",
+    "@vue/cli-shared-utils": "^5.0.8",
+
+    "ts-loader": "^9.2.5"
   },
   "resolutions": {
     "html-webpack-plugin": "5.0.0"

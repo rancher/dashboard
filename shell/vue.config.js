@@ -38,27 +38,14 @@ const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testi
  */
 const getShellPaths = (dir) => {
   let SHELL_ABS = path.join(dir, 'node_modules/@rancher/shell');
-  let COMPONENTS_DIR = path.join(SHELL_ABS, 'rancher-components');
-
-  if (fs.existsSync(SHELL_ABS)) {
-    const stat = fs.lstatSync(SHELL_ABS);
-
-    // If @rancher/shell is a symlink, then use the components folder for it
-    if (stat.isSymbolicLink()) {
-      const REAL_SHELL_ABS = fs.realpathSync(SHELL_ABS); // In case the shell is being linked via 'yarn link'
-
-      COMPONENTS_DIR = path.join(REAL_SHELL_ABS, '..', 'pkg', 'rancher-components', 'src', 'components');
-    }
-  }
 
   // If we have a local folder named 'shell' then use that rather than the one in node_modules
   // This will be the case in the main dashboard repository.
   if (fs.existsSync(path.join(dir, 'shell'))) {
     SHELL_ABS = path.join(dir, 'shell');
-    COMPONENTS_DIR = path.join(dir, 'pkg', 'rancher-components', 'src', 'components');
   }
 
-  return { SHELL_ABS, COMPONENTS_DIR };
+  return { SHELL_ABS };
 };
 
 const getProxyConfig = (proxyConfig) => ({
@@ -478,7 +465,7 @@ module.exports = function(dir, appConfig = {}) {
   require('events').EventEmitter.defaultMaxListeners = 20;
   require('dotenv').config();
 
-  const { SHELL_ABS, COMPONENTS_DIR } = getShellPaths(dir);
+  const { SHELL_ABS } = getShellPaths(dir);
   const excludes = appConfig.excludes || [];
 
   const includePkg = (name) => {
@@ -538,7 +525,7 @@ module.exports = function(dir, appConfig = {}) {
       config.resolve.alias['@shell'] = SHELL_ABS;
       config.resolve.alias['@pkg'] = path.join(dir, 'pkg');
       config.resolve.alias['./node_modules'] = path.join(dir, 'node_modules');
-      config.resolve.alias['@components'] = COMPONENTS_DIR;
+      config.resolve.alias['@rc'] = path.join(SHELL_ABS, 'rc');
       config.resolve.alias['vue$'] = dev ? path.resolve(process.cwd(), 'node_modules', 'vue') : 'vue';
       config.resolve.modules.push(__dirname);
       config.plugins.push(getVirtualModules(dir, includePkg));

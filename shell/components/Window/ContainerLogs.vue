@@ -5,7 +5,7 @@ import { addParams } from '@shell/utils/url';
 import { base64DecodeToBuffer } from '@shell/utils/crypto';
 import { LOGS_RANGE, LOGS_TIME, LOGS_WRAP } from '@shell/store/prefs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import AsyncButton from '@shell/components/AsyncButton';
 import Select from '@shell/components/form/Select';
 import VirtualList from 'vue3-virtual-scroll-list';

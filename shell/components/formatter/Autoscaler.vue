@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import PopoverCard from '@shell/components/PopoverCard.vue';
 import { computed } from 'vue';
-import RcButton from '@components/RcButton/RcButton.vue';
+import RcButton from '@rc/RcButton/RcButton.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import AutoscalerCard from '@shell/components/AutoscalerCard.vue';

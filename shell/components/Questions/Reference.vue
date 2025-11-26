@@ -1,5 +1,5 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import ResourceLabeledSelect from '@shell/components/form/ResourceLabeledSelect.vue';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 

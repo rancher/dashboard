@@ -1,7 +1,7 @@
 <script>
 import { resourceNames } from '@shell/utils/string';
-import { Banner } from '@components/Banner';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import { Banner } from '@rc/Banner';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
 import { mapGetters, mapState } from 'vuex';
 import { isEmpty } from 'lodash';
 

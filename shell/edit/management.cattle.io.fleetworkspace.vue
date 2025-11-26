@@ -16,7 +16,7 @@ import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 import { mapState } from 'vuex';
 import { LAST_NAMESPACE, WORKSPACE } from '@shell/store/prefs';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@rc/Banner/Banner.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import FleetOCIStorageSecret from '@shell/components/fleet/FleetOCIStorageSecret.vue';
 

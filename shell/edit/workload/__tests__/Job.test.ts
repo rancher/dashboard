@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import Job from '@shell/edit/workload/Job.vue';
 import { _EDIT } from '@shell/config/query-params';
 import { WORKLOAD_TYPES } from '@shell/config/types';
-import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+import RadioGroup from '@rc/Form/Radio/RadioGroup.vue';
 
 describe('component: Job', () => {
   describe('given CronJob types', () => {

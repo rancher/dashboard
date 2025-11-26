@@ -9,7 +9,7 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { toSeconds } from '@shell/utils/duration';
 import Loading from '@shell/components/Loading.vue';
 import AsyncButton from '@shell/components/AsyncButton.vue';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import Settings from '@shell/components/ConfigMapSettings/Settings.vue';
 
 export type SettingType = 'string' | 'number' | 'boolean' | 'array' | 'object';

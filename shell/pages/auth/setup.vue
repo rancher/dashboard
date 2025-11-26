@@ -1,14 +1,14 @@
 <script>
 import { randomStr } from '@shell/utils/string';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 import AsyncButton from '@shell/components/AsyncButton';
 import { LOGGED_OUT, SETUP } from '@shell/config/query-params';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import { getVendor, getProduct, setVendor } from '@shell/config/private-label';
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioGroup } from '@rc/Form/Radio';
 import { setSetting } from '@shell/utils/settings';
 import { SETTING } from '@shell/config/settings';
 import { exceptionToErrorsArray } from '@shell/utils/error';
@@ -16,7 +16,7 @@ import Password from '@shell/components/form/Password';
 import { applyProducts } from '@shell/store/type-map';
 import BrandImage from '@shell/components/BrandImage';
 import { waitFor } from '@shell/utils/async';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import FormValidation from '@shell/mixins/form-validation';
 import isUrl from 'is-url';
 import { isLocalhost } from '@shell/utils/validators/setting';

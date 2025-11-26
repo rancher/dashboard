@@ -1,18 +1,18 @@
 <script>
 import { removeObject } from '@shell/utils/array';
 import { USERNAME } from '@shell/config/cookies';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
 import LocaleSelector from '@shell/components/LocaleSelector';
 import BrandImage from '@shell/components/BrandImage';
 import InfoBox from '@shell/components/InfoBox';
 import CopyCode from '@shell/components/CopyCode';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import {
   LOCAL, LOGGED_OUT, TIMED_OUT, IS_SSO, _FLAGGED,
   IS_SLO, IS_SESSION_IDLE
 } from '@shell/config/query-params';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import Password from '@shell/components/form/Password';
 import { sortBy } from '@shell/utils/sort';
 import { configType } from '@shell/models/management.cattle.io.authconfig';

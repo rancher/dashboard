@@ -2,7 +2,7 @@
 import { defineComponent, PropType } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import AsyncButton, { AsyncButtonCallback } from '@shell/components/AsyncButton.vue';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@rc/Banner/Banner.vue';
 
 export default defineComponent({
   emits: ['save', 'done', 'closeError'],

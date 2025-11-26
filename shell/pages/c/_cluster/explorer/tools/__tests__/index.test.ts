@@ -2,7 +2,7 @@ import { clone } from '@shell/utils/object';
 import ClusterTools from '@shell/pages/c/_cluster/explorer/tools/index.vue';
 import { shallowMount } from '@vue/test-utils';
 import { MANAGEMENT } from '@shell/config/types';
-import { RcItemCard } from '@components/RcItemCard';
+import { RcItemCard } from '@rc/RcItemCard';
 import { APP_UPGRADE_STATUS } from '@shell/store/catalog';
 
 describe('page: cluster tools', () => {

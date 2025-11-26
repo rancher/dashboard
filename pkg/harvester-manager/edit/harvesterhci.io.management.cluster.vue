@@ -7,7 +7,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import { HCI, VIRTUAL_HARVESTER_PROVIDER, NORMAN } from '@shell/config/types';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import Labels from '@shell/components/form/Labels.vue';
 import KeyValue from '@shell/components/form/KeyValue';
 import Loading from '@shell/components/Loading';

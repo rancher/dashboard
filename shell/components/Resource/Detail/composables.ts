@@ -1,6 +1,6 @@
 import { computed, Ref, toValue } from 'vue';
 import { useStore } from 'vuex';
-import { Props as BannerProps } from '@components/Banner/Banner.vue';
+import { Props as BannerProps } from '@rc/Banner/Banner.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import ResourceClass from '@shell/plugins/dashboard-store/resource-class';
 

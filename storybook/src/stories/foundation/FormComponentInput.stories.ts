@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { Form, Field } from 'vee-validate';
-import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput.vue';
+import LabeledInput from '@/shell/rc/Form/LabeledInput/LabeledInput.vue';
 
 const meta: Meta = {};
 

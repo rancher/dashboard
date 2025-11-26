@@ -5,8 +5,8 @@ import AuthConfig from '@shell/mixins/auth-config';
 
 import CruResource from '@shell/components/CruResource';
 import InfoBox from '@shell/components/InfoBox';
-import { Checkbox } from '@components/Form/Checkbox';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { Checkbox } from '@rc/Form/Checkbox';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import FileSelector from '@shell/components/form/FileSelector';
 import AuthBanner from '@shell/components/auth/AuthBanner';

@@ -90,7 +90,6 @@ update_version_in_package_json() {
 }
 
 update_version_in_package_json "${SHELL_DIR}/package.json" "${SHELL_VERSION}"
-update_version_in_package_json "${BASE_DIR}/pkg/rancher-components/package.json" "${SHELL_VERSION}"
 update_version_in_package_json "${BASE_DIR}/creators/extension/package.json" "${SHELL_VERSION}"
 
 

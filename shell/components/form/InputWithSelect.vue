@@ -1,6 +1,6 @@
 <script>
 import labeledFormElement from '@shell/mixins/labeled-form-element';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Select from '@shell/components/form/Select';
 export default {

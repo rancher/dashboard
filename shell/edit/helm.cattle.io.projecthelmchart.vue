@@ -5,7 +5,7 @@ import CruResource from '@shell/components/CruResource';
 import Questions from '@shell/components/Questions';
 import { CONFIG_MAP, NAMESPACE } from '@shell/config/types';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import Loading from '@shell/components/Loading';
 import jsyaml from 'js-yaml';
 

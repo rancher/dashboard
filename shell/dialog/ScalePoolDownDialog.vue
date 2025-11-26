@@ -1,7 +1,7 @@
 <script>
-import { Card } from '@components/Card';
+import { Card } from '@rc/Card';
 import { alternateLabel } from '@shell/utils/platform';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import { SCALE_POOL_PROMPT } from '@shell/store/prefs';
 
 export default {

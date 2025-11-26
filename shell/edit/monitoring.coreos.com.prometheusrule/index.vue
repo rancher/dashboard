@@ -2,9 +2,9 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import { removeAt } from '@shell/utils/array';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import CruResource from '@shell/components/CruResource';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';

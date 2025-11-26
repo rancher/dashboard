@@ -1,6 +1,6 @@
 <script>
 import day from 'dayjs';
-import { BadgeState } from '@components/BadgeState';
+import { BadgeState } from '@rc/BadgeState';
 import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { safeSetTimeout } from '@shell/utils/time';
 

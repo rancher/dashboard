@@ -1,7 +1,7 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioGroup } from '@rc/Form/Radio';
 
 import S3Config from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/S3Config';
 import UnitInput from '@shell/components/form/UnitInput';

@@ -1,6 +1,6 @@
 <script>
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import Banner from '@components/Banner/Banner.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
+import Banner from '@rc/Banner/Banner.vue';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 export default {
   name:       'SchedulingCustomization',

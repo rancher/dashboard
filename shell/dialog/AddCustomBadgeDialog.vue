@@ -2,13 +2,13 @@
 import { mapGetters } from 'vuex';
 import { CLUSTER_BADGE } from '@shell/config/labels-annotations';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Card } from '@components/Card';
-import { Banner } from '@components/Banner';
+import { Card } from '@rc/Card';
+import { Banner } from '@rc/Banner';
 import ClusterBadge from '@shell/components/ClusterBadge';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { Checkbox } from '@components/Form/Checkbox';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { Checkbox } from '@rc/Form/Checkbox';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import ColorInput from '@shell/components/form/ColorInput';
 import { parseColor, textColor } from '@shell/utils/color';
 import { NORMAN } from '@shell/config/types';

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import Card from '@/pkg/rancher-components/src/components/Card/Card.vue';
+import Card from '@/shell/rc/Card/Card.vue';
 
 const meta: Meta<typeof Card> = {
   component: Card,

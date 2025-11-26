@@ -4,7 +4,7 @@ import SelectIconGrid from '@shell/components/SelectIconGrid';
 import { sortBy } from '@shell/utils/sort';
 import { MODE, _EDIT } from '@shell/config/query-params';
 import { authProvidersInfo } from '@shell/utils/auth';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import Loading from '@shell/components/Loading';
 
 const resource = MANAGEMENT.AUTH_CONFIG;

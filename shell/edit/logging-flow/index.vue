@@ -1,5 +1,5 @@
 <script>
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import Loading from '@shell/components/Loading';

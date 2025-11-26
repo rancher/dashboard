@@ -1,6 +1,6 @@
 <script>
 import { FLEET } from '@shell/config/types';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import {

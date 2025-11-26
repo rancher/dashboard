@@ -2,8 +2,8 @@
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
-import { RadioGroup } from '@components/Form/Radio';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { RadioGroup } from '@rc/Form/Radio';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import { MANAGEMENT } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';

@@ -2,7 +2,7 @@
 import { markRaw } from 'vue';
 import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, SORT_BY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, TAG, STATUS
 } from '@shell/config/query-params';
@@ -15,7 +15,7 @@ import { mapGetters } from 'vuex';
 import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
-import { RcItemCard } from '@components/RcItemCard';
+import { RcItemCard } from '@rc/RcItemCard';
 import { get } from '@shell/utils/object';
 import { CATALOG as CATALOG_TYPES, CATALOG_SORT_OPTIONS } from '@shell/config/types';
 import FilterPanel from '@shell/components/FilterPanel';

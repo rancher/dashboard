@@ -3,7 +3,7 @@ import YamlEditor from '@shell/components/YamlEditor';
 import Loading from '@shell/components/Loading';
 import Markdown from '@shell/components/Markdown';
 import Tab from '@shell/components/Tabbed/Tab';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import RelatedResources from '@shell/components/RelatedResources';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';

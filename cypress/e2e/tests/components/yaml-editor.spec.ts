@@ -21,7 +21,7 @@ describe('Yaml Editor', () => {
   });
 
   describe('Edit mode', () => {
-    it('Check if body and footer are visible to human eye', { tags: ['@components', '@adminUser'] }, () => {
+    it('Check if body and footer are visible to human eye', { tags: ['@rc', '@adminUser'] }, () => {
       deploymentsListPage.goTo();
       deploymentsListPage.listElementWithName(name).should('exist');
       deploymentsListPage.goToEditYamlPage(name);

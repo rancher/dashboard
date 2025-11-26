@@ -1,5 +1,5 @@
 <script>
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 
 import Questions from '@shell/components/Questions';
 import YamlEditor from '@shell/components/YamlEditor';

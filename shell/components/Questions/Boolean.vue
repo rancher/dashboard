@@ -1,5 +1,5 @@
 <script>
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import Question from './Question';
 
 export default {

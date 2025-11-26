@@ -2,14 +2,14 @@
 import { PropType } from 'vue';
 import { set, get } from '@shell/utils/object';
 import { _EDIT } from '@shell/config/query-params';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { Checkbox } from '@components/Form/Checkbox';
+import { LabeledInput } from '@rc/Form/LabeledInput';
+import { Checkbox } from '@rc/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
-import { TextAreaAutoGrow } from '@components/Form/TextArea';
+import { TextAreaAutoGrow } from '@rc/Form/TextArea';
 import Taints from '@shell/components/form/Taints.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import { Group, Setting } from '@shell/components/ConfigMapSettings/index.vue';
 
 interface Option {

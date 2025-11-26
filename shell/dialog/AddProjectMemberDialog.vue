@@ -1,8 +1,8 @@
 <script>
-import { Card } from '@components/Card';
+import { Card } from '@rc/Card';
 import ProjectMemberEditor from '@shell/components/form/ProjectMemberEditor';
 import AsyncButton from '@shell/components/AsyncButton';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@rc/Banner/Banner.vue';
 import { NORMAN } from '@shell/config/types';
 
 export default {

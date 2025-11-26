@@ -4,7 +4,7 @@ import { mapGetters } from 'vuex';
 import { EKSConfig } from '../types';
 import { _EDIT } from '@shell/config/query-params';
 
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
 import { removeObject } from '@shell/utils/array';
 
 export default defineComponent({

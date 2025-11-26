@@ -1,9 +1,9 @@
 <script>
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import InfoBox from '@shell/components/InfoBox';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import CopyCode from '@shell/components/CopyCode';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import KeyValue from '@shell/components/form/KeyValue';
 import Taints from '@shell/components/form/Taints';
 import { MANAGEMENT } from '@shell/config/types';

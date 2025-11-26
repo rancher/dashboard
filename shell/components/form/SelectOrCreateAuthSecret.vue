@@ -1,7 +1,7 @@
 <script>
 import { _EDIT } from '@shell/config/query-params';
-import { Banner } from '@components/Banner';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { Banner } from '@rc/Banner';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import SSHKnownHosts from '@shell/components/form/SSHKnownHosts';
 import { AUTH_TYPE, NORMAN, SECRET } from '@shell/config/types';

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput.vue';
+import LabeledInput from '@/shell/rc/Form/LabeledInput/LabeledInput.vue';
 import { useForm } from 'vee-validate';
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
 

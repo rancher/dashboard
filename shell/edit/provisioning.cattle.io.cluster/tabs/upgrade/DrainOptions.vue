@@ -1,6 +1,6 @@
 <script>
-import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import RadioGroup from '@rc/Form/Radio/RadioGroup.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import { mapGetters } from 'vuex';
 

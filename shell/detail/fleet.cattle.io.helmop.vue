@@ -2,7 +2,7 @@
 import { mapState } from 'vuex';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import FleetSummary from '@shell/components/fleet/FleetSummary';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import FleetResources from '@shell/components/fleet/FleetResources';
 import Tab from '@shell/components/Tabbed/Tab';
 import { FLEET } from '@shell/config/types';

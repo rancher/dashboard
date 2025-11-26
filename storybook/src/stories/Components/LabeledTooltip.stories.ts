@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import LabeledTooltip from '@/pkg/rancher-components/src/components/LabeledTooltip/LabeledTooltip.vue';
+import LabeledTooltip from '@/shell/rc/LabeledTooltip/LabeledTooltip.vue';
 
 const meta: Meta<typeof LabeledTooltip> = { component: LabeledTooltip };
 

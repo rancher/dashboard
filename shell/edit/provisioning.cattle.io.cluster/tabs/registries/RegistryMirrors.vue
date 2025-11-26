@@ -1,7 +1,7 @@
 <script>
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import KeyValue from '@shell/components/form/KeyValue';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import { set } from '@shell/utils/object';
 
 export default {
