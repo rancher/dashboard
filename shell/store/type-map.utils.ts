@@ -142,7 +142,7 @@ export function headerFromSchemaColString(colName: string, schema: Schema, rootG
 export function headerFromSchemaCol(col: SchemaAttributeColumn, rootGetters: VuexStoreGetters, pagination: boolean, ageColumn: TableColumn): TableColumn {
   let formatter, width, formatterOpts;
 
-  if ( (col.format === '' || col.format === 'date') && col.name === 'Age' && ageColumn ) {
+  if ( (col.format === '' || col.format === 'date' || col.type === 'date') && col.name.toLowerCase() === 'age' && ageColumn ) {
     return ageColumn;
   }
 
