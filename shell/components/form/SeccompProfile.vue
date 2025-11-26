@@ -20,10 +20,6 @@ export default {
       type:    String,
       default: 'mode'
     },
-    initialType: {
-      type:    String,
-      default: 'None'
-    },
     seccompProfileTypes: {
       type:    Array,
       default: () => []
@@ -38,7 +34,7 @@ export default {
     const { type, localhostProfile } = this.value || {};
 
     return {
-      type:                                 type || this.initialType,
+      type:                                 type || 'None',
       localhostProfile,
       afterLocalhostProfileSelectedMessage: ''
     };

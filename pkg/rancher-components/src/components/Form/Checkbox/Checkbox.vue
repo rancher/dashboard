@@ -262,7 +262,9 @@ export default defineComponent({
     },
 
     focus() {
-      this.$refs.checkbox?.focus();
+      if (!this.isDisabled) {
+        this.$refs.checkbox?.focus();
+      }
     }
   }
 });

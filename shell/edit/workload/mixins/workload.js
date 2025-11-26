@@ -204,6 +204,11 @@ export default {
     const spec = this.value.spec;
     let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
 
+    // Area to add default value to securityContext on POD CREATE
+    if (this.mode === _CREATE) {
+      podTemplateSpec.securityContext = { seccompProfile: { type: 'RuntimeDefault' } };
+    }
+
     let containers = podTemplateSpec.containers || [];
     let container;
 

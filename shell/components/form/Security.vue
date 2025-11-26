@@ -240,7 +240,6 @@ export default {
     <SeccompProfile
       v-model:value="securityContext.seccompProfile"
       :mode="mode"
-      initial-type="None"
       :seccomp-profile-types="seccompProfileTypes"
       :title="t('workload.container.security.seccompProfile.container')"
       @update:value="update"
