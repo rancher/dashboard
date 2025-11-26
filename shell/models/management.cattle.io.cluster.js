@@ -16,6 +16,7 @@ import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { getExtensionManager } from '@shell/core/extension-manager-impl';
+import { isHostedProvider } from '@shell/utils/provider';
 
 const DEFAULT_BADGE_COLOR = '#707070';
 
@@ -251,7 +252,7 @@ export default class MgmtCluster extends SteveModel {
       t:          (...args) => this.t.apply(this, args),
     };
 
-    return extensionManager.isHostedProvider(context, this.provisioner);
+    return isHostedProvider(context, this.provisioner);
   }
 
   get providerLogo() {

@@ -17,6 +17,7 @@ import { defineAsyncComponent, markRaw } from 'vue';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { getExtensionManager } from '@shell/core/extension-manager-impl';
+import { isHostedProvider } from '@shell/utils/provider';
 
 const RKE1_ALLOWED_ACTIONS = [
   'promptRemove',
@@ -282,7 +283,7 @@ export default class ProvCluster extends SteveModel {
       t:          (...args) => this.t.apply(this, args),
     };
 
-    return extensionManager.isHostedProvider(context, this.provisioner);
+    return isHostedProvider(context, this.provisioner);
   }
 
   get providerConfig() {

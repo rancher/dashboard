@@ -9,6 +9,7 @@ import RcStatusBadge from '@components/Pill/RcStatusBadge/RcStatusBadge.vue';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { isRancherPrime } from '@shell/config/version';
 import { stateDisplay, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import { getHostedProviders } from '@shell/utils/provider';
 
 export default {
   name:       'HostedProviders',
@@ -69,7 +70,7 @@ export default {
         t:          (...args) => this.t.apply(this, args),
       };
 
-      return this.$extension.getHostedProviders(context);
+      return getHostedProviders(context);
     },
     getSettings() {
       this.settingResource = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.KEV2_OPERATORS );

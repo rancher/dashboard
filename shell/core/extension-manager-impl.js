@@ -470,19 +470,6 @@ const createExtensionManager = (context) => {
       return extensions;
     },
 
-    getHostedProviders(context) {
-      return this.getProviders(context)?.filter((p) => p.group === 'hosted') || [];
-    },
-
-    isHostedProvider(context, provisioner) {
-      if (!provisioner) {
-        return false;
-      }
-      const provisioners = new Set(this.getHostedProviders(context).map((p) => p.id));
-
-      return provisioners.has(provisioner.toLowerCase());
-    },
-
     listDynamic(typeName) {
       if (!dynamic[typeName]) {
         return [];
