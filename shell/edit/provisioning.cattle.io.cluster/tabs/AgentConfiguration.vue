@@ -1,5 +1,5 @@
 <script>
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import GroupPanel from '@shell/components/GroupPanel';
 import PodAffinity from '@shell/components/form/PodAffinity';
 import NodeAffinity from '@shell/components/form/NodeAffinity';
@@ -8,7 +8,7 @@ import Tolerations from '@shell/components/form/Tolerations';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
 import { cleanUp } from '@shell/utils/object';
 import { fetchSetting } from '@shell/utils/settings';
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioGroup } from '@rc/Form/Radio';
 import { _EDIT } from '@shell/config/query-params';
 // Affinity radio button choices
 const DEFAULT = 'default';

@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils';
 import Labels, { Factory } from '@shell/components/form/Labels.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
-import { ToggleSwitch } from '@components/Form/ToggleSwitch';
+import { ToggleSwitch } from '@rc/Form/ToggleSwitch';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 const mockT = jest.fn((key: string) => key);

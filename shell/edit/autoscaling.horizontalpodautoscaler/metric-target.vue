@@ -1,6 +1,6 @@
 <script>
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import { findBy } from '@shell/utils/array';
 import filter from 'lodash/filter';
 import UnitInput from '@shell/components/form/UnitInput';

@@ -1,7 +1,7 @@
 <script>
 import ArrayList from '@shell/components/form/ArrayList';
-import { Banner } from '@components/Banner';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { Banner } from '@rc/Banner';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _VIEW } from '@shell/config/query-params';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';

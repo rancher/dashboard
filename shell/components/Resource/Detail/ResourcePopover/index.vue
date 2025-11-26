@@ -2,7 +2,7 @@
 import { useFetch } from '@shell/components/Resource/Detail/FetchLoader/composables';
 import { useStore } from 'vuex';
 import ResourcePopoverCard from '@shell/components/Resource/Detail/ResourcePopover/ResourcePopoverCard.vue';
-import RcStatusIndicator from '@components/Pill/RcStatusIndicator/RcStatusIndicator.vue';
+import RcStatusIndicator from '@rc/Pill/RcStatusIndicator/RcStatusIndicator.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { computed, ref } from 'vue';
 import PopoverCard from '@shell/components/PopoverCard.vue';

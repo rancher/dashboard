@@ -1,7 +1,7 @@
 /* eslint-disable jest/no-hooks */
 import { mount } from '@vue/test-utils';
 import ClusterRoleTemplateBinding from '@shell/edit/management.cattle.io.clusterroletemplatebinding.vue';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@rc/Banner/Banner.vue';
 import CruResource from '@shell/components/CruResource';
 
 describe('view: management.cattle.io.clusterroletemplatebinding should', () => {

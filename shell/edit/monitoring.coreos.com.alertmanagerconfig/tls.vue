@@ -1,6 +1,6 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { Banner } from '@components/Banner';
+import { LabeledInput } from '@rc/Form/LabeledInput';
+import { Banner } from '@rc/Banner';
 import SimpleSecretSelector from '@shell/components/form/SimpleSecretSelector';
 import { _VIEW } from '@shell/config/query-params';
 

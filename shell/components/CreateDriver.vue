@@ -1,5 +1,5 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import ArrayList from '@shell/components/form/ArrayList';
 export default {
   name: 'DriverCreate',

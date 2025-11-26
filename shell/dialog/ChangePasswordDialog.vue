@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import ChangePassword from '@shell/components/form/ChangePassword';
-import { Card } from '@components/Card';
+import { Card } from '@rc/Card';
 import AsyncButton from '@shell/components/AsyncButton';
 
 export default {

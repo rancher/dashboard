@@ -7,11 +7,11 @@ import Loading from '@shell/components/Loading';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { allHash } from '@shell/utils/promise';
 import ResourceFetch from '@shell/mixins/resource-fetch';
-import { BadgeState } from '@components/BadgeState';
+import { BadgeState } from '@rc/BadgeState';
 import TypeDescription from '@shell/components/TypeDescription';
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@rc/Banner/Banner.vue';
 
 export default {
   name:       'ClusterProxyConfig',

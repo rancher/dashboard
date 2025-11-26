@@ -1,7 +1,7 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import { mapGetters } from 'vuex';
 import PersistentVolumeClaim from '@shell/edit/workload/storage/persistentVolumeClaim/persistentvolumeclaim';
 import { PVC } from '@shell/config/types';

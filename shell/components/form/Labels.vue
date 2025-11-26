@@ -3,7 +3,7 @@ import { pickBy, omitBy, mapValues } from 'lodash';
 import { matchesSomeRegex } from '@shell/utils/string';
 import { LABELS_TO_IGNORE_REGEX, ANNOTATIONS_TO_IGNORE_REGEX } from '@shell/config/labels-annotations';
 import KeyValue from '@shell/components/form/KeyValue.vue';
-import { ToggleSwitch } from '@components/Form/ToggleSwitch';
+import { ToggleSwitch } from '@rc/Form/ToggleSwitch';
 import { _VIEW } from '@shell/config/query-params';
 
 export class Factory {

@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 
 export default defineComponent({
   name: 'AuthProviderWarningBanners',

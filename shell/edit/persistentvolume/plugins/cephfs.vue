@@ -1,6 +1,6 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { RadioGroup } from '@components/Form/Radio';
+import { LabeledInput } from '@rc/Form/LabeledInput';
+import { RadioGroup } from '@rc/Form/Radio';
 import ArrayList from '@shell/components/form/ArrayList';
 
 export default {

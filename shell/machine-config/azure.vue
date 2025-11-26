@@ -3,19 +3,19 @@ import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import merge from 'lodash/merge';
 import isEmpty from 'lodash/isEmpty';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { Checkbox } from '@components/Form/Checkbox';
+import { LabeledInput } from '@rc/Form/LabeledInput';
+import { Checkbox } from '@rc/Form/Checkbox';
 import ArrayList from '@shell/components/form/ArrayList';
 import { randomStr } from '@shell/utils/string';
 import { addParam, addParams } from '@shell/utils/url';
 import { NORMAN } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
 import KeyValue from '@shell/components/form/KeyValue';
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioGroup } from '@rc/Form/Radio';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 
 export const azureEnvironments = [

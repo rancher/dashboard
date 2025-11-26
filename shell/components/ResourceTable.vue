@@ -8,7 +8,7 @@ import { NAMESPACE, AGE } from '@shell/config/table-headers';
 import { findBy } from '@shell/utils/array';
 import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
-import { ToggleSwitch } from '@components/Form/ToggleSwitch';
+import { ToggleSwitch } from '@rc/Form/ToggleSwitch';
 import ResourceTableWatch from '@shell/mixins/resource-table-watch';
 import paginationUtils from '@shell/utils/pagination-utils';
 

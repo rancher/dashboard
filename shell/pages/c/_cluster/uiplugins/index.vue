@@ -16,7 +16,7 @@ import Tab from '@shell/components/Tabbed/Tab.vue';
 import IconMessage from '@shell/components/IconMessage.vue';
 import PluginInfoPanel from './PluginInfoPanel.vue';
 import SetupUIPlugins from './SetupUIPlugins.vue';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@rc/Banner/Banner.vue';
 import {
   isUIPlugin,
   uiPluginAnnotation,
@@ -29,7 +29,7 @@ import {
   EXTENSIONS_INCOMPATIBILITY_TYPES
 } from '@shell/config/uiplugins';
 import TabTitle from '@shell/components/TabTitle';
-import { RcItemCard } from '@components/RcItemCard';
+import { RcItemCard } from '@rc/RcItemCard';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter.vue';
 import versions from '@shell/utils/versions';

@@ -1,7 +1,7 @@
 <script>
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { Checkbox } from '@components/Form/Checkbox';
+import { LabeledInput } from '@rc/Form/LabeledInput';
+import { Checkbox } from '@rc/Form/Checkbox';
 import FormValidation from '@shell/mixins/form-validation';
 import { _CREATE } from '@shell/config/query-params';
 import { getGKEImageFamilies, getGKEFamiliesFromProject } from '@shell/components/google/util/gcp';

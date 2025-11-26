@@ -16,7 +16,7 @@ module.exports = {
       path.resolve(__dirname, '../../shell/')
     );
     config.resolve.alias.set(
-      '@components',
+      '@rc',
       path.resolve(__dirname, 'src/components')
     );
   },

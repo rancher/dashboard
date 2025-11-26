@@ -1,5 +1,5 @@
 <script>
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioGroup } from '@rc/Form/Radio';
 import ArrayList from '@shell/components/form/ArrayList';
 import Principal from '@shell/components/auth/Principal';
 import SelectPrincipal from '@shell/components/auth/SelectPrincipal';

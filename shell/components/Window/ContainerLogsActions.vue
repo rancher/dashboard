@@ -4,7 +4,7 @@ import {
   RcDropdownTrigger,
   RcDropdownItemCheckbox,
   RcDropdownItemSelect,
-} from '@components/RcDropdown';
+} from '@rc/RcDropdown';
 
 defineProps({
   range: {

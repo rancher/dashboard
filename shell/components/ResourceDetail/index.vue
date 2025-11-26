@@ -13,7 +13,7 @@ import DetailTop from '@shell/components/DetailTop';
 import { clone, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
 import { stringify } from '@shell/utils/error';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 
 function modeFor(route) {
   if ( route.query?.mode === _IMPORT ) {

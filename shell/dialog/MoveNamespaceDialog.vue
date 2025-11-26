@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { Card } from '@components/Card';
+import { Card } from '@rc/Card';
 import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { MANAGEMENT } from '@shell/config/types';

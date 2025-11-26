@@ -7,7 +7,7 @@ import { STEVE_EVENT_FIRST_SEEN, STEVE_EVENT_LAST_SEEN, STEVE_EVENT_OBJECT, STEV
 import { headerFromSchemaColString } from '@shell/store/type-map.utils';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { ROWS_PER_PAGE } from '@shell/store/prefs';
-import { RcDropdown, RcDropdownTrigger, RcDropdownItem } from '@components/RcDropdown';
+import { RcDropdown, RcDropdownTrigger, RcDropdownItem } from '@rc/RcDropdown';
 
 const reason = {
   ...REASON,

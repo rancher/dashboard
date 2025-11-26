@@ -2,11 +2,11 @@
 <script>
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
 import { addObjects, isArray } from '@shell/utils/array';
-import { Card } from '@components/Card';
+import { Card } from '@rc/Card';
 
 // i18n-uses rbac.globalRoles.types.*.label
 // i18n-uses rbac.globalRoles.types.*.description

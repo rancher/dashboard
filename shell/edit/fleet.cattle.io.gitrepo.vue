@@ -2,11 +2,11 @@
 import { mapGetters } from 'vuex';
 import { AUTH_TYPE, NORMAN, SECRET } from '@shell/config/types';
 import { set } from '@shell/utils/object';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import InputWithSelect from '@shell/components/form/InputWithSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Labels from '@shell/components/form/Labels';
 import Loading from '@shell/components/Loading';
@@ -16,7 +16,7 @@ import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthS
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
 import FormValidation from '@shell/mixins/form-validation';
 import UnitInput from '@shell/components/form/UnitInput';
 import FleetClusterTargets from '@shell/components/fleet/FleetClusterTargets/index.vue';

@@ -1,9 +1,9 @@
 <script>
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import Loading from '@shell/components/Loading';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Banner } from '@components/Banner';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { Banner } from '@rc/Banner';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import { MANAGEMENT } from '@shell/config/types';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';

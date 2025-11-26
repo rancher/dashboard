@@ -4,14 +4,14 @@ import { mapGetters } from 'vuex';
 
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import type { AKSDiskType, AKSNodePool, AKSPoolMode } from '../types/index';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import LabeledInput from '@rc/Form/LabeledInput/LabeledInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Taint from '@pkg/aks/components/Taint.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
-import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import RadioGroup from '@rc/Form/Radio/RadioGroup.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@rc/Banner/Banner.vue';
 
 import { randomStr } from '@shell/utils/string';
 

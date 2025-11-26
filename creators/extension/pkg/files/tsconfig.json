@@ -36,7 +36,7 @@
       "@shell/*": [
         "../../node_modules/@rancher/shell/*"
       ],
-      "@components/*": [
+      "@rc/*": [
         "@rancher/components/*"
       ]
     }

@@ -11,7 +11,7 @@ import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import { MONITORING } from '@shell/config/types';
 import { areRoutesSupportedFormat, getSecret } from '@shell/utils/alertmanagerconfig';
 import { MODE, _EDIT } from '@shell/config/query-params';

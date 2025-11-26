@@ -1,7 +1,7 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Loading from '@shell/components/Loading';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import CruResource from '@shell/components/CruResource';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import EmberPage from '@shell/components/EmberPage';

@@ -4,9 +4,9 @@ import ResourceTable from '@shell/components/ResourceTable.vue';
 import { SECRET } from '@shell/config/types';
 import { NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, STATE } from '@shell/config/table-headers';
 import Secret, { TYPES } from '@shell/models/secret';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
-import { BadgeState } from '@components/BadgeState';
+import { BadgeState } from '@rc/BadgeState';
 
 interface Data {
   schema: Object,

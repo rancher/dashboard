@@ -1,5 +1,5 @@
 <script>
-import { Card } from '@components/Card';
+import { Card } from '@rc/Card';
 import AsyncButton from '@shell/components/AsyncButton';
 import { IS_SSO, LOGGED_OUT } from '@shell/config/query-params';
 

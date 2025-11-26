@@ -1,14 +1,27 @@
 {
   "extends": "./tsconfig.paths.json",
   "compilerOptions": {
-    "target": "ES2018",
+    "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Node",
     "lib": [
       "ESNext",
       "ESNext.AsyncIterable",
-      "DOM"
+      "DOM",
+      "dom.iterable",
+      "scripthost"
     ],
+    "paths": {
+      "@/*": [
+        "shell/*"
+      ],
+      "@shell/*": [
+        "shell/*"
+      ],
+      "@rc/*": [
+        "shell/rc/*"
+      ]
+    },
     "allowJs": true,
     "sourceMap": true,
     "strict": true,
@@ -17,12 +30,18 @@
     "baseUrl": ".",
     "rootDir": ".",
     "types": [
+      "webpack-env",
       "node",
       "jest",
     ],
     "typeRoots": [
       "./node_modules/@types"
     ],
+    "jsx": "preserve",
+    "importHelpers": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "checkJs": false,
   },
   "exclude": [
     "node_modules",

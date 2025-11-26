@@ -3,8 +3,8 @@ import { PropType, defineComponent } from 'vue';
 import { mapGetters } from 'vuex';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
+import LabeledInput from '@rc/Form/LabeledInput/LabeledInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import Taints from '@shell/components/form/Taints.vue';

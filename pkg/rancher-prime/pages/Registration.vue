@@ -5,11 +5,11 @@ import { useI18n } from '@shell/composables/useI18n';
 
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
-import { RcButton } from '@components/RcButton';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { BadgeState } from '@components/BadgeState';
+import { RcButton } from '@rc/RcButton';
+import { LabeledInput } from '@rc/Form/LabeledInput';
+import { BadgeState } from '@rc/BadgeState';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import FileSelector from '@shell/components/form/FileSelector';
 import { usePrimeRegistration } from './registration.composable';
 import Loading from '@shell/components/Loading.vue';

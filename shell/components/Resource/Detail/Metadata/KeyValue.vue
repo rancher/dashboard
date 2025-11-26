@@ -3,7 +3,7 @@ import { computed, toRefs } from 'vue';
 import KeyValueRow from '@shell/components/Resource/Detail/Metadata/KeyValueRow.vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
-import { Type } from '@components/Pill/types';
+import { Type } from '@rc/Pill/types';
 
 export type KeyValueType = {[key: string]: string};
 

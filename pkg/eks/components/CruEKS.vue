@@ -11,13 +11,13 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 
 import CruResource from '@shell/components/CruResource.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import LabeledInput from '@rc/Form/LabeledInput/LabeledInput.vue';
 import AgentConfiguration from '@shell/edit/provisioning.cattle.io.cluster/tabs/AgentConfiguration.vue';
 import Labels from '@shell/components/form/Labels.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
-import Accordion from '@components/Accordion/Accordion.vue';
-import Banner from '@components/Banner/Banner.vue';
+import Accordion from '@rc/Accordion/Accordion.vue';
+import Banner from '@rc/Banner/Banner.vue';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import Loading from '@shell/components/Loading.vue';
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import Tag from '@shell/components/Tag.vue';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import { PODS } from '@shell/config/table-headers';
 import metricPoller from '@shell/mixins/metric-poller';
 

@@ -5,7 +5,7 @@ import ResourceTable from '@shell/components/ResourceTable';
 import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
 import Masthead from '@shell/components/ResourceList/Masthead';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@rc/Banner/Banner.vue';
 
 export default {
   name:       'KontainerDrivers',

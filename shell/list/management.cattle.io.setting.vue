@@ -1,7 +1,7 @@
 <script>
 import { MANAGEMENT } from '@shell/config/types';
 import { ALLOWED_SETTINGS, PROVISIONING_SETTINGS } from '@shell/config/settings';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import Loading from '@shell/components/Loading';
 import { VIEW_IN_API } from '@shell/store/prefs';
 import Setting from '@shell/components/Setting';

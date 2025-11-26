@@ -10,13 +10,13 @@
 import CruResource from '@shell/components/CruResource';
 import ArrayList from '@shell/components/form/ArrayList';
 import KeyValue from '@shell/components/form/KeyValue';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import { MONITORING } from '@shell/config/types';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import { createDefaultRouteName } from '@shell/utils/alertmanagerconfig';
 import Loading from '@shell/components/Loading';
 

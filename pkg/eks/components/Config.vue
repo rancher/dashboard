@@ -9,13 +9,13 @@ import { sortBy } from '@shell/utils/sort';
 
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
-import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
-import Banner from '@components/Banner/Banner.vue';
+import RadioGroup from '@rc/Form/Radio/RadioGroup.vue';
+import Banner from '@rc/Banner/Banner.vue';
 
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
+import LabeledInput from '@rc/Form/LabeledInput/LabeledInput.vue';
 import eksVersions from '../assets/data/eks-versions';
 
 export default defineComponent({

@@ -8,22 +8,6 @@ const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
 module.exports = function(dir) {
   const maindir = path.resolve(dir, '..', '..');
-  // The shell code must be sym-linked into the .shell folder
-  const SHELL = path.join(dir, '.shell');
-  let COMPONENTS_DIR = path.join(SHELL, 'rancher-components');
-
-  const stat = fs.lstatSync(SHELL);
-
-  // If @rancher/shell is a symlink, then use the components folder for it
-  if (stat.isSymbolicLink() && !fs.existsSync(COMPONENTS_DIR)) {
-    const REAL_SHELL = fs.realpathSync(SHELL);
-
-    COMPONENTS_DIR = path.join(REAL_SHELL, '..', 'pkg', 'rancher-components', 'src', 'components');
-  }
-
-  if (fs.existsSync(path.join(maindir, 'shell'))) {
-    COMPONENTS_DIR = path.join(maindir, 'pkg', 'rancher-components', 'src', 'components');
-  }
 
   return {
     css: {
@@ -51,8 +35,7 @@ module.exports = function(dir) {
       // Alias updates
       config.resolve.alias['@shell'] = path.join(dir, '.shell');
       config.resolve.alias['~shell'] = path.join(dir, '.shell');
-      // This should be udpated once we move to rancher-components as a dependency
-      config.resolve.alias['@components'] = COMPONENTS_DIR;
+      config.resolve.alias['@rc'] = path.join(dir, '.shell', 'rc');
       config.resolve.alias['./node_modules'] = path.join(maindir, 'node_modules');
       config.resolve.alias[`@pkg/${ pkgName }`] = dir;
       config.resolve.alias['@pkg'] = dir;

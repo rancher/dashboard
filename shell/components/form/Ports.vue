@@ -3,7 +3,7 @@ import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { removeAt } from '@shell/utils/array';
 import { clone } from '@shell/utils/object';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 
 export default {
   emits: ['update:value'],

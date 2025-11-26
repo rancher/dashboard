@@ -2,7 +2,7 @@ import { shallowMount } from '@vue/test-utils';
 import flushPromises from 'flush-promises';
 
 import Config from '@pkg/gke/components/Config.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
 
 const mockedStore = (versionSetting: any) => {
   return {

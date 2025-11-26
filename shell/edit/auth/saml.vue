@@ -3,15 +3,15 @@ import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
 import CruResource from '@shell/components/CruResource';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { Checkbox } from '@components/Form/Checkbox';
-import { Banner } from '@components/Banner';
+import { LabeledInput } from '@rc/Form/LabeledInput';
+import { Checkbox } from '@rc/Form/Checkbox';
+import { Banner } from '@rc/Banner';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import FileSelector from '@shell/components/form/FileSelector';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import config, { OKTA, SHIBBOLETH } from '@shell/edit/auth/ldap/config';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
-import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+import RadioGroup from '@rc/Form/Radio/RadioGroup.vue';
 
 // Standard LDAP defaults
 const LDAP_DEFAULTS = {

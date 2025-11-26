@@ -1,12 +1,12 @@
 <script>
 import CruResource from '@shell/components/CruResource';
 import createEditView from '@shell/mixins/create-edit-view';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import UnitInput from '@shell/components/form/UnitInput';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading';
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioGroup } from '@rc/Form/Radio';
 import S3 from '@shell/chart/rancher-backup/S3';
 import { mapGetters } from 'vuex';
 import { SECRET, BACKUP_RESTORE, CATALOG } from '@shell/config/types';

@@ -1,9 +1,9 @@
 <script>
-import { Card } from '@components/Card';
+import { Card } from '@rc/Card';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioGroup } from '@rc/Form/Radio';
 import Select from '@shell/components/form/Select';
 
 import { get, set } from '@shell/utils/object';

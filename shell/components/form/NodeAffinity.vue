@@ -6,7 +6,7 @@ import { get, isEmpty, clone } from '@shell/utils/object';
 import { NODE } from '@shell/config/types';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import { randomStr } from '@shell/utils/string';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 

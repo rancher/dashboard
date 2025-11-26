@@ -142,7 +142,8 @@
     "xterm-addon-web-links": "0.9.0",
     "xterm-addon-webgl": "0.16.0",
     "yaml": "2.8.1",
-    "zod": "3.24.3"
+    "zod": "3.24.3",
+    "lodash.debounce": "4.0.8"
   },
   "devDependencies": {
     "@babel/plugin-proposal-optional-chaining": "7.21.0",
@@ -216,7 +217,22 @@
     "worker-loader": "3.0.8",
     "ws": "8.18.0",
     "yaml-lint": "1.7.0",
-    "yarn": "1.22.18"
+    "yarn": "1.22.18",
+    "cron-validator": "1.4.0",
+    "cronstrue": "2.53.0",
+    "eslint-plugin-promise": "7.2.1",
+    "eslint-plugin-standard": "5.0.0",
+    "jsonpath-plus": "10.3.0",
+    "sass": "1.90.0",
+    "sass-loader": "12.6.0",
+    "vee-validate": "4.15.0",
+    "@vue/eslint-config-typescript": "9.1.0",
+    "@vue/cli-plugin-eslint": "5.0.8",
+    "@babel/core": "^7.12.16",
+    "@types/webpack-env": "^1.15.2",
+    "@vue/cli-shared-utils": "^5.0.8",
+
+    "ts-loader": "^9.2.5"
   },
   "resolutions": {
     "html-webpack-plugin": "5.0.0"

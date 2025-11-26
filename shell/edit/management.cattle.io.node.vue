@@ -2,7 +2,7 @@
 import createEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import Loading from '@shell/components/Loading';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import { NORMAN } from '@shell/config/types';
 export default {
   components: {

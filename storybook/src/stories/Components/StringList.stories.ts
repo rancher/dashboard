@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import StringList from '@/pkg/rancher-components/src/components/StringList/StringList.vue';
+import StringList from '@/shell/rc/StringList/StringList.vue';
 
 const meta: Meta<typeof StringList> = {
   component: StringList,

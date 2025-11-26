@@ -4,7 +4,7 @@ import { STATES_ENUM, colorForState, stateDisplay } from '@shell/plugins/dashboa
 import { NAME, NAMESPACE, STATE, TYPE } from '@shell/config/table-headers';
 import { sortableNumericSuffix } from '@shell/utils/sort';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import { BadgeState } from '@components/BadgeState';
+import { BadgeState } from '@rc/BadgeState';
 
 export default {
   components: { ResourceTable, BadgeState },

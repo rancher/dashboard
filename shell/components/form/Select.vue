@@ -3,7 +3,7 @@ import { get } from '@shell/utils/object';
 import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { generateRandomAlphaString } from '@shell/utils/string';
-import { LabeledTooltip } from '@components/LabeledTooltip';
+import { LabeledTooltip } from '@rc/LabeledTooltip';
 import { calculatePosition } from '@shell/utils/select';
 import { _VIEW } from '@shell/config/query-params';
 import { useClickOutside } from '@shell/composables/useClickOutside';

@@ -4,7 +4,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { UI_PLUGIN_NAMESPACE, isChartVersionHigher } from '@shell/config/uiplugins';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@rc/Banner/Banner.vue';
 import { SETTING } from '@shell/config/settings';
 import { getPluginChartVersionLabel } from '@shell/utils/uiplugins';
 

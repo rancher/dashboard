@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import Checkbox from '@/pkg/rancher-components/src/components/Form/Checkbox/Checkbox.vue';
+import Checkbox from '@/shell/rc/Form/Checkbox/Checkbox.vue';
 
 const meta: Meta<typeof Checkbox> = {
   component: Checkbox,

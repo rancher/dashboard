@@ -1,9 +1,9 @@
 <script>
 
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { Checkbox } from '@components/Form/Checkbox';
-import { Banner } from '@components/Banner';
+import { Checkbox } from '@rc/Form/Checkbox';
+import { Banner } from '@rc/Banner';
 import SimpleSecretSelector from '@shell/components/form/SimpleSecretSelector';
 import { _VIEW } from '@shell/config/query-params';
 import TLS from '../tls';

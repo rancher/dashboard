@@ -1,6 +1,6 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import { Card } from '@components/Card';
+import { Card } from '@rc/Card';
 import { mapGetters } from 'vuex';
 
 import { labelForAddon } from '@shell/utils/cluster';

@@ -2,8 +2,8 @@
 import { mapGetters, mapState } from 'vuex';
 import { resourceNames } from '@shell/utils/string';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { Banner } from '@components/Banner';
-import { Card } from '@components/Card';
+import { Banner } from '@rc/Banner';
+import { Card } from '@rc/Card';
 import AsyncButton from '@shell/components/AsyncButton';
 
 export default {

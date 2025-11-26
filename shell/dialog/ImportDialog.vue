@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
-import { Card } from '@components/Card';
-import { Banner } from '@components/Banner';
+import { Card } from '@rc/Card';
+import { Banner } from '@rc/Banner';
 import YamlEditor from '@shell/components/YamlEditor';
 import FileSelector from '@shell/components/form/FileSelector';
 import AsyncButton from '@shell/components/AsyncButton';

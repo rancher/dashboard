@@ -1,7 +1,7 @@
 <script>
 import { _VIEW } from '@shell/config/query-params';
 import ArrayList from '@shell/components/form/ArrayList';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import Select from '@shell/components/form/Select';
 
 const OPERATOR_VALUES = {

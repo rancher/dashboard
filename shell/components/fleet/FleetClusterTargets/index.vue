@@ -9,9 +9,9 @@ import { Expression, Selector, Target, TargetMode } from '@shell/types/fleet';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import MatchExpressions from '@shell/components/form/MatchExpressions.vue';
-import { Banner } from '@components/Banner';
-import { RcButton } from '@components/RcButton';
-import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+import { Banner } from '@rc/Banner';
+import { RcButton } from '@rc/RcButton';
+import RadioGroup from '@rc/Form/Radio/RadioGroup.vue';
 import TargetsList from '@shell/components/fleet/FleetClusterTargets/TargetsList.vue';
 
 export interface Cluster {

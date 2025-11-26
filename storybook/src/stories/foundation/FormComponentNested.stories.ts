@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { Form, Field, FieldArray } from 'vee-validate';
-import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput.vue';
+import LabeledInput from '@/shell/rc/Form/LabeledInput/LabeledInput.vue';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import formRulesGenerator from '@shell/utils/validators/formRules/index';

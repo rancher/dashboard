@@ -4,7 +4,7 @@ import { mapPref, AFTER_LOGIN_ROUTE, HIDE_HOME_PAGE_CARDS } from '@shell/store/p
 import BannerGraphic from '@shell/components/BannerGraphic.vue';
 import IndentedPanel from '@shell/components/IndentedPanel.vue';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
-import { BadgeState } from '@components/BadgeState';
+import { BadgeState } from '@rc/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks.vue';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo.vue';
 import DynamicContentBanner from '@shell/components/DynamicContent/DynamicContentBanner.vue';

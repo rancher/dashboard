@@ -4,8 +4,8 @@ import { mapGetters } from 'vuex';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { defineComponent } from 'vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
+import LabeledInput from '@rc/Form/LabeledInput/LabeledInput.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 
 import { getGKENetworks, getGKESubnetworks, getGKESharedSubnetworks } from '@shell/components/google/util/gcp';
@@ -13,7 +13,7 @@ import type {
   getGKESubnetworksResponse, getGKESharedSubnetworksResponse, getGKENetworksResponse, GKESubnetwork, GKENetwork
 } from '@shell/components/google/types/gcp';
 import debounce from 'lodash/debounce';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@rc/Banner/Banner.vue';
 import { GKENetworkOption, GKESubnetworkOption, GKESecondaryRangeOption } from '@shell/components/google/types';
 import { formatSharedNetworks, formatNetworkOptions, formatSubnetworkOptions } from '@shell/components/google/util/formatter';
 

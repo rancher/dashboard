@@ -1,6 +1,6 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import FileSelector from '@shell/components/form/FileSelector';
 import FormValidation from '@shell/mixins/form-validation';
 

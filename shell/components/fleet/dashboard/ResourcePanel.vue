@@ -5,7 +5,7 @@ import { lcFirst } from '@shell/utils/string';
 import {
   Chart, ChartOptions, ChartEvent, TooltipItem, registerables
 } from 'chart.js';
-import { BadgeState } from '@components/BadgeState';
+import { BadgeState } from '@rc/BadgeState';
 import FleetUtils from '@shell/utils/fleet';
 import { FleetDashboardResourceStates, FleetDashboardState } from '@shell/types/fleet';
 

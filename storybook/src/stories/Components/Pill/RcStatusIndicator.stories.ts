@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import RcStatusIndicator from '@components/Pill/RcStatusIndicator/RcStatusIndicator.vue';
+import RcStatusIndicator from '@rc/Pill/RcStatusIndicator/RcStatusIndicator.vue';
 
 const meta: Meta<typeof RcStatusIndicator> = {
   component: RcStatusIndicator,

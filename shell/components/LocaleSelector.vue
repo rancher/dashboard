@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import Select from '@shell/components/form/Select.vue';
-import { RcDropdown, RcDropdownTrigger, RcDropdownItem } from '@components/RcDropdown';
+import { RcDropdown, RcDropdownTrigger, RcDropdownItem } from '@rc/RcDropdown';
 
 export default {
   name: 'LocaleSelector',

@@ -30,7 +30,6 @@
     "./**/*.d.ts",
     "./**/*.tsx",
     "./**/*.vue",
-    "../pkg/rancher-components/src/**/*"
   ],
   "exclude": [
     "node_modules",

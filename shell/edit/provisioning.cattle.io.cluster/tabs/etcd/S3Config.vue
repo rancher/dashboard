@@ -1,6 +1,6 @@
 <script>
-import { Checkbox } from '@components/Form/Checkbox';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { Checkbox } from '@rc/Form/Checkbox';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { NORMAN } from '@shell/config/types';
 import FormValidation from '@shell/mixins/form-validation';

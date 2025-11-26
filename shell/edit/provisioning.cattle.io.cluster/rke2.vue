@@ -31,8 +31,8 @@ import {
   getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon, initSchedulingCustomization, addonConfigPreserve
 } from '@shell/utils/cluster';
 
-import { BadgeState } from '@components/BadgeState';
-import { Banner } from '@components/Banner';
+import { BadgeState } from '@rc/BadgeState';
+import { Banner } from '@rc/Banner';
 import CruResource, { CONTEXT_HOOK_EDIT_YAML } from '@shell/components/CruResource';
 import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RcDropdown, RcDropdownTrigger, RcDropdownItem } from '@components/RcDropdown';
+import { RcDropdown, RcDropdownTrigger, RcDropdownItem } from '@rc/RcDropdown';
 type HiddenAction = {
   action: string;
   enabled: boolean;

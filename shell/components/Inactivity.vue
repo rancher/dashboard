@@ -1,6 +1,6 @@
 <script>
 import ModalWithCard from '@shell/components/ModalWithCard';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import PercentageBar from '@shell/components/PercentageBar.vue';
 import throttle from 'lodash/throttle';
 import Inactivity from '@shell/utils/inactivity';

@@ -3,9 +3,9 @@ import CopyToClipboard from '@shell/components/Resource/Detail/CopyToClipboard.v
 import { Row } from '@shell/components/Resource/Detail/Metadata/KeyValue.vue';
 import Preview from '@shell/components/Resource/Detail/Preview/Preview.vue';
 import { nextTick, ref } from 'vue';
-import RcTag from '@components/Pill/RcTag/RcTag.vue';
-import RcButton from '@components/RcButton/RcButton.vue';
-import { Type } from '@components/Pill/types';
+import RcTag from '@rc/Pill/RcTag/RcTag.vue';
+import RcButton from '@rc/RcButton/RcButton.vue';
+import { Type } from '@rc/Pill/types';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { randomStr } from '@shell/utils/string';

@@ -1,11 +1,11 @@
 <script lang="ts">
 import { defineComponent, inject } from 'vue';
 import SortableTable from '@shell/components/SortableTable/index.vue';
-import RadioButton from '@components/Form/Radio/RadioButton.vue';
+import RadioButton from '@rc/Form/Radio/RadioButton.vue';
 import debounce from 'lodash/debounce';
 import { isArray } from '@shell/utils/array';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import LabeledInput from '@rc/Form/LabeledInput/LabeledInput.vue';
 import { GitUtils, Commit } from '@shell/utils/git';
 import type { DebouncedFunc } from 'lodash';
 

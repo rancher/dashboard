@@ -5,7 +5,7 @@ import { isAdminUser } from '@shell/store/type-map';
 import BackLink from '@shell/components/BackLink';
 import BackRoute from '@shell/mixins/back-link';
 import ButtonGroup from '@shell/components/ButtonGroup';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import LandingPagePreference from '@shell/components/LandingPagePreference';
 import {
   mapPref, THEME, KEYMAP, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE,

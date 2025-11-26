@@ -1,6 +1,6 @@
 <script lang="ts">
 import { PropType, defineComponent } from 'vue';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@rc/Banner/Banner.vue';
 
 type Rule = (v?: string | number | Record<string, any> | unknown[]) => undefined | string;
 

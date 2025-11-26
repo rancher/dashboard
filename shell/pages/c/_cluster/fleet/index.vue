@@ -10,13 +10,13 @@ import { checkPermissions, checkSchemasForFindAllHash } from '@shell/utils/auth'
 import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
 import { filterBy } from '@shell/utils/array';
 import NoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
-import { RcButton } from '@components/RcButton';
+import { RcButton } from '@rc/RcButton';
 import ResourcePanel from '@shell/components/fleet/dashboard/ResourcePanel.vue';
 import ResourceCard from '@shell/components/fleet/dashboard/ResourceCard.vue';
 import ResourceDetails from '@shell/components/fleet/dashboard/ResourceDetails.vue';
 import EmptyDashboard from '@shell/components/fleet/dashboard/Empty.vue';
 import ButtonGroup from '@shell/components/ButtonGroup';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
 import FleetApplications from '@shell/components/fleet/FleetApplications.vue';
 import FleetUtils from '@shell/utils/fleet';
 import Preset from '@shell/mixins/preset';

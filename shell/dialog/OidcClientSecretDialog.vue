@@ -1,5 +1,5 @@
 <script>
-import { Card } from '@components/Card';
+import { Card } from '@rc/Card';
 import { OIDC_CLIENT_SECRET_ACTION } from '@shell/detail/management.cattle.io.oidcclient.vue';
 
 export default {

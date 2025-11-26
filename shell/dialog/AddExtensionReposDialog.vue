@@ -1,6 +1,6 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
 import { CATALOG } from '@shell/config/types';
 import { UI_PLUGINS_REPOS } from '@shell/config/uiplugins';
 import { isRancherPrime } from '@shell/config/version';

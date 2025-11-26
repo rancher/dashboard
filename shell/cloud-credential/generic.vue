@@ -1,7 +1,7 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
 import KeyValue from '@shell/components/form/KeyValue';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import { simplify, iffyFields, likelyFields } from '@shell/store/plugins';
 import Loading from '@shell/components/Loading';
 import { SCHEMA } from '@shell/config/types';

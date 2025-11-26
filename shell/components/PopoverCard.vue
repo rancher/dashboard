@@ -5,7 +5,7 @@ import {
   DEFAULT_FOCUS_TRAP_OPTS,
   useWatcherBasedSetupFocusTrapWithDestroyIncluded
 } from '@shell/composables/focusTrap';
-import RcButton from '@components/RcButton/RcButton.vue';
+import RcButton from '@rc/RcButton/RcButton.vue';
 
 export interface Props {
   cardTitle: string;

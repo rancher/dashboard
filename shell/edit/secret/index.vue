@@ -9,7 +9,7 @@ import { CAPI, UI_PROJECT_SECRET } from '@shell/config/labels-annotations';
 import FormValidation from '@shell/mixins/form-validation';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CruResource from '@shell/components/CruResource';
 import Loading from '@shell/components/Loading';

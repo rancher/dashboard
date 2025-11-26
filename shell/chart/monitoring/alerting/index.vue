@@ -1,9 +1,9 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioGroup } from '@rc/Form/Radio';
 
 export default {
   components: {

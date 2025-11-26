@@ -1,5 +1,5 @@
 <script>
-import { Card } from '@components/Card';
+import { Card } from '@rc/Card';
 
 export default {
   name: 'PromptRemove',

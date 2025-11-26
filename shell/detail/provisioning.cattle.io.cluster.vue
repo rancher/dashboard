@@ -1,5 +1,5 @@
 <script>
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import ResourceTable, { defaultTableSortGenerationFn } from '@shell/components/ResourceTable';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import SortableTable from '@shell/components/SortableTable';

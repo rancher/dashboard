@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils';
 import CruResource from '@shell/components/CruResource.vue';
 import { _EDIT, _YAML } from '@shell/config/query-params';
-import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
+import TextAreaAutoGrow from '@rc/Form/TextArea/TextAreaAutoGrow.vue';
 
 describe('component: CruResource', () => {
   it('should hide Cancel button', () => {

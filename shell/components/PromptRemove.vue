@@ -3,14 +3,14 @@ import { shallowRef } from 'vue';
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@shell/utils/object';
 import { escapeHtml, resourceNames } from '@shell/utils/string';
-import { Card } from '@components/Card';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Card } from '@rc/Card';
+import { Checkbox } from '@rc/Form/Checkbox';
 import { alternateLabel } from '@shell/utils/platform';
 import { uniq } from '@shell/utils/array';
 import AsyncButton from '@shell/components/AsyncButton';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import AppModal from '@shell/components/AppModal.vue';
 
 export default {

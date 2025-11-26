@@ -5,8 +5,8 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { pathArrayToTree } from '@shell/utils/string.js';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import { RcButton } from '@components/RcButton';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
+import { RcButton } from '@rc/RcButton';
 
 interface DirectoryTree {
   name?: string,

@@ -9,7 +9,7 @@ import { isAlternate } from '@shell/utils/platform';
 import IconMessage from '@shell/components/IconMessage';
 import TabTitle from '@shell/components/TabTitle';
 import { get } from '@shell/utils/object';
-import { RcItemCard } from '@components/RcItemCard';
+import { RcItemCard } from '@rc/RcItemCard';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 

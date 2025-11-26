@@ -1,12 +1,12 @@
 <script lang="ts">
-import BadgeState from '@components/BadgeState/BadgeState.vue';
+import BadgeState from '@rc/BadgeState/BadgeState.vue';
 import { RouteLocationRaw, useRouter } from 'vue-router';
 import Title from '@shell/components/Resource/Detail/TitleBar/Title.vue';
 import Top from '@shell/components/Resource/Detail/TitleBar/Top.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
-import RcButton from '@components/RcButton/RcButton.vue';
+import RcButton from '@rc/RcButton/RcButton.vue';
 import TabTitle from '@shell/components/TabTitle';
 import { computed, ref, watch } from 'vue';
 import { _CONFIG, AS } from '@shell/config/query-params';

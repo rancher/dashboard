@@ -5,7 +5,7 @@ import { NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import { CAPI } from '@shell/config/labels-annotations';
 import { clear } from '@shell/utils/array';
 import cloneDeep from 'lodash/cloneDeep';

@@ -6,7 +6,7 @@ import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioGroup } from '@rc/Form/Radio';
 import RuleSelector from '@shell/components/form/RuleSelector';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
@@ -17,7 +17,7 @@ import { saferDump } from '@shell/utils/create-yaml';
 import NamespaceList, { NAMESPACE_FILTERS_HELPER } from './NamespaceList';
 import MatchKinds from './MatchKinds';
 import Scope, { SCOPE_OPTIONS } from './Scope';
-import Banner from '@components/Banner/Banner';
+import Banner from '@rc/Banner/Banner';
 
 function findConstraintTypes(schemas) {
   return schemas

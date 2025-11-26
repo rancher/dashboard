@@ -1,9 +1,9 @@
 <script>
 import { defineComponent } from 'vue';
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioGroup } from '@rc/Form/Radio';
 import { mapGetters } from 'vuex';
 import { _EDIT, _CREATE } from '@shell/config/query-params';
-import Banner from '@components/Banner/Banner.vue';
+import Banner from '@rc/Banner/Banner.vue';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 
 export default defineComponent({

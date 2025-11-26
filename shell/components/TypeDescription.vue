@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import { HIDE_DESC, mapPref } from '@shell/store/prefs';
 import { addObject } from '@shell/utils/array';
 import { CATALOG } from '@shell/config/types';

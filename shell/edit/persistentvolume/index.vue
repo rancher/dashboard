@@ -10,7 +10,7 @@ import MatchExpressions from '@shell/components/form/MatchExpressions';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import NodeAffinity from '@shell/components/form/NodeAffinity';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import uniq from 'lodash/uniq';
 import UnitInput from '@shell/components/form/UnitInput';
 import { VOLUME_PLUGINS, LONGHORN_PLUGIN } from '@shell/config/persistentVolume';

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import { RcIcon } from '@components/RcIcon';
-import { RcIconSize, RcIconType } from '@components/RcIcon/types';
-import { StatusDefinitions } from '@components/utils/status';
+import { RcIcon } from '@rc/RcIcon';
+import { RcIconSize, RcIconType } from '@rc/RcIcon/types';
+import { StatusDefinitions } from '@rc/utils/status';
 
 const meta: Meta<typeof RcIcon> = {
   component: RcIcon,

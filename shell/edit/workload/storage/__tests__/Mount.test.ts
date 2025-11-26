@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import Mount from '@shell/edit//workload/storage/Mount.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import LabeledInput from '@rc/Form/LabeledInput/LabeledInput.vue';
 
 describe('component: Mount', () => {
   it('should display alway at least 1 mount point input', () => {

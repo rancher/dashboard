@@ -1,6 +1,6 @@
 <script lang="ts">
 /* eslint-disable */
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import TitleBar from '@shell/components/Resource/Detail/TitleBar/index.vue';
 import { useDefaultTitleBarProps } from '@shell/components/Resource/Detail/TitleBar/composables';
 import Metadata from '@shell/components/Resource/Detail/Metadata/index.vue';

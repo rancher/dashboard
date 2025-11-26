@@ -1,6 +1,6 @@
 
 <script>
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 
 export default {
   components: { Banner },

@@ -1,5 +1,5 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
 import Login from '@shell/mixins/login';
 import loadPlugins from '@shell/plugins/plugin';

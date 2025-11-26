@@ -19,7 +19,7 @@ module.exports = {
     '^@/(.*)$':                                                                      '<rootDir>/$1',
     '@shell/(.*)':                                                                   '<rootDir>/shell/$1',
     '@pkg/(.*)':                                                                     '<rootDir>/pkg/$1',
-    '@components/(.*)':                                                              '<rootDir>/pkg/rancher-components/src/components/$1',
+    '@rc/(.*)':                                                                      '<rootDir>/shell/rc/$1',
     '\\.(jpe?g|png|gif|webp|svg|mp4|webm|ogg|mp3|wav|flac|aac|woff2?|eot|ttf|otf)$': '<rootDir>/svgTransform.js',
   },
   modulePathIgnorePatterns: [
@@ -55,7 +55,7 @@ module.exports = {
   collectCoverage:     false,
   collectCoverageFrom: [
     '<rootDir>/shell/**/*.{vue,ts,js}',
-    '<rootDir>/pkg/rancher-components/src/components/**/*.{vue,ts,js}',
+    '<rootDir>/shell/rc/**/*.{vue,ts,js}',
     '!<rootDir>/shell/scripts/',
   ],
   coveragePathIgnorePatterns: [

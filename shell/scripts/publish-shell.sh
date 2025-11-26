@@ -65,7 +65,7 @@ function publish() {
   if [ "$NAME" == "Shell" ]; then
     echo "Adding Rancher Components"
     rm -rf ./rancher-components
-    cp -R ${BASE_DIR}/pkg/rancher-components/src/components ./rancher-components/
+    cp -R ${BASE_DIR}/shell/rc ./rancher-components/
   fi
 
   # Make a note of dependency versions, if required

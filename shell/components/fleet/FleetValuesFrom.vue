@@ -4,7 +4,7 @@ import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import { CONFIG_MAP, SECRET } from '@shell/config/types';
 import { PropType } from 'vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
-import { RcButton } from '@components/RcButton';
+import { RcButton } from '@rc/RcButton';
 import ValueFromResource from '@shell/components/form/ValueFromResource.vue';
 
 type KeyRefName = 'configMapKeyRef' | 'secretKeyRef';

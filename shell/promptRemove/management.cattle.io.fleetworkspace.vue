@@ -1,7 +1,7 @@
 <script>
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { resourceNames } from '@shell/utils/string';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import { mapGetters, mapState } from 'vuex';
 import { getVendor } from '@shell/config/private-label';
 

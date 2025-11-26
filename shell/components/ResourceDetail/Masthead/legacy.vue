@@ -2,8 +2,8 @@
 import { KUBERNETES, PROJECT } from '@shell/config/labels-annotations';
 import { FLEET, NAMESPACE, MANAGEMENT, HELM } from '@shell/config/types';
 import ButtonGroup from '@shell/components/ButtonGroup';
-import { BadgeState } from '@components/BadgeState';
-import { Banner } from '@components/Banner';
+import { BadgeState } from '@rc/BadgeState';
+import { Banner } from '@rc/Banner';
 import { get } from '@shell/utils/object';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 import { HIDE_SENSITIVE } from '@shell/store/prefs';

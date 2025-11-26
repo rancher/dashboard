@@ -1,5 +1,5 @@
 <script>
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { allHash } from '@shell/utils/promise';
@@ -9,7 +9,7 @@ import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/u
 import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@shell/store/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import ResourceFetch from '@shell/mixins/resource-fetch';
-import { BadgeState } from '@components/BadgeState';
+import { BadgeState } from '@rc/BadgeState';
 import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 import { AUTOSCALER_ENABLED } from '@shell/config/table-headers';
 

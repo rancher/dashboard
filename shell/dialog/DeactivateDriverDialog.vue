@@ -1,7 +1,7 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import { Card } from '@components/Card';
-import { Banner } from '@components/Banner';
+import { Card } from '@rc/Card';
+import { Banner } from '@rc/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { resourceNames } from '@shell/utils/string';
 import { mapGetters } from 'vuex';

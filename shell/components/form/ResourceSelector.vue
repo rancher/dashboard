@@ -1,5 +1,5 @@
 <script>
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import ResourceTable from '@shell/components/ResourceTable';
 import { _EDIT } from '@shell/config/query-params';

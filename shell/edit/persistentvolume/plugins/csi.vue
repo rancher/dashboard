@@ -1,6 +1,6 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { RadioGroup } from '@components/Form/Radio';
+import { LabeledInput } from '@rc/Form/LabeledInput';
+import { RadioGroup } from '@rc/Form/Radio';
 import KeyValue from '@shell/components/form/KeyValue';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { CSI_DRIVER } from '@shell/config/types';

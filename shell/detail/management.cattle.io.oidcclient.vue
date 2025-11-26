@@ -6,9 +6,9 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { defineComponent } from 'vue';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import DateComponent from '@shell/components/formatter/Date.vue';
-import { RcItemCard } from '@components/RcItemCard';
+import { RcItemCard } from '@rc/RcItemCard';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 
 type SecretActionType = 'create-secret' | 'regen-secret' | 'remove-secret'
 interface ClientSecretData { createdAt: string, lastUsedAt: string, lastFiveCharacters: string }

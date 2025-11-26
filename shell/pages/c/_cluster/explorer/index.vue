@@ -20,7 +20,7 @@ import {
 import { NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import { setPromiseResult } from '@shell/utils/promise';
 import AlertTable from '@shell/components/AlertTable';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import { parseSi, createMemoryValues } from '@shell/utils/units';
 import {
   NAME,

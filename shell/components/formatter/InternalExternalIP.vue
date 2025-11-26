@@ -2,7 +2,7 @@
 import { isV4Format, isV6Format } from 'ip';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 import { mapGetters } from 'vuex';
-import RcStatusBadge from '@components/Pill/RcStatusBadge/RcStatusBadge';
+import RcStatusBadge from '@rc/Pill/RcStatusBadge/RcStatusBadge';
 
 export default {
   components: { CopyToClipboard, RcStatusBadge },

@@ -1,13 +1,13 @@
 <script>
 
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _EDIT } from '@shell/config/query-params';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import { convert, simplify } from '@shell/utils/selector';
 import { NAMESPACE, POD } from '@shell/config/types';
 import ArrayList from '@shell/components/form/ArrayList';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import debounce from 'lodash/debounce';
 import { isValidCIDR } from '@shell/utils/validators/cidr';
 import { matching } from '@shell/utils/selector-typed';

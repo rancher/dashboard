@@ -7,7 +7,7 @@ import { SETTING } from '@shell/config/settings';
 import { useWatcherBasedSetupFocusTrapWithDestroyIncluded } from '@shell/composables/focusTrap';
 import { getPluginChartVersionLabel, getPluginChartVersion } from '@shell/utils/uiplugins';
 import { isChartVersionHigher } from '@shell/config/uiplugins';
-import RcButton from '@components/RcButton/RcButton.vue';
+import RcButton from '@rc/RcButton/RcButton.vue';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter.vue';
 
 export default {

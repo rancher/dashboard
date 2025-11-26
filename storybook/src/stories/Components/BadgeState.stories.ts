@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import BadgeState from '@/pkg/rancher-components/src/components/BadgeState/BadgeState.vue';
+import BadgeState from '@/shell/rc/BadgeState/BadgeState.vue';
 
 const meta: Meta<typeof BadgeState> = { component: BadgeState };
 

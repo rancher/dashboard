@@ -3,7 +3,7 @@ import { CONFIG_MAP, SECRET, NAMESPACE } from '@shell/config/types';
 import { get } from '@shell/utils/object';
 import { _VIEW } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import { ref, watch } from 'vue';
 
 export default {

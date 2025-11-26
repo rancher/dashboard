@@ -1,7 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import ChartMixin from '@shell/mixins/chart';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import ChartReadme from '@shell/components/ChartReadme';
 import LazyImage from '@shell/components/LazyImage';
 import isEqual from 'lodash/isEqual';
@@ -16,7 +16,7 @@ import { compatibleVersionsFor } from '@shell/store/catalog';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 import day from 'dayjs';
-import { RcButton } from '@components/RcButton';
+import { RcButton } from '@rc/RcButton';
 
 export default {
   components: {

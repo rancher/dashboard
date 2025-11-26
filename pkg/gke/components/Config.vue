@@ -1,10 +1,10 @@
 <script lang="ts">
 import { PropType, defineComponent } from 'vue';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
-import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+import RadioGroup from '@rc/Form/Radio/RadioGroup.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
+import LabeledInput from '@rc/Form/LabeledInput/LabeledInput.vue';
 
 import {
   DEFAULT_GCP_REGION, DEFAULT_GCP_ZONE, getGKEZones, getGKERegionFromZone,

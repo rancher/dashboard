@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import RcCounterBadge from '@components/Pill/RcCounterBadge/RcCounterBadge.vue';
+import RcCounterBadge from '@rc/Pill/RcCounterBadge/RcCounterBadge.vue';
 
 const meta: Meta<typeof RcCounterBadge> = {
   component: RcCounterBadge,

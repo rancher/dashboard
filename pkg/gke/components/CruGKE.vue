@@ -15,8 +15,8 @@ import CruResource from '@shell/components/CruResource.vue';
 import Labels from '@shell/components/form/Labels.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
-import Accordion from '@components/Accordion/Accordion.vue';
-import Banner from '@components/Banner/Banner.vue';
+import Accordion from '@rc/Accordion/Accordion.vue';
+import Banner from '@rc/Banner/Banner.vue';
 import Loading from '@shell/components/Loading.vue';
 
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';

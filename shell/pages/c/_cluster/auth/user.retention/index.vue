@@ -13,10 +13,10 @@ import { isAdminUser } from '@shell/store/type-map';
 
 import type { Setting } from '@shell/types/resources/settings';
 
-import Banner from '@components/Banner/Banner.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import { ToggleSwitch } from '@components/Form/ToggleSwitch';
+import Banner from '@rc/Banner/Banner.vue';
+import Checkbox from '@rc/Form/Checkbox/Checkbox.vue';
+import LabeledInput from '@rc/Form/LabeledInput/LabeledInput.vue';
+import { ToggleSwitch } from '@rc/Form/ToggleSwitch';
 
 import dayjs from 'dayjs';
 

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import TextAreaAutoGrow from '@/pkg/rancher-components/src/components/Form/TextArea/TextAreaAutoGrow.vue';
+import TextAreaAutoGrow from '@/shell/rc/Form/TextArea/TextAreaAutoGrow.vue';
 
 const meta: Meta<typeof TextAreaAutoGrow> = {
   component: TextAreaAutoGrow,

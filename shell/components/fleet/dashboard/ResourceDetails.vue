@@ -3,7 +3,7 @@ import { PropType } from 'vue';
 import { FLEET } from '@shell/config/types';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import FleetResources from '@shell/components/fleet/FleetResources.vue';
-import { RcButton } from '@components/RcButton';
+import { RcButton } from '@rc/RcButton';
 import { FleetDashboardState } from '@shell/types/fleet';
 import FleetApplicationSource from '@shell/components/formatter/FleetApplicationSource.vue';
 

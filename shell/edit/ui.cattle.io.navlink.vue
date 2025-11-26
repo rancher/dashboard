@@ -4,12 +4,12 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import { SERVICE } from '@shell/config/types';
 import { PROTOCOLS } from '@shell/config/schema';
 import CruResource from '@shell/components/CruResource';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { RadioGroup } from '@components/Form/Radio';
+import { LabeledInput } from '@rc/Form/LabeledInput';
+import { RadioGroup } from '@rc/Form/Radio';
 import FileImageSelector from '@shell/components/form/FileImageSelector';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import FormValidation from '@shell/mixins/form-validation';
 import { normalizeName } from '@shell/utils/kube';
 

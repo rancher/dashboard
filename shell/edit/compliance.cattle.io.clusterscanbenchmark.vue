@@ -3,7 +3,7 @@ import createEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ResourceLabeledSelect from '@shell/components/form/ResourceLabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { mapGetters } from 'vuex';
 import { CONFIG_MAP } from '@shell/config/types';

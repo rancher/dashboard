@@ -1,11 +1,11 @@
 <script>
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
-import { RadioGroup } from '@components/Form/Radio';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import { RadioGroup } from '@rc/Form/Radio';
+import LabeledInput from '@rc/Form/LabeledInput/LabeledInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import UnitInput from '@shell/components/form/UnitInput';
 import uniq from 'lodash/uniq';
@@ -14,7 +14,7 @@ import { STORAGE_CLASS, PV } from '@shell/config/types';
 import StatusTable from '@shell/components/StatusTable';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Labels from '@shell/components/form/Labels';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import ResourceManager from '@shell/mixins/resource-manager';
 
 const DEFAULT_STORAGE = '10Gi';

@@ -7,7 +7,7 @@ import { isValidCron } from 'cron-validator';
 import cronstrue from 'cronstrue';
 import { createPopper, Instance as PopperInstance } from '@popperjs/core';
 import { useI18n } from '@shell/composables/useI18n';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import LabeledInput from '@rc/Form/LabeledInput/LabeledInput.vue';
 import CronTooltip from './CronTooltip.vue';
 import type { TooltipSection, CronField } from './types';
 import { cronFields } from './types';

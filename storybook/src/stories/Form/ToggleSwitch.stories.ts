@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import ToggleSwitch from '@/pkg/rancher-components/src/components/Form/ToggleSwitch/ToggleSwitch.vue';
+import ToggleSwitch from '@/shell/rc/Form/ToggleSwitch/ToggleSwitch.vue';
 
 const meta: Meta<typeof ToggleSwitch> = {
   component: ToggleSwitch,

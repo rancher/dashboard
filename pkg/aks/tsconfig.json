@@ -37,8 +37,8 @@
       "@shell/*": [
         "../../shell/*"
       ],
-      "@components/*": [
-        "../../pkg/rancher-components/src/components/*"
+      "@rc/*": [
+        "../../shell/rc/*"
       ],
       "@pkg/*": [
         "../../pkg/*"

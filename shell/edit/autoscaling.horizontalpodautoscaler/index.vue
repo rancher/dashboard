@@ -2,7 +2,7 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 
 import CruResource from '@shell/components/CruResource';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Labels from '@shell/components/form/Labels';
 import Loading from '@shell/components/Loading';
@@ -12,7 +12,7 @@ import Tabbed from '@shell/components/Tabbed';
 import MetricsRow from '@shell/edit/autoscaling.horizontalpodautoscaler/metrics-row';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { DEFAULT_RESOURCE_METRIC } from '@shell/edit/autoscaling.horizontalpodautoscaler/resource-metric';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 
 import { API_SERVICE, SCALABLE_WORKLOAD_TYPES } from '@shell/config/types';
 import isEmpty from 'lodash/isEmpty';

@@ -1,10 +1,10 @@
 <script>
 import { _VIEW } from '@shell/config/query-params';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rc/Banner';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import ArrayList from '@shell/components/form/ArrayList';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rc/Form/Checkbox';
 import DirectoryConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/DirectoryConfig.vue';
 
 export default {

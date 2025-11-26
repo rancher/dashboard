@@ -7,8 +7,8 @@ import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { useI18n } from '@shell/composables/useI18n';
 import { NotificationAction, NotificationLevel, StoredNotification } from '@shell/types/notifications';
-import { DropdownContext, defaultContext } from '@components/RcDropdown/types';
-import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
+import { DropdownContext, defaultContext } from '@rc/RcDropdown/types';
+import { useDropdownItem } from '@rc/RcDropdown/useDropdownItem';
 
 const CLASSES = {
   [NotificationLevel.Announcement]: 'icon-notify-announcement text-info',

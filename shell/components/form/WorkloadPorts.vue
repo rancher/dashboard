@@ -4,7 +4,7 @@ import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { removeAt, findBy } from '@shell/utils/array';
 import { clone } from '@shell/utils/object';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rc/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';

@@ -4,9 +4,9 @@ import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 
 import { isAlternate } from '@shell/utils/platform';
-import { RcDropdownMenu } from '@components/RcDropdown';
-import { ButtonRoleProps, ButtonSizeProps } from '@components/RcButton/types';
-import { DropdownOption } from '@components/RcDropdown/types';
+import { RcDropdownMenu } from '@rc/RcDropdown';
+import { ButtonRoleProps, ButtonSizeProps } from '@rc/RcButton/types';
+import { DropdownOption } from '@rc/RcDropdown/types';
 
 const store = useStore();
 
