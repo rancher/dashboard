@@ -547,8 +547,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       clusterDetail.selectTab(tabbedPo, '[data-testid="btn-node-pools"]');
 
       clusterDetail.waitForPage(undefined, 'node-pools');
-      clusterDetail.machinePoolsList().details('machine-', 2).should('be.visible');
-      clusterDetail.machinePoolsList().downloadYamlButton().should('be.disabled');
+      clusterDetail.poolsList('node').details('machine-', 2).should('be.visible');
+      clusterDetail.poolsList('node').downloadYamlButton().should('be.disabled');
     });
 
     it(`Show Configuration allows to edit config and view yaml for local cluster`, () => {

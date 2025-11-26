@@ -1,0 +1,2037 @@
+<html>
+<head>
+  <style>
+    body { font-family: monospace; }
+    p { margin: 0; padding: 0; }
+    pre { display: inline; margin: 0; }
+    h2 { margin: 0; font-size: 1.2em; }
+  </style>
+</head>
+
+<body>
+
+<h1>cypress/e2e/tests/pages/manager/cluster-provisioning-amazon-ec2-rke2.spec.ts</h1>
+<h2>Deploy RKE2 cluster using node driver on Amazon EC2 -&gt; can scale down a machine pool</h2>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: defineEmits() is a compiler-hint helper that is only usable inside &lt;script setup&gt; of a single file component. Its arguments should be compiled away and passing it at runtime has no effect.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Component &quot;v-select&quot; has already been registered in target app.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/rancherversion
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/version
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/uiplugins
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.setting</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.settings?exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:green;">    cy:request✔</pre> <pre style="color:grey;">GET https://localhost:8005/v1/userpreferences
+                Status: 200
+                Response body: {
+                  &quot;type&quot;: &quot;collection&quot;,
+                  &quot;links&quot;: {
+                    &quot;self&quot;: &quot;https://localhost:8005/v1/userpreferences&quot;
+                  },
+                  &quot;actions&quot;: {},
+                  &quot;resourceType&quot;: &quot;userpreference&quot;,
+                  &quot;data&quot;: [
+                    {
+                      &quot;id&quot;: &quot;user-lbwft&quot;,
+                      &quot;type&quot;: &quot;userpreference&quot;,
+                      &quot;links&quot;: {
+                        &quot;remove&quot;: &quot;https://localhost:8005/v1/userpreferences/user-lbwft&quot;,
+                        &quot;self&quot;: &quot;https://localhost:8005/v1/userpreferences/user-lbwft&quot;,
+                        &quot;update&quot;: &quot;https://localhost:8005/v1/userpreferences/user-lbwft&quot;
+                      },
+                      &quot;data&quot;: {
+                        &quot;cluster&quot;: &quot;_&quot;,
+                        &quot;group-by&quot;: &quot;poolId&quot;,
+                        &quot;locale&quot;: &quot;en-us&quot;,
+                        &quot;seen-whatsnew&quot;: &quot;\&quot;v2.13.1-alpha4\&quot;&quot;
+                      }
+                    }
+                  ]
+                }</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:green;">    cy:request✔</pre> <pre style="color:grey;">PUT https://localhost:8005/v1/userpreferences/user-lbwft
+                Status: 200
+                Response body: {
+                  &quot;id&quot;: &quot;user-lbwft&quot;,
+                  &quot;type&quot;: &quot;userpreference&quot;,
+                  &quot;links&quot;: {
+                    &quot;remove&quot;: &quot;https://localhost:8005/v1/userpreferences/user-lbwft&quot;,
+                    &quot;self&quot;: &quot;https://localhost:8005/v1/userpreferences/user-lbwft&quot;,
+                    &quot;update&quot;: &quot;https://localhost:8005/v1/userpreferences/user-lbwft&quot;
+                  },
+                  &quot;data&quot;: {
+                    &quot;cluster&quot;: &quot;_&quot;,
+                    &quot;group-by&quot;: &quot;poolId&quot;,
+                    &quot;locale&quot;: &quot;en-us&quot;,
+                    &quot;scale-pool-prompt&quot;: &quot;false&quot;,
+                    &quot;seen-whatsnew&quot;: &quot;\&quot;v2.13.1-alpha4\&quot;&quot;
+                  }
+                }</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [rancher] user</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v3/users?me=true
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [rancher] principal</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v3/principals
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>All of schema is not loaded yet</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>All of schema is not loaded yet</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>All of namespace is not loaded yet</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Loading management...</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>All of count is not loaded yet</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Socket connecting (id=1, url=wss://localhost:8005/v1/subscribe)</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] schema</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [rancher] schema</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/schemas?exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v3/schemas
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Socket opened (state=connecting, id=1)</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.feature</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] userpreference</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Socket connecting (id=2, url=wss://localhost:8005/v3/subscribe)</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] count</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] namespace</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.fleetworkspace</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.features?exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/userpreferences?exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/counts?exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/namespaces?exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.fleetworkspaces?exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Socket opened (state=connecting, id=2)</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">PUT https://localhost:8005/v1/userpreferences/user-lbwft
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] management.cattle.io.cluster local</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters/local?exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Done loading management; isRancher=true; isMultiCluster=true</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: defineEmits() is a compiler-hint helper that is only usable inside &lt;script setup&gt; of a single file component. Its arguments should be compiled away and passing it at runtime has no effect.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] catalog.cattle.io.app. Page: null. Size: null. Sort: </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.rancherusernotification</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [rancher] authconfig azuread</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [rancher] authprovider</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;resource&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] management.cattle.io.setting ui-custom-links</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] management.cattle.io.setting ui-issues</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] management.cattle.io.setting ui-community-links</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.cluster</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] cluster.x-k8s.io.machine</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.node</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.nodepool</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: injection &quot;update-count&quot; not found.,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                manualRefreshButtonSize=&quot;sm&quot;,
+                group-sort=null,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                ref=&quot;table&quot;,
+                table-actions=false,
+                row-actions=false,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;PaginatedResourceTable,
+                key=0,
+                schema=,
+                {
+                  &quot;id&quot;: &quot;provisioning.cattle.io.cluster&quot;,
+                  &quot;type&quot;: &quot;schema&quot;,
+                  &quot;links&quot;: {
+                    &quot;collection&quot;: &quot;https://localhost:8005/v1/provisioning.cattle.io.clusters&quot;,
+                    &quot;self&quot;: &quot;https://localhost:8005/v1/schemas/provisioning.cattle.io.cluster&quot;
+                  },
+                  &quot;description&quot;: &quot;Cluster is the Schema for the provisioning API.&quot;,
+                  &quot;pluralName&quot;: &quot;provisioning.cattle.io.clusters&quot;,
+                  &quot;resourceMethods&quot;: [
+                    &quot;PATCH&quot;,
+                    &quot;GET&quot;,
+                    &quot;DELETE&quot;,
+                    &quot;PUT&quot;
+                  ],
+                  &quot;_resourceFields&quot;: null,
+                  &quot;requiresResourceFields&quot;: true,
+                  &quot;collectionMethods&quot;: [
+                    &quot; ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/catalog.cattle.io.apps?pagesize=100000&amp;filter=metadata.name=rancher-csp-adapter,metadata.name=rancher-csp-billing-adapter&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.rancherusernotifications?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v3/authconfig/azuread
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v3-public/authProviders
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/cluster.x-k8s.io.machines?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.nodes?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.nodepools?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Reset store: ,
+                cluster</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>All of schema is not loaded yet</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>All of namespace is not loaded yet</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] userpreference</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/userpreferences?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] provisioning.cattle.io.cluster</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [rancher] authconfig azuread</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;resource&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] provisioning.cattle.io.cluster</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [rancher] cluster</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] rke.cattle.io.etcdsnapshot</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] cluster.x-k8s.io.machine</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.node</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.nodepool</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] cluster.x-k8s.io.machinedeployment</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: injection &quot;update-count&quot; not found.,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                data-testid=&quot;cluster-list&quot;,
+                headers=,
+                [
+                  {
+                    &quot;name&quot;: &quot;state&quot;,
+                    &quot;labelKey&quot;: &quot;tableHeaders.state&quot;,
+                    &quot;sort&quot;: [
+                      &quot;stateSort&quot;,
+                      &quot;nameSort&quot;
+                    ],
+                    &quot;width&quot;: 100,
+                    &quot;default&quot;: &quot;unknown&quot;,
+                    &quot;formatter&quot;: &quot;BadgeStateFormatter&quot;,
+                    &quot;valueProp&quot;: &quot;stateDisplay&quot;
+                  },
+                  {
+                    &quot;name&quot;: &quot;name&quot;,
+                    &quot;labelKey&quot;: &quot;tableHeaders.name&quot;,
+                    &quot;value&quot;: &quot;nameDisplay&quot;,
+                    &quot;sort&quot;: [
+                      &quot;nameSort&quot;
+                    ],
+                    &quot;formatter&quot;: &quot;ClusterLink&quot;,
+                    &quot;canBeVariable&quot;: true
+                  },
+                  {
+                    &quot;name&quot;: &quot;kubernetesVersion&quot;,
+                    &quot;labelKey&quot;: &quot;tableHeaders.version&quot;,
+                    &quot;subLabel&quot;: &quot;Architecture&quot;,
+                    &quot;value&quot;: &quot;kubernetesVersion&quot;,
+                    &quot;sort&quot;: &quot;kubernetesVersion&quot;,
+                    &quot;search&quot;: &quot;kubernetesVersion&quot;
+                  },
+                  {
+                    &quot;name&quot;: &quot;provider&quot;,
+                  ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v3/clusters
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/rke.cattle.io.etcdsnapshots?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/cluster.x-k8s.io.machines?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/cluster.x-k8s.io.machinedeployments?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">PUT https://localhost:8005/v1/userpreferences/user-lbwft
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] provisioning.cattle.io.cluster fleet-default/e2e-test-1765913830843-rke2ec2cluster</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;resource&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Socket connecting (id=3, url=wss://localhost:8005/v1/management.cattle.io.clusters/c-m-tx2tgs8k)</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] management.cattle.io.cluster c-m-tx2tgs8k</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Starting wait for,
+                set provisioner</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Wait for,
+                set provisioner,
+                done immediately</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/schemaDefinitions/provisioning.cattle.io.cluster
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Socket opened (state=connecting, id=3)</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] rke-machine.cattle.io.amazonec2machinetemplate</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/rke-machine.cattle.io.amazonec2machinetemplates?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Property &quot;tabChange&quot; was accessed during render but is not defined on instance.,
+                
+                ,
+                 at &lt;ResourceTabs,
+                value=,
+                {
+                  &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster&quot;,
+                  &quot;type&quot;: &quot;provisioning.cattle.io.cluster&quot;,
+                  &quot;links&quot;: {
+                    &quot;patch&quot;: &quot;https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/e2e-test-1765913830843-rke2ec2cluster&quot;,
+                    &quot;remove&quot;: &quot;https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/e2e-test-1765913830843-rke2ec2cluster&quot;,
+                    &quot;self&quot;: &quot;https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/e2e-test-1765913830843-rke2ec2cluster&quot;,
+                    &quot;update&quot;: &quot;https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/e2e-test-1765913830843-rke2ec2cluster&quot;,
+                    &quot;view&quot;: &quot;https://localhost:8005/apis/provision ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] event</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/events?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;resource&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] userpreference</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/userpreferences?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Wait for,
+                set provisioner,
+                done</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">PUT https://localhost:8005/v1/userpreferences/user-lbwft
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://updates.rancher.io/rancher/community/updates?dcv=v1&amp;s=ee64a9013dce9fddb80033b8732c7ce7&amp;u=6b96973d2b98797e6d820ae71584e403&amp;uuid=62f440b0-256f-4e26-a6b1-7e4c51d516d8&amp;svt=dev&amp;v=v2.13.1&amp;dev=true&amp;p=false&amp;cc=2&amp;lkv=v1.34.2&amp;lcp=rke2&amp;lnc=3&amp;xkn=&amp;xcc=0&amp;bl=en-US&amp;bs=1000x660&amp;ss=1920x1080&amp;ff-usc=true
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">(scaleDownMachineDeployment) PUT https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/e2e-test-1765913830843-rke2ec2cluster
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] namespace fleet-default</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Avoid app logic that relies on enumerating keys on a component instance. The keys will be empty in production mode to avoid performance overhead.</pre></p>
+<p><pre style="color:red;">    cons:error✘</pre> <pre>TypeError: Cannot read properties of undefined (reading &#039;primary&#039;)
+                    at ComputedRefImpl.fn (https://localhost:8005/js/index.js:50283:89)
+                    at refreshComputed (https://localhost:8005/js/chunk-vendors.js:7176:28)
+                    at get value (https://localhost:8005/js/chunk-vendors.js:8423:5)
+                    at unref (https://localhost:8005/js/chunk-vendors.js:8268:29)
+                    at https://localhost:8005/js/shell_components_Resource_Detail_ResourcePopover_index_vue.js:210:84
+                    at setVars (https://localhost:8005/js/chunk-vendors.js:17918:18)
+                    at callWithErrorHandling (https://localhost:8005/js/chunk-vendors.js:9049:33)
+                    at callWithAsyncErrorHandling (https://localhost:8005/js/chunk-vendors.js:9056:17)
+                    at baseWatchOptions.call (https://localhost:8005/js/chunk-vendors.js:15066:47)
+                    at ReactiveEffect.gette ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Socket closed (id=2, code=1006, reason=, clean=false)</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Socket closed. Attempting to reconnect (state=reconnecting, id=0)</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Socket connecting (id=4, url=wss://localhost:8005/v3/subscribe)</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Socket opened (state=connecting, id=4)</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Invalid prop: type check failed for prop &quot;groupSort&quot;. Expected String with value &quot;pool.nameDisplay&quot;, got Array ,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                default-sort-by=&quot;name&quot;,
+                group-ref=&quot;pool&quot;,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                rows=,
+                [
+                  {
+                    &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                    &quot;type&quot;: &quot;cluster.x-k8s.io.machine&quot;,
+                    &quot;links&quot;: {
+                      &quot;patch&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;remove&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75v5l&quot;,
+                      &quot;self&quot;: &quot;https://localhost:8005/v1/cluster.x-k8s.io.machines/fleet-default/e2e-test-1765913830843-rke2ec2cluster-pool1-pm7mw-75 ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<p><pre style="color:darkcyan;">     cons:info✱</pre> <pre>Ping [management] from dev</pre></p>
+<br>
+<h2>Deploy RKE2 cluster using node driver on Amazon EC2 -&gt; can delete an Amazon EC2 RKE2 cluster</h2>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: defineEmits() is a compiler-hint helper that is only usable inside &lt;script setup&gt; of a single file component. Its arguments should be compiled away and passing it at runtime has no effect.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: Component &quot;v-select&quot; has already been registered in target app.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/rancherversion
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/version
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/uiplugins
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.setting</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.settings?exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [rancher] user</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v3/users?me=true
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [rancher] principal</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v3/principals
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>All of schema is not loaded yet</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>All of schema is not loaded yet</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>All of namespace is not loaded yet</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Loading management...</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>All of count is not loaded yet</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Socket connecting (id=1, url=wss://localhost:8005/v1/subscribe)</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] schema</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [rancher] schema</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/schemas?exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v3/schemas
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Socket opened (state=connecting, id=1)</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.feature</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] userpreference</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Socket connecting (id=2, url=wss://localhost:8005/v3/subscribe)</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] count</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] namespace</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.fleetworkspace</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.features?exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/userpreferences?exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/counts?exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/namespaces?exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.fleetworkspaces?exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Socket opened (state=connecting, id=2)</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">PUT https://localhost:8005/v1/userpreferences/user-lbwft
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] management.cattle.io.cluster local</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters/local?exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Done loading management; isRancher=true; isMultiCluster=true</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: defineEmits() is a compiler-hint helper that is only usable inside &lt;script setup&gt; of a single file component. Its arguments should be compiled away and passing it at runtime has no effect.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] catalog.cattle.io.app. Page: null. Size: null. Sort: </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.rancherusernotification</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [rancher] authconfig azuread</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [rancher] authprovider</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;resource&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] management.cattle.io.setting ui-custom-links</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] management.cattle.io.setting ui-issues</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [management] management.cattle.io.setting ui-community-links</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.cluster</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] cluster.x-k8s.io.machine</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.node</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.nodepool</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: injection &quot;update-count&quot; not found.,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                manualRefreshButtonSize=&quot;sm&quot;,
+                group-sort=null,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;ResourceTable,
+                ref=&quot;table&quot;,
+                table-actions=false,
+                row-actions=false,
+                 ...,
+                &gt;,
+                
+                ,
+                 at &lt;PaginatedResourceTable,
+                key=0,
+                schema=,
+                {
+                  &quot;id&quot;: &quot;provisioning.cattle.io.cluster&quot;,
+                  &quot;type&quot;: &quot;schema&quot;,
+                  &quot;links&quot;: {
+                    &quot;collection&quot;: &quot;https://localhost:8005/v1/provisioning.cattle.io.clusters&quot;,
+                    &quot;self&quot;: &quot;https://localhost:8005/v1/schemas/provisioning.cattle.io.cluster&quot;
+                  },
+                  &quot;description&quot;: &quot;Cluster is the Schema for the provisioning API.&quot;,
+                  &quot;pluralName&quot;: &quot;provisioning.cattle.io.clusters&quot;,
+                  &quot;resourceMethods&quot;: [
+                    &quot;PATCH&quot;,
+                    &quot;GET&quot;,
+                    &quot;DELETE&quot;,
+                    &quot;PUT&quot;
+                  ],
+                  &quot;_resourceFields&quot;: null,
+                  &quot;requiresResourceFields&quot;: true,
+                  &quot;collectionMethods&quot;: [
+                    &quot; ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/catalog.cattle.io.apps?pagesize=100000&amp;filter=metadata.name=rancher-csp-adapter,metadata.name=rancher-csp-billing-adapter&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.rancherusernotifications?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v3/authconfig/azuread
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v3-public/authProviders
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/cluster.x-k8s.io.machines?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.nodes?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.nodepools?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] provisioning.cattle.io.cluster</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Reset store: ,
+                cluster</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>All of schema is not loaded yet</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>All of namespace is not loaded yet</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] userpreference</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/userpreferences?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find: [rancher] authconfig azuread</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;resource&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue Router warn]: Discarded invalid param(s) &quot;product&quot; when navigating. See https://github.com/vuejs/router/blob/main/packages/router/CHANGELOG.md#414-2022-08-22 for more details.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] provisioning.cattle.io.cluster</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [rancher] cluster</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] rke.cattle.io.etcdsnapshot</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] cluster.x-k8s.io.machine</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.node</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] management.cattle.io.nodepool</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find All: [management] cluster.x-k8s.io.machinedeployment</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[Vue warn]: injection &quot;update-count&quot; not found.,
+                
+                ,
+                 at &lt;SortableTable,
+                ref=&quot;table&quot;,
+                data-testid=&quot;cluster-list&quot;,
+                headers=,
+                [
+                  {
+                    &quot;name&quot;: &quot;state&quot;,
+                    &quot;labelKey&quot;: &quot;tableHeaders.state&quot;,
+                    &quot;sort&quot;: [
+                      &quot;stateSort&quot;,
+                      &quot;nameSort&quot;
+                    ],
+                    &quot;width&quot;: 100,
+                    &quot;default&quot;: &quot;unknown&quot;,
+                    &quot;formatter&quot;: &quot;BadgeStateFormatter&quot;,
+                    &quot;valueProp&quot;: &quot;stateDisplay&quot;
+                  },
+                  {
+                    &quot;name&quot;: &quot;name&quot;,
+                    &quot;labelKey&quot;: &quot;tableHeaders.name&quot;,
+                    &quot;value&quot;: &quot;nameDisplay&quot;,
+                    &quot;sort&quot;: [
+                      &quot;nameSort&quot;
+                    ],
+                    &quot;formatter&quot;: &quot;ClusterLink&quot;,
+                    &quot;canBeVariable&quot;: true
+                  },
+                  {
+                    &quot;name&quot;: &quot;kubernetesVersion&quot;,
+                    &quot;labelKey&quot;: &quot;tableHeaders.version&quot;,
+                    &quot;subLabel&quot;: &quot;Architecture&quot;,
+                    &quot;value&quot;: &quot;kubernetesVersion&quot;,
+                    &quot;sort&quot;: &quot;kubernetesVersion&quot;,
+                    &quot;search&quot;: &quot;kubernetesVersion&quot;
+                  },
+                  {
+                    &quot;name&quot;: &quot;provider&quot;,
+                  ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v3/clusters
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/rke.cattle.io.etcdsnapshots?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/cluster.x-k8s.io.machines?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/cluster.x-k8s.io.machinedeployments?pagesize=100000&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">PUT https://localhost:8005/v1/userpreferences/user-lbwft
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">DELETE https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/e2e-test-1765913830843-rke2ec2cluster
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://updates.rancher.io/rancher/community/updates?dcv=v1&amp;s=ee64a9013dce9fddb80033b8732c7ce7&amp;u=6b96973d2b98797e6d820ae71584e403&amp;uuid=62f440b0-256f-4e26-a6b1-7e4c51d516d8&amp;svt=dev&amp;v=v2.13.1&amp;dev=true&amp;p=false&amp;cc=2&amp;lkv=v1.34.2&amp;lcp=rke2&amp;lnc=3&amp;xkn=&amp;xcc=0&amp;bl=en-US&amp;bs=1000x660&amp;ss=1920x1080&amp;ff-usc=true
+                Status: 200</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] management.cattle.io.cluster. Page: 1. Size: 10. Sort: spec.internal, status.connected, spec.displayName</pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/management.cattle.io.clusters?page=1&amp;pagesize=10&amp;sort=-spec.internal,-status.connected,spec.displayName&amp;filter=metadata.labels[provider.cattle.io]!=harvester&amp;filter=status.provider!=harvester&amp;exclude=metadata.managedFields
+                Status: 200</pre></p>
+<p><pre style="color:darkcyan;">      cons:log✱</pre> <pre>Find Page: [management] provisioning.cattle.io.cluster. Page: 1. Size: undefined. Sort: </pre></p>
+<p><pre style="color:lightgrey;">        cy:xhr➟</pre> <pre style="color:lightgrey;">GET https://localhost:8005/v1/provisioning.cattle.io.clusters?page=1&amp;pagesize=100000&amp;filter=status.clusterName=local,status.clusterName=c-m-tx2tgs8k&amp;exclude=metadata.managedFields</pre></p>
+<br>
+<h2>Deploy RKE2 cluster using node driver on Amazon EC2 -&gt; [[ after all #1 ]]</h2>
+<p><pre style="color:green;">    cy:request✔</pre> <pre style="color:grey;">DELETE https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/e2e-test-1765913830843-rke2ec2cluster
+                Status: 200
+                Response body: {
+                  &quot;id&quot;: &quot;fleet-default/e2e-test-1765913830843-rke2ec2cluster&quot;,
+                  &quot;type&quot;: &quot;provisioning.cattle.io.cluster&quot;,
+                  &quot;links&quot;: {
+                    &quot;patch&quot;: &quot;https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/e2e-test-1765913830843-rke2ec2cluster&quot;,
+                    &quot;remove&quot;: &quot;https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/e2e-test-1765913830843-rke2ec2cluster&quot;,
+                    &quot;self&quot;: &quot;https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/e2e-test-1765913830843-rke2ec2cluster&quot;,
+                    &quot;update&quot;: &quot;https://localhost:8005/v1/provisioning.cattle.io.clusters/fleet-default/e2e-test-1765913830843-rke2ec2cluster&quot;,
+                    &quot;view&quot;: &quot;https://localhost:8005/apis/provisioning.cattle.io/v1/namespaces/fleet-default/clusters/e2e-test-1765913830843-rke2ec2cluster&quot;
+                  },
+                  &quot;apiVersion&quot;: &quot;provisioning.cattle.io/v1&quot;,
+                  &quot;kind&quot;: &quot;Cluster&quot;,
+                  &quot;metadata&quot;: {
+                    &quot;annotations&quot;: {
+                      &quot;field.cattle.io/creatorId&quot;: &quot;user-lbwft&quot;,
+                      &quot;field.cattle.io/description&quot;: &quot;e2e-test-1765913830843-rke2ec2cluster-description&quot;,
+                      &quot;provisioning.cattle.io/management-cluster-display-name&quot;: &quot;e2e-test-1765913830843-rke2ec2cluster&quot;
+                    },
+                    &quot;creationTimestamp&quot;: &quot;2025-12-16T19:37:38Z&quot;,
+                    &quot;deletionGracePeriodSeconds&quot;: 0,
+                    &quot;deletionTimestamp&quot;: &quot;2025-12-16T20:01:49Z&quot;,
+                    &quot;fields&quot;: [
+                      &quot;e2e-test-1765913830843-rke2ec2cluster&quot;,
+                      &quot;v1.34.2+rke2r1&quot;,
+                      &quot;c-m-tx2tgs8k&quot;,
+                      &quot;24m&quot;,
+                      &quot;e2e-test-1765913830843-rke2ec2cluster-kubeconfig&quot;,
+                      &quot;true&quot;
+                    ],
+                    &quot;finalizers&quot;: [
+                      &quot;wrangler.cattle.io/provisioning-cluster-remove&quot;,
+                      &quot;wrangler.cattle.io/rke-cluster-remove&quot;
+                    ],
+                    &quot;generation&quot;: 9,
+                    &quot;managedFields&quot;: [
+                      {
+                        &quot;apiVersion&quot;: &quot;provisioning.cattle.io/v1&quot;,
+                        &quot;fieldsType&quot;: &quot;FieldsV1&quot;,
+                        &quot;fieldsV1&quot;: {
+                          &quot;f:metadata&quot;: {
+                            &quot;f:finalizers&quot;: {}
+                          }
+                        },
+                        &quot;manager&quot;: &quot;rancher-v2.13.1-alpha4-secret-migrator&quot;,
+                        &quot;operation&quot;: &quot;Update&quot;,
+                        &quot;time&quot;: &quot;2025-12-16T19:48:28Z&quot;
+                      },
+                      {
+                        &quot;apiVersion&quot;: &quot;provisioning.cattle.io/v1&quot;,
+                        &quot;fieldsType&quot;: &quot;FieldsV1&quot;,
+                        &quot;fieldsV1&quot;: {
+                          &quot;f:metadata&quot;: {
+                            &quot;f:annotations&quot;: {
+                              &quot;.&quot;: {},
+                              &quot;f:field.cattle.io/description&quot;: {},
+                              &quot;f:provisioning.cattle.io/management-cluster-display-name&quot;: {}
+                            },
+                            &quot;f:finalizers&quot;: {
+                              &quot;v:\&quot;wrangler.cattle.io/provisioning-cluster-remove\&quot;&quot;: {},
+                              &quot;v:\&quot;wrangler.cattle.io/rke-cluster-remove\&quot;&quot;: {}
+                            }
+                          },
+                          &quot;f:spec&quot;: {
+                            &quot;.&quot;: {},
+                            &quot;f:cloudCredentialSecretName&quot;: {},
+                            &quot;f:kubernetesVersion&quot;: {},
+                            &quot;f:localClusterAuthEndpoint&quot;: {},
+                            &quot;f:rkeConfig&quot;: {
+                              &quot;.&quot;: {},
+                              &quot;f:chartValues&quot;: {
+                                &quot;.&quot;: {},
+                                &quot;f:rke2-calico&quot;: {}
+                              },
+                              &quot;f:dataDirectories&quot;: {},
+                              &quot;f:etcd&quot;: {
+                                &quot;.&quot;: {},
+                                &quot;f:snapshotRetention&quot;: {},
+                                &quot;f:snapshotScheduleCron&quot;: {}
+                              },
+                              &quot;f:etcdSnapshotCreate&quot;: {
+                                &quot;.&quot;: {},
+                                &quot;f:generation&quot;: {}
+                              },
+                              &quot;f:machineGlobalConfig&quot;: {
+                                &quot;.&quot;: {},
+                                &quot;f:cni&quot;: {},
+                                &quot;f:disable-kube-proxy&quot;: {},
+                                &quot;f:etcd-expose-metrics&quot;: {}
+                              },
+                              &quot;f:machinePoolDefaults&quot;: {},
+                              &quot;f:machinePools&quot;: {
+                                &quot;.&quot;: {},
+                                &quot;k:{\&quot;name\&quot;:\&quot;pool1\&quot;}&quot;: {
+                                  &quot;.&quot;: {},
+                                  &quot;f:controlPlaneRole&quot;: {},
+                                  &quot;f:drainBeforeDelete&quot;: {},
+                                  &quot;f:dynamicSchemaSpec&quot;: {},
+                                  &quot;f:etcdRole&quot;: {},
+                                  &quot;f:machineConfigRef&quot;: {},
+                                  &quot;f:name&quot;: {},
+                                  &quot;f:quantity&quot;: {},
+                                  &quot;f:unhealthyNodeTimeout&quot;: {},
+                                  &quot;f:workerRole&quot;: {}
+                                }
+                              },
+                              &quot;f:machineSelectorConfig&quot;: {},
+                              &quot;f:networking&quot;: {},
+                              &quot;f:registries&quot;: {},
+                              &quot;f:upgradeStrategy&quot;: {
+                                &quot;.&quot;: {},
+                                &quot;f:controlPlaneConcurrency&quot;: {},
+                                &quot;f:controlPlaneDrainOptions&quot;: {
+                                  &quot;.&quot;: {},
+                                  &quot;f:deleteEmptyDirData&quot;: {},
+                                  &quot;f:disableEviction&quot;: {},
+                                  &quot;f:enabled&quot;: {},
+                                  &quot;f:force&quot;: {},
+                                  &quot;f:gracePeriod&quot;: {},
+                                  &quot;f:ignoreDaemonSets&quot;: {},
+                                  &quot;f:skipWaitForDeleteTimeoutSeconds&quot;: {},
+                                  &quot;f:timeout&quot;: {}
+                                },
+                                &quot;f:workerConcurrency&quot;: {},
+                                &quot;f:workerDrainOptions&quot;: {
+                                  &quot;.&quot;: {},
+                                  &quot;f:deleteEmptyDirData&quot;: {},
+                                  &quot;f:disableEviction&quot;: {},
+                                  &quot;f:enabled&quot;: {},
+                                  &quot;f:force&quot;: {},
+                           ...
+                
+                ... remainder of log omitted ...
+                </pre></p>
+<p><pre style="color:yellow;">     cons:warn❖</pre> <pre>[DEPRECATED] `this.$plugin` is deprecated and will be removed in a future version. Use `this.$extension` instead.</pre></p>
+<p><pre style="color:red;">    cy:request✘</pre> <pre style="color:grey;">DELETE https://localhost:8005/v3/cloudCredentials/cattle-global-data:cc-ltfg2
+                Status: 422 - Unprocessable Entity
+                Response body: {
+                  &quot;baseType&quot;: &quot;error&quot;,
+                  &quot;code&quot;: &quot;InvalidAction&quot;,
+                  &quot;message&quot;: &quot;Cloud credential is currently referenced by provisioning cluster e2e-test-1765913830843-rke2ec2cluster&quot;,
+                  &quot;status&quot;: 422,
+                  &quot;type&quot;: &quot;error&quot;
+                }</pre></p>
+<br>
+
+</body>
+</html>
