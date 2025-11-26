@@ -67,8 +67,8 @@ export function formatSubnetworkOptions(t: Translation, network: string, subnetw
   }
 
   const labeled: GKESubnetworkOption[] = out.map((sn: GKESubnetwork) => {
-    const shortName = sn.name ? sn.name : (sn.subnetwork || '').split('/').pop();
-    const fullName = sn.subnetwork || sn.selfLink || shortName;
+    const shortName = sn.name ? sn.name : (sn.network || '').split('/').pop();
+    const fullName = sn.selfLink || sn.network || shortName;
 
     return {
       ...sn,

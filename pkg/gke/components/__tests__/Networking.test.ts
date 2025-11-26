@@ -135,7 +135,7 @@ describe('gke Networking', () => {
 
     wrapper.setProps({ network: 'host-shared-vpc' });
     await wrapper.vm.$nextTick();
-    expect(wrapper.emitted('update:subnetwork')?.[0]?.[0]).toBe('projects/host-project-309915/regions/us-west1/subnetworks/host-shared-vpc-us-west1-subnet-public');
+    expect(wrapper.emitted('update:subnetwork')?.[0]?.[0]).toBe('projects/host-project-309915/global/networks/host-shared-vpc');
   });
 
   it('should show text input for cluster and service secondary range if no subnetwork is selected, otherwise should show a dropdown', async() => {
