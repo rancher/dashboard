@@ -694,7 +694,6 @@ BODY, .theme-light {
   --bubble-bg                : #{$lighter};
 
 
-  // These are meant to be the colors used within rancher-components. They will eventually be removed from shell once we have theming working in the components
   --rc-info: #{$blue001};
   --rc-info-secondary: #{$blue002};
 

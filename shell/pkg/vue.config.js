@@ -8,6 +8,7 @@ const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
 module.exports = function(dir) {
   const maindir = path.resolve(dir, '..', '..');
+  const SHELL = path.join(dir, '.shell');
 
   return {
     css: {

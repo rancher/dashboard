@@ -61,13 +61,6 @@ function publish() {
   echo "Publishing ${NAME} from ${FOLDER}"
   pushd ${FOLDER} >/dev/null
 
-  # For now, copy the rancher components into the shell and ship them with it
-  if [ "$NAME" == "Shell" ]; then
-    echo "Adding Rancher Components"
-    rm -rf ./rancher-components
-    cp -R ${BASE_DIR}/shell/rc ./rancher-components/
-  fi
-
   # Make a note of dependency versions, if required
   node ${SCRIPT_DIR}/record-deps.js
 

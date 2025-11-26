@@ -3,7 +3,7 @@ on:
   push:
     paths:
       - 'storybook/**/*'
-      - 'pkg/rancher-components/**/*'
+      - 'shell/rc/**/*'
       - 'shell/components/**/*'
       - 'shell/assets/**/*'
       - 'shell/utils/**/*'
@@ -15,7 +15,7 @@ on:
   pull_request:
     paths:
       - 'storybook/**/*'
-      - 'pkg/rancher-components/**/*'
+      - 'shell/rc/**/*'
       - 'shell/components/**/*'
       - 'shell/assets/**/*'
       - 'shell/utils/**/*'

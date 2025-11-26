@@ -9,9 +9,6 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "workspaces": [
-    "pkg/rancher-components"
-  ],
   "scripts": {
     "build-pkg": "yarn lint && ./shell/scripts/build-pkg.sh",
     "publish-pkg": "./shell/scripts/publish-pkg.sh",
@@ -19,7 +16,6 @@
     "publish-shell-reset-reg": "cd shell && npm publish",
     "clean": "./shell/scripts/clean",
     "lint": "./node_modules/.bin/eslint --max-warnings 0 --ext .js,.ts,.vue .",
-    "lint:lib": "cd pkg/rancher-components && yarn lint",
     "lint-l10n": "./node_modules/.bin/yamllint ./shell/assets/translations",
     "test": "NODE_OPTIONS=--max_old_space_size=8192 jest --watch",
     "test:ci": "NODE_OPTIONS=--max_old_space_size=8192 jest --collectCoverage --silent",
@@ -32,7 +28,6 @@
     "k3s:local:start": "./scripts/e2e-k3s-start $RANCHER_VERSION_E2E",
     "k3s:local:logs": "E2E_RANCHER_LOG=$E2E_RANCHER_LOG ./scripts/e2e-k3s-logs",
     "build": "NODE_OPTIONS=--max_old_space_size=4096 ./node_modules/.bin/vue-cli-service build",
-    "build:lib": "cd pkg/rancher-components && yarn build:lib",
     "analyze": "./node_modules/.bin/vue-cli-service build --report",
     "start": "./node_modules/.bin/vue-cli-service serve",
     "start:dev": "NODE_ENV=dev yarn start",
@@ -57,8 +52,7 @@
     "docs:build": "cd docusaurus/ && yarn build",
     "docs:start": "cd docusaurus/ && yarn start",
     "docs:serve": "cd docusaurus/ && yarn serve",
-    "migrate": "node ./shell/scripts/vue-migrate.js",
-    "publish:lib": "cd pkg/rancher-components && npm publish"
+    "migrate": "node ./shell/scripts/vue-migrate.js"
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "3.863.0",

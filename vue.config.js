@@ -2,7 +2,7 @@
 const config = require('./shell/vue.config');
 
 // Excludes the following plugins if there's no .env file.
-let defaultExcludes = 'rancher-components, harvester';
+let defaultExcludes = 'harvester';
 
 if (process.env.RANCHER_ENV === 'harvester') {
   defaultExcludes = defaultExcludes.replace(', harvester', '');

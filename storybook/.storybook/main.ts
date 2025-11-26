@@ -67,7 +67,7 @@ const webpackAliases = {
   '~': baseFolder,
   '@': baseFolder,
   '@shell': path.join(baseFolder, 'shell'),
-  '@rc': path.join(baseFolder, 'pkg', 'rancher-components', 'src', 'components'),
+  '@rc': path.join(baseFolder, 'shell', 'rc'),
   '~shell': path.join(baseFolder, 'shell'),
 };
 

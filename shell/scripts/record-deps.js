@@ -18,14 +18,7 @@ if (mainPkg._requires) {
   const out = {};
 
   mainPkg._requires.forEach((name) => {
-    let ver = topPkg.dependencies?.[name] || topPkg.devDependencies?.[name];
-
-    if (name === '@rancher/components') {
-      const componentsPkgFile = path.join(topDir, 'pkg', 'rancher-components', 'package.json');
-      const componentsPkg = JSON.parse(fs.readFileSync(componentsPkgFile));
-
-      ver = componentsPkg.version;
-    }
+    const ver = topPkg.dependencies?.[name] || topPkg.devDependencies?.[name];
 
     out[name] = ver;
   });
