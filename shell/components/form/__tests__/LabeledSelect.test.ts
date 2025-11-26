@@ -253,7 +253,7 @@ describe('component: LabeledSelect', () => {
     // in the current architecture of the component
     // screen readers won't pick up the default "Select option" aria-label
     // from the library
-    expect(vSelectInput.attributes('aria-label')).toBe('-');
+    expect(vSelectInput.attributes('aria-label')).toBe(`- ${ value }`);
   });
 
   it('pressing space key while focused on search should not prevent event propagation', async() => {
