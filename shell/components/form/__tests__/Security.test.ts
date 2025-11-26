@@ -1,4 +1,4 @@
-import { mount, VueWrapper } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 import Security from '@shell/components/form/Security.vue';
 import { _EDIT } from '@shell/config/query-params';
 

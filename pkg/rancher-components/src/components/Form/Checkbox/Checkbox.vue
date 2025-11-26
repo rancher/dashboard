@@ -263,7 +263,7 @@ export default defineComponent({
 
     focus() {
       if (!this.isDisabled) {
-        this.$refs.checkbox?.focus();
+        (this.$refs.checkbox as HTMLElement)?.focus();
       }
     }
   }
