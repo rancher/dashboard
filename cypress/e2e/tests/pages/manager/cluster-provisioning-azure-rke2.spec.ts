@@ -196,7 +196,7 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
     clusterList.list().name(this.rke2AzureClusterName).click();
     clusterDetails.waitForPage(null, 'machine-pools');
     clusterDetails.resourceDetail().title().should('contain', this.rke2AzureClusterName);
-    clusterDetails.machinePoolsList().details(`${ this.rke2AzureClusterName }-pool1-`, 1).should('contain', 'Running');
+    clusterDetails.poolsList('machine').details(`${ this.rke2AzureClusterName }-pool1-`, 1).should('contain', 'Running');
 
     // check cluster details page > recent events
     ClusterManagerListPagePo.navTo();
