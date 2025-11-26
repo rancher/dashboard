@@ -205,7 +205,8 @@ export default {
     let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
 
     // Area to add default value to securityContext on POD CREATE
-    if (this.mode === _CREATE) {
+    // Check if the securityContext has been setup, for None should be {} when cloning, for new should be empty.
+    if (this.mode === _CREATE && !podTemplateSpec.securityContext) {
       podTemplateSpec.securityContext = { seccompProfile: { type: 'RuntimeDefault' } };
     }
 
