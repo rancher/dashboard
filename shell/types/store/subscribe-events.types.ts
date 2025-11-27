@@ -17,6 +17,7 @@ export interface STEVE_WATCH_EVENT_PARAMS_COMMON {
  */
 export type STEVE_WATCH_EVENT_LISTENER_CALLBACK_PARAMS = {
   forceWatch?: boolean,
+  revision?: string,
 }
 
 /**
