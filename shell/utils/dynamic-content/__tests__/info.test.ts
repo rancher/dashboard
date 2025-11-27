@@ -97,6 +97,7 @@ describe('systemInfoProvider', () => {
       }),
       'management/schemaFor': jest.fn(),
       localCluster:           mockClusters.find((c) => c.id === 'local') || null,
+      'features/get':         jest.fn(() => 'abc'),
     };
 
     (version.getVersionData as jest.Mock).mockReturnValue({
@@ -129,6 +130,7 @@ describe('systemInfoProvider', () => {
     expect(qs).toContain('bl=en-US');
     expect(qs).toContain('bs=1024x768');
     expect(qs).toContain('ss=1920x1080');
+    expect(qs).toContain('ff-usc=abc');
   });
 
   it('should handle missing or partial data gracefully', () => {
@@ -161,6 +163,9 @@ describe('systemInfoProvider', () => {
     mockGetters['uiplugins/plugins'] = null; // No plugins
     mockGetters['auth/principalId'] = null; // No user
     mockGetters['localCluster'] = null; // No clusters
+    mockGetters['features/get'] = () => {
+      throw new Error('unknown feature');
+    };
 
     const infoProvider = new SystemInfoProvider(mockGetters, {});
     const qs = infoProvider.buildQueryString();
@@ -177,6 +182,7 @@ describe('systemInfoProvider', () => {
     expect(qs).not.toContain('lnc=');
     expect(qs).not.toContain('xkn=');
     expect(qs).not.toContain('xcc=');
+    expect(qs).not.toContain('ff-usc=');
   });
 
   it('should handle getAll returning undefined when types are not registered', () => {
