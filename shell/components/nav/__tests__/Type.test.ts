@@ -250,6 +250,65 @@ describe('component: Type', () => {
       });
     });
 
+    describe('should respect highlightRoute prop', () => {
+      it('should not use active class when highlightRoute is false even if route is active', () => {
+        const wrapper = shallowMount(Type as any, {
+          props: { type: defaultRouteTypeProp, highlightRoute: false },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
+            stubs: { routerLink: createChildRenderingRouterLinkStub() },
+          },
+        });
+
+        const elementWithSelector = wrapper.find(`.${ activeClass }`);
+
+        expect(elementWithSelector.exists()).toBe(false);
+      });
+
+      it('should not use exact active class when highlightRoute is false even if route is exact active', () => {
+        const wrapper = shallowMount(Type as any, {
+          props: { type: defaultRouteTypeProp, highlightRoute: false },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
+            stubs: { routerLink: createChildRenderingRouterLinkStub({ isExactActive: true }) },
+          },
+        });
+
+        const elementWithSelector = wrapper.find(`.${ exactActiveClass }`);
+
+        expect(elementWithSelector.exists()).toBe(false);
+      });
+
+      it('should use active class when highlightRoute is true (default) and route is active', () => {
+        const wrapper = shallowMount(Type as any, {
+          props: { type: defaultRouteTypeProp, highlightRoute: true },
+
+          global: {
+            directives: { cleanHtml: (identity) => identity },
+
+            mocks: {
+              $store: storeMock, $router: routerMock, $route: routeMock
+            },
+            stubs: { routerLink: createChildRenderingRouterLinkStub() },
+          },
+        });
+
+        const elementWithSelector = wrapper.find(`.${ activeClass }`);
+
+        expect(elementWithSelector.exists()).toBe(true);
+      });
+    });
+
     describe('should handle the favorite icon appropriately', () => {
       it('should show favorite icon if mouse is over and type is favorite', async() => {
         const wrapper = shallowMount(Type as any, {

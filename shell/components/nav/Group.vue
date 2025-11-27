@@ -41,6 +41,11 @@ export default {
     fixedOpen: {
       type:    Boolean,
       default: false,
+    },
+
+    highlightRoute: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -233,7 +238,7 @@ export default {
 <template>
   <div
     class="accordion"
-    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': isGroupActive }"
+    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': highlightRoute && isGroupActive }"
   >
     <div
       v-if="showHeader || (!onlyHasOverview && canCollapse)"
@@ -242,7 +247,7 @@ export default {
       <div
         v-if="showHeader"
         class="header"
-        :class="{'active': isOverview, 'noHover': !canCollapse || fixedOpen}"
+        :class="{'active': highlightRoute && isOverview, 'noHover': !canCollapse || fixedOpen}"
         role="button"
         :tabindex="fixedOpen ? -1 : 0"
         :aria-label="group.labelDisplay || group.label || ''"
@@ -311,6 +316,7 @@ export default {
             :can-collapse="canCollapse"
             :group="child"
             :fixed-open="fixedOpen"
+            :highlight-route="highlightRoute"
             @selected="groupSelected($event)"
             @expand="expandGroup($event)"
             @close="close($event)"
@@ -322,6 +328,7 @@ export default {
           :is-root="depth == 0 && !showHeader"
           :type="child"
           :depth="depth"
+          :highlight-route="highlightRoute"
           @selected="selectType($event)"
         />
       </template>

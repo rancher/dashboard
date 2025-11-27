@@ -106,6 +106,7 @@ export default {
           :group="g"
           :can-collapse="false"
           :fixed-open="true"
+          :highlight-route="false"
           @close="$emit('close')"
         >
           <template #accordion>
