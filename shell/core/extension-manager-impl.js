@@ -35,11 +35,11 @@ const createExtensionManager = (context) => {
    */
   function instantiateModelExtension($plugin, clz) {
     const context = {
-      dispatch: store.dispatch,
-      getters:  store.getters,
-      t:        store.getters['i18n/t'],
+      dispatch:   store.dispatch,
+      getters:    store.getters,
+      t:          store.getters['i18n/t'],
       $axios,
-      $plugin,
+      $extension: $plugin,
     };
 
     return new clz(context);

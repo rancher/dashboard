@@ -16,7 +16,6 @@ import jsyaml from 'js-yaml';
 import { defineAsyncComponent, markRaw } from 'vue';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
-import { getExtensionManager } from '@shell/core/extension-manager-impl';
 import { isHostedProvider } from '@shell/utils/provider';
 
 const RKE1_ALLOWED_ACTIONS = [
@@ -274,12 +273,11 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isHostedKubernetesProvider() {
-    const extensionManager = getExtensionManager();
     const context = {
       dispatch:   this.$dispatch,
       getters:    this.$getters,
       axios:      this.$axios,
-      $extension: extensionManager,
+      $extension: this.$plugin,
       t:          (...args) => this.t.apply(this, args),
     };
 
@@ -288,10 +286,7 @@ export default class ProvCluster extends SteveModel {
 
   get providerConfig() {
     if ( this.isRke2 ) {
-      const allKeys = Object.keys(this.spec);
-      const configKey = allKeys.find( (k) => k.endsWith('Config'));
-
-      return this.spec[configKey];
+      return this.spec.rkeConfig;
     }
     if (this.mgmt && this.mgmt?.spec) {
       const allKeys = Object.keys(this.mgmt.spec);

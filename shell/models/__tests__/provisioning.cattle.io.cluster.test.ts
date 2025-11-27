@@ -1,13 +1,9 @@
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
-
-jest.mock('@shell/core/extension-manager-impl', () => ({
-  getExtensionManager: () => ({
-    isHostedProvider: jest.fn().mockImplementation((context, provider) => {
-      return ['GKE', 'EKS', 'AKS'].includes(provider);
-    })
+jest.mock('@shell/utils/provider', () => ({
+  isHostedProvider: jest.fn().mockImplementation((context, provider) => {
+    return ['GKE', 'EKS', 'AKS'].includes(provider);
   })
 }));
-
 describe('class ProvCluster', () => {
   const gkeClusterWithPrivateEndpoint = {
     clusterName: 'test',
