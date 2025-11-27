@@ -717,10 +717,12 @@ export default {
     </template>
 
     <template #group-by="{group: thisGroup}">
-      <div
-        v-clean-html="thisGroup.ref"
-        class="group-tab"
-      />
+      <div class="group-tab">
+        <span v-clean-html="thisGroup.ref" />
+        <span class="count">
+          ({{ thisGroup.rows.length }})
+        </span>
+      </div>
     </template>
 
     <!-- Pass down templates provided by the caller -->
@@ -765,5 +767,10 @@ export default {
 <style lang="scss" scoped>
 .auto-update {
   min-width: 150px; height: 40px
+}
+
+.group-tab .count {
+  opacity: 0.7;
+  margin-left: 5px;
 }
 </style>
