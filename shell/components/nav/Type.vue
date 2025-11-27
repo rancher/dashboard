@@ -27,6 +27,11 @@ export default {
       type:    Number,
       default: 0,
     },
+
+    highlightRoute: {
+      type:    Boolean,
+      default: true,
+    },
   },
 
   data() {
@@ -121,7 +126,7 @@ export default {
   >
     <li
       class="child nav-type"
-      :class="{'root': isRoot, [`depth-${depth}`]: true, 'router-link-active': isActive, 'router-link-exact-active': isExactActive}"
+      :class="{'root': isRoot, [`depth-${depth}`]: true, 'router-link-active': highlightRoute && isActive, 'router-link-exact-active': highlightRoute && isExactActive}"
       @click="navigate"
       @keypress.enter="navigate"
     >
