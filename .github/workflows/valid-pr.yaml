@@ -19,16 +19,67 @@ jobs:
           PR_URL: ${{ github.event.pull_request.url }}
         run: ./.github/workflows/scripts/pr-check-checklist.sh
 
-  validate-milestone:
-    name: Milestone
+  validate-branch-milestone:
+    name: Branch Milestone
     runs-on: ubuntu-latest
     steps:
-      - name: Validate milestone
-        if: github.event.pull_request.milestone == null
-        run: |
-          echo "PR does not have a milestone"
-          exit 1
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+        # We only need to fetch the file on the default branch (where it usually lives)
+        # to ensure we get the latest configuration file.
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 1
 
-      - name: Milestone Found
-        if: github.event.pull_request.milestone != null
-        run: echo "PR has a milestone"
+      - name: Check PR Milestone against Branch Config
+        uses: actions/github-script@v7
+        id: milestone-check
+        with:
+          script: |
+            const fs = require('fs');
+
+            // 1. Define the path to your configuration file
+            const configFilePath = 'branches-metadata.json';
+
+            // 2. Get the PR details
+            const prTargetBranch = context.payload.pull_request.base.ref;
+            const prMilestone = context.payload.pull_request.milestone;
+
+            if (!prMilestone) {
+                core.setFailed(`❌ Pull Request must have a milestone assigned.`);
+                return;
+            }
+
+            const prMilestoneTitle = prMilestone.title;
+            core.info(`Target Branch: ${prTargetBranch}`);
+            core.info(`PR Milestone: ${prMilestoneTitle}`);
+
+            // 3. Load and parse the configuration file
+            let config;
+            try {
+                const configFileContent = fs.readFileSync(configFilePath, 'utf8');
+                config = JSON.parse(configFileContent);
+            } catch (error) {
+                core.setFailed(`❌ Failed to read or parse config file at ${configFilePath}: ${error.message}`);
+                return;
+            }
+
+            // 4. Look up the expected milestone for the target branch
+            const branchConfig = config.branches[prTargetBranch];
+
+            if (!branchConfig) {
+                // If the branch is not found in the config, it might be a new or unsupported branch.
+                // You can choose to fail here or allow it. Allowing it by default for flexibility.
+                core.warning(`⚠️ Target branch '${prTargetBranch}' not found in the config file. Skipping milestone check.`);
+                return;
+            }
+
+            const expectedMilestone = branchConfig.milestone;
+            core.info(`Expected Milestone for branch '${prTargetBranch}': ${expectedMilestone}`);
+
+            // 5. Compare the milestones
+            if (prMilestoneTitle === expectedMilestone) {
+                core.info(`✅ Milestone '${prMilestoneTitle}' matches the expected branch milestone '${expectedMilestone}'.`);
+            } else {
+                core.setFailed(`❌ Pull Request milestone '${prMilestoneTitle}' does not match the expected milestone '${expectedMilestone}' for the target branch '${prTargetBranch}'. Please update the PR milestone.`);
+            }
