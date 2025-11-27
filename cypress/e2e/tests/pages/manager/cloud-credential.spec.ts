@@ -39,6 +39,7 @@ describe('Cloud Credential', { tags: ['@manager', '@adminUser'] }, () => {
 
   beforeEach(() => {
     cy.login();
+    cy.changeRancherTheme();
     HomePagePo.goTo(); // this is needed to ensure we have a valid authentication session
   });
 
@@ -54,6 +55,13 @@ describe('Cloud Credential', { tags: ['@manager', '@adminUser'] }, () => {
     cloudCredentialsPage.goTo();
     cloudCredentialsPage.waitForPage();
     cloudCredentialsPage.create();
+
+    // Ignoring the user profile picture
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]');
+    // Ignoring the side navbar counters
+    cy.hideElementBySelector("[data-testid='type-count']");
+    // takes percy snapshot.
+    cy.percySnapshot('List of cloud credentials page');
     cloudCredentialsPage.createEditCloudCreds().waitForPage();
     cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
     cloudCredentialsPage.createEditCloudCreds().waitForPage('type=aws');
@@ -61,7 +69,8 @@ describe('Cloud Credential', { tags: ['@manager', '@adminUser'] }, () => {
     cloudCredentialsPage.createEditCloudCreds().accessKey().set(access);
     cloudCredentialsPage.createEditCloudCreds().secretKey().set(secret);
     cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(name);
-
+    // takes percy snapshot.
+    cy.percySnapshot('Cluster credential creation page');
     cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().value()
       .should('eq', name);
 
