@@ -146,7 +146,6 @@ const sidebars = {
             'usecases/node-driver'
           ]
         },
-        'updating-extensions',
         'known-issues',
       ]
     },

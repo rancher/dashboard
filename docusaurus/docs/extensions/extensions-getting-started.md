@@ -11,7 +11,6 @@ For an easy follow of this guide, there is two different concepts that a develop
 > Note: Extensions development is only currently supported on Mac and Linux. Windows is not currently supported.
 
 - **Node.js Version:**
-  - For **legacy-v1** or **legacy-v2**, you will need Node.js **version `v16`** (tested with `v16.19.1`).
   - For the latest version, you will need Node.js **version `v20`** (tested with `v20.17.0`).
 - Yarn package manager installed globally: `npm install -g yarn`.
 - Have a Rancher system up and running. See https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade
@@ -26,8 +25,6 @@ Rancher publishes a single npm package, `@rancher/extension`, to help bootstrap 
 
 When creating extensions, it is important to match the version of the `@rancher/extension` package with the target Rancher version:
 
-- **For Rancher `v2.7` and `v2.8`:** Use the `legacy-v1` tag.
-- **For Rancher `v2.9`:** Use the `legacy-v2` tag.
 - **For Rancher `v2.10` or later:** Use the `latest` version of `@rancher/extension`.
 
 > Note: The development app references the Rancher dashboard code via the `@rancher/shell` npm module. Each version is bound to different Rancher versions. You can check the `shell` support matrix **[here](./support-matrix.md)**.
@@ -51,49 +48,13 @@ npm init @rancher/extension@latest another-extension
 
 > NOTE: the `npm init` command must always use the same tag as the one that generated it. Also check examples below.
 
-### Usage for `legacy` versions
-
-> Note: The documentation for these legacy versions 
-
-**For Rancher `v2.7` and `v2.8`**
-
-To target these versions, use the `legacy-v1` tag:
-
-```sh
-npm init @rancher/extension@legacy-v1 my-app
-cd my-app && yarn install
-```
-
-If you want want to add another `extension` inside the same development app, you'll need to be inside the root folder of the development app and just run the init command with the desired name for the other extension:
-
-```sh
-npm init @rancher/extension@legacy-v1 another-extension
-```
-
-**For Rancher `v2.9`:**
-
-To target this version, use the `legacy-v2` tag:
-
-```sh
-npm init @rancher/extension@legacy-v2 my-app
-cd my-app && yarn install
-```
-
-If you want want to add another `extension` inside the same development app, you'll need to be inside the root folder of the development app and just run the init command with the desired name for the other extension:
-
-```sh
-npm init @rancher/extension@legacy-v2 another-extension
-```
-
-In both legacy cases, ensure you are using Node.js version `v16` during development and testing.
-
 ### _Extension Options_
 
 There are a few options available to be passed as an argument to the `@rancher/extension` script:
 
 |          Option           | Description                                                                                                                                                                                                                                                                             |
 | :-----------------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|     `--update \| -u`      | This will update all dependencies within the extension to match the declared version of the `@rancher/shell` library based on the tag. See the [Updating Guide](./updating-extensions.md) for usage.                                                                                               |
+|     `--update \| -u`      | This will update all dependencies within the extension to match the declared version of the `@rancher/shell` library based on the tag.                                                                                             |
 | `--app-name \| -a <name>` | Allows specifying a different name for the development app instead of using the extension name.                                                                                                                                                                                    |
 |  `--skeleton-only \| -s`  | Installs only the development app without creating the extension package.                                                                                                                                                                                                          |
 |           `-l`            | This will automatically add the [`.gitlab-ci.yml`](https://github.com/rancher/dashboard/blob/master/creators/extension/app/files/.gitlab-ci.yml) pipeline file for integration with GitLab                                                                                              |
