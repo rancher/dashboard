@@ -22,28 +22,16 @@ export default {
   data() {
     return { selectedName: null, errors: [] };
   },
-  computed: { ...mapGetters({ t: 'i18n/t' }) },
-  methods:  {
-    focusTabContent(tab) {
-      if (tab.selectedName === 'securityContext-pod' || tab.selectedName === 'securityContext') {
-        this.$nextTick(() => {
-          const securityComponent = this.$refs.security;
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
 
-          if (!securityComponent) {
-            return;
-          }
-          if (Array.isArray(securityComponent)) {
-            const containerIndex = this.containerOptions.findIndex((c) => c.__active);
+    isFormValid() {
+      const hasContainerErrors = this.allContainers.some(this.hasContainerError);
 
-            if (containerIndex !== -1) {
-              securityComponent[containerIndex]?.focus();
-            }
-          } else {
-            securityComponent.focus();
-          }
-        });
-      }
-    },
+      return this.fvFormIsValid && !hasContainerErrors;
+    }
+  },
+  methods: {
     changed(tab) {
       const key = this.idKey;
 
@@ -53,6 +41,10 @@ export default {
       if ( container ) {
         this.selectContainer(container);
       }
+    },
+
+    hasContainerError(tab) {
+      return Object.values(tab.error || {}).some((error) => !!error);
     },
 
     /**
@@ -101,7 +93,7 @@ export default {
     class="filled-height"
   >
     <CruResource
-      :validation-passed="fvFormIsValid"
+      :validation-passed="isFormValid"
       :selected-subtype="type"
       :resource="value"
       :mode="mode"
@@ -184,7 +176,7 @@ export default {
           :label="tab.name"
           :name="tab[idKey]"
           :weight="tab.weight"
-          :error="!!tab.error"
+          :error="hasContainerError(tab)"
         >
           <Tabbed
             name="containerTabs"
@@ -192,13 +184,12 @@ export default {
             :weight="99"
             :data-testid="`workload-container-tabs-${i}`"
             :use-hash="useTabbedHash"
-            @changed="focusTabContent"
           >
             <Tab
               :label="t('workload.container.titles.general')"
               name="general"
               :weight="tabWeightMap['general']"
-              :error="tabErrors.general"
+              :error="!!tab.error.general"
             >
               <template
                 #tab-header-right
@@ -354,7 +345,7 @@ export default {
               :label="t('workload.container.titles.securityContext')"
               name="securityContext"
               :weight="tabWeightMap['securityContext']"
-              :error="tabErrors.securityContext"
+              :error="!!tab.error.localhostProfile"
             >
               <Security
                 ref="security"
@@ -437,7 +428,6 @@ export default {
             data-testid="workload-pod-tabs"
             :side-tabs="true"
             :use-hash="useTabbedHash"
-            @changed="focusTabContent"
           >
             <Tab
               :label="t('workload.storage.title')"

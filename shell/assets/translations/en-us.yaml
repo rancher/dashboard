@@ -7362,8 +7362,8 @@ workload:
         type: Type
         localhostProfile:
           label: Localhost Profile
-          tooltip: Indicates a profile defined in a file on the node should be used. The profile must be preconfigured on the node to work. Must be a descending path, relative to the kubelet's configured seccomp profile location.
-          placeholder: e.g. /path/to/json
+          tooltip: Points to a specific seccomp file that must already exist on the machine running the container.
+          placeholder: e.g. path/to/json
         afterLocalhostProfile: 
           selected: Localhost Profile input appeared.
           unselected: Localhost Profile input has been hidden.
@@ -7499,6 +7499,7 @@ workload:
   validation:
     containers: Containers
     containerImage: Container {name} - "Container Image" is required.
+    localhostProfile: Container {name} - "Container Localhost Profile" is required when SeccompProfile Type is Localhost.
   replicas: Replicas
   showTabs: 'Show Advanced Options'
   scheduling:

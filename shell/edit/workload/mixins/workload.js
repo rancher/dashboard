@@ -299,15 +299,26 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
     seccompProfileTypes() {
-      const types = ['None', 'RuntimeDefault', 'Localhost', 'Unconfined'];
-
-      return types.map((value) => ({ label: value, value }));
+      return [
+        {
+          value: 'None',
+          label: 'None'
+        },
+        {
+          value: 'RuntimeDefault',
+          label: 'RuntimeDefault - inherit the default seccomp profile'
+        },
+        {
+          value: 'Localhost',
+          label: 'Localhost - define a custom seccomp profile'
+        }, {
+          value: 'Unconfined',
+          label: 'Unconfined - no seccomp profile'
+        }];
     },
 
     tabErrors() {
-      const tabErrors = {
-        podSecurityContext: this.fvGetPathErrors(['podTemplateSpec.securityContext.seccompProfile.localhostProfile'])?.length > 0, securityContext: this.fvGetPathErrors(['securityContext.seccompProfile.localhostProfile'])?.length > 0, general: this.fvGetPathErrors(['image'])?.length > 0
-      };
+      const tabErrors = { podSecurityContext: this.fvGetPathErrors(['podTemplateSpec.securityContext.seccompProfile.localhostProfile'])?.length > 0 };
 
       return tabErrors;
     },
@@ -442,8 +453,15 @@ export default {
         }),
       ].map((container) => {
         const containerImageRule = formRulesGenerator(this.$store.getters['i18n/t'], { name: container.name }).containerImage;
+        const localhostProfileRule = formRulesGenerator(this.$store.getters['i18n/t'], { name: container.name }).localhostProfile;
 
-        container.error = containerImageRule(container);
+        const imageError = containerImageRule(container);
+        const localhostProfileError = localhostProfileRule(container);
+
+        container.error = {
+          general:          imageError,
+          localhostProfile: localhostProfileError
+        };
 
         return container;
       });
@@ -640,31 +658,6 @@ export default {
       this.value['type'] = neu;
       delete this.value.apiVersion;
     },
-
-    container: {
-      handler(c) {
-        this.fvFormRuleSets[1] = {
-          path: 'image', rootObject: c, rules: ['required'], translationKey: 'workload.container.image'
-        };
-        if (c.securityContext?.seccompProfile?.type === 'Localhost' && c.securityContext?.privileged === false) {
-          this.fvFormRuleSets[2] = {
-            path:           'securityContext.seccompProfile.localhostProfile',
-            rules:          ['required'],
-            rootObject:     c,
-            translationKey: 'workload.container.security.localhostProfile.label'
-          };
-        } else {
-          this.fvFormRuleSets[2] = {
-            path:           'securityContext.seccompProfile.localhostProfile',
-            rules:          [''],
-            rootObject:     c,
-            translationKey: 'workload.container.security.localhostProfile.label'
-          };
-        }
-      },
-      immediate: true,
-      deep:      true,
-    }
   },
 
   created() {
