@@ -71,6 +71,7 @@ declare global {
       setupWebSocket: any;
       hideElementBySelector(text:string) :void;
       state(state: any): any;
+      changeRancherTheme(): Chainable<string>;
 
       login(username?: string, password?: string, cacheSession?: boolean, skipNavigation?: boolean, acceptConfirmation?: string): Chainable<Element>;
       logout(): Chainable;

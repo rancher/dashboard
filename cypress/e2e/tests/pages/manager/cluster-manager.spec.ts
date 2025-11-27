@@ -46,6 +46,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
   before(() => {
     cy.login();
+    cy.changeRancherTheme();
   });
 
   // Revert commented out tests as part of https://github.com/rancher/dashboard/issues/15391
@@ -545,6 +546,16 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     const clusterList = new ClusterManagerListPagePo('_');
 
     clusterList.waitForPage();
+
+    // Ignoring the user profile picture
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]');
+    // Ignoring the side navbar counters
+    cy.hideElementBySelector("[data-testid='type-count']");
+    // Ignoring machine and age counters
+    cy.hideElementBySelector("[class='col-machine-summary-graph']");
+    cy.hideElementBySelector("[class='col-live-date']");
+    // takes percy snapshot.
+    cy.percySnapshot('Cluster manager Local cluster');
   });
 
   describe('Cluster Details Page and Tabs', () => {
