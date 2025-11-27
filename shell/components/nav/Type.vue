@@ -131,7 +131,7 @@ export default {
       @keypress.enter="navigate"
     >
       <TabTitle
-        v-if="isExactActive"
+        v-if="highlightRoute && isExactActive"
         :show-child="false"
       >
         {{ type.labelKey ? t(type.labelKey) : (type.labelDisplay || type.label) }}
@@ -141,7 +141,7 @@ export default {
         :aria-label="type.labelKey ? t(type.labelKey) : (type.labelDisplay || type.label)"
         :href="href"
         class="type-link"
-        :aria-current="isActive ? 'page' : undefined"
+        :aria-current="highlightRoute && isActive ? 'page' : undefined"
         @click="selectType(); navigate($event);"
         @mouseenter="setNear(true)"
         @mouseleave="setNear(false)"
