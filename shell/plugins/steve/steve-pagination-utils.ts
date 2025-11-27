@@ -1,5 +1,7 @@
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
-import { PaginationParam, PaginationFilterField, PaginationParamProjectOrNamespace, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import {
+  PaginationParam, PaginationFilterField, PaginationParamProjectOrNamespace, PaginationParamFilter, PaginationFilterEquality
+} from '@shell/types/store/pagination.types';
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import ModelNamespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
@@ -50,7 +52,7 @@ class NamespaceProjectFilters {
 
     // These are AND'd together
     // Not ns 1 AND ns 2
-    return allNamespaces.reduce((res, ns) => {
+    const filterNamespaces = allNamespaces.reduce((res, ns) => {
       // Links to ns.isObscure and covers things like `c-`, `user-`, etc (see OBSCURE_NAMESPACE_PREFIX)
       const hideObscure = showReservedRancherNamespaces ? false : ns.isObscure;
 
@@ -58,13 +60,23 @@ class NamespaceProjectFilters {
       const hideSystem = productHidesSystemNamespaces ? ns.isSystem : false;
 
       if (hideObscure || hideSystem) {
-        res.push(PaginationParamFilter.createSingleField({
-          field: 'metadata.namespace', value: ns.name, equals: false
-        }));
+        res.push(ns.name);
       }
 
       return res;
-    }, [] as PaginationParamFilter[]);
+    }, [] as String[]);
+
+    if (filterNamespaces.length) {
+      return [new PaginationParamFilter({
+        fields: [{
+          value:    filterNamespaces.join(','),
+          equality: PaginationFilterEquality.NOT_IN,
+          field:    'metadata.namespace',
+        }],
+      })];
+    }
+
+    return [];
   }
 
   /**
@@ -510,29 +522,36 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // Check if the API supports filtering by this field
               this.validateField(validateFields, schema, field.field);
 
-              // we're just checking that the field exists, so there's no value
+              // we're just checking that the field exists, so there's no equality or value
               if (field.exists) {
                 return field.field;
               }
-              const encodedValue = encodeURIComponent(field.value || '');
 
-              // = exact match (equals + exact)
-              // ~ partial match (equals + !exact)
-              // != not exact match (!equals + exact)
-              // !~ not partial match (!equals + !exact)
-              const operator = `${ field.equals ? '' : '!' }${ field.exact ? '=' : '~' }`;
-              let safeValue;
+              // If field was created by PaginationFilterField ctor equality will be set. If field created by json (legacy) it might not
+              const equality = field.equality || PaginationFilterField.safeEquality(field);
 
-              if (StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(field.value || '')) {
-                // Does not contain any protected characters, send as is
-                safeValue = encodedValue;
-              } else {
-                // Contains protected characters, wrap in quotes to ensure backend doesn't fail
-                // - replace reserver `"`/`%22` with empty string - see https://github.com/rancher/dashboard/issues/14549 for improvement
-                safeValue = `"${ encodedValue.replaceAll('%22', '') }"`;
+              if (!equality) {
+                throw new Error(`A pagination filter must contain an equality. ${ JSON.stringify(field) }`);
               }
 
-              return `${ this.convertArrayPath(field.field) }${ operator }${ safeValue }`;
+              let safeValue;
+
+              if ([PaginationFilterEquality.IN, PaginationFilterEquality.NOT_IN].includes(equality)) {
+                safeValue = `(${ field.value })`;
+              } else {
+                const encodedValue = encodeURIComponent(field.value || '');
+
+                if (StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(field.value || '')) {
+                  // Does not contain any protected characters, send as is
+                  safeValue = encodedValue;
+                } else {
+                  // Contains protected characters, wrap in quotes to ensure backend doesn't fail
+                  // - replace reserver `"`/`%22` with empty string - see https://github.com/rancher/dashboard/issues/14549 for improvement
+                  safeValue = `"${ encodedValue.replaceAll('%22', '') }"`;
+                }
+              }
+
+              return `${ this.convertArrayPath(field.field) }${ equality }${ safeValue }`;
             }
 
             return field.value;
