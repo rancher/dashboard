@@ -355,7 +355,7 @@ export default defineComponent({
       disabled: isDisabled,
       [status]: status,
       suffix: hasSuffix,
-      'v-popper--has-tooltip': hasTooltip,
+      'has-clean-tooltip': hasTooltip,
       'compact-input': isCompact,
       hideArrows,
       [className]: true

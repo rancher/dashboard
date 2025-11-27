@@ -87,12 +87,12 @@ export default class BurgerMenuPo extends ComponentPo {
     this.sideMenu().should('have.class', 'menu-close');
   }
 
-  static checkIconTooltipOn(): Cypress.Chainable {
-    return cy.get('.option').get('.cluster-icon-menu').first().should('have.class', 'v-popper--has-tooltip');
+  static checkIconTooltipOn(content: string): Cypress.Chainable {
+    return cy.get('.v-popper__popper .v-popper__inner').should('be.visible').and('contain.text', content);
   }
 
   static checkIconTooltipOff(): Cypress.Chainable {
-    return cy.get('.option').get('.cluster-icon-menu').first().should('have.not.class', 'v-popper--has-tooltip');
+    return cy.get('body').find('.v-popper__popper').should('not.exist');
   }
 
   /**
@@ -131,7 +131,14 @@ export default class BurgerMenuPo extends ComponentPo {
    * Get all clusters, whether pinned, filtered or not
    */
   allClusters(): Cypress.Chainable {
-    return this.self().find('.body .cluster.selector.option');
+    return this.self().find('.body .clusters .cluster.selector.option');
+  }
+
+  /**
+   * Get the first cluster icon in the side menu to use for hover actions
+   */
+  firstClusterIcon(): Cypress.Chainable {
+    return this.allClusters().first().find('.rancher-provider-icon');
   }
 
   goToCluster(clusterId = 'local', toggleOpen = true) {
