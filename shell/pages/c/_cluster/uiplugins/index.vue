@@ -393,6 +393,7 @@ export default {
             versions:            [],
             displayVersion:      p.version,
             displayVersionLabel: p.version || '-',
+            isDeveloper:         p.isDeveloper,
             installed:           true,
             installing:          false,
             builtin:             false,
@@ -812,6 +813,11 @@ export default {
     getFooterItems(plugin) {
       const labels = [];
 
+      // "developer load" tag
+      if (plugin.isDeveloper) {
+        labels.push(this.t('plugins.labels.isDeveloper'));
+      }
+
       if (plugin.primeOnly) {
         labels.push(this.t('plugins.labels.primeOnly'));
       }
@@ -820,7 +826,7 @@ export default {
         labels.push(this.t('plugins.labels.builtin'));
       }
 
-      if (!plugin.builtin && !plugin.certified) {
+      if (!plugin.builtin && !plugin.certified && !plugin.isDeveloper) {
         labels.push(this.t('plugins.labels.third-party'));
       }
 
