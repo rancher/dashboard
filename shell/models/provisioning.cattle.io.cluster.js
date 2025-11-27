@@ -16,6 +16,7 @@ import jsyaml from 'js-yaml';
 import { defineAsyncComponent, markRaw } from 'vue';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { isHostedProvider } from '@shell/utils/provider';
 
 const RKE1_ALLOWED_ACTIONS = [
   'promptRemove',
@@ -272,9 +273,29 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isHostedKubernetesProvider() {
-    const providers = ['AKS', 'EKS', 'GKE'];
+    const context = {
+      dispatch:   this.$dispatch,
+      getters:    this.$getters,
+      axios:      this.$axios,
+      $extension: this.$plugin,
+      t:          (...args) => this.t.apply(this, args),
+    };
 
-    return providers.includes(this.provisioner);
+    return isHostedProvider(context, this.provisioner);
+  }
+
+  get providerConfig() {
+    if ( this.isRke2 ) {
+      return this.spec.rkeConfig;
+    }
+    if (this.mgmt && this.mgmt?.spec) {
+      const allKeys = Object.keys(this.mgmt.spec);
+      const configKey = allKeys.find( (k) => k.endsWith('Config'));
+
+      return this.mgmt?.spec[configKey];
+    }
+
+    return null;
   }
 
   get isPrivateHostedProvider() {
@@ -314,13 +335,7 @@ export default class ProvCluster extends SteveModel {
 
     // imported KEv2
     // we can't rely on this.provisioner to determine imported-ness for these clusters, as it will return 'aks' 'eks' 'gke' for both provisioned and imported clusters
-    const kontainerConfigs = ['aksConfig', 'eksConfig', 'gkeConfig'];
-
-    const isImportedKontainer = kontainerConfigs.filter((key) => {
-      return this.mgmt?.spec?.[key]?.imported === true;
-    }).length;
-
-    if (isImportedKontainer) {
+    if (this.isHostedKubernetesProvider && !!this.providerConfig.imported) {
       return true;
     }
 
