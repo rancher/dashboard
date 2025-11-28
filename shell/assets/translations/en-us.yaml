@@ -5809,11 +5809,6 @@ rbac:
         =1 { Checking if there are any users or groups bound to this role <i class="icon-spin icon icon-spinner" style="margin-left: 5px"></i> }
         other { Checking if there are any users or groups bound to these roles <i class="icon-spin icon icon-spinner" style="margin-left: 5px"></i> }
       }
-    usersBound: |-
-      {count, plural,
-        =1 { Caution: There is 1 user bound to the role(s) about to be deleted. Do you want to proceed? }
-        other { Caution: There are {count} users bound to the role(s) about to be deleted. Do you want to proceed? }
-      }
     bound: |-
       {users, plural,
         =0 {{groups, plural,
