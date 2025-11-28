@@ -35,6 +35,7 @@
 //   ifHave,                  -- Show this product only if the given capability is available
 //   ifHaveGroup,             -- Show this product only if the given group exists in the store [inStore]
 //   ifHaveType,              -- Show this product only if the given type exists in the store [inStore], This can also be specified as an object { type: TYPE, store: 'management' } if the type isn't in the current [inStore]
+//   ifNotHaveType,           -- Hide this product if the given type exists in the store [inStore] (opposite of ifHaveType). This can also be specified as an object { type: TYPE, store: 'management' } if the type isn't in the current [inStore]
 //   ifHaveVerb,              -- In combination with ifHaveTYpe, show it only if the type also has this collectionMethod
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
 //   rootProduct,             -- Optional root (parent) product - if set, used to optimize navigation when product changes stays within root product
@@ -238,7 +239,7 @@ export function DSL(store, product, module = 'type-map') {
       };
 
       // Convert strings to regex's - we do this once here for efficiency
-      for ( const k of ['ifHaveGroup', 'ifHaveType'] ) {
+      for ( const k of ['ifHaveGroup', 'ifHaveType', 'ifNotHaveType'] ) {
         if ( opt[k] ) {
           if (Array.isArray(opt[k])) {
             opt[k] = opt[k].map((r) => regexToString(ensureRegex(r)));
@@ -1415,6 +1416,14 @@ export const getters = {
         }
 
         if ( p.ifHaveVerb && !ifHaveVerb(rootGetters, module, p.ifHaveVerb, haveIds)) {
+          return false;
+        }
+      }
+
+      if ( p.ifNotHaveType ) {
+        const haveIds = knownTypes[module].filter((t) => t.match(stringToRegex(p.ifNotHaveType)) );
+
+        if ( haveIds.length ) {
           return false;
         }
       }
