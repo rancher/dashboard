@@ -17,7 +17,7 @@ export class ModalApiImpl implements ModalApi {
    * import MyCustomModal from '@/components/MyCustomModal.vue';
    *
    * this.$shell.modal.show(MyCustomModal, {
-   *   componentProps: { title: 'Hello Modal' }
+   *   props: { title: 'Hello Modal' }
    * });
    * ```
    *
@@ -31,9 +31,9 @@ export class ModalApiImpl implements ModalApi {
   public open(component: Component, config?: ModalConfig): void {
     this.store.commit('modal/openModal', {
       component,
-      componentProps:      config?.componentProps || {},
+      componentProps:      config?.props || {},
       resources:           config?.resources || [],
-      modalWidth:          config?.modalWidth || '600px',
+      modalWidth:          config?.width || '600px',
       closeOnClickOutside: config?.closeOnClickOutside ?? true,
       // modalSticky:         config.modalSticky ?? false // Not implemented yet
     });

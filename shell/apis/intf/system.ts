@@ -12,18 +12,6 @@ export interface SystemApi {
    */
   uiVersion: string;
   /**
-   * Rancher CLI version
-   */
-  cliVersion: string;
-  /**
-   * Rancher Helm version
-   */
-  helmVersion: string;
-  /**
-   * Rancher Docker Machine version
-   */
-  machineVersion: string;
-  /**
    * If Rancher system running is Prime
    */
   isRancherPrime: boolean;
@@ -35,10 +23,6 @@ export interface SystemApi {
    * Rancher Kubernetes version
    */
   kubernetesVersion: string;
-  /**
-   * Rancher build platform
-   */
-  buildPlatform: string;
   /**
    * If Rancher system is a Dev build
    */

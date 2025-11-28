@@ -42,9 +42,9 @@ describe('modalApiImpl', () => {
 
   it('should open a modal with custom configuration', () => {
     const config = {
-      componentProps:      { title: 'Hello' },
+      props:               { title: 'Hello' },
       resources:           [{ id: 1, type: 'node' }],
-      modalWidth:          '800px',
+      width:               '800px',
       closeOnClickOutside: false,
     };
 
@@ -55,15 +55,15 @@ describe('modalApiImpl', () => {
     expect(mockCommit).toHaveBeenCalledTimes(1);
     expect(mockCommit).toHaveBeenCalledWith('modal/openModal', {
       component:           MockComponent,
-      componentProps:      config.componentProps,
+      componentProps:      config.props,
       resources:           config.resources,
-      modalWidth:          config.modalWidth,
+      modalWidth:          config.width,
       closeOnClickOutside: config.closeOnClickOutside,
     });
   });
 
   it('should correctly merge a partial config with defaults', () => {
-    const config = { componentProps: { id: '123' } };
+    const config = { props: { id: '123' } };
 
     // 3. Act
     modalApi.open(MockComponent, config);
@@ -71,7 +71,7 @@ describe('modalApiImpl', () => {
     // 4. Assert
     expect(mockCommit).toHaveBeenCalledWith('modal/openModal', {
       component:           MockComponent,
-      componentProps:      config.componentProps, // Custom
+      componentProps:      config.props, // Custom
       resources:           [], // Default
       modalWidth:          '600px', // Default
       closeOnClickOutside: true, // Default

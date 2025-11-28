@@ -65,19 +65,6 @@ describe('systemApiImpl', () => {
   it('should get uiVersion from store.$config', () => {
     expect(systemApi.uiVersion).toBe('v2.9-test');
   });
-
-  it('should get cliVersion from the store getter', () => {
-    mockGetter.mockReturnValue({ value: 'v1.2.3' });
-    expect(systemApi.cliVersion).toBe('v1.2.3');
-    expect(mockGetter).toHaveBeenCalledWith(MANAGEMENT.SETTING, SETTING.VERSION_CLI);
-  });
-
-  it('should get helmVersion from the store getter', () => {
-    mockGetter.mockReturnValue({ value: 'v3.4.5' });
-    expect(systemApi.helmVersion).toBe('v3.4.5');
-    expect(mockGetter).toHaveBeenCalledWith(MANAGEMENT.SETTING, SETTING.VERSION_HELM);
-  });
-
   // --- Tests for Mocked Module Getters ---
 
   it('should get rancherVersion and gitCommit from getVersionData', () => {
@@ -96,7 +83,6 @@ describe('systemApiImpl', () => {
 
     // Act & Assert
     expect(systemApi.kubernetesVersion).toBe('v1.25.0');
-    expect(systemApi.buildPlatform).toBe('linux/amd64');
   });
 
   it('should handle undefined kubeData gracefully', () => {
@@ -105,7 +91,6 @@ describe('systemApiImpl', () => {
 
     // Act & Assert (The code's `|| {}` handles this)
     expect(systemApi.kubernetesVersion).toBeUndefined();
-    expect(systemApi.buildPlatform).toBeUndefined();
   });
 
   it('should get isRancherPrime from isRancherPrime', () => {
