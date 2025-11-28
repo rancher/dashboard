@@ -87,26 +87,11 @@ export default {
   },
 
   data() {
-    const getters = this.$store.getters;
-    const params = { ...this.$route.params };
-    const resource = params.resource;
-
-    const hasListComponent = getters['type-map/hasCustomList'](resource);
-
-    const inStore = getters['currentStore'](resource);
-    const schema = getters[`${ inStore }/schemaFor`](resource);
-
-    const showMasthead = getters[`type-map/optionsFor`](resource).showListMasthead;
-
     return {
-      schema,
       overrideInStore:                  undefined,
-      hasListComponent,
-      showMasthead:                     showMasthead === undefined ? true : showMasthead,
-      resource,
       extensionType:                    ExtensionPoint.PANEL,
       extensionLocation:                PanelLocation.RESOURCE_LIST,
-      loadResources:                    [resource], // List of resources that will be loaded, this could be many (`Workloads`)
+      loadResources:                    [this.resource], // List of resources that will be loaded, this could be many (`Workloads`)
       /**
        * Will the custom component handle the fetch of resources....
        * or will this instance fetch resources
@@ -126,6 +111,26 @@ export default {
   },
 
   computed: {
+    resource() {
+      return this.$route.params.resource;
+    },
+
+    schema() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+
+      return this.$store.getters[`${ inStore }/schemaFor`](this.resource);
+    },
+
+    hasListComponent() {
+      return this.$store.getters['type-map/hasCustomList'](this.resource);
+    },
+
+    showMasthead() {
+      const showMasthead = this.$store.getters[`type-map/optionsFor`](this.resource).showListMasthead;
+
+      return showMasthead === undefined ? true : showMasthead;
+    },
+
     headers() {
       if ( this.hasListComponent || !this.schema ) {
         // Custom lists figure out their own headers
@@ -202,11 +207,8 @@ export default {
   created() {
     let listComponent = false;
 
-    const resource = this.$route.params.resource;
-    const hasListComponent = this.$store.getters['type-map/hasCustomList'](resource);
-
-    if ( hasListComponent ) {
-      listComponent = this.$store.getters['type-map/importList'](resource);
+    if ( this.hasListComponent ) {
+      listComponent = this.$store.getters['type-map/importList'](this.resource);
     }
 
     this.listComponent = listComponent;
@@ -266,7 +268,11 @@ export default {
         :is="listComponent"
         :incremental-loading-indicator="showIncrementalLoadingIndicator"
         :rows="rows"
+        :schema="schema"
+        :resource="resource"
         v-bind="$data"
+        :has-list-component="hasListComponent"
+        :show-masthead="showMasthead"
       />
     </div>
     <ResourceTable

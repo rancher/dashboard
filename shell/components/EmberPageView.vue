@@ -11,18 +11,18 @@ export default {
     },
   },
 
-  data() {
-    const page = this.$route.params.page;
-    let src;
+  computed: {
+    page() {
+      return this.$route.params.page;
+    },
 
-    if (page) {
-      src = this.pages[page];
+    src() {
+      if (this.page) {
+        return this.pages[this.page];
+      }
+
+      return undefined;
     }
-
-    return {
-      src,
-      page
-    };
   },
 };
 </script>

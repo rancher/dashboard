@@ -45,12 +45,12 @@ export default {
   },
 
   data() {
-    const {
-      limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu
-    } = this.value;
-
     return {
-      limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu, viewMode: _VIEW
+      limitsCpu:      this.value?.limitsCpu,
+      limitsMemory:   this.value?.limitsMemory,
+      requestsCpu:    this.value?.requestsCpu,
+      requestsMemory: this.value?.requestsMemory,
+      limitsGpu:      this.value?.limitsGpu,
     };
   },
 
@@ -69,6 +69,10 @@ export default {
   },
 
   computed: {
+    viewMode() {
+      return _VIEW;
+    },
+
     detailTopColumns() {
       return [
         {
