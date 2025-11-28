@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# This is a helper script that can be pointed at a text file containing the name of a
+# dependency on each line.
+#
+# The script runs `yarn why` for each dependency and generates a clear report of whether any
+# of the dependencies re used
+
+DIR=$(cd $(dirname $0)/..; pwd)
+
+CYAN="\033[96m"
+YELLOW="\033[93m"
+RESET="\033[0m"
+BOLD="\033[1m"
+
+COUNT=0
+LIST=""
+
+FILE=$DIR/check.txt
+
+TOTAL=$(sed -n '$=' $FILE)
+
+echo -e "${CYAN}Dependency Checker${RESET}"
+echo -e "${CYAN}------------------${RESET}"
+
+if [ -z "$1" ]; then
+  echo -e "${YELLOW}You must specify the path to a text file that lists the dependencies to check for (one per line)${RESET}"
+  echo ""
+  exit 1
+fi
+
+FILE=$1
+
+echo -e "Checking dependencies listed in file: ${CYAN}${FILE}${RESET}"
+echo ""
+
+echo -e "${CYAN}Checking $TOTAL packages to see if they are used...${RESET}"
+echo ""
+
+while IFS= read -r line || [ -n "$line" ]; do
+  echo -e "${CYAN}Checking: $line${RESET}"
+
+  TEXT=$(yarn why $line --no-progress 2>&1)
+  OUT=$(grep "error We couldn't find a match" <<< "$TEXT")
+
+  if [ $? -eq 1 ]; then
+    echo -e "${YELLOW}${BOLD} Warning: $line is used${RESET}"
+    COUNT=$((COUNT+1))
+    LIST+="    $line\n"
+  fi
+done < $FILE
+
+echo ""
+echo -e "${CYAN}Check completed${RESET}"
+echo ""
+
+if [ $COUNT -gt 0 ]; then
+  echo -e "${YELLOW}${BOLD}$COUNT/$TOTAL package(s) are used by this project:${RESET}"
+  echo -e "${YELLOW}$LIST${RESET}"
+else
+  echo -e "${CYAN}${BOLD}None of the $TOTAL specified package(s) are used by this project${RESET}"
+fi
+
