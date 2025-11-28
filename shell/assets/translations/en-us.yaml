@@ -5802,17 +5802,34 @@ rbac:
       noContext:
         label: No Context
   globalRoles:
-    notBound: 'No users bound <i class="icon icon-checkmark" style="margin-left: 5px"></i>'
-    unableToCheck: Unable to check if any user is bound to the role(s). Please try again.
+    notBound: 'No users or groups bound <i class="icon icon-checkmark" style="margin-left: 5px"></i>'
+    unableToCheck: Unable to check if any users or groups are bound to the role(s). Please try again.
     waiting: |-
       {count, plural,
-        =1 { Checking if there are any users bound to this role <i class="icon-spin icon icon-spinner" style="margin-left: 5px"></i> }
-        other { Checking if there are any users bound to these roles <i class="icon-spin icon icon-spinner" style="margin-left: 5px"></i> }
+        =1 { Checking if there are any users or groups bound to this role <i class="icon-spin icon icon-spinner" style="margin-left: 5px"></i> }
+        other { Checking if there are any users or groups bound to these roles <i class="icon-spin icon icon-spinner" style="margin-left: 5px"></i> }
       }
     usersBound: |-
       {count, plural,
         =1 { Caution: There is 1 user bound to the role(s) about to be deleted. Do you want to proceed? }
         other { Caution: There are {count} users bound to the role(s) about to be deleted. Do you want to proceed? }
+      }
+    bound: |-
+      {users, plural,
+        =0 {{groups, plural,
+          =1 { Caution: There is 1 group bound to the role(s) about to be deleted. Do you want to proceed? }
+          other { Caution: There are {groups} groups bound to the role(s) about to be deleted. Do you want to proceed? }
+        }}
+        =1 {{groups, plural,
+          =0 { Caution: There is 1 user bound to the role(s) about to be deleted. Do you want to proceed? }
+          =1 { Caution: There is 1 user and 1 group bound to the role(s) about to be deleted. Do you want to proceed? }
+          other { Caution: There is 1 user and {groups} groups bound to the role(s) about to be deleted. Do you want to proceed? }
+        }}
+        other {{groups, plural,
+          =0 { Caution: There are {users} users bound to the role(s) about to be deleted. Do you want to proceed? }
+          =1 { Caution: There are {users} users and 1 group bound to the role(s) about to be deleted. Do you want to proceed? }
+          other { Caution: There are {users} users and {groups} groups bound to the role(s) about to be deleted. Do you want to proceed? }
+        }}
       }
     types:
       global:

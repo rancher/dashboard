@@ -36,6 +36,7 @@ export default {
       let propToMatch;
       let numberOfRolesWithBinds = 0;
       const uniqueUsersWithBinds = new Set();
+      const uniqueGroupsWithBinds = new Set();
 
       this.info = this.t('rbac.globalRoles.waiting', { count: rolesToRemove.length });
 
@@ -80,17 +81,22 @@ export default {
 
             if (usedRoles.length) {
               const uniqueUsers = [...new Set(usedRoles.map((item) => item.userName).filter((user) => userMap[user]))];
+              const uniqueGroups = [...new Set(usedRoles.map((item) => item.groupPrincipalName).filter(Boolean))];
 
-              if (uniqueUsers.length) {
+              if (uniqueUsers.length || uniqueGroups.length) {
                 numberOfRolesWithBinds++;
                 uniqueUsers.forEach((user) => uniqueUsersWithBinds.add(user));
+                uniqueGroups.forEach((group) => uniqueGroupsWithBinds.add(group));
               }
             }
           });
 
-          if (numberOfRolesWithBinds && uniqueUsersWithBinds.size) {
+          if (numberOfRolesWithBinds && (uniqueUsersWithBinds.size || uniqueGroupsWithBinds.size)) {
             this.info = '';
-            this.warning = this.t('rbac.globalRoles.usersBound', { count: uniqueUsersWithBinds.size });
+            this.warning = this.t('rbac.globalRoles.bound', {
+              users:  uniqueUsersWithBinds.size,
+              groups: uniqueGroupsWithBinds.size
+            });
           } else {
             this.info = this.t('rbac.globalRoles.notBound', null, true);
           }
