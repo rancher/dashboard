@@ -5,23 +5,7 @@ import { Component } from 'vue';
  */
 export interface ModalConfig {
   /**
-   * The Vue component to be displayed inside the modal.
-   * This can be any SFC (Single-File Component) imported and passed in as a `Component`.
-   *
-   * Example:
-   * ```ts
-   * import MyCustomModal from '@/components/MyCustomModal.vue';
-   *
-   * this.$shell.modal({
-   *   component: MyCustomModal,
-   *   props: { title: 'Hello Modal' }
-   * });
-   * ```
-   */
-  component: Component;
-
-  /**
-   * Optional props to pass directly to the component rendered inside the modal.
+   * Props to pass directly to the component rendered inside the modal.
    *
    * Example:
    * ```ts
@@ -31,7 +15,7 @@ export interface ModalConfig {
   props?: Record<string, any>;
 
   /**
-   * Optional array of resources that the modal component might need.
+   * Array of resources that the modal component might need.
    * These are passed directly into the modal's `resources` prop.
    *
    * Example:
@@ -74,4 +58,33 @@ export interface ModalConfig {
    * ```
    */
   // modalSticky?: boolean; // Not implemented yet
+}
+
+/**
+ * API for displaying modals in Rancher UI. Here's what a Modal looks like in Rancher UI:
+ * * ![modal Example](/img/modal.png)
+ */
+export interface ModalApi {
+  /**
+   * Opens a modal dialog in Rancher UI
+   *
+   * Example:
+   * ```ts
+   * import MyCustomModal from '@/components/MyCustomModal.vue';
+   *
+   * this.$shell.modal.show(MyCustomModal, {
+   *   props: { title: 'Hello Modal' }
+   * });
+   * ```
+   * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).
+   *
+   * @param component
+   * The Vue component to be displayed inside the modal.
+   * This can be any SFC (Single-File Component) imported and passed in as a `Component`.
+   *
+   *
+   * @param config Modal configuration object
+   *
+   */
+  open(component: Component, config?: ModalConfig): void;
 }
