@@ -1,6 +1,6 @@
 import { Store } from 'vuex';
-import { NotificationApiLevel, NotificationApi, NotificationApiConfig } from '@shell/apis/intf/shell';
-import { NotificationLevel } from '@shell/types/notifications';
+import { NotificationApi } from '@shell/apis/intf/shell';
+import { NotificationLevel, NotificationConfig } from '@shell/types/notifications';
 
 export class NotificationApiImpl implements NotificationApi {
   private store: Store<any>;
@@ -29,7 +29,7 @@ export class NotificationApiImpl implements NotificationApi {
    * * @returns notification ID
    *
    */
-  public async send(level: NotificationApiLevel | NotificationLevel, title: string, message?:string, config?: NotificationApiConfig): Promise<string> {
+  public async send(level: NotificationLevel, title: string, message?:string, config?: NotificationConfig): Promise<string> {
     const notification = {
       level,
       title,
@@ -54,7 +54,6 @@ export class NotificationApiImpl implements NotificationApi {
    * @param progress Progress (0-100) for notifications of type `Task`
    *
    */
-
   public updateProgress(notificationId: string, progress: number): void {
     const notification = {
       id: notificationId,

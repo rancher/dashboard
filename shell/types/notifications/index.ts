@@ -1,4 +1,4 @@
-import { NotificationApiAction, NotificationApiPreference } from '@shell/apis/intf/shell';
+import { RouteLocationRaw } from 'vue-router';
 
 /**
  * Type definitions for the Notification Center
@@ -33,14 +33,73 @@ export enum NotificationLevel {
 }
 
 /**
- * An action that is shown as a button in the Notification Center
+ * Notification Action definition
  */
-export type NotificationAction = NotificationApiAction;
+export interface NotificationAction {
+  /**
+   * Button label for the action
+   */
+  label: string;
+  /**
+   * Href target when the button is clicked
+   */
+  target?: string;
+  /**
+   * Vue Route to navigate to when the button is clicked
+   */
+  route?: RouteLocationRaw;
+}
 
 /**
- * Defines the User Preference linked to a notification
+ * Notification Preference definition
  */
-export type NotificationPreference = NotificationApiPreference;
+export interface NotificationPreference {
+  /**
+   * User preference key to use when setting the preference when the notification is marked as read
+   */
+  key: string;
+  /**
+   * User preference value to use when setting the preference when the notification is marked as read
+   */
+  value: string;
+  /**
+   * User preference value to use when setting the preference when the notification is marked as unread - defaults to empty string
+   */
+  unsetValue?: string;
+}
+
+/**
+ * Configuration object for the Notification Center
+ *
+ */
+export interface NotificationConfig {
+  /**
+   * - **{@link NotificationAction}**
+   *
+   * Primary action to be shown in the notification
+   */
+  primaryAction?: NotificationAction;
+  /**
+   * - **{@link NotificationAction}**
+   *
+   * Secondary to be shown in the notification
+   */
+  secondaryAction?: NotificationAction;
+  /**
+   * Unique ID for the notification
+   */
+  id?: string;
+  /**
+   * Progress (0-100) for notifications of type `Task`
+   */
+  progress?: number;
+  /**
+   * - **{@link NotificationPreference}**
+   *
+   * User Preference tied to the notification (the preference will be updated when the notification is marked read)
+   */
+  preference?: NotificationPreference;
+}
 
 /**
  * Type for Encrypted Notification data that is stored in local storage
@@ -102,4 +161,49 @@ export interface NotificationHandler {
    * @param read Indicates whether the notification was updated to be read or unread
    */
   onReadUpdated(notification: Notification, read: boolean): void;
+}
+
+/**
+ * API for notifications in the Rancher UI Notification Center
+ * * ![notification Example](/img/notification.png)
+ */
+export interface NotificationApi {
+  /**
+   * Sends a notification to the Rancher UI Notification Center
+   *
+   * Example:
+   * ```ts
+   * import { NotificationLevel } from '@shell/types/notifications';
+   *
+   * this.$shell.notification.send(NotificationLevel.Success, 'Some notification title', 'Hello world! Success!', {})
+   * ```
+   *
+   * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).
+   *
+   * @param level The `level` specifies the importance of the notification and determines the icon that is shown in the notification
+   * @param title The notification title
+   * @param message The notification message to be displayed
+   * @param config Notifications configuration object
+   *
+   * @returns notification ID
+   *
+   */
+  send(level: NotificationLevel | NotificationLevel, title: string, message?:string, config?: NotificationConfig): Promise<string>;
+
+  /**
+   * Update notification progress (Only valid for notifications of type `Task`)
+   *
+   * Example:
+   * ```ts
+   * this.$shell.notification.updateProgress('some-notification-id', 80)
+   * ```
+   *
+   * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).
+   *
+   * @param notificationId Unique ID for the notification
+   * @param progress Progress (0-100) for notifications of type `Task`
+   *
+   */
+
+  updateProgress(notificationId: string, progress: number): void;
 }
