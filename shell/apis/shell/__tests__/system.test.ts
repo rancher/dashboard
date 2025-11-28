@@ -5,8 +5,6 @@ import {
 } from '@jest/globals';
 import { SystemApiImpl } from '../system';
 import { Store } from 'vuex';
-import { MANAGEMENT } from '@shell/config/types';
-import { SETTING } from '@shell/config/settings';
 
 // --- Mock the external modules ---
 
