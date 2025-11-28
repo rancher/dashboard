@@ -13,8 +13,6 @@ YELLOW="\033[93m"
 RESET="\033[0m"
 BOLD="\033[1m"
 
-echo $DIR
-
 COUNT=0
 LIST=""
 
