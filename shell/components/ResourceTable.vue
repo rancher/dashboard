@@ -597,7 +597,7 @@ export default {
      * Whether we should show namespace counts in group tabs
      */
     showNamespaceCounts() {
-      return this.group === 'namespace' && this.isNamespaced;
+      return (this.group === 'namespace' || this.group === 'metadata.namespace') && this.isNamespaced;
     },
   },
 
@@ -797,6 +797,6 @@ export default {
 
 .group-tab .count {
   opacity: 0.7;
-  margin-left: 5px;
+  margin-left: 2px;
 }
 </style>
