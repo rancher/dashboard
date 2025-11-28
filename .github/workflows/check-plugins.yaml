@@ -7,6 +7,7 @@ env:
   TEST_PERSIST_BUILD: true
 jobs:
   validate:
+    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-validate-plugins')"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
