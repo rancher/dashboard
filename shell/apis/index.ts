@@ -9,18 +9,18 @@ export type ShellApi = ShellApiImport;
 export type ExtensionManagerApi = ExtensionManager;
 
 /**
- * Provides access to the registered extension manager instance.
+ * Returns an object that can be used to access the registered extension manager instance.
  *
- * @returns The extension manager API
+ * @returns Returns an object that can be used to access the registered extension manager instance.
  */
 export const useExtensionManager = (): ExtensionManagerApi => {
   return getApi<ExtensionManagerApi>('$extension', 'useExtensionManager');
 };
 
 /**
- * Returns the Shell API
+ * Returns an object that implements the ShellApi interface
  *
- * @returns The shell API
+ * @returns Returns an object that implements the ShellApi interface
  */
 export const useShell = (): ShellApi => {
   return getApi<ShellApi>('$shell', 'useShell');
