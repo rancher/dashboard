@@ -9,10 +9,10 @@ export interface ModalConfig {
    *
    * Example:
    * ```ts
-   * componentProps: { title: 'Hello Modal', isVisible: true }
+   * props: { title: 'Hello Modal', isVisible: true }
    * ```
    */
-  componentProps?: Record<string, any>;
+  props?: Record<string, any>;
 
   /**
    * Array of resources that the modal component might need.
@@ -31,11 +31,11 @@ export interface ModalConfig {
    *
    * Examples:
    * ```ts
-   * modalWidth: '800px' // Width in pixels
-   * modalWidth: '75%'   // Width as a percentage
+   * width: '800px' // Width in pixels
+   * width: '75%'   // Width as a percentage
    * ```
    */
-  modalWidth?: string;
+  width?: string;
 
   /**
    * Determines if clicking outside the modal will close it. Defaults to `true`.
@@ -73,7 +73,7 @@ export interface ModalApi {
    * import MyCustomModal from '@/components/MyCustomModal.vue';
    *
    * this.$shell.modal.show(MyCustomModal, {
-   *   componentProps: { title: 'Hello Modal' }
+   *   props: { title: 'Hello Modal' }
    * });
    * ```
    * For usage with the Composition API check usage guide [here](../../shell-api#using-composition-api-in-vue).

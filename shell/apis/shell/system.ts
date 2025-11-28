@@ -1,7 +1,5 @@
 import { SystemApi } from '@shell/apis/intf/shell';
 import { Store } from 'vuex';
-import { MANAGEMENT } from '@shell/config/types';
-import { SETTING } from '@shell/config/settings';
 import { isDevBuild, isPrerelease } from '@shell/utils/version';
 import { getVersionData, getKubeVersionData, isRancherPrime } from '@shell/config/version';
 
@@ -29,27 +27,6 @@ export class SystemApiImpl implements SystemApi {
   }
 
   /**
-   * Rancher CLI version
-   */
-  get cliVersion() {
-    return this.store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_CLI)?.value || '';
-  }
-
-  /**
-   * Rancher Helm version
-   */
-  get helmVersion() {
-    return this.store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_HELM)?.value || '';
-  }
-
-  /**
-   * Rancher Docker Machine version
-   */
-  get machineVersion() {
-    return this.store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_MACHINE)?.value || '';
-  }
-
-  /**
    * If Rancher system running is Prime
    */
   get isRancherPrime(): boolean {
@@ -70,15 +47,6 @@ export class SystemApiImpl implements SystemApi {
     const kubeData = getKubeVersionData() as any || {};
 
     return kubeData.gitVersion;
-  }
-
-  /**
-   * Rancher build platform
-   */
-  get buildPlatform(): string {
-    const kubeData = getKubeVersionData() as any || {};
-
-    return kubeData.platform;
   }
 
   /**
