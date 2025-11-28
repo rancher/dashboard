@@ -7361,7 +7361,7 @@ workload:
         container: Seccomp Profile
         type: Type
         localhostProfile:
-          label: Localhost Profile
+          label: Localhost Profile Path
           tooltip: Points to a specific seccomp file that must already exist on the machine running the container.
           placeholder: e.g. path/to/json
         afterLocalhostProfile: 
