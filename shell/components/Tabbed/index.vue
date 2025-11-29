@@ -535,12 +535,14 @@ export default {
 
       A {
         color: var(--link, var(--primary));
+
         // Text truncation for long tab names in side-tabs mode
-        display: block;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        max-width: calc(#{$sideways-tabs-width} - 20px); // Account for padding and border
+        > span:first-child {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          display: block;
+        }
       }
 
       &.active {
