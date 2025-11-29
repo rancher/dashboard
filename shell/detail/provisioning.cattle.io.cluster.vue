@@ -863,14 +863,11 @@ export default {
                   >
                     <div
                       v-if="group && group.ref"
-                      v-clean-tooltip="group.ref.nameDisplay"
                       v-clean-html="group.ref.groupByPoolShortLabel"
-                      class="pool-name"
                     />
                     <div
                       v-else
                       v-clean-html="t('resourceTable.groupLabel.notInANodePool')"
-                      class="pool-name"
                     />
                     <div
                       v-if="group.ref && group.ref.providerSummary"
@@ -954,14 +951,11 @@ export default {
                   >
                     <div
                       v-if="group.ref"
-                      v-clean-tooltip="group.ref.spec.hostnamePrefix"
                       v-clean-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix}, true)"
-                      class="pool-name"
                     />
                     <div
                       v-else
                       v-clean-html="t('resourceTable.groupLabel.notInANodePool')"
-                      class="pool-name"
                     />
                     <div
                       v-if="group.ref && group.ref.nodeTemplate"
@@ -1152,18 +1146,6 @@ export default {
   align-items: center;
   justify-content: space-between;
 
-  .group-tab {
-    overflow: hidden;
-    min-width: 0;
-    flex-shrink: 1;
-
-    .pool-name {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-  }
-
   &.has-description {
     .group-tab {
       &, &::after {
@@ -1182,7 +1164,6 @@ export default {
   .group-header-buttons {
     align-items: center;
     display: flex;
-    flex-shrink: 0;
   }
 }
 
