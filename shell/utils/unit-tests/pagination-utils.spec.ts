@@ -163,14 +163,14 @@ describe('pagination-utils', () => {
 
     it('should return false if steve cache is disabled', () => {
       mockRootGetters['features/get'].mockImplementation((feature: string) => feature === STEVE_CACHE ? false : undefined);
-      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $plugin: mockPlugin }, enabledFor);
+      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $extension: mockPlugin }, enabledFor);
 
       expect(result).toBe(false);
     });
 
     it('should return false if pagination settings are not defined', () => {
       jest.spyOn(paginationUtils, 'getSettings').mockReturnValue(undefined);
-      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $plugin: mockPlugin }, enabledFor);
+      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $extension: mockPlugin }, enabledFor);
 
       expect(result).toBe(false);
 
@@ -189,7 +189,7 @@ describe('pagination-utils', () => {
         return null;
       });
 
-      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $plugin: mockPlugin }, undefined as unknown as PaginationResourceContext);
+      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $extension: mockPlugin }, undefined as unknown as PaginationResourceContext);
 
       expect(result).toBe(false);
     });
@@ -200,7 +200,7 @@ describe('pagination-utils', () => {
 
       mockPlugin.getAll.mockReturnValue({ [EXT_IDS.SERVER_SIDE_PAGINATION_RESOURCES]: { 'my-ext': () => extensionSettings } });
 
-      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $plugin: mockPlugin }, enabledFor);
+      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $extension: mockPlugin }, enabledFor);
 
       expect(result).toBe(true);
     });
@@ -215,7 +215,7 @@ describe('pagination-utils', () => {
       // Mocking PAGINATION_SETTINGS_STORE_DEFAULTS behavior
       jest.spyOn(paginationUtils, 'getStoreDefault').mockReturnValue(defaultSettings);
 
-      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $plugin: mockPlugin }, enabledFor);
+      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $extension: mockPlugin }, enabledFor);
 
       expect(result).toBe(true);
     });
@@ -235,7 +235,7 @@ describe('pagination-utils', () => {
       // Mocking PAGINATION_SETTINGS_STORE_DEFAULTS behavior
       jest.spyOn(paginationUtils, 'getStoreDefault').mockReturnValue({ cluster: { resources: { enableAll: true } } });
 
-      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $plugin: mockPlugin }, enabledFor);
+      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $extension: mockPlugin }, enabledFor);
 
       expect(result).toBe(true);
     });
@@ -255,7 +255,7 @@ describe('pagination-utils', () => {
         return null;
       });
 
-      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $plugin: mockPlugin }, enabledFor);
+      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $extension: mockPlugin }, enabledFor);
 
       expect(result).toBe(true);
     });
@@ -275,7 +275,7 @@ describe('pagination-utils', () => {
         return null;
       });
 
-      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $plugin: mockPlugin }, enabledFor);
+      const result = paginationUtils.isEnabled({ rootGetters: mockRootGetters, $extension: mockPlugin }, enabledFor);
 
       expect(result).toBe(false);
     });
