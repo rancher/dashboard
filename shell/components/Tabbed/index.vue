@@ -299,7 +299,7 @@ export default {
           @click.prevent="select(tab.name, $event)"
           @keyup.enter.space="select(tab.name, $event)"
         >
-          <span :title="sideTabs ? tab.labelDisplay : undefined">
+          <span :title="sideTabs && tab.labelDisplay">
             {{ tab.labelDisplay }}
           </span>
           <span
