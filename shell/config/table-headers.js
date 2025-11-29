@@ -398,11 +398,7 @@ export const SECRET_PROJECT_SCOPED = {
   labelKey: 'tableHeaders.secret.project-scoped',
   tooltip:  'tableHeaders.secret.project-scoped-tooltip',
   value:    'clusterAndProjectLabel',
-  // Cannot _sort_ upstream secrets by if they are cluster scoped
-  // https://github.com/rancher/rancher/issues/51001
-  // metadata.labels[management.cattle.io/project-scoped-secret] - covers both cluster scoped AND clones
-  // metadata.annotations[management.cattle.io/project-scoped-secret-copy]
-  // sort:     [`metadata.labels[${ UI_PROJECT_SECRET }]`, `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]`],
+  sort:     'project.spec.displayName',
   search:   false,
 };
 
