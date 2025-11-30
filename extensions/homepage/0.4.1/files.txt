@@ -1,0 +1,5 @@
+plugin/homepage-0.4.1.umd.min.js
+plugin/homepage-0.4.1.umd.min.js.map
+plugin/img/rancher-home-animated.64368973.svg
+plugin/img/rancher-logo.59e948d8.svg
+plugin/package.json
