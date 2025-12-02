@@ -266,6 +266,7 @@ export const mutations = {
 
   reset(state) {
     for (const key in state.definitions) {
+      // eslint-disable-next-line no-console
       console.log('HERE BE DRAGONS', { key });
       if ( state.definitions[key]?.asCookie ) {
         continue;
