@@ -1,0 +1,19 @@
+{
+  "name": "extensions-api-demo",
+  "description": "Extensions Api demo extension",
+  "version": "0.2.2",
+  "private": false,
+  "rancher": true,
+  "engines": {
+    "node": ">=12"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/cli-plugin-typescript": "~5.0.0"
+  },
+  "files": [
+    "**/*"
+  ],
+  "main": "extensions-api-demo-0.2.2.umd.min.js"
+}

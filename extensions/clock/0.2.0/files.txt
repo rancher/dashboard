@@ -1,0 +1,3 @@
+plugin/clock-0.2.0.umd.min.js
+plugin/clock-0.2.0.umd.min.js.map
+plugin/package.json
