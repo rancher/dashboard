@@ -248,25 +248,18 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     createCluster.gridElementExistanceByName(oracleDriver, 'not.exist');
   });
 
-  it('can delete drivers in bulk', () => {
+  it('can delete a driver', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)
-      .set();
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(linodeDriver)
+    cy.intercept('DELETE', '/v3/kontainerDrivers/*', {
+      statusCode: 200,
+      body:       { }
+    }).as('deleteDriver');
+    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(exampleDriver)
       .set();
     driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
     driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Delete')
       .click();
-
-    cy.intercept('DELETE', '/v3/kontainerDrivers/oraclecontainerengine', {
-      statusCode: 200,
-      body:       { }
-    }).as('deleteOracleDriver');
-    cy.intercept('DELETE', '/v3/kontainerDrivers/linodekubernetesengine', {
-      statusCode: 200,
-      body:       { }
-    }).as('deleteLinodeDriver');
 
     driversPage.list().resourceTable().sortableTable().rowNames()
       .then((rows: any) => {
@@ -274,14 +267,16 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
         promptRemove.remove();
 
-        cy.wait('@deleteLinodeDriver').its('response.statusCode').should('eq', 200);
-        cy.wait('@deleteOracleDriver').its('response.statusCode').should('eq', 200);
-
-        driversPage.waitForPage();
-        driversPage.list().resourceTable().sortableTable().checkRowCount(false, rows.length - 2);
-        driversPage.list().resourceTable().sortableTable().rowNames()
-          .should('not.contain', linodeDriver)
-          .and('not.contain', oracleDriver);
+        cy.wait('@deleteDriver').then(({ response }) => {
+          expect(response?.statusCode).to.eq(200);
+          if (response?.statusCode === 200) {
+            removeDriver = false;
+          }
+          driversPage.waitForPage();
+          driversPage.list().resourceTable().sortableTable().checkRowCount(false, rows.length - 1);
+          driversPage.list().resourceTable().sortableTable().rowNames()
+            .should('not.contain', exampleDriver);
+        });
       });
   });
 

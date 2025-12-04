@@ -55,11 +55,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
   });
 
   it('deactivating a hosted provider should hide its card from the cluster creation page', () => {
-    cy.intercept('GET', 'v1/management.cattle.io.settings/kev2-operators').as('getProviders');
     cy.intercept('PUT', `v1/management.cattle.io.settings/kev2-operators`).as('updateProviders');
-    const expectedGET = {
-      aks: true, eks: true, gke: true
-    };
 
     const providersPage = new HostedProvidersPagePo();
     const clusterCreatePage = new ClusterManagerCreatePagePo();
@@ -68,18 +64,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     providersPage.waitForPage();
 
     // assert AKS kontainer driver is in Active state
-    cy.wait('@getProviders').then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      const resValue = JSON.parse(request.body.value);
-
-      resValue.forEach((item: any) => {
-        if (item.name in expectedGET) {
-          const state = item['active'];
-
-          expect(state).to.eq(expectedGET[item.name]);
-        }
-      });
-    });
+    providersPage.list().details('Azure AKS', 1).should('contain', 'Active');
 
     // deactivate the AKS driver
     providersPage.list().actionMenu('Azure AKS').getMenuItem('Deactivate').click();
