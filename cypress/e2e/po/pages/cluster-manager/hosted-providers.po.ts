@@ -3,7 +3,7 @@ import HostedProvidersListPo from '@/cypress/e2e/po/lists/hosted-providers-list.
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 /**
- * List page for kontainerDriver resources
+ * List page for hostedprovider resources
  */
 export default class HostedProvidersPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -25,23 +25,6 @@ export default class HostedProvidersPagePo extends PagePo {
     sideNav.navToSideMenuGroupByLabel('Providers');
     sideNav.navToSideMenuEntryByLabel('Hosted Providers');
   }
-
-  // goToDriverListAndGetDriverDetails(driverName: string): Cypress.Chainable<{ id: string }> {
-  //   let driverDetails = [];
-
-  //   cy.intercept({
-  //     method: 'GET',
-  //     path:   '/v3/kontainerDrivers/',
-  //   }, (req) => {
-  //     req.continue((res) => {
-  //       driverDetails = res.body.data;
-  //     });
-  //   }).as('request');
-
-  //   super.goTo();
-
-  //   return cy.wait('@request', { timeout: 10000 }).then(() => driverDetails.filter((c) => c.name === driverName)[0]);
-  // }
 
   title() {
     return cy.contains('.title > h1', 'Hosted Providers');
