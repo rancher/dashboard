@@ -5,7 +5,7 @@ import DeactivateDriverDialogPo from '@/cypress/e2e/po/prompts/deactivateDriverD
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+// import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
   const driversPage = new KontainerDriversPagePo();
@@ -15,39 +15,16 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
   // see https://github.com/rancher-plugins/kontainer-engine-driver-example/releases for list of example drivers
   const downloadUrl = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy1-linux-amd64'; // description can be used as name to find correct element
-  const downloadUrlBulk1 = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.2/kontainer-engine-driver-example-copy1-linux-amd64'; // description can be used as name to find correct element
-  const downloadUrlBulk2 = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.1/kontainer-engine-driver-example-copy1-linux-amd64'; // description can be used as name to find correct element
   const downloadUrlUpdated = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy2-linux-amd64';
   let removeDriver = false;
   let driverId = '';
-  let driverBulk1Id = '';
-  let driverBulk2Id = '';
   const oracleDriver = 'Oracle OKE';
   const openTelekomDriver = 'Open Telekom Cloud CCE';
   const linodeDriver = 'Linode LKE';
   const exampleDriver = 'Example';
-  const toRemove = [];
 
   before(() => {
     cy.login();
-
-    cy.createRancherResource('v3', 'kontainerdrivers', {
-      type:   'kontainerDriver',
-      active: true,
-      url:    downloadUrlBulk1
-    }).then((resp) => {
-      driverBulk1Id = resp?.body.id;
-      toRemove.push(resp?.body.id);
-    });
-
-    cy.createRancherResource('v3', 'kontainerdrivers', {
-      type:   'kontainerDriver',
-      active: true,
-      url:    downloadUrlBulk2
-    }).then((resp) => {
-      driverBulk2Id = resp?.body.id;
-      toRemove.push(resp?.body.id);
-    });
   });
 
   it('should show the cluster drivers list page', () => {
@@ -86,7 +63,6 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     cy.wait('@createRequest').then(({ request, response }) => {
       removeDriver = true;
-      toRemove.push(response?.body.id);
       expect(response?.statusCode).to.eq(201);
       expect(isMatch(request.body, requestData)).to.equal(true);
       driverId = response?.body.id;
@@ -252,14 +228,14 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Deactivate')
       .click();
 
-    cy.intercept('POST', '/v3/kontainerDrivers/opentelekomcloudcontainerengine?action=deactivate').as('deactivateAmazonDriver');
-    cy.intercept('POST', '/v3/kontainerDrivers/oraclecontainerengine?action=deactivate').as('deactivateAzureDriver');
+    cy.intercept('POST', '/v3/kontainerDrivers/opentelekomcloudcontainerengine?action=deactivate' ).as('deactivateTelecomDriver');
+    cy.intercept('POST', '/v3/kontainerDrivers/oraclecontainerengine?action=deactivate').as('deactivateOracleDriver');
 
     const deactivateDialog = new DeactivateDriverDialogPo();
 
     deactivateDialog.deactivate();
-    cy.wait('@deactivateAmazonDriver').its('response.statusCode').should('eq', 200);
-    cy.wait('@deactivateAzureDriver').its('response.statusCode').should('eq', 200);
+    cy.wait('@deactivateTelecomDriver').its('response.statusCode').should('eq', 200);
+    cy.wait('@deactivateOracleDriver').its('response.statusCode').should('eq', 200);
     driversPage.list().details(openTelekomDriver, 1).should('contain', 'Inactive');
     driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
 
@@ -283,8 +259,14 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Delete')
       .click();
 
-    cy.intercept('DELETE', '/v3/kontainerDrivers/oraclecontainerengine').as('deleteOracleDriver');
-    cy.intercept('DELETE', '/v3/kontainerDrivers/linodekubernetesengine').as('deleteLinodeDriver');
+    cy.intercept('DELETE', '/v3/kontainerDrivers/oraclecontainerengine', {
+      statusCode: 200,
+      body:       { }
+    }).as('deleteOracleDriver');
+    cy.intercept('DELETE', '/v3/kontainerDrivers/linodekubernetesengine', {
+      statusCode: 200,
+      body:       { }
+    }).as('deleteLinodeDriver');
 
     driversPage.list().resourceTable().sortableTable().rowNames()
       .then((rows: any) => {
@@ -304,11 +286,8 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   });
 
   after(() => {
-    // if (removeDriver) {
-    //   cy.deleteRancherResource('v3', 'kontainerDrivers', driverId);
-    // }
-    toRemove.forEach((id) => {
-      cy.deleteRancherResource('v3', 'kontainerdrivers', id);
-    });
+    if (removeDriver) {
+      cy.deleteRancherResource('v3', 'kontainerDrivers', driverId);
+    }
   });
 });
