@@ -1,0 +1,15 @@
+annotations:
+  catalog.cattle.io/certified: rancher
+  catalog.cattle.io/kube-version: '>= 1.16.0'
+  catalog.cattle.io/namespace: cattle-ui-plugin-system
+  catalog.cattle.io/os: linux
+  catalog.cattle.io/permits-os: linux, windows
+  catalog.cattle.io/rancher-version: '>= 2.7.0 < 2.10.0'
+  catalog.cattle.io/scope: management
+  catalog.cattle.io/ui-component: plugins
+apiVersion: v2
+appVersion: 1.0.0
+description: Example node driver UI for Openstack
+name: openstack
+type: application
+version: 1.0.0

@@ -1,0 +1,5 @@
+plugin/package.json
+plugin/top-level-product-0.1.0.umd.min.1.js
+plugin/top-level-product-0.1.0.umd.min.1.js.map
+plugin/top-level-product-0.1.0.umd.min.js
+plugin/top-level-product-0.1.0.umd.min.js.map
