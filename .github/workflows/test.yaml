@@ -233,6 +233,11 @@ jobs:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
           path: coverage-artifacts/**/*
 
+      - name: Upload unit test junit file
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-unit-tests
+          path: unit-tests/*
   i18n:
     runs-on: ubuntu-latest
     steps:

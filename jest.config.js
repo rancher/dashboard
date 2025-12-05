@@ -62,6 +62,15 @@ module.exports = {
     '\\.d\\.ts'
   ],
 
+  reporters: [
+    'default',
+    ['jest-junit', {
+      outputDirectory: 'unit-tests',
+      outputName:      'unit-tests.xml'
+    }
+    ]
+  ],
+
   // Globals
   globals: { 'ts-jest': { isolatedModules: true } },
 };
