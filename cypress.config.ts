@@ -137,9 +137,9 @@ export default defineConfig({
       // this need to go after "cypress-terminal-report" always
       if (process.env.TEST_A11Y) {
         require('./cypress/support/plugins/accessibility').default(on, config);
+      } else {
+        require('cypress-mochawesome-reporter/plugin')(on);
       }
-
-      require('cypress-mochawesome-reporter/plugin')(on);
 
       return config;
     },

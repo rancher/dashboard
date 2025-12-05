@@ -148,9 +148,9 @@ jobs:
       - name: Create Artifacts Folder
         run: |
           mkdir artifacts
-          cp -r cypress/screenshots artifacts
-          cp -r cypress/videos artifacts
-          cp -r cypress/reports/* artifacts
+          cp -r cypress/screenshots artifacts 2>/dev/null || :
+          cp -r cypress/videos artifacts 2>/dev/null || :
+          cp -r cypress/reports/* artifacts || :
           cp ${{ env.E2E_RANCHER_LOG }} artifacts/rancher.logs 2>/dev/null || :
           cp browser-logs/out.html artifacts/browser-logs.html 2>/dev/null || :
 
