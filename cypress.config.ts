@@ -107,6 +107,12 @@ export default defineConfig({
     a11yFolder:          path.join('.', 'cypress', 'accessibility'),
     gkeServiceAccount:   process.env.GKE_SERVICE_ACCOUNT,
   },
+  reporter:        'cypress-mochawesome-reporter',
+  reporterOptions: {
+    saveJson:        true,
+    saveAllAttempts: false,
+    reportDir:       'cypress/reports'
+  },
   e2e: {
     fixturesFolder: 'cypress/e2e/blueprints',
     setupNodeEvents(on, config) {
@@ -131,6 +137,8 @@ export default defineConfig({
       // this need to go after "cypress-terminal-report" always
       if (process.env.TEST_A11Y) {
         require('./cypress/support/plugins/accessibility').default(on, config);
+      } else {
+        require('cypress-mochawesome-reporter/plugin')(on);
       }
 
       return config;
