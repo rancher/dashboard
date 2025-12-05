@@ -107,6 +107,12 @@ export default defineConfig({
     a11yFolder:          path.join('.', 'cypress', 'accessibility'),
     gkeServiceAccount:   process.env.GKE_SERVICE_ACCOUNT,
   },
+  reporter:        'cypress-mochawesome-reporter',
+  reporterOptions: {
+    saveJson:        true,
+    saveAllAttempts: false,
+    reportDir:       'cypress/reports'
+  },
   e2e: {
     fixturesFolder: 'cypress/e2e/blueprints',
     setupNodeEvents(on, config) {
@@ -132,6 +138,8 @@ export default defineConfig({
       if (process.env.TEST_A11Y) {
         require('./cypress/support/plugins/accessibility').default(on, config);
       }
+
+      require('cypress-mochawesome-reporter/plugin')(on);
 
       return config;
     },
