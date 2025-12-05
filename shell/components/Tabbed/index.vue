@@ -299,7 +299,7 @@ export default {
           @click.prevent="select(tab.name, $event)"
           @keyup.enter.space="select(tab.name, $event)"
         >
-          <span>
+          <span :title="sideTabs && tab.labelDisplay">
             {{ tab.labelDisplay }}
           </span>
           <span
@@ -535,6 +535,14 @@ export default {
 
       A {
         color: var(--link, var(--primary));
+
+        // Text truncation for long tab names in side-tabs mode
+        > span:first-child {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          display: block;
+        }
       }
 
       &.active {
