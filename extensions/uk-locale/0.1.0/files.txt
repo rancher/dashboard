@@ -1,0 +1,5 @@
+plugin/package.json
+plugin/uk-locale-0.1.0.umd.min.1.js
+plugin/uk-locale-0.1.0.umd.min.1.js.map
+plugin/uk-locale-0.1.0.umd.min.js
+plugin/uk-locale-0.1.0.umd.min.js.map
