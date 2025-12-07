@@ -1,0 +1,20 @@
+{
+  "name": "extension-crd",
+  "description": "Adds support for the Rancher Extensions CRD to Rancher Manager",
+  "version": "0.2.5",
+  "private": false,
+  "icon": "https://raw.githubusercontent.com/rancher/ui-plugin-examples/main/pkg/extension-crd/icon.svg",
+  "rancher": true,
+  "engines": {
+    "node": ">=12"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/cli-plugin-typescript": "~5.0.0"
+  },
+  "files": [
+    "**/*"
+  ],
+  "main": "extension-crd-0.2.5.umd.min.js"
+}
