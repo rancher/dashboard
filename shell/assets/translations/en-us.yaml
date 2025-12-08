@@ -2345,6 +2345,7 @@ cluster:
       placeholder: Search for a member to provide cluster access
       searchPlaceholder: Start typing to search
       noResults: No results found
+      minCharacters: Type at least {count} characters to search
   privateRegistry:
     header: Registry for Rancher System Container Images
     label: Enable cluster scoped container registry for Rancher system container images
