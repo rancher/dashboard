@@ -364,6 +364,7 @@ export const actions = {
             responseType: 'cookie',
             ...body
           },
+          redirectUnauthorized: false,
         },
         { root: true }
       );
