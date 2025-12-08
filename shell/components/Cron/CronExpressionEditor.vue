@@ -268,11 +268,7 @@ const handleBlur = (field: CronField) => {
 </template>
 
 <style scoped lang="scss">
-$input-max-width: 115px;
-
-.modal-body .cron-edit.custom-cron-editor {
-  max-width: 660px;
-}
+$input-max-width: 120px;
 
 .cron-row {
   display: flex;
