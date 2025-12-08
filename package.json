@@ -26,7 +26,7 @@
     "install:ci": "yarn install --frozen-lockfile",
     "dev": "bash -c 'source ./scripts/version && NODE_ENV=dev ./node_modules/.bin/vue-cli-service serve'",
     "mem-dev": "bash -c 'source ./scripts/version && NODE_ENV=dev node --max-old-space-size=8192 ./node_modules/.bin/vue-cli-service serve'",
-    "docker:local:start": "docker run -d --restart=unless-stopped -p 80:80 -p 443:443 -e CATTLE_BOOTSTRAP_PASSWORD=password -e CATTLE_PASSWORD_MIN_LENGTH=3 --name cypress --privileged rancher/rancher:v2.12-head",
+    "docker:local:start": "docker run -d --restart=unless-stopped -p 80:80 -p 443:443 -e CATTLE_BOOTSTRAP_PASSWORD=password -e CATTLE_PASSWORD_MIN_LENGTH=3 --name cypress --privileged stgregistry.suse.com/rancher/rancher:v2.12-head",
     "docker:local:stop": "docker kill cypress || true && docker rm cypress || true",
     "docker:local:logs": "docker logs cypress > $E2E_RANCHER_LOG 2>&1",
     "build": "NODE_OPTIONS=--max_old_space_size=4096 ./node_modules/.bin/vue-cli-service build",
