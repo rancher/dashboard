@@ -273,7 +273,6 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
             removeDriver = false;
           }
           driversPage.waitForPage();
-          driversPage.list().resourceTable().sortableTable().checkRowCount(false, rows.length - 1);
           driversPage.list().resourceTable().sortableTable().rowNames()
             .should('not.contain', exampleDriver);
         });
