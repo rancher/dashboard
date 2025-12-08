@@ -17,7 +17,7 @@ console.log('');
 
 const SCRIPT = process.argv[1];
 const DIR = path.resolve(SCRIPT, '../../..');
-const PARTITIONS = ['aws', 'aws-us-gov', 'aws-cn', 'aws-iso', 'aws-iso-b'];
+const PARTITIONS = ['aws', 'aws-us-gov', 'aws-cn', 'aws-iso', 'aws-iso-b', 'aws-iso-f'];
 const ENDPOINTS_URL = 'https://raw.githubusercontent.com/boto/botocore/develop/botocore/data/endpoints.json';
 const JS_FILE = path.resolve(DIR, 'shell/assets/data/aws-regions.json');
 
@@ -31,17 +31,18 @@ function readExisting() {
 }
 
 function writeRegionFile(latest) {
-  const str = JSON.stringify(latest.sort(), undefined, 2) + '\n';
+  const str = `${ JSON.stringify(latest.sort(), undefined, 2) }\n`;
 
   fs.writeFileSync(JS_FILE, str);
 }
 
 // List regions in a partition
 function listRegions(endpoints, partition, svc) {
-  const p = endpoints.partitions.find((p => p.partition === partition));
+  const p = endpoints.partitions.find((p) => p.partition === partition);
 
   if (!p) {
     console.error(`Can not find partition ${ partition }`);
+
     return;
   }
 
@@ -79,14 +80,14 @@ function checkService(endpoints, svc) {
 
   latest.forEach((r) => {
     if (!existingMap[r]) {
-      console.log('  + new region ' + r);
+      console.log(`  + new region ${ r }`);
       changes = true;
     }
   });
 
   existing.forEach((r) => {
     if (!latestMap[r]) {
-      console.log('  - removed region ' + r);
+      console.log(`  - removed region ${ r }`);
       changes = true;
     }
   });
@@ -120,7 +121,6 @@ axios.get(ENDPOINTS_URL).then((res) => {
 
     process.exit(3);
   }
-
 }).catch((e) => {
   console.error('Could not fetch endpoints data');
 
