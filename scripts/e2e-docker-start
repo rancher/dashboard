@@ -39,7 +39,7 @@ docker run -d --restart=unless-stopped -p 80:80 -p 443:443 ${VOLUME_ARGS} \
   -e CATTLE_TRACE=true \
   --name cypress \
   --privileged \
-  rancher/rancher:${RANCHER_IMG_VERSION} \
+  stgregistry.suse.com/rancher/rancher:${RANCHER_IMG_VERSION} \
   --features=oidc-provider=true
 
 docker ps
