@@ -15,11 +15,11 @@ export function setFavIcon(store) {
   if (link) {
     let brandImage;
 
-    if (brandSetting?.value === 'suse') {
+    if (brandSetting === 'suse') {
       brandImage = require('~shell/assets/brand/suse/favicon.png');
-    } else if (brandSetting?.value === 'csp') {
+    } else if (brandSetting === 'csp') {
       brandImage = require('~shell/assets/brand/csp/favicon.png');
-    } else if (brandSetting?.value === 'harvester') {
+    } else if (brandSetting === 'harvester') {
       brandImage = require('~shell/assets/brand/harvester/favicon.png');
     }
 
