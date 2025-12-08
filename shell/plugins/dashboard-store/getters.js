@@ -1,5 +1,6 @@
 
-import { SCHEMA, COUNT, POD } from '@shell/config/types';
+import { SCHEMA, COUNT, POD, MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 
 import { matches } from '@shell/utils/selector';
 import { typeMunge, typeRef, SIMPLE_TYPES } from '@shell/utils/create-yaml';
@@ -202,6 +203,17 @@ export default {
 
       return entry.map.get(id);
     }
+  },
+
+  brand: (_state, getters) => {
+    const brand = getters['all'](MANAGEMENT.SETTING)
+      ?.find((setting) => setting.id === SETTING.BRAND);
+
+    if (['csp', 'federal', 'rgs'].includes(brand?.value)) {
+      return 'suse';
+    }
+
+    return brand?.value;
   },
 
   /**
