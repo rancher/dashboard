@@ -1,5 +1,7 @@
 
-import { SCHEMA, COUNT, POD, MANAGEMENT } from '@shell/config/types';
+import {
+  SCHEMA, COUNT, POD, MANAGEMENT, BRAND
+} from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 
 import { matches } from '@shell/utils/selector';
@@ -209,8 +211,8 @@ export default {
     const brand = getters['all'](MANAGEMENT.SETTING)
       ?.find((setting) => setting.id === SETTING.BRAND);
 
-    if (['csp', 'federal', 'rgs'].includes(brand?.value)) {
-      return 'suse';
+    if ([BRAND.CSP, BRAND.FEDERAL, BRAND.RGS].includes(brand?.value)) {
+      return BRAND.SUSE;
     }
 
     return brand?.value;
