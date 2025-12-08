@@ -38,6 +38,12 @@ export default {
   computed: {
     ...mapGetters({ theme: 'prefs/theme', brand: 'management/brand' }),
 
+    brandBase() {
+      const setting = this.managementSettings.filter((setting) => setting.id === SETTING.BRAND)[0] || {};
+
+      return setting.value;
+    },
+
     uiLogoLight() {
       const setting = this.managementSettings.filter((setting) => setting.id === SETTING.LOGO_LIGHT)[0] || {};
 
@@ -72,19 +78,30 @@ export default {
       }
     },
 
+    isDark() {
+      return this.theme === 'dark';
+    },
+
     pathToBrandedImage() {
       if (this.fileName === 'rancher-logo.svg' || this.supportCustomLogo) {
-        if (this.theme === 'dark' && this.uiLogoDark) {
+        if (this.isDark && this.uiLogoDark) {
           return this.uiLogoDark;
         }
 
         if (this.uiLogoLight) {
           return this.uiLogoLight;
         }
+
+        // csp, rgs, and federal map to SUSE, but have their own custom logos
+        if (this.brandBase !== this.brand) {
+          try {
+            return require(`~shell/assets/brand/${ this.brandBase }/${ this.isDark ? 'dark/' : '' }${ this.fileName }`);
+          } catch { }
+        }
       }
 
       if (this.fileName === 'banner.svg') {
-        if (this.theme === 'dark' && this.uiBannerDark) {
+        if (this.isDark && this.uiBannerDark) {
           return this.uiBannerDark;
         }
 
@@ -94,7 +111,7 @@ export default {
       }
 
       if (this.fileName === 'login-landscape.svg') {
-        if (this.theme === 'dark' && this.uiLoginBackgroundDark) {
+        if (this.isDark && this.uiLoginBackgroundDark) {
           return this.uiLoginBackgroundDark;
         }
 
@@ -106,7 +123,7 @@ export default {
       if (!this.brand) {
         return this.defaultPathToBrandedImage;
       } else {
-        if (this.theme === 'dark' || this.dark) {
+        if (this.isDark || this.dark) {
           try {
             return require(`~shell/assets/brand/${ this.brand }/dark/${ this.fileName }`);
           } catch {}
