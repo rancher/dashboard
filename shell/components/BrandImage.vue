@@ -36,13 +36,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters({ theme: 'prefs/theme' }),
-
-    brand() {
-      const setting = this.managementSettings.filter((setting) => setting.id === SETTING.BRAND)[0] || {};
-
-      return setting.value;
-    },
+    ...mapGetters({ theme: 'prefs/theme', brand: 'management/brand' }),
 
     uiLogoLight() {
       const setting = this.managementSettings.filter((setting) => setting.id === SETTING.LOGO_LIGHT)[0] || {};

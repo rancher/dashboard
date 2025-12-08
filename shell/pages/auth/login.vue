@@ -137,9 +137,7 @@ export default {
     },
 
     customizations() {
-      const globalSettings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
-      const setting = globalSettings?.find((gs) => gs.id === SETTING.BRAND);
-      const brandMeta = getBrandMeta(setting?.value);
+      const brandMeta = getBrandMeta(this.$store.getters['management/brand']);
       const login = brandMeta?.login || {};
 
       return {

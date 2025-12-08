@@ -9,7 +9,7 @@ export function haveSetFavIcon() {
 
 export function setFavIcon(store) {
   const res = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FAVICON);
-  const brandSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BRAND);
+  const brandSetting = store.getters['management/brand'];
   const link = findIconLink(document.head.getElementsByTagName('link'));
 
   if (link) {
