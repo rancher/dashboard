@@ -148,7 +148,7 @@ describe('eKS Node Groups: create', () => {
     expect(gpuInput.vm.disabled).toBe(true);
   });
 
-  it('should disable the instance types dropdown when spot instances are enabled', async() => {
+  it('should replace the instance types dropdown with spot instances dropdown when spot instances is enabled', async() => {
     const setup = requiredSetup();
 
     const wrapper = shallowMount(NodeGroup, {
@@ -162,14 +162,16 @@ describe('eKS Node Groups: create', () => {
 
     wrapper.setProps({ requestSpotInstances: true });
     await wrapper.vm.$nextTick();
-    const instanceType = wrapper.getComponent('[data-testid="eks-instance-type-dropdown"]');
+    const instanceType = wrapper.findComponent('[data-testid="eks-instance-type-dropdown"]');
 
-    expect(instanceType.vm.disabled).toBe(true);
+    expect(instanceType.exists()).toBe(false);
 
     wrapper.setProps({ requestSpotInstances: false });
     await wrapper.vm.$nextTick();
 
-    expect(instanceType.vm.disabled).toBe(false);
+    const instanceTypeAfterDisabledSpot = wrapper.getComponent('[data-testid="eks-instance-type-dropdown"]');
+
+    expect(instanceTypeAfterDisabledSpot.exists()).toBe(true);
   });
 
   it('should show a spot instances dropdown when spot instances are enabled', async() => {
@@ -551,5 +553,177 @@ describe('eks node groups: edit', () => {
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted('update:ec2SshKey')).toHaveLength(1);
+  });
+});
+
+describe('eks node groups: architecture', () => {
+  const instanceTypeOptions = [
+    {
+      kind: 'group',
+      name: 'test'
+    },
+    {
+      label:                  't3.medium',
+      value:                  't3.medium',
+      supportedArchitectures: ['x86_64']
+    },
+    {
+      label:                  't4g.medium',
+      value:                  't4g.medium',
+      supportedArchitectures: ['arm64']
+    }
+  ];
+
+  it('should filter instance types by architecture', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(NodeGroup, {
+      propsData: {
+        launchTemplate:         {},
+        region:                 'foo',
+        amazonCredentialSecret: 'bar',
+        instanceTypeOptions
+      },
+      ...setup
+    });
+
+    let instanceTypeDropdown = wrapper.findComponent('[data-testid="eks-instance-type-dropdown"]');
+
+    expect(instanceTypeDropdown.props().options).toHaveLength(3);
+
+    wrapper.setData({ architecture: 'arm64' });
+    await wrapper.vm.$nextTick();
+
+    instanceTypeDropdown = wrapper.findComponent('[data-testid="eks-instance-type-dropdown"]');
+
+    expect(instanceTypeDropdown.props().options).toHaveLength(2);
+    expect(instanceTypeDropdown.props().options[1].value).toBe('t4g.medium');
+  });
+
+  it('should update the instance type when the architecture changes', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(NodeGroup, {
+      propsData: {
+        launchTemplate:         {},
+        region:                 'foo',
+        amazonCredentialSecret: 'bar',
+        instanceTypeOptions
+      },
+      ...setup
+    });
+
+    wrapper.setData({ architecture: 'arm64' });
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:instanceType')?.[0]?.[0]).toBe('t4g.medium');
+  });
+
+  it('should clear selected spot instances when architecture changes', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(NodeGroup, {
+      propsData: {
+        launchTemplate:         {},
+        region:                 'foo',
+        amazonCredentialSecret: 'bar',
+        instanceTypeOptions,
+        requestSpotInstances:   true,
+        spotInstanceTypes:      ['t3.medium']
+      },
+      ...setup
+    });
+
+    wrapper.setData({ architecture: 'arm64' });
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:spotInstanceTypes')?.[0]?.[0]).toStrictEqual([]);
+  });
+
+  it('should not update instance type when architecture changes if a launch template is in use', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(NodeGroup, {
+      propsData: {
+        launchTemplate: {
+          id: 'lt-123123', name: 'test-template', version: 4
+        },
+        region:                 'foo',
+        amazonCredentialSecret: 'bar',
+        instanceTypeOptions
+      },
+      ...setup
+    });
+
+    wrapper.setData({ selectedLaunchTemplateInfo: describeLaunchTemplateVersionsResponseData });
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:instanceType')?.[0]?.[0]).toBe('t2.large');
+
+    wrapper.setData({ architecture: 'arm64' });
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:instanceType')).toHaveLength(1);
+  });
+
+  it('should not update instance type when architecture changes to "all"', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(NodeGroup, {
+      propsData: {
+        launchTemplate:         {},
+        region:                 'foo',
+        amazonCredentialSecret: 'bar',
+        instanceTypeOptions,
+        instanceType:           't3.medium'
+      },
+      ...setup
+    });
+
+    wrapper.setData({ architecture: 'arm64' });
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:instanceType')?.[0]?.[0]).toBe('t4g.medium');
+
+    wrapper.setProps({ instanceType: 't4g.medium' });
+    await wrapper.vm.$nextTick();
+
+    wrapper.setData({ architecture: 'all' });
+    await wrapper.vm.$nextTick();
+
+    const instanceTypeDropdown = wrapper.findComponent('[data-testid="eks-instance-type-dropdown"]');
+
+    expect(instanceTypeDropdown.props().value).toBe('t4g.medium');
+  });
+
+  it('should not clear selected spot instances when architecture changes to "all"', async() => {
+    const setup = requiredSetup();
+
+    const wrapper = shallowMount(NodeGroup, {
+      propsData: {
+        launchTemplate:         {},
+        region:                 'foo',
+        amazonCredentialSecret: 'bar',
+        instanceTypeOptions,
+        requestSpotInstances:   true,
+        spotInstanceTypes:      ['t3.medium']
+      },
+      ...setup
+    });
+
+    wrapper.setData({ architecture: 'arm64' });
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('update:spotInstanceTypes')?.[0]?.[0]).toStrictEqual([]);
+
+    wrapper.setProps({ spotInstanceTypes: ['t4g.medium'] });
+    await wrapper.vm.$nextTick();
+
+    wrapper.setData({ architecture: 'all' });
+    await wrapper.vm.$nextTick();
+
+    const spotInstanceTypeDropdown = wrapper.findComponent('[data-testid="eks-spot-instance-type-dropdown"]');
+
+    expect(spotInstanceTypeDropdown.props().value).toStrictEqual(['t4g.medium']);
   });
 });

@@ -4,7 +4,6 @@ import {
   CAPI, MANAGEMENT, METRIC, NORMAN, POD
 } from '@shell/config/types';
 import { parseSi } from '@shell/utils/units';
-import findLast from 'lodash/findLast';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { LOCAL } from '@shell/config/query-params';
@@ -16,7 +15,7 @@ export default class ClusterNode extends SteveModel {
     const cordon = {
       action:   'cordon',
       enabled:  !!normanAction.cordon,
-      icon:     'icon icon-fw icon-pause',
+      icon:     'icon icon-pause',
       label:    'Cordon',
       total:    1,
       bulkable: true
@@ -25,7 +24,7 @@ export default class ClusterNode extends SteveModel {
     const uncordon = {
       action:   'uncordon',
       enabled:  !!normanAction.uncordon,
-      icon:     'icon icon-fw icon-play',
+      icon:     'icon icon-play',
       label:    'Uncordon',
       total:    1,
       bulkable: true
@@ -34,7 +33,7 @@ export default class ClusterNode extends SteveModel {
     const drain = {
       action:     'drain',
       enabled:    !!normanAction.drain,
-      icon:       'icon icon-fw icon-dot-open',
+      icon:       'icon icon-dot-open',
       label:      this.t('drainNode.action'),
       bulkable:   true,
       bulkAction: 'drain'
@@ -43,7 +42,7 @@ export default class ClusterNode extends SteveModel {
     const stopDrain = {
       action:   'stopDrain',
       enabled:  !!normanAction.stopDrain,
-      icon:     'icon icon-fw icon-x',
+      icon:     'icon icon-x',
       label:    this.t('drainNode.actionStop'),
       bulkable: true,
     };
@@ -51,14 +50,14 @@ export default class ClusterNode extends SteveModel {
     const openSsh = {
       action:  'openSsh',
       enabled: !!this.provisionedMachine?.links?.shell,
-      icon:    'icon icon-fw icon-chevron-right',
+      icon:    'icon icon-chevron-right',
       label:   'SSH Shell',
     };
 
     const downloadKeys = {
       action:  'downloadKeys',
       enabled: !!this.provisionedMachine?.links?.sshkeys,
-      icon:    'icon icon-fw icon-download',
+      icon:    'icon icon-download',
       label:   this.t('node.actions.downloadSSHKey'),
     };
 
@@ -96,15 +95,23 @@ export default class ClusterNode extends SteveModel {
     return this.status?.addresses || [];
   }
 
+  get internalIps() {
+    return this.addresses.filter((address) => address.type === 'InternalIP').map((address) => address.address);
+  }
+
+  get externalIps() {
+    const annotationAddress = this.metadata.annotations[RKE.EXTERNAL_IP];
+    const statusAddresses = this.addresses.filter((address) => address.type === 'ExternalIP').map((address) => address.address);
+
+    return statusAddresses.concat(annotationAddress || []);
+  }
+
   get internalIp() {
-    return findLast(this.addresses, (address) => address.type === 'InternalIP')?.address;
+    return this.internalIps[0];
   }
 
   get externalIp() {
-    const annotationAddress = this.metadata.annotations[RKE.EXTERNAL_IP];
-    const statusAddress = findLast(this.addresses, (address) => address.type === 'ExternalIP')?.address;
-
-    return statusAddress || annotationAddress;
+    return this.externalIps[0];
   }
 
   get labels() {
@@ -227,7 +234,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get podCapacity() {
-    return Number.parseInt(this.status.capacity?.pods);
+    return parseSi(this.status.capacity?.pods);
   }
 
   get podConsumed() {

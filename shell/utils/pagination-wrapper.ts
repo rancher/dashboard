@@ -2,10 +2,9 @@ import paginationUtils from '@shell/utils/pagination-utils';
 import { PaginationArgs, PaginationResourceContext } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
 import { ActionFindPageArgs, ActionFindPageTransientResult } from '@shell/types/store/dashboard-store.types';
-import {
-  STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_UNWATCH_EVENT_PARAMS, STEVE_WATCH_EVENT, STEVE_WATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_PARAMS_COMMON, STEVE_WATCH_MODE
-} from '@shell/types/store/subscribe.types';
+import { STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import { Reactive, reactive } from 'vue';
+import { STEVE_UNWATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_WATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_PARAMS_COMMON } from '@shell/types/store/subscribe-events.types';
 
 interface Args {
   $store: VuexStore,
@@ -20,7 +19,7 @@ interface Args {
   /**
    * Callback called when the resource is changed (notified by socket)
    */
-  onChange?: () => void,
+  onChange?: STEVE_WATCH_EVENT_LISTENER_CALLBACK,
 
   formatResponse?: {
     /**
@@ -70,16 +69,16 @@ class PaginationWrapper<T extends object> {
     this.classify = formatResponse?.classify || false;
     this.reactive = formatResponse?.reactive || false;
 
-    this.isEnabled = paginationUtils.isEnabled({ rootGetters: $store.getters }, enabledFor);
+    this.isEnabled = paginationUtils.isEnabled({ rootGetters: $store.getters, $plugin: this.$store.$plugin }, enabledFor);
   }
 
-  async request(args: {
-      pagination: PaginationArgs,
+  async request({ pagination, forceWatch }: {
+    forceWatch?: boolean,
+    pagination: PaginationArgs,
   }): Promise<Result<T>> {
     if (!this.isEnabled) {
       throw new Error(`Wrapper for type '${ this.enabledFor.store }/${ this.enabledFor.resource?.id }' in context '${ this.enabledFor.resource?.context }' not supported`);
     }
-    const { pagination } = args;
     const opt: ActionFindPageArgs = {
       watch:     false,
       pagination,
@@ -90,14 +89,18 @@ class PaginationWrapper<T extends object> {
     const out: ActionFindPageTransientResult<T> = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
 
     // Watch
-    if (this.onChange && !this.steveWatchParams) {
+    const firstTime = !this.steveWatchParams;
+
+    if (this.onChange && (firstTime || forceWatch) ) { // && !this.steveWatchParams
       this.steveWatchParams = {
-        event:  STEVE_WATCH_EVENT.CHANGES,
+        event:  STEVE_WATCH_EVENT_TYPES.CHANGES,
         id:     this.id,
         params: {
-          type: this.enabledFor.resource?.id as string,
-          mode: STEVE_WATCH_MODE.RESOURCE_CHANGES,
-        }
+          type:  this.enabledFor.resource?.id as string,
+          mode:  STEVE_WATCH_MODE.RESOURCE_CHANGES,
+          force: forceWatch,
+        },
+
       };
 
       this.watch();
@@ -126,7 +129,7 @@ class PaginationWrapper<T extends object> {
     }
     const watchParams: STEVE_WATCH_EVENT_PARAMS = {
       ...this.steveWatchParams,
-      callback: this.onChange as STEVE_WATCH_EVENT_LISTENER_CALLBACK, // we must have it by now
+      callback: this.onChange as STEVE_WATCH_EVENT_LISTENER_CALLBACK, // we must have onChange by now
     };
 
     await this.$store.dispatch(`${ this.enabledFor.store }/watchEvent`, watchParams);
@@ -134,8 +137,7 @@ class PaginationWrapper<T extends object> {
 
   private async unWatch() {
     if (!this.steveWatchParams) {
-      console.error('Calling unWatch but no watch params created'); // eslint-disable-line no-console
-
+      // We're unwatching before we've made the initial request
       return;
     }
 

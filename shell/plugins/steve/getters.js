@@ -154,9 +154,15 @@ export default {
         opt.excludeFields = Array.isArray(opt?.omitExcludeFields) ? excludeFields.filter((f) => !f.includes(opt.omitExcludeFields)) : excludeFields;
       }
 
-      const excludeParamsString = opt.excludeFields.map((field) => `exclude=${ field }`).join('&');
+      if (opt.excludeFields.length) {
+        const excludeParamsString = opt.excludeFields.map((field) => `exclude=${ field }`).join('&');
 
-      url += `${ url.includes('?') ? '&' : '?' }${ excludeParamsString }`;
+        url += `${ url.includes('?') ? '&' : '?' }${ excludeParamsString }`;
+      }
+
+      if (opt.revision) {
+        url += `${ url.includes('?') ? '&' : '?' }${ `revision=${ opt.revision }` }`;
+      }
     }
     // End: Exclude
 

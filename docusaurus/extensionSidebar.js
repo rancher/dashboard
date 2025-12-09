@@ -35,6 +35,11 @@ const sidebars = {
                 'performance/scaling/overview',
                 {
                   type:  'doc',
+                  id:    'performance/scaling/global-config',
+                  label: 'Update Global Config',
+                },
+                {
+                  type:  'doc',
                   id:    'performance/scaling/lists',
                   label: 'Update Lists',
                 },
@@ -70,6 +75,7 @@ const sidebars = {
                 'api/nav/resource-page',
                 'api/nav/side-menu',
                 'api/nav/routing',
+                'api/nav/templates',
               ]
             },
             'api/actions',
@@ -86,7 +92,23 @@ const sidebars = {
               },
               items: [
                 'api/components/resources',
-                'api/components/node-drivers',
+                {
+                  type:  'category',
+                  label: 'Custom Node Driver UI',
+                  link:  {
+                    type: 'doc',
+                    id:   'api/components/node-driver/overview',
+                  },
+                  items: [
+                    'api/components/node-driver/about-drivers',
+                    'api/components/node-driver/cloud-credential',
+                    'api/components/node-driver/machine-config',
+                    'api/components/node-driver/node-driver-icon',
+                    'api/components/node-driver/advanced',
+                    'api/components/node-driver/proxying',
+                    'api/components/node-driver/about-example'
+                  ]
+                },
                 'api/components/auto-import',
               ]
             },
@@ -97,6 +119,7 @@ const sidebars = {
           type:  'category',
           label: 'Advanced',
           items: [
+            'advanced/create-page-in-an-existing-product',
             'advanced/air-gapped-environments',
             // 'advanced/fix-annotations-published-extensions',
             'advanced/provisioning',
@@ -120,26 +143,9 @@ const sidebars = {
           items: [
             'usecases/top-level-product',
             'usecases/cluster-level-product',
-            {
-              type:  'category',
-              label: 'Node Driver',
-              link:  {
-                type: 'doc',
-                id:   'usecases/node-driver/overview',
-              },
-              items: [
-                'usecases/node-driver/about-drivers',
-                'usecases/node-driver/cloud-credential',
-                'usecases/node-driver/machine-config',
-                'usecases/node-driver/node-driver-icon',
-                'usecases/node-driver/advanced',
-                'usecases/node-driver/proxying',
-                'usecases/node-driver/about-example',
-              ]
-            }
+            'usecases/node-driver'
           ]
         },
-        'updating-extensions',
         'known-issues',
       ]
     },

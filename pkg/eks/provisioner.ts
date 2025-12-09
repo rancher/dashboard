@@ -1,11 +1,10 @@
 import { IClusterProvisioner, ClusterProvisionerContext } from '@shell/core/types';
 import CruEKS from './components/CruEKS.vue';
-import { mapDriver } from '@shell/store/plugins';
 import { Component } from 'vue';
-import { MANAGEMENT } from '@shell/config/types';
-
+import { isProviderEnabled } from '@shell/utils/settings';
+import { mapDriver } from '@shell/store/plugins';
 export class EKSProvisioner implements IClusterProvisioner {
-  static ID = 'amazoneks'
+  static ID = 'eks'
 
   constructor(private context: ClusterProvisionerContext) {
     mapDriver(this.id, 'aws' );
@@ -20,11 +19,15 @@ export class EKSProvisioner implements IClusterProvisioner {
   }
 
   get group(): string {
-    return 'kontainer';
+    return 'hosted';
   }
 
   get label(): string {
     return this.context.t('eks.label');
+  }
+
+  get description(): string {
+    return this.context.t('eks.description');
   }
 
   get component(): Component {
@@ -32,9 +35,7 @@ export class EKSProvisioner implements IClusterProvisioner {
   }
 
   get hidden(): boolean {
-    const kontainerDriver = this.context.getters['management/byId'](MANAGEMENT.KONTAINER_DRIVER, 'amazonelasticcontainerservice');
-
-    return !kontainerDriver?.spec?.active;
+    return !isProviderEnabled(this.context, this.id);
   }
 
   get detailTabs(): any {

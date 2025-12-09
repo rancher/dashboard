@@ -60,13 +60,13 @@ export default class CapiMachine extends SteveModel {
     const openSsh = {
       action:  'openSsh',
       enabled: !!this.links.shell && this.isRunning,
-      icon:    'icon icon-fw icon-chevron-right',
+      icon:    'icon icon-chevron-right',
       label:   'SSH Shell',
     };
     const downloadKeys = {
       action:  'downloadKeys',
       enabled: !!this.links.sshkeys,
-      icon:    'icon icon-fw icon-download',
+      icon:    'icon icon-download',
       label:   this.t('node.actions.downloadSSHKey'),
     };
     const forceRemove = {
@@ -80,7 +80,7 @@ export default class CapiMachine extends SteveModel {
       action:     'toggleScaleDownModal',
       bulkAction: 'toggleScaleDownModal',
       enabled:    !!this.canScaleDown,
-      icon:       'icon icon-minus icon-fw',
+      icon:       'icon icon-minus',
       label:      this.t('node.actions.scaleDown'),
       bulkable:   true
     };
@@ -244,29 +244,19 @@ export default class CapiMachine extends SteveModel {
     return this.status?.phase === 'Running';
   }
 
+  get internalIps() {
+    return this.status?.addresses?.filter(({ type }) => type === ADDRESSES.INTERNAL_IP).map((addr) => addr.address) || [];
+  }
+
+  get externalIps() {
+    return this.status?.addresses?.filter(({ type }) => type === ADDRESSES.EXTERNAL_IP).map((addr) => addr.address) || [];
+  }
+
   get internalIp() {
-    // This shows in the IP address column for RKE2 nodes in the
-    // list of nodes in the cluster detail page of Cluster Management.
-    const internal = this.status?.addresses?.find(({ type }) => {
-      return type === ADDRESSES.INTERNAL_IP;
-    })?.address;
-
-    if (internal) {
-      return internal;
-    }
-
-    return this.t('generic.none');
+    return this.internalIps[0];
   }
 
   get externalIp() {
-    const external = this.status?.addresses?.find(({ type }) => {
-      return type === ADDRESSES.EXTERNAL_IP;
-    })?.address;
-
-    if (external) {
-      return external;
-    }
-
-    return this.t('generic.none');
+    return this.externalIps[0];
   }
 }

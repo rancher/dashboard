@@ -61,7 +61,7 @@ export default {
     },
     inStore: {
       type:    String,
-      default: 'cluster',
+      default: undefined,
     }
   },
 
@@ -129,12 +129,23 @@ export default {
       }));
     },
 
+    validInStore() {
+      return this.inStore || this.$store.getters['currentStore']() || 'cluster';
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
 
     isKeyDisabled() {
       return !this.isView && (!this.name || this.name === NONE || this.disabled);
+    }
+  },
+
+  watch: {
+    namespace() {
+      // Namespace has changed, reset the selections
+      this.$emit('update:value', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: undefined, [this.keyKey]: '' } } });
     }
   },
 
@@ -208,17 +219,19 @@ export default {
     <div class="input-container">
       <!-- key by namespace to ensure label select current page is recreated on ns change -->
       <ResourceLabeledSelect
+        :key="namespace"
         v-model:value="name"
         :disabled="!isView && disabled"
         :label="secretNameLabel"
         :mode="mode"
         :resource-type="SECRET"
-        :in-store="inStore"
+        :in-store="validInStore"
         :paginated-resource-settings="paginateSecretsSetting"
         :all-resources-settings="allSecretsSettings"
       />
       <LabeledSelect
         v-if="showKeySelector"
+        :key="namespace"
         v-model:value="key"
         class="col span-6"
         :disabled="isKeyDisabled"

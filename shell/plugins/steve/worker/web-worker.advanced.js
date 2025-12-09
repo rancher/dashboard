@@ -3,6 +3,8 @@
  * relocates cluster resource sockets off the UI thread and into a webworker
  */
 
+// Status of this is TBD - https://github.com/rancher/dashboard/issues/15111
+
 import { SCHEMA, COUNT } from '@shell/config/types';
 import ResourceWatcher, { watchKeyFromMessage } from '@shell/plugins/steve/resourceWatcher';
 import ResourceCache from '@shell/plugins/steve/caches/resourceCache';

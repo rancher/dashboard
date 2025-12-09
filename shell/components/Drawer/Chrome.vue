@@ -1,13 +1,9 @@
-<script lang="ts">
+<script setup lang="ts">
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import { computed } from 'vue';
-export interface Props {
-  ariaTarget: string;
-}
-</script>
+import { Props } from './types';
 
-<script setup lang="ts">
 const props = defineProps<Props>();
 const emit = defineEmits(['close']);
 
@@ -61,7 +57,6 @@ const ariaLabel = computed(() => i18n.t('component.drawer.chrome.ariaLabel.close
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 1000;
 
     display: flex;
     flex-direction: column;

@@ -194,7 +194,6 @@ nav:
     placeholder: 输入关键词，搜索资源
   header:
     setLoginPage: 设置为登录页面
-    restoreCards: 恢复隐藏的卡片
   userMenu:
     preferences: 偏好设置
     accountAndKeys: 账号 & API 密钥
@@ -4001,13 +4000,9 @@ podDisruptionBudget:
 
 inactivity:
   title: 会话即将过期
-  titleExpired: 会话已过期
   banner: 由于不活动，你的会话即将过期。任何未保存的更改都将丢失。
-  bannerExpired: 由于不活动，此选项卡中的会话已过期。
   content: 单击“恢复会话”来让选项卡中的会话保持活动状态，或在会话过期后刷新浏览器。
-  contentExpired: 要返回此页面，请单击下面的“刷新”或刷新浏览器。
   cta: 恢复会话
-  ctaExpired: 刷新
 
 # Rancher Extensions
 plugins:

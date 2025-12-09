@@ -10,14 +10,12 @@ import {
   NAME_UNLINKED,
 } from '@shell/config/table-headers';
 import { allHash } from 'utils/promise';
-import { Banner } from '@components/Banner';
 
 export default {
   components: {
     Loading,
     ResourceTable,
     Masthead,
-    Banner
   },
 
   async fetch() {
@@ -32,8 +30,6 @@ export default {
     const hash = await allHash(promises);
 
     this.allCredentials = hash.allCredentials;
-    // This can be optimized in future to to a quick fetch for those with annotation `"provisioning.cattle.io/driver": "harvester"`
-    this.hasHarvester = !!this.allCredentials.find((cc) => !!cc.harvestercredentialConfig);
   },
 
   data() {
@@ -41,6 +37,17 @@ export default {
       allCredentials: null,
       resource:       NORMAN.CLOUD_CREDENTIAL,
       schema:         this.$store.getters['rancher/schemaFor'](NORMAN.CLOUD_CREDENTIAL),
+      groupOptions:   [{
+        tooltipKey: 'resourceTable.groupBy.none',
+        icon:       'icon-list-flat',
+        value:      'none',
+      }, {
+        tooltipKey: 'manager.cloudCredentials.list.groupBy.provider',
+        hideColumn: 'provider',
+        icon:       'icon-folder',
+        value:      'providerDisplay',
+        field:      'providerDisplay',
+      }],
     };
   },
 
@@ -50,7 +57,7 @@ export default {
     },
 
     headers() {
-      const headers = [
+      return [
         ID_UNLINKED,
         NAME_UNLINKED,
         {
@@ -60,23 +67,16 @@ export default {
           sort:      'publicData',
           search:    'publicData',
           formatter: 'CloudCredPublicData',
+        }, {
+          name:     'provider',
+          labelKey: 'manager.cloudCredentials.list.headers.provider',
+          value:    'providerDisplay',
+          sort:     'providerDisplay',
+          search:   'providerDisplay',
         },
         DESCRIPTION,
+        AGE_NORMAN
       ];
-
-      if (this.hasHarvester) {
-        headers.push({
-          name:      'expiresDate',
-          labelKey:  'tableHeaders.expires',
-          value:     'expires',
-          sort:      'expiresForSort',
-          formatter: 'CloudCredExpired',
-        });
-      }
-
-      headers.push(AGE_NORMAN);
-
-      return headers;
     },
 
     createLocation() {
@@ -88,29 +88,6 @@ export default {
         },
       };
     },
-
-    expiredData() {
-      const counts = this.allCredentials.reduce((res, cc) => {
-        const expireData = cc.expireData;
-
-        if (expireData?.expiring) {
-          res.expiring++;
-        }
-        if (expireData?.expired) {
-          res.expired++;
-        }
-
-        return res;
-      }, {
-        expiring: 0,
-        expired:  0
-      });
-
-      return {
-        expiring: counts.expiring ? this.t('manager.cloudCredentials.banners.expiring', { count: counts.expiring }) : '',
-        expired:  counts.expired ? this.t('manager.cloudCredentials.banners.expired', { count: counts.expired }) : '',
-      };
-    }
   },
 
 };
@@ -125,24 +102,13 @@ export default {
       :create-location="createLocation"
       :type-display="t('manager.cloudCredentials.label')"
     />
-    <Banner
-      v-if="expiredData.expiring"
-      data-testid="cert-expiring-banner"
-      color="warning"
-      :label="expiredData.expiring"
-    />
-    <Banner
-      v-if="expiredData.expired"
-      color="error"
-      :label="expiredData.expired"
-    />
 
     <ResourceTable
       :schema="schema"
       :rows="rows"
       :headers="headers"
       :namespaced="false"
-      group-by="providerDisplay"
+      :group-options="groupOptions"
     >
       <template #cell:id="{row}">
         {{ row.id.replace('cattle-global-data:', '') }}
@@ -150,9 +116,3 @@ export default {
     </ResourceTable>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.banner {
-  margin: 0 0 10px 0
-}
-</style>

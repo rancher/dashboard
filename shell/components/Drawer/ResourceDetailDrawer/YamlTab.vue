@@ -1,18 +1,13 @@
-<script lang="ts">
+<script setup lang="ts">
 import { useI18n } from '@shell/composables/useI18n';
 import { _VIEW } from '@shell/config/query-params';
 import { useStore } from 'vuex';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import { useTemplateRef } from 'vue';
 import ResourceYaml from '@shell/components/ResourceYaml.vue';
+import { YamlProps } from '@shell/components/Drawer/ResourceDetailDrawer/types';
 
-export interface Props {
-  resource: any;
-  yaml: string;
-}
-</script>
-<script setup lang="ts">
-const props = defineProps<Props>();
+const props = defineProps<YamlProps>();
 const store = useStore();
 const i18n = useI18n(store);
 const yamlComponent: any = useTemplateRef('yaml');

@@ -1,5 +1,7 @@
 import { UI_PLUGINS_REPOS } from '@shell/config/uiplugins';
 
+export const HARVESTER_CATALOG_IMAGES = ['ui-plugin-catalog', 'ui-extension-harvester-ui-extension'];
+
 export const communityRepoRegexes = [
   /^https:\/\/github\.com\/.*\/harvester-ui-extension+/g,
   /^https:\/\/.*\.github\.io\/harvester-ui-extension+/g,

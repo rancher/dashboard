@@ -12,6 +12,9 @@ on:
       is_test:
         required: false
         type: string
+      create_pr:
+        required: false
+        type: string
       test_ext_repo:
         required: false
         type: string
@@ -43,7 +46,7 @@ jobs:
     steps:
       - if: inputs.is_test == 'true'
         name: Checkout (test flow)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: rancher/${{ inputs.test_ext_repo }}
           ref: ${{ inputs.test_ext_branch }}
@@ -51,7 +54,7 @@ jobs:
       
       - if: inputs.is_test != 'true'
         name: Checkout (normal flow)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -64,12 +67,12 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Setup Helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
         with:
           version: v3.8.0
 
       - name: Setup Nodejs with yarn caching
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           cache: yarn
           node-version-file: '.nvmrc'
@@ -103,7 +106,7 @@ jobs:
 
       - name: Upload charts artifact
         if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') || inputs.is_test == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: charts
           path: tmp
@@ -122,7 +125,7 @@ jobs:
       release-status: ${{ job.status }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: '${{ inputs.target_branch }}'
 
@@ -132,11 +135,44 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: charts
 
-      - name: Commit build
+      # this is if we want to create a PR instead of push directly to a branch
+      - if: inputs.create_pr == 'true'
+        name: Generate branch name based on date and time
+        run: echo "NOW=$(date +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_ENV
+
+      - if: inputs.create_pr == 'true'
+        name: Commit Changes and push to a branch
+        run: |
+          git checkout -b sync-${{ env.NOW }}
+          git add ./{assets,charts,extensions,index.yaml}
+          git commit -a -m "Merging extension ${{ inputs.tagged_release }} ${{ env.NOW }}"
+          git push origin sync-${{ env.NOW }}
+
+      - if: inputs.create_pr == 'true'
+        name: Create Pull Request
+        run: |
+          # Create the PR using the GitHub CLI
+          pr_number=$(gh pr create \
+            --title "Create PR for extension ${{ inputs.tagged_release }} merge: ${{ env.NOW }}" \
+            --body "This PR was automatically created by a GitHub Action." \
+            --base main \
+            --head sync-${{ env.NOW }} \
+            --fill \
+            --repo ${{ github.repository }} | awk '{print $NF}') # Get the PR URL and Extract the last element (the PR number)
+
+          # Check if pr_number is empty (creation failed)
+          if [ -z "$pr_number" ]; then
+            echo "Failed to create PR."
+            exit 1
+          fi
+      # end of PR creation
+
+      - if: inputs.create_pr != 'true'
+        name: Commit build
         run: |
           git add ./{assets,charts,extensions,index.yaml}
           git commit -a -m "${{ env.CI_COMMIT_MESSAGE }}"

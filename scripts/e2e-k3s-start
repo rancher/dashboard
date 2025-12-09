@@ -13,7 +13,7 @@ K3S_VERSION=v1.33.1+k3s1
 #   - RANCHER_HELM_REPO_URL=https://releases.rancher.com/server-charts/latest
 # - rancher-alpha will have alphas (--devel required)
 # - charts.optimus.rancher.io/server-charts/$RANCHER_RELEASE will have the latest and greatest chart
-RANCHER_RELEASE=release-2.12
+RANCHER_RELEASE=release-2.13
 RANCHER_HELM_REPO_URL=https://charts.optimus.rancher.io/server-charts/$RANCHER_RELEASE
 
 # rancher-latest --devel will have rc's and released versions. rancher-alpha will have alpha
@@ -87,7 +87,7 @@ helm install rancher $RANCHER_HELM_REPO_NAME/rancher \
   --namespace cattle-system \
   --devel \
   --set hostname=$DASHBOARD_URL \
-  --set replicas="3" \
+  --set replicas="1" \
   --set rancherImage="$RANCHER_IMG_REPO" \
   --set rancherImageTag="$RANCHER_IMG_TAG" \
   --set rancherImagePullPolicy="Always" \

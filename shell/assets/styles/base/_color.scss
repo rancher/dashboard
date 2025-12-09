@@ -3,9 +3,28 @@
 }
 
 .bg-disabled {
-  background-color: var(--disabled-bg) !important;
+  background-color: var(--disabled-bg);
 }
 
 .text-disabled {
-  color: var(--disabled-text) !important;
+  color: var(--disabled-text);
 }
+
+$blue001: #1F67DB;
+$blue002: #DFE6F2;
+$blue003: #297DB4;
+
+$green001: #007032;
+$green002: #DCE7E1;
+
+$yellow001: #FFE47A;
+$yellow002: #473900;
+
+$red001: #B13333;
+
+$gray001: #EDEFF3;
+$gray002: #DCDEE4;
+$gray003: #FFF;
+$gray004: #6C6C76;
+$gray005: #4A4B52;
+$gray006: #1b1c21;

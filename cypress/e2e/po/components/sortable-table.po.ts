@@ -20,8 +20,8 @@ export default class SortableTablePo extends ComponentPo {
   /**
    * Returns the link for resource details for a table row with a given name
    */
-  detailsPageLinkWithName(name: string) {
-    return this.rowElementWithName(name).find('td.col-link-detail a');
+  detailsPageLinkWithName(name: string, selector = 'td.col-link-detail a') {
+    return this.rowElementWithName(name).find(selector);
   }
 
   /**
@@ -95,11 +95,11 @@ export default class SortableTablePo extends ComponentPo {
    * @param searchText
    * @returns
    */
-  filter(searchText: string, checkQuery = false) {
+  filter(searchText: string, { checkQuery, delay }: { checkQuery?: boolean, delay?: number }) {
     const res = this.filterComponent()
       .focus()
       .clear()
-      .type(searchText);
+      .type(searchText, { delay });
 
     if (checkQuery) {
       cy.url().should('include', `q=${ searchText }`);
@@ -225,7 +225,20 @@ export default class SortableTablePo extends ComponentPo {
    */
   rowActionMenuOpen(name: string) {
     this.rowWithName(name).actionBtn()
-      .click();
+      .click().then((el) => {
+        expect(el).to.have.attr('aria-expanded', 'true');
+      });
+
+    return this.rowActionMenu();
+  }
+
+  rowActionMenuClose(name: string) {
+    this.rowWithName(name).actionBtn().then((el) => {
+      expect(el).to.have.attr('aria-expanded', 'true');
+    }).click()
+      .then((el) => {
+        expect(el).to.have.attr('aria-expanded', 'false');
+      });
 
     return this.rowActionMenu();
   }

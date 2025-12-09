@@ -272,10 +272,14 @@ export default {
 
     async loadPods() {
       try {
-        const hash = {
-          provClusters:     this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-          harvesterConfigs: this.$store.dispatch(`management/findAll`, { type: HCI.HARVESTER_CONFIG }),
-        };
+        const hash = {};
+
+        if (this.$store.getters[`management/canList`](CAPI.RANCHER_CLUSTER)) {
+          hash.provClusters = this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+        }
+        if (this.$store.getters[`management/canList`](HCI.HARVESTER_CONFIG)) {
+          hash.harvesterConfigs = this.$store.dispatch(`management/findAll`, { type: HCI.HARVESTER_CONFIG });
+        }
 
         await allHash(hash);
         this.updateMatchingPods();
@@ -347,6 +351,7 @@ export default {
     <Tabbed
       :side-tabs="true"
       :use-hash="useTabbedHash"
+      :default-tab="defaultTab"
     >
       <Tab
         v-if="checkTypeIs('ExternalName')"

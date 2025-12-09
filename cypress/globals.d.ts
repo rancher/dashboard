@@ -66,7 +66,6 @@ export interface CreateResourceNameOptions {
 }
 
 declare global {
-  // eslint-disable-next-line no-unused-vars
   namespace Cypress {
     interface Chainable {
       setupWebSocket: any;
@@ -95,6 +94,7 @@ declare global {
       createAmazonMachineConfig(instanceType: string, region: string, vpcId: string, zone: string, type: string, clusterName: string, namespace: string): Chainable;
       createAmazonRke2Cluster(params: CreateAmazonRke2ClusterParams): Chainable;
       createAmazonRke2ClusterWithoutMachineConfig(params: CreateAmazonRke2ClusterWithoutMachineConfigParams): Chainable;
+      getKubernetesReleases(rkeType: 'rke2' | 'k3s'): Chainable;
       createSecret(namespace: string, name: string, options?: { type?: string; metadata?: any; data?: any }): Chainable;
       createConfigMap(namespace: string, name: string, options?: { metadata?: any; data?: any }): Chainable;
       createService(namespace: string, name: string, options?: { type?: string; ports?: any[]; spec?: any; metadata?: any }): Chainable;
@@ -120,7 +120,10 @@ declare global {
       createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any, failOnStatusCode?: boolean): Chainable;
       waitForRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, testFn: (resp: any) => boolean, retries?: number, config?: {failOnStatusCode?: boolean}): Chainable;
       waitForRancherResources(prefix: 'v3' | 'v1', resourceType: string, expectedResourcesTotal: number, greaterThan?: boolean): Chainable;
+      waitForRepositoryDownload(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, retries?: number): Chainable;
+      waitForResourceState(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, resourceState?: string, retries?: number): Chainable;
       deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
+      getClusterIdByName(clusterName: string): Chainable<string>;
       deleteNodeTemplate(nodeTemplateId: string, timeout?: number, failOnStatusCode?: boolean)
       /**
        * Delete a namespace and wait for it to 404. Helpful when the ns contains many resources
@@ -139,6 +142,14 @@ declare global {
          */
         wait?: number
       })
+      /**
+       * Loop through the array and execute the process, pausing every 5 entries for wait amount
+       */
+      loopProcessWait<T = any>(args: {
+        iterables: T[],
+        process: ({ entry, iteration }: {entry: T, iteration: number}) => Chainable
+        wait?: number
+      }): Chainable;
 
       tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string)
       tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration?: number)

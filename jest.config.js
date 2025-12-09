@@ -34,6 +34,9 @@ module.exports = {
     '<rootDir>/node_modules/',
     '<rootDir>(/.*)*/__tests__/utils/',
   ],
+  transformIgnorePatterns: [
+    '/node_modules/(?!(color|color-string|color-convert|color-name)/)',
+  ],
 
   // Babel
   transform: {
@@ -48,12 +51,15 @@ module.exports = {
   // Coverage
   coverageProvider:    'v8',
   coverageDirectory:   '<rootDir>/coverage/unit',
-  coverageReporters:   ['json', 'text-summary'],
+  coverageReporters:   ['json', 'text-summary', 'html'],
   collectCoverage:     false,
   collectCoverageFrom: [
     '<rootDir>/shell/**/*.{vue,ts,js}',
     '<rootDir>/pkg/rancher-components/src/components/**/*.{vue,ts,js}',
     '!<rootDir>/shell/scripts/',
+  ],
+  coveragePathIgnorePatterns: [
+    '\\.d\\.ts'
   ],
 
   // Globals

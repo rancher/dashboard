@@ -1,13 +1,16 @@
 <script>
 import { NORMAN } from '@shell/config/types';
+import { isAdminUser } from '@shell/store/type-map';
 import ResourceTable from '@shell/components/ResourceTable';
 import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
 import Masthead from '@shell/components/ResourceList/Masthead';
+import Banner from '@components/Banner/Banner.vue';
+
 export default {
   name:       'KontainerDrivers',
   components: {
-    ResourceTable, Loading, Masthead, AsyncButton
+    ResourceTable, Loading, Masthead, AsyncButton, Banner
   },
 
   async fetch() {
@@ -21,7 +24,8 @@ export default {
       resource:                         NORMAN.KONTAINER_DRIVER,
       schema:                           this.$store.getters['rancher/schemaFor'](NORMAN.KONTAINER_DRIVER),
       useQueryParamsForSimpleFiltering: false,
-      forceUpdateLiveAndDelayed:        10
+      forceUpdateLiveAndDelayed:        10,
+      showDeprecationBanner:            isAdminUser(this.$store.getters),
     };
   },
   computed: {
@@ -69,6 +73,12 @@ export default {
         />
       </template>
     </Masthead>
+    <Banner
+      v-if="showDeprecationBanner"
+      color="warning"
+      label-key="drivers.kontainer.emberDeprecationMessage"
+      data-testid="kontainer-driver-ember-deprecation-banner"
+    />
     <ResourceTable
       :schema="schema"
       :rows="rows"

@@ -79,7 +79,7 @@ export default {
     });
 
     try {
-      this.defaultConfigMap = await this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id: 'rancher-compliance-system/default-clusterscanprofiles' });
+      this.defaultConfigMap = await this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id: 'compliance-operator-system/default-clusterscanprofiles' });
     } catch {}
 
     this.allProfiles = hash.profiles;

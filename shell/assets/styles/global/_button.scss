@@ -64,7 +64,7 @@ button,
 }
 
 //btn roles
-.role-primary {
+BUTTON.role-primary, A.role-primary {
   background: var(--primary);
   color: var(--primary-text);
 
@@ -82,21 +82,28 @@ button,
     @include focus-outline;
     outline-offset: 2px;
   }
+
+  &.btn:disabled {
+    background: var(--primary);
+    color: var(--primary-text);
+    opacity: 0.5;
+  }
 }
 
-.role-secondary {
-  background: transparent;
-  color: var(--primary) !important;
-  border: solid 1px var(--primary);
+.btn.role-secondary {
+  background: var(--secondary, transparent);
+  color: var(--on-secondary, var(--primary));
+  border: solid 1px var(--secondary-border, var(--primary));
   line-height: $btn-height - 2px;
 
   &:hover, &._hover {
-    color: var(--lightest) !important;
+    background: var(--secondary-hover, transparent);
+    color: var(--on-secondary, var(--lightest));
   }
 
   &:focus, &.focused {
-    background-color: var(--primary-hover-bg);
-    color: var(--primary-text) !important;
+    background-color: var(--secondary-hover, var(--primary-hover-bg));
+    color: var(--on-secondary, var(--primary-text));
   }
 
   &.btn-sm {
@@ -114,13 +121,18 @@ button,
 }
 
 .role-tertiary {
-  background: var(--accent-btn);
-  border: solid 1px var(--primary);
-  color: var(--primary);
+  background: var(--tertiary, var(--accent-btn));
+  color: var(--on-tertiary, var(--primary));
+  border: solid 1px var(--tertiary-border, var(--primary));
+
+  &:hover {
+    background: var(--tertiary-hover, var(--accent-btn));
+    color: var(--on-tertiary-hover, var(--lightest));
+  }
 
   &:focus, &.focused {
-    background-color: var(--primary-hover-bg);
-    color: var(--primary-text);
+    background-color: var(--tertiary-hover, var(--primary-hover-bg));
+    color: var(--on-tertiary, var(--primary-text));
   }
 
   &.btn:not(.btn-sm) {
@@ -165,15 +177,15 @@ button,
 }
 
 //disabled
-.btn-disabled,
+.btn.btn-disabled,
 .btn.disabled,
 .btn[disabled],
 fieldset[disabled] .btn {
   cursor: not-allowed;
-  color: var(--disabled-text) !important;
+  color: var(--disabled-text);
   &:not(.role-link){
-    background-color: var(--disabled-bg) !important;
-    border-color: var(--disabled-bg) !important;
+    background-color: var(--disabled-bg);
+    border-color: var(--disabled-bg);
   }
 }
 
@@ -212,6 +224,26 @@ fieldset[disabled] .btn {
     &:last-child {
       border-top-right-radius: var(--border-radius);
       border-bottom-right-radius: var(--border-radius);
+    }
+
+    &.bg-primary {
+      background: var(--toggle-on-bg, var(--primary));
+      color: var(--toggle-on-color, var(--primary-hover-text));
+  
+      &:hover {
+        background: var(--active-hover);
+        color: var(--toggle-on-color, var(--primary-hover-text));
+      }
+    }
+  
+    &.bg-disabled {
+      background: var(--toggle-off-bg, var(--disabled-bg)); 
+      color: var(--toggle-off-color, var(--body-text));
+  
+      &:hover {
+        background: var(--toggle-off-hover, var(--disabled-bg));
+        color: var(--toggle-off-color, var(--disabled-hover-text));
+      }
     }
   }
 

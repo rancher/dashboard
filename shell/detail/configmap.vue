@@ -1,81 +1,39 @@
-<script>
-import ResourceTabs from '@shell/components/form/ResourceTabs';
-import DetailText from '@shell/components/DetailText';
-import Tab from '@shell/components/Tabbed/Tab';
-import { base64Decode } from '@shell/utils/crypto';
+<script setup lang="ts">
+import DetailPage from '@shell/components/Resource/Detail/Page.vue';
+import { CONFIG_MAP } from '@shell/config/types';
+import ResourceTabs from '@shell/components/form/ResourceTabs/index.vue';
+import ConfigMapDataTab from '@shell/components/Resource/Detail/ResourceTabs/ConfigMapDataTab/index.vue';
+import { useGetConfigMapDataTabProps } from '@shell/components/Resource/Detail/ResourceTabs/ConfigMapDataTab/composables';
+import { useStore } from 'vuex';
+import { computed } from 'vue';
+import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
+import { useDefaultMastheadProps } from '@shell/components/Resource/Detail/Masthead/composable';
 
-export default {
-  emits: ['input'],
+const store = useStore();
+const props = defineProps<{
+  value: any;
+}>();
 
-  components: {
-    ResourceTabs,
-    DetailText,
-    Tab,
-  },
-
-  props: {
-    value: {
-      type:    Object,
-      default: () => {
-        return {};
-      }
-    }
-  },
-
-  computed: {
-    parsedRows() {
-      const rows = [];
-      const { data = {}, binaryData = {} } = this.value;
-
-      Object.keys(data).forEach((key) => {
-        rows.push({
-          key,
-          value:  data[key],
-          binary: false
-        });
-      });
-
-      // we define the binary as false so that the ui doesn't display the size of the binary instead of the actual data...
-      Object.keys(binaryData).forEach((key) => {
-        rows.push({
-          key,
-          value:  base64Decode(binaryData[key]),
-          binary: false
-        });
-      });
-
-      return rows;
-    },
-  },
-};
+const configmap = props.value;
+const schema = computed(() => store.getters['cluster/schemaFor'](CONFIG_MAP));
+const defaultMastheadProps = useDefaultMastheadProps(configmap);
+const configMapDataTabProps = useGetConfigMapDataTabProps(configmap);
 </script>
 
 <template>
-  <ResourceTabs
-    :value="value"
-    @update:value="$emit('input', $event)"
-  >
-    <Tab
-      name="data"
-      label-key="secret.data"
-    >
-      <div
-        v-for="(row,idx) in parsedRows"
-        :key="idx"
-        class="mb-20"
+  <DetailPage>
+    <template #top-area>
+      <Masthead v-bind="defaultMastheadProps" />
+    </template>
+    <template #bottom-area>
+      <ResourceTabs
+        :value="configmap"
+        :schema="schema"
       >
-        <DetailText
-          :value="row.value"
-          :label="row.key"
-          :binary="row.binary"
+        <ConfigMapDataTab
+          v-bind="configMapDataTabProps"
         />
-      </div>
-      <div v-if="!parsedRows.length">
-        <div
-          v-t="'sortableTable.noRows'"
-          class="m-20 text-center"
-        />
-      </div>
-    </Tab>
-  </ResourceTabs>
+      </ResourceTabs>
+    </template>
+  </DetailPage>
 </template>

@@ -237,10 +237,10 @@ export const getters = {
 
   version(state, getters) {
     return ({
-      repoType, repoName, chartName, versionName
+      repoType, repoName, chartName, versionName, showDeprecated
     }) => {
       const chart = getters['chart']({
-        repoType, repoName, chartName
+        repoType, repoName, chartName, showDeprecated
       });
 
       if ( !chart ) {
@@ -504,11 +504,16 @@ function addChart(ctx, map, chart, repo) {
 
   if ( !obj ) {
     if ( ctx ) { }
+
+    const primeOnly = chart.annotations?.[CATALOG_ANNOTATIONS.PRIME_ONLY] === 'true';
     const experimental = !!chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL];
     const windowsIncompatible = !(chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || '').includes('windows');
     const deploysOnWindows = (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows');
     const tags = [];
 
+    if (primeOnly) {
+      tags.push(ctx.rootGetters['i18n/withFallback']('generic.primeOnly'));
+    }
     if (experimental) {
       tags.push(ctx.rootGetters['i18n/withFallback']('generic.experimental'));
     }
@@ -539,8 +544,10 @@ function addChart(ctx, map, chart, repo) {
       featuredIndex:    chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED] ? Number(chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED]) : Number.MAX_SAFE_INTEGER,
       repoKey:          repo._key,
       versions:         [],
+      keywords:         chart.keywords || [],
       categories:       filterCategories(chart.keywords),
       deprecated:       !!chart.deprecated,
+      primeOnly,
       experimental,
       hidden:           !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
       targetNamespace:  chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
@@ -693,11 +700,15 @@ export function filterAndArrangeCharts(charts, {
     if ( searchQuery ) {
       // The search filter doesn't match
       const searchTokens = searchQuery.split(/\s*[, ]\s*/).map((x) => ensureRegex(x, false));
+      const chartDescription = c.chartDescription || '';
+      const keywords = c.keywords || [];
 
-      for ( const token of searchTokens ) {
-        const chartDescription = c.chartDescription || '';
+      for (const token of searchTokens) {
+        const nameMatch = c.chartNameDisplay.match(token);
+        const descMatch = chartDescription.match(token);
+        const keywordMatch = keywords.some((k) => k.match(token));
 
-        if ( !c.chartNameDisplay.match(token) && !chartDescription.match(token) ) {
+        if (!nameMatch && !descMatch && !keywordMatch) {
           return false;
         }
       }

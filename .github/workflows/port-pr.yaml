@@ -7,12 +7,32 @@ on:
 
 jobs:
   port-pr:
+    permissions:
+      pull-requests: write
+      contents: write
+      actions: write
+      id-token: write
     runs-on: ubuntu-latest
     if: (startsWith(github.event.comment.body, '/backport') || startsWith(github.event.comment.body, '/forwardport')) && github.event.issue.pull_request
     steps:
+      - name: Read secrets
+        uses: rancher-eio/read-vault-secrets@main
+        with:
+          secrets: |
+            secret/data/github/repo/${{ github.repository }}/github/app-credentials appId | APPID;
+            secret/data/github/repo/${{ github.repository }}/github/app-credentials privateKey | PRIVATEKEY
+
+      - name: Generate Token
+        id: generate-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ env.APPID }}
+          private-key: ${{ env.PRIVATEKEY }}
+
       - name: Check org membership
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APP_TOKEN: ${{ steps.generate-token.outputs.token }}
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
           if gh api orgs/${GITHUB_REPOSITORY_OWNER}/members --paginate | jq -e --arg GITHUB_ACTOR "$GITHUB_ACTOR" '.[] | select(.login == $GITHUB_ACTOR)' > /dev/null; then
               echo "${GITHUB_ACTOR} is a member"
@@ -21,10 +41,12 @@ jobs:
               echo "${GITHUB_ACTOR} is not a member" >> $GITHUB_STEP_SUMMARY
               echo "is_member=false" >> $GITHUB_ENV
           fi
+
       - name: Check milestone
         if: ${{ env.is_member == 'true' }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APP_TOKEN: ${{ steps.generate-token.outputs.token }}
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           ORIGINAL_ISSUE_NUMBER: ${{ github.event.issue.number }}
           COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
@@ -40,61 +62,101 @@ jobs:
               gh issue comment -R ${GITHUB_REPOSITORY} ${ORIGINAL_ISSUE_NUMBER} --body "Not creating port issue, milestone ${MILESTONE} does not exist or is not an open milestone"
               echo "milestone_exists=false" >> $GITHUB_ENV
            fi
+
       - name: Get target branch
         if: ${{ env.is_member == 'true' }} && ${{ env.milestone_exists == 'true' }}
         env:
+          APP_TOKEN: ${{ steps.generate-token.outputs.token }}
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           COMMENT_BODY: ${{ github.event.comment.body }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TYPE=$(echo "${COMMENT_BODY}" | awk '{ print $1 }' | sed -e 's_/__')
           echo "Type: ${TYPE}" >> $GITHUB_STEP_SUMMARY
           echo "type=${TYPE}" >> $GITHUB_ENV
           TARGET_BRANCH=$(echo "${COMMENT_BODY}" | awk '{ print $3 }')
-          echo "Target brach: ${TARGET_BRANCH}" >> $GITHUB_STEP_SUMMARY
+          echo "Target branch: ${TARGET_BRANCH}" >> $GITHUB_STEP_SUMMARY
           echo "target_branch=${TARGET_BRANCH}" >> $GITHUB_ENV
+          ISSUE_NUMBER=$(echo "${COMMENT_BODY}" | awk '{ print $4 }' | sed -e 's/#//')
+          echo "Issue number: ${ISSUE_NUMBER}" >> $GITHUB_STEP_SUMMARY
+          echo "issue_number=${ISSUE_NUMBER}" >> $GITHUB_ENV
           if gh api repos/${GITHUB_REPOSITORY}/branches --paginate | jq -e --arg TARGET_BRANCH "$TARGET_BRANCH" '.[] | select(.name == $TARGET_BRANCH)' > /dev/null; then
               echo "target_branch_exists=true" >> $GITHUB_ENV
           else
               echo "target_branch_exists=false" >> $GITHUB_ENV
           fi
+
       - name: Checkout
         if: ${{ env.is_member == 'true' }} && ${{ env.milestone_exists == 'true' }} && ${{ env.target_branch_exists == 'true' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ env.target_branch }}
           fetch-depth: '0'
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.generate-token.outputs.token }}
+
       - name: Port PR
         if: ${{ env.is_member == 'true' }} && ${{ env.milestone_exists == 'true' }} && ${{ env.target_branch_exists == 'true' }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APP_TOKEN: ${{ steps.generate-token.outputs.token }}
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           ORIGINAL_ISSUE_NUMBER: ${{ github.event.issue.number }}
           TYPE: ${{ env.type }}
           TARGET_BRANCH: ${{ env.target_branch }}
           MILESTONE: ${{ env.milestone }}
+          ISSUE_NUMBER: ${{ env.issue_number }}
         run: |
+          echo "Starting Port PR step..."
+          echo "Original Issue Number: ${ORIGINAL_ISSUE_NUMBER}"
+          echo "Type: ${TYPE}"
+          echo "Target Branch: ${TARGET_BRANCH}"
+          echo "Target Issue Number: ${ISSUE_NUMBER}"
+          echo "Milestone: ${MILESTONE}"
+
           PATCH_FILE=$(mktemp)
+          echo "Created temporary patch file: ${PATCH_FILE}"
           gh pr diff $ORIGINAL_ISSUE_NUMBER --patch > $PATCH_FILE
+          echo "Downloaded patch for PR ${ORIGINAL_ISSUE_NUMBER}"
+
           BRANCH="gha-portpr-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "Creating new branch: ${BRANCH}"
           echo "branch=${BRANCH}" >> $GITHUB_ENV
-          git config --global user.email "rancherdashboardportbot@suse.com"
-          git config --global user.name "Rancher Dashboard Port Bot"
+
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          echo "Configured git user"
+
           git checkout -b $BRANCH
+          echo "Checked out new branch: ${BRANCH}"
 
           if ! git am -3 "$PATCH_FILE" > error.log 2>&1; then
+              echo "Failed to apply patch"
               ERROR_MESSAGE=$(cat error.log)
               FORMATTED_ERROR_MESSAGE=$(printf "\n\`\`\`\n%s\n\`\`\`" "$ERROR_MESSAGE")
+              echo "Error message: ${FORMATTED_ERROR_MESSAGE}"
               gh issue comment ${ORIGINAL_ISSUE_NUMBER} --body "Not creating port PR, there was an error running git am -3: $FORMATTED_ERROR_MESSAGE"
           else
+              echo "Patch applied successfully"
               git push origin $BRANCH
+              echo "Pushed new branch to origin"
+
               ORIGINAL_PR=$(gh pr view ${ORIGINAL_ISSUE_NUMBER} --json title,body,assignees)
               ORIGINAL_TITLE=$(echo "${ORIGINAL_PR}" | jq -r .title)
               ORIGINAL_ASSIGNEE=$(echo "${ORIGINAL_PR}" | jq -r '.assignee.login // empty')
+              echo "Original PR Title: ${ORIGINAL_TITLE}"
+              echo "Original PR Assignee: ${ORIGINAL_ASSIGNEE}"
+
               BODY=$(mktemp)
+              echo "Created temporary body file: ${BODY}"
               echo -e "This is an automated request to port PR #${ORIGINAL_ISSUE_NUMBER} by @${GITHUB_ACTOR}\n\n" > $BODY
               echo -e "Original PR body:\n\n" >> $BODY
-              echo "${ORIGINAL_PR}" | jq -r .body >> $BODY
+              CLEANED_BODY=$(echo "${ORIGINAL_PR}" | jq -r .body | sed -E 's@(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved):?\s+([a-zA-Z0-9.-]+/[a-zA-Z0-9.-]*)?#[0-9]+\s*,?\s*@Original text redacted by port-pr.yaml @gI')
+              echo "${CLEANED_BODY}" >> $BODY
+              if [ -n "$ISSUE_NUMBER" ]; then
+                  echo -e "\n\nFixes #${ISSUE_NUMBER}" >> $BODY
+              fi
+
               ASSIGNEES=$(echo "${ORIGINAL_PR}" | jq -r .assignees[].login)
+              echo "Original PR Assignees: ${ASSIGNEES}"
+
               if [ -n "$ASSIGNEES" ]; then
                   echo "Checking if assignee is member before assigning"
                   DELIMITER=""
@@ -104,6 +166,8 @@ jobs:
                           echo "${ASSIGNEE} is a member, adding to assignees"
                           NEW_ASSIGNEES="${NEW_ASSIGNEES}${DELIMITER}${ASSIGNEE}"
                           DELIMITER=","
+                      else
+                          echo "${ASSIGNEE} is not a member, skipping"
                       fi
                   done
                   if [ -n "$NEW_ASSIGNEES" ]; then
@@ -112,6 +176,8 @@ jobs:
                       additional_cmd+=("${NEW_ASSIGNEES}")
                   fi
               fi
+
               NEW_PR=$(gh pr create --title="[${TYPE} ${MILESTONE}] ${ORIGINAL_TITLE}" --body-file="${BODY}" --head "${BRANCH}" --base "${TARGET_BRANCH}" --milestone "${MILESTONE}" "${additional_cmd[@]}")
+              echo "Port PR created: ${NEW_PR}"
               echo "Port PR created: ${NEW_PR}" >> $GITHUB_STEP_SUMMARY
           fi

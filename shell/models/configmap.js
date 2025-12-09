@@ -17,4 +17,8 @@ export default class ConfigMap extends SteveModel {
 
     return keys.join(', ');
   }
+
+  get fullDetailPageOverride() {
+    return true;
+  }
 }

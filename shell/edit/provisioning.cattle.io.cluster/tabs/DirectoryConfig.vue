@@ -44,23 +44,21 @@ export default {
     },
   },
   data() {
-    let dataConfigRadioValue = DATA_DIR_RADIO_OPTIONS.DEFAULT;
-    let k8sDistroSubDir = DEFAULT_SUBDIRS.K8S_DISTRO_RKE2;
-
+    return {
+      DATA_DIR_RADIO_OPTIONS,
+      dataConfigRadioValue: DATA_DIR_RADIO_OPTIONS.DEFAULT,
+      k8sDistroSubDir:      DEFAULT_SUBDIRS.K8S_DISTRO_RKE2,
+      commonConfig:         '',
+    };
+  },
+  created() {
     if (this.k8sVersion && this.k8sVersion.includes('k3s')) {
-      k8sDistroSubDir = DEFAULT_SUBDIRS.K8S_DISTRO_K3S;
+      this.k8sDistroSubDir = DEFAULT_SUBDIRS.K8S_DISTRO_K3S;
     }
 
     if (this.mode !== _CREATE) {
-      dataConfigRadioValue = DATA_DIR_RADIO_OPTIONS.CUSTOM;
+      this.dataConfigRadioValue = DATA_DIR_RADIO_OPTIONS.CUSTOM;
     }
-
-    return {
-      DATA_DIR_RADIO_OPTIONS,
-      dataConfigRadioValue,
-      k8sDistroSubDir,
-      commonConfig: '',
-    };
   },
   watch: {
     commonConfig(neu) {

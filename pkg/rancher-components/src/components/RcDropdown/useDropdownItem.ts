@@ -57,7 +57,36 @@ export const useDropdownItem = () => {
     }
   };
 
+  /**
+   * Scroll the item into view smoothly
+   * @param event FocusIn Event
+   */
+  const scrollIntoView = (event: Event) => {
+    const target = event.target;
+
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+
+    const t = target as HTMLElement;
+
+    // If a button was clicked, then do not scroll into view, as this will scroll to make the button
+    // visible and the click will be ignored - so just return, so that the click works as expected
+    if (t.tagName === 'BUTTON') {
+      return;
+    }
+
+    target?.scrollIntoView({
+      behavior: 'smooth',
+      block:    'center',
+      inline:   'nearest',
+    });
+  };
+
   return {
-    handleKeydown, close, handleActivate
+    handleKeydown,
+    close,
+    handleActivate,
+    scrollIntoView,
   };
 };

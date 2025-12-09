@@ -282,7 +282,7 @@ export default {
             <i
               v-if="permission.locked"
               v-clean-tooltip="permission.tooltip"
-              class="icon icon-lock icon-fw"
+              class="icon icon-lock"
             />
           </div>
         </div>

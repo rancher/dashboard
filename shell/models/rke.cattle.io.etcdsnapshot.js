@@ -17,7 +17,7 @@ export default class EtcdBackup extends NormanModel {
     return [{
       action: 'promptRestore',
       enabled,
-      icon:   'icon icon-fw icon-backup-restore',
+      icon:   'icon icon-backup-restore',
       label:  'Restore'
     }];
   }

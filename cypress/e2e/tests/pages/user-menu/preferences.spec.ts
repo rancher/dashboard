@@ -8,8 +8,8 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import ResourceYamlEditorPagePo from '@/cypress/e2e/po/pages/explorer/yaml-editor.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
-
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
+// import TooltipPo from '@/cypress/e2e/po/components/tooltip.po'; // Used in the below commented test
 
 const userMenu = new UserMenuPo();
 const prefPage = new PreferencesPagePo();
@@ -390,9 +390,8 @@ describe('User can update their preferences', () => {
   //   yamlEditor.keyboardMappingIndicator().checkExists();
   //   yamlEditor.keyboardMappingIndicator().checkVisible();
 
-  //   yamlEditor.keyboardMappingIndicator().showTooltip();
-  //   yamlEditor.keyboardMappingIndicator().getTooltipContent().should('be.visible');
-  //   yamlEditor.keyboardMappingIndicator().getTooltipContent().contains('Key mapping: Vim');
+  //   const tooltipPo = new TooltipPo(yamlEditor.keyboardMappingIndicator());
+  //   tooltipPo.waitForTooltipWithText('Key mapping: Vim');
 
   //   // Reset keyboard mapping
   //   prefPage.goTo();

@@ -79,6 +79,29 @@ const findAllGetter = (getters, type, opt) => {
   return opt.namespaced ? getters.matching(type, null, opt.namespaced, { skipSelector: true }) : getters.all(type);
 };
 
+const createFindWatchArg = ({
+  type, id, opt, res
+}) => {
+  const revision = typeof opt.revision !== 'undefined' ? opt.revision : res?.metadata?.resourceVersion;
+  const watchMsg = {
+    type,
+    id,
+    // Although not used by sockets, we need this for when resyncWatch calls find... which needs namespace to construct the url
+    namespace: opt.namespaced,
+    revision:  revision || '',
+    force:     opt.forceWatch === true,
+  };
+
+  const idx = id.indexOf('/');
+
+  if ( idx > 0 ) {
+    watchMsg.namespace = id.substr(0, idx);
+    watchMsg.id = id.substr(idx + 1);
+  }
+
+  return watchMsg;
+};
+
 export default {
   request() {
     throw new Error('Not Implemented');
@@ -197,6 +220,9 @@ export default {
       )
     ) {
       if (opt.watch !== false ) {
+        // Note - Empty revision here seems broken
+        // - list page (watch all) --> detail page (stop watch all, watch one) --> list page (watch all - no revision)
+        // - the missing revision means watch start from now... instead of the point the clusters were last monitored (cache contains stale data)
         const args = {
           type,
           revision:  '',
@@ -657,6 +683,12 @@ export default {
       out = getters.byId(type, id);
 
       if ( out ) {
+        if ( opt.watch !== false ) {
+          dispatch('watch', createFindWatchArg({
+            type, id, opt, res: undefined
+          }));
+        }
+
         return out;
       }
     }
@@ -666,29 +698,12 @@ export default {
 
     const res = await dispatch('request', { opt, type });
 
-    await dispatch('load', { data: res });
+    await dispatch('load', { data: res, invalidatePageCache: opt.invalidatePageCache });
 
     if ( opt.watch !== false ) {
-      const watchMsg = {
-        type,
-        id,
-        // Although not used by sockets, we need this for when resyncWatch calls find... which needs namespace to construct the url
-        namespace: opt.namespaced,
-        // Override the revision. Used in cases where we need to avoid using the resource's own revision which would be `too old`.
-        // For the above case opt.revision will be `null`. If left as `undefined` the subscribe mechanism will try to determine a revision
-        // from resources in store (which would be this one, with the too old revision)
-        revision:  typeof opt.revision !== 'undefined' ? opt.revision : res?.metadata?.resourceVersion,
-        force:     opt.forceWatch === true,
-      };
-
-      const idx = id.indexOf('/');
-
-      if ( idx > 0 ) {
-        watchMsg.namespace = id.substr(0, idx);
-        watchMsg.id = id.substr(idx + 1);
-      }
-
-      dispatch('watch', watchMsg);
+      dispatch('watch', createFindWatchArg({
+        type, id, opt, res
+      }));
     }
 
     out = getters.byId(type, id);
@@ -808,13 +823,21 @@ export default {
     return classify(ctx, resource.toJSON(), true);
   },
 
-  // Forget a type in the store
-  // Remove all entries for that type and stop watching it
+  /**
+   * Remove all cached entries for a resource and stop watches
+   */
   forgetType({ commit, dispatch, state }, type, compareWatches) {
+    // Stop all known watches
     state.started
       .filter((entry) => compareWatches ? compareWatches(entry) : entry.type === type)
       .forEach((entry) => dispatch('unwatch', entry));
 
+    // Stop all known back-off watch processes for this type
+    dispatch('resetWatchBackOff', {
+      type, compareWatches, resetStarted: false
+    });
+
+    // Remove entries from store
     commit('forgetType', type);
   },
 

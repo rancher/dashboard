@@ -12,13 +12,12 @@ import i18n from '@shell/plugins/i18n';
 import globalFormatters from '@shell/plugins/global-formatters';
 
 import axios from '@shell/utils/axios';
-import cookieUniversal from '@shell/utils/cookie-universal';
 import config from '@shell/utils/config';
 import axiosShell from '@shell/plugins/axios';
 import codeMirror from '@shell/plugins/codemirror-loader';
 import { InstallCodeMirror } from 'codemirror-editor-vue3';
 import * as intNumber from '@shell/directives/int-number';
-import nuxtClientInit from '@shell/plugins/nuxt-client-init';
+import dashboardClientInit from '@shell/plugins/dashboard-client-init';
 import plugin from '@shell/plugins/plugin';
 import plugins from '@shell/core/plugins.js';
 import pluginsLoader from '@shell/core/plugins-loader.js';
@@ -30,6 +29,8 @@ import internalApiPlugin from '@shell/plugins/internal-api';
 
 import 'floating-vue/dist/style.css';
 import { floatingVueOptions } from '@shell/plugins/floating-vue';
+
+import dynamicContent from '@shell/plugins/dynamic-content';
 
 export async function installPlugins(vueApp) {
   vueApp.use(globalFormatters);
@@ -47,7 +48,22 @@ export async function installPlugins(vueApp) {
 }
 
 export async function installInjectedPlugins(app, vueApp) {
-  const pluginDefinitions = [config, cookieUniversal, axios, plugins, pluginsLoader, axiosShell, intNumber, codeMirror, nuxtClientInit, replaceAll, plugin, steveCreateWorker, emberCookie, internalApiPlugin];
+  const pluginDefinitions = [
+    config,
+    axios,
+    plugins,
+    pluginsLoader,
+    axiosShell,
+    intNumber,
+    codeMirror,
+    dashboardClientInit,
+    replaceAll,
+    plugin,
+    steveCreateWorker,
+    emberCookie,
+    internalApiPlugin,
+    dynamicContent,
+  ];
 
   const installations = pluginDefinitions.map(async(pluginDefinition) => {
     if (typeof pluginDefinition === 'function') {
@@ -64,7 +80,6 @@ export async function installInjectedPlugins(app, vueApp) {
   // If there's any performance reasons this can be done concurrently with all of the installation promises above but I felt it was organizationally better to keep both i18n items together.
   await app.store.dispatch('i18n/init');
 
-  // Order matters here. This is coming after the other plugins specifically so $cookies can be installed. i18n/init relies on prefs/get which relies on $cookies.
   vueApp.use(i18n, { store: app.store });
 }
 

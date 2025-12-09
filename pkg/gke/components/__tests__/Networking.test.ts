@@ -135,7 +135,7 @@ describe('gke Networking', () => {
 
     wrapper.setProps({ network: 'host-shared-vpc' });
     await wrapper.vm.$nextTick();
-    expect(wrapper.emitted('update:subnetwork')?.[0]?.[0]).toBe('host-shared-vpc-us-west1-subnet-public');
+    expect(wrapper.emitted('update:subnetwork')?.[0]?.[0]).toBe('projects/host-project-309915/regions/us-west1/subnetworks/host-shared-vpc-us-west1-subnet-public');
   });
 
   it('should show text input for cluster and service secondary range if no subnetwork is selected, otherwise should show a dropdown', async() => {
@@ -161,7 +161,7 @@ describe('gke Networking', () => {
     expect(secondaryRangeNameInput.exists()).toBe(true);
     expect(secondaryRangeDropdown.exists()).toBe(false);
 
-    wrapper.setProps({ network: 'test-network', subnetwork: 'test-network-subnet' });
+    wrapper.setProps({ network: 'test-network', subnetwork: 'https://www.googleapis.com/compute/v1/projects/test-project/regions/us-central1/subnetworks/test-network' });
     await wrapper.vm.$nextTick();
     expect(secondaryRangeNameInput.exists()).toBe(false);
 
@@ -180,7 +180,7 @@ describe('gke Networking', () => {
         cloudCredentialId: '',
         projectId:         'test-project',
         network:           'test-network',
-        subnetwork:        'test-network-subnet',
+        subnetwork:        'https://www.googleapis.com/compute/v1/projects/test-project/regions/us-central1/subnetworks/test-network',
       },
       ...setup
     });

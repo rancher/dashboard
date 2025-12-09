@@ -7,10 +7,12 @@ import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue
 import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks.vue';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo.vue';
+import DynamicContentBanner from '@shell/components/DynamicContent/DynamicContentBanner.vue';
+import DynamicContentPanel from '@shell/components/DynamicContent/DynamicContentPanel.vue';
 import { mapGetters, mapState } from 'vuex';
-import { MANAGEMENT, CAPI } from '@shell/config/types';
+import { MANAGEMENT, CAPI, COUNT } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
-import { STATE } from '@shell/config/table-headers';
+import { AGE, STATE } from '@shell/config/table-headers';
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { createMemoryFormat, formatSi, parseSi, createMemoryValues } from '@shell/utils/units';
 import { markSeenReleaseNotes } from '@shell/utils/version';
@@ -22,14 +24,18 @@ import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilte
 import TabTitle from '@shell/components/TabTitle.vue';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 
-import { RESET_CARDS_ACTION, SET_LOGIN_ACTION, SHOW_HIDE_BANNER_ACTION } from '@shell/config/page-actions';
+import { SET_LOGIN_ACTION, SHOW_HIDE_BANNER_ACTION } from '@shell/config/page-actions';
 import { STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
 import { PaginationParamFilter, FilterArgs, PaginationFilterField, PaginationArgs } from '@shell/types/store/pagination.types';
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import { sameContents } from '@shell/utils/array';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
-import { CURRENT_RANCHER_VERSION } from '@shell/config/version';
+import { CURRENT_RANCHER_VERSION, getVersionData } from '@shell/config/version';
 import { CAPI as CAPI_LAB_AND_ANO } from '@shell/config/labels-annotations';
+import paginationUtils from '@shell/utils/pagination-utils';
+import ResourceTable from '@shell/components/ResourceTable.vue';
+import Preset from '@shell/mixins/preset';
+import { PaginationFeatureHomePageClusterConfig } from '@shell/types/resources/settings';
 
 export default defineComponent({
   name:       'Home',
@@ -42,9 +48,12 @@ export default defineComponent({
     CommunityLinks,
     SingleClusterInfo,
     TabTitle,
+    ResourceTable,
+    DynamicContentBanner,
+    DynamicContentPanel,
   },
 
-  mixins: [PageHeaderActions],
+  mixins: [PageHeaderActions, Preset],
 
   data() {
     const options = this.$store.getters[`type-map/optionsFor`](CAPI.RANCHER_CLUSTER)?.custom || {};
@@ -74,10 +83,6 @@ export default defineComponent({
         {
           label:  this.t('nav.header.showHideBanner'),
           action: SHOW_HIDE_BANNER_ACTION
-        },
-        {
-          label:  this.t('nav.header.restoreCards'),
-          action: RESET_CARDS_ACTION
         },
       ],
       vendor: getVendor(),
@@ -204,14 +209,40 @@ export default defineComponent({
 
       clusterCount: 0,
 
-      CURRENT_RANCHER_VERSION
+      CURRENT_RANCHER_VERSION,
+
+      /**
+       * User has decided to disable the alt list
+       */
+      altClusterListDisabled: false,
+      /**
+       * There are too many clusters to show in the home page list.
+       *
+       * If not disabled, show alt table
+       */
+      tooManyClusters:        undefined as boolean | undefined,
+      altClusterListRows:     undefined as any[] | undefined,
+      altClusterListFeature:  paginationUtils.getFeature<PaginationFeatureHomePageClusterConfig>({ rootGetters: this.$store.getters }, 'homePageCluster'),
+
+      presetVersion: getVersionData()?.Version,
     };
+  },
+
+  mounted() {
+    this.preset('altClusterListDisabled', 'boolean');
   },
 
   computed: {
     ...mapState(['managementReady']),
     ...mapGetters(['currentCluster', 'defaultClusterId']),
     mcm: mapFeature(MULTI_CLUSTER),
+
+    vaiOnSettingsHeaders() {
+      return [
+        ...this.headers, // include age as we're sorting by it
+        AGE
+      ];
+    },
 
     canCreateCluster() {
       return !!this.provClusterSchema?.collectionMethods.find((x: string) => x.toLowerCase() === 'post');
@@ -220,6 +251,21 @@ export default defineComponent({
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
     homePageCards:   mapPref(HIDE_HOME_PAGE_CARDS),
 
+    /**
+     * Show the alt table
+     */
+    altClusterList() {
+      return this.tooManyClusters && !this.altClusterListDisabled;
+    }
+
+  },
+
+  watch: {
+    async altClusterList(neu) {
+      if (neu) {
+        await this.initAltClusters();
+      }
+    },
   },
 
   async created() {
@@ -231,6 +277,12 @@ export default defineComponent({
     // If we do not, then if they set the landing page, that won't work unless the release notes are marked read
     // otherwise we always take them to the home page to see the release notes
     markSeenReleaseNotes(this.$store);
+
+    this.tooManyClusters = this.isTooManyClusters();
+
+    if (this.altClusterList) {
+      await this.initAltClusters();
+    }
   },
 
   // Forget the types when we leave the page
@@ -250,8 +302,11 @@ export default defineComponent({
         return Promise.resolve({});
       }
 
+      const promises = [];
+
       if ( this.canViewMgmtClusters ) {
-        this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+        // This is the only one we need to block on (needed for the initial sort on mgmt name)
+        promises.push(this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }));
       }
 
       if ( this.canViewMachine ) {
@@ -271,7 +326,7 @@ export default defineComponent({
         this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
       }
 
-      return Promise.resolve({});
+      return Promise.all(promises);
     },
 
     async fetchPageSecondaryResources({
@@ -368,10 +423,6 @@ export default defineComponent({
      */
     handlePageAction(action: any) {
       switch (action.action) {
-      case RESET_CARDS_ACTION:
-        this.resetCards();
-        break;
-
       case SHOW_HIDE_BANNER_ACTION:
         this.toggleBanner();
         break;
@@ -466,7 +517,83 @@ export default defineComponent({
       }
 
       return pagination;
-    }
+    },
+
+    async toggleAltClusterListDisabled(disabled: boolean) {
+      // Clear the cache so the table doesn't show the previous mode's results
+      await this.$store.dispatch('management/forgetType', CAPI.RANCHER_CLUSTER);
+
+      this.altClusterListDisabled = disabled;
+    },
+
+    /**
+     * Determine if we should use an alternative cluster list which contains most recently created clusters
+     *
+     * Checks
+     * - can view clusters
+     * - if vai is on
+     * - if alt list feature is on
+     * - if cluster count exceeds threshold
+     */
+    isTooManyClusters(): boolean {
+      if (!this.provClusterSchema || !this.canViewMgmtClusters) {
+        return false;
+      }
+
+      const featureConfig = this.altClusterListFeature;
+
+      if (!featureConfig || !featureConfig.enabled) { // vai is off, or feature is explicitly disabled
+        return false;
+      }
+
+      const threshold = featureConfig.configuration?.threshold;
+
+      if (threshold === undefined) { // invalid config
+        return false;
+      }
+
+      const counts = this.$store.getters[`management/all`](COUNT)?.[0]?.counts || {};
+
+      this.clusterCount = counts[CAPI.RANCHER_CLUSTER]?.summary.count;
+
+      return this.clusterCount > threshold;
+    },
+
+    /**
+     * Fetch clusters used to populate alt table
+     */
+    async initAltClusters() {
+      const featureConfig = this.altClusterListFeature;
+      const results = featureConfig?.configuration?.results || 50;
+
+      // Fetch a limited number of provisioning clusters
+      const opt1: ActionFindPageArgs = {
+        pagination: {
+          projectsOrNamespaces: [],
+          filters:              paginationFilterClusters(this.$store, false),
+          page:                 1,
+          pageSize:             results, // We're fetching the total results... then paging locally
+          sort:                 [{ field: 'metadata.creationTimestamp', asc: false }]
+        },
+        watch: false,
+      };
+      const provClusters = await this.$store.dispatch('management/findPage', { type: CAPI.RANCHER_CLUSTER, opt: opt1 });
+
+      // Also fetch the management clusters associated with the provisioning clusters
+      const opt2: ActionFindPageArgs = {
+        pagination: new FilterArgs({
+          filters: PaginationParamFilter.createMultipleFields(provClusters.map((r: any) => new PaginationFilterField({
+            field: 'id',
+            value: r.mgmtClusterId
+          }))),
+        }),
+        watch: false,
+      };
+
+      await this.$store.dispatch(`management/findPage`, { type: MANAGEMENT.CLUSTER, opt: opt2 });
+
+      this.altClusterListRows = provClusters;
+    },
   }
 });
 
@@ -484,18 +611,173 @@ export default defineComponent({
       {{ `${vendor} - ${t('landing.homepage')}` }}
     </TabTitle>
     <BannerGraphic
-      :small="true"
       :title="t('landing.welcomeToRancher', {vendor})"
       :pref="HIDE_HOME_PAGE_CARDS"
       pref-key="welcomeBanner"
       data-testid="home-banner-graphic"
     />
+    <DynamicContentBanner location="banner" />
     <IndentedPanel class="mt-20 mb-20">
       <div class="row home-panels">
         <div class="col main-panel">
-          <div class="row panel">
+          <div
+            v-if="altClusterList !== undefined"
+            class="row panel"
+          >
             <div
-              v-if="mcm"
+              v-if="mcm && altClusterList"
+              class="col span-12"
+            >
+              <ResourceTable
+                :schema="provClusterSchema"
+                :table-actions="false"
+                :row-actions="false"
+                key-field="id"
+
+                :headers="vaiOnSettingsHeaders"
+                defaultSortBy="age"
+
+                :loading="!altClusterListRows"
+
+                :rows="altClusterListRows || []"
+                :rowsPerPage="altClusterListFeature?.configuration.pagesPerRow || 10"
+
+                :namespaced="false"
+                :groupable="false"
+              >
+                <template #header-left>
+                  <div class="row table-heading">
+                    <h1 class="mb-0">
+                      {{ t('landing.clusters.title') }}
+                    </h1>
+                  </div>
+                </template>
+                <template #sub-header-row>
+                  <h2 class="too-many-clusters">
+                    {{ t('landing.clusters.tooMany.showingSome', { rows: altClusterListRows?.length || '...', total: clusterCount}) }}
+                    <a @click="toggleAltClusterListDisabled(true)">{{ t('landing.clusters.tooMany.showAll') }}</a>
+                  </h2>
+                </template>
+                <!--
+                  Below is a big copy & paste from PaginatedResourceTable, however should be temporary (altClusterList removed in 2.14 once full SSP support for clusters if available)
+                -->
+                <template
+                  v-if="canCreateCluster || !!provClusterSchema"
+                  #header-middle
+                >
+                  <div class="table-heading">
+                    <router-link
+                      v-if="!!provClusterSchema"
+                      :to="manageLocation"
+                      class="btn btn-sm role-secondary"
+                      data-testid="cluster-management-manage-button"
+                      role="button"
+                      :aria-label="t('cluster.manageAction')"
+                      @keyup.space="$router.push(manageLocation)"
+                    >
+                      {{ t('cluster.manageAction') }}
+                    </router-link>
+                    <router-link
+                      v-if="canCreateCluster"
+                      :to="importLocation"
+                      class="btn btn-sm role-primary"
+                      data-testid="cluster-create-import-button"
+                      role="button"
+                      :aria-label="t('cluster.importAction')"
+                      @keyup.space="$router.push(importLocation)"
+                    >
+                      {{ t('cluster.importAction') }}
+                    </router-link>
+                    <router-link
+                      v-if="canCreateCluster"
+                      :to="createLocation"
+                      class="btn btn-sm role-primary"
+                      data-testid="cluster-create-button"
+                      role="button"
+                      :aria-label="t('generic.create')"
+                      @keyup.space="$router.push(createLocation)"
+                    >
+                      {{ t('generic.create') }}
+                    </router-link>
+                  </div>
+                </template>
+                <template #col:name="{row}">
+                  <td class="col-name">
+                    <div class="list-cluster-name">
+                      <p
+                        v-if="row.mgmt"
+                        class="cluster-name"
+                      >
+                        <router-link
+                          v-if="row.mgmt.isReady && !row.hasError"
+                          :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}"
+                          role="link"
+                          :aria-label="row.nameDisplay"
+                        >
+                          {{ row.nameDisplay }}
+                        </router-link>
+                        <span v-else>{{ row.nameDisplay }}</span>
+                        <i
+                          v-if="row.unavailableMachines"
+                          v-clean-tooltip="row.unavailableMachines"
+                          class="conditions-alert-icon icon-alert icon"
+                        />
+                        <i
+                          v-if="row.isRke1"
+                          v-clean-tooltip="t('cluster.rke1Unsupported')"
+                          class="rke1-unsupported-icon icon-warning icon"
+                        />
+                      </p>
+                      <p
+                        v-if="row.description"
+                        class="cluster-description"
+                      >
+                        {{ row.description }}
+                      </p>
+                    </div>
+                  </td>
+                </template>
+                <template #col:kubernetesVersion="{row}">
+                  <td class="col-name">
+                    <span>
+                      {{ row.kubernetesVersion }}
+                    </span>
+                    <div
+                      v-clean-tooltip="{content: row.architecture.tooltip, placement: 'left'}"
+                      class="text-muted"
+                    >
+                      {{ row.architecture.label }}
+                    </div>
+                  </td>
+                </template>
+                <template #col:cpu="{row}">
+                  <td v-if="row.mgmt && cpuAllocatable(row.mgmt)">
+                    {{ `${cpuAllocatable(row.mgmt)} ${t('landing.clusters.cores', {count:cpuAllocatable(row.mgmt) })}` }}
+                  </td>
+                  <td v-else>
+                    &mdash;
+                  </td>
+                </template>
+                <template #col:memory="{row}">
+                  <td v-if="row.mgmt && memoryAllocatable(row.mgmt) && !memoryAllocatable(row.mgmt).match(/^0 [a-zA-z]/)">
+                    {{ memoryAllocatable(row.mgmt) }}
+                  </td>
+                  <td v-else>
+                    &mdash;
+                  </td>
+                </template>
+                <!-- <template #cell:explorer="{row}">
+                    <router-link v-if="row && row.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.id}}">
+                      {{ t('landing.clusters.explore') }}
+                    </router-link>
+                    <button v-else :disabled="true" class="btn btn-sm role-primary">
+                      {{ t('landing.clusters.explore') }}
+                    </button>
+                  </template> -->
+              </ResourceTable>
+            </div>
+            <div
+              v-else-if="mcm"
               class="col span-12"
             >
               <PaginatedResourceTable
@@ -519,15 +801,24 @@ export default defineComponent({
               >
                 <template #header-left>
                   <div class="row table-heading">
-                    <h2 class="mb-0">
+                    <h1 class="mb-0">
                       {{ t('landing.clusters.title') }}
-                    </h2>
+                    </h1>
                     <BadgeState
-                      v-if="clusterCount"
+                      v-if="clusterCount && !tooManyClusters"
                       :label="clusterCount.toString()"
-                      color="role-tertiary ml-20 mr-20"
+                      color="bg-info ml-20 mr-20"
                     />
                   </div>
+                </template>
+                <template
+                  v-if="tooManyClusters"
+                  #sub-header-row
+                >
+                  <h2 class="too-many-clusters">
+                    {{ t('landing.clusters.tooMany.showingAll', { rows: altClusterListRows?.length || '...', total: clusterCount}) }}
+                    <a @click="toggleAltClusterListDisabled(false)">{{ t('landing.clusters.tooMany.showSome') }}</a>
+                  </h2>
                 </template>
                 <template
                   v-if="canCreateCluster || !!provClusterSchema"
@@ -652,7 +943,10 @@ export default defineComponent({
             </div>
           </div>
         </div>
-        <CommunityLinks class="col span-3 side-panel" />
+        <div class="col span-3 side-panel">
+          <CommunityLinks />
+          <DynamicContentPanel location="rhs" />
+        </div>
       </div>
     </IndentedPanel>
   </div>
@@ -671,6 +965,14 @@ export default defineComponent({
     }
     .main-panel {
       flex: auto;
+
+      .too-many-clusters {
+        margin-bottom: 5px;
+
+        a {
+          cursor: pointer;
+        }
+      }
     }
 
     .side-panel {
@@ -752,6 +1054,7 @@ export default defineComponent({
   .search {
     align-items: center;
     display: flex;
+    height: 39px;
 
     > INPUT {
       background-color: transparent;

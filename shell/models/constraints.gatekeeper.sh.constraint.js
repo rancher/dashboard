@@ -15,7 +15,7 @@ export default class GateKeeperConstraint extends SteveModel {
 
     const downloadViolations = {
       action: 'downloadViolations',
-      icon:   'icon icon-fw icon-download',
+      icon:   'icon icon-download',
       label:  t('gatekeeperConstraint.downloadViolations'),
       total:  1,
     };

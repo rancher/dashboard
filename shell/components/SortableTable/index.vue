@@ -3,7 +3,7 @@ import { mapGetters, useStore } from 'vuex';
 import { defineAsyncComponent, ref, onMounted, onBeforeUnmount } from 'vue';
 import day from 'dayjs';
 import isEmpty from 'lodash/isEmpty';
-import { dasherize, ucFirst } from '@shell/utils/string';
+import { dasherize, ucFirst, randomStr } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
@@ -26,6 +26,7 @@ import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 import ActionDropdownShell from '@shell/components/ActionDropdownShell.vue';
+import { useTabCountUpdater } from '@shell/components/form/ResourceTabs/composable';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
@@ -51,7 +52,7 @@ export default {
     'group-value-change',
     'selection',
     'rowClick',
-    'enter',
+    'enter'
   ],
 
   components: {
@@ -432,6 +433,7 @@ export default {
     $main?.addEventListener('scroll', this._onScroll);
 
     this.debouncedPaginationChanged();
+    this.updateTabCount(this.totalRows);
   },
 
   beforeUnmount() {
@@ -445,6 +447,7 @@ export default {
     const $main = document.querySelector('main');
 
     $main?.removeEventListener('scroll', this._onScroll);
+    this.clearTabCount();
   },
 
   watch: {
@@ -559,10 +562,13 @@ export default {
 
     const store = useStore();
     const { featureDropdownMenu } = useRuntimeFlag(store);
+    const { updateTabCount, clearTabCount } = useTabCountUpdater();
 
     return {
       table,
       featureDropdownMenu,
+      updateTabCount,
+      clearTabCount
     };
   },
 
@@ -735,7 +741,7 @@ export default {
         grp.rows.forEach((row) => {
           const rowData = {
             row,
-            key:                        this.get(row, this.keyField),
+            key:                        this.get(row, this.keyField) ?? randomStr(),
             showSubRow:                 this.showSubRow(row, this.keyField),
             canRunBulkActionOfInterest: this.canRunBulkActionOfInterest(row),
             columns:                    []
@@ -1038,7 +1044,7 @@ export default {
     handleActionButtonClick(i, event) {
       // Each row in the table gets its own ref with
       // a number based on its index. If you are using
-      // an ActionMenu that doen't have a dependency on Vuex,
+      // an ActionMenu that doesn't have a dependency on Vuex,
       // these refs are useful because you can reuse the
       // same ActionMenu component on a page with many different
       // target elements in a list,
@@ -1084,7 +1090,7 @@ export default {
       <div
         v-if="showHeaderRow"
         class="fixed-header-actions"
-        :class="{button: !!$slots['header-button'], 'advanced-filtering': hasAdvancedFiltering}"
+        :class="{button: !!$slots['header-button'], 'with-sub-header': !!$slots['sub-header-row'], 'advanced-filtering': hasAdvancedFiltering}"
       >
         <div
           :class="bulkActionsClass"
@@ -1290,6 +1296,12 @@ export default {
           <slot name="header-button" />
         </div>
       </div>
+      <div
+        v-if="!!$slots['sub-header-row']"
+        class="sub-header-row"
+      >
+        <slot name="sub-header-row" />
+      </div>
     </div>
     <table
       ref="table"
@@ -1398,7 +1410,7 @@ export default {
         </slot>
         <template
           v-for="(row, i) in groupedRows.rows"
-          :key="i"
+          :key="row.key"
         >
           <slot
             name="main-row"
@@ -1462,6 +1474,7 @@ export default {
                     <td
                       v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.col.isColVisible)"
                       :key="col.col.name"
+                      v-ui-context="col.col.name === 'state' ? { icon: 'icon-folder', hookable: true, value: row.row, tag: '__sortable-table-row', description: 'Row' } : undefined"
                       :data-title="col.col.label"
                       :data-testid="`sortable-cell-${ i }-${ j }`"
                       :align="col.col.align || 'left'"
@@ -2041,8 +2054,17 @@ export default {
     grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 350px);
   }
 
+  $header-padding: 20px;
+  .sub-header-row {
+    padding: 0 0 $header-padding / 2 0;
+  }
+
   .fixed-header-actions {
-    padding: 0 0 20px 0;
+    padding: 0 0 $header-padding 0;
+    &.with-sub-header {
+      padding: 0 0 $header-padding / 4 0;
+    }
+
     width: 100%;
     z-index: z-index('fixedTableHeader');
     background: transparent;

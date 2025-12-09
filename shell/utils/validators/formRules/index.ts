@@ -1,3 +1,5 @@
+import semver from 'semver';
+import { parse } from '@shell/utils/url';
 import { RBAC } from '@shell/config/types';
 import { HCI } from '@shell/config/labels-annotations';
 import isEmpty from 'lodash/isEmpty';
@@ -5,7 +7,7 @@ import has from 'lodash/has';
 import isUrl from 'is-url';
 // import uniq from 'lodash/uniq';
 import { Translation } from '@shell/types/t';
-import { isHttps, isLocalhost, hasTrailingForwardSlash } from '@shell/utils/validators/setting';
+import { isHttps, isLocalhost, hasTrailingForwardSlash, isDomainWithoutProtocol } from '@shell/utils/validators/setting';
 import { cronScheduleRule } from '@shell/utils/validators/cron-schedule';
 
 // import uniq from 'lodash/uniq';
@@ -164,6 +166,8 @@ export default function(
 
   const https: Validator = (val: string) => val && !isHttps(val) ? t('validation.setting.serverUrl.https') : undefined;
 
+  const awsStyleEndpoint: Validator = (val: string) => val && !isDomainWithoutProtocol(val) ? t('validation.setting.serverUrl.awsStyleEndpoint') : undefined;
+
   const localhost: Validator = (val: string) => isLocalhost(val) ? t('validation.setting.serverUrl.localhost') : undefined;
 
   const trailingForwardSlash: Validator = (val: string) => hasTrailingForwardSlash(val) ? t('validation.setting.serverUrl.trailingForwardSlash') : undefined;
@@ -173,22 +177,91 @@ export default function(
   const genericUrl: Validator = (val: string) => val && !isUrl(val) ? t('validation.genericUrl') : undefined;
 
   const urlRepository: Validator = (url: string) => {
-    const regexPart1 = /^((http|git|ssh|http(s)|file|\/?)|(git@[\w\.]+))(:(\/\/)?)/gm;
-    const regexPart2 = /^([\w\.@\:\/\-]+)([\d\/\w.-]+?)(.git){0,1}(\/)?$/gm;
+    const message = t('validation.repository.url');
 
-    if (url) {
-      const urlPart2 = url.replaceAll(regexPart1, '');
+    if (!url) {
+      return message;
+    }
 
-      return !urlPart2 || url === urlPart2 || !regexPart2.test(urlPart2.replaceAll('%20', '')) ? t('validation.git.url') : undefined;
+    if (url.includes(' ')) {
+      return message;
+    }
+
+    const {
+      protocol,
+      authority,
+      host,
+      port,
+      path
+    } = parse(url);
+
+    // Test duplicate protocol
+    if (!host || protocol === host) {
+      return message;
+    }
+
+    // Test http(s)/ssh protocol
+    if (protocol && (!/^(http|https|ssh)$/gm.test(protocol) || (!url.startsWith('https://') && !url.startsWith('http://') && !url.startsWith('ssh://')))) {
+      return message;
+    }
+
+    // Test ssh, authority must be valid (SSH user + host)
+    if (!protocol && !port && (!authority.endsWith(':') || path.startsWith('/'))) {
+      return message;
+    }
+
+    // Encoded space characters (%20) are allowed only in the path
+    const hostAndPath = `${ host }${ path.replaceAll('%20', '') }`;
+
+    // Test host/path
+    if (!/^([\w\.@\:\/\-]+)([\d\/\w.-]+?)(.git){0,1}(\/)?$/gm.test(hostAndPath)) {
+      return message;
     }
 
     return undefined;
   };
 
   const ociRegistry: Validator = (url: string) => {
-    const regex = /^oci:\/\/\S+$/gm;
+    const message = t('validation.oci.url');
 
-    return !regex.test(url) ? t('validation.oci.url') : undefined;
+    if (!url) {
+      return message;
+    }
+
+    if (url.includes(' ')) {
+      return message;
+    }
+
+    const {
+      protocol,
+      host,
+      path
+    } = parse(url);
+
+    // Test duplicate protocol
+    if (!host || protocol === host) {
+      return message;
+    }
+
+    // Test oci protocol
+    if (!url.startsWith('oci://')) {
+      return message;
+    }
+
+    // Test host/path
+    if (!/^([\w\.@\:\/\-]+)([\d\/\w.-]+?)(\/)?$/gm.test(`${ host }${ path }`)) {
+      return message;
+    }
+
+    return undefined;
+  };
+
+  const version: Validator = (value: string) => {
+    return value && !semver.valid(value) ? t('validation.version') : undefined;
+  };
+
+  const semanticVersion: Validator = (value: string) => {
+    return value && !semver.validRange(value) ? t('validation.semanticVersion') : undefined;
   };
 
   const alphanumeric: Validator = (val: string) => val && !/^[a-zA-Z0-9]+$/.test(val) ? t('validation.alphanumeric', { key }) : undefined;
@@ -541,6 +614,7 @@ export default function(
     imageUrl,
     interval,
     https,
+    awsStyleEndpoint,
     localhost,
     trailingForwardSlash,
     url,
@@ -561,9 +635,11 @@ export default function(
     isOctal,
     roleTemplateRules,
     ruleGroups,
+    semanticVersion,
     servicePort,
     subDomain,
     testRule,
+    version,
     wildcardHostname
   };
 }

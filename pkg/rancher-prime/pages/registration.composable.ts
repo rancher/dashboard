@@ -2,28 +2,47 @@ import { computed, ref, Ref } from 'vue';
 import { type Store, useStore } from 'vuex';
 
 import { downloadFile } from '@shell/utils/download';
-import { REGISTRATION_NAMESPACE, REGISTRATION_SECRET, REGISTRATION_RESOURCE_NAME, REGISTRATION_LABEL } from '../config/constants';
+import {
+  REGISTRATION_REQUEST_PREFIX, REGISTRATION_NAMESPACE, REGISTRATION_SECRET, REGISTRATION_RESOURCE_NAME, REGISTRATION_LABEL,
+  REGISTRATION_REQUEST_FILENAME,
+  REGISTRATION_NOTIFICATION_ID
+} from '../config/constants';
 import { SECRET } from '@shell/config/types';
 import { dateTimeFormat } from '@shell/utils/time';
+import { useI18n } from '@shell/composables/useI18n';
 
-type RegistrationStatus = 'loading' | 'registering-online' | 'registering-offline' | 'registered' | null;
+type RegistrationStatus = 'loading' | 'registering-online' | 'registration-request' | 'registering-offline' | 'registered' | null;
 type AsyncButtonFunction = (val: boolean) => void;
+type RegistrationMode = 'online' | 'offline';
 interface RegistrationDashboard {
+  id: string;
   active: boolean;
   product: string;
-  mode: 'online' | 'offline' | '--';
+  mode: RegistrationMode | '--';
   expiration: string;
   color: 'error' | 'success';
   message: string;
   status: 'valid' | 'error' | 'none';
+  code: string | null;
   registrationLink?: string; // not generated on failure or reset
   resourceLink?: string; // not generated on empty registration
+}
+
+/**
+ * Partial of the registration condition
+ */
+interface PartialCondition {
+  reason?: string;
+  message?: string;
+  type: string;
+  status: 'True' | 'False';
 }
 
 /**
  * Partial of the registration interface used for this page
  */
 interface PartialRegistration {
+  id: string;
   metadata: {
     labels: Record<string, string>;
     namespace: string;
@@ -33,7 +52,7 @@ interface PartialRegistration {
     view: string;
   };
   spec: {
-    mode: 'online' | 'offline';
+    mode: RegistrationMode;
   };
   status: {
     registeredProduct: string;
@@ -42,10 +61,8 @@ interface PartialRegistration {
       activated: boolean;
       systemUrl: string;
     };
-    conditions: Array<{
-      reason?: string;
-      message?: string;
-    }>
+    conditions: PartialCondition[];
+    currentCondition: PartialCondition;
   };
 }
 
@@ -59,19 +76,23 @@ interface PartialSecret {
     name: string;
   };
   data: {
-    regCode: string;
-    registrationType: string;
+    regCode?: string; // only for online registrations
+    certificate?: string; // only for offline registrations
+    registrationType?: string;
+    request?: string; // only for offline registration requests (file download)
   };
   remove: () => Promise<void>;
   save: () => Promise<void>;
 }
 
 const emptyRegistration: RegistrationDashboard = {
+  id:         '--',
   active:     false,
   product:    '--',
   mode:       '--',
   expiration: '--',
   color:      'error',
+  code:       null,
   message:    'registration.list.table.badge.none',
   status:     'none'
 };
@@ -93,9 +114,10 @@ const registrationBannerCases = {
 
 export const usePrimeRegistration = (storeArg?: Store<any>) => {
   const store = storeArg ?? useStore();
+  const { t } = useI18n(store);
 
   /**
-   * Registration from CRD
+   * Registration mapped value used in the UI
    */
   const registration = ref(emptyRegistration);
 
@@ -105,7 +127,12 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   const secret: Ref<PartialSecret | null> = ref(null);
 
   /**
-   * Single source for the registration status, used to define other computed properties
+   * Label from the secret used to find the registration
+   */
+  const secretHash = computed(() => (secret.value?.metadata?.labels || {})[REGISTRATION_LABEL] || null);
+
+  /**
+   * Single source for the registration status, used to define process state of the UI
    */
   const registrationStatus = ref('loading' as RegistrationStatus);
 
@@ -130,13 +157,6 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   const registrationBanner = computed(() => registration.value.status === 'valid' ? registrationBannerCases.valid : registrationBannerCases.none);
 
   /**
-   * Reg code contained within the encoded secret
-   */
-  const regCode = computed(() => {
-    return secret.value?.data?.regCode ? atob(secret.value.data.regCode) : '';
-  });
-
-  /**
    * Retrieve and set registration related values based on the current secret
    */
   const getRegistration = async(): Promise<RegistrationStatus> => {
@@ -144,8 +164,11 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
       const hash = secret.value.metadata?.labels?.[REGISTRATION_LABEL];
 
       if (hash) {
-        registration.value = mapRegistration(await findRegistration(hash));
-        if (registration.value) {
+        const registrationData = await findRegistration(hash);
+
+        registration.value = mapRegistration(registrationData);
+        // Empty registrations are still displayed but not as registered
+        if (registration.value.status !== 'none') {
           return 'registered';
         }
       }
@@ -166,37 +189,15 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   };
 
   /**
-   * Update registration to defined case
-   * Reset other inputs and errors, set current state then patch the registration
-   * @param type 'online' | 'offline' | 'deregister'
-   * @param asyncButtonResolution Async button callback
+   * Common operations required before registration
    */
-  const changeRegistration = async(type: 'online' | 'offline' | 'deregister', asyncButtonResolution: AsyncButtonFunction) => {
+  const preRegistration = async(needSecret?: true) => {
     errors.value = [];
     await ensureNamespace();
-    await deleteSecret();
-
-    switch (type) {
-    case 'online':
-      if (!registrationCode.value) break;
-      secret.value = await createSecret('online', registrationCode.value);
-      offlineRegistrationCertificate.value = null;
-      registration.value = await poolRegistration(secret.value?.metadata?.labels?.[REGISTRATION_LABEL]);
-      registrationStatus.value = registration.value ? 'registered' : null;
-      asyncButtonResolution(true);
-      break;
-    case 'offline':
-      if (!registrationCode.value) break;
-      secret.value = await createSecret('offline', registrationCode.value);
-      registrationCode.value = null;
-      registration.value = await poolRegistration(secret.value?.metadata?.labels?.[REGISTRATION_LABEL]);
-      registrationStatus.value = registration.value ? 'registered' : null;
-      asyncButtonResolution(true);
-      break;
-    case 'deregister':
-      resetRegistration();
-      asyncButtonResolution(true);
-      break;
+    if (!needSecret) {
+      await deleteSecret();
+    } else {
+      secret.value = await getSecret();
     }
   };
 
@@ -239,7 +240,17 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const registerOnline = async(asyncButtonResolution: AsyncButtonFunction) => {
     registrationStatus.value = 'registering-online';
-    await changeRegistration('online', asyncButtonResolution);
+    offlineRegistrationCertificate.value = null;
+    await preRegistration();
+
+    if (!registrationCode.value) return;
+    const originalHash = secretHash.value;
+
+    secret.value = await createSecret('online', registrationCode.value);
+    registration.value = await pollResource(originalHash, findRegistration, mapRegistration);
+    registrationStatus.value = registration.value ? 'registered' : null;
+    store.dispatch('notifications/remove', REGISTRATION_NOTIFICATION_ID);
+    asyncButtonResolution(true);
   };
 
   /**
@@ -248,8 +259,20 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const registerOffline = async(certificate: string) => {
     registrationStatus.value = 'registering-offline';
-    offlineRegistrationCertificate.value = certificate;
-    await changeRegistration('offline', () => {});
+    registrationCode.value = null;
+    const originalHash = secretHash.value;
+
+    await preRegistration(true);
+    offlineRegistrationCertificate.value = certificate ? atob(certificate) : null;
+
+    try {
+      updateSecret(secret.value, offlineRegistrationCertificate.value);
+      registration.value = await pollResource(originalHash, findRegistration, mapRegistration);
+      registrationStatus.value = registration.value ? 'registered' : null;
+      store.dispatch('notifications/remove', REGISTRATION_NOTIFICATION_ID);
+    } catch (error) {
+      onError(error);
+    }
   };
 
   /**
@@ -257,32 +280,96 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * @param asyncButtonResolution Async button callback
    */
   const deregister = async(asyncButtonResolution: AsyncButtonFunction) => {
-    await changeRegistration('deregister', asyncButtonResolution);
+    await preRegistration();
+    resetRegistration();
+    asyncButtonResolution(true);
   };
 
   /**
-   * Handle download offline registration request
+   * Download is also on its own a form of registration as it uses the same secret
    * @param asyncButtonResolution Async button callback
    */
-  const downloadOfflineRequest = (asyncButtonResolution: (status: boolean) => void) => {
-    const fileName = 'rancher-offline-registration-request.json';
-    const data = '';
+  const downloadOfflineRequest = async(asyncButtonResolution: (status: boolean) => void) => {
+    registrationStatus.value = 'registration-request';
+    await preRegistration();
+    const originalHash = secretHash.value;
 
-    downloadFile(fileName, JSON.stringify(data), 'application/json')
-      .then(() => asyncButtonResolution(true))
-      .catch(() => asyncButtonResolution(false));
+    secret.value = await createSecret('offline'); // Generate secret to trigger offline registration request
+    registrationCode.value = null;
+    const data = await pollResource(originalHash, findOfflineRequest, getRegistrationRequest);
+
+    await downloadFile(REGISTRATION_REQUEST_FILENAME, data ? btoa(data) : data, 'application/json')
+      .catch(() => {
+        asyncButtonResolution(false);
+        onError(new Error('Registration request download not found'));
+      });
+    asyncButtonResolution(true);
+  };
+
+  /**
+   * Exclude these types of registrations "in progress" due offline activation logic
+   * @param registration
+   * @returns
+   */
+  const isRegistrationOfflineProgress = (registration: PartialRegistration): boolean => {
+    const isOffline = registration.spec?.mode === 'offline';
+    const lastCondition = registration.status?.currentCondition;
+    const isInProgress = lastCondition.type === 'OfflineRequestReady';
+    const isActive = registration.status.activationStatus.activated === true;
+
+    return isOffline && !isActive && isInProgress;
+  };
+
+  /**
+   * Return only registrations with ended process, based on conditions
+   * @param registration
+   * @returns
+   */
+  const isRegistrationCompleted = (registration: PartialRegistration): boolean => {
+    const mode = registration.spec?.mode;
+    const lastCondition = registration.status?.currentCondition;
+
+    if (!lastCondition.type) return false;
+
+    const isError = lastCondition.type === 'RegistrationActivated';
+    const isError2 = lastCondition.type === 'RegistrationAnnounced';
+    const isCompleteOnline = mode === 'online' && lastCondition.type === 'Done';
+    const isCompleteOffline = mode === 'offline' && lastCondition.type === 'Done';
+
+    return isError || isError2 || isCompleteOnline || isCompleteOffline;
   };
 
   /**
    * Get registration CRD matching secret label
    * @param hash current registration hash
    */
-  const findRegistration = async(hash: string | undefined): Promise<PartialRegistration | undefined> => {
-    const registrations: PartialRegistration[] = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME });
-    const registration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === hash);
+  const findRegistration = async(hash: string | null): Promise<PartialRegistration | undefined> => {
+    const registrations: PartialRegistration[] = await store.dispatch('management/findAll', { type: REGISTRATION_RESOURCE_NAME }).catch(() => []) || [];
+    const newRegistration = registrations.find((registration) => registration.metadata?.labels[REGISTRATION_LABEL] === hash &&
+      !isRegistrationOfflineProgress(registration) &&
+      isRegistrationCompleted(registration)
+    );
 
-    return registration;
+    return newRegistration;
   };
+
+  /**
+   * Get offline request secret matching the hash and name prefix
+   * @param hash current registration hash
+   */
+  const findOfflineRequest = async(hash: string | null): Promise<PartialSecret | null> => {
+    const secrets: PartialSecret[] = await store.dispatch('management/findAll', { type: SECRET, opt: { namespaced: REGISTRATION_NAMESPACE } }).catch(() => []) || [];
+    const request = secrets.find((secret) => secret.metadata?.namespace === REGISTRATION_NAMESPACE &&
+      secret.metadata?.name.startsWith(REGISTRATION_REQUEST_PREFIX)) ?? null;
+
+    return request;
+  };
+
+  /**
+   * Get the registration request from the secret data
+   * @param secret PartialSecret containing the request data
+   */
+  const getRegistrationRequest = (secret: PartialSecret | null): string | null => secret?.data?.request ? atob(secret?.data?.request) : null;
 
   /**
    * Map registration to the displayed format
@@ -293,13 +380,15 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
       return emptyRegistration;
     } else {
       const isActive = registration.status?.activationStatus?.activated === true;
-      const resourceLink = registration.links.view.replace('/apis/scc.cattle.io/v1/registrations/', '/c/local/explorer/scc.cattle.io.registration/');
+
       // Common values for every registration
       const commonRegistration = {
+        id:               registration.id,
         active:           isActive,
         mode:             registration.spec.mode,
         registrationLink: registration.status?.activationStatus?.systemUrl,
-        resourceLink,
+        resourceLink:     registration.links.view,
+        code:             registration?.metadata?.labels[REGISTRATION_LABEL],
       };
 
       if (isActive) {
@@ -313,10 +402,13 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
         };
       } else {
         // Retrieve failure message from conditions
-        const conditions = registration.status?.conditions || [];
-        const errorMessage = conditions.find((condition) => condition.reason && condition.message);
+        const errorMessage = registration.status?.currentCondition;
 
-        onError(errorMessage);
+        if (errorMessage) {
+          onError(errorMessage);
+        } else {
+          onError(new Error(t('registration.errors.generic-registration')));
+        }
 
         return {
           ...commonRegistration,
@@ -334,7 +426,7 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    * Get unique secret code with hardcoded namespace and name
    */
   const getSecret = async(): Promise<PartialSecret | null> => {
-    const secrets: PartialSecret[] = await store.dispatch('management/findAll', { type: SECRET });
+    const secrets: PartialSecret[] = await store.dispatch('management/findAll', { type: SECRET, opt: { namespaced: REGISTRATION_NAMESPACE } }).catch(() => []) || [];
 
     return secrets.find((secret) => secret.metadata?.namespace === REGISTRATION_NAMESPACE &&
       secret.metadata?.name === REGISTRATION_SECRET) ?? null;
@@ -353,11 +445,13 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
 
   /**
    * Create secret to trigger registration
-   * @param type 'online' | 'offline'
+   * @param mode 'online' | 'offline'
    * @param code
    * @returns
    */
-  const createSecret = async(type: string, code: string): Promise<PartialSecret | null> => {
+  const createSecret = async(mode: string, code?: string): Promise<PartialSecret | null> => {
+    const code64 = code ? { regCode: btoa(code) } : {};
+
     try {
       const secret = await store.dispatch('management/create', {
         type:     SECRET,
@@ -366,8 +460,8 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
           name:      REGISTRATION_SECRET,
         },
         data: {
-          regCode:          btoa(code),
-          registrationType: btoa(type)
+          ...code64,
+          registrationType: btoa(mode)
         }
       });
 
@@ -382,29 +476,84 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
   };
 
   /**
-   * Fetch periodically till a registration for given hash is found or the timeout is reached
-   * @param hash current registration hash
-   * @param frequency Frequency in milliseconds to check the registration status
+   * Update secret model and append certificate
+   * @param secret
+   * @param certificate
+   * @returns
    */
-  const poolRegistration = async(originalHash: string | undefined, frequency = 500, timeout = 10000) => {
-    return new Promise<RegistrationDashboard>((resolve, reject) => {
+  const updateSecret = async(secret: PartialSecret | null, certificate: string | null) => {
+    if (!secret || !certificate) return;
+    delete secret.data.request;
+    secret.data.certificate = btoa(certificate);
+    await secret.save();
+  };
+
+  /**
+   * Generic fallback in case of unhandled errors based on existing resources
+   * @param polling
+   * @returns
+   */
+  const getError = (polling?: boolean): string => {
+    if (polling && !secret.value?.data?.regCode) {
+      return t('registration.errors.missing-code');
+    }
+
+    // Fallback in case of logic changes
+    if (polling && registration.value.active && secret.value?.data?.regCode !== registration.value?.code) {
+      return t('registration.errors.mismatch-code');
+    }
+
+    if (secret.value && !registration.value.active) {
+      return t('registration.errors.generic-registration');
+    }
+
+    if (polling) {
+      return t('registration.errors.timeout-registration');
+    }
+
+    return '';
+  };
+
+  /**
+ * Polls periodically until a condition is met or timeout is reached.
+ * @param fetchFn Function to fetch the resource (e.g., findRegistration or findOfflineRequest)
+ * @param mapResult Function to map the result before resolving
+ * @param frequency Polling frequency in ms
+ * @param timeout Timeout in ms
+ * @param extraConditionFn Optional function to apply additional conditions on the resource; it must return true to resolve
+ * @return Promise that resolves with the mapped result
+ */
+  const pollResource = async<T>(
+    originalHash: string | null,
+    fetchFn: (hash: string | null) => Promise<any>,
+    mapResult: (resource: any) => T,
+    extraConditionFn?: (resource: any) => boolean,
+    frequency = 250,
+    timeout = 10000 // First initialization is slow, which is most of the cases
+  ): Promise<T> => {
+    return new Promise<T>((resolve, reject) => {
       const startTime = Date.now();
 
       const interval = setInterval(async() => {
         if (Date.now() - startTime > timeout) {
           clearInterval(interval);
-          reject(new Error('Timeout reached while waiting for registration'));
+          reject(new Error(getError(true)));
 
           return;
         }
 
-        const hash = secret.value?.metadata?.labels?.[REGISTRATION_LABEL];
-        const registration = await findRegistration(hash);
-        const newHash = registration?.metadata?.labels[REGISTRATION_LABEL];
+        // Get resource with matching hash
+        const hash = secretHash.value;
+        const resource = await fetchFn(hash);
+        const newHash: string = resource?.metadata?.labels[REGISTRATION_LABEL];
 
-        if ((originalHash && !newHash) || (!originalHash && newHash) || (originalHash && newHash && originalHash !== newHash)) {
+        const passExtraConditions = (!extraConditionFn || extraConditionFn(resource)); // Run further conditions, default none
+        const isHashChanged: boolean = (!originalHash && !!newHash) ||
+          (!!originalHash && !!newHash && originalHash !== newHash); // Ensure hash has changed
+
+        if (passExtraConditions && isHashChanged) {
           clearInterval(interval);
-          resolve(mapRegistration(registration));
+          resolve(mapResult(resource));
         }
       }, frequency);
     });
@@ -415,9 +564,13 @@ export const usePrimeRegistration = (storeArg?: Store<any>) => {
    */
   const initRegistration = async() => {
     secret.value = await getSecret();
-    registrationCode.value = regCode.value;
-
+    registrationCode.value = secret.value?.data?.regCode ? atob(secret.value.data.regCode) : null; // Get registration code from secret
     registrationStatus.value = await getRegistration();
+    const message = getError();
+
+    if (message) {
+      onError(new Error(message));
+    }
   };
 
   return {

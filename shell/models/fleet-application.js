@@ -1,15 +1,12 @@
 import { matching, convertSelectorObj } from '@shell/utils/selector';
 import isEmpty from 'lodash/isEmpty';
 import { escapeHtml } from '@shell/utils/string';
-import { FLEET, MANAGEMENT } from '@shell/config/types';
+import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { mapStateToEnum, primaryDisplayStatusFromCount, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import FleetUtils from '@shell/utils/fleet';
-
-export const MINIMUM_POLLING_INTERVAL = 15;
-export const DEFAULT_POLLING_INTERVAL = 60;
 
 function normalizeStateCounts(data) {
   if (isEmpty(data)) {
@@ -32,8 +29,19 @@ function normalizeStateCounts(data) {
 }
 
 export default class FleetApplication extends SteveModel {
-  get currentUser() {
-    return this.$rootGetters['auth/v3User'] || {};
+  async getCurrentUser() {
+    const user = this.$rootGetters['auth/v3User'];
+
+    if (user?.id) {
+      return user;
+    }
+
+    const res = await this.$dispatch('rancher/request', {
+      url:    '/v3/users?me=true',
+      method: 'get',
+    }, { root: true });
+
+    return res?.data?.[0] || {};
   }
 
   pause() {
@@ -46,30 +54,12 @@ export default class FleetApplication extends SteveModel {
     this.save();
   }
 
-  enablePollingAction() {
-    this.spec.disablePolling = false;
-    this.save();
-  }
-
-  disablePollingAction() {
-    this.spec.disablePolling = true;
-    this.save();
-  }
-
   goToClone() {
     if (this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID]) {
       delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
     }
 
-    if (this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME]) {
-      delete this.metadata.labels[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
-    }
-
     super.goToClone();
-  }
-
-  get isPollingEnabled() {
-    return !this.spec.disablePolling;
   }
 
   get state() {
@@ -161,11 +151,11 @@ export default class FleetApplication extends SteveModel {
   }
 
   statusResourceCountsForCluster(clusterId) {
-    if (!this.targetClusters.some((c) => c.id === clusterId)) {
+    if (!(this.targetClusters || []).some((c) => c.id === clusterId)) {
       return {};
     }
 
-    return this.status?.perClusterResourceCounts[clusterId] || { desiredReady: 0 };
+    return this.status?.perClusterResourceCounts?.[clusterId] || { desiredReady: 0 };
   }
 
   get resourcesStatuses() {
@@ -239,43 +229,6 @@ export default class FleetApplication extends SteveModel {
     const resourceCounts = this.statusResourceCountsForCluster(clusterId);
 
     return primaryDisplayStatusFromCount(resourceCounts) || STATES_ENUM.ACTIVE;
-  }
-
-  get authorId() {
-    return this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_ID];
-  }
-
-  get author() {
-    if (this.authorId) {
-      return this.$rootGetters['management/byId'](MANAGEMENT.USER, this.authorId);
-    }
-
-    return null;
-  }
-
-  get createdBy() {
-    const displayName = this.metadata?.labels?.[FLEET_ANNOTATIONS.CREATED_BY_USER_NAME];
-
-    if (!displayName) {
-      return null;
-    }
-
-    return {
-      displayName,
-      location: !this.author ? null : {
-        name:   'c-cluster-product-resource-id',
-        params: {
-          cluster:  '_',
-          product:  'auth',
-          resource: MANAGEMENT.USER,
-          id:       this.author.id,
-        }
-      }
-    };
-  }
-
-  get showCreatedBy() {
-    return !!this.createdBy;
   }
 
   get clustersList() {

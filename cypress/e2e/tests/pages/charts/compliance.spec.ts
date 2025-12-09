@@ -92,7 +92,7 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
       });
 
       after('clean up', () => {
-        const chartNamespace = 'rancher-compliance-system';
+        const chartNamespace = 'compliance-operator-system';
         const chartApp = 'rancher-compliance';
         const chartCrd = 'rancher-compliance-crd';
 

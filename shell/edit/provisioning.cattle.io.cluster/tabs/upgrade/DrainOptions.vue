@@ -34,23 +34,30 @@ export default {
   },
 
   data() {
-    const out = {};
-
-    for ( const k in DEFAULTS ) {
-      if ( typeof this.value[k] === 'undefined' ) {
-        out[k] = DEFAULTS[k];
-      } else {
-        out[k] = this.value[k];
-      }
-    }
-
-    out.customGracePeriod = out.gracePeriod >= 0;
-    out.customTimeout = out.timeout >= 0;
-
-    return out;
+    return {
+      deleteEmptyDirData:              DEFAULTS.deleteEmptyDirData,
+      disableEviction:                 DEFAULTS.disableEviction,
+      enabled:                         DEFAULTS.enabled,
+      force:                           DEFAULTS.force,
+      gracePeriod:                     DEFAULTS.gracePeriod,
+      ignoreDaemonSets:                DEFAULTS.ignoreDaemonSets,
+      skipWaitForDeleteTimeoutSeconds: DEFAULTS.skipWaitForDeleteTimeoutSeconds,
+      timeout:                         DEFAULTS.timeout,
+    };
   },
 
   created() {
+    for ( const k in DEFAULTS ) {
+      if ( typeof this.value[k] === 'undefined' ) {
+        this.$data[k] = DEFAULTS[k];
+      } else {
+        this.$data[k] = this.value[k];
+      }
+    }
+
+    this.customGracePeriod = this.gracePeriod >= 0;
+    this.customTimeout = this.timeout >= 0;
+
     this.update();
   },
 
@@ -95,6 +102,7 @@ export default {
       <div class="mt-20">
         <Checkbox
           v-model:value="deleteEmptyDirData"
+          :mode="mode"
           label-key="cluster.rke2.drain.deleteEmptyDir.label"
           tooltip-key="cluster.rke2.drain.deleteEmptyDir.tooltip"
           @update:value="update"
@@ -103,6 +111,7 @@ export default {
       <div>
         <Checkbox
           v-model:value="force"
+          :mode="mode"
           label="Delete standalone pods"
           label-key="cluster.rke2.drain.force.label"
           tooltip="Delete standalone pods which are not managed by a Workload controller (Deployment, Job, etc).  Draining will fail if this is not set and there are standalone pods."
@@ -113,12 +122,14 @@ export default {
       <div>
         <Checkbox
           v-model:value="customGracePeriod"
+          :mode="mode"
           label-key="cluster.rke2.drain.gracePeriod.checkboxLabel"
           @update:value="update"
         />
         <UnitInput
           v-if="customGracePeriod"
           v-model:value="gracePeriod"
+          :mode="mode"
           label-key="cluster.rke2.drain.gracePeriod.inputLabel"
           :suffix="t('suffix.seconds', {count: timeout})"
           class="mb-10"
@@ -128,12 +139,14 @@ export default {
       <div>
         <Checkbox
           v-model:value="customTimeout"
+          :mode="mode"
           label-key="cluster.rke2.drain.timeout.checkboxLabel"
           @update:value="update"
         />
         <UnitInput
           v-if="customTimeout"
           v-model:value="timeout"
+          :mode="mode"
           label-key="cluster.rke2.drain.timeout.inputLabel"
           :suffix="t('suffix.seconds', {count: timeout})"
           class="drain-timeout"

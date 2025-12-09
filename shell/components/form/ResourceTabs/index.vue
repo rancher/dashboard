@@ -7,15 +7,16 @@ import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Conditions from '@shell/components/form/Conditions';
-import { EVENT } from '@shell/config/types';
+import { EVENT, NAMESPACE } from '@shell/config/types';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
 import { _VIEW } from '@shell/config/query-params';
 import RelatedResources from '@shell/components/RelatedResources';
 import { isConditionReadyAndWaiting } from '@shell/plugins/dashboard-store/resource-class';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { MESSAGE, REASON } from '@shell/config/table-headers';
-import { STEVE_EVENT_LAST_SEEN, STEVE_EVENT_TYPE, STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
+import { STEVE_EVENT_FIRST_SEEN, STEVE_EVENT_LAST_SEEN, STEVE_EVENT_TYPE, STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
 import { headerFromSchemaColString } from '@shell/store/type-map.utils';
+import { useIndicateUseCounts } from '@shell/components/form/ResourceTabs/composable';
 
 export default {
 
@@ -75,6 +76,12 @@ export default {
     }
   },
 
+  setup(props) {
+    if (props.mode === _VIEW) {
+      useIndicateUseCounts();
+    }
+  },
+
   data() {
     const inStore = this.$store.getters['currentStore'](EVENT);
     const eventSchema = this.$store.getters[`${ inStore }/schemaFor`](EVENT); // @TODO be smarter about which resources actually ever have events
@@ -86,7 +93,7 @@ export default {
       headerFromSchemaColString('Subobject', eventSchema, this.$store.getters, true),
       headerFromSchemaColString('Source', eventSchema, this.$store.getters, true),
       MESSAGE,
-      headerFromSchemaColString('First Seen', eventSchema, this.$store.getters, true),
+      STEVE_EVENT_FIRST_SEEN,
       headerFromSchemaColString('Count', eventSchema, this.$store.getters, true),
       STEVE_NAME_COL,
     ] : [];
@@ -112,6 +119,9 @@ export default {
   },
 
   computed: {
+    isNamespace() {
+      return this.value?.type === NAMESPACE;
+    },
     showEvents() {
       return this.isView && this.needEvents && this.eventSchema;
     },
@@ -155,15 +165,13 @@ export default {
       }
 
       return false;
+    },
+    children() {
+      return this.$slots?.default?.() || [];
     }
   },
 
   methods: {
-    // Ensures we only fetch events and show the table when the events tab has been activated
-    tabChange(neu) {
-      this.selectedTab = neu?.selectedName;
-    },
-
     /**
     * Conditions come from a resource's `status`. They are used by both core resources like workloads as well as those from CRDs
     * - Workloads
@@ -185,7 +193,9 @@ export default {
      * Filter out hidden repos from list of all repos
      */
     filterEventsLocal(rows) {
-      return rows.filter((event) => event.involvedObject?.uid === this.value?.metadata?.uid);
+      return rows.filter((event) => {
+        return this.isNamespace ? event.metadata?.namespace === this.value?.metadata?.name : event.involvedObject?.uid === this.value?.metadata?.uid;
+      });
     },
 
     /**
@@ -199,27 +209,22 @@ export default {
         pagination.filters = [];
       }
 
-      const field = `involvedObject.uid`;
+      // Determine the field and value based on type
+      const field = this.isNamespace ? 'metadata.namespace' : 'involvedObject.uid';
+      const value = this.isNamespace ? this.value.metadata.name : this.value.metadata.uid;
 
-      // of type PaginationParamFilter
-      let existing = null;
+      // Check if a filter for this field already exists
+      const existing = pagination.filters.find((f) => f.fields.some((ff) => ff.field === field));
 
-      for (let i = 0; i < pagination.filters.length; i++) {
-        const filter = pagination.filters[i];
-
-        if (!!filter.fields.find((f) => f.field === field)) {
-          existing = filter;
-          break;
-        }
-      }
-
+      // Create the required filter
       const required = PaginationParamFilter.createSingleField({
         field,
         exact:  true,
-        value:  this.value.metadata.uid,
+        value,
         equals: true
       });
 
+      // Merge or add the filter
       if (!!existing) {
         Object.assign(existing, required);
       } else {
@@ -234,6 +239,8 @@ export default {
 
 <template>
   <Tabbed
+    class="resource-tabs"
+    :class="{[mode]: true}"
     v-bind="$attrs"
     :default-tab="defaultTab"
     :resource="value"
@@ -241,7 +248,6 @@ export default {
     @changed="tabChange"
   >
     <slot />
-
     <Tab
       v-if="showConditions"
       label-key="resourceTabs.conditions.tab"
@@ -254,13 +260,18 @@ export default {
 
     <Tab
       v-if="showEvents"
-      label-key="resourceTabs.events.tab"
+      :label="isNamespace ? t('resourceTabs.events.namespaceTab') : t('resourceTabs.events.tab')"
       name="events"
       :weight="-2"
     >
+      <!-- Caption for namespace pages -->
+      <div
+        v-if="isNamespace"
+        v-clean-html="t('resourceTabs.events.namespaceCaption', { namespace: value.metadata.name }, true)"
+        class="tab-caption"
+      />
       <!-- namespaced: false given we don't want the default handling of namespaced resource (apply header filter)  -->
       <PaginatedResourceTable
-        v-if="selectedTab === 'events'"
         :schema="eventSchema"
         :local-filter="filterEventsLocal"
         :api-filter="filterEventsApi"
@@ -296,3 +307,34 @@ export default {
     </Tab>
   </Tabbed>
 </template>
+
+<style lang="scss" scoped>
+.resource-tabs {
+  // For the time being we're only targeting detail pages for the new styling. Remove this if we want this style to apply to all pages.
+  &.view {
+    :deep() .tabs.horizontal {
+      border: none;
+    }
+
+    :deep() .tabs.horizontal + .tab-container {
+      border: none;
+      border-top: 1px solid var(--border);
+      padding: 0;
+      padding-top: 24px;
+    }
+  }
+}
+/* Caption for namespace events tab */
+.tab-caption {
+  align-items: center;
+  font-size: 16px;
+  margin-bottom: 24px;
+
+  .namespace-name {
+    display: inline;
+    font-weight: bold;
+    margin-right: 0 4px;
+    white-space: nowrap;
+  }
+}
+</style>

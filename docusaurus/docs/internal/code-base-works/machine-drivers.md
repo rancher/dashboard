@@ -9,7 +9,7 @@ A machine driver consists of:
 
 ## Driver binary
 
-To tell Rancher about a new driver, go to Cluster Management -> Drivers -> Node Drivers -> Add Node Driver.  Set the URL the binary should be downloaded from.  If the UI will need to communicate with an API to show options (e.g getting data from `api.mycloudprovider.com`), add it to the list of Whitelist Domains.  Click Create to save.  The driver is downloaded and loaded and becomes available in the UI using all the generic driver support.  This just lists all the fields that the driver says it has and makes some guesses about likely sounding names.  The user ultimately has to figure out which ones are required or important and set those.  To improve on that, continue reading.
+To tell Rancher about a new driver, go to Cluster Management -> Providers -> Node Drivers -> Add Node Driver.  Set the URL the binary should be downloaded from.  If the UI will need to communicate with an API to show options (e.g getting data from `api.mycloudprovider.com`), add it to the list of Whitelist Domains.  Click Create to save.  The driver is downloaded and loaded and becomes available in the UI using all the generic driver support.  This just lists all the fields that the driver says it has and makes some guesses about likely sounding names.  The user ultimately has to figure out which ones are required or important and set those.  To improve on that, continue reading.
 
 For more advanced control, the machine driver custom resource supports several annotations:
 

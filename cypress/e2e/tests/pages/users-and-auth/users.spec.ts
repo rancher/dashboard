@@ -179,16 +179,16 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       });
     });
 
-    it('can View YAML', () => {
-      // View YAML and verify user lands on correct page
+    it('can Edit YAML', () => {
+      // Edit YAML and verify user lands on correct page
 
       // We don't have a good pattern for the view/edit yaml page yet
       const viewYaml = usersPo.createEdit(userId);
 
       usersPo.goTo();
       usersPo.waitForPage();
-      usersPo.list().clickRowActionMenuItem(standardUsername, 'View YAML');
-      cy.url().should('include', `?mode=view&as=yaml`);
+      usersPo.list().clickRowActionMenuItem(standardUsername, 'Edit YAML');
+      cy.url().should('include', `?mode=edit&as=yaml`);
       viewYaml.mastheadTitle().should('contain', standardUsername);
     });
 

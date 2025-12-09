@@ -130,11 +130,20 @@ export default {
           index = (found === -1) ? 0 : found;
         }
 
-        const route = items[index].route;
+        const item = items[index];
+        const route = item.route;
 
         if (route) {
           this.$router.replace(route);
+        } else if (item) {
+          this.routeToFirstChild(item);
         }
+      }
+    },
+
+    routeToFirstChild(item) {
+      if (item.children.length && item.children[0].route) {
+        this.$router.replace(item.children[0].route);
       }
     },
 
@@ -381,21 +390,21 @@ export default {
       }
 
       &.active {
-        color: var(--primary-hover-text);
-        background-color: var(--primary-hover-bg);
+        color: var(--on-active, var(--primary-hover-text));
+        background-color: var(--active-nav, var(--primary-hover-bg));
 
         h6 {
           padding: 8px 0 8px 16px;
           font-weight: bold;
-          color: var(--primary-hover-text);
+          color: var(--on-active, var(--primary-hover-text));
         }
 
         &:hover {
-          background-color: var(--primary-hover-bg);
+          background-color: var(--nav-active-hover, var(--primary-hover-bg));
         }
 
         ~ I {
-          color: var(--primary-hover-text);
+          color: var(--on-active, var(--primary-hover-text));
         }
       }
       &:hover:not(.active) {
@@ -433,13 +442,29 @@ export default {
         margin-left: 0;
       }
 
+      .child:hover {
+        background: var(--nav-hover, var(--nav-active));
+      }
+
       &.group-highlight {
-        background: var(--nav-active);
+        background: var(--category-active, var(--nav-active));
+
+        .active.header {
+          &:hover {
+            background-color: var(--nav-active-hover)
+          }
+        }
+
+        .child, .header {
+          &:hover {
+            background: var(--category-active-hover, var(--primary));
+          }
+        }
       }
     }
 
     &.depth-1 {
-      > .header {
+      > .accordion-item > .header {
         padding-left: 20px;
         > H6 {
           line-height: 18px;
@@ -458,7 +483,7 @@ export default {
     }
 
     &:not(.depth-0) {
-      > .header {
+      > .accordion-item > .header {
         > H6 {
           // Child groups that aren't linked themselves
           display: inline-block;
@@ -480,13 +505,17 @@ export default {
     padding: 0;
 
     A, A I {
-      color: var(--primary-hover-text);
+      color: var(--on-active, var(--primary-hover-text));
     }
 
     A {
-      color: var(--primary-hover-text);
-      background-color: var(--primary-hover-bg);
+      color: var(--on-active, var(--primary-hover-text));
+      background-color: var(--active-nav, var(--primary-hover-bg));
       font-weight: bold;
+
+      &:hover {
+        background: var(--nav-active-hover);
+      }
     }
   }
 

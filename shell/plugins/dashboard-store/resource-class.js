@@ -1,4 +1,7 @@
 import { NORMAN_NAME } from '@shell/config/labels-annotations';
+import { getVersionData } from '@shell/config/version';
+import { parseRancherVersion } from '@shell/config/uiplugins';
+import semver from 'semver';
 import {
   _CLONE,
   _CONFIG,
@@ -58,7 +61,7 @@ const DEFAULT_COLOR = 'warning';
 const DEFAULT_ICON = 'x';
 
 const DEFAULT_WAIT_INTERVAL = 1000;
-const DEFAULT_WAIT_TMIMEOUT = 30000;
+const DEFAULT_WAIT_TIMEOUT = 30000;
 
 export const STATES_ENUM = {
   IN_USE:           'in-use',
@@ -802,7 +805,7 @@ export default class Resource {
   // ------------------------------------------------------------------
 
   waitForTestFn(fn, msg, timeoutMs, intervalMs) {
-    return waitFor(() => fn.apply(this), msg, timeoutMs || DEFAULT_WAIT_TMIMEOUT, intervalMs || DEFAULT_WAIT_INTERVAL, true);
+    return waitFor(() => fn.apply(this), msg, timeoutMs || DEFAULT_WAIT_TIMEOUT, intervalMs || DEFAULT_WAIT_INTERVAL, true);
   }
 
   waitForState(state, timeout, interval) {
@@ -851,13 +854,17 @@ export default class Resource {
     return (entry.status || '').toLowerCase() === `${ withStatus }`.toLowerCase();
   }
 
-  waitForCondition(name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TMIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) {
+  waitForCondition(name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) {
     return this.waitForTestFn(() => {
       return this.isCondition(name, withStatus);
     }, `condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
   }
 
   // ------------------------------------------------------------------
+
+  get canEdit() {
+    return this.canUpdate && this.canCustomEdit;
+  }
 
   get availableActions() {
     const all = this._availableActions;
@@ -898,13 +905,48 @@ export default class Resource {
     return out;
   }
 
+  showConfiguration(returnFocusSelector, defaultTab) {
+    const onClose = () => this.$ctx.commit('slideInPanel/close', undefined, { root: true });
+
+    this.$ctx.commit('slideInPanel/open', {
+      component:      require(`@shell/components/Drawer/ResourceDetailDrawer/index.vue`).default,
+      componentProps: {
+        resource:           this,
+        onClose,
+        width:              '73%',
+        // We want this to be full viewport height top to bottom
+        height:             '100vh',
+        top:                '0',
+        'z-index':          101, // We want this to be above the main side menu
+        closeOnRouteChange: ['name', 'params', 'query'], // We want to ignore hash changes, tables in extensions can trigger the drawer to close while opening
+        triggerFocusTrap:   true,
+        returnFocusSelector,
+        defaultTab
+      }
+    }, { root: true });
+  }
+
   // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
   get _availableActions() {
     // get menu actions available by plugins configuration
     const currentRoute = this.currentRouter().currentRoute.value;
     const extensionMenuActions = getApplicableExtensionEnhancements(this.$rootState, ExtensionPoint.ACTION, ActionLocation.TABLE, currentRoute, this);
 
+    const currRancherVersionData = getVersionData();
+    const parsedRancherVersion = parseRancherVersion(currRancherVersionData.Version);
+
+    // "showConfiguration" table action is only compatible with Rancher 2.13 and onwards
+    // defence against extension issue https://github.com/rancher/dashboard/issues/15564
+    // where mostly likely extension CRD model is extending from resource-class
+    const isResourceDetailDrawerCompatibleWithRancherSystem = semver.satisfies(parsedRancherVersion, '>= 2.13.0');
+
     const all = [
+      {
+        action:  'showConfiguration',
+        label:   this.t('action.showConfiguration'),
+        icon:    'icon icon-document',
+        enabled: isResourceDetailDrawerCompatibleWithRancherSystem && this.disableResourceDetailDrawer !== true && (this.canCustomEdit || this.canYaml), // If the resource can't show an edit or a yaml we don't want to show the configuration drawer
+      },
       { divider: true },
       {
         action:  this.canUpdate ? 'goToEdit' : 'goToViewConfig',
@@ -1222,6 +1264,12 @@ export default class Resource {
       delete opt.replace;
     }
 
+    // Will loading this resource invalidate the resources in the cache that represent a page (resource is not from page)
+    // By default we set this to no, it won't pollute the cache. Most likely either
+    // 1. The resource came from a list already (loaded resource is already in the page that is in the cache)
+    // 2. UI is not on a page with a list (cache doesn't represent a list)
+    const invalidatePageCache = opt.invalidatePageCache || false;
+
     try {
       const res = await this.$dispatch('request', { opt, type: this.type } );
 
@@ -1230,7 +1278,9 @@ export default class Resource {
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {
-        await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined ) });
+        await this.$dispatch('load', {
+          data: res, existing: (forNew ? this : undefined ), invalidatePageCache
+        });
       }
     } catch (e) {
       if ( this.type && this.id && e?._status === 409) {
@@ -1238,7 +1288,14 @@ export default class Resource {
         await this.$dispatch('find', {
           type: this.type,
           id:   this.id,
-          opt:  { force: true }
+          opt:  {
+            // We want to update the value in cache, so force the request
+            force: true,
+            // We're not interested in opening a watch for this specific resource
+            watch: false,
+            // Unless overridden, this will be false, we're probably from a list and we don't want to clear it's state
+            invalidatePageCache
+          }
         });
       }
 
@@ -1814,6 +1871,55 @@ export default class Resource {
     }
 
     return details;
+  }
+
+  get glance() {
+    return this._glance;
+  }
+
+  get _glance() {
+    const type = this.parentNameOverride || this.$rootGetters['type-map/labelFor'](this.schema);
+
+    return [
+      {
+        name:          'state',
+        label:         this.t('component.resource.detail.glance.state'),
+        formatter:     'BadgeStateFormatter',
+        formatterOpts: { row: this },
+        content:       this.stateDisplay
+      },
+      {
+        name:          'type',
+        label:         this.t('component.resource.detail.glance.type'),
+        formatter:     'Link',
+        formatterOpts: {
+          to: this.listLocation, row: {}, options: { internal: true }
+        },
+        content: type
+      },
+      {
+        name:          'namespace',
+        label:         this.t('component.resource.detail.glance.namespace'),
+        formatter:     'Link',
+        formatterOpts: {
+          to: {
+            name:     `c-cluster-product-resource-id`,
+            product:  this.$rootGetters['currentProduct'].id,
+            cluster:  this.$rootGetters['currentCluster'].id,
+            resource: this.type
+          },
+          row:     {},
+          options: { internal: true }
+        },
+        content: this.namespacedName
+      },
+      {
+        name:      'age',
+        label:     this.t('component.resource.detail.glance.age'),
+        formatter: 'LiveDate',
+        content:   this.creationTimestamp
+      }
+    ];
   }
 
   get t() {

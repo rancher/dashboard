@@ -205,7 +205,7 @@ export function definedKeys(obj) {
   return compact(flattenDeep(keys));
 }
 
-export function diff(from, to) {
+export function diff(from, to, preventNull = false) {
   from = from || {};
   to = to || {};
 
@@ -234,7 +234,25 @@ export function diff(from, to) {
   const missing = difference(fromKeys, toKeys);
 
   for ( const k of missing ) {
-    set(out, k, null);
+    // we need to gate this in order to prevent unforseen problems with addonConfig
+    if (preventNull) {
+    // keys that come from "definedKeys" method are strings with "" chars inside... We need to clean them up
+      // so that we can access the value of the obj property
+      let key = k;
+
+      if (!k.includes('.')) {
+        key = k.replaceAll('"', '');
+      }
+
+      // // if value exists in "from" but is missing in "to", let's add it, otherwise we just set it null as we did before
+      if (from[key] !== undefined && from[key] !== null) {
+        set(out, key, from[key]);
+      } else {
+        set(out, key, null);
+      }
+    } else {
+      set(out, k, null);
+    }
   }
 
   return out;

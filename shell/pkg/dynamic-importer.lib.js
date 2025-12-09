@@ -25,6 +25,10 @@ export function importDetail(name) {
   return () => undefined;
 }
 
+export function importDrawer(name) {
+  return () => undefined;
+}
+
 export function importEdit(name) {
   return () => undefined;
 }

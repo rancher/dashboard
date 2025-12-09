@@ -352,7 +352,7 @@ export default {
     }
   },
 
-  unmounted() {
+  async beforeUnmount() {
     if (this.havePaginated) {
       // of type @STEVE_WATCH_PARAMS
       const watchArgs = {
@@ -360,9 +360,8 @@ export default {
         mode: STEVE_WATCH_MODE.RESOURCE_CHANGES,
       };
 
-      this.$store.dispatch(`${ this.overrideInStore || this.inStore }/forgetType`, this.resource, (watchParams) => {
-        return watchParams.type === watchArgs.type &&
-        watchParams.mode === watchArgs.type.mode;
+      await this.$store.dispatch(`${ this.overrideInStore || this.inStore }/forgetType`, this.resource, (watchParams) => {
+        return watchParams.type === watchArgs.type && watchParams.mode === watchArgs.type.mode;
       });
     }
   }

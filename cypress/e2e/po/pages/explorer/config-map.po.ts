@@ -1,15 +1,16 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
+import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
-
-export class ConfigMapPagePo extends PagePo {
+import InputPo from '@/cypress/e2e/po/components/input.po';
+import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
+export class ConfigMapListPagePo extends BaseListPagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/explorer/configmap`;
   }
 
   static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(ConfigMapPagePo.createPath(clusterId));
+    return super.goTo(ConfigMapListPagePo.createPath(clusterId));
   }
 
   static navTo(clusterId = 'local') {
@@ -22,19 +23,7 @@ export class ConfigMapPagePo extends PagePo {
   }
 
   constructor(clusterId = 'local') {
-    super(ConfigMapPagePo.createPath(clusterId));
-  }
-
-  list() {
-    return new BaseResourceList(this.self());
-  }
-
-  clickCreate() {
-    return this.list().masthead().create();
-  }
-
-  listElementWithName(name:string) {
-    return this.list().resourceTable().sortableTable().rowElementWithName(name);
+    super(ConfigMapListPagePo.createPath(clusterId));
   }
 
   searchForConfigMap(name: string) {
@@ -42,8 +31,28 @@ export class ConfigMapPagePo extends PagePo {
 
     return cy.url().should('include', `q=${ name }`);
   }
+}
 
-  title() {
-    return this.self().get('.title h1').invoke('text');
+export class ConfigMapCreateEditPagePo extends BaseDetailPagePo {
+  private static createPath(clusterId: string, namespace?: string, id?: string ) {
+    const root = `/c/${ clusterId }/explorer/configmap`;
+
+    return id ? `${ root }/${ namespace }/${ id }` : `${ root }/create`;
+  }
+
+  static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
+    throw new Error('invalid');
+  }
+
+  constructor(clusterId = 'local', namespace?: string, id?: string) {
+    super(ConfigMapCreateEditPagePo.createPath(clusterId, namespace, id));
+  }
+
+  keyInput() {
+    return InputPo.bySelector(this.self(), '[data-testid="input-kv-item-key-0"]');
+  }
+
+  valueInput() {
+    return CodeMirrorPo.bySelector(this.self(), '[data-testid="code-mirror-multiline-field"]');
   }
 }

@@ -6,12 +6,12 @@ import {
   HCI,
   MANAGEMENT,
   SNAPSHOT,
-  VIRTUAL_TYPES
+  VIRTUAL_TYPES,
+  HOSTED_PROVIDER
 } from '@shell/config/types';
 import { MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
-
 export const NAME = 'manager';
 
 export function init(store) {
@@ -63,7 +63,7 @@ export function init(store) {
   basicType([
     CAPI.RANCHER_CLUSTER,
     'cloud-credentials',
-    'drivers',
+    'providers',
   ]);
 
   configureType(SNAPSHOT, { depaginate: true });
@@ -71,19 +71,24 @@ export function init(store) {
   configureType(CAPI.RANCHER_CLUSTER, {
     showListMasthead: false, namespaced: false, alias: [HCI.CLUSTER]
   });
-  // configureType(NORMAN.CLOUD_CREDENTIAL, { showListMasthead: false, namespaced: false });
   weightType(CAPI.RANCHER_CLUSTER, 100, true);
   weightType('cloud-credentials', 99, true);
-  weightType('drivers', 98, true);
+  weightType('providers', 98, true);
   weightType(CATALOG.CLUSTER_REPO, 97, true);
-
-  configureType(NORMAN.CLOUD_CREDENTIAL, {
-    showState: false, showAge: false, canYaml: false
+  virtualType({
+    labelKey:   'providers.hosted.title',
+    name:       HOSTED_PROVIDER,
+    group:      'Root',
+    weight:     1,
+    namespaced: false,
+    icon:       'globe',
+    route:      { name: 'c-cluster-manager-hostedprovider' },
+    exact:      true
   });
 
   virtualType({
     labelKey:   'drivers.kontainer.title',
-    name:       'rke-kontainer-drivers',
+    name:       'rke-kontainer-providers',
     group:      'Root',
     namespaced: false,
     icon:       'globe',
@@ -92,7 +97,7 @@ export function init(store) {
   });
   virtualType({
     labelKey:   'drivers.node.title',
-    name:       'rke-node-drivers',
+    name:       'rke-node-providers',
     group:      'Root',
     namespaced: false,
     icon:       'globe',
@@ -112,9 +117,10 @@ export function init(store) {
   });
 
   basicType([
-    'rke-kontainer-drivers',
-    'rke-node-drivers',
-  ], 'drivers');
+    HOSTED_PROVIDER,
+    'rke-kontainer-providers',
+    'rke-node-providers',
+  ], 'providers');
 
   weightType(CAPI.MACHINE_DEPLOYMENT, 4, true);
   weightType(CAPI.MACHINE_SET, 3, true);

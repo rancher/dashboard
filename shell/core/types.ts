@@ -1,5 +1,7 @@
 import { ProductFunction } from './plugin';
 import { RouteRecordRaw } from 'vue-router';
+import type { ExtensionManager } from '@shell/types/extension-manager';
+import { PaginationSettingsStores } from '@shell/types/resources/settings';
 
 // Cluster Provisioning types
 export * from './types-provisioning';
@@ -128,8 +130,6 @@ export type Card = {
   labelKey?: string;
   component: Function;
 };
-
-export type TableColumn = any;
 
 /** Definition of a tab (options that can be passed when defining an extension tab enhancement) */
 export type Tab = {
@@ -279,6 +279,9 @@ export interface ProductOptions {
   // typeStoreMap: string;
 }
 
+/**
+ * Configuration required to show a header in a ResourceTable
+ */
 export interface HeaderOptions {
   /**
    * Name of the header. This should be unique.
@@ -303,7 +306,7 @@ export interface HeaderOptions {
   /**
    * A string which represents the path to access the value from the row object which we'll use to sort i.e. `row.meta.value`
    */
-  sort?: string | string[];
+  sort?: string | string[] | boolean;
 
   /**
    * A string which represents the path to access the value from the row object which we'll use to search i.e. `row.meta.value`.
@@ -327,12 +330,32 @@ export interface HeaderOptions {
   formatterOpts?: any;
 
   /**
-   * Provide a function which accets a row and returns the value that should be displayed in the column
+   * Provide a function which accepts a row and returns the value that should be displayed in the column
    * @param row This can be any value which represents the row
    * @returns Can return {@link string | number | null | undefined} to display in the column
    */
   getValue?: (row: any) => string | number | null | undefined;
 }
+
+/**
+ * Configuration required to show a header in a ResourceTable when server-side pagination is enable
+ */
+export type PaginationHeaderOptions = Omit<HeaderOptions, 'getValue'>
+
+/**
+ * External extension configuration for @HeaderOptions
+ */
+export type TableColumn = HeaderOptions;
+
+/**
+ * External extension configuration for @PaginationHeaderOptions
+ */
+export type PaginationTableColumn = PaginationHeaderOptions;
+
+/**
+ * External extension configuration for @PaginationSettingsStores
+ */
+export type ServerSidePaginationExtensionConfig = PaginationSettingsStores;
 
 export interface ConfigureTypeOptions {
   /**
@@ -542,9 +565,13 @@ export type ModelExtensionContext = {
    */
   axios: any,
   /**
+   * [DEPRECATED] Definition of the extension
+   */
+  $plugin: ExtensionManager,
+  /**
    * Definition of the extension
    */
-  $plugin: any,
+  $extension: ExtensionManager,
   /**
    * Function to retrieve a localised string
    */
@@ -615,9 +642,17 @@ export interface IPlugin {
   addCard(where: CardLocation | string, when: LocationConfig | string, action: Card): void;
 
   /**
-   * Adds a new column to the SortableTable component
+   * Adds a new column to a ResourceTable
+   *
+   * @param where
+   * @param when
+   * @param action
+   * @param column
+   *  The information required to show a header and values for a column in a table
+   * @param paginationColumn
+   *  As per `column`, but is used where server-side pagination is enabled
    */
-  addTableColumn(where: TableColumnLocation | string, when: LocationConfig | string, action: TableColumn): void;
+  addTableColumn(where: TableColumnLocation | string, when: LocationConfig | string, column: TableColumn, paginationColumn?: TableColumn): void;
 
   /**
    * Set the component to use for the landing home page
@@ -663,6 +698,8 @@ export interface IPlugin {
     onLogIn?: OnLogIn,
   ): void;
   addNavHooks(hooks: NavHooks): void;
+
+  enableServerSidePagination(config: ServerSidePaginationExtensionConfig): void;
 
   /**
    * Adds a model extension

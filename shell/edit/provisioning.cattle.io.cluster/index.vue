@@ -149,28 +149,22 @@ export default {
     });
 
     // Custom Providers from extensions - initialize each with the store and the i18n service
-    // Wrap in try ... catch, to prevent errors in an extension breaking the page
-    try {
-      const extensionClasses = this.$plugin.listDynamic('provisioner').map((name) => this.$plugin.getDynamic('provisioner', name));
+    // We can't pass in this.$store as this leads to a circular-reference that causes Vue to freeze,
+    // so pass in specific services that the provisioner extension may need
+    const context = {
+      dispatch:   this.$store.dispatch,
+      getters:    this.$store.getters,
+      axios:      this.$store.$axios,
+      $extension: this.$store.app.$extension,
+      t:          (...args) => this.t.apply(this, args),
+      isCreate:   this.isCreate,
+      isEdit:     this.isEdit,
+      isView:     this.isView,
+    };
 
-      // We can't pass in this.$store as this leads to a circular-reference that causes Vue to freeze,
-      // so pass in specific services that the provisioner extension may need
-      this.extensions = extensionClasses.map((c) => new c({
-        dispatch: this.$store.dispatch,
-        getters:  this.$store.getters,
-        axios:    this.$store.$axios,
-        $plugin:  this.$store.app.$plugin,
-        t:        (...args) => this.t.apply(this, args),
-        isCreate: this.isCreate,
-        isEdit:   this.isEdit,
-        isView:   this.isView,
-      }));
-    } catch (e) {
-      console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console
-    }
-  },
+    this.extensions = this.$extension.getProviders(context);
 
-  data() {
+    // At this point, we know we definitely have the mgmt cluster, so we can access `isImported` and `isLocal`
     let subType = null;
 
     subType = this.$route.query[SUB_TYPE] || null;
@@ -181,6 +175,11 @@ export default {
     } else if (this.value.isLocal) {
       subType = LOCAL;
     }
+
+    this.subType = subType;
+  },
+
+  data() {
     const rkeType = this.$route.query[RKE_TYPE] || null;
     const chart = this.$route.query[CHART] || null;
     const isImport = this.realMode === _IMPORT;
@@ -189,7 +188,7 @@ export default {
       nodeDrivers:      [],
       kontainerDrivers: [],
       extensions:       [],
-      subType,
+      subType:          null,
       rkeType,
       chart,
       isImport,
@@ -221,7 +220,13 @@ export default {
       if (this.value) {
         // set subtype if editing EKS/GKE/AKS cluster -- this ensures that the component provided by extension is loaded instead of iframing old ember ui
         if (this.value.provisioner) {
-          const matchingSubtype = this.subTypes.find((st) => DRIVER_TO_IMPORT[st.id.toLowerCase()] === this.value.provisioner.toLowerCase());
+          const matchingSubtype = this.subTypes.find((st) => {
+            const typeLower = st.id.toLowerCase();
+            const provisionerLower = this.value.provisioner.toLowerCase();
+
+            // This allows extensions to provide type for edit without breaking edit for Ember kontainer providers
+            return (!!st.component && (typeLower === provisionerLower)) || (DRIVER_TO_IMPORT[typeLower] === provisionerLower);
+          });
 
           if (matchingSubtype) {
             this.selectType(matchingSubtype.id, false);
@@ -324,11 +329,12 @@ export default {
       const vueKontainerTypes = getters['plugins/clusterDrivers'];
       const machineTypes = this.nodeDrivers.filter((x) => x.spec.active && x.state === 'active');
 
+      // Keeping this for non Rancher-managed kontainer drivers
       this.kontainerDrivers.filter((x) => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
         if ( vueKontainerTypes.includes(obj.driverName) ) {
-          addType(this.$plugin, obj.driverName, 'kontainer', false);
+          addType(this.$plugin, obj.driverName, 'hosted', false);
         } else {
-          addType(this.$plugin, obj.driverName, 'kontainer', false, (isImport ? obj.emberImportPath : obj.emberCreatePath));
+          addType(this.$plugin, obj.driverName, 'hosted', false, (isImport ? obj.emberImportPath : obj.emberCreatePath));
         }
       });
       if (!isImport) {
@@ -387,17 +393,16 @@ export default {
         }
 
         const subtype = {
-          id:          ext.id,
-          label:       ext.label || getters['i18n/t'](`cluster.provider.${ ext.id }`),
-          description: ext.description,
+          id:        ext.id,
+          label:     ext.label || getters['i18n/t'](`cluster.provider.${ ext.id }`),
           icon,
           iconClass,
-          group:       ext.group || _RKE2,
-          disabled:    ext.disabled || false,
-          link:        ext.link,
-          tag:         ext.tag,
-          component:   ext.component,
-          hidden:      ext.hidden,
+          group:     ext.group || _RKE2,
+          disabled:  ext.disabled || false,
+          link:      ext.link,
+          tag:       ext.tag,
+          component: ext.component,
+          hidden:    ext.hidden,
         };
 
         out.push(subtype);

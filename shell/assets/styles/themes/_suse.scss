@@ -1,27 +1,119 @@
 .suse {
-  $primary: hsl(225, 100%, 57%);
-  $info:  mix($primary, $secondary, 50%);
-  $selected: rgba($primary, .5);
+  $green-jungle : #30BA78;
+  $light-green-jungle: #4DD192;
+  $lighter-green-jungle: #72EEB3;
 
-  --primary                    : #{$primary};
-  --primary-text               : #fff;
-  --primary-hover-bg           : #{darken($primary, 10%)};
-  --primary-hover-text         : #{saturate($lightest, 20%)};
-  --primary-active-bg          : #{darken($primary, 25%)};
-  --primary-active-text        : #{contrast-color(darken($primary, 25%))};
-  --primary-border             : #{$primary};
-  --primary-banner-bg          : #{rgba($primary, 0.15)};
-  --primary-light-bg           : #{rgba($primary, 0.05)};
-  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l - 10));
+  $jungle-120: #008657;
 
-  --info                    : #{$info};
-  --info-text               : #{contrast-color($info)};
-  --info-hover-bg           : #{darken($info, 10%)};
-  --info-hover-text         : #{saturate($lightest, 20%)};
-  --info-active-bg          : #{darken($info, 25%)};
-  --info-active-text        : #{contrast-color(darken($info, 25%))};
-  --info-border             : #{$info};
-  --info-banner-bg          : #{rgba($info, 0.15)};
-  --info-light-bg           : #{rgba($info, 0.05)};
+  --title-font-family : 'SUSE', 'Lato', sans-serif;
+  
+  &.theme-light {
+    --primary: #{$jungle-120};
+    --primary-text: #FFFFFF;
+    --primary-hover: #006B46;
+    --primary-hover-bg: #006B46;
+    --primary-border: #{$green-120};
 
+    --link: #4871C7;
+    --active-nav: #{$green-140};
+
+    --non-primary-text: #{$green-120};
+    --non-primary-hover: #{$green-20};
+
+    --secondary: var(--body-bg);
+    --secondary-border: var(--primary);
+    --on-secondary: var(--non-primary-text);
+    --secondary-hover: var(--non-primary-hover);
+
+    --tertiary: transparent;
+    --on-tertiary: var(--non-primary-text);
+    --on-tertiary-hover: var(--non-primary-text);
+    --on-tertiary-header: var(--non-primary-text);
+    --on-tertiary-header-hover: var(--non-primary-text);
+    --tertiary-hover: var(--non-primary-hover);
+    --tertiary-hover-app-bar: var(--non-primary-text);
+
+    $super-light-green: #F4F6F5;
+    --active: #{$green-140};
+    --on-active: #{$grey-0};
+    --active-hover: #{lighten($green-140, 5%)};
+    --category-active: #{$super-light-green};
+    --category-active-hover: #e8eeeb;
+
+    --checkbox-tick              : var(--on-active);
+    --checkbox-border            : var(--body-border);
+    --checkbox-tick-disabled     : #{darken($disabled, 40%)};
+    --checkbox-disabled-bg       : #{$disabled};
+    --checkbox-ticked-bg         : var(--active);
+  }
+
+  &.theme-dark {
+    --link: #9BBFFD;
+    --active-nav: #{$green-40};
+
+    --primary: #{$light-green-jungle};
+    --primary-text: #{$grey-90};
+    --primary-hover: #{$lighter-green-jungle};
+    --primary-hover-bg: #{$lighter-green-jungle};
+    --primary-border: #{$lighter-green-jungle};
+
+    --non-primary-text: #{$lighter-green-jungle};
+    --non-primary-hover: #1E372B;
+
+    --secondary: var(--body-bg);
+    --secondary-border: var(--non-primary-text);
+    --on-secondary: var(--non-primary-text);
+    --secondary-hover: var(--non-primary-hover);
+
+    --tertiary: transparent;
+    --on-tertiary: var(--non-primary-text);
+    --on-tertiary-hover: var(--non-primary-text);
+    --on-tertiary-header: var(--non-primary-text);
+    --on-tertiary-header-hover: var(--non-primary-text);
+    --tertiary-hover: var(--non-primary-hover);
+    --tertiary-hover-app-bar: var(--non-primary-text);
+
+    $category-active:#303633;
+    --active: #{$green-40};
+    --on-active: #{$grey-90};
+    --active-hover: #{$green-60};
+    --category-active: #{$category-active};
+    --category-active-hover: #{lighten($category-active, 10%)};
+
+    --toggle-off-bg: #{$grey-70};
+    --sortable-table-selected-bg: #3f4350;
+  }
+
+  // SUSE Theme uses a smaller banner graphic
+  --banner-graphic-height: 160px;
+
+  // SUSE Theme positions from right, so ship stays visible as browser width shrinks
+  .suse-banner-graphic {
+    > img {
+      object-position: right;
+    }
+  }
+
+  // SUSE Theme aligns graphic to left so that the container ship stays visible
+  .suse-login-banner-graphic {
+    object-position: left;
+  }
+
+  // Styling for logo image on the login screen
+  .suse-logo-login {
+    $suse-logo-width: 280px;
+
+    width: $suse-logo-width;
+    max-width: $suse-logo-width;
+    align-self: center;
+    margin-bottom: 30px;
+  }  
+}
+
+// Ensure that with a small window size, the banner centers, so that the text does not overlay
+// directly on the heavier part of the graphic
+@media (max-width: 860px) {
+  .suse .suse-banner-graphic > img {
+    object-position: center;
+  }  
 }

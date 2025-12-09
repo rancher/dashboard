@@ -4,6 +4,7 @@ interface SubHeaderItem {
   icon: string;
   iconTooltip?: Record<{key?: string, text?: string}>;
   label: string;
+  labelTooltip?: string;
 }
 
 defineProps<{
@@ -18,13 +19,15 @@ defineProps<{
       v-for="(subHeaderItem, i) in items"
       :key="i"
       class="app-chart-card-sub-header-item"
-      data-testid="app-chart-card-version"
+      data-testid="app-chart-card-sub-header-item"
     >
       <i
         v-clean-tooltip="t(subHeaderItem.iconTooltip.key)"
         :class="['icon', 'app-chart-card-sub-header-item-icon', subHeaderItem.icon]"
       />
-      <p>{{ subHeaderItem.label }}</p>
+      <p v-clean-tooltip="subHeaderItem.labelTooltip">
+        {{ subHeaderItem.label }}
+      </p>
     </div>
   </div>
 </template>
@@ -32,7 +35,8 @@ defineProps<{
 <style scoped lang="scss">
 .app-chart-card-sub-header {
   display: flex;
-  gap: var(--gap-md);
+  flex-wrap: wrap;
+  gap: var(--gap) var(--gap-md);
   color: var(--link-text-secondary);
   margin-bottom: 8px;
 

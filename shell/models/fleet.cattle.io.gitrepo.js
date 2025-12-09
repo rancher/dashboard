@@ -76,6 +76,16 @@ export default class GitRepo extends FleetApplication {
     return out;
   }
 
+  enablePollingAction() {
+    this.spec.disablePolling = false;
+    this.save();
+  }
+
+  disablePollingAction() {
+    this.spec.disablePolling = true;
+    this.save();
+  }
+
   forceUpdate(resources = [this]) {
     this.$dispatch('promptModal', {
       componentProps: { repositories: resources },
@@ -88,6 +98,10 @@ export default class GitRepo extends FleetApplication {
       componentProps: { repositories: resources },
       component:      'GitRepoForceUpdateDialog'
     });
+  }
+
+  get isPollingEnabled() {
+    return !this.spec.disablePolling;
   }
 
   get isWebhookConfigured() {
@@ -185,7 +199,7 @@ export default class GitRepo extends FleetApplication {
       value,
       display:  this.repoDisplay,
       icon:     this.resourceIcon,
-      showLink: matchHttps || matchSSH
+      showLink: !!(matchHttps || matchSSH)
     };
   }
 
@@ -194,5 +208,9 @@ export default class GitRepo extends FleetApplication {
       value:   this.status?.commit,
       display: this.commitDisplay
     };
+  }
+
+  get fullDetailPageOverride() {
+    return true;
   }
 }

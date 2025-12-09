@@ -133,6 +133,10 @@ export default {
     table tr th :last-child, table tr td :last-child {
       margin-bottom: 0;
     }
+
+    img {
+      max-width: 100%;
+    }
 }
 
 </style>

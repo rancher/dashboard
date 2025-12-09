@@ -2,6 +2,7 @@ import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import ReposListPagePo from '@/cypress/e2e/po/pages/chart-repositories.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const chartsPage = new ChartsPage();
 
@@ -24,7 +25,7 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
   it('should call fetch when route query changes with valid parameters', () => {
     const chartName = 'Logging';
 
-    cy.wait('@fetchChartData');
+    cy.wait('@fetchChartData', MEDIUM_TIMEOUT_OPT);
     cy.get('@fetchChartData.all').should('have.length.at.least', 3);
 
     chartsPage.getChartByName(chartName)
@@ -40,15 +41,20 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     // Set up intercept for the network request triggered by $fetch
     cy.intercept('GET', `**${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartDataAfterSelect');
 
-    chartPage.selectVersion('105.1.0+up4.10.0');
+    // Select the first active version link
+    chartPage.versionLinks()
+      .first()
+      .then((firstVersion) => {
+        chartPage.selectVersion(firstVersion.text());
 
-    cy.wait('@fetchChartDataAfterSelect').its('response.statusCode').should('eq', 200);
+        cy.wait('@fetchChartDataAfterSelect').its('response.statusCode').should('eq', 200);
+      });
   });
 
   it('should not call fetch when navigating back to charts page', () => {
     const chartName = 'Logging';
 
-    cy.wait('@fetchChartData');
+    cy.wait('@fetchChartData', MEDIUM_TIMEOUT_OPT);
     cy.get('@fetchChartData.all').should('have.length.at.least', 3);
 
     chartsPage.getChartByName(chartName)
@@ -101,12 +107,54 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     chartsPage.getFilterOptionByName('PaaS').set();
     chartsPage.getFilterOptionByName('Installed').set();
     // check empty state to be displayed
-    chartsPage.emptyState().isVisible();
+    chartsPage.emptyState().should('be.visible');
     chartsPage.emptyStateTitle().should('eq', 'No charts to show');
     // reset filters
-    chartsPage.emptyStateResetFilters().isVisible();
+    chartsPage.emptyStateResetFilters().should('be.visible');
     chartsPage.emptyStateResetFilters().click();
     // check empty state is NOT displayed
     chartsPage.emptyState().should('not.exist');
+  });
+});
+
+describe('Chart Details Page', { tags: ['@explorer', '@adminUser'] }, () => {
+  const chartName = 'Logging';
+  let chartPage: ChartPage;
+
+  beforeEach(() => {
+    cy.intercept('GET', `${ CLUSTER_REPOS_BASE_URL }/**`).as('fetchChartData');
+
+    cy.login();
+    chartsPage.goTo();
+    chartsPage.waitForPage();
+
+    cy.wait('@fetchChartData', MEDIUM_TIMEOUT_OPT);
+    cy.get('@fetchChartData.all').should('have.length.at.least', 3);
+
+    chartsPage.getChartByName(chartName)
+      .checkExists()
+      .scrollIntoView()
+      .should('be.visible')
+      .click();
+
+    chartPage = new ChartPage();
+    chartPage.waitForPage();
+  });
+
+  it('should navigate to the correct repository page', () => {
+    chartPage.repoLink().click();
+    cy.url().should('include', '/c/local/apps/catalog.cattle.io.clusterrepo/rancher-charts');
+  });
+
+  it('should show more versions when the button is clicked', () => {
+    chartPage.versions().should('have.length', 7);
+    chartPage.showMoreVersions().click();
+    chartPage.versions().should('have.length.greaterThan', 7);
+  });
+
+  it('should navigate to the charts list with the correct filters when a keyword is clicked', () => {
+    chartPage.keywords().first().click();
+    chartsPage.waitForPage();
+    cy.url().should('include', 'q=logging');
   });
 });

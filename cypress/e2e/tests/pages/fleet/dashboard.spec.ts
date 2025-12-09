@@ -100,15 +100,16 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     expandButton.should('be.visible');
     expandButton.click();
 
-    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
+    const expandedPanel = workspaceCard.expandedPanel();
+    const cardsPanel = expandedPanel.cardsPanel();
 
     cardsPanel.self().should('be.visible');
 
-    cardsPanel.gitReposFilter().checkVisible();
-    cardsPanel.gitReposFilter().isChecked();
+    expandedPanel.gitReposFilter().checkVisible();
+    expandedPanel.gitReposFilter().isChecked();
 
-    cardsPanel.helmOpsFilter().checkVisible();
-    cardsPanel.helmOpsFilter().isChecked();
+    expandedPanel.helmOpsFilter().checkVisible();
+    expandedPanel.helmOpsFilter().isChecked();
 
     const activeStatePanel = cardsPanel.statePanel('Active');
 
@@ -117,10 +118,7 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     activeStatePanel.title().should('contain.text', '/1');
     activeStatePanel.title().click();
 
-    const card = activeStatePanel.card(repoName);
-
-    card.should('be.visible');
-    card.find('.title').should('contain.text', repoName);
+    activeStatePanel.card(repoName).should('be.visible');
   });
 
   it('Should filter by GitRepo type', () => {
@@ -132,9 +130,10 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     expandButton.click();
 
-    const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
+    const expandedPanel = workspaceCard.expandedPanel();
+    const cardsPanel = expandedPanel.cardsPanel();
 
-    cardsPanel.gitReposFilter().set();
+    expandedPanel.gitReposFilter().set();
     const activeStatePanel = cardsPanel.statePanel('Active');
 
     activeStatePanel.self().should('not.be.visible');
@@ -151,16 +150,16 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
 
     const cardsPanel = workspaceCard.expandedPanel().cardsPanel();
 
-    cardsPanel.checkExists();
+    cardsPanel.self().should('be.visible');
 
-    // click 'card' mode
+    // click 'table' mode (first button is table mode)
     fleetDashboardPage.viewModeButton().self().find('[data-testid="button-group-child-0"]').click();
 
     cardsPanel.checkNotExists();
 
     const tablePanel = workspaceCard.expandedPanel().tablePanel();
 
-    tablePanel.checkExists();
+    tablePanel.checkVisible();
   });
 
   it('Should open slide-in panel', () => {
@@ -202,10 +201,12 @@ describe('Fleet Dashboard', { tags: ['@fleet', '@adminUser', '@jenkins'] }, () =
     const activeStatePanel = cardsPanel.statePanel('Active');
 
     activeStatePanel.title().click();
+    activeStatePanel.card(repoName).should('be.visible').click();
 
-    const card = activeStatePanel.card(repoName);
+    const details = fleetDashboardPage.slideInPanel();
 
-    card.find('.title a').click();
+    details.should('be.visible');
+    details.find('.title').should('contain.text', repoName).click();
 
     appDetails.waitForPage(null, 'bundles');
   });

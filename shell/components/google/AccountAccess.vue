@@ -106,57 +106,55 @@ export default defineComponent({
 </script>
 
 <template>
-  <div>
+  <div
+    :class="{'showing-form': !credential}"
+    class="credential-project"
+  >
     <div
-      :class="{'showing-form': !credential}"
-      class="credential-project"
+      v-show="!!credential"
+      class="project mb-10"
     >
-      <div
-        v-show="!!credential"
-        class="project mb-10"
-      >
-        <LabeledInput
-          :disabled="isAuthenticated"
-          :value="project"
-          label-key="gke.project.label"
-          required
-          @update:value="(val) => $emit('update:project', val.trim())"
-        />
-      </div>
-      <div
-        :class="{'view': isView}"
-        class="select-credential-container mb-10"
-      >
-        <SelectCredential
-          :value="credential"
-          data-testid="crugke-select-credential"
-          :mode="(isView|| isAuthenticated) ? VIEW : CREATE"
-          provider="gcp"
-          :default-on-cancel="true"
-          :showing-form="!credential"
-          class="select-credential"
-          :cancel="()=>$emit('cancel-credential')"
-          @update:value="$emit('update:credential', $event)"
-          @credential-created="parseNewCredential"
-        />
-      </div>
+      <LabeledInput
+        :disabled="isAuthenticated"
+        :value="project"
+        label-key="gke.project.label"
+        required
+        @update:value="(val) => $emit('update:project', val.trim())"
+      />
     </div>
     <div
-      v-if="!isView && !isAuthenticated"
-      class="row mt-10"
+      :class="{'view': isView}"
+      class="select-credential-container"
     >
-      <div
-        v-show="!!credential"
-        class="auth-button-container mb-10"
-      >
-        <AsyncButton
-          :disabled="!credential || !project || isAuthenticated"
-          type="button"
-          class="btn"
-          mode="authenticate"
-          @click="testProjectId"
-        />
-      </div>
+      <SelectCredential
+        :value="credential"
+        data-testid="crugke-select-credential"
+        :mode="(isView|| isAuthenticated) ? VIEW : CREATE"
+        provider="gcp"
+        :default-on-cancel="true"
+        :showing-form="!credential"
+        class="select-credential"
+        :cancel="()=>$emit('cancel-credential')"
+        @update:value="$emit('update:credential', $event)"
+        @credential-created="parseNewCredential"
+      />
+    </div>
+  </div>
+  <div
+    v-if="!isView && !isAuthenticated && !!credential"
+    class="row mt-10"
+  >
+    <div
+      v-show="!!credential"
+      class="auth-button-container mb-10"
+    >
+      <AsyncButton
+        :disabled="!credential || !project || isAuthenticated"
+        type="button"
+        class="btn"
+        mode="authenticate"
+        @click="testProjectId"
+      />
     </div>
   </div>
 </template>

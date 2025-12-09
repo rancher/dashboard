@@ -265,7 +265,10 @@ export default {
             />
           </div>
           <div class="col span-6">
-            <div v-if="showStorageClasses">
+            <div
+              v-if="showStorageClasses"
+              data-testid="select-chart-grafana-storage-class"
+            >
               <StorageClassSelector
                 :value="value.grafana.persistence.storageClassName"
                 :mode="mode"
@@ -332,7 +335,10 @@ export default {
             />
           </div>
           <div class="col span-6">
-            <div v-if="showStorageClasses">
+            <div
+              v-if="showStorageClasses"
+              data-testid="select-chart-grafana-storage-class"
+            >
               <StorageClassSelector
                 :value="value.grafana.persistence.storageClassName"
                 :mode="mode"

@@ -42,14 +42,14 @@ jobs:
     steps:
       - if: inputs.is_test == 'true'
         name: Checkout repository (test flow)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: rancher/${{ inputs.test_ext_repo }}
           ref: ${{ inputs.test_ext_branch }}
       
       - if: inputs.is_test != 'true'
         name: Checkout repository (normal flow)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Enable Corepack
         run: corepack enable
@@ -67,12 +67,12 @@ jobs:
           password: ${{ secrets.registry_token }}
 
       - name: Setup Helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
         with:
           version: v3.8.0
 
       - name: Setup Nodejs with yarn caching
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: yarn

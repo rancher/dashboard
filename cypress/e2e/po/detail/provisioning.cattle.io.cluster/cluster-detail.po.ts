@@ -6,7 +6,7 @@ import ClusterReferredToListPo from '~/cypress/e2e/po/lists/cluster-referred-to-
 import ClusterSnapshotsListPo from '~/cypress/e2e/po/lists/cluster-snapshots-list.po';
 import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
 import ClusterRecentEventsListPo from '~/cypress/e2e/po/lists/cluster-recent-events-list.po';
-
+import DetailDrawer from '@/cypress/e2e/po/side-bars/detail-drawer.po';
 /**
  * Covers core functionality that's common to the dashboard's cluster detail pages
  */
@@ -27,6 +27,14 @@ export default abstract class ClusterManagerDetailPagePo extends PagePo {
 
   title() {
     return this.self().find('.title-bar h1.title, .primaryheader h1');
+  }
+
+  openShowConfiguration() {
+    return this.self().find('[data-testid="show-configuration-cta"]').click();
+  }
+
+  detailDrawer() {
+    return new DetailDrawer();
   }
 
   logsContainer() {
@@ -65,5 +73,9 @@ export default abstract class ClusterManagerDetailPagePo extends PagePo {
 
   namespace() {
     return cy.get('[data-testid="masthead-subheader-namespace"]');
+  }
+
+  exploreButton() {
+    return cy.get('[data-testid="detail-explore-button"]');
   }
 }

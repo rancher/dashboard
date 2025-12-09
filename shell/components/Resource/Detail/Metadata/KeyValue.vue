@@ -1,8 +1,9 @@
 <script lang="ts">
 import { computed, toRefs } from 'vue';
-import Rectangle from '@shell/components/Resource/Detail/Metadata/Rectangle.vue';
+import KeyValueRow from '@shell/components/Resource/Detail/Metadata/KeyValueRow.vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
+import { Type } from '@components/Pill/types';
 
 export type KeyValueType = {[key: string]: string};
 
@@ -14,9 +15,9 @@ export interface Row {
 export interface KeyValueProps {
     propertyName: string;
     rows: Row[];
-    maxRows?: number;
-    outline?: boolean;
+    type: Type;
 
+    maxRows?: number;
     onShowConfiguration?: (returnFocusSelector: string) => void;
 }
 </script>
@@ -24,13 +25,9 @@ export interface KeyValueProps {
 <script setup lang="ts">
 const props = withDefaults(
   defineProps<KeyValueProps>(),
-  {
-    outline: false, maxRows: 4, onShowConfiguration: undefined
-  }
+  { maxRows: 4, onShowConfiguration: undefined }
 );
-const {
-  propertyName, rows, maxRows, outline
-} = toRefs(props);
+const { propertyName, rows, maxRows } = toRefs(props);
 
 const store = useStore();
 const i18n = useI18n(store);
@@ -80,12 +77,11 @@ const showConfigurationMoreFocusSelector = computed(() => `[data-testid="${ show
       :key="displayValue(row)"
       class="row"
     >
-      <Rectangle
-        v-clean-tooltip="displayValue(row)"
-        :outline="outline"
-      >
-        {{ displayValue(row) }}
-      </Rectangle>
+      <KeyValueRow
+        class="rectangle"
+        :type="props.type"
+        :row="row"
+      />
     </div>
     <a
       v-if="showShowAllButton"
@@ -116,6 +112,7 @@ const showConfigurationMoreFocusSelector = computed(() => `[data-testid="${ show
     .row {
         display: block;
         width: 100%;
+        display: inline-block;
 
         &:not(:nth-child(2)) {
             margin-top: 4px;
@@ -123,14 +120,6 @@ const showConfigurationMoreFocusSelector = computed(() => `[data-testid="${ show
     }
     .show-all {
         margin-top: 8px;
-    }
-
-    .rectangle {
-      display: inline-block;
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
 
     .no-rows {

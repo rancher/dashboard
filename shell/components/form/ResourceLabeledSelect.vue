@@ -34,7 +34,7 @@ export default defineComponent({
 
     inStore: {
       type:    String,
-      default: 'cluster',
+      default: undefined,
     },
 
     /**
@@ -63,7 +63,20 @@ export default defineComponent({
   },
 
   data() {
-    return { paginate: false };
+    let validInStore = this.inStore;
+
+    if (!validInStore && this.resourceType) {
+      validInStore = this.$store.getters['currentStore'](this.resourceType);
+    }
+
+    if (!validInStore) {
+      validInStore = 'cluster';
+    }
+
+    return {
+      paginate: false,
+      validInStore,
+    };
   },
 
   async fetch() {
@@ -72,13 +85,13 @@ export default defineComponent({
       this.paginate = false;
       break;
     case RESOURCE_LABEL_SELECT_MODE.DYNAMIC:
-      this.paginate = this.$store.getters[`${ this.inStore }/paginationEnabled`](this.resourceType);
+      this.paginate = this.$store.getters[`${ this.validInStore }/paginationEnabled`](this.resourceType);
       break;
     }
 
     if (!this.paginate) {
       // The resource won't be paginated and component expects everything up front
-      await this.$store.dispatch(`${ this.inStore }/findAll`, { type: this.resourceType });
+      await this.$store.dispatch(`${ this.validInStore }/findAll`, { type: this.resourceType });
     }
   },
 
@@ -104,7 +117,7 @@ export default defineComponent({
         return [];
       }
 
-      const all = this.$store.getters[`${ this.inStore }/all`](this.resourceType);
+      const all = this.$store.getters[`${ this.validInStore }/all`](this.resourceType);
 
       return this.allResourcesSettings?.updateResources ? this.allResourcesSettings.updateResources(all) : all;
     }
@@ -130,7 +143,7 @@ export default defineComponent({
         type:  this.resourceType,
         ctx:   { getters: this.$store.getters, dispatch: this.$store.dispatch },
         sort:  [{ asc: true, field: 'metadata.name' }],
-        store: this.inStore
+        store: this.validInStore
       };
       const options = this.paginatedResourceSettings?.requestSettings ? this.paginatedResourceSettings.requestSettings(defaultOptions) : defaultOptions;
       const res = await labelSelectPaginationFunction(options);
@@ -150,6 +163,7 @@ export default defineComponent({
     :loading="$fetchState.pending"
     :options="allOfType"
     :paginate="paginateType"
+    :multiple="$attrs.multiple || false"
     @update:value="$emit('update:value', $event)"
   />
 </template>

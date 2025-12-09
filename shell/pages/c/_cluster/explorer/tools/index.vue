@@ -2,18 +2,20 @@
 import { mapGetters } from 'vuex';
 import Loading from '@shell/components/Loading';
 import { _FLAGGED, DEPRECATED as DEPRECATED_QUERY, HIDDEN, FROM_TOOLS } from '@shell/config/query-params';
-import { filterAndArrangeCharts } from '@shell/store/catalog';
+import { filterAndArrangeCharts, APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import { CATALOG, NORMAN } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
-import LazyImage from '@shell/components/LazyImage';
 import { isAlternate } from '@shell/utils/platform';
 import IconMessage from '@shell/components/IconMessage';
-import TypeDescription from '@shell/components/TypeDescription';
 import TabTitle from '@shell/components/TabTitle';
+import { get } from '@shell/utils/object';
+import { RcItemCard } from '@components/RcItemCard';
+import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
+import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCardFooter';
 
 export default {
   components: {
-    LazyImage, Loading, IconMessage, TypeDescription, TabTitle
+    Loading, IconMessage, TabTitle, RcItemCard, AppChartCardSubHeader, AppChartCardFooter
   },
 
   async fetch() {
@@ -72,7 +74,7 @@ export default {
       return out;
     },
 
-    options() {
+    appChartCards() {
       const clusterProvider = this.currentCluster.status.provider || 'other';
       const enabledCharts = (this.allCharts || []);
 
@@ -86,14 +88,28 @@ export default {
 
       charts = charts.filter((c) => c.sideLabel !== 'Experimental');
 
-      const chartsWithApps = charts.map((chart) => {
-        return {
-          chart,
-          app: this.installedAppForChart[chart.id],
+      return charts.map((chart) => {
+        const installedApp = this.installedAppForChart[chart.id];
+        const card = {
+          id:     chart.id,
+          header: {
+            title:    { text: chart.chartNameDisplay },
+            statuses: chart.cardContent.statuses
+          },
+          subHeaderItems: chart.cardContent.subHeaderItems,
+          footerItems:    chart.deploysOnWindows ? [{
+            icon:        'icon-tag-alt',
+            iconTooltip: { key: 'generic.tags' },
+            labels:      [this.t('catalog.charts.deploysOnWindows')],
+          }] : [],
+          image:    { src: chart.versions[0].icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
+          content:  { text: chart.chartDescription },
+          rawChart: chart,
+          installedApp,
         };
-      });
 
-      return chartsWithApps;
+        return card;
+      });
     },
   },
 
@@ -114,6 +130,77 @@ export default {
   },
 
   methods: {
+    getCardActions(card) {
+      const { installedApp, rawChart } = card;
+
+      if (installedApp) {
+        const actions = [];
+        const upgradeAvailable = installedApp.upgradeAvailable === APP_UPGRADE_STATUS.SINGLE_UPGRADE;
+
+        if (upgradeAvailable) {
+          actions.push({
+            label:  this.t('catalog.tools.action.upgrade'),
+            icon:   'icon-upgrade-alt',
+            action: 'upgrade',
+          });
+        }
+
+        actions.push({
+          label:  this.t('catalog.tools.action.edit'),
+          icon:   'icon-edit',
+          action: 'edit',
+        });
+
+        const currentVersion = installedApp.spec?.chart?.metadata?.version;
+        const versions = rawChart.versions;
+        const currentIndex = versions.findIndex((v) => v.version === currentVersion);
+
+        if (currentIndex !== -1 && currentIndex < versions.length - 1) {
+          actions.push({
+            label:  this.t('catalog.tools.action.downgrade'),
+            icon:   'icon-downgrade-alt',
+            action: 'downgrade',
+          });
+        }
+
+        actions.push({ divider: true });
+
+        actions.push({
+          label:  this.t('catalog.tools.action.remove'),
+          icon:   'icon-delete',
+          action: 'remove',
+        });
+
+        return actions;
+      }
+
+      return [
+        {
+          label:   this.t('catalog.tools.action.install'),
+          action:  'install',
+          icon:    'icon-plus',
+          enabled: !rawChart.blocked
+        }
+      ];
+    },
+    upgrade(app, chart) {
+      const latestVersion = chart.versions[0].version;
+
+      this.edit(app, latestVersion);
+    },
+
+    downgrade(app, chart) {
+      const currentVersion = app.spec?.chart?.metadata?.version;
+      const versions = chart.versions;
+      const currentIndex = versions.findIndex((v) => v.version === currentVersion);
+
+      if (currentIndex !== -1 && currentIndex < versions.length - 1) {
+        const downgradeVersion = versions[currentIndex + 1].version;
+
+        this.edit(app, downgradeVersion);
+      }
+    },
+
     edit(app, version) {
       app.goToUpgrade(version, true);
     },
@@ -132,260 +219,49 @@ export default {
     install(chart) {
       chart.goToInstall(FROM_TOOLS);
     },
-
-    openV1Tool(id) {
-      const cluster = this.$store.getters['currentCluster'];
-      const route = {
-        name:   'c-cluster-explorer-tools-pages-page',
-        params: {
-          cluster: cluster.id,
-          product: 'explorer',
-          page:    id,
-        }
-      };
-
-      this.$router.replace(route);
-    },
   }
 };
 </script>
 
-<style lang="scss" scoped>
-  $margin: 10px;
-  $logo: 50px;
-
-  .grid {
-    display: flex;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    margin: 0 -1*$margin;
-
-    @media only screen and (min-width: map-get($breakpoints, '--viewport-4')) {
-      .item {
-        width: 100%;
-      }
-    }
-    @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {
-      .item {
-        width: 100%;
-      }
-    }
-    @media only screen and (min-width: map-get($breakpoints, '--viewport-9')) {
-      .item {
-        width: calc(50% - 2 * #{$margin});
-      }
-    }
-    @media only screen and (min-width: map-get($breakpoints, '--viewport-12')) {
-      .item {
-        width: calc(33.33333% - 2 * #{$margin});
-      }
-    }
-
-    .item {
-      display: grid;
-      grid-template-areas:  "logo name-version name-version"
-                            "description description description"
-                            "state state action";
-      grid-template-columns: $logo auto min-content;
-      grid-template-rows: 50px 55px 35px;
-      row-gap: $margin;
-      column-gap: $margin;
-
-      margin: $margin;
-      padding: $margin;
-      position: relative;
-      border: 1px solid var(--border);
-      border-radius: calc( 1.5 * var(--border-radius));
-
-      .logo {
-        grid-area: logo;
-        text-align: center;
-        width: $logo;
-        height: $logo;
-        border-radius: calc(2 * var(--border-radius));
-        overflow: hidden;
-        background-color: white;
-
-        img {
-          width: $logo - 4px;
-          height: $logo - 4px;
-          object-fit: contain;
-          position: relative;
-          top: 2px;
-        }
-
-        > i {
-          background-color: var(--box-bg);
-          border-radius: 50%;
-          font-size: 32px;
-          line-height: 50px;
-          width: 50px;
-        }
-      }
-
-      .name-version {
-        grid-area: name-version;
-        padding: 10px 0 0 0;
-      }
-
-      .name {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        margin: 0;
-      }
-
-      .os-label {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        padding: 3px;
-        font-size: 12px;
-        line-height: 12px;
-        background-color: var(--primary);
-        color: var(--primary-text);
-      }
-
-      .version {
-        color: var(--muted);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-size: 0.9em;
-        margin-top: 4px;
-      }
-
-      .description {
-        grid-area: description;
-      }
-
-      .description-content {
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 3;
-        line-clamp: 3;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        color: var(--text-muted);
-      }
-
-      .state {
-        grid-area: state;
-      }
-
-      .action {
-        grid-area: action;
-        white-space: nowrap;
-
-        button {
-          height: 30px;
-        }
-      }
-    }
-  }
-</style>
-
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else-if="options.length">
-    <h1>
+  <div v-else-if="appChartCards.length">
+    <h1 class="mmb-6">
       <TabTitle>{{ t('catalog.tools.header') }}</TabTitle>
     </h1>
-    <TypeDescription
-      resource="chart"
-    />
 
-    <div class="grid">
-      <div
-        v-for="opt in options"
-        :key="opt.chart.id"
-        class="item"
-        :data-testid="`cluster-tools-app-${opt.chart.id}`"
+    <div
+      class="tools-app-chart-cards"
+      data-testid="tools-app-chart-cards"
+    >
+      <rc-item-card
+        v-for="card in appChartCards"
+        :id="card.id"
+        :key="card.id"
+        :header="card.header"
+        :image="card.image"
+        :content="card.content"
+        :actions="getCardActions(card)"
+        :class="{ 'single-card': appChartCards.length === 1 }"
+        @upgrade="() => upgrade(card.installedApp, card.rawChart)"
+        @downgrade="() => downgrade(card.installedApp, card.rawChart)"
+        @edit="() => edit(card.installedApp)"
+        @remove="(payload) => remove(card.installedApp, payload.event)"
+        @install="() => install(card.rawChart)"
       >
-        <div
-          class="logo"
+        <template
+          v-once
+          #item-card-sub-header
         >
-          <i
-            v-if="opt.chart.iconName"
-            class="icon"
-            :class="opt.chart.iconName"
-            :alt="t('catalog.tools.iconAlt', { app: opt.chart.chartNameDisplay })"
-          />
-          <LazyImage
-            v-else
-            :alt="t('catalog.tools.iconAlt', { app: opt.chart.chartNameDisplay })"
-            :src="opt.chart.icon"
-          />
-        </div>
-        <div class="name-version">
-          <div>
-            <h3 class="name">
-              {{ opt.chart.chartNameDisplay }}
-            </h3>
-            <label
-              v-if="opt.chart.deploysOnWindows"
-              class="os-label"
-            >{{ t('catalog.charts.deploysOnWindows') }}</label>
-          </div>
-          <div class="version">
-            <template v-if="opt.app && opt.app.upgradeAvailableVersion">
-              v{{ opt.app.currentVersion }} <b><i class="icon icon-chevron-right" /> v{{ opt.app.upgradeAvailableVersion }}</b>
-            </template>
-            <template v-else-if="opt.app">
-              v{{ opt.app.currentVersion }}
-            </template>
-            <template v-else-if="opt.chart.versions.length">
-              v{{ opt.chart.versions[0].version }}
-            </template>
-          </div>
-        </div>
-        <div class="description">
-          <div
-            v-clean-html="opt.chart.chartDescription"
-            class="description-content"
-          />
-        </div>
-        <div class="action">
-          <template v-if="opt.blocked">
-            <button
-              v-clean-html="t('catalog.tools.action.install')"
-              role="button"
-              :aria-label="t('catalog.tools.action.install')"
-              disabled="true"
-              class="btn btn-sm role-primary"
-            />
-          </template>
-          <template v-else-if="opt.app">
-            <button
-              class="btn btn-sm role-secondary"
-              role="button"
-              :aria-label="t('catalog.tools.action.remove')"
-              @click="remove(opt.app, $event)"
-            >
-              <i
-                class="icon icon-delete icon-lg"
-                :alt="t('catalog.tools.action.remove')"
-              />
-            </button>
-            <button
-              v-clean-html="t('catalog.tools.action.edit')"
-              role="button"
-              :aria-label="t('catalog.tools.action.edit')"
-              class="btn btn-sm role-secondary"
-              @click="edit(opt.app)"
-            />
-          </template>
-          <template v-else>
-            <button
-              v-clean-html="t('catalog.tools.action.install')"
-              role="button"
-              :aria-label="t('catalog.tools.action.install')"
-              class="btn btn-sm role-primary"
-              @click="install(opt.chart)"
-            />
-          </template>
-        </div>
-      </div>
+          <AppChartCardSubHeader :items="card.subHeaderItems" />
+        </template>
+        <template
+          v-once
+          #item-card-footer
+        >
+          <AppChartCardFooter :items="card.footerItems" />
+        </template>
+      </rc-item-card>
     </div>
   </div>
   <div v-else>
@@ -395,3 +271,18 @@ export default {
     />
   </div>
 </template>
+
+<style lang="scss" scoped>
+  .tools-app-chart-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-gap: var(--gap-md);
+    width: 100%;
+    height: max-content;
+    overflow: hidden;
+
+    .single-card {
+      max-width: 500px;
+    }
+  }
+</style>

@@ -97,32 +97,64 @@ describe('formRules', () => {
   });
 
   describe('urlRepository', () => {
-    const message = JSON.stringify({ message: 'validation.git.url' });
+    const message = JSON.stringify({ message: 'validation.repository.url' });
     const testCases = [
       // Valid HTTP(s)
       ['https://github.com/rancher/dashboard.git', undefined],
       ['http://github.com/rancher/dashboard.git', undefined],
       ['https://github.com/rancher/dashboard', undefined],
       ['https://github.com/rancher/dashboard/', undefined],
+      ['https://github.com/rancher/%20dashboard/', undefined],
+      ['https://github.com/rancher/dashboard/%20', undefined],
+      ['https://localhost:8005', undefined],
 
       // Valid SSH
       ['git@github.com:rancher/dashboard.git', undefined],
       ['git@github.com:rancher/dashboard', undefined],
       ['git@github.com:rancher/dashboard/', undefined],
+      ['git@github.com:rancher/%20dashboard/', undefined],
+      ['git@github.com:rancher/dashboard/%20', undefined],
+      ['git@git.apps.local:fleet/fleet-local.git', undefined],
+      ['git@git.apps.local:33333/fleet/fleet-local.git', undefined],
+      ['ssh://git@github.com:rancher/dashboard', undefined],
+      ['ssh://git@github.com:rancher/dashboard/', undefined],
+      ['ssh://git@git.apps.local:fleet/fleet-local.git', undefined],
+      ['ssh://git@git.apps.local:33333/fleet/fleet-local.git', undefined],
 
       // Not valid HTTP(s)
       ['https://github.com/rancher/  dashboard.git', message],
       ['http://github.com/rancher/  dashboard.git', message],
+      ['http://github.com/ rancher/dashboard.git', message],
+      ['http://github.com /rancher/dashboard.git', message],
       ['https://github.com/rancher/dashboard ', message],
+      ['https%20://github.com/rancher/dashboard ', message],
+      ['ht%20tps://github.com/rancher/dashboard ', message],
+      ['https://git%20hub.com/rancher/dashboard/%20', message],
+      ['https://https://', message],
+      ['http:/ww.abc.com', message],
+      ['http:ww.abc.com', message],
       ['foo://github.com/rancher/dashboard/', message],
       ['github.com/rancher/dashboard/', message],
 
       // Not valid SSH
       ['git@github.com:rancher/  dashboard.git', message],
       ['git@github.com:rancher/dashboard  ', message],
+      ['git@github.com:rancher/  dashboard', message],
+      ['git @github.com:rancher/dashboard', message],
+      ['git@github.com:  rancher/dashboard', message],
       ['git@github.comrancher/dashboard', message],
+      ['git@githubcomrancher/dashboard', message],
+      ['%20git@github.comrancher/dashboard', message],
+      ['git@git%20hub.comrancher/dashboard', message],
+      ['git@git.apps.local:/fleet/fleet-local.git', message],
+      ['git@.git', message],
+      ['git@', message],
+      ['ssh://git@github.com:/rancher/dashboard.git ', message],
+      ['ssh://git@github.com/rancher/ dashboard.git', message],
+      ['ssh://git@github.com/rancher/ dashboard', message],
 
-      [undefined, undefined]
+      [undefined, message],
+      ['', message]
     ];
 
     it.each(testCases)(
@@ -139,20 +171,26 @@ describe('formRules', () => {
     const message = JSON.stringify({ message: 'validation.oci.url' });
     const testCases = [
       // Valid
-      ['oci://bucket/object', undefined],
+      ['oci://registry.example.com', undefined],
+      ['oci://myregistry.dev:5000', undefined],
+      ['oci://192.168.1.100', undefined],
+      ['oci://my.domain.com/my/image:tag', undefined],
+      ['oci://localhost:5000', undefined],
       ['oci://region.objectstorage.example.com/n', undefined],
-      ['oci://a', undefined],
-      ['oci://UPPERCASE/path', undefined],
 
       // Invalid
       ['http://example.com/oci', message],
       ['https://oci.cloud.com', message],
       ['ftp://oci.server.net', message],
-      ['/path/to/oci', message],
+      ['path/to/oci', message],
+      ['oci://a', message],
       ['oci:/missing/slash', message],
       ['oci:', message],
       ['oci://', message],
-      ['oci://space between', message],
+      ['oci://oci://duplicate/protocol', message],
+      ['oci  ://registry.example.com/foo/bar', message],
+      ['oci://registry.example.  com/foo/bar', message],
+      ['oci://registry.example.com/  foo/bar', message],
       ['oci://resource multiple spaces', message],
       ['', message],
       [undefined, message],
@@ -162,6 +200,59 @@ describe('formRules', () => {
       'should return undefined or correct message based on the provided OCI url: %p',
       (url, expected) => {
         const formRuleResult = formRules.ociRegistry(url);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
+  });
+
+  describe('version', () => {
+    const message = JSON.stringify({ message: 'validation.version' });
+    const testCases: (null | string | undefined)[][] = [
+      // Valid
+      ['1.2.3', undefined],
+      ['', undefined],
+      [null, undefined],
+
+      // Invalid
+      ['1.2.x', message],
+      ['foo', message],
+      ['1.2', message],
+      ['1.2.', message],
+      ['.', message],
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided Version: %p',
+      (version, expected) => {
+        const formRuleResult = formRules.version(version);
+
+        expect(formRuleResult).toStrictEqual(expected);
+      }
+    );
+  });
+
+  describe('semanticVersion', () => {
+    const message = JSON.stringify({ message: 'validation.semanticVersion' });
+    const testCases: (null | string | undefined)[][] = [
+      // Valid
+      ['1.2.x', undefined],
+      ['1.2.3', undefined],
+      ['1.2', undefined],
+      ['> 1', undefined],
+      ['', undefined],
+      [null, undefined],
+
+      // Invalid
+      ['foo', message],
+      ['1.2.', message],
+      ['.', message],
+    ];
+
+    it.each(testCases)(
+      'should return undefined or correct message based on the provided Semantic Version: %p',
+      (version, expected) => {
+        const formRuleResult = formRules.semanticVersion(version);
 
         expect(formRuleResult).toStrictEqual(expected);
       }

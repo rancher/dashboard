@@ -56,5 +56,9 @@ export default {
     &.icon-star-closed {
       color: var(--body-text);
     }
+
+    &:focus-visible {
+      @include focus-outline;
+    }
   }
 </style>

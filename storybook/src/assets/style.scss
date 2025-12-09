@@ -2,3 +2,15 @@
   display: flex;
   gap: 10px
 }
+
+.theme-dark {
+  &, .docs-story {
+    background-color: #1b1c21;
+  }
+}
+
+.theme-light {
+  &, .docs-story {
+    background-color: #ffffff;
+  }
+}

@@ -64,22 +64,31 @@ describe('Pod management and WebSocket interaction', { tags: ['@jenkins', '@admi
 
   it('should create a new folder', () => {
     executeWebSocket('mkdir test-directory && echo "Directory created successfully"', podName, nsName, 'container-0', token).then((messages: any[]) => {
-      expect(messages[2]).not.to.equal(undefined);
-      expect(messages[2]).to.include('Directory created successfully');
+      // Find the message containing the success text
+      const successMessage = messages.find((msg) => msg && msg.includes('Directory created successfully'));
+
+      expect(successMessage).not.to.equal(undefined);
+      expect(successMessage).to.include('Directory created successfully');
     });
   });
 
   it('should validate the folder name', () => {
     executeWebSocket('ls', podName, nsName, 'container-0', token).then((messages: any[]) => {
-      expect(messages[2]).not.to.equal(undefined);
-      expect(messages[2]).to.include('test-directory');
+      // Find the message containing the directory listing
+      const lsMessage = messages.find((msg) => msg && msg.includes('test-directory'));
+
+      expect(lsMessage).not.to.equal(undefined);
+      expect(lsMessage).to.include('test-directory');
     });
   });
 
   it('should delete the folder', () => {
     executeWebSocket('rm -rf test-directory && echo "Directory deleted successfully"', podName, nsName, 'container-0', token).then((messages: any[]) => {
-      expect(messages[2]).not.to.equal(undefined);
-      expect(messages[2]).to.include('Directory deleted successfully');
+      // Find the message containing the deletion success text
+      const deleteMessage = messages.find((msg) => msg && msg.includes('Directory deleted successfully'));
+
+      expect(deleteMessage).not.to.equal(undefined);
+      expect(deleteMessage).to.include('Directory deleted successfully');
     });
   });
   after(() => {

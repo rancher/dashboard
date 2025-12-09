@@ -5,9 +5,8 @@ export default class LabeledInputPo extends ComponentPo {
   static byLabel(self: CypressChainable, label: string): LabeledInputPo {
     return new LabeledInputPo(
       self
-        .find('.labeled-input', { includeShadowDom: true })
-        .contains(label)
-        .next()
+        .contains('.labeled-input', label, { includeShadowDom: true })
+        .find('[id^="input-"], input')
     );
   }
 
@@ -22,18 +21,26 @@ export default class LabeledInputPo extends ComponentPo {
    * Type value in the input
    * @param value Value to be typed
    * @param secret Pass in true to hide sensitive data from logs
+   * @param parseSpecialCharSequences Pass in false to disable special character parsing (useful for JSON)
    * @returns
    */
-  set(value: any, secret?: boolean): Cypress.Chainable {
+  set(value: any, secret?: boolean, parseSpecialCharSequences?: boolean): Cypress.Chainable {
+    this.input().scrollIntoView();
     this.input().should('be.visible');
     this.input().focus();
     this.input().clear();
 
+    const typeOptions: any = {};
+
     if (secret) {
-      return this.input().type(value, { log: false });
-    } else {
-      return this.input().type(value);
+      typeOptions.log = false;
     }
+
+    if (parseSpecialCharSequences === false) {
+      typeOptions.parseSpecialCharSequences = false;
+    }
+
+    return this.input().type(value, typeOptions);
   }
 
   getAttributeValue(attr: string): Cypress.Chainable {

@@ -41,22 +41,6 @@ export default class HelmOp extends FleetApplication {
       enabled:  !!this.links.update && this.spec?.paused === true
     });
 
-    insertAt(out, 2, {
-      action:   'enablePollingAction',
-      label:    this.t('fleet.helmOp.actions.enablePolling.label'),
-      icon:     'icon icon-endpoints_connected',
-      bulkable: true,
-      enabled:  !!this.links.update && !!this.spec?.disablePolling
-    });
-
-    insertAt(out, 3, {
-      action:   'disablePollingAction',
-      label:    this.t('fleet.helmOp.actions.disablePolling.label'),
-      icon:     'icon icon-endpoints_disconnected',
-      bulkable: true,
-      enabled:  !!this.links.update && !this.spec?.disablePolling
-    });
-
     insertAt(out, 5, { divider: true });
 
     return out;
@@ -88,7 +72,7 @@ export default class HelmOp extends FleetApplication {
     return false;
   }
 
-  repoDisplay(repo) {
+  sourceDisplay(repo) {
     if (!repo) {
       return null;
     }
@@ -140,9 +124,14 @@ export default class HelmOp extends FleetApplication {
 
     switch (this.sourceType) {
     case SOURCE_TYPE.REPO:
-    case SOURCE_TYPE.OCI:
       value = this.spec.helm?.repo || '';
       break;
+    case SOURCE_TYPE.OCI: {
+      const parsed = parse(this.spec.helm?.repo || '');
+
+      value = parsed?.host ? `oci://${ parsed.host }` : '';
+      break;
+    }
     case SOURCE_TYPE.TARBALL:
       value = this.spec.helm?.chart || '';
     }
@@ -158,15 +147,25 @@ export default class HelmOp extends FleetApplication {
 
     return {
       value,
-      display:  this.repoDisplay(value),
+      display:  this.sourceDisplay(value),
       icon:     'icon icon-application',
-      showLink: matchHttps || matchSSH
+      showLink: !!(matchHttps || matchSSH)
     };
   }
 
   get sourceSub() {
+    // Version label
+    const semanticVersion = this.spec.helm?.version || '';
+    const installedVersion = this.status?.version || '';
+
+    let labelVersion = semanticVersion || installedVersion || '';
+
+    if (semanticVersion && installedVersion && semanticVersion !== installedVersion) {
+      labelVersion = `${ semanticVersion } -> ${ installedVersion }`;
+    }
+
+    // Chart label
     let chart = '';
-    const version = this.spec.helm.version || '';
 
     switch (this.sourceType) {
     case SOURCE_TYPE.REPO:
@@ -180,7 +179,12 @@ export default class HelmOp extends FleetApplication {
     }
     }
 
-    const value = chart && version ? chart.concat(':', version) : chart;
+    // Concat chart label and version label
+    let value = chart || labelVersion || '';
+
+    if (chart && labelVersion) {
+      value = `${ chart } : ${ labelVersion }`;
+    }
 
     return {
       value,
@@ -194,5 +198,9 @@ export default class HelmOp extends FleetApplication {
 
   get bundleDeployments() {
     return this.$getters['matching'](FLEET.BUNDLE_DEPLOYMENT, { [FLEET_ANNOTATIONS.HELM_NAME]: this.name });
+  }
+
+  get fullDetailPageOverride() {
+    return true;
   }
 }

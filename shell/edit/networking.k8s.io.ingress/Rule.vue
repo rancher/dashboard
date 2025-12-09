@@ -32,12 +32,9 @@ export default {
     }
   },
   data() {
-    const { host = '', http = {} } = this.value;
-    const { paths = [{ id: random32(1) }] } = http;
-
     return {
-      host,
-      paths,
+      host:     this.value?.host ?? '',
+      paths:    this.value?.http?.paths ?? [{ id: random32(1) }],
       ruleMode: this.value.asDefault ? 'asDefault' : 'setHost',
     };
   },

@@ -36,12 +36,19 @@ export const WATCH_STATUSES = {
   REMOVE_REQUESTED: 'removed_requested'
 };
 
+/**
+ * Create a unique key for a specific resource watch's params
+ */
 export const keyForSubscribe = ({
-  resourceType, type, namespace, id, selector
+  resourceType, type, namespace, id, selector, mode
 } = {}) => {
-  return [(resourceType || type), namespace, id, selector] // each watch param in an array
-    .filter((param) => !!param) // filter out all the empty ones // the filter makes these keys neater
-    .join('/'); // join into a string so we can use it as an object key
+  const keyMap = {
+    type: resourceType || type, namespace, id, selector, mode
+  };
+
+  return Object.entries(keyMap)
+    .map(([prop, value]) => `${ prop }=${ value || '' }`)
+    .join(',');
 };
 
 export const watchKeyFromMessage = (msg) => {

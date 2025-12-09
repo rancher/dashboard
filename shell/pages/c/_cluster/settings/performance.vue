@@ -76,6 +76,13 @@ export default {
           resource: MANAGEMENT.FEATURE
         }
       }).href,
+      settingsPageUrl: this.$router.resolve({
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  SETTING_PRODUCT,
+          resource: MANAGEMENT.SETTING
+        }
+      }).href,
       ssPApplicableTypesOpen: false,
     };
   },
@@ -105,7 +112,7 @@ export default {
         if (settings.resources.enableAll) {
           resources.push(this.t('performance.serverPagination.resources.all'));
         } else {
-          settings.resources.enableSome.enabled.forEach((resource) => {
+          settings.resources.enableSome.enabled?.forEach((resource) => {
             resources.push(!!resource.length ? resource : `${ resource.resource } (${ resource.context })`);
           });
           if (settings.resources.enableSome.generic) {
@@ -206,31 +213,11 @@ export default {
         <!-- Inactivity -->
         <div class="mt-20">
           <h2>{{ t('performance.inactivity.title') }}</h2>
-          <p>{{ t('performance.inactivity.description') }}</p>
-          <Checkbox
-            v-model:value="value.inactivity.enabled"
-            :mode="mode"
-            :label="t('performance.inactivity.checkboxLabel')"
-            class="mt-10 mb-20"
-            :primary="true"
-          />
-          <div class="ml-20">
-            <LabeledInput
-              v-model:value="value.inactivity.threshold"
-              data-testid="inactivity-threshold"
-              :mode="mode"
-              :label="t('performance.inactivity.inputLabel')"
-              :disabled="!value.inactivity.enabled"
-              class="input mb-10"
-              type="number"
-              min="0"
-              :rules="[validateInactivityThreshold]"
-            />
-            <span
-              v-clean-html="t('performance.inactivity.information', {}, true)"
-              :class="{ 'text-muted': !value.incrementalLoading.enabled }"
-            />
-          </div>
+          <Banner
+            color="warning"
+          >
+            <span v-clean-html="t(`performance.deprecatedInactivitySetting`, { settingsPageUrl }, true)" />
+          </Banner>
         </div>
         <!-- Websocket Notifications -->
         <div class="mt-40">

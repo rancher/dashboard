@@ -5,30 +5,27 @@ import { useRoute } from 'vue-router';
 const mockStore = {
   getters: {
     'type-map/labelFor': jest.fn(),
-    'type-map/hasGraph': jest.fn(),
     currentStore:        jest.fn(),
     'cluster/schemaFor': jest.fn()
   }
 };
 const mockRoute = { params: { cluster: 'CLUSTER' } };
-const mockDrawer = { openResourceDetailDrawer: jest.fn() };
 
 jest.mock('vuex', () => ({ useStore: () => mockStore }));
 jest.mock('vue-router', () => ({ useRoute: () => mockRoute }));
-jest.mock('@shell/components/Drawer/ResourceDetailDrawer/composables', () => ({ useResourceDetailDrawer: () => mockDrawer }));
 
 describe('composables: TitleBar', () => {
   const resource = {
-    nameDisplay:     'RESOURCE_NAME',
-    namespace:       'RESOURCE_NAMESPACE',
-    type:            'RESOURCE_TYPE',
-    stateBackground: 'RESOURCE_STATE_BACKGROUND',
-    stateDisplay:    'RESOURCE_STATE_DISPLAY',
-    description:     'RESOURCE_DESCRIPTION',
+    nameDisplay:       'RESOURCE_NAME',
+    namespace:         'RESOURCE_NAMESPACE',
+    type:              'RESOURCE_TYPE',
+    stateBackground:   'RESOURCE_STATE_BACKGROUND',
+    stateDisplay:      'RESOURCE_STATE_DISPLAY',
+    description:       'RESOURCE_DESCRIPTION',
+    showConfiguration: jest.fn(),
   };
   const labelFor = 'LABEL_FOR';
   const schema = { type: 'SCHEMA' };
-  const hasGraph = true;
 
   it('should return the appropriate values based on input', async() => {
     const route = useRoute();
@@ -36,13 +33,11 @@ describe('composables: TitleBar', () => {
     mockStore.getters['currentStore'].mockImplementation(() => 'cluster');
     mockStore.getters['cluster/schemaFor'].mockImplementation(() => schema);
     mockStore.getters['type-map/labelFor'].mockImplementation(() => labelFor);
-    mockStore.getters['type-map/hasGraph'].mockImplementation(() => hasGraph);
 
     const props = useDefaultTitleBarProps(resource, ref(undefined));
 
     expect(props.value.resourceTypeLabel).toStrictEqual(labelFor);
     expect(mockStore.getters['type-map/labelFor']).toHaveBeenLastCalledWith(schema);
-    expect(mockStore.getters['type-map/hasGraph']).toHaveBeenLastCalledWith(resource.type);
     expect(mockStore.getters['currentStore']).toHaveBeenLastCalledWith(resource.type);
     expect(mockStore.getters['cluster/schemaFor']).toHaveBeenLastCalledWith(resource.type);
     expect(props.value.resourceTo?.params.product).toStrictEqual('explorer');
@@ -55,9 +50,8 @@ describe('composables: TitleBar', () => {
     expect(props.value.badge?.color).toStrictEqual(resource.stateBackground);
     expect(props.value.badge?.label).toStrictEqual(resource.stateDisplay);
     expect(props.value.description).toStrictEqual(resource.description);
-    expect(props.value.showViewOptions).toStrictEqual(hasGraph);
 
     props.value.onShowConfiguration?.('callback');
-    expect(mockDrawer.openResourceDetailDrawer).toHaveBeenCalledTimes(1);
+    expect(resource.showConfiguration).toHaveBeenCalledTimes(1);
   });
 });

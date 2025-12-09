@@ -1,4 +1,6 @@
 <script>
+import { useTabCountWatcher } from '@shell/components/form/ResourceTabs/composable';
+
 export default {
   inject: ['addTab', 'removeTab', 'sideTabs'],
 
@@ -43,6 +45,20 @@ export default {
       required: false,
       type:     Number
     },
+    /**
+     * False to hide the count from being displayed in a tab.
+     * Number override/display the number as the count on the tab.
+     */
+    count: {
+      default: undefined,
+      type:    [Number, Boolean]
+    }
+  },
+
+  setup(props) {
+    const { count, isCountVisible } = useTabCountWatcher();
+
+    return { inferredCount: count, isInferredCountVisible: isCountVisible };
   },
 
   data() {
@@ -50,7 +66,7 @@ export default {
   },
 
   computed: {
-    labelDisplay() {
+    baseLabelDisplay() {
       if ( this.labelKey ) {
         return this.$store.getters['i18n/t'](this.labelKey);
       }
@@ -62,12 +78,38 @@ export default {
       return this.name;
     },
 
+    labelDisplay() {
+      const baseLabel = this.baseLabelDisplay;
+
+      if ( this.displayCount === false ) {
+        return baseLabel;
+      }
+
+      return `${ baseLabel } (${ this.displayCount })`;
+    },
+
     shouldShowHeader() {
       if ( this.showHeader !== null ) {
         return this.showHeader;
       }
 
       return this.sideTabs || false;
+    },
+
+    displayCount() {
+      if (this.count === false) {
+        return false;
+      }
+
+      if (typeof this.count === 'number') {
+        return this.count;
+      }
+
+      if (this.isInferredCountVisible) {
+        return this.inferredCount;
+      }
+
+      return false;
     }
   },
 

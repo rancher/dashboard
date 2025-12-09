@@ -1,10 +1,11 @@
 <script>
 import { clone, set } from '@shell/utils/object';
+import semver from 'semver';
 import jsyaml from 'js-yaml';
 import { saferDump } from '@shell/utils/create-yaml';
 import { mapGetters } from 'vuex';
 import { base64Encode } from '@shell/utils/crypto';
-import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 import { AUTH_TYPE, CONFIG_MAP, NORMAN, SECRET } from '@shell/config/types';
 import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
@@ -27,8 +28,11 @@ import { SECRET_TYPES } from '@shell/config/secret';
 import UnitInput from '@shell/components/form/UnitInput';
 import FleetClusterTargets from '@shell/components/fleet/FleetClusterTargets/index.vue';
 import { toSeconds } from '@shell/utils/duration';
-import { DEFAULT_POLLING_INTERVAL, MINIMUM_POLLING_INTERVAL } from '@shell/models/fleet-application';
 import FleetValuesFrom from '@shell/components/fleet/FleetValuesFrom.vue';
+import FleetSecretSelector from '@shell/components/fleet/FleetSecretSelector.vue';
+import FleetConfigMapSelector from '@shell/components/fleet/FleetConfigMapSelector.vue';
+
+const MINIMUM_POLLING_INTERVAL = 15;
 
 const VALUES_STATE = {
   YAML: 'YAML',
@@ -48,6 +52,8 @@ export default {
     Checkbox,
     CruResource,
     FleetClusterTargets,
+    FleetConfigMapSelector,
+    FleetSecretSelector,
     FleetValuesFrom,
     YamlEditor,
     LabeledInput,
@@ -77,17 +83,6 @@ export default {
   },
 
   data() {
-    let pollingInterval = toSeconds(this.value.spec.pollingInterval) || this.value.spec.pollingInterval;
-
-    if (!pollingInterval) {
-      if (this.realMode === _CREATE) {
-        pollingInterval = DEFAULT_POLLING_INTERVAL;
-        this.value.spec.pollingInterval = this.durationSeconds(pollingInterval);
-      } else if (this.realMode === _EDIT || this.realMode === _VIEW) {
-        pollingInterval = MINIMUM_POLLING_INTERVAL;
-      }
-    }
-
     const correctDriftEnabled = this.value.spec?.correctDrift?.enabled || false;
 
     const chartValues = saferDump(clone(this.value.spec.helm.values));
@@ -96,7 +91,7 @@ export default {
       VALUES_STATE,
       SOURCE_TYPE,
       allWorkspaces:    [],
-      pollingInterval,
+      pollingInterval:  toSeconds(this.value.spec.pollingInterval) || this.value.spec.pollingInterval,
       sourceTypeInit:   this.value.sourceType,
       sourceType:       this.value.sourceType || SOURCE_TYPE.REPO,
       helmSpecInit:     clone(this.value.spec.helm),
@@ -221,8 +216,32 @@ export default {
       return EDITOR_MODES.EDIT_CODE;
     },
 
-    showPollingIntervalWarning() {
-      return !this.isView && this.value.isPollingEnabled && this.pollingInterval < MINIMUM_POLLING_INTERVAL;
+    isNullOrStaticVersion() {
+      return !this.value.spec.helm.version || semver.valid(this.value.spec.helm.version) !== null;
+    },
+
+    isPollingEnabled() {
+      return !this.isNullOrStaticVersion && !!this.value.spec.pollingInterval;
+    },
+
+    showPollingIntervalMinValueWarning() {
+      return !this.isView && this.isPollingEnabled && this.pollingInterval < MINIMUM_POLLING_INTERVAL;
+    },
+
+    enablePollingTooltip() {
+      if (this.isNullOrStaticVersion) {
+        return this.t('fleet.helmOp.polling.pollingInterval.versionTooltip', { version: this.value.spec.helm.version || '' }, true);
+      }
+
+      return null;
+    },
+
+    downstreamSecretsList() {
+      return (this.value.spec.downstreamResources || []).filter((r) => r.kind === 'Secret').map((r) => r.name);
+    },
+
+    downstreamConfigMapsList() {
+      return (this.value.spec.downstreamResources || []).filter((r) => r.kind === 'ConfigMap').map((r) => r.name);
     },
   },
 
@@ -255,22 +274,21 @@ export default {
       this.value.spec.targets = value;
     },
 
-    enablePolling(value) {
+    togglePolling(value) {
       if (value) {
-        delete this.value.spec.disablePolling;
+        this.pollingInterval = this.pollingInterval ?? MINIMUM_POLLING_INTERVAL;
+        this.value.spec.pollingInterval = this.value.spec.pollingInterval ?? this.durationSeconds(MINIMUM_POLLING_INTERVAL);
       } else {
-        this.value.spec.disablePolling = true;
+        delete this.value.spec.pollingInterval;
       }
     },
 
     updatePollingInterval(value) {
-      if (!value) {
-        this.pollingInterval = DEFAULT_POLLING_INTERVAL;
-        this.value.spec.pollingInterval = this.durationSeconds(DEFAULT_POLLING_INTERVAL);
-      } else if (value === MINIMUM_POLLING_INTERVAL) {
-        delete this.value.spec.pollingInterval;
-      } else {
+      if (value) {
         this.value.spec.pollingInterval = this.durationSeconds(value);
+      } else {
+        this.pollingInterval = MINIMUM_POLLING_INTERVAL;
+        this.value.spec.pollingInterval = this.durationSeconds(MINIMUM_POLLING_INTERVAL);
       }
     },
 
@@ -398,26 +416,49 @@ export default {
       case SOURCE_TYPE.REPO:
         this.fvFormRuleSets = [{
           path:  'spec.helm.repo',
-          rules: ['required', 'urlRepository'],
+          rules: ['urlRepository'],
         }, {
           path:  'spec.helm.chart',
           rules: ['required'],
+        }, {
+          path:  'spec.helm.version',
+          rules: ['semanticVersion'],
         }];
         break;
       case SOURCE_TYPE.OCI:
         this.fvFormRuleSets = [{
           path:  'spec.helm.repo',
-          rules: ['required', 'ociRegistry'],
+          rules: ['ociRegistry'],
+        }, {
+          path:  'spec.helm.version',
+          rules: ['semanticVersion'],
         }];
         break;
       case SOURCE_TYPE.TARBALL:
         this.fvFormRuleSets = [{
           path:  'spec.helm.chart',
-          rules: ['required', 'urlRepository'],
+          rules: ['urlRepository'],
         }];
         break;
       }
-    }
+    },
+
+    updateDownstreamResources(kind, list) {
+      switch (kind) {
+      case 'Secret':
+        this.value.spec.downstreamResources = [
+          ...(this.value.spec.downstreamResources || []).filter((r) => r.kind !== 'Secret'),
+          ...(list || []).map((name) => ({ name, kind: 'Secret' })),
+        ];
+        break;
+      case 'ConfigMap':
+        this.value.spec.downstreamResources = [
+          ...(this.value.spec.downstreamResources || []).filter((r) => r.kind !== 'ConfigMap'),
+          ...(list || []).map((name) => ({ name, kind: 'ConfigMap' })),
+        ];
+        break;
+      }
+    },
   },
 };
 </script>
@@ -535,6 +576,7 @@ export default {
               :mode="mode"
               label-key="fleet.helmOp.source.version.label"
               :placeholder="t('fleet.helmOp.source.version.placeholder', null, true)"
+              :rules="fvGetAndReportPathRules('spec.helm.version')"
             />
           </div>
         </div>
@@ -558,6 +600,7 @@ export default {
               :mode="mode"
               label-key="fleet.helmOp.source.version.label"
               :placeholder="t('fleet.helmOp.source.version.placeholder', null, true)"
+              :rules="fvGetAndReportPathRules('spec.helm.version')"
             />
           </div>
         </div>
@@ -663,6 +706,7 @@ export default {
         v-if="!isView"
         color="info"
         label-key="fleet.helmOp.add.steps.advanced.info"
+        data-testid="helmOp-advanced-info"
       />
 
       <h2 v-t="'fleet.helmOp.auth.title'" />
@@ -696,6 +740,26 @@ export default {
 
       <h2 v-t="'fleet.helmOp.resources.label'" />
 
+      <div class="row mt-20 mb-20">
+        <div class="col span-6">
+          <FleetSecretSelector
+            :value="downstreamSecretsList"
+            :namespace="value.metadata.namespace"
+            :mode="mode"
+            @update:value="updateDownstreamResources('Secret', $event)"
+          />
+        </div>
+      </div>
+      <div class="row mt-20 mb-20">
+        <div class="col span-6">
+          <FleetConfigMapSelector
+            :value="downstreamConfigMapsList"
+            :namespace="value.metadata.namespace"
+            :mode="mode"
+            @update:value="updateDownstreamResources('ConfigMap', $event)"
+          />
+        </div>
+      </div>
       <div class="resource-handling mb-30">
         <Checkbox
           v-model:value="correctDriftEnabled"
@@ -713,38 +777,45 @@ export default {
         />
       </div>
 
-      <h2 v-t="'fleet.helmOp.polling.label'" />
-      <div class="row polling">
-        <div class="col span-6">
-          <Checkbox
-            :value="value.isPollingEnabled"
-            type="checkbox"
-            label-key="fleet.helmOp.polling.enable"
-            :mode="mode"
-            @update:value="enablePolling"
-          />
-        </div>
-        <template v-if="value.isPollingEnabled">
-          <div class="col">
-            <Banner
-              v-if="showPollingIntervalWarning"
-              color="warning"
-              label-key="fleet.helmOp.polling.pollingInterval.minimumValuewarning"
-            />
-          </div>
+      <template v-if="sourceType === SOURCE_TYPE.REPO">
+        <h2 v-t="'fleet.helmOp.polling.label'" />
+        <div class="row polling">
           <div class="col span-6">
-            <UnitInput
-              v-model:value="pollingInterval"
-              min="1"
-              :suffix="t('suffix.seconds', { count: pollingInterval })"
-              :label="t('fleet.helmOp.polling.pollingInterval.label')"
+            <Checkbox
+              :value="isPollingEnabled"
+              type="checkbox"
+              label-key="fleet.helmOp.polling.enable"
+              data-testid="helmOp-enablePolling-checkbox"
+              :tooltip="enablePollingTooltip"
               :mode="mode"
-              tooltip-key="fleet.helmOp.polling.pollingInterval.tooltip"
-              @blur.capture="updatePollingInterval(pollingInterval)"
+              :disabled="isNullOrStaticVersion"
+              @update:value="togglePolling"
             />
           </div>
-        </template>
-      </div>
+          <template v-if="isPollingEnabled">
+            <div class="col">
+              <Banner
+                v-if="showPollingIntervalMinValueWarning"
+                color="warning"
+                label-key="fleet.helmOp.polling.pollingInterval.minimumValueWarning"
+                data-testid="helmOp-pollingInterval-minimumValueWarning"
+              />
+            </div>
+            <div class="col span-6">
+              <UnitInput
+                v-model:value="pollingInterval"
+                min="1"
+                data-testid="helmOp-pollingInterval-input"
+                :suffix="t('suffix.seconds', { count: pollingInterval })"
+                :label="t('fleet.helmOp.polling.pollingInterval.label')"
+                :mode="mode"
+                tooltip-key="fleet.helmOp.polling.pollingInterval.tooltip"
+                @blur.capture="updatePollingInterval(pollingInterval)"
+              />
+            </div>
+          </template>
+        </div>
+      </template>
     </template>
   </CruResource>
 </template>

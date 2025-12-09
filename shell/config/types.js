@@ -222,6 +222,8 @@ export const MANAGEMENT = {
   OIDC_CLIENT:                   'management.cattle.io.oidcclient'
 };
 
+export const EXT = { USER_ACTIVITY: 'ext.cattle.io.useractivity' };
+
 export const CAPI = {
   CAPI_CLUSTER:         'cluster.x-k8s.io.cluster',
   MACHINE_DEPLOYMENT:   'cluster.x-k8s.io.machinedeployment',
@@ -362,3 +364,5 @@ export const DEFAULT_GRAFANA_STORAGE_SIZE = '10Gi';
 
 export const DEPRECATED = 'Deprecated';
 export const EXPERIMENTAL = 'Experimental';
+export const AUTOSCALER_CONFIG_MAP_ID = 'kube-system/cluster-autoscaler-status';
+export const HOSTED_PROVIDER = 'hostedprovider';

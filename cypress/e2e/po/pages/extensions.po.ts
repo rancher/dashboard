@@ -11,6 +11,8 @@ import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import { GetOptions } from '@/cypress/e2e/po/components/component.po';
+import RcItemCardPo from '@/cypress/e2e/po/components/rc-item-card.po';
+import TooltipPo from '@/cypress/e2e/po/components/tooltip.po';
 
 export default class ExtensionsPagePo extends PagePo {
   static url = '/c/local/uiplugins'
@@ -92,6 +94,8 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoCreate.saveAndWaitForRequests('POST', CLUSTER_REPOS_BASE_URL);
 
     appRepoList.waitForPage();
+    cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', name);
+    cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', name);
     appRepoList.list().state(name).should('contain', 'Active');
 
     return cy.wrap(appRepoList.list());
@@ -127,32 +131,47 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   // ------------------ extension card ------------------
-  extensionCard(extensionName: string) {
-    return this.self().getId(`extension-card-${ extensionName }`).scrollIntoView();
+  extensionCard(extensionTitle: string): RcItemCardPo {
+    return RcItemCardPo.getCardByTitle(extensionTitle);
   }
 
-  extensionCardVersion(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).find('.plugin-version > span').invoke('text');
+  private clickAction(extensionTitle: string, actionLabel: string) {
+    const actionMenu = this.extensionCard(extensionTitle).openActionMenu();
+
+    return actionMenu.getMenuItem(actionLabel).click();
   }
 
-  extensionCardClick(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).click();
+  extensionCardVersion(extensionTitle: string): Cypress.Chainable<string> {
+    return this.extensionCard(extensionTitle).self().find('[data-testid="app-chart-card-sub-header-item"]').first()
+      .invoke('text');
   }
 
-  extensionCardInstallClick(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).getId(`extension-card-install-btn-${ extensionName }`).click();
+  extensionCardClick(extensionTitle: string): void {
+    this.extensionCard(extensionTitle).click();
   }
 
-  extensionCardUpdateClick(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).getId(`extension-card-update-btn-${ extensionName }`).click();
+  extensionCardInstallClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Install');
   }
 
-  extensionCardRollbackClick(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).getId(`extension-card-rollback-btn-${ extensionName }`).click();
+  extensionCardUpgradeClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Upgrade');
   }
 
-  extensionCardUninstallClick(extensionName: string): Cypress.Chainable {
-    return this.extensionCard(extensionName).getId(`extension-card-uninstall-btn-${ extensionName }`).click();
+  extensionCardDowngradeClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Downgrade');
+  }
+
+  extensionCardUninstallClick(extensionTitle: string): Cypress.Chainable {
+    return this.clickAction(extensionTitle, 'Uninstall');
+  }
+
+  extensionCardHeaderStatusIcons(extensionTitle: string, index: number): Cypress.Chainable {
+    return this.extensionCard(extensionTitle).self().find(`[data-testid="item-card-header-status-${ index }"]`);
+  }
+
+  extensionCardHeaderStatusTooltip(extensionTitle: string, index: number): TooltipPo {
+    return new TooltipPo(this.extensionCardHeaderStatusIcons(extensionTitle, index));
   }
 
   // ------------------ extension install modal ------------------
@@ -220,19 +239,11 @@ export default class ExtensionsPagePo extends PagePo {
 
   // ------------------ extension tabs ------------------
   extensionTabInstalledClick(): Cypress.Chainable {
-    return this.extensionTabs.clickNthTab(1);
+    return this.extensionTabs.clickTabWithName('installed');
   }
 
   extensionTabAvailableClick(): Cypress.Chainable {
-    return this.extensionTabs.clickNthTab(2);
-  }
-
-  extensionTabUpdatesClick(): Cypress.Chainable {
-    return this.extensionTabs.clickNthTab(3);
-  }
-
-  extensionTabAllClick(): Cypress.Chainable {
-    return this.extensionTabs.clickTabWithName('all');
+    return this.extensionTabs.clickTabWithName('available');
   }
 
   extensionTabBuiltinClick(): Cypress.Chainable {

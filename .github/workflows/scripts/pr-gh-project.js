@@ -334,7 +334,7 @@ async function processOpenOrEditAction() {
     console.log('No milestones on issue(s) for this PR');
   } else if (keys.length > 1) {
     console.log('More than one milestone on issues for this PR');
-  } else {
+  } else if (event.pull_request.user.type.toLowerCase() !== 'bot') {
     // There is exactly 1 milestone, so use that for the PR
     const milestoneNumber = milestones[keys[0]];
 

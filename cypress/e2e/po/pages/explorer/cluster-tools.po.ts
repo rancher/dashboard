@@ -1,5 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import RcItemCardPo from '@/cypress/e2e/po/components/rc-item-card.po';
 
 export default class ClusterToolsPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -20,31 +21,33 @@ export default class ClusterToolsPagePo extends PagePo {
     sideNav.navToSideMenuEntryByLabel('Tools');
   }
 
-  featureChartCards(): Cypress.Chainable {
-    return cy.get('.grid > .item');
+  private clickAction(chartName: string, actionLabel: string) {
+    const actionMenu = this.getCardByName(chartName).openActionMenu();
+
+    return actionMenu.getMenuItem(actionLabel).click();
   }
 
-  getCardByIndex(index: number): Cypress.Chainable {
-    return this.featureChartCards().eq(index);
+  featureChartCards() {
+    return cy.get('[data-testid="tools-app-chart-cards"]').find('[data-testid*="item-card-"]');
   }
 
-  getCardByName(name: string): Cypress.Chainable {
-    return this.featureChartCards().get(`[data-testid="cluster-tools-app-cluster/rancher-charts/${ name }"]`);
+  getCardByName(name: string): RcItemCardPo {
+    return RcItemCardPo.getCardByTitle(name);
   }
 
-  goToInstall(index: number) {
-    return this.getCardByIndex(index).find('.btn').contains('Install').click();
+  goToInstall(name: string) {
+    return this.clickAction(name, 'Install');
   }
 
   deleteChart(name: string) {
-    return this.getCardByName(name).find('.action .btn').eq(0).click();
+    return this.clickAction(name, 'Remove');
   }
 
-  editChart(index: number) {
-    return this.getCardByIndex(index).find('.action .btn').eq(1).click();
+  editChart(name: string) {
+    return this.clickAction(name, 'Edit current version');
   }
 
-  getChartVersion(index: number) {
-    return this.getCardByIndex(index).find('.version');
+  getChartVersion(name: string) {
+    return this.getCardByName(name).self().find('[data-testid="app-chart-card-sub-header-item"]').first();
   }
 }

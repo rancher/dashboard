@@ -182,6 +182,25 @@ describe('fx: diff', () => {
 
     expect(result).toStrictEqual(expected);
   });
+  it('should return an object with property "baz" different than "null" if using the flag "preventNull" as true', () => {
+    const from = {
+      foo: 'bar',
+      baz: 'bang',
+    };
+    const to = {
+      foo:  'bar',
+      bang: 'baz'
+    };
+
+    const result = diff(from, to, true);
+    const expected = {
+      // the property "baz" having value !== null covers test case for https://github.com/rancher/dashboard/issues/15710
+      baz:  'bang',
+      bang: 'baz'
+    };
+
+    expect(result).toStrictEqual(expected);
+  });
   it('should return an object and dot characters in object should still be respected', () => {
     const from = {};
     const to = { foo: { 'bar.baz': 'bang' } };

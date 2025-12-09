@@ -23,12 +23,12 @@ jobs:
     name: Build & Upload Hosted
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
         # Note - Cannot use the setup action here as it uses a different yarn install arg
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -50,12 +50,12 @@ jobs:
 
       - name: Apply gcs auth
         # https://github.com/google-github-actions/auth
-        uses: 'google-github-actions/auth@v2'
+        uses: 'google-github-actions/auth@v3'
         with:
           credentials_json: "${{ env.GOOGLE_AUTH }}"
 
       - name: Upload build
-        uses: 'google-github-actions/upload-cloud-storage@v2'
+        uses: 'google-github-actions/upload-cloud-storage@v3'
         # https://github.com/google-github-actions/upload-cloud-storage
         with:
           path: ${{steps.build-hosted.outputs.BUILD_HOSTED_DIR}}
@@ -70,12 +70,12 @@ jobs:
     name: Build & Upload Embedded
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
         # Note - Cannot use the setup action here as it uses a different yarn install arg
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -95,12 +95,12 @@ jobs:
 
       - name: Apply gcs auth
         # https://github.com/google-github-actions/auth
-        uses: 'google-github-actions/auth@v2'
+        uses: 'google-github-actions/auth@v3'
         with:
           credentials_json: "${{ env.GOOGLE_AUTH }}"
 
       - name: Upload tar
-        uses: 'google-github-actions/upload-cloud-storage@v2'
+        uses: 'google-github-actions/upload-cloud-storage@v3'
         with:
           path: ${{steps.build-embedded.outputs.BUILD_EMBEDED_TGZ}}
           # Example - https://releases.rancher.com/ui/2.8.0.tar.gz

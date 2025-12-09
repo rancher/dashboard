@@ -1,5 +1,5 @@
 <script>
-import { FLEET, MANAGEMENT } from '@shell/config/types';
+import { FLEET } from '@shell/config/types';
 import FleetResources from '@shell/components/fleet/FleetResources';
 import FleetUtils from '@shell/utils/fleet';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
@@ -38,10 +38,6 @@ export default {
         type:        FLEET.CLUSTER_GROUP
       }
     }, this.$store);
-
-    if (this.value.authorId && this.$store.getters['management/schemaFor'](MANAGEMENT.USER)) {
-      await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER }, { root: true });
-    }
 
     this.allBundleDeployments = allDispatches.allBundleDeployments || [];
   },

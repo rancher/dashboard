@@ -7,7 +7,7 @@ import S3Config from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd/S3Con
 import UnitInput from '@shell/components/form/UnitInput';
 
 export default {
-  emits: ['s3-backup-changed', 'config-etcd-expose-metrics-changed'],
+  emits: ['s3-backup-changed', 'config-etcd-expose-metrics-changed', 'etcd-validation-changed'],
 
   components: {
     LabeledInput,
@@ -53,8 +53,19 @@ export default {
     configEtcdExposeMetrics() {
       return !!this.value.spec.rkeConfig.machineGlobalConfig['etcd-expose-metrics'];
     },
-
   },
+  methods: {
+    s3BackupChanged(val) {
+      this.$emit('s3-backup-changed', val);
+      this.$emit('etcd-validation-changed', !val);
+    },
+    disableSnapshotsChanged(val) {
+      if (val) {
+        this.$emit('etcd-validation-changed', true);
+        this.$emit('s3-backup-changed', false);
+      }
+    }
+  }
 };
 </script>
 
@@ -69,6 +80,7 @@ export default {
           :label="t('cluster.rke2.etcd.disableSnapshots.label')"
           :labels="[t('generic.disable'), t('generic.enable')]"
           :mode="mode"
+          @update:value="disableSnapshotsChanged"
         />
       </div>
     </div>
@@ -106,7 +118,7 @@ export default {
         :label="t('cluster.rke2.etcd.s3backups.label')"
         :labels="[t('generic.disable'),t('generic.enable')]"
         :mode="mode"
-        @update:value="$emit('s3-backup-changed', $event)"
+        @update:value="s3BackupChanged"
       />
 
       <S3Config
@@ -115,6 +127,7 @@ export default {
         :namespace="value.metadata.namespace"
         :register-before-hook="registerBeforeHook"
         :mode="mode"
+        @validationChanged="$emit('etcd-validation-changed', $event)"
       />
     </template>
 

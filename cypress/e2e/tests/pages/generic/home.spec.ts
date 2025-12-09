@@ -29,7 +29,7 @@ function goToHomePageAndSettle() {
   cy.wait('@fetchClustersHomePage');
 
   // Wait for the cluster table to load and filter so there are no rows
-  homeClusterList.resourceTable().sortableTable().filter('random text');
+  homeClusterList.resourceTable().sortableTable().filter('random text', 200);
   homeClusterList.resourceTable().sortableTable().rowElements().should((el) => expect(el).to.contain.text('There are no rows which match your search query.'));
 }
 
@@ -62,7 +62,7 @@ describe('Home Page', () => {
       cy.percySnapshot('Home Page');
     });
 
-    it('Can see that cluster details match those in Cluster Manangement page', { tags: ['@generic', '@adminUser'] }, () => {
+    it('Can see that cluster details match those in Cluster Management page', { tags: ['@generic', '@adminUser'] }, () => {
       /**
        * Get cluster details from the Home page
        * Verify that the cluster details match those on the Cluster Management page
@@ -120,7 +120,15 @@ describe('Home Page', () => {
       // since I wasn't able to fully mock a list of clusters
       // the next best thing is to add a description to the current local cluster
       // testing https://github.com/rancher/dashboard/issues/10441
-      cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`, (req) => {
+
+      const homePageWithLocalPagination = '/v1/provisioning.cattle.io.clusters?*';
+
+      // Why the long intercept url?
+      // There are two requests to fetch clusters (side nav + cluster list). In theory "cy.intercept('GET', `/v1/provisioning.cattle.io.clusters?*`" should intercept them both
+      // how is not, only the first one for the side nav, and not the second for the list.
+      // const homePageWithSSP = `/v1/provisioning.cattle.io.clusters?page=1&pagesize=100&sort=metadata.annotations[provisioning.cattle.io/management-cluster-display-name]&filter=metadata.labels[provider.cattle.io]!=harvester&filter=status.provider!=harvester&exclude=metadata.managedFields`;
+
+      cy.intercept('GET', homePageWithLocalPagination, (req) => {
         req.continue((res) => {
           const localIndex = res.body.data.findIndex((item) => item.id.includes('/local'));
 
@@ -302,7 +310,7 @@ describe('Home Page', () => {
       // Hide the main banner graphic
       homePage.toggleBanner();
 
-      // Banner graphic should be visible
+      // Banner graphic should be hidden
       homePage.bannerGraphic().graphicBanner().should('not.exist');
 
       // Show the banner graphic
@@ -362,5 +370,10 @@ describe('Home Page', () => {
         cy.get('@openReleaseNotes').should('be.calledWith', 'https://github.com/rancher/rancher/releases/latest', '_blank');
       });
     });
+  });
+
+  after(() => {
+    // Clear any banner hiding preferences - needed incase of 'Can toggle banner graphic' test failure
+    cy.setUserPreference({ 'home-page-cards': '{}' });
   });
 });

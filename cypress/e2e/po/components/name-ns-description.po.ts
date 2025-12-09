@@ -12,7 +12,12 @@ export default class NameNsDescription extends ComponentPo {
   }
 
   namespace() {
-    return new LabeledSelectPo(this.self().find('[data-testid="name-ns-description-namespace"]'));
+    return new LabeledSelectPo(`[data-testid="name-ns-description-namespace"]`, this.self());
+  }
+
+  selectNamespace(label: string) {
+    this.namespace().toggle();
+    this.namespace().clickLabel(label);
   }
 
   project() {

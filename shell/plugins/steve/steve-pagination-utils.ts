@@ -1,5 +1,7 @@
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
-import { PaginationParam, PaginationFilterField, PaginationParamProjectOrNamespace, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import {
+  PaginationParam, PaginationFilterField, PaginationParamProjectOrNamespace, PaginationParamFilter, PaginationFilterEquality
+} from '@shell/types/store/pagination.types';
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import ModelNamespace from '@shell/models/namespace';
 import { uniq } from '@shell/utils/array';
@@ -15,13 +17,12 @@ import {
   HPA,
   SECRET
 } from '@shell/config/types';
-import {
-  CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY
-} from '@shell/config/labels-annotations';
+import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
-import { PaginationSettingsStore } from '@shell/types/resources/settings';
+import { PaginationSettingsStores } from '@shell/types/resources/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { KubeLabelSelector, KubeLabelSelectorExpression } from '@shell/types/kube/kube-api';
+import { parseField } from '@shell/utils/sort';
 
 /**
  * This is a workaround for a ts build issue found in check-plugins-build.
@@ -49,7 +50,7 @@ class NamespaceProjectFilters {
 
     // These are AND'd together
     // Not ns 1 AND ns 2
-    return allNamespaces.reduce((res, ns) => {
+    const filterNamespaces = allNamespaces.reduce((res, ns) => {
       // Links to ns.isObscure and covers things like `c-`, `user-`, etc (see OBSCURE_NAMESPACE_PREFIX)
       const hideObscure = showReservedRancherNamespaces ? false : ns.isObscure;
 
@@ -57,13 +58,23 @@ class NamespaceProjectFilters {
       const hideSystem = productHidesSystemNamespaces ? ns.isSystem : false;
 
       if (hideObscure || hideSystem) {
-        res.push(PaginationParamFilter.createSingleField({
-          field: 'metadata.namespace', value: ns.name, equals: false
-        }));
+        res.push(ns.name);
       }
 
       return res;
-    }, [] as PaginationParamFilter[]);
+    }, [] as String[]);
+
+    if (filterNamespaces.length) {
+      return [new PaginationParamFilter({
+        fields: [{
+          value:    filterNamespaces.join(','),
+          equality: PaginationFilterEquality.NOT_IN,
+          field:    'metadata.namespace',
+        }],
+      })];
+    }
+
+    return [];
   }
 
   /**
@@ -158,6 +169,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'id' },
       { field: 'metadata.state.name' },
       { field: 'metadata.creationTimestamp' },
+      { field: 'metadata.labels', startsWith: true },
     ],
     [NODE]: [
       { field: 'status.nodeInfo.kubeletVersion' },
@@ -180,18 +192,12 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.internal' },
       { field: 'spec.displayName' },
       { field: `status.provider` },
-      { field: `metadata.labels["${ CAPI_LAB_AND_ANO.PROVIDER }]` },
       { field: `status.connected` },
     ],
-    [CONFIG_MAP]: [
-      { field: 'metadata.labels[harvesterhci.io/cloud-init-template]' }
-    ],
     [SECRET]: [
-      { field: `metadata.labels[${ UI_PROJECT_SECRET }]` },
       { field: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]` },
     ],
     [NAMESPACE]: [
-      { field: 'metadata.labels[field.cattle.io/projectId]' }
     ],
     [CAPI.MACHINE]: [
       { field: 'spec.clusterName' }
@@ -214,7 +220,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'status.releaseName' },
     ],
     [CAPI.RANCHER_CLUSTER]: [
-      { field: `metadata.labels[${ CAPI_LAB_AND_ANO.PROVIDER }]` },
       { field: `status.provider` },
       { field: 'status.clusterName' },
       { field: `metadata.annotations[${ CAPI_LAB_AND_ANO.HUMAN_NAME }]` }
@@ -224,14 +229,14 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.clusterIP' },
     ],
     [INGRESS]: [
-      { field: 'spec.rules.host' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.rules.host' },
       { field: 'spec.ingressClassName' },
     ],
     [HPA]: [
-      { field: 'spec.scaleTargetRef.name' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
-      { field: 'spec.minReplicas' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
-      { field: 'spec.maxReplicas' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
-      { field: 'spec.currentReplicas' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50527
+      { field: 'spec.scaleTargetRef.name' },
+      { field: 'spec.minReplicas' },
+      { field: 'spec.maxReplicas' },
+      { field: 'spec.currentReplicas' },
     ],
     [PVC]: [
       { field: 'spec.volumeName' },
@@ -249,29 +254,29 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     ],
     [WORKLOAD_TYPES.CRON_JOB]: [
       { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.DAEMON_SET]: [
       { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.DEPLOYMENT]: [
       { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.JOB]: [
       { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.STATEFUL_SET]: [
       { field: `metadata.annotations[${ CATTLE_PUBLIC_ENDPOINTS }]` },
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.REPLICA_SET]: [
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
     [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: [
-      { field: 'spec.template.spec.containers.image' }, // Pending API Support - BUG - https://github.com/rancher/rancher/issues/50526
+      { field: 'spec.template.spec.containers.image' },
     ],
   }
 
@@ -409,9 +414,13 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
       const joined = opt.pagination.sort
         .map((s) => {
-          this.validateField(validateFields, schema, s.field);
+          // Use the same mechanism as local sorting to flip logic for asc/des
+          const { field, reverse } = parseField(s.field);
+          const asc = reverse ? !s.asc : s.asc;
 
-          return `${ s.asc ? '' : '-' }${ this.convertArrayPath(s.field) }`;
+          this.validateField(validateFields, schema, field);
+
+          return `${ asc ? '' : '-' }${ this.convertArrayPath(field) }`;
         })
         .join(',');
 
@@ -505,29 +514,36 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               // Check if the API supports filtering by this field
               this.validateField(validateFields, schema, field.field);
 
-              // we're just checking that the field exists, so there's no value
+              // we're just checking that the field exists, so there's no equality or value
               if (field.exists) {
                 return field.field;
               }
-              const encodedValue = encodeURIComponent(field.value || '');
 
-              // = exact match (equals + exact)
-              // ~ partial match (equals + !exact)
-              // != not exact match (!equals + exact)
-              // !~ not partial match (!equals + !exact)
-              const operator = `${ field.equals ? '' : '!' }${ field.exact ? '=' : '~' }`;
-              let safeValue;
+              // If field was created by PaginationFilterField ctor equality will be set. If field created by json (legacy) it might not
+              const equality = field.equality || PaginationFilterField.safeEquality(field);
 
-              if (StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(field.value || '')) {
-                // Does not contain any protected characters, send as is
-                safeValue = encodedValue;
-              } else {
-                // Contains protected characters, wrap in quotes to ensure backend doesn't fail
-                // - replace reserver `"`/`%22` with empty string - see https://github.com/rancher/dashboard/issues/14549 for improvement
-                safeValue = `"${ encodedValue.replaceAll('%22', '') }"`;
+              if (!equality) {
+                throw new Error(`A pagination filter must contain an equality. ${ JSON.stringify(field) }`);
               }
 
-              return `${ this.convertArrayPath(field.field) }${ operator }${ safeValue }`;
+              let safeValue;
+
+              if ([PaginationFilterEquality.IN, PaginationFilterEquality.NOT_IN].includes(equality)) {
+                safeValue = `(${ field.value })`;
+              } else {
+                const encodedValue = encodeURIComponent(field.value || '');
+
+                if (StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(field.value || '')) {
+                  // Does not contain any protected characters, send as is
+                  safeValue = encodedValue;
+                } else {
+                  // Contains protected characters, wrap in quotes to ensure backend doesn't fail
+                  // - replace reserver `"`/`%22` with empty string - see https://github.com/rancher/dashboard/issues/14549 for improvement
+                  safeValue = `"${ encodedValue.replaceAll('%22', '') }"`;
+                }
+              }
+
+              return `${ this.convertArrayPath(field.field) }${ equality }${ safeValue }`;
             }
 
             return field.value;
@@ -623,7 +639,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
         res.push(`filter=!${ labelKey }`);
         break;
       case 'Gt':
-        // Currently broken - see https://github.com/rancher/rancher/issues/50057
         // Only applicable to node affinity (atm) - https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
 
         if (typeof exp.values !== 'string') {
@@ -636,7 +651,6 @@ class StevePaginationUtils extends NamespaceProjectFilters {
         res.push(`filter=${ labelKey } > (${ exp.values })`);
         break;
       case 'Lt':
-        // Currently broken - see https://github.com/rancher/rancher/issues/50057
         // Only applicable to node affinity (atm) - https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#operators
         if (typeof exp.values !== 'string') {
           console.error(`Skipping labelSelector to API filter param conversion for ${ exp.key }(Lt) as no value was supplied`); // eslint-disable-line no-console
@@ -657,7 +671,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
   }
 }
 
-export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
+export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStores = {
   cluster: {
     resources: {
       enableAll:  false,
@@ -670,7 +684,7 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
           CATALOG.APP, CATALOG.OPERATION,
           HPA, INGRESS, SERVICE,
           PV, CONFIG_MAP, STORAGE_CLASS, PVC, SECRET,
-          WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER
+          WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER,
         ],
         generic: true,
       }
@@ -681,8 +695,8 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStore = {
       enableAll:  false,
       enableSome: {
         enabled: [
-          // { resource: CAPI.RANCHER_CLUSTER, context: ['home', 'side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
-          // { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] }, // Disabled due to https://github.com/rancher/dashboard/issues/14493
+          { resource: CAPI.RANCHER_CLUSTER, context: ['side-bar'] },
+          { resource: MANAGEMENT.CLUSTER, context: ['side-bar'] },
           { resource: CATALOG.APP, context: ['branding'] },
           SECRET
         ],

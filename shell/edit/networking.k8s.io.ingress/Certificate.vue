@@ -25,17 +25,10 @@ export default {
     }
   },
   data() {
-    const defaultCert = {
-      label: this.t('ingress.certificates.defaultCertLabel'),
-      value: DEFAULT_CERT_VALUE,
-    };
-    const { hosts = [''], secretName = defaultCert.value } = this.value;
-
     return {
-      defaultCert,
-      hosts,
-      secretName,
-      secretVal: this.value.secretName ?? DEFAULT_CERT_VALUE,
+      hosts:      this.value?.hosts ?? [''],
+      secretName: this.value?.secretName === undefined ? DEFAULT_CERT_VALUE : this.value?.secretName,
+      secretVal:  this.value?.secretName ?? DEFAULT_CERT_VALUE,
     };
   },
   watch: {
@@ -47,7 +40,12 @@ export default {
   },
   computed: {
     certsWithDefault() {
-      return [this.defaultCert, ...this.certs.map((c) => ({ label: c, value: c }))];
+      const defaultCert = {
+        label: this.t('ingress.certificates.defaultCertLabel'),
+        value: DEFAULT_CERT_VALUE,
+      };
+
+      return [defaultCert, ...this.certs.map((c) => ({ label: c, value: c }))];
     },
     certificateStatus() {
       const isValueAnOption = !this.secretName || this.certsWithDefault.find((cert) => this.secretName === cert.value);
@@ -59,11 +57,6 @@ export default {
     },
   },
   methods: {
-    addHost(ev) {
-      ev.preventDefault();
-      this.hosts.push('');
-      this.update();
-    },
     update() {
       const out = { hosts: this.hosts };
 
@@ -88,10 +81,7 @@ export default {
 </script>
 
 <template>
-  <div
-    class="cert row"
-    @update:value="update"
-  >
+  <div class="cert row">
     <div class="col span-6">
       <LabeledSelect
         v-model:value="secretVal"

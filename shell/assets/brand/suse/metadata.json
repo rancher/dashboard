@@ -1,3 +1,13 @@
 {
-    "hasStylesheet": "true"
+  "hasStylesheet": "true",
+  "banner": {
+    "bannerClass": "suse-banner-graphic",
+    "textAlign": "left"
+  },
+  "login": {
+    "bannerClass": "suse-login-banner-graphic",
+    "logo": "rancher-logo.svg",
+    "logoClass": "suse-logo-login",
+    "welcomeLabelKey": "login.login"
+  }  
 }

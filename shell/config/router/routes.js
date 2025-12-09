@@ -81,9 +81,13 @@ export default [
       {
         path:      '/c/:cluster/uiplugins',
         name:      'c-cluster-uiplugins',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/uiplugins/index.vue')),
+        component: () => interopDefault(import('@shell/pages/c/_cluster/uiplugins/index.vue'))
       },
-
+      {
+        path:      '/c/:cluster/uiplugins/catalogs',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/uiplugins/catalogs.vue')),
+        name:      'c-cluster-uiplugins-catalogs'
+      },
       {
         path:      '/diagnostic',
         component: () => interopDefault(import('@shell/pages/diagnostic.vue')),
@@ -363,6 +367,10 @@ export default [
         path:      '/c/:cluster/manager/nodeDriver',
         component: () => interopDefault(import('@shell/pages/c/_cluster/manager/drivers/nodeDriver/index.vue')),
         name:      'c-cluster-manager-driver-nodedriver'
+      }, {
+        path:      '/c/:cluster/manager/hostedprovider',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/manager/hostedprovider/index.vue')),
+        name:      'c-cluster-manager-hostedprovider'
       }, {
         path:      '/c/:cluster/monitoring/alertmanagerconfig',
         component: () => interopDefault(import('@shell/pages/c/_cluster/monitoring/alertmanagerconfig/index.vue')),

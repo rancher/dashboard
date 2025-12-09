@@ -14,9 +14,9 @@ jobs:
     container: registry.suse.com/bci/nodejs:20
     runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Use Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version-file: '.nvmrc'
     - name: Read secrets
@@ -27,7 +27,7 @@ jobs:
           secret/data/github/repo/${{ github.repository }}/github/app-credentials privateKey | APP_PEM
     - name: Generate Token
       id: generate-token
-      uses: actions/create-github-app-token@v1
+      uses: actions/create-github-app-token@v2
       with:
         app-id: ${{ env.APP_ID }}
         private-key: ${{ env.APP_PEM }}

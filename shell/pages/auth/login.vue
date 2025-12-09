@@ -10,7 +10,7 @@ import CopyCode from '@shell/components/CopyCode';
 import { Banner } from '@components/Banner';
 import {
   LOCAL, LOGGED_OUT, TIMED_OUT, IS_SSO, _FLAGGED,
-  IS_SLO
+  IS_SLO, IS_SESSION_IDLE
 } from '@shell/config/query-params';
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
@@ -32,6 +32,7 @@ import loadPlugins from '@shell/plugins/plugin';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import TabTitle from '@shell/components/TabTitle.vue';
+import { getBrandMeta } from '@shell/utils/brand';
 
 export default {
   name:       'Login',
@@ -47,6 +48,7 @@ export default {
 
       timedOut:           this.$route.query[TIMED_OUT] === _FLAGGED,
       loggedOut:          this.$route.query[LOGGED_OUT] === _FLAGGED,
+      isSessionIdle:      this.$route.query[IS_SESSION_IDLE] === _FLAGGED,
       isSsoLogout:        this.$route.query[IS_SSO] === _FLAGGED,
       isSlo:              this.$route.query[IS_SLO] === _FLAGGED,
       err:                this.$route.query.err,
@@ -67,7 +69,9 @@ export default {
     ...mapGetters({ t: 'i18n/t', hasMultipleLocales: 'i18n/hasMultipleLocales' }),
 
     loggedOutSuccessMsg() {
-      if (this.isSlo) {
+      if (this.isSessionIdle) {
+        return this.t('login.loggedOutSessionIdle');
+      } else if (this.isSlo) {
         return this.t('login.loggedOutFromSlo');
       } else if (this.isSsoLogout) {
         return this.t('login.loggedOutFromSso');
@@ -131,10 +135,32 @@ export default {
     hasLoginMessage() {
       return this.errorToDisplay || this.loggedOut || this.timedOut;
     },
+
+    customizations() {
+      const globalSettings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
+      const setting = globalSettings?.find((gs) => gs.id === SETTING.BRAND);
+      const brandMeta = getBrandMeta(setting?.value);
+      const login = brandMeta?.login || {};
+
+      return {
+        welcomeLabelKey: 'login.welcome',
+        logoClass:       'login-logo',
+        ...login,
+      };
+    },
+
+    bannerClass() {
+      return this.customizations.bannerClass;
+    },
+
+    brandLogo() {
+      return this.customizations.logo;
+    }
   },
 
   async fetch() {
-    const username = this.$cookies.get(USERNAME, { parseJSON: false }) || '';
+    const cookie = this.$store.getters['cookies/get']({ key: USERNAME, options: { parseJSON: false } });
+    const username = cookie || '';
 
     this.username = username;
     this.remember = !!username;
@@ -272,15 +298,19 @@ export default {
         }
 
         if ( this.remember ) {
-          this.$cookies.set(USERNAME, this.username, {
+          const options = {
             encode:   (x) => x,
             maxAge:   86400 * 365,
             path:     '/',
             sameSite: true,
             secure:   true,
+          };
+
+          this.$store.commit('cookies/set', {
+            key: USERNAME, value: this.username, options
           });
         } else {
-          this.$cookies.remove(USERNAME);
+          this.$store.commit('cookies/remove', { key: USERNAME });
         }
 
         // User logged with local login - we don't do any redirect/reload, so the boot-time plugin will not run again to laod the plugins
@@ -327,11 +357,20 @@ export default {
     </TabTitle>
     <div class="row gutless mb-20">
       <div class="col span-6 p-20">
-        <p class="text-center">
+        <p
+          v-if="!brandLogo"
+          class="text-center"
+        >
           {{ t('login.howdy') }}
         </p>
+        <BrandImage
+          v-else
+          :class="{[customizations.logoClass]: !!customizations.logoClass}"
+          :file-name="brandLogo"
+          :alt="t('login.landscapeAlt')"
+        />
         <h1 class="text-center login-welcome">
-          {{ t('login.welcome', {vendor}) }}
+          {{ t(customizations.welcomeLabelKey, {vendor}) }}
         </h1>
         <div
           class="login-messages"
@@ -516,6 +555,7 @@ export default {
         </div>
       </div>
       <BrandImage
+        :class="bannerClass"
         class="col span-6 landscape"
         data-testid="login-landscape__img"
         file-name="login-landscape.svg"
@@ -542,6 +582,12 @@ export default {
 
     .login-welcome {
       margin: 0
+    }
+
+    .login-logo {
+      align-self: center;
+      max-width: 260px;
+      margin-bottom: 20px;
     }
 
     .login-messages {

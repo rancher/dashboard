@@ -39,8 +39,22 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
       >
         {{ row.label }}
       </label>
+      <!-- A custom component specified as an object, responsible for it's own styling -->
       <div
-        v-if="row.valueOverride?.component && row.value"
+        v-if="typeof row.valueOverride?.component !== 'string' && row.valueOverride?.component && row.value"
+        :id="getRowValueId(row)"
+        class="full-custom-value"
+      >
+        <component
+          :is="row.valueOverride?.component"
+          v-if="row.valueOverride?.component"
+          v-bind="row.valueOverride?.props"
+          :data-testid="row.valueDataTestid"
+        />
+      </div>
+      <!-- A formatter with a component specified as a string -->
+      <div
+        v-else-if="row.valueOverride?.component && row.value"
         :id="getRowValueId(row)"
         class="value"
       >
@@ -91,16 +105,22 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
     .row {
       margin-bottom: 8px;
 
+      .full-custom-value {
+        flex: 1;
+      }
+
       .value {
         display: flex;
         flex-direction: row;
         align-items: center;
+        flex: 1;
 
-        &, & * {
+        & > div, & > span {
           max-width: 100%;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
+        }
+
+        &, & > div, & > span {
+          @include clip;
         }
       }
 

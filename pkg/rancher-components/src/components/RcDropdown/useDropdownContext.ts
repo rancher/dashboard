@@ -89,6 +89,26 @@ export const useDropdownContext = (emit: typeof rcDropdownEmits) => {
     });
   };
 
+  const setDropdownDimensions = (target: HTMLElement | null) => {
+    if (!target) {
+      return;
+    }
+
+    const { top, bottom } = target.getBoundingClientRect();
+    const padding = 32;
+
+    // The dropdown exceeds the top or bottom edge of the screen (or both).
+    if (top - padding < 0 || bottom + padding > window.innerHeight) {
+      const height = Math.min(
+        bottom,
+        window.innerHeight - top,
+        window.innerHeight
+      );
+
+      target.style.height = `${ height - padding }px`;
+    }
+  };
+
   /**
   * Provides Dropdown Context data and methods to descendants of RcDropdown.
   * Accessed in descendents with the `inject()` function.
@@ -115,5 +135,6 @@ export const useDropdownContext = (emit: typeof rcDropdownEmits) => {
     provideDropdownContext,
     registerDropdownCollection,
     handleKeydown,
+    setDropdownDimensions,
   };
 };

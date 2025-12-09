@@ -6,6 +6,7 @@ import SelectIconGridPo from '@/cypress/e2e/po/components/select-icon-grid.po';
 export enum AuthProvider {
   AMAZON_COGNITO = 'Amazon Cognito', // eslint-disable-line no-unused-vars
   AZURE = 'AzureAD', // eslint-disable-line no-unused-vars
+  GITHUB_APP = 'GitHub App', // eslint-disable-line no-unused-vars
 }
 
 export class AuthProviderPo extends PagePo {

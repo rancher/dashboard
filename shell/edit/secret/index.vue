@@ -485,7 +485,7 @@ export default {
         v-else
         :side-tabs="true"
         :use-hash="useTabbedHash"
-        default-tab="data"
+        :default-tab="defaultTab || 'data'"
       >
         <Tab
           name="data"

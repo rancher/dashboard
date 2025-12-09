@@ -34,9 +34,10 @@ export abstract class BaseListPagePo extends PagePo {
   /**
    * Navigates to the detail page for a given resource name
    * @param name
+   * @param selector
    * @returns
    */
-  goToDetailsPage(name: string) {
-    return this.baseResourceList().resourceTable().goToDetailsPage(name);
+  goToDetailsPage(name: string, selector?: string) {
+    return this.baseResourceList().resourceTable().goToDetailsPage(name, selector);
   }
 }

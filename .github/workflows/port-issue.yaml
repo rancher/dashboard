@@ -1,5 +1,6 @@
 # create a backport/forwardport of an issue when "/backport <milestone>" is commented
 name: Port issue
+
 run-name: "Port issue ${{ github.event.issue.number }}: ${{ github.event.issue.title }}"
 
 on:
@@ -9,12 +10,29 @@ on:
 
 jobs:
   port-issue:
+    permissions:
+      issues: write
+      id-token: write
     runs-on: ubuntu-latest
     if: contains(github.event.comment.body, '/backport') || contains(github.event.comment.body, '/forwardport')
     steps:
+      - name: Read secrets
+        uses: rancher-eio/read-vault-secrets@main
+        with:
+          secrets: |
+            secret/data/github/repo/${{ github.repository }}/github/app-credentials appId | APPID ;
+            secret/data/github/repo/${{ github.repository }}/github/app-credentials privateKey | PRIVATEKEY
+
+      - name: Generate Token
+        id: generate-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ env.APPID }}
+          private-key: ${{ env.PRIVATEKEY }}
+
       - name: Check org membership
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
           if gh api orgs/${GITHUB_REPOSITORY_OWNER}/members --paginate | jq -e --arg GITHUB_ACTOR "$GITHUB_ACTOR" '.[] | select(.login == $GITHUB_ACTOR)' > /dev/null; then
               echo "${GITHUB_ACTOR} is a member"
@@ -23,10 +41,11 @@ jobs:
               echo "${GITHUB_ACTOR} is not a member of ${GITHUB_REPOSITORY_OWNER}" >> $GITHUB_STEP_SUMMARY
               echo "is_member=false" >> $GITHUB_ENV
           fi
+
       - name: Check milestone
         if: env.is_member == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           ORIGINAL_ISSUE_NUMBER: ${{ github.event.issue.number }}
           COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
@@ -45,12 +64,13 @@ jobs:
             gh issue comment -R ${GITHUB_REPOSITORY} ${ORIGINAL_ISSUE_NUMBER} --body "Not creating port issue, milestone ${MILESTONE} does not exist or is not an open milestone"
             echo "milestone_exists=false" >> $GITHUB_ENV
           fi
+
       - name: Port issue
         if: |
           env.is_member == 'true' &&
           env.milestone_exists == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           ORIGINAL_ISSUE_NUMBER: ${{ github.event.issue.number }}
           ORIGINAL_ISSUE_URL: ${{ github.event.issue.html_url }}
           COMMENT_BODY: ${{ github.event.comment.body }}
@@ -65,8 +85,6 @@ jobs:
           if [[ $MILESTONE =~ (v[0-9]\.[0-9]+) ]]; then
               NEW_TITLE="[${TYPE} ${MILESTONE}] ${ORIGINAL_TITLE}"
           fi
-          additional_cmd+=("--label")
-          additional_cmd+=("QA/None")
           ORIGINAL_LABELS=$(gh issue view -R ${GITHUB_REPOSITORY} ${ORIGINAL_ISSUE_NUMBER} --json labels --jq '.labels[].name' | grep -v '^\[zube\]:' | paste -sd "," -)
           if [ -n "$ORIGINAL_LABELS" ]; then
               additional_cmd+=("--label")
@@ -95,6 +113,7 @@ jobs:
                   additional_cmd+=("${NEW_ASSIGNEES}")
               fi
           fi
+
           if [ -n "$MILESTONE" ]; then
               echo -e "This is a ${TYPE} issue for ${ORIGINAL_ISSUE_URL}, automatically created via [GitHub Actions workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) initiated by @${GITHUB_ACTOR}\n" > $BODY
               echo -e "\nOriginal issue body:\n" >> $BODY

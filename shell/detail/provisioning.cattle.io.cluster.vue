@@ -1,5 +1,4 @@
 <script>
-import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import ResourceTable, { defaultTableSortGenerationFn } from '@shell/components/ResourceTable';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
@@ -31,6 +30,11 @@ import Socket, {
 import { get } from '@shell/utils/object';
 import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeployment';
 import { isAlternate } from '@shell/utils/platform';
+import DetailPage from '@shell/components/Resource/Detail/Page.vue';
+import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
+import { useDefaultMastheadProps } from '@shell/components/Resource/Detail/Masthead/composable';
+import AutoscalerTab from '@shell/components/AutoscalerTab.vue';
+import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -60,7 +64,7 @@ export default {
   emits: ['input'],
 
   components: {
-    Loading,
+    AutoscalerTab,
     Banner,
     ResourceTable,
     ResourceTabs,
@@ -70,6 +74,8 @@ export default {
     CustomCommand,
     AsyncButton,
     MachineSummaryGraph,
+    DetailPage,
+    Masthead,
   },
 
   props: {
@@ -81,7 +87,12 @@ export default {
     }
   },
 
+  setup(props) {
+    return { defaultMastheadProps: useDefaultMastheadProps(props.value) };
+  },
+
   async fetch() {
+    await this.$store.dispatch(`management/find`, { type: MANAGEMENT.CLUSTER, id: this.value.mgmtClusterId });
     await this.value.waitForProvisioner();
 
     // Support for the 'provisioner' extension
@@ -612,6 +623,10 @@ export default {
 
     extDetailTabsConditions() {
       return this.extDetailTabs?.conditions;
+    },
+
+    showAutoScalerTab() {
+      return isAutoscalerFeatureFlagEnabled(this.$store) && this.value.hasAccessToAutoscalerConfigMap;
     }
   },
 
@@ -755,347 +770,370 @@ export default {
     },
   }
 };
+
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else>
-    <Banner
-      v-if="showWindowsWarning"
-      color="error"
-      :label="t('cluster.banner.os', { newOS: 'Windows', existingOS: 'Linux' })"
-    />
-    <Banner
-      v-if="showEksNodeGroupWarning"
-      color="error"
-      :label="t('cluster.banner.desiredNodeGroupWarning')"
-    />
-
-    <Banner
-      v-if="$fetchState.error"
-      color="error"
-      :label="$fetchState.error"
-    />
-
-    <Banner
-      v-if="value.isRke1"
-      color="warning"
-      label-key="cluster.banner.rke1DeprecationMessage"
-    />
-    <ResourceTabs
-      :value="value"
-      :default-tab="defaultTab"
-      :need-related="hasLocalAccess"
-      :extension-params="extCustomParams"
-      :needRelated="extDetailTabsRelated"
-      :needEvents="extDetailTabsEvents"
-      :needConditions="extDetailTabsConditions"
-      @update:value="$emit('input', $event)"
-    >
-      <Tab
-        v-if="showMachines"
-        name="machine-pools"
-        :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'"
-        :weight="4"
-      >
-        <ResourceTable
-          :rows="machines"
-          :schema="machineSchema"
-          :headers="machineHeaders"
-          default-sort-by="name"
-          group-ref="pool"
-          :group-default="machineGroupOption.value"
-          :group-sort="['pool.nameDisplay']"
-          :group-options="value.isCustom ? [noneGroupOption] : machineGroupOptions"
-          :sort-generation-fn="machineSortGenerationFn"
-        >
-          <template #main-row:isFake="{fullColspan}">
-            <tr class="main-row">
-              <td
-                :colspan="fullColspan"
-                class="no-entries"
-              >
-                {{ t('node.list.noNodes') }}
-              </td>
-            </tr>
-          </template>
-
-          <template #group-by="{group}">
-            <div
-              class="pool-row"
-              :class="{'has-description':group.ref && group.ref.template}"
-            >
-              <div
-                v-trim-whitespace
-                class="group-tab"
-              >
-                <div
-                  v-if="group && group.ref"
-                  v-clean-html="group.ref.groupByPoolShortLabel"
-                />
-                <div
-                  v-else
-                  v-clean-html="t('resourceTable.groupLabel.notInANodePool')"
-                />
-                <div
-                  v-if="group.ref && group.ref.providerSummary"
-                  class="description text-muted text-small"
-                >
-                  {{ group.ref.providerSummary }}
-                </div>
-              </div>
-              <div
-                v-if="group.ref"
-                class="right group-header-buttons mr-20"
-              >
-                <MachineSummaryGraph
-                  v-if="poolSummaryInfo[group.ref]"
-                  :row="poolSummaryInfo[group.ref]"
-                  :horizontal="true"
-                  class="mr-20"
-                />
-                <template v-if="value.hasLink('update') && group.ref.showScalePool">
-                  <button
-                    v-clean-tooltip="t('node.list.scaleDown')"
-                    :disabled="!group.ref.canScaleDownPool()"
-                    type="button"
-                    class="btn btn-sm role-secondary"
-                    @click="toggleScaleDownModal($event, group.ref)"
-                  >
-                    <i class="icon icon-sm icon-minus" />
-                  </button>
-                  <button
-                    v-clean-tooltip="t('node.list.scaleUp')"
-                    :disabled="!group.ref.canScaleUpPool()"
-                    type="button"
-                    class="btn btn-sm role-secondary ml-10"
-                    @click="group.ref.scalePool(1)"
-                  >
-                    <i class="icon icon-sm icon-plus" />
-                  </button>
-                </template>
-              </div>
-            </div>
-          </template>
-        </ResourceTable>
-      </Tab>
-
-      <Tab
-        v-else-if="showNodes"
-        name="node-pools"
-        :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'"
-        :weight="4"
-      >
-        <ResourceTable
-          :schema="mgmtNodeSchema"
-          :headers="mgmtNodeSchemaHeaders"
-          :rows="nodes"
-          group-ref="pool"
-          :group-default="poolGroupOption.value"
-          :group-sort="['pool.nameDisplay']"
-          :group-options="value.isCustom ? [noneGroupOption] : poolGroupOptions"
-          :sort-generation-fn="nodeSortGenerationFn"
-          :hide-grouping-controls="true"
-        >
-          <template #main-row:isFake="{fullColspan}">
-            <tr class="main-row">
-              <td
-                :colspan="fullColspan"
-                class="no-entries"
-              >
-                {{ t('node.list.noNodes') }}
-              </td>
-            </tr>
-          </template>
-
-          <template #group-by="{group}">
-            <div
-              class="pool-row"
-              :class="{'has-description':group.ref && group.ref.nodeTemplate}"
-            >
-              <div
-                v-trim-whitespace
-                class="group-tab"
-              >
-                <div
-                  v-if="group.ref"
-                  v-clean-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix}, true)"
-                />
-                <div
-                  v-else
-                  v-clean-html="t('resourceTable.groupLabel.notInANodePool')"
-                />
-                <div
-                  v-if="group.ref && group.ref.nodeTemplate"
-                  class="description text-muted text-small"
-                >
-                  {{ group.ref.providerDisplay }} &ndash;  {{ group.ref.providerLocation }} / {{ group.ref.providerSize }} ({{ group.ref.providerName }})
-                </div>
-              </div>
-              <div
-                v-if="group.ref && !isRke1"
-                class="right group-header-buttons"
-              >
-                <MachineSummaryGraph
-                  :row="poolSummaryInfo[group.ref]"
-                  :horizontal="true"
-                  class="mr-20"
-                />
-                <template v-if="group.ref.hasLink('update')">
-                  <button
-                    v-clean-tooltip="t('node.list.scaleDown')"
-                    :disabled="!group.ref.canScaleDownPool()"
-                    type="button"
-                    class="btn btn-sm role-secondary"
-                    @click="toggleScaleDownModal($event, group.ref)"
-                  >
-                    <i class="icon icon-sm icon-minus" />
-                  </button>
-                  <button
-                    v-clean-tooltip="t('node.list.scaleUp')"
-                    type="button"
-                    class="btn btn-sm role-secondary ml-10"
-                    @click="group.ref.scalePool(1)"
-                  >
-                    <i class="icon icon-sm icon-plus" />
-                  </button>
-                </template>
-
-                <button
-                  type="button"
-                  class="project-action btn btn-sm role-multi-action actions mr-5 ml-15"
-                  :class="{invisible: !showPoolActionButton(group.ref)}"
-                  @click="showPoolAction($event, group.ref)"
-                >
-                  <i class="icon icon-actions" />
-                </button>
-              </div>
-            </div>
-          </template>
-        </ResourceTable>
-      </Tab>
-
-      <Tab
-        v-if="showLog"
-        name="log"
-        :label="t('cluster.tabs.log')"
-        :weight="3"
-        class="logs-container"
-      >
-        <table
-          class="fixed"
-          cellpadding="0"
-          cellspacing="0"
-        >
-          <tbody class="logs-body">
-            <template v-if="logs.length">
-              <tr
-                v-for="(line, i) in logs"
-                :key="i"
-              >
-                <td
-                  v-clean-html="format(line.time)"
-                  class="time"
-                />
-                <td
-                  v-clean-html="line.msg"
-                  class="msg"
-                />
-              </tr>
-            </template>
-            <tr
-              v-else-if="!logOpen"
-              v-t="'cluster.log.connecting'"
-              colspan="2"
-              class="msg text-muted"
-            />
-            <tr
-              v-else
-              v-t="'cluster.log.noData'"
-              colspan="2"
-              class="msg text-muted"
-            />
-          </tbody>
-        </table>
-      </Tab>
-
-      <Tab
-        v-if="showRegistration"
-        name="registration"
-        :label="t('cluster.tabs.registration')"
-        :weight="2"
-      >
-        <Banner
-          v-if="!value.isCustom"
-          color="warning"
-          :label="t('cluster.import.warningBanner')"
-        />
-        <CustomCommand
-          v-if="value.isCustom"
-          :cluster-token="clusterToken"
-          :cluster="value"
-          @copied-windows="hasWindowsMachine ? null : showWindowsWarning = true"
-        />
-        <template v-else>
-          <h4 v-clean-html="t('cluster.import.commandInstructions', null, true)" />
-          <CopyCode class="m-10 p-10">
-            {{ clusterToken.command }}
-          </CopyCode>
-
-          <h4
-            v-clean-html="t('cluster.import.commandInstructionsInsecure', null, true)"
-            class="mt-10"
-          />
-          <CopyCode class="m-10 p-10">
-            {{ clusterToken.insecureCommand }}
-          </CopyCode>
-
-          <h4
-            v-clean-html="t('cluster.import.clusterRoleBindingInstructions', null, true)"
-            class="mt-10"
-          />
-          <CopyCode class="m-10 p-10">
-            {{ t('cluster.import.clusterRoleBindingCommand', null, true) }}
-          </CopyCode>
+  <DetailPage :loading="$fetchState.pending">
+    <template #top-area>
+      <Masthead v-bind="defaultMastheadProps">
+        <template #additional-actions>
+          <button
+            data-testid="detail-explore-button"
+            type="button"
+            class="btn role-primary actions"
+            :disabled="!value.canExplore"
+            @click="value.explore()"
+          >
+            {{ t('cluster.explore') }}
+          </button>
         </template>
-      </Tab>
+      </Masthead>
+    </template>
+    <template #bottom-area>
+      <div>
+        <Banner
+          v-if="showWindowsWarning"
+          color="error"
+          :label="t('cluster.banner.os', { newOS: 'Windows', existingOS: 'Linux' })"
+        />
+        <Banner
+          v-if="showEksNodeGroupWarning"
+          color="error"
+          :label="t('cluster.banner.desiredNodeGroupWarning')"
+        />
 
-      <Tab
-        v-if="showSnapshots"
-        name="snapshots"
-        label="Snapshots"
-        :weight="1"
-      >
-        <SortableTable
-          class="snapshots"
-          :data-testid="'cluster-snapshots-list'"
-          :headers="rke2SnapshotHeaders"
-          default-sort-by="age"
-          :table-actions="value.isRke1"
-          :rows="rke2Snapshots"
-          :search="false"
-          :groupable="true"
-          :group-by="snapshotsGroupBy"
+        <Banner
+          v-if="$fetchState.error"
+          color="error"
+          :label="$fetchState.error"
+        />
+
+        <Banner
+          v-if="value.isRke1"
+          color="warning"
+          label-key="cluster.banner.rke1DeprecationMessage"
+        />
+        <ResourceTabs
+          :value="value"
+          :default-tab="defaultTab"
+          :need-related="hasLocalAccess"
+          :extension-params="extCustomParams"
+          :needRelated="extDetailTabsRelated"
+          :needEvents="extDetailTabsEvents"
+          :needConditions="extDetailTabsConditions"
+          @update:value="$emit('input', $event)"
         >
-          <template #header-right>
-            <AsyncButton
-              mode="snapshot"
-              class="btn role-primary"
-              :disabled="!isClusterReady"
-              @click="takeSnapshot"
+          <Tab
+            v-if="showMachines"
+            name="machine-pools"
+            :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'"
+            :weight="4"
+          >
+            <ResourceTable
+              :rows="machines"
+              :schema="machineSchema"
+              :headers="machineHeaders"
+              default-sort-by="name"
+              group-ref="pool"
+              :group-default="machineGroupOption.value"
+              :group-sort="['pool.nameDisplay']"
+              :group-options="value.isCustom ? [noneGroupOption] : machineGroupOptions"
+              :sort-generation-fn="machineSortGenerationFn"
+            >
+              <template #main-row:isFake="{fullColspan}">
+                <tr class="main-row">
+                  <td
+                    :colspan="fullColspan"
+                    class="no-entries"
+                  >
+                    {{ t('node.list.noNodes') }}
+                  </td>
+                </tr>
+              </template>
+
+              <template #group-by="{group}">
+                <div
+                  class="pool-row"
+                  :class="{'has-description':group.ref && group.ref.template}"
+                >
+                  <div
+                    v-trim-whitespace
+                    class="group-tab"
+                  >
+                    <div
+                      v-if="group && group.ref"
+                      v-clean-html="group.ref.groupByPoolShortLabel"
+                    />
+                    <div
+                      v-else
+                      v-clean-html="t('resourceTable.groupLabel.notInANodePool')"
+                    />
+                    <div
+                      v-if="group.ref && group.ref.providerSummary"
+                      class="description text-muted text-small"
+                    >
+                      {{ group.ref.providerSummary }}
+                    </div>
+                  </div>
+                  <div
+                    v-if="group.ref && !group.ref.isAutoscalerEnabled"
+                    class="right group-header-buttons mr-20"
+                  >
+                    <MachineSummaryGraph
+                      v-if="poolSummaryInfo[group.ref]"
+                      :row="poolSummaryInfo[group.ref]"
+                      :horizontal="true"
+                      class="mr-20"
+                    />
+                    <template v-if="value.hasLink('update') && group.ref.showScalePool">
+                      <button
+                        v-clean-tooltip="t('node.list.scaleDown')"
+                        :disabled="!group.ref.canScaleDownPool()"
+                        type="button"
+                        class="btn btn-sm role-secondary"
+                        @click="toggleScaleDownModal($event, group.ref)"
+                      >
+                        <i class="icon icon-sm icon-minus" />
+                      </button>
+                      <button
+                        v-clean-tooltip="t('node.list.scaleUp')"
+                        :disabled="!group.ref.canScaleUpPool()"
+                        type="button"
+                        class="btn btn-sm role-secondary ml-10"
+                        @click="group.ref.scalePool(1)"
+                      >
+                        <i class="icon icon-sm icon-plus" />
+                      </button>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </ResourceTable>
+          </Tab>
+
+          <Tab
+            v-else-if="showNodes"
+            name="node-pools"
+            :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'"
+            :weight="4"
+          >
+            <ResourceTable
+              :schema="mgmtNodeSchema"
+              :headers="mgmtNodeSchemaHeaders"
+              :rows="nodes"
+              group-ref="pool"
+              :group-default="poolGroupOption.value"
+              :group-sort="['pool.nameDisplay']"
+              :group-options="value.isCustom ? [noneGroupOption] : poolGroupOptions"
+              :sort-generation-fn="nodeSortGenerationFn"
+              :hide-grouping-controls="true"
+            >
+              <template #main-row:isFake="{fullColspan}">
+                <tr class="main-row">
+                  <td
+                    :colspan="fullColspan"
+                    class="no-entries"
+                  >
+                    {{ t('node.list.noNodes') }}
+                  </td>
+                </tr>
+              </template>
+
+              <template #group-by="{group}">
+                <div
+                  class="pool-row"
+                  :class="{'has-description':group.ref && group.ref.nodeTemplate}"
+                >
+                  <div
+                    v-trim-whitespace
+                    class="group-tab"
+                  >
+                    <div
+                      v-if="group.ref"
+                      v-clean-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix}, true)"
+                    />
+                    <div
+                      v-else
+                      v-clean-html="t('resourceTable.groupLabel.notInANodePool')"
+                    />
+                    <div
+                      v-if="group.ref && group.ref.nodeTemplate"
+                      class="description text-muted text-small"
+                    >
+                      {{ group.ref.providerDisplay }} &ndash;  {{ group.ref.providerLocation }} / {{ group.ref.providerSize }} ({{ group.ref.providerName }})
+                    </div>
+                  </div>
+                  <div
+                    v-if="group.ref && !isRke1"
+                    class="right group-header-buttons"
+                  >
+                    <MachineSummaryGraph
+                      :row="poolSummaryInfo[group.ref]"
+                      :horizontal="true"
+                      class="mr-20"
+                    />
+                    <template v-if="group.ref.hasLink('update')">
+                      <button
+                        v-clean-tooltip="t('node.list.scaleDown')"
+                        :disabled="!group.ref.canScaleDownPool()"
+                        type="button"
+                        class="btn btn-sm role-secondary"
+                        @click="toggleScaleDownModal($event, group.ref)"
+                      >
+                        <i class="icon icon-sm icon-minus" />
+                      </button>
+                      <button
+                        v-clean-tooltip="t('node.list.scaleUp')"
+                        type="button"
+                        class="btn btn-sm role-secondary ml-10"
+                        @click="group.ref.scalePool(1)"
+                      >
+                        <i class="icon icon-sm icon-plus" />
+                      </button>
+                    </template>
+
+                    <button
+                      type="button"
+                      class="project-action btn btn-sm role-multi-action actions mr-5 ml-15"
+                      :class="{invisible: !showPoolActionButton(group.ref)}"
+                      @click="showPoolAction($event, group.ref)"
+                    >
+                      <i class="icon icon-actions" />
+                    </button>
+                  </div>
+                </div>
+              </template>
+            </ResourceTable>
+          </Tab>
+
+          <Tab
+            v-if="showLog"
+            name="log"
+            :label="t('cluster.tabs.log')"
+            :weight="3"
+            class="logs-container"
+          >
+            <table
+              class="fixed"
+              cellpadding="0"
+              cellspacing="0"
+            >
+              <tbody class="logs-body">
+                <template v-if="logs.length">
+                  <tr
+                    v-for="(line, i) in logs"
+                    :key="i"
+                  >
+                    <td
+                      v-clean-html="format(line.time)"
+                      class="time"
+                    />
+                    <td
+                      v-clean-html="line.msg"
+                      class="msg"
+                    />
+                  </tr>
+                </template>
+                <tr
+                  v-else-if="!logOpen"
+                  v-t="'cluster.log.connecting'"
+                  colspan="2"
+                  class="msg text-muted"
+                />
+                <tr
+                  v-else
+                  v-t="'cluster.log.noData'"
+                  colspan="2"
+                  class="msg text-muted"
+                />
+              </tbody>
+            </table>
+          </Tab>
+
+          <Tab
+            v-if="showRegistration"
+            name="registration"
+            :label="t('cluster.tabs.registration')"
+            :weight="2"
+          >
+            <Banner
+              v-if="!value.isCustom"
+              color="warning"
+              :label="t('cluster.import.warningBanner')"
             />
-          </template>
-          <template #group-by="{group}">
-            <div class="group-bar">
-              <div class="group-tab">
-                {{ t('cluster.snapshot.groupLabel') }}: {{ group.key }}
-              </div>
-            </div>
-          </template>
-        </SortableTable>
-      </Tab>
-    </ResourceTabs>
-  </div>
+            <CustomCommand
+              v-if="value.isCustom"
+              :cluster-token="clusterToken"
+              :cluster="value"
+              @copied-windows="hasWindowsMachine ? null : showWindowsWarning = true"
+            />
+            <template v-else>
+              <h4 v-clean-html="t('cluster.import.commandInstructions', null, true)" />
+              <CopyCode class="m-10 p-10">
+                {{ clusterToken.command }}
+              </CopyCode>
+
+              <h4
+                v-clean-html="t('cluster.import.commandInstructionsInsecure', null, true)"
+                class="mt-10"
+              />
+              <CopyCode class="m-10 p-10">
+                {{ clusterToken.insecureCommand }}
+              </CopyCode>
+
+              <h4
+                v-clean-html="t('cluster.import.clusterRoleBindingInstructions', null, true)"
+                class="mt-10"
+              />
+              <CopyCode class="m-10 p-10">
+                {{ t('cluster.import.clusterRoleBindingCommand', null, true) }}
+              </CopyCode>
+            </template>
+          </Tab>
+
+          <Tab
+            v-if="showSnapshots"
+            name="snapshots"
+            label="Snapshots"
+            :weight="1"
+          >
+            <SortableTable
+              class="snapshots"
+              :data-testid="'cluster-snapshots-list'"
+              :headers="rke2SnapshotHeaders"
+              default-sort-by="age"
+              :table-actions="value.isRke1"
+              :rows="rke2Snapshots"
+              :search="false"
+              :groupable="true"
+              :group-by="snapshotsGroupBy"
+            >
+              <template #header-right>
+                <AsyncButton
+                  mode="snapshot"
+                  class="btn role-primary"
+                  :disabled="!isClusterReady"
+                  @click="takeSnapshot"
+                />
+              </template>
+              <template #group-by="{group}">
+                <div class="group-bar">
+                  <div class="group-tab">
+                    {{ t('cluster.snapshot.groupLabel') }}: {{ group.key }}
+                  </div>
+                </div>
+              </template>
+            </SortableTable>
+          </Tab>
+          <AutoscalerTab
+            v-if="showAutoScalerTab"
+            :value="value"
+          />
+        </ResourceTabs>
+      </div>
+    </template>
+  </DetailPage>
 </template>
 
 <style lang='scss' scoped>

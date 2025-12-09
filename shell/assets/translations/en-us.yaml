@@ -40,6 +40,7 @@ generic:
   disabled: Disabled
   done: Done
   enabled: Enabled
+  error: Error
   here: here
   id: ID
   ignored: Ignored
@@ -124,6 +125,7 @@ generic:
   enable: Enable
   disable: Disable
   experimental: Experimental
+  primeOnly: Prime Only
 
   deprecated: Deprecated
   upgradeable: Upgradeable
@@ -157,8 +159,10 @@ generic:
     genericRow: row {index}
   showLess: Show less
   showMore: Show more
+  externalIps: External IPs
+  internalIps: Internal IPs
   opensInNewTab: Opens in a new tab
-  
+
 tabs:
   addItem: Add a new tab item
   removeItem: Remove selected tab item
@@ -232,7 +236,7 @@ nav:
     workload: Workloads
     monitoring: Monitoring
     advanced: Advanced
-    drivers: Drivers
+    providers: Providers
     RKE1Configuration: RKE1 Configuration
     admission: Admission
     apps: Apps
@@ -281,7 +285,6 @@ nav:
     filteringDescription: Using this input will immediately filter the results in the list below
   header:
     setLoginPage: Set as login page
-    restoreCards: Restore hidden cards
     showHideBanner: Show/Hide Banner
   userMenu:
     preferences: Preferences
@@ -370,9 +373,7 @@ layouts:
   unauthenticated: unauthenticated layout
   logout: logout layout
   verify: verify layout
-
-windowmanager:
-  closeTab: Close tab {tabId}
+  
 about:
   title: About
   versions:
@@ -472,12 +473,18 @@ addClusterMemberDialog:
 
 addonConfigConfirmation:
   title: Add-On Reset
-  body: Changing the Kubernetes Version can reset Add-On values. You should check that the values are as expected before continuing.
+  body: Add-On Configuration has changed between Kubernetes versions <b>{previousKubeVersion}</b> and <b>{newKubeVersion}</b> and conflict with your previous values for Add-On {addons}. As a result please re-apply them before continuing.
 
 addProjectMemberDialog:
   title: Add Project Member
 
 authConfig:
+  slo:
+    sloTitle: Log Out behavior
+    sloOptions:
+      onlyRancher: Log out of Rancher and not {name}
+      logoutAll: Log out of Rancher and {name} (includes all other applications registered with {name})
+      choose: Allow the user to choose one of the above in an additional log out step
   accessMode:
     label: 'Configure who should be able to login and use {vendor}'
     required: Restrict access to only the authorized users & groups
@@ -486,6 +493,51 @@ authConfig:
   allowedPrincipalIds:
     title: Authorized Users & Groups
   associatedWarning: 'The {provider} account that is used to enable the external provider will be granted admin permissions. If you use a test account or non-admin account, that account will still be granted admin-level permissions. See <a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config#external-authentication-configuration-and-principal-users" target="_blank" rel="noopener noreferrer nofollow">External Authentication Configuration and Principal Users</a> to understand why.'
+  githubapp:
+    clientId:
+      label: Client ID
+    clientSecret:
+      label: Client Secret
+    githubAppId:
+      label: Github App ID
+    installationId:
+      label: Installation ID
+    privateKey:
+      label: Private Key
+    warning: The GitHub App authentication provider only works with <a href="https://docs.github.com/en/get-started/learning-about-github/types-of-github-accounts" target="_blank" rel="noopener noreferrer nofollow">GitHub Organization accounts</a>. It does not support User accounts.
+    form:
+      prefix:
+        1: <li>Open your <a href="{baseUrl}/settings/organizations" target="_blank" rel="noopener noreferrer nofollow">GitHub organization settings</a> in a new window</li>
+        2: <li>To the right of the organization, click "Settings"</li>
+        3: <li>In the left sidebar, click "Developer settings" -> "GitHub Apps"</li>
+        4: <li>Click "New Github App"</li>
+      instruction: 'Fill in the form with these values:'
+      app:
+        label: GitHub App name 
+        value: 'Anything you like, e.g. My {vendor}'
+      callback:
+        label: Callback URL
+        value: '{serverUrl}/verify-auth'
+      description:
+        label: Application description
+        value: 'Optional, can be left blank'
+      homepage:
+        label: Homepage URL
+      create: Click "Create Github App"
+      suffix:
+        1: <li>Under Client Secrets, click "Generate a new client secret"</li>
+        2: <li>Under Private Keys, click "Generate a private key"</li>
+        3: <li>Copy and paste the "App ID", "Client ID", "Client Secret", and "Private Key" of your newly created OAuth app into the fields below</li>
+    host:
+      label: GitHub Enterprise Host
+      placeholder: e.g. github.mycompany.example
+    target:
+      label: Which version of GitHub do you want to use?
+      private: A private installation of GitHub Enterprise
+      public: Public GitHub.com
+    table:
+      server: Server
+      clientId: Client ID
   github:
     clientId:
       label: Client ID
@@ -607,7 +659,7 @@ authConfig:
     starttls:
       label: Start TLS
       tip: Upgrades non-encrypted connections by wrapping with TLS during the connection process. Can not be used in conjunction with TLS.
-    searchUsingServiceAccount: 
+    searchUsingServiceAccount:
       label: Enable Service Account Search
       tip: When enabled, Rancher will use the service account instead of the user account to search for users and groups.
     tls: TLS
@@ -627,11 +679,6 @@ authConfig:
     UID: UID Field
     adfs: Configure an AD FS account
     api: '{vendor} API Host'
-    sloTitle: Log Out behavior
-    sloOptions:
-      onlyRancher: Log out of Rancher and not {name}
-      logoutAll: Log out of Rancher and {name} (includes all other applications registered with {name})
-      choose: Allow the user to choose one of the above in an additional log out step
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
@@ -698,6 +745,9 @@ authConfig:
         title: Are you sure? This update is irreversible.
         body: '<p><b>You may need to make some additional changes</b>. Please ensure the Azure AD app has the Directory.Read.All <b>Application</b> permission added to Microsoft Graph.<br> If any endpoints were customized while configuring Azure AD authentication in Rancher, they will not be automatically updated. </p>'
   oidc:
+    endSessionEndpoint: 
+      title: End Session Endpoint
+      tooltip: Provider specific URL used for logging a user out of their session
     genericoidc: Configure an OIDC account
     keycloakoidc: Configure a Keycloak OIDC account
     cognito: Configure an Amazon Cognito account
@@ -719,6 +769,17 @@ authConfig:
     tokenEndpoint: Token Endpoint
     userInfoEndpoint: User Info Endpoint
     acrValue: Authorization Context Reference
+    customClaims:
+      label: Custom Claims
+      enable:
+        label: Add custom claims
+        tooltip: Manually map OIDC claims when your provider doesn’t use standard claim names in tokens.
+      nameClaim: 
+        label: Custom Name Claim
+      groupsClaim: 
+        label: Custom Groups Claim
+      emailClaim: 
+        label: Custom Email Claim
     cognitoIssuer: Issuer URL
     cognitoHelp: "You will need to create an application client in Cognito of type <b>Traditional web application</b> with the Return URL set to the URL shown below."
     scope:
@@ -825,6 +886,10 @@ asyncButton:
     action: Download
     success: Saving
     waiting: Downloading&hellip;
+  downgrade:
+    action: Downgrade
+    success: Downgraded
+    waiting: Downgrading&hellip;
   drain:
     action: Drain
     success: Drained
@@ -833,6 +898,10 @@ asyncButton:
     action: Save
     success: Saved
     waiting: Saving&hellip;
+  editVersion:
+    action: Save changes
+    success: Saved
+    waiting: Saving changes&hellip;
   editAndContinue:
     action: Save and Continue
     success: Saved
@@ -851,6 +920,10 @@ asyncButton:
     waiting: Importing&hellip;
   install:
     action: Install
+    success: Installed
+    waiting: Installing&hellip;
+  installVersion:
+    action: Install this version
     success: Installed
     waiting: Installing&hellip;
   load:
@@ -897,9 +970,9 @@ asyncButton:
     success: Redeployed
     waiting: Redeploying Workload
   rollback:
-    action: Roll Back
+    action: Rollback
     success: Rolled Back
-    waiting: Rolling Back Workload
+    waiting: Rolling Back&hellip;
   rotate:
     action: Rotate
     waiting: Rotating&hellip;
@@ -926,8 +999,8 @@ asyncButton:
     waiting: Updating&hellip;
   upgrade:
     action: Upgrade
-    success: Upgrading
-    waiting: Starting&hellip;
+    success: Upgraded
+    waiting: Upgrading&hellip;
   generate:
     action: Generate
     success: Generated
@@ -1049,8 +1122,11 @@ catalog:
         label: Chart Versions
         showMore: Show More
         showLess: Show Less
-      home: Home
+        missingVersionDate: No date available for this chart version
+      home: Homepage
+      repository: Repository Page
       maintainers: Maintainers
+      maintainerContactTooltip: Contact {maintainer}
       related: Related
       chartUrls: Chart
       keywords: Keywords
@@ -1060,6 +1136,12 @@ catalog:
     deprecatedWarning: '{chartName} has been marked as deprecated. Use caution when installing this helm chart as it might be removed in the future.'
     experimentalWarning: '{chartName} has been marked as experimental. Use caution when installing this helm chart as it might not function as expected.'
     deprecatedAndExperimentalWarning: '{chartName} has been marked as deprecated and experimental. Use caution when installing this helm chart as it might be removed in the future and might not function as expected.'
+    chartButton:
+      action:
+        install: Install this version
+        edit: Edit the current version
+        upgrade: Upgrade to this version
+        downgrade: Downgrade to this version
   charts:
     browseAriaLabel: Show only charts grid
     iconAlt: Icon for {app} card/grid item
@@ -1092,6 +1174,8 @@ catalog:
       label: Add new
       ariaLabel: Add a new repository
     appChartCard:
+      subHeaderItem:
+        missingVersionDate: Last updated date is not available for this chart
       footerItem:
         ariaLabel: Apply filter
     statusFilterCautions:
@@ -1117,11 +1201,50 @@ catalog:
       alphaDescending: Chart name, Z → A
     refreshButton:
       label: Refresh all repositories
+    findSimilar:
+      message: "Find similar charts based on this {type}"
+      types:
+        keyword: keyword
+        repo: repository
+        category: category
+        tag: tag
   install:
     action:
       goToUpgrade: Edit/Upgrade
     appReadmeMissing: This chart doesn't have any additional chart information.
     appReadmeTitle: Chart Information (Helm README)
+    button:
+      alreadyInstalled: '{chart} version {version} is already installed.'
+      viewDetails: View chart details
+      customizeInstall: Customize Install Options
+      viewLogs: View Installation Logs
+      waitForLogs: Installation initialized; waiting for logs...
+      canNotCreateRepos: It looks like you don't have permission to add repositories and install helm charts.
+      canNotInstallApps: The {repo} repository has been added, but you don't have permission to install charts from it.
+      stages:
+        addRepo:
+          action: Add the {repo} repository
+          waiting: Adding {repo} repository...
+          success: Repository added
+          error: Error adding {repo} repository
+        loadCharts:
+          action:  Fetch {repo} repository chart(s)
+          waiting: Fetching {repo} repository chart(s)...
+          success: '{chart} found'
+          error: '{chart} chart not found - Try again?'
+        installChart:
+          action: Install {chart}
+          waiting: Installing {chart}...
+          success: '{chart} installation started'
+          error: Error installing {chart}
+        waitForLogs:
+          action: View installation logs
+          waiting: Waiting for installation logs...
+          error: Unable to load installation logs
+      errors:
+        fetchChart: Error retrieving chart from repository
+        alreadyInstalled: Chart already installed
+        timeoutWaiting: Timed out waiting for logs
     chart: Chart
     warning:
       managed:
@@ -1191,7 +1314,8 @@ catalog:
         description: This process will help {action, select,
             install { create }
             upgrade { upgrade }
-            update { update }
+            downgrade { upgrade }
+            editVersion { update }
           } the {existing, select,
             true { app}
             false { chart}
@@ -1283,8 +1407,9 @@ catalog:
     noTools: "No Cluster Tools found"
     action:
       install: Install
-      upgrade: Upgrade/Edit
-      edit: Edit
+      upgrade: Upgrade
+      edit: Edit current version
+      downgrade: Downgrade
       remove: Remove
       manage: Manage
   os:
@@ -1455,6 +1580,7 @@ cluster:
       nodeLabel:
         title: Node Labels
         label: Add Label
+      ipv6: "It looks like this cluster uses IPv6 networking: <code>Node Private IP</code> should be set to the cluster's IPV6 address."
     registrationCommand:
       label: Registration Command
       linuxDetail: Run this command on each of the existing Linux machines you want to register.
@@ -1561,7 +1687,7 @@ cluster:
         placeholder: Service Account private key JSON file
         gke: GKE
         gce: GCE
-        help: 
+        help:
           shared: <p>Create a <a href="https://console.cloud.google.com/projectselector/iam-admin/serviceaccounts" target="_blank" rel="noopener noreferrer nofollow">Service Account</a> with a JSON private key and provide the JSON here.</p>
           gke: |-
             <p>These IAM roles are required for GKE:</p>
@@ -1616,6 +1742,12 @@ cluster:
         label: KubeconfigContent
       placeholder: 'Namespace/Name'
       cluster: Imported Harvester Cluster
+      enableTpm: Enable TPM
+      enableCpuPinning: Enable CPU Pinning
+      cpuPinningTooltip: Enable CPU Pinning brings better performance and reduce latency for the harvester virtual machine
+      cpuManagerWarning: You must enable CPU Manager for at least one node in harvester host page to enable CPU Pinning for VM
+      secureBoot: Secure Boot
+      enableEfi: Booting in EFI mode
       installGuestAgent: Install guest agent
       tokenExpirationWarning: 'Warning: Harvester Cloud Credentials use an underlying authentication token that may have an expiry time - please see the following <a href="https://harvesterhci.io/kb/renew_harvester_cloud_credentials" target="_blank" rel="noopener nofollow">knowledge base article</a> for possible implications on management operations.'
   description:
@@ -1712,7 +1844,7 @@ cluster:
         } / {memory, number} GiB Memory / {storageSize, plural,
           =0 {EBS-Only}
           other {{storageSize, number} {storageUnit} {storageType}}
-        }
+        } - {architecture}
     azure:
       acceleratedNetworking:
         label: Accelerated Networking
@@ -1950,6 +2082,21 @@ cluster:
       httpEndpoint: Allow access to EC2 metadata
       httpTokens: Use tokens for metadata
       tagTitle: EC2 Tags
+      enableIpv6:
+        label: Enable IPv6
+        description: "Checking this automatically sets your <a aria-label='scroll to the networking section in cluster configuration' href=\"#networking\">Network Stack Preference Order</a> to <b>DUAL</b> stack, enabling both IPv4 and IPv6. For an IPv6-only cluster, you can manually change that setting to <b>IPv6</b>."
+      ipv6AddressCount:
+        label: IPv6 Address Count
+        tooltip: Specifies the number of IPv6 addresses to assign to the network interface
+        error: IPv6 Address Count must be greater than 0 when using an IPv6 vpc or subnet.
+      enablePrimaryIpv6:
+        label: Enable Static Primary Ipv6
+        description: This allows IPv6 communication for components and workloads.
+      ipv6AddressOnly:
+        label: Use IPv6 Only
+      httpProtocolIpv6: 
+        label: Use IPv6 for instance metadata service
+      ipv6ValidationWarning: When one pool uses an IPv6 or dual-stack subnet/vpc, all pools must use an IPv6 or dual-stack subnet/vpc.
     pnap:
       serverLocation:
         label: Location
@@ -1999,6 +2146,9 @@ cluster:
       location:
         zone:
           label: Zone
+      preemptible:
+        label: Make VM instance preemptible
+        tooltip: Preemptible machines offer significant cost savings, but may be abruptly stopped when Google Compute Engine needs to reclaim the compute resources for higher-priority VMs.
       scopes:
         add: Add scope
         label: Scopes
@@ -2029,7 +2179,7 @@ cluster:
         diskSizeWithMax: Disk size has to be between {diskSizeMin} and {diskSizeMax} based on this image and disk type.
         projects: Image projects should be a comma separated list of alphanumeric string which may contain '-' and '.'
   addOns:
-    dependencyBanner: Add-On Configuration can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.
+    dependencyBanner: Add-On Configuration has changed between Kubernetes versions <b>{previousKubeVersion}</b> and <b>{newKubeVersion}</b> and conflict with your previous values. Please re-apply them.
     additionalManifest:
       title: Additional Manifest
       tooltip: 'Additional Kubernetes Manifest YAML to be applied to the cluster on startup.'
@@ -2087,7 +2237,7 @@ cluster:
   banner:
     warning: 'This cluster contains a machineSelectorConfig, which this form does not fully support; use the YAML editor to manage the full configuration.'
     os: 'You are attempting to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
-    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a href="{docsBase}/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences#cluster-api" target="_blank" rel="noopener nofollow">documentation</a>.'
+    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a href="{docsBase}/how-to-guides/new-user-guides/launch-kubernetes-with-rancher#launching-kubernetes-on-new-nodes-in-an-infrastructure-provider" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available on this screen will be limited; you may want to use the YAML editor.
     cloudProviderAddConfig: 'On Kubernetes 1.27 or greater, the <b>Amazon</b> Cloud Provider requires additional configuration. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/kubernetes-clusters-in-rancher-setup/set-up-cloud-providers/amazon" target="_blank" rel="noopener noreferrer nofollow">the documentation</a> for more information.'
@@ -2100,13 +2250,6 @@ cluster:
       }
     rke1DeprecationMessage: 'Rancher Kubernetes Engine (RKE / RKE1) has reached end of life and these clusters are no longer supported. We recommend replatforming RKE1 clusters to RKE2 to ensure continued support and security updates. Learn more about the transition <a href="https://www.suse.com/support/kb/doc/?id=000021518" target="_blank" rel="noopener noreferrer nofollow">here</a>.'
   rke1Unsupported: RKE1 Clusters are no longer supported
-  cloudCredentials:
-    renew: Renew Cloud Credentials
-    expired: Cloud Credential expired, please Renew Cloud Credentials
-    expiring: Cloud Credential will expire on { expires }, please Renew Cloud Credentials
-    banners:
-      expiring: "{count} {count, plural, =1 { Cluster has a Cloud Credential that expires soon} other { Clusters have Cloud Credentials that expire soon}}, please Renew Cloud {count, plural, =1 { Credential} other { Credentials}}"
-      expired: "{count} {count, plural, =1 { Cluster has a Cloud Credential that has expired} other { Clusters have Cloud Credentials that have expired}}, please Renew Cloud {count, plural, =1 { Credential} other { Credentials}}"
 
   architecture:
     label:
@@ -2126,6 +2269,18 @@ cluster:
     rkeTemplate: RKE Template
 
   machinePool:
+    automation:
+      label: Automation
+    autoscaler:
+      heading: Autoscaler
+      enable: Enable autoscaler and override "Machine Count" value
+      machineCountValueOverride: Controlled by autoscaler
+      baseUnit: Machines
+      min: Min
+      max: Max
+      validation:
+        isAutoscalerMaxGreaterThanMin: The max machines count must be equal or exceed the min machine count.
+      etcdControlPlaneWarning: We don't recommend using Autoscaler with machine pools that have the etcd or Control Plane roles. You can modify the yaml if you want to override the current value.
     name:
       label: Pool Name
       placeholder: A random one will be generated by default
@@ -2190,6 +2345,7 @@ cluster:
       placeholder: Search for a member to provide cluster access
       searchPlaceholder: Start typing to search
       noResults: No results found
+      minCharacters: Type at least {count} characters to search
   privateRegistry:
     header: Registry for Rancher System Container Images
     label: Enable cluster scoped container registry for Rancher system container images
@@ -2265,8 +2421,8 @@ cluster:
   providerGroup:
     create-custom1: Use existing nodes and create a cluster using RKE
     create-custom2: Use existing nodes and create a cluster using RKE2/K3s
-    create-kontainer: Create a cluster in a hosted Kubernetes provider
-    register-kontainer: Register an existing cluster in a hosted Kubernetes provider
+    create-hosted: Create a cluster in a hosted Kubernetes provider
+    register-hosted: Register an existing cluster in a hosted Kubernetes provider
     create-rke1: Provision new nodes and create a cluster using RKE
     create-rke2: Provision new nodes and create a cluster using RKE2/K3s
     create-template: Use a Catalog Template to create a cluster
@@ -2387,6 +2543,27 @@ cluster:
         true: Exposed to the public interface
       s3backups:
         label: Save Backups to S3
+      s3config:
+        bucket:
+          label: Bucket
+        folder:
+          label: Folder
+        region:
+          label: Region
+        endpoint:
+          label: Endpoint
+        skipSSLVerify:
+          label: Accept any certificate (insecure)
+        endpointCA:
+          label: Endpoint CA Cert
+    stackPreference:
+      label: Stack Preference
+      description: "Stack preference determines the networking stack used by the cluster. The selected value configures the address used for health and readiness probes of calico, etcd, kube-apiserver, kube-scheduler, kube-controller-manager, and kubelet. It also defines the server URL in the <code>authentication-token-webhook-config-file</code> for the Authorized Cluster Endpoint and the advertise-client-urls for etcd during snapshot restore. When set to <code>dual</code>, the cluster uses <code>localhost</code>; when set to <code>ipv6</code>, it uses <code>[::1]</code>; and when set to <code>ipv4</code>, it uses <code>127.0.0.1</code>."
+      options:
+        ipv4: IPv4
+        ipv6: IPv6
+        dual: Dual-Stack
+      errorNeedsIpv6: Stack preference must be set to dual-stack or ipv6 if using ipv6 networking in nodepools.
   k3s:
     systemService:
       coredns: 'CoreDNS'
@@ -2543,9 +2720,16 @@ cruResource:
   previewYaml: Edit as YAML
   showYaml: View as YAML
 
+providers:
+  hosted: 
+    title: Hosted Providers
+    prime: Prime only
+    warning: Disabling providers will make any clusters that use them uneditable
 drivers:
   kontainer:
     title: Cluster Drivers
+    emberDeprecationMessage: 'Support for UI Plugins (based on Ember) for cluster and node drivers was deprecated in Rancher 2.11.0 and will be removed in a future release. These need to be migrated to the new <a href="https://extensions.rancher.io" target="_blank" rel="noopener noreferrer nofollow">UI Extensions framework</a>.'
+
   node:
     title: Node Drivers
   add:
@@ -2623,6 +2807,32 @@ drainNode:
     placeholder: e.g. 60
     custom: "Give up after:"
 
+dynamicContent:
+  action:
+    close: Hide and Mark Announcement as read
+    openPrimary: Open announcement's primary action
+    openSecondary: Open announcement's secondary action
+  newRelease:
+    title: A new Rancher release is available!
+    message: Rancher {version} has been released!
+    moreInfo: Release Notes
+  multipleNewReleases:
+    title: New Rancher releases are available!
+    message: A new {version1} patch version has been released and a newer {version2} version is also avaialble.
+    moreInfo: "{version} Release Notes"
+  upcomingEom:
+    title: End of Maintainence in {days, plural, =1 {1 day} other {{days} days}}
+    message: This version of Rancher ({version}) will reach End of Maintainence in {days} day(s). Consider upgrading to a supported version soon.
+  eom:
+    title: End of Maintainence reached
+    message: This version of Rancher ({version}) has reached End of Maintainence. Consider upgrading to a supported version.
+  upcomingEol:
+    title: End of Life in {days, plural, =1 {1 day} other {{days} days}}
+    message: This version of Rancher ({version}) will reach End of Life in {days} day(s). Consider upgrading to a supported version soon.
+  eol:
+    title: End of Life reached
+    message: This version of Rancher ({version}) has reached End of Life. Consider upgrading to a supported version.
+
 etcdInfoBanner:
   hasLeader: "Etcd has a leader:"
   leaderChanges: "Number of leader changes:"
@@ -2630,8 +2840,8 @@ etcdInfoBanner:
 
 fleet:
   settings:
-    label: Fleet
-    title: Fleet Settings
+    label: Continuous Delivery
+    title: Continuous Delivery Settings
     info: Rancher will reboot Fleet agent and controller on settings change.
     apply: Apply changes
     noPermissions: You have no permissions to modify Fleet Settings
@@ -2750,6 +2960,7 @@ fleet:
       filters:
         gitRepos: Show Git Repos
         helmOps: Show Helm Ops
+      search: Filter
       resourceSummary:
         part1: in
         part2: |-
@@ -2909,7 +3120,7 @@ fleet:
         label: Polling Interval
         tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
         webhookWarning: A webhook is configured in Rancher to reconcile Git updates and GitRepo resources. The Polling Interval will automatically be adjusted to 1 hour.
-        minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
+        minimumValueWarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with GitRepos that contain a large amount of resources please consider increasing this value.
     ociStorageSecret:
       title: OCI Registry
       label: OCI Storage Secret
@@ -3038,18 +3249,18 @@ fleet:
         oci: OCI Registry
       tarball:
         label: Absolute URL
-        placeholder: e.g. https://github.com/rancher/fleet/helm-chart/helm-chart-0.0.1.tgz
+        placeholder: e.g. https://example.com/charts/my-chart-1.2.3.tgz
       repo:
         repo:
-          label: URL
-          placeholder: e.g. https://github.com/rancher/fleet/helm-chart
+          label: Repository URL
+          placeholder: e.g. https://foo.bar/baz
         chart:
           label: Chart
           placeholder: The path to the chart name in the repository
       oci:
         chart:
           label: OCI Registry URL
-          placeholder: e.g. oci://ghcr.io/rancher/fleet/helm-chart or oci://ghcr.io/rancher/fleet/helm-chart:0.0.1
+          placeholder: e.g. oci://foo.bar/baz
       version:
         label: Version
         placeholder: The Chart version
@@ -3105,7 +3316,7 @@ fleet:
       none: None
       local: Local
     resources:
-      label: 'Resource Handling'
+      label: 'Resources'
       keepResources: Always keep resources
       keepResourcesTooltip: When enabled, resources will be kept when deleting a HelmOp or Bundle - only Helm release secrets will be deleted.
       correctDrift: Enable self-healing
@@ -3116,7 +3327,8 @@ fleet:
       pollingInterval:
         label: Polling Interval
         tooltip: Polling Interval is the time between a push to the Repository and Fleet's reaction to it.
-        minimumValuewarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with HelmOps that contain a large amount of resources please consider increasing this value.
+        minimumValueWarning: The recommended minimum Polling Interval is 15 seconds. To avoid performance issues with HelmOps that contain a large amount of resources please consider increasing this value.
+        versionTooltip: Polling can be enabled only if version is a valid semantic versioning constraint (e.g. 2.x.x, < 1.0).
     tls:
       insecure: Accept any certificate (insecure)
     auth:
@@ -3158,6 +3370,10 @@ fleet:
           =0 { Adding namespaces here will create a GitRepoRestriction. }
           other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction}
         }"
+  configMaps:
+    label: Config Maps
+  secrets:
+    label: Secrets
 footer:
   docs: Docs
   download: Download CLI
@@ -3166,6 +3382,7 @@ footer:
   slack: Slack
 
 gatekeeperConstraint:
+  templateRequired: You must have at least one Template before attempting to create a Constraint.
   downloadViolations: Download Violations
   match:
     title: Match
@@ -3231,6 +3448,9 @@ glance:
   clusterInfo: Cluster Information
   eventsTable: Full events list
   secretsTable: Full secrets list
+  changeEventsListRowCount: Update events table row count
+  showXEvents: Show {count} events
+  useUserPreference: "Use table preference ({count})"
 
 clusterBadge:
   badgeAppearance: Cluster Badge Appearance
@@ -3449,6 +3669,7 @@ internalExternalIP:
   none: None
   copyInternalIp: Copy internal IP address to clipboard
   copyExternalIp: Copy external IP address to clipboard
+  clickToShowMoreIps: "Click to show {count} more {count, plural, one {IP} other {IPs}}"
 
 istio:
   links:
@@ -3678,6 +3899,11 @@ landing:
   homepage: Homepage
   clusters:
     title: Clusters
+    tooMany:
+      showAll: Show all clusters (may increase load time)
+      showSome: Show some clusters (may improve load time)
+      showingAll: Showing {total} clusters.
+      showingSome: Showing {rows} of {total} recently created clusters.
     provider: Provider
     distro: Distro
     kubernetesVersion: Kubernetes Version
@@ -4004,6 +4230,7 @@ login:
   welcome: Welcome to {vendor}
   landscapeAlt: Landscape image
   loggedOut: You have been logged out.
+  loggedOutSessionIdle: You've been logged out of Rancher because your session has expired. Log in again to continue.
   loggedOutFromSso: You've been logged out of Rancher, however you may still be logged in to your single sign-on identity provider.
   loggedOutFromSlo: You've been logged out of Rancher and from your single sign-on identity provider.
   loginAgain: Log in again to continue.
@@ -4029,6 +4256,11 @@ login:
   useNonLocal: Use a non-local user
   remember:
     label: Remember Username
+  cli:
+    welcome: Login to complete CLI authentication
+    invalidParams: Invalid login parameters - can not login
+    warning: 'If you did not initiate this request or the "Client Request Id" shown in your terminal does not match the code shown below, do not continue'
+    warningLegacy: 'If you did not initiate this request or the code shown below does not match the "requestId" parameter shown as part of the login url in your terminal, do not continue'
 
 logout:
   message: Logging Out...
@@ -4444,6 +4676,7 @@ namespaceFilter:
   button:
     clear: Remove applied namespace filters
     clearFilter: Clear namespace options filter
+  removeNamespace: 'Remove {name} from filter'
 
 namespaceList:
   selectLabel: Namespace
@@ -5011,17 +5244,14 @@ podDisruptionBudget:
 
 inactivity:
   title: Session expiring
-  titleExpired: Session expired
   banner: Your session is about to expire due to inactivity. Any unsaved changes will be lost.
-  bannerExpired: Your session has expired in this tab due to inactivity.
-  content: Click “Resume Session” to keep the session in this tab active or refresh the browser after the session has expired.
-  contentExpired: To return to this page click “Refresh” below or refresh the browser.
+  content: Click “Resume Session” to keep the session in this browser active.
   cta: Resume Session
-  ctaExpired: Refresh
 
 # Rancher Extensions
 plugins:
   altIcon: Icon for {extension} extension card
+  incompatiblePrimeOnly: "The latest version of this extension ({ version }) needs Rancher Prime in order to be installed."
   incompatibleRancherVersion: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ required })."
   incompatibleKubeVersion: "The latest version of this extension ({ version }) is not compatible with the current Kube version ({ required })."
   incompatibleUiExtensionsApiVersionMissing: 'The latest version of this extension ({ version }) is missing the mandatory annotation catalog.cattle.io/ui-extensions-version from Rancher 2.10 and onwards.'
@@ -5031,23 +5261,30 @@ plugins:
   closePluginPanel: Close plugin description panel
   viewVersionDetails: View extension {name} version {version} details/Readme
   labels:
-    builtin: Built-in
+    primeOnly: Prime-only
+    builtin: Built-In
     experimental: Experimental
     third-party: Third-Party
     image: Image
     installing: Installing ...
     uninstalling: Uninstalling ...
+    upgrading: Upgrading ...
+    downgrading: Downgrading ...
     menu: Extensions menu
     reloadRancher: Reload Rancher
+    current: current
   descriptions:
     experimental: This Extension is marked as experimental
     third-party: This Extension is provided by a Third-Party
     built-in: This Extension is built-in
     image: This Extension Image has been loaded manually
+  tooltips:
+    installing: Installing...
   error:
     title: Error loading extension
     message: Could not load extension code
     generic: Extension error
+    primeOnly: Unable to load Rancher Prime Extension in Rancher Community
     apiAnnotationMissing: 'Unable to load Extension. The version installed is not compatible with the current Extensions API Version (Extension is missing the annotation catalog.cattle.io/ui-extensions-version which implies incompatibility with Rancher 2.10 and onwards)'
     api: Unable to load Extension. The version installed is not compatible with the current Extensions API version
     host: Unable to load Extension. The version installed is not compatible with this application host
@@ -5067,9 +5304,12 @@ plugins:
       name: Extension module name
       persist: Persist extension by creating custom resource
   info:
+    actions: Actions
+    noActions: No actions available
     detail: Detail
     versions: Versions
     versionError: Could not load version information
+    requiresRancherPrime: "Requires Rancher Prime"
     requiresRancherVersion: "Requires Rancher {required}"
     requiresKubeVersion: "Requires Kube version {required}"
     requiresExtensionApiVersionMissing: 'Missing the annotation catalog.cattle.io/ui-extensions-version which implies incompatibility with Rancher 2.10 and onwards'
@@ -5089,7 +5329,7 @@ plugins:
   warnNoAuth: This version of the extension will be loaded before authentication and will have access to the login process.
   manageCatalog:
     label: Manage Extension Catalogs
-    title: Extension
+    title: Extensions
     subtitle: Catalogs
     imageLoad:
       load: Import Extension Catalog
@@ -5130,7 +5370,7 @@ plugins:
   tabs:
     all: All
     available: Available
-    builtin: Built-in
+    builtin: Built-In
     images: Images
     installed: Installed
     updates: Updates
@@ -5138,22 +5378,22 @@ plugins:
   version: "Version: {version}"
   install:
     label: Install
-    title: Install Extension {name}
-    prompt: "Are you sure that you want to install this Extension?"
+    title: Install extension {name}
+    prompt: "Are you sure that you want to install this extension?"
     version: Version
     warnNotCertified: Please ensure that you are aware of the risks of installing Extensions from untrusted authors
-  update:
-    label: Update
-    title: Update Extension {name}
-    prompt: "Are you sure that you want to update this Extension?"
-  rollback:
-    label: Rollback
-    title: Rollback Extension {name}
-    prompt: "Are you sure that you want to rollback this Extension?"
+  upgrade:
+    label: Upgrade
+    title: Upgrade extension {name}
+    prompt: "Are you sure that you want to upgrade this extension?"
+  downgrade:
+    label: Downgrade
+    title: Downgrade extension {name}
+    prompt: "Are you sure that you want to downgrade this extension?"
   uninstall:
     label: Uninstall
-    title: "Uninstall Extension: {name}"
-    prompt: "Are you sure that you want to uninstall this Extension?"
+    title: Uninstall extension {name}
+    prompt: "Are you sure that you want to uninstall this extension?"
     catalog: "Are you sure that you want to uninstall this Extension Catalog Image? This will also remove any Extensions provided by this image."
   upgradeAvailable: A newer version of this Extension is available
   reload: Extensions changed - reload required
@@ -5692,7 +5932,6 @@ resourceDetail:
       favoriteAction: Add {resource} to your starred/favorites list
       unfavoriteAction: Remove {resource} from your starred/favorites list
     age: Age
-    createdBy: Created by
     restartCount: Pod Restarts
     defaultBannerMessage:
       error: This resource is currently in an error state, but there isn't a detailed message available.
@@ -5754,6 +5993,8 @@ resourceTabs:
     tab: Conditions
   events:
     tab: Recent Events
+    namespaceTab: "Events in Namespace"
+    namespaceCaption: "Shows all events from resources in <span class='namespace-name'><b>{namespace}</b></span> namespace"
   related:
     tab: Related Resources
     from: Referred To By
@@ -6404,6 +6645,7 @@ storageClass:
 
 tableHeaders:
   assuredConcurrencyShares: Assured Concurrency Shares
+  autoscaler: Autoscaler
   accessKey: Access Key
   addressType: Address Type
   accessModes: Access Modes
@@ -6413,7 +6655,6 @@ tableHeaders:
   apikey: API Key
   available: Available
   attachedVM: Attached VM
-
   authRoles:
     globalDefault: New User Default
     clusterDefault: Cluster Creator Default
@@ -6461,6 +6702,7 @@ tableHeaders:
   endpoints: Endpoints
   expires: Expires
   firstSeen: First Seen
+  firstSeenTooltip: The time at which the event was first recorded
   flow: Flow
   fingerprint: Fingerprint
   gitRepos: Git Repos
@@ -6766,10 +7008,10 @@ validation:
   flowOutput:
     both: Requires "Output" or "Cluster Output" to be selected.
     global: Requires "Cluster Output" to be selected.
-  git:
-    url: URL must be a HTTP(s) or SSH url with no trailing spaces
+  repository:
+    url: It must be a valid HTTP(s) or SSH URL with no trailing spaces
   oci:
-    url: URL must be an OCI url with no trailing spaces
+    url: It must be a valid OCI URL with no trailing spaces
   output:
     logdna:
       apiKey: Required an "Api Key" to be set.
@@ -6836,6 +7078,7 @@ validation:
       missingApiGroup: You must specify an API Group for each resource grant
       missingOneResource: You must specify at least one Resource, Non-Resource URL or API Group for each resource grant
       noResourceAndNonResource: Each rule may contain Resources or Non-Resource URLs but not both
+  semanticVersion: Version must be a valid version number or a semantic versioning constraint (e.g. 2.x.x, < 1.0)
   service:
     externalName:
       none: External Name is required on an ExternalName Service.
@@ -6860,6 +7103,7 @@ validation:
       localhost: If the Server URL is internal to the Rancher server (e.g. localhost) the downstream clusters may not be able to communicate with Rancher.
       trailingForwardSlash: Server URL should not have a trailing forward slash.
       url: Server URL must be an URL.
+      awsStyleEndpoint: Endpoint URL has to be a valid domain-based endpoint and cannot start with a protocol (e.g https:// or http://)
   genericUrl: Field must be a valid URL
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
@@ -6873,6 +7117,7 @@ validation:
       match: At least one Match or Match Regex must be selected
       interval: '"{key}" must be of a format with digits followed by a unit i.e. 1h, 2m, 30s'
   tab: "One or more fields in this tab contain a form validation error"
+  version: Invalid Version number
 
 carousel:
   previous: Previous
@@ -6887,7 +7132,18 @@ wizard:
   edit: Edit
   create: Create
   view: View
+  install: Install
+  upgrade: Upgrade
+  downgrade: Downgrade
+
+sideWindow:
+  secondary:
+    resize: Resize secondary window
+
 wm:
+  resize: Resize Window - use arrow keys {arrow1} and {arrow2} to resize with keyboard
+  tabIcon: Window tab icon
+  closeTab: Close tab - {tabId}
   connection:
     connected: Connected
     connecting: Connecting&hellip;
@@ -6924,9 +7180,6 @@ wm:
     timestamps: Show Timestamps
     wrap: Wrap Lines
   containerShell:
-    resizeShellWindow: Resize Shell window - use arrow keys {arrow1} and {arrow2} to resize with keyboard
-    tabIcon: Shell tab icon
-    closeShellTab: Close Shell tab - {tab}
     escapeText: Press Shift+Escape to blur from terminal
     clear: Clear
     containerName: "Container: {label}"
@@ -7467,6 +7720,8 @@ model:
       saml: SAML
       oauth: OAuth
       oidc: OIDC
+      keycloakoidc: Keycloak
+      genericoidc: OIDC provider
       cognito: Amazon Cognito
     name:
       keycloak: Keycloak (SAML)
@@ -7478,6 +7733,7 @@ model:
       activedirectory: ActiveDirectory
       azuread: AzureAD
       github: GitHub
+      githubapp: GitHub App
       keycloak: Keycloak
       ldap: LDAP
       openldap: OpenLDAP
@@ -8220,6 +8476,7 @@ action:
   runNow: Run Now
   suspend: Suspend
   resume: Resume
+  showConfiguration: Show Configuration
 
 unit:
   sec: secs
@@ -8312,8 +8569,9 @@ advancedSettings:
     'auth-user-info-max-age-seconds': 'The maximum age of a users auth tokens before an auth provider group membership sync will be performed.'
     'auth-user-info-resync-cron': 'Default cron schedule for resyncing auth provider group memberships.'
     'cluster-template-enforcement': 'Non-admins will be restricted to launching clusters via preapproved RKE Templates only.'
-    'auth-user-session-ttl-minutes': 'Custom TTL (in minutes) on a user auth session.'
-    'auth-token-max-ttl-minutes': 'Max TTL (in minutes) for all authentication tokens. When set to 0, the token never expires.'
+    'auth-user-session-idle-ttl-minutes': 'Custom idle TTL (in minutes) on a user auth session. This is the maximum duration a session can stay alive when there is no user activity in a browser. This should be smaller than "auth-user-session-ttl-minutes". If "auth-user-session-idle-ttl-minutes" is greater than or equal to "auth-user-session-ttl-minutes" then the session idle feature is considered disabled.'
+    'auth-user-session-ttl-minutes': 'Custom TTL (in minutes) on a user auth session. This is the maximum duration a session can stay alive regardless of user activity in a browser. This should be larger than "auth-user-session-idle-ttl-minutes".'
+    'auth-token-max-ttl-minutes': 'Max TTL (in minutes) for all tokens except those controlled by "auth-user-session-ttl-minutes" (user session tokens). When set to 0, the token never expires.'
     'kubeconfig-generate-token': 'Automatically generate tokens for users when a kubeconfig is requested.'
     'kubeconfig-default-token-ttl-minutes': 'TTL (in minutes) applied on all kubeconfig tokens. When set to 0, the token never expires.'
     'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
@@ -8371,6 +8629,7 @@ featureFlags:
 performance:
   label: UI Performance Settings
   settingName: Performance
+  deprecatedInactivitySetting: The <i class="mr-5">"Inactivity"</i> setting is now deprecated in favor of the <i class="mr-5">auth-user-session-idle-ttl-minutes</i>&nbsp;<a href="{settingsPageUrl}">Setting</a>.
   deprecatedForSSP: The <i class="mr-5">"{setting}"</i> setting is now deprecated and will be removed in a future release.
   incrementalLoad:
     label: Incremental Loading
@@ -8660,11 +8919,11 @@ volumeClaimTemplate:
 manager:
   cloudCredentials:
     label: Cloud Credentials
-    renew: Renew
-    expired: Expired
-    banners:
-      expiring: "{count} Cloud {count, plural, =1 { Credential expires soon} other { Credentials expire soon}}, please Renew"
-      expired: "{count} Cloud {count, plural, =1 { Credential has expired} other { Credentials have expired}}, please Renew"
+    list:
+      groupBy:
+        provider: Group by Provider
+      headers:
+        provider: Provider
   drivers:
     label: Drivers
   rkeTemplates:
@@ -8814,6 +9073,9 @@ component:
         title: Config
   resource:
     detail:
+      copyToClipboard:
+        ariaLabel:
+          copy: Copy to clipboard
       card:
         resourceUsage:
           used: Used
@@ -8848,7 +9110,6 @@ component:
       metadata:
         labelsAndAnnotations: Labels and Annotations
         identifyingInformation:
-          createdBy: Created by
           namespace: Namespace
           project: Project
           age: Age
@@ -8869,3 +9130,104 @@ component:
         keyValue:
           noRows: There are no {propertyName} configured on this resource.
           showConfiguration: Show Configuration
+          ariaLabel:
+            showPreview: Show Preview
+      glance:
+        state: State
+        age: Age
+        namespace: Namespace
+        project: Project
+        type: Type
+        ariaLabel:
+          showDetails: Show Resource Information about { resource } named { name }
+          actionMenu: Resource Actions - { resource }
+  cron:
+    expressionEditor:
+      label:
+        minute: "Minute"
+        hour: "Hour"
+        dayOfMonth: "Day of Month"
+        month: "Month"
+        dayOfWeek: "Day of Week"
+      invalidValue: "Invalid value"
+      invalidCronExpression: "Invalid Cron Expression"
+      minute:
+        any: "any value (every minute)"
+        at1and5: "at 1 and 5 min past the hour"
+        range: "every minute from 1 to 5"
+        every5: "every 5 minutes"
+        start8: "every 5 minutes, starting at 8 minutes past the hour"
+        allowed: "Allowed literal values: 0-59"
+      hour:
+        any: "any value (every hour)"
+        at1and5: "at 1 AM and 5 AM"
+        range: "every hour from 1 to 5 AM"
+        every5: "every 5 hours"
+        start8: "every 5 hours starting at 8 AM"
+        allowed: "Allowed literal values: 0-23"
+      dayOfMonth:
+        any: "any value (every day of the month)"
+        omit: "omit"
+        1and5: "on the 1st and 5th days of the month"
+        range: "every day from 1st to 5th"
+        every5: "every 5 days"
+        start8: "every 5 days starting at the 8th"
+        allowed: "Allowed literal values: 1-31"
+      month:
+        any: "any value (every month)"
+        1and5: "on months 1 and 5 (January and May)"
+        range: "every month from January to May"
+        every2: "every 2 months"
+        start3: "every 2 months, starting on month 3 (March)"
+        allowed: "Allowed literal values: 1-12"
+        alias: "Allowed alias values: jan-dec"
+      dayOfWeek:
+        any: "any value (every day of the week)"
+        omit: "omit"
+        1and5: "on days 1 and 5 (Monday and Friday)"
+        range: "every day from Monday to Friday"
+        allowed: "Allowed literal values: 0-7"
+        alias: "Allowed alias values: mon-sun"
+      a11y:
+        examples: "Edit {label}. Examples:"
+    expressionEditorModal:
+      title: "Define Cron expression"
+      description: "Click on any field to get hints about valid values and wildcard symbols."
+      wildcards:
+        title: "Generic Wildcards"
+        anyValue: "any value"
+        xAndY: "X and Y"
+        fromXtoY: "from X to Y"
+        everyX: "every X"
+        everyXStartingY: "every X starting at Y"
+        everyXFromYtoZ: "every X, from Y to Z"
+      examples:
+        title: "Examples"
+        dailyMidnight: "At 12:00 AM"
+        every5Hours: "At 0 minutes past the hour, every 5 hours"
+        day1At1745: "At 05:45 PM, on day 1 of the month"
+        weekdaysAt0830: "At 30 minutes past the hour, every 1 hours, starting at 08:00 AM, Monday through Friday"
+        marchToMayHourly: "Every hour, only in March, April, and May"
+        every4Hours9to17: "At 0 minutes past the hour, every 4 hours, between 09:00 AM and 05:00 PM"
+
+autoscaler:
+  card:
+    title: Autoscaler
+    pause: Pause
+    resume: Resume
+    loadingError: There was a problem loading details
+    loadingAlt: Details Loading
+    details:
+      status: Status
+      health: Health
+      scaleDown: Scale Down
+      scaleUp: Scale Up
+      nodes: Nodes
+      ready: Ready
+      notStarted: Not Started
+      inTotal: In Total
+      provisioning: Provisioning
+      paused: Paused
+      unavailable: Unavailable
+  tab:
+    title: Autoscaler

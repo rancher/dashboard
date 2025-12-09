@@ -1,9 +1,27 @@
 name: storybook
 on:
   push:
+    paths:
+      - 'storybook/**/*'
+      - 'pkg/rancher-components/**/*'
+      - 'shell/components/**/*'
+      - 'shell/assets/**/*'
+      - 'shell/utils/**/*'
+      - 'shell/directives/**/*'
+      - 'shell/config/**/*'
+      - 'shell/composables/**/*'
     branches:
       - master
   pull_request:
+    paths:
+      - 'storybook/**/*'
+      - 'pkg/rancher-components/**/*'
+      - 'shell/components/**/*'
+      - 'shell/assets/**/*'
+      - 'shell/utils/**/*'
+      - 'shell/directives/**/*'
+      - 'shell/config/**/*'
+      - 'shell/composables/**/*'
     branches:
       - master
 jobs:
@@ -11,7 +29,7 @@ jobs:
     container: registry.suse.com/bci/nodejs:20
     runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Setup Node
       uses: ./.github/actions/setup-node
     - name: Install packages

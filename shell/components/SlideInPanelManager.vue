@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, watch } from 'vue';
+import { computed, onBeforeUnmount, watch, useTemplateRef } from 'vue';
 import { useStore } from 'vuex';
 import {
   DEFAULT_FOCUS_TRAP_OPTS,
@@ -9,6 +9,9 @@ import { isEqual } from 'lodash';
 import { useRouter } from 'vue-router';
 
 const HEADER_HEIGHT = 55;
+
+const slideInPanelManager = useTemplateRef('SlideInPanelManager');
+const slideInPanelManagerClose = useTemplateRef('SlideInPanelManagerClose');
 
 const store = useStore();
 const isOpen = computed(() => store.getters['slideInPanel/isOpen']);
@@ -36,7 +39,6 @@ const panelTop = computed(() => {
 const panelHeight = computed(() => (currentProps?.value?.height) ? (currentProps?.value?.height) : `calc(100vh - ${ panelTop?.value })`);
 const panelWidth = computed(() => currentProps?.value?.width || '33%');
 const panelRight = computed(() => (isOpen?.value ? '0' : `-${ panelWidth?.value }`));
-const panelZIndex = computed(() => `${ (isOpen?.value ? 1 : 2) * (currentProps?.value?.zIndex ?? 1000) }`);
 
 const showHeader = computed(() => currentProps?.value?.showHeader ?? true);
 const panelTitle = showHeader.value ? computed(() => currentProps?.value?.title || 'Details') : null;
@@ -73,7 +75,9 @@ watch(
           }
 
           return returnFocusSelector || '.dashboard-root';
-        }
+        },
+        // putting the initial focus on the first element that is not conditionally displayed
+        initialFocus: slideInPanelManagerClose.value
       };
 
       useWatcherBasedSetupFocusTrapWithDestroyIncluded(
@@ -84,7 +88,7 @@ watch(
 
           return isOpen?.value && !isClosing?.value;
         },
-        '#slide-in-panel-manager',
+        slideInPanelManager.value as HTMLElement,
         opts,
         false
       );
@@ -129,6 +133,7 @@ function closePanel() {
   <Teleport to="#slides">
     <div
       id="slide-in-panel-manager"
+      ref="SlideInPanelManager"
       @keydown.escape="closePanel"
     >
       <div
@@ -136,9 +141,6 @@ function closePanel() {
         data-testid="slide-in-glass"
         class="slide-in-glass"
         :class="{ 'slide-in-glass-open': isOpen }"
-        :style="{
-          ['z-index']: panelZIndex
-        }"
         @click="closePanel"
       />
       <aside
@@ -149,7 +151,6 @@ function closePanel() {
           right: panelRight,
           top: panelTop,
           height: panelHeight,
-          ['z-index']: panelZIndex
         }"
       >
         <div
@@ -160,6 +161,7 @@ function closePanel() {
             {{ panelTitle }}
           </div>
           <i
+            ref="SlideInPanelManagerClose"
             class="icon icon-close"
             data-testid="slide-in-close"
             :tabindex="isOpen ? 0 : -1"
@@ -188,6 +190,7 @@ function closePanel() {
   left: 0;
   height: 100vh;
   width: 100vw;
+  z-index: z-index('slide-in');
 }
 .slide-in-glass-open {
   background: var(--overlay-bg);
@@ -202,6 +205,7 @@ function closePanel() {
   transition: right 0.5s ease;
   border-left: 1px solid var(--border);
   background-color: var(--body-bg);
+  z-index: calc(z-index('slide-in') + 1);
 }
 
 .slide-in-open {
