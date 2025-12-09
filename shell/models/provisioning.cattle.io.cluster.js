@@ -288,11 +288,8 @@ export default class ProvCluster extends SteveModel {
     if ( this.isRke2 ) {
       return this.spec.rkeConfig;
     }
-    if (this.mgmt && this.mgmt?.spec) {
-      const allKeys = Object.keys(this.mgmt.spec);
-      const configKey = allKeys.find( (k) => k.endsWith('Config'));
-
-      return this.mgmt?.spec[configKey];
+    if (this.mgmt && this.mgmt.config) {
+      return this.mgmt.config;
     }
 
     return null;

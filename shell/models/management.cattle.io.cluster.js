@@ -172,11 +172,20 @@ export default class MgmtCluster extends SteveModel {
     return this.isCondition('Ready');
   }
 
+  get config() {
+    if (!this.spec?.[`${ this.provisioner }Config`]) {
+      const allKeys = Object.keys(this.spec);
+      const configKey = allKeys.find( (k) => k.endsWith('Config'));
+
+      return this.spec[configKey];
+    }
+
+    return this.spec?.[`${ this.provisioner }Config`];
+  }
+
   get kubernetesVersionRaw() {
     const fromStatus = this.status?.version?.gitVersion;
-    const allKeys = Object.keys(this.spec);
-    const configKey = allKeys.find( (k) => k.endsWith('Config'));
-    const fromSpec = this.mgmt?.spec[configKey]?.kubernetesVersion;
+    const fromSpec = this.config?.kubernetesVersion;
 
     return fromStatus || fromSpec;
   }
