@@ -63,20 +63,7 @@ export default defineComponent({
   },
 
   data() {
-    let validInStore = this.inStore;
-
-    if (!validInStore && this.resourceType) {
-      validInStore = this.$store.getters['currentStore'](this.resourceType);
-    }
-
-    if (!validInStore) {
-      validInStore = 'cluster';
-    }
-
-    return {
-      paginate: false,
-      validInStore,
-    };
+    return { paginate: false };
   },
 
   async fetch() {
@@ -96,6 +83,20 @@ export default defineComponent({
   },
 
   computed: {
+    validInStore(): string {
+      let validInStore = this.inStore;
+
+      if (!validInStore && this.resourceType) {
+        validInStore = this.$store.getters['currentStore'](this.resourceType);
+      }
+
+      if (!validInStore) {
+        validInStore = 'cluster';
+      }
+
+      return validInStore;
+    },
+
     labelSelectAttributes() {
       // This component is a wrapper for LabelSelect, so pass through everything
       const allAttrs = {
