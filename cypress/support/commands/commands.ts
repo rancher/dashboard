@@ -1,5 +1,6 @@
 import { Matcher } from '@/cypress/support/types';
-
+import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 /**
  * Get input field for given label
  */
@@ -100,4 +101,13 @@ Cypress.Commands.add('shouldHaveCssVar', { prevSubject: true }, (subject, styleN
 });
 Cypress.Commands.add('hideElementBySelector', (selector:string) => {
   cy.get(selector).invoke('css', 'opacity', '0');
+});
+
+Cypress.Commands.add('changeRancherTheme', () => {
+  HomePagePo.goTo();
+  const prefPage = new PreferencesPagePo();
+
+  PreferencesPagePo.navTo();
+  prefPage.themeButtons().set('Light');
+  HomePagePo.goTo();
 });
