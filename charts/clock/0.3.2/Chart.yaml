@@ -1,0 +1,16 @@
+annotations:
+  catalog.cattle.io/certified: rancher
+  catalog.cattle.io/kube-version: '>= 1.16.0-0'
+  catalog.cattle.io/namespace: cattle-ui-plugin-system
+  catalog.cattle.io/os: linux
+  catalog.cattle.io/permits-os: linux, windows
+  catalog.cattle.io/rancher-version: '>= 2.10.0-0'
+  catalog.cattle.io/scope: management
+  catalog.cattle.io/ui-component: plugins
+  catalog.cattle.io/ui-extensions-version: '>= 3'
+apiVersion: v2
+appVersion: 0.3.2
+description: Adds a new feature to the top-level menu that shows a full-page clock
+name: clock
+type: application
+version: 0.3.2
