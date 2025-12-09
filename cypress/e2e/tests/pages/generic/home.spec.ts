@@ -29,7 +29,7 @@ function goToHomePageAndSettle() {
   cy.wait('@fetchClustersHomePage');
 
   // Wait for the cluster table to load and filter so there are no rows
-  homeClusterList.resourceTable().sortableTable().filter('random text', 200);
+  homeClusterList.resourceTable().sortableTable().filter('random text', { delay: 200 });
   homeClusterList.resourceTable().sortableTable().rowElements().should((el) => expect(el).to.contain.text('There are no rows which match your search query.'));
 }
 

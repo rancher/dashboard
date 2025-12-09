@@ -42,7 +42,7 @@ describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
       installCharts.installChart();
       cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
       clusterTools.waitForPage();
-      kubectl.waitForTerminalStatus('Connected');
+      // kubectl.waitForTerminalStatus('Connected'); // the socket can open and disconnect quicker than we can show the window and connected state
       kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
     });
   });
@@ -60,7 +60,7 @@ describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
     installChart.installChart();
     cy.wait('@chartUpdate').its('response.statusCode').should('eq', 201);
     clusterTools.waitForPage();
-    kubectl.waitForTerminalStatus('Connected');
+    // kubectl.waitForTerminalStatus('Connected'); // the socket can open and disconnect quicker than we can show the window and connected state
     kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
   });
 

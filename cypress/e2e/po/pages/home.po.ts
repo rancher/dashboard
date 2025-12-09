@@ -1,11 +1,11 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import PageActions from '@/cypress/e2e/po/side-bars/page-actions.po';
 import BannerGraphicPo from '@/cypress/e2e/po/components/banner-graphic.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
 import HomeClusterListPo from '@/cypress/e2e/po/lists/home-cluster-list.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import NotificationsCenterPo from '@/cypress/e2e/po/components/notification-center.po';
+import HeaderPageActionPo from '~/cypress/e2e/po/side-bars/page-actions.po';
 
 const burgerMenu = new BurgerMenuPo();
 
@@ -51,11 +51,14 @@ export default class HomePagePo extends PagePo {
   }
 
   toggleBanner() {
-    const pageActionsPo = new PageActions();
+    const actionMenuPo = HeaderPageActionPo.open('[data-testid="page-actions-menu-action-button"]');
 
     cy.intercept('PUT', 'v1/userpreferences/*').as('toggleBanner');
-    pageActionsPo.bannerLink().click();
+    actionMenuPo.getMenuItem('Show/Hide Banner').click();
+
     cy.wait('@toggleBanner');
+
+    actionMenuPo.waitForClose(); // wait for drop down to close... just in case we want to toggle it open again....
   }
 
   list(): HomeClusterListPo {

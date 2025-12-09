@@ -10,7 +10,8 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v6
@@ -38,7 +39,8 @@ jobs:
   deploy:
     name: Publish
     if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher' }}
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     needs: build
 
     # This is required to avoid https://github.com/actions/deploy-pages/issues/271

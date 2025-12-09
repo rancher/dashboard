@@ -28,6 +28,10 @@ export class NetworkPolicyListPagePo extends BaseListPagePo {
   constructor(private clusterId = 'local') {
     super(NetworkPolicyListPagePo.createPath(clusterId));
   }
+
+  createEditNetworkPolicyForm(namespace?: string, id?: string): NetworkPolicyCreateEditPagePo {
+    return new NetworkPolicyCreateEditPagePo(this.clusterId, namespace, id);
+  }
 }
 
 export class NetworkPolicyCreateEditPagePo extends BaseDetailPagePo {

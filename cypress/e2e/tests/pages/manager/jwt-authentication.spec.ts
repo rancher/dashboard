@@ -14,7 +14,7 @@ function goToJWTAuthenticationPageAndSettle() {
   cy.wait('@fetchJWTAuthentication');
 
   // Wait for the jwt table to load and filter so there are no rows
-  jwtAuthenticationPage.list().resourceTable().sortableTable().filter('random text', 200);
+  jwtAuthenticationPage.list().resourceTable().sortableTable().filter('random text', { delay: 200 } );
   jwtAuthenticationPage.list().resourceTable().sortableTable().rowElements()
     .should((el) => expect(el).to.contain.text('There are no rows which match your search query.'));
   jwtAuthenticationPage.list().resourceTable().sortableTable().resetFilter();

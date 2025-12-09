@@ -1,5 +1,5 @@
 import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
-import ActionMenuPo from '@/cypress/e2e/po/components/action-menu-shell.po';
+import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import ListRowPo from '@/cypress/e2e/po/components/list-row.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
@@ -95,11 +95,17 @@ export default class SortableTablePo extends ComponentPo {
    * @param searchText
    * @returns
    */
-  filter(searchText: string, delay?: number) {
-    return this.filterComponent()
+  filter(searchText: string, { checkQuery, delay }: { checkQuery?: boolean, delay?: number } = { }) {
+    const res = this.filterComponent()
       .focus()
       .clear()
       .type(searchText, { delay });
+
+    if (checkQuery) {
+      cy.url().should('include', `q=${ searchText }`);
+    }
+
+    return res;
   }
 
   resetFilter() {

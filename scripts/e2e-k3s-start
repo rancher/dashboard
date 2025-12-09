@@ -135,24 +135,29 @@ if [ "$STATUS" != "200" ]; then
   exit 1
 fi
 
-echo "Updating UI within Rancher container.........."
-# Note - these will pick the first container within the pod, so replicas=1 above is important
-POD_NAME=$(kubectl get pods --selector=app=rancher -n $RANCHER_NAMESPACE | tail -n 1 | cut -d ' ' -f1)
-echo "POD NAME: $POD_NAME"
-if [ "$POD_NAME" == "" ]; then
-  echo "Failed to find rancher pod"
+echo "Updating UI from PR in Rancher containers.........."
+
+PODS=$(kubectl get pods --selector=app=rancher -n "$RANCHER_NAMESPACE" -o jsonpath='{.items[*].metadata.name}')
+
+if [ -z "$PODS" ]; then
+  echo "Failed to find rancher pods"
   exit 1
 fi
 
-# Remove root folders that container UIs
-kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui-dashboard/dashboard'
-kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui'
+for POD_NAME in $PODS; do
+  echo "Updating pod $POD_NAME with new UI"
 
-# Copy local builds to root folders that should contain UIs
-mv $DASHBOARD_DIST dashboard
-mv $EMBER_DIST ui
-kubectl cp dashboard $POD_NAME:/usr/share/rancher/ui-dashboard -n $RANCHER_NAMESPACE
-kubectl cp ui $POD_NAME:/usr/share/rancher -n $RANCHER_NAMESPACE
+  # Remove root folders that container UIs
+  kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui-dashboard/dashboard'
+  kubectl exec $POD_NAME -n $RANCHER_NAMESPACE -- sh -c 'rm -rf /usr/share/rancher/ui'
+
+  # Copy local builds to root folders that should contain UIs
+  cp -r $DASHBOARD_DIST dashboard
+  cp -r $EMBER_DIST ui
+  kubectl cp dashboard $POD_NAME:/usr/share/rancher/ui-dashboard -n $RANCHER_NAMESPACE
+  kubectl cp ui $POD_NAME:/usr/share/rancher -n $RANCHER_NAMESPACE
+done
+
 
 # Final validation
 STATUS=$(curl --silent --location --head -k $DASHBOARD_URL/dashboard/ | awk -F'HTTP/2 ' '{print $2}' | awk 'length { print $1}')

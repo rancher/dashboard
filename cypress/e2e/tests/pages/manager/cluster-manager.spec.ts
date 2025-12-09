@@ -556,7 +556,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       const clusterList = new ClusterManagerListPagePo('_');
 
       clusterList.waitForPage();
-      clusterList.list().resourceTable().sortableTable().filter('local', 100);
+      clusterList.list().resourceTable().sortableTable().filter('local', { delay: 100 } );
       clusterList.waitForPage('q=local');
       clusterList.goToDetailsPage('local', '.cluster-link a');
       clusterDetail.waitForPage();

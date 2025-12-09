@@ -140,9 +140,11 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
   pushd test-app > /dev/null
 
   yarn install
+
+  echo "Building skeleton app"
   # this is the "same" as doing a yarn dev (in a build sense)
   # it's to make sure the dev environment is running properly
-  FORCE_COLOR=true yarn build | cat
+  NODE_OPTIONS=--max_old_space_size=4096 FORCE_COLOR=true yarn build | cat
 
   # Add test list component to the test package
   # Validates rancher-components imports
@@ -242,3 +244,5 @@ clone_repo_test_extension_build "StackVista" "rancher-extension-stackstate" "obs
 clone_repo_test_extension_build "harvester" "harvester-ui-extension" "harvester"
 
 echo "All done"
+# Force an exit
+exit 0

@@ -7,7 +7,8 @@ env:
   TEST_PERSIST_BUILD: true
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    # Resource starved when running in container, so run in non-container runner
+    runs-on: runs-on,runner=8cpu-linux-x64,run-id=${{ github.run_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -15,11 +16,8 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
+      - name: Setup Node
+        uses: ./.github/actions/setup-node
 
       - name: Validate Plugin build system
         run: ./shell/scripts/test-plugins-build.sh

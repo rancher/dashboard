@@ -26,13 +26,12 @@ on:
       - master
 jobs:
   storybook:
-    runs-on: ubuntu-latest
+    container: registry.suse.com/bci/nodejs:20
+    runs-on: org-${{ github.repository_owner_id }}-amd64-k8s
     steps:
     - uses: actions/checkout@v5
-    - name: Use Node.js
-      uses: actions/setup-node@v6
-      with:
-        node-version-file: '.nvmrc'
+    - name: Setup Node
+      uses: ./.github/actions/setup-node
     - name: Install packages
       run: yarn install
     - name: Build Storybook

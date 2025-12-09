@@ -1,6 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import CopyToClipboardTextPo from '@/cypress/e2e/po/components/copy-to-clipboard-text.po';
-import ActionMenuPo from '@/cypress/e2e/po/components/action-menu-shell.po';
+import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
 
 export default class OIDCClientDetailPo extends PagePo {
   private static createPath(clusterId: string, id: string): string {

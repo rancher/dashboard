@@ -141,7 +141,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       // Deactivate user and check state is Inactive
       menu.checkVisible();
       menu.getMenuItem('Disable').click();
-      menu.checkNotExists();
+      menu.waitForClose();
 
       usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-xmark');
 
@@ -149,7 +149,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       menu = usersPo.list().actionMenu(standardUsername);
       menu.checkVisible();
       menu.getMenuItem('Enable').click();
-      menu.checkNotExists();
+      menu.waitForClose();
 
       usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-check');
     });
