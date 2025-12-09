@@ -216,7 +216,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('ui-offline-preferred');
 
-    settingsEdit.waitForPage();
+    settingsEdit.waitForUrlPathWithoutContext();
     settingsEdit.title().contains('Setting: ui-offline-preferred').should('be.visible');
     settingsEdit.selectSettingsByLabel(settings['ui-offline-preferred'].new3);
     settingsEdit.saveAndWait('ui-offline-preferred', 'dynamic').then(({ request, response }) => {
@@ -224,7 +224,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(request.body).to.have.property('value', 'dynamic');
       expect(response?.body).to.have.property('value', 'dynamic');
     });
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     settingsPage.settingsValue('ui-offline-preferred').contains(settings['ui-offline-preferred'].new3);
 
     // Reset
@@ -239,7 +239,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(request.body).to.have.property('value', settingsOriginal['ui-offline-preferred'].default);
       expect(response?.body).to.have.property('value', settingsOriginal['ui-offline-preferred'].default);
     });
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
 
     // This should be used above...
     let visualDefault = 'Dynamic';
@@ -300,7 +300,7 @@ describe('Settings', { testIsolation: 'off' }, () => {
     settingsEdit.useDefaultButton().click();
     settingsEdit.saveAndWait('ui-brand');
 
-    settingsPage.waitForPage();
+    settingsPage.waitForUrlPathWithoutContext();
     // settingsPage.settingsValue('ui-brand'). .contains(settingsOriginal['ui-brand'].default); .. empty value
 
     // Check logos in top-level navigation header for updated logo

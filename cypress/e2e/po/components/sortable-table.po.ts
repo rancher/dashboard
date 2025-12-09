@@ -95,7 +95,7 @@ export default class SortableTablePo extends ComponentPo {
    * @param searchText
    * @returns
    */
-  filter(searchText: string, { checkQuery, delay }: { checkQuery?: boolean, delay?: number }) {
+  filter(searchText: string, { checkQuery, delay }: { checkQuery?: boolean, delay?: number } = { }) {
     const res = this.filterComponent()
       .focus()
       .clear()
