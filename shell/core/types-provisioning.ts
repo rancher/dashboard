@@ -63,7 +63,7 @@ export interface ClusterProvisionerContext {
   /**
    * Definition of the extension
    */
-  $plugin: any,
+  $extension: any,
   /**
    * Function to retrieve a localised string
    */

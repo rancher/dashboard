@@ -35,11 +35,11 @@ const createExtensionManager = (context) => {
    */
   function instantiateModelExtension($plugin, clz) {
     const context = {
-      dispatch: store.dispatch,
-      getters:  store.getters,
-      t:        store.getters['i18n/t'],
-      $axios,
-      $plugin,
+      dispatch:   store.dispatch,
+      getters:    store.getters,
+      t:          store.getters['i18n/t'],
+      $extension: $plugin,
+      $axios
     };
 
     return new clz(context);
@@ -455,7 +455,13 @@ const createExtensionManager = (context) => {
         try {
           const provisioner = context.$extension.getDynamic('provisioner', name);
 
-          return new provisioner({ ...context });
+          const defaults = {
+            isCreate: false,
+            isEdit:   false,
+            isView:   false
+          };
+
+          return new provisioner({ ...defaults, ...context });
         } catch (e) {
           console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console
         }
