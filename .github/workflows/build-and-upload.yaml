@@ -23,7 +23,7 @@ jobs:
     name: Build & Upload Hosted
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
@@ -70,7 +70,7 @@ jobs:
     name: Build & Upload Embedded
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
