@@ -5261,7 +5261,8 @@ plugins:
   closePluginPanel: Close plugin description panel
   viewVersionDetails: View extension {name} version {version} details/Readme
   labels:
-    primeOnly: Prime-only
+    isDeveloper: Developer Load
+    primeOnly: Prime only
     builtin: Built-In
     experimental: Experimental
     third-party: Third-Party

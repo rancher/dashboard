@@ -6,6 +6,8 @@ import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 import { ExtensionPoint } from './types';
 import { addLinkInterceptor, removeLinkInterceptor } from '@shell/plugins/clean-html';
 
+export const DEVELOPER_LOAD_NAME_SUFFIX = '-developer-load';
+
 let extensionManagerInstance;
 
 const createExtensionManager = (context) => {
@@ -63,9 +65,18 @@ const createExtensionManager = (context) => {
     // Load a plugin from a UI package
     loadPluginAsync(plugin) {
       const { name, version } = plugin;
-      const id = `${ name }-${ version }`;
+      let id = `${ name }-${ version }`;
       let url;
 
+      // for a developer load, we need to remove the suffix applied
+      // otherwise the extension won't load correctly
+      // but with this at least we won't hit developer loaded cards find charts
+      // when they aren't supposed to
+      if (id.includes(DEVELOPER_LOAD_NAME_SUFFIX)) {
+        id = id.replace(DEVELOPER_LOAD_NAME_SUFFIX, '');
+      }
+
+      // this is where a developer load hits (direct=true, developer=true)
       if (plugin?.metadata?.direct === 'true') {
         url = plugin.endpoint;
       } else {
