@@ -32,7 +32,6 @@ describe('component: Workload', () => {
         isStatefulSet:               jest.fn(),
         headlessServices:            jest.fn(),
         defaultTab:                  jest.fn(),
-        allContainers:               jest.fn(),
         isPod:                       jest.fn(),
         tabWeightMap:                jest.fn(),
         podLabels:                   jest.fn(),
@@ -45,12 +44,11 @@ describe('component: Workload', () => {
         namespacedConfigMaps:        jest.fn(),
         podAnnotations:              jest.fn(),
         isJob:                       jest.fn(),
-        podFsGroup:                  jest.fn(),
         namespacedSecrets:           jest.fn(),
         registerBeforeHook:          jest.fn(),
         pvcs:                        jest.fn(),
-        // tabWeightMap:     jest.fn(),
-      }
+      },
+      computed: { allContainers: jest.fn(() => []) }
     };
 
     const MockedWorkload = { ...Workload, mixins: [mockedValidationMixin, mockedCREMixin, mockedWorkloadMixin] };
