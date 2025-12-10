@@ -11,7 +11,16 @@ let store: Store<any> | null = null;
  * @returns A translated string or the raw value if the raw parameter is set to true.
  */
 const t = (key: string, args?: unknown, raw?: boolean): string => {
-  return stringFor(store, key, args, raw);
+  if (!store) {
+    if (!!process.env.dev) {
+      // eslint-disable-next-line no-console
+      console.warn('useI18n: store not available');
+    }
+
+    return key;
+  }
+
+  return stringFor(store, key, args as any, raw);
 };
 
 export type I18n = { t: typeof t };
