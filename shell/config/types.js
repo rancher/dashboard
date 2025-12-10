@@ -222,6 +222,13 @@ export const MANAGEMENT = {
   OIDC_CLIENT:                   'management.cattle.io.oidcclient'
 };
 
+export const BRAND = {
+  SUSE:    'suse',
+  CSP:     'csp',
+  FEDERAL: 'federal',
+  RGS:     'rgs',
+};
+
 export const EXT = { USER_ACTIVITY: 'ext.cattle.io.useractivity' };
 
 export const CAPI = {
