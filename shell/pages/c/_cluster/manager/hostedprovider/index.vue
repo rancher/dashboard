@@ -70,7 +70,7 @@ export default {
         t:          (...args) => this.t.apply(this, args)
       };
 
-      getHostedProviders(context);
+      return getHostedProviders(context);
     },
     getSettings() {
       this.settingResource = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.KEV2_OPERATORS );
@@ -105,7 +105,7 @@ export default {
       }
     },
     async generateRows() {
-      this.rows = this.allProviders.map((p) => {
+      this.rows = (this.allProviders || []).map((p) => {
         const active = p.id in this.settings ? this.settings[p.id] : true;
         const canNotPrime = p.prime && !this.prime;
         const canNotChangeSettings = !this.settingResource?.canUpdate;
