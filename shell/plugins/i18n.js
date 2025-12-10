@@ -3,6 +3,14 @@ import { escapeHtml } from '../utils/string';
 import { watchEffect, ref, h } from 'vue';
 import { useStore } from 'vuex';
 
+/**
+ * @param {import('vuex').Store<any>} store
+ * @param {string} key
+ * @param {Record<string, any>} [args]
+ * @param {boolean} [raw]
+ * @param {boolean} [escapehtml]
+ * @returns {string}
+ */
 export function stringFor(store, key, args, raw = false, escapehtml = true) {
   const translation = store.getters['i18n/t'](key, args);
 
