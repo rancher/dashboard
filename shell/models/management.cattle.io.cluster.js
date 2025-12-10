@@ -255,7 +255,7 @@ export default class MgmtCluster extends SteveModel {
       dispatch:   this.$dispatch,
       getters:    this.$getters,
       axios:      this.$axios,
-      $extension: this.$plugin,
+      $extension: this.$extension,
       t:          (...args) => this.t.apply(this, args),
     };
 
