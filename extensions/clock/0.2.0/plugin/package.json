@@ -1,0 +1,20 @@
+{
+  "name": "clock",
+  "description": "Adds a new feature to the top-level menu that shows a full-page clock",
+  "version": "0.2.0",
+  "private": false,
+  "icon": "https://raw.githubusercontent.com/rancher/ui-plugin-examples/main/pkg/clock/clock.svg",
+  "rancher": true,
+  "engines": {
+    "node": ">=12"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-service": "~4.5.0",
+    "@vue/cli-plugin-typescript": "^4.5.15"
+  },
+  "files": [
+    "**/*"
+  ],
+  "main": "clock-0.2.0.umd.min.js"
+}
