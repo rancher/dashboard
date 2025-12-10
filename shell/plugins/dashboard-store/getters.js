@@ -210,11 +210,15 @@ export default {
   brand: (state, getters) => {
     const brand = getters['byId'](MANAGEMENT.SETTING, SETTING.BRAND);
 
-    if ([BRAND.CSP, BRAND.FEDERAL, BRAND.RGS].includes(brand?.value)) {
+    if (!brand?.value) {
+      return undefined;
+    }
+
+    if ([BRAND.CSP, BRAND.FEDERAL, BRAND.RGS].includes(brand.value)) {
       return BRAND.SUSE;
     }
 
-    return brand?.value;
+    return brand.value;
   },
 
   /**
