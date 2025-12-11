@@ -280,7 +280,12 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     ],
   }
 
-  private convertArrayPath(path: string): string {
+  /**
+   * Convert a filter or sort field name that uses a metada.field to something accepted by vai
+   *
+   * - `metadata.fields.1` --> `metadata.fields[1]`
+   */
+  private convertFieldArrayPath(path: string): string {
     if (path.startsWith('metadata.fields.')) {
       return `metadata.fields[${ path.substring(16) }]`;
     }
@@ -288,8 +293,31 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     return path;
   }
 
-  public createSortForPagination(sortByPath: string): string {
-    return this.convertArrayPath(sortByPath);
+  /**
+   * Convert a filter or sort field name that uses a JSON path to something accepted by vai
+   *
+   * - `$.spec.url` --> `spec.url`
+   */
+  private convertFieldJsonPath(path: string): string {
+    if (path.startsWith('$.')) {
+      return path.replace('$.', ''); // TODO: RC this covers the basic case... there must be syntax that isn't supported?!
+    }
+
+    return path;
+  }
+
+  /**
+   * Take the filter or sort field name and ensure it's in a format that is accepted by Vai
+   *
+   * - `metadata.fields.1` --> `metadata.fields[1]`
+   * - `$.spec.url` --> `spec.url`
+   */
+  private convertField(field: string): string {
+    let safePath = this.convertFieldArrayPath(field);
+
+    safePath = this.convertFieldJsonPath(safePath);
+
+    return safePath;
   }
 
   /**
@@ -420,7 +448,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
 
           this.validateField(validateFields, schema, field);
 
-          return `${ asc ? '' : '-' }${ this.convertArrayPath(field) }`;
+          return `${ asc ? '' : '-' }${ this.convertField(field) }`;
         })
         .join(',');
 
@@ -486,8 +514,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       return;
     }
 
+    // TODO: RC are all schema.attributes.columns indexed?
     // Then check in schema (the api automatically supports these)
     if (!!schema?.attributes.columns.find(
+      // TODO: RC support both `$.metadata.fields[1]` and `$.spec.url`
       // This isn't the most performant, but the string is tiny
       (at) => at.field.replace('$.', '').replace('[', '.').replace(']', '') === field
     )) {
@@ -543,7 +573,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
                 }
               }
 
-              return `${ this.convertArrayPath(field.field) }${ equality }${ safeValue }`;
+              return `${ this.convertField(field.field) }${ equality }${ safeValue }`;
             }
 
             return field.value;
