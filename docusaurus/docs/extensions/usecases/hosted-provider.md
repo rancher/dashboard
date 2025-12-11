@@ -1,0 +1,10 @@
+# Custom Hosted provider UI
+An example hosted provider UI extension has been created for Alibaba Cloud - the source code is available in tis GitHub repository - **https://github.com/rancher/ali-ui**
+
+
+Hosted Provider UI enabled the following functionality:
+- Adding a new Cloud Credential
+- Adding a new Hosted Cluster provisioning and edit
+- Adding a new Hosted Cluster import
+
+For more comprehensive documentation, refer to [Custom Hosted Providers](../api/components/hosted-provider/overview.md).

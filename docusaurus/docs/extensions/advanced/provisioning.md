@@ -95,7 +95,7 @@ Note we use the new `context` property to allow us to target the tab only when t
 
 ### Hiding custom Provisioner card on driver deactivation
 
-On `Cluster Management`, `Drivers`, `Cluster Drivers` an administrator/user (depending on permissions) can deactivate your custom cluster driver. 
+On `Cluster Management`, `Providers`, `Cluster Drivers` an administrator/user (depending on permissions) can deactivate your custom cluster driver. 
 
 ![Cluster Drivers list](../screenshots/cluster-driver-list.png)
 
@@ -119,6 +119,9 @@ export class ExampleProvisioner implements IClusterProvisioner {
   }
 }
 ```
+
+### Hiding Hosted provider card
+In `Cluster Management`, `Providers`, `Hosted Providers` an administrator/user (depending on permissions) can deactivate your hosted provider. This will update 'kev2-operators' setting with 'active' set to false for that provider and corresponding card will not appear inside cluster creation and import wizards.
 
 ### Localisation
 
