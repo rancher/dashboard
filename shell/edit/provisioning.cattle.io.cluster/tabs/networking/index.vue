@@ -147,11 +147,14 @@ export default {
       }
     },
 
+    isK3s() {
+      return (this.selectedVersion?.label || '').includes('k3s');
+    },
+
     showFlannelMasq() {
-      const isK3s = (this.selectedVersion?.label || '').includes('k3s');
       const flannelEnabled = this.value?.rkeConfig?.machineGlobalConfig?.['flannel-backend'] !== 'none';
 
-      return isK3s && flannelEnabled;
+      return this.isK3s && flannelEnabled;
     },
 
     hasIpv6StackPref() {
