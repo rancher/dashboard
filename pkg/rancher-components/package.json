@@ -21,7 +21,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@rancher/icons": "^2.0.53",
+    "@rancher/icons": "^2.0.54",
     "lodash.debounce": "4.0.8"
   },
   "devDependencies": {

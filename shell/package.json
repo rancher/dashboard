@@ -1,6 +1,6 @@
 {
   "name": "@rancher/shell",
-  "version": "3.0.8-rc.9",
+  "version": "3.0.8-rc.10",
   "description": "Rancher Dashboard Shell",
   "repository": "https://github.com/rancherlabs/dashboard",
   "license": "Apache-2.0",
@@ -39,7 +39,7 @@
     "@babel/preset-typescript": "7.16.7",
     "@novnc/novnc": "1.2.0",
     "@popperjs/core": "2.11.8",
-    "@rancher/icons": "2.0.53",
+    "@rancher/icons": "2.0.54",
     "@types/is-url": "1.2.30",
     "@types/node": "20.10.8",
     "@types/semver": "^7.5.8",
