@@ -1,0 +1,60 @@
+{
+  "branches": {
+    "master": {
+      "milestone": "v2.14.0",
+      "e2e": {
+        "docker-image": "rancher/rancher:head"
+      },
+      "rancher-rancher-repo": {
+        "main": {
+          "settings": {
+            "ui-dashboard-index": "https://releases.rancher.com/dashboard/latest/index.html",
+            "ui-index": "https://releases.rancher.com/ui/latest2/index.html"
+          } 
+        }
+      }
+    },
+    "release-2.13": {
+      "milestone": "v2.13.1",
+      "e2e": {
+        "docker-image": "rancher/rancher:v2.13-head"
+      },
+      "rancher-rancher-repo": {
+        "release/v2.13": {
+          "settings": {
+            "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.13/index.html",
+            "ui-index": "https://releases.rancher.com/ui/release-2.13/index.html"
+          } 
+        }
+      }
+    },
+    "release-2.12": {
+      "milestone": "v2.12.5",
+      "e2e": {
+        "docker-image": "rancher/rancher:v2.12-head"
+      },
+      "rancher-rancher-repo": {
+        "release/v2.12": {
+          "settings": {
+            "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.12/index.html",
+            "ui-index": "https://releases.rancher.com/ui/release-2.12/index.html"
+          } 
+        }
+      }
+    },
+    "release-2.11": {
+      "milestone": "v2.11.9",
+      "e2e": {
+        "docker-image": "rancher/rancher:v2.11-head"
+      },
+      "rancher-rancher-repo": {
+        "release/v2.12": {
+          "settings": {
+            "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.11/index.html",
+            "ui-index": "https://releases.rancher.com/ui/release-2.11/index.html"
+          } 
+        }
+      }
+    }
+  }
+}
