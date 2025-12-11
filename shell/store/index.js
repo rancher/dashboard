@@ -233,7 +233,7 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
  * Are we in the vai enabled world where mgmt clusters are paginated?
  */
 const paginateClusters = ({ rootGetters, state }) => {
-  return paginationUtils.isEnabled({ rootGetters, $plugin: state.$plugin }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
+  return paginationUtils.isEnabled({ rootGetters, $extension: state.$extension }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
 };
 
 export const state = () => {
@@ -262,6 +262,7 @@ export const state = () => {
     $router:                 markRaw({}),
     $route:                  markRaw({}),
     $plugin:                 markRaw({}),
+    $extension:              markRaw({}),
     showWorkspaceSwitcher:   true,
     localCluster:            null,
   };
@@ -775,6 +776,7 @@ export const mutations = {
   },
 
   setPlugin(state, pluginDefinition) {
+    state.$extension = markRaw(pluginDefinition || {});
     state.$plugin = markRaw(pluginDefinition || {});
   },
 
@@ -1195,7 +1197,7 @@ export const actions = {
 
     store.dispatch('gcStopIntervals');
 
-    Object.values(this.$plugin.getPlugins()).forEach((p) => {
+    Object.values(this.$extension.getPlugins()).forEach((p) => {
       if (p.onLogOut) {
         p.onLogOut(store);
       }
@@ -1254,7 +1256,7 @@ export const actions = {
   dashboardClientInit({ dispatch, commit, rootState }, context) {
     commit('setRouter', context.app.router);
     commit('setRoute', context.route);
-    commit('setPlugin', context.app.$plugin);
+    commit('setPlugin', context.app.$extension);
 
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');

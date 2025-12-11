@@ -47,7 +47,7 @@ export default class SteveModel extends HybridModel {
    * Get all model extensions for this model
    */
   get modelExtensions() {
-    return this.$plugin.getDynamic(EXT_IDS.MODEL_EXTENSION, this.type) || [];
+    return this.$extension.getDynamic(EXT_IDS.MODEL_EXTENSION, this.type) || [];
   }
 
   cleanForSave(data, forNew) {
