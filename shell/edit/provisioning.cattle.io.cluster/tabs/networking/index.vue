@@ -154,8 +154,6 @@ export default {
     showFlannelMasq() {
       const flannelEnabled = this.value?.spec?.rkeConfig?.machineGlobalConfig?.['flannel-backend'] !== 'none';
 
-      console.log('*** flannel enabled? ', this.value?.spec?.rkeConfig?.machineGlobalConfig);
-
       return this.isK3s && flannelEnabled;
     },
 

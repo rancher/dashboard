@@ -9,7 +9,6 @@ import { Checkbox } from '@components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import YamlEditor from '@shell/components/YamlEditor';
 import { LEGACY } from '@shell/store/features';
-
 import semver from 'semver';
 
 const HARVESTER = 'harvester';
