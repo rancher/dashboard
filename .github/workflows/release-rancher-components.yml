@@ -5,13 +5,14 @@ on:
     tags:
         - 'components-v*'
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
     if: ${{ github.repository_owner == 'rancher' }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     steps:
     - uses: actions/checkout@v6
       with:
@@ -46,5 +47,3 @@ jobs:
         else
           yarn publish:lib
         fi
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
