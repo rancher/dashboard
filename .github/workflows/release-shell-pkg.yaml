@@ -20,13 +20,14 @@ on:
       build-release-shell-creators-status: 
         value: ${{ jobs.build.outputs.build-status }}
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     if: github.repository == 'rancher/dashboard' && (github.event_name == 'workflow_call' || (github.event_name == 'push' && github.event.ref == 'refs/tags/${{ github.ref_name }}'))
     outputs:
       build-status: ${{ job.status }}
@@ -81,6 +82,10 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           scope: '@rancher'
 
+      # Ensure npm 11.5.1 or later is installed
+      - name: Update npm
+        run: npm install -g npm@latest
+
       - name: Install packages
         run: yarn install --frozen-lockfile
 
@@ -89,4 +94,3 @@ jobs:
         env:
           TAG: ${{ inputs.tag || github.ref_name }}
           DRY_RUN: ${{ inputs.is_test }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
