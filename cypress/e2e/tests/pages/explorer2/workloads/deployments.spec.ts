@@ -96,6 +96,16 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2'] }, () => {
       });
     });
 
+    it('Should show configuration drawer with the labels/annotations tab open', () => {
+      const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(scaleTestDeploymentName, localCluster, 'apps.deployment', scaleTestNamespace);
+
+      workloadDetailsPage.goTo();
+      workloadDetailsPage.waitForDetailsPage(scaleTestDeploymentName);
+
+      workloadDetailsPage.openEmptyShowConfigurationAnnotationsLink();
+      workloadDetailsPage.labelsAndAnnotationsTab().should('be.visible');
+    });
+
     it('Should be able to scale the number of pods', () => {
       const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(scaleTestDeploymentName, localCluster, 'apps.deployment', scaleTestNamespace);
 

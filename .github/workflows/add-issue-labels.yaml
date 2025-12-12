@@ -10,9 +10,9 @@ jobs:
     permissions:
       issues: write
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Use Node.js
-      uses: actions/setup-node@v5
+      uses: actions/setup-node@v6
       with:
         node-version-file: '.nvmrc'
     - name: script

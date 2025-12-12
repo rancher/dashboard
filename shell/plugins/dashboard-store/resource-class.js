@@ -610,7 +610,11 @@ export default class Resource {
   }
 
   get '$plugin'() {
-    return this.$ctx.rootState?.$plugin;
+    return this.$ctx.rootState?.$extension;
+  }
+
+  get '$extension'() {
+    return this.$ctx.rootState?.$extension;
   }
 
   get customValidationRules() {
@@ -905,7 +909,7 @@ export default class Resource {
     return out;
   }
 
-  showConfiguration(returnFocusSelector) {
+  showConfiguration(returnFocusSelector, defaultTab) {
     const onClose = () => this.$ctx.commit('slideInPanel/close', undefined, { root: true });
 
     this.$ctx.commit('slideInPanel/open', {
@@ -920,7 +924,8 @@ export default class Resource {
         'z-index':          101, // We want this to be above the main side menu
         closeOnRouteChange: ['name', 'params', 'query'], // We want to ignore hash changes, tables in extensions can trigger the drawer to close while opening
         triggerFocusTrap:   true,
-        returnFocusSelector
+        returnFocusSelector,
+        defaultTab
       }
     }, { root: true });
   }
@@ -1776,7 +1781,7 @@ export default class Resource {
             CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
           } else if (!isEmpty(validatorName) && !validatorExists) {
             // Check if validator is imported from plugin
-            const pluginValidator = this.$rootState.$plugin?.getValidator(validatorName);
+            const pluginValidator = this.$rootState.$extension?.getValidator(validatorName);
 
             if (pluginValidator) {
               pluginValidator(pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);

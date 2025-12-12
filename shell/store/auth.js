@@ -402,20 +402,20 @@ export const actions = {
     }
 
     // Unload plugins - we will load again on login
-    await rootState.$plugin.logout();
+    await rootState.$extension.logout();
 
-    let logoutAction = 'logout';
+    let logoutAction = '';
     const data = {};
 
     // SLO - Single-sign logout - will logout auth provider from all places where it's logged in
     if (options.slo) {
-      logoutAction = 'logoutAll';
+      logoutAction = '?logoutAll';
       data.finalRedirectUrl = returnTo({ isSlo: true }, this);
     }
 
     try {
       const res = await dispatch('rancher/request', {
-        url:                  `/v3/tokens?action=${ logoutAction }`,
+        url:                  `/v1/logout${ logoutAction }`,
         method:               'post',
         data,
         headers:              { 'Content-Type': 'application/json' },

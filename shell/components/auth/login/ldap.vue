@@ -34,9 +34,9 @@ export default {
         });
 
         await loadPlugins({
-          app:     this.$store.app,
-          store:   this.$store,
-          $plugin: this.$store.$plugin
+          app:        this.$store.app,
+          store:      this.$store,
+          $extension: this.$store.$extension,
         });
 
         buttonCb(true);

@@ -87,7 +87,7 @@ jobs:
 
       - name: Checkout
         if: ${{ env.is_member == 'true' }} && ${{ env.milestone_exists == 'true' }} && ${{ env.target_branch_exists == 'true' }}
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ env.target_branch }}
           fetch-depth: '0'
@@ -148,7 +148,8 @@ jobs:
               echo "Created temporary body file: ${BODY}"
               echo -e "This is an automated request to port PR #${ORIGINAL_ISSUE_NUMBER} by @${GITHUB_ACTOR}\n\n" > $BODY
               echo -e "Original PR body:\n\n" >> $BODY
-              echo "${ORIGINAL_PR}" | jq -r .body >> $BODY
+              CLEANED_BODY=$(echo "${ORIGINAL_PR}" | jq -r .body | sed -E 's@(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved):?\s+([a-zA-Z0-9.-]+/[a-zA-Z0-9.-]*)?#[0-9]+\s*,?\s*@Original text redacted by port-pr.yaml @gI')
+              echo "${CLEANED_BODY}" >> $BODY
               if [ -n "$ISSUE_NUMBER" ]; then
                   echo -e "\n\nFixes #${ISSUE_NUMBER}" >> $BODY
               fi

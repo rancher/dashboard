@@ -27,6 +27,11 @@ export default {
       type:    Number,
       default: 0,
     },
+
+    highlightRoute: {
+      type:    Boolean,
+      default: true,
+    },
   },
 
   data() {
@@ -121,12 +126,12 @@ export default {
   >
     <li
       class="child nav-type"
-      :class="{'root': isRoot, [`depth-${depth}`]: true, 'router-link-active': isActive, 'router-link-exact-active': isExactActive}"
+      :class="{'root': isRoot, [`depth-${depth}`]: true, 'router-link-active': highlightRoute && isActive, 'router-link-exact-active': highlightRoute && isExactActive}"
       @click="navigate"
       @keypress.enter="navigate"
     >
       <TabTitle
-        v-if="isExactActive"
+        v-if="highlightRoute && isExactActive"
         :show-child="false"
       >
         {{ type.labelKey ? t(type.labelKey) : (type.labelDisplay || type.label) }}
@@ -136,7 +141,7 @@ export default {
         :aria-label="type.labelKey ? t(type.labelKey) : (type.labelDisplay || type.label)"
         :href="href"
         class="type-link"
-        :aria-current="isActive ? 'page' : undefined"
+        :aria-current="highlightRoute && isActive ? 'page' : undefined"
         @click="selectType(); navigate($event);"
         @mouseenter="setNear(true)"
         @mouseleave="setNear(false)"

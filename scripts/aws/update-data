@@ -17,7 +17,7 @@ console.log('');
 
 const SCRIPT = process.argv[1];
 const DIR = path.resolve(SCRIPT, '../../..');
-const PARTITIONS = ['aws', 'aws-us-gov', 'aws-cn', 'aws-iso', 'aws-iso-b'];
+const PARTITIONS = ['aws', 'aws-us-gov', 'aws-cn', 'aws-iso', 'aws-iso-b', 'aws-iso-f'];
 const ENDPOINTS_URL = 'https://raw.githubusercontent.com/boto/botocore/develop/botocore/data/endpoints.json';
 const JS_FILE = path.resolve(DIR, 'shell/assets/data/aws-regions.json');
 

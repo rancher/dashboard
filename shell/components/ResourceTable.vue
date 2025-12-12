@@ -316,7 +316,7 @@ export default {
 
       // add custom table columns provided by the extensions ExtensionPoint.TABLE_COL hook
       // gate it so that we prevent errors on older versions of dashboard
-      if (this.$store.$plugin?.getUIConfig) {
+      if (this.$store.$extension?.getUIConfig) {
         // { column: TableColumn, paginationColumn: PaginationTableColumn }[]
         const extensionCols = getApplicableExtensionEnhancements(this, ExtensionPoint.TABLE_COL, TableColumnLocation.RESOURCE, this.$route);
 

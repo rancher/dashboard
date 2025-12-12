@@ -34,6 +34,9 @@ module.exports = {
     '<rootDir>/node_modules/',
     '<rootDir>(/.*)*/__tests__/utils/',
   ],
+  transformIgnorePatterns: [
+    '/node_modules/(?!(color|color-string|color-convert|color-name)/)',
+  ],
 
   // Babel
   transform: {

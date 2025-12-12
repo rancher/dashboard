@@ -164,6 +164,13 @@ describe('page: UI plugins/Extensions', () => {
   });
 
   describe('getFooterItems', () => {
+    it('should return "developer" label for isDeveloper plugins', () => {
+      const plugin = { isDeveloper: true };
+      const items = wrapper.vm.getFooterItems(plugin);
+
+      expect(items[0].labels).toContain('plugins.labels.isDeveloper');
+    });
+
     it('should return "builtin" label for builtin plugins', () => {
       const plugin = { builtin: true };
       const items = wrapper.vm.getFooterItems(plugin);

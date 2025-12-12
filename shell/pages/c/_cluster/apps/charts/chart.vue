@@ -84,11 +84,21 @@ export default {
     maintainers() {
       const maintainers = this.version.maintainers || this.versionInfo?.chart?.maintainers || [];
 
-      return maintainers.map((m) => {
+      return maintainers.map((m, i) => {
+        const label = m.name || m.url || m.email || this.t('generic.unknown');
+        let href = null;
+
+        if (m.url) {
+          href = m.url;
+        } else if (m.email) {
+          href = `mailto:${ m.email }`;
+        }
+
         return {
-          id:   m.name,
-          text: m.name,
-          url:  m.email ? `mailto:${ m.email }` : m.url
+          id:   `${ m.name }-${ i }`,
+          name: m.name,
+          label,
+          href
         };
       });
     },
@@ -456,18 +466,26 @@ export default {
             data-testid="chart-home-link"
           >{{ home }}<i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
         </div>
-        <div
-          v-if="maintainers.length"
-          class="chart-body__info-section"
-        >
+        <div class="chart-body__info-section">
           <h4>{{ t('catalog.chart.info.maintainers') }}</h4>
-          <a
-            v-for="m of maintainers"
-            :key="m.id"
-            :href="m.url"
-            rel="nofollow noopener noreferrer"
-            target="_blank"
-          >{{ m.text }}<span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
+          <template v-if="maintainers.length">
+            <div
+              v-for="m of maintainers"
+              :key="m.id"
+            >
+              <a
+                v-if="m.href"
+                v-clean-tooltip="m.name ? t('catalog.chart.info.maintainerContactTooltip', { maintainer: m.name }) : undefined"
+                :href="m.href"
+                rel="nofollow noopener noreferrer"
+                target="_blank"
+              >
+                {{ m.label }}
+              </a>
+              <span v-else>{{ m.label }}</span>
+            </div>
+          </template>
+          <span v-else>{{ t('generic.unknown') }}</span>
         </div>
         <div
           v-if="version.sources"

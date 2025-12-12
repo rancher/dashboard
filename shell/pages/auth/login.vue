@@ -137,9 +137,7 @@ export default {
     },
 
     customizations() {
-      const globalSettings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
-      const setting = globalSettings?.find((gs) => gs.id === SETTING.BRAND);
-      const brandMeta = getBrandMeta(setting?.value);
+      const brandMeta = getBrandMeta(this.$store.getters['management/brand']);
       const login = brandMeta?.login || {};
 
       return {
@@ -317,9 +315,9 @@ export default {
         // so we manually load them here - other SSO auth providers bounce out and back to the Dashboard, so on the bounce-back
         // the plugins will load via the boot-time plugin
         await loadPlugins({
-          app:     this.$store.app,
-          store:   this.$store,
-          $plugin: this.$store.$plugin
+          app:        this.$store.app,
+          store:      this.$store,
+          $extension: this.$store.$extension,
         });
 
         if (this.firstLogin || user[0]?.mustChangePassword) {
