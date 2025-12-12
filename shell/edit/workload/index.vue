@@ -95,6 +95,7 @@ export default {
       @select-type="selectType"
       @error="e=>errors = e"
     >
+      <!-- Name Description -->
       <NameNsDescription
         :value="value"
         :mode="mode"
@@ -102,6 +103,8 @@ export default {
         @change="name=value.metadata.name"
         @isNamespaceNew="isNamespaceNew = $event"
       />
+
+      <!-- Cron job -->
       <div
         v-if="isCronJob || isReplicable || isStatefulSet || containerOptions.length > 1"
         class="row mb-20"
@@ -148,6 +151,8 @@ export default {
           />
         </div>
       </div>
+
+      <!-- Horizontal tabs -->
       <Tabbed
         ref="containersTabbed"
         class="deployment-tabs"
@@ -159,6 +164,7 @@ export default {
         data-testid="workload-horizontal-tabs"
         @changed="changed"
       >
+        <!-- Containers tabs -->
         <Tab
           v-for="(tab, i) in allContainers"
           :key="i"
@@ -167,12 +173,14 @@ export default {
           :weight="tab.weight"
           :error="!!tab.error"
         >
+          <!-- Vertical tabs -->
           <Tabbed
             :side-tabs="true"
             :weight="99"
             :data-testid="`workload-container-tabs-${i}`"
             :use-hash="useTabbedHash"
           >
+            <!-- General -->
             <Tab
               :label="t('workload.container.titles.general')"
               name="general"
@@ -305,12 +313,13 @@ export default {
                 />
               </div>
             </Tab>
+
+            <!-- Resources and Limitations -->
             <Tab
               :label="t('workload.container.titles.resources')"
               name="resources"
               :weight="tabWeightMap['resources']"
             >
-              <!-- Resources and Limitations -->
               <ContainerResourceLimit
                 v-model:value="flatResources"
                 :mode="mode"
@@ -318,6 +327,7 @@ export default {
               />
             </Tab>
 
+            <!-- Health Check -->
             <Tab
               v-if="!allContainers[i]._init"
               :label="t('workload.container.titles.healthCheck')"
@@ -330,6 +340,8 @@ export default {
                 @update:value="Object.assign(allContainers[i], $event)"
               />
             </Tab>
+
+            <!-- Security Context -->
             <Tab
               :label="t('workload.container.titles.securityContext')"
               name="securityContext"
@@ -340,6 +352,8 @@ export default {
                 :mode="mode"
               />
             </Tab>
+
+            <!-- Storage -->
             <Tab
               :label="t('workload.storage.title')"
               name="storage"
@@ -359,6 +373,8 @@ export default {
             </Tab>
           </Tabbed>
         </Tab>
+
+        <!-- Pod -->
         <Tab
           v-if="!isPod"
           :label="nameDisplayFor(type)"
@@ -402,6 +418,8 @@ export default {
             </Tab>
           </Tabbed>
         </Tab>
+
+        <!-- Workload specific tab -->
         <Tab
           :label="t('workload.tabs.labels.pod')"
           :name="'pod'"
