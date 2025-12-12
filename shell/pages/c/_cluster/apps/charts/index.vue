@@ -129,7 +129,7 @@ export default {
         { value: CATALOG_SORT_OPTIONS.ALPHABETICAL_ASC, label: this.t('catalog.charts.sort.alphaAscending') },
         { value: CATALOG_SORT_OPTIONS.ALPHABETICAL_DESC, label: this.t('catalog.charts.sort.alphaDescending') },
       ],
-      initialVisibleChartsCount: 20,
+      initialVisibleChartsCount: 30,
       visibleChartsCount:        20,
       hasOverflow:               false
     };
