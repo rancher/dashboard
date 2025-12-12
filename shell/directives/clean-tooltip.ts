@@ -127,6 +127,13 @@ const cleanTooltipDirective: Directive = {
   updated(el: TooltipHTMLElement, binding: DirectiveBinding) {
     el.__tooltipOptions__ = getTooltipOptions(binding.value, binding.modifiers);
 
+    // doing this here too because the tooltip content may change after mount.
+    if (el.__tooltipOptions__.content) {
+      el.classList.add('has-clean-tooltip');
+    } else {
+      el.classList.remove('has-clean-tooltip');
+    }
+
     // If this element's tooltip is currently shown, update it
     if (currentTarget === el) {
       showSingletonTooltip(el, el.__tooltipOptions__);

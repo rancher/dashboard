@@ -138,9 +138,9 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.namespaceDropdown().find('.ns-more').should('contains.text', '+3');
     namespacePicker.closeDropdown();
     namespacePicker.selectedValues().realHover();
-    namespacePicker.selectedValues().should('have.class', 'v-popper--has-tooltip');
+    namespacePicker.selectedValues().should('have.class', 'has-clean-tooltip');
     namespacePicker.moreOptionsSelected().realHover();
-    namespacePicker.moreOptionsSelected().should('have.class', 'v-popper--has-tooltip');
+    namespacePicker.moreOptionsSelected().should('have.class', 'has-clean-tooltip');
   });
 
   it('can deselect options', { tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
