@@ -510,10 +510,10 @@ export default {
       if (this.observer) {
         this.observer.disconnect();
       }
-      const root = document.querySelector('.main-layout');
+      const mainLayout = document.querySelector('.main-layout');
       const sentinel = this.$refs.sentinel;
 
-      if (sentinel && root) {
+      if (sentinel && mainLayout) {
         this.observer = new IntersectionObserver((entries) => {
           if (entries[0].isIntersecting) {
             this.loadMore();
