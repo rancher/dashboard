@@ -553,7 +553,7 @@ export default class Workload extends WorkloadService {
     }
   }
 
-  async fetchPods() {
+  async fetchPods(force = false) {
     if (this.podMatchExpression) {
       return this.$dispatch('findLabelSelector', {
         type:     POD,
@@ -561,6 +561,7 @@ export default class Workload extends WorkloadService {
           namespace:     this.metadata.namespace,
           labelSelector: { matchExpressions: this.podMatchExpression },
         },
+        force, //forces the store to refetch
       });
     }
 
