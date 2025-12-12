@@ -219,19 +219,16 @@ function getTooltipOptions(value: string | { content?: string, placement?: strin
   let placement = 'top';
   let popperClass = '';
   let delay: TooltipDelay = { show: 250, hide: 100 };
-  let triggers: string[];
+  let triggers: string[] = ['hover'];
 
   if (typeof value === 'string') {
     content = value;
-    triggers = ['hover'];
   } else if (value && typeof value === 'object') {
-    content = value.content || '';
-    placement = value.placement || 'top';
-    popperClass = value.popperClass || '';
-    delay = value.delay || { show: 250, hide: 100 };
-    triggers = value.triggers || ['hover'];
-  } else {
-    triggers = ['hover'];
+    content = value.content || content;
+    placement = value.placement || placement;
+    popperClass = value.popperClass || popperClass;
+    delay = value.delay || delay;
+    triggers = value.triggers || triggers;
   }
 
   // Modifiers can also specify placement (e.g., v-clean-tooltip.bottom)
