@@ -54,10 +54,7 @@ describe('clean-tooltip.ts', () => {
         cleanTooltipDirective.mounted(el, binding);
 
         expect(el.classList.contains('has-clean-tooltip')).toBe(true);
-        expect(el.__tooltipValue__).toBe('Test Tooltip');
-        expect(el.__tooltipPlacement__).toBe('top');
-        expect(el.__tooltipPopperClass__).toBe('');
-        expect(el.__tooltipDelay__).toStrictEqual({ show: 250, hide: 100 });
+        expect(el.__tooltipOptions__).toStrictEqual({ content: 'Test Tooltip' });
 
         expect(addEventListenerSpy).toHaveBeenCalledWith('mouseenter', onMouseEnter);
         expect(addEventListenerSpy).toHaveBeenCalledWith('mouseleave', onMouseLeave);
@@ -78,10 +75,12 @@ describe('clean-tooltip.ts', () => {
 
         cleanTooltipDirective.mounted(el, binding);
 
-        expect(el.__tooltipValue__).toBe('Object Tooltip');
-        expect(el.__tooltipPlacement__).toBe('right'); // Modifier should override
-        expect(el.__tooltipPopperClass__).toBe('custom-class');
-        expect(el.__tooltipDelay__).toStrictEqual({ show: 500, hide: 200 });
+        expect(el.__tooltipOptions__).toStrictEqual({
+          content:     'Object Tooltip',
+          placement:   'right', // Modifier should override
+          popperClass: 'custom-class',
+          delay:       { show: 500, hide: 200 },
+        });
       });
 
       it('should not add has-clean-tooltip class if content is empty', () => {
@@ -102,12 +101,11 @@ describe('clean-tooltip.ts', () => {
 
         cleanTooltipDirective.updated(el, updatedBinding);
 
-        expect(el.__tooltipValue__).toBe('Updated');
-        expect(el.__tooltipPlacement__).toBe('bottom');
+        expect(el.__tooltipOptions__).toStrictEqual({ content: 'Updated', placement: 'bottom' });
       });
 
       it('should re-show the tooltip if it is currently active on the element', () => {
-        const binding = { value: 'Test', modifiers: {} };
+        const binding = { value: { content: 'Test' }, modifiers: {} };
 
         cleanTooltipDirective.mounted(el, binding);
 
@@ -119,7 +117,7 @@ describe('clean-tooltip.ts', () => {
         expect(mockCreateTooltip).toHaveBeenCalledTimes(1);
         expect(mockTooltipInstance.show).toHaveBeenCalledTimes(1);
 
-        const updatedBinding = { value: 'Updated Content', modifiers: {} };
+        const updatedBinding = { value: { content: 'Updated Content' }, modifiers: {} };
 
         cleanTooltipDirective.updated(el, updatedBinding);
 
@@ -148,7 +146,7 @@ describe('clean-tooltip.ts', () => {
       });
 
       it('should hide the tooltip if it is active on the element', () => {
-        const binding = { value: 'Test', modifiers: {} };
+        const binding = { value: { content: 'Test' }, modifiers: {} };
 
         cleanTooltipDirective.mounted(el, binding);
 
@@ -169,9 +167,10 @@ describe('clean-tooltip.ts', () => {
 
   describe('event handlers', () => {
     beforeEach(() => {
-      el.__tooltipValue__ = 'Handler Test';
-      el.__tooltipPlacement__ = 'top';
-      el.__tooltipDelay__ = { show: 1, hide: 1 };
+      el.__tooltipOptions__ = {
+        content: 'Handler Test',
+        delay:   { show: 1, hide: 1 },
+      };
     });
 
     it('onMouseEnter should show the tooltip', () => {
@@ -182,9 +181,8 @@ describe('clean-tooltip.ts', () => {
 
       expect(mockCreateTooltip).toHaveBeenCalledTimes(1);
       expect(mockCreateTooltip).toHaveBeenCalledWith(el, {
-        content:   'Handler Test',
-        placement: 'top',
-        delay:     { show: 1, hide: 1 },
+        content: 'Handler Test',
+        delay:   { show: 1, hide: 1 },
       }, {});
       expect(mockTooltipInstance.show).toHaveBeenCalledTimes(1);
     });
@@ -207,6 +205,7 @@ describe('clean-tooltip.ts', () => {
     it('onMouseClick should toggle the tooltip', () => {
       const event = new MouseEvent('click');
 
+      el.__tooltipOptions__.triggers = ['click'];
       Object.defineProperty(event, 'currentTarget', { value: el });
 
       // First click shows tooltip

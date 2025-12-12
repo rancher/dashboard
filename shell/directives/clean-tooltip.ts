@@ -13,51 +13,47 @@ interface TooltipDelay {
   hide: number;
 }
 
-interface TooltipHTMLElement extends HTMLElement {
-  __tooltipValue__: string;
-  __tooltipPlacement__: string;
-  __tooltipPopperClass__: string;
-  __tooltipDelay__: TooltipDelay;
-  __tooltipTriggers__: string[];
+// Options are optional, to be handled by floating-vue's defaults
+interface TooltipOptions {
+  content?: string;
+  placement?: string;
+  popperClass?: string;
+  delay?: TooltipDelay;
+  triggers?: string[];
 }
 
-interface TooltipOptions {
-  content: string;
-  placement: string;
-  popperClass: string;
-  delay: TooltipDelay;
-  triggers: string[];
+interface TooltipHTMLElement extends HTMLElement {
+  // Store the whole options object for the tooltip
+  __tooltipOptions__: TooltipOptions;
 }
 
 /**
  * Shows a singleton tooltip for the given target element.
  * If a tooltip is already active, it is hidden before showing the new one.
  * @param {HTMLElement} target The element to which the tooltip is attached.
- * @param {string} rawValue The content of the tooltip.
- * @param {string} placement The placement of the tooltip.
- * @param {string} popperClass Custom CSS class for the popper.
- * @param {object} delay The delay for showing and hiding the tooltip.
+ * @param {TooltipOptions} options The options for the tooltip.
  */
-function showSingletonTooltip(target: HTMLElement, rawValue: string, placement: string, popperClass: string, delay: TooltipDelay) {
+function showSingletonTooltip(target: HTMLElement, options: TooltipOptions) {
   // If a tooltip is already active, it should be hidden before showing the new one.
   if (singleton) {
     destroyTooltip(currentTarget);
     singleton = null;
   }
 
-  const content = purifyContent(rawValue);
+  const purifiedContent = options.content ? purifyContent(options.content) : '';
 
   // Don't show the tooltip if the content is empty.
-  if (!content) {
+  if (!purifiedContent) {
     return;
   }
+
+  const tooltipConfig = {
+    ...options,
+    content: purifiedContent,
+  };
+
   // Create a new tooltip instance.
-  singleton = createTooltip(target, {
-    content,
-    placement,
-    popperClass,
-    delay
-  }, {}); // Pass an empty object for modifiers to fix TypeScript complaint
+  singleton = createTooltip(target, tooltipConfig, {});
 
   singleton.show();
   currentTarget = target;
@@ -101,17 +97,9 @@ const cleanTooltipDirective: Directive = {
    * @param {object} binding The directive binding object.
    */
   mounted(el: TooltipHTMLElement, binding: DirectiveBinding) {
-    const { value, modifiers } = binding;
-    const {
-      content, placement, popperClass, delay, triggers
-    } = getTooltipOptions(value, modifiers);
+    el.__tooltipOptions__ = getTooltipOptions(binding.value, binding.modifiers);
 
-    // Store the tooltip options on the element for later use.
-    el.__tooltipValue__ = content;
-    el.__tooltipPlacement__ = placement;
-    el.__tooltipPopperClass__ = popperClass;
-    el.__tooltipDelay__ = delay;
-    el.__tooltipTriggers__ = triggers;
+    const triggers = el.__tooltipOptions__.triggers || ['hover'];
 
     if (triggers.includes('hover')) {
       el.addEventListener('mouseenter', onMouseEnter);
@@ -125,7 +113,7 @@ const cleanTooltipDirective: Directive = {
       el.addEventListener('click', onMouseClick);
     }
 
-    if (content) {
+    if (el.__tooltipOptions__.content) {
       // Add a class to the element to indicate that it has a clean tooltip.
       el.classList.add('has-clean-tooltip');
     }
@@ -137,21 +125,11 @@ const cleanTooltipDirective: Directive = {
    * @param {object} binding The directive binding object.
    */
   updated(el: TooltipHTMLElement, binding: DirectiveBinding) {
-    const { value, modifiers } = binding;
-    const {
-      content, placement, popperClass, delay, triggers
-    } = getTooltipOptions(value, modifiers);
-
-    // Update stored content and options
-    el.__tooltipValue__ = content;
-    el.__tooltipPlacement__ = placement;
-    el.__tooltipPopperClass__ = popperClass;
-    el.__tooltipDelay__ = delay;
-    el.__tooltipTriggers__ = triggers;
+    el.__tooltipOptions__ = getTooltipOptions(binding.value, binding.modifiers);
 
     // If this element's tooltip is currently shown, update it
     if (currentTarget === el) {
-      showSingletonTooltip(el, content, placement, popperClass, delay);
+      showSingletonTooltip(el, el.__tooltipOptions__);
     }
   },
   /**
@@ -181,7 +159,7 @@ const cleanTooltipDirective: Directive = {
 function onMouseEnter(e: MouseEvent | FocusEvent) {
   const el = e.currentTarget as TooltipHTMLElement;
 
-  showSingletonTooltip(el, el.__tooltipValue__, el.__tooltipPlacement__, el.__tooltipPopperClass__, el.__tooltipDelay__);
+  showSingletonTooltip(el, el.__tooltipOptions__);
 }
 
 /**
@@ -204,7 +182,7 @@ function onMouseClick(e: MouseEvent) {
   if (currentTarget === el) {
     hideSingletonTooltip(el);
   } else {
-    showSingletonTooltip(el, el.__tooltipValue__, el.__tooltipPlacement__, el.__tooltipPopperClass__, el.__tooltipDelay__);
+    showSingletonTooltip(el, el.__tooltipOptions__);
   }
 }
 
@@ -214,37 +192,29 @@ function onMouseClick(e: MouseEvent) {
  * @param {object} modifiers The modifiers of the directive.
  * @returns {object} The parsed tooltip options.
  */
-function getTooltipOptions(value: string | { content?: string, placement?: string, popperClass?: string, delay?: TooltipDelay, triggers?: string[] }, modifiers: Partial<Record<string, boolean>>): TooltipOptions {
-  let content = '';
-  let placement = 'top';
-  let popperClass = '';
-  let delay: TooltipDelay = { show: 250, hide: 100 };
-  let triggers: string[] = ['hover'];
+function getTooltipOptions(value: string | TooltipOptions, modifiers: Partial<Record<string, boolean>>): TooltipOptions {
+  let options: TooltipOptions;
 
   if (typeof value === 'string') {
-    content = value;
+    options = { content: value };
   } else if (value && typeof value === 'object') {
-    content = value.content || content;
-    placement = value.placement || placement;
-    popperClass = value.popperClass || popperClass;
-    delay = value.delay || delay;
-    triggers = value.triggers || triggers;
+    options = { ...value };
+  } else {
+    options = {};
   }
 
   // Modifiers can also specify placement (e.g., v-clean-tooltip.bottom)
   if (modifiers.top) {
-    placement = 'top';
+    options.placement = 'top';
   } else if (modifiers.bottom) {
-    placement = 'bottom';
+    options.placement = 'bottom';
   } else if (modifiers.left) {
-    placement = 'left';
+    options.placement = 'left';
   } else if (modifiers.right) {
-    placement = 'right';
+    options.placement = 'right';
   }
 
-  return {
-    content, placement, popperClass, delay, triggers
-  };
+  return options;
 }
 
 export default cleanTooltipDirective;
