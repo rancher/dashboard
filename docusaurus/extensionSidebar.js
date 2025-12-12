@@ -109,6 +109,19 @@ const sidebars = {
                     'api/components/node-driver/about-example'
                   ]
                 },
+                {
+                  type:  'category',
+                  label: 'Custom Hosted Provider UI',
+                  link:  {
+                    type: 'doc',
+                    id:   'api/components/hosted-provider/overview',
+                  },
+                  items: [
+                    'api/components/hosted-provider/structure',
+                    'api/components/hosted-provider/components',
+                    'api/components/hosted-provider/localization',
+                  ]
+                },
                 'api/components/auto-import',
               ]
             },
@@ -143,7 +156,8 @@ const sidebars = {
           items: [
             'usecases/top-level-product',
             'usecases/cluster-level-product',
-            'usecases/node-driver'
+            'usecases/node-driver',
+            'usecases/hosted-provider'
           ]
         },
         'known-issues',

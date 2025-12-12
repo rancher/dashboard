@@ -27,7 +27,7 @@ The standard drivers included in Rancher and their options are defined [here](ht
 
 ## Cloud Credential
 
-Cloud Credentials store the username & password, or other similar information, needed to talk to a particular provider.  There is typically a 1-to-1 mapping of cloud credentials to drivers.  If one provider (e.g. Amazon) has both a *Machine* driver for RKE (using EC2) and a *Cluster* driver for Kontainer Engine (using EKS) then you can and should use a single shared type of credential (e.g. `aws`) for both.
+Cloud Credentials store the username & password, or other similar information, needed to talk to a particular provider.  There is typically a 1-to-1 mapping of cloud credentials to drivers.  If one provider (e.g. Amazon) has both a *Machine* driver for RKE (using EC2) and a *Hosted provider* (using EKS) then you can and should use a single shared type of credential (e.g. `aws`) for both.
 
 The cloud credential component lives in the top-level `cloud-credential` directory in the repo.  The file should be named the same as the driver, in all lowercase (e.g. `cloud-credential/digitalocean.vue`).
 
