@@ -1,5 +1,8 @@
 
-import { SCHEMA, COUNT, POD } from '@shell/config/types';
+import {
+  SCHEMA, COUNT, POD, MANAGEMENT, BRAND
+} from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 
 import { matches } from '@shell/utils/selector';
 import { typeMunge, typeRef, SIMPLE_TYPES } from '@shell/utils/create-yaml';
@@ -202,6 +205,20 @@ export default {
 
       return entry.map.get(id);
     }
+  },
+
+  brand: (state, getters) => {
+    const brand = getters['byId'](MANAGEMENT.SETTING, SETTING.BRAND);
+
+    if (!brand?.value) {
+      return undefined;
+    }
+
+    if ([BRAND.CSP, BRAND.FEDERAL, BRAND.RGS].includes(brand.value)) {
+      return BRAND.SUSE;
+    }
+
+    return brand.value;
   },
 
   /**
@@ -526,7 +543,7 @@ export default {
     const store = state.config.namespace;
     const resource = id || context ? { id, context } : null;
 
-    return paginationUtils.isEnabled({ rootGetters, $plugin: rootState.$plugin }, { store, resource });
+    return paginationUtils.isEnabled({ rootGetters, $extension: rootState.$extension }, { store, resource });
   },
 
   /**

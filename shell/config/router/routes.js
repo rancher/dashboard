@@ -81,9 +81,13 @@ export default [
       {
         path:      '/c/:cluster/uiplugins',
         name:      'c-cluster-uiplugins',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/uiplugins/index.vue')),
+        component: () => interopDefault(import('@shell/pages/c/_cluster/uiplugins/index.vue'))
       },
-
+      {
+        path:      '/c/:cluster/uiplugins/catalogs',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/uiplugins/catalogs.vue')),
+        name:      'c-cluster-uiplugins-catalogs'
+      },
       {
         path:      '/diagnostic',
         component: () => interopDefault(import('@shell/pages/diagnostic.vue')),

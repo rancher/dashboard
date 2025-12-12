@@ -165,7 +165,7 @@ class PaginationUtils {
   /**
    * Is pagination enabled at a global level or for a specific resource
    */
-  isEnabled({ rootGetters, $plugin }: any, enabledFor: PaginationResourceContext) {
+  isEnabled({ rootGetters, $extension }: any, enabledFor: PaginationResourceContext) {
     // Cache must be enabled to support pagination api
     if (!this.isSteveCacheEnabled({ rootGetters })) {
       return false;
@@ -184,7 +184,7 @@ class PaginationUtils {
     }
 
     // Does an extension say this type is enabled?
-    const plugin = $plugin as ExtensionManager;
+    const plugin = $extension as ExtensionManager;
     const paginationExtensionPoints = plugin.getAll()[EXT_IDS.SERVER_SIDE_PAGINATION_RESOURCES];
 
     if (paginationExtensionPoints) {

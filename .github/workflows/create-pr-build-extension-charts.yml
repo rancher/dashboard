@@ -43,7 +43,7 @@ jobs:
     steps:
       - if: inputs.is_test == 'true'
         name: Checkout (test flow)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: rancher/${{ inputs.test_ext_repo }}
           ref: ${{ inputs.test_ext_branch }}
@@ -51,7 +51,7 @@ jobs:
       
       - if: inputs.is_test != 'true'
         name: Checkout (normal flow)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -125,14 +125,14 @@ jobs:
     steps:
       - if: inputs.is_test == 'true'
         name: Checkout (test flow)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: master # let's checkout master branch in rancher/dashboard. We won't hit permission issues here. Just for testing purposes
           fetch-depth: 0
       
       - if: inputs.is_test != 'true'
         name: Checkout (normal flow)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: '${{ inputs.target_branch }}'
 

@@ -6,5 +6,5 @@ _NAME.forEach((f) => {
 
   name = name.substr(0, ext);
 
-  $plugin.register('DIR', name, () => REQUIRE(CHUNK`BASE/DIR/${ name }EXT`)); // eslint-disable-line no-undef
+  $extension.register('DIR', name, () => REQUIRE(CHUNK`BASE/DIR/${ name }EXT`)); // eslint-disable-line no-undef
 });
