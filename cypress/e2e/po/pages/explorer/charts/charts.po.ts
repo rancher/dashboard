@@ -89,8 +89,12 @@ export class ChartsPage extends PagePo {
     return this.self().find('[data-testid="charts-empty-state-reset-filters"]');
   }
 
+  totalChartsCount() {
+    return this.self().find('[data-testid="charts-total-message"]').invoke('text').then((text) => parseInt(text.match(/\d+/)[0], 10));
+  }
+
   chartCards() {
-    return this.self().find('[data-testid*="item-card-"]');
+    return this.self().find('[data-testid="app-chart-cards-container"] > [data-testid*="item-card-"]');
   }
 
   scrollContainer() {

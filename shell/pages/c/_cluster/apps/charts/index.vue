@@ -518,7 +518,7 @@ export default {
           if (entries[0].isIntersecting) {
             this.loadMore();
           }
-        }, { root });
+        }, { mainLayout });
         this.observer.observe(sentinel);
         this.observerInitialized = true;
       }
@@ -645,7 +645,10 @@ export default {
       >
         <div class="total-and-sort">
           <div class="total">
-            <p class="total-message">
+            <p
+              class="total-message"
+              data-testid="charts-total-message"
+            >
               {{ totalMessage }}
             </p>
             <a
