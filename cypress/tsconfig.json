@@ -1,5 +1,4 @@
 {
-  "extends": "../tsconfig.paths.json",
   "target": "ES2018",
   "module": "ES2020",
   "moduleResolution": "Node",
@@ -20,7 +19,24 @@
       "cypress",
       "@cypress/grep",
       "cypress-axe"
-    ]
+    ],
+    "paths": {
+      "~/*": [
+        "*"
+      ],
+      "@/*": [
+        "*"
+      ],
+      "@shell/*": [
+        "shell/*"
+      ],
+      "@pkg/*": [
+        "shell/pkg/*"
+      ],
+      "@components/*": [
+        "pkg/rancher-components/src/components/*"
+      ]
+    },
   },
   "include": [
     "./**/*.ts",

@@ -1,5 +1,11 @@
-import { Verbs } from '@shell/types/api';
-import { UserPreferences } from '@shell/types/userPreferences';
+// External version of globals.d.ts for @rancher/cypress package
+// Dependencies on @shell/types removed for standalone use
+
+type Verbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+
+interface UserPreferences {
+  [key: string]: any;
+}
 
 type Matcher = '$' | '^' | '~' | '*' | '';
 
