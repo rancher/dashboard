@@ -2,10 +2,11 @@
   "name": "@rancher/cypress",
   "version": "1.0.0",
   "description": "Cypress E2E test, utilities, page objects, and blueprints for Rancher Dashboard",
-  "main": "index.js",
   "files": [
     "e2e/**/*",
     "support/**/*",
+    "base-config.ts",
+    "extend-config.ts",
     "globals.d.ts"
   ],
   "keywords": [
