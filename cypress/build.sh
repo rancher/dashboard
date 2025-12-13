@@ -17,6 +17,8 @@ echo "Copying source files..."
 # Copy the main package structure
 cp -r e2e/ dist/
 cp -r support/ dist/
+cp base-config.ts dist/
+cp extend-config.ts dist/
 cp globals.d.ts dist/
 cp package.json dist/
 cp README.md dist/
