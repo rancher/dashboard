@@ -54,7 +54,7 @@ export default {
     };
 
     if (this.podSchema) {
-      hash.pods = this.value.fetchPods();
+      hash.pods = await this.value.fetchPods(true);
     }
 
     if (this.serviceSchema) {
