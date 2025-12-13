@@ -2,12 +2,16 @@
   "name": "@rancher/cypress",
   "version": "1.0.0",
   "description": "Cypress E2E test, utilities, page objects, and blueprints for Rancher Dashboard",
+  "bin": {
+    "cypress": "./bin/cypress.js"
+  },
   "files": [
     "e2e/**/*",
     "support/**/*",
     "base-config.ts",
     "extend-config.ts",
-    "globals.d.ts"
+    "globals.d.ts",
+    "bin/cypress.js"
   ],
   "keywords": [
     "cypress",
@@ -18,8 +22,20 @@
   ],
   "author": "Rancher",
   "license": "Apache-2.0",
-  "peerDependencies": {
-    "cypress": ">=11.0.0"
+  "devDependencies": {
+    "@cypress/code-coverage": "3.10.4",
+    "@cypress/grep": "3.1.5",
+    "@cypress/vue": "5.0.5",
+    "@cypress/webpack-dev-server": "3.4.1",
+    "@percy/cli": "1.30.7",
+    "@percy/cypress": "3.1.6",
+    "cy2": "4.0.9",
+    "cypress": "11.1.0",
+    "cypress-axe": "1.6.0",
+    "cypress-delete-downloads-folder": "0.0.4",
+    "cypress-mochawesome-reporter": "3.8.2",
+    "cypress-real-events": "1.14.0",
+    "cypress-terminal-report": "^7.2.0"
   },
   "repository": {
     "type": "git",
