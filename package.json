@@ -1,7 +1,7 @@
 {
   "name": "dashboard",
   "description": "Rancher Dashboard",
-  "repository": "https://github.com/rancherlabs/dashboard",
+  "repository": "https://github.com/rancher/dashboard",
   "license": "Apache-2.0",
   "author": "SUSE",
   "private": true,
