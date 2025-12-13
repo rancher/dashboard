@@ -1116,7 +1116,169 @@ describe('type-map', () => {
         });
       });
     });
+
+    describe('activeProducts', () => {
+      // Basic schemas for product filtering tests
+      const productSchemas = {
+        myType: {
+          id:     'mytype',
+          _id:    'mytype',
+          type:   SCHEMA,
+          _group: 'mygroup',
+        },
+        anotherType: {
+          id:     'anothertype',
+          _id:    'anothertype',
+          type:   SCHEMA,
+          _group: 'anothergroup',
+        },
+      };
+
+      const createProductState = (products) => ({
+        products,
+        schemaGeneration: 1,
+      });
+
+      const createProductRootGetters = (moduleSchemas = [], moduleName = 'cluster') => ({
+        'prefs/get':             () => false,
+        [`${ moduleName }/all`]: (resource) => {
+          if (resource === SCHEMA) {
+            return moduleSchemas;
+          }
+
+          return [];
+        },
+      });
+
+      describe('ifHaveType', () => {
+        it('should show product when matching type exists', () => {
+          const state = createProductState([{
+            name:       'test-product',
+            inStore:    'cluster',
+            ifHaveType: 'mytype',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(1);
+          expect(active[0].name).toBe('test-product');
+        });
+
+        it('should hide product when matching type does not exist', () => {
+          const state = createProductState([{
+            name:       'test-product',
+            inStore:    'cluster',
+            ifHaveType: 'missingtype',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(0);
+        });
+      });
+
+      describe('ifNotHaveType', () => {
+        it('should show product when matching type does NOT exist', () => {
+          const state = createProductState([{
+            name:          'test-product',
+            inStore:       'cluster',
+            ifNotHaveType: 'missingtype',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(1);
+          expect(active[0].name).toBe('test-product');
+        });
+
+        it('should hide product when matching type exists', () => {
+          const state = createProductState([{
+            name:          'test-product',
+            inStore:       'cluster',
+            ifNotHaveType: 'mytype',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(0);
+        });
+
+        it('should support regex pattern in ifNotHaveType', () => {
+          const state = createProductState([{
+            name:          'test-product',
+            inStore:       'cluster',
+            ifNotHaveType: 'my.*',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(0);
+        });
+
+        it('should show product when regex pattern does not match any type', () => {
+          const state = createProductState([{
+            name:          'test-product',
+            inStore:       'cluster',
+            ifNotHaveType: 'nomatch.*',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(1);
+          expect(active[0].name).toBe('test-product');
+        });
+      });
+
+      describe('combined ifHaveType and ifNotHaveType', () => {
+        it('should show product when ifHaveType matches and ifNotHaveType does not match', () => {
+          const state = createProductState([{
+            name:          'test-product',
+            inStore:       'cluster',
+            ifHaveType:    'mytype',
+            ifNotHaveType: 'missingtype',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(1);
+          expect(active[0].name).toBe('test-product');
+        });
+
+        it('should hide product when ifHaveType matches but ifNotHaveType also matches', () => {
+          const state = createProductState([{
+            name:          'test-product',
+            inStore:       'cluster',
+            ifHaveType:    'mytype',
+            ifNotHaveType: 'anothertype',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType, productSchemas.anotherType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(0);
+        });
+
+        it('should hide product when ifHaveType does not match', () => {
+          const state = createProductState([{
+            name:          'test-product',
+            inStore:       'cluster',
+            ifHaveType:    'missingtype',
+            ifNotHaveType: 'anothermissingtype',
+          }]);
+          const rootGetters = createProductRootGetters([productSchemas.myType]);
+
+          const active = getters.activeProducts(state, {}, {}, rootGetters);
+
+          expect(active).toHaveLength(0);
+        });
+      });
+    });
   });
 });
-
-// getTree - Remove ignored schemas, not-applicable to ns filter
