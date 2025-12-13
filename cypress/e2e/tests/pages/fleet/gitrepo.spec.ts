@@ -4,7 +4,6 @@ import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/n
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import { EXTRA_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
-import 'cypress-real-events/support';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 const downloadsFolder = Cypress.config('downloadsFolder');
