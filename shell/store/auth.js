@@ -149,12 +149,16 @@ export const actions = {
       force = true;
     }
 
-    return dispatch('rancher/findAll', {
+    const providers = dispatch('rancher/findAll', {
       type: 'authProvider',
       opt:  {
-        url: `/v3-public/authProviders`, watch: false, force
+        url:   `/v1-public/authproviders`,
+        watch: false,
+        force
       }
     }, { root: true });
+
+    return providers;
   },
 
   getAuthConfigs({ dispatch }) {
@@ -349,13 +353,21 @@ export const actions = {
     const driver = await dispatch('getAuthProvider', provider);
 
     try {
-      const res = await driver.doAction('login', {
-        description:  'UI session',
-        responseType: 'cookie',
-        ...body
-      }, { redirectUnauthorized: false });
-
-      return res;
+      return await dispatch(
+        'management/request',
+        {
+          url:    `/v1-public/login`,
+          method: 'post',
+          data:   {
+            type:         driver.type,
+            description:  'UI session',
+            responseType: 'cookie',
+            ...body
+          },
+          redirectUnauthorized: false,
+        },
+        { root: true }
+      );
     } catch (err) {
       if (err._status === 401) {
         return Promise.reject(LOGIN_ERRORS.CLIENT_UNAUTHORIZED);
@@ -409,7 +421,7 @@ export const actions = {
 
     // SLO - Single-sign logout - will logout auth provider from all places where it's logged in
     if (options.slo) {
-      logoutAction = '?logoutAll';
+      logoutAction = '?all';
       data.finalRedirectUrl = returnTo({ isSlo: true }, this);
     }
 
