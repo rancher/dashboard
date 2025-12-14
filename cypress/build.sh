@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Build script for @rancher/cypress package
-# This script normalizes @/cypress imports to relative paths
 
 echo "Building @rancher/cypress package..."
 
@@ -10,33 +9,27 @@ cd "$(dirname "$0")"
 
 # Clean previous builds
 rm -rf dist/
+rm -rf tmp/
 mkdir -p dist/
+mkdir -p tmp/
 
 echo "Copying source files..."
 
-# Copy the main package structure
-cp -r e2e/ dist/
-cp -r support/ dist/
-cp -r bin/ dist/
-cp base-config.ts dist/
-cp extend-config.ts dist/
-cp globals.d.ts dist/
-cp package.json dist/
-cp README.md dist/
-
-# Copy TypeScript config if needed
-if [ -f tsconfig.json ]; then
-  cp tsconfig.json dist/
-fi
+# Copy the main package structure to a temporary directory for processing
+cp -r e2e/ tmp/
+cp -r support/ tmp/
+cp base-config.ts tmp/
+cp extend-config.ts tmp/
+cp globals.d.ts tmp/
 
 echo "Normalizing @/cypress imports..."
 
 # Find all TypeScript files and replace @/cypress imports with relative paths
-find dist/ -name "*.ts" -type f | while read file; do
+find tmp/ -name "*.ts" -type f | while read file; do
   # Calculate relative path from file to package root
   file_dir=$(dirname "$file")
   # Count directory depth to get back to dist/
-  depth=$(echo "$file_dir" | sed 's|dist/||' | sed 's|[^/]||g' | wc -c)
+  depth=$(echo "$file_dir" | sed 's|tmp/||' | sed 's|[^/]||g' | wc -c)
   depth=$((depth - 1))
   
   # Create relative path string (../ repeated depth times)
@@ -58,6 +51,19 @@ find dist/ -name "*.ts" -type f | while read file; do
   # Also handle ~/cypress without trailing slash
   sed -i "s|~/cypress|${relative_path}|g" "$file"
 done
+
+echo "Compiling TypeScript from tmp/ to dist/..."
+npx tsc --project tsconfig.build.json
+
+echo "Copying TypeScript source files to dist/..."
+rsync -a --include='*/' --include='*.ts' --exclude='*' tmp/ dist/
+
+echo "Copying non-TypeScript assets..."
+
+cp package.json dist/
+cp README.md dist/
+cp .npmignore dist/
+cp globals.d.ts dist/
 
 echo "Package built successfully in dist/ directory"
 echo "To test with yarn link:"
