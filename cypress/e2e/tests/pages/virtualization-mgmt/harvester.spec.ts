@@ -90,7 +90,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     extensionsPo.extensionCard(harvesterTitle).checkVisible();
 
     // verify harvester repo is added to repos list page
-    appRepoList.goTo();
+    appRepoList.goTo(undefined, 'manager');
     appRepoList.waitForPage();
     appRepoList.sortableTable().rowElementWithName(harvesterGitRepoName).should('be.visible');
     appRepoList.list().state(harvesterGitRepoName).contains('Active', LONG_TIMEOUT_OPT);
@@ -145,7 +145,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     // Wait for repository to be downloaded and ready
     cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', harvesterGitRepoName);
 
-    appRepoList.goTo();
+    appRepoList.goTo(undefined, 'manager');
     appRepoList.waitForPage();
     appRepoList.sortableTable().rowElementWithName(harvesterGitRepoName).should('be.visible');
     appRepoList.list().state(harvesterGitRepoName).contains('Active', LONG_TIMEOUT_OPT);
@@ -216,7 +216,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     // Wait for repository to be downloaded and ready
     cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', harvesterGitRepoName);
 
-    appRepoList.goTo();
+    appRepoList.goTo(undefined, 'manager');
     appRepoList.waitForPage();
     appRepoList.sortableTable().rowElementWithName(harvesterGitRepoName).should('be.visible');
     appRepoList.list().state(harvesterGitRepoName).contains('Active', LONG_TIMEOUT_OPT);

@@ -3,11 +3,11 @@
 
 type Verbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
-interface UserPreferences {
+export interface UserPreferences {
   [key: string]: any;
 }
 
-type Matcher = '$' | '^' | '~' | '*' | '';
+export type Matcher = '$' | '^' | '~' | '*' | '';
 
 export type CreateUserParams = {
   username: string,
@@ -158,7 +158,7 @@ declare global {
       }): Chainable;
 
       tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string)
-      tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration?: number)
+      tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}, iteration?: number)
 
       setUserPreference(prefs: any);
 
@@ -239,6 +239,14 @@ declare global {
        */
       checkElementAccessibility(selector: any, description?: string);
 
+      /**
+       * Custom command to delete Cypress.config('downloadsFolder') folder
+       * @example
+       *  cy.deleteDownloadsFolder()
+       *
+       *  copied from node_modules/cypress-delete-downloads-folder/src/index.d.ts
+       */
+      deleteDownloadsFolder(): Chainable<null>
     }
   }
 }

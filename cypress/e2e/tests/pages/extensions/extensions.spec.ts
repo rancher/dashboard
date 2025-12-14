@@ -202,7 +202,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // go to repos list page
     const appRepoList = new RepositoriesPagePo(cluster, 'apps');
 
-    appRepoList.goTo();
+    appRepoList.goTo(cluster, 'apps');
     appRepoList.waitForPage();
     appRepoList.sortableTable().rowElementWithName(UI_PLUGINS_PARTNERS_REPO_URL).should('exist');
   });
@@ -227,7 +227,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     const appRepoList = new RepositoriesPagePo(cluster, 'apps');
 
     // Ensure that the banner should be shown (by confirming that a required repo isn't there)
-    appRepoList.goTo();
+    appRepoList.goTo(cluster, 'apps');
     appRepoList.waitForPage();
     appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
     appRepoList.sortableTable().noRowsShouldNotExist();
