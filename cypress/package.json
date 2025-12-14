@@ -1,17 +1,16 @@
 {
-  "name": "@rancher/cypress",
-  "version": "1.0.0",
+  "name": "rancher-dashboard-cypress",
+  "version": "1.7.3",
   "description": "Cypress E2E test, utilities, page objects, and blueprints for Rancher Dashboard",
   "bin": {
-    "cypress": "./bin/cypress.js"
+    "rancher-dashboard-cypress": "./node_modules/.bin/cypress"
   },
   "files": [
     "e2e/**/*",
     "support/**/*",
-    "base-config.ts",
-    "extend-config.ts",
-    "globals.d.ts",
-    "bin/cypress.js"
+    "base-config.*",
+    "extend-config.*",
+    "globals.d.ts"
   ],
   "keywords": [
     "cypress",
@@ -22,13 +21,15 @@
   ],
   "author": "Rancher",
   "license": "Apache-2.0",
-  "devDependencies": {
+  "dependencies": {
     "@cypress/code-coverage": "3.10.4",
     "@cypress/grep": "3.1.5",
     "@cypress/vue": "5.0.5",
     "@cypress/webpack-dev-server": "3.4.1",
     "@percy/cli": "1.30.7",
     "@percy/cypress": "3.1.6",
+    "axe-core": "4.10.2",
+    "axe-html-reporter": "2.2.11",
     "cy2": "4.0.9",
     "cypress": "11.1.0",
     "cypress-axe": "1.6.0",
@@ -37,9 +38,15 @@
     "cypress-real-events": "1.14.0",
     "cypress-terminal-report": "^7.2.0"
   },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/rancher/dashboard.git",
     "directory": "cypress"
+  },
+  "scripts": {
+    "build": "./build.sh"
   }
 }

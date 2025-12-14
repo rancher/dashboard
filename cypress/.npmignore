@@ -1,0 +1,18 @@
+# Ignore node_modules
+node_modules/
+
+# Ignore build artifacts
+*.log
+*.tmp
+
+# Ignore development files
+.DS_Store
+Thumbs.db
+
+# Ignore any local config
+.env
+.env.local
+
+# Ignore coverage reports
+coverage/
+.nyc_output/
