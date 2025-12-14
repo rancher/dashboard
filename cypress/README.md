@@ -5,19 +5,101 @@ Reusable Cypress E2E test utilities, page objects, and support files for Rancher
 ## Installation
 
 ```bash
-npm install @rancher/cypress
+npm install @rancher/cypress --save-dev
 # or
-yarn add @rancher/cypress
+yarn add @rancher/cypress --dev
 ```
 
-## What's Included
+## Setup
 
 This package provides:
 
-- **Page Objects** (`/po/*`) - Reusable page object models for common UI components and pages
-- **Blueprints** (`/blueprints/*`) - Test fixtures and data blueprints
+- **E2E Tests** (`/e2e/*`) - Predefined Cypress tests for common Rancher Dashboard scenarios
+- **Page Objects** (`/e2e/po/*`) - Reusable page object models for common Rancher UI components and pages
+- **Blueprints** (`/e2e/blueprints/*`) - Test fixtures and data blueprints
 - **Support Files** (`/support/*`) - Custom Cypress commands and utilities
-- **Configuration** (`/config/*`) - Base Cypress configuration
+- **Cypress Configuration** (`/base-config`) - Base Cypress configuration
+- **Extendable Config** (`/extend-config`) - Utilities to extend Cypress config
+
+### Using @rancher/cypress CLI
+
+#### Available Commands
+
+| Command                        | Description                                      |
+|--------------------------------|--------------------------------------------------|
+| npx rancher-cypress open      | Launch Cypress UI                                |
+| npx rancher-cypress run       | Run Cypress tests                                |
+| npx rancher-cypress init      | Scaffold a Cypress project structure             |
+
+#### What does `init` do?
+
+The `init` command will:
+
+- Create a new `cypress/` directory in your project (if one does not already exist)
+- Copy all template files and folders into `cypress/`
+- Copy `cypress.config.ts` into your project root (not inside `cypress/`)
+- Abort if a `cypress/` directory or `cypress.config.ts` already exists, to avoid overwriting your work
+
+This provides a ready-to-use Cypress project structure for Rancher Dashboard E2E testing.
+
+---
+
+### Manual Setup
+
+#### Cypress Configuration
+
+Create a `cypress.config.ts` file in your consuming project:
+
+Use default base configuration:
+
+```typescript
+import baseConfig from '@rancher/cypress/base-config';
+
+export default baseConfig;
+```
+
+Or extend the base configuration:
+
+```typescript
+import { extendConfig } from '@rancher/cypress/extend-config';
+
+export default extendConfig({
+  env: {
+    yourCustomEnvVar: 'value',
+  },
+  e2e: {
+    specPattern:                  yourCustomSpecPattern
+  }
+});
+```
+
+#### Package.json
+
+Add new tasks to Cypress configuration in `package.json`:
+
+```json
+{
+  "cypress": {
+    "tasks": {
+      "cypress:open": "yarn rancher-cypress open --e2e --browser chrome",
+      "cypress:run": "yarn rancher-cypress run",
+    }
+  }
+}
+```
+
+#### TypeScript Configuration
+
+> **Important:**
+> To enable type completion for custom Cypress commands and page objects, add `"cypress"` to the `types` array in your root `tsconfig.json`:
+>
+> ```json
+> {
+>   "compilerOptions": {
+>     "types": ["cypress"]
+>   }
+> }
+> ```
 
 ## Usage
 
@@ -54,33 +136,47 @@ This will load all custom Cypress commands like:
 ### Using Blueprints (Fixtures)
 
 ```typescript
-cy.fixture('@rancher/cypress/blueprints/my-fixture.json').then((data) => {
+cy.fixture('@rancher/cypress/blueprints/fixture.json').then((data) => {
   // use fixture data
 });
 ```
 
-### Using Base Configuration
+## Implementation & Publishing Notes
 
-In your project's `cypress.config.ts`:
+### Project Structure & Build Process
+- All source files (e2e, support, base-config.ts, extend-config.ts, globals.d.ts) are copied into a temporary `tmp/` directory before build.
+- The build script (`build.sh`) normalizes internal imports and compiles TypeScript from `tmp/` to `dist/` using `tsconfig.build.json`.
+- After compilation, TypeScript source files are also copied to `dist/` for better developer experience.
+- Non-TypeScript assets (README, package.json, etc.) are copied to `dist/` for publishing.
+- The published npm package only includes the `dist/` directory, as specified in `package.json`.
 
-```typescript
-import { getBaseConfig } from '@rancher/cypress/config/base.config';
+### TypeScript Configuration
+- `tsconfig.build.json` extends the main `tsconfig.json` but restricts compilation to `tmp/**/*` and outputs only to `dist/`.
+- Source maps and declaration maps are generated for easier debugging and type navigation.
 
-const baseConfig = getBaseConfig();
+### Clean Build Guarantee
+- Only the files actually referenced by the cypress code are included in the build, keeping the package minimal.
 
-export default {
-  ...baseConfig,
-  e2e: {
-    ...baseConfig.e2e,
-    specPattern: 'your-tests/**/*.spec.ts',
-    // override any other settings
-  }
-};
-```
+### Publishing
+- To manual publish, run:
+  ```bash
+  npm run build
+  cd dist
+  npm publish
+  ```
+- To automate publishing, use the provided GitHub Actions workflow.
+  Add a new release tag, and the workflow will build and publish the package to npm.
+  ```bash
+  git tag cypress-pkg-v1.0.0
+  git push upstream cypress-pkg-v1.0.0
+  ```
+
+### Troubleshooting
+- If you see build errors not shown in VS Code, ensure you are using the same TypeScript config (`tsconfig.build.json`) for both build and editor, or manually run `npx tsc --project tsconfig.build.json` to check.
+- If you see stray build artifacts in dependency directories, check the build script and tsconfig paths to ensure all compilation is isolated to `tmp/` and `dist/`.
 
 ## Requirements
 
-- Cypress 11.1.0
 - Node.js >= 20.0.0
 - TypeScript >= 5.0.0
 

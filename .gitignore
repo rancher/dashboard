@@ -91,6 +91,7 @@ sw.*
 cypress/videos
 cypress/screenshots
 cypress/accessibility
+browser-logs
 setupTestEnv.sh
 
 # Storybook

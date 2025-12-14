@@ -65,6 +65,10 @@ cp README.md dist/
 cp .npmignore dist/
 cp globals.d.ts dist/
 
+# Copy CLI and template for yarn link testing
+cp -r bin dist/
+cp -r template dist/
+
 echo "Package built successfully in dist/ directory"
 echo "To test with yarn link:"
 echo "  cd dist"
