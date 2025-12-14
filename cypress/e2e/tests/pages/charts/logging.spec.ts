@@ -113,7 +113,7 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     const clusterTools = new ClusterToolsPagePo('local');
     const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
 
-    installedAppsPage.goTo();
+    installedAppsPage.goTo('local', 'apps');
     installedAppsPage.waitForPage();
     cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
     installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
@@ -148,7 +148,7 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
     kubectl.closeTerminalByTabName('Uninstall cattle-logging-system:rancher-logging-crd');
 
-    installedAppsPage.goTo();
+    installedAppsPage.goTo('local', 'apps');
     installedAppsPage.waitForPage();
     cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
     installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);

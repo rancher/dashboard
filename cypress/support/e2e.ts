@@ -5,10 +5,10 @@ import './commands/rancher-api-commands';
 import './commands/accessiblity';
 
 import registerCypressGrep from '@cypress/grep/src/support';
-import { addCustomCommand } from 'cypress-delete-downloads-folder';
 import 'cypress-mochawesome-reporter/register';
 import '@percy/cypress';
 import 'cypress-axe';
+const { addCustomCommand } = require('cypress-delete-downloads-folder');
 
 registerCypressGrep();
 addCustomCommand();

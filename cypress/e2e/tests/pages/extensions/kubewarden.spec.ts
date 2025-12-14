@@ -65,7 +65,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
 
     const appRepoList: RepositoriesPagePo = new RepositoriesPagePo('local', 'apps');
 
-    appRepoList.goTo();
+    appRepoList.goTo('local', 'apps');
     appRepoList.waitForPage();
     cy.get('h1').contains('Repositories').should('exist');
   });

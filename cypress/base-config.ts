@@ -2,7 +2,7 @@
 import { defineConfig } from 'cypress';
 import websocketTasks from './support/utils/webSocket-utils';
 import path from 'path';
-const removeDirectory = require('cypress-delete-downloads-folder');
+const { removeDirectory } = require('cypress-delete-downloads-folder');
 
 // Required for env vars to be available in cypress
 require('dotenv').config();
