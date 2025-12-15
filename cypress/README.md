@@ -115,7 +115,7 @@ describe('Login Test', () => {
     loginPage.login('admin', 'password');
     
     const homePage = new HomePage();
-    homePage.checkIsCurrentPage();
+    homePage.goTo();
   });
 });
 ```

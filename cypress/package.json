@@ -42,7 +42,9 @@
     "cypress-delete-downloads-folder": "0.0.4",
     "cypress-mochawesome-reporter": "3.8.2",
     "cypress-real-events": "1.14.0",
-    "cypress-terminal-report": "^7.2.0"
+    "cypress-terminal-report": "^7.2.0",
+    "dotenv": "^10.0.0",
+    "dotenv-expand": "^5.1.0"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
