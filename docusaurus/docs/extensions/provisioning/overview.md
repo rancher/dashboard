@@ -46,7 +46,7 @@ Normal headers are copied from your request and sent to the target.  There are s
 But normally you want to make a request using a Cloud Credential as the authorization, without knowing what the secret values in that credential are.  You ask for this by sending an `X-Api-CattleAuth-Header` header.  The value of the header specifies what credential Id to use, and a [signer](https://github.com/rancher/rancher/blob/release/v2.6/pkg/httpproxy/sign.go) which describes how that credential should be injected into the request.  Common options include `awsv4` (Amazon's complicated HMAC signatures), `bearer`, `basic`, and `digest`.  For example if you send `X-Api-CattleAuth-Header: Basic credId=someCredentialId usernameField=user passwordField=pass`, Rancher will retrieve the credential with id `someCredentialId`, read the values of the `user` and `pass` fields from it and add the header `Authorization: Basic <base64(user + ":" + pass)>` to the proxied request for you.
 
 ## Custom Components and Models
-Rancher provides mechanisms to overwrite or create new components. You can learn more on how to create custom [cloud credential](../provisioning/cloud-credential.md) or [machine configuration](../provisioning/node-driver/machine-config.md) components in this documentation.
+Rancher provides mechanisms to overwrite or create new components. You can learn more on how to create custom [cloud credential](./cloud-credential.md) or [machine configuration](./node-driver/machine-config.md) components in this documentation.
 
 ### Resources
 Creating a cluster revolves around the provisioning cluster object

@@ -19,3 +19,5 @@ cluster:
 Rancher will then automatically display "Alibaba Cloud" in the cluster creation wizard.
 
 ![Cluster Provisioning](../screenshots/cluster-provisioning-hosted.png)
+
+Read more about translations [here](../advanced/localization)
