@@ -1,5 +1,5 @@
 /**
- * Helper class to handle steve vai revisions
+ * Helper class to handle Steve API revisions comparisons
  */
 export class SteveRevision {
   public asNumber: number;
@@ -10,15 +10,24 @@ export class SteveRevision {
     this.isNumber = !Number.isNaN(this.asNumber);
   }
 
+  /**
+   * Is this provided revision newer than this revision?
+   *
+   * @param revision
+   * @returns
+   */
   isNewerThan(revision: SteveRevision): boolean {
-    return SteveRevision.allNumbers([this, revision]) && this.asNumber > revision.asNumber;
+    return SteveRevision.areAllNumbers([this, revision]) && this.asNumber > revision.asNumber;
   }
 
-  private static allNumbers(revisions: SteveRevision[]): boolean {
+  private static areAllNumbers(revisions: SteveRevision[]): boolean {
     return revisions.every((r) => r.isNumber);
   }
 
-  max(revision: number) {
-    return Math.max(revision, this.asNumber);
-  }
+  // /**
+  //  * Return whichever revision is newer
+  //  */
+  // max(revision: number): number {
+  //   return Math.max(revision, this.asNumber);
+  // }
 }

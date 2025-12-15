@@ -451,10 +451,6 @@ export default {
 
     type = getters.normalizeType(type);
 
-    if (type === 'provisioning.cattle.io.cluster') {
-      debugger;
-    }
-
     if ( !getters.typeRegistered(type) ) {
       commit('registerType', type);
     }

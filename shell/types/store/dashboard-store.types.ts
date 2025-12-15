@@ -84,7 +84,7 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
   /**
    * The target minimum revision for the resource.
    *
-   * If this is higher than known to rancher then an error will be returned
+   * If this is higher than the latest revision known to rancher then an error will be returned
    */
   revision?: string
 }

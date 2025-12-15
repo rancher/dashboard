@@ -3,6 +3,7 @@ import { STORE } from '@shell/store/store-types';
 import { PaginationParam, PaginationParamFilter, PaginationSort } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
 import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from '@shell/utils/cluster';
+import myLogger from '@shell/utils/my-logger';
 import PaginationWrapper from '@shell/utils/pagination-wrapper';
 import { allHash } from '@shell/utils/promise';
 import { sortBy } from '@shell/utils/sort';
@@ -255,7 +256,12 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       pinned: MgmtCluster[],
       notPinned: MgmtCluster[]
     } = await allHash(promises) as any;
+
+    myLogger.warn('tlhm-helper', 'update', 'updated', this.clustersPinnedWrapper.id, this.clustersOthersWrapper.id);
+
     const provClusters = await this.updateProvCluster(res.notPinned, res.pinned, args);
+
+    myLogger.warn('tlhm-helper', 'update', 'updated', this.provClusterWrapper.id);
     const provClustersByMgmtId = provClusters.reduce((res: { [mgmtId: string]: ProvCluster}, provCluster: ProvCluster) => {
       if (provCluster.mgmtClusterId) {
         res[provCluster.mgmtClusterId] = provCluster;

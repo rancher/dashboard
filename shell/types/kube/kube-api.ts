@@ -32,6 +32,22 @@ export interface KubeMetadata {
   annotations?: { [key: string]: string },
 }
 
+/**
+ * Kube API JSON response for LIST requests
+ */
+export interface KubeListResponse<T = any> {
+  kind: string,
+  apiVersion: string,
+
+  items: T[],
+
+  // Bucket for everything else (hopefully to remove once above populated)
+  [key: string]: any
+}
+
+/**
+ * Kube API JSON response for GET requests
+ */
 export interface KubeGetResponse {
   kind: string,
   apiVersion: string,
@@ -39,16 +55,6 @@ export interface KubeGetResponse {
   metadata: KubeMetadata,
   spec: any,
   status: any,
-
-  // Bucket for everything else (hopefully to remove once above populated)
-  [key: string]: any
-}
-
-export interface KubeListResponse<T = any> {
-  kind: string,
-  apiVersion: string,
-
-  items: T[],
 
   // Bucket for everything else (hopefully to remove once above populated)
   [key: string]: any

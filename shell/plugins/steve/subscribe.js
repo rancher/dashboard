@@ -119,7 +119,7 @@ import backOff from '@shell/utils/back-off';
 import { SteveWatchEventListenerManager } from '@shell/plugins/subscribe-events';
 import myLogger from '@shell/utils/my-logger';
 import { SteveRevision } from '@shell/plugins/steve/revision';
-import { STEVE_HTTP_CODES } from '@shell/plugins/steve/actions';
+import { STEVE_HTTP_CODES } from '@shell/types/rancher/steve.api';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
@@ -713,7 +713,7 @@ const sharedActions = {
   /**
    * Ensure there's no back-off process waiting to run for
    * - resource.changes fetchResources
-   * - resource.error resyncWatches
+   * - resource.error resyncWatch
    */
   resetWatchBackOff({ state, getters, commit }, {
     type, compareWatches, resetInError = true, resetStarted = true
@@ -856,6 +856,87 @@ const defaultActions = {
     });
   },
 
+  /**
+   * TODO: RC
+   *
+   * Helper function used by fetchResources
+   *
+   */
+  async fetchPageResources({ getters, dispatch }, { opt, storePagination, ...params }) {
+    const { resourceType, namespace, revision } = params;
+    const type = resourceType || params.type;
+
+    const backOffId = getters.backOffId(params, `${ STEVE_HTTP_CODES.UNKNOWN_REVISION }`);
+
+    // msg.revision = Number.MAX_SAFE_INTEGER; // TODO: RC testing... with this in it doesn't repeat... (should backoff repeat after last resource.changes)
+
+    const activeRevisionSt = backOff.getBackOff(backOffId)?.metadata.revision;
+    const cachedRevisionSt = getters['typeEntry'](resourceType || type)?.revision;
+
+    const targetRevision = new SteveRevision(revision);
+    const currentRevision = new SteveRevision(activeRevisionSt || cachedRevisionSt);
+
+    myLogger.warn('fetchPageResources', 'start', backOffId, revision, activeRevisionSt, cachedRevisionSt);
+    myLogger.warn('fetchPageResources', 'start', backOffId, targetRevision.revision, currentRevision.revision);
+
+    // Three scenarios to support HA support scenario 3
+    // current version is newer than target revision - abort/ignore (don't overwrite new with old)
+    // current version in cache is older than target revision - reset previous (drop older requests with older revision, use new revision)
+    // current version in cache is same as target revision - we're retrying
+
+    if (currentRevision.isNewerThan(targetRevision)) {
+      // Avoid overwriting store (resource.changes + http request processed by stale replicas
+
+      // eslint-disable-next-line no-console
+      console.warn(`Ignoring subscribe request to update '${ type }' with revision '${ targetRevision.revision }' (previously processed '${ currentRevision.revision }'). ` +
+              `This probably means the replica that provided the web socket message has not yet correctly synced it's cache with other fresher replicas.`);
+
+      return;
+    }
+
+    if (targetRevision.isNewerThan(new SteveRevision(activeRevisionSt))) {
+      // is there a backOff currently running with an older revision? if so we should forget it and concentrate on this new revision
+
+      // eslint-disable-next-line no-console
+      // console.warn(`Dropping previous web socket request to update '${ msg.type || msg.resourceType }' with revision '${ currentRevision.revision }' (target revision '${ targetRevision.revision }'). `);
+
+      // don't need to compare revision of running to this new socket prompted call.. subsequent calls will always be higher
+      backOff.reset(backOffId);
+    }
+
+    backOff.execute({
+      id:          backOffId,
+      metadata:    { revision },
+      description: `Catering for invalid unknown revision in fetchPageResources`, // TODO: RC
+      canFn:       () => getters.canBackoff(this.$socket),
+      delayedFn:   async() => {
+        try {
+          myLogger.warn('fetchPageResources', 'trying', params );
+
+          await dispatch('findPage', {
+            type,
+            opt: {
+              ...opt,
+              namespaced: namespace,
+              revision,
+              // This brings in page, page size, filter, etc
+              ...storePagination.request,
+            }
+          });
+        } catch (err) {
+          myLogger.warn('fetchPageResources', 'ERROR', params, err);
+          if (err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION) {
+            await dispatch('fetchPageResources', {
+              ...params,
+              storePagination,
+              opt
+            });
+          }
+        }
+      },
+    });
+  },
+
   async fetchResources({
     state, getters, dispatch, commit
   }, { opt, ...params }) {
@@ -900,7 +981,6 @@ const defaultActions = {
 
       if (mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
         // Fetch a page of resources
-        // const targetRevision = new SteveRevision(revision);
 
         // Other findX use options (id/ns/selector) from the messages received over socket.
         // However paginated requests have more complex params so grab them from the store.
@@ -909,44 +989,15 @@ const defaultActions = {
         const storePagination = getters['havePage'](resourceType);
 
         if (!!storePagination) {
-          // const entry = getters['typeEntry'](resourceType);
-
-          // const cacheRevision = new SteveRevision(entry.revision);
-
-          // // version in cache is newer than target revision - abort/ignore
-          // // version in cache is same as target revision - we're retrying
-          // // version in cache is older than target revision - drop older requests, use new target
-
-          // // HA support scenario 3 - Avoid overwriting store given resource.changes + http request processed by stale replicas
-          // if (cacheRevision.isNewerThan(targetRevision)) {
-          //   // eslint-disable-next-line no-console
-          //   console.warn(`Ignoring web socket request to update '${ resourceType }' with revision '${ revision }' (store contains newer revision of '${ entry.revision }'). ` +
-          //     `This probably means the replica that provided the web socket message has not yet correctly synced it's cache with other fresher replicas.`);
-
-          //   return;
-          // }
-
-          have = []; // findPage removes stale entries, so we don't need to rely on below process to remove them
-
-          // This could have been kicked off given a resource.changes message
-          // If the messages come in quicker than findPage completes (resource.changes debounce time >= http request time),
-          // and the request is the same, only the first request will be processed. all others until it finishes will be ignored
-          // (see deferred process - `waiting.push(later);` - in request action).
-          // If this becomes an issue we need to debounce and work around the deferred issue within request
-          want = await dispatch('findPage', {
-            type: resourceType,
-            opt:  {
-              ...opt,
-              namespaced: namespace,
-              revision,
-              // This brings in page, page size, filter, etc
-              ...storePagination.request,
-              // backOff: {
-              //   id:
-              // }
-
-            }
+          await dispatch('fetchPageResources', {
+            ...params,
+            storePagination,
+            opt
           });
+
+          // findPage removes stale entries, so we don't need to rely on below process to remove them
+          have = [];
+          want = [];
         }
 
         // Should any listeners be notified of this request for them to kick off their own event handling?
@@ -1319,75 +1370,80 @@ const defaultActions = {
     }
   },
 
-  async 'ws.resource.changes'({ dispatch, getters }, params) {
-    const { retry, ...msg } = params;
+  async 'ws.resource.changes'({ dispatch, getters }, msg) {
+    await dispatch('fetchResources', {
+      ...msg,
+      opt: { force: true, load: _MERGE }
+    } );
+
+    // const { ...msg } = params;
 
     // msg.revision = Number.MAX_SAFE_INTEGER; // TODO: RC with this in it doesn't repeat... (should backoff repeat after last resource.changes)
 
-    const backOffId = getters.backOffId(msg, `${ STEVE_HTTP_CODES.UNKNOWN_REVISION }`);
+    // const backOffId = getters.backOffId(msg, `${ STEVE_HTTP_CODES.UNKNOWN_REVISION }`);
 
-    const activeRevisionSt = backOff.getBackOff(backOffId)?.metadata.revision;
-    const cachedRevisionSt = getters['typeEntry'](msg.resourceType || msg.type)?.revision;
+    // const activeRevisionSt = backOff.getBackOff(backOffId)?.metadata.revision;
+    // const cachedRevisionSt = getters['typeEntry'](msg.resourceType || msg.type)?.revision;
 
-    const targetRevision = new SteveRevision(msg.revision);
-    const currentRevision = new SteveRevision(activeRevisionSt || cachedRevisionSt);
+    // const targetRevision = new SteveRevision(msg.revision);
+    // const currentRevision = new SteveRevision(activeRevisionSt || cachedRevisionSt);
 
-    myLogger.warn('resource.changes', 'start', params, retry, msg);
-    myLogger.warn('resource.changes', 'start', backOffId, msg.revision, activeRevisionSt, cachedRevisionSt);
-    myLogger.warn('resource.changes', 'start', backOffId, targetRevision.revision, currentRevision.revision);
+    // // myLogger.warn('resource.changes', 'start', params, retry, msg);
+    // myLogger.warn('resource.changes', 'start', backOffId, msg.revision, activeRevisionSt, cachedRevisionSt);
+    // myLogger.warn('resource.changes', 'start', backOffId, targetRevision.revision, currentRevision.revision);
 
-    // Three scenarios
-    // current version is newer than target revision - abort/ignore (don't overwrite new with old)
-    // current version in cache is older than target revision - reset previous (drop older requests, use new target (don't )
-    // current version in cache is same as target revision - we're retrying
+    // // Three scenarios to support HA support scenario 3
+    // // current version is newer than target revision - abort/ignore (don't overwrite new with old)
+    // // current version in cache is older than target revision - reset previous (drop older requests with older revision, use new revision)
+    // // current version in cache is same as target revision - we're retrying
 
-    if (currentRevision.isNewerThan(targetRevision)) {
-      // HA support scenario 3 - Avoid overwriting store given resource.changes + http request processed by stale replicas
+    // if (currentRevision.isNewerThan(targetRevision)) {
+    //   // Avoid overwriting store (resource.changes + http request processed by stale replicas
 
-      // eslint-disable-next-line no-console
-      console.warn(`Ignoring web socket request to update '${ msg.type || msg.resourceType }' with revision '${ targetRevision.revision }' (previously processed '${ currentRevision.revision }'). ` +
-              `This probably means the replica that provided the web socket message has not yet correctly synced it's cache with other fresher replicas.`);
+    //   // eslint-disable-next-line no-console
+    //   console.warn(`Ignoring web socket request to update '${ msg.type || msg.resourceType }' with revision '${ targetRevision.revision }' (previously processed '${ currentRevision.revision }'). ` +
+    //           `This probably means the replica that provided the web socket message has not yet correctly synced it's cache with other fresher replicas.`);
 
-      return;
-    }
+    //   return;
+    // }
 
-    if (targetRevision.isNewerThan(new SteveRevision(activeRevisionSt))) {
-      // is there a backOff currently running with an older revision? if so we should forget it and concentrate on this new revision
-
-      // eslint-disable-next-line no-console
-      // console.warn(`Dropping previous web socket request to update '${ msg.type || msg.resourceType }' with revision '${ currentRevision.revision }' (target revision '${ targetRevision.revision }'). `);
-
-      // don't need to compare revision of running to this new socket prompted call.. subsequent calls will always be higher
-      backOff.reset(backOffId);
-    }
-
-    // if (!retry) {
+    // if (targetRevision.isNewerThan(new SteveRevision(activeRevisionSt))) {
     //   // is there a backOff currently running with an older revision? if so we should forget it and concentrate on this new revision
+
+    //   // eslint-disable-next-line no-console
+    //   // console.warn(`Dropping previous web socket request to update '${ msg.type || msg.resourceType }' with revision '${ currentRevision.revision }' (target revision '${ targetRevision.revision }'). `);
 
     //   // don't need to compare revision of running to this new socket prompted call.. subsequent calls will always be higher
     //   backOff.reset(backOffId);
     // }
-    backOff.execute({
-      id:          backOffId,
-      metadata:    { revision: msg.revision },
-      description: `Catering for invalid unknown revision in resource.changes`, // TODO: RC
-      canFn:       () => getters.canBackoff(this.$socket),
-      delayedFn:   async() => {
-        try {
-          myLogger.warn('resource.changes', 'trying', msg );
-          await dispatch('fetchResources', {
-            ...msg,
-            // revision: msg.revision,
-            opt: { force: true, load: _MERGE }
-          });
-        } catch (err) {
-          myLogger.warn('resource.changes', 'ERROR', msg, err);
-          if (err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION) {
-            await dispatch('ws.resource.changes', { ...msg, retry: true });
-          }
-        }
-      },
-    });
+
+    // // if (!retry) {
+    // //   // is there a backOff currently running with an older revision? if so we should forget it and concentrate on this new revision
+
+    // //   // don't need to compare revision of running to this new socket prompted call.. subsequent calls will always be higher
+    // //   backOff.reset(backOffId);
+    // // }
+    // backOff.execute({
+    //   id:          backOffId,
+    //   metadata:    { revision: msg.revision },
+    //   description: `Catering for invalid unknown revision in resource.changes`, // TODO: RC
+    //   canFn:       () => getters.canBackoff(this.$socket),
+    //   delayedFn:   async() => {
+    //     try {
+    //       myLogger.warn('resource.changes', 'trying', msg );
+    //       await dispatch('fetchResources', {
+    //         ...msg,
+    //         opt: { force: true, load: _MERGE }
+    //       });
+    //     } catch (err) {
+    //       myLogger.warn('resource.changes', 'ERROR', msg, err);
+    //       if (err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION) {
+    //         await dispatch('ws.resource.changes', msg);
+    //         // await dispatch('ws.resource.changes', { ...msg, retry: true });
+    //       }
+    //     }
+    //   },
+    // });
   },
 
   'ws.resource.remove'(ctx, msg) {

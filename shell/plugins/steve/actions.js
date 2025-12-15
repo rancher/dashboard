@@ -11,16 +11,6 @@ import { handleKubeApiHeaderWarnings } from '@shell/plugins/steve/header-warning
 import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
 import paginationUtils from '@shell/utils/pagination-utils';
 
-/**
- * Collection of string based values returned vis Steve API 'code' field
- */
-export const STEVE_HTTP_CODES = {
-  /**
-   * When the query param `revision` is sent and it's not in the vai cache then return this error
-   */
-  UNKNOWN_REVISION: 'unknown revision'
-};
-
 export default {
 
   // Need to override this, so that the 'this' context is correct (this class not the base class)

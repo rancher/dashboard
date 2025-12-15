@@ -6,9 +6,9 @@ import { STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_MODE } from '@shell/types/store/su
 import { Reactive, reactive } from 'vue';
 import { STEVE_UNWATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_WATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_PARAMS_COMMON } from '@shell/types/store/subscribe-events.types';
 import backOff from '@shell/utils/back-off';
-import { STEVE_HTTP_CODES } from '@shell/plugins/steve/actions';
 import myLogger from '@shell/utils/my-logger';
 import { SteveRevision } from '@shell/plugins/steve/revision';
+import { STEVE_HTTP_CODES } from '@shell/types/rancher/steve.api';
 
 interface Args {
   $store: VuexStore,
