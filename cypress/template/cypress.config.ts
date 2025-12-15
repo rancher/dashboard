@@ -7,7 +7,7 @@ export default extendConfig({
     // Custom environment variables can be added here
   },
   e2e: {
-    supportFile: 'support/e2e.ts',
+    supportFile: './cypress/support/e2e.ts',
     // Custom e2e configuration can be added here
   }
 });
