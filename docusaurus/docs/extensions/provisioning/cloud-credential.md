@@ -18,4 +18,4 @@ Other properties:
 
 Example Cloud Credential UI:
 
-![Example Cloud Credential UI!](../../../screenshots/openstack-cloud-credential.png)
+![Example Cloud Credential UI!](../screenshots/openstack-cloud-credential.png)

@@ -7,4 +7,4 @@ Hosted Provider UI enabled the following functionality:
 - Adding a new Hosted Cluster provisioning and edit
 - Adding a new Hosted Cluster import
 
-For more comprehensive documentation, refer to [Custom Hosted Providers](../api/components/hosted-provider/overview.md).
+For more comprehensive documentation, refer to [Custom Hosted Providers](../provisioning/hosted-provider/overview.md).

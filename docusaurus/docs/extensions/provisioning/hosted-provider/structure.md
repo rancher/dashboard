@@ -15,7 +15,7 @@ pkg/
         └── Cru<ProvisionerName>.vue # Main component for create/edit/import
 ```
 
-In order to provision a cluster, we need to provide a [cloud credential](../../../api/components/node-driver/cloud-credential.md), which matches how it is done for node drivers, and a main [component](../../../api/components/hosted-provider/components.md) declared in provisioner.ts.
+In order to provision a cluster, we need to provide a [cloud credential](../cloud-credential.md), which matches how it is done for node drivers, and a main [component](../hosted-provider/components.md) declared in provisioner.ts.
 ```ts
   get component(): Component {
     return Cru<PROVISIONER_NAME>;

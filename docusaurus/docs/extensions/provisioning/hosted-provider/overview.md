@@ -48,15 +48,7 @@ If provisioner.ts file also contains
 This provider will also appear in `Cluster Management -> Clusters -> Import Existing` as part of the 'Register an existing cluster in a hosted Kubernetes provider' group. 
 
 ## Specifying Rancher compatibility
-You can restrict which Rancher and @rancher/shell versions your extension is compatible with by setting an annotation in your pkg/PROVISIONER_NAME/package.json:
-```json
-  "rancher": {
-    "annotations": {
-      "catalog.cattle.io/rancher-version": ">= 2.13.0-0",
-      "catalog.cattle.io/ui-extensions-version": ">= 3.0.0 < 4.0.0",
-    }
-  }
-``` 
+You can restrict which Rancher and @rancher/shell versions your extension is compatible with by setting a ["catalog.cattle.io/rancher-version" annotation](../../advanced/version-compatibility) in your pkg/PROVISIONER_NAME/package.json.
 
 ## Caveats
 1. Though not required, it is best if your provisioner name matches your operator's config, ie if your operator uses aksConfig, it is best to set aks as your you provisioner's id.

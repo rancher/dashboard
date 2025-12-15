@@ -92,40 +92,50 @@ const sidebars = {
               },
               items: [
                 'api/components/resources',
-                {
-                  type:  'category',
-                  label: 'Custom Node Driver UI',
-                  link:  {
-                    type: 'doc',
-                    id:   'api/components/node-driver/overview',
-                  },
-                  items: [
-                    'api/components/node-driver/about-drivers',
-                    'api/components/node-driver/cloud-credential',
-                    'api/components/node-driver/machine-config',
-                    'api/components/node-driver/node-driver-icon',
-                    'api/components/node-driver/advanced',
-                    'api/components/node-driver/proxying',
-                    'api/components/node-driver/about-example'
-                  ]
-                },
-                {
-                  type:  'category',
-                  label: 'Custom Hosted Provider UI',
-                  link:  {
-                    type: 'doc',
-                    id:   'api/components/hosted-provider/overview',
-                  },
-                  items: [
-                    'api/components/hosted-provider/structure',
-                    'api/components/hosted-provider/components',
-                    'api/components/hosted-provider/localization',
-                  ]
-                },
                 'api/components/auto-import',
               ]
             },
             'api/common',
+          ]
+        },
+        {
+          type:  'category',
+          label: 'Cluster Provisioning',
+          link:  {
+            type: 'doc',
+            id:   'provisioning/overview',
+          },
+          items: [
+            {
+              type:  'category',
+              label: 'Custom Node Driver UI',
+              link:  {
+                type: 'doc',
+                id:   'provisioning/node-driver/overview',
+              },
+              items: [
+                'provisioning/node-driver/about-drivers',
+                'provisioning/node-driver/machine-config',
+                'provisioning/node-driver/advanced',
+                'provisioning/node-driver/proxying',
+                'provisioning/node-driver/about-example'
+              ]
+            },
+            {
+              type:  'category',
+              label: 'Custom Hosted Provider UI',
+              link:  {
+                type: 'doc',
+                id:   'provisioning/hosted-provider/overview',
+              },
+              items: [
+                'provisioning/hosted-provider/structure',
+                'provisioning/hosted-provider/components',
+              ]
+            },
+            'provisioning/provider-icon',
+            'provisioning/localization',
+            'provisioning/cloud-credential',
           ]
         },
         {
@@ -135,7 +145,6 @@ const sidebars = {
             'advanced/create-page-in-an-existing-product',
             'advanced/air-gapped-environments',
             // 'advanced/fix-annotations-published-extensions',
-            'advanced/provisioning',
             'advanced/localization',
             'advanced/hooks',
             'advanced/stores',
