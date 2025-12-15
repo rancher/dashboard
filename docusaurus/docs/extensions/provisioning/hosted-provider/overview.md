@@ -1,12 +1,12 @@
 The following steps are fully compatible with Rancher version v.2.13.0 and later.
 
 # Custom Hosted Provider UI
-Hosted providers are a replacement to kontainer drivers (Cluster drivers) and are used to provision clusters in a hosted environment. For example, Rancher comes with built-in AKS, EKS, and GKE provisioning UI extensions. UI extension is the recommended way to add a new hosted provider.
+Hosted providers are a replacement for kontainer drivers (Cluster drivers) and are used to provision clusters in a hosted environment. For example, Rancher comes with built-in AKS, EKS, and GKE provisioning UI extensions. UI extension is the recommended way to add a new hosted provider.
 
 Unlike other UI extensions that might add new products or pages, a hosted provider extension integrates directly into Rancher's cluster creation and management workflows. This is achieved by registering a `provisioner` object.
 
 ## Registering a Hosted Provider
-Most of the information about hosted provider comes from extension's provisioner.ts file. You can learn more about it's structure from it's [types declaration](https://github.com/rancher/dashboard/blob/master/shell/core/types-provisioning.ts). 
+Most of the information about hosted provider comes from the extension's provisioner.ts file. You can learn more about its structure from its [types declaration](https://github.com/rancher/dashboard/blob/master/shell/core/types-provisioning.ts). 
 
 In order for it to take effect, you need to register it in your index.ts file at the root of your extension's pkg/PROVISIONER_NAME folder:
 ```ts
@@ -36,7 +36,7 @@ in provisioner.ts:
     return "hosted";
   }
 ```
-This flag will make extension show up in `Cluster Management -> Clusters -> Create` as part of the 'Create a cluster in a hosted Kubernetes provider' group. 
+This flag will make extension show up in `Cluster Management -> Clusters -> Create` inside the 'Create a cluster in a hosted Kubernetes provider' group. 
 Additionally, it will be visible in `Cluster Management -> Providers -> Hosted Providers` table, where users can enable or disable selected hosted providers, so even if extension is installed, provisioning can be disabled there.
 
 If provisioner.ts file also contains
@@ -48,7 +48,7 @@ If provisioner.ts file also contains
 This provider will also appear in `Cluster Management -> Clusters -> Import Existing` as part of the 'Register an existing cluster in a hosted Kubernetes provider' group. 
 
 ## Specifying Rancher compatibility
-You can restrict which Rancher and @rancher/shell versions your extension is compatible with by setting a ["catalog.cattle.io/rancher-version" annotation](../../advanced/version-compatibility) in your pkg/PROVISIONER_NAME/package.json.
+You can restrict which Rancher your extension is compatible with by setting a ["catalog.cattle.io/rancher-version" annotation](../../advanced/version-compatibility) in your pkg/PROVISIONER_NAME/package.json.
 
 ## Caveats
 1. Though not required, it is best if your provisioner name matches your operator's config, ie if your operator uses aksConfig, it is best to set aks as your you provisioner's id.

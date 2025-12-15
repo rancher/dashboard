@@ -4,7 +4,7 @@ The UI provides a number of ways to customize the processes of creating, importi
 - Adding additional Cluster Provisioner types
 - Customizing or replacing components used in the create process
 - Adding or customizing tabs
-- Adding Hook to the processes that persist cluster resources
+- Adding Hooks to the processes that persist cluster resources
 - Performing overrides that replace the process to persist cluster resources
 
 ## Custom Cluster Provisioner
