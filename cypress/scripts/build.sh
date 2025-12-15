@@ -66,8 +66,6 @@ cp package.json dist/
 cp README.md dist/
 cp .npmignore dist/
 cp globals.d.ts dist/
-
-# Copy CLI and template for yarn link testing
 cp -r bin dist/
 cp -r template dist/
 
