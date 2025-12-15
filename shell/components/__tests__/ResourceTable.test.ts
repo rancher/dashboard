@@ -5,7 +5,23 @@ import { ExtensionPoint } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 
 // Mock the plugin-helpers module
-jest.mock('@shell/core/plugin-helpers', () => ({ getApplicableExtensionEnhancements: jest.fn(() => []) }));
+jest.mock('shell/core/plugin-helpers', () => {
+  // 1. Get the actual, unmocked exports from the module
+  const actual = jest.requireActual('shell/core/plugin-helpers');
+
+  // 2. Return all actual exports, overriding only the function we need to control
+  return {
+    ...actual,
+    getApplicableExtensionEnhancements: jest.fn().mockImplementation(() => ({
+      // Based on the function name, it likely returns an object containing
+      // arrays for different types of enhancements. We provide an empty
+      // but correctly structured return value to prevent TypeErrors.
+      customTypeActions:      [],
+      customTypeTableActions: [],
+      // Ensure all possible return properties are included if known
+    }))
+  };
+});
 
 describe('resourceTable with TABLE extensions', () => {
   let wrapper: any;
