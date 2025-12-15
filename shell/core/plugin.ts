@@ -18,7 +18,8 @@ import {
   NavHooks, OnNavToPackage, OnNavAwayFromPackage, OnLogIn, OnLogOut,
   PaginationTableColumn,
   ExtensionEnvironment,
-  ServerSidePaginationExtensionConfig
+  ServerSidePaginationExtensionConfig,
+  TableAction
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import { defineAsyncComponent, markRaw, Component } from 'vue';
@@ -270,6 +271,13 @@ export class Plugin implements IPlugin {
       column,
       paginationColumn
     });
+  }
+
+  /**
+   * Adds an action/button to the UI
+   */
+  addTableHook(where: string, when: LocationConfig | string, action: TableAction): void {
+    this._addUIConfig(ExtensionPoint.TABLE, where, when, action);
   }
 
   setHomePage(component: any) {

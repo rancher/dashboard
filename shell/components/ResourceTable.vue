@@ -6,7 +6,7 @@ import ButtonGroup from '@shell/components/ButtonGroup';
 import SortableTable from '@shell/components/SortableTable';
 import { NAMESPACE, AGE } from '@shell/config/table-headers';
 import { findBy } from '@shell/utils/array';
-import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
+import { ExtensionPoint, TableColumnLocation, TableLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 import ResourceTableWatch from '@shell/mixins/resource-table-watch';
@@ -320,25 +320,6 @@ export default {
         // { column: TableColumn, paginationColumn: PaginationTableColumn }[]
         const extensionCols = getApplicableExtensionEnhancements(this, ExtensionPoint.TABLE_COL, TableColumnLocation.RESOURCE, this.$route);
 
-        // Try and insert the columns before the Age column
-        let insertPosition = headers.length;
-
-        if (headers.length > 0) {
-          const ageColIndex = headers.findIndex((h) => h.name === AGE.name);
-
-          if (ageColIndex >= 0) {
-            insertPosition = ageColIndex;
-          } else {
-            // we've found some labels with ' ', which isn't necessarily empty (explore action/button)
-            // if we are to add cols, let's push them before these so that the UI doesn't look weird
-            const lastViableColIndex = headers.findIndex((h) => (!h.label || !h.label?.trim()) && (!h.labelKey || !h.labelKey?.trim()));
-
-            if (lastViableColIndex >= 0) {
-              insertPosition = lastViableColIndex;
-            }
-          }
-        }
-
         // adding extension defined cols to the correct header config
         extensionCols.forEach((config) => {
           let { column: col, paginationColumn } = config;
@@ -377,6 +358,37 @@ export default {
           if (!col.value && col.getValue) {
             col.value = col.getValue;
           }
+
+          // Establish a valid header position for the new table column
+          let insertPosition = headers.length;
+
+          if (headers.length > 0) {
+            const ageColIndex = headers.findIndex((h) => h.name === AGE.name);
+
+            if (ageColIndex >= 0) {
+              // we will allow for the table col to be added right after the AGE col
+              // but that will be the limit
+              insertPosition = ageColIndex + 1;
+            } else {
+              // we've found some labels with ' ', which isn't necessarily empty (explore action/button)
+              // if we are to add cols, let's push them before these so that the UI doesn't look weird
+              const lastViableColIndex = headers.findIndex((h) => (!h.label || !h.label?.trim()) && (!h.labelKey || !h.labelKey?.trim()));
+
+              if (lastViableColIndex >= 0) {
+                insertPosition = lastViableColIndex;
+              }
+            }
+          }
+
+          // apply table col ordering if it's present on the new table col config
+          if (col.weight) {
+            if (col.weight < 0) {
+              insertPosition = 0;
+            } else if (col.weight < insertPosition) {
+              insertPosition = col.weight;
+            }
+          }
+
           headers.splice(insertPosition, 0, col);
         });
       }
@@ -412,6 +424,16 @@ export default {
       }
 
       return headers;
+    },
+
+    _applicableExtensionTableHooks() {
+      if (this.$store.$plugin?.getUIConfig) {
+        const extensionTableHooks = getApplicableExtensionEnhancements(this, ExtensionPoint.TABLE, TableLocation.RESOURCE, this.$route);
+
+        return extensionTableHooks;
+      }
+
+      return [];
     },
 
     /**
@@ -640,6 +662,16 @@ export default {
       }
     },
 
+    // this is where we handle the callbacks to the TABLE extension hooks
+    handleSortableTableInteraction(arg) {
+      if (this._applicableExtensionTableHooks?.length) {
+        this._applicableExtensionTableHooks.forEach((item) => {
+          if (item.tableHook) {
+            item.tableHook(arg);
+          }
+        });
+      }
+    }
   }
 };
 </script>
@@ -679,6 +711,7 @@ export default {
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
     @enter="handleEnterKeyPress"
+    @sortable-table-interaction="handleSortableTableInteraction"
   >
     <template
       v-if="showGrouping && _groupOptions.length > 1"

@@ -83,6 +83,7 @@ const sidebars = {
             'api/panels',
             'api/tabs',
             'api/table-columns',
+            'api/table',
             {
               type:  'category',
               label: 'Components',

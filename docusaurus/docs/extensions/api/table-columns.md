@@ -6,8 +6,6 @@ Table Columns are added to Rancher via the `addTableColumn` method.
 
 *(Rancher version v2.7.2)*
 
->**IMPORTANT NOTE:** on **Rancher version v2.8.0** we've introduced breaking changes to the behaviour of this extension enhancement (Table Columns). Previously, you would target the resource name of the table you were trying to extend, which was different from the usage of the [LocationConfig object](./common#locationconfig) in any of the other extension enhancements available. With these new changes, the [LocationConfig object](./common#locationconfig) will be used to target a specific page that contains a table and add it to that particular one, therefore having a better control of the new table column appearance.
-
 This method adds a table column to a `ResourceTable` element-based table on the UI.
 
 Method:
@@ -30,12 +28,18 @@ _Arguments_
 
 `LocationConfig` as described above for the [LocationConfig object](./common#locationconfig).
 
-*(Rancher version v2.13.0)*
+*(From Rancher version v2.13.0)*
 
 An addition parameter can be provided which will be used to support the column when server-side pagination is enabled. For more information and other changes required to server-side pagination see [here](../performance/scaling/lists.md).
 
+*(From Rancher version v2.14.0)*
+
+when adding a new column to a table on Rancher Dashboard, the default is for the table column to be added just before the `Age` column. 
+
+There's a new property in the configuration object called `weight`, on which you can specify in which position you want to add the column to. Position `0` will be the first in the table columns order.
+
 ```ts
-plugin.addTableColumn(where: String, when: LocationConfig, column: TableColumn, paginationColumn?: PaginationTableColumn));
+plugin.addTableColumn(where: String, when: LocationConfig, column: TableColumn, paginationColumn?: PaginationTableColumn);
 ```
 
 ### TableColumnLocation.RESOURCE column
@@ -47,6 +51,7 @@ plugin.addTableColumn(where: String, when: LocationConfig, column: TableColumn, 
 | Key | Type | Description |
 |---|---|---|
 |`name`| String | Label for column |
+|`weight` *(From Rancher version v2.14.0)* | Int | Order/position of the table column added inside a table |
 |`labelKey`| String | Same as "name" but allows for translation. Will supersede "name" |
 |`value`| String | Object property to obtain the value from |
 |`getValue`| Function | Same as "value", but it can be a function. Will supersede "value" |
@@ -65,6 +70,7 @@ plugin.addTableColumn(
   {
     name:     'some-prop-col',
     labelKey: 'generic.comingSoon',
+    weight: 2,
     getValue: (row: any) => {
       return `${ row.id }-DEMO-COL-STRING-ADDED!`;
     },
