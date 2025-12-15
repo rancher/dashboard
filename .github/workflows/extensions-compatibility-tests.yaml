@@ -61,14 +61,14 @@ jobs:
       
       # Upload to sorry cypress in case of failure
       - name: Upload screenshots
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: ${{ failure() }}
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-extensions-compatibility-tests-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}-${{ matrix.rancherEnv }}
           path: cypress/screenshots
 
       - name: Merge Artifacts
-        uses: actions/upload-artifact/merge@v5
+        uses: actions/upload-artifact/merge@v6
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-extensions-compatibility-tests-screenshots-${{ matrix.role.tag }}+${{ matrix.features[0] }}
           pattern: ${{github.run_number}}-${{github.run_attempt}}-extensions-compatibility-tests-screenshots-*
