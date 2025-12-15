@@ -160,7 +160,7 @@ cy.fixture('@rancher/cypress/blueprints/fixture.json').then((data) => {
 ### Publishing
 - To manual publish, run:
   ```bash
-  npm run build
+  yarn build-pkg
   cd dist
   npm publish
   ```

@@ -53,6 +53,7 @@
     "directory": "cypress"
   },
   "scripts": {
-    "build": "./build.sh"
+    "build-pkg": "./scripts/build.sh",
+    "publish-pkg": "./scripts/publish.sh --npm"
   }
 }

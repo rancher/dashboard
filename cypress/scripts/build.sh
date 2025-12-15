@@ -1,11 +1,13 @@
 #!/bin/bash
 
 # Build script for @rancher/cypress package
+# Run this script from the cypress/ directory
 
 echo "Building @rancher/cypress package..."
 
-# Ensure we're in the cypress directory
-cd "$(dirname "$0")"
+
+# Move to the cypress root directory (one level up from scripts/)
+cd "$(dirname "$0")/.."
 
 # Clean previous builds
 rm -rf dist/
