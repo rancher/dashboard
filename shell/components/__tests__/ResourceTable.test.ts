@@ -5,21 +5,33 @@ import { ExtensionPoint } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 
 // Mock the plugin-helpers module
+// NOTE: This top-level mock is likely unused or only used when no test-specific mock is applied,
+// but we keep it here using the new safe structure to avoid pollution.
 jest.mock('shell/core/plugin-helpers', () => {
-  // 1. Get the actual, unmocked exports from the module
   const actual = jest.requireActual('shell/core/plugin-helpers');
 
-  // 2. Return all actual exports, overriding only the function we need to control
   return {
     ...actual,
-    getApplicableExtensionEnhancements: jest.fn().mockImplementation(() => ({
-      // Based on the function name, it likely returns an object containing
-      // arrays for different types of enhancements. We provide an empty
-      // but correctly structured return value to prevent TypeErrors.
-      customTypeActions:      [],
-      customTypeTableActions: [],
-      // Ensure all possible return properties are included if known
-    }))
+    // The top-level mock will still return the object structure in case it's called
+    // in a context that requires it, but test-specific mocks must return arrays.
+    getApplicableExtensionEnhancements: jest.fn().mockImplementation((type, extensionPoint) => {
+      if (type === 'resource' && extensionPoint === ExtensionPoint.TABLE_COL) {
+        return [
+          // Example column, returning array directly as ResourceTable expects
+          {
+            column: {
+              name:     'custom-col',
+              label:    'Custom Column',
+              getValue: jest.fn(),
+              weight:   50,
+            }
+          },
+        ];
+      }
+
+      // Default fallback returns an empty array, matching what ResourceTable expects in the failing line
+      return [];
+    })
   };
 });
 
@@ -150,6 +162,7 @@ describe('resourceTable with TABLE extensions', () => {
   describe('tABLE extension hooks', () => {
     describe('event binding', () => {
       it('should have handleSortableTableInteraction method defined', () => {
+        // Return an empty array for all calls for safety
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(() => []);
 
         wrapper = mountComponent();
@@ -165,7 +178,7 @@ describe('resourceTable with TABLE extensions', () => {
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE) {
-              return [{ tableHook }];
+              return [{ tableHook }]; // Array return (passes)
             }
 
             return [];
@@ -196,7 +209,7 @@ describe('resourceTable with TABLE extensions', () => {
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE) {
-              return [{ tableHook }];
+              return [{ tableHook }]; // Array return (passes)
             }
 
             return [];
@@ -241,7 +254,7 @@ describe('resourceTable with TABLE extensions', () => {
                 { tableHook: tableHook1 },
                 { tableHook: tableHook2 },
                 { tableHook: tableHook3 }
-              ];
+              ]; // Array return (passes)
             }
 
             return [];
@@ -294,7 +307,7 @@ describe('resourceTable with TABLE extensions', () => {
                 { someOtherProperty: 'value' },
                 { tableHook },
                 { anotherProperty: 123 }
-              ];
+              ]; // Array return (passes)
             }
 
             return [];
@@ -333,6 +346,7 @@ describe('resourceTable with TABLE extensions', () => {
           }
         };
 
+        // FIX: Return the array directly, as the component expects a list it can iterate over
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE_COL) {
@@ -361,6 +375,7 @@ describe('resourceTable with TABLE extensions', () => {
           }
         };
 
+        // FIX: Return the array directly
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE_COL) {
@@ -391,6 +406,7 @@ describe('resourceTable with TABLE extensions', () => {
           }
         };
 
+        // FIX: Return the array directly
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE_COL) {
@@ -418,6 +434,7 @@ describe('resourceTable with TABLE extensions', () => {
           }
         };
 
+        // FIX: Return the array directly
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE_COL) {
@@ -459,6 +476,7 @@ describe('resourceTable with TABLE extensions', () => {
           }
         };
 
+        // FIX: Return the array directly
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE_COL) {
@@ -499,6 +517,7 @@ describe('resourceTable with TABLE extensions', () => {
           }
         ];
 
+        // FIX: Return the array directly
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE_COL) {
@@ -531,6 +550,7 @@ describe('resourceTable with TABLE extensions', () => {
           }
         };
 
+        // FIX: Return the array directly
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE_COL) {
@@ -565,6 +585,7 @@ describe('resourceTable with TABLE extensions', () => {
         }
       };
 
+      // FIX: Must handle both extension points, returning the array for the requested point
       (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
         (component, extensionPoint) => {
           if (extensionPoint === ExtensionPoint.TABLE) {
@@ -611,6 +632,7 @@ describe('resourceTable with TABLE extensions', () => {
         }
       };
 
+      // FIX: Must handle both extension points, returning the array for the requested point
       (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
         (component, extensionPoint) => {
           if (extensionPoint === ExtensionPoint.TABLE) {
