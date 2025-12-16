@@ -329,15 +329,15 @@ describe('resourceTable with TABLE extensions', () => {
           }
         };
 
-        (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
-          (component, extensionPoint) => {
-            if (extensionPoint === ExtensionPoint.TABLE_COL) {
-              return [columnExtension];
-            }
-
-            return [];
+        const mockImpl = jest.fn((component, extensionPoint) => {
+          if (extensionPoint === ExtensionPoint.TABLE_COL) {
+            return [columnExtension];
           }
-        );
+
+          return [];
+        });
+
+        (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(mockImpl);
 
         // Pass headers as a prop to make the computed property depend on it
         wrapper = mountComponent({ ...defaultProps, headers: defaultHeaders });
@@ -347,6 +347,20 @@ describe('resourceTable with TABLE extensions', () => {
 
         const headers = wrapper.vm._headers;
         const columnNames = headers.map((h: any) => h.name);
+
+        // Debug info for CI
+        if (!columnNames.includes('custom-col')) {
+          const debugInfo = {
+            mockCalled:     mockImpl.mock.calls.length,
+            mockCallArgs:   JSON.stringify(mockImpl.mock.calls),
+            hasPlugin:      !!wrapper.vm.$store.$plugin,
+            hasGetUIConfig: !!wrapper.vm.$store.$plugin?.getUIConfig,
+            columnNames,
+            headersLength:  headers.length,
+          };
+
+          throw new Error(`Extension column not found. Debug info: ${ JSON.stringify(debugInfo, null, 2) }`);
+        }
 
         expect(columnNames).toContain('custom-col');
       });
