@@ -1,6 +1,6 @@
 {
   "name": "@rancher/cypress",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Cypress E2E test, utilities, page objects, and blueprints for Rancher Dashboard",
   "bin": {
     "rancher-cypress": "./bin/cli.js"
@@ -44,7 +44,8 @@
     "cypress-real-events": "1.14.0",
     "cypress-terminal-report": "^7.2.0",
     "dotenv": "^10.0.0",
-    "dotenv-expand": "^5.1.0"
+    "dotenv-expand": "^5.1.0",
+    "sha.js": "^2.4.12"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
