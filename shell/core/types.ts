@@ -235,6 +235,11 @@ export interface ProductOptions {
   ifHaveType?: string | RegExp;
 
   /**
+   * Hide the product if the type is present (opposite of ifHaveType)
+   */
+  ifNotHaveType?: string | RegExp;
+
+  /**
    * The vuex store that this product should use by default i.e. 'management'
    */
   inStore?: string;
