@@ -101,43 +101,45 @@ class PaginationWrapper<T extends object> {
 
     const backOffId = this.backOffId;
 
+    const activeRevisionSt = backOff.getBackOff(backOffId)?.metadata.revision;
+    const activeRevision = activeRevisionSt ? new SteveRevision(activeRevisionSt) : undefined;
+    const cachedRevisionSt = this.cachedRevision;
+    const cachedRevision = cachedRevisionSt ? new SteveRevision(cachedRevisionSt) : undefined;
+
     const targetRevision = new SteveRevision(revision);
-    const activeRevision = new SteveRevision(backOff.getBackOff(backOffId)?.metadata.revision);
-    const previousRevision = new SteveRevision(this.cachedRevision);
+    const currentRevision = new SteveRevision(activeRevisionSt || cachedRevisionSt);
 
-    // Three scenarios
-    // 1) current version is newer than target revision - abort/ignore (don't overwrite new with old)
-    //   - HA support scenario 3 - Avoid overwriting store given resource.changes + http request processed by stale replicas
-    //   - There's two sub scenarios given this function needs to return a value
-    // 2) current version in cache is older than target revision - reset previous (drop older requests, use new target (don't )
-    // 3) current version in cache is same as target revision, or versions are missing - we're retrying
+    // Three scenarios to support HA support scenario 2 + 3
+    // 1. current version is newer than target revision - abort/ignore (don't overwrite new with old)
+    // 2. current version in cache is older than target revision - reset previous (drop older requests with older revision, use new revision)
+    // 3. current version in cache is same as target revision - we're retrying
 
-    if (activeRevision.isNewerThan(targetRevision)) {
-      // Scenario 1 - there's a current in-progress request with a newer revision, abort this run
+    if (activeRevision?.isNewerThan(targetRevision)) {
+      // Scenario 1 - abort/ignore (don't overwrite new with old). Specifically we're fetching something with a higher revision, ignore the newer request with older revision
 
       // eslint-disable-next-line no-console
       console.warn(`Ignoring event listener request to update '${ this.id }' with revision '${ targetRevision.revision }' (newer in-progress revision '${ activeRevision.revision }'). ` +
               `This probably means the replica that provided the request has not yet correctly synced it's cache with other fresher replicas.`);
 
-      return Promise.reject(new Error('Aborting current request in favour of other in-progress request with newer revision')); // This will abort the current batch of updates, meaning the other in-progress can update with the newer revision
+      return Promise.reject(new Error('Ignoring current request in favour of other in-progress request with newer revision')); // This will abort the current batch of updates, meaning the other in-progress can update with the newer revision
     }
 
-    if (previousRevision.isNewerThan(targetRevision)) {
-      // Scenario 1 - there's a previous request with a newer revision, abort this run
+    if (cachedRevision?.isNewerThan(targetRevision)) {
+      // Scenario 1 - abort/ignore (don't overwrite new with old). Specifically we're already fetched something with a higher revision, ignore the newer request with older revision and just return the cached versio
 
       // eslint-disable-next-line no-console
-      console.warn(`Ignoring event listener request to update '${ this.id }' with revision '${ targetRevision.revision }' (newer cached revision '${ previousRevision.revision }'). ` +
+      console.warn(`Ignoring event listener request to update '${ this.id }' with revision '${ targetRevision.revision }' (newer cached revision '${ cachedRevision.revision }'). ` +
               `This probably means the replica that provided the request has not yet correctly synced it's cache with other fresher replicas.`);
 
       if (this.cachedResult) {
         return this.cachedResult;
       }
 
-      return Promise.reject(new Error('Cache has higher revision than target revision... but no cached results'));
+      return Promise.reject(new Error('Cache has higher revision than target revision... but no cached results?'));
     }
 
-    if (targetRevision.isNewerThan(activeRevision)) {
-      // Scenario 2 - need a revision that's newer than a current in-progress request, abort the old one
+    if (targetRevision.isNewerThan(currentRevision)) {
+      // Scenario 2 - reset previous (drop older requests with older revision, use new revision)
 
       backOff.reset(backOffId);
     }
@@ -167,7 +169,9 @@ class PaginationWrapper<T extends object> {
 
     if (!out) {
       // Skip
-      throw new Error(`Wrapper for type '${ this.enabledFor.store }/${ this.enabledFor.resource?.id }' in context '${ this.enabledFor.resource?.context }' failed TODO: RC`);
+      debugger;
+
+      throw new Error(`Wrapper for type '${ this.enabledFor.store }/${ this.enabledFor.resource?.id }' in context '${ this.enabledFor.resource?.context }' failed to  TODO: RC`);
     }
 
     // Watch

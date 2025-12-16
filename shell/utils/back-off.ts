@@ -142,7 +142,7 @@ class BackOff {
         id, status: 'Skipping (canExecute test failed)', description, metadata
       });
 
-      return Promise.reject(new Error('dsfdsf')); // TODO: RC return undefined vs rejected promise?
+      return Promise.reject(new Error('Backoff failed (failed canFn)')); // TODO: RC return undefined vs rejected promise?
     } else if (backOff?.timeoutId) {
       this.log('info', {
         id, status: 'Skipping (previous back off process still running)', description, metadata
@@ -215,7 +215,7 @@ class BackOff {
 
           // Unblock future calls
           delete this.map[id];
-          // this.map[id].result = undefined; // TODO: RC was this. doesn't it break other use case????
+          // this.map[id].result = undefined; // TODO: RC test scenario 1
 
           // delete this.map[id]?.timeoutId; // avoids some scary log files in reset()
           // this.reset(id); // Reset the try counter so next requests with same id don't act same as failed requests

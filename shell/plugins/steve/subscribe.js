@@ -857,9 +857,9 @@ const defaultActions = {
   },
 
   /**
-   * TODO: RC
-   *
    * Helper function used by fetchResources
+   *
+   * Integrates the concept of 'back-off' to reduce spam, overwrite stale old requests, etc
    *
    */
   async fetchPageResources({ getters, dispatch }, { opt, storePagination, ...params }) {
@@ -879,13 +879,13 @@ const defaultActions = {
     myLogger.warn('fetchPageResources', 'start', backOffId, revision, activeRevisionSt, cachedRevisionSt);
     myLogger.warn('fetchPageResources', 'start', backOffId, targetRevision.revision, currentRevision.revision);
 
-    // Three scenarios to support HA support scenario 3
-    // current version is newer than target revision - abort/ignore (don't overwrite new with old)
-    // current version in cache is older than target revision - reset previous (drop older requests with older revision, use new revision)
-    // current version in cache is same as target revision - we're retrying
+    // Three scenarios to support HA support scenario 2 + 3
+    // 1. current version is newer than target revision - abort/ignore (don't overwrite new with old)
+    // 2. current version is older than target revision - reset previous (drop older requests with older revision, use new revision)
+    // 3. current version is same as target revision - we're retrying
 
     if (currentRevision.isNewerThan(targetRevision)) {
-      // Avoid overwriting store (resource.changes + http request processed by stale replicas
+      // Scenario 1 - abort/ignore (don't overwrite new with old)
 
       // eslint-disable-next-line no-console
       console.warn(`Ignoring subscribe request to update '${ type }' with revision '${ targetRevision.revision }' (previously processed '${ currentRevision.revision }'). ` +
@@ -894,20 +894,19 @@ const defaultActions = {
       return;
     }
 
-    if (targetRevision.isNewerThan(new SteveRevision(activeRevisionSt))) {
-      // is there a backOff currently running with an older revision? if so we should forget it and concentrate on this new revision
+    if (targetRevision.isNewerThan(currentRevision)) {
+      // Scenario 2 - reset previous (drop older requests with older revision, use new revision)
 
       // eslint-disable-next-line no-console
-      // console.warn(`Dropping previous web socket request to update '${ msg.type || msg.resourceType }' with revision '${ currentRevision.revision }' (target revision '${ targetRevision.revision }'). `);
+      console.info(`Dropping previous subscribe request to update '${ type }' with revision '${ currentRevision.revision }' (new target revision '${ targetRevision.revision }'). `);
 
-      // don't need to compare revision of running to this new socket prompted call.. subsequent calls will always be higher
       backOff.reset(backOffId);
     }
 
     backOff.execute({
       id:          backOffId,
       metadata:    { revision },
-      description: `Catering for invalid unknown revision in fetchPageResources`, // TODO: RC
+      description: `Fetching resources for ${ type }. Triggered by web socket`,
       canFn:       () => getters.canBackoff(this.$socket),
       delayedFn:   async() => {
         try {
@@ -1375,75 +1374,6 @@ const defaultActions = {
       ...msg,
       opt: { force: true, load: _MERGE }
     } );
-
-    // const { ...msg } = params;
-
-    // msg.revision = Number.MAX_SAFE_INTEGER; // TODO: RC with this in it doesn't repeat... (should backoff repeat after last resource.changes)
-
-    // const backOffId = getters.backOffId(msg, `${ STEVE_HTTP_CODES.UNKNOWN_REVISION }`);
-
-    // const activeRevisionSt = backOff.getBackOff(backOffId)?.metadata.revision;
-    // const cachedRevisionSt = getters['typeEntry'](msg.resourceType || msg.type)?.revision;
-
-    // const targetRevision = new SteveRevision(msg.revision);
-    // const currentRevision = new SteveRevision(activeRevisionSt || cachedRevisionSt);
-
-    // // myLogger.warn('resource.changes', 'start', params, retry, msg);
-    // myLogger.warn('resource.changes', 'start', backOffId, msg.revision, activeRevisionSt, cachedRevisionSt);
-    // myLogger.warn('resource.changes', 'start', backOffId, targetRevision.revision, currentRevision.revision);
-
-    // // Three scenarios to support HA support scenario 3
-    // // current version is newer than target revision - abort/ignore (don't overwrite new with old)
-    // // current version in cache is older than target revision - reset previous (drop older requests with older revision, use new revision)
-    // // current version in cache is same as target revision - we're retrying
-
-    // if (currentRevision.isNewerThan(targetRevision)) {
-    //   // Avoid overwriting store (resource.changes + http request processed by stale replicas
-
-    //   // eslint-disable-next-line no-console
-    //   console.warn(`Ignoring web socket request to update '${ msg.type || msg.resourceType }' with revision '${ targetRevision.revision }' (previously processed '${ currentRevision.revision }'). ` +
-    //           `This probably means the replica that provided the web socket message has not yet correctly synced it's cache with other fresher replicas.`);
-
-    //   return;
-    // }
-
-    // if (targetRevision.isNewerThan(new SteveRevision(activeRevisionSt))) {
-    //   // is there a backOff currently running with an older revision? if so we should forget it and concentrate on this new revision
-
-    //   // eslint-disable-next-line no-console
-    //   // console.warn(`Dropping previous web socket request to update '${ msg.type || msg.resourceType }' with revision '${ currentRevision.revision }' (target revision '${ targetRevision.revision }'). `);
-
-    //   // don't need to compare revision of running to this new socket prompted call.. subsequent calls will always be higher
-    //   backOff.reset(backOffId);
-    // }
-
-    // // if (!retry) {
-    // //   // is there a backOff currently running with an older revision? if so we should forget it and concentrate on this new revision
-
-    // //   // don't need to compare revision of running to this new socket prompted call.. subsequent calls will always be higher
-    // //   backOff.reset(backOffId);
-    // // }
-    // backOff.execute({
-    //   id:          backOffId,
-    //   metadata:    { revision: msg.revision },
-    //   description: `Catering for invalid unknown revision in resource.changes`, // TODO: RC
-    //   canFn:       () => getters.canBackoff(this.$socket),
-    //   delayedFn:   async() => {
-    //     try {
-    //       myLogger.warn('resource.changes', 'trying', msg );
-    //       await dispatch('fetchResources', {
-    //         ...msg,
-    //         opt: { force: true, load: _MERGE }
-    //       });
-    //     } catch (err) {
-    //       myLogger.warn('resource.changes', 'ERROR', msg, err);
-    //       if (err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION) {
-    //         await dispatch('ws.resource.changes', msg);
-    //         // await dispatch('ws.resource.changes', { ...msg, retry: true });
-    //       }
-    //     }
-    //   },
-    // });
   },
 
   'ws.resource.remove'(ctx, msg) {
