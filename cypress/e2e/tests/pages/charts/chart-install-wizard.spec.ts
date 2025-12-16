@@ -95,10 +95,8 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
       installChartPage.customRegistryInput().set(customRegistry);
 
       // Change chart version
-      const chartVersionSelector = new LabeledSelectPo('[data-testid="chart-version-selector"]');
-
-      chartVersionSelector.toggle();
-      chartVersionSelector.clickOption(2);
+      installChartPage.chartVersionSelector().toggle();
+      installChartPage.chartVersionSelector().clickOption(2);
 
       // Verify custom registry is still there
       installChartPage.customRegistryCheckbox().isChecked();
