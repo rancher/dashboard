@@ -61,6 +61,7 @@ export const POD_DISRUPTION_BUDGET = 'policy.poddisruptionbudget';
 export const PV = 'persistentvolume';
 export const PVC = 'persistentvolumeclaim';
 export const RESOURCE_QUOTA = 'resourcequota';
+export const AUDIT_POLICY = 'auditlog.cattle.io.auditpolicy';
 export const SCHEMA = 'schema';
 export const SERVICE = 'service';
 export const SECRET = 'secret';

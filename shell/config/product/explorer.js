@@ -3,7 +3,7 @@ import {
   CONFIG_MAP,
   EVENT,
   NODE, SECRET, INGRESS,
-  WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD, POD_DISRUPTION_BUDGET, LIMIT_RANGE, RESOURCE_QUOTA,
+  WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD, POD_DISRUPTION_BUDGET, LIMIT_RANGE, RESOURCE_QUOTA, AUDIT_POLICY,
   MANAGEMENT,
   NAMESPACE,
   NORMAN,
@@ -83,6 +83,7 @@ export function init(store) {
     NETWORK_POLICY,
     POD_DISRUPTION_BUDGET,
     RESOURCE_QUOTA,
+    AUDIT_POLICY,
   ], 'policy');
 
   basicType([
@@ -118,6 +119,7 @@ export function init(store) {
   weightGroup('storage', 95, true);
   weightGroup('policy', 94, true);
   weightType(POD, -1, true);
+  weightType(AUDIT_POLICY, -1, true);
 
   // here is where we define the usage of the WORKLOAD custom list view for
   // all the workload types (ex: deployments, cron jobs, daemonsets, etc)
@@ -152,6 +154,7 @@ export function init(store) {
   mapGroup('autoscaling', 'Autoscaling');
   mapGroup('policy', 'Policy');
   mapGroup('networking.k8s.io', 'Networking');
+  mapGroup('auditlog.cattle.io', 'Policy');
   mapGroup(/^(.+\.)?api(server)?.*\.k8s\.io$/, 'API');
   mapGroup('rbac.authorization.k8s.io', 'RBAC');
   mapGroup('admissionregistration.k8s.io', 'admission');
