@@ -68,7 +68,7 @@ export default extendConfig({
     yourCustomEnvVar: 'value',
   },
   e2e: {
-    specPattern:                  yourCustomSpecPattern
+    supportFile: 'your/custom/support/file.ts',
   }
 });
 ```
@@ -106,15 +106,13 @@ Add new tasks to Cypress configuration in `package.json`:
 ### Using Page Objects
 
 ```typescript
-import { LoginPage } from '@rancher/cypress/e2e/po/pages/login.po';
-import { HomePage } from '@rancher/cypress/e2e/po/pages/home.po';
+import HomePagePo from '@rancher/cypress/e2e/po/pages/home.po';
 
 describe('Login Test', () => {
   it('should login successfully', () => {
-    const loginPage = new LoginPage();
-    loginPage.login('admin', 'password');
+    cy.login();
     
-    const homePage = new HomePage();
+    const homePage = new HomePagePo();
     homePage.goTo();
   });
 });
