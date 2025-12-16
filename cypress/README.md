@@ -139,6 +139,15 @@ cy.fixture('@rancher/cypress/blueprints/fixture.json').then((data) => {
 });
 ```
 
+### Importing E2E Tests
+
+You can directly import and run predefined E2E tests from the package:
+
+```typescript
+// File your-e2e-tests.spec.ts
+import '@rancher/cypress/e2e/tests/sample-dir/sample-test.spec';
+```
+
 ## Implementation & Publishing Notes
 
 ### Project Structure & Build Process
