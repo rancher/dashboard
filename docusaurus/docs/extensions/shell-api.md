@@ -4,7 +4,7 @@ id: shell-api
 
 # Shell API
 
-> Available from Rancher `2.13` and onwards
+> Available from Rancher `2.14` and onwards
 
 ## What is the Shell API?
 
