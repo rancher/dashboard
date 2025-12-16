@@ -3666,6 +3666,8 @@ auditPolicy:
       label: Paths
       placeholder: e.g. $.gitCommit
       add: Add Path
+  error:
+      enableOrDisable: "{flag, select, enable {Error when enabling - {id}} disable {Error when disabling - {id}} other {Error - {id}}}"
       
 ingress:
   description: Ingresses route incoming traffic from the internet to Services within the cluster based on the hostname and path specified in the request. You can expose multiple Services on the same external IP address and port.

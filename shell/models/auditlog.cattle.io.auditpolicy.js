@@ -39,8 +39,9 @@ export default class AuditPolicy extends SteveModel {
 
     clone.spec.enabled = flag === 'enable';
     await clone.save().catch((err) => {
-      // The message will be there until the next update
-      this.$dispatch('growl/fromError', { err, timeout: 5000 }, { root: true });
+      this.$dispatch('growl/fromError', {
+        title: this.t('auditPolicy.error.enableOrDisable', { flag, id: this.id }), err, timeout: 5000
+      }, { root: true });
     });
   }
 }
