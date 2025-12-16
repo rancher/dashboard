@@ -9,7 +9,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { mapGetters, mapState, mapActions } from 'vuex';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import CruResourceFooter from '@shell/components/CruResourceFooter';
-
+import TableOfContents from '@shell/components/TableOfContents';
 import {
   _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE
 } from '@shell/config/query-params';
@@ -30,7 +30,8 @@ export default {
     Banner,
     CruResourceFooter,
     ResourceYaml,
-    Wizard
+    Wizard,
+    TableOfContents
   },
 
   props: {
@@ -161,6 +162,11 @@ export default {
     yamlModifiers: {
       type:    Object,
       default: undefined
+    },
+
+    showToc: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -764,6 +770,7 @@ export default {
       </template>
       <!------ SINGLE PROCESS ------>
       <template v-else-if="showAsForm">
+        <TableOfContents v-if="showToc" />
         <div
           v-if="_selectedSubtype || !subtypes.length"
           class="resource-container cru__content"
