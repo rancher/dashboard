@@ -101,14 +101,18 @@ describe('resourceTable with TABLE extensions', () => {
     };
   };
 
+  beforeEach(() => {
+    // Reset mock to default before each test
+    (getApplicableExtensionEnhancements as jest.Mock).mockReset();
+    (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(() => []);
+  });
+
   afterEach(() => {
     if (wrapper) {
       wrapper.unmount();
     }
     // CRITICAL: Clear all mocks between tests to prevent state leakage
     jest.clearAllMocks();
-    // CRITICAL: Reset the mock implementation to default empty array
-    (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(() => []);
   });
 
   const mountComponent = (props = defaultProps, store = createMockStore()) => {
