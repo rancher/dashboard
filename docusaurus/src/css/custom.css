@@ -176,6 +176,19 @@ a.gettingStartedLink .resourcesSvg svg {
 hr {
   margin: 2rem 0;
 }
+
+/* Fixes for CSS issues with auto generated docs */
+/* Fixes anchor styling methods subtitle */
+h4.anchor {
+  font-size: 26px;
+}
+
+/* Fixes anchor styling for method params */
+h5.anchor {
+  font-size: 20px;
+  text-decoration: underline;
+}
+
 @media screen and (max-width: 996px) {
   .homepage-banner {
     padding: 30px 30px;
