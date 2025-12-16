@@ -324,3 +324,18 @@ jobs:
       - name: Check e2e tags
         run: |
           ./scripts/check-e2e-tests-for-tags
+
+  check-cypress-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+      - name: Verify Cypress build
+        working-directory: ./cypress
+        run: |
+          yarn install --frozen-lockfile
+          yarn build-pkg --verify

@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -o pipefail
 
 # Build script for @rancher/cypress package
 # Run this script from the cypress/ directory
@@ -69,9 +71,18 @@ cp globals.d.ts dist/
 cp -r bin dist/
 cp -r template dist/
 
-echo "Package built successfully in dist/ directory"
-echo "To test with yarn link:"
-echo "  cd dist"
-echo "  yarn link"
-echo "Then in your other project:"
-echo "  yarn link '@rancher/cypress'"
+if [ "$1" == "--verify" ]; then
+  echo ""
+  echo "Package build verified"
+  echo ""
+else
+  echo "Package built successfully in dist/ directory"
+  echo ""
+  echo "To test with yarn link:"
+  echo "  cd dist"
+  echo "  yarn install && yarn link"
+  echo ""
+  echo "Then in your other project:"
+  echo "  yarn link '@rancher/cypress'"
+  echo ""
+fi
