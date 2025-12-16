@@ -111,8 +111,8 @@ describe('resourceTable with TABLE extensions', () => {
     (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(() => []);
   });
 
-  const mountComponent = async(props = defaultProps, store = createMockStore()) => {
-    const mounted = shallowMount(ResourceTable, {
+  const mountComponent = (props = defaultProps, store = createMockStore()) => {
+    return shallowMount(ResourceTable, {
       props,
       global: {
         mocks: {
@@ -139,12 +139,6 @@ describe('resourceTable with TABLE extensions', () => {
         }
       }
     });
-
-    // CRITICAL: Wait for component to fully mount and process reactive updates
-    await mounted.vm.$nextTick();
-    await flushPromises();
-
-    return mounted;
   };
 
   describe('tABLE extension hooks', () => {
@@ -152,7 +146,11 @@ describe('resourceTable with TABLE extensions', () => {
       it('should have handleSortableTableInteraction method defined', async() => {
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(() => []);
 
-        wrapper = await mountComponent();
+        wrapper = mountComponent();
+
+        // CRITICAL: Wait for Vue to process reactive updates
+        await wrapper.vm.$nextTick();
+        await flushPromises();
 
         expect(wrapper.vm.handleSortableTableInteraction).toBeDefined();
         expect(typeof wrapper.vm.handleSortableTableInteraction).toBe('function');
@@ -171,7 +169,11 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = await mountComponent();
+        wrapper = mountComponent();
+
+        // CRITICAL: Wait for Vue to process reactive updates
+        await wrapper.vm.$nextTick();
+        await flushPromises();
 
         const interactionData = {
           pagination: { page: 2, perPage: 10 },
@@ -201,7 +203,11 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = await mountComponent();
+        wrapper = mountComponent();
+
+        // CRITICAL: Wait for Vue to process reactive updates
+        await wrapper.vm.$nextTick();
+        await flushPromises();
 
         const interactionData = {
           pagination: { page: 3, perPage: 25 },
@@ -245,7 +251,11 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = await mountComponent();
+        wrapper = mountComponent();
+
+        // CRITICAL: Wait for Vue to process reactive updates
+        await wrapper.vm.$nextTick();
+        await flushPromises();
 
         const interactionData = {
           pagination: { page: 1, perPage: 10 },
@@ -266,7 +276,11 @@ describe('resourceTable with TABLE extensions', () => {
       it('should not throw when no extensions are registered', async() => {
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(() => []);
 
-        wrapper = await mountComponent();
+        wrapper = mountComponent();
+
+        // CRITICAL: Wait for Vue to process reactive updates
+        await wrapper.vm.$nextTick();
+        await flushPromises();
 
         const interactionData = {
           pagination: { page: 1, perPage: 10 },
@@ -298,7 +312,11 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = await mountComponent();
+        wrapper = mountComponent();
+
+        // CRITICAL: Wait for Vue to process reactive updates
+        await wrapper.vm.$nextTick();
+        await flushPromises();
 
         const interactionData = {
           pagination: { page: 1, perPage: 10 },
@@ -339,7 +357,11 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = await mountComponent();
+        wrapper = mountComponent();
+
+        // CRITICAL: Wait for Vue to process reactive updates
+        await wrapper.vm.$nextTick();
+        await flushPromises();
 
         const headers = wrapper.vm._headers;
         const columnNames = headers.map((h: any) => h.name);
@@ -367,7 +389,11 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = await mountComponent();
+        wrapper = mountComponent();
+
+        // CRITICAL: Wait for Vue to process reactive updates
+        await wrapper.vm.$nextTick();
+        await flushPromises();
 
         const headers = wrapper.vm._headers;
         const customCol = headers.find((h: any) => h.name === 'custom-col');
@@ -399,7 +425,11 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = await mountComponent();
+        wrapper = mountComponent();
+
+        // CRITICAL: Wait for Vue to process reactive updates
+        await wrapper.vm.$nextTick();
+        await flushPromises();
 
         const headers = wrapper.vm._headers;
 
@@ -426,7 +456,11 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = await mountComponent();
+        wrapper = mountComponent();
+
+        // CRITICAL: Wait for Vue to process reactive updates
+        await wrapper.vm.$nextTick();
+        await flushPromises();
 
         const headers = wrapper.vm._headers;
         const columnIndex = headers.findIndex((h: any) => h.name === 'weighted-col');
@@ -465,7 +499,11 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = await mountComponent(defaultProps, createMockStore(headersWithAge));
+        wrapper = mountComponent(defaultProps, createMockStore(headersWithAge));
+
+        // CRITICAL: Wait for Vue to process reactive updates
+        await wrapper.vm.$nextTick();
+        await flushPromises();
 
         const headers = wrapper.vm._headers;
         const columnNames = headers.map((h: any) => h.name);
@@ -504,7 +542,11 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = await mountComponent();
+        wrapper = mountComponent();
+
+        // CRITICAL: Wait for Vue to process reactive updates
+        await wrapper.vm.$nextTick();
+        await flushPromises();
 
         const headers = wrapper.vm._headers;
         const weight1Index = headers.findIndex((h: any) => h.name === 'col-weight-1');
@@ -535,7 +577,11 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = await mountComponent();
+        wrapper = mountComponent();
+
+        // CRITICAL: Wait for Vue to process reactive updates
+        await wrapper.vm.$nextTick();
+        await flushPromises();
 
         const headers = wrapper.vm._headers;
         const columnIndex = headers.findIndex((h: any) => h.name === 'large-weight-col');
@@ -571,7 +617,11 @@ describe('resourceTable with TABLE extensions', () => {
         }
       );
 
-      wrapper = await mountComponent();
+      wrapper = mountComponent();
+
+      // CRITICAL: Wait for Vue to process reactive updates
+      await wrapper.vm.$nextTick();
+      await flushPromises();
 
       const headers = wrapper.vm._headers;
       const columnNames = headers.map((h: any) => h.name);
@@ -615,7 +665,11 @@ describe('resourceTable with TABLE extensions', () => {
         }
       );
 
-      wrapper = await mountComponent();
+      wrapper = mountComponent();
+
+      // CRITICAL: Wait for Vue to process reactive updates
+      await wrapper.vm.$nextTick();
+      await flushPromises();
 
       const interactionData = {
         pagination: { page: 1, perPage: 10 },
