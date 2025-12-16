@@ -67,4 +67,47 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
       cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
     });
   });
+
+  describe('Custom registry', () => {
+    const installChartPage = new InstallChartPage();
+    const chartPage = new ChartPage();
+    const chartName = 'Kubewarden';
+    const customRegistry = 'my.custom.registry:5000';
+    const newRepoName = 'kubewarden-charts';
+
+    before(() => {
+      cy.createRancherResource('v1', 'catalog.cattle.io.clusterrepos', {
+        type:     'catalog.cattle.io.clusterrepo',
+        metadata: { name: newRepoName },
+        spec:     { url: 'https://charts.kubewarden.io' }
+      });
+    });
+
+    it('should persist custom registry when changing chart version', () => {
+      ChartPage.navTo(null, chartName);
+      chartPage.waitForChartHeader(chartName, MEDIUM_TIMEOUT_OPT);
+      chartPage.goToInstall();
+
+      installChartPage.customRegistryCheckbox().isChecked();
+
+      // Enter custom registry
+      installChartPage.customRegistryInput().self().should('be.visible');
+      installChartPage.customRegistryInput().set(customRegistry);
+
+      // Change chart version
+      const chartVersionSelector = new LabeledSelectPo('[data-testid="chart-version-selector"]');
+
+      chartVersionSelector.toggle();
+      chartVersionSelector.clickOption(2);
+
+      // Verify custom registry is still there
+      installChartPage.customRegistryCheckbox().isChecked();
+      installChartPage.customRegistryInput().self().should('have.value', customRegistry);
+    });
+
+    after('clean up', () => {
+      cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', newRepoName);
+      cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+    });
+  });
 });
