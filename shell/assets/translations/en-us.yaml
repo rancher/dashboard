@@ -8035,8 +8035,8 @@ typeLabel:
     }
   auditlog.cattle.io.auditpolicy: |-
     {count, plural,
-      one { Audit Logs Policy }
-      other { Audit Logs Policies }
+      one { Audit Log Policy }
+      other { Audit Log Policies }
     }
   # pruh-mee-thee-eyes https://www.prometheus.io/docs/introduction/faq/#what-is-the-plural-of-prometheus
   monitoring.coreos.com.prometheus: |-
