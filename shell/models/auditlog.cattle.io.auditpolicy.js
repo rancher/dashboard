@@ -34,7 +34,6 @@ export default class AuditPolicy extends SteveModel {
   }
 
   async enableOrDisable(flag) {
-    delete this._error;
     const clone = await this.$dispatch('rancher/clone', { resource: this }, { root: true });
 
     clone.spec.enabled = flag === 'enable';
