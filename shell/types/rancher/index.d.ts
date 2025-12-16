@@ -5,6 +5,7 @@ declare module '@rancher/auto-import' {
 declare module '@shell/store/type-map' {
   export function DSL(store: any, name: string): any;
   export function isAdminUser(getters: any): boolean;
+  export const PRODUCT_ALL = '*';
 }
 
 declare module '@shell/plugins/dashboard-store';

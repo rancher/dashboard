@@ -239,6 +239,26 @@ export default {
     isHarvester() {
       return this.$store.getters['currentProduct'].inStore === HARVESTER;
     },
+
+    productLabel() {
+      // Old-style product will just show the branding logo
+      // version 2 products will show the product label if set
+      if (!this.currentProduct?.version === 2) {
+        return false;
+      }
+
+      if (this.currentProduct?.label) {
+        return this.currentProduct.label;
+      }
+
+      if (this.currentProduct?.labelKey) {
+        return this.$store.getters['i18n/t'](this.currentProduct.labelKey);
+      }
+
+      const name = this.currentProduct.name;
+
+      return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));;
+    }
   },
 
   watch: {
@@ -518,7 +538,7 @@ export default {
           :alt="t('branding.logos.label')"
         >
         <div class="product-name">
-          {{ prod }}
+          {{ productLabel || prod }}
         </div>
       </div>
     </div>
@@ -532,6 +552,13 @@ export default {
         class="product-name"
       >
         {{ t(isSingleProduct.productNameKey) }}
+      </div>
+
+      <div
+        v-if="productLabel"
+        class="product-name"
+      >
+        {{ productLabel }}
       </div>
 
       <div

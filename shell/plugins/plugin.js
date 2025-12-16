@@ -3,6 +3,8 @@ import { allHashSettled } from '@shell/utils/promise';
 import { shouldNotLoadPlugin, UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 import { getKubeVersionData, getVersionData } from '@shell/config/version';
 import versions from '@shell/utils/versions';
+import { listProducts, loadProduct } from '@shell/utils/dynamic-importer';
+import { Plugin as UIPlugin } from '@shell/core/plugin';
 
 export default async function(context) {
   if (process.env.excludeOperatorPkg === 'true') {
@@ -42,6 +44,20 @@ export default async function(context) {
   // Fetch list of installed extensions from the extensions endpoint if needed and the version information
   try {
     const res = await allHashSettled(fetches);
+
+    // Allow legacy products to be loaded as extensions (if migrated to use $init)
+    for (const product of listProducts()) {
+      const impl = await loadProduct(product);
+
+      if (impl?.$init) {
+        const p = new UIPlugin(product);
+
+        impl.$init(p);
+
+        context.$plugin._add(product, p);
+        context.$plugin.applyPlugin(p);
+      }
+    }
 
     // Initialize the built-in extensions now - this is now done here so that built-in extensions get the same, correct environment data (version etc)
     context.$extension.loadBuiltinExtensions();

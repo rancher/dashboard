@@ -94,8 +94,9 @@ export function loadProduct(name) {
 }
 
 export function listProducts() {
-  const ctx = require.context('@shell/config/product', true, /.*/);
-  const products = ctx.keys().filter(path => !path.endsWith('.js') && path.startsWith('./')).map(path => path.substr(2));
+  // We just want the .js or .ts files
+  const ctx = require.context('@shell/config/product', true, /\.\/.*\.[js|ts]/);
+  const products = ctx.keys().map(path => path.substr(2)).map(path => path.slice(0, -3));
 
   return products;
 }

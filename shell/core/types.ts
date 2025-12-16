@@ -1,5 +1,5 @@
 import { ProductFunction } from './plugin';
-import { RouteRecordRaw } from 'vue-router';
+import { RouteComponent, RouteRecordRaw } from 'vue-router';
 import type { ExtensionManager } from '@shell/types/extension-manager';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
 
@@ -168,6 +168,115 @@ export type LocationConfig = {
   context?: { [key: string]: string},
 };
 
+export enum StandardProductName {
+  EXPLORER = 'explorer',
+  MANAGER = 'manager',
+  SETTINGS = 'settings',
+};
+
+export type ProductConfig = {
+  product: string;
+  config: ProductChild[];
+}[];
+
+/**
+ * Represents a product child in the navigation
+ * This can be a type, a group, or a route.
+ */
+export type ProductChild = ProductChildType | ProductChildResource | ProductChildGroup | ProductChildRoute | ProductChildPage;
+
+type Lazy<T> = () => Promise<T>;
+
+/**
+ * A product child that shows the given Kubernetes (or other) resource type in the navigation
+ */
+export type ProductChildType = string;
+
+/**
+ * Represents a navigation group in a product
+ */
+export type ProductChildResource = {
+  type: string;
+  weight?: number;
+};
+
+export type ProductChildMetadata = {
+  name: string;
+  label?: string;
+  labelKey?: string;
+  weight?: number;
+};
+
+/**
+ * Represents a navigation group in a product
+ */
+export type ProductChildGroup = ProductChildMetadata & {
+  children: ProductChild[];
+  default?: string;
+};
+
+export type ProductChildPageChildRoute = {
+  name: string;
+  component: RouteComponent | Lazy<RouteComponent>;
+}
+
+/**
+ * Represents a custom page
+ */
+export type ProductChildPage = ProductChildMetadata & {
+  path?: string; // Optional route path override
+  component: RouteComponent | Lazy<RouteComponent>;
+  extraRoutes?: ProductChildPageChildRoute[]; // Optional extra routes to create
+};
+
+/**
+ * Represents a custom page
+ */
+export type ProductChildRoute = ProductChildMetadata & {
+  route: RouteRecordRaw;
+};
+
+export interface ProductMetadata {
+  /**
+   * Product name
+   */
+  name: string;
+
+  /**
+   * The icon that should be displayed beside this item in the navigation.
+   */
+  icon?: string,  
+
+  /**
+   * Alternative to the icon property. Use require to reference an SVG file
+   */
+  svg?: Function;
+
+  /**
+   * The category this product belongs under. i.e. 'config', default is 'global'
+   */
+  category?: string; 
+  
+  weight?: number;
+
+  label: string;
+}
+
+export type ProductSinglePage = ProductMetadata & {
+  component: RouteComponent | Lazy<RouteComponent>;
+};
+
+export type ResourceTypeConfig = {
+  options?: {
+    isCreatable?: boolean;
+    isEditable?: boolean;
+  },
+  listHeaders?: {
+    legacy?: HeaderOptions[];
+    paginated?: PaginationHeaderOptions[];
+  }
+};
+
 /**
  * Environment metadata that extensions can access
  */
@@ -268,6 +377,18 @@ export interface ProductOptions {
    * Product name
    */
   name?: string;
+
+  /**
+   * 
+   */
+  label?: string;
+  
+  labelKey?: string;
+
+  iconHeader?: string;
+
+  // Do not use - internal use only
+  version?: number;
 
   /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
@@ -466,6 +587,8 @@ export interface ConfigureVirtualTypeOptions extends ConfigureTypeOptions {
    * The route that this type should correspond to {@link PluginRouteRecordRaw} {@link RouteRecordRaw}
    */
   route: PluginRouteRecordRaw | RouteRecordRaw | Object;
+
+  weight?: number;
 }
 
 export interface DSLReturnType {
@@ -475,7 +598,7 @@ export interface DSLReturnType {
    * @param group Conditionally a group you want to places all the types in
    * @returns {@link void}
    */
-  basicType: (types: string[], group?: string) => void;
+  basicType: (types: string[] | string, group?: string) => void;
 
   /**
    * Configure a myriad of options for the specified type
@@ -546,6 +669,10 @@ export interface DSLReturnType {
   // moveType: (match, group)
   // setGroupDefaultType: (input, defaultType)
   // spoofedType: (obj)
+
+  labelGroup: (group: string, label: string | undefined, labelKey?: string) => void;
+
+  setGroupDefaultType: (group: string, defaultType: string) => void;
 }
 
 /**
@@ -584,14 +711,49 @@ export type ModelExtensionContext = {
 export type ModelExtensionConstructor = (context: ModelExtensionContext) => Object;
 
 /**
- * Interface for a Dashboard plugin
+ * Interface for a UI Extension
  */
-export interface IPlugin {
+export interface IExtension {
   /**
    * Add a product
+   * @param name 
+   * @param config 
+   * @param options 
+   */
+  addProduct(product: ProductMetadata, config: ProductChild[], options?: ProductOptions): void;
+
+  /**
+   * Add a product
+   * @param product
+   */
+  addProduct(product: ProductSinglePage): void;
+
+  /**
+   * Add a product
+   * @deprecated Use other `addProduct` signatures instead
    * @param importFn Function that will import the module containing a product definition
    */
   addProduct(importFn: ProductFunction): void;
+
+  /**
+   * Extend an existing product
+   *
+   * @param product Product to be extended
+   * @param config Product extension configuration
+   */
+  extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild): void;
+
+  /**
+   * Configure a resource type
+   * @param type Name of resource type to configure
+   * @param config Resource type configuration
+   */
+  configureResourceType(type: string, config: ResourceTypeConfig): void;
+
+  /*
+    Get the type name for a given API group and type
+  */
+  resourceNameFor(apiGroup: string, type: string): string;
 
   /**
    * Add a locale to the i18n store
@@ -730,6 +892,9 @@ export interface IPlugin {
    */
   get environment(): ExtensionEnvironment;
 }
+
+// Legacy compatibility
+export type IPlugin = IExtension; 
 
 // Internal interface
 // Built-in extensions may use this, but external extensions should not, as this is subject to change
