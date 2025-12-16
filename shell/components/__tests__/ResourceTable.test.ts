@@ -1,37 +1,16 @@
-import { shallowMount } from '@vue/test-utils';
+import { shallowMount, flushPromises } from '@vue/test-utils';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import { ExtensionPoint } from '@shell/core/types';
 
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 
 // Mock the plugin-helpers module
-// NOTE: This top-level mock is likely unused or only used when no test-specific mock is applied,
-// but we keep it here using the new safe structure to avoid pollution.
 jest.mock('shell/core/plugin-helpers', () => {
   const actual = jest.requireActual('shell/core/plugin-helpers');
 
   return {
     ...actual,
-    // The top-level mock will still return the object structure in case it's called
-    // in a context that requires it, but test-specific mocks must return arrays.
-    getApplicableExtensionEnhancements: jest.fn().mockImplementation((type, extensionPoint) => {
-      if (type === 'resource' && extensionPoint === ExtensionPoint.TABLE_COL) {
-        return [
-          // Example column, returning array directly as ResourceTable expects
-          {
-            column: {
-              name:     'custom-col',
-              label:    'Custom Column',
-              getValue: jest.fn(),
-              weight:   50,
-            }
-          },
-        ];
-      }
-
-      // Default fallback returns an empty array, matching what ResourceTable expects in the failing line
-      return [];
-    })
+    getApplicableExtensionEnhancements: jest.fn(() => [])
   };
 });
 
@@ -126,11 +105,14 @@ describe('resourceTable with TABLE extensions', () => {
     if (wrapper) {
       wrapper.unmount();
     }
+    // CRITICAL: Clear all mocks between tests to prevent state leakage
     jest.clearAllMocks();
+    // CRITICAL: Reset the mock implementation to default empty array
+    (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(() => []);
   });
 
-  const mountComponent = (props = defaultProps, store = createMockStore()) => {
-    return shallowMount(ResourceTable, {
+  const mountComponent = async(props = defaultProps, store = createMockStore()) => {
+    const mounted = shallowMount(ResourceTable, {
       props,
       global: {
         mocks: {
@@ -157,17 +139,21 @@ describe('resourceTable with TABLE extensions', () => {
         }
       }
     });
+
+    // CRITICAL: Wait for component to fully mount and process reactive updates
+    await mounted.vm.$nextTick();
+    await flushPromises();
+
+    return mounted;
   };
 
   describe('tABLE extension hooks', () => {
     describe('event binding', () => {
-      it('should have handleSortableTableInteraction method defined', () => {
-        // Return an empty array for all calls for safety
+      it('should have handleSortableTableInteraction method defined', async() => {
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(() => []);
 
-        wrapper = mountComponent();
+        wrapper = await mountComponent();
 
-        // Check that the component has the handleSortableTableInteraction method
         expect(wrapper.vm.handleSortableTableInteraction).toBeDefined();
         expect(typeof wrapper.vm.handleSortableTableInteraction).toBe('function');
       });
@@ -178,14 +164,14 @@ describe('resourceTable with TABLE extensions', () => {
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE) {
-              return [{ tableHook }]; // Array return (passes)
+              return [{ tableHook }];
             }
 
             return [];
           }
         );
 
-        wrapper = mountComponent();
+        wrapper = await mountComponent();
 
         const interactionData = {
           pagination: { page: 2, perPage: 10 },
@@ -195,7 +181,6 @@ describe('resourceTable with TABLE extensions', () => {
           }
         };
 
-        // Call the handler directly
         wrapper.vm.handleSortableTableInteraction(interactionData);
 
         expect(tableHook).toHaveBeenCalledWith(interactionData);
@@ -209,14 +194,14 @@ describe('resourceTable with TABLE extensions', () => {
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE) {
-              return [{ tableHook }]; // Array return (passes)
+              return [{ tableHook }];
             }
 
             return [];
           }
         );
 
-        wrapper = mountComponent();
+        wrapper = await mountComponent();
 
         const interactionData = {
           pagination: { page: 3, perPage: 25 },
@@ -231,7 +216,6 @@ describe('resourceTable with TABLE extensions', () => {
         expect(tableHook).toHaveBeenCalledTimes(1);
         expect(tableHook).toHaveBeenCalledWith(interactionData);
 
-        // Verify all data structures are passed correctly
         const callArg = tableHook.mock.calls[0][0];
 
         expect(callArg.pagination).toStrictEqual({ page: 3, perPage: 25 });
@@ -254,14 +238,14 @@ describe('resourceTable with TABLE extensions', () => {
                 { tableHook: tableHook1 },
                 { tableHook: tableHook2 },
                 { tableHook: tableHook3 }
-              ]; // Array return (passes)
+              ];
             }
 
             return [];
           }
         );
 
-        wrapper = mountComponent();
+        wrapper = await mountComponent();
 
         const interactionData = {
           pagination: { page: 1, perPage: 10 },
@@ -279,10 +263,10 @@ describe('resourceTable with TABLE extensions', () => {
         expect(callOrder).toStrictEqual([1, 2, 3]);
       });
 
-      it('should not throw when no extensions are registered', () => {
+      it('should not throw when no extensions are registered', async() => {
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(() => []);
 
-        wrapper = mountComponent();
+        wrapper = await mountComponent();
 
         const interactionData = {
           pagination: { page: 1, perPage: 10 },
@@ -297,7 +281,7 @@ describe('resourceTable with TABLE extensions', () => {
         }).not.toThrow();
       });
 
-      it('should skip extensions without tableHook property', () => {
+      it('should skip extensions without tableHook property', async() => {
         const tableHook = jest.fn();
 
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
@@ -307,14 +291,14 @@ describe('resourceTable with TABLE extensions', () => {
                 { someOtherProperty: 'value' },
                 { tableHook },
                 { anotherProperty: 123 }
-              ]; // Array return (passes)
+              ];
             }
 
             return [];
           }
         );
 
-        wrapper = mountComponent();
+        wrapper = await mountComponent();
 
         const interactionData = {
           pagination: { page: 1, perPage: 10 },
@@ -328,7 +312,6 @@ describe('resourceTable with TABLE extensions', () => {
           wrapper.vm.handleSortableTableInteraction(interactionData);
         }).not.toThrow();
 
-        // Only the valid hook should be called
         expect(tableHook).toHaveBeenCalledTimes(1);
       });
     });
@@ -336,7 +319,7 @@ describe('resourceTable with TABLE extensions', () => {
 
   describe('tABLE_COLUMN extension with weight', () => {
     describe('column insertion', () => {
-      it('should add extension column to headers', () => {
+      it('should add extension column to headers', async() => {
         const columnExtension = {
           column: {
             name:   'custom-col',
@@ -346,7 +329,6 @@ describe('resourceTable with TABLE extensions', () => {
           }
         };
 
-        // FIX: Return the array directly, as the component expects a list it can iterate over
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE_COL) {
@@ -357,7 +339,7 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = mountComponent();
+        wrapper = await mountComponent();
 
         const headers = wrapper.vm._headers;
         const columnNames = headers.map((h: any) => h.name);
@@ -365,7 +347,7 @@ describe('resourceTable with TABLE extensions', () => {
         expect(columnNames).toContain('custom-col');
       });
 
-      it('should use getValue function as value when provided', () => {
+      it('should use getValue function as value when provided', async() => {
         const getValueFn = jest.fn((row) => `custom-${ row.id }`);
         const columnExtension = {
           column: {
@@ -375,7 +357,6 @@ describe('resourceTable with TABLE extensions', () => {
           }
         };
 
-        // FIX: Return the array directly
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE_COL) {
@@ -386,17 +367,19 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = mountComponent();
+        wrapper = await mountComponent();
 
         const headers = wrapper.vm._headers;
         const customCol = headers.find((h: any) => h.name === 'custom-col');
 
-        expect(customCol.value).toBe(getValueFn);
+        // Add null check before accessing properties
+        expect(customCol).toBeDefined();
+        expect(customCol?.value).toBe(getValueFn);
       });
     });
 
     describe('column positioning with weight', () => {
-      it('should insert column at position 0 when weight is negative', () => {
+      it('should insert column at position 0 when weight is negative', async() => {
         const columnExtension = {
           column: {
             name:   'first-col',
@@ -406,7 +389,6 @@ describe('resourceTable with TABLE extensions', () => {
           }
         };
 
-        // FIX: Return the array directly
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE_COL) {
@@ -417,14 +399,14 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = mountComponent();
+        wrapper = await mountComponent();
 
         const headers = wrapper.vm._headers;
 
         expect(headers[0].name).toBe('first-col');
       });
 
-      it('should insert column at specified weight position when weight is less than total columns', () => {
+      it('should insert column at specified weight position when weight is less than total columns', async() => {
         const columnExtension = {
           column: {
             name:   'weighted-col',
@@ -434,7 +416,6 @@ describe('resourceTable with TABLE extensions', () => {
           }
         };
 
-        // FIX: Return the array directly
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE_COL) {
@@ -445,7 +426,7 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = mountComponent();
+        wrapper = await mountComponent();
 
         const headers = wrapper.vm._headers;
         const columnIndex = headers.findIndex((h: any) => h.name === 'weighted-col');
@@ -453,8 +434,7 @@ describe('resourceTable with TABLE extensions', () => {
         expect(columnIndex).toBe(2);
       });
 
-      it('should insert column before age column by default when no weight specified', () => {
-        // Use headers with an 'age' column
+      it('should insert column before age column by default when no weight specified', async() => {
         const headersWithAge = [
           {
             name: 'state', label: 'State', value: 'state'
@@ -472,11 +452,9 @@ describe('resourceTable with TABLE extensions', () => {
             name:  'no-weight-col',
             label: 'No Weight Column',
             value: 'noWeightValue'
-            // No weight specified
           }
         };
 
-        // FIX: Return the array directly
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE_COL) {
@@ -487,18 +465,17 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = mountComponent(defaultProps, createMockStore(headersWithAge));
+        wrapper = await mountComponent(defaultProps, createMockStore(headersWithAge));
 
         const headers = wrapper.vm._headers;
         const columnNames = headers.map((h: any) => h.name);
         const customColIndex = columnNames.indexOf('no-weight-col');
         const ageColIndex = columnNames.indexOf('age');
 
-        // Column should be inserted at or after the age column position (ageColIndex + 1)
         expect(customColIndex).toBeLessThanOrEqual(ageColIndex + 1);
       });
 
-      it('should maintain correct relative positions for multiple weighted columns', () => {
+      it('should maintain correct relative positions for multiple weighted columns', async() => {
         const columnExtensions = [
           {
             column: {
@@ -517,7 +494,6 @@ describe('resourceTable with TABLE extensions', () => {
           }
         ];
 
-        // FIX: Return the array directly
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE_COL) {
@@ -528,19 +504,18 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = mountComponent();
+        wrapper = await mountComponent();
 
         const headers = wrapper.vm._headers;
         const weight1Index = headers.findIndex((h: any) => h.name === 'col-weight-1');
         const weight2Index = headers.findIndex((h: any) => h.name === 'col-weight-2');
         const weight3Index = headers.findIndex((h: any) => h.name === 'col-weight-3');
 
-        // Lower weight should come before higher weight
         expect(weight1Index).toBeLessThan(weight2Index);
         expect(weight2Index).toBeLessThan(weight3Index);
       });
 
-      it('should not exceed total header count when weight is very large', () => {
+      it('should not exceed total header count when weight is very large', async() => {
         const columnExtension = {
           column: {
             name:   'large-weight-col',
@@ -550,7 +525,6 @@ describe('resourceTable with TABLE extensions', () => {
           }
         };
 
-        // FIX: Return the array directly
         (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
           (component, extensionPoint) => {
             if (extensionPoint === ExtensionPoint.TABLE_COL) {
@@ -561,12 +535,11 @@ describe('resourceTable with TABLE extensions', () => {
           }
         );
 
-        wrapper = mountComponent();
+        wrapper = await mountComponent();
 
         const headers = wrapper.vm._headers;
         const columnIndex = headers.findIndex((h: any) => h.name === 'large-weight-col');
 
-        // Should be within bounds
         expect(columnIndex).toBeGreaterThanOrEqual(0);
         expect(columnIndex).toBeLessThan(headers.length);
       });
@@ -585,7 +558,6 @@ describe('resourceTable with TABLE extensions', () => {
         }
       };
 
-      // FIX: Must handle both extension points, returning the array for the requested point
       (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
         (component, extensionPoint) => {
           if (extensionPoint === ExtensionPoint.TABLE) {
@@ -599,15 +571,13 @@ describe('resourceTable with TABLE extensions', () => {
         }
       );
 
-      wrapper = mountComponent();
+      wrapper = await mountComponent();
 
-      // Verify column was added
       const headers = wrapper.vm._headers;
       const columnNames = headers.map((h: any) => h.name);
 
       expect(columnNames).toContain('combined-col');
 
-      // Verify hook works
       const interactionData = {
         pagination: { page: 1, perPage: 10 },
         filtering:  { searchFields: [], searchQuery: '' },
@@ -632,7 +602,6 @@ describe('resourceTable with TABLE extensions', () => {
         }
       };
 
-      // FIX: Must handle both extension points, returning the array for the requested point
       (getApplicableExtensionEnhancements as jest.Mock).mockImplementation(
         (component, extensionPoint) => {
           if (extensionPoint === ExtensionPoint.TABLE) {
@@ -646,9 +615,8 @@ describe('resourceTable with TABLE extensions', () => {
         }
       );
 
-      wrapper = mountComponent();
+      wrapper = await mountComponent();
 
-      // Simulate sorting by the extension column
       const interactionData = {
         pagination: { page: 1, perPage: 10 },
         filtering:  { searchFields: [], searchQuery: '' },
