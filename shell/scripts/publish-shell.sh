@@ -106,6 +106,14 @@ case $PKG_NAME in
     ;;
   "creators")
     echo "Publishing only Creators pkg via tagged release"
+
+    # with the changes in https://github.com/rancher/dashboard/pull/16166/files#diff-d954ab41ef46f7fdbaaf6d8c2bc715ad2cc823a829317b6ff93a3c94a92811f1
+    #  with NPM 11.3 --dry--run now does additional checks, one of them is the version number
+    #  so for dry runs we need to provide a valid version number here (not something published before)
+    if [ ${DRY_RUN} == "true" ]; then
+      PKG_V="99.99.99"
+    fi
+
     publish "Extension creator" ${CREATORS_DIR} ${PKG_V}
     ;;
   *)
