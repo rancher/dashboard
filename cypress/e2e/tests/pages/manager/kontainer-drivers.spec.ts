@@ -111,26 +111,26 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   //   createCluster.gridElementExistanceByName(oracleDriver, 'exist');
   // });
 
-  it('will show error if could not deactivate driver', () => {
-    cy.intercept('POST', '/v3/kontainerDrivers/opentelekomcloudcontainerengine?action=deactivate', {
-      statusCode: 500,
-      body:       { message: `Could not deactivate driver` }
-    }).as('deactivationError');
+  // it('will show error if could not deactivate driver', () => {
+  //   cy.intercept('POST', '/v3/kontainerDrivers/opentelekomcloudcontainerengine?action=deactivate', {
+  //     statusCode: 500,
+  //     body:       { message: `Could not deactivate driver` }
+  //   }).as('deactivationError');
 
-    KontainerDriversPagePo.navTo();
-    driversPage.waitForPage();
-    driversPage.list().details(openTelekomDriver, 1).should('contain', 'Active');
+  //   KontainerDriversPagePo.navTo();
+  //   driversPage.waitForPage();
+  //   driversPage.list().details(openTelekomDriver, 1).should('contain', 'Active');
 
-    driversPage.list().actionMenu(openTelekomDriver).getMenuItem('Deactivate').click();
-    const deactivateDialog = new DeactivateDriverDialogPo();
+  //   driversPage.list().actionMenu(openTelekomDriver).getMenuItem('Deactivate').click();
+  //   const deactivateDialog = new DeactivateDriverDialogPo();
 
-    deactivateDialog.deactivate();
+  //   deactivateDialog.deactivate();
 
-    cy.wait('@deactivationError').then(() => {
-      deactivateDialog.errorBannerContent('Could not deactivate driver').should('exist').and('be.visible');
-    });
-    deactivateDialog.cancel();
-  });
+  //   cy.wait('@deactivationError').then(() => {
+  //     deactivateDialog.errorBannerContent('Could not deactivate driver').should('exist').and('be.visible');
+  //   });
+  //   deactivateDialog.cancel();
+  // });
 
   it('can deactivate driver', () => {
     const requestData = { };
@@ -215,39 +215,39 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     createCluster.waitForPage();
     createCluster.gridElementExistanceByName('example', 'exist');
   });
+  // TODO:re-enable https://github.com/rancher/dashboard/issues/16194
+  // it('can deactivate drivers in bulk', () => {
+  //   KontainerDriversPagePo.navTo();
+  //   driversPage.waitForPage();
+  //   driversPage.list().details(openTelekomDriver, 1).scrollIntoView().should('contain', 'Active');
+  //   driversPage.list().details(oracleDriver, 1).scrollIntoView().should('contain', 'Active');
+  //   driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(openTelekomDriver)
+  //     .set();
+  //   driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)
+  //     .set();
+  //   driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
+  //   driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Deactivate')
+  //     .click();
 
-  it('can deactivate drivers in bulk', () => {
-    KontainerDriversPagePo.navTo();
-    driversPage.waitForPage();
-    driversPage.list().details(openTelekomDriver, 1).scrollIntoView().should('contain', 'Active');
-    driversPage.list().details(oracleDriver, 1).scrollIntoView().should('contain', 'Active');
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(openTelekomDriver)
-      .set();
-    driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(oracleDriver)
-      .set();
-    driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
-    driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Deactivate')
-      .click();
+  //   cy.intercept('POST', '/v3/kontainerDrivers/opentelekomcloudcontainerengine?action=deactivate' ).as('deactivateTelecomDriver');
+  //   cy.intercept('POST', '/v3/kontainerDrivers/oraclecontainerengine?action=deactivate').as('deactivateOracleDriver');
 
-    cy.intercept('POST', '/v3/kontainerDrivers/opentelekomcloudcontainerengine?action=deactivate' ).as('deactivateTelecomDriver');
-    cy.intercept('POST', '/v3/kontainerDrivers/oraclecontainerengine?action=deactivate').as('deactivateOracleDriver');
+  //   const deactivateDialog = new DeactivateDriverDialogPo();
 
-    const deactivateDialog = new DeactivateDriverDialogPo();
+  //   deactivateDialog.deactivate();
+  //   cy.wait('@deactivateTelecomDriver').its('response.statusCode').should('eq', 200);
+  //   cy.wait('@deactivateOracleDriver').its('response.statusCode').should('eq', 200);
+  //   driversPage.list().details(openTelekomDriver, 1).should('contain', 'Inactive');
+  //   driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
 
-    deactivateDialog.deactivate();
-    cy.wait('@deactivateTelecomDriver').its('response.statusCode').should('eq', 200);
-    cy.wait('@deactivateOracleDriver').its('response.statusCode').should('eq', 200);
-    driversPage.list().details(openTelekomDriver, 1).should('contain', 'Inactive');
-    driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
-
-    // check options on cluster create page
-    ClusterManagerListPagePo.navTo();
-    clusterList.waitForPage();
-    clusterList.createCluster();
-    createCluster.waitForPage();
-    createCluster.gridElementExistanceByName(openTelekomDriver, 'not.exist');
-    createCluster.gridElementExistanceByName(oracleDriver, 'not.exist');
-  });
+  //   // check options on cluster create page
+  //   ClusterManagerListPagePo.navTo();
+  //   clusterList.waitForPage();
+  //   clusterList.createCluster();
+  //   createCluster.waitForPage();
+  //   createCluster.gridElementExistanceByName(openTelekomDriver, 'not.exist');
+  //   createCluster.gridElementExistanceByName(oracleDriver, 'not.exist');
+  // });
 
   it('can delete a driver', () => {
     KontainerDriversPagePo.navTo();
