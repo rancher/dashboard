@@ -42,7 +42,7 @@ export type RancherKubeMetadata = KubeMetadata
 // TODO: RC test / write down - findPage response should persist revision to store. it will be used to confirm resource.changes revision is newer than our cached
 // TODO: RC test / write down - findPage requests from wrapper + socket should contain a revision
 // TODO: RC test watches based on selectors
-// TODO: RC test scenario 1
+// TODO: RC test scenario 1 - in shell/plugins/steve/subscribe.js:`watch`. for a specific resource bork the revision in the watch request (x amount of times)
 // TODO: RC test scenario 2
 // TODO: RC test scenario 3
 

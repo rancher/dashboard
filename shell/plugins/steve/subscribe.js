@@ -350,10 +350,13 @@ function growlsDisabled(rootGetters) {
  */
 const clearInError = ({ getters, commit }, error) => {
   // for this watch ... get the specific prefix we care about ... reset back-offs related to it
-  backOff.resetPrefix(getters.backOffId(error.obj, ''));
+  backOff.resetPrefix(getters.backOffId(error.obj, '')); // TODO: RC will also clear other backoffs....
   // Clear out stale error state (next time around we can try again with a new revision that was just fetched)
   commit('clearInError', error.obj);
 };
+
+let scen1 = 10000;
+let scenhmm2 = 0;
 
 /**
  * Actions that cover all cases (see file description)
@@ -578,6 +581,11 @@ const sharedActions = {
       });
 
       return;
+    }
+
+    if (scen1 < 8 && type === 'pod') {
+      revision = 'asdsad';
+      scen1++;
     }
 
     // Watch errors mean we make a http request to get latest revision (which is still missing) and try to re-watch with it...
@@ -850,9 +858,12 @@ const defaultActions = {
   async resyncWatch({ getters, dispatch }, params) {
     console.info(`Resync [${ getters.storeName }]`, params); // eslint-disable-line no-console
 
+    const { backOffId, ...others } = params;
+
     await dispatch('fetchResources', {
-      ...params,
-      opt: { force: true, forceWatch: true }
+      params: others,
+      backOffId,
+      opt:    { force: true, forceWatch: true }
     });
   },
 
@@ -862,22 +873,24 @@ const defaultActions = {
    * Integrates the concept of 'back-off' to reduce spam, overwrite stale old requests, etc
    *
    */
-  async fetchPageResources({ getters, dispatch }, { opt, storePagination, ...params }) {
+  async fetchPageResources({ getters, dispatch }, {
+    opt, storePagination, params, backOffId
+  }) {
     const { resourceType, namespace, revision } = params;
     const type = resourceType || params.type;
 
-    const backOffId = getters.backOffId(params, `${ STEVE_HTTP_CODES.UNKNOWN_REVISION }`);
+    const safeBackOffId = backOffId || getters.backOffId(params, `fetchPageResources`);
 
     // msg.revision = Number.MAX_SAFE_INTEGER; // TODO: RC testing... with this in it doesn't repeat... (should backoff repeat after last resource.changes)
 
-    const activeRevisionSt = backOff.getBackOff(backOffId)?.metadata.revision;
+    const activeRevisionSt = backOff.getBackOff(safeBackOffId)?.metadata?.revision;
     const cachedRevisionSt = getters['typeEntry'](resourceType || type)?.revision;
 
     const targetRevision = new SteveRevision(revision);
+    const activeRevision = new SteveRevision(activeRevisionSt);
     const currentRevision = new SteveRevision(activeRevisionSt || cachedRevisionSt);
 
-    myLogger.warn('fetchPageResources', 'start', backOffId, revision, activeRevisionSt, cachedRevisionSt);
-    myLogger.warn('fetchPageResources', 'start', backOffId, targetRevision.revision, currentRevision.revision);
+    myLogger.warn('fetchPageResources', 'start', safeBackOffId, 'target', revision, 'active', activeRevisionSt, 'cached', cachedRevisionSt);
 
     // Three scenarios to support HA support scenario 2 + 3
     // 1. current version is newer than target revision - abort/ignore (don't overwrite new with old)
@@ -894,51 +907,63 @@ const defaultActions = {
       return;
     }
 
-    if (targetRevision.isNewerThan(currentRevision)) {
+    if (targetRevision.isNewerThan(activeRevision)) {
       // Scenario 2 - reset previous (drop older requests with older revision, use new revision)
 
       // eslint-disable-next-line no-console
       console.info(`Dropping previous subscribe request to update '${ type }' with revision '${ currentRevision.revision }' (new target revision '${ targetRevision.revision }'). `);
 
-      backOff.reset(backOffId);
+      backOff.reset(safeBackOffId);
     }
 
-    backOff.execute({
-      id:          backOffId,
-      metadata:    { revision },
-      description: `Fetching resources for ${ type }. Triggered by web socket`,
-      canFn:       () => getters.canBackoff(this.$socket),
-      delayedFn:   async() => {
-        try {
-          myLogger.warn('fetchPageResources', 'trying', params );
+    try {
+      //  TODO: RC this doesn't need to be async here, but does in wrapper
+      // if async then delayFn calling itself calling backoff aborts given parent delay is still running
+      await backOff.execute({
+        id:          safeBackOffId,
+        metadata:    { revision },
+        description: `Fetching resources for ${ type }. Triggered by web socket`,
+        canFn:       () => getters.canBackoff(this.$socket),
+        delayedFn:   async() => {
+          try {
+            myLogger.warn('fetchPageResources', 'delayedFn', 'trying', opt, params );
 
-          await dispatch('findPage', {
-            type,
-            opt: {
-              ...opt,
-              namespaced: namespace,
-              revision,
-              // This brings in page, page size, filter, etc
-              ...storePagination.request,
-            }
-          });
-        } catch (err) {
-          myLogger.warn('fetchPageResources', 'ERROR', params, err);
-          if (err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION) {
-            await dispatch('fetchPageResources', {
-              ...params,
-              storePagination,
-              opt
+            await dispatch('findPage', {
+              type,
+              opt: {
+                ...opt,
+                namespaced: namespace,
+                revision,
+                // This brings in page, page size, filter, etc
+                ...storePagination.request,
+              }
             });
+          } catch (err) {
+            myLogger.warn('fetchPageResources', 'delayedFn', 'ERROR', params, JSON.stringify(err));
+            if (err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION) {
+              dispatch('fetchPageResources', {
+                params,
+                storePagination,
+                opt,
+                backOffId: safeBackOffId
+              });
+            } else {
+              throw err;
+            }
           }
-        }
-      },
-    });
+        },
+      });
+    } catch (err) {
+      myLogger.warn('fetchPageResources', 'ERROR', params, err);
+    }
+
+    // We should only get here if the request has completed (successfully or fatally)
+    backOff.reset(safeBackOffId);
   },
 
   async fetchResources({
     state, getters, dispatch, commit
-  }, { opt, ...params }) {
+  }, { opt, params, backOffId }) {
     const {
       resourceType, namespace, id, selector, mode, revision
     } = params;
@@ -989,9 +1014,10 @@ const defaultActions = {
 
         if (!!storePagination) {
           await dispatch('fetchPageResources', {
-            ...params,
+            params,
             storePagination,
-            opt
+            opt,
+            backOffId
           });
 
           // findPage removes stale entries, so we don't need to rely on below process to remove them
@@ -1233,11 +1259,17 @@ const defaultActions = {
       // - we need to stop (socket is disconnected or closed, type is 'forgotten', watch is unwatched)
       //   - `reset` called asynchronously
       //   - Note - we won't need to clear the id outside of the above scenarios because `too old` only occurs on fresh watches (covered by above scenarios)
+
+      const backOffId = getters.backOffId(msg, REVISION_TOO_OLD);
+
       backOff.execute({
-        id:          getters.backOffId(msg, REVISION_TOO_OLD),
+        id:          backOffId,
         description: `Invalid watch revision, re-syncing`,
         canFn:       () => getters.canBackoff(this.$socket),
-        delayedFn:   () => dispatch('resyncWatch', msg),
+        delayedFn:   () => dispatch('resyncWatch', {
+          ...msg,
+          backOffId: undefined,
+        }),
       });
     } else if ( err.includes('the server does not allow this method on the requested resource')) {
       commit('setInError', { msg, reason: NO_PERMS });
@@ -1370,9 +1402,14 @@ const defaultActions = {
   },
 
   async 'ws.resource.changes'({ dispatch, getters }, msg) {
+    if (msg.type === 'pod' && scenhmm2 < 1) {
+      scenhmm2++;
+      msg.revision = 'dsfdsf';
+    }
+
     await dispatch('fetchResources', {
-      ...msg,
-      opt: { force: true, load: _MERGE }
+      params: msg,
+      opt:    { force: true, load: _MERGE }
     } );
   },
 
@@ -1505,7 +1542,7 @@ const defaultGetters = {
    * @param postFix - something else to uniquely id this back-off
    */
   backOffId: () => (obj, postFix) => {
-    return `${ keyForSubscribe(obj) }${ postFix ? `:${ postFix }` : '' }`;
+    return `${ keyForSubscribe(obj) }${ postFix ? `:detail=${ postFix }` : '' }`;
   },
 
   /**
@@ -1578,20 +1615,6 @@ const defaultGetters = {
           if (candidateRevision.isNewerThan(nextRevision)) {
             nextRevision = candidateRevision;
           }
-
-          // if (!candidateRevision.isNumber) {
-          //   continue;
-          // }
-
-          // nextRevision = candidateRevision.max(nextRevision);
-
-          // const neu = Number(obj.metadata.resourceVersion);
-
-          // if (Number.isNaN(neu)) {
-          //   continue;
-          // }
-
-          // revision = Math.max(revision, neu);
         }
       }
     }

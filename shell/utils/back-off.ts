@@ -8,6 +8,55 @@ type BackOffEntry<T = any> = {
   promiseRejectFn?: (reason?: any) => void
 }
 
+export enum BACK_OFF_MODE {
+  /**
+   * Every request to
+   */
+  RESET_ALWAYS = 'NEVER_RESET',
+  RESET_ON_SUCCESS = 'RESET_ON_SUCCESS'
+}
+
+export interface BackOffArgs<T> {
+    /**
+     * Unique id for the execution of this function.
+     *
+     * This will be used to delay further executions, and also to cancel it
+     */
+    id: string,
+    /**
+     * Basic text description to use in logging
+     */
+    description: string,
+    /**
+     * Number of executions allowed before flatly refusing to call more. Defaults to 10
+     */
+    retries?: number,
+    /**
+     * Before calling delayedFn check if it can still run
+     *
+     * Useful for checking state after a looong delay
+     */
+    canFn?: () => Promise<boolean>,
+    /**
+     * Call this function
+     * - if it's not already waiting to run
+     * - if it's passed canFn
+     * - if it hasn't been tried over `retries` amount
+     *
+     * The function will be increasingly (exponentially) delayed if it has previously been called
+     */
+    delayedFn: () => Promise<any>,
+    /**
+     * Anything that might be important outside of this file (used with `getBackOff`)
+     */
+    metadata?: T,
+    /**
+     *
+     * RESET_ON_SUCCESS
+     */
+    mode?: ''
+  }
+
 /**
  * Helper class which handles backing off making the supplied request
  *
@@ -73,7 +122,10 @@ class BackOff {
 
         clearTimeout(backOff.timeoutId);
       }
-      this.log('debug', {
+      const backOffTry = backOff?.try || 0;
+      const logLevel = backOffTry <= 1 ? undefined : 'debug';
+
+      this.log(logLevel, {
         id, status: 'Reset', description: backOff.description, metadata: backOff.metadata
       });
 
@@ -81,6 +133,14 @@ class BackOff {
     }
   }
 
+  // TODO: RC use this for scenario 2 + 3
+  async recurse<T = any, Y= any>({
+    id, description, retries = 10, delayedFn, canFn = async() => true, metadata
+  }: BackOffArgs<T>): Promise<Y | undefined> {
+
+  }
+
+  // TODO: RC revert this to before. not async. disjointed.
   /**
    * Call a function, but if it's recently been called delay execution aka back off
    *
@@ -98,44 +158,12 @@ class BackOff {
    */
   async execute<T = any, Y= any>({
     id, description, retries = 10, delayedFn, canFn = async() => true, metadata
-  }: {
-    /**
-     * Unique id for the execution of this function.
-     *
-     * This will be used to delay further executions, and also to cancel it
-     */
-    id: string,
-    /**
-     * Basic text description to use in logging
-     */
-    description: string,
-    /**
-     * Number of executions allowed before flatly refusing to call more. Defaults to 10
-     */
-    retries?: number,
-    /**
-     * Before calling delayedFn check if it can still run
-     *
-     * Useful for checking state after a looong delay
-     */
-    canFn?: () => Promise<boolean>,
-    /**
-     * Call this function
-     * - if it's not already waiting to run
-     * - if it's passed canFn
-     * - if it hasn't been tried over `retries` amount
-     *
-     * The function will be increasingly (exponentially) delayed if it has previously been called
-     */
-    delayedFn: () => Promise<any>,
-    /**
-     * Anything that might be important outside of this file (used with `getBackOff`)
-     */
-    metadata?: T,
-  }): Promise<Y | undefined> {
+  }: BackOffArgs<T>): Promise<Y | undefined> {
     const backOff: BackOffEntry = this.map[id];
 
     const cont = await canFn();
+
+    debugger;
 
     if (!cont) {
       this.log('info', {
@@ -154,7 +182,7 @@ class BackOff {
 
       if (backOffTry + 1 > retries) {
         this.log('error', {
-          id, status: 'Aborting (too many retries)', description, metadata
+          id, status: `Aborting (too many retries - ${ retries })`, description, metadata
         });
 
         backOff?.promiseRejectFn?.('Aborting (too many retries)');
@@ -198,13 +226,13 @@ class BackOff {
             // Ensure we're still interested in the result
             if (this.map[id]) {
               resolve(res);
-            } else {
-              const errorMessage = 'Aborting (backoff was reset, do not continue to process)';
+              // } else {
+              //   const errorMessage = 'Aborting (backoff was reset, do not continue to process)';
 
-              this.log('error', {
-                id, status: errorMessage, description, metadata
-              });
-              reject(errorMessage);
+            //   this.log('error', {
+            //     id, status: errorMessage, description, metadata
+            //   });
+            //   reject(errorMessage);
             }
           } catch (e) {
             // Error occurred. Don't clear the map. Next time this is called we'll back off before trying ...
@@ -214,7 +242,9 @@ class BackOff {
           }
 
           // Unblock future calls
-          delete this.map[id];
+          // delete this.map[id];
+          delete this.map[id]?.timeoutId; // This means when we come back around we can run again (with a bigger delay)
+
           // this.map[id].result = undefined; // TODO: RC test scenario 1
 
           // delete this.map[id]?.timeoutId; // avoids some scary log files in reset()
