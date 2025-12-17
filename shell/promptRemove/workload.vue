@@ -43,17 +43,17 @@ export default {
       propagationPolicy: 'Background',
       options:           [
         {
-          label:       'Orphan',
+          label:       this.t('promptRemove.orphan'),
           value:       'Orphan',
           description: this.t('promptRemove.propagationPolicyOrphan'),
         },
         {
-          label:       'Foreground',
+          label:       this.t('promptRemove.foreground'),
           value:       'Foreground',
           description: this.t('promptRemove.propagationPolicyForeground'),
         },
         {
-          label:       'Background',
+          label:       this.t('promptRemove.background'),
           value:       'Background',
           description: this.t('promptRemove.propagationPolicyBackground'),
         }
