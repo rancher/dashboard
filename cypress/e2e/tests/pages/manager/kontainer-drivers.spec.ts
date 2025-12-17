@@ -18,8 +18,8 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   const downloadUrlUpdated = 'https://github.com/rancher-plugins/kontainer-engine-driver-example/releases/download/v0.2.3/kontainer-engine-driver-example-copy2-linux-amd64';
   let removeDriver = false;
   let driverId = '';
-  const oracleDriver = 'Oracle OKE';
-  const openTelekomDriver = 'Open Telekom Cloud CCE';
+  // const oracleDriver = 'Oracle OKE';
+  // const openTelekomDriver = 'Open Telekom Cloud CCE';
   const linodeDriver = 'Linode LKE';
   const exampleDriver = 'Example';
 
