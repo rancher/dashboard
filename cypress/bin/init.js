@@ -12,10 +12,10 @@ function copyTemplateFiles(templateDir, targetDir) {
     overwrite:    false,
     errorOnExist: true,
     filter:       (src) => {
-      // Skip node_modules and .DS_Store
+      // Skip node_modules, .DS_Store, and any README.md files
       const rel = path.relative(templateDir, src);
 
-      return !rel.includes('node_modules') && !rel.endsWith('.DS_Store');
+      return !rel.includes('node_modules') && !rel.endsWith('.DS_Store') && !rel.endsWith('README.md');
     }
   });
 }
