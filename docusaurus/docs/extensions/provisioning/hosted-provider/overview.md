@@ -1,7 +1,7 @@
 The following steps are fully compatible with Rancher version v.2.13.0 and later.
 
 # Custom Hosted Provider UI
-Hosted providers are a replacement for kontainer drivers (Cluster drivers) and are used to provision clusters in a hosted environment. For example, Rancher comes with built-in AKS, EKS, and GKE provisioning UI extensions. UI extension is the recommended way to add a new hosted provider.
+Hosted providers are a replacement for kontainer drivers (Cluster drivers) and are used to provision clusters in a hosted environment. For example, Rancher comes with built-in AKS, EKS, and GKE provisioning UI extensions. UI extensions are the recommended way to add a new hosted provider.
 
 Unlike other UI extensions that might add new products or pages, a hosted provider extension integrates directly into Rancher's cluster creation and management workflows. This is achieved by registering a `provisioner` object.
 
@@ -53,7 +53,7 @@ You can restrict which Rancher your extension is compatible with by setting a ["
 ## Caveats
 1. Though not required, it is best if your provisioner name matches your operator's config, ie if your operator uses aksConfig, it is best to set aks as your you provisioner's id.
 2. Currently, we hide description from the provider cards and only show it in the `Cluster Management -> Providers -> Hosted Providers` table.
-3. Cloud credentials can be reused between hosted providers and node drivers. If it already exist for the provider, for which you are creating an extension, you do not need to add it to your extension. If the name of your provisioner doesn't match existing credential, you can map them inside provisioner.ts
+3. Cloud credentials can be shared between hosted providers and node drivers. If the provider for which you are creating an extension already has a cloud credential defined, you do not need to add a new one to your extension. If the name of the cloud credential doesn't match your provisioner id, you can map it inside provisioner.ts
 ```ts
   constructor(private context: ClusterProvisionerContext) {
     mapDriver(this.id, '<exisiting-credential-id>' );

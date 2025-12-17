@@ -1,4 +1,4 @@
-# Cloud Credential
+# Cloud Credentials
 
 Cloud Credentials store the username & password, or other similar information, needed to talk to a particular provider.  There is typically a 1-to-1 mapping of cloud credentials to drivers.  If one provider (e.g. Amazon) has both a *Machine* driver for RKE (using EC2) and a *Hosted provider* (using EKS) then you can and should use a single shared type of credential (e.g. `aws`) for both.
 

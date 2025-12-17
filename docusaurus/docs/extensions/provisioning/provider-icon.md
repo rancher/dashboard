@@ -1,4 +1,4 @@
-# Setting the provider icon
+# Setting the Provider Icon
 
 While in the Cluster Provisioning screen in Rancher UI, you've noticed that node drivers and hosted providers have icons for each provider:
 

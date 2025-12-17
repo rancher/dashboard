@@ -131,6 +131,7 @@ const sidebars = {
               items: [
                 'provisioning/hosted-provider/structure',
                 'provisioning/hosted-provider/components',
+                'provisioning/hosted-provider/cluster'
               ]
             },
             'provisioning/provider-icon',
