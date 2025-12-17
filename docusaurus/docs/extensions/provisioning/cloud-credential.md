@@ -1,6 +1,6 @@
-# Cloud Credential
+# Cloud Credentials
 
-Cloud Credentials store the username & password, or other similar information, needed to talk to a particular provider.  There is typically a 1-to-1 mapping of cloud credentials to drivers.  If one provider (e.g. Amazon) has both a *Machine* driver for RKE (using EC2) and a *Cluster* driver for Kontainer Engine (using EKS) then you can and should use a single shared type of credential (e.g. `aws`) for both.
+Cloud Credentials store the username & password, or other similar information, needed to talk to a particular provider.  There is typically a 1-to-1 mapping of cloud credentials to drivers.  If one provider (e.g. Amazon) has both a *Machine* driver for RKE (using EC2) and a *Hosted provider* (using EKS) then you can and should use a single shared type of credential (e.g. `aws`) for both.
 
 A cloud credential component for a given driver will be automatically registered when placed in the `cloud-credential` folder and named with the name of the driver (e.g. `openstack.vue`).
 
@@ -18,4 +18,4 @@ Other properties:
 
 Example Cloud Credential UI:
 
-![Example Cloud Credential UI!](../../../screenshots/openstack-cloud-credential.png)
+![Example Cloud Credential UI!](../screenshots/openstack-cloud-credential.png)

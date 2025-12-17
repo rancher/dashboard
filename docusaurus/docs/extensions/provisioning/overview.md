@@ -1,31 +1,17 @@
-# Cluster Provisioning (RKE2 / Custom)
+# Cluster Provisioning
 
-The UI provides a number of ways to customise the processes that creates RKE2/Custom clusters. This includes
+The UI provides a number of ways to customize the processes of creating, importing, and editing clusters. This includes
 - Adding additional Cluster Provisioner types
-- Customising or replacing components used in the create process
-- Additional tabs
-- Hooks in to the processes that persist cluster resources
-- Overrides that replace the process to persist cluster resources
-
-## Custom Components
-Existing components that manage cloud credentials and machine configuration can be replaced as per [Custom Node Driver UI](../api/components/node-driver/overview.md). 
+- Customizing or replacing components used in the create process
+- Adding tabs
+- Adding Hooks to the processes that persist cluster resources
+- Performing overrides that replace the process to persist cluster resources
 
 ## Custom Cluster Provisioner
 New cluster provisioners can be added that can tailor the create/edit experience for their own needs.
 
-### Resources
-Creating a cluster revolves around two resources
-- The machine configuration
-  - The machine configuration defines how the individual nodes within a node pool will be provisioned. For instance which region and size they may be
-  - These normally have an type of `rke-machine-config.cattle.io.<provider name>config`, which matches the id of it's schema object
-- The provisioning cluster
-  - The `provisioning.cattle.io.cluster` which, aside from machine configuration, contains all details of the cluster
-  - In the UI this is an instance of the `rancher/dashboard` `shell/models/provisioning.cattle.io.cluster.js` class
-     - This has lots of great helper functions, most importantly `save`
-  - Cluster provisioners should always create an instance of this class
-
 ### Provisioner Class
-To customise the process of creating or editing these resources the extension should register a provisioner class which implements the `IClusterProvisioner` interface.
+To customize the process of creating or editing these resources the extension should register a provisioner class which implements the `IClusterProvisioner` interface.
 
 ```
   plugin.register('provisioner', 'my-provisioner', ExampleProvisioner);
@@ -58,6 +44,84 @@ The rest of the path and query string are sent to the target host as you'd expec
 Normal headers are copied from your request and sent to the target.  There are some exceptions for sensitive fields like the user's rancher cookies or saved basic auth creds which will not be copied.  If you send an `X-Api-Cookie-Header`, its value will be sent as the normal `Cookie` to the target.  If you send `X-API-Auth-Header`, that will be sent out as the normal `Authorization`.
 
 But normally you want to make a request using a Cloud Credential as the authorization, without knowing what the secret values in that credential are.  You ask for this by sending an `X-Api-CattleAuth-Header` header.  The value of the header specifies what credential Id to use, and a [signer](https://github.com/rancher/rancher/blob/release/v2.6/pkg/httpproxy/sign.go) which describes how that credential should be injected into the request.  Common options include `awsv4` (Amazon's complicated HMAC signatures), `bearer`, `basic`, and `digest`.  For example if you send `X-Api-CattleAuth-Header: Basic credId=someCredentialId usernameField=user passwordField=pass`, Rancher will retrieve the credential with id `someCredentialId`, read the values of the `user` and `pass` fields from it and add the header `Authorization: Basic <base64(user + ":" + pass)>` to the proxied request for you.
+
+## Custom Components and Models
+Rancher provides mechanisms to overwrite or create new components. You can learn how to create custom [cloud credential](./cloud-credential.md) or [machine configuration](./node-driver/machine-config.md) components in this documentation.
+
+### Resources
+Creating a cluster revolves around the provisioning and management cluster resources. All node driver based clusters are provisioned using `provisioning.cattle.io.cluster` object, while all kontainer driver and hosted provider based clusters currently need to be provisioned using `management.cattle.io.cluster` object. Both types of cluster will load as a `provisioning.cattle.io.cluster` resource, but additional steps will be required for the ones using `management.cattle.io.cluster`.
+
+### Provisioning Cluster
+The `provisioning.cattle.io.cluster` contains all the details of the cluster, aside from the machine configuration.
+In the UI it is an instance of the [`provisioning.cattle.io.cluster.js`](https://github.com/rancher/dashboard/tree/master/shell/models/provisioning.cattle.io.cluster.js) class, which has lots of great helper functions, most importantly `save`, which extensions are able to extend and overwrite in their models.
+When provisioning or editing a cluster, `provisioning.cattle.io.cluster` resource will be available as `this.value`.
+
+For a RKE2/node driver cluster, the machine configuration is also required:
+  - The machine configuration defines how the individual nodes within a node pool will be provisioned. For instance which region and size they may be
+  - These normally have an type of `rke-machine-config.cattle.io.<provider name>config`, which matches the id of it's schema object
+
+### Management Cluster
+There is one `management.cattle.io.cluster` cluster resource for every downstream cluster managed by Rancher.
+Currently, it is used to create or modify all hosted and imported clusters. To access it, you can do
+```ts
+//On creation
+ this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
+
+//On edit
+const liveNormanCluster = await this.value.findNormanCluster();
+this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
+```
+and all changes should be done to it, instead of the `this.value`, which refers to the `provisioning.cattle.io.cluster` object, since the provisioning cluster will not have all the available information. This is a drawback of the current Rancher architecture.
+Once all the changes are made, instead of saving `this.value` resource, save needs to be called on the normanCluster, which represents `management.cattle.io.cluster`.
+```ts
+this.normanCluster.save();
+```
+
+You can see a more detailed example of it [here](./hosted-provider/cluster.md).
+
+### Models
+In addition to adding [new models](../folder-structure#models), extensions allow extending existing model by using [IClusterModelExtension](https://github.com/rancher/dashboard/tree/master/shell/core/types-provisioning.ts):
+```ts
+// You do not have to specify all these getters and you can refer to the file linked above for more information on each getter
+export class NewModelExtension implements IClusterModelExtension {
+  constructor(private context: ModelExtensionContext) {}
+
+  useFor(cluster: ICluster) {
+    return cluster?.metadata?.annotations['ui.rancher/provider']  === new_provider;
+  }
+
+  // Specify which tabs you want to show for this resource
+  get detailTabs(): any {
+    return {
+      machines:     false,
+      logs:         false,
+      registration: false,
+      snapshots:    false,
+      related:      true,
+      events:       false,
+      conditions:   false,
+    };
+  }
+
+  // Specify how you want your machine provider to be displayed
+  machineProviderDisplay(): string {
+    return 'New provider';
+  }
+  // Specify how you want your provisioner to be displayed
+  provisionerDisplay(cluster: ICluster): string {
+    return 'New provisioner'
+  }
+
+  // Specify parent cluster
+  parentCluster(cluster: ICluster): string {
+    return cluster.metadata?.annotations?.['ui.rancher/parent-cluster-display'];
+  }
+  // You can modify existing actions here or provide a new list
+  availableActions?(cluster: any, actions: any[]): any[] | undefined{
+    return [];
+  }
+}
+```
 
 ### Components
 When creating or editing a cluster the user can see the cloud credential and machine pool components.
@@ -95,7 +159,7 @@ Note we use the new `context` property to allow us to target the tab only when t
 
 ### Hiding custom Provisioner card on driver deactivation
 
-On `Cluster Management`, `Drivers`, `Cluster Drivers` an administrator/user (depending on permissions) can deactivate your custom cluster driver. 
+On `Cluster Management`, `Providers`, `Cluster Drivers` an administrator/user (depending on permissions) can deactivate your custom cluster driver. 
 
 ![Cluster Drivers list](../screenshots/cluster-driver-list.png)
 
@@ -120,6 +184,9 @@ export class ExampleProvisioner implements IClusterProvisioner {
 }
 ```
 
-### Localisation
+### Hiding Hosted provider card
+In `Cluster Management`, `Providers`, `Hosted Providers` an administrator/user (depending on permissions) can deactivate your hosted provider. This will update 'kev2-operators' setting with 'active' set to false for that provider and corresponding card will not appear inside cluster creation and import wizards.
+
+### Localization
 
 The custom cluster type's label is defined as per any other extension text in `l10n/en-us.yaml` as `cluster.provider.<provider name>`.

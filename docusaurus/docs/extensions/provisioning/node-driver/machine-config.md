@@ -20,6 +20,6 @@ Other properties:
 
 Example Machine Config UI:
 
-![Example Machine Config UI!](../../../screenshots/openstack-machine-config.png)
+![Example Machine Config UI!](../../screenshots/openstack-machine-config.png)
 
 > Note: The UI provided by the custom component is shown in the blue box. The full Machine Pool Ui is shown to give context.

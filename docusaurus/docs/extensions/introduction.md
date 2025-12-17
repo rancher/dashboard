@@ -8,6 +8,7 @@ Rancher defines a number of extension points - the [**Extensions API**](./api/ov
 
 - Add new UI screens to the top-level side navigation - [**Top-level product**](./usecases/top-level-product.md)
 - Add new UI screens to the cluster-level side navigation - [**Cluster-level product**](./usecases/cluster-level-product.md)
+- Add new hosted provider UI - [**Hosted provider**](./usecases/hosted-provider.md)
 - Add new UI screens to the navigation of the Cluster Explorer UI 
 - Add new UI for Kubernetes CRDs 
 - Extend existing views in Rancher Manager by adding panels, tabs and actions 
