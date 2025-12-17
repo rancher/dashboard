@@ -69,10 +69,6 @@ function publish() {
     cp -R ${BASE_DIR}/pkg/rancher-components/src/components ./rancher-components/
   fi
 
-  # just to check version numbering before publishing
-  echo "Publishing version:"
-  cat .${FOLDER}package.json
-
   # Make a note of dependency versions, if required
   node ${SCRIPT_DIR}/record-deps.js
 
