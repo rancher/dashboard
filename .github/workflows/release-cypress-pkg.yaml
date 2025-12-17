@@ -18,12 +18,13 @@ defaults:
     shell: bash
     working-directory: ./cypress
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     if: github.repository == 'rancher/dashboard' && (github.event_name == 'workflow_call' || (github.event_name == 'push' && github.event.ref == 'refs/tags/${{ github.ref_name }}'))
     outputs:
       build-status: ${{ job.status }}
@@ -56,4 +57,3 @@ jobs:
         run: yarn publish-pkg
         env:
           TAG: ${{ inputs.tag || github.ref_name }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
