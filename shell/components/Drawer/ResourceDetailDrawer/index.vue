@@ -4,7 +4,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import YamlTab, { Props as YamlProps } from '@shell/components/Drawer/ResourceDetailDrawer/YamlTab.vue';
-import { useDefaultConfigTabProps, useDefaultYamlTabProps } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
+import { useDefaultConfigTabProps, useDefaultYamlTabProps, useResourceDetailDrawerProvider } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
 import ConfigTab from '@shell/components/Drawer/ResourceDetailDrawer/ConfigTab.vue';
 import { computed, ref } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
@@ -53,6 +53,8 @@ const action = computed(() => {
 const canEdit = computed(() => {
   return isConfig.value ? props.resource.canEdit : props.resource.canEditYaml;
 });
+
+useResourceDetailDrawerProvider();
 
 </script>
 <template>

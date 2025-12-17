@@ -7,6 +7,7 @@ import findIndex from 'lodash/findIndex';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import Tab from '@shell/components/Tabbed/Tab';
+import { useIsInResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
 
 export default {
   name: 'Tabbed',
@@ -105,7 +106,8 @@ export default {
   },
 
   data() {
-    const extensionTabs = this.showExtensionTabs ? getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams) || [] : [];
+    const location = this.isInResourceDetailDrawer ? TabLocation.RESOURCE_SHOW_CONFIGURATION : TabLocation.RESOURCE_DETAIL;
+    const extensionTabs = this.showExtensionTabs ? getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, location, this.$route, this, this.extensionParams) || [] : [];
 
     const parsedExtTabs = extensionTabs.map((item) => {
       return {
@@ -131,6 +133,12 @@ export default {
     hideTabs() {
       return this.hideSingleTab && this.sortedTabs.length === 1;
     }
+  },
+
+  setup() {
+    const isInResourceDetailDrawer = useIsInResourceDetailDrawer();
+
+    return { isInResourceDetailDrawer };
   },
 
   watch: {

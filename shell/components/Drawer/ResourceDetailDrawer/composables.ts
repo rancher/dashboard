@@ -1,6 +1,7 @@
 import { useStore } from 'vuex';
 import { getYaml } from '@shell/components/Drawer/ResourceDetailDrawer/helpers';
 import { ConfigProps, YamlProps } from '@shell/components/Drawer/ResourceDetailDrawer/types';
+import { inject, provide } from 'vue';
 
 export async function useDefaultYamlTabProps(resource: any): Promise<YamlProps> {
   const yaml = await getYaml(resource);
@@ -26,4 +27,22 @@ export function useDefaultConfigTabProps(resource: any): ConfigProps | undefined
     component:    store.getters['type-map/importEdit'](resource.type),
     resourceType: resource.type
   };
+}
+
+const IS_IN_RESOURCE_DETAIL_DRAWER_KEY = 'isInResourceDetailDrawerKey';
+
+/**
+ * Used to add a provide method which will indicate to all ancestors that they're inside the ResourceDetailDrawer. This is useful because we show
+ * config page components both independently and within the ResourceDetailDrawer and we sometimes want to distinguish between the two use cases.
+*/
+export function useResourceDetailDrawerProvider() {
+  provide(IS_IN_RESOURCE_DETAIL_DRAWER_KEY, true);
+}
+
+/**
+ * A composable used to determine if the current component was instantiated as an ancestor of a ResourceDetailDrawer.
+ * @returns true if the component is an ancestor of ResourceDetailDrawer, otherwise false
+ */
+export function useIsInResourceDetailDrawer() {
+  return inject(IS_IN_RESOURCE_DETAIL_DRAWER_KEY, false);
 }
