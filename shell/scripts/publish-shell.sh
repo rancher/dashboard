@@ -71,7 +71,7 @@ function publish() {
 
   # just to check version numbering before publishing
   echo "Publishing version:"
-  cat ./${FOLDER}/package.json
+  cat .${FOLDER}/package.json
 
   # Make a note of dependency versions, if required
   node ${SCRIPT_DIR}/record-deps.js
