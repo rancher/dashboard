@@ -32,7 +32,9 @@ describe('component: FileSelector', () => {
 
   it('should reject binary image file when reading as text', async() => {
     wrapper = mount(FileSelector, {
-      props:   { label: 'upload', accept: 'image/jpeg,image/png,image/svg+xml', showGrowlError: false },
+      props: {
+        label: 'upload', accept: 'image/jpeg,image/png,image/svg+xml', showGrowlError: false
+      },
       methods: {},
       global:  { mocks: {} },
     });

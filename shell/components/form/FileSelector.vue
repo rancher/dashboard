@@ -104,7 +104,7 @@ export default {
         'application/x-binary',
       ];
 
-      return binaryMimeTypes.some(type => file.type.startsWith(type));
+      return binaryMimeTypes.some((type) => file.type.startsWith(type));
     },
 
     async fileChange(event) {
