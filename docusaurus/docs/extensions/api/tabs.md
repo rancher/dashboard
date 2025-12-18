@@ -222,6 +222,8 @@ plugin.addTab(
 
 ### TabLocation.CLUSTER_CREATE_RKE2 options
 
+*(From Rancher version v2.13.0)*
+
 ![Tabs](../screenshots/cluster-config-tab-create.png)
 
 > NOTE: this tab will be added in the CREATE cluster interface, Cluster Configuration. If you want to target a specific provider and rke type use the `queryParam` in the location config. Ex: `queryParam: { type: 'digitalocean', rkeType: 'rke2' }` 

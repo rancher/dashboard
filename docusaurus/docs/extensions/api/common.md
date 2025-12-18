@@ -15,6 +15,7 @@ The admissable string values for the `where` are:
 |`TabLocation.RESOURCE_EDIT_PAGE`| String | 2.14.0 | Location for a Tab on a Resource Edit page. Check [screenshot](./tabs/#tablocationresource_edit_page-options) for location. |
 |`TabLocation.RESOURCE_DETAIL_PAGE`| String | 2.14.0 | Location for a Tab on a Resource Detail page. Check [screenshot](./tabs/#tablocationresource_detail_page-options) for location. |
 |`TabLocation.ALL`| String | 2.14.0 | Generic location for a Tab on any given page. Can be further specified with the appropriate `LocationConfig` params. |
+|`TabLocation.CLUSTER_CREATE_RKE2`| String | 2.13.0 | Location for a Tab on the Cluster Configuration area in Cluster Provisioning |
 |`TabLocation.RESOURCE_DETAIL`| String | 2.7.2 (deprecated from 2.14.0) | Location for a Tab on a Resource Detail page. Check [screenshot](./tabs/#tablocationresource_detail-options) for location. |
 |`PanelLocation.DETAILS_MASTHEAD`| String | 2.7.2 | Location for a panel on the Details Masthead area of a Resource Detail page. Check [screenshot](./panels/#panellocationdetails_masthead-options) for location. |
 |`PanelLocation.DETAIL_TOP`| String | 2.7.2 | Location for a panel on the Detail Top area of a Resource Detail page. Check [screenshot](./panels/#panellocationdetail_top-options) for location. |
