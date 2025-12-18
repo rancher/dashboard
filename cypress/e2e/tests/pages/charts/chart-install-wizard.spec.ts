@@ -74,18 +74,13 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     const namespacePicker = new NamespaceFilterPo();
     const installChartPage = new InstallChartPage();
     const chartPage = new ChartPage();
-    const chartName = 'Rancher Backup';
+    const chartName = 'Rancher Backups';
     const customRegistry = 'my.custom.registry:5000';
 
     it('should persist custom registry when changing chart version', () => {
       const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
 
-      namespacePicker.toggle();
-      namespacePicker.clickOptionByLabel('All Namespaces');
-      namespacePicker.isChecked('All Namespaces');
-      namespacePicker.closeDropdown();
-
-      // We need to install the chart first to have the versions selector show up
+      // We need to install the chart first to have the versions selector show up later when we come back to the install page
       ChartPage.navTo(null, chartName);
       chartPage.waitForChartHeader(chartName, MEDIUM_TIMEOUT_OPT);
       chartPage.goToInstall();
@@ -93,6 +88,10 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
 
       cy.intercept('POST', '/v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('installApp');
       installChartPage.installChart();
+      namespacePicker.toggle();
+      namespacePicker.clickOptionByLabel('All Namespaces');
+      namespacePicker.isChecked('All Namespaces');
+      namespacePicker.closeDropdown();
       installedAppsPage.waitForInstallCloseTerminal('installApp', ['rancher-backup', 'rancher-backup-crd']);
 
       ChartPage.navTo(null, chartName);
