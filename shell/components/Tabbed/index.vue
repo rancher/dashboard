@@ -7,7 +7,10 @@ import findIndex from 'lodash/findIndex';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import Tab from '@shell/components/Tabbed/Tab';
+import { ref } from 'vue';
 import { useIsInResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
+import { useIsInResourceDetailPage } from '@shell/components/ResourceDetail/index.vue';
+import { useIsInResourceEditPage, useIsInResourceCreatePage } from '@shell/components/CruResource.vue';
 
 export default {
   name: 'Tabbed',
@@ -106,8 +109,14 @@ export default {
   },
 
   data() {
-    const location = this.isInResourceDetailDrawer ? TabLocation.RESOURCE_SHOW_CONFIGURATION : TabLocation.RESOURCE_DETAIL;
-    const extensionTabs = this.showExtensionTabs ? getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, location, this.$route, this, this.extensionParams) || [] : [];
+    const location = this.getInitialTabLocation();
+    let extensionTabs = this.showExtensionTabs ? getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, location, this.$route, this, this.extensionParams) || [] : [];
+    const legacyExtensionTabs = this.showExtensionTabs ? getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams) || [] : [];
+
+    if (!extensionTabs.length) {
+      // Support legacy tabs for RESOURCE_DETAIL location
+      extensionTabs = legacyExtensionTabs;
+    }
 
     const parsedExtTabs = extensionTabs.map((item) => {
       return {
@@ -132,13 +141,18 @@ export default {
     // hide tabs based on tab count IF flag is active
     hideTabs() {
       return this.hideSingleTab && this.sortedTabs.length === 1;
-    }
+    },
   },
 
   setup() {
-    const isInResourceDetailDrawer = useIsInResourceDetailDrawer();
+    const isInResourceDetailDrawer = ref(useIsInResourceDetailDrawer());
+    const isInResourceDetailPage = ref(useIsInResourceDetailPage());
+    const isInResourceEditPage = ref(useIsInResourceEditPage());
+    const isInResourceCreatePage = ref(useIsInResourceCreatePage());
 
-    return { isInResourceDetailDrawer };
+    return {
+      isInResourceDetailDrawer, isInResourceDetailPage, isInResourceEditPage, isInResourceCreatePage
+    };
   },
 
   watch: {
@@ -174,6 +188,19 @@ export default {
   },
 
   methods: {
+    getInitialTabLocation() {
+      if (this.isInResourceDetailDrawer) {
+        return TabLocation.RESOURCE_SHOW_CONFIGURATION;
+      } else if (this.isInResourceDetailPage) {
+        return TabLocation.RESOURCE_DETAIL_PAGE;
+      } else if (this.isInResourceEditPage) {
+        return TabLocation.RESOURCE_EDIT_PAGE;
+      } else if (this.isInResourceCreatePage) {
+        return TabLocation.RESOURCE_CREATE_PAGE;
+      } else {
+        return TabLocation.ALL;
+      }
+    },
     hasIcon(tab) {
       return tab.displayAlertIcon || (tab.error && !tab.active);
     },

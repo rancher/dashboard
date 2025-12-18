@@ -37,6 +37,8 @@ _Arguments_
 
 ### PanelLocation.DETAILS_MASTHEAD options
 
+*(From Rancher version v2.7.2)*
+
 ![Details Masthead](../screenshots/masthead.png)
 
 `options` config object. Admissable parameters for the `options` with `'PanelLocation.DETAILS_MASTHEAD'` are:
@@ -59,6 +61,8 @@ plugin.addPanel(
 <br/>
 
 ### PanelLocation.DETAIL_TOP options
+
+*(From Rancher version v2.7.2)*
 
 ![DetailTop](../screenshots/detailtop.png)
 
@@ -83,6 +87,8 @@ plugin.addPanel(
 
 ### PanelLocation.RESOURCE_LIST options
 
+*(From Rancher version v2.7.2)*
+
 ![List View](../screenshots/list-view.png)
 
 `options` config object. Admissable parameters for the `options` with `'PanelLocation.RESOURCE_LIST'` are:
@@ -105,6 +111,8 @@ plugin.addPanel(
 <br/>
 
 ### PanelLocation.ABOUT_TOP options
+
+*(From Rancher version v2.13.0)*
 
 ![List View](../screenshots/about-top.png)
 

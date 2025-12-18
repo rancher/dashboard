@@ -39,6 +39,8 @@ _Arguments_
 
 ## CardLocation.CLUSTER_DASHBOARD_CARD options
 
+*(From Rancher version v2.7.2)*
+
 ![Cluster Dashboard Card](../screenshots/cluster-cards.png)
 
 `options` config object. Admissable parameters for the `options` with `'CardLocation.CLUSTER_DASHBOARD_CARD'` are:

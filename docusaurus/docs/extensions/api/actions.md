@@ -40,6 +40,8 @@ _Arguments_
 
 ### ActionLocation.HEADER options
 
+*(From Rancher version v2.7.2)*
+
 ![Header Actions](../screenshots/header-actions.png)
 
 `options` config object. Admissable parameters for the `options` with `'ActionLocation.HEADER'` are:
@@ -99,6 +101,8 @@ plugin.addAction(
 <br/>
 
 ### ActionLocation.TABLE options
+
+*(From Rancher version v2.7.2)*
 
 _INLINE TABLE ACTION_
 

@@ -14,6 +14,7 @@ import { clone, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
 import { stringify } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
+import { inject, provide } from 'vue';
 
 function modeFor(route) {
   if ( route.query?.mode === _IMPORT ) {
@@ -36,6 +37,16 @@ async function getYaml(store, model) {
   }
 
   return model.cleanForDownload(yaml);
+}
+
+const IS_IN_RESOURCE_DETAIL_PAGE_KEY = 'isInResourceDetailKey';
+
+/**
+ * Used to determine if the current component was instantiated as an ancestor of a ResourceDetail.
+ * @returns true if the component is an ancestor of ResourceDetail, otherwise false
+ */
+export function useIsInResourceDetailPage() {
+  return inject(IS_IN_RESOURCE_DETAIL_PAGE_KEY, false);
 }
 
 export default {
@@ -116,6 +127,7 @@ export default {
 
     if ( mode === _VIEW && hasCustomDetail && (!requested || requested === _DETAIL) ) {
       as = _DETAIL;
+      this.useResourceDetailPageProvider();
     } else if ( hasCustomEdit && (!requested || requested === _CONFIG) ) {
       as = _CONFIG;
     } else {
@@ -351,6 +363,10 @@ export default {
 
   methods: {
     stringify,
+    useResourceDetailPageProvider() {
+      provide(IS_IN_RESOURCE_DETAIL_PAGE_KEY, true);
+    },
+
     setSubtype(subtype) {
       this.resourceSubtype = subtype;
     },

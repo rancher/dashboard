@@ -79,6 +79,10 @@ export enum PanelLocation {
 /** Enum regarding tab locations that are extensible in the UI */
 export enum TabLocation {
   RESOURCE_DETAIL = 'tab', // eslint-disable-line no-unused-vars
+  ALL = 'tab-all-pages', // eslint-disable-line no-unused-vars
+  RESOURCE_DETAIL_PAGE = 'resource-detail-page', // eslint-disable-line no-unused-vars
+  RESOURCE_CREATE_PAGE = 'resource-create-page', // eslint-disable-line no-unused-vars
+  RESOURCE_EDIT_PAGE = 'resource-edit-page', // eslint-disable-line no-unused-vars
   RESOURCE_SHOW_CONFIGURATION = 'resource-show-configuration', // eslint-disable-line no-unused-vars
   CLUSTER_CREATE_RKE2 = 'cluster-create-rke2', // eslint-disable-line no-unused-vars
 }

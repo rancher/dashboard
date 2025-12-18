@@ -9,15 +9,35 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { mapGetters, mapState, mapActions } from 'vuex';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import CruResourceFooter from '@shell/components/CruResourceFooter';
+import { inject, provide } from 'vue';
 
 import {
-  _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE
+  _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE, _CREATE
 } from '@shell/config/query-params';
 
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import Wizard from '@shell/components/Wizard';
 
 export const CONTEXT_HOOK_EDIT_YAML = 'show-preview-yaml';
+
+const IS_IN_RESOURCE_EDIT_PAGE_KEY = 'isInResourceEditKey';
+const IS_IN_RESOURCE_CREATE_PAGE_KEY = 'isInResourceCreateKey';
+
+/**
+ * Used to determine if the current component was instantiated as an ancestor of a CruResource EDIT page.
+ * @returns true if the component is an ancestor of CruResource EDIT page, otherwise false
+ */
+export function useIsInResourceEditPage() {
+  return inject(IS_IN_RESOURCE_EDIT_PAGE_KEY, false);
+}
+
+/**
+ * Used to determine if the current component was instantiated as an ancestor of a CruResource CREATE page.
+ * @returns true if the component is an ancestor of CruResource CREATE page, otherwise false
+ */
+export function useIsInResourceCreatePage() {
+  return inject(IS_IN_RESOURCE_CREATE_PAGE_KEY, false);
+}
 
 export default {
 
@@ -168,6 +188,12 @@ export default {
     const inStore = this.$store.getters['currentStore'](this.resource);
     const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource.type);
 
+    if (this.mode === _CREATE) {
+      this.useResourceCreatePageProvider();
+    } else if (this.mode === _EDIT) {
+      this.useResourceEditPageProvider();
+    }
+
     return {
       isCancelModal:   false,
       showAsForm:      this.$route.query[AS] !== _YAML,
@@ -288,6 +314,14 @@ export default {
 
   methods: {
     stringify,
+
+    useResourceEditPageProvider() {
+      provide(IS_IN_RESOURCE_EDIT_PAGE_KEY, true);
+    },
+
+    useResourceCreatePageProvider() {
+      provide(IS_IN_RESOURCE_CREATE_PAGE_KEY, true);
+    },
 
     confirmCancel(isCancelNotBack = true) {
       if (isCancelNotBack) {
