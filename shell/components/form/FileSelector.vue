@@ -8,6 +8,18 @@ export function createOnSelected(field) {
   };
 }
 
+// List of binary file MIME types that should not be read as text
+const BINARY_MIME_TYPES = [
+  'image/', // All image types (jpeg, png, gif, etc.)
+  'video/', // All video types
+  'audio/', // All audio types
+  'application/pdf',
+  'application/zip',
+  'application/x-zip-compressed',
+  'application/octet-stream',
+  'application/x-binary',
+];
+
 export default {
   emits: ['error', 'selected'],
 
@@ -92,19 +104,7 @@ export default {
     },
 
     isBinaryFile(file) {
-      // List of binary file MIME types that should not be read as text
-      const binaryMimeTypes = [
-        'image/', // All image types (jpeg, png, gif, etc.)
-        'video/', // All video types
-        'audio/', // All audio types
-        'application/pdf',
-        'application/zip',
-        'application/x-zip-compressed',
-        'application/octet-stream',
-        'application/x-binary',
-      ];
-
-      return binaryMimeTypes.some((type) => file.type.startsWith(type));
+      return BINARY_MIME_TYPES.some((type) => file.type.startsWith(type));
     },
 
     async fileChange(event) {
@@ -115,6 +115,8 @@ export default {
         for (const file of files) {
           if (file.size > this.byteLimit) {
             this.$emit('error', `${ file.name } exceeds the file size limit of ${ this.byteLimit } bytes`);
+            // Clear the input so the user can try again
+            input.value = null;
 
             return;
           }
@@ -131,6 +133,8 @@ export default {
             if (this.showGrowlError) {
               this.$store.dispatch('growl/fromError', { title: 'Invalid file type', error: new Error(errorMsg) }, { root: true });
             }
+            // Clear the input so the user can try again
+            input.value = null;
 
             return;
           }
