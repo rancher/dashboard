@@ -4,80 +4,55 @@ import { onMounted, getCurrentInstance } from 'vue';
 const root = getCurrentInstance();
 
 const isAccordionVNode = (vNode) => {
-  return vNode?.component?.type?.name === 'Accordion';
+  // TODO nb better way of doing this that doesn't rely on a class
+  return (vNode?.props?.class || '').includes('accordion-header');
 };
 
-const findAccordionChildren = (node) => {
-  const out = [];
+/**
+ * Pass through parent? Need tree
+ *
+ */
 
-  console.log('*** finding children in ', node);
+const findAccordionChildren = (accordions = [], node, parent) => {
   if (isAccordionVNode(node)) {
-    return node;
+    accordions.push(node);
   }
 
   if (!node) {
     return;
   }
-  const subTreeChildren = node?.component?.subTree;
-  const children = node.children;
 
-  console.log('*** parent children, subTreechildren: ', children, subTreeChildren);
+  const elChildren = node.el ? node?.el?.children ? Array.from(node?.el?.children) : [] : Array.from(node.children);
 
-  if (node.component) {
-    const accordions = findAccordionChildren(subTreeChildren);
-
-    if (accordions && accordions.length) {
-      out.push(...accordions);
+  elChildren.map((c) => {
+    if (c.__vnode) {
+      return findAccordionChildren(accordions, c.__vnode);
     }
-    console.log('*** accordions : ', accordions);
-  }
-  //   if (children && Array.isArray(children)) {
-  //     const accordionsChildren = children.map((c) => findAccordionChildren(c)).filter((c) => !!c && c.length);
+  });
 
-  //     console.log('** accordions children ', accordionsChildren);
-  //     out.push(...accordionsChildren);
-  //   }
-  const elVNodeChildren = node?.el?.__vnode?.children;
-
-  console.log('elVNodeChildren ', elVNodeChildren);
-
-  const elChildren = node?.el?.children;
-
-  console.log('elChildren ', elChildren);
-
-  if (elChildren && Array.isArray(elChildren)) {
-    const elChildrenAccordions = elChildren.map((c) => findAccordionChildren(c)).filter((c) => !!c && c.length);
-
-    console.log('** elChildrenAccordions ', elChildrenAccordions);
-    out.push(...elChildrenAccordions);
-  }
-  if (elVNodeChildren && Array.isArray(elVNodeChildren)) {
-    const elChildrenAccordions = elVNodeChildren.map((c) => findAccordionChildren(c)).filter((c) => !!c && c.length);
-
-    console.log('** elNodeChildrenAccordions ', elChildrenAccordions);
-    out.push(...elChildrenAccordions);
-  } else if (children && Array.isArray(children)) {
-    const accordionsChildren = children.map((c) => findAccordionChildren(c)).filter((c) => !!c && c.length);
-
-    console.log('** accordions children ', accordionsChildren);
-    out.push(...accordionsChildren);
-  }
-
-  return out;
+  return accordions;
 };
 
 const findAccordions = () => {
   const parent = root.parent || {};
-  const accordions = findAccordionChildren(parent.vnode);
+  const accordions = findAccordionChildren([], parent.vnode);
 
   console.log('*** accordions found: ', accordions);
 };
 
 onMounted(() => {
-  console.log('*** onounted running');
   findAccordions();
 });
 
 </script>
 
-<template><div>wow_its_fucking_nothing.jpeg</div></template>
+<template>
+  <div>
+    <button
+      class="btn btn-sm role-secondary"
+      @click="findAccordions"
+    >
+      click me
+    </button>
+  </div>
+</template>

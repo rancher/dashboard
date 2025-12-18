@@ -585,6 +585,14 @@ export default defineComponent({
         title-key="imported.accordions.advanced"
         :open-initially="false"
       >
+        <Accordion
+          v-if="!isRKE1"
+          class="mb-20 accordion"
+          title="test accordion"
+          :open-initially="false"
+        >
+          test
+        </Accordion>
         <h3>
           {{ t('imported.agentEnv.header') }}
         </h3>
