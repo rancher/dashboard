@@ -5,7 +5,7 @@ import ClusterManagerDetailRke2AzurePagePo from '@/cypress/e2e/po/detail/provisi
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
-import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { MEDIUM_TIMEOUT_OPT, VERY_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
 describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@standardUser', '@jenkins'] }, () => {
@@ -170,7 +170,7 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
 
     // check states
     clusterList.list().state(this.rke2AzureClusterName).should('contain.text', 'Updating');
-    clusterList.list().state(this.rke2AzureClusterName).contains('Active', { timeout: 700000 });
+    clusterList.list().state(this.rke2AzureClusterName).contains('Active', VERY_LONG_TIMEOUT_OPT);
 
     // check k8s version
     clusterList.list().version(this.rke2AzureClusterName).then((el) => {
@@ -196,7 +196,7 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
     clusterList.list().name(this.rke2AzureClusterName).click();
     clusterDetails.waitForPage(null, 'machine-pools');
     clusterDetails.resourceDetail().title().should('contain', this.rke2AzureClusterName);
-    clusterDetails.machinePoolsList().details(`${ this.rke2AzureClusterName }-pool1-`, 1).should('contain', 'Running');
+    clusterDetails.poolsList('machine').details(`${ this.rke2AzureClusterName }-pool1-`, 1).should('contain', 'Running');
 
     // check cluster details page > recent events
     ClusterManagerListPagePo.navTo();
@@ -228,7 +228,7 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
     clusterList.list().state(this.rke2AzureClusterName).should('contain.text', 'Updating');
-    clusterList.list().state(this.rke2AzureClusterName).contains('Active', { timeout: 700000 });
+    clusterList.list().state(this.rke2AzureClusterName).contains('Active', VERY_LONG_TIMEOUT_OPT);
 
     // check snapshot exist
     clusterList.goToDetailsPage(this.rke2AzureClusterName, '.cluster-link a');

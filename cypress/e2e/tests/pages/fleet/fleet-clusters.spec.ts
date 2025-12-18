@@ -7,7 +7,7 @@ import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
-import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT, VERY_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 
@@ -84,7 +84,7 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
   it('data is populated in fleet cluster list and detail view', () => {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
-    clusterList.list().state(clusterName).contains('Active', { timeout: 700000 });
+    clusterList.list().state(clusterName).contains('Active', VERY_LONG_TIMEOUT_OPT);
 
     // create gitrepo
     cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(namespace, gitRepo, gitRepoUrl, branch, paths)).then(() => {

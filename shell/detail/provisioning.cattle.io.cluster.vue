@@ -893,6 +893,7 @@ export default {
                         :disabled="!group.ref.canScaleDownPool()"
                         type="button"
                         class="btn btn-sm role-secondary"
+                        data-testid="scale-down-button"
                         @click="toggleScaleDownModal($event, group.ref)"
                       >
                         <i class="icon icon-sm icon-minus" />
@@ -902,6 +903,7 @@ export default {
                         :disabled="!group.ref.canScaleUpPool()"
                         type="button"
                         class="btn btn-sm role-secondary ml-10"
+                        data-testid="scale-up-button"
                         @click="group.ref.scalePool(1)"
                       >
                         <i class="icon icon-sm icon-plus" />
