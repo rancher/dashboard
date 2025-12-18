@@ -16,46 +16,53 @@ export enum BACK_OFF_MODE {
   RESET_ON_SUCCESS = 'RESET_ON_SUCCESS'
 }
 
-export interface BackOffArgs<T> {
-    /**
-     * Unique id for the execution of this function.
-     *
-     * This will be used to delay further executions, and also to cancel it
-     */
-    id: string,
-    /**
-     * Basic text description to use in logging
-     */
-    description: string,
-    /**
-     * Number of executions allowed before flatly refusing to call more. Defaults to 10
-     */
-    retries?: number,
-    /**
-     * Before calling delayedFn check if it can still run
-     *
-     * Useful for checking state after a looong delay
-     */
-    canFn?: () => Promise<boolean>,
-    /**
-     * Call this function
-     * - if it's not already waiting to run
-     * - if it's passed canFn
-     * - if it hasn't been tried over `retries` amount
-     *
-     * The function will be increasingly (exponentially) delayed if it has previously been called
-     */
-    delayedFn: () => Promise<any>,
-    /**
-     * Anything that might be important outside of this file (used with `getBackOff`)
-     */
-    metadata?: T,
-    /**
-     *
-     * RESET_ON_SUCCESS
-     */
-    mode?: ''
-  }
+interface BackOffArgs<T> {
+  /**
+   * Unique id for the execution of this function.
+   *
+   * This will be used to delay further executions, and also to cancel it
+   */
+  id: string,
+  /**
+   * Basic text description to use in logging
+   */
+  description: string,
+  /**
+   * Number of executions allowed before flatly refusing to call more. Defaults to 10
+   */
+  retries?: number,
+  /**
+   * Before calling delayedFn check if it can still run
+   *
+   * Useful for checking state after a looong delay
+   */
+  canFn?: () => Promise<boolean>,
+  /**
+   * Call this function
+   * - if it's not already waiting to run
+   * - if it's passed canFn
+   * - if it hasn't been tried over `retries` amount
+   *
+   * The function will be increasingly (exponentially) delayed if it has previously been called
+   */
+  delayedFn: () => Promise<any>,
+  /**
+   * Anything that might be important outside of this file (used with `getBackOff`)
+   */
+  metadata?: T,
+  /**
+   *
+   * RESET_ON_SUCCESS
+   */
+  mode?: ''
+}
+
+export type BackOffExecuteArgs<T> = BackOffArgs<T>
+
+export interface BackOffRecurseArgs<T> extends BackOffArgs<T> {
+  isRecursing?: boolean,
+  canRecurse: (arg: any) => Promise<boolean>,
+}
 
 /**
  * Helper class which handles backing off making the supplied request
@@ -133,11 +140,80 @@ class BackOff {
     }
   }
 
-  // TODO: RC use this for scenario 2 + 3
-  async recurse<T = any, Y= any>({
-    id, description, retries = 10, delayedFn, canFn = async() => true, metadata
-  }: BackOffArgs<T>): Promise<Y | undefined> {
+  private sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+  // TODO: RC use this for scenario 2 + 3
+  async recurse<T = any, Y= any>(args: BackOffRecurseArgs<T>): Promise<Y | undefined> {
+    const {
+      id, description, retries = 10, delayedFn, canFn = async() => true, canRecurse, metadata, isRecursing = false
+    } = args;
+    // const backOff: BackOffEntry = this.map[id];
+
+    // TODO: RC If already running?
+
+    for (let i = 0; i < retries; i++) {
+      const cont = await canFn();
+
+      if (!cont) {
+        this.log('info', {
+          id, status: 'Skipping (canFn test failed)', description, metadata
+        });
+
+        return Promise.reject(new Error('Backoff failed (failed canFn)'));
+      }
+
+      // First step is immediate (0.001s)
+      // Second and others are exponential
+      // Iteration: 1,     2,   3,     4,    5,      6,    7,       8,    9
+      // Delay:     0.25s, 1s,  2.25s, 4s,   6.25s,  9s,   12.25s,  16s,  20.25s
+      const delay = i === 0 ? 1 : Math.pow(i, 2) * 250;
+
+      const logLevel = i === 0 ? undefined : 'info';
+
+      this.log(logLevel, {
+        id, status: `Delaying call (attempt ${ i + 1 }, delayed by ${ delay }ms)`, description, metadata
+      });
+
+      await this.sleep(delay); // TODO: RC this can now move to the end...
+
+      const checkReset = async() => {
+        if (!this.map[id]) {
+          // some reset, don't care now, abort
+          const errorMessage = 'Aborting (backoff was reset, do not continue to process)';
+
+          this.log('error', {
+            id, status: errorMessage, description, metadata
+          });
+
+          return Promise.reject(new Error(errorMessage));
+        }
+      };
+
+      await checkReset();
+
+      try {
+        this.log(logLevel, {
+          id, status: `Executing call`, description, metadata
+        });
+
+        const res = await delayedFn();
+
+        await checkReset();
+
+        return res;
+      } catch (e) {
+        const cont = await canRecurse(e);
+
+        if (!cont) {
+          // Error occurred. Don't clear the map. Next time this is called we'll back off before trying ...
+          this.log('error', {
+            id, status: 'Failed call', description, metadata
+          }, e);
+
+          return Promise.reject(new Error('asdsad')); // TODO: RC
+        }
+      }
+    }
   }
 
   // TODO: RC revert this to before. not async. disjointed.
@@ -154,107 +230,75 @@ class BackOff {
    * This can be called repeatedly, if the previous delay is still running new requests will be ignored
    *
    * @template T - Type of configuration that can be stored with the backoff record
-   * @template Y - Type of result returned
    */
-  async execute<T = any, Y= any>({
+  async execute<T = any>({
     id, description, retries = 10, delayedFn, canFn = async() => true, metadata
-  }: BackOffArgs<T>): Promise<Y | undefined> {
+  }: BackOffExecuteArgs<T>): Promise<NodeJS.Timeout | undefined> {
     const backOff: BackOffEntry = this.map[id];
 
     const cont = await canFn();
-
-    debugger;
 
     if (!cont) {
       this.log('info', {
         id, status: 'Skipping (canExecute test failed)', description, metadata
       });
 
-      return Promise.reject(new Error('Backoff failed (failed canFn)')); // TODO: RC return undefined vs rejected promise?
+      return undefined;
     } else if (backOff?.timeoutId) {
       this.log('info', {
         id, status: 'Skipping (previous back off process still running)', description, metadata
       });
 
-      return backOff?.promise; // TODO: RC return timeoutid vs promise?
+      return backOff.timeoutId;
     } else {
       const backOffTry = backOff?.try || 0;
 
       if (backOffTry + 1 > retries) {
         this.log('error', {
-          id, status: `Aborting (too many retries - ${ retries })`, description, metadata
+          id, status: 'Aborting (too many retries)', description, metadata
         });
 
-        backOff?.promiseRejectFn?.('Aborting (too many retries)');
-
-        return backOff?.promise; // TODO: RC return undefined vs rejected promise?
+        return undefined;
       }
 
       // First step is immediate (0.001s)
       // Second and others are exponential
-      // Iteration: 1,     2,   3,     4,    5,      6,    7,       8,    9
-      // Delay:     0.25s, 1s,  2.25s, 4s,   6.25s,  9s,   12.25s,  16s,  20.25s
+      // Try:         1,     2,   3,     4,    5,      6,    7,       8,    9
+      // Multiple:    1,     4,   9,     16,   25,     36,   49,      64,   81
+      // Actual Time: 0.25s, 1s,  2.25s, 4s,   6.25s,  9s,   12.25s,  16s,  20.25s
       const delay = backOffTry === 0 ? 1 : Math.pow(backOffTry, 2) * 250;
 
-      const logLevel = backOffTry === 0 ? undefined : 'info';
-
-      this.log(logLevel, {
+      this.log('info', {
         id, status: `Delaying call (attempt ${ backOffTry + 1 }, delayed by ${ delay }ms)`, description, metadata
       });
 
+      const timeout = setTimeout(async() => {
+        try {
+          this.log('info', {
+            id, status: `Executing call`, description, metadata
+          });
+
+          await delayedFn();
+        } catch (e) {
+          // Error occurred. Don't clear the map. Next time this is called we'll back off before trying ...
+          this.log('error', {
+            id, status: 'Failed call', description, metadata
+          });
+        }
+
+        // Unblock future calls
+        delete this.map[id]?.timeoutId;
+      }, delay);
+
       this.map[id] = {
-        timeoutId:       undefined,
-        try:             backOff?.try ? backOff.try + 1 : 1,
+        timeoutId: timeout,
+        try:       backOff?.try ? backOff.try + 1 : 1,
         retries,
         description,
-        metadata,
-        promise:         undefined,
-        promiseRejectFn: undefined,
+        metadata
       };
 
-      this.map[id].promise = new Promise((resolve, reject) => {
-        this.map[id].promiseRejectFn = reject;
-
-        const timeout = setTimeout(async() => {
-          try {
-            this.log(logLevel, {
-              id, status: `Executing call`, description, metadata
-            });
-
-            const res = await delayedFn();
-
-            // Ensure we're still interested in the result
-            if (this.map[id]) {
-              resolve(res);
-              // } else {
-              //   const errorMessage = 'Aborting (backoff was reset, do not continue to process)';
-
-            //   this.log('error', {
-            //     id, status: errorMessage, description, metadata
-            //   });
-            //   reject(errorMessage);
-            }
-          } catch (e) {
-            // Error occurred. Don't clear the map. Next time this is called we'll back off before trying ...
-            this.log('error', {
-              id, status: 'Failed call', description, metadata
-            }, e);
-          }
-
-          // Unblock future calls
-          // delete this.map[id];
-          delete this.map[id]?.timeoutId; // This means when we come back around we can run again (with a bigger delay)
-
-          // this.map[id].result = undefined; // TODO: RC test scenario 1
-
-          // delete this.map[id]?.timeoutId; // avoids some scary log files in reset()
-          // this.reset(id); // Reset the try counter so next requests with same id don't act same as failed requests
-        }, delay);
-
-        this.map[id].timeoutId = timeout;
-      });
-
-      return this.map[id].promise;
+      return timeout;
     }
   }
 }
