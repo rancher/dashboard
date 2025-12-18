@@ -30,9 +30,9 @@ describe('component: FileSelector', () => {
     expect(uploadButton.exists()).toBeTruthy();
   });
 
-  it('should succeed when loading an image', async() => {
+  it('should reject binary image file when reading as text', async() => {
     wrapper = mount(FileSelector, {
-      props:   { label: 'upload', accept: 'image/jpeg,image/png,image/svg+xml' },
+      props:   { label: 'upload', accept: 'image/jpeg,image/png,image/svg+xml', showGrowlError: false },
       methods: {},
       global:  { mocks: {} },
     });
@@ -47,8 +47,10 @@ describe('component: FileSelector', () => {
     };
 
     await wrapper.vm.fileChange(event);
-    expect(wrapper.emitted('selected')).toHaveLength(1);
-    expect(readAsTextSpy).toHaveBeenCalledWith(jpegBlobFile);
+    expect(wrapper.emitted('error')).toHaveLength(1);
+    expect(wrapper.emitted('error')[0][0]).toContain('is a binary file and cannot be read as text');
+    expect(wrapper.emitted('selected')).toBeUndefined();
+    expect(readAsTextSpy).not.toHaveBeenCalled();
   });
 
   it('should fail when file is too big', async() => {
@@ -72,5 +74,93 @@ describe('component: FileSelector', () => {
     await wrapper.vm.fileChange(event);
     expect(wrapper.emitted('error')).toHaveLength(1);
     expect(readAsTextSpy).not.toHaveBeenCalledWith(jsonBlobFile);
+  });
+
+  it('should succeed when loading text file', async() => {
+    wrapper = mount(FileSelector, {
+      props:   { label: 'upload' },
+      methods: {},
+      global:  { mocks: {} },
+    });
+    const readAsTextSpy = jest.spyOn(FileReader.prototype, 'readAsText');
+
+    const event = {
+      target: {
+        files: [
+          jsonBlobFile
+        ]
+      }
+    };
+
+    await wrapper.vm.fileChange(event);
+    expect(wrapper.emitted('error')).toBeUndefined();
+    expect(wrapper.emitted('selected')).toHaveLength(1);
+    expect(readAsTextSpy).toHaveBeenCalledWith(jsonBlobFile);
+  });
+
+  it('should allow binary file when reading as data URL', async() => {
+    wrapper = mount(FileSelector, {
+      props:   { label: 'upload', readAsDataUrl: true },
+      methods: {},
+      global:  { mocks: {} },
+    });
+    const readAsDataUrlSpy = jest.spyOn(FileReader.prototype, 'readAsDataURL');
+
+    const event = {
+      target: {
+        files: [
+          jpegBlobFile
+        ]
+      }
+    };
+
+    await wrapper.vm.fileChange(event);
+    expect(wrapper.emitted('error')).toBeUndefined();
+    expect(wrapper.emitted('selected')).toHaveLength(1);
+    expect(readAsDataUrlSpy).toHaveBeenCalledWith(jpegBlobFile);
+  });
+
+  it('should detect PNG files as binary', async() => {
+    const pngBlobFile = new Blob([binaryString], { type: 'image/png' });
+
+    wrapper = mount(FileSelector, {
+      props:   { label: 'upload', showGrowlError: false },
+      methods: {},
+      global:  { mocks: {} },
+    });
+
+    const event = {
+      target: {
+        files: [
+          pngBlobFile
+        ]
+      }
+    };
+
+    await wrapper.vm.fileChange(event);
+    expect(wrapper.emitted('error')).toHaveLength(1);
+    expect(wrapper.emitted('error')[0][0]).toContain('is a binary file and cannot be read as text');
+  });
+
+  it('should detect PDF files as binary', async() => {
+    const pdfBlobFile = new Blob([binaryString], { type: 'application/pdf' });
+
+    wrapper = mount(FileSelector, {
+      props:   { label: 'upload', showGrowlError: false },
+      methods: {},
+      global:  { mocks: {} },
+    });
+
+    const event = {
+      target: {
+        files: [
+          pdfBlobFile
+        ]
+      }
+    };
+
+    await wrapper.vm.fileChange(event);
+    expect(wrapper.emitted('error')).toHaveLength(1);
+    expect(wrapper.emitted('error')[0][0]).toContain('is a binary file and cannot be read as text');
   });
 });
