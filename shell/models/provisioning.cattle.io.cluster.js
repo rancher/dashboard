@@ -326,8 +326,13 @@ export default class ProvCluster extends SteveModel {
 
     // imported rke2 and k3s have status.driver === rke2 and k3s respectively
     // Provisioned rke2 and k3s have status.driver === imported
+    // The main case
     if (this.mgmt?.status?.provider === 'k3s' || this.mgmt?.status?.provider === 'rke2') {
       return this.mgmt?.status?.driver === this.mgmt?.status?.provider;
+    }
+    // The waiting case
+    if (!this.mgmt?.status?.provider && (this.mgmt?.status?.driver === 'k3s' || this.mgmt?.status?.driver === 'rke2')) {
+      return true;
     }
 
     // imported KEv2
