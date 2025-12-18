@@ -47,6 +47,10 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           scope: '@rancher'
 
+      # Ensure latest npm version is installed - 11.5.1 is required to pass OIDC token to npm publish
+      - name: Update npm
+        run: npm install -g npm@latest
+
       - name: Install packages
         run: yarn install --frozen-lockfile
 
