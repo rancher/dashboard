@@ -206,6 +206,8 @@ export const ROOT = 'root';
 export const SPOOFED_PREFIX = '__[[spoofed]]__';
 export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 
+export const PRODUCT_ALL = '*';
+
 const instanceMethods = {};
 
 export const IF_HAVE = {
@@ -316,6 +318,12 @@ export function DSL(store, product, module = 'type-map') {
       }
     },
 
+    labelGroup(group, label, labelKey) {
+      store.commit(`${ module }/labelGroup`, {
+        group, label, labelKey
+      });
+    },
+
     setGroupDefaultType(input, defaultType) {
       if ( isArray(input) ) {
         store.commit(`${ module }/setGroupDefaultType`, { groups: input, defaultType });
@@ -396,6 +404,7 @@ export const state = function() {
     groupIgnore:             [],
     groupWeights:            {},
     groupDefaultTypes:       {},
+    groupLabels:             {},
     basicGroupWeights:       { [ROOT]: 1000 },
     groupMappings:           [],
     typeIgnore:              [],
@@ -495,6 +504,15 @@ export const getters = {
       });
 
       return out;
+    };
+  },
+
+  groupLabel(state) {
+    return (group) => {
+      // If this has been explicitly set, use that
+      if (state.groupLabels[group]) {
+        return state.groupLabels[group];
+      }
     };
   },
 
@@ -739,10 +757,21 @@ export const getters = {
 
         // Translate if an entry exists
         let label = name;
-        // i18n-uses nav.group.*
-        const key = `nav.group."${ name }"`;
+        let key;
 
-        if ( rootGetters['i18n/exists'](key) ) {
+        // See if we have a configured label for this group
+        const groupLabel = getters['groupLabel'](name);
+
+        if (groupLabel?.label) {
+          label = groupLabel.label;
+        } else if (groupLabel?.labelKey) {
+          key = groupLabel.labelKey
+        } else {
+          // i18n-uses nav.group.*
+          key = `nav.group."${ name }"`;
+        }
+
+        if (key && rootGetters['i18n/exists'](key) ) {
           label = rootGetters['i18n/t'](key);
         }
 
@@ -1666,6 +1695,10 @@ export const mutations = {
     for ( const g of groups ) {
       map[g.toLowerCase()] = weight;
     }
+  },
+
+  labelGroup(state, { group, label, labelKey }) {
+    state.groupLabels[group.toLowerCase()] = { label, labelKey };
   },
 
   // setGroupDefaultType({group: 'core', defaultType: 'name'});

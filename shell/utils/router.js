@@ -41,17 +41,20 @@ export function getClusterFromRoute(to) {
 export function getProductFromRoute(to) {
   let product = to.params?.product;
 
+  // If no product, see if the route indicates the product via route metadata
+  if (!product) {
+    product = findMeta(to, 'product');
+  }
+
+  // Special case of the form c-cluster-<product>, extract product from there
+  // TODO: We should remove this, as it's better to be explicit via params or meta
+  // This can match unexpected routes
   if ( !product ) {
     const match = to.name?.match(/^c-cluster-([^-]+)/);
 
     if ( match ) {
       product = match[1];
     }
-  }
-
-  // If still no product, see if the route indicates the product via route metadata
-  if (!product) {
-    product = findMeta(to, 'product');
   }
 
   return product;
