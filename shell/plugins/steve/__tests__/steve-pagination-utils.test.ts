@@ -1,6 +1,6 @@
 
 import { PaginationFilterEquality, PaginationFilterField, PaginationParamFilter, PaginationParamProjectOrNamespace } from '@shell/types/store/pagination.types';
-import { NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
+import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import stevePaginationUtils from '../steve-pagination-utils';
 import Schema from '@shell/models/schema';
 
@@ -19,6 +19,14 @@ class TestNamespaceProjectFilters {
 
   public handleSelectionFilter(neu: string[], isLocalCluster: boolean) {
     return stevePaginationUtils.handleSelectionFilter(neu, isLocalCluster);
+  }
+
+  public combineNsProjectFilterResults(a: any, b: any) {
+    return stevePaginationUtils.combineNsProjectFilterResults(a, b);
+  }
+
+  public createFiltersFromNamespaceProjectFilterResult(filterResult: any) {
+    return stevePaginationUtils.createFiltersFromNamespaceProjectFilterResult(filterResult);
   }
 }
 
@@ -48,7 +56,7 @@ describe('class: NamespaceProjectFilters', () => {
         productHidesSystemNamespaces:  false,
       });
 
-      expect(result).toStrictEqual([]);
+      expect(result).toStrictEqual({});
     });
 
     it('should filter obscure namespaces if showReservedRancherNamespaces is false', () => {
@@ -58,12 +66,10 @@ describe('class: NamespaceProjectFilters', () => {
         productHidesSystemNamespaces:  false,
       });
 
-      expect(result).toHaveLength(1);
-      expect(result).toContainEqual(expect.objectContaining({
-        fields: [expect.objectContaining({
-          value: 'obscure,obscure-system', equality: ' NOTIN ', field: `metadata.namespace`
-        })]
-      }));
+      expect(result).toStrictEqual({
+        obscure:          false,
+        'obscure-system': false
+      });
     });
 
     it('should filter system namespaces if productHidesSystemNamespaces is true', () => {
@@ -73,12 +79,10 @@ describe('class: NamespaceProjectFilters', () => {
         productHidesSystemNamespaces:  true,
       });
 
-      expect(result).toHaveLength(1);
-      expect(result).toContainEqual(expect.objectContaining({
-        fields: [expect.objectContaining({
-          value: 'system,obscure-system', equality: ' NOTIN ', field: `metadata.namespace`
-        })]
-      }));
+      expect(result).toStrictEqual({
+        system:           false,
+        'obscure-system': false
+      });
     });
 
     it('should filter both obscure and system namespaces when both settings are active', () => {
@@ -88,12 +92,11 @@ describe('class: NamespaceProjectFilters', () => {
         productHidesSystemNamespaces:  true,
       });
 
-      expect(result).toHaveLength(1);
-      expect(result).toContainEqual(expect.objectContaining({
-        fields: [expect.objectContaining({
-          value: 'obscure,system,obscure-system', equality: ' NOTIN ', field: `metadata.namespace`
-        })]
-      }));
+      expect(result).toStrictEqual({
+        obscure:          false,
+        system:           false,
+        'obscure-system': false
+      });
     });
   });
 
@@ -105,16 +108,10 @@ describe('class: NamespaceProjectFilters', () => {
         isAllUser:   false,
       });
 
-      expect(result).toHaveLength(1);
-      const filter = result[0] as PaginationParamFilter;
-
-      expect(filter.fields).toHaveLength(2);
-      expect(filter.fields).toContainEqual(expect.objectContaining({
-        value: 'system', equality: '=', field: 'metadata.namespace'
-      }));
-      expect(filter.fields).toContainEqual(expect.objectContaining({
-        value: 'obscure-system', equality: '=', field: 'metadata.namespace'
-      }));
+      expect(result).toStrictEqual({
+        system:           true,
+        'obscure-system': true
+      });
     });
 
     it('should create AND filters to exclude system namespaces when isAllUser is true', () => {
@@ -124,17 +121,59 @@ describe('class: NamespaceProjectFilters', () => {
         isAllUser:   true,
       });
 
-      expect(result).toHaveLength(2);
-      expect(result).toContainEqual(expect.objectContaining({
-        fields: [expect.objectContaining({
-          value: 'system', equality: '!=', field: 'metadata.namespace'
-        })]
-      }));
-      expect(result).toContainEqual(expect.objectContaining({
-        fields: [expect.objectContaining({
-          value: 'obscure-system', equality: '!=', field: 'metadata.namespace'
-        })]
-      }));
+      expect(result).toStrictEqual({
+        system:           false,
+        'obscure-system': false
+      });
+    });
+  });
+
+  describe('method: combineNsProjectFilterResults', () => {
+    it('should merge two results, prioritizing the first', () => {
+      const a = { ns1: true, ns2: false };
+      const b = { ns2: true, ns3: true };
+      const result = testNamespaceProjectFilters.combineNsProjectFilterResults(a, b);
+
+      expect(result).toStrictEqual({
+        ns1: true,
+        ns2: false, // kept from a
+        ns3: true // added from b
+      });
+    });
+  });
+
+  describe('method: createFiltersFromNamespaceProjectFilterResult', () => {
+    it('should create IN filter if there are included namespaces', () => {
+      const input = {
+        ns1: true, ns2: true, ns3: false
+      };
+      const result = testNamespaceProjectFilters.createFiltersFromNamespaceProjectFilterResult(input);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].fields[0]).toMatchObject({
+        field:    'metadata.namespace',
+        equality: PaginationFilterEquality.IN,
+        value:    'ns1,ns2'
+      });
+    });
+
+    it('should create NOT_IN filter if there are only excluded namespaces', () => {
+      const input = { ns1: false, ns2: false };
+      const result = testNamespaceProjectFilters.createFiltersFromNamespaceProjectFilterResult(input);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].fields[0]).toMatchObject({
+        field:    'metadata.namespace',
+        equality: PaginationFilterEquality.NOT_IN,
+        value:    'ns1,ns2'
+      });
+    });
+
+    it('should return empty array if input is empty', () => {
+      const input = {};
+      const result = testNamespaceProjectFilters.createFiltersFromNamespaceProjectFilterResult(input);
+
+      expect(result).toHaveLength(0);
     });
   });
 
@@ -231,103 +270,237 @@ describe('class StevePaginationUtils', () => {
   const testStevePaginationUtils = new TestStevePaginationUtils();
   const schema = { id: 'pod' } as unknown as Schema;
 
-  it('should return an empty string for no filters', () => {
-    const result = testStevePaginationUtils.convertPaginationParams({ schema, filters: [] });
+  describe('method: createParamsFromNsFilter', () => {
+    const normalNs = {
+      id: 'normal', name: 'normal', isObscure: false, isSystem: false
+    } as any;
+    const obscureNs = {
+      id: 'obscure', name: 'obscure', isObscure: true, isSystem: false
+    } as any;
+    const systemNs = {
+      id: 'system', name: 'system', isObscure: false, isSystem: true
+    } as any;
+    const allNamespaces = [normalNs, obscureNs, systemNs];
 
-    expect(result).toBe('');
+    it('should return empty filters if all namespaces requested and settings allow all', () => {
+      const result = stevePaginationUtils.createParamsFromNsFilter({
+        allNamespaces,
+        selection:                     [],
+        isAllNamespaces:               true,
+        isLocalCluster:                false,
+        showReservedRancherNamespaces: true,
+        productHidesSystemNamespaces:  false,
+      });
+
+      expect(result.projectsOrNamespaces).toHaveLength(0);
+      expect(result.filters).toHaveLength(0);
+    });
+
+    it('should filter obscure namespaces if showReservedRancherNamespaces is false', () => {
+      const result = stevePaginationUtils.createParamsFromNsFilter({
+        allNamespaces,
+        selection:                     [],
+        isAllNamespaces:               true,
+        isLocalCluster:                false,
+        showReservedRancherNamespaces: false,
+        productHidesSystemNamespaces:  false,
+      });
+
+      expect(result.filters).toHaveLength(1);
+      expect(result.filters[0].fields[0]).toMatchObject({
+        field:    'metadata.namespace',
+        equality: PaginationFilterEquality.NOT_IN,
+        value:    'obscure'
+      });
+    });
+
+    it('should filter system namespaces if productHidesSystemNamespaces is true', () => {
+      const result = stevePaginationUtils.createParamsFromNsFilter({
+        allNamespaces,
+        selection:                     [],
+        isAllNamespaces:               true,
+        isLocalCluster:                false,
+        showReservedRancherNamespaces: true,
+        productHidesSystemNamespaces:  true,
+      });
+
+      expect(result.filters).toHaveLength(1);
+      expect(result.filters[0].fields[0]).toMatchObject({
+        field:    'metadata.namespace',
+        equality: PaginationFilterEquality.NOT_IN,
+        value:    'system'
+      });
+    });
+
+    it('should filter both obscure and system namespaces when both settings are active', () => {
+      const result = stevePaginationUtils.createParamsFromNsFilter({
+        allNamespaces,
+        selection:                     [],
+        isAllNamespaces:               true,
+        isLocalCluster:                false,
+        showReservedRancherNamespaces: false,
+        productHidesSystemNamespaces:  true,
+      });
+
+      expect(result.filters).toHaveLength(1);
+      expect(result.filters[0].fields[0]).toMatchObject({
+        field:    'metadata.namespace',
+        equality: PaginationFilterEquality.NOT_IN,
+        value:    'obscure,system'
+      });
+    });
+
+    it('should handle ALL_SYSTEM selection', () => {
+      const result = stevePaginationUtils.createParamsFromNsFilter({
+        allNamespaces,
+        selection:                     [NAMESPACE_FILTER_ALL_SYSTEM],
+        isAllNamespaces:               false,
+        isLocalCluster:                false,
+        showReservedRancherNamespaces: true,
+        productHidesSystemNamespaces:  false,
+      });
+
+      expect(result.filters).toHaveLength(1);
+      expect(result.filters[0].fields[0]).toMatchObject({
+        field:    'metadata.namespace',
+        equality: PaginationFilterEquality.IN,
+        value:    'system'
+      });
+    });
+
+    it('should handle ALL_USER selection', () => {
+      const result = stevePaginationUtils.createParamsFromNsFilter({
+        allNamespaces,
+        selection:                     [NAMESPACE_FILTER_ALL_USER],
+        isAllNamespaces:               false,
+        isLocalCluster:                false,
+        showReservedRancherNamespaces: true,
+        productHidesSystemNamespaces:  false,
+      });
+
+      expect(result.filters).toHaveLength(1);
+      expect(result.filters[0].fields[0]).toMatchObject({
+        field:    'metadata.namespace',
+        equality: PaginationFilterEquality.NOT_IN,
+        value:    'system'
+      });
+    });
+
+    it('should handle specific project/namespace selection', () => {
+      const selection = ['ns-1'];
+      const result = stevePaginationUtils.createParamsFromNsFilter({
+        allNamespaces,
+        selection,
+        isAllNamespaces:               false,
+        isLocalCluster:                false,
+        showReservedRancherNamespaces: true,
+        productHidesSystemNamespaces:  false,
+      });
+
+      expect(result.projectsOrNamespaces).toHaveLength(1);
+      expect(result.projectsOrNamespaces[0].fields[0].value).toBe('ns-1');
+    });
   });
 
-  it('should handle a single filter with a single field', () => {
-    const filters = [
-      new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: 'test' })] }),
-    ];
-    const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+  describe('method: convertPaginationParams', () => {
+    it('should return an empty string for no filters', () => {
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters: [] });
 
-    expect(result).toBe('filter=metadata.name=test');
-  });
+      expect(result).toBe('');
+    });
 
-  it('should handle a single filter with a single field with encoded char', () => {
-    const filters = [
-      new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: 'te/st' })] }),
-    ];
-    const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+    it('should handle a single filter with a single field', () => {
+      const filters = [
+        new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: 'test' })] }),
+      ];
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
 
-    expect(result).toBe('filter=metadata.name="te%2Fst"');
-  });
+      expect(result).toBe('filter=metadata.name=test');
+    });
 
-  it('should handle a single filter with multiple fields (OR)', () => {
-    const filters = [
-      new PaginationParamFilter({
-        fields: [
-          new PaginationFilterField({ field: 'metadata.name', value: 'test1' }),
-          new PaginationFilterField({ field: 'metadata.namespace', value: 'ns1' }),
-        ],
-      }),
-    ];
-    const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+    it('should handle a single filter with a single field with encoded char', () => {
+      const filters = [
+        new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: 'te/st' })] }),
+      ];
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
 
-    expect(result).toBe('filter=metadata.name=test1,metadata.namespace=ns1');
-  });
+      expect(result).toBe('filter=metadata.name="te%2Fst"');
+    });
 
-  it('should handle multiple filters (AND)', () => {
-    const filters = [
-      new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: 'test1' })] }),
-      new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.namespace', value: 'ns1' })] }),
-    ];
-    const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+    it('should handle a single filter with multiple fields (OR)', () => {
+      const filters = [
+        new PaginationParamFilter({
+          fields: [
+            new PaginationFilterField({ field: 'metadata.name', value: 'test1' }),
+            new PaginationFilterField({ field: 'metadata.namespace', value: 'ns1' }),
+          ],
+        }),
+      ];
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
 
-    expect(result).toBe('filter=metadata.name=test1&filter=metadata.namespace=ns1');
-  });
+      expect(result).toBe('filter=metadata.name=test1,metadata.namespace=ns1');
+    });
 
-  it('should handle different equality operators', () => {
-    const filters = [
-      new PaginationParamFilter({
-        fields: [
-          new PaginationFilterField({
-            field:    'spec.containers.image',
-            value:    'nginx',
-            equality: PaginationFilterEquality.CONTAINS,
-          }),
-        ],
-      }),
-      new PaginationParamFilter({
-        fields: [
-          new PaginationFilterField({
-            field:    'metadata.name',
-            value:    'test',
-            equality: PaginationFilterEquality.NOT_EQUALS,
-          }),
-        ],
-      }),
-    ];
-    const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+    it('should handle multiple filters (AND)', () => {
+      const filters = [
+        new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: 'test1' })] }),
+        new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.namespace', value: 'ns1' })] }),
+      ];
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
 
-    expect(result).toBe('filter=spec.containers.image~nginx&filter=metadata.name!=test');
-  });
+      expect(result).toBe('filter=metadata.name=test1&filter=metadata.namespace=ns1');
+    });
 
-  it('should handle IN and NOT_IN operators', () => {
-    const filters = [
-      new PaginationParamFilter({
-        fields: [
-          new PaginationFilterField({
-            field:    'metadata.name',
-            value:    'test1,test2',
-            equality: PaginationFilterEquality.IN,
-          }),
-        ],
-      }),
-      new PaginationParamFilter({
-        fields: [
-          new PaginationFilterField({
-            field:    'metadata.namespace',
-            value:    'ns1,ns2',
-            equality: PaginationFilterEquality.NOT_IN,
-          }),
-        ],
-      }),
-    ];
-    const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+    it('should handle different equality operators', () => {
+      const filters = [
+        new PaginationParamFilter({
+          fields: [
+            new PaginationFilterField({
+              field:    'spec.containers.image',
+              value:    'nginx',
+              equality: PaginationFilterEquality.CONTAINS,
+            }),
+          ],
+        }),
+        new PaginationParamFilter({
+          fields: [
+            new PaginationFilterField({
+              field:    'metadata.name',
+              value:    'test',
+              equality: PaginationFilterEquality.NOT_EQUALS,
+            }),
+          ],
+        }),
+      ];
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
 
-    expect(result).toBe('filter=metadata.name IN (test1,test2)&filter=metadata.namespace NOTIN (ns1,ns2)');
+      expect(result).toBe('filter=spec.containers.image~nginx&filter=metadata.name!=test');
+    });
+
+    it('should handle IN and NOT_IN operators', () => {
+      const filters = [
+        new PaginationParamFilter({
+          fields: [
+            new PaginationFilterField({
+              field:    'metadata.name',
+              value:    'test1,test2',
+              equality: PaginationFilterEquality.IN,
+            }),
+          ],
+        }),
+        new PaginationParamFilter({
+          fields: [
+            new PaginationFilterField({
+              field:    'metadata.namespace',
+              value:    'ns1,ns2',
+              equality: PaginationFilterEquality.NOT_IN,
+            }),
+          ],
+        }),
+      ];
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+
+      expect(result).toBe('filter=metadata.name IN (test1,test2)&filter=metadata.namespace NOTIN (ns1,ns2)');
+    });
   });
 });
