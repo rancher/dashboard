@@ -1,0 +1,19 @@
+{
+  "name": "top-level-product",
+  "description": "Example extension for a top-level product on Rancher Dashboard",
+  "version": "0.1.0",
+  "private": false,
+  "rancher": true,
+  "engines": {
+    "node": ">=12"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-service": "~4.5.0",
+    "@vue/cli-plugin-typescript": "^4.5.15"
+  },
+  "files": [
+    "**/*"
+  ],
+  "main": "top-level-product-0.1.0.umd.min.js"
+}
