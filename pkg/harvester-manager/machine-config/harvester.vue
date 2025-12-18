@@ -1276,6 +1276,20 @@ export default {
           />
         </div>
       </div>
+      <div class="row mt-20">
+        <div class="col span-6">
+          <UnitInput
+            v-model:value="value.reservedMemorySize"
+            v-int-number
+            label-key="cluster.credential.harvester.reservedMemory"
+            output-as="string"
+            suffix="MiB"
+            :mode="mode"
+            :disabled="disabled"
+            :placeholder="t('cluster.harvester.machinePool.reservedMemory.placeholder')"
+          />
+        </div>
+      </div>
 
       <h2 class="mt-20">
         {{ t('cluster.credential.harvester.volume.title') }}
