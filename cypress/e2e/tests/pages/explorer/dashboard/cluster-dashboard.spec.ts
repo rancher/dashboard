@@ -183,7 +183,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     }).then((el: any) => {
       el.click();
 
-      const workloadDeployments = new WorkloadsDeploymentsListPagePo('local', 'apps.deployment');
+      const workloadDeployments = new WorkloadsDeploymentsListPagePo('local', 'apps.deployment' as any);
 
       workloadDeployments.waitForPage();
     });
@@ -379,7 +379,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
         cy.deleteRancherResource('v3', 'projects', projectId);
       });
 
-      cy.get('@createUserRequest').then((req) => {
+      cy.get('@createUserRequest').then((req: any) => {
         const userId = req.body.id;
 
         cy.deleteRancherResource('v3', 'users', userId);

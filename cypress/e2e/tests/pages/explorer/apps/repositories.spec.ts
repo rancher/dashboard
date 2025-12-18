@@ -12,7 +12,7 @@ describe('Apps', () => {
       beforeEach(() => {
         cy.login();
 
-        appRepoList.goTo();
+        appRepoList.goTo('local', 'apps');
         appRepoList.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
 
         cy.createE2EResourceName('helm-repo-dupe-test').as('helmRepoDupeName');
@@ -163,7 +163,7 @@ describe('Apps', () => {
       beforeEach(() => {
         cy.login();
 
-        appRepoList.goTo();
+        appRepoList.goTo(clusterId, 'apps');
         appRepoList.waitForPage();
       });
 

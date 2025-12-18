@@ -4,7 +4,7 @@ import {
   generateFakeNamespaceSchema,
   generateFakeDaemonsetSchema,
   generateFakePodSchema
-} from './k8s-schemas.ts';
+} from './k8s-schemas';
 
 import {
   generateFakeNodeDriversReply,
@@ -12,7 +12,7 @@ import {
   generateFakeMachineConfigReply,
   generateFakeCloudCredIndividualReply,
   generateFakeSecretsReply
-} from './edit-cluster.ts';
+} from './edit-cluster';
 
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '../blueprint.utils';
 
@@ -2450,16 +2450,21 @@ function generateFakeDaemonsetsReply(mgmtClusterId) {
 
 function generateFakeNavClusterData(provClusterId = 'some-prov-cluster-id', mgmtClusterId = 'some-mgmt-cluster-id', addEditClusterCapabilities = false): any {
   const fakeData = {
-    provClusterObj:      generateProvClusterObj(provClusterId, mgmtClusterId),
-    mgmtClusterObj:      generateMgmtClusterObj(provClusterId, mgmtClusterId),
-    fakeNodeSchema:      generateFakeNodeSchema(mgmtClusterId),
-    fakeCountSchema:     generateFakeCountSchema(mgmtClusterId),
-    fakeNamespaceSchema: generateFakeNamespaceSchema(mgmtClusterId),
-    fakeDaemonsetSchema: generateFakeDaemonsetSchema(mgmtClusterId),
-    fakePodSchema:       generateFakePodSchema(mgmtClusterId),
-    fakeCountsReply:     generateFakeCountsReply(mgmtClusterId),
-    fakeNamespacesReply: generateFakeNamespacesReply(mgmtClusterId),
-    fakeDaemonsetsReply: generateFakeDaemonsetsReply(mgmtClusterId),
+    provClusterObj:               generateProvClusterObj(provClusterId, mgmtClusterId),
+    mgmtClusterObj:               generateMgmtClusterObj(provClusterId, mgmtClusterId),
+    fakeNodeSchema:               generateFakeNodeSchema(mgmtClusterId),
+    fakeCountSchema:              generateFakeCountSchema(mgmtClusterId),
+    fakeNamespaceSchema:          generateFakeNamespaceSchema(mgmtClusterId),
+    fakeDaemonsetSchema:          generateFakeDaemonsetSchema(mgmtClusterId),
+    fakePodSchema:                generateFakePodSchema(mgmtClusterId),
+    fakeCountsReply:              generateFakeCountsReply(mgmtClusterId),
+    fakeNamespacesReply:          generateFakeNamespacesReply(mgmtClusterId),
+    fakeDaemonsetsReply:          generateFakeDaemonsetsReply(mgmtClusterId),
+    fakeNodeDriversReply:         '',
+    fakeCloudCredentialsReply:    '',
+    fakeMachineConfigReply:       '',
+    fakeCloudCredIndividualReply: '',
+    fakeSecretsReply:             ''
   };
 
   if (addEditClusterCapabilities) {

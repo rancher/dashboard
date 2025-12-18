@@ -14,7 +14,7 @@ export default class ClusterManagerEditImportedPagePo extends PagePo {
     return `/c/${ clusterId }/manager/provisioning.cattle.io.cluster/${ ns }/${ clusterName }`;
   }
 
-  static goTo(clusterId: string, ns: string, clusterName: string ): Cypress.Chainable<Cypress.AUTWindow> {
+  goToClusterEditPage(clusterId: string, ns: string, clusterName: string ): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(ClusterManagerEditImportedPagePo.createPath(clusterId, ns, clusterName));
   }
 

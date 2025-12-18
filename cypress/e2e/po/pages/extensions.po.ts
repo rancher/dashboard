@@ -108,7 +108,7 @@ export default class ExtensionsPagePo extends PagePo {
    * @param name - A name for the repository
    * @returns {Cypress.Chainable}
    */
-  addExtensionsRepositoryDirectLink(repo: string, branch: string, name: string, waitForActiveState = true): Cypress.Chainable {
+  addExtensionsRepositoryDirectLink(repo: string, branch: string, name: string, waitForActiveState = true) {
     const appRepoList = new RepositoriesPagePo('local', 'apps');
     const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
 
