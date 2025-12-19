@@ -103,7 +103,7 @@ const createFindWatchArg = ({
   return watchMsg;
 };
 
-let scen2 = 0;
+let scen2 = 10000;
 
 export default {
   request() {
@@ -465,6 +465,9 @@ export default {
       mode:      STEVE_WATCH_MODE.RESOURCE_CHANGES,
     };
 
+    if (type === 'pod') {
+      // debugger;
+    }
     // No need to request the resources if we have them already
     if (!opt.transient && !opt.force && getters['havePaginatedPage'](type, opt)) {
       if (opt.watch !== false ) {
@@ -487,7 +490,7 @@ export default {
 
       if (opt.revision) {
         scen2++;
-        if (scen2 > 1 && scen2 < 10 && type === 'pod') {
+        if (scen2 > 1 && scen2 < 7 && type === 'pod') {
           throw { status: 400, code: 'unknown revision' };
         }
       }

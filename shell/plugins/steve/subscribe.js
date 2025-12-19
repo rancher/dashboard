@@ -356,7 +356,7 @@ const clearInError = ({ getters, commit }, error) => {
 };
 
 let scen1 = 10000;
-let scenhmm2 = 0;
+let scen3 = 0;
 
 /**
  * Actions that cover all cases (see file description)
@@ -583,7 +583,7 @@ const sharedActions = {
       return;
     }
 
-    if (scen1 < 8 && type === 'pod') {
+    if (scen1 < 7 && type === 'pod') {
       revision = 'asdsad';
       scen1++;
     }
@@ -726,6 +726,7 @@ const sharedActions = {
   resetWatchBackOff({ state, getters, commit }, {
     type, compareWatches, resetInError = true, resetStarted = true
   } = { resetInError: true, resetStarted: true }) {
+    myLogger.warn('resetWatchBackOff', 'start', type, resetInError, resetStarted);
     // Step 1 - Reset back-offs related to watches that have STARTED
     if (resetStarted && state.started?.length) {
       let entries = state.started;
@@ -910,8 +911,7 @@ const defaultActions = {
     if (targetRevision.isNewerThan(activeRevision)) {
       // Scenario 2 - reset previous (drop older requests with older revision, use new revision)
 
-      // eslint-disable-next-line no-console
-      console.info(`Dropping previous subscribe request to update '${ type }' with revision '${ currentRevision.revision }' (new target revision '${ targetRevision.revision }'). `);
+      console.info(`Dropping previous subscribe request to update '${ type }' with revision '${ currentRevision.revision }' (new target revision '${ targetRevision.revision }'). `); // eslint-disable-line no-console
 
       backOff.reset(safeBackOffId);
     }
@@ -919,38 +919,45 @@ const defaultActions = {
     try {
       //  TODO: RC this doesn't need to be async here, but does in wrapper
       // if async then delayFn calling itself calling backoff aborts given parent delay is still running
-      await backOff.execute({
+      await backOff.recurse({
         id:          safeBackOffId,
         metadata:    { revision },
         description: `Fetching resources for ${ type }. Triggered by web socket`,
-        canFn:       () => getters.canBackoff(this.$socket),
-        delayedFn:   async() => {
-          try {
-            myLogger.warn('fetchPageResources', 'delayedFn', 'trying', opt, params );
+        canFn:       () => {
+          if (!getters.canBackoff(this.$socket)) {
+            console.info(`Aborting subscribe request to update '${ type }' with revision '${ currentRevision.revision }' (socket closed). `); // eslint-disable-line no-console
 
-            await dispatch('findPage', {
-              type,
-              opt: {
-                ...opt,
-                namespaced: namespace,
-                revision,
-                // This brings in page, page size, filter, etc
-                ...storePagination.request,
-              }
-            });
-          } catch (err) {
-            myLogger.warn('fetchPageResources', 'delayedFn', 'ERROR', params, JSON.stringify(err));
-            if (err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION) {
-              dispatch('fetchPageResources', {
-                params,
-                storePagination,
-                opt,
-                backOffId: safeBackOffId
-              });
-            } else {
-              throw err;
+            return false;
+          }
+
+          debugger;
+          if (!getters['watchStarted'](params)) {
+            // No watch has started... but are we in initial state where the watch failed due to a bad revision?
+            const inError = getters.inError(params);
+
+            if (inError !== REVISION_TOO_OLD) {
+              console.info(`Aborting subscribe request to update '${ type }' with revision '${ currentRevision.revision }' (resource not watched). `); // eslint-disable-line no-console
+
+              return false;
             }
           }
+
+          return true;
+        },
+        continueOnError: async(err) => {
+          return err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION;
+        },
+        delayedFn: async() => {
+          return await dispatch('findPage', {
+            type,
+            opt: {
+              ...opt,
+              namespaced: namespace,
+              revision,
+              // This brings in page, page size, filter, etc
+              ...storePagination.request,
+            }
+          });
         },
       });
     } catch (err) {
@@ -958,7 +965,7 @@ const defaultActions = {
     }
 
     // We should only get here if the request has completed (successfully or fatally)
-    backOff.reset(safeBackOffId);
+    // backOff.reset(safeBackOffId);
   },
 
   async fetchResources({
@@ -1401,10 +1408,13 @@ const defaultActions = {
     }
   },
 
-  async 'ws.resource.changes'({ dispatch, getters }, msg) {
-    if (msg.type === 'pod' && scenhmm2 < 1) {
-      scenhmm2++;
-      msg.revision = 'dsfdsf';
+  async 'ws.resource.changes'({ dispatch }, msg) {
+    myLogger.warn('sasdfdsf', msg, scen3);
+    if (msg.resourceType === 'pod') {
+      scen3++;
+      if (scen3 < 2) {
+        msg.revision = 0; // stale revision
+      }
     }
 
     await dispatch('fetchResources', {

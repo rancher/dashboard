@@ -43,8 +43,12 @@ export type RancherKubeMetadata = KubeMetadata
 // TODO: RC test / write down - findPage requests from wrapper + socket should contain a revision
 // TODO: RC test watches based on selectors
 // TODO: RC test scenario 1 - in shell/plugins/steve/subscribe.js:`watch`. for a specific resource bork the revision in the watch request (x amount of times)
-// TODO: RC test scenario 2
-// TODO: RC test scenario 3
+// TODO: RC test scenario 2 - shell/plugins/dashboard-store/actions.js:`findPage. for a specific resource bork the before `await dispatch('request', { opt, type });` with `throw { status: 400, code: 'unknown revision' };` (x amount of times)
+// TODO: RC test scenario 3 - in shell/plugins/steve/subscribe.js:`ws.resource.changes`. for a specific resource set msg.revision to 0
+
+// TODO: RC test validation - whilst recurse is running... socket down OR forget type. When in pods list and backoff running navigate away
+
+// TODO: RC handle the case where a resource is stop watched. all existing backoffs should be cancelled
 
 // TODO: RC PR Description - General - Changed back-off to return a promise with the eventual result rather than just the timer object
 // TODO: RC PR Description - Scenario 2 - Ensure all places that make a findPage requests as a result of resource.changes event contain revision
@@ -53,4 +57,5 @@ export type RancherKubeMetadata = KubeMetadata
 //                             - wrapper managed resources -  shell/utils/pagination-wrapper.ts `request`
 // TODO: RC PR Description - Scenario 2 - Ensure that when we make requests using a revision we back-off retry if failed given invalid revision
 // TODO: RC PR Description - Scenario 3 - Ensure that we cache the revision from findPage requests, and abort resource.changes process if the cached revision is newer than the resource.changes revision
-// TODO: RC PR Description -
+// TODO: RC PR Description - Challenges - Reproducing scenarios
+// TODO: RC PR Description - Challenges - Reproducing combined scenarios

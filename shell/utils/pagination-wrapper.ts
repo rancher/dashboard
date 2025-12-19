@@ -145,25 +145,28 @@ class PaginationWrapper<T extends object> {
     }
 
     // Fetch
-    const out = await backOff.execute<any, ActionFindPageTransientResult<T>>({
-      id:          backOffId,
-      metadata:    { revision },
-      description: `Catering for unknown revision used in http request`,
-      delayedFn:   async() => {
-        try {
-          myLogger.warn('pagination wrapper', 'request', 'backoff', 'trying', this.id);
+    const out = await backOff.recurse<any, ActionFindPageTransientResult<T>>({
+      id:              backOffId,
+      metadata:        { revision },
+      description:     `Catering for unknown revision used in http request`,
+      continueOnError: async(err) => {
+        return err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION;
+      },
+      delayedFn: async() => {
+        // try {
+        myLogger.warn('pagination wrapper', 'request', 'backoff', 'trying', this.id);
 
-          const res = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
+        const res = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
 
-          this.cachedRevision = revision;
+        this.cachedRevision = revision;
 
-          return res;
-        } catch (err: any) {
-          myLogger.warn('pagination wrapper', 'request', 'backoff', 'ERROR', this.id, err);
-          if (err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION) {
-            return await this.request(requestArgs);
-          }
-        }
+        return res;
+        // } catch (err: any) {
+        //   myLogger.warn('pagination wrapper', 'request', 'backoff', 'ERROR', this.id, err);
+        //   if (err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION) {
+        //     return await this.request(requestArgs);
+        //   }
+        // }
       },
     });
 
