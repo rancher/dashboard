@@ -73,7 +73,7 @@
     "ansi_up": "5.0.0",
     "axios": "1.12.2",
     "axios-retry": "3.1.9",
-    "babel-plugin-module-resolver": "4.0.0",
+    "babel-plugin-module-resolver": "5.0.2",
     "cache-loader": "4.1.0",
     "chart.js": "4.4.8",
     "clipboard-polyfill": "4.0.1",
