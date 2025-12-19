@@ -323,7 +323,7 @@ describe('extension Manager', () => {
       manager.registerBuiltinExtension('builtin-test', mockModule);
       manager.loadBuiltinExtensions();
 
-      expect(mockModule.default).toHaveBeenCalled();
+      expect(mockModule.default).toHaveBeenCalledWith(expect.objectContaining({ builtin: true }), expect.any(Object));
       expect(mockStore.dispatch).toHaveBeenCalledWith('uiplugins/addPlugin', expect.objectContaining({
         id:      'builtin-test',
         builtin: true
@@ -336,7 +336,7 @@ describe('extension Manager', () => {
       manager.registerBuiltinExtension('skip-test', mockModule);
       manager.loadBuiltinExtensions();
 
-      expect(mockModule.default).toHaveBeenCalled();
+      expect(mockModule.default).toHaveBeenCalledWith(expect.objectContaining({ builtin: true }), expect.any(Object));
       expect(mockStore.dispatch).not.toHaveBeenCalledWith('uiplugins/addPlugin', expect.anything());
     });
 
@@ -351,7 +351,7 @@ describe('extension Manager', () => {
       manager.registerBuiltinExtension('error-builtin', mockModule);
       manager.loadBuiltinExtensions();
 
-      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.objectContaining({}));
       expect(mockStore.dispatch).not.toHaveBeenCalledWith('uiplugins/addPlugin', expect.anything());
 
       consoleErrorSpy.mockRestore();
