@@ -8,6 +8,7 @@ SHELL_DIR=$BASE_DIR/shell/
 CREATORS_DIR=$BASE_DIR/creators/extension
 FORCE_PUBLISH_TO_NPM="false"
 DEFAULT_NPM_REGISTRY="https://registry.npmjs.org"
+DUMMY_VERSION="99.99.99"
 
 # if TAG doesn't exist, we can exit as it's needed for any type of publish.
 if [ -z "$TAG" ]; then
@@ -84,6 +85,14 @@ function publish() {
   fi
 }
 
+update_version_in_package_json() {
+  local package_json_path="$1"
+  local version="$2"
+
+  sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\(-alpha\.[0-9]*\|-release[0-9]*.[0-9]*.[0-9]*\|-rc\.[0-9]*\)\{0,1\}\",/\"version\": \"${version}\",/g" "$package_json_path"
+  rm "${package_json_path}.bak"
+}
+
 echo "TAG ${TAG}"
   
   # let's get the package name and version from the tag
@@ -102,6 +111,14 @@ fi
 case $PKG_NAME in
   "shell")
     echo "Publishing only Shell pkg via tagged release"
+
+    # with the changes in https://github.com/rancher/dashboard/pull/16166/files#diff-d954ab41ef46f7fdbaaf6d8c2bc715ad2cc823a829317b6ff93a3c94a92811f1
+    #  with NPM 11.3 --dry--run now does additional checks, one of them is the version number
+    #  so for dry runs we need to provide a valid version number here (not something published before)
+    if [ ${DRY_RUN} == "true" ]; then
+      update_version_in_package_json "${SHELL_DIR}/package.json" "${DUMMY_VERSION}"
+    fi
+
     publish "Shell" ${SHELL_DIR} ${PKG_V}
     ;;
   "creators")
@@ -111,7 +128,7 @@ case $PKG_NAME in
     #  with NPM 11.3 --dry--run now does additional checks, one of them is the version number
     #  so for dry runs we need to provide a valid version number here (not something published before)
     if [ ${DRY_RUN} == "true" ]; then
-      PKG_V="99.99.99"
+      update_version_in_package_json "${CREATORS_DIR}/package.json" "${DUMMY_VERSION}"
     fi
 
     publish "Extension creator" ${CREATORS_DIR} ${PKG_V}

@@ -75,6 +75,7 @@ jobs:
           git reset --hard HEAD
           echo $NPM_REGISTRY
           cat ./shell/package.json
+          cat ./creators/extension/package.json
 
       - uses: actions/setup-node@v6
         with:
