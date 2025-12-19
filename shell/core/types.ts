@@ -60,6 +60,7 @@ export enum ExtensionPoint {
   PANEL = 'Panel', // eslint-disable-line no-unused-vars
   CARD = 'Card', // eslint-disable-line no-unused-vars
   TABLE_COL = 'TableColumn', // eslint-disable-line no-unused-vars
+  TABLE = 'Table', // eslint-disable-line no-unused-vars
 }
 
 /** Enum regarding action locations that are extensible in the UI */
@@ -92,6 +93,16 @@ export enum CardLocation {
 export enum TableColumnLocation {
   RESOURCE = 'resource-list', // eslint-disable-line no-unused-vars
 }
+
+/** Enum regarding table locations that are extensible in the UI */
+export enum TableLocation {
+  RESOURCE = 'resource-list', // eslint-disable-line no-unused-vars
+}
+
+/** Definition of a Table extension hook */
+export type TableAction = {
+  tableHook: Function
+};
 
 /** Definition of the shortcut object (keyboard shortcuts) */
 export type ShortCutKey = {
@@ -289,6 +300,11 @@ export interface ProductOptions {
  * Configuration required to show a header in a ResourceTable
  */
 export interface HeaderOptions {
+  /**
+   * Order/position of the table column added by an extension
+   */
+  weight?: number;
+
   /**
    * Name of the header. This should be unique.
    */
@@ -659,6 +675,15 @@ export interface IPlugin {
    *  As per `column`, but is used where server-side pagination is enabled
    */
   addTableColumn(where: TableColumnLocation | string, when: LocationConfig | string, column: TableColumn, paginationColumn?: TableColumn): void;
+
+  /**
+   * Adds to Table events hook on ResourceTable
+   *
+   * @param where
+   * @param when
+   * @param action
+   */
+  addTableHook(where: TableLocation | string, when: LocationConfig | string, action: TableAction): void;
 
   /**
    * Set the component to use for the landing home page
