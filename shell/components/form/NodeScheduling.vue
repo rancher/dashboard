@@ -171,7 +171,7 @@ export default {
         :options="selectNodeOptions"
         :mode="mode"
         :data-testid="'node-scheduling-selectNode'"
-        @input="update"
+        @update:value="update"
       />
     </div>
     <template v-if="selectNode === 'nodeSelector'">
@@ -195,7 +195,7 @@ export default {
         v-model:value="nodeAffinity"
         :mode="mode"
         :data-testid="'node-scheduling-nodeAffinity'"
-        @input="update"
+        @update:value="update"
       />
     </template>
   </div>
