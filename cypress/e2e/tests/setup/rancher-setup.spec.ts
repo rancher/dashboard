@@ -45,7 +45,7 @@ describe('Rancher setup', { tags: ['@adminUserSetup', '@standardUserSetup', '@se
   });
 
   it('Login & Configure', () => {
-    cy.intercept('POST', '/v3-public/localProviders/local?action=login').as('bootstrapReq');
+    cy.intercept('POST', '/v1-public/login').as('bootstrapReq');
 
     rancherSetupLoginPage.goTo();
     rancherSetupLoginPage.waitForPage();
