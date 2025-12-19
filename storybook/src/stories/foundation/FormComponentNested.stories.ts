@@ -66,7 +66,7 @@ export const Template: Story = {
                     v-slot="{ field, meta }"
                   >
                     <LabeledInput
-                      name="field"
+                      :name="field"
                       v-bind="field"
                       :subLabel="meta.errors.join(', ')"
                       :status="!!meta.errors.length ? 'error' : meta.touched ? 'success' : undefined"
@@ -85,7 +85,7 @@ export const Template: Story = {
                     v-slot="{ field, meta }"
                   >
                     <LabeledInput
-                      name="field"
+                      :name="field"
                       v-bind="field"
                       :subLabel="meta.errors.join(', ')"
                       :status="!!meta.errors.length ? 'error' : meta.touched ? 'success' : undefined"

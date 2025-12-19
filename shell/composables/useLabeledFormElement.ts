@@ -10,6 +10,7 @@ interface LabeledFormElementProps {
   required: boolean;
   disabled: boolean;
   rules: Array<any>;
+  veerules?: Function;
   requireDirty?: boolean;
 }
 
@@ -37,7 +38,8 @@ export const labeledFormElementProps = {
     type:    String,
     default: null
   },
-  label: {
+  veerules: { type: Function },
+  label:    {
     type:    String,
     default: null
   },
@@ -91,7 +93,7 @@ export const useLabeledFormElement = (props: LabeledFormElementProps, emit: Emit
   });
 
   const validationMessage = computed(() => {
-    const requiredRule = props.rules.find((rule: any) => rule?.name === 'required') as Function;
+    const requiredRule = (props.rules || []).find((rule: any) => rule?.name === 'required') as Function;
     const ruleMessages = [];
     const value = props.value;
 
