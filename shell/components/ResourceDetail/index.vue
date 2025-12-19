@@ -14,6 +14,7 @@ import { clone, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
 import { stringify } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
+import { useResourceDetailPageProvider } from '@shell/composables/resourceDetail';
 
 function modeFor(route) {
   if ( route.query?.mode === _IMPORT ) {
@@ -116,6 +117,7 @@ export default {
 
     if ( mode === _VIEW && hasCustomDetail && (!requested || requested === _DETAIL) ) {
       as = _DETAIL;
+      useResourceDetailPageProvider();
     } else if ( hasCustomEdit && (!requested || requested === _CONFIG) ) {
       as = _CONFIG;
     } else {
@@ -351,6 +353,7 @@ export default {
 
   methods: {
     stringify,
+
     setSubtype(subtype) {
       this.resourceSubtype = subtype;
     },

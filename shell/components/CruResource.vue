@@ -11,11 +11,12 @@ import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import CruResourceFooter from '@shell/components/CruResourceFooter';
 
 import {
-  _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE
+  _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE, _CREATE
 } from '@shell/config/query-params';
 
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import Wizard from '@shell/components/Wizard';
+import { useResourceCreatePageProvider, useResourceEditPageProvider } from '@shell/composables/cruResource';
 
 export const CONTEXT_HOOK_EDIT_YAML = 'show-preview-yaml';
 
@@ -161,6 +162,14 @@ export default {
     yamlModifiers: {
       type:    Object,
       default: undefined
+    }
+  },
+
+  setup(props) {
+    if (props.mode === _CREATE) {
+      useResourceCreatePageProvider();
+    } else if (props.mode === _EDIT) {
+      useResourceEditPageProvider();
     }
   },
 
