@@ -197,12 +197,17 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       $store,
       id:       'tlm-unpinned-clusters',
       onChange: async({ forceWatch, revision }) => {
-        if (this.args) {
+        if (!this.args) {
+          return;
+        }
+        try {
           await this.update({
             ...this.args,
             forceWatch,
             mgmtClusterRevision: revision,
           });
+        } catch {
+          // Failures should be logged lower down, not much here except prevent dev whole page warnings
         }
       },
       enabledFor: {
@@ -219,12 +224,17 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       $store,
       id:       'tlm-prov-clusters',
       onChange: async({ forceWatch, revision }) => {
-        if (this.args) {
+        if (!this.args) {
+          return;
+        }
+        try {
           await this.update({
             ...this.args,
             forceWatch,
             provClusterRevision: revision,
           });
+        } catch {
+          // Failures should be logged lower down, not much here except prevent dev whole page warnings
         }
       },
       enabledFor: {
@@ -368,7 +378,12 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         projectsOrNamespaces: []
       },
       revision: args.mgmtClusterRevision
-    }).then((r) => r.data);
+    })
+      .then((r) => r.data);
+    // .catch(() => {
+    //   // Failures should be logged lower down, not much here we can do so return cached value
+    //   return this.clustersPinned;
+    // });
   }
 
   /**
@@ -390,7 +405,12 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         projectsOrNamespaces: []
       },
       revision: args.mgmtClusterRevision
-    }).then((r) => r.data);
+    })
+      .then((r) => r.data);
+    //  .catch(() => {
+    //     // Failures should be logged lower down, not much here we can do so return cached value
+    //     return this.clustersOthers;
+    //   });;
   }
 
   /**
@@ -413,7 +433,8 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         projectsOrNamespaces: []
       },
       revision: args.provClusterRevision
-    }).then((r) => r.data);
+    })
+      .then((r) => r.data);
   }
 }
 

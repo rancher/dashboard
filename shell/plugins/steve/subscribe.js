@@ -356,7 +356,9 @@ const clearInError = ({ getters, commit }, error) => {
 };
 
 let scen1 = 10000;
-let scen3 = 0;
+let scen3 = 10000;
+// const scenType = 'pod';
+const scenType = 'management.cattle.io.cluster';
 
 /**
  * Actions that cover all cases (see file description)
@@ -583,7 +585,7 @@ const sharedActions = {
       return;
     }
 
-    if (scen1 < 7 && type === 'pod') {
+    if (scen1 < 7 && type === scenType) {
       revision = 'asdsad';
       scen1++;
     }
@@ -1409,8 +1411,7 @@ const defaultActions = {
   },
 
   async 'ws.resource.changes'({ dispatch }, msg) {
-    myLogger.warn('sasdfdsf', msg, scen3);
-    if (msg.resourceType === 'pod') {
+    if (msg.resourceType === scenType) {
       scen3++;
       if (scen3 < 2) {
         msg.revision = 0; // stale revision

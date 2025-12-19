@@ -1,13 +1,10 @@
 import { randomStr } from '@shell/utils/string';
 
-type BackOffEntry<T = any> = {
-
+type BackOffEntry<MetadataType = any> = {
   try: number,
   retries: number,
   description: string,
-  metadata: any,
-  // promise?: Promise<T>,
-  // promiseRejectFn?: (reason?: any) => void
+  metadata: MetadataType,
   execute?: {
     timeoutId?: NodeJS.Timeout,
   },
@@ -16,15 +13,7 @@ type BackOffEntry<T = any> = {
   }
 }
 
-export enum BACK_OFF_MODE {
-  /**
-   * Every request to
-   */
-  RESET_ALWAYS = 'NEVER_RESET',
-  RESET_ON_SUCCESS = 'RESET_ON_SUCCESS'
-}
-
-interface BackOffArgs<T> {
+interface BackOffArgs<MetadataType = any> {
   /**
    * Unique id for the execution of this function.
    *
@@ -57,7 +46,7 @@ interface BackOffArgs<T> {
   /**
    * Anything that might be important outside of this file (used with `getBackOff`)
    */
-  metadata?: T,
+  metadata?: MetadataType,
   /**
    *
    * RESET_ON_SUCCESS
@@ -65,14 +54,23 @@ interface BackOffArgs<T> {
   mode?: ''
 }
 
-export type BackOffExecuteArgs<T> = BackOffArgs<T>
+export type BackOffExecuteArgs<MetadataType> = BackOffArgs<MetadataType>
 
-export interface BackOffRecurseArgs<T> extends BackOffArgs<T> {
+export interface BackOffRecurseArgs<MetadataType> extends BackOffArgs<MetadataType> {
   continueOnError: (arg: any) => Promise<boolean>,
 }
 
 const logStyle = 'font-weight: bold; font-style: italic;';
 const logStyleReset = 'font-weight: normal; font-style: normal;';
+
+const logInitialBackOffRequest = true;
+const calcLogLevel = (iteration: number) => {
+  if (!logInitialBackOffRequest && iteration === 0) {
+    return undefined;
+  }
+
+  return 'info';
+};
 
 /**
  * Helper class which handles backing off making the supplied request
@@ -93,7 +91,7 @@ class BackOff {
 
     // eslint-disable-next-line no-console
     console[level](
-      `%cBackOff%c... \n%cId%c:          ${ id }\n%cStatus%c:      ${ status }\n%cDescription%c: ${ description }\n%cMetadata%c:    ${ JSON.stringify(metadata) }`,
+      `%cBackOff%c... \n%cId%c:          ${ id }\n%cStatus%c:      ${ status }\n%cDescription%c: ${ description }\n%cMetadata%c:    ${ metadata ? JSON.stringify(metadata) : '' }`,
       logStyle, logStyleReset,
       logStyle, logStyleReset,
       logStyle, logStyleReset,
@@ -229,13 +227,10 @@ class BackOff {
    * @param args
    * @returns
    */
-  async recurse<T = any, Y= any>(args: BackOffRecurseArgs<T>): Promise<Y | undefined> {
+  async recurse<MetadataType = any, ResponseType = any>(args: BackOffRecurseArgs<MetadataType>): Promise<ResponseType | undefined> {
     const {
       id, description, retries = 10, delayedFn, continueOnError, metadata
     } = args;
-    // const backOff: BackOffEntry = this.map[id];
-
-    // TODO: RC If already running?
 
     if (this.map[id]) {
       this.log('info', {
@@ -259,7 +254,7 @@ class BackOff {
       this.map[id].try = i + 1;
 
       const delay = this.calcDelay(i);
-      const logLevel = i === 0 ? undefined : 'info';
+      const logLevel = calcLogLevel(i);
 
       this.log(logLevel, {
         id, status: `Delaying call (attempt ${ i + 1 }, delayed by ${ delay }ms)`, description, metadata
@@ -273,7 +268,7 @@ class BackOff {
         id, status: `Executing call`, description, metadata
       });
 
-      let res: Y | undefined;
+      let res: ResponseType | undefined;
 
       try {
         res = await delayedFn();
@@ -320,9 +315,9 @@ class BackOff {
    *
    * @template T - Type of configuration that can be stored with the backoff record
    */
-  async execute<T = any>({
+  async execute<MetadataType = any>({
     id, description, retries = 10, delayedFn, canFn = async() => true, metadata
-  }: BackOffExecuteArgs<T>): Promise<NodeJS.Timeout | undefined> {
+  }: BackOffExecuteArgs<MetadataType>): Promise<NodeJS.Timeout | undefined> {
     const backOff: BackOffEntry = this.map[id];
 
     const cont = await canFn();
@@ -351,14 +346,15 @@ class BackOff {
       }
 
       const delay = this.calcDelay(backOffTry);
+      const logLevel = calcLogLevel(backOffTry);
 
-      this.log('info', {
+      this.log(logLevel, {
         id, status: `Delaying call (attempt ${ backOffTry + 1 }, delayed by ${ delay }ms)`, description, metadata
       });
 
       const timeout = setTimeout(async() => {
         try {
-          this.log('info', {
+          this.log(logLevel, {
             id, status: `Executing call`, description, metadata
           });
 

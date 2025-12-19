@@ -115,7 +115,7 @@ class PaginationWrapper<T extends object> {
     // 3. current version in cache is same as target revision - we're retrying
 
     if (activeRevision?.isNewerThan(targetRevision)) {
-      // Scenario 1 - abort/ignore (don't overwrite new with old). Specifically we're fetching something with a higher revision, ignore the newer request with older revision
+      // 1 - abort/ignore (don't overwrite new with old). Specifically we're fetching something with a higher revision, ignore the newer request with older revision
 
       // eslint-disable-next-line no-console
       console.warn(`Ignoring event listener request to update '${ this.id }' with revision '${ targetRevision.revision }' (newer in-progress revision '${ activeRevision.revision }'). ` +
@@ -125,7 +125,7 @@ class PaginationWrapper<T extends object> {
     }
 
     if (cachedRevision?.isNewerThan(targetRevision)) {
-      // Scenario 1 - abort/ignore (don't overwrite new with old). Specifically we're already fetched something with a higher revision, ignore the newer request with older revision and just return the cached versio
+      // 1 - abort/ignore (don't overwrite new with old). Specifically we're already fetched something with a higher revision, ignore the newer request with older revision and just return the cached versio
 
       // eslint-disable-next-line no-console
       console.warn(`Ignoring event listener request to update '${ this.id }' with revision '${ targetRevision.revision }' (newer cached revision '${ cachedRevision.revision }'). ` +
@@ -139,7 +139,7 @@ class PaginationWrapper<T extends object> {
     }
 
     if (targetRevision.isNewerThan(currentRevision)) {
-      // Scenario 2 - reset previous (drop older requests with older revision, use new revision)
+      // 2 - reset previous (drop older requests with older revision, use new revision)
 
       backOff.reset(backOffId);
     }
@@ -148,7 +148,7 @@ class PaginationWrapper<T extends object> {
     const out = await backOff.recurse<any, ActionFindPageTransientResult<T>>({
       id:              backOffId,
       metadata:        { revision },
-      description:     `Catering for unknown revision used in http request`,
+      description:     `Fetching resources for ${ this.enabledFor.resource?.id } (wrapper). Triggered by web socket`,
       continueOnError: async(err) => {
         return err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION;
       },
@@ -172,8 +172,6 @@ class PaginationWrapper<T extends object> {
 
     if (!out) {
       // Skip
-      debugger;
-
       throw new Error(`Wrapper for type '${ this.enabledFor.store }/${ this.enabledFor.resource?.id }' in context '${ this.enabledFor.resource?.context }' failed to  TODO: RC`);
     }
 
@@ -194,6 +192,8 @@ class PaginationWrapper<T extends object> {
 
       this.watch();
     }
+
+    debugger;
 
     // Convert Response
     if (this.classify) {
