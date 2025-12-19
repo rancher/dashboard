@@ -10,15 +10,15 @@ import Schema from '@shell/models/schema';
  */
 class TestNamespaceProjectFilters {
   public handlePrefAndSettingFilter(args: any) {
-    return stevePaginationUtils.handlePrefAndSettingFilter(args);
+    return (stevePaginationUtils as any).handlePrefAndSettingFilter(args);
   }
 
   public handleSystemOrUserFilter(args: any) {
-    return stevePaginationUtils.handleSystemOrUserFilter(args);
+    return (stevePaginationUtils as any).handleSystemOrUserFilter(args);
   }
 
   public handleSelectionFilter(neu: string[], isLocalCluster: boolean) {
-    return stevePaginationUtils.handleSelectionFilter(neu, isLocalCluster);
+    return (stevePaginationUtils as any).handleSelectionFilter(neu, isLocalCluster);
   }
 }
 
@@ -223,7 +223,11 @@ describe('class: NamespaceProjectFilters', () => {
 
 class TestStevePaginationUtils {
   public convertPaginationParams(args: any) {
-    return stevePaginationUtils.convertPaginationParams(args);
+    return (stevePaginationUtils as any).convertPaginationParams(args);
+  }
+
+  public convertField(field: string) {
+    return (stevePaginationUtils as any).convertField(field);
   }
 }
 
@@ -231,103 +235,122 @@ describe('class StevePaginationUtils', () => {
   const testStevePaginationUtils = new TestStevePaginationUtils();
   const schema = { id: 'pod' } as unknown as Schema;
 
-  it('should return an empty string for no filters', () => {
-    const result = testStevePaginationUtils.convertPaginationParams({ schema, filters: [] });
+  describe('method: convertPaginationParams', () => {
+    it('should return an empty string for no filters', () => {
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters: [] });
 
-    expect(result).toBe('');
+      expect(result).toBe('');
+    });
+
+    it('should handle a single filter with a single field', () => {
+      const filters = [
+        new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: 'test' })] }),
+      ];
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+
+      expect(result).toBe('filter=metadata.name=test');
+    });
+
+    it('should handle a single filter with a single field with encoded char', () => {
+      const filters = [
+        new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: 'te/st' })] }),
+      ];
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+
+      expect(result).toBe('filter=metadata.name="te%2Fst"');
+    });
+
+    it('should handle a single filter with multiple fields (OR)', () => {
+      const filters = [
+        new PaginationParamFilter({
+          fields: [
+            new PaginationFilterField({ field: 'metadata.name', value: 'test1' }),
+            new PaginationFilterField({ field: 'metadata.namespace', value: 'ns1' }),
+          ],
+        }),
+      ];
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+
+      expect(result).toBe('filter=metadata.name=test1,metadata.namespace=ns1');
+    });
+
+    it('should handle multiple filters (AND)', () => {
+      const filters = [
+        new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: 'test1' })] }),
+        new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.namespace', value: 'ns1' })] }),
+      ];
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+
+      expect(result).toBe('filter=metadata.name=test1&filter=metadata.namespace=ns1');
+    });
+
+    it('should handle different equality operators', () => {
+      const filters = [
+        new PaginationParamFilter({
+          fields: [
+            new PaginationFilterField({
+              field:    'spec.containers.image',
+              value:    'nginx',
+              equality: PaginationFilterEquality.CONTAINS,
+            }),
+          ],
+        }),
+        new PaginationParamFilter({
+          fields: [
+            new PaginationFilterField({
+              field:    'metadata.name',
+              value:    'test',
+              equality: PaginationFilterEquality.NOT_EQUALS,
+            }),
+          ],
+        }),
+      ];
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+
+      expect(result).toBe('filter=spec.containers.image~nginx&filter=metadata.name!=test');
+    });
+
+    it('should handle IN and NOT_IN operators', () => {
+      const filters = [
+        new PaginationParamFilter({
+          fields: [
+            new PaginationFilterField({
+              field:    'metadata.name',
+              value:    'test1,test2',
+              equality: PaginationFilterEquality.IN,
+            }),
+          ],
+        }),
+        new PaginationParamFilter({
+          fields: [
+            new PaginationFilterField({
+              field:    'metadata.namespace',
+              value:    'ns1,ns2',
+              equality: PaginationFilterEquality.NOT_IN,
+            }),
+          ],
+        }),
+      ];
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+
+      expect(result).toBe('filter=metadata.name IN (test1,test2)&filter=metadata.namespace NOTIN (ns1,ns2)');
+    });
   });
 
-  it('should handle a single filter with a single field', () => {
-    const filters = [
-      new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: 'test' })] }),
-    ];
-    const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+  describe('method: convertField', () => {
+    it.each([
+      ['standard path', 'metadata.name', 'metadata.name'],
+      ['metadata fields path', 'metadata.fields.1', 'metadata.fields[1]'],
+      ['metadata fields path with multiple digits', 'metadata.fields.12', 'metadata.fields[12]'],
+      ['json path', '$.spec.url', 'spec.url'],
+      ['json path with nested properties', '$.spec.containers[0].name', 'spec.containers[0].name'],
+      ['path that should not be converted (1)', 'a.b.c', 'a.b.c'],
+      ['path that should not be converted (2)', 'metadata.fields', 'metadata.fields'],
+      ['path that should not be converted (3)', '$spec.url', '$spec.url'],
+    ])('should correctly convert %s', (name, input, expected) => {
+      const result = testStevePaginationUtils.convertField(input);
 
-    expect(result).toBe('filter=metadata.name=test');
-  });
-
-  it('should handle a single filter with a single field with encoded char', () => {
-    const filters = [
-      new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: 'te/st' })] }),
-    ];
-    const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
-
-    expect(result).toBe('filter=metadata.name="te%2Fst"');
-  });
-
-  it('should handle a single filter with multiple fields (OR)', () => {
-    const filters = [
-      new PaginationParamFilter({
-        fields: [
-          new PaginationFilterField({ field: 'metadata.name', value: 'test1' }),
-          new PaginationFilterField({ field: 'metadata.namespace', value: 'ns1' }),
-        ],
-      }),
-    ];
-    const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
-
-    expect(result).toBe('filter=metadata.name=test1,metadata.namespace=ns1');
-  });
-
-  it('should handle multiple filters (AND)', () => {
-    const filters = [
-      new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: 'test1' })] }),
-      new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.namespace', value: 'ns1' })] }),
-    ];
-    const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
-
-    expect(result).toBe('filter=metadata.name=test1&filter=metadata.namespace=ns1');
-  });
-
-  it('should handle different equality operators', () => {
-    const filters = [
-      new PaginationParamFilter({
-        fields: [
-          new PaginationFilterField({
-            field:    'spec.containers.image',
-            value:    'nginx',
-            equality: PaginationFilterEquality.CONTAINS,
-          }),
-        ],
-      }),
-      new PaginationParamFilter({
-        fields: [
-          new PaginationFilterField({
-            field:    'metadata.name',
-            value:    'test',
-            equality: PaginationFilterEquality.NOT_EQUALS,
-          }),
-        ],
-      }),
-    ];
-    const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
-
-    expect(result).toBe('filter=spec.containers.image~nginx&filter=metadata.name!=test');
-  });
-
-  it('should handle IN and NOT_IN operators', () => {
-    const filters = [
-      new PaginationParamFilter({
-        fields: [
-          new PaginationFilterField({
-            field:    'metadata.name',
-            value:    'test1,test2',
-            equality: PaginationFilterEquality.IN,
-          }),
-        ],
-      }),
-      new PaginationParamFilter({
-        fields: [
-          new PaginationFilterField({
-            field:    'metadata.namespace',
-            value:    'ns1,ns2',
-            equality: PaginationFilterEquality.NOT_IN,
-          }),
-        ],
-      }),
-    ];
-    const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
-
-    expect(result).toBe('filter=metadata.name IN (test1,test2)&filter=metadata.namespace NOTIN (ns1,ns2)');
+      expect(result).toBe(expected);
+    });
   });
 });
