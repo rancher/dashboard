@@ -1,0 +1,13 @@
+plugin/node-driver-1.0.1.umd.min.37.js
+plugin/node-driver-1.0.1.umd.min.37.js.map
+plugin/node-driver-1.0.1.umd.min.640.js
+plugin/node-driver-1.0.1.umd.min.640.js.map
+plugin/node-driver-1.0.1.umd.min.674.js
+plugin/node-driver-1.0.1.umd.min.674.js.map
+plugin/node-driver-1.0.1.umd.min.cloud-credential.js
+plugin/node-driver-1.0.1.umd.min.cloud-credential.js.map
+plugin/node-driver-1.0.1.umd.min.js
+plugin/node-driver-1.0.1.umd.min.js.map
+plugin/node-driver-1.0.1.umd.min.machine-config.js
+plugin/node-driver-1.0.1.umd.min.machine-config.js.map
+plugin/package.json

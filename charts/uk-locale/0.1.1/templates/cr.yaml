@@ -1,0 +1,15 @@
+{{- if .Values.plugin.enabled }}
+apiVersion: catalog.cattle.io/v1
+kind: UIPlugin
+metadata:
+  name: {{ include "plugin-server.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels: {{ include "plugin-server.labels" . | nindent 4 }}
+spec:
+  plugin: # should initially follow the design of the Helm Chart.yaml fields, could discuss modifying this
+    name: {{ include "plugin-server.fullname" . }}
+    version: {{ (semver (default .Chart.AppVersion .Values.plugin.versionOverride)).Original }}
+    endpoint: https://raw.githubusercontent.com/rancher/ui-plugin-examples/main/extensions/uk-locale/0.1.1
+    noCache: {{ .Values.plugin.noCache }}
+    noAuth: {{ .Values.plugin.noAuth }}
+{{- end }}
