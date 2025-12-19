@@ -26,6 +26,7 @@ import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import { getClusterFromRoute, getProductFromRoute } from '@shell/utils/router';
 import SideNav from '@shell/components/SideNav';
 import { Layout } from '@shell/types/window-manager';
+import { BLANK_CLUSTER } from 'store/store-types';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -94,15 +95,32 @@ export default {
     },
 
     /**
+     * Product config specifies what vuex store is being used by type-map to generate its side nav, generally "management" or "cluster"
+     * If the current product or root product are using a "cluster" store, this component will re-render the main outlet when clusterReady is toggled
+     * clusterReady will also be used if the route contains a cluster param (excluding the blank cluster workaround: _)
+     */
+    typemapStoreReady() {
+      const currentInStore = this.currentProduct?.inStore;
+      const rootInStore = this.rootProduct?.inStore;
+      const clusterInRoute = !!getClusterFromRoute(this.$route) && getClusterFromRoute(this.$route) !== BLANK_CLUSTER;
+
+      if (currentInStore === 'cluster' || rootInStore === 'cluster' || clusterInRoute) {
+        return this.clusterReady;
+      }
+
+      return this.managementReady;
+    },
+
+    /**
      * When navigation involves unloading one cluster and loading another, clusterReady toggles from true->false->true in middleware (before new route content renders)
      * Prevent rendering "outlet" until the route changes to avoid re-rendering old route content after its cluster is unloaded
+
      */
     clusterAndRouteReady() {
       const targetRoute = this.$store.getters['targetRoute'];
       const routeReady = targetRoute ? this.currentProduct?.name === getProductFromRoute(this.$route) && this.currentProduct?.name === getProductFromRoute(targetRoute) : this.currentProduct?.name === getProductFromRoute(this.$route);
 
-      return this.clusterReady &&
-        this.clusterId === getClusterFromRoute(this.$route) && routeReady;
+      return routeReady && this.typemapStoreReady;
     },
   },
 
@@ -171,7 +189,7 @@ export default {
     >
       <Header />
       <SideNav
-        v-if="clusterReady"
+        v-if="typemapStoreReady"
         class="default-side-nav"
       />
       <main
