@@ -144,7 +144,7 @@ Check the documentation about adding a tab to the Cluster Configuration area in 
 When clicking on a created cluster in the UI the user is shown details for the cluster. This page has some tabs which may not be applicable to the custom provider. The provider class has a way to hide these. To add a new custom tab the following can be used
 
 ```
-  plugin.addTab(TabLocation.RESOURCE_DETAIL, {
+  plugin.addTab(TabLocation.RESOURCE_DETAIL_PAGE, {
     resource:     ['provisioning.cattle.io.cluster'],
     context:   { provider: ExampleProvisioner.ID }
   }, {
