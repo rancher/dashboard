@@ -9,8 +9,8 @@ import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import Tab from '@shell/components/Tabbed/Tab';
 import { ref } from 'vue';
 import { useIsInResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
-import { useIsInResourceDetailPage } from '@shell/components/ResourceDetail/index.vue';
-import { useIsInResourceEditPage, useIsInResourceCreatePage } from '@shell/components/CruResource.vue';
+import { useIsInResourceDetailPage } from '@shell/composables/resourceDetail';
+import { useIsInResourceCreatePage, useIsInResourceEditPage } from '@shell/composables/cruResource';
 
 export default {
   name: 'Tabbed',
@@ -189,12 +189,12 @@ export default {
 
   methods: {
     getInitialTabLocation() {
-      if (this.isInResourceDetailDrawer) {
+      if (this.isInResourceEditPage) {
+        return TabLocation.RESOURCE_EDIT_PAGE;
+      } else if (this.isInResourceDetailDrawer) {
         return TabLocation.RESOURCE_SHOW_CONFIGURATION;
       } else if (this.isInResourceDetailPage) {
         return TabLocation.RESOURCE_DETAIL_PAGE;
-      } else if (this.isInResourceEditPage) {
-        return TabLocation.RESOURCE_EDIT_PAGE;
       } else if (this.isInResourceCreatePage) {
         return TabLocation.RESOURCE_CREATE_PAGE;
       } else {
