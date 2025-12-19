@@ -132,6 +132,10 @@ export default {
     // hide tabs based on tab count IF flag is active
     hideTabs() {
       return this.hideSingleTab && this.sortedTabs.length === 1;
+    },
+
+    currentTabIndex() {
+      return this.sortedTabs.findIndex(tab => tab.active);
     }
   },
 
@@ -386,6 +390,16 @@ export default {
           :resource="resource"
         />
       </Tab>
+      <!-- Add Next button at the bottom of each tabpanel -->
+      <div v-if="!tabsOnly && sortedTabs.length > 1 && currentTabIndex < sortedTabs.length - 1" class="tab-next-button">
+        <button
+          type="button"
+          class="btn bg-primary"
+          @click="selectNext(1)"
+        >
+          {{ t('generic.next') }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -608,5 +622,12 @@ export default {
     flex-grow: 1;
     background-color: var(--body-bg);
   }
+}
+
+.tab-next-button {
+  margin-top: 20px;
+  text-align: right;
+  padding: 10px;
+  border-top: 1px solid var(--border);
 }
 </style>
