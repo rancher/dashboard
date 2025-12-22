@@ -39,8 +39,6 @@ export type EXT_IDS_VALUES = (typeof EXT_IDS)[keyof typeof EXT_IDS];
 
 export type ProductFunction = (plugin: IPlugin, store: any) => void;
 
-export const EXT_ROUTE_PROP = 'extensionRoute';
-
 export class Plugin implements IPlugin {
   public id: string;
   public name: string;
@@ -174,9 +172,6 @@ export class Plugin implements IPlugin {
       ...route?.meta,
       pkg: this.name,
     };
-
-    // "flag" to make sure added route is from an extension
-    route.meta[EXT_ROUTE_PROP] = true;
 
     this.routes.push({ parent: parentOverride || parent, route });
   }
