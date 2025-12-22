@@ -123,8 +123,12 @@ node {
             
             // Send Slack notification on failure or unstable builds
             if (currentBuild.result == 'FAILURE' || currentBuild.result == 'UNSTABLE') {
-                echo "Sending Slack notification for ${currentBuild.result} build"
-                sh "cypress/jenkins/slack-notification.sh ${currentBuild.result}"
+                if ("${env.SLACK_NOTIFICATION}".toLowerCase() != "false") {
+                    echo "Sending Slack notification for ${currentBuild.result} build"
+                    sh "cypress/jenkins/slack-notification.sh ${currentBuild.result}"
+                } else {
+                    echo "Slack notification disabled (see jenkins-job-builder/qa-ui-tests.yml)"
+                }
             } else {
                 echo "Build successful, no Slack notification needed"
             }
