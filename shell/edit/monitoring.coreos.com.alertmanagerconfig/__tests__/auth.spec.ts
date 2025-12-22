@@ -25,6 +25,7 @@ describe('component: Auth.vue', () => {
       props:  { ...defaultProps, value: { basicAuth: { username: { name: 'test' } } } },
       global: { mocks: { $fetchState: { pending: false, error: null } } }
     });
+
     expect(wrapper.vm.authType).toBe('basicAuth');
     expect(wrapper.findAllComponents(SimpleSecretSelector)).toHaveLength(2);
   });
@@ -34,6 +35,7 @@ describe('component: Auth.vue', () => {
       props:  { ...defaultProps, value: { bearerTokenSecret: { name: 'test' } } },
       global: { mocks: { $fetchState: { pending: false, error: null } } }
     });
+
     expect(wrapper.vm.authType).toBe('bearerTokenSecret');
     expect(wrapper.findAllComponents(SimpleSecretSelector)).toHaveLength(1);
   });
@@ -81,9 +83,11 @@ describe('component: Auth.vue', () => {
       props:  { ...defaultProps, value: { basicAuth: { username: { name: 'test' } } } },
       global: { mocks: { $fetchState: { pending: false, error: null } } }
     });
+
     await wrapper.vm.$nextTick();
 
     const selectors = wrapper.findAllComponents(SimpleSecretSelector);
+
     expect(selectors).toHaveLength(2);
 
     const usernameSelector = selectors[0];
@@ -95,6 +99,7 @@ describe('component: Auth.vue', () => {
     await passwordSelector.vm.$emit('updateSecretKey', 'pass-key');
 
     const basicAuth = wrapper.props('value').basicAuth;
+
     expect(basicAuth.username.name).toBe('user-secret');
     expect(basicAuth.username.key).toBe('user-key');
     expect(basicAuth.password.name).toBe('pass-secret');
@@ -106,27 +111,33 @@ describe('component: Auth.vue', () => {
       props:  { ...defaultProps, value: { bearerTokenSecret: { name: 'test' } } },
       global: { mocks: { $fetchState: { pending: false, error: null } } }
     });
+
     await wrapper.vm.$nextTick();
 
     const selector = wrapper.findComponent(SimpleSecretSelector);
+
     expect(selector.exists()).toBe(true);
 
     await selector.vm.$emit('updateSecretName', 'bearer-name');
     await selector.vm.$emit('updateSecretKey', 'bearer-key');
 
     const bearerToken = wrapper.props('value').bearerTokenSecret;
+
     expect(bearerToken.name).toBe('bearer-name');
     expect(bearerToken.key).toBe('bearer-key');
   });
 
   it('should render in view mode', () => {
     const wrapper = shallowMount(Auth, {
-      props:  { mode: 'view', value: { basicAuth: {} }, namespace: 'ns' },
+      props: {
+        mode: 'view', value: { basicAuth: {} }, namespace: 'ns'
+      },
       global: { mocks: { $fetchState: { pending: false, error: null } } }
     });
 
     expect(wrapper.findComponent(LabeledSelect).attributes('disabled')).toBe('true');
     const selectors = wrapper.findAllComponents(SimpleSecretSelector);
+
     selectors.forEach((selector) => {
       expect(selector.props('disabled')).toBe(true);
     });

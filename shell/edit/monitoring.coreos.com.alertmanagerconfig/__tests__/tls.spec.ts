@@ -147,22 +147,16 @@ describe('component: Tls', () => {
       await secretSelector.vm.$emit('updateSecretName', name);
       await wrapper.vm.$nextTick();
 
-      // Assert on value.tlsConfig directly
-      if (tlsConfigKey === 'keySecret') {
-        expect(value.tlsConfig[tlsConfigKey].name).toBe(name);
-      } else {
-        expect(value.tlsConfig[tlsConfigKey].secret.name).toBe(name);
-      }
+      const nameValue = tlsConfigKey === 'keySecret' ? value.tlsConfig[tlsConfigKey].name : value.tlsConfig[tlsConfigKey].secret.name;
+
+      expect(nameValue).toBe(name);
 
       await secretSelector.vm.$emit('updateSecretKey', key);
       await wrapper.vm.$nextTick();
 
-      // Assert on value.tlsConfig directly
-      if (tlsConfigKey === 'keySecret') {
-        expect(value.tlsConfig[tlsConfigKey].key).toBe(key);
-      } else {
-        expect(value.tlsConfig[tlsConfigKey].secret.key).toBe(key);
-      }
+      const keyValue = tlsConfigKey === 'keySecret' ? value.tlsConfig[tlsConfigKey].key : value.tlsConfig[tlsConfigKey].secret.key;
+
+      expect(keyValue).toBe(key);
     });
   });
 
@@ -189,11 +183,9 @@ describe('component: Tls', () => {
 
       (wrapper.vm as any)[handler](data);
 
-      if (obj === 'keySecret') {
-        expect(value.tlsConfig[obj][field]).toBe(data);
-      } else {
-        expect(value.tlsConfig[obj].secret[field]).toBe(data);
-      }
+      const dataValue = obj === 'keySecret' ? value.tlsConfig[obj][field] : value.tlsConfig[obj].secret[field];
+
+      expect(dataValue).toBe(data);
     });
 
     it.each([
@@ -212,7 +204,7 @@ describe('component: Tls', () => {
 
       (wrapper.vm as any)[handler]('__[[NONE]]__');
 
-      expect(value.tlsConfig[obj]).toEqual({});
+      expect(value.tlsConfig[obj]).toStrictEqual({});
     });
 
     it('should remove "ClientKey" secret', () => {
@@ -228,7 +220,7 @@ describe('component: Tls', () => {
 
       (wrapper.vm as any).updateClientKeySecretName('__[[NONE]]__');
 
-      expect(value.tlsConfig.keySecret).toEqual({});
+      expect(value.tlsConfig.keySecret).toStrictEqual({});
     });
   });
 });
