@@ -257,10 +257,10 @@ describe('Home Page', () => {
       nc.checkExists();
       nc.checkVisible();
       nc.checkHasUnread();
-      nc.checkCount(1);
+      nc.checkCount(2);
 
       // Get the release notes notification - this is the first (and only) one
-      let item = nc.getNotificationByIndex(0);
+      let item = nc.getNotificationByIndex(1);
 
       item.checkExists();
 
@@ -285,11 +285,11 @@ describe('Home Page', () => {
 
       nc.checkExists();
       nc.checkVisible();
-      nc.checkCount(1);
+      nc.checkCount(2);
       nc.checkAllRead();
 
       // Now mark the notification as unread
-      item = nc.getNotificationByIndex(0);
+      item = nc.getNotificationByIndex(1);
 
       item.title().should('contain', `Welcome to Rancher v`);
       item.primaryActionButton().should('exist');
@@ -354,10 +354,10 @@ describe('Home Page', () => {
         nc.checkOpen();
         nc.checkExists();
         nc.checkVisible();
-        nc.checkCount(1);
+        nc.checkCount(2);
 
         // Get the release notes notification
-        const item = nc.getNotificationByIndex(0);
+        const item = nc.getNotificationByIndex(1);
 
         item.checkExists();
 
