@@ -256,6 +256,10 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     ],
     [SECRET]: [
       { field: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]` },
+      // If this is a PSS this is the displayName of the associated project. See https://github.com/rancher/rancher/issues/51001
+      { field: `spec.displayName` },
+      // If this is a PSS this is the clusterName from the associated project. See https://github.com/rancher/rancher/issues/51001
+      { field: 'spec.clusterName' },
     ],
     [NAMESPACE]: [
     ],
