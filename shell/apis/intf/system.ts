@@ -1,6 +1,13 @@
 /**
  * system API which providers information about the current system
  * * ![system Example](/img/system.png)
+ *
+ * Usage example:
+ * ```ts
+ * const rancherVersion = this.$shell.system.rancherVersion;
+ * console.log('Rancher Version:', rancherVersion);
+ * ```
+ *
  */
 export interface SystemApi {
   /**

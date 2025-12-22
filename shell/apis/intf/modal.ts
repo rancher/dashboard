@@ -72,7 +72,7 @@ export interface ModalApi {
    * ```ts
    * import MyCustomModal from '@/components/MyCustomModal.vue';
    *
-   * this.$shell.modal.show(MyCustomModal, {
+   * this.$shell.modal.open(MyCustomModal, {
    *   props: { title: 'Hello Modal' }
    * });
    * ```
