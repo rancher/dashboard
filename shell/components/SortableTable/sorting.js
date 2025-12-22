@@ -79,7 +79,7 @@ export default {
 
       if ( markedColumn ) {
         this._defaultSortBy = markedColumn.name;
-        descending = markedColumn.defaultSortDescending;
+        descending = markedColumn.defaultSortDescending || false;
       } else if ( nameColumn ) {
         // Use the name column if there is one
         this._defaultSortBy = nameColumn.name;

@@ -12,6 +12,7 @@ import { conditionalDepaginate } from '@shell/store/type-map.utils';
 import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import { FilterArgs } from '@shell/types/store/pagination.types';
 import { isLabelSelectorEmpty, labelSelectorToSelector } from '@shell/utils/selector-typed';
+import myLogger from '@shell/utils/my-logger';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -101,6 +102,8 @@ const createFindWatchArg = ({
 
   return watchMsg;
 };
+
+let scen2 = 10000;
 
 export default {
   request() {
@@ -462,6 +465,9 @@ export default {
       mode:      STEVE_WATCH_MODE.RESOURCE_CHANGES,
     };
 
+    if (type === 'pod') {
+      // debugger;
+    }
     // No need to request the resources if we have them already
     if (!opt.transient && !opt.force && getters['havePaginatedPage'](type, opt)) {
       if (opt.watch !== false ) {
@@ -471,7 +477,7 @@ export default {
       return findAllGetter(getters, type, opt);
     }
 
-    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Size: ${ opt.pagination.pageSize }. Sort: ${ opt.pagination.sort.map((s) => s.field).join(', ') }`); // eslint-disable-line no-console
+    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Revision: ${ opt.revision || 'none' }. Size: ${ opt.pagination.pageSize }. Sort: ${ opt.pagination.sort.map((s) => s.field).join(', ') }`); // eslint-disable-line no-console
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
 
@@ -482,6 +488,12 @@ export default {
         dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
       }
 
+      if (opt.revision) {
+        scen2++;
+        if (scen2 > 1 && scen2 < 7 && type === 'pod') {
+          throw { status: 400, code: 'unknown revision' };
+        }
+      }
       out = await dispatch('request', { opt, type });
     } catch (e) {
       if (opt.hasManualRefresh) {

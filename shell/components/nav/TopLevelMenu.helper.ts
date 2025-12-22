@@ -3,6 +3,7 @@ import { STORE } from '@shell/store/store-types';
 import { PaginationParam, PaginationParamFilter, PaginationSort } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
 import { filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from '@shell/utils/cluster';
+import myLogger from '@shell/utils/my-logger';
 import PaginationWrapper from '@shell/utils/pagination-wrapper';
 import { allHash } from '@shell/utils/promise';
 import { sortBy } from '@shell/utils/sort';
@@ -28,7 +29,9 @@ interface UpdateArgs {
   searchTerm: string,
   pinnedIds: string[],
   unPinnedMax?: number,
-  forceWatch?: boolean
+  forceWatch?: boolean,
+  mgmtClusterRevision?: string,
+  provClusterRevision?: string,
 }
 
 type MgmtCluster = {
@@ -193,12 +196,18 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.clustersOthersWrapper = new PaginationWrapper({
       $store,
       id:       'tlm-unpinned-clusters',
-      onChange: async({ forceWatch }) => {
-        if (this.args) {
+      onChange: async({ forceWatch, revision }) => {
+        if (!this.args) {
+          return;
+        }
+        try {
           await this.update({
             ...this.args,
-            forceWatch
+            forceWatch,
+            mgmtClusterRevision: revision,
           });
+        } catch {
+          // Failures should be logged lower down, not much here except prevent dev whole page warnings
         }
       },
       enabledFor: {
@@ -214,12 +223,18 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     this.provClusterWrapper = new PaginationWrapper({
       $store,
       id:       'tlm-prov-clusters',
-      onChange: async({ forceWatch }) => {
-        if (this.args) {
+      onChange: async({ forceWatch, revision }) => {
+        if (!this.args) {
+          return;
+        }
+        try {
           await this.update({
             ...this.args,
-            forceWatch
+            forceWatch,
+            provClusterRevision: revision,
           });
+        } catch {
+          // Failures should be logged lower down, not much here except prevent dev whole page warnings
         }
       },
       enabledFor: {
@@ -251,7 +266,12 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       pinned: MgmtCluster[],
       notPinned: MgmtCluster[]
     } = await allHash(promises) as any;
-    const provClusters = await this.updateProvCluster(res.notPinned, res.pinned, args.forceWatch || false);
+
+    myLogger.warn('tlhm-helper', 'update', 'updated', this.clustersPinnedWrapper.id, this.clustersOthersWrapper.id);
+
+    const provClusters = await this.updateProvCluster(res.notPinned, res.pinned, args);
+
+    myLogger.warn('tlhm-helper', 'update', 'updated', this.provClusterWrapper.id);
     const provClustersByMgmtId = provClusters.reduce((res: { [mgmtId: string]: ProvCluster}, provCluster: ProvCluster) => {
       if (provCluster.mgmtClusterId) {
         res[provCluster.mgmtClusterId] = provCluster;
@@ -357,7 +377,13 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 DEFAULT_SORT,
         projectsOrNamespaces: []
       },
-    }).then((r) => r.data);
+      revision: args.mgmtClusterRevision
+    })
+      .then((r) => r.data);
+    // .catch(() => {
+    //   // Failures should be logged lower down, not much here we can do so return cached value
+    //   return this.clustersPinned;
+    // });
   }
 
   /**
@@ -378,15 +404,21 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 DEFAULT_SORT,
         projectsOrNamespaces: []
       },
-    }).then((r) => r.data);
+      revision: args.mgmtClusterRevision
+    })
+      .then((r) => r.data);
+    //  .catch(() => {
+    //     // Failures should be logged lower down, not much here we can do so return cached value
+    //     return this.clustersOthers;
+    //   });;
   }
 
   /**
    * Find all provisioning clusters associated with the displayed mgmt clusters
    */
-  private async updateProvCluster(notPinned: MgmtCluster[], pinned: MgmtCluster[], forceWatch: boolean): Promise<ProvCluster[]> {
+  private async updateProvCluster(notPinned: MgmtCluster[], pinned: MgmtCluster[], args: UpdateArgs): Promise<ProvCluster[]> {
     return this.provClusterWrapper.request({
-      forceWatch,
+      forceWatch: args.forceWatch,
       pagination: {
         filters: [
           PaginationParamFilter.createMultipleFields(
@@ -400,7 +432,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 [],
         projectsOrNamespaces: []
       },
-    }).then((r) => r.data);
+      revision: args.provClusterRevision
+    })
+      .then((r) => r.data);
   }
 }
 
