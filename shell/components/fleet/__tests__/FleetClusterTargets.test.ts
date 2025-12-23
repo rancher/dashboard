@@ -1233,7 +1233,7 @@ describe('component: FleetClusterTargets', () => {
           }
         });
 
-        expect(wrapper.vm.selectedClusterGroups).toEqual([]);
+        expect(wrapper.vm.selectedClusterGroups).toStrictEqual([]);
       });
 
       it('should populate allClusterGroups from store data', async() => {
@@ -1259,7 +1259,7 @@ describe('component: FleetClusterTargets', () => {
         wrapper.setData({ allClusterGroups: mockClusterGroups });
         await flushPromises();
 
-        expect(wrapper.vm.allClusterGroups).toEqual(mockClusterGroups);
+        expect(wrapper.vm.allClusterGroups).toStrictEqual(mockClusterGroups);
       });
 
       it('should filter clusterGroupsOptions by namespace', () => {
@@ -1291,39 +1291,10 @@ describe('component: FleetClusterTargets', () => {
         const filteredOptions = wrapper.vm.clusterGroupsOptions;
 
         expect(filteredOptions).toHaveLength(2);
-        expect(filteredOptions).toEqual([
+        expect(filteredOptions).toStrictEqual([
           { label: 'Group 1', value: 'group-1' },
           { label: 'Group 3', value: 'group-3' }
         ]);
-      });
-
-      it('should create correct filteredClusterGroupsOptionsKeyMap', () => {
-        const mockClusterGroups = [
-          {
-            metadata:    { namespace: 'fleet-default', name: 'group-1' },
-            nameDisplay: 'Group 1'
-          },
-          {
-            metadata:    { namespace: 'fleet-default', name: 'group-2' },
-            nameDisplay: 'Group 2'
-          }
-        ];
-
-        const wrapper = mount(FleetClusterTargets, {
-          props: {
-            targets:   [],
-            namespace: 'fleet-default',
-            mode:      _EDIT
-          }
-        });
-
-        wrapper.setData({ allClusterGroups: mockClusterGroups });
-
-        const keyMap = wrapper.vm.filteredClusterGroupsOptionsKeyMap;
-
-        expect(keyMap['group-1']).toEqual(mockClusterGroups[0]);
-        expect(keyMap['group-2']).toEqual(mockClusterGroups[1]);
-        expect(Object.keys(keyMap)).toHaveLength(2);
       });
     });
 
@@ -1342,8 +1313,8 @@ describe('component: FleetClusterTargets', () => {
         wrapper.vm.selectClusterGroups(['group-1', 'group-2']);
         await flushPromises();
 
-        expect(wrapper.vm.selectedClusterGroups).toEqual(['group-1', 'group-2']);
-        expect(updateSpy).toHaveBeenCalled();
+        expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['group-1', 'group-2']);
+        expect(updateSpy).toHaveBeenCalledWith();
       });
 
       it('should emit update:value when selectClusterGroups is called', async() => {
@@ -1378,7 +1349,7 @@ describe('component: FleetClusterTargets', () => {
         wrapper.vm.selectClusterGroups([]);
         await flushPromises();
 
-        expect(wrapper.vm.selectedClusterGroups).toEqual([]);
+        expect(wrapper.vm.selectedClusterGroups).toStrictEqual([]);
       });
 
       it('should replace existing selectedClusterGroups on new selection', async() => {
@@ -1398,7 +1369,7 @@ describe('component: FleetClusterTargets', () => {
         wrapper.vm.selectClusterGroups(['group-3', 'group-4', 'group-5']);
         await flushPromises();
 
-        expect(wrapper.vm.selectedClusterGroups).toEqual(['group-3', 'group-4', 'group-5']);
+        expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['group-3', 'group-4', 'group-5']);
       });
     });
 
@@ -1418,8 +1389,8 @@ describe('component: FleetClusterTargets', () => {
           }
         });
 
-        expect(wrapper.vm.selectedClusterGroups).toEqual(['production-group', 'staging-group']);
-        expect(wrapper.vm.selectedClusters).toEqual(['specific-cluster']);
+        expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['production-group', 'staging-group']);
+        expect(wrapper.vm.selectedClusters).toStrictEqual(['specific-cluster']);
       });
 
       it('should include clusterGroups in normalizeTargets output', () => {
@@ -1437,7 +1408,7 @@ describe('component: FleetClusterTargets', () => {
           ['group-1', 'group-2']
         );
 
-        expect(result).toEqual([
+        expect(result).toStrictEqual([
           { clusterName: 'cluster-1' },
           { clusterSelector: { matchLabels: { env: 'prod' } } },
           { clusterGroup: 'group-1' },
@@ -1456,7 +1427,7 @@ describe('component: FleetClusterTargets', () => {
 
         const result = wrapper.vm.normalizeTargets([], [], ['group-1', 'group-2']);
 
-        expect(result).toEqual([
+        expect(result).toStrictEqual([
           { clusterGroup: 'group-1' },
           { clusterGroup: 'group-2' }
         ]);
@@ -1494,7 +1465,7 @@ describe('component: FleetClusterTargets', () => {
 
         const result = wrapper.vm.toTargets();
 
-        expect(result).toEqual([
+        expect(result).toStrictEqual([
           { clusterName: 'cluster-1' },
           { clusterGroup: 'group-1' },
           { clusterGroup: 'group-2' }
@@ -1537,10 +1508,10 @@ describe('component: FleetClusterTargets', () => {
         }
       });
 
-      expect(wrapper.vm.selectedClusters).toEqual(['specific-cluster']);
-      expect(wrapper.vm.selectedClusterGroups).toEqual(['production-group', 'development-group']);
+      expect(wrapper.vm.selectedClusters).toStrictEqual(['specific-cluster']);
+      expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['production-group', 'development-group']);
       expect(wrapper.vm.clusterSelectors).toHaveLength(1);
-      expect(wrapper.vm.clusterSelectors[0].matchLabels).toEqual({ env: 'staging' });
+      expect(wrapper.vm.clusterSelectors[0].matchLabels).toStrictEqual({ env: 'staging' });
     });
 
     it('should reset selectedClusterGroups when reset method is called', () => {
@@ -1563,10 +1534,10 @@ describe('component: FleetClusterTargets', () => {
       // Call reset
       wrapper.vm.reset();
 
-      expect(wrapper.vm.selectedClusterGroups).toEqual([]);
+      expect(wrapper.vm.selectedClusterGroups).toStrictEqual([]);
       expect(wrapper.vm.targetMode).toBe('all');
-      expect(wrapper.vm.selectedClusters).toEqual([]);
-      expect(wrapper.vm.clusterSelectors).toEqual([]);
+      expect(wrapper.vm.selectedClusters).toStrictEqual([]);
+      expect(wrapper.vm.clusterSelectors).toStrictEqual([]);
     });
   });
 
@@ -1591,7 +1562,7 @@ describe('component: FleetClusterTargets', () => {
       const emittedValues = wrapper.emitted('update:value');
       const lastEmitted = emittedValues?.[emittedValues.length - 1][0];
 
-      expect(lastEmitted).toEqual([
+      expect(lastEmitted).toStrictEqual([
         { clusterName: 'cluster-1' },
         { clusterName: 'cluster-2' },
         { clusterGroup: 'group-1' }
@@ -1617,7 +1588,7 @@ describe('component: FleetClusterTargets', () => {
 
       const lastEmitted = emittedValues?.[emittedValues.length - 1][0];
 
-      expect(lastEmitted).toEqual([
+      expect(lastEmitted).toStrictEqual([
         { clusterGroup: 'create-group-1' },
         { clusterGroup: 'create-group-2' }
       ]);
@@ -1634,7 +1605,7 @@ describe('component: FleetClusterTargets', () => {
         }
       });
 
-      expect(wrapper.vm.selectedClusterGroups).toEqual(['initial-group']);
+      expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['initial-group']);
 
       // Update props
       const newTargets = [
@@ -1668,7 +1639,7 @@ describe('component: FleetClusterTargets', () => {
         }
       });
 
-      expect(wrapper.vm.selectedClusterGroups).toEqual(['valid-group']);
+      expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['valid-group']);
     });
 
     it('should handle empty string clusterGroup in targets', () => {
@@ -1685,7 +1656,7 @@ describe('component: FleetClusterTargets', () => {
         }
       });
 
-      expect(wrapper.vm.selectedClusterGroups).toEqual(['valid-group']);
+      expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['valid-group']);
     });
 
     it('should handle empty allClusterGroups data', () => {
@@ -1727,7 +1698,7 @@ describe('component: FleetClusterTargets', () => {
 
       const options = wrapper.vm.clusterGroupsOptions;
 
-      expect(options).toEqual([
+      expect(options).toStrictEqual([
         { label: undefined, value: 'group-1' },
         { label: 'Group 2', value: 'group-2' }
       ]);
@@ -1753,7 +1724,7 @@ describe('component: FleetClusterTargets', () => {
       await flushPromises();
 
       // In EDIT mode, selections should be preserved unless explicitly reset
-      expect(wrapper.vm.selectedClusterGroups).toEqual(['persistent-group']);
+      expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['persistent-group']);
     });
 
     it('should clear clusterGroup selections on namespace change in CREATE mode', async() => {
@@ -1777,7 +1748,7 @@ describe('component: FleetClusterTargets', () => {
       // Manually trigger reset to simulate the watcher behavior
       wrapper.vm.reset();
 
-      expect(resetSpy).toHaveBeenCalled();
+      expect(resetSpy).toHaveBeenCalledWith();
       expect(wrapper.vm.selectedClusterGroups).toStrictEqual([]);
     });
   });

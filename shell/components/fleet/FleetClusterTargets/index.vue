@@ -154,18 +154,6 @@ export default {
 
       return out;
     },
-    filteredClusterGroupsOptions() {
-      return this.allClusterGroups
-        .filter((x) => x.metadata.namespace === this.namespace);
-    },
-    filteredClusterGroupsOptionsKeyMap() {
-      return this.filteredClusterGroupsOptions
-        .reduce((acc, curr) => {
-          acc[curr.metadata.name] = curr;
-
-          return acc;
-        }, {} as Record<string, any>);
-    },
 
     clustersOptions() {
       return this.allClusters
@@ -174,7 +162,8 @@ export default {
     },
 
     clusterGroupsOptions() {
-      return this.filteredClusterGroupsOptions
+      return this.allClusterGroups
+        .filter((x) => x.metadata.namespace === this.namespace)
         .map((x) => {
           return { label: x.nameDisplay, value: x.metadata.name };
         });
