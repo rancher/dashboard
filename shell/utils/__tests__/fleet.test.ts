@@ -123,8 +123,15 @@ describe('fx: util.getTargetMode', () => {
     expect(util.getTargetMode(targets, namespace)).toBe('clusters');
   });
 
-  it('should return "advanced" if one target has clusterGroup but others have clusterName or clusterSelector', () => {
+  it('should return "clusters" if one target has clusterGroup but others have clusterName or clusterSelector', () => {
     const targets = [{ clusterName: 'cluster-x' }, { clusterGroup: 'my-group' }, { clusterSelector: { matchLabels: { env: 'prod' } } }];
+    const namespace = 'ws1';
+
+    expect(util.getTargetMode(targets, namespace)).toBe('clusters');
+  });
+
+  it('should return "advanced" if one target has clusterGroupSelector but others have clusterName or clusterSelector', () => {
+    const targets = [{ clusterName: 'cluster-x' }, { clusterGroupSelector: {} }, { clusterSelector: { matchLabels: { env: 'prod' } } }];
     const namespace = 'ws1';
 
     expect(util.getTargetMode(targets, namespace)).toBe('advanced');
