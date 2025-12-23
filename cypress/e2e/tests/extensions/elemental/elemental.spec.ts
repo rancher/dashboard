@@ -50,11 +50,11 @@ describe('Extensions Compatibility spec', { tags: ['@elemental', '@adminUser'] }
 
     // click on install button on card
     extensionsPo.extensionCardInstallClick(EXTENSION_NAME);
-    extensionsPo.extensionInstallModal().should('be.visible');
+    extensionsPo.installModal().checkVisible();
 
     // select version and click install
-    extensionsPo.installModalSelectVersionLabel(EXTENSION_VERSION);
-    extensionsPo.installModalInstallClick();
+    extensionsPo.installModal().selectVersionLabel(EXTENSION_VERSION);
+    extensionsPo.installModal().installButton().click();
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible', MEDIUM_TIMEOUT_OPT);
