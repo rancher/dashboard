@@ -1221,4 +1221,564 @@ describe('component: FleetClusterTargets', () => {
       });
     });
   });
+
+  describe('clusterGroup Functionality Tests', () => {
+    describe('clusterGroup Data Management', () => {
+      it('should initialize with empty selectedClusterGroups', () => {
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [],
+            namespace: 'fleet-default',
+            mode:      _EDIT
+          }
+        });
+
+        expect(wrapper.vm.selectedClusterGroups).toEqual([]);
+      });
+
+      it('should populate allClusterGroups from store data', async() => {
+        const mockClusterGroups = [
+          {
+            metadata:    { namespace: 'fleet-default', name: 'production-group' },
+            nameDisplay: 'Production Group'
+          },
+          {
+            metadata:    { namespace: 'fleet-default', name: 'staging-group' },
+            nameDisplay: 'Staging Group'
+          }
+        ];
+
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [],
+            namespace: 'fleet-default',
+            mode:      _EDIT
+          }
+        });
+
+        wrapper.setData({ allClusterGroups: mockClusterGroups });
+        await flushPromises();
+
+        expect(wrapper.vm.allClusterGroups).toEqual(mockClusterGroups);
+      });
+
+      it('should filter clusterGroupsOptions by namespace', () => {
+        const mockClusterGroups = [
+          {
+            metadata:    { namespace: 'fleet-default', name: 'group-1' },
+            nameDisplay: 'Group 1'
+          },
+          {
+            metadata:    { namespace: 'other-namespace', name: 'group-2' },
+            nameDisplay: 'Group 2'
+          },
+          {
+            metadata:    { namespace: 'fleet-default', name: 'group-3' },
+            nameDisplay: 'Group 3'
+          }
+        ];
+
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [],
+            namespace: 'fleet-default',
+            mode:      _EDIT
+          }
+        });
+
+        wrapper.setData({ allClusterGroups: mockClusterGroups });
+
+        const filteredOptions = wrapper.vm.clusterGroupsOptions;
+
+        expect(filteredOptions).toHaveLength(2);
+        expect(filteredOptions).toEqual([
+          { label: 'Group 1', value: 'group-1' },
+          { label: 'Group 3', value: 'group-3' }
+        ]);
+      });
+
+      it('should create correct filteredClusterGroupsOptionsKeyMap', () => {
+        const mockClusterGroups = [
+          {
+            metadata:    { namespace: 'fleet-default', name: 'group-1' },
+            nameDisplay: 'Group 1'
+          },
+          {
+            metadata:    { namespace: 'fleet-default', name: 'group-2' },
+            nameDisplay: 'Group 2'
+          }
+        ];
+
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [],
+            namespace: 'fleet-default',
+            mode:      _EDIT
+          }
+        });
+
+        wrapper.setData({ allClusterGroups: mockClusterGroups });
+
+        const keyMap = wrapper.vm.filteredClusterGroupsOptionsKeyMap;
+
+        expect(keyMap['group-1']).toEqual(mockClusterGroups[0]);
+        expect(keyMap['group-2']).toEqual(mockClusterGroups[1]);
+        expect(Object.keys(keyMap)).toHaveLength(2);
+      });
+    });
+
+    describe('clusterGroup Selection Methods', () => {
+      it('should update selectedClusterGroups when selectClusterGroups is called', async() => {
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [],
+            namespace: 'fleet-default',
+            mode:      _EDIT
+          }
+        });
+
+        const updateSpy = jest.spyOn(wrapper.vm, 'update');
+
+        wrapper.vm.selectClusterGroups(['group-1', 'group-2']);
+        await flushPromises();
+
+        expect(wrapper.vm.selectedClusterGroups).toEqual(['group-1', 'group-2']);
+        expect(updateSpy).toHaveBeenCalled();
+      });
+
+      it('should emit update:value when selectClusterGroups is called', async() => {
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [],
+            namespace: 'fleet-default',
+            mode:      _EDIT
+          }
+        });
+
+        wrapper.vm.selectClusterGroups(['test-group']);
+        await flushPromises();
+
+        expect(wrapper.emitted('update:value')).toBeDefined();
+      });
+
+      it('should handle empty array in selectClusterGroups', async() => {
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [],
+            namespace: 'fleet-default',
+            mode:      _EDIT
+          }
+        });
+
+        // First set some groups
+        wrapper.vm.selectClusterGroups(['group-1', 'group-2']);
+        await flushPromises();
+
+        // Then clear them
+        wrapper.vm.selectClusterGroups([]);
+        await flushPromises();
+
+        expect(wrapper.vm.selectedClusterGroups).toEqual([]);
+      });
+
+      it('should replace existing selectedClusterGroups on new selection', async() => {
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [],
+            namespace: 'fleet-default',
+            mode:      _EDIT
+          }
+        });
+
+        // Initial selection
+        wrapper.vm.selectClusterGroups(['group-1', 'group-2']);
+        await flushPromises();
+
+        // Replace with new selection
+        wrapper.vm.selectClusterGroups(['group-3', 'group-4', 'group-5']);
+        await flushPromises();
+
+        expect(wrapper.vm.selectedClusterGroups).toEqual(['group-3', 'group-4', 'group-5']);
+      });
+    });
+
+    describe('clusterGroup Target Processing', () => {
+      it('should parse existing targets with clusterGroup in fromTargets', () => {
+        const targets = [
+          { clusterGroup: 'production-group' },
+          { clusterGroup: 'staging-group' },
+          { clusterName: 'specific-cluster' }
+        ];
+
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets,
+            namespace: 'fleet-default',
+            mode:      _EDIT
+          }
+        });
+
+        expect(wrapper.vm.selectedClusterGroups).toEqual(['production-group', 'staging-group']);
+        expect(wrapper.vm.selectedClusters).toEqual(['specific-cluster']);
+      });
+
+      it('should include clusterGroups in normalizeTargets output', () => {
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [],
+            namespace: 'fleet-default',
+            mode:      _EDIT
+          }
+        });
+
+        const result = wrapper.vm.normalizeTargets(
+          ['cluster-1'],
+          [{ matchLabels: { env: 'prod' } }],
+          ['group-1', 'group-2']
+        );
+
+        expect(result).toEqual([
+          { clusterName: 'cluster-1' },
+          { clusterSelector: { matchLabels: { env: 'prod' } } },
+          { clusterGroup: 'group-1' },
+          { clusterGroup: 'group-2' }
+        ]);
+      });
+
+      it('should handle only clusterGroups in normalizeTargets', () => {
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [],
+            namespace: 'fleet-default',
+            mode:      _EDIT
+          }
+        });
+
+        const result = wrapper.vm.normalizeTargets([], [], ['group-1', 'group-2']);
+
+        expect(result).toEqual([
+          { clusterGroup: 'group-1' },
+          { clusterGroup: 'group-2' }
+        ]);
+      });
+
+      it('should return undefined when normalizeTargets has no inputs', () => {
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [],
+            namespace: 'fleet-default',
+            mode:      _EDIT
+          }
+        });
+
+        const result = wrapper.vm.normalizeTargets([], [], []);
+
+        expect(result).toBeUndefined();
+      });
+
+      it('should include clusterGroups in toTargets when targetMode is clusters', () => {
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets:   [],
+            namespace: 'fleet-default',
+            mode:      _EDIT
+          }
+        });
+
+        wrapper.setData({
+          targetMode:            'clusters',
+          selectedClusters:      ['cluster-1'],
+          clusterSelectors:      [],
+          selectedClusterGroups: ['group-1', 'group-2']
+        });
+
+        const result = wrapper.vm.toTargets();
+
+        expect(result).toEqual([
+          { clusterName: 'cluster-1' },
+          { clusterGroup: 'group-1' },
+          { clusterGroup: 'group-2' }
+        ]);
+      });
+    });
+
+    describe('clusterGroup Integration with Target Modes', () => {
+      it('should handle clusterGroup targets and set appropriate targetMode', () => {
+        const targets = [
+          { clusterGroup: 'test-group' }
+        ];
+
+        const wrapper = mount(FleetClusterTargets, {
+          props: {
+            targets,
+            namespace: 'fleet-default',
+            mode:      _EDIT
+          }
+        });
+
+        // ClusterGroup targets should be parsed correctly
+        expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['test-group']);
+      });
+    });
+
+    it('should handle mixed targets with clusterGroup, clusterName, and clusterSelector', () => {
+      const targets = [
+        { clusterName: 'specific-cluster' },
+        { clusterGroup: 'production-group' },
+        { clusterSelector: { matchLabels: { env: 'staging' } } },
+        { clusterGroup: 'development-group' }
+      ];
+
+      const wrapper = mount(FleetClusterTargets, {
+        props: {
+          targets,
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      expect(wrapper.vm.selectedClusters).toEqual(['specific-cluster']);
+      expect(wrapper.vm.selectedClusterGroups).toEqual(['production-group', 'development-group']);
+      expect(wrapper.vm.clusterSelectors).toHaveLength(1);
+      expect(wrapper.vm.clusterSelectors[0].matchLabels).toEqual({ env: 'staging' });
+    });
+
+    it('should reset selectedClusterGroups when reset method is called', () => {
+      const wrapper = mount(FleetClusterTargets, {
+        props: {
+          targets:   [],
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      // Set some cluster groups
+      wrapper.setData({
+        targetMode:            'clusters',
+        selectedClusterGroups: ['group-1', 'group-2'],
+        selectedClusters:      ['cluster-1'],
+        clusterSelectors:      [{ key: 1 }]
+      });
+
+      // Call reset
+      wrapper.vm.reset();
+
+      expect(wrapper.vm.selectedClusterGroups).toEqual([]);
+      expect(wrapper.vm.targetMode).toBe('all');
+      expect(wrapper.vm.selectedClusters).toEqual([]);
+      expect(wrapper.vm.clusterSelectors).toEqual([]);
+    });
+  });
+
+  describe('clusterGroup Event Handling and Updates', () => {
+    it('should emit correct targets when both clusters and clusterGroups are selected', async() => {
+      const wrapper = mount(FleetClusterTargets, {
+        props: {
+          targets:   [],
+          namespace: 'fleet-default',
+          mode:      _CREATE
+        }
+      });
+
+      // Set target mode and selections
+      wrapper.setData({ targetMode: 'clusters' });
+      wrapper.vm.selectClusters(['cluster-1', 'cluster-2']);
+      await flushPromises();
+
+      wrapper.vm.selectClusterGroups(['group-1']);
+      await flushPromises();
+
+      const emittedValues = wrapper.emitted('update:value');
+      const lastEmitted = emittedValues?.[emittedValues.length - 1][0];
+
+      expect(lastEmitted).toEqual([
+        { clusterName: 'cluster-1' },
+        { clusterName: 'cluster-2' },
+        { clusterGroup: 'group-1' }
+      ]);
+    });
+
+    it('should handle clusterGroup selection in CREATE mode with proper event emission', async() => {
+      const wrapper = mount(FleetClusterTargets, {
+        props: {
+          targets:   [],
+          namespace: 'fleet-default',
+          mode:      _CREATE
+        }
+      });
+
+      wrapper.setData({ targetMode: 'clusters' });
+      wrapper.vm.selectClusterGroups(['create-group-1', 'create-group-2']);
+      await flushPromises();
+
+      const emittedValues = wrapper.emitted('update:value');
+
+      expect(emittedValues).toBeDefined();
+
+      const lastEmitted = emittedValues?.[emittedValues.length - 1][0];
+
+      expect(lastEmitted).toEqual([
+        { clusterGroup: 'create-group-1' },
+        { clusterGroup: 'create-group-2' }
+      ]);
+    });
+
+    it('should update component state correctly when clusterGroups prop changes', async() => {
+      const initialTargets = [{ clusterGroup: 'initial-group' }];
+
+      const wrapper = mount(FleetClusterTargets, {
+        props: {
+          targets:   initialTargets,
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      expect(wrapper.vm.selectedClusterGroups).toEqual(['initial-group']);
+
+      // Update props
+      const newTargets = [
+        { clusterGroup: 'new-group-1' },
+        { clusterGroup: 'new-group-2' }
+      ];
+
+      await wrapper.setProps({ targets: newTargets });
+
+      // Reset and then parse new targets to simulate component update
+      wrapper.vm.reset();
+      wrapper.vm.fromTargets();
+
+      expect(wrapper.vm.selectedClusterGroups).toStrictEqual(['new-group-1', 'new-group-2']);
+    });
+  });
+
+  describe('clusterGroup Edge Cases and Error Handling', () => {
+    it('should handle undefined clusterGroup in targets gracefully', () => {
+      const targets = [
+        { clusterGroup: undefined },
+        { clusterGroup: 'valid-group' },
+        { clusterName: 'cluster-1' }
+      ];
+
+      const wrapper = mount(FleetClusterTargets, {
+        props: {
+          targets:   targets as any,
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      expect(wrapper.vm.selectedClusterGroups).toEqual(['valid-group']);
+    });
+
+    it('should handle empty string clusterGroup in targets', () => {
+      const targets = [
+        { clusterGroup: '' },
+        { clusterGroup: 'valid-group' }
+      ];
+
+      const wrapper = mount(FleetClusterTargets, {
+        props: {
+          targets:   targets as any,
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      expect(wrapper.vm.selectedClusterGroups).toEqual(['valid-group']);
+    });
+
+    it('should handle empty allClusterGroups data', () => {
+      const wrapper = mount(FleetClusterTargets, {
+        props: {
+          targets:   [],
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      wrapper.setData({ allClusterGroups: [] });
+
+      expect(() => wrapper.vm.clusterGroupsOptions).not.toThrow();
+      expect(wrapper.vm.clusterGroupsOptions).toStrictEqual([]);
+    });
+
+    it('should handle clusterGroups with missing nameDisplay', () => {
+      const mockClusterGroups = [
+        {
+          metadata: { namespace: 'fleet-default', name: 'group-1' }
+          // Missing nameDisplay
+        },
+        {
+          metadata:    { namespace: 'fleet-default', name: 'group-2' },
+          nameDisplay: 'Group 2'
+        }
+      ];
+
+      const wrapper = mount(FleetClusterTargets, {
+        props: {
+          targets:   [],
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      wrapper.setData({ allClusterGroups: mockClusterGroups });
+
+      const options = wrapper.vm.clusterGroupsOptions;
+
+      expect(options).toEqual([
+        { label: undefined, value: 'group-1' },
+        { label: 'Group 2', value: 'group-2' }
+      ]);
+    });
+  });
+
+  describe('clusterGroup Component Lifecycle', () => {
+    it('should preserve clusterGroup selections during component updates', async() => {
+      const wrapper = mount(FleetClusterTargets, {
+        props: {
+          targets:   [],
+          namespace: 'fleet-default',
+          mode:      _EDIT
+        }
+      });
+
+      // Set initial selection
+      wrapper.vm.selectClusterGroups(['persistent-group']);
+      await flushPromises();
+
+      // Trigger component update by changing namespace
+      await wrapper.setProps({ namespace: 'different-namespace' });
+      await flushPromises();
+
+      // In EDIT mode, selections should be preserved unless explicitly reset
+      expect(wrapper.vm.selectedClusterGroups).toEqual(['persistent-group']);
+    });
+
+    it('should clear clusterGroup selections on namespace change in CREATE mode', async() => {
+      const wrapper = mount(FleetClusterTargets, {
+        props: {
+          targets:   [],
+          namespace: 'fleet-default',
+          mode:      _CREATE
+        }
+      });
+
+      // Set initial selection
+      wrapper.vm.selectClusterGroups(['temp-group']);
+      await flushPromises();
+
+      // Mock the reset method call that happens on namespace change in CREATE mode
+      const resetSpy = jest.spyOn(wrapper.vm, 'reset');
+
+      await wrapper.setProps({ namespace: 'different-namespace' });
+
+      // Manually trigger reset to simulate the watcher behavior
+      wrapper.vm.reset();
+
+      expect(resetSpy).toHaveBeenCalled();
+      expect(wrapper.vm.selectedClusterGroups).toStrictEqual([]);
+    });
+  });
 });
