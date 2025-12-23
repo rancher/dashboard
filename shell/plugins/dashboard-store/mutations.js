@@ -515,8 +515,29 @@ export default {
     cache.generation++;
 
     // Update list
-    clear(cache.list);
-    addObjects(cache.list, proxies);
+    // We want to update the old page with the new page
+    // We need to keep the cache.list object reference the same
+    // We need to keep objects that represent the same resource the same (don't remove the old object and add a new object for the same resource)
+    // - this helps anywhere that works with object references (sortable table selection is maintained by object reference)
+
+    // Create a map of the current references in cache.list
+    const currentPageMap = new Map(cache.list.map((i) => [i[keyField], i]));
+
+    // Create an array containing the new page, but using the same object for resources that exist in old and new page
+    const newPage = proxies.map((p) => {
+      const existing = currentPageMap.get(p[keyField]);
+
+      if (existing) {
+        replaceResource(existing, p, ctx.getters);
+
+        return existing;
+      }
+
+      return p;
+    });
+
+    // Replace the old cache.list entries with the new page
+    cache.list.splice(0, cache.list.length, ...newPage);
 
     // Update Map (remove stale)
     cache.map.forEach((value, key) => {
