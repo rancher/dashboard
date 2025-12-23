@@ -70,6 +70,22 @@ describe('class ProvCluster', () => {
         expected: true
       },
       {
+        description: 'should return true for an imported k3s cluster in waiting state',
+        clusterData: {
+          isLocal: false,
+          mgmt:    { status: { provider: undefined, driver: 'k3s' } }
+        },
+        expected: true
+      },
+      {
+        description: 'should return true for an imported rke2 cluster in waiting state',
+        clusterData: {
+          isLocal: false,
+          mgmt:    { status: { provider: undefined, driver: 'rke2' } }
+        },
+        expected: true
+      },
+      {
         description: 'should return false for a provisioned k3s cluster',
         clusterData: {
           isLocal: false,
