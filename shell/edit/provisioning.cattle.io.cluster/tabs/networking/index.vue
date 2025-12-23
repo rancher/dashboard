@@ -20,7 +20,7 @@ export default {
     'update:value', 'cluster-cidr-changed', 'local-cluster-auth-endpoint-changed',
     'service-cidr-changed', 'cluster-domain-changed', 'cluster-dns-changed',
     'truncate-hostname-changed', 'ca-certs-changed', 'service-node-port-range-changed',
-    'fqdn-changed', 'tls-san-changed', 'stack-preference-changed', 'validationChanged'
+    'fqdn-changed', 'tls-san-changed', 'stack-preference-changed', 'validationChanged', 'enable-flannel-masq-changed'
   ],
 
   components: {
@@ -57,7 +57,29 @@ export default {
     hasSomeIpv6Pools: {
       type:    Boolean,
       default: false
+    },
+
+    enableFlannelMasq: {
+      type:    Boolean,
+      default: false
     }
+  },
+
+  watch: {
+    isProbablyIPv6(neu) {
+      if (this.mode === _CREATE && this.showFlannelMasq) {
+        this.$emit('enable-flannel-masq-changed', neu);
+      }
+    },
+
+    isK3s(neu) {
+      if (!neu) {
+        this.$emit('enable-flannel-masq-changed', null);
+      } else if (this.isProbablyIPv6) {
+        this.$emit('enable-flannel-masq-changed', true);
+      }
+    },
+
   },
 
   data() {
@@ -68,12 +90,15 @@ export default {
     truncateHostnames() {
       return this.truncateLimit === NETBIOS_TRUNCATION_LENGTH;
     },
+
     serverConfig() {
       return this.value.spec.rkeConfig.machineGlobalConfig;
     },
+
     serverArgs() {
       return this.selectedVersion?.serverArgs || {};
     },
+
     stackPreferenceOptions() {
       return [{
         label: this.t('cluster.rke2.stackPreference.options.ipv4'),
@@ -88,21 +113,19 @@ export default {
       },
       ];
     },
-    showIpv6Warning() {
-      const clusterCIDR = this.serverConfig['cluster-cidr'] || '';
-      const serviceCIDR = this.serverConfig['service-cidr'] || '';
 
-      return clusterCIDR.includes(':') || serviceCIDR.includes(':');
-    },
     hostnameTruncationManuallySet() {
       return !!this.truncateLimit && this.truncateLimit !== NETBIOS_TRUNCATION_LENGTH;
     },
+
     isEdit() {
       return this.mode === _EDIT;
     },
+
     isView() {
       return this.mode === _VIEW;
     },
+
     localValue: {
       get() {
         return this.value;
@@ -123,6 +146,31 @@ export default {
         this.localValue.spec.networking.stackPreference = neu;
       }
     },
+
+    isK3s() {
+      return (this.selectedVersion?.label || '').includes('k3s');
+    },
+
+    showFlannelMasq() {
+      const flannelEnabled = this.value?.spec?.rkeConfig?.machineGlobalConfig?.['flannel-backend'] !== 'none';
+
+      return this.isK3s && flannelEnabled;
+    },
+
+    hasIpv6StackPref() {
+      return [STACK_PREFS.IPV6, STACK_PREFS.DUAL].includes(this.value?.spec?.rkeConfig?.networking?.stackPreference);
+    },
+
+    hasIpv6ServerConfig() {
+      const clusterCIDR = this.serverConfig['cluster-cidr'] || '';
+      const serviceCIDR = this.serverConfig['service-cidr'] || '';
+
+      return clusterCIDR.includes(':') || serviceCIDR.includes(':');
+    },
+
+    isProbablyIPv6() {
+      return this.hasSomeIpv6Pools || this.hasIpv6StackPref || this.hasIpv6ServerConfig;
+    },
   },
 
   methods: {
@@ -140,7 +188,7 @@ export default {
       } else {
         return null;
       }
-    }
+    },
   }
 };
 </script>
@@ -154,13 +202,6 @@ export default {
         class="icon icon-info"
       />
     </h3>
-    <Banner
-      v-if="showIpv6Warning"
-      color="warning"
-      data-testid="network-tab-ipv6StackPreferenceWarning"
-    >
-      {{ t('cluster.rke2.address.ipv6.warning') }}
-    </Banner>
     <div class="row mb-20">
       <div
         v-if="serverArgs['cluster-cidr']"
@@ -298,5 +339,32 @@ export default {
         />
       </div>
     </div>
+    <template v-if="showFlannelMasq">
+      <h3
+        v-t="'cluster.k3s.flannelMasq.title'"
+        class="mt-20"
+      />
+      <Banner
+        v-if="isProbablyIPv6"
+        color="warning"
+        data-testid="cluster-rke2-flannel-masq-banner"
+        :label="t('cluster.k3s.flannelMasq.banner', null, true)"
+      />
+      <div
+        class="row mb-20 "
+      >
+        <div
+          class="col"
+        >
+          <Checkbox
+            :value="enableFlannelMasq"
+            data-testid="cluster-rke2-flannel-masq-checkbox"
+            :mode="mode"
+            :label="t('cluster.k3s.flannelMasq.label')"
+            @update:value="e=>$emit('enable-flannel-masq-changed', e)"
+          />
+        </div>
+      </div>
+    </template>
   </div>
 </template>
