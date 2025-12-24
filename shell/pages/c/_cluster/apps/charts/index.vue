@@ -65,6 +65,19 @@ export default {
     this.installedApps = await this.$store.dispatch('cluster/findAll', { type: CATALOG_TYPES.APP });
   },
 
+  updated() {
+    if (!this.observerInitialized && this.filteredCharts.length > 0) {
+      this.initIntersectionObserver();
+    }
+    this.ensureOverflow();
+  },
+
+  beforeUnmount() {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+  },
+
   data() {
     return {
       DOCS_BASE,
@@ -115,7 +128,10 @@ export default {
         { value: CATALOG_SORT_OPTIONS.LAST_UPDATED_DESC, label: this.t('catalog.charts.sort.lastUpdatedDesc') },
         { value: CATALOG_SORT_OPTIONS.ALPHABETICAL_ASC, label: this.t('catalog.charts.sort.alphaAscending') },
         { value: CATALOG_SORT_OPTIONS.ALPHABETICAL_DESC, label: this.t('catalog.charts.sort.alphaDescending') },
-      ]
+      ],
+      initialVisibleChartsCount: 30,
+      visibleChartsCount:        20,
+      hasOverflow:               false
     };
   },
 
@@ -262,7 +278,9 @@ export default {
     },
 
     appChartCards() {
-      return this.filteredCharts.map((chart) => {
+      const charts = this.filteredCharts.slice(0, this.visibleChartsCount);
+
+      return charts.map((chart) => {
         if (!this.appCardsCache[chart.id]) {
           // Cache the converted value. We're caching chart.cardContent anyway, so no need to worry about showing updates to state
           this.appCardsCache[chart.id] = {
@@ -293,7 +311,7 @@ export default {
     },
 
     totalMessage() {
-      const count = !this.isFilterUpdating ? this.appChartCards.length : '. . .';
+      const count = !this.isFilterUpdating ? this.filteredCharts.length : '. . .';
 
       if (this.noFiltersApplied) {
         return this.t('catalog.charts.totalChartsMessage', { count });
@@ -304,6 +322,10 @@ export default {
   },
 
   watch: {
+    debouncedSearchQuery() {
+      this.resetLazyLoadState();
+    },
+
     searchQuery: {
       handler: debounce(function(q) {
         this.debouncedSearchQuery = q;
@@ -315,6 +337,8 @@ export default {
     filters: {
       deep: true,
       handler(newFilters) {
+        this.resetLazyLoadState();
+
         const query = {
           [REPO]:     normalizeFilterQuery(newFilters.repos),
           [CATEGORY]: normalizeFilterQuery(newFilters.categories),
@@ -425,11 +449,80 @@ export default {
       });
     },
 
+    resetLazyLoadState() {
+      this.visibleChartsCount = this.initialVisibleChartsCount;
+      this.observerInitialized = false;
+      this.hasOverflow = false;
+    },
+
+    // The lazy loading implementation has two parts
+    // 1. Initial Load (ensureOverflow): Having a simple calculation of how many items to load
+    //    can fail in edge cases like browser zoom, where element sizing and viewport
+    //    height can lead to miscalculations. If not enough content is loaded, the page
+    //    won't be scrollable, breaking the IntersectionObserver. This method, called
+    //    iteratively by the `updated` lifecycle hook, adds batches of charts and
+    //    re-measures until the content height factually overflows the container,
+    //    guaranteeing a scrollbar. It then sets `hasOverflow = true` to stop itself.
+    // 2. Scroll-based Load (IntersectionObserver): Once the page is scrollable, a standard
+    //    IntersectionObserver (`initIntersectionObserver` and `loadMore`) takes care of
+    //    loading new batches of charts as the user scrolls to the bottom.
+    ensureOverflow() {
+      this.$nextTick(() => {
+        if (this.hasOverflow || !this.$refs.chartsContainer) {
+          return;
+        }
+
+        const mainLayout = document.querySelector('.main-layout');
+
+        if (!mainLayout) {
+          return;
+        }
+
+        const contentHeight = this.$refs.chartsContainer.offsetHeight;
+        const containerHeight = mainLayout.offsetHeight;
+
+        if (contentHeight > containerHeight) {
+          this.hasOverflow = true;
+        } else if (this.visibleChartsCount < this.filteredCharts.length) {
+          // Load another batch
+          this.visibleChartsCount += this.initialVisibleChartsCount;
+        } else {
+          // All charts are visible
+          this.hasOverflow = true;
+        }
+      });
+    },
+
     resetAllFilters() {
       this.internalFilters = createInitialFilters();
       this.filters = createInitialFilters();
       this.searchQuery = '';
     },
+
+    loadMore() {
+      if (this.visibleChartsCount >= this.filteredCharts.length) {
+        return;
+      }
+      this.visibleChartsCount += this.initialVisibleChartsCount;
+    },
+
+    initIntersectionObserver() {
+      if (this.observer) {
+        this.observer.disconnect();
+      }
+      const mainLayout = document.querySelector('.main-layout');
+      const sentinel = this.$refs.sentinel;
+
+      if (sentinel && mainLayout) {
+        this.observer = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) {
+            this.loadMore();
+          }
+        }, { mainLayout });
+        this.observer.observe(sentinel);
+        this.observerInitialized = true;
+      }
+    }
   },
 };
 </script>
@@ -552,7 +645,10 @@ export default {
       >
         <div class="total-and-sort">
           <div class="total">
-            <p class="total-message">
+            <p
+              class="total-message"
+              data-testid="charts-total-message"
+            >
               {{ totalMessage }}
             </p>
             <a
@@ -594,6 +690,7 @@ export default {
           </Select>
         </div>
         <div
+          ref="chartsContainer"
           class="app-chart-cards"
           data-testid="app-chart-cards-container"
         >
@@ -629,6 +726,11 @@ export default {
             </template>
           </rc-item-card>
         </div>
+        <div
+          ref="sentinel"
+          class="sentinel-charts"
+          data-testid="charts-lazy-load-sentinel"
+        />
       </div>
     </div>
   </div>
@@ -673,6 +775,10 @@ export default {
   flex-direction: column;
   gap: var(--gap-md);
   flex: 1;
+
+  .sentinel-charts {
+    height: 1px;
+  }
 }
 
 .total-and-sort {

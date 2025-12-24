@@ -115,6 +115,33 @@ describe('Apps/Charts', { tags: ['@explorer', '@adminUser'] }, () => {
     // check empty state is NOT displayed
     chartsPage.emptyState().should('not.exist');
   });
+
+  it('should load all charts when scrolling to the bottom', () => {
+    // First, get the total number of charts from the UI.
+    chartsPage.totalChartsCount().then((totalCharts) => {
+      // Recursive function to scroll until all charts are visible
+      function loadMoreCharts() {
+        chartsPage.chartCards().its('length').then((currentCount) => {
+          if (currentCount < totalCharts) {
+            // If not all charts are loaded, scroll down to load more
+            chartsPage.scrollContainer().scrollTo('bottom', { duration: 200 });
+
+            // Wait until the number of cards has increased, with a timeout.
+            chartsPage.chartCards().should('have.length.gt', currentCount, { timeout: 10000 }).then(() => {
+              // Recurse
+              loadMoreCharts();
+            });
+          }
+        });
+      }
+
+      // Initial call to start the process
+      loadMoreCharts();
+
+      // After the recursion is done, we should have all the charts
+      chartsPage.chartCards().should('have.length', totalCharts);
+    });
+  });
 });
 
 describe('Chart Details Page', { tags: ['@explorer', '@adminUser'] }, () => {
