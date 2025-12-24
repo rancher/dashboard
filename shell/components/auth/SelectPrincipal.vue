@@ -175,6 +175,10 @@ export default {
         if ( this.searchStr === str ) {
           // If not, they've already typed something else
           this.options = res.map((x) => x.id);
+          // display the search results if the dropdown has been closed
+          if (this.options.length) {
+            this.$refs['labeled-select'].isOpen = true;
+          }
         }
       } catch (e) {
         this.options = [];
