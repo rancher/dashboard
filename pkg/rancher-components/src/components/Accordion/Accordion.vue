@@ -43,7 +43,7 @@ export default defineComponent({
     >
       <i
         class="icon text-primary"
-        :class="{'icon-chevron-down':isOpen, 'icon-chevron-up':!isOpen}"
+        :class="{'icon-chevron-down':isOpen, 'icon-chevron-right':!isOpen}"
         data-testid="accordion-chevron"
       />
       <slot name="header">
@@ -67,7 +67,8 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .accordion-container {
-  border: 1px solid var(--border)
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
 .accordion-header {
   padding: 16px 16px 16px 11px;
