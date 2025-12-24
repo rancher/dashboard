@@ -211,7 +211,7 @@ describe('page: cluster dashboard', () => {
 
       expect(box.element).toBeDefined();
       expect(box.element.classList).toContain(status);
-      expect(!!(box.element as any).$_popper).toBe(clickable);
+      expect(!!(box.element as any).__tooltipOptions__?.content).toBe(clickable);
       expect(icon.element.classList).toContain(iconClass);
 
       await box.trigger('click');
