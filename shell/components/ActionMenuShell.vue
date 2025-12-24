@@ -8,6 +8,8 @@ import { RcDropdownMenu } from '@components/RcDropdown';
 import { ButtonRoleProps, ButtonSizeProps } from '@components/RcButton/types';
 import { DropdownOption } from '@components/RcDropdown/types';
 
+defineOptions({ inheritAttrs: false });
+
 const store = useStore();
 
 type RcDropdownMenuComponentProps = {
@@ -16,7 +18,7 @@ type RcDropdownMenuComponentProps = {
   buttonAriaLabel?: string;
   dropdownAriaLabel?: string;
   dataTestid?: string;
-  resource: Object;
+  resource?: Object;
   customActions?: DropdownOption[];
 }
 
