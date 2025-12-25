@@ -283,6 +283,26 @@ function isEqualBasic(from, to) {
   return true;
 }
 
+/**
+ * Return true if only one of the object key-value matches
+ */
+export function isLooseEqual(from, to) {
+  const fromKeys = Object.keys(from || {});
+  let isLooseEqual = false;
+
+  for (let i = 0; i < fromKeys.length; i++) {
+    const fromValue = from[fromKeys[i]];
+    const toValue = to[fromKeys[i]];
+
+    if (fromValue === toValue) {
+      isLooseEqual = true;
+      break;
+    }
+  }
+
+  return isLooseEqual;
+}
+
 export { isEqualBasic as isEqual };
 
 export function changeset(from, to, parentPath = []) {
