@@ -386,7 +386,7 @@ export default {
       :dropdown-should-open="dropdownShouldOpen"
       :tabindex="-1"
       :uid="generatedUid"
-      :aria-label="'-'"
+      :aria-label="`- ${value}`"
       @update:modelValue="$emit('selecting', $event); $emit('update:value', $event)"
       @search:blur="onBlur"
       @search:focus="onFocus"
