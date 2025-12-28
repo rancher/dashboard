@@ -1,7 +1,7 @@
 <script lang="ts">
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { SECRET_SCOPE, SECRET_QUERY_PARAMS } from '@shell/config/query-params';
-import { MANAGEMENT, SECRET, VIRTUAL_TYPES } from '@shell/config/types';
+import { SECRET, VIRTUAL_TYPES } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 import { PaginationArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
@@ -9,38 +9,12 @@ import Secret from '@shell/models/secret';
 import { TableColumn } from '@shell/types/store/type-map';
 import { mapGetters } from 'vuex';
 import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
-import { DEFAULT_PROJECT, SYSTEM_PROJECT, UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
-import { RancherKubeMetadata } from '@shell/types/kube/kube-api';
+import { UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import {
   AGE, SECRET_DATA, STATE, SUB_TYPE, NAME as NAME_COL,
 } from '@shell/config/table-headers';
 import { STEVE_AGE_COL, STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
 import { escapeHtml } from '@shell/utils/string';
-
-const findSystemDefaultProjects = (projects: any[], currentClusterId: string): { systemProject?: any, defaultProject?: any } => {
-  let systemProject;
-  let defaultProject;
-
-  for (let i = 0; i < projects.length; i++) {
-    const p = projects[i];
-
-    if (p.metadata.namespace === currentClusterId) {
-      if (p.isSystem) {
-        systemProject = p;
-      }
-
-      if (p.isDefault) {
-        defaultProject = p;
-      }
-
-      if (systemProject && defaultProject) {
-        break;
-      }
-    }
-  }
-
-  return { systemProject, defaultProject };
-};
 
 export default {
   name:       'ListProjectScopedSecrets',
@@ -90,38 +64,7 @@ export default {
         vai:   `metadata.labels[${ UI_PROJECT_SECRET }]`,
       },
 
-      systemProject:  undefined,
-      defaultProject: undefined,
     };
-  },
-
-  async fetch() {
-    // Upstream pss's created in default and system namespaces don't follow the usual naming convention of <cluster>-<project>
-    // we use that pattern to filter out pss from other clusters
-    // in order to not also filter upstream default and system namespace also search for their exact namespace
-    // this finding them...
-    if (this.currentCluster.isLocal) {
-      // First check if we already have them
-      const projects = this.$store.getters[`${ STORE.MANAGEMENT }/all`](MANAGEMENT.PROJECT);
-      const res = findSystemDefaultProjects(projects, this.currentCluster.id);
-
-      this.defaultProject = res.defaultProject;
-      this.systemProject = res.systemProject;
-
-      if (!this.systemProject || !this.defaultProject) {
-        // If not, make a http fetch (this is blocking, but should rarely happen, and should be super quick)
-        const url = this.$store.getters[`${ STORE.MANAGEMENT }/urlFor`](MANAGEMENT.PROJECT, null, { namespaced: this.currentCluster.id });
-        const response = await this.$store.dispatch(`${ STORE.MANAGEMENT }/request`, {
-          type: MANAGEMENT.PROJECT,
-          opt:  { url: `${ url }&filter=metadata.labels[${ DEFAULT_PROJECT }]=true,metadata.labels[${ SYSTEM_PROJECT }]=true` }
-        });
-        const projects = await this.$store.dispatch(`${ STORE.MANAGEMENT }/createMany`, response.data);
-        const res = findSystemDefaultProjects(projects, this.currentCluster.id);
-
-        this.defaultProject = this.defaultProject || res.defaultProject;
-        this.systemProject = this.systemProject || res.systemProject;
-      }
-    }
   },
 
   async created() {
@@ -191,20 +134,13 @@ export default {
      */
     filterRowsLocal(rows: Secret[]) {
       return rows.filter((r: Secret) => {
-        const metadata = r.metadata as RancherKubeMetadata; // Secrets will always have metadata, but hybrid-class does nasty things which breaks typing
-
         // Filter in pss but not the copies
         if (!r.isProjectScoped) {
           return;
         }
 
         // Filter in if this cluster
-        if (metadata.namespace?.startsWith(this.currentCluster.id)) {
-          return true;
-        }
-
-        // Filter in if upstream and default/system
-        if (this.currentCluster.isLocal && (r.project?.isSystem || r.project?.isDefault)) {
+        if (r.projectScopedClusterId === this.currentCluster.id) {
           return true;
         }
 
@@ -243,39 +179,15 @@ export default {
       });
 
       // Filter in the current clusters pss
+      // TODO: RC CURRENTLY BROKEN GIVEN https://github.com/rancher/rancher/issues/52810
       const nsFields: PaginationFilterField[] = [{
-        field:  'metadata.namespace',
-        value:  `${ this.currentCluster.id }-`,
+        field:  'spec.clusterName',
+        value:  this.currentCluster.id,
         equals: true,
-        exact:  false,
+        exact:  true,
       }];
 
-      let namespaceFilter;
-
-      if (this.currentCluster.isLocal) {
-        // See where these are populated, but basically filter in upstream system and default projects
-        if (this.systemProject) {
-          nsFields.push({
-            field:  'metadata.namespace',
-            value:  this.systemProject.metadata.name,
-            equals: true,
-            exact:  true,
-          });
-        }
-
-        if (this.defaultProject) {
-          nsFields.push({
-            field:  'metadata.namespace',
-            value:  this.defaultProject.metadata.name,
-            equals: true,
-            exact:  true,
-          });
-        }
-
-        namespaceFilter = PaginationParamFilter.createMultipleFields(nsFields);
-      } else {
-        namespaceFilter = PaginationParamFilter.createSingleField(nsFields[0]);
-      }
+      const namespaceFilter = PaginationParamFilter.createSingleField(nsFields[0]);
 
       let foundLabelFilter = false;
       let foundAnnotationFilter = false;
@@ -318,7 +230,7 @@ export default {
 </script>
 
 <template>
-  <div v-if="!$fetchState.pending">
+  <div>
     <Masthead
       component-testid="secrets-list"
       :schema="schema"
