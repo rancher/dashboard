@@ -6,6 +6,11 @@ type OpenApIDefinitions = {
   [name: string]: OpenApIDefinition;
 };
 
+type Breadcrumb = {
+  name: string;
+  id: string;
+};
+
 // Regex for more info in descriptions
 // Some kube docs use a common pattern for a URL with more info - we extract these and show a link icon, rather than clogging up the UI
 // with a long URL - this makes it easier to read
@@ -71,7 +76,7 @@ export function makeOpenAPIBreadcrumb(id: string): any {
  * @param definition Definition to expand
  * @param breadcrumbs Current breadcrumbs to use as a breadcrumb path to the definition
  */
-export function expandOpenAPIDefinition(definitions: OpenApIDefinitions, definition: OpenApIDefinition, breadcrumbs = []): void {
+export function expandOpenAPIDefinition(definitions: OpenApIDefinitions, definition: OpenApIDefinition, breadcrumbs: Breadcrumb[] = []): void {
   Object.keys(definition?.properties || {}).forEach((propName) => {
     const prop = definition.properties[propName];
     const propRef = prop.$ref || prop.items?.$ref;
@@ -97,6 +102,35 @@ export function expandOpenAPIDefinition(definitions: OpenApIDefinitions, definit
       } else {
         console.warn(`Can not find definition for ${ id }`); // eslint-disable-line no-console
       }
+    } else if (
+      (prop.type === 'object' && prop.properties) ||
+      (prop.type === 'array' && prop.items?.type === 'object' && prop.items?.properties)
+    ) {
+      // Handle inline object definitions (common in CRDs)
+      // Only expand if there are actual properties to show (not empty objects)
+      // For arrays, we need to expand the items schema, not the array itself
+      const definitionToCopy = prop.type === 'array' ? prop.items : prop;
+
+      // Use the full breadcrumb path to avoid conflicts between different resources
+      const parentPath = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].id : '';
+      const syntheticId = parentPath ? `${ parentPath }.${ propName }` : propName;
+      const breadcrumb = makeOpenAPIBreadcrumb(syntheticId);
+
+      prop.$$ref = JSON.parse(JSON.stringify(definitionToCopy));
+      prop.$refName = syntheticId;
+      prop.$breadcrumbs = [
+        ...breadcrumbs,
+        breadcrumb
+      ];
+      prop.$refNameShort = propName;
+
+      // Add the inline definition to the definitions dictionary
+      // so navigation via breadcrumbs works
+      if (!definitions[syntheticId]) {
+        definitions[syntheticId] = prop.$$ref;
+      }
+
+      expandOpenAPIDefinition(definitions, prop.$$ref, prop.$breadcrumbs);
     }
 
     extractMoreInfo(prop);
