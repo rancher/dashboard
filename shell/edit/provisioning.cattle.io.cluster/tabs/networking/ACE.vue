@@ -64,6 +64,7 @@ export default {
             :mode="mode"
             class="btn btn-sm bg-primary mt-10"
             :label="t('generic.readFromFile')"
+            :allowed-file-types="['text/plain', 'application/x-pem-file', 'application/x-x509-ca-cert']"
             @selected="onCertSelected"
           />
         </div>

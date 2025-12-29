@@ -30,10 +30,10 @@ describe('component: FileSelector', () => {
     expect(uploadButton.exists()).toBeTruthy();
   });
 
-  it('should reject binary image file when reading as text', async() => {
+  it('should reject binary image file when allowedFileTypes is specified', async() => {
     wrapper = mount(FileSelector, {
       props: {
-        label: 'upload', accept: 'image/jpeg,image/png,image/svg+xml', showGrowlError: false
+        label: 'upload', allowedFileTypes: ['text/plain', 'application/json'], showGrowlError: false
       },
       methods: {},
       global:  { mocks: {} },
@@ -50,7 +50,7 @@ describe('component: FileSelector', () => {
 
     await wrapper.vm.fileChange(event);
     expect(wrapper.emitted('error')).toHaveLength(1);
-    expect(wrapper.emitted('error')[0][0]).toContain('is a binary file and cannot be read as text');
+    expect(wrapper.emitted('error')[0][0]).toContain('is not an allowed file type');
     expect(wrapper.emitted('selected')).toBeUndefined();
     expect(readAsTextSpy).not.toHaveBeenCalled();
   });
@@ -122,11 +122,35 @@ describe('component: FileSelector', () => {
     expect(readAsDataUrlSpy).toHaveBeenCalledWith(jpegBlobFile);
   });
 
-  it('should detect PNG files as binary', async() => {
+  it('should allow images when image types are in allowedFileTypes', async() => {
+    wrapper = mount(FileSelector, {
+      props: {
+        label: 'upload', allowedFileTypes: ['image/jpeg', 'image/png'], showGrowlError: false
+      },
+      methods: {},
+      global:  { mocks: {} },
+    });
+
+    const event = {
+      target: {
+        files: [
+          jpegBlobFile
+        ]
+      }
+    };
+
+    await wrapper.vm.fileChange(event);
+    expect(wrapper.emitted('error')).toBeUndefined();
+    expect(wrapper.emitted('selected')).toHaveLength(1);
+  });
+
+  it('should reject PNG files when not in allowedFileTypes', async() => {
     const pngBlobFile = new Blob([binaryString], { type: 'image/png' });
 
     wrapper = mount(FileSelector, {
-      props:   { label: 'upload', showGrowlError: false },
+      props: {
+        label: 'upload', allowedFileTypes: ['text/plain', 'application/json'], showGrowlError: false
+      },
       methods: {},
       global:  { mocks: {} },
     });
@@ -141,14 +165,16 @@ describe('component: FileSelector', () => {
 
     await wrapper.vm.fileChange(event);
     expect(wrapper.emitted('error')).toHaveLength(1);
-    expect(wrapper.emitted('error')[0][0]).toContain('is a binary file and cannot be read as text');
+    expect(wrapper.emitted('error')[0][0]).toContain('is not an allowed file type');
   });
 
-  it('should detect PDF files as binary', async() => {
+  it('should reject PDF files when not in allowedFileTypes', async() => {
     const pdfBlobFile = new Blob([binaryString], { type: 'application/pdf' });
 
     wrapper = mount(FileSelector, {
-      props:   { label: 'upload', showGrowlError: false },
+      props: {
+        label: 'upload', allowedFileTypes: ['text/plain'], showGrowlError: false
+      },
       methods: {},
       global:  { mocks: {} },
     });
@@ -163,6 +189,48 @@ describe('component: FileSelector', () => {
 
     await wrapper.vm.fileChange(event);
     expect(wrapper.emitted('error')).toHaveLength(1);
-    expect(wrapper.emitted('error')[0][0]).toContain('is a binary file and cannot be read as text');
+    expect(wrapper.emitted('error')[0][0]).toContain('is not an allowed file type');
+  });
+
+  it('should allow all files when allowedFileTypes is not specified', async() => {
+    wrapper = mount(FileSelector, {
+      props:   { label: 'upload', showGrowlError: false },
+      methods: {},
+      global:  { mocks: {} },
+    });
+
+    const event = {
+      target: {
+        files: [
+          jpegBlobFile
+        ]
+      }
+    };
+
+    await wrapper.vm.fileChange(event);
+    expect(wrapper.emitted('error')).toBeUndefined();
+    expect(wrapper.emitted('selected')).toHaveLength(1);
+  });
+
+  it('should support prefix matching for file types', async() => {
+    wrapper = mount(FileSelector, {
+      props: {
+        label: 'upload', allowedFileTypes: ['image/'], showGrowlError: false
+      },
+      methods: {},
+      global:  { mocks: {} },
+    });
+
+    const event = {
+      target: {
+        files: [
+          jpegBlobFile
+        ]
+      }
+    };
+
+    await wrapper.vm.fileChange(event);
+    expect(wrapper.emitted('error')).toBeUndefined();
+    expect(wrapper.emitted('selected')).toHaveLength(1);
   });
 });

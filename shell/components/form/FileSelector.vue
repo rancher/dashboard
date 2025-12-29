@@ -8,18 +8,6 @@ export function createOnSelected(field) {
   };
 }
 
-// List of binary file MIME types that should not be read as text
-const BINARY_MIME_TYPES = [
-  'image/', // All image types (jpeg, png, gif, etc.)
-  'video/', // All video types
-  'audio/', // All audio types
-  'application/pdf',
-  'application/zip',
-  'application/x-zip-compressed',
-  'application/octet-stream',
-  'application/x-binary',
-];
-
 export default {
   emits: ['error', 'selected'],
 
@@ -79,6 +67,11 @@ export default {
       default: '*'
     },
 
+    allowedFileTypes: {
+      type:    Array,
+      default: null
+    },
+
     class: {
       type:    [String, Array],
       default: () => [],
@@ -103,8 +96,17 @@ export default {
       this.$refs.uploader.click();
     },
 
-    isBinaryFile(file) {
-      return BINARY_MIME_TYPES.some((type) => file.type.startsWith(type));
+    isFileTypeAllowed(file) {
+      // If no allowed types specified, allow all files
+      if (!this.allowedFileTypes || this.allowedFileTypes.length === 0) {
+        return true;
+      }
+
+      // Check if file type matches any of the allowed types
+      return this.allowedFileTypes.some((allowedType) => {
+        // Support both exact match and prefix match (e.g., 'text/' matches 'text/plain')
+        return file.type === allowedType || file.type.startsWith(allowedType);
+      });
     },
 
     async fileChange(event) {
@@ -123,11 +125,11 @@ export default {
         }
       }
 
-      // Check for binary files when reading as text
-      if (!this.readAsDataUrl && !this.rawData) {
+      // Check file types if allowed types are specified
+      if (this.allowedFileTypes && this.allowedFileTypes.length > 0) {
         for (const file of files) {
-          if (this.isBinaryFile(file)) {
-            const errorMsg = `${ file.name } is a binary file and cannot be read as text. Please select a text file.`;
+          if (!this.isFileTypeAllowed(file)) {
+            const errorMsg = `${ file.name } is not an allowed file type. Please select a file with one of the following types: ${ this.allowedFileTypes.join(', ') }`;
 
             this.$emit('error', errorMsg);
             if (this.showGrowlError) {
