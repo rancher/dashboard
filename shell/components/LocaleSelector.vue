@@ -30,7 +30,6 @@ export default {
 
   computed: {
     ...mapGetters('i18n', ['selectedLocaleLabel', 'availableLocales']),
-    ...mapGetters('prefs', ['dev']),
 
     localesOptions() {
       return Object.keys(this.availableLocales).map((value) => {
@@ -46,11 +45,11 @@ export default {
     },
 
     showLocale() {
-      return (this.availableLocales && Object.keys(this.availableLocales).length > 1) || this.dev;
+      return (this.availableLocales && Object.keys(this.availableLocales).length > 1) || this.showNone;
     },
 
     showNone() {
-      return !!process.env.dev && this.dev;
+      return !!process.env.dev;
     },
   },
 
