@@ -53,7 +53,7 @@
     "add": "2.0.6",
     "ansi_up": "5.0.0",
     "axios-retry": "3.1.9",
-    "axios": "1.12.2",
+    "axios": "1.13.2",
     "babel-eslint": "10.1.0",
     "babel-plugin-module-resolver": "5.0.2",
     "babel-preset-vue": "2.0.2",
