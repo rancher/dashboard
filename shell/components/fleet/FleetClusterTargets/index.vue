@@ -448,7 +448,7 @@ export default {
           {{ t('fleet.clusterTargets.clusterGroups.title') }}
         </h3>
         <LabeledSelect
-          data-testid="fleet-target-cluster-name-selector"
+          data-testid="fleet-target-cluster-group-selector"
           class="mmt-4"
           :value="selectedClusterGroups"
           :label="t('fleet.clusterTargets.clusterGroups.byName.label')"
