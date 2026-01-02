@@ -58,7 +58,7 @@
     "babel-plugin-module-resolver": "5.0.2",
     "babel-preset-vue": "2.0.2",
     "cache-loader": "4.1.0",
-    "chart.js": "4.4.8",
+    "chart.js": "4.5.1",
     "clipboard-polyfill": "4.0.1",
     "codemirror-editor-vue3": "2.8.0",
     "codemirror": ">=5.64.0 <6",
