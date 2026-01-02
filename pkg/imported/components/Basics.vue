@@ -97,15 +97,16 @@ export default defineComponent({
     const store = this.$store;
     const supportedVersionRange = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
     const originalVersion = this.value?.version?.gitVersion || this.config?.kubernetesVersion || '';
-    let versionMismatch = false;
-
-    if ( !!this.config?.kubernetesVersion && !!this.value?.version?.gitVersion) {
-      versionMismatch = compare(this.config.kubernetesVersion, this.value.version.gitVersion) < 0;
-    }
+    const versionMismatch = false;
 
     return {
       supportedVersionRange, originalVersion, showDeprecatedPatchVersions: false, kubernetesVersion: originalVersion, versionMismatch
     };
+  },
+  created() {
+    if ( !!this.config?.kubernetesVersion && !!this.value?.version?.gitVersion) {
+      this.versionMismatch = compare(this.config.kubernetesVersion, this.value.version.gitVersion) < 0;
+    }
   },
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
