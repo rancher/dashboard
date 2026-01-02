@@ -9,9 +9,10 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { mapGetters, mapState, mapActions } from 'vuex';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import CruResourceFooter from '@shell/components/CruResourceFooter';
+import { useResourceCreatePageProvider, useResourceEditPageProvider } from '@shell/composables/cruResource';
 
 import {
-  _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE
+  _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE, _CREATE
 } from '@shell/config/query-params';
 
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
@@ -167,6 +168,12 @@ export default {
   data(props) {
     const inStore = this.$store.getters['currentStore'](this.resource);
     const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource.type);
+
+    if (this.mode === _CREATE) {
+      useResourceCreatePageProvider();
+    } else if (this.mode === _EDIT) {
+      useResourceEditPageProvider();
+    }
 
     return {
       isCancelModal:   false,

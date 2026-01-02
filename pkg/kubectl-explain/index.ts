@@ -1,5 +1,5 @@
 import { importTypes } from '@rancher/auto-import';
-import { ActionLocation, IPlugin, IInternal } from '@shell/core/types';
+import { ActionLocation, IPlugin, IInternal, TabLocation } from '@shell/core/types';
 import { explain } from './slide-in';
 
 // Init the package
@@ -29,4 +29,69 @@ export default function(plugin: IPlugin, internal: IInternal): void {
       explain(store, globals.$route);
     }
   });
+
+  plugin.addTab(
+    TabLocation.RESOURCE_SHOW_CONFIGURATION,
+    { resource: ['service'] },
+    {
+      name:       'some-name',
+      label:      'show-config-page-label',
+      weight:     -5,
+      showHeader: true,
+      tooltip:    'this is a tooltip message',
+      component:  () => import('./MyTabComponent.vue')
+    }
+  );
+
+  plugin.addTab(
+    TabLocation.RESOURCE_DETAIL_PAGE,
+    { resource: ['service'] },
+    {
+      name:       'some-name',
+      label:      'detail-page-label',
+      weight:     -5,
+      showHeader: true,
+      tooltip:    'this is a tooltip message',
+      component:  () => import('./MyTabComponent.vue')
+    }
+  );
+
+  plugin.addTab(
+    TabLocation.RESOURCE_CREATE_PAGE,
+    { resource: ['service'] },
+    {
+      name:       'some-name',
+      label:      'create-page-label',
+      weight:     -5,
+      showHeader: true,
+      tooltip:    'this is a tooltip message',
+      component:  () => import('./MyTabComponent.vue')
+    }
+  );
+
+  plugin.addTab(
+    TabLocation.RESOURCE_EDIT_PAGE,
+    { resource: ['service'] },
+    {
+      name:       'some-name',
+      label:      'edit-page-label',
+      weight:     -5,
+      showHeader: true,
+      tooltip:    'this is a tooltip message',
+      component:  () => import('./MyTabComponent.vue')
+    }
+  );
+
+  plugin.addTab(
+    TabLocation.ALL,
+    { resource: ['pod', 'service'] },
+    {
+      name:       'some-name',
+      label:      'all-pages-label',
+      weight:     -5,
+      showHeader: true,
+      tooltip:    'this is a tooltip message',
+      component:  () => import('./MyTabComponent.vue')
+    }
+  );
 }
