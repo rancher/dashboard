@@ -96,10 +96,15 @@ export default defineComponent({
   data() {
     const store = this.$store;
     const supportedVersionRange = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
-    const originalVersion = this.config?.kubernetesVersion || '';
+    const originalVersion = this.value?.version?.gitVersion || this.config?.kubernetesVersion || '';
+    let versionMismatch = false;
+
+    if ( !!this.config?.kubernetesVersion && !!this.value?.version?.gitVersion) {
+      versionMismatch = compare(this.config.kubernetesVersion, this.value.version.gitVersion) < 0;
+    }
 
     return {
-      supportedVersionRange, originalVersion, showDeprecatedPatchVersions: false
+      supportedVersionRange, originalVersion, showDeprecatedPatchVersions: false, kubernetesVersion: originalVersion, versionMismatch
     };
   },
   computed: {
@@ -109,7 +114,7 @@ export default defineComponent({
     },
     versionOptions() {
       const cur = this.originalVersion;
-      let out = getAllOptionsAfterCurrentVersion(this.$store, this.versions, cur, this.defaultVersion);
+      let out = getAllOptionsAfterCurrentVersion(this.$store, this.versions, cur, this.defaultVersion, this.versionMismatch);
 
       if (!this.showDeprecatedPatchVersions) {
         // Normally, we only want to show the most recent patch version
@@ -127,9 +132,6 @@ export default defineComponent({
     },
     versionInformationDisabled() {
       return this.versionManagement === VERSION_MANAGEMENT_DEFAULT && !this.versionManagementGlobalSetting;
-    },
-    versionMismatch() {
-      return compare(this.config.kubernetesVersion, this.value.version.gitVersion) < 0;
     }
   },
 });
@@ -147,7 +149,7 @@ export default defineComponent({
     <div class="row row-basics mb-20">
       <div class="col-basics mr-10 span-6">
         <LabeledSelect
-          v-model:value="config.kubernetesVersion"
+          v-model:value="kubernetesVersion"
           data-testid="cruimported-kubernetesversion"
           :mode="mode"
           :options="versionOptions"
