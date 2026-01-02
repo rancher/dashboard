@@ -7,6 +7,7 @@ import Legacy from '@shell/components/ResourceDetail/legacy.vue';
 import Loading from '@shell/components/Loading.vue';
 import { useIsNewDetailPageEnabled } from '@shell/composables/useIsNewDetailPageEnabled';
 import { VIRTUAL_TYPES } from '@shell/config/types';
+import { useResourceDetailPageProvider } from '@shell/composables/resourceDetail';
 
 export interface Props {
   flexContent?: boolean;
@@ -69,9 +70,23 @@ const isView = computed(() => route?.params?.id && (!mode.value || mode.value ==
 const iseNewDetailPageEnabled = useIsNewDetailPageEnabled();
 const page = computed(() => currentResourceName.value ? resourceToPage[currentResourceName.value] : undefined);
 const useLatest = computed(() => !!(iseNewDetailPageEnabled.value && isView.value && page.value));
+
+if (isView.value) {
+  useResourceDetailPageProvider();
+}
 </script>
 
 <template>
+  mode: {{ mode }}
+  <br>
+  isView: {{ isView }}
+  <br>
+  iseNewDetailPageEnabled: {{ iseNewDetailPageEnabled }}
+  <br>
+  page: {{ page }}
+  <br>
+  useLatest: {{ useLatest }}
+  <br>
   <Suspense v-if="useLatest">
     <template #default>
       <component :is="page" />
