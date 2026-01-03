@@ -1,0 +1,4 @@
+plugin/img/susecon_20204.3a39d2b2.jpg
+plugin/large-extension-0.2.2.umd.min.js
+plugin/large-extension-0.2.2.umd.min.js.map
+plugin/package.json
