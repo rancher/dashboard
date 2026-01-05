@@ -466,7 +466,7 @@ export default {
     };
 
     if (type === 'pod') {
-      // debugger;
+      // debugger; // TODO: RC debug
     }
     // No need to request the resources if we have them already
     if (!opt.transient && !opt.force && getters['havePaginatedPage'](type, opt)) {

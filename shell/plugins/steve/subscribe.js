@@ -21,17 +21,17 @@
  * Below are some VERY brief steps for common flows. Some will link together
  *
  * # Successfully flow
- * ## watch
+ * ## watch - standard mode
  * 1. UI --> Rancher: _watch_ request
  * 2. Rancher --> UI: `resource.start`. UI sets watch as started
  * ...
  * 3. Rancher --> UI: `resource.change` (contains data). UI caches data
  *
- * ## watch - new mode
+ * ## watch - new resource.changes mode
  * 1. UI --> Rancher: _watch_ request
  * 2. Rancher --> UI: `resource.start`. UI sets watch as started
  * ...
- * 3. Rancher --> UI: `resource.changes` (contains no data). UI makes a HTTP request to fetch data // TODO: RC rtevise
+ * 3. Rancher --> UI: `resource.changes` (contains no data). UI makes a HTTP request to fetch data
  *
  * ## watch - unwatch
  * 1. UI --> Rancher: _unwatch_ request
@@ -56,14 +56,14 @@
  *
  * # HA Support for Stale Replicates - https://github.com/rancher/dashboard/issues/14974
  *
- * ## Scenario 1 - handle case where stale replica processes watch request
+ * ## Scenario 1 - handle case where watch request is handled by a stale replica
  * 1. UI --> Rancher: _watch_ request (contains latest revision)
  * 2. Rancher --> UI: `resource.error` (stale replica does not know new revision)
  * 3. Rancher --> UI: `resource.stop` (stale replica cannot provide updates for unknown revision)
  * 4. UI --> Rancher : UI makes a HTTP request to fetch data
  * 5. Loop back to step 1 (if stale again, backoff retry)
  *
- * ## Scenario 2 - avoid stale replica handling requests for new revisions
+ * ## Scenario 2 - handle case where http request is handled by a stale replica (don't fetch stale data)
  * 1. UI --> Rancher: _watch_ request
  * 2. Rancher --> UI: `resource.start`. UI sets watch as started
  * ...
@@ -71,7 +71,7 @@
  * 4. UI --> Rancher : UI makes a HTTP request to fetch data. Stale Replica handles request, does not know revision, returns error
  * 5. Loop back to step 4 (if errors with stale again, backoff retry)
  *
- * ## Scenario 3 - avoid stale replica prompted request ---> handling request for stale revision  --> overwriting not-stale local value
+ * ## Scenario 3 - handle case where update request was sent by stale replica (don't overwrite good data with stale)
  * 1. UI --> Rancher: _watch_ request
  * 2. Rancher --> UI: `resource.start`. UI sets watch as started
  * ...
@@ -80,7 +80,7 @@
  * 5. UI does not make new http request, which could be handled by stale replica --> overwrites newer local values
  *
  * Additionally
- * - if we receive resource.stop, unless the watch is in error, we immediately send back a watch event
+ * - if we receive resource.stop, unless the watch is in error, we immediately send back a watch request to re-start the watch
  * - if the web socket is disconnected (for steve based sockets it happens every 30 mins, or when there are permission changes)
  *   the ui will re-connect it and re-watch all previous watches using a best effort revision
  */
@@ -95,7 +95,6 @@ import Socket, {
   EVENT_CONNECTED,
   EVENT_DISCONNECTED,
   EVENT_MESSAGE,
-  //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR,
   EVENT_DISCONNECT_ERROR,
   NO_WATCH,
@@ -350,7 +349,7 @@ function growlsDisabled(rootGetters) {
  */
 const clearInError = ({ getters, commit }, error) => {
   // for this watch ... get the specific prefix we care about ... reset back-offs related to it
-  backOff.resetPrefix(getters.backOffId(error.obj, '')); // TODO: RC will also clear other backoffs....
+  backOff.resetPrefix(getters.backOffId(error.obj, ''));
   // Clear out stale error state (next time around we can try again with a new revision that was just fetched)
   commit('clearInError', error.obj);
 };
@@ -728,7 +727,6 @@ const sharedActions = {
   resetWatchBackOff({ state, getters, commit }, {
     type, compareWatches, resetInError = true, resetStarted = true
   } = { resetInError: true, resetStarted: true }) {
-    myLogger.warn('resetWatchBackOff', 'start', type, resetInError, resetStarted);
     // Step 1 - Reset back-offs related to watches that have STARTED
     if (resetStarted && state.started?.length) {
       let entries = state.started;
@@ -879,12 +877,14 @@ const defaultActions = {
   async fetchPageResources({ getters, dispatch }, {
     opt, storePagination, params, backOffId
   }) {
-    const { resourceType, namespace, revision } = params;
+    let { resourceType, namespace, revision } = params;
     const type = resourceType || params.type;
 
     const safeBackOffId = backOffId || getters.backOffId(params, `fetchPageResources`);
 
-    // msg.revision = Number.MAX_SAFE_INTEGER; // TODO: RC testing... with this in it doesn't repeat... (should backoff repeat after last resource.changes)
+    if (type === scenType) { // TODO: RC debug
+      revision = Number.MAX_SAFE_INTEGER; // only works for NORMAL resources (not wrapper)
+    }
 
     const activeRevisionSt = backOff.getBackOff(safeBackOffId)?.metadata?.revision;
     const cachedRevisionSt = getters['typeEntry'](resourceType || type)?.revision;
@@ -895,13 +895,13 @@ const defaultActions = {
 
     myLogger.warn('fetchPageResources', 'start', safeBackOffId, 'target', revision, 'active', activeRevisionSt, 'cached', cachedRevisionSt);
 
-    // Three scenarios to support HA support scenario 2 + 3
+    // Three cases to support HA scenarios 2 + 3
     // 1. current version is newer than target revision - abort/ignore (don't overwrite new with old)
     // 2. current version is older than target revision - reset previous (drop older requests with older revision, use new revision)
     // 3. current version is same as target revision - we're retrying
 
     if (currentRevision.isNewerThan(targetRevision)) {
-      // Scenario 1 - abort/ignore (don't overwrite new with old)
+      // Case 1 - abort/ignore (don't overwrite new with old)
 
       // eslint-disable-next-line no-console
       console.warn(`Ignoring subscribe request to update '${ type }' with revision '${ targetRevision.revision }' (previously processed '${ currentRevision.revision }'). ` +
@@ -911,7 +911,7 @@ const defaultActions = {
     }
 
     if (targetRevision.isNewerThan(activeRevision)) {
-      // Scenario 2 - reset previous (drop older requests with older revision, use new revision)
+      // Case 2 - reset previous (drop older requests with older revision, use new revision)
 
       console.info(`Dropping previous subscribe request to update '${ type }' with revision '${ currentRevision.revision }' (new target revision '${ targetRevision.revision }'). `); // eslint-disable-line no-console
 
@@ -919,8 +919,7 @@ const defaultActions = {
     }
 
     try {
-      //  TODO: RC this doesn't need to be async here, but does in wrapper
-      // if async then delayFn calling itself calling backoff aborts given parent delay is still running
+      // Keep making requests until we make one that succeeds, fails with unknown revision or we run out of retries
       await backOff.recurse({
         id:          safeBackOffId,
         metadata:    { revision },
@@ -932,7 +931,6 @@ const defaultActions = {
             return false;
           }
 
-          debugger;
           if (!getters['watchStarted'](params)) {
             // No watch has started... but are we in initial state where the watch failed due to a bad revision?
             const inError = getters.inError(params);
@@ -947,6 +945,7 @@ const defaultActions = {
           return true;
         },
         continueOnError: async(err) => {
+          // Have we made a request to a stale replica that does not know about the required revision? If so continue to try until we hit a ripe replica
           return err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION;
         },
         delayedFn: async() => {
@@ -1011,7 +1010,6 @@ const defaultActions = {
       });
     } else {
       // Fetch all or a page of resources
-
       if (mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
         // Fetch a page of resources
 

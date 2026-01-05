@@ -109,13 +109,13 @@ class PaginationWrapper<T extends object> {
     const targetRevision = new SteveRevision(revision);
     const currentRevision = new SteveRevision(activeRevisionSt || cachedRevisionSt);
 
-    // Three scenarios to support HA support scenario 2 + 3
+    // Three cases to support HA scenarios 2 + 3
     // 1. current version is newer than target revision - abort/ignore (don't overwrite new with old)
     // 2. current version in cache is older than target revision - reset previous (drop older requests with older revision, use new revision)
     // 3. current version in cache is same as target revision - we're retrying
 
     if (activeRevision?.isNewerThan(targetRevision)) {
-      // 1 - abort/ignore (don't overwrite new with old). Specifically we're fetching something with a higher revision, ignore the newer request with older revision
+      // Case 1 - abort/ignore (don't overwrite new with old). Specifically we're fetching something with a higher revision, ignore the newer request with older revision
 
       // eslint-disable-next-line no-console
       console.warn(`Ignoring event listener request to update '${ this.id }' with revision '${ targetRevision.revision }' (newer in-progress revision '${ activeRevision.revision }'). ` +
@@ -125,7 +125,7 @@ class PaginationWrapper<T extends object> {
     }
 
     if (cachedRevision?.isNewerThan(targetRevision)) {
-      // 1 - abort/ignore (don't overwrite new with old). Specifically we're already fetched something with a higher revision, ignore the newer request with older revision and just return the cached versio
+      // Case 1 - abort/ignore (don't overwrite new with old). Specifically we're already fetched something with a higher revision, ignore the newer request with older revision and just return the cached versio
 
       // eslint-disable-next-line no-console
       console.warn(`Ignoring event listener request to update '${ this.id }' with revision '${ targetRevision.revision }' (newer cached revision '${ cachedRevision.revision }'). ` +
@@ -139,21 +139,21 @@ class PaginationWrapper<T extends object> {
     }
 
     if (targetRevision.isNewerThan(currentRevision)) {
-      // 2 - reset previous (drop older requests with older revision, use new revision)
+      // Case 2 - reset previous (drop older requests with older revision, use new revision)
 
       backOff.reset(backOffId);
     }
 
-    // Fetch
+    // Keep making requests until we make one that succeeds, fails with unknown revision or we run out of retries
     const out = await backOff.recurse<any, ActionFindPageTransientResult<T>>({
       id:              backOffId,
       metadata:        { revision },
-      description:     `Fetching resources for ${ this.enabledFor.resource?.id } (wrapper). Triggered by web socket`,
+      description:     `Fetching resources for ${ this.enabledFor.resource?.id } (wrapper). Initial request, or Triggered by web socket`,
       continueOnError: async(err) => {
+        // Have we made a request to a stale replica that does not know about the required revision? If so continue to try until we hit a ripe replica
         return err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION;
       },
       delayedFn: async() => {
-        // try {
         myLogger.warn('pagination wrapper', 'request', 'backoff', 'trying', this.id);
 
         const res = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
@@ -161,18 +161,12 @@ class PaginationWrapper<T extends object> {
         this.cachedRevision = revision;
 
         return res;
-        // } catch (err: any) {
-        //   myLogger.warn('pagination wrapper', 'request', 'backoff', 'ERROR', this.id, err);
-        //   if (err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION) {
-        //     return await this.request(requestArgs);
-        //   }
-        // }
       },
     });
 
     if (!out) {
       // Skip
-      throw new Error(`Wrapper for type '${ this.enabledFor.store }/${ this.enabledFor.resource?.id }' in context '${ this.enabledFor.resource?.context }' failed to  TODO: RC`);
+      throw new Error(`Wrapper for type '${ this.enabledFor.store }/${ this.enabledFor.resource?.id }' in context '${ this.enabledFor.resource?.context }' failed to fetch resources`);
     }
 
     // Watch
@@ -192,8 +186,6 @@ class PaginationWrapper<T extends object> {
 
       this.watch();
     }
-
-    debugger;
 
     // Convert Response
     if (this.classify) {

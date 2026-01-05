@@ -1,3 +1,4 @@
+import myLogger from '@shell/utils/my-logger';
 import { randomStr } from '@shell/utils/string';
 
 type BackOffEntry<MetadataType = any> = {
@@ -57,14 +58,20 @@ interface BackOffArgs<MetadataType = any> {
 export type BackOffExecuteArgs<MetadataType> = BackOffArgs<MetadataType>
 
 export interface BackOffRecurseArgs<MetadataType> extends BackOffArgs<MetadataType> {
+  /**
+   * Should we continue to to try even if the previous attempt failed?
+   */
   continueOnError: (arg: any) => Promise<boolean>,
 }
 
 const logStyle = 'font-weight: bold; font-style: italic;';
 const logStyleReset = 'font-weight: normal; font-style: normal;';
 
+type LogLevel = 'error' | 'info' | 'debug' | undefined;
+type LogArgs = { id: string, status: string, description: string, metadata?: any }
+
 const logInitialBackOffRequest = true;
-const calcLogLevel = (iteration: number) => {
+const calcLogLevel = (iteration: number): LogLevel => {
   if (!logInitialBackOffRequest && iteration === 0) {
     return undefined;
   }
@@ -82,9 +89,9 @@ class BackOff {
    [id: string]: BackOffEntry
   } = {};
 
-  private log(level: 'error' | 'info' | 'debug' | undefined, {
+  private log(level: LogLevel, {
     id, status, description, metadata
-  }: { id: string, status: string, description: string, metadata?: any }, ...args: any[]) {
+  }: LogArgs, ...args: any[]) {
     if (!level) {
       return;
     }
@@ -99,23 +106,37 @@ class BackOff {
       logStyle, logStyleReset,
       ...args
     );
+
+    if (process.env.dev) {
+      // eslint-disable-next-line no-console
+      console[level](
+        `%cState %c:       "${ Object.keys(this.map).join(',') }"`,
+        logStyle, logStyleReset,
+      );
+    }
+  }
+
+  private logAndError(level: LogLevel, {
+    id, status, description, metadata
+  }: LogArgs, ...args: any[]): Promise<undefined> {
+    this.log(level, {
+      id, status, description, metadata
+    }, ...args);
+
+    return Promise.reject(new Error(status));
   }
 
   /**
    * Get a specific back off process
    */
-  getBackOff(id: string): BackOffEntry {
+  public getBackOff(id: string): BackOffEntry {
     return this.map[id];
   }
-
-  // getBackOffWithPrefix(prefix: string): String[] {
-  //   return Object.keys(this.map).filter((id) => id.startsWith(prefix));
-  // }
 
   /**
    * Stop ALL back off processes started since the ui was loaded
    */
-  resetAll() {
+  public resetAll() {
     Object.keys(this.map).forEach((id) => {
       this.reset(id);
     });
@@ -124,7 +145,7 @@ class BackOff {
   /**
    * Stop all back off process with a specific prefix
    */
-  resetPrefix(prefix:string) {
+  public resetPrefix(prefix:string) {
     Object.keys(this.map).forEach((id) => {
       if (id.startsWith(prefix)) {
         this.reset(id);
@@ -135,28 +156,28 @@ class BackOff {
   /**
    * Stop a back off process with a specific id
    */
-  reset(id: string) {
+  public reset(id: string) {
     const backOff: BackOffEntry = this.map[id];
 
-    if (backOff) {
-      if (backOff?.execute?.timeoutId) {
-        this.log('info', {
-          id, status: 'Stopping (cancelling active back-off)', description: backOff.description, metadata: backOff.metadata
-        });
+    if (!backOff) {
+      return;
+    }
 
-        clearTimeout(backOff.execute.timeoutId);
-      }
-      const backOffTry = backOff?.try || 0;
-      const logLevel = backOffTry <= 1 ? undefined : 'debug';
-
-      this.log(logLevel, {
-        id, status: 'Reset', description: backOff.description, metadata: backOff.metadata
+    if (backOff?.execute?.timeoutId) {
+      this.log('info', {
+        id, status: 'Stopping (cancelling active back-off)', description: backOff.description, metadata: backOff.metadata
       });
 
-      delete this.map[id];
-    } else {
-      debugger;
+      clearTimeout(backOff.execute.timeoutId);
     }
+    const backOffTry = backOff?.try || 0;
+    const logLevel = backOffTry <= 1 ? undefined : 'debug';
+
+    delete this.map[id];
+
+    this.log(logLevel, {
+      id, status: 'Reset', description: backOff.description, metadata: backOff.metadata
+    });
   }
 
   private sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -169,75 +190,47 @@ class BackOff {
     return iteration === 0 ? 1 : Math.pow(iteration, 2) * 250;
   }
 
-  // private checkReset = async({ id, description, metadata }: BackOffArgs<any>) => {
-  //   if (!this.map[id]) {
-  //     // some reset, don't care now, abort
-  //     const errorMessage = 'Aborting (backoff was reset, do not continue to process)';
-
-  //     this.log('error', {
-  //       id, status: errorMessage, description, metadata
-  //     });
-
-  //     return Promise.reject(new Error(errorMessage));
-  //   }
-  // };
-
   private canRecurse = async(backOffEntry: BackOffEntry, {
     id, description, metadata, canFn = async() => true
   }: BackOffRecurseArgs<any>) => {
     if (!this.map[id]) {
-      // some reset, don't care now, abort
-      const errorMessage = 'Aborting (backoff was reset, do not continue to process)';
-
-      this.log('error', {
-        id, status: errorMessage, description, metadata
+      // was reset, don't care now, abort
+      return this.logAndError('error', {
+        id, status: 'Aborting (backoff was reset, do not continue to process)', description, metadata
       });
-
-      return Promise.reject(new Error(errorMessage));
     }
 
     if (this.map[id].recurse?.id !== backOffEntry.recurse?.id) {
-      const errorMessage = 'Aborting (stale backoff, a new one exists)';
-
-      this.log('error', {
-        id, status: errorMessage, description, metadata
+      return this.logAndError('error', {
+        id, status: 'Aborting (stale backoff, a new one exists)', description, metadata
       });
-
-      return Promise.reject(new Error(errorMessage));
     }
 
     const cont = await canFn();
 
     if (!cont) {
-      this.log('info', {
+      return this.logAndError('info', {
         id, status: 'Skipping (canFn test failed)', description, metadata
       });
-
-      return Promise.reject(new Error('Skipping (canFn test failed)'));
     }
   };
 
-  // TODO: RC use this for scenario 2 + 3
   /**
-   * Keep trying until successful
+   * Call a function, if it fails keep trying but with a delay (aka back off)
    *
-   * Return result
+   * Return the successful result, or error if reached the max number of retries
    *
-   * TODO: RC
-   * @param args
-   * @returns
+   * @template MetadataType - Type of configuration that can be internally stored with the backoff record
    */
-  async recurse<MetadataType = any, ResponseType = any>(args: BackOffRecurseArgs<MetadataType>): Promise<ResponseType | undefined> {
+  public async recurse<MetadataType = any, ResponseType = any>(args: BackOffRecurseArgs<MetadataType>): Promise<ResponseType | undefined> {
     const {
       id, description, retries = 10, delayedFn, continueOnError, metadata
     } = args;
 
     if (this.map[id]) {
-      this.log('info', {
-        id, status: 'Skipping (previous back off process still running)', description, metadata
+      return this.logAndError('info', {
+        id, status: 'Skipping (previous recurse back off process still running)', description, metadata
       });
-
-      return Promise.reject(new Error('Skipping (previous back off process still running)')); // TODO: RC resolve?
     }
 
     this.map[id] = {
@@ -276,14 +269,13 @@ class BackOff {
         const cont = await continueOnError(e);
 
         if (!cont) {
-          // Error occurred. Don't clear the map. Next time this is called we'll back off before trying ...
-          this.log('error', {
-            id, status: 'Failed call', description, metadata
-          }, e);
-
           this.reset(id); // Allow future calls to execute
 
-          return Promise.reject(new Error('asdsad')); // TODO: RC
+          const errorMessage = 'Failed call';
+
+          return this.logAndError('error', {
+            id, status: errorMessage, description, metadata
+          }, e);
         }
       }
 
@@ -302,7 +294,7 @@ class BackOff {
   }
 
   /**
-   * Call a function, but if it's recently been called delay execution aka back off
+   * Call a function, but if it's recently been called delay execution (aka back off)
    *
    * This can be used in a totally disjoined asynchronous way
    *
@@ -313,9 +305,9 @@ class BackOff {
    *
    * This can be called repeatedly, if the previous delay is still running new requests will be ignored
    *
-   * @template T - Type of configuration that can be stored with the backoff record
+   * @template MetadataType - Type of configuration that can be internally stored with the backoff record
    */
-  async execute<MetadataType = any>({
+  public async execute<MetadataType = any>({
     id, description, retries = 10, delayedFn, canFn = async() => true, metadata
   }: BackOffExecuteArgs<MetadataType>): Promise<NodeJS.Timeout | undefined> {
     const backOff: BackOffEntry = this.map[id];

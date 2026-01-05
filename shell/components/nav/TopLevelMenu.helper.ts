@@ -207,7 +207,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
             mgmtClusterRevision: revision,
           });
         } catch {
-          // Failures should be logged lower down, not much here except prevent dev whole page warnings
+          // Failures should be logged lower down, not much we can do here except catch to prevent whole ui page warnings in dev mode
         }
       },
       enabledFor: {
@@ -234,7 +234,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
             provClusterRevision: revision,
           });
         } catch {
-          // Failures should be logged lower down, not much here except prevent dev whole page warnings
+          // Failures should be logged lower down, not much we can do here except catch to prevent whole ui page warnings in dev mode
         }
       },
       enabledFor: {
@@ -267,11 +267,11 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       notPinned: MgmtCluster[]
     } = await allHash(promises) as any;
 
-    myLogger.warn('tlhm-helper', 'update', 'updated', this.clustersPinnedWrapper.id, this.clustersOthersWrapper.id);
+    myLogger.warn('tlhm-helper', 'update', 'updatePinned + updateOthers ran', res.pinned, res.notPinned);
 
     const provClusters = await this.updateProvCluster(res.notPinned, res.pinned, args);
 
-    myLogger.warn('tlhm-helper', 'update', 'updated', this.provClusterWrapper.id);
+    myLogger.warn('tlhm-helper', 'update', 'updateProvCluster ran', provClusters);
     const provClustersByMgmtId = provClusters.reduce((res: { [mgmtId: string]: ProvCluster}, provCluster: ProvCluster) => {
       if (provCluster.mgmtClusterId) {
         res[provCluster.mgmtClusterId] = provCluster;
@@ -380,10 +380,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       revision: args.mgmtClusterRevision
     })
       .then((r) => r.data);
-    // .catch(() => {
-    //   // Failures should be logged lower down, not much here we can do so return cached value
-    //   return this.clustersPinned;
-    // });
   }
 
   /**
@@ -407,10 +403,6 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       revision: args.mgmtClusterRevision
     })
       .then((r) => r.data);
-    //  .catch(() => {
-    //     // Failures should be logged lower down, not much here we can do so return cached value
-    //     return this.clustersOthers;
-    //   });;
   }
 
   /**
@@ -619,6 +611,8 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
  */
 class TopLevelMenuHelperService {
   private _helper?: TopLevelMenuHelper;
+  public initialized = false;
+
   public init($store: VuexStore) {
     if (this._helper) {
       return;
@@ -633,6 +627,8 @@ class TopLevelMenuHelperService {
     });
 
     this._helper = canPagination ? new TopLevelMenuHelperPagination({ $store }) : new TopLevelMenuHelperLegacy({ $store });
+
+    this.initialized = true;
   }
 
   public async reset() {
