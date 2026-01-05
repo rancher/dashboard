@@ -26,18 +26,29 @@ export default defineComponent({
     return { isOpen: this.openInitially };
   },
 
-  computed: { ...mapGetters({ t: 'i18n/t' }) },
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
+    containerId() {
+      const title = this.titleKey ? this.t(this.titleKey) : this.title;
+
+      return title.replace(' ', '-').toLowerCase() + '-accordion';
+    }
+  },
 
   methods: {
     toggle() {
       this.isOpen = !this.isOpen;
     }
-  }
+  },
 });
 </script>
 
 <template>
-  <div class="accordion-container">
+  <div
+    :id="containerId"
+    class="accordion-container"
+  >
     <div
       class="accordion-header"
       data-testid="accordion-header"
