@@ -54,6 +54,15 @@ export default class LabeledSelectPo extends ComponentPo {
   }
 
   /**
+   * As per `getOptions` but returns actual string values instead of elements
+   */
+  getOptionsAsStrings(): Cypress.Chainable<string[]> {
+    return this.getOptions().then((options) => {
+      return options.toArray().map((option) => option.textContent.trim());
+    });
+  }
+
+  /**
    * Check dropdown is open
    * @returns
    */
