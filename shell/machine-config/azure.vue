@@ -96,7 +96,7 @@ const storageTypes = [
 ];
 
 export default {
-  emits: ['expandAdvanced', 'error'],
+  emits: ['expandAdvanced', 'error', 'validationChanged'],
 
   components: {
     ArrayList,
@@ -129,7 +129,11 @@ export default {
       default: false
     },
     machinePools: {
-      type: Array,
+      type:     Array,
+      required: true,
+    },
+    poolId: {
+      type:     String,
       required: true,
     },
   },
@@ -218,12 +222,13 @@ export default {
       azureEnvironments,
       defaultConfig,
       storageTypes,
-      credential:         null,
-      locationOptions:    [],
-      loading:            false,
-      useAvailabilitySet: false,
-      vmSizes:            [],
-      valueCopy:          this.value,
+      credential:          null,
+      locationOptions:     [],
+      loading:             false,
+      useAvailabilitySet:  false,
+      vmSizes:             [],
+      valueCopy:           this.value,
+      managedDisksInvalid: false,
 
       loadedCredentialIdFor: null
     };
@@ -242,6 +247,17 @@ export default {
       if (neu && (!this.value.managedDisks || !this.value.enablePublicIpStandardSku || !this.value.staticPublicIp)) {
         this.$emit('expandAdvanced');
       }
+    },
+
+    'value.managedDisks'() {
+      this.validateManagedDisks();
+    },
+
+    machinePools: {
+      handler() {
+        this.validateManagedDisks();
+      },
+      deep: true
     }
   },
 
@@ -511,6 +527,27 @@ export default {
       // set will take precedent and the zone will not be saved.
         this.value.availabilitySet = null;
       }
+    },
+    validateManagedDisks() {
+      const pools = this.machinePools.filter((p) => !p.remove);
+
+      if (pools.length <= 1) {
+        this.managedDisksInvalid = false;
+        this.$emit('validationChanged', true);
+
+        return;
+      }
+
+      const baseVal = pools[0].config.managedDisks;
+
+      const mismatch = pools.some((pool) => {
+        const poolValue = pool.id === this.poolId ? this.value.managedDisks : pool.config.managedDisks;
+
+        return poolValue !== baseVal;
+      });
+
+      this.managedDisksInvalid = mismatch;
+      this.$emit('validationChanged', !mismatch);
     }
   },
 };
@@ -862,6 +899,11 @@ export default {
             v-if="value.availabilityZone && !value.managedDisks"
             color="error"
             :label="t('cluster.machineConfig.azure.availabilityZone.managedDisksWarning')"
+          />
+          <Banner
+            v-if="managedDisksInvalid"
+            color="error"
+            :label="t('cluster.machineConfig.azure.managedDisks.error')"
           />
         </div>
       </div>

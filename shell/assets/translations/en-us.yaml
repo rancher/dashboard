@@ -1877,6 +1877,7 @@ cluster:
         label: Location
       managedDisks:
         label: Use Managed Disks
+        error: Azure does not allow mixing managed and unmanaged disks. Make sure that all pools specify the same value.
       managedDisksSize:
         label: Managed Disk Size
       nsg:
