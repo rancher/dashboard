@@ -1,6 +1,6 @@
 <script setup>
 import { randomStr } from 'utils/string';
-import { onMounted, getCurrentInstance, ref } from 'vue';
+import { onMounted, getCurrentInstance, ref, nextTick } from 'vue';
 
 const root = getCurrentInstance();
 
@@ -40,13 +40,31 @@ const findAccordions = () => {
   const parent = root.parent || {};
 
   accordions.value = findAccordionChildren([], parent.vnode);
+  console.log('*** accordions found: ', accordions.value);
 };
 
-const scrollToAccordion = (accNode) => {
-  if (!accNode.el) {
+const openAccordion = (accNode) => {
+  const componentContext = accNode.component ? accNode.component.ctx : accNode?.ctx?.vnode?.component?.ctx;
+
+  if (componentContext.isOpen) {
     return;
   }
-  accNode.el.scrollIntoView(true);
+  componentContext.toggle();
+};
+
+const scrollToAccordion = (accNode, parentAccNode) => {
+  if (!accNode.el) {
+    return;// TODO nb is this ever true
+  }
+
+  if (parentAccNode) {
+    openAccordion(parentAccNode);
+  }
+
+  openAccordion(accNode);
+  nextTick(() => {
+    accNode.el.scrollIntoView(true);
+  });
 };
 
 // TODO nb need to run this after all other components have loaded, somehow
@@ -70,17 +88,15 @@ onMounted(() => {
       <li
         v-for="acc, i in accordions"
         :key="i"
-        @click="scrollToAccordion(acc.node)"
       >
-        {{ acc?.node?.el?.id }}
+        <a @click="scrollToAccordion(acc.node)"> {{ acc?.node?.el?.id }}</a>
         <template v-if="acc?.children?.length">
           <ul>
             <li
               v-for="childAcc, j in acc.children"
               :key="j"
-              @click="scrollToAccordion(acc.node)"
             >
-              {{ childAcc?.node?.el?.id }}
+              <a @click="scrollToAccordion(childAcc.node, acc.node)"> {{ childAcc?.node?.el?.id }}</a>
             </li>
           </ul>
         </template>

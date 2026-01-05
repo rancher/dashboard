@@ -458,7 +458,7 @@ export default defineComponent({
       </div>
       <Accordion
         v-if="showBasics"
-        :title="providerTabKey"
+        :title="providerTabKey || 'abc'"
         :open-initially="true"
         class="mb-20 accordion"
       >
