@@ -1,4 +1,6 @@
-import { IPlugin, ProductChild, ProductChildGroup, ProductMetadata, ProductChildMetadata, ProductChildPage, ProductSinglePage, ProductChildResource } from '@shell/core/types';
+import {
+  IPlugin, ProductChild, ProductChildGroup, ProductMetadata, ProductChildMetadata, ProductChildPage, ProductSinglePage, ProductChildResource
+} from '@shell/core/types';
 import { RouteRecordRaw, Router } from 'vue-router';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 
@@ -9,11 +11,11 @@ function routeForChild(parentName: string, pageChild: ProductChildPage) {
     if (name.startsWith('-')) {
       name = name.substring(1);
     }
-  
+
     return {
       name,
       path: pageChild.path,
-    }
+    };
   }
 
   return {
@@ -27,7 +29,7 @@ export class PluginProduct {
 
   private product?: ProductMetadata;
 
-  public newProduct: boolean = false;
+  public newProduct = false;
 
   private singlePage = false;
 
@@ -52,22 +54,22 @@ export class PluginProduct {
 
         this.singlePage = true;
 
-        //this.addDefaultRoute();
+        // this.addDefaultRoute();
         const r = {
-          name: `${ this.name }`,
-          path: `/${ this.name }`,
+          name:      `${ this.name }`,
+          path:      `/${ this.name }`,
           component: singlePageProduct.component,
-          meta: { product: this.name }, // Needed to ensure the correct product is loaded, since 'product' is not a route param
+          meta:      { product: this.name }, // Needed to ensure the correct product is loaded, since 'product' is not a route param
         };
 
-        plugin.addRoute('plain', r);        
+        plugin.addRoute('plain', r);
       }
 
       this.addRoutes(this.name, config);
     } else {
       throw new Error('Invalid product');
     }
-  };
+  }
 
   private addRoutes(parentName: string, item: ProductChild[]) {
     // Add routes for any items that need them
@@ -84,7 +86,7 @@ export class PluginProduct {
         const r = {
           ...routeForChild(parentName, pageChild),
           component: pageChild.component,
-          meta: { product: this.name },
+          meta:      { product: this.name },
           // params: { cluster: '_' } // Not sure about this
         };
 
@@ -99,7 +101,7 @@ export class PluginProduct {
               name,
               path,
               component: cr.component,
-              meta: { product: this.name },
+              meta:      { product: this.name },
             };
 
             this.plugin.addRoute(childRoute);
@@ -114,7 +116,9 @@ export class PluginProduct {
   }
 
   apply(plugin: IPlugin, store: any, router: Router, pluginRoutes: any): void {
-    const { basicType, configureType, labelGroup, setGroupDefaultType, virtualType, weightGroup, weightType, product } = plugin.DSL(store, this.name);
+    const {
+      basicType, configureType, labelGroup, setGroupDefaultType, virtualType, weightGroup, weightType, product
+    } = plugin.DSL(store, this.name);
 
     // If this is a new product, intialise it
     if (this.product) {
@@ -126,13 +130,12 @@ export class PluginProduct {
 
       if (defaultResource) {
         defaultRoute = {
-          name: `c-cluster-${ defaultResource }`,
+          name:   `c-cluster-${ defaultResource }`,
           params: {
             // product: this.name,
             cluster: '_',
           }
         };
-     
 
         // defaultRoute = {
         //   name: 'c-cluster-product-resource',
@@ -144,22 +147,20 @@ export class PluginProduct {
         // };
       } else {
         defaultRoute = {
-          name: `${ this.name }`,
-          params: {
-            cluster: '_',
-          }
+          name:   `${ this.name }`,
+          params: { cluster: '_' }
         };
       }
 
       product({
         ...this.product,
-        name: this.name,
-        icon: this.product.icon || 'extension',
-        inStore: 'management',
+        name:                this.name,
+        icon:                this.product.icon || 'extension',
+        inStore:             'management',
         showClusterSwitcher: false,
-        category: 'global',
-        version: 2,
-        to: defaultRoute
+        category:            'global',
+        version:             2,
+        to:                  defaultRoute
         // to: {
         //   name: this.name,
         //   params: {
@@ -178,7 +179,7 @@ export class PluginProduct {
 
         // Page with a component specified maps to a virtual type
         virtualType({
-          label: pageChild.label,
+          label:      pageChild.label,
           // labelKey:   'catalog.charts.header',
           namespaced: false,
           name:       `${ parentName }-${ pageChild.name }`,
@@ -192,7 +193,7 @@ export class PluginProduct {
       } else if ((item as any).type) {
         const typeItem = item as ProductChildResource;
         const itemOrder = typeItem.weight || order;
-      
+
         if (itemOrder) {
           weightType(typeItem.type, itemOrder, true);
         }
@@ -248,6 +249,7 @@ export class PluginProduct {
       } else if (item.type) {
         return item.type;
       }
+
       return '';
     }).filter((name: string) => !!name);
   }

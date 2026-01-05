@@ -1,24 +1,22 @@
 <script>
 export default {
-  name: 'EmptyProductPage',
-
-  layout: 'plain',  
-
+  name:   'EmptyProductPage',
+  layout: 'plain',
   data() {
     const err = this.$route.meta?.pageError;
 
     let msg;
 
     switch (err) {
-      case 'no-nav':
-        msg = [
-          'When a component is not provided for a product, the layout with side navigation is used',
-          'No child items were specified, so this "Default" empty view has been added',
-          'Please add child items to this product'
-        ];
-        break;
-      default:
-        msg = ['No component defined for this product'];
+    case 'no-nav':
+      msg = [
+        'When a component is not provided for a product, the layout with side navigation is used',
+        'No child items were specified, so this "Default" empty view has been added',
+        'Please add child items to this product'
+      ];
+      break;
+    default:
+      msg = ['No component defined for this product'];
     }
 
     return {
@@ -31,9 +29,17 @@ export default {
 
 <template>
   <div class="empty-product-page">
-    <img :src="img" alt="Extension Product Error" />
+    <img
+      :src="img"
+      alt="Extension Product Error"
+    >
     <div class="err-messages">
-      <p v-for="(m, index) in msg" :key="index">{{ m }}</p>
+      <p
+        v-for="(m, index) in msg"
+        :key="index"
+      >
+        {{ m }}
+      </p>
     </div>
   </div>
 </template>

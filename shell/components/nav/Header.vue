@@ -257,7 +257,7 @@ export default {
 
       const name = this.currentProduct.name;
 
-      return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));;
+      return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
     }
   },
 
