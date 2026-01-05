@@ -1,4 +1,7 @@
-import { useDefaultConfigTabProps, useDefaultYamlTabProps, useResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
+import { provide, inject } from 'vue';
+import {
+  useDefaultConfigTabProps, useDefaultYamlTabProps, useResourceDetailDrawer, useResourceDetailDrawerProvider, useIsInResourceDetailDrawer
+} from '@shell/components/Drawer/ResourceDetailDrawer/composables';
 import * as helpers from '@shell/components/Drawer/ResourceDetailDrawer/helpers';
 import * as vuex from 'vuex';
 import * as drawer from '@shell/composables/drawer';
@@ -7,6 +10,11 @@ jest.mock('@shell/components/Drawer/ResourceDetailDrawer/helpers');
 jest.mock('vuex');
 jest.mock('@shell/composables/drawer');
 jest.mock('@shell/components/Drawer/ResourceDetailDrawer/index.vue', () => ({ name: 'ResourceDetailDrawer' } as any));
+jest.mock('vue', () => ({
+  ...jest.requireActual('vue'),
+  provide: jest.fn(),
+  inject:  jest.fn()
+}));
 
 describe('composables: ResourceDetailDrawer', () => {
   const resource = { type: 'RESOURCE' };
@@ -54,6 +62,49 @@ describe('composables: ResourceDetailDrawer', () => {
       expect(hasCustomEditSpy).toHaveBeenCalledWith(resource.type);
       expect(hasCustomDetailSpy).toHaveBeenCalledWith(resource.type);
       expect(props).toBeUndefined();
+    });
+
+    describe('useResourceDetailDrawerProvider', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('should call provide with the correct key and value', () => {
+        useResourceDetailDrawerProvider();
+
+        expect(provide).toHaveBeenCalledWith('isInResourceDetailDrawerKey', true);
+      });
+    });
+
+    describe('useIsInResourceDetailDrawer', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('should call inject with the correct key and default value', () => {
+        (inject as jest.Mock).mockReturnValue(false);
+
+        const result = useIsInResourceDetailDrawer();
+
+        expect(inject).toHaveBeenCalledWith('isInResourceDetailDrawerKey', false);
+        expect(result).toBe(false);
+      });
+
+      it('should return true when inside a ResourceDetailDrawer', () => {
+        (inject as jest.Mock).mockReturnValue(true);
+
+        const result = useIsInResourceDetailDrawer();
+
+        expect(result).toBe(true);
+      });
+
+      it('should return false when not inside a ResourceDetailDrawer', () => {
+        (inject as jest.Mock).mockReturnValue(false);
+
+        const result = useIsInResourceDetailDrawer();
+
+        expect(result).toBe(false);
+      });
     });
 
     it('should return undefined if resource disableResourceDetailDrawerConfigTab is true', async() => {
