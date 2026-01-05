@@ -128,6 +128,10 @@ export default {
       type:    Boolean,
       default: false
     },
+    machinePools: {
+      type: Array,
+      required: true,
+    },
   },
 
   async fetch() {
@@ -418,6 +422,17 @@ export default {
       merge(this.value, this.defaultConfig);
 
       this.value.nsg = `rancher-managed-${ randomStr(8) }`;
+    }
+
+    /**
+     * Override the default managedDisks value to match the base pool.
+     * Azure does not allow mixing managed and unmanaged disks.
+     **/
+    if (
+      (this.mode === _EDIT || this.mode === _CREATE) &&
+      this.machinePools.length > 1
+    ) {
+      this.value.managedDisks = this.machinePools[0].config.managedDisks;
     }
   },
 
