@@ -1,11 +1,12 @@
 <script setup>
+import { randomStr } from 'utils/string';
 import { onMounted, getCurrentInstance } from 'vue';
 
 const root = getCurrentInstance();
 
 const isAccordionVNode = (vNode) => {
   // TODO nb better way of doing this that doesn't rely on a class
-  return (vNode?.props?.class || '').includes('accordion-header');
+  return (vNode?.el?.className || '').includes('accordion-container');
 };
 
 /**
@@ -13,9 +14,15 @@ const isAccordionVNode = (vNode) => {
  *
  */
 
-const findAccordionChildren = (accordions = [], node, parent) => {
+const findAccordionChildren = (accordions = { }, node) => {
+  let nextInput = accordions;
+
   if (isAccordionVNode(node)) {
-    accordions.push(node);
+    const id = node?.el?.id || randomStr();
+
+    // accordions.push(node);
+    accordions[id] = { self: node, children: {} };
+    nextInput = accordions[id].children;
   }
 
   if (!node) {
@@ -26,7 +33,7 @@ const findAccordionChildren = (accordions = [], node, parent) => {
 
   elChildren.map((c) => {
     if (c.__vnode) {
-      return findAccordionChildren(accordions, c.__vnode);
+      return findAccordionChildren(nextInput, c.__vnode );
     }
   });
 
@@ -35,7 +42,7 @@ const findAccordionChildren = (accordions = [], node, parent) => {
 
 const findAccordions = () => {
   const parent = root.parent || {};
-  const accordions = findAccordionChildren([], parent.vnode);
+  const accordions = findAccordionChildren({ }, parent.vnode);
 
   console.log('*** accordions found: ', accordions);
 };
