@@ -14,22 +14,21 @@ const isAccordionVNode = (vNode) => {
  *
  */
 
-const findAccordionChildren = (accordions = { }, node) => {
+const findAccordionChildren = (accordions = [], node) => {
   let nextInput = accordions;
 
   if (isAccordionVNode(node)) {
-    const id = node?.el?.id || randomStr();
+    const out = { self: node, children: [] };
 
-    // accordions.push(node);
-    accordions[id] = { self: node, children: {} };
-    nextInput = accordions[id].children;
+    accordions.push(out);
+    nextInput = out.children;
   }
 
   if (!node) {
     return;
   }
 
-  const elChildren = node.el ? node?.el?.children ? Array.from(node?.el?.children) : [] : Array.from(node.children);
+  const elChildren = node?.component?.subTree?.children || node?.el?.children ? Array.from(node?.el?.children) : [];
 
   elChildren.map((c) => {
     if (c.__vnode) {
@@ -42,7 +41,7 @@ const findAccordionChildren = (accordions = { }, node) => {
 
 const findAccordions = () => {
   const parent = root.parent || {};
-  const accordions = findAccordionChildren({ }, parent.vnode);
+  const accordions = findAccordionChildren([], parent.vnode);
 
   console.log('*** accordions found: ', accordions);
 };
