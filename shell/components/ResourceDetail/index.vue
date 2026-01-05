@@ -77,16 +77,6 @@ if (isView.value) {
 </script>
 
 <template>
-  mode: {{ mode }}
-  <br>
-  isView: {{ isView }}
-  <br>
-  iseNewDetailPageEnabled: {{ iseNewDetailPageEnabled }}
-  <br>
-  page: {{ page }}
-  <br>
-  useLatest: {{ useLatest }}
-  <br>
   <Suspense v-if="useLatest">
     <template #default>
       <component :is="page" />
