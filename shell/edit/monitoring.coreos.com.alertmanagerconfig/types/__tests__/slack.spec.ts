@@ -18,6 +18,7 @@ describe('component: Slack.vue', () => {
     });
 
     const headings = wrapper.findAll('h3');
+
     expect(headings[0].text()).toBe('Target');
 
     expect(wrapper.findComponent({ name: 'SimpleSecretSelector' }).exists()).toBe(true);
@@ -41,6 +42,7 @@ describe('component: Slack.vue', () => {
     });
 
     const secretSelector = wrapper.findComponent({ name: 'SimpleSecretSelector' });
+
     await secretSelector.vm.$emit('updateSecretName', 'my-secret');
     await secretSelector.vm.$emit('updateSecretKey', 'my-key');
 
@@ -54,6 +56,7 @@ describe('component: Slack.vue', () => {
       global: { mocks: { $fetchState: { pending: false, error: null } } }
     });
     const channelInput = wrapper.findAllComponents(LabeledInput)[0];
+
     await channelInput.vm.$emit('update:value', '#my-channel');
     expect(wrapper.props('value').channel).toBe('#my-channel');
   });
@@ -64,6 +67,7 @@ describe('component: Slack.vue', () => {
       global: { mocks: { $fetchState: { pending: false, error: null } } }
     });
     const proxyInput = wrapper.findAllComponents(LabeledInput)[1];
+
     await proxyInput.vm.$emit('update:value', 'http://my-proxy.com');
     expect(wrapper.props('value').httpConfig.proxyURL).toBe('http://my-proxy.com');
   });
@@ -74,6 +78,7 @@ describe('component: Slack.vue', () => {
       global: { mocks: { $fetchState: { pending: false, error: null } } }
     });
     const checkbox = wrapper.findComponent(Checkbox);
+
     await checkbox.vm.$emit('update:value', true);
     expect(wrapper.props('value').sendResolved).toBe(true);
   });
@@ -86,6 +91,7 @@ describe('component: Slack.vue', () => {
 
     expect(wrapper.findComponent({ name: 'SimpleSecretSelector' }).props('disabled')).toBe(true);
     const inputs = wrapper.findAllComponents(LabeledInput);
+
     expect(inputs[0].props('mode')).toBe('view');
     expect(inputs[1].props('mode')).toBe('view');
     expect(wrapper.findComponent(Checkbox).props('mode')).toBe('view');
@@ -96,6 +102,7 @@ describe('component: Slack.vue', () => {
       props:  { ...defaultProps, namespace: '' },
       global: { mocks: { $fetchState: { pending: false, error: null } } }
     });
+
     expect(wrapper.findComponent({ name: 'Banner' }).exists()).toBe(true);
   });
 });

@@ -92,7 +92,7 @@ describe('component: Opsgenie.vue', () => {
     expect(responders[0].target).toBe('username');
     expect(responders[0].value).toBe('test-user');
     // Check that the watcher has updated the value prop correctly
-    expect(wrapper.props('value').responders[0]).toEqual({ type: 'user', username: 'test-user' });
+    expect(wrapper.props('value').responders[0]).toStrictEqual({ type: 'user', username: 'test-user' });
   });
 
   it('should remove a responder', async() => {
@@ -110,8 +110,6 @@ describe('component: Opsgenie.vue', () => {
       },
       global: { mocks: { $fetchState: { pending: false, error: null } } }
     });
-
-    const arrayList = wrapper.findComponent({ name: 'ArrayList' });
 
     // Simulate the internal workings of ArrayList for removing an item
     wrapper.vm.responders.splice(0, 1);
