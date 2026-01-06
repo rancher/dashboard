@@ -3,6 +3,7 @@ import Favorite from '@shell/components/nav/Favorite';
 import { TYPE_MODES } from '@shell/store/type-map';
 
 import TabTitle from '@shell/components/TabTitle';
+import { filterLocationValidParams } from '@shell/utils/router';
 
 const showFavoritesFor = [TYPE_MODES.FAVORITE, TYPE_MODES.USED];
 
@@ -96,38 +97,12 @@ export default {
     },
 
     typeRoute() {
-      const route = this.findRoute(this.type.route.name);
-
-      if (!route) {
-        return this.type.route;
-      }
-
-      const specifiedParams = this.type.route.params;
-      const safeParams = {};
-
-      Object.entries(specifiedParams).forEach(([key, value]) => {
-        const pathParam = `:${ key }`;
-
-        if (route.path.includes(pathParam)) {
-          safeParams[key] = value;
-        }
-      });
-
-      return {
-        ...this.type.route,
-        params: safeParams
-      };
+      return filterLocationValidParams(this.$router, this.type.route);
     }
 
   },
 
   methods: {
-    findRoute(routeName) {
-      const routes = this.$router.getRoutes();
-
-      return routes.find((r) => r.name === routeName);
-    },
-
     setNear(val) {
       this.near = val;
     },

@@ -1,5 +1,6 @@
 <script>
 import Type from '@shell/components/nav/Type';
+import { filterLocationValidParams } from '@shell/utils/router';
 export default {
   name: 'Group',
 
@@ -196,7 +197,8 @@ export default {
           const matchesNavLevel = navLevels.filter((param) => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
           const withoutHash = this.$route.hash ? this.$route.fullPath.slice(0, this.$route.fullPath.indexOf(this.$route.hash)) : this.$route.fullPath;
           const withoutQuery = withoutHash.split('?')[0];
-          const itemFullPath = this.$router.resolve(item.route).fullPath;
+          const validItemRoute = filterLocationValidParams(this.$router, item.route);
+          const itemFullPath = this.$router.resolve(validItemRoute).fullPath;
 
           if (matchesNavLevel || itemFullPath === withoutQuery) {
             return true;
