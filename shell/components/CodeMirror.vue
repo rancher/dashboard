@@ -219,6 +219,9 @@ export default {
     },
 
     onInput(newCode) {
+      if (typeof newCode === 'string' && newCode.trim() === '') {
+        newCode = '';
+      }
       this.$emit('onInput', newCode);
     },
 
