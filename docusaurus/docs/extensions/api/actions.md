@@ -24,10 +24,10 @@ _Arguments_
 
 `where` string parameter admissable values for this method:
 
-| Key | Type | Description |
-|---|---|---|
-|`ActionLocation.HEADER`| String | Location for an action on the Header of Rancher Dashboard |
-|`ActionLocation.TABLE`| String | Location for an action on a List View Table of Rancher Dashboard |
+| Key | Type | Rancher Version | Description |
+|---|---|---|---|
+|`ActionLocation.HEADER`| String | v2.7.2 | Location for an action on the Header of Rancher Dashboard |
+|`ActionLocation.TABLE`| String | v2.7.2 | Location for an action on a List View Table of Rancher Dashboard |
 
 <br/>
 
