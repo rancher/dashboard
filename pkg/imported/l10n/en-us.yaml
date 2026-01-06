@@ -5,7 +5,7 @@ imported:
   agentEnv:
     header: Agent Environment Variables
   basics:
-    versionMismatch: "You have upgraded the cluster manually. Managing the cluster version via Rancher and external means at the same time is not supported and may cause unexpected behavior and failures. <br>Please consider disabling the version management feature if the cluster has been upgraded externally."
+    versionMismatch: "There is a mismatch between the expected and the current versions of the cluster. This usually happens if the imported cluster was upgraded outside of this Rancher instance. Managing the cluster version via Rancher and external means at the same time is not supported and may cause unexpected behavior and failures. <br>Please consider disabling the version management feature if the cluster has been upgraded externally."
     versionManagement:
       title: K8s version management
       globalEnabled: Global default (enabled)
