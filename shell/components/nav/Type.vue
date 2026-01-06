@@ -62,7 +62,7 @@ export default {
     },
 
     isActive() {
-      const typeFullPath = this.$router.resolve(this.type.route)?.fullPath.toLowerCase();
+      const typeFullPath = this.$router.resolve(this.typeRoute)?.fullPath.toLowerCase();
       const pageFullPath = this.$route.fullPath?.toLowerCase().split('#')[0]; // Ignore the shebang when comparing routes
       const routeMetaNav = this.$route.meta?.nav;
 
@@ -93,11 +93,41 @@ export default {
       }
 
       return typeFullPath === pageFullPath;
+    },
+
+    typeRoute() {
+      const route = this.findRoute(this.type.route.name);
+
+      if (!route) {
+        return this.type.route;
+      }
+
+      const specifiedParams = this.type.route.params;
+      const safeParams = {};
+
+      Object.entries(specifiedParams).forEach(([key, value]) => {
+        const pathParam = `:${ key }`;
+
+        if (route.path.includes(pathParam)) {
+          safeParams[key] = value;
+        }
+      });
+
+      return {
+        ...this.type.route,
+        params: safeParams
+      };
     }
 
   },
 
   methods: {
+    findRoute(routeName) {
+      const routes = this.$router.getRoutes();
+
+      return routes.find((r) => r.name === routeName);
+    },
+
     setNear(val) {
       this.near = val;
     },
@@ -122,7 +152,7 @@ export default {
     :key="type.name"
     v-slot="{ href, navigate,isExactActive }"
     custom
-    :to="type.route"
+    :to="typeRoute"
   >
     <li
       class="child nav-type"

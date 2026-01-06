@@ -595,6 +595,51 @@ export const getters = {
     };
   },
 
+  getNameToRoute(state, getters, rootState, rootGetters) {
+    return function getNameToRoute() {
+      const routes = rootState.$router.getRoutes();
+      const result = {};
+
+      routes.map((r) => {
+        result[r.name] = r;
+      });
+
+      return result;
+    };
+  },
+
+  getRoute(state, getters, rootState, rootGetters) {
+    return function getRoute(routeName) {
+      return getters.getNameToRoute()[routeName];
+    };
+  },
+
+  makeRouteSafe(state, getters, rootState, rootGetters) {
+    return function getSafeRoute(dynamicRoute) {
+      const route = getters.getRoute(dynamicRoute);
+
+      if (!route) {
+        return dynamicRoute;
+      }
+
+      const specifiedParams = dynamicRoute.params;
+      const safeParams = {};
+
+      Object.entries(specifiedParams).forEach(([key, value]) => {
+        const pathParam = `:${ key }`;
+
+        if (route.path.includes(pathParam)) {
+          safeParams[key] = value;
+        }
+      });
+
+      return {
+        ...dynamicRoute,
+        params: safeParams
+      };
+    };
+  },
+
   getTree(state, getters, rootState, rootGetters) {
     // Name the function so it's easily identifiable when performance tracing
     return function getTree(productId, mode, allTypes, clusterId, namespaceMode, currentType, search) {
@@ -695,7 +740,7 @@ export const getters = {
             }
           };
 
-          typeObj.route = route;
+          typeObj.route = getters.makeRouteSafe(route);
         }
 
         // Cluster ID and Product should always be set
@@ -712,7 +757,7 @@ export const getters = {
           exact:        typeObj.exact || false,
           'exact-path': typeObj['exact-path'] || false,
           namespaced,
-          route,
+          route:        getters.makeRouteSafe(route),
           name:         typeObj.name,
           weight:       typeObj.weight || getters.typeWeightFor(typeObj.schema?.id || label, isBasic),
           overview:     !!typeObj.overview,
