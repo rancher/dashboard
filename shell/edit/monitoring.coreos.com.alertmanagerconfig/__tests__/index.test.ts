@@ -54,7 +54,7 @@ describe('monitoring.coreos.com.alertmanagerconfig/index.vue', () => {
     expect(wrapper.exists()).toBe(true);
 
     // Assert that applyDefaults is called
-    expect(valueMock.applyDefaults).toHaveBeenCalled();
+    expect(valueMock.applyDefaults).toHaveBeenCalledTimes(1);
 
     // Assert receiverOptions are correctly populated from value.spec.receivers
     expect(wrapper.vm.receiverOptions).toStrictEqual(['receiver1', 'receiver2']);

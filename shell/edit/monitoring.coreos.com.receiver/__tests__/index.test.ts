@@ -84,7 +84,7 @@ describe('shell/edit/monitoring.coreos.com.receiver/index.vue', () => {
     const buttonDone = jest.fn();
 
     wrapper.vm.saveOverride(buttonDone);
-    expect(spy).toHaveBeenCalled();
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 
   it('should call saveOverride which populates errors on yaml error', async() => {
