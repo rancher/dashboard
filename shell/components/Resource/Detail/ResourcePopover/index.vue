@@ -32,7 +32,7 @@ const fetch = useFetch(async() => {
 });
 
 const stateBackground = computed(() => {
-  return fetch.value.data?.stateBackground?.replace('bg-', '') || 'unknown';
+  return fetch.value.data?.stateSimpleColor || 'unknown';
 });
 
 const resourceTypeLabel = computed(() => {
