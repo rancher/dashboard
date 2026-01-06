@@ -321,16 +321,13 @@ export default {
 
       this.selectedCard = selected;
 
-      this.$shell.slideInPanel({
-        component:      ResourceDetails,
+      this.$shell.slideIn.open(ResourceDetails, {
         componentProps: {
+          showHeader: false,
+          width:      window.innerWidth / 3 > 530 ? `${ window.innerWidth / 3 }px` : '530px',
           value,
           statePanel,
-          workspace,
-          showHeader:          false,
-          width:               window.innerWidth / 3 > 530 ? `${ window.innerWidth / 3 }px` : '530px',
-          triggerFocusTrap:    true,
-          returnFocusSelector: `[data-testid="resource-card-${ value.id }"]`
+          workspace
         }
       });
     },

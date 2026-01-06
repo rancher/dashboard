@@ -1,7 +1,13 @@
-import { Verbs } from '@shell/types/api';
-import { UserPreferences } from '@shell/types/userPreferences';
+// External version of globals.d.ts for @rancher/cypress package
+// Dependencies on @shell/types removed for standalone use
 
-type Matcher = '$' | '^' | '~' | '*' | '';
+type Verbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+
+export interface UserPreferences {
+  [key: string]: any;
+}
+
+export type Matcher = '$' | '^' | '~' | '*' | '';
 
 export type CreateUserParams = {
   username: string,
@@ -152,7 +158,7 @@ declare global {
       }): Chainable;
 
       tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string)
-      tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration?: number)
+      tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}, iteration?: number)
 
       setUserPreference(prefs: any);
 
@@ -214,6 +220,11 @@ declare global {
       shouldHaveCssVar(name: string, value: string);
 
       /**
+       * realHover event from cypress-real-events
+       */
+      realHover(): Chainable<Element>;
+
+      /**
        * Fetch the steve `revision` / timestamp of request
        */
       fetchRevision(): Chainable<string>;
@@ -233,6 +244,14 @@ declare global {
        */
       checkElementAccessibility(selector: any, description?: string);
 
+      /**
+       * Custom command to delete Cypress.config('downloadsFolder') folder
+       * @example
+       *  cy.deleteDownloadsFolder()
+       *
+       *  copied from node_modules/cypress-delete-downloads-folder/src/index.d.ts
+       */
+      deleteDownloadsFolder(): Chainable<null>
     }
   }
 }

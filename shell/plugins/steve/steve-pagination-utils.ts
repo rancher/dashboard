@@ -37,20 +37,35 @@ interface Namespace extends ModelNamespace {
   }
 }
 
+interface NamespaceProjectFilterResult {
+  /**
+   * True if the ns should be filtered IN. False if filtered OUT.
+   */
+  [nsName: string]: boolean;
+}
+
+/**
+ * Helper class, contains namespace / project filter specific functions
+ */
 class NamespaceProjectFilters {
   /**
    * User needs all resources.... except if there's some settings which should remove resources in specific circumstances
    */
   protected handlePrefAndSettingFilter(args: {
     allNamespaces: Namespace[],
+    /**
+     * Reserved / Obscure namespaces are ones used to support clusters and users. By default these are hidden
+     */
     showReservedRancherNamespaces: boolean,
+    /**
+     * Has product config disabled system projects and namespaces
+     */
     productHidesSystemNamespaces: boolean,
-  }): PaginationParamFilter[] {
+  }): NamespaceProjectFilterResult {
     const { allNamespaces, showReservedRancherNamespaces, productHidesSystemNamespaces } = args;
 
-    // These are AND'd together
     // Not ns 1 AND ns 2
-    const filterNamespaces = allNamespaces.reduce((res, ns) => {
+    return allNamespaces.reduce((res, ns) => {
       // Links to ns.isObscure and covers things like `c-`, `user-`, etc (see OBSCURE_NAMESPACE_PREFIX)
       const hideObscure = showReservedRancherNamespaces ? false : ns.isObscure;
 
@@ -58,23 +73,11 @@ class NamespaceProjectFilters {
       const hideSystem = productHidesSystemNamespaces ? ns.isSystem : false;
 
       if (hideObscure || hideSystem) {
-        res.push(ns.name);
+        res[ns.name] = false;
       }
 
       return res;
-    }, [] as String[]);
-
-    if (filterNamespaces.length) {
-      return [new PaginationParamFilter({
-        fields: [{
-          value:    filterNamespaces.join(','),
-          equality: PaginationFilterEquality.NOT_IN,
-          field:    'metadata.namespace',
-        }],
-      })];
-    }
-
-    return [];
+    }, {} as NamespaceProjectFilterResult);
   }
 
   /**
@@ -88,31 +91,88 @@ class NamespaceProjectFilters {
     allNamespaces: Namespace[],
     isAllSystem: boolean,
     isAllUser: boolean,
-  }) {
-    const { allNamespaces, isAllSystem } = args;
+  }): NamespaceProjectFilterResult {
+    const { allNamespaces, isAllSystem, isAllUser } = args;
     const allSystem = allNamespaces.filter((ns) => ns.isSystem);
 
-    // > Neither of these use projectsOrNamespaces to avoid scenarios where the local cluster provides a namespace which has
-    // > a matching project... which could lead to results in the user project resource being included in the system filter
-    if (isAllSystem) {
-      // return resources in system ns 1 OR in system ns 2 ...
-      // &filter=metadata.namespace=system ns 1,metadata.namespace=system ns 2
-      return [PaginationParamFilter.createMultipleFields(
-        allSystem.map(
-          (ns) => new PaginationFilterField({ field: 'metadata.namespace', value: ns.name })
-        )
-      )];
-    } else { // if isAllUser
-      // return resources not in system ns 1 AND not in system ns 2 ...
-      // &filter=metadata.namespace!=system ns 1&filter=metadata.namespace!=system ns 2
-      return allSystem.map((ns) => PaginationParamFilter.createSingleField({
-        field: 'metadata.namespace', value: ns.name, equals: false
+    return allSystem.reduce((res, ns) => {
+      if (isAllSystem) {
+        // We want to filter IN system namespaces
+        res[ns.name] = true;
+      }
+
+      if (isAllUser) {
+        // We want to filter OUT system namespaces
+        res[ns.name] = false;
+      }
+
+      return res;
+    }, {} as NamespaceProjectFilterResult);
+  }
+
+  /**
+   * Combine result `b` into `a` and return result
+   */
+  protected combineNsProjectFilterResults(a: NamespaceProjectFilterResult, b: NamespaceProjectFilterResult): NamespaceProjectFilterResult {
+    // Start with `a`
+    const res = { ...a };
+
+    // Merge entries from `b` into `a` if they don't exist in `a`. This maintains a hierarchy
+    // 1. if something has been excluded in `a` ignore requests to include given `b`
+    // 2. if something has been included in `a` ignore requests to exclude given `b`
+    Object.entries(b).forEach(([ns, include]) => {
+      if (res[ns] === undefined) {
+        res[ns] = include;
+      }
+    });
+
+    return res;
+  }
+
+  /**
+   * Convert @NamespaceProjectFilterResult into @PaginationParamFilter
+   */
+  protected createFiltersFromNamespaceProjectFilterResult(filterResult: NamespaceProjectFilterResult): PaginationParamFilter[] {
+    const inList: string[] = [];
+    const outList: string[] = [];
+
+    Object.entries(filterResult).forEach(([ns, include]) => {
+      if (include) {
+        inList.push(ns);
+      } else {
+        outList.push(ns);
+      }
+    });
+
+    const res: PaginationParamFilter[] = [];
+
+    // There's no point having both IN and OUT lists together, so prefer the IN list
+    if (inList.length) {
+      res.push(new PaginationParamFilter({
+        fields: [{
+          value:    inList.join(','),
+          equality: PaginationFilterEquality.IN,
+          field:    'metadata.namespace',
+        }],
+      }));
+    } else if (outList.length) {
+      res.push(new PaginationParamFilter({
+        fields: [{
+          value:    outList.join(','),
+          equality: PaginationFilterEquality.NOT_IN,
+          field:    'metadata.namespace',
+        }],
       }));
     }
+
+    return res;
   }
 
   /**
    * User needs resources in a set of projects or namespaces
+   *
+   * Mainly deals with the projectornamespaces filter, also ensures namespace in local cluster matching target project's aren't included
+   *
    */
   protected handleSelectionFilter(neu: string[], isLocalCluster: boolean) {
     // User has one or more projects or namespaces. We can pass this straight through to projectsornamespaces
@@ -124,12 +184,12 @@ class NamespaceProjectFilters {
     ];
 
     if (isLocalCluster) {
-      // > As per `handleSystemOrUserFilter` above, we need to be careful of the local cluster where there's namespaces related to projects with the same id
-      // > In this case
+      // We need to be careful of the local cluster where there's namespaces related to projects with the same id
+      // In this case
       // - We're including resources in the project and it's related namespace (via projectsornamespaces)
       // - We're also then excluding resources in the related namespace (via below `filter`)
 
-      // Exclude resources NOT in projects namespace 1 AND not in projects namespace 2
+      // Exclude resources NOT in project's backing namespace 1 AND not in project's backing namespace 2
       // &filter=metadata.namespace!=pn1&filter=metadata.namespace!=pn2
       return {
         projectsOrNamespaces,
@@ -352,24 +412,29 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     let projectsOrNamespaces: PaginationParamProjectOrNamespace[] = [];
     // used to return resources in / not in namespaces
     // &filter=metadata.namespace=abc
-    let filters: PaginationParamFilter[] = [];
+    const filters: PaginationParamFilter[] = [];
+    let nsProjectFilterResults = {};
 
     if (!showReservedRancherNamespaces || productHidesSystemNamespaces) {
-      // We need to hide reserved namespaces ('c-', 'user-', etc) OR system namespaces
-      filters = this.handlePrefAndSettingFilter({
+      // We need to hide reserved namespaces ('c-', 'user-', etc) OR system namespaces (given product may hide them)
+      nsProjectFilterResults = this.combineNsProjectFilterResults(nsProjectFilterResults, this.handlePrefAndSettingFilter({
         allNamespaces, showReservedRancherNamespaces, productHidesSystemNamespaces
-      });
+      }));
     }
 
     const isAllSystem = selection[0] === NAMESPACE_FILTER_ALL_SYSTEM;
     const isAllUser = selection[0] === NAMESPACE_FILTER_ALL_USER;
 
     if (selection.length === 1 && (isAllSystem || isAllUser)) {
-      // Filter by resources either in or not in system namespaces
-      filters.push(...this.handleSystemOrUserFilter({
+      // Filter by resources either in or not in system namespaces (given user selection)
+      nsProjectFilterResults = this.combineNsProjectFilterResults(nsProjectFilterResults, this.handleSystemOrUserFilter({
         allNamespaces, isAllSystem, isAllUser
       }));
+
+      filters.push(...this.createFiltersFromNamespaceProjectFilterResult(nsProjectFilterResults));
     } else {
+      filters.push(...this.createFiltersFromNamespaceProjectFilterResult(nsProjectFilterResults));
+
       // User has one or more projects or namespaces
       const res = this.handleSelectionFilter(selection, isLocalCluster);
 

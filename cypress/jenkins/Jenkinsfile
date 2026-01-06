@@ -29,7 +29,9 @@ node {
                         string(credentialsId: 'AZURE_CLIENT_ID', variable: 'AZURE_CLIENT_ID'),
                         string(credentialsId: 'AZURE_CLIENT_SECRET', variable: 'AZURE_CLIENT_SECRET'),
                         string(credentialsId: 'GKE_SERVICE_ACCOUNT', variable: 'GKE_SERVICE_ACCOUNT'),
-                        string(credentialsId: 'PERCY_TOKEN', variable: 'PERCY_TOKEN')
+                        string(credentialsId: 'PERCY_TOKEN', variable: 'PERCY_TOKEN'),
+                        string(credentialsId: 'UI_SLACK_BOT_TOKEN', variable: 'UI_SLACK_BOT_TOKEN'),
+                        string(credentialsId: 'UI_SLACK_CHANNEL', variable: 'UI_SLACK_CHANNEL')
                         ]) {
         withEnv(paramsMap) {
             stage('Checkout') {
@@ -117,6 +119,18 @@ node {
                     echo "Error: " + err
                     currentBuild.result = 'FAILURE'
                 }
+            }
+            
+            // Send Slack notification on failure or unstable builds
+            if (currentBuild.result == 'FAILURE' || currentBuild.result == 'UNSTABLE') {
+                if ("${env.SLACK_NOTIFICATION}".toLowerCase() != "false") {
+                    echo "Sending Slack notification for ${currentBuild.result} build"
+                    sh "cypress/jenkins/slack-notification.sh ${currentBuild.result}"
+                } else {
+                    echo "Slack notification disabled (see jenkins-job-builder/qa-ui-tests.yml)"
+                }
+            } else {
+                echo "Build successful, no Slack notification needed"
             }
         }
       }

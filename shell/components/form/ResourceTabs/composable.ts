@@ -39,10 +39,10 @@ export const useTabCountWatcher = () => {
 
 export const useTabCountUpdater = () => {
   const tabKey = randomStr();
-  const updateCount = inject<UpdateCountFn>(UPDATE_COUNT_PROVIDER_KEY);
+  const updateCount = inject<UpdateCountFn>(UPDATE_COUNT_PROVIDER_KEY, () => { });
 
   const updateTabCount = (count: number | undefined) => {
-    updateCount?.(tabKey, count);
+    updateCount(tabKey, count);
   };
 
   const clearTabCount = () => updateTabCount(undefined);

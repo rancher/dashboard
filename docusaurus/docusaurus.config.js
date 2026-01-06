@@ -43,6 +43,53 @@ const config = {
   ],
 
   plugins: [
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        // Set to true to hide the source path information entirely.
+        disableSources: true,
+
+        // This removes the prefix from the title of a generated page
+        // Ex: "Interface: ModalApi" vs "ModalApi"
+        textContentMappings: { 'title.memberPage': '{name}' },
+
+        // show params as code blocks
+        useCodeBlocks: true,
+
+        // The entry point for TypeDoc to start scanning for files.
+        // The path is relative to the `docusaurus` directory.
+        // entryPoints: ['../shell/apis/shell/*'],
+        entryPoints: ['../shell/apis/intf/shell.ts'],
+
+        // The tsconfig file for TypeDoc to use.
+        // This is CRITICAL to point to our special, isolated config
+        // to avoid the thousands of compilation errors from the main project.
+        tsconfig: 'tsconfig-typedoc-integration.json',
+
+        // The output directory for the generated markdown files.
+        // We are targeting the specific versioned folder for the "next" version
+        // and placing it directly into the "advanced" subfolder.
+        out: 'docs/extensions/shell-api',
+
+        // disables REAME as default entry point
+        readme: 'none',
+
+        // prevents deletion of files that are in "out" directory
+        cleanOutputDir: false,
+
+        // allows auto-generation of the sidebar for the auto-generated items
+        sidebar: { autoConfiguration: true },
+
+        // since we can't prevent the generation of a "bad" index file, we rename it to something harmless
+        entryFileName: '_api-index.md',
+
+        // A unique ID for this plugin instance. Needed so that it generates all the files successfully (including sidebar entries)
+        id: 'api-docs',
+
+        // exclude all code comments marked as @internal
+        excludeInternal: true
+      },
+    ],
     [require.resolve('docusaurus-lunr-search'), { excludeRoutes: ['internal/*', 'internal/**/*', '/internal/*', '/internal/**/*', 'blog/*', 'blog/**/*', '/blog/*', '/blog/**/*'] }
     ],
     [

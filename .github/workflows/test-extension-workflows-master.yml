@@ -73,22 +73,6 @@ jobs:
       is_test:  'true'
       test_ext_repo: 'ui-plugin-examples'
       test_ext_branch:  'main'
-  
-  test-create-pr-build-extension-charts-master:
-    needs: retrieve-tags-master
-    uses: rancher/dashboard/.github/workflows/create-pr-build-extension-charts.yml@master
-    permissions:
-      actions: write
-      contents: write
-      deployments: write
-      pages: write
-      pull-requests: write
-    with:
-      target_branch: 'gh-pages'
-      tagged_release:  ${{ needs.retrieve-tags-master.outputs.EXTENSION_TAG }}
-      is_test:  'true'
-      test_ext_repo: 'ui-plugin-examples'
-      test_ext_branch:  'main'
 
   test-build-extension-catalog-master:
     needs: retrieve-tags-master
@@ -126,7 +110,7 @@ jobs:
   slack-message:
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    needs: [creators-shipped-worflows-checks, test-extensions-creators-and-update-paths, retrieve-tags-master, test-build-extension-charts-master, test-create-pr-build-extension-charts-master, test-build-extension-catalog-master, test-release-shell-pkg-master, test-release-creators-pkg-master]
+    needs: [creators-shipped-worflows-checks, test-extensions-creators-and-update-paths, retrieve-tags-master, test-build-extension-charts-master, test-build-extension-catalog-master, test-release-shell-pkg-master, test-release-creators-pkg-master]
     steps: 
       - name: Slack message for workflow
         if: always()
@@ -134,8 +118,8 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL_EXT_WFS }}
         run: |
-          OUTPUT_ARRAY=("${{ needs.creators-shipped-worflows-checks.result }}" "${{ needs.test-extensions-creators-and-update-paths.outputs.test-extensions-creators-and-update-paths-job-status }}" "${{ needs.retrieve-tags-master.outputs.tags-job-status }}" "${{ needs.test-build-extension-charts-master.outputs.build-job-status }}" "${{ needs.test-create-pr-build-extension-charts-master.outputs.release-job-status }}" "${{ needs.test-build-extension-catalog-master.outputs.build-extension-catalog-job-status }}" "${{ needs.test-release-shell-pkg-master.outputs.build-release-shell-creators-status }}" "${{ needs.test-release-creators-pkg-master.outputs.build-release-shell-creators-status }}")
-          JOB_NAME_ARRAY=("creators-shipped-worflows-checks" "test-extensions-creators-and-update-paths" "retrieve-tags-master" "test-build-extension-charts-master" "test-create-pr-build-extension-charts-master" "test-build-extension-catalog-master" "test-release-shell-pkg-master" "test-release-creators-pkg-master")
+          OUTPUT_ARRAY=("${{ needs.creators-shipped-worflows-checks.result }}" "${{ needs.test-extensions-creators-and-update-paths.outputs.test-extensions-creators-and-update-paths-job-status }}" "${{ needs.retrieve-tags-master.outputs.tags-job-status }}" "${{ needs.test-build-extension-charts-master.outputs.build-job-status }}" "${{ needs.test-build-extension-catalog-master.outputs.build-extension-catalog-job-status }}" "${{ needs.test-release-shell-pkg-master.outputs.build-release-shell-creators-status }}" "${{ needs.test-release-creators-pkg-master.outputs.build-release-shell-creators-status }}")
+          JOB_NAME_ARRAY=("creators-shipped-worflows-checks" "test-extensions-creators-and-update-paths" "retrieve-tags-master" "test-build-extension-charts-master" "test-build-extension-catalog-master" "test-release-shell-pkg-master" "test-release-creators-pkg-master")
 
           if [[ ${OUTPUT_ARRAY[@]} =~ "failure" ]]; then
             MSG_PREFIX="\nWorkflows testing for extensions failed! ❌"

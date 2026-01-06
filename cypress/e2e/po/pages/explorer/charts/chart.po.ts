@@ -25,6 +25,13 @@ export class ChartPage extends PagePo {
     const chartsPage = new ChartsPage(clusterId);
 
     ChartsPage.navTo();
+    chartsPage.chartsSearchFilterInput().type(chartName);
+    // Wait for the URL to update and then assert the 'q' parameter's value.
+    cy.location().should((loc) => {
+      const params = new URLSearchParams(loc.search);
+
+      expect(params.get('q')).to.eq(chartName);
+    });
     chartsPage.clickChart(chartName);
   }
 

@@ -45,11 +45,11 @@ export default {
     },
 
     showLocale() {
-      return (this.availableLocales && Object.keys(this.availableLocales).length > 1) || this.dev;
+      return (this.availableLocales && Object.keys(this.availableLocales).length > 1) || this.showNone;
     },
 
     showNone() {
-      return !!process.env.dev && this.dev;
+      return !!process.env.dev;
     },
   },
 

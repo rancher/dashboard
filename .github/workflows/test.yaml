@@ -48,7 +48,7 @@ jobs:
       - name: Build e2e
         run: yarn e2e:build
       - name: Upload e2e build
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ env.E2E_BUILD_DIST_NAME }}
           path: ${{ env.E2E_BUILD_DIST_DIR }}/
@@ -56,7 +56,7 @@ jobs:
           retention-days: 10
           compression-level: 9
       - name: Upload e2e build ember
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
           path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}/
@@ -111,12 +111,12 @@ jobs:
       #     google-chrome --version
 
       - name: Download e2e build
-        uses:  actions/download-artifact@v6
+        uses:  actions/download-artifact@v7
         with:
          name: ${{ env.E2E_BUILD_DIST_NAME }}
          path: ${{ env.E2E_BUILD_DIST_DIR }}
       - name: Download e2e build ember
-        uses:  actions/download-artifact@v6
+        uses:  actions/download-artifact@v7
         with:
          name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
@@ -154,7 +154,7 @@ jobs:
           cp browser-logs/out.html artifacts/browser-logs.html
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: ${{ failure() }}
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-artifacts-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
@@ -175,12 +175,12 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Download e2e build
-        uses:  actions/download-artifact@v6
+        uses:  actions/download-artifact@v7
         with:
           name: ${{ env.E2E_BUILD_DIST_NAME }}
           path: ${{ env.E2E_BUILD_DIST_DIR }}
       - name: Download e2e build ember
-        uses:  actions/download-artifact@v6
+        uses:  actions/download-artifact@v7
         with:
           name: ${{ env.E2E_BUILD_DIST_EMBER_NAME }}
           path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
@@ -206,7 +206,7 @@ jobs:
           TEST_A11Y: true
 
       - name: Upload report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: accessibility-report
           path: cypress/accessibility
@@ -228,7 +228,7 @@ jobs:
           cp -r coverage/unit/ coverage-artifacts/coverage/unit/
 
       - name: Upload coverage
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
           path: coverage-artifacts/**/*
@@ -324,3 +324,18 @@ jobs:
       - name: Check e2e tags
         run: |
           ./scripts/check-e2e-tests-for-tags
+
+  check-cypress-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+      - name: Verify Cypress build
+        working-directory: ./cypress
+        run: |
+          yarn install --frozen-lockfile
+          yarn build-pkg --verify

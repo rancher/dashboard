@@ -155,7 +155,7 @@ export default {
         :default-tab="defaultTab || defaultWorkloadTab"
         :flat="true"
         :use-hash="useTabbedHash"
-
+        :showExtensionTabs="false"
         data-testid="workload-horizontal-tabs"
         @changed="changed"
       >

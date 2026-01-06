@@ -7,7 +7,7 @@
 </template>
 
 <script setup>
-import { onMounted, defineProps, defineEmits } from 'vue';
+import { onMounted } from 'vue';
 
 /**
  * This component serves as a container for the body of a tab within a window manager panel.

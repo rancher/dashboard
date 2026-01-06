@@ -1731,6 +1731,7 @@ cluster:
         addVolume: Add Volume
         addVMImage: Add VM Image
         storageClass: Storage Class
+      reservedMemory: Reserved Memory
       sshUser: SSH User
       userData:
         label: User Data Template
@@ -1776,6 +1777,8 @@ cluster:
         placeholder: e.g. 2
       memory:
         placeholder: e.g. 4
+      reservedMemory:
+        placeholder: e.g. 256
       disk:
         placeholder: e.g. 4
       namespace:

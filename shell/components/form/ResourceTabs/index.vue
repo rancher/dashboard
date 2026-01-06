@@ -101,7 +101,6 @@ export default {
     return {
       eventSchema,
       EVENT,
-      selectedTab:    this.defaultTab,
       inStore,
       showConditions: false,
       paginationHeaders
@@ -245,7 +244,6 @@ export default {
     :default-tab="defaultTab"
     :resource="value"
     :use-hash="useHash"
-    @changed="tabChange"
   >
     <slot />
     <Tab

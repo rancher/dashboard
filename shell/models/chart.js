@@ -136,91 +136,87 @@ export default class Chart extends SteveModel {
    * @returns {Object} Card content object with `subHeaderItems`, `footerItems`, and `statuses` arrays.
    */
   get cardContent() {
-    if (!this._cardContent) {
-      const latestVersion = this.latestCompatibleVersion;
-      const subHeaderItems = [];
+    const latestVersion = this.latestCompatibleVersion;
+    const subHeaderItems = [];
 
-      if (latestVersion) {
-        const hasZeroTime = latestVersion.created === ZERO_TIME;
+    if (latestVersion) {
+      const hasZeroTime = latestVersion.created === ZERO_TIME;
 
-        subHeaderItems.push({
-          icon:        'icon-version-alt',
-          iconTooltip: { key: 'tableHeaders.version' },
-          label:       latestVersion.version
-        });
+      subHeaderItems.push({
+        icon:        'icon-version-alt',
+        iconTooltip: { key: 'tableHeaders.version' },
+        label:       latestVersion.version
+      });
 
-        const lastUpdatedItem = {
-          icon:        'icon-refresh-alt',
-          iconTooltip: { key: 'tableHeaders.lastUpdated' },
-          label:       hasZeroTime ? this.t('generic.na') : day(latestVersion.created).format('MMM D, YYYY')
-        };
-
-        if (hasZeroTime) {
-          lastUpdatedItem.labelTooltip = this.t('catalog.charts.appChartCard.subHeaderItem.missingVersionDate');
-        }
-
-        subHeaderItems.push(lastUpdatedItem);
-      }
-
-      const footerItems = [
-        {
-          type:         REPO,
-          icon:         'icon-repository-alt',
-          iconTooltip:  { key: 'tableHeaders.repoName' },
-          labels:       [this.repoNameDisplay],
-          labelTooltip: this.t('catalog.charts.findSimilar.message', { type: this.t('catalog.charts.findSimilar.types.repo') }, true)
-        }
-      ];
-
-      if (this.categories.length) {
-        footerItems.push( {
-          type:         CATEGORY,
-          icon:         'icon-category-alt',
-          iconTooltip:  { key: 'generic.category' },
-          labels:       this.categories,
-          labelTooltip: this.t('catalog.charts.findSimilar.message', { type: this.t('catalog.charts.findSimilar.types.category') }, true)
-        });
-      }
-
-      if (this.tags.length) {
-        footerItems.push({
-          type:         TAG,
-          icon:         'icon-tag-alt',
-          iconTooltip:  { key: 'generic.tags' },
-          labels:       this.tags,
-          labelTooltip: this.t('catalog.charts.findSimilar.message', { type: this.t('catalog.charts.findSimilar.types.tag') }, true)
-        });
-      }
-
-      const statuses = [];
-
-      if (this.deprecated) {
-        statuses.push({
-          icon: 'icon-alert-alt', color: 'error', tooltip: { key: 'generic.deprecated' }
-        });
-      }
-
-      if (this.upgradeable) {
-        statuses.push({
-          icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
-        });
-      }
-
-      if (this.isInstalled) {
-        const installedVersion = this.matchingInstalledApps[0]?.spec?.chart?.metadata?.version;
-
-        statuses.push({
-          icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: `${ this.t('generic.installed') } (${ installedVersion })` }
-        });
-      }
-
-      this._cardContent = {
-        subHeaderItems,
-        footerItems,
-        statuses
+      const lastUpdatedItem = {
+        icon:        'icon-refresh-alt',
+        iconTooltip: { key: 'tableHeaders.lastUpdated' },
+        label:       hasZeroTime ? this.t('generic.na') : day(latestVersion.created).format('MMM D, YYYY')
       };
+
+      if (hasZeroTime) {
+        lastUpdatedItem.labelTooltip = this.t('catalog.charts.appChartCard.subHeaderItem.missingVersionDate');
+      }
+
+      subHeaderItems.push(lastUpdatedItem);
     }
 
-    return this._cardContent;
+    const footerItems = [
+      {
+        type:         REPO,
+        icon:         'icon-repository-alt',
+        iconTooltip:  { key: 'tableHeaders.repoName' },
+        labels:       [this.repoNameDisplay],
+        labelTooltip: this.t('catalog.charts.findSimilar.message', { type: this.t('catalog.charts.findSimilar.types.repo') }, true)
+      }
+    ];
+
+    if (this.categories.length) {
+      footerItems.push( {
+        type:         CATEGORY,
+        icon:         'icon-category-alt',
+        iconTooltip:  { key: 'generic.category' },
+        labels:       this.categories,
+        labelTooltip: this.t('catalog.charts.findSimilar.message', { type: this.t('catalog.charts.findSimilar.types.category') }, true)
+      });
+    }
+
+    if (this.tags.length) {
+      footerItems.push({
+        type:         TAG,
+        icon:         'icon-tag-alt',
+        iconTooltip:  { key: 'generic.tags' },
+        labels:       this.tags,
+        labelTooltip: this.t('catalog.charts.findSimilar.message', { type: this.t('catalog.charts.findSimilar.types.tag') }, true)
+      });
+    }
+
+    const statuses = [];
+
+    if (this.deprecated) {
+      statuses.push({
+        icon: 'icon-alert-alt', color: 'error', tooltip: { key: 'generic.deprecated' }
+      });
+    }
+
+    if (this.upgradeable) {
+      statuses.push({
+        icon: 'icon-upgrade-alt', color: 'info', tooltip: { key: 'generic.upgradeable' }
+      });
+    }
+
+    if (this.isInstalled) {
+      const installedVersion = this.matchingInstalledApps[0]?.spec?.chart?.metadata?.version;
+
+      statuses.push({
+        icon: 'icon-confirmation-alt', color: 'success', tooltip: { text: `${ this.t('generic.installed') } (${ installedVersion })` }
+      });
+    }
+
+    return {
+      subHeaderItems,
+      footerItems,
+      statuses
+    };
   }
 }

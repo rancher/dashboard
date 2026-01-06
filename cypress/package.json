@@ -1,0 +1,62 @@
+{
+  "name": "@rancher/cypress",
+  "version": "1.0.4",
+  "description": "Cypress E2E test, utilities, page objects, and blueprints for Rancher Dashboard",
+  "bin": {
+    "rancher-cypress": "./bin/cli.js"
+  },
+  "files": [
+    "e2e/**/*",
+    "support/**/*",
+    "base-config.*",
+    "extend-config.*",
+    "globals.d.ts",
+    "bin/cli.js",
+    "bin/init.js",
+    "template/**/*"
+  ],
+  "keywords": [
+    "cypress",
+    "e2e",
+    "testing",
+    "page-objects",
+    "rancher"
+  ],
+  "author": "Rancher",
+  "license": "Apache-2.0",
+  "peerDependencies": {
+    "cypress": "11.1.0"
+  },
+  "dependencies": {
+    "@cypress/code-coverage": "3.10.4",
+    "@cypress/grep": "3.1.5",
+    "@cypress/vue": "5.0.5",
+    "@cypress/webpack-dev-server": "3.4.1",
+    "@percy/cli": "1.30.7",
+    "@percy/cypress": "3.1.6",
+    "axe-core": "4.10.2",
+    "axe-html-reporter": "2.2.11",
+    "cy2": "4.0.9",
+    "cypress": "11.1.0",
+    "cypress-axe": "1.6.0",
+    "cypress-delete-downloads-folder": "0.0.4",
+    "cypress-mochawesome-reporter": "3.8.2",
+    "cypress-real-events": "1.14.0",
+    "cypress-terminal-report": "^7.2.0",
+    "dotenv": "^10.0.0",
+    "dotenv-expand": "^5.1.0",
+    "sha.js": "^2.4.12"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rancher/dashboard.git",
+    "directory": "cypress"
+  },
+  "scripts": {
+    "build-pkg": "./scripts/build.sh",
+    "publish-pkg": "./scripts/publish.sh --npm"
+  }
+}

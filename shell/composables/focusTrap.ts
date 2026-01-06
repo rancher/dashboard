@@ -57,8 +57,10 @@ export function useWatcherBasedSetupFocusTrapWithDestroyIncluded(watchVar:any, f
 
         focusTrapInstance = createFocusTrap(focusEl, opts);
 
+        const activate = () => focusTrapInstance.activate();
+
         nextTick(() => {
-          focusTrapInstance.activate();
+          setTimeout(activate, 0);
         });
       });
     } else if (!neu && focusTrapInstance && Object.keys(focusTrapInstance).length && !useUnmountHook) {

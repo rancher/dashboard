@@ -9,15 +9,6 @@ on:
       tagged_release:
         required: true
         type: string
-      is_test:
-        required: false
-        type: string
-      test_ext_repo:
-        required: false
-        type: string
-      test_ext_branch:
-        required: false
-        type: string
     outputs:
       release-job-status: 
         value: ${{ jobs.release-create-pr.outputs.release-job-status }}
@@ -41,16 +32,7 @@ jobs:
     outputs:
       build-status: ${{ job.status }}
     steps:
-      - if: inputs.is_test == 'true'
-        name: Checkout (test flow)
-        uses: actions/checkout@v6
-        with:
-          repository: rancher/${{ inputs.test_ext_repo }}
-          ref: ${{ inputs.test_ext_branch }}
-          fetch-depth: 0
-      
-      - if: inputs.is_test != 'true'
-        name: Checkout (normal flow)
+      - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -78,7 +60,7 @@ jobs:
         run: yarn
 
       - name: Parse Extension Name
-        if: github.ref_type == 'tag' || inputs.is_test == 'true'
+        if: github.ref_type == 'tag'
         id: parsed-name
         env:
           GH_TOKEN: ${{ github.token }}
@@ -95,22 +77,18 @@ jobs:
             publish="$publish -t ${{ inputs.tagged_release }}"
           fi
 
-          if [[ "${{ inputs.is_test }}" == "true" ]]; then
-            publish="$publish -f"
-          fi
-
           $publish
 
       - name: Upload charts artifact
-        if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') || inputs.is_test == 'true'
-        uses: actions/upload-artifact@v5
+        if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request')
+        uses: actions/upload-artifact@v6
         with:
           name: charts-create-pr
           path: tmp
 
   release-create-pr:
     name: Create PR for release build
-    if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') || inputs.is_test == 'true'
+    if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request')
     needs: build-extension-artifact
     runs-on: ubuntu-latest
     permissions:
@@ -123,15 +101,7 @@ jobs:
     outputs:
       release-job-status: ${{ job.status }}
     steps:
-      - if: inputs.is_test == 'true'
-        name: Checkout (test flow)
-        uses: actions/checkout@v6
-        with:
-          ref: master # let's checkout master branch in rancher/dashboard. We won't hit permission issues here. Just for testing purposes
-          fetch-depth: 0
-      
-      - if: inputs.is_test != 'true'
-        name: Checkout (normal flow)
+      - name: Checkout target branch
         uses: actions/checkout@v6
         with:
           ref: '${{ inputs.target_branch }}'
@@ -142,7 +112,7 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Download build artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: charts-create-pr
 
@@ -177,72 +147,3 @@ jobs:
           fi
 
           echo "pr_num=$pr_number" >> $GITHUB_OUTPUT
-      
-      - name: Check PR Files and delete branch and PR (Test Mode Only)
-        if: inputs.is_test == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUM: ${{ steps.create_pr.outputs.pr_num }}
-        run: |
-          REQUIRED_FILES="assets charts extensions index.yaml"
-          echo "Expected files: $REQUIRED_FILES"
-          echo "---"
-
-          # Use gh pr view --json files to get the file list
-          PR_FILES=$(gh pr view $PR_NUM --json files --jq '.files[].path' --repo ${{ github.repository }})
-
-          echo "Files found in PR #$PR_NUM:"
-          echo "$PR_FILES"
-          echo "---"
-
-          # Simple validation: Check if all expected directories/files are present
-          ALL_FOUND=true
-          for file in $REQUIRED_FILES; do
-            if ! echo "$PR_FILES" | grep -q "$file"; then
-              echo "::error::Validation Failed: Required file/directory '$file' not found in PR."
-              ALL_FOUND=false
-            else
-              echo "Validation Passed: '$file' found."
-            fi
-          done
-
-          if [ "$ALL_FOUND" = false ]; then
-            exit 1
-          else
-            echo "All expected files/directories found in PR #$PR_NUM."
-          fi
-      
-      - name: Cleanup Test PR and Branch
-        if: inputs.is_test == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUM: ${{ steps.create_pr.outputs.pr_num }}
-          BRANCH_NAME: sync-${{ env.NOW }}
-        run: |
-          echo "Running cleanup for test flow..."
-          
-          # --- PR Closure ---
-          if [ -z "$PR_NUM" ]; then
-            echo "PR number not found. Skipping PR closure."
-          else
-            echo "Attempting to close PR #$PR_NUM"
-            gh pr close $PR_NUM --repo ${{ github.repository }} || \
-              echo "INFO: PR #$PR_NUM closure failed or PR already closed/merged. Continuing..."
-          fi
-
-          # --- Branch Deletion ---
-          if [ -z "$BRANCH_NAME" ]; then
-            echo "Branch name not found. Skipping branch deletion."
-          else
-            if [[ "$BRANCH_NAME" != sync-* ]]; then
-              echo "WARNING: Branch name '$BRANCH_NAME' does not look like a test branch (sync-*). Skipping deletion for safety."
-            else
-              echo "Attempting to delete branch: $BRANCH_NAME"
-              # Use the GitHub REST API via gh api to delete the remote branch
-              gh api \
-                --method DELETE \
-                -H "Accept: application/vnd.github.v3+json" \
-                /repos/${{ github.repository }}/git/refs/heads/$BRANCH_NAME || \
-                echo "INFO: Branch $BRANCH_NAME deletion failed or branch already gone. Continuing..."
-            fi
-          fi
