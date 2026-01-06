@@ -1,5 +1,5 @@
 
-import { reactive } from 'vue';
+import { ref } from 'vue';
 import { wrapIfVar, useStatusColors, Status } from './status';
 
 describe('utils: status', () => {
@@ -26,7 +26,7 @@ describe('utils: status', () => {
       'unknown',
       'none'
     ])('solid: should return the correct colors for status: %p', (status: Status) => {
-      const props = reactive({ status });
+      const props = { status: ref(status) };
       const {
         borderColor,
         backgroundColor,
@@ -49,7 +49,7 @@ describe('utils: status', () => {
       'unknown',
       'none'
     ])('outlined: should return the correct colors for status: %p', (status: Status) => {
-      const props = reactive({ status });
+      const props = { status: ref(status) };
       const {
         borderColor,
         backgroundColor,
