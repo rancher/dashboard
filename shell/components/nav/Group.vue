@@ -79,7 +79,8 @@ export default {
         const overviewRoute = grp?.route;
 
         if (overviewRoute && grp.overview) {
-          const route = this.$router.resolve(overviewRoute || {});
+          const validRoute = filterLocationValidParams(this.$router, overviewRoute || {});
+          const route = this.$router.resolve(validRoute);
 
           return this.$route.fullPath.split('#')[0] === route?.fullPath;
         }
@@ -95,6 +96,10 @@ export default {
       set(v) {
         this.expanded = v;
       }
+    },
+
+    headerRoute() {
+      return filterLocationValidParams(this.$router, this.group.children[0].route);
     }
   },
 
@@ -140,7 +145,9 @@ export default {
         const route = item.route;
 
         if (route) {
-          this.$router.replace(route);
+          const validRoute = filterLocationValidParams(this.$router, route);
+
+          this.$router.replace(validRoute);
         } else if (item) {
           this.routeToFirstChild(item);
         }
@@ -149,7 +156,9 @@ export default {
 
     routeToFirstChild(item) {
       if (item.children.length && item.children[0].route) {
-        this.$router.replace(item.children[0].route);
+        const validRoute = filterLocationValidParams(this.$router, item.children[0].route);
+
+        this.$router.replace(validRoute);
       }
     },
 
@@ -260,7 +269,7 @@ export default {
         <slot name="header">
           <router-link
             v-if="hasOverview"
-            :to="group.children[0].route"
+            :to="headerRoute"
             :exact="group.children[0].exact"
             :tabindex="-1"
           >

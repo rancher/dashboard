@@ -110,7 +110,8 @@ export default {
     selectType() {
       // Prevent issues if custom NavLink is used #5047
       if (this.type?.route) {
-        const typePath = this.$router.resolve(this.type.route)?.fullPath;
+        const validRoute = filterLocationValidParams(this.$router, this.type.route);
+        const typePath = this.$router.resolve(validRoute)?.fullPath;
 
         if (typePath !== this.$route.fullPath) {
           this.$emit('selected');

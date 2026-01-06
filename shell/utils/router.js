@@ -162,8 +162,6 @@ export function filterLocationValidParams(router, routeRecord) {
     }
   });
 
-  routeRecord.params = validParams;
-
   return {
     ...routeRecord,
     params: validParams
