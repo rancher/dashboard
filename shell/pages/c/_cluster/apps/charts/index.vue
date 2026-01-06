@@ -120,7 +120,6 @@ export default {
           }
         }
       ],
-      appCardsCache:      {},
       selectedSortOption: CATALOG_SORT_OPTIONS.RECOMMENDED,
       sortOptions:        [
         { kind: 'group', label: this.t('catalog.charts.sort.prefix') },
@@ -280,26 +279,19 @@ export default {
     appChartCards() {
       const charts = this.filteredCharts.slice(0, this.visibleChartsCount);
 
-      return charts.map((chart) => {
-        if (!this.appCardsCache[chart.id]) {
-          // Cache the converted value. We're caching chart.cardContent anyway, so no need to worry about showing updates to state
-          this.appCardsCache[chart.id] = {
-            id:     chart.id,
-            pill:   chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' } } : undefined,
-            header: {
-              title:    { text: chart.chartNameDisplay },
-              statuses: chart.cardContent.statuses
-            },
-            subHeaderItems: chart.cardContent.subHeaderItems,
-            image:          { src: chart.latestCompatibleVersion.icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
-            content:        { text: chart.chartDescription },
-            footerItems:    chart.cardContent.footerItems,
-            rawChart:       chart
-          };
-        }
-
-        return this.appCardsCache[chart.id];
-      });
+      return charts.map((chart) => ({
+        id:     chart.id,
+        pill:   chart.featured ? { label: { key: 'generic.shortFeatured' }, tooltip: { key: 'generic.featured' } } : undefined,
+        header: {
+          title:    { text: chart.chartNameDisplay },
+          statuses: chart.cardContent.statuses
+        },
+        subHeaderItems: chart.cardContent.subHeaderItems,
+        image:          { src: chart.latestCompatibleVersion.icon, alt: { text: this.t('catalog.charts.iconAlt', { app: get(chart, 'chartNameDisplay') }) } },
+        content:        { text: chart.chartDescription },
+        footerItems:    chart.cardContent.footerItems,
+        rawChart:       chart
+      }));
     },
 
     clusterId() {
