@@ -22,12 +22,12 @@ const status = computed(() => {
   return 'none';
 });
 
+const { textColor } = useStatusColors({ status }, 'outlined');
+
 const color = computed(() => {
   if (props.status === undefined || props.status === 'inherit') {
     return 'inherit';
   }
-
-  const { textColor } = useStatusColors({ status: status.value }, 'outlined');
 
   return textColor.value;
 });

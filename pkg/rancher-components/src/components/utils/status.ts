@@ -1,4 +1,4 @@
-import { computed } from 'vue';
+import { computed, Ref } from 'vue';
 
 export const StatusDefinitions = {
   info: {
@@ -28,7 +28,7 @@ export const StatusDefinitions = {
 };
 
 export type Status = keyof typeof StatusDefinitions;
-export type StatusObject = { status: Status };
+export type StatusObject = { status: Ref<Status> };
 export type Style = 'solid' | 'outlined';
 
 export function wrapIfVar(colorVar: string) {
@@ -44,7 +44,7 @@ export function wrapIfVar(colorVar: string) {
  */
 export function useStatusColors(propsWithStatus: StatusObject, style: Style) {
   const statusColors = computed(() => {
-    return StatusDefinitions[propsWithStatus.status];
+    return StatusDefinitions[propsWithStatus.status.value];
   });
   const isOutlined = style === 'outlined';
 
@@ -55,7 +55,7 @@ export function useStatusColors(propsWithStatus: StatusObject, style: Style) {
   });
 
   const backgroundColor = computed(() => {
-    if (propsWithStatus.status === 'none') {
+    if (propsWithStatus.status.value === 'none') {
       return 'none';
     }
     const colorVar = isOutlined ? statusColors.value.secondary : statusColors.value.primary;

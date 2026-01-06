@@ -125,17 +125,10 @@ defineExpose({ focus });
 </template>
 
 <style lang="scss" scoped>
-@mixin iconMargins($size) {
-  .left-icon {
-    margin-right: $size;
-  }
-
-  .right-icon {
-    margin-left: $size;
-  }
-}
-
 button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   &.role-link {
     &:focus, &.focused {
       @include focus-outline;
@@ -171,8 +164,7 @@ button {
       min-height: 24px;
 
       padding: 0 8px;
-
-      @include iconMargins(8px);
+      gap: 8px;
     }
   }
 
@@ -184,8 +176,7 @@ button {
       min-height: 32px;
 
       padding: 0 12px;
-
-      @include iconMargins(8px);
+      gap: 8px;
     }
   }
 
@@ -197,8 +188,7 @@ button {
       min-height: 40px;
 
       padding: 0 16px;
-
-      @include iconMargins(12px);
+      gap: 12px;
     }
   }
 }</style>
