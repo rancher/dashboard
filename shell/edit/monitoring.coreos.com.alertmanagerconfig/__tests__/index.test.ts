@@ -57,10 +57,10 @@ describe('monitoring.coreos.com.alertmanagerconfig/index.vue', () => {
     expect(valueMock.applyDefaults).toHaveBeenCalled();
 
     // Assert receiverOptions are correctly populated from value.spec.receivers
-    expect(wrapper.vm.receiverOptions).toEqual(['receiver1', 'receiver2']);
+    expect(wrapper.vm.receiverOptions).toStrictEqual(['receiver1', 'receiver2']);
 
     // Assert createReceiverLink is correctly set
-    expect(wrapper.vm.createReceiverLink).toEqual({ name: 'create-receiver' });
+    expect(wrapper.vm.createReceiverLink).toStrictEqual({ name: 'create-receiver' });
 
     // Assert that receiverTableHeaders has the expected structure (basic check)
     expect(wrapper.vm.receiverTableHeaders.length).toBeGreaterThan(0);
@@ -184,7 +184,7 @@ describe('monitoring.coreos.com.alertmanagerconfig/index.vue', () => {
 
     const translatedTypes = wrapper.vm.translateReceiverTypes();
 
-    expect(translatedTypes).toEqual([
+    expect(translatedTypes).toStrictEqual([
       { label: '%alertmanagerConfigReceiver.alerta%', value: 'alerta' },
       { label: '%alertmanagerConfigReceiver.dingtalk%', value: 'dingtalk' }
     ]);

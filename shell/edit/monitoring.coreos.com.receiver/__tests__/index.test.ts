@@ -1,8 +1,6 @@
 import { shallowMount, config } from '@vue/test-utils';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { _EDIT } from '@shell/config/query-params';
 import Index from '../index.vue';
-import jsyaml from 'js-yaml';
-import { RECEIVERS_TYPES } from '@shell/models/monitoring.coreos.com.receiver';
 
 config.global.mocks = {
   $fetchState: { pending: false },
@@ -14,8 +12,8 @@ describe('shell/edit/monitoring.coreos.com.receiver/index.vue', () => {
   const mockStore = (resourceFields = {}) => ({
     getters: {
       'cluster/schemaFor': jest.fn(() => ({ resourceFields })),
-      'clusterId':           'c-cluster-123',
-      'i18n/t':              (key) => key,
+      clusterId:           'c-cluster-123',
+      'i18n/t':            (key) => key,
     },
     dispatch: jest.fn(),
   });
@@ -50,9 +48,7 @@ describe('shell/edit/monitoring.coreos.com.receiver/index.vue', () => {
         value,
         mode: 'create'
       },
-      global: {
-        mocks: { $store: mockStore(value.spec) },
-      }
+      global: { mocks: { $store: mockStore(value.spec) } }
     });
 
     expect(wrapper.vm.suffixYaml).toBe('');
@@ -81,7 +77,7 @@ describe('shell/edit/monitoring.coreos.com.receiver/index.vue', () => {
         value: baseValue(),
         mode:  _EDIT,
       },
-      global:  { mocks: { $store: mockStore() } },
+      global: { mocks: { $store: mockStore() } },
     });
 
     const spy = jest.spyOn(wrapper.vm, 'save');
@@ -97,10 +93,11 @@ describe('shell/edit/monitoring.coreos.com.receiver/index.vue', () => {
         value: baseValue(),
         mode:  _EDIT,
       },
-      global:  { mocks: { $store: mockStore() } },
+      global: { mocks: { $store: mockStore() } },
     });
 
     const spy = jest.spyOn(wrapper.vm, 'save');
+
     wrapper.vm.yamlError = 'Invalid YAML';
     const buttonDone = jest.fn();
 
