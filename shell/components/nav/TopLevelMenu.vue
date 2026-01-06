@@ -17,7 +17,6 @@ import Pinned from '@shell/components/nav/Pinned';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { debounce } from 'lodash';
 import { sameContents } from '@shell/utils/array';
-import myLogger from '@shell/utils/my-logger';
 
 export default {
   components: {

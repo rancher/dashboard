@@ -434,8 +434,6 @@ describe('topLevelMenu', () => {
     describe('should displays a no results message if have clusters but', () => {
       it('given no matching clusters', async() => {
         const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
-          data: () => ({ clusterFilter: 'whatever' }),
-
           global: {
             mocks: {
               $route: {},
@@ -453,6 +451,8 @@ describe('topLevelMenu', () => {
             stubs: ['BrandImage', 'router-link'],
           },
         });
+
+        await wrapper.setData({ clusterFilter: 'whatever' });
 
         await waitForIt();
 
@@ -527,8 +527,6 @@ describe('topLevelMenu', () => {
       it('given clusters with status pinned', async() => {
         const search = 'you found me';
         const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
-          data: () => ({ clusterFilter: search }),
-
           global: {
             mocks: {
               $route: {},
@@ -547,6 +545,8 @@ describe('topLevelMenu', () => {
             stubs: ['BrandImage', 'router-link'],
           },
         });
+
+        await wrapper.setData({ clusterFilter: search });
 
         await waitForIt();
 

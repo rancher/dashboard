@@ -52,10 +52,6 @@ export type RancherKubeMetadata = KubeMetadata
 // TODO: RC test scenario 2 (pagination-wrapper) - `shell/plugins/dashboard-store/actions.js`:`findPage. for management.cattle.io.cluster bork the before `await dispatch('request', { opt, type });` with `throw { status: 400, code: 'unknown revision' };` (trigger change in cluster --> will error x times).
 // TODO: RC test scenario 3 (pagination-wrapper) - `shell/plugins/steve/subscribe.js`:`ws.resource.changes`. for a specific resource set msg.revision to 0 (trigger change in cluster --> will error x times).
 
-// TODO: RC test validation - whilst recurse is running... socket down OR forget type. When in pods list and backoff running navigate away
-// TODO: RC test validation - sockets dieing
-// TODO: RC test validation - with duel home page?!
-// TODO: RC test validation - handle the case where a resource is stop watched. all existing backoffs should be cancelled
+// TODO: RC PR description - Whilst a backoff is running cancel the requirement (on pods list navigate away whilst backoff is running, it should not push result to store)
 
-// TODO: RC bug. (fixed now?) home page, tab a, edit cluster in tab b, we make a dupe request for prov cluster using the same revision
 // TODO: RC unit tests?!

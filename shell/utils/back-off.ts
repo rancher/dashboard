@@ -122,7 +122,7 @@ class BackOff {
 
     // eslint-disable-next-line no-console
     console[level](
-      `%cBackOff${ safeType }%c... \n%cId%c:          ${ id }\n%cDescription%c: ${ description }\n%cStatus%c:      ${ status }\n%cMetadata%c:    ${ metadata ? JSON.stringify(metadata) : '' }\n%cCache %c:       ${ Object.keys(this.map).map((e) => `"${ e }"`).join(' + ') }"`,
+      `%cBackOff${ safeType }%c... \n%cId%c:          ${ id }\n%cDescription%c: ${ description }\n%cStatus%c:      ${ status }\n%cMetadata%c:    ${ metadata ? JSON.stringify(metadata) : '' }\n%cCache %c:       ${ Object.keys(this.map).map((e) => `"${ e }"`).join(' + ') }`,
       logStyle, logStyleReset,
       logStyle, logStyleReset,
       logStyle, logStyleReset,

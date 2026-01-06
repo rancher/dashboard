@@ -354,7 +354,7 @@ const clearInError = ({ getters, commit }, error) => {
   commit('clearInError', error.obj);
 };
 
-let scen1 = 10000;
+let scen1 = 1;
 let scen3 = 10000;
 // const scenType = 'pod';
 const scenType = 'management.cattle.io.cluster';
@@ -1608,7 +1608,7 @@ const defaultGetters = {
         return cache.revision || null;
       }
 
-      nextRevision = cacheRevision.asNumber;
+      nextRevision = cacheRevision;
 
       for ( const obj of cache.list || [] ) {
         if ( obj && obj.metadata ) {
@@ -1619,6 +1619,8 @@ const defaultGetters = {
           }
         }
       }
+
+      nextRevision = nextRevision.asNumber;
     }
 
     return nextRevision || null;
