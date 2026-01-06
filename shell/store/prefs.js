@@ -233,13 +233,13 @@ export const getters = {
       }
       const clusterPref = getters['get'](CLUSTER);
 
-      return { name: 'c-cluster-explorer', params: { product: 'explorer', cluster: clusterPref } };
+      return { name: 'c-cluster-explorer', params: { cluster: clusterPref } };
     }
     case (!!afterLoginRoutePref.match(/.+-dashboard$/)):
     {
       const clusterId = afterLoginRoutePref.split('-dashboard')[0];
 
-      return { name: 'c-cluster-explorer', params: { product: 'explorer', cluster: clusterId } };
+      return { name: 'c-cluster-explorer', params: { cluster: clusterId } };
     }
     default:
       return { name: afterLoginRoutePref };
