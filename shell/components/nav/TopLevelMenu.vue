@@ -47,9 +47,7 @@ export default {
     const provClusters = !canPagination && hasProvCluster ? this.$store.getters[`management/all`](CAPI.RANCHER_CLUSTER) : [];
     const mgmtClusters = !canPagination ? this.$store.getters[`management/all`](MANAGEMENT.CLUSTER) : [];
 
-    myLogger.info('tlm', 'data', !canPagination, !sideNavServiceInitialized);
     if (!canPagination || !sideNavServiceInitialized) {
-      myLogger.info('tlm', 'data' );
       // Reduce the impact of the initial load, or properly initialised
       // Doing this here means we don't need an 'immediate' on the watches below
       const args = {

@@ -182,7 +182,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     // No need to monitor for changes, the UNPINNED request will handle it
     this.clustersPinnedWrapper = new PaginationWrapper({
       $store,
-      id:         'tlm-pinned-clusters',
+      id:         'top-level-menu-pinned-clusters',
       enabledFor: {
         store:    STORE.MANAGEMENT,
         resource: {
@@ -195,7 +195,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     // Fetch all UNPINNED clusters capped at 10 (see `clustersOthers` description for details)
     this.clustersOthersWrapper = new PaginationWrapper({
       $store,
-      id:       'tlm-unpinned-clusters',
+      id:       'top-level-menu-unpinned-clusters',
       onChange: async({ forceWatch, revision }) => {
         if (!this.args) {
           return;
@@ -222,7 +222,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     // Fetch all prov clusters for the mgmt clusters we have
     this.provClusterWrapper = new PaginationWrapper({
       $store,
-      id:       'tlm-prov-clusters',
+      id:       'top-level-menu-prov-clusters',
       onChange: async({ forceWatch, revision }) => {
         if (!this.args) {
           return;
@@ -267,7 +267,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       notPinned: MgmtCluster[]
     } = await allHash(promises) as any;
 
-    myLogger.warn('tlhm-helper', 'update', 'updatePinned + updateOthers ran', res.pinned, res.notPinned);
+    // myLogger.warn('tlhm-helper', 'update', 'updatePinned + updateOthers ran', res.pinned, res.notPinned);
 
     const provClusters = await this.updateProvCluster(res.notPinned, res.pinned, args);
 

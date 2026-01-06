@@ -103,7 +103,9 @@ const createFindWatchArg = ({
   return watchMsg;
 };
 
-let scen2 = 10000;
+let scen2 = 200000;
+// const scenType = 'pod';
+const scenType = 'management.cattle.io.cluster';
 
 export default {
   request() {
@@ -465,9 +467,6 @@ export default {
       mode:      STEVE_WATCH_MODE.RESOURCE_CHANGES,
     };
 
-    if (type === 'pod') {
-      // debugger; // TODO: RC debug
-    }
     // No need to request the resources if we have them already
     if (!opt.transient && !opt.force && getters['havePaginatedPage'](type, opt)) {
       if (opt.watch !== false ) {
@@ -490,7 +489,7 @@ export default {
 
       if (opt.revision) {
         scen2++;
-        if (scen2 > 1 && scen2 < 7 && type === 'pod') {
+        if (scen2 > 1 && scen2 < 7 && type === scenType) {
           throw { status: 400, code: 'unknown revision' };
         }
       }
@@ -503,7 +502,7 @@ export default {
       return Promise.reject(e);
     }
 
-    // Of type @StorePagination
+    // Of type @StorePaginationResult
     const pagination = opt.pagination ? {
       request: {
         namespace:  opt.namespaced,
@@ -512,7 +511,8 @@ export default {
       result: {
         count:     out.count,
         pages:     out.pages || Math.ceil(out.count / (opt.pagination.pageSize || Number.MAX_SAFE_INTEGER)),
-        timestamp: new Date().getTime()
+        timestamp: new Date().getTime(),
+        revision:  out.revision
       }
     } : undefined;
 

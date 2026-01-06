@@ -67,10 +67,16 @@ export interface BackOffRecurseArgs<MetadataType> extends BackOffArgs<MetadataTy
 const logStyle = 'font-weight: bold; font-style: italic;';
 const logStyleReset = 'font-weight: normal; font-style: normal;';
 
-type LogLevel = 'error' | 'info' | 'debug' | undefined;
-type LogArgs = { id: string, status: string, description: string, metadata?: any }
+enum LOG_TYPE { // eslint-disable-line no-unused-vars
+  /** Aligns with `execute` method */
+  EXECUTE = 'delay', // eslint-disable-line no-unused-vars
+  /** Aligns with `recurse` method */
+  RECURSE = 'recurse', // eslint-disable-line no-unused-vars
+}
+type LogLevel = 'error' | 'info' | 'debug' | 'warn' | undefined;
+type LogArgs = { id: string, status: string, description: string, metadata?: any, type: string }
 
-const logInitialBackOffRequest = true;
+const logInitialBackOffRequest = false;
 const calcLogLevel = (iteration: number): LogLevel => {
   if (!logInitialBackOffRequest && iteration === 0) {
     return undefined;
@@ -89,16 +95,35 @@ class BackOff {
    [id: string]: BackOffEntry
   } = {};
 
+  private getLogTypeFromMap(id: string): string {
+    const entry = this.getBackOff(id);
+
+    let safeType = '';
+
+    if (!!entry?.execute) {
+      safeType = LOG_TYPE.EXECUTE;
+    } else if (!!entry?.recurse) {
+      safeType = LOG_TYPE.RECURSE;
+    }
+
+    return safeType;
+  }
+
   private log(level: LogLevel, {
-    id, status, description, metadata
+    id, status, description, metadata, type
   }: LogArgs, ...args: any[]) {
     if (!level) {
       return;
     }
 
+    let safeType = type || this.getLogTypeFromMap(id);
+
+    safeType = safeType ? ` (${ safeType })` : '';
+
     // eslint-disable-next-line no-console
     console[level](
-      `%cBackOff%c... \n%cId%c:          ${ id }\n%cStatus%c:      ${ status }\n%cDescription%c: ${ description }\n%cMetadata%c:    ${ metadata ? JSON.stringify(metadata) : '' }`,
+      `%cBackOff${ safeType }%c... \n%cId%c:          ${ id }\n%cDescription%c: ${ description }\n%cStatus%c:      ${ status }\n%cMetadata%c:    ${ metadata ? JSON.stringify(metadata) : '' }\n%cCache %c:       ${ Object.keys(this.map).map((e) => `"${ e }"`).join(' + ') }"`,
+      logStyle, logStyleReset,
       logStyle, logStyleReset,
       logStyle, logStyleReset,
       logStyle, logStyleReset,
@@ -106,21 +131,13 @@ class BackOff {
       logStyle, logStyleReset,
       ...args
     );
-
-    if (process.env.dev) {
-      // eslint-disable-next-line no-console
-      console[level](
-        `%cState %c:       "${ Object.keys(this.map).join(',') }"`,
-        logStyle, logStyleReset,
-      );
-    }
   }
 
   private logAndError(level: LogLevel, {
-    id, status, description, metadata
+    id, status, description, metadata, type
   }: LogArgs, ...args: any[]): Promise<undefined> {
     this.log(level, {
-      id, status, description, metadata
+      id, status, description, metadata, type
     }, ...args);
 
     return Promise.reject(new Error(status));
@@ -163,9 +180,11 @@ class BackOff {
       return;
     }
 
+    const logType = this.getLogTypeFromMap(id);
+
     if (backOff?.execute?.timeoutId) {
       this.log('info', {
-        id, status: 'Stopping (cancelling active back-off)', description: backOff.description, metadata: backOff.metadata
+        id, status: 'Stopping (cancelling active back-off)', description: backOff.description, metadata: backOff.metadata, type: logType
       });
 
       clearTimeout(backOff.execute.timeoutId);
@@ -176,7 +195,7 @@ class BackOff {
     delete this.map[id];
 
     this.log(logLevel, {
-      id, status: 'Reset', description: backOff.description, metadata: backOff.metadata
+      id, status: 'Reset', description: backOff.description, metadata: backOff.metadata, type: logType
     });
   }
 
@@ -195,14 +214,15 @@ class BackOff {
   }: BackOffRecurseArgs<any>) => {
     if (!this.map[id]) {
       // was reset, don't care now, abort
-      return this.logAndError('error', {
-        id, status: 'Aborting (backoff was reset, do not continue to process)', description, metadata
+      // could be a pagination-wrapper request with a stale revision, which can be safely ignored
+      return this.logAndError('warn', {
+        id, status: 'Aborting (backoff was reset, do not continue to process)', description, metadata, type: LOG_TYPE.RECURSE
       });
     }
 
     if (this.map[id].recurse?.id !== backOffEntry.recurse?.id) {
-      return this.logAndError('error', {
-        id, status: 'Aborting (stale backoff, a new one exists)', description, metadata
+      return this.logAndError('warn', {
+        id, status: 'Aborting (stale backoff, a new one exists)', description, metadata, type: LOG_TYPE.RECURSE
       });
     }
 
@@ -210,7 +230,7 @@ class BackOff {
 
     if (!cont) {
       return this.logAndError('info', {
-        id, status: 'Skipping (canFn test failed)', description, metadata
+        id, status: 'Skipping (canFn test failed)', description, metadata, type: LOG_TYPE.RECURSE
       });
     }
   };
@@ -229,7 +249,7 @@ class BackOff {
 
     if (this.map[id]) {
       return this.logAndError('info', {
-        id, status: 'Skipping (previous recurse back off process still running)', description, metadata
+        id, status: 'Skipping (previous recurse back off process still running)', description, metadata, type: 'recurse',
       });
     }
 
@@ -250,7 +270,7 @@ class BackOff {
       const logLevel = calcLogLevel(i);
 
       this.log(logLevel, {
-        id, status: `Delaying call (attempt ${ i + 1 }, delayed by ${ delay }ms)`, description, metadata
+        id, status: `Delaying call (attempt ${ i + 1 }, delayed by ${ delay }ms)`, description, metadata, type: LOG_TYPE.RECURSE
       });
 
       await this.sleep(delay);
@@ -258,7 +278,7 @@ class BackOff {
       await this.canRecurse(this.map[id], args); // Check that we can call the function (things could have changed after delay...)
 
       this.log(logLevel, {
-        id, status: `Executing call`, description, metadata
+        id, status: `Executing call`, description, metadata, type: LOG_TYPE.RECURSE
       });
 
       let res: ResponseType | undefined;
@@ -274,7 +294,7 @@ class BackOff {
           const errorMessage = 'Failed call';
 
           return this.logAndError('error', {
-            id, status: errorMessage, description, metadata
+            id, status: errorMessage, description, metadata, type: LOG_TYPE.RECURSE
           }, e);
         }
       }
@@ -285,7 +305,7 @@ class BackOff {
         this.reset(id); // Allow future calls to execute
 
         this.log(logLevel, {
-          id, status: 'Successful call', description, metadata
+          id, status: 'Successful call', description, metadata, type: LOG_TYPE.RECURSE
         });
 
         return res;
@@ -316,13 +336,13 @@ class BackOff {
 
     if (!cont) {
       this.log('info', {
-        id, status: 'Skipping (canExecute test failed)', description, metadata
+        id, status: 'Skipping (canExecute test failed)', description, metadata, type: LOG_TYPE.EXECUTE
       });
 
       return undefined;
     } else if (backOff?.execute?.timeoutId) {
       this.log('info', {
-        id, status: 'Skipping (previous back off process still running)', description, metadata
+        id, status: 'Skipping (previous back off process still running)', description, metadata, type: LOG_TYPE.EXECUTE
       });
 
       return backOff?.execute?.timeoutId;
@@ -331,7 +351,7 @@ class BackOff {
 
       if (backOffTry + 1 > retries) {
         this.log('error', {
-          id, status: 'Aborting (too many retries)', description, metadata
+          id, status: 'Aborting (too many retries)', description, metadata, type: LOG_TYPE.EXECUTE
         });
 
         return undefined;
@@ -341,26 +361,28 @@ class BackOff {
       const logLevel = calcLogLevel(backOffTry);
 
       this.log(logLevel, {
-        id, status: `Delaying call (attempt ${ backOffTry + 1 }, delayed by ${ delay }ms)`, description, metadata
+        id, status: `Delaying call (attempt ${ backOffTry + 1 }, delayed by ${ delay }ms)`, description, metadata, type: LOG_TYPE.EXECUTE
       });
 
       const timeout = setTimeout(async() => {
         try {
           this.log(logLevel, {
-            id, status: `Executing call`, description, metadata
+            id, status: `Executing call`, description, metadata, type: LOG_TYPE.EXECUTE
           });
 
           await delayedFn();
         } catch (e) {
           // Error occurred. Don't clear the map. Next time this is called we'll back off before trying ...
           this.log('error', {
-            id, status: 'Failed call', description, metadata
+            id, status: 'Failed call', description, metadata, type: LOG_TYPE.EXECUTE
           });
         }
 
         // Unblock future calls
         delete this.map[id]?.execute?.timeoutId;
       }, delay);
+
+      myLogger.warn('!!!!!!!!!!A', 3, id);
 
       this.map[id] = {
         execute: { timeoutId: timeout },
@@ -369,6 +391,8 @@ class BackOff {
         description,
         metadata
       };
+
+      myLogger.warn('!!!!!!!!!!A', 4, id, this.map[id].try);
 
       return timeout;
     }

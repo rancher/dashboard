@@ -89,10 +89,12 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
   revision?: string
 }
 
-export type ActionFindPageResponse<T = any> = {
+export type ActionFindPageTransientResponse<T = any> = {
   data: T[],
   pagination?: StorePagination
-} | T[];
+};
+
+export type ActionFindPageResponse<T = any> = ActionFindPageTransientResponse | T[];
 
 export interface ActionFindMatchingArgs extends ActionCoreFindArgs {
   labelSelector: KubeLabelSelector,

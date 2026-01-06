@@ -877,14 +877,10 @@ const defaultActions = {
   async fetchPageResources({ getters, dispatch }, {
     opt, storePagination, params, backOffId
   }) {
-    let { resourceType, namespace, revision } = params;
+    const { resourceType, namespace, revision } = params;
     const type = resourceType || params.type;
 
     const safeBackOffId = backOffId || getters.backOffId(params, `fetchPageResources`);
-
-    if (type === scenType) { // TODO: RC debug
-      revision = Number.MAX_SAFE_INTEGER; // only works for NORMAL resources (not wrapper)
-    }
 
     const activeRevisionSt = backOff.getBackOff(safeBackOffId)?.metadata?.revision;
     const cachedRevisionSt = getters['typeEntry'](resourceType || type)?.revision;
@@ -893,7 +889,7 @@ const defaultActions = {
     const activeRevision = new SteveRevision(activeRevisionSt);
     const currentRevision = new SteveRevision(activeRevisionSt || cachedRevisionSt);
 
-    myLogger.warn('fetchPageResources', 'start', safeBackOffId, 'target', revision, 'active', activeRevisionSt, 'cached', cachedRevisionSt);
+    // myLogger.warn('fetchPageResources', 'start', safeBackOffId, 'target', revision, 'active', activeRevisionSt, 'cached', cachedRevisionSt);
 
     // Three cases to support HA scenarios 2 + 3
     // 1. current version is newer than target revision - abort/ignore (don't overwrite new with old)
@@ -964,9 +960,6 @@ const defaultActions = {
     } catch (err) {
       myLogger.warn('fetchPageResources', 'ERROR', params, err);
     }
-
-    // We should only get here if the request has completed (successfully or fatally)
-    // backOff.reset(safeBackOffId);
   },
 
   async fetchResources({
@@ -1256,7 +1249,7 @@ const defaultActions = {
       // 2) will be cleared when resyncWatch --> watch (with force) --> resource.start completes
       commit('setInError', { msg, reason: REVISION_TOO_OLD });
 
-      // HA support scenario 1 - handle case where stale replica processes watch request
+      // HA scenario 1 - handle case where stale replica processes watch request
       // The watch that results from resyncWatch will fail and end up here if the revision isn't (yet) known
       // So re-retry resyncWatch until it does OR
       // - we're already re-retrying
