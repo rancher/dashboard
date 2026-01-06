@@ -153,6 +153,7 @@ import { haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 import { createHeaders, rowValueGetter } from '@shell/store/type-map.utils';
 import { defineAsyncComponent } from 'vue';
+import { filterLocationValidParams } from '@shell/utils/router';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -595,51 +596,6 @@ export const getters = {
     };
   },
 
-  getNameToRoute(state, getters, rootState, rootGetters) {
-    return function getNameToRoute() {
-      const routes = rootState.$router.getRoutes();
-      const result = {};
-
-      routes.map((r) => {
-        result[r.name] = r;
-      });
-
-      return result;
-    };
-  },
-
-  getRoute(state, getters, rootState, rootGetters) {
-    return function getRoute(routeName) {
-      return getters.getNameToRoute()[routeName];
-    };
-  },
-
-  makeRouteSafe(state, getters, rootState, rootGetters) {
-    return function getSafeRoute(dynamicRoute) {
-      const route = getters.getRoute(dynamicRoute);
-
-      if (!route) {
-        return dynamicRoute;
-      }
-
-      const specifiedParams = dynamicRoute.params;
-      const safeParams = {};
-
-      Object.entries(specifiedParams).forEach(([key, value]) => {
-        const pathParam = `:${ key }`;
-
-        if (route.path.includes(pathParam)) {
-          safeParams[key] = value;
-        }
-      });
-
-      return {
-        ...dynamicRoute,
-        params: safeParams
-      };
-    };
-  },
-
   getTree(state, getters, rootState, rootGetters) {
     // Name the function so it's easily identifiable when performance tracing
     return function getTree(productId, mode, allTypes, clusterId, namespaceMode, currentType, search) {
@@ -740,7 +696,7 @@ export const getters = {
             }
           };
 
-          typeObj.route = getters.makeRouteSafe(route);
+          typeObj.route = filterLocationValidParams(rootState.$router, route);
         }
 
         // Cluster ID and Product should always be set
@@ -757,7 +713,7 @@ export const getters = {
           exact:        typeObj.exact || false,
           'exact-path': typeObj['exact-path'] || false,
           namespaced,
-          route:        getters.makeRouteSafe(route),
+          route:        filterLocationValidParams(rootState.$router, route),
           name:         typeObj.name,
           weight:       typeObj.weight || getters.typeWeightFor(typeObj.schema?.id || label, isBasic),
           overview:     !!typeObj.overview,
