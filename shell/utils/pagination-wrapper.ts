@@ -1,12 +1,11 @@
 import paginationUtils from '@shell/utils/pagination-utils';
-import { PaginationArgs, PaginationResourceContext, StorePagination } from '@shell/types/store/pagination.types';
+import { PaginationArgs, PaginationResourceContext } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
-import { ActionFindPageArgs, ActionFindPageResponse, ActionFindPageTransientResponse, ActionFindPageTransientResult } from '@shell/types/store/dashboard-store.types';
+import { ActionFindPageArgs, ActionFindPageTransientResponse, ActionFindPageTransientResult } from '@shell/types/store/dashboard-store.types';
 import { STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import { Reactive, reactive } from 'vue';
 import { STEVE_UNWATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_WATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_PARAMS_COMMON } from '@shell/types/store/subscribe-events.types';
 import backOff from '@shell/utils/back-off';
-import myLogger from '@shell/utils/my-logger';
 import { SteveRevision } from '@shell/plugins/steve/revision';
 import { STEVE_HTTP_CODES } from '@shell/types/rancher/steve.api';
 
@@ -85,7 +84,6 @@ class PaginationWrapper<T extends object> {
     pagination: PaginationArgs,
     revision?: string,
   }): Promise<Result<T>> {
-    myLogger.warn('pagination wrapper', 'request', this.id, requestArgs);
     const { pagination, forceWatch, revision } = requestArgs;
 
     if (!this.isEnabled) {
@@ -157,8 +155,6 @@ class PaginationWrapper<T extends object> {
         return err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION;
       },
       delayedFn: async() => {
-        myLogger.warn('pagination wrapper', 'request', 'backoff', 'trying', this.id, revision);
-
         const res: ActionFindPageTransientResponse = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
 
         this.cachedRevision = res.pagination?.result.revision;

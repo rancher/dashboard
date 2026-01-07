@@ -116,7 +116,6 @@ import { STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_MODE } from '@shell/types/store/su
 import paginationUtils from '@shell/utils/pagination-utils';
 import backOff from '@shell/utils/back-off';
 import { SteveWatchEventListenerManager } from '@shell/plugins/subscribe-events';
-import myLogger from '@shell/utils/my-logger';
 import { SteveRevision } from '@shell/plugins/steve/revision';
 import { STEVE_HTTP_CODES } from '@shell/types/rancher/steve.api';
 
@@ -354,11 +353,6 @@ const clearInError = ({ getters, commit }, error) => {
   commit('clearInError', error.obj);
 };
 
-let scen1 = 1;
-let scen3 = 10000;
-// const scenType = 'pod';
-const scenType = 'management.cattle.io.cluster';
-
 /**
  * Actions that cover all cases (see file description)
  */
@@ -582,11 +576,6 @@ const sharedActions = {
       });
 
       return;
-    }
-
-    if (scen1 < 7 && type === scenType) {
-      revision = 'asdsad';
-      scen1++;
     }
 
     // Watch errors mean we make a http request to get latest revision (which is still missing) and try to re-watch with it...
@@ -889,8 +878,6 @@ const defaultActions = {
     const activeRevision = new SteveRevision(activeRevisionSt);
     const currentRevision = new SteveRevision(activeRevisionSt || cachedRevisionSt);
 
-    // myLogger.warn('fetchPageResources', 'start', safeBackOffId, 'target', revision, 'active', activeRevisionSt, 'cached', cachedRevisionSt);
-
     // Three cases to support HA scenarios 2 + 3
     // 1. current version is newer than target revision - abort/ignore (don't overwrite new with old)
     // 2. current version is older than target revision - reset previous (drop older requests with older revision, use new revision)
@@ -958,7 +945,8 @@ const defaultActions = {
         },
       });
     } catch (err) {
-      myLogger.warn('fetchPageResources', 'ERROR', params, err);
+      // Nothing depends on the error higher in the call stack, so prevent dev full screen errors by catching it
+      console.info(`Failed subscribe request to update '${ type }' with revision '${ currentRevision.revision }' (error). `, err); // eslint-disable-line no-console
     }
   },
 
@@ -1402,13 +1390,6 @@ const defaultActions = {
   },
 
   async 'ws.resource.changes'({ dispatch }, msg) {
-    if (msg.resourceType === scenType) {
-      scen3++;
-      if (scen3 < 2) {
-        msg.revision = 0; // stale revision
-      }
-    }
-
     await dispatch('fetchResources', {
       params: msg,
       opt:    { force: true, load: _MERGE }

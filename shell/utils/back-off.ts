@@ -1,4 +1,3 @@
-import myLogger from '@shell/utils/my-logger';
 import { randomStr } from '@shell/utils/string';
 
 type BackOffEntry<MetadataType = any> = {
@@ -382,8 +381,6 @@ class BackOff {
         delete this.map[id]?.execute?.timeoutId;
       }, delay);
 
-      myLogger.warn('!!!!!!!!!!A', 3, id);
-
       this.map[id] = {
         execute: { timeoutId: timeout },
         try:     backOff?.try ? backOff.try + 1 : 1,
@@ -391,8 +388,6 @@ class BackOff {
         description,
         metadata
       };
-
-      myLogger.warn('!!!!!!!!!!A', 4, id, this.map[id].try);
 
       return timeout;
     }

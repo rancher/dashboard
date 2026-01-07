@@ -479,8 +479,8 @@ export default {
         }
       } catch (err) {
         if (this.canPagination) {
-          // Ignore, errors are tracked further down
-          debugger; // TODO: RC i don't think this triggers, the async error is lost
+          // Double bubble up errors here, errors are tracked further down
+          // Note that this won't pick up async errors, further tweaks are required for that
         } else {
           throw err;
         }

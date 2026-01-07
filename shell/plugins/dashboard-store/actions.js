@@ -12,7 +12,6 @@ import { conditionalDepaginate } from '@shell/store/type-map.utils';
 import { STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import { FilterArgs } from '@shell/types/store/pagination.types';
 import { isLabelSelectorEmpty, labelSelectorToSelector } from '@shell/utils/selector-typed';
-import myLogger from '@shell/utils/my-logger';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -102,10 +101,6 @@ const createFindWatchArg = ({
 
   return watchMsg;
 };
-
-let scen2 = 200000;
-// const scenType = 'pod';
-const scenType = 'management.cattle.io.cluster';
 
 export default {
   request() {
@@ -487,12 +482,6 @@ export default {
         dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
       }
 
-      if (opt.revision) {
-        scen2++;
-        if (scen2 > 1 && scen2 < 7 && type === scenType) {
-          throw { status: 400, code: 'unknown revision' };
-        }
-      }
       out = await dispatch('request', { opt, type });
     } catch (e) {
       if (opt.hasManualRefresh) {

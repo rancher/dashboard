@@ -23,11 +23,4 @@ export class SteveRevision {
   private static areAllNumbers(revisions: SteveRevision[]): boolean {
     return revisions.every((r) => r.isNumber);
   }
-
-  // /**
-  //  * Return whichever revision is newer
-  //  */
-  // max(revision: number): number {
-  //   return Math.max(revision, this.asNumber);
-  // }
 }
