@@ -183,6 +183,10 @@ export default {
           // This works with MCM disabled where NORMAN.CLUSTER schema doesn't exist
           const cluster = await this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: this.currentCluster?.id });
 
+          if (!cluster.metadata.annotations) {
+            cluster.metadata.annotations = {};
+          }
+
           delete cluster.metadata.annotations[CLUSTER_BADGE.COLOR];
           delete cluster.metadata.annotations[CLUSTER_BADGE.ICON_TEXT];
           delete cluster.metadata.annotations[CLUSTER_BADGE.TEXT];

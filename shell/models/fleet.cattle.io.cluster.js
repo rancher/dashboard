@@ -239,8 +239,12 @@ export default class FleetCluster extends SteveModel {
 
     // Only save to norman cluster if it's available (MCM enabled)
     if (norman) {
-      norman.setLabels(parsed.metadata.labels);
-      norman.setAnnotations(parsed.metadata.annotations);
+      if (parsed.metadata?.labels) {
+        norman.setLabels(parsed.metadata.labels);
+      }
+      if (parsed.metadata?.annotations) {
+        norman.setAnnotations(parsed.metadata.annotations);
+      }
 
       await norman.save();
     }
