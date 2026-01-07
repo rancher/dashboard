@@ -272,13 +272,25 @@ export const mutations = {
 };
 
 /**
- * Validate that a notification preference is properly formed
+ * Error message for invalid notification preference format
+ */
+const INVALID_PREFERENCE_ERROR = 'Invalid notification preference format - expected object with key and value properties';
+
+/**
+ * Validate that a notification preference is properly formed.
+ *
+ * A valid preference must be:
+ * - A non-null object (not an array)
+ * - Have a 'key' property of type string
+ * - Have a 'value' property of type string
+ *
  * @param preference The preference to validate
- * @returns true if the preference is valid, false otherwise
+ * @returns true if the preference is valid and conforms to NotificationPreference interface, false otherwise
  */
 function isValidPreference(preference: any): preference is NotificationPreference {
   return preference &&
     typeof preference === 'object' &&
+    !Array.isArray(preference) &&
     typeof preference.key === 'string' &&
     typeof preference.value === 'string';
 }
@@ -343,7 +355,7 @@ export const actions = {
       if (isValidPreference(notification.preference)) {
         await dispatch('prefs/set', notification.preference, { root: true });
       } else {
-        console.error('Invalid notification preference format - expected object with key and value properties', notification.preference); // eslint-disable-line no-console
+        console.error(INVALID_PREFERENCE_ERROR, notification.preference); // eslint-disable-line no-console
       }
     }
 
@@ -365,7 +377,7 @@ export const actions = {
           value: notification.preference.unsetValue || '',
         }, { root: true });
       } else {
-        console.error('Invalid notification preference format - expected object with key and value properties', notification.preference); // eslint-disable-line no-console
+        console.error(INVALID_PREFERENCE_ERROR, notification.preference); // eslint-disable-line no-console
       }
     }
 
@@ -385,7 +397,7 @@ export const actions = {
       if (isValidPreference(withPreference[i].preference)) {
         await dispatch('prefs/set', withPreference[i].preference, { root: true });
       } else {
-        console.error('Invalid notification preference format - expected object with key and value properties', withPreference[i].preference); // eslint-disable-line no-console
+        console.error(INVALID_PREFERENCE_ERROR, withPreference[i].preference); // eslint-disable-line no-console
       }
     }
 
