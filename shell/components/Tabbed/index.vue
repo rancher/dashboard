@@ -198,7 +198,7 @@ export default {
       } else if (this.isInResourceCreatePage) {
         return TabLocation.RESOURCE_CREATE_PAGE;
       } else {
-        return TabLocation.ALL;
+        return TabLocation.OTHER;
       }
     },
     hasIcon(tab) {
