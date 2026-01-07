@@ -279,6 +279,45 @@ describe('store: notifications - markRead with malformed preference', () => {
 
       consoleErrorSpy.mockRestore();
     });
+
+    it('should gracefully handle preference with invalid unsetValue type', async() => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const notificationId = 'test-id';
+      const malformedPreference = {
+        key:        'test-pref',
+        value:      'test-value',
+        unsetValue: 123 // Should be string, not number
+      };
+
+      mockState.notifications = [{
+        id:         notificationId,
+        title:      'Test',
+        level:      NotificationLevel.Info,
+        read:       true,
+        created:    new Date(),
+        preference: malformedPreference
+      }];
+
+      mockGetters = {
+        item:   (id: string) => mockState.notifications.find((n: any) => n.id === id),
+        userId: 'test-user-id'
+      };
+
+      const context = {
+        commit:     mockCommit,
+        dispatch:   mockDispatch,
+        getters:    mockGetters,
+        $extension: mockExtension
+      };
+
+      await expect(actions.markUnread.call({ $extension: mockExtension }, context, notificationId)).resolves.not.toThrow();
+
+      expect(mockCommit).toHaveBeenCalledWith('markUnread', notificationId);
+      expect(mockDispatch).not.toHaveBeenCalledWith('prefs/set', expect.anything(), { root: true });
+      expect(consoleErrorSpy).toHaveBeenCalled(); // eslint-disable-line jest/prefer-called-with
+
+      consoleErrorSpy.mockRestore();
+    });
   });
 
   describe('markAllRead action', () => {

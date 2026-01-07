@@ -283,6 +283,7 @@ const INVALID_PREFERENCE_ERROR = 'Invalid notification preference format - expec
  * - A non-null, non-undefined object (not an array)
  * - Have a 'key' property of type string
  * - Have a 'value' property of type string
+ * - Have an optional 'unsetValue' property that must be a string if present
  *
  * @param preference The preference to validate
  * @returns true if the preference is valid and conforms to NotificationPreference interface, false otherwise
@@ -293,7 +294,8 @@ function isValidPreference(preference: any): preference is NotificationPreferenc
     typeof preference === 'object' &&
     !Array.isArray(preference) &&
     typeof preference.key === 'string' &&
-    typeof preference.value === 'string';
+    typeof preference.value === 'string' &&
+    (preference.unsetValue === undefined || typeof preference.unsetValue === 'string');
 }
 
 async function callNotifyHandler({ $extension }: any, notification: Notification, read: boolean) {
