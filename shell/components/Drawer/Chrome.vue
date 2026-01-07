@@ -3,6 +3,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
 import { computed } from 'vue';
 import { Props } from './types';
+import RcButton from '@components/RcButton/RcButton.vue';
 
 const props = defineProps<Props>();
 const emit = defineEmits(['close']);
@@ -37,13 +38,14 @@ const ariaLabel = computed(() => i18n.t('component.drawer.chrome.ariaLabel.close
     <div class="footer pp-4">
       <slot name="footer">
         <div class="actions">
-          <button
-            class="btn role-secondary"
+          <RcButton
+            role="secondary"
+            size="large"
             :aria-label="ariaLabel"
             @click="emit('close')"
           >
             {{ i18n.t('component.drawer.chrome.close') }}
-          </button>
+          </RcButton>
           <slot name="additional-actions" />
         </div>
       </slot>
