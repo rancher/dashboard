@@ -22,8 +22,8 @@ _Arguments_
 
 | Key | Type | Rancher Version | Description |
 |---|---|---|---|
-|`PanelLocation.DETAILS_MASTHEAD`| String | v2.7.2 + v2.7.7 | Location for a panel on the Details Masthead area of a Resource Detail page (only for modes `detail` (v2.7.2), `edit` (v2.7.2), `config` (v2.7.2) and `create` (v2.7.7)) |
-|`PanelLocation.DETAIL_TOP`| String | v2.7.2 + v2.7.7 | Location for a panel on the Detail Top area of a Resource Detail page (only for modes `detail` (v2.7.2), `edit` (v2.7.2), `config` (v2.7.2) and `create` (v2.7.7)) |
+|`PanelLocation.DETAILS_MASTHEAD`| String | v2.7.2 | Location for a panel on the Details Masthead area of a Resource Detail page (only for modes `detail`, `edit`, `config` and `create` (v2.7.7)) |
+|`PanelLocation.DETAIL_TOP`| String | v2.7.2 | Location for a panel on the Detail Top area of a Resource Detail page (only for modes `detail`, `edit`, `config` and `create` (v2.7.7)) |
 |`PanelLocation.RESOURCE_LIST`| String | v2.7.2 | Location for a panel on a Resource List View page (above the table area - only for mode `list` (v2.7.2)) |
 |`PanelLocation.ABOUT_TOP`| String | v2.13.0 | Location for a panel on the About page of Rancher Dashboard |
 
