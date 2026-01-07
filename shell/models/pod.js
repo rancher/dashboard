@@ -46,6 +46,20 @@ export default class Pod extends WorkloadService {
     return this.$getters['byId'](NODE, this.spec.nodeName);
   }
 
+  get customValidationRules() {
+    const out = [
+      {
+        nullable:       false,
+        path:           'metadata.name',
+        required:       true,
+        translationKey: 'generic.name',
+        type:           'subDomain',
+      },
+    ];
+
+    return out;
+  }
+
   get _availableActions() {
     const out = super._availableActions;
 
