@@ -37,7 +37,7 @@ export default {
     return {
       projects:      [],
       toMove:        [],
-      targetProject: null
+      targetProject: ''
     };
   },
 
@@ -49,7 +49,7 @@ export default {
     },
 
     projectOptions() {
-      return this.projects.reduce((inCluster, project) => {
+      const options = this.projects.reduce((inCluster, project) => {
         if (!this.excludedProjects.includes(project.shortId) && project.spec?.clusterName === this.currentCluster.id) {
           inCluster.push({
             value: project.shortId,
@@ -59,6 +59,14 @@ export default {
 
         return inCluster;
       }, []);
+
+      // Add "None" option to allow removing namespace from project
+      options.unshift({
+        value: '',
+        label: this.t('moveModal.noProject')
+      });
+
+      return options;
     }
   },
 
@@ -69,10 +77,10 @@ export default {
 
     async move(finish) {
       const cluster = this.$store.getters['currentCluster'];
-      const clusterWithProjectId = `${ cluster.id }:${ this.targetProject }`;
+      const clusterWithProjectId = this.targetProject ? `${ cluster.id }:${ this.targetProject }` : null;
 
       const promises = this.toMove.map((namespace) => {
-        namespace.setLabel(PROJECT, this.targetProject);
+        namespace.setLabel(PROJECT, this.targetProject || null);
         namespace.setAnnotation(PROJECT, clusterWithProjectId);
 
         return namespace.save();
@@ -128,7 +136,7 @@ export default {
       <AsyncButton
         :action-label="t('moveModal.moveButtonLabel')"
         class="btn bg-primary ml-10"
-        :disabled="!targetProject"
+        :disabled="targetProject === null"
         @click="move"
       />
     </template>
