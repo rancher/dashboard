@@ -246,7 +246,10 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
             :class="clz"
           />
         </div>
-        <div class="item-title">
+        <div
+          v-clean-tooltip="item.title"
+          class="item-title"
+        >
           {{ item.title }}
         </div>
         <button
