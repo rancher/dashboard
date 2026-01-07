@@ -280,7 +280,7 @@ const INVALID_PREFERENCE_ERROR = 'Invalid notification preference format - expec
  * Validate that a notification preference is properly formed.
  *
  * A valid preference must be:
- * - A non-null object (not an array)
+ * - A non-null, non-undefined object (not an array)
  * - Have a 'key' property of type string
  * - Have a 'value' property of type string
  *
