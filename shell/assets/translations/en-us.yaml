@@ -22,6 +22,7 @@ generic:
   back: Back
   cancel: Cancel
   confirm: Confirm
+  update: Update
   colorPicker: Color picker
   clear: Clear
   clearAll: Clear All
@@ -1877,7 +1878,9 @@ cluster:
         label: Location
       managedDisks:
         label: Use Managed Disks
-        error: Azure does not allow mixing managed and unmanaged disks. Make sure that all pools specify the same value.
+        modal:
+          header: Update all machine pools? 
+          body:  Azure does not allow mixing managed and unmanaged disks. Update all pools specify the same value for managed disks. 
       managedDisksSize:
         label: Managed Disk Size
       nsg:

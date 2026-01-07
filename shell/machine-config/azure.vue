@@ -17,6 +17,7 @@ import { findBy } from '@shell/utils/array';
 import KeyValue from '@shell/components/form/KeyValue';
 import { RadioGroup } from '@components/Form/Radio';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
+import azureManagedDisksModal from '@shell/machine-config/azure-managed-disks-modal.vue';
 
 export const azureEnvironments = [
   { value: 'AzurePublicCloud' },
@@ -132,10 +133,6 @@ export default {
       type:     Array,
       required: true,
     },
-    poolId: {
-      type:     String,
-      required: true,
-    },
   },
 
   async fetch() {
@@ -222,13 +219,12 @@ export default {
       azureEnvironments,
       defaultConfig,
       storageTypes,
-      credential:          null,
-      locationOptions:     [],
-      loading:             false,
-      useAvailabilitySet:  false,
-      vmSizes:             [],
-      valueCopy:           this.value,
-      managedDisksInvalid: false,
+      credential:         null,
+      locationOptions:    [],
+      loading:            false,
+      useAvailabilitySet: false,
+      vmSizes:            [],
+      valueCopy:          this.value,
 
       loadedCredentialIdFor: null
     };
@@ -248,17 +244,6 @@ export default {
         this.$emit('expandAdvanced');
       }
     },
-
-    'value.managedDisks'() {
-      this.validateManagedDisks();
-    },
-
-    machinePools: {
-      handler() {
-        this.validateManagedDisks();
-      },
-      deep: true
-    }
   },
 
   computed: {
@@ -528,27 +513,24 @@ export default {
         this.value.availabilitySet = null;
       }
     },
-    validateManagedDisks() {
-      const pools = this.machinePools.filter((p) => !p.remove);
-
-      if (pools.length <= 1) {
-        this.managedDisksInvalid = false;
-        this.$emit('validationChanged', true);
+    openManagedDisksModal() {
+      if (this.machinePools.length <= 1) {
+        this.value.managedDisks = !this.value.managedDisks;
 
         return;
       }
 
-      const baseVal = pools[0].config.managedDisks;
-
-      const mismatch = pools.some((pool) => {
-        const poolValue = pool.id === this.poolId ? this.value.managedDisks : pool.config.managedDisks;
-
-        return poolValue !== baseVal;
+      this.$shell.modal.open(
+        azureManagedDisksModal,
+        { props: { onUpdate: this.updateAllManagedDisks } }
+      );
+    },
+    updateAllManagedDisks() {
+      this.value.managedDisks = !this.value.managedDisks;
+      this.machinePools.forEach((machinePool) => {
+        machinePool.config.managedDisks = this.value.managedDisks;
       });
-
-      this.managedDisksInvalid = mismatch;
-      this.$emit('validationChanged', !mismatch);
-    }
+    },
   },
 };
 </script>
@@ -890,20 +872,16 @@ export default {
         </div>
         <div class="col span-6 inline-banner-container">
           <Checkbox
-            v-model:value="value.managedDisks"
+            :value="value.managedDisks"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.managedDisks.label')"
             :disabled="disabled"
+            @update:value="openManagedDisksModal"
           />
           <Banner
             v-if="value.availabilityZone && !value.managedDisks"
             color="error"
             :label="t('cluster.machineConfig.azure.availabilityZone.managedDisksWarning')"
-          />
-          <Banner
-            v-if="managedDisksInvalid"
-            color="error"
-            :label="t('cluster.machineConfig.azure.managedDisks.error')"
           />
         </div>
       </div>
