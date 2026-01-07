@@ -28,7 +28,6 @@ export const StatusDefinitions = {
 };
 
 export type Status = keyof typeof StatusDefinitions;
-export type StatusObject = { status: Ref<Status> };
 export type Style = 'solid' | 'outlined';
 
 export function wrapIfVar(colorVar: string) {
@@ -38,13 +37,13 @@ export function wrapIfVar(colorVar: string) {
 /**
  * A composable to make it easier to use status colors in multiple components
  *
- * @param propsWithStatus The props which contain a `status: Status` property. Ideally I'd prefer to just pass status but doing so either forces the consumer to wrap the values in a Ref or this code is no longer reactive.
+ * @param status A Ref containing the status value
  * @param style {@link Style} Will the block of code being using the solid or outlined styling
  * @returns An object containing the relevant style colors
  */
-export function useStatusColors(propsWithStatus: StatusObject, style: Style) {
+export function useStatusColors(status: Ref<Status>, style: Style) {
   const statusColors = computed(() => {
-    return StatusDefinitions[propsWithStatus.status.value];
+    return StatusDefinitions[status.value];
   });
   const isOutlined = style === 'outlined';
 
@@ -55,7 +54,7 @@ export function useStatusColors(propsWithStatus: StatusObject, style: Style) {
   });
 
   const backgroundColor = computed(() => {
-    if (propsWithStatus.status.value === 'none') {
+    if (status.value === 'none') {
       return 'none';
     }
     const colorVar = isOutlined ? statusColors.value.secondary : statusColors.value.primary;

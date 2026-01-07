@@ -22,7 +22,7 @@ const status = computed(() => {
   return 'none';
 });
 
-const { textColor } = useStatusColors({ status }, 'outlined');
+const { textColor } = useStatusColors(status, 'outlined');
 
 const color = computed(() => {
   if (props.status === undefined || props.status === 'inherit') {
