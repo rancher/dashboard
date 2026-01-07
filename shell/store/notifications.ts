@@ -288,7 +288,8 @@ const INVALID_PREFERENCE_ERROR = 'Invalid notification preference format - expec
  * @returns true if the preference is valid and conforms to NotificationPreference interface, false otherwise
  */
 function isValidPreference(preference: any): preference is NotificationPreference {
-  return preference &&
+  return preference !== null &&
+    preference !== undefined &&
     typeof preference === 'object' &&
     !Array.isArray(preference) &&
     typeof preference.key === 'string' &&
