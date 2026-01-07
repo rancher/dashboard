@@ -187,6 +187,13 @@ export default class FleetCluster extends SteveModel {
       return this.basicNorman;
     }
 
+    // Check if NORMAN.CLUSTER schema exists (it won't when MCM is disabled)
+    const normanSchema = this.$rootGetters['rancher/schemaFor'](NORMAN.CLUSTER, false, false);
+
+    if (!normanSchema) {
+      return null;
+    }
+
     // If navigate to YAML view directly, norman is not loaded yet
     return this.$dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.metadata.labels[FLEET_LABELS.CLUSTER_NAME] }, { root: true });
   }
@@ -230,9 +237,12 @@ export default class FleetCluster extends SteveModel {
 
     const norman = await this.normanClone();
 
-    norman.setLabels(parsed.metadata.labels);
-    norman.setAnnotations(parsed.metadata.annotations);
+    // Only save to norman cluster if it's available (MCM enabled)
+    if (norman) {
+      norman.setLabels(parsed.metadata.labels);
+      norman.setAnnotations(parsed.metadata.annotations);
 
-    await norman.save();
+      await norman.save();
+    }
   }
 }
