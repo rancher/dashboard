@@ -75,6 +75,7 @@ const activeSizeClassName = computed(() => {
 
 const buttonClass = computed(() => {
   return {
+    'rc-button':                 true,
     btn:                         true,
     [activeRoleClassName.value]: true,
     [activeSizeClassName.value]: !!activeSizeClassName.value,
@@ -126,7 +127,7 @@ defineExpose({ focus });
 
 <style lang="scss" scoped>
 button {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   &.role-link {
