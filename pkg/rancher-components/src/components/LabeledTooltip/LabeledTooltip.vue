@@ -111,7 +111,7 @@ export default defineComponent({
         position:  absolute;
         right: 30px;
         top: $input-padding-lg;
-        z-index: z-index(hoverOverContent);
+        z-index: 20;
      }
 
     @mixin tooltipColors($color) {
