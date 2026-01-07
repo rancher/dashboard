@@ -5,6 +5,7 @@ import {
   Notification,
   NotificationLevel,
   NotificationHandlerExtensionName,
+  NotificationPreference,
   StoredNotification
 } from '@shell/types/notifications';
 import { encrypt, decrypt, deriveKey } from '@shell/utils/crypto/encryption';
@@ -270,6 +271,18 @@ export const mutations = {
   },
 };
 
+/**
+ * Validate that a notification preference is properly formed
+ * @param preference The preference to validate
+ * @returns true if the preference is valid, false otherwise
+ */
+function isValidPreference(preference: any): preference is NotificationPreference {
+  return preference &&
+    typeof preference === 'object' &&
+    typeof preference.key === 'string' &&
+    typeof preference.value === 'string';
+}
+
 async function callNotifyHandler({ $extension }: any, notification: Notification, read: boolean) {
   if (notification?.handlerName) {
     const handler = $extension.getDynamic(NotificationHandlerExtensionName, notification.handlerName);
@@ -327,7 +340,11 @@ export const actions = {
     const notification = getters.item(id);
 
     if (notification?.preference) {
-      await dispatch('prefs/set', notification.preference, { root: true });
+      if (isValidPreference(notification.preference)) {
+        await dispatch('prefs/set', notification.preference, { root: true });
+      } else {
+        console.error('Invalid notification preference format - expected object with key and value properties', notification.preference); // eslint-disable-line no-console
+      }
     }
 
     if (notification?.handlerName) {
@@ -342,10 +359,14 @@ export const actions = {
     const notification = getters.item(id) as Notification;
 
     if (notification?.preference) {
-      await dispatch('prefs/set', {
-        key:   notification.preference.key,
-        value: notification.preference.unsetValue || '',
-      }, { root: true });
+      if (isValidPreference(notification.preference)) {
+        await dispatch('prefs/set', {
+          key:   notification.preference.key,
+          value: notification.preference.unsetValue || '',
+        }, { root: true });
+      } else {
+        console.error('Invalid notification preference format - expected object with key and value properties', notification.preference); // eslint-disable-line no-console
+      }
     }
 
     if (notification?.handlerName) {
@@ -361,7 +382,11 @@ export const actions = {
     const withPreference = getters.all.filter((n: Notification) => !!n.preference);
 
     for (let i = 0; i < withPreference.length; i++) {
-      await dispatch('prefs/set', withPreference[i].preference, { root: true });
+      if (isValidPreference(withPreference[i].preference)) {
+        await dispatch('prefs/set', withPreference[i].preference, { root: true });
+      } else {
+        console.error('Invalid notification preference format - expected object with key and value properties', withPreference[i].preference); // eslint-disable-line no-console
+      }
     }
 
     // For all notifications that have a handler, call the handler
