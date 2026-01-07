@@ -264,6 +264,104 @@ describe('backOff', () => {
     });
   });
 
+  describe('reset', () => {
+    beforeEach(beforeEachFn);
+
+    afterEach(afterEachFn);
+
+    it('should reset a specific backoff process', async() => {
+      const delayedFn = jest.fn();
+      const id = 'reset-test';
+
+      // Start a backoff process.
+      await backOff.execute({
+        id, description: 'Reset Test', delayedFn
+      });
+
+      expect(backOff.getBackOff(id)).toBeDefined();
+
+      // Reset the process.
+      backOff.reset(id);
+
+      // The entry should be deleted from the map.
+      expect(backOff.getBackOff(id)).toBeUndefined();
+
+      // Now, a new execution should not be delayed.
+      await backOff.execute({
+        id, description: 'Reset Test', delayedFn
+      });
+
+      jest.advanceTimersByTime(250);
+      await Promise.resolve();
+      expect(delayedFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('should reset all backoff processes', async() => {
+      const delayedFn1 = jest.fn();
+      const delayedFn2 = jest.fn();
+
+      await backOff.execute({
+        id: 'all-1', description: 'All 1', delayedFn: delayedFn1
+      });
+      await backOff.execute({
+        id: 'all-1', description: 'All 1', delayedFn: delayedFn1
+      });
+
+      await backOff.execute({
+        id: 'all-2', description: 'All 2', delayedFn: delayedFn2
+      });
+      await backOff.execute({
+        id: 'all-2', description: 'All 2', delayedFn: delayedFn2
+      });
+
+      expect(backOff.getBackOff('all-1')).toBeDefined();
+      expect(backOff.getBackOff('all-2')).toBeDefined();
+
+      // Reset all processes.
+      backOff.resetAll();
+
+      expect(backOff.getBackOff('all-1')).toBeUndefined();
+      expect(backOff.getBackOff('all-2')).toBeUndefined();
+    });
+
+    it('should reset only processes with a specific prefix', async() => {
+      const delayedFn = jest.fn();
+
+      await backOff.execute({
+        id: 'prefix-test-1', description: 'Prefix Test 1', delayedFn
+      });
+      await backOff.execute({
+        id: 'prefix-test-1', description: 'Prefix Test 1', delayedFn
+      });
+
+      await backOff.execute({
+        id: 'prefix-test-2', description: 'Prefix Test 2', delayedFn
+      });
+      await backOff.execute({
+        id: 'prefix-test-2', description: 'Prefix Test 2', delayedFn
+      });
+
+      await backOff.execute({
+        id: 'other-test-1', description: 'Other Test 1', delayedFn
+      });
+      await backOff.execute({
+        id: 'other-test-1', description: 'Other Test 1', delayedFn
+      });
+
+      expect(backOff.getBackOff('prefix-test-1')).toBeDefined();
+      expect(backOff.getBackOff('prefix-test-2')).toBeDefined();
+      expect(backOff.getBackOff('other-test-1')).toBeDefined();
+
+      // Reset only the "prefix-test" processes.
+      backOff.resetPrefix('prefix-test');
+
+      expect(backOff.getBackOff('prefix-test-1')).toBeUndefined();
+      expect(backOff.getBackOff('prefix-test-2')).toBeUndefined();
+      // The other process should still exist.
+      expect(backOff.getBackOff('other-test-1')).toBeDefined();
+    });
+  });
+
   describe('recurse', () => {
     beforeEach(beforeEachFn);
 
@@ -370,104 +468,6 @@ describe('backOff', () => {
 
       await expect(promise).rejects.toThrow('Skipping (canFn test failed)');
       expect(delayedFn).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('reset', () => {
-    beforeEach(beforeEachFn);
-
-    afterEach(afterEachFn);
-
-    it('should reset a specific backoff process', async() => {
-      const delayedFn = jest.fn();
-      const id = 'reset-test';
-
-      // Start a backoff process.
-      await backOff.execute({
-        id, description: 'Reset Test', delayedFn
-      });
-
-      expect(backOff.getBackOff(id)).toBeDefined();
-
-      // Reset the process.
-      backOff.reset(id);
-
-      // The entry should be deleted from the map.
-      expect(backOff.getBackOff(id)).toBeUndefined();
-
-      // Now, a new execution should not be delayed.
-      await backOff.execute({
-        id, description: 'Reset Test', delayedFn
-      });
-
-      jest.advanceTimersByTime(250);
-      await Promise.resolve();
-      expect(delayedFn).toHaveBeenCalledTimes(1);
-    });
-
-    it('should reset all backoff processes', async() => {
-      const delayedFn1 = jest.fn();
-      const delayedFn2 = jest.fn();
-
-      await backOff.execute({
-        id: 'all-1', description: 'All 1', delayedFn: delayedFn1
-      });
-      await backOff.execute({
-        id: 'all-1', description: 'All 1', delayedFn: delayedFn1
-      });
-
-      await backOff.execute({
-        id: 'all-2', description: 'All 2', delayedFn: delayedFn2
-      });
-      await backOff.execute({
-        id: 'all-2', description: 'All 2', delayedFn: delayedFn2
-      });
-
-      expect(backOff.getBackOff('all-1')).toBeDefined();
-      expect(backOff.getBackOff('all-2')).toBeDefined();
-
-      // Reset all processes.
-      backOff.resetAll();
-
-      expect(backOff.getBackOff('all-1')).toBeUndefined();
-      expect(backOff.getBackOff('all-2')).toBeUndefined();
-    });
-
-    it('should reset only processes with a specific prefix', async() => {
-      const delayedFn = jest.fn();
-
-      await backOff.execute({
-        id: 'prefix-test-1', description: 'Prefix Test 1', delayedFn
-      });
-      await backOff.execute({
-        id: 'prefix-test-1', description: 'Prefix Test 1', delayedFn
-      });
-
-      await backOff.execute({
-        id: 'prefix-test-2', description: 'Prefix Test 2', delayedFn
-      });
-      await backOff.execute({
-        id: 'prefix-test-2', description: 'Prefix Test 2', delayedFn
-      });
-
-      await backOff.execute({
-        id: 'other-test-1', description: 'Other Test 1', delayedFn
-      });
-      await backOff.execute({
-        id: 'other-test-1', description: 'Other Test 1', delayedFn
-      });
-
-      expect(backOff.getBackOff('prefix-test-1')).toBeDefined();
-      expect(backOff.getBackOff('prefix-test-2')).toBeDefined();
-      expect(backOff.getBackOff('other-test-1')).toBeDefined();
-
-      // Reset only the "prefix-test" processes.
-      backOff.resetPrefix('prefix-test');
-
-      expect(backOff.getBackOff('prefix-test-1')).toBeUndefined();
-      expect(backOff.getBackOff('prefix-test-2')).toBeUndefined();
-      // The other process should still exist.
-      expect(backOff.getBackOff('other-test-1')).toBeDefined();
     });
   });
 });

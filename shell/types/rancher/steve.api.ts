@@ -38,7 +38,3 @@ export interface SteveGetResponse extends KubeGetResponse {
 }
 
 export type RancherKubeMetadata = KubeMetadata
-
-// TODO: RC PR description - Whilst a backoff is running cancel the requirement (on pods list navigate away whilst backoff is running, it should not push result to store)
-
-// TODO: RC unit tests?!
