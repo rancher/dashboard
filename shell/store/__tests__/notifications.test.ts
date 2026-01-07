@@ -1,14 +1,10 @@
-import { actions, mutations, getters, state } from '../notifications';
+import { actions, state } from '../notifications';
 import { NotificationLevel } from '@shell/types/notifications';
 
 // Mock the crypto functions
-jest.mock('@shell/utils/crypto', () => ({
-  md5: jest.fn(() => 'mocked-hash'),
-}));
+jest.mock('@shell/utils/crypto', () => ({ md5: jest.fn(() => 'mocked-hash') }));
 
-jest.mock('@shell/utils/string', () => ({
-  randomStr: jest.fn(() => 'random-id'),
-}));
+jest.mock('@shell/utils/string', () => ({ randomStr: jest.fn(() => 'random-id') }));
 
 jest.mock('@shell/utils/crypto/encryption', () => ({
   encrypt:   jest.fn(() => Promise.resolve({ encryptedData: 'test' })),
@@ -21,16 +17,20 @@ const localStorageMock = (() => {
   let store: Record<string, string> = {};
 
   return {
-    getItem:    (key: string) => store[key] || null,
-    setItem:    (key: string, value: string) => { store[key] = value.toString(); },
-    removeItem: (key: string) => { delete store[key]; },
-    clear:      () => { store = {}; }
+    getItem: (key: string) => store[key] || null,
+    setItem: (key: string, value: string) => {
+      store[key] = value.toString();
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      store = {};
+    }
   };
 })();
 
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
-});
+Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
 // Mock BroadcastChannel
 class BroadcastChannelMock {
@@ -55,9 +55,7 @@ describe('store: notifications - markRead with malformed preference', () => {
     mockCommit = jest.fn();
     mockDispatch = jest.fn();
 
-    mockExtension = {
-      getDynamic: jest.fn(),
-    };
+    mockExtension = { getDynamic: jest.fn() };
 
     window.localStorage.clear();
   });
@@ -86,9 +84,9 @@ describe('store: notifications - markRead with malformed preference', () => {
       };
 
       const context = {
-        commit:  mockCommit,
-        dispatch: mockDispatch,
-        getters: mockGetters,
+        commit:     mockCommit,
+        dispatch:   mockDispatch,
+        getters:    mockGetters,
         $extension: mockExtension
       };
 
@@ -119,9 +117,9 @@ describe('store: notifications - markRead with malformed preference', () => {
       };
 
       const context = {
-        commit:  mockCommit,
-        dispatch: mockDispatch,
-        getters: mockGetters,
+        commit:     mockCommit,
+        dispatch:   mockDispatch,
+        getters:    mockGetters,
         $extension: mockExtension
       };
 
@@ -160,9 +158,9 @@ describe('store: notifications - markRead with malformed preference', () => {
       };
 
       const context = {
-        commit:  mockCommit,
-        dispatch: mockDispatch,
-        getters: mockGetters,
+        commit:     mockCommit,
+        dispatch:   mockDispatch,
+        getters:    mockGetters,
         $extension: mockExtension
       };
 
@@ -170,7 +168,10 @@ describe('store: notifications - markRead with malformed preference', () => {
 
       expect(mockCommit).toHaveBeenCalledWith('markRead', notificationId);
       expect(mockDispatch).not.toHaveBeenCalledWith('prefs/set', expect.anything(), { root: true });
-      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Invalid notification preference format - expected object with key and value properties',
+        malformedPreference
+      );
 
       consoleErrorSpy.mockRestore();
     });
@@ -200,9 +201,9 @@ describe('store: notifications - markRead with malformed preference', () => {
       };
 
       const context = {
-        commit:  mockCommit,
-        dispatch: mockDispatch,
-        getters: mockGetters,
+        commit:     mockCommit,
+        dispatch:   mockDispatch,
+        getters:    mockGetters,
         $extension: mockExtension
       };
 
@@ -235,9 +236,9 @@ describe('store: notifications - markRead with malformed preference', () => {
       };
 
       const context = {
-        commit:  mockCommit,
-        dispatch: mockDispatch,
-        getters: mockGetters,
+        commit:     mockCommit,
+        dispatch:   mockDispatch,
+        getters:    mockGetters,
         $extension: mockExtension
       };
 
@@ -245,7 +246,10 @@ describe('store: notifications - markRead with malformed preference', () => {
 
       expect(mockCommit).toHaveBeenCalledWith('markUnread', notificationId);
       expect(mockDispatch).not.toHaveBeenCalledWith('prefs/set', expect.anything(), { root: true });
-      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Invalid notification preference format - expected object with key and value properties',
+        malformedPreference
+      );
 
       consoleErrorSpy.mockRestore();
     });
@@ -287,9 +291,9 @@ describe('store: notifications - markRead with malformed preference', () => {
       };
 
       const context = {
-        commit:  mockCommit,
-        dispatch: mockDispatch,
-        getters: mockGetters,
+        commit:     mockCommit,
+        dispatch:   mockDispatch,
+        getters:    mockGetters,
         $extension: mockExtension
       };
 
@@ -333,9 +337,9 @@ describe('store: notifications - markRead with malformed preference', () => {
       };
 
       const context = {
-        commit:  mockCommit,
-        dispatch: mockDispatch,
-        getters: mockGetters,
+        commit:     mockCommit,
+        dispatch:   mockDispatch,
+        getters:    mockGetters,
         $extension: mockExtension
       };
 
@@ -345,7 +349,10 @@ describe('store: notifications - markRead with malformed preference', () => {
       // Should only call prefs/set for the valid preference
       expect(mockDispatch).toHaveBeenCalledWith('prefs/set', validPreference, { root: true });
       expect(mockDispatch).toHaveBeenCalledTimes(1);
-      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Invalid notification preference format - expected object with key and value properties',
+        malformedPreference
+      );
 
       consoleErrorSpy.mockRestore();
     });
