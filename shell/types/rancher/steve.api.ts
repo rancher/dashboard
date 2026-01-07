@@ -1,9 +1,9 @@
 import { KubeGetResponse, KubeMetadata } from '@shell/types/kube/kube-api';
 
 /**
- * Collection of string based values returned vis Steve API 'code' field
+ * Collection of string based values used by the Steve API response's `code` field
  */
-export const STEVE_HTTP_CODES = {
+export const STEVE_RESPONSE_CODE = {
   /**
    * When the query param `revision` is sent and it's not in the vai cache then return this error
    */

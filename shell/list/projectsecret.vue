@@ -10,12 +10,12 @@ import { TableColumn } from '@shell/types/store/type-map';
 import { mapGetters } from 'vuex';
 import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
 import { DEFAULT_PROJECT, SYSTEM_PROJECT, UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
+import { RancherKubeMetadata } from '@shell/types/rancher/steve.api';
 import {
   AGE, SECRET_DATA, STATE, SUB_TYPE, NAME as NAME_COL,
 } from '@shell/config/table-headers';
 import { STEVE_AGE_COL, STEVE_NAME_COL, STEVE_STATE_COL } from '@shell/config/pagination-table-headers';
 import { escapeHtml } from '@shell/utils/string';
-import { RancherKubeMetadata } from '@shell/types/rancher/steve.api';
 
 const findSystemDefaultProjects = (projects: any[], currentClusterId: string): { systemProject?: any, defaultProject?: any } => {
   let systemProject;

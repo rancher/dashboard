@@ -117,7 +117,7 @@ import paginationUtils from '@shell/utils/pagination-utils';
 import backOff from '@shell/utils/back-off';
 import { SteveWatchEventListenerManager } from '@shell/plugins/subscribe-events';
 import { SteveRevision } from '@shell/plugins/steve/revision';
-import { STEVE_HTTP_CODES } from '@shell/types/rancher/steve.api';
+import { STEVE_RESPONSE_CODE } from '@shell/types/rancher/steve.api';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
@@ -861,7 +861,6 @@ const defaultActions = {
    * Helper function used by fetchResources
    *
    * Integrates the concept of 'back-off' to reduce spam, overwrite stale old requests, etc
-   *
    */
   async fetchPageResources({ getters, dispatch }, {
     opt, storePagination, params, backOffId
@@ -929,7 +928,7 @@ const defaultActions = {
         },
         continueOnError: async(err) => {
           // Have we made a request to a stale replica that does not know about the required revision? If so continue to try until we hit a ripe replica
-          return err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION;
+          return err?.status === 400 && err?.code === STEVE_RESPONSE_CODE.UNKNOWN_REVISION;
         },
         delayedFn: async() => {
           return await dispatch('findPage', {

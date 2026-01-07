@@ -1,13 +1,13 @@
 import paginationUtils from '@shell/utils/pagination-utils';
 import { PaginationArgs, PaginationResourceContext } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
-import { ActionFindPageArgs, ActionFindPageTransientResponse, ActionFindPageTransientResult } from '@shell/types/store/dashboard-store.types';
+import { ActionFindPageArgs, ActionFindPageTransientResponse } from '@shell/types/store/dashboard-store.types';
 import { STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import { Reactive, reactive } from 'vue';
 import { STEVE_UNWATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_WATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_PARAMS_COMMON } from '@shell/types/store/subscribe-events.types';
 import backOff from '@shell/utils/back-off';
 import { SteveRevision } from '@shell/plugins/steve/revision';
-import { STEVE_HTTP_CODES } from '@shell/types/rancher/steve.api';
+import { STEVE_RESPONSE_CODE } from '@shell/types/rancher/steve.api';
 
 interface Args {
   $store: VuexStore,
@@ -33,7 +33,7 @@ interface Args {
   }
 }
 
-interface Result<T> extends Omit<ActionFindPageTransientResult<T>, 'data'> {
+interface Result<T> extends Omit<ActionFindPageTransientResponse<T>, 'data'> {
   data: Reactive<T[]> | T[]
 }
 
@@ -146,13 +146,13 @@ class PaginationWrapper<T extends object> {
     }
 
     // Keep making requests until we make one that succeeds, fails with unknown revision or we run out of retries
-    const out = await backOff.recurse<any, ActionFindPageTransientResult<T>>({
+    const out = await backOff.recurse<any, ActionFindPageTransientResponse<T>>({
       id:              backOffId,
       metadata:        { revision },
       description:     `Fetching resources for ${ this.enabledFor.resource?.id } (wrapper). Initial request, or triggered by web socket`,
       continueOnError: async(err) => {
         // Have we made a request to a stale replica that does not know about the required revision? If so continue to try until we hit a ripe replica
-        return err?.status === 400 && err?.code === STEVE_HTTP_CODES.UNKNOWN_REVISION;
+        return err?.status === 400 && err?.code === STEVE_RESPONSE_CODE.UNKNOWN_REVISION;
       },
       delayedFn: async() => {
         const res: ActionFindPageTransientResponse = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
