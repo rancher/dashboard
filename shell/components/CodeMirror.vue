@@ -42,6 +42,7 @@ export default {
       hasLintErrors:          false,
       currFocusedElem:        undefined,
       isCodeMirrorFocused:    false,
+      lastValue:              '',
       codeMirrorContainerRef: undefined
     };
   },
@@ -214,15 +215,26 @@ export default {
       this.$nextTick(() => {
         codeMirrorRef.refresh();
         this.codeMirrorRef = codeMirrorRef;
+        this.lastValue = this.value;
       });
       this.$emit('onReady', codeMirrorRef);
     },
 
-    onInput(newCode) {
-      if (typeof newCode === 'string' && newCode.trim() === '') {
-        newCode = '';
+    onInput() {
+      if (!this.codeMirrorRef) return;
+
+      const actualValue = this.codeMirrorRef.getValue();
+
+      if (this.lastValue.length > actualValue.length && actualValue === ' ') {
+        this.codeMirrorRef.setValue('');
+        this.lastValue = '';
+        this.$emit('onInput', '');
+
+        return;
       }
-      this.$emit('onInput', newCode);
+
+      this.lastValue = actualValue;
+      this.$emit('onInput', actualValue);
     },
 
     onChanges(codeMirrorRef, changes) {
