@@ -1231,7 +1231,7 @@ const defaultActions = {
 
     if (havePage) {
       console.warn(`Prevented watch \`resource.change\` data from polluting the cache for type "${ type }" (currently represents a page). To prevent any further issues the watch has been stopped.`, data); // eslint-disable-line no-console
-      ctx.dispatch('unwatch', data);
+      ctx.dispatch('unwatch', msg);
 
       return;
     }
