@@ -31,6 +31,10 @@ const fetch = useFetch(async() => {
   return r;
 });
 
+const stateBackground = computed(() => {
+  return fetch.value.data?.stateSimpleColor || 'unknown';
+});
+
 const resourceTypeLabel = computed(() => {
   if (!fetch.value.data) {
     return '';
@@ -67,7 +71,7 @@ const actionInvoked = () => {
       >
         <RcStatusIndicator
           shape="disc"
-          :status="fetch.data?.stateBackground || 'unknown'"
+          :status="stateBackground"
         />
         <router-link
           :to="props.detailLocation || fetch.data.detailLocation || '#'"
