@@ -1880,7 +1880,7 @@ cluster:
         label: Use Managed Disks
         modal:
           header: Update all machine pools? 
-          body:  Azure does not allow mixing managed and unmanaged disks. Update all pools specify the same value for managed disks. 
+          body: Azure does not allow mixing managed and unmanaged disks. Do you want to update all machine pools to use the new setting?
       managedDisksSize:
         label: Managed Disk Size
       nsg:
