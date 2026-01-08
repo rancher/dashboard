@@ -18,6 +18,9 @@ class CspAdapterUtils {
   }
 
   private static apps?: any[] = undefined;
+  public static resetState() {
+    this.apps = undefined;
+  }
 
   static async fetchCspAdaptorApp($store: VuexStore): Promise<any> {
     if (this.apps) {
