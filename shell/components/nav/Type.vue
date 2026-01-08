@@ -3,6 +3,7 @@ import Favorite from '@shell/components/nav/Favorite';
 import { TYPE_MODES } from '@shell/store/type-map';
 
 import TabTitle from '@shell/components/TabTitle';
+import { filterLocationValidParams } from '@shell/utils/router';
 
 const showFavoritesFor = [TYPE_MODES.FAVORITE, TYPE_MODES.USED];
 
@@ -62,7 +63,7 @@ export default {
     },
 
     isActive() {
-      const typeFullPath = this.$router.resolve(this.type.route)?.fullPath.toLowerCase();
+      const typeFullPath = this.$router.resolve(this.typeRoute)?.fullPath.toLowerCase();
       const pageFullPath = this.$route.fullPath?.toLowerCase().split('#')[0]; // Ignore the shebang when comparing routes
       const routeMetaNav = this.$route.meta?.nav;
 
@@ -93,6 +94,10 @@ export default {
       }
 
       return typeFullPath === pageFullPath;
+    },
+
+    typeRoute() {
+      return filterLocationValidParams(this.$router, this.type.route);
     }
 
   },
@@ -105,7 +110,8 @@ export default {
     selectType() {
       // Prevent issues if custom NavLink is used #5047
       if (this.type?.route) {
-        const typePath = this.$router.resolve(this.type.route)?.fullPath;
+        const validRoute = filterLocationValidParams(this.$router, this.type.route);
+        const typePath = this.$router.resolve(validRoute)?.fullPath;
 
         if (typePath !== this.$route.fullPath) {
           this.$emit('selected');
@@ -122,7 +128,7 @@ export default {
     :key="type.name"
     v-slot="{ href, navigate,isExactActive }"
     custom
-    :to="type.route"
+    :to="typeRoute"
   >
     <li
       class="child nav-type"
