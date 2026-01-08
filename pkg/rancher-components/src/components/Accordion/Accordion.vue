@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, inject } from 'vue';
 import { mapGetters } from 'vuex';
 
 export default defineComponent({
@@ -23,7 +23,10 @@ export default defineComponent({
   },
 
   data() {
-    return { isOpen: this.openInitially };
+    return {
+      isOpen:    this.openInitially,
+      updateToc: inject('updateToc') as Function
+    };
   },
 
   computed: {
@@ -33,7 +36,19 @@ export default defineComponent({
       const title = this.titleKey ? this.t(this.titleKey) : this.title;
 
       return title.replace(' ', '-').toLowerCase() + '-accordion';
-    }
+    },
+
+    displayTitle() {
+      return this.titleKey ? this.t(this.titleKey) : this.title;
+    },
+  },
+
+  mounted() {
+    this.updateToc();
+  },
+
+  beforeUnmount() {
+    this.updateToc();
   },
 
   methods: {
@@ -64,7 +79,7 @@ export default defineComponent({
           data-testid="accordion-title-slot-content"
           class="mb-0"
         >
-          {{ titleKey ? t(titleKey) : title }}
+          {{ displayTitle }}
         </h2>
       </slot>
     </div>
@@ -80,7 +95,8 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .accordion-container {
-  border: 1px solid var(--border)
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
 }
 .accordion-header {
   padding: 16px 16px 16px 11px;

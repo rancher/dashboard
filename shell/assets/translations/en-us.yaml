@@ -2719,6 +2719,8 @@ cruResource:
   reviewYaml: "Keep editing YAML"
   previewYaml: Edit as YAML
   showYaml: View as YAML
+  tableOfContents:
+    jumpTo: Jump to...
 
 providers:
   hosted: 

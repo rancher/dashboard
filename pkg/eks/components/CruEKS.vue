@@ -631,6 +631,7 @@ export default defineComponent({
     :done-route="doneRoute"
     :errors="fvUnreportedValidationErrors"
     :validation-passed="fvFormIsValid"
+    :show-toc="!!config.amazonCredentialSecret"
     @error="e=>errors=e"
     @finish="save"
     @cancel="done"

@@ -17,6 +17,8 @@ import {
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import Wizard from '@shell/components/Wizard';
 
+import { provide } from 'vue';
+
 export const CONTEXT_HOOK_EDIT_YAML = 'show-preview-yaml';
 
 export default {
@@ -276,12 +278,15 @@ export default {
         }
       }), {});
     },
+
   },
 
   created() {
     if ( this._selectedSubtype ) {
       this.$emit('select-type', this._selectedSubtype);
     }
+
+    provide('updateToc', this.updateToc);
   },
 
   mounted() {
@@ -294,6 +299,14 @@ export default {
 
   methods: {
     stringify,
+    // tell the table of contents component to re-fetch accordions
+    updateToc() {
+      const toc = this.$refs.toc;
+
+      if (toc && !isEmpty(toc)) {
+        toc.debouncedFindAccordions();
+      }
+    },
 
     confirmCancel(isCancelNotBack = true) {
       if (isCancelNotBack) {
@@ -770,13 +783,26 @@ export default {
       </template>
       <!------ SINGLE PROCESS ------>
       <template v-else-if="showAsForm">
-        <TableOfContents v-if="showToc" />
         <div
           v-if="_selectedSubtype || !subtypes.length"
-          class="resource-container cru__content"
+          class="cru__content_toc_container resource-container"
+          :class="{'show-toc':showToc}"
           :style="[minHeight ? { 'min-height': minHeight } : {}]"
         >
-          <slot />
+          <!-- <div
+            class="resource-container cru__content"
+            :style="[minHeight ? { 'min-height': minHeight } : {}]"
+          > -->
+          <div
+            class="cru__content"
+          >
+            <slot />
+          </div>
+          <TableOfContents
+            v-if="showToc"
+            ref="toc"
+            class="cru__toc"
+          />
         </div>
         <slot name="form-footer">
           <CruResourceFooter
@@ -991,7 +1017,26 @@ form.create-resource-container .cru {
     flex-grow: 1;
   }
 
+  &__content_toc_container {
+    flex-grow: 1;
+  }
+
+  &__content_toc_container.show-toc {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+  }
+
+  &__toc {
+    width: 250px;
+    margin-left: 24px;
+    min-width: 250px;
+    max-width: 250px;
+  }
+
   &__content {
+    display: flex;
+    flex-direction: column;
     flex-grow: 1;
     &-wizard {
       display: flex;
