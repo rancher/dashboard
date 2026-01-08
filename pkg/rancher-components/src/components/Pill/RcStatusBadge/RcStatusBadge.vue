@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { RcStatusBadgeProps } from './types';
 import { useStatusColors } from '@components/utils/status';
 
 const props = defineProps<RcStatusBadgeProps>();
 
-const { backgroundColor, borderColor, textColor } = useStatusColors(props, 'outlined');
+const status = computed(() => props.status);
+const { backgroundColor, borderColor, textColor } = useStatusColors(status, 'outlined');
 </script>
 
 <template>
