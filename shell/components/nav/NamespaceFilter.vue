@@ -841,6 +841,7 @@ export default {
             tabindex="0"
             class="ns-filter-input"
             :aria-label="t('namespaceFilter.input')"
+            @mousedown.stop
             @click="focusFilter"
             @keydown="inputKeyHandler($event)"
           >
