@@ -67,6 +67,11 @@ export default {
       default: '*'
     },
 
+    allowedFileTypes: {
+      type:    Array,
+      default: null
+    },
+
     class: {
       type:    [String, Array],
       default: () => [],
@@ -91,6 +96,19 @@ export default {
       this.$refs.uploader.click();
     },
 
+    isFileTypeAllowed(file) {
+      // If no allowed types specified, allow all files
+      if (!this.allowedFileTypes || this.allowedFileTypes.length === 0) {
+        return true;
+      }
+
+      // Check if file type matches any of the allowed types
+      return this.allowedFileTypes.some((allowedType) => {
+        // Support both exact match and prefix match (e.g., 'text/' matches 'text/plain')
+        return file.type === allowedType || file.type.startsWith(allowedType);
+      });
+    },
+
     async fileChange(event) {
       const input = event.target;
       const files = Array.from(input.files || []);
@@ -99,6 +117,26 @@ export default {
         for (const file of files) {
           if (file.size > this.byteLimit) {
             this.$emit('error', `${ file.name } exceeds the file size limit of ${ this.byteLimit } bytes`);
+            // Clear the input so the user can try again
+            input.value = null;
+
+            return;
+          }
+        }
+      }
+
+      // Check file types if allowed types are specified
+      if (this.allowedFileTypes && this.allowedFileTypes.length > 0) {
+        for (const file of files) {
+          if (!this.isFileTypeAllowed(file)) {
+            const errorMsg = `${ file.name } is not an allowed file type. Please select a file with one of the following types: ${ this.allowedFileTypes.join(', ') }`;
+
+            this.$emit('error', errorMsg);
+            if (this.showGrowlError) {
+              this.$store.dispatch('growl/fromError', { title: 'Invalid file type', error: new Error(errorMsg) }, { root: true });
+            }
+            // Clear the input so the user can try again
+            input.value = null;
 
             return;
           }
