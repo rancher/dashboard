@@ -2,6 +2,7 @@ import { shallowMount, VueWrapper } from '@vue/test-utils';
 import MoveNamespaceDialog from '@shell/dialog/MoveNamespaceDialog.vue';
 
 const t = (key: string): string => key;
+const NONE_VALUE = ' ';
 
 describe('component: MoveNamespaceDialog', () => {
   let wrapper: VueWrapper<any>;
@@ -78,7 +79,7 @@ describe('component: MoveNamespaceDialog', () => {
       const options = wrapper.vm.projectOptions;
 
       expect(options[0]).toStrictEqual({
-        value: '',
+        value: NONE_VALUE,
         label: 'moveModal.noProject'
       });
     });
@@ -119,20 +120,45 @@ describe('component: MoveNamespaceDialog', () => {
       expect(projectValues).not.toContain('p-abc123');
       expect(projectValues).toContain('p-def456');
     });
+
+    it('should NOT include "None" option when some namespaces are not in a project', async() => {
+      const namespaceInProject = createMockNamespace('p-abc123');
+      const namespaceNotInProject = createMockNamespace(null);
+
+      wrapper = mountComponent({ resources: [namespaceInProject, namespaceNotInProject] });
+      await wrapper.vm.$options.fetch.call(wrapper.vm);
+
+      const options = wrapper.vm.projectOptions;
+      const optionValues = options.map((o: any) => o.value);
+
+      expect(optionValues).not.toContain(NONE_VALUE);
+    });
+
+    it('should NOT include "None" option when no namespaces are in a project', async() => {
+      const namespace = createMockNamespace(null);
+
+      wrapper = mountComponent({ resources: [namespace] });
+      await wrapper.vm.$options.fetch.call(wrapper.vm);
+
+      const options = wrapper.vm.projectOptions;
+      const optionValues = options.map((o: any) => o.value);
+
+      expect(optionValues).not.toContain(NONE_VALUE);
+    });
   });
 
   describe('targetProject default value', () => {
     it('should default to empty string (None option)', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.vm.targetProject).toBe('');
+      expect(wrapper.vm.targetProject).toBeNull();
     });
   });
 
   describe('move button disabled state', () => {
-    it('should be enabled when targetProject is empty string (None)', () => {
+    it('should be enabled when targetProject is NONE_VALUE (None)', () => {
       wrapper = mountComponent();
-      wrapper.vm.targetProject = '';
+      wrapper.vm.targetProject = NONE_VALUE;
 
       // The button should be enabled when targetProject !== null
       expect(wrapper.vm.targetProject === null).toBe(false);
@@ -147,13 +173,13 @@ describe('component: MoveNamespaceDialog', () => {
   });
 
   describe('move method', () => {
-    it('should clear labels and annotations when targetProject is empty (None)', async() => {
+    it('should clear labels and annotations when targetProject is NONE_VALUE (None)', async() => {
       const namespace = createMockNamespace('p-abc123');
 
       wrapper = mountComponent({ resources: [namespace] });
       await wrapper.vm.$options.fetch.call(wrapper.vm);
 
-      wrapper.vm.targetProject = '';
+      wrapper.vm.targetProject = NONE_VALUE;
 
       const finish = jest.fn();
 
@@ -190,7 +216,7 @@ describe('component: MoveNamespaceDialog', () => {
       wrapper = mountComponent({ resources: [namespace1, namespace2] });
       await wrapper.vm.$options.fetch.call(wrapper.vm);
 
-      wrapper.vm.targetProject = '';
+      wrapper.vm.targetProject = NONE_VALUE;
 
       const finish = jest.fn();
 
@@ -211,7 +237,7 @@ describe('component: MoveNamespaceDialog', () => {
       wrapper = mountComponent({ resources: [namespace] });
       await wrapper.vm.$options.fetch.call(wrapper.vm);
 
-      wrapper.vm.targetProject = '';
+      wrapper.vm.targetProject = NONE_VALUE;
 
       const finish = jest.fn();
 

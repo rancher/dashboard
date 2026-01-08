@@ -6,6 +6,8 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { MANAGEMENT } from '@shell/config/types';
 import { PROJECT } from '@shell/config/labels-annotations';
 
+const NONE_VALUE = ' ';
+
 export default {
   emits: ['close'],
 
@@ -37,7 +39,7 @@ export default {
     return {
       projects:      [],
       toMove:        [],
-      targetProject: ''
+      targetProject: null
     };
   },
 
@@ -46,6 +48,10 @@ export default {
 
     excludedProjects() {
       return this.toMove.filter((namespace) => !!namespace.project).map((namespace) => namespace.project.shortId);
+    },
+
+    isAllInProject() {
+      return this.toMove.every((namespace) => !!namespace.project);
     },
 
     projectOptions() {
@@ -60,11 +66,13 @@ export default {
         return inCluster;
       }, []);
 
-      // Add "None" option to allow removing namespace from project
-      options.unshift({
-        value: '',
-        label: this.t('moveModal.noProject')
-      });
+      // To be consistent with listed projects we should only provide the option if it applies too all of the namespaces
+      if (this.isAllInProject) {
+        options.unshift({
+          value: NONE_VALUE,
+          label: this.t('moveModal.noProject')
+        });
+      }
 
       return options;
     }
@@ -77,10 +85,10 @@ export default {
 
     async move(finish) {
       const cluster = this.$store.getters['currentCluster'];
-      const clusterWithProjectId = this.targetProject ? `${ cluster.id }:${ this.targetProject }` : null;
+      const clusterWithProjectId = this.targetProject && this.targetProject !== NONE_VALUE ? `${ cluster.id }:${ this.targetProject }` : null;
 
       const promises = this.toMove.map((namespace) => {
-        namespace.setLabel(PROJECT, this.targetProject || null);
+        namespace.setLabel(PROJECT, this.targetProject && this.targetProject !== NONE_VALUE ? this.targetProject : null);
         namespace.setAnnotation(PROJECT, clusterWithProjectId);
 
         return namespace.save();

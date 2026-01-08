@@ -4620,7 +4620,7 @@ moveModal:
   description: 'You are moving the following namespaces:'
   moveButtonLabel: Move
   targetProject: Target Project
-  noProject: None (remove from project)
+  noProject: None (remove from any project)
 
 nameNsDescription:
   name:
