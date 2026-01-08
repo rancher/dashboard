@@ -644,8 +644,8 @@ export default defineComponent({
   </CruResource>
 </template>
 
-<style lang="scss" scoped>
+<!-- <style lang="scss" scoped>
     .accordion {
         border-radius: 16px;
     }
-</style>
+</style> -->
