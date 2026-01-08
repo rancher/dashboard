@@ -1,6 +1,7 @@
 // For testing these could be changed to something like...
 
 import { CATALOG } from '@shell/config/types';
+import { ActionFindPageArgs, ActionFindPageResponse, ActionFindPageTransientResponse } from '@shell/types/store/dashboard-store.types';
 import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
 
@@ -16,27 +17,41 @@ class CspAdapterUtils {
     return $store.getters[`management/paginationEnabled`]({ id: CATALOG.APP, context: 'branding' });
   }
 
-  static fetchCspAdaptorApp($store: VuexStore): Promise<any> {
+  private static apps?: any[] = undefined;
+
+  static async fetchCspAdaptorApp($store: VuexStore): Promise<any> {
+    if (this.apps) {
+      return this.apps;
+    }
+
     // For the login page, the schemas won't be loaded - we don't need the apps in this case
     if ($store.getters['management/canList'](CATALOG.APP)) {
       if (CspAdapterUtils.canPagination($store)) {
         // Restrict the amount of apps we need to fetch
-        return $store.dispatch('management/findPage', {
+        const opt: ActionFindPageArgs = {
+          pagination: new FilterArgs({
+            filters: PaginationParamFilter.createMultipleFields(CSP_ADAPTER_APPS.map(
+              (t) => new PaginationFilterField({
+                field: 'metadata.name',
+                value: t,
+              })
+            )),
+          }),
+          watch:     false,
+          transient: true
+        };
+
+        const resp: ActionFindPageTransientResponse = await $store.dispatch('management/findPage', {
           type: CATALOG.APP,
-          opt:  { // Of type ActionFindPageArgs
-            pagination: new FilterArgs({
-              filters: PaginationParamFilter.createMultipleFields(CSP_ADAPTER_APPS.map(
-                (t) => new PaginationFilterField({
-                  field: 'metadata.name',
-                  value: t,
-                })
-              )),
-            })
-          }
+          opt
         });
+
+        this.apps = resp.data;
+      } else {
+        this.apps = await $store.dispatch('management/findAll', { type: CATALOG.APP });
       }
 
-      return $store.dispatch('management/findAll', { type: CATALOG.APP });
+      return this.apps;
     }
 
     return Promise.resolve([]);

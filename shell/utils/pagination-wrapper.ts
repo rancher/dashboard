@@ -1,7 +1,7 @@
 import paginationUtils from '@shell/utils/pagination-utils';
 import { PaginationArgs, PaginationResourceContext } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
-import { ActionFindPageArgs, ActionFindPageTransientResult } from '@shell/types/store/dashboard-store.types';
+import { ActionFindPageArgs, ActionFindPageTransientResponse } from '@shell/types/store/dashboard-store.types';
 import { STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import { Reactive, reactive } from 'vue';
 import { STEVE_UNWATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_WATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_PARAMS_COMMON } from '@shell/types/store/subscribe-events.types';
@@ -30,7 +30,7 @@ interface Args {
   }
 }
 
-interface Result<T> extends Omit<ActionFindPageTransientResult<T>, 'data'> {
+interface Result<T> extends Omit<ActionFindPageTransientResponse<T>, 'data'> {
   data: Reactive<T[]>
 }
 
@@ -86,7 +86,7 @@ class PaginationWrapper<T extends object> {
     };
 
     // Fetch
-    const out: ActionFindPageTransientResult<T> = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
+    const out: ActionFindPageTransientResponse<T> = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
 
     // Watch
     const firstTime = !this.steveWatchParams;
