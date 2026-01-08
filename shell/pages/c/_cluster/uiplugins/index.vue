@@ -703,6 +703,44 @@ export default {
       });
     },
 
+    handleMenuAction(payload) {
+      switch (payload?.action) {
+      case 'devLoad':
+        this.showDeveloperLoadDialog();
+        break;
+      case 'manageRepos':
+        this.manageRepos();
+        break;
+      case 'addRancherRepos':
+        this.showAddExtensionReposDialog();
+        break;
+      case 'manageExtensionView':
+        this.manageExtensionView();
+        break;
+      default:
+        console.warn(`Unknown menu action: ${ payload?.action }`); // eslint-disable-line no-console
+      }
+    },
+
+    handlePluginCardAction(payload, card) {
+      switch (payload?.action) {
+      case 'uninstall':
+        this.showUninstallDialog(card.plugin, payload.event);
+        break;
+      case 'upgrade':
+        this.showInstallDialog(card.plugin, 'upgrade', payload.event);
+        break;
+      case 'downgrade':
+        this.showInstallDialog(card.plugin, 'downgrade', payload.event);
+        break;
+      case 'install':
+        this.showInstallDialog(card.plugin, 'install', payload.event);
+        break;
+      default:
+        console.warn(`Unknown plugin card action: ${ payload?.action }`); // eslint-disable-line no-console
+      }
+    },
+
     updateAddReposSetting() {
       // because of https://github.com/rancher/rancher/pull/45894 we need to consider other start values
       if (this.addExtensionReposBannerSetting?.value === 'true' || this.addExtensionReposBannerSetting?.value === '' || this.addExtensionReposBannerSetting?.value === undefined) {
@@ -920,10 +958,7 @@ export default {
             button-role="tertiary"
             :button-aria-label="t('plugins.labels.menu')"
             :custom-actions="menuActions"
-            @devLoad="showDeveloperLoadDialog"
-            @manageRepos="manageRepos"
-            @addRancherRepos="showAddExtensionReposDialog"
-            @manageExtensionView="manageExtensionView"
+            @action-invoked="handleMenuAction"
           />
         </div>
       </div>
@@ -1037,10 +1072,7 @@ export default {
             :actions="card.actions"
             :clickable="true"
             @card-click="showPluginDetail(card.plugin)"
-            @uninstall="({event}) => showUninstallDialog(card.plugin, event)"
-            @upgrade="({event}) => showInstallDialog(card.plugin, 'upgrade', event)"
-            @downgrade="({event}) => showInstallDialog(card.plugin, 'downgrade', event)"
-            @install="({event}) => showInstallDialog(card.plugin, 'install', event)"
+            @action-invoked="(payload) => handlePluginCardAction(payload, card)"
           >
             <template #item-card-sub-header>
               <AppChartCardSubHeader
