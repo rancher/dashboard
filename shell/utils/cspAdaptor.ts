@@ -1,13 +1,13 @@
 // For testing these could be changed to something like...
 
 import { CATALOG } from '@shell/config/types';
-import { ActionFindPageArgs, ActionFindPageResponse, ActionFindPageTransientResponse } from '@shell/types/store/dashboard-store.types';
+import { ActionFindPageArgs, ActionFindPageTransientResponse } from '@shell/types/store/dashboard-store.types';
 import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
 
 const CSP_ADAPTER_APPS = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
 // For testing above line could be replaced with below line...
-// const cspAdaptorApp = ['rancher-webhooka', 'rancher-webhook'];
+// const CSP_ADAPTER_APPS = ['rancher-webhooka', 'rancher-webhook'];
 
 /**
  * Helpers in order to
