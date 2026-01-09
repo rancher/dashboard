@@ -11,7 +11,7 @@ const SHOW = 'show';
 export default {
   name: 'ActionMenu',
 
-  emits: ['close'],
+  emits: ['close', 'action-invoked'],
 
   components: { IconOrSvg },
   props:      {
@@ -217,15 +217,14 @@ export default {
         // If the state of this component is controlled
         // by props instead of Vuex, we assume you wouldn't want
         // the mutation to have a dependency on Vuex either.
-        // So in that case we use events to execute actions instead.
-        // If an action list item is clicked, this
-        // component emits that event, then we assume the parent
-        // component will execute the action.
-        this.$emit(action.action, {
-          action,
+        // The parent component should handle the action based on the action property
+        // in the 'action-invoked' event payload.
+        this.$emit('action-invoked', {
+          action:     action.action,
+          actionData: action,
           event,
           ...args,
-          route: this.$route
+          route:      this.$route
         });
       } else {
         // If the state of this component is controlled
