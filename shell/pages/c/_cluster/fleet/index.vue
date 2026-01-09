@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import debounce from 'lodash/debounce';
 import { getVersionData } from '@shell/config/version';
 import { mapState, mapGetters } from 'vuex';
@@ -322,13 +322,13 @@ export default {
       this.selectedCard = selected;
 
       this.$shell.slideIn.open(ResourceDetails, {
-        componentProps: {
-          showHeader: false,
-          width:      window.innerWidth / 3 > 530 ? `${ window.innerWidth / 3 }px` : '530px',
+        showHeader: false,
+        width:      window.innerWidth / 3 > 530 ? `${ window.innerWidth / 3 }px` : '530px',
+        props:      {
           value,
           statePanel,
           workspace
-        }
+        },
       });
     },
 
