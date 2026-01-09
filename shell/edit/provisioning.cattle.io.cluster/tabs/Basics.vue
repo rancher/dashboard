@@ -125,13 +125,6 @@ export default {
   },
 
   watch: {
-    selectedVersion(neu, old) {
-      if (neu?.value !== old?.value && this.ciliumIpv6) {
-        // Re-assign so that the setter updates the structure for the new k8s version if needed
-        this.ciliumIpv6 = !!this.ciliumIpv6;
-      }
-    },
-
     'agentConfig.profile'(newValue) {
       this.showEnablingComplianceWarning = this.provider === 'custom' && this.isEdit && !!newValue && newValue !== this.initialAgentProfile;
     }
@@ -148,7 +141,7 @@ export default {
       return this.serverConfig?.cni === 'none';
     },
 
-    showCiliumIpv6Controls() {
+    showBandwidthManagerControl() {
       return this.serverConfig?.cni === 'cilium' || this.serverConfig?.cni === 'multus,cilium';
     },
 
@@ -320,54 +313,6 @@ export default {
       return semver.satisfies(selectedVersion, '>=1.21.0');
     },
 
-    ciliumIpv6: {
-      get() {
-        // eslint-disable-next-line no-unused-vars
-        const cni = this.serverConfig.cni; // force this property to recalculate if cni was changed away from cilium and chartValues['rke-cilium'] deleted
-
-        const chart = this.userChartValues[this.chartVersionKey('rke2-cilium')];
-
-        return chart?.cilium?.ipv6?.enabled || chart?.ipv6?.enabled || false;
-      },
-      set(neu) {
-        const name = this.chartVersionKey('rke2-cilium');
-        const values = this.userChartValues[name];
-
-        // RKE2 older than 1.23.5 uses different Helm chart values structure - need to take that into account
-        const version = this.selectedVersion.value;
-        let ciliumValues = {};
-
-        if (semver.gt(version, '1.23.5')) {
-          // New style
-          ciliumValues = {
-            ...values,
-            ipv6: {
-              ...values?.ipv6,
-              enabled: neu
-            }
-          };
-
-          delete ciliumValues.cilium;
-        } else {
-          // Old style
-          ciliumValues = {
-            ...values,
-            cilium: {
-              ...values?.cilium,
-              ipv6: {
-                ...values?.cilium?.ipv6,
-                enabled: neu
-              }
-            }
-          };
-
-          delete ciliumValues.ipv6;
-        }
-
-        this.$emit('cilium-values-changed', ciliumValues);
-      }
-    },
-
     ciliumBandwidthManager: {
       get() {
         // eslint-disable-next-line no-unused-vars
@@ -515,6 +460,7 @@ export default {
         />
       </div>
     </div>
+
     <div
       v-if="showCni"
       :style="{'align-items':'center'}"
@@ -531,15 +477,9 @@ export default {
         />
       </div>
       <div
-        v-if="showCiliumIpv6Controls"
+        v-if="showBandwidthManagerControl"
         class="col"
       >
-        <Checkbox
-          v-model:value="ciliumIpv6"
-          data-testid="cluster-rke2-cni-ipv6-checkbox"
-          :mode="mode"
-          :label="t('cluster.rke2.address.ipv6.enable')"
-        />
         <Checkbox
           v-model:value="ciliumBandwidthManager"
           data-testid="cluster-rke2-cni-cilium-bandwidth-manager-checkbox"
