@@ -51,7 +51,7 @@ export default {
 
   computed: {
     clusters() {
-      return this.value.targetClusters.map((cluster: { id: string, nameDisplay: string }) => ({
+      return (this.value.targetClusters || []).map((cluster: { id: string, nameDisplay: string }) => ({
         label: cluster.nameDisplay,
         value: cluster.id
       }));
