@@ -2,7 +2,7 @@
 import SubtleLink from '@shell/components/SubtleLink.vue';
 import StateDot from '@shell/components/StateDot/index.vue';
 import { StateColor } from '@shell/utils/style';
-import { sortBy, sumBy } from 'lodash';
+import { sumBy } from 'lodash';
 import { RouteLocationRaw } from 'vue-router';
 import { computed } from 'vue';
 import { useI18n } from '@shell/composables/useI18n';
@@ -19,20 +19,6 @@ export interface Props {
   color?: StateColor;
   counts?: Count[];
 }
-
-export function extractCounts(labels: string[]): Count[] {
-  const accumulator: { [k: string]: number} = {};
-
-  labels.forEach((l: string) => {
-    accumulator[l] = accumulator[l] || 0;
-    accumulator[l]++;
-  });
-
-  const counts: Count[] = Object.entries(accumulator).map(([label, count]) => ({ label, count }));
-
-  return sortBy(counts, 'label');
-}
-
 </script>
 
 <script setup lang="ts">

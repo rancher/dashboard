@@ -9099,6 +9099,9 @@ component:
         podsCard:
           title: Pods
           ariaResourceName: pods
+        jobsCard:
+          title: Jobs
+          ariaResourceName: jobs
         insightsCard:
           title: Insights
           rows:

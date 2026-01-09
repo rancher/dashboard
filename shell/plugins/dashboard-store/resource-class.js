@@ -33,12 +33,15 @@ import forIn from 'lodash/forIn';
 import isEmpty from 'lodash/isEmpty';
 import isFunction from 'lodash/isFunction';
 import isString from 'lodash/isString';
-import { markRaw } from 'vue';
+import { defineAsyncComponent, markRaw } from 'vue';
 
 import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
+import { EVENT } from '@shell/config/types';
+import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -2090,5 +2093,196 @@ export default class Resource {
    */
   get yamlFolding() {
     return [];
+  }
+
+  get _ignoredRelationshipTypes() {
+    return [this.type];
+  }
+
+  get ignoredRelationshipTypes() {
+    return this._ignoredRelationshipTypes;
+  }
+
+  get rel() {
+    return undefined;
+  }
+
+  get filteredRelationships() {
+    const all = this.metadata?.relationships || [];
+
+    // @TODO probably will need more flexible filtering here for
+    // related resources other than helm app resources...
+    const directionFilter = (direction) => {
+      return (relationship) => {
+        const type = relationship[`${ direction }Type`];
+
+        if (!type || this.ignoredRelationshipTypes.includes(type)) {
+          return false;
+        }
+
+        if (this.rel && relationship.rel !== this.rel) {
+          return false;
+        }
+
+        return true;
+      };
+    };
+    const to = all.filter(directionFilter('to'));
+    const from = all.filter(directionFilter('from'));
+
+    return { to, from };
+  }
+
+  get referencedResources() {
+    const mapFakeResource = (direction) => {
+      const cluster = this.$rootGetters['clusterId'];
+      const inStore = this.$rootGetters['currentStore']();
+      const out = [];
+
+      for ( const r of this.filteredRelationships[direction]) {
+        const type = r[`${ direction }Type`];
+        const state = r.state || this.$rootGetters[`${ inStore }/byId`](type, r[`${ direction }Id`])?.state || STATES_ENUM.MISSING;
+        const stateColor = colorForState(state, r.error, r.transitioning);
+        const schema = this.$rootGetters[`${ inStore }/schemaFor`](type);
+
+        let name = r[`${ direction }Id`];
+
+        // Skip things like toType/toNamespace+selector for now
+        if ( !name ) {
+          continue;
+        }
+
+        let namespace = null;
+        const idx = name.indexOf('/');
+        const key = `${ type }/${ namespace }/${ name }`;
+
+        if ( idx > 0 ) {
+          namespace = name.substr(0, idx);
+          name = name.substr(idx + 1);
+        }
+
+        const detailLocation = {
+          name:   `c-cluster-product-resource${ namespace ? '-namespace' : '' }-id`,
+          params: {
+            product:  EXPLORER,
+            cluster:  inStore === 'management' ? 'local' : cluster,
+            resource: type,
+            namespace,
+            id:       name,
+          }
+        };
+
+        out.push({
+          type,
+          id:       r[`${ direction }Id`],
+          state,
+          metadata: { namespace, name },
+          _key:     key,
+
+          name,
+          namespace,
+          nameDisplay: name,
+          nameSort:    sortableNumericSuffix(name).toLowerCase(),
+
+          stateColor,
+          stateSimpleColor: stateColor.replace('text-', ''),
+          detailLocation,
+          typeDisplay:      this.$rootGetters['type-map/labelFor'](schema),
+          stateDisplay:     stateDisplay(state),
+          stateBackground:  stateColor.replace('text-', 'bg-'),
+          groupByLabel:     namespace,
+        });
+      }
+
+      return out;
+    };
+
+    return {
+      to:   mapFakeResource('to'),
+      from: mapFakeResource('from'),
+    };
+  }
+
+  get resourceConditions() {
+    return (this.status?.conditions || []).map((cond) => {
+      let message = cond.message || '';
+
+      if ( cond.reason ) {
+        message = `[${ cond.reason }] ${ message }`.trim();
+      }
+
+      return {
+        condition:        cond.type || 'Unknown',
+        status:           cond.status || 'Unknown',
+        stateSimpleColor: cond.error ? 'error' : 'disabled',
+        error:            cond.error,
+        time:             cond.lastProbeTime || cond.lastUpdateTime || cond.lastTransitionTime,
+        message,
+      };
+    });
+  }
+
+  get resourceEvents() {
+    return this.$rootGetters['cluster/all'](EVENT);
+  }
+
+  get insightCardProps() {
+    const rows = [
+      useResourceCardRow(this.t('component.resource.detail.card.insightsCard.rows.conditions'), this.resourceConditions, undefined, 'condition', '#conditions'),
+      useResourceCardRow(this.t('component.resource.detail.card.insightsCard.rows.events'), this.resourceEvents, undefined, undefined, '#events'),
+    ];
+
+    return {
+      title: this.t('component.resource.detail.card.insightsCard.title'),
+      rows
+    };
+  }
+
+  get referredToByResources() {
+    return [];
+  }
+
+  get refersToResources() {
+    return [];
+  }
+
+  get _resourcesCardRows() {
+    return [
+      useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.referredToBy'), this.referencedResources.from, undefined, undefined, '#related'),
+      useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.refersTo'), this.referencedResources.to, undefined, undefined, '#related'),
+    ];
+  }
+
+  get resourcesCardRows() {
+    return this._resourcesCardRows;
+  }
+
+  get resourcesCardProps() {
+    return {
+      title: this.t('component.resource.detail.card.resourcesCard.title'),
+      rows:  this.resourcesCardRows
+    };
+  }
+
+  get resourcesCard() {
+    return {
+      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StateCard/index.vue'))),
+      props:     this.resourcesCardProps
+    };
+  }
+
+  get insightCard() {
+    return {
+      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StateCard/index.vue'))),
+      props:     this.insightCardProps
+    };
+  }
+
+  get _cards() {
+    return [this.resourcesCard, this.insightCard];
+  }
+
+  get cards() {
+    return this._cards;
   }
 }

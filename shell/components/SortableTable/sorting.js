@@ -126,6 +126,10 @@ export default {
 
     descending() {
       this.debouncedPaginationChanged();
+    },
+
+    arrangedRows() {
+      this.updateTabResources(this.arrangedRows);
     }
   }
 };

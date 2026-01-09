@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Bubble from '@shell/components/Resource/Detail/Card/PodsCard/Bubble.vue';
+import Bubble from '@shell/components/Resource/Detail/Bubble.vue';
 import { StateColor, stateColorCssVar } from '@shell/utils/style';
 
 export interface Props {

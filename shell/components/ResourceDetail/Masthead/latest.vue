@@ -7,6 +7,7 @@ import Metadata from '@shell/components/Resource/Detail/Metadata/index.vue';
 import { useDefaultMetadataForLegacyPagesProps } from '@shell/components/Resource/Detail/Metadata/composables';
 import { useResourceDetailBannerProps } from '@shell/components/Resource/Detail/composables';
 import { computed } from 'vue';
+import Cards from '@shell/components/Resource/Detail/Cards.vue';
 
 // We are disabling eslint for this script to allow the use of the Props interface
 export interface Props {

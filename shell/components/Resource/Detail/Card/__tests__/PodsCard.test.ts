@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import Bubble from '@shell/components/Resource/Detail/Card/PodsCard/Bubble.vue';
-import PodsCard from '@shell/components/Resource/Detail/Card/PodsCard/index.vue';
+import PodsCard from '@shell/components/Resource/Detail/Card/StatusCard/index.vue';
 import Card from '@shell/components/Resource/Detail/Card/index.vue';
 import Scaler from '@shell/components/Resource/Detail/Card/Scaler.vue';
 import StatusBar from '@shell/components/Resource/Detail/StatusBar.vue';
