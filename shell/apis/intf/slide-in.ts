@@ -65,7 +65,9 @@ export interface SlideInConfig {
    * Useful for passing additional information or context to the component rendered inside the Slide-In window
    *
    */
-  [key: string]: any;
+  props?: {
+    [key: string]: any;
+  };
 }
 
 /**
