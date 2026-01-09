@@ -1,6 +1,6 @@
 <script>
 // This component will become redundant in 2023, see https://docs.microsoft.com/en-us/graph/migrate-azure-ad-graph-overview
-import { NORMAN, MANAGEMENT } from '@shell/config/types';
+import { MANAGEMENT } from '@shell/config/types';
 import { get } from '@shell/utils/object';
 import { AZURE_MIGRATED } from '@shell/config/labels-annotations';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
@@ -13,9 +13,9 @@ export default {
       this.$store.getters['management/schemaFor'](MANAGEMENT.AUTH_CONFIG)
     ) {
       this.authConfig = await this.$store.dispatch('rancher/find', {
-        type: NORMAN.AUTH_CONFIG,
+        type: MANAGEMENT.AUTH_CONFIG,
         id:   'azuread',
-        opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/azuread` }
+        opt:  { url: `/v1/${ MANAGEMENT.AUTH_CONFIG }/azuread` }
       });
     }
   },
