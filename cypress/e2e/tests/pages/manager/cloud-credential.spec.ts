@@ -57,7 +57,6 @@ describe('Cloud Credential', { tags: ['@manager', '@adminUser'] }, () => {
     cloudCredentialsPage.createEditCloudCreds().waitForPage();
     cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
     cloudCredentialsPage.createEditCloudCreds().waitForPage('type=aws');
-
     cloudCredentialsPage.createEditCloudCreds().accessKey().set(access);
     cloudCredentialsPage.createEditCloudCreds().secretKey().set(secret);
     cloudCredentialsPage.createEditCloudCreds().nameNsDescription().name().set(name);
@@ -312,6 +311,67 @@ describe('Cloud Credential', { tags: ['@manager', '@adminUser'] }, () => {
         createRKE2AzureClusterPage.machinePoolTab().environment().should('have.text', cloudCredsToCreate[2].environment );
         createRKE2AzureClusterPage.machinePoolTab().location().checkOptionSelected(cloudCredsToCreate[2].body[0].name );
       });
+  });
+
+  after(() => {
+    for (let i = 0; i < doCreatedCloudCredsIds.length; i++) {
+      cy.deleteRancherResource('v3', `cloudcredentials`, doCreatedCloudCredsIds[i]);
+    }
+
+    for (let i = 0; i < azCreatedCloudCredsIds.length; i++) {
+      cy.deleteRancherResource('v3', `cloudcredentials`, azCreatedCloudCredsIds[i]);
+    }
+  });
+});
+
+describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+  const doCreatedCloudCredsIds = [];
+  const azCreatedCloudCredsIds = [];
+
+  before(() => {
+    cy.login();
+    // Clean up any orphaned Amazon cloud credentials from previous test runs to ensure tests start with a clean state
+    cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
+      const body = resp.body;
+
+      if (body.pagination['total'] > 0) {
+        body.data.forEach((item: any) => {
+          if (item.amazonec2credentialConfig) {
+            const id = item.id;
+
+            cy.deleteRancherResource('v3', 'cloudcredentials', id, false);
+          } else {
+            cy.log('There are no existing amazon cloud credentials to delete');
+          }
+        });
+      }
+    });
+  });
+
+  beforeEach(() => {
+    cy.login();
+    // Set theme to light
+    cy.setUserPreference({ theme: 'ui-light' });
+    HomePagePo.goTo(); // this is needed to ensure we have a valid authentication session
+  });
+
+  it('should display empty cloud credential creation page', () => {
+    const cloudCredentialsPage = new CloudCredentialsPagePo();
+
+    cloudCredentialsPage.goTo();
+    cloudCredentialsPage.waitForPage();
+    cloudCredentialsPage.create();
+    cloudCredentialsPage.createEditCloudCreds().waitForPage();
+    cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
+    cloudCredentialsPage.createEditCloudCreds().waitForPage('type=aws');
+    // Ignoring the user profile picture
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]');
+    // Ignoring the side navbar counters
+    cy.hideElementBySelector("[data-testid='type-count']");
+    // Ignoring the side cluster menu
+    cy.hideElementBySelector("[ data-testid='top-level-menu-cluster-1']");
+    // takes percy snapshot.
+    cy.percySnapshot('empty cloud credential creation page');
   });
 
   after(() => {
