@@ -152,7 +152,7 @@ export const actions = {
     const providers = dispatch('rancher/findAll', {
       type: 'authProvider',
       opt:  {
-        url:   `/v3-public/authproviders`,
+        url:   `/v1-public/authproviders`,
         watch: false,
         force
       }
