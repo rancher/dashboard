@@ -11,6 +11,44 @@ export interface ModalConfig {
    * ```ts
    * props: { title: 'Hello Modal', isVisible: true }
    * ```
+   *
+   * Props can include callback functions to be invoked when confirming a modal.
+   *
+   * Example with a callback function:
+   *
+   * ```ts
+   * import MyCustomModal from './MyCustomModal.vue';
+   *
+   * export default {
+   *   methods: {
+   *     myAction() {
+   *       console.log('Performed an action');
+   *     },
+   *     showModal() {
+   *       this.$shell.modal.open(MyCustomModal, {
+   *         props: { onConfirm: this.myAction }
+   *       });
+   *     }
+   *   }
+   * }
+   * ```
+   *
+   * ```ts
+   * export default {
+   *   props: {
+   *     onConfirm: {
+   *       type: Function,
+   *       required: true
+   *     }
+   *   },
+   *   methods:.
+   *     confirm() {
+   *       this.onConfirm();
+   *       this.$emit('close');
+   *     }
+   *   }
+   * }
+   * ```
    */
   props?: Record<string, any>;
 
