@@ -64,11 +64,11 @@ class Application {
         clusterGroupSelector,
       } = target;
 
-      if (clusterGroup || clusterGroupSelector) {
+      if (clusterGroupSelector) {
         return 'advanced';
       }
 
-      if (clusterName) {
+      if (clusterName || clusterGroup) {
         mode = 'clusters';
       }
 
