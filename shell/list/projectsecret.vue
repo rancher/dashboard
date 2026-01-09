@@ -10,7 +10,7 @@ import { TableColumn } from '@shell/types/store/type-map';
 import { mapGetters } from 'vuex';
 import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
 import { DEFAULT_PROJECT, SYSTEM_PROJECT, UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
-import { RancherKubeMetadata } from '@shell/types/kube/kube-api';
+import { RancherKubeMetadata } from '@shell/types/rancher/steve.api';
 import {
   AGE, SECRET_DATA, STATE, SUB_TYPE, NAME as NAME_COL,
 } from '@shell/config/table-headers';

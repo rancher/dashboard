@@ -471,7 +471,7 @@ export default {
       return findAllGetter(getters, type, opt);
     }
 
-    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Size: ${ opt.pagination.pageSize }. Sort: ${ opt.pagination.sort.map((s) => s.field).join(', ') }`); // eslint-disable-line no-console
+    console.log(`Find Page: [${ ctx.state.config.namespace }] ${ type }. Page: ${ opt.pagination.page }. Revision: ${ opt.revision || 'none' }. Size: ${ opt.pagination.pageSize }. Sort: ${ opt.pagination.sort.map((s) => s.field).join(', ') }`); // eslint-disable-line no-console
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
 
@@ -491,7 +491,7 @@ export default {
       return Promise.reject(e);
     }
 
-    // Of type @StorePagination
+    // Of type @StorePaginationResult
     const pagination = opt.pagination ? {
       request: {
         namespace:  opt.namespaced,
@@ -500,7 +500,8 @@ export default {
       result: {
         count:     out.count,
         pages:     out.pages || Math.ceil(out.count / (opt.pagination.pageSize || Number.MAX_SAFE_INTEGER)),
-        timestamp: new Date().getTime()
+        timestamp: new Date().getTime(),
+        revision:  out.revision
       }
     } : undefined;
 

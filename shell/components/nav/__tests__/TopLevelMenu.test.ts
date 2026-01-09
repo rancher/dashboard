@@ -5,6 +5,15 @@ import { PINNED_CLUSTERS } from '@shell/store/prefs';
 import { nextTick } from 'vue';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 
+jest.mock('@shell/utils/pagination-wrapper', () => {
+  return jest.fn().mockImplementation(() => {
+    return {
+      request:   jest.fn().mockResolvedValue({ data: [] }),
+      onDestroy: jest.fn(),
+    };
+  });
+});
+
 /**
  * `clusters` doubles up as both mgmt and prov clusters (don't shoot the messenger)
  */
@@ -55,11 +64,14 @@ describe('topLevelMenu', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     sideNavService.reset();
+    sideNavService.initialized = false;
+    jest.restoreAllMocks();
   });
 
   afterEach(() => {
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   it('should display clusters', async() => {
@@ -434,8 +446,6 @@ describe('topLevelMenu', () => {
     describe('should displays a no results message if have clusters but', () => {
       it('given no matching clusters', async() => {
         const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
-          data: () => ({ clusterFilter: 'whatever' }),
-
           global: {
             mocks: {
               $route: {},
@@ -453,6 +463,8 @@ describe('topLevelMenu', () => {
             stubs: ['BrandImage', 'router-link'],
           },
         });
+
+        await wrapper.setData({ clusterFilter: 'whatever' });
 
         await waitForIt();
 
@@ -527,8 +539,6 @@ describe('topLevelMenu', () => {
       it('given clusters with status pinned', async() => {
         const search = 'you found me';
         const wrapper: Wrapper<InstanceType<typeof TopLevelMenu>> = mount(TopLevelMenu, {
-          data: () => ({ clusterFilter: search }),
-
           global: {
             mocks: {
               $route: {},
@@ -548,6 +558,8 @@ describe('topLevelMenu', () => {
           },
         });
 
+        await wrapper.setData({ clusterFilter: search });
+
         await waitForIt();
 
         const noResults = wrapper.find('[data-testid="top-level-menu-no-results"]');
@@ -555,6 +567,150 @@ describe('topLevelMenu', () => {
         expect(wrapper.vm.pinFiltered).toHaveLength(1);
         expect(noResults.exists()).toBe(false);
       });
+    });
+  });
+
+  describe('initialization', () => {
+    it('should initialize sideNavService', () => {
+      const spyInit = jest.spyOn(sideNavService, 'init');
+
+      mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: { ...generateStore([]) },
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      expect(spyInit).toHaveBeenCalled(); // eslint-disable-line jest/prefer-called-with
+    });
+
+    it('should call helper.update if pagination is disabled', () => {
+      const store = generateStore([]);
+
+      store.getters['management/paginationEnabled'] = () => false;
+
+      jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
+      const updateSpy = jest.fn();
+      const mockHelper = {
+        update: updateSpy, clustersPinned: [], clustersOthers: []
+      };
+
+      jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue(mockHelper as any);
+
+      mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      expect(updateSpy).toHaveBeenCalledWith({
+        pinnedIds: [], searchTerm: '', unPinnedMax: 10
+      });
+    });
+
+    it('should call helper.update if pagination is enabled but service not initialized', () => {
+      const store = generateStore([]);
+
+      store.getters['management/paginationEnabled'] = () => true;
+      sideNavService.initialized = false;
+
+      jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
+      const updateSpy = jest.fn();
+      const mockHelper = {
+        update: updateSpy, clustersPinned: [], clustersOthers: []
+      };
+
+      jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue(mockHelper as any);
+
+      mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      expect(updateSpy).toHaveBeenCalledWith({
+        pinnedIds: [], searchTerm: '', unPinnedMax: 10
+      });
+    });
+
+    it('should NOT call helper.update if pagination is enabled and service initialized', () => {
+      const store = generateStore([]);
+
+      store.getters['management/paginationEnabled'] = () => true;
+      sideNavService.initialized = true;
+
+      jest.spyOn(sideNavService, 'init').mockImplementation(() => {});
+      const updateSpy = jest.fn();
+      const mockHelper = {
+        update: updateSpy, clustersPinned: [], clustersOthers: []
+      };
+
+      jest.spyOn(sideNavService, 'helper', 'get').mockReturnValue(mockHelper as any);
+
+      mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      expect(updateSpy).not.toHaveBeenCalled();
+    });
+
+    it('should populate clusters from store if pagination is disabled', () => {
+      const clusters = [{ id: 'c1' }];
+      const store = generateStore(clusters);
+
+      store.getters['management/paginationEnabled'] = () => false;
+      store.getters['management/schemaFor'] = () => true;
+
+      const wrapper = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      expect(wrapper.vm.provClusters).toStrictEqual(clusters);
+      expect(wrapper.vm.mgmtClusters).toStrictEqual(clusters);
+    });
+
+    it('should NOT populate clusters from store if pagination is enabled', () => {
+      const clusters = [{ id: 'c1' }];
+      const store = generateStore(clusters);
+
+      store.getters['management/paginationEnabled'] = () => true;
+      store.getters['management/schemaFor'] = () => true;
+
+      const wrapper = mount(TopLevelMenu, {
+        global: {
+          mocks: {
+            $route: {},
+            $store: store,
+          },
+          stubs: ['BrandImage', 'router-link'],
+        },
+      });
+
+      expect(wrapper.vm.provClusters).toStrictEqual([]);
+      expect(wrapper.vm.mgmtClusters).toStrictEqual([]);
     });
   });
 });
