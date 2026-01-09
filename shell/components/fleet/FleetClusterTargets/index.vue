@@ -16,7 +16,8 @@ import TargetsList from '@shell/components/fleet/FleetClusterTargets/TargetsList
 
 export interface Cluster {
   name: string,
-  nameDisplay: string
+  nameDisplay: string,
+  detailLocation: object,
 }
 
 interface DataType {
@@ -502,6 +503,6 @@ export default {
   }
 
   .target-list {
-    max-height: 250px;
+    max-height: 320px;
   }
 </style>

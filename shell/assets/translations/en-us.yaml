@@ -3027,7 +3027,12 @@ fleet:
         placeholder: Select Multiple Cluster Groups
     rules:
       matching:
-        title: Selected clusters
+        title: |-
+          {n, plural,
+            =0 {No selected clusters}
+            =1 {1 selected cluster}
+            other {{n, number} selected clusters}
+            }
         placeholder: Select clusters by name, labels or groups
         empty: No clusters in the workspace
         plusMore: |-
