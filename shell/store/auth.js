@@ -152,7 +152,7 @@ export const actions = {
     const providers = dispatch('rancher/findAll', {
       type: 'authProvider',
       opt:  {
-        url:   `/v1-public/authproviders`,
+        url:   `/v3-public/authproviders`,
         watch: false,
         force
       }
@@ -228,11 +228,10 @@ export const actions = {
 
   async redirectTo({ state, commit, dispatch }, opt = {}) {
     const provider = opt.provider;
+    const driver = await dispatch('getAuthProvider', provider);
     let redirectUrl = opt.redirectUrl;
 
     if ( !redirectUrl ) {
-      const driver = await dispatch('getAuthProvider', provider);
-
       redirectUrl = driver.redirectUrl;
     }
     let returnToUrl = `${ window.location.origin }/verify-auth`;
@@ -264,6 +263,10 @@ export const actions = {
     // 'openid profile email customScope' from the UI
     if (opt.scopes) {
       scopes = [joinStringList(scopes[0], opt.scopes)];
+    }
+
+    if (driver.scopes) {
+      scopes = [joinStringList(scopes[0], driver.scopes)];
     }
 
     let url = removeParam(redirectUrl, GITHUB_SCOPE);
