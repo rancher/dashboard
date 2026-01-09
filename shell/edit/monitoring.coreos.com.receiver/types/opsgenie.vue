@@ -63,27 +63,13 @@ export default {
     }
   },
   data() {
-    this.value['http_config'] = this.value.http_config || {};
-    this.value['send_resolved'] = typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true;
-    this.value['responders'] = this.value.responders || [];
-
-    const responders = this.value.responders.map((responder) => {
-      const target = TARGETS.find((target) => responder[target.value]);
-
-      return {
-        type:   responder.type,
-        target: target.value,
-        value:  responder[target.value]
-      };
-    });
-
     return {
       defaultResponder: {
         type:   TYPES[0].value,
         target: TARGETS[0].value,
         value:  ''
       },
-      responders,
+      responders: [],
       TARGETS,
       TYPES
     };
@@ -109,6 +95,22 @@ export default {
         this.value['responders'] = responders;
       }
     }
+  },
+
+  created() {
+    this.value.http_config = this.value.http_config || {};
+    this.value.send_resolved = typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true;
+    this.value.responders = this.value.responders || [];
+
+    this.responders = this.value.responders.map((responder) => {
+      const target = TARGETS.find((target) => responder[target.value]);
+
+      return {
+        type:   responder.type,
+        target: target.value,
+        value:  responder[target.value]
+      };
+    });
   },
 
   methods: {
