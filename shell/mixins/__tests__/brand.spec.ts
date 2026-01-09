@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import Brand from '@shell/mixins/brand';
+import CspAdapterUtils from '@shell/utils/cspAdaptor';
 
 describe('brandMixin', () => {
   const createWrapper = (vaiOn = false) => {
@@ -54,45 +55,47 @@ describe('brandMixin', () => {
         data:   () => data,
         global: { mocks: { $store: store } }
       });
-    const spyManagementFindAll = jest.spyOn(store, 'dispatch');
+    const spyManagementDispatch = jest.spyOn(store, 'dispatch');
+
+    CspAdapterUtils.resetState();
 
     return {
       wrapper,
       store,
-      spyManagementFindAll,
+      spyManagementDispatch,
     };
   };
 
   describe('should make correct requests', () => {
     it('vai off', async() => {
-      const { wrapper, spyManagementFindAll } = createWrapper(false);
+      const { wrapper, spyManagementDispatch } = createWrapper(false);
 
       // NOTE - wrapper.vm.$options.fetch() doesn't work
       await wrapper.vm.$options.fetch.apply(wrapper.vm);
 
       // wrapper.vm.$nextTick();
-      expect(spyManagementFindAll).toHaveBeenNthCalledWith(1, 'management/findAll', {
+      expect(spyManagementDispatch).toHaveBeenNthCalledWith(1, 'management/findAll', {
         type: MANAGEMENT.SETTING,
         opt:  {
           load: 'multi', redirectUnauthorized: false, url: `/v1/${ MANAGEMENT.SETTING }s`
         }
       });
-      expect(spyManagementFindAll).toHaveBeenNthCalledWith(2, 'management/findAll', { type: CATALOG.APP });
+      expect(spyManagementDispatch).toHaveBeenNthCalledWith(2, 'management/findAll', { type: CATALOG.APP });
     });
 
     it('vai on', async() => {
-      const { wrapper, spyManagementFindAll } = createWrapper(true);
+      const { wrapper, spyManagementDispatch } = createWrapper(true);
 
       // NOTE - wrapper.vm.$options.fetch() doesn't work
       await wrapper.vm.$options.fetch.apply(wrapper.vm);
 
-      expect(spyManagementFindAll).toHaveBeenNthCalledWith(1, 'management/findAll', {
+      expect(spyManagementDispatch).toHaveBeenNthCalledWith(1, 'management/findAll', {
         type: MANAGEMENT.SETTING,
         opt:  {
           load: 'multi', url: `/v1/${ MANAGEMENT.SETTING }s`, redirectUnauthorized: false
         }
       });
-      expect(spyManagementFindAll).toHaveBeenNthCalledWith(2, 'management/findPage', {
+      expect(spyManagementDispatch).toHaveBeenNthCalledWith(2, 'management/findPage', {
         type: CATALOG.APP,
         opt:  {
           pagination: {
@@ -110,7 +113,9 @@ describe('brandMixin', () => {
             pageSize:             null,
             projectsOrNamespaces: [],
             sort:                 []
-          }
+          },
+          transient: true,
+          watch:     false
         }
       });
     });
@@ -120,7 +125,7 @@ describe('brandMixin', () => {
     it('should have correct csp values (off)', async() => {
       const { wrapper, store } = createWrapper();
 
-      const spyManagementFindAll = jest.spyOn(store, 'dispatch').mockImplementation((_, options) => {
+      const spyManagementDispatch = jest.spyOn(store, 'dispatch').mockImplementation((_, options) => {
         const { type } = options as any;
 
         if (type === MANAGEMENT.SETTING) {
@@ -136,7 +141,7 @@ describe('brandMixin', () => {
       // NOTE - wrapper.vm.$options.fetch() doesn't work
       await wrapper.vm.$options.fetch.apply(wrapper.vm, []);
 
-      expect(spyManagementFindAll).toHaveBeenCalledTimes(2);
+      expect(spyManagementDispatch).toHaveBeenCalledTimes(2);
 
       expect(wrapper.vm.canCalcCspAdapter).toBeTruthy();
       expect(wrapper.vm.cspAdapter).toBeFalsy();
@@ -145,7 +150,7 @@ describe('brandMixin', () => {
     it.each(['rancher-csp-adapter', 'rancher-csp-billing-adapter'])('should have correct csp values (on - %p )', async(chartName) => {
       const { wrapper, store } = createWrapper();
 
-      const spyManagementFindAll = jest.spyOn(store, 'dispatch').mockImplementation((_, options) => {
+      const spyManagementDispatch = jest.spyOn(store, 'dispatch').mockImplementation((_, options) => {
         const { type } = options as any;
 
         if (type === MANAGEMENT.SETTING) {
@@ -161,7 +166,7 @@ describe('brandMixin', () => {
       // NOTE - wrapper.vm.$options.fetch() doesn't work
       await wrapper.vm.$options.fetch.apply(wrapper.vm, []);
 
-      expect(spyManagementFindAll).toHaveBeenCalledTimes(2);
+      expect(spyManagementDispatch).toHaveBeenCalledTimes(2);
 
       expect(wrapper.vm.canCalcCspAdapter).toBeTruthy();
       expect(wrapper.vm.cspAdapter).toBeTruthy();

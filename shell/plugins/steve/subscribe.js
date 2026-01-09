@@ -1200,6 +1200,18 @@ const defaultActions = {
   },
 
   'ws.resource.create'(ctx, msg) {
+    const data = msg.data;
+    const type = data?.type;
+
+    const havePage = ctx.getters['havePage'](type);
+
+    if (havePage) {
+      console.warn(`Prevented watch \`resource.create\` data from polluting the cache for type "${ type }" (currently represents a page). To prevent any further issues the watch has been stopped.`, msg); // eslint-disable-line no-console
+      ctx.dispatch('unwatch', { ...msg, type });
+
+      return;
+    }
+
     ctx.state.debugSocket && console.info(`Resource Create [${ ctx.getters.storeName }]`, msg.resourceType, msg); // eslint-disable-line no-console
     queueChange(ctx, msg, true, 'Create');
   },
@@ -1230,8 +1242,8 @@ const defaultActions = {
     const havePage = ctx.getters['havePage'](type);
 
     if (havePage) {
-      console.warn(`Prevented watch \`resource.change\` data from polluting the cache for type "${ type }" (currently represents a page). To prevent any further issues the watch has been stopped.`, data); // eslint-disable-line no-console
-      ctx.dispatch('unwatch', data);
+      console.warn(`Prevented watch \`resource.change\` data from polluting the cache for type "${ type }" (currently represents a page). To prevent any further issues the watch has been stopped.`, msg); // eslint-disable-line no-console
+      ctx.dispatch('unwatch', { ...msg, type });
 
       return;
     }
@@ -1275,6 +1287,15 @@ const defaultActions = {
       if (worker) {
         worker.postMessage({ removeSchema: data.id });
       }
+    }
+
+    const havePage = ctx.getters['havePage'](type);
+
+    if (havePage) {
+      console.warn(`Prevented watch \`resource.remove\` data from polluting the cache for type "${ type }" (currently represents a page). To prevent any further issues the watch has been stopped.`, msg); // eslint-disable-line no-console
+      ctx.dispatch('unwatch', { ...msg, type });
+
+      return;
     }
 
     queueChange(ctx, msg, false, 'Remove');
