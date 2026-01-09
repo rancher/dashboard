@@ -19,12 +19,19 @@ import {
   PaginationTableColumn,
   ExtensionEnvironment,
   ServerSidePaginationExtensionConfig,
+  ProductMetadata,
+  ProductOptions,
+  ProductSinglePage,
+  ProductChild,
+  StandardProductName,
+  // ResourceTypeConfig,
   TableAction
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import { defineAsyncComponent, markRaw, Component } from 'vue';
 import { getVersionData, CURRENT_RANCHER_VERSION } from '@shell/config/version';
 import { ExtensionManagerTypes } from '@shell/types/extension-manager';
+import { PluginProduct } from './plugin-products';
 
 /** Registration IDs used for different extension points in the extensions catalog */
 export const EXT_IDS = {
@@ -54,6 +61,7 @@ export class Plugin implements IPlugin {
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
   public _onLogOut: OnLogOut = () => Promise.resolve();
   public onLogIn: OnLogIn = () => Promise.resolve();
+  public productConfigs: PluginProduct[] = [];
 
   public uiConfig: { [key: string]: any } = {};
 
@@ -111,6 +119,7 @@ export class Plugin implements IPlugin {
   }
 
   // Track which products the plugin creates
+  // Legacy DSL method
   DSL(store: any, productName: string) {
     const storeDSL = STORE_DSL(store, productName);
 
@@ -119,8 +128,26 @@ export class Plugin implements IPlugin {
     return storeDSL;
   }
 
-  addProduct(product: ProductFunction): void {
-    this.products.push(product);
+  addProduct(product: ProductFunction | ProductMetadata | ProductSinglePage, config?: ProductChild[], options?: ProductOptions): void {
+    if (product?.name) {
+      if (!config) {
+        const p = product as ProductSinglePage;
+
+        this.productConfigs.push(new PluginProduct(this, p, []));
+      } else {
+        const p = product as ProductMetadata;
+
+        this.productConfigs.push(new PluginProduct(this, p, config));
+      }
+    } else {
+      this.products.push(product as ProductFunction);
+    }
+  }
+
+  extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild): void {
+    const arrayConfig = Array.isArray(config) ? config : [config];
+
+    this.productConfigs.push(new PluginProduct(this, product, arrayConfig));
   }
 
   addLocale(locale: string, label: string): void {
@@ -148,6 +175,7 @@ export class Plugin implements IPlugin {
   }
 
   addRoute(parentOrRoute: RouteRecordRaw | string, optionalRoute?: RouteRecordRaw): void {
+    // console.error('shell/core/plugin addRouter', parentOrRoute, optionalRoute);
     // Always add the pkg name to the route metadata
     const hasParent = typeof (parentOrRoute) === 'string';
     const parent: string | undefined = hasParent ? parentOrRoute as string : undefined;
@@ -390,7 +418,7 @@ export class Plugin implements IPlugin {
     const allowPaths = ['models', 'image'];
     const nparts = name.split('/');
 
-    // Support components in a sub-folder - component_name/index.vue (and ignore other componnets in that folder)
+    // Support components in a sub-folder - component_name/index.vue (and ignore other components in that folder)
     // Allow store-scoped models via sub-folder - pkgname/models/storename/type will be registered as storename/type to avoid overwriting shell/models/type
     if (nparts.length === 2 && !allowPaths.includes(type)) {
       if (nparts[1] !== 'index') {
