@@ -107,7 +107,7 @@ export default {
     async generateRows() {
       this.rows = this.allProviders.map((p) => {
         const active = p.id in this.settings ? this.settings[p.id] : true;
-        const canNotPrime = p.prime && !this.prime;
+        const canNotPrime = p.context.isPrime && !this.prime;
         const canNotChangeSettings = !this.settingResource?.canUpdate;
         const enableAction = {
           action:   'activate',
@@ -137,7 +137,7 @@ export default {
           name:        p.label,
           nameDisplay: p.label,
           description: p.description || '',
-          prime:       p.prime,
+          prime:       p.context.isPrime,
           active,
           availableActions
         };
