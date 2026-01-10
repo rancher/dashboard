@@ -61,10 +61,10 @@
     "publish:lib": "cd pkg/rancher-components && npm publish"
   },
   "dependencies": {
-    "@aws-sdk/client-ec2": "3.863.0",
+    "@aws-sdk/client-ec2": "3.879.0",
     "@aws-sdk/client-eks": "3.879.0",
-    "@aws-sdk/client-iam": "3.863.0",
-    "@aws-sdk/client-kms": "3.863.0",
+    "@aws-sdk/client-iam": "3.879.0",
+    "@aws-sdk/client-kms": "3.879.0",
     "@smithy/fetch-http-handler": "5.1.1",
     "@novnc/novnc": "1.2.0",
     "@popperjs/core": "2.11.8",
@@ -219,6 +219,8 @@
     "yarn": "1.22.18"
   },
   "resolutions": {
-    "html-webpack-plugin": "5.0.0"
+    "html-webpack-plugin": "5.0.0",
+    "@aws-sdk/types": "3.862.0",
+    "@smithy/smithy-client": "4.5.0"
   }
 }
