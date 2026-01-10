@@ -9107,6 +9107,14 @@ component:
           rows:
             conditions: Conditions
             events: Events
+        extrasCard:
+          title: Extras
+          message:
+            prefix: 'Consider installing additional '
+            extensions: extensions
+            conjunction: ' and / or '
+            clusterTools: cluster tools
+            suffix: ' to enrich your Rancher experience.'
         scaler:
           ariaLabel:
             increase: Increase {resourceName}

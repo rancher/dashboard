@@ -2279,7 +2279,7 @@ export default class Resource {
   }
 
   get _cards() {
-    return [this.resourcesCard, this.insightCard];
+    return [this.insightCard];
   }
 
   get cards() {

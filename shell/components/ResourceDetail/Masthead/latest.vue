@@ -65,6 +65,10 @@ const store = useStore();
       v-bind="metadataProps"
       class="mmt-4"
     />
+    <Cards
+      class="mb-20"
+      :resource="props.value"
+    />
   </div>
 </template>
 
