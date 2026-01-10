@@ -6,6 +6,7 @@ import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectC
 import { DEFAULT_REGION } from './CruEKS.vue';
 import { mapGetters } from 'vuex';
 import { AWS } from 'types';
+import { formatAWSError } from '@shell/utils/error';
 
 export default defineComponent({
   name: 'EKSAccountAccess',
@@ -77,8 +78,10 @@ export default defineComponent({
           const res: {Regions: AWS.EC2Region[]} = await ec2Client.describeRegions({});
 
           this.regions = (res?.Regions || []).map((r) => r.RegionName);
-        } catch (err) {
-          this.$emit('error', this.t('eks.errors.fetchingRegions', { err }));
+        } catch (err: any) {
+          const e = formatAWSError(err);
+
+          this.$emit('error', this.t('eks.errors.fetchingRegions', { e }));
         }
       }
     },

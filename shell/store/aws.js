@@ -2,6 +2,7 @@ import { sortBy } from '@shell/utils/sort';
 import { randomStr } from '@shell/utils/string';
 import { FetchHttpHandler } from '@smithy/fetch-http-handler';
 import { isArray, addObjects } from '@shell/utils/array';
+import { formatAWSError } from '@shell/utils/error';
 
 export const state = () => {
   return {
@@ -247,21 +248,26 @@ export const actions = {
     opt = opt || {};
 
     while ( hasNext ) {
-      const res = await client[cmd](opt);
+      try {
+        const res = await client[cmd](opt);
 
-      if ( !key ) {
-        key = Object.keys(res).find((x) => isArray(res[x]));
-      }
+        if ( !key ) {
+          key = Object.keys(res).find((x) => isArray(res[x]));
+        }
 
-      addObjects(out, res[key]);
-      if (res.NextToken) {
-        opt.NextToken = res.NextToken;
-        hasNext = true;
-      } else if (res.Marker) {
-        opt.Marker = res.Marker;
-        hasNext = true;
-      } else {
+        addObjects(out, res[key]);
+        if (res.NextToken) {
+          opt.NextToken = res.NextToken;
+          hasNext = true;
+        } else if (res.Marker) {
+          opt.Marker = res.Marker;
+          hasNext = true;
+        } else {
+          hasNext = false;
+        }
+      } catch (err) {
         hasNext = false;
+        throw formatAWSError(err);
       }
     }
 

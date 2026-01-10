@@ -86,7 +86,6 @@ const defaultGkeConfig = {
   clusterName:           '',
   description:           '',
   enableKubernetesAlpha: false,
-  // googleCredentialSecret: '',
   ipAllocationPolicy:    {
     clusterIpv4CidrBlock:       '',
     clusterSecondaryRangeName:  null,
