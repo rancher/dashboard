@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { toRef } from 'vue';
 import { RcStatusIndicatorProps } from './types';
 import { useStatusColors } from '@components/utils/status';
 
 const props = defineProps<RcStatusIndicatorProps>();
 
-const status = computed(() => props.status);
+const status = toRef(props, 'status');
 const { backgroundColor, borderColor } = useStatusColors(status, 'solid');
 </script>
 
