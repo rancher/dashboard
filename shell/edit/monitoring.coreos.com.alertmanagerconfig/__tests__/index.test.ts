@@ -1,16 +1,10 @@
 /* eslint-disable import/first */
 global.PointerEvent = class PointerEvent extends Event {};
 
-import { shallowMount, config } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import { EDITOR_MODES } from '@shell/components/YamlEditor.vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import Index from '../index.vue';
-
-config.global.mocks = {
-  $fetchState: { pending: false },
-  $route:      { name: 'test-route' },
-  t:           (key) => `%${ key }%`,
-};
 
 describe('monitoring.coreos.com.alertmanagerconfig/index.vue', () => {
   it('should render correctly', () => {
@@ -31,12 +25,16 @@ describe('monitoring.coreos.com.alertmanagerconfig/index.vue', () => {
         value: valueMock,
         mode:  'create',
       },
-      mocks: {
-        $store: {
-          getters:  { currentProduct: { inStore: 'test' } },
-          dispatch: jest.fn(() => Promise.resolve({ receiverSchema: {} })),
-        },
-        $router: { push: jest.fn() },
+      global: {
+        mocks: {
+          $store: {
+            getters:  { currentProduct: { inStore: 'test' } },
+            dispatch: jest.fn(() => Promise.resolve({ receiverSchema: {} })),
+          },
+          $router:     { push: jest.fn() },
+          $route:      { name: 'test-route' },
+          $fetchState: { pending: false },
+        }
       },
       stubs: {
         CruResource:       true,
@@ -82,12 +80,16 @@ describe('monitoring.coreos.com.alertmanagerconfig/index.vue', () => {
         value: valueMock,
         mode:  _VIEW, // Set mode to _VIEW
       },
-      mocks: {
-        $store: {
-          getters:  { currentProduct: { inStore: 'test' } },
-          dispatch: jest.fn(() => Promise.resolve({ receiverSchema: {} })),
+      global: {
+        mocks: {
+          $store: {
+            getters:  { currentProduct: { inStore: 'test' } },
+            dispatch: jest.fn(() => Promise.resolve({ receiverSchema: {} })),
+          },
+          $router:     { push: jest.fn() },
+          $route:      { name: 'test-route' },
+          $fetchState: { pending: false },
         },
-        $router: { push: jest.fn() },
       },
       stubs: {
         CruResource:       true,
@@ -117,12 +119,16 @@ describe('monitoring.coreos.com.alertmanagerconfig/index.vue', () => {
         value: valueMock,
         mode:  _EDIT, // Set mode to _EDIT
       },
-      mocks: {
-        $store: {
-          getters:  { currentProduct: { inStore: 'test' } },
-          dispatch: jest.fn(() => Promise.resolve({ receiverSchema: {} })),
+      global: {
+        mocks: {
+          $store: {
+            getters:  { currentProduct: { inStore: 'test' } },
+            dispatch: jest.fn(() => Promise.resolve({ receiverSchema: {} })),
+          },
+          $router:     { push: jest.fn() },
+          $route:      { name: 'test-route' },
+          $fetchState: { pending: false },
         },
-        $router: { push: jest.fn() },
       },
       stubs: {
         CruResource:       true,
@@ -152,12 +158,16 @@ describe('monitoring.coreos.com.alertmanagerconfig/index.vue', () => {
         value: valueMock,
         mode:  'create',
       },
-      mocks: {
-        $store: {
-          getters:  { currentProduct: { inStore: 'test' } },
-          dispatch: jest.fn(() => Promise.resolve({ receiverSchema: {} })),
+      global: {
+        mocks: {
+          $store: {
+            getters:  { currentProduct: { inStore: 'test' } },
+            dispatch: jest.fn(() => Promise.resolve({ receiverSchema: {} })),
+          },
+          $router:     { push: jest.fn() },
+          $route:      { name: 'test-route' },
+          $fetchState: { pending: false },
         },
-        $router: { push: jest.fn() },
       },
       stubs: {
         CruResource:       true,

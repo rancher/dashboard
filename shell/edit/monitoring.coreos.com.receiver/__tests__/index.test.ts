@@ -1,12 +1,6 @@
-import { shallowMount, config } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 import Index from '../index.vue';
-
-config.global.mocks = {
-  $fetchState: { pending: false },
-  $route:      { name: 'test-route' },
-  t:           (key) => key,
-};
 
 describe('shell/edit/monitoring.coreos.com.receiver/index.vue', () => {
   const mockStore = (resourceFields = {}) => ({
@@ -48,7 +42,13 @@ describe('shell/edit/monitoring.coreos.com.receiver/index.vue', () => {
         value,
         mode: 'create'
       },
-      global: { mocks: { $store: mockStore(value.spec) } }
+      global: {
+        mocks: {
+          $store:      mockStore(value.spec),
+          $fetchState: { pending: false },
+          $route:      { name: 'test-route' },
+        }
+      }
     });
 
     expect(wrapper.vm.suffixYaml).toBe('');
@@ -63,7 +63,13 @@ describe('shell/edit/monitoring.coreos.com.receiver/index.vue', () => {
         value: valueWithSmarthost,
         mode:  _EDIT
       },
-      global: { mocks: { $store: mockStore() } }
+      global: {
+        mocks: {
+          $store:      mockStore(),
+          $fetchState: { pending: false },
+          $route:      { name: 'test-route' },
+        }
+      }
     });
 
     expect(wrapper.vm.value.spec.email_configs[0].host).toBe('smtp.example.com');
@@ -77,7 +83,13 @@ describe('shell/edit/monitoring.coreos.com.receiver/index.vue', () => {
         value: baseValue(),
         mode:  _EDIT,
       },
-      global: { mocks: { $store: mockStore() } },
+      global: {
+        mocks: {
+          $store:      mockStore(),
+          $fetchState: { pending: false },
+          $route:      { name: 'test-route' },
+        }
+      },
     });
 
     const spy = jest.spyOn(wrapper.vm, 'save');
@@ -93,7 +105,13 @@ describe('shell/edit/monitoring.coreos.com.receiver/index.vue', () => {
         value: baseValue(),
         mode:  _EDIT,
       },
-      global: { mocks: { $store: mockStore() } },
+      global: {
+        mocks: {
+          $store:      mockStore(),
+          $fetchState: { pending: false },
+          $route:      { name: 'test-route' },
+        }
+      },
     });
 
     const spy = jest.spyOn(wrapper.vm, 'save');
@@ -118,7 +136,13 @@ describe('shell/edit/monitoring.coreos.com.receiver/index.vue', () => {
         value,
         mode: _EDIT
       },
-      global: { mocks: { $store: mockStore() } }
+      global: {
+        mocks: {
+          $store:      mockStore(),
+          $fetchState: { pending: false },
+          $route:      { name: 'test-route' },
+        }
+      }
     });
 
     wrapper.vm.createSmarthost();
