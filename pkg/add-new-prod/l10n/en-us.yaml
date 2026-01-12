@@ -1,0 +1,66 @@
+registration:
+  navigation:
+    label: Registration
+
+  notification:
+    title: Rancher Prime Registration
+    message: Register your SUSE Rancher Manager Prime Suite to receive the latest updates and support.
+    button:
+      primary:
+        label: Register Now
+
+  title: Product Registration
+  banner:
+    status:
+      success: System registration successfully activated.
+      error: This system does not have an active registration.
+
+  online:
+    title: Online Registration
+    description: Copy a valid registration code for Rancher Manager into the field below and then click the Register button.
+    input:
+      label: 'Registration code:'
+      placeholder: e.g. sdfs-a987435-kjhsf-8u44p0-dmw0o44p0dmasd9
+    button-cta:
+      label: Register
+      progress: Registering
+
+  offline:
+    title: Offline Registration
+    stepone: '<b>Step 1:</b> To register Rancher Manager offline, you must download the registration request file below' 
+    steptwo: '<b>Step 2:</b> Visit the SUSE Customer Center (SCC) offline registration tool.'
+    stepthree: '<b>Step 3:</b> Once logged in to SCC, follow the instructions to get your registration certificate provided by SCC. Once retrieved, upload the file below to register your product.'
+    button:
+      download: 
+        label: Download registration request
+        progress: Downloading
+      visit: 
+        label: Visit SCC
+      register:
+        label: Upload certificate and register
+        progress: Registering
+  list:
+    title: Product Registration
+    table:
+      header:
+        status: Status
+        product: Product name
+        expiration: Expiration
+        mode: Registration mode
+      button:
+        label: Deregister
+        progress: Deregistering
+      badge:
+        none: Unregistered
+        invalid: Invalid
+        expired: Expired
+        valid: Active
+  errors:
+    missing-code: Registration code as Secret is missing
+    mismatch-code: Registration active but does not match Secret registration code. Please verify the <a href="${ url }">registration</a>
+    generic-registration: No registration found for existing registration code (Secret).
+    timeout-registration: Timeout reached while waiting for resource.
+
+prime:
+  installed: This is a SUSE Rancher Prime installation
+  
