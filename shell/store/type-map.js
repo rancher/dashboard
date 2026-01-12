@@ -153,6 +153,7 @@ import { haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 import { createHeaders, rowValueGetter } from '@shell/store/type-map.utils';
 import { defineAsyncComponent } from 'vue';
+import { filterLocationValidParams } from '@shell/utils/router';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -695,7 +696,7 @@ export const getters = {
             }
           };
 
-          typeObj.route = route;
+          typeObj.route = filterLocationValidParams(rootState.$router, route);
         }
 
         // Cluster ID and Product should always be set
@@ -712,7 +713,7 @@ export const getters = {
           exact:        typeObj.exact || false,
           'exact-path': typeObj['exact-path'] || false,
           namespaced,
-          route,
+          route:        filterLocationValidParams(rootState.$router, route),
           name:         typeObj.name,
           weight:       typeObj.weight || getters.typeWeightFor(typeObj.schema?.id || label, isBasic),
           overview:     !!typeObj.overview,

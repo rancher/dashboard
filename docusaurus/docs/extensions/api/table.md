@@ -4,7 +4,7 @@ Table extension points in Rancher Dashboard.
 
 ## addTableHook
 
-*(Rancher version v2.14.0)*
+*(From Rancher version v2.14.0)*
 
 This method adds a hook to a `ResourceTable` element-based table on the UI. This allows to react to table events like changing page, sorting or filtering.
 
@@ -18,9 +18,9 @@ _Arguments_
 
 `where` string parameter admissible values for this method:
 
-| Key | Type | Description |
-|---|---|---|
-|`TableLocation.RESOURCE`| String | Location for a table on a Resource List View page |
+| Key | Type | Rancher Version | Description |
+|---|---|---|---|
+|`TableLocation.RESOURCE`| String | v2.14.0 | Location for a table on a Resource List View page |
 
 <br/>
 
@@ -29,6 +29,8 @@ _Arguments_
 `LocationConfig` as described above for the [LocationConfig object](./common#locationconfig).
 
 ### TableLocation.RESOURCE action
+
+*(From Rancher version v2.14.0)*
 
 `action` config object. Admissible parameters for the `action` with `'TableLocation.RESOURCE'` are:
 

@@ -155,7 +155,7 @@ class PaginationWrapper<T extends object> {
         return err?.status === 400 && err?.code === STEVE_RESPONSE_CODE.UNKNOWN_REVISION;
       },
       delayedFn: async() => {
-        const res: ActionFindPageTransientResponse = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
+        const res: ActionFindPageTransientResponse<T> = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
 
         this.cachedRevision = res.pagination?.result.revision;
 

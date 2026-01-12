@@ -180,6 +180,15 @@ export default {
   * Load multiple different types of resources
   */
   loadMulti(state, { data, ctx }) {
+    const type = data[0]?.type;
+    const cache = state.types[type];
+
+    if (cache?.havePage) {
+      console.warn(`Prevented \`loadMulti\` mutation from polluting the cache for type "${ type }" (currently represents a page).`); // eslint-disable-line no-console
+
+      return;
+    }
+
     for (const entry of data) {
       const resource = load(state, { data: entry, ctx });
 

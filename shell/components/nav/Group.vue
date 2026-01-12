@@ -1,5 +1,6 @@
 <script>
 import Type from '@shell/components/nav/Type';
+import { filterLocationValidParams } from '@shell/utils/router';
 export default {
   name: 'Group',
 
@@ -78,7 +79,8 @@ export default {
         const overviewRoute = grp?.route;
 
         if (overviewRoute && grp.overview) {
-          const route = this.$router.resolve(overviewRoute || {});
+          const validRoute = filterLocationValidParams(this.$router, overviewRoute || {});
+          const route = this.$router.resolve(validRoute);
 
           return this.$route.fullPath.split('#')[0] === route?.fullPath;
         }
@@ -94,6 +96,10 @@ export default {
       set(v) {
         this.expanded = v;
       }
+    },
+
+    headerRoute() {
+      return filterLocationValidParams(this.$router, this.group.children[0].route);
     }
   },
 
@@ -139,7 +145,9 @@ export default {
         const route = item.route;
 
         if (route) {
-          this.$router.replace(route);
+          const validRoute = filterLocationValidParams(this.$router, route);
+
+          this.$router.replace(validRoute);
         } else if (item) {
           this.routeToFirstChild(item);
         }
@@ -148,7 +156,9 @@ export default {
 
     routeToFirstChild(item) {
       if (item.children.length && item.children[0].route) {
-        this.$router.replace(item.children[0].route);
+        const validRoute = filterLocationValidParams(this.$router, item.children[0].route);
+
+        this.$router.replace(validRoute);
       }
     },
 
@@ -196,7 +206,8 @@ export default {
           const matchesNavLevel = navLevels.filter((param) => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
           const withoutHash = this.$route.hash ? this.$route.fullPath.slice(0, this.$route.fullPath.indexOf(this.$route.hash)) : this.$route.fullPath;
           const withoutQuery = withoutHash.split('?')[0];
-          const itemFullPath = this.$router.resolve(item.route).fullPath;
+          const validItemRoute = filterLocationValidParams(this.$router, item.route);
+          const itemFullPath = this.$router.resolve(validItemRoute).fullPath;
 
           if (matchesNavLevel || itemFullPath === withoutQuery) {
             return true;
@@ -258,7 +269,7 @@ export default {
         <slot name="header">
           <router-link
             v-if="hasOverview"
-            :to="group.children[0].route"
+            :to="headerRoute"
             :exact="group.children[0].exact"
             :tabindex="-1"
           >

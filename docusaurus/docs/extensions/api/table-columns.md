@@ -4,7 +4,7 @@ Table Columns are added to Rancher via the `addTableColumn` method.
 
 ## addTableColumn
 
-*(Rancher version v2.7.2)*
+*(From Rancher version v2.7.2)*
 
 This method adds a table column to a `ResourceTable` element-based table on the UI.
 
@@ -18,9 +18,9 @@ _Arguments_
 
 `where` string parameter admissible values for this method:
 
-| Key | Type | Description |
-|---|---|---|
-|`TableColumnLocation.RESOURCE`| String | Location for a table column on a Resource List View page |
+| Key | Type | Rancher Version | Description |
+|---|---|---|---|
+|`TableColumnLocation.RESOURCE`| String | v2.7.2 | Location for a table column on a Resource List View page |
 
 <br/>
 
@@ -28,11 +28,11 @@ _Arguments_
 
 `LocationConfig` as described above for the [LocationConfig object](./common#locationconfig).
 
-*(From Rancher version v2.13.0)*
+*(**From Rancher version v2.13.0**)*
 
 An addition parameter can be provided which will be used to support the column when server-side pagination is enabled. For more information and other changes required to server-side pagination see [here](../performance/scaling/lists.md).
 
-*(From Rancher version v2.14.0)*
+*(**From Rancher version v2.14.0**)*
 
 when adding a new column to a table on Rancher Dashboard, the default is for the table column to be added just before the `Age` column. 
 
@@ -43,6 +43,8 @@ plugin.addTableColumn(where: String, when: LocationConfig, column: TableColumn, 
 ```
 
 ### TableColumnLocation.RESOURCE column
+
+*(From Rancher version v2.7.2)*
 
 ![Table Col](../screenshots/table-cols.png)
 

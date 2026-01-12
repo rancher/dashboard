@@ -1,5 +1,4 @@
 import { NAME as APPS } from '@shell/config/product/apps';
-import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import {
   CAPI, MANAGEMENT, BACKUP_RESTORE, COMPLIANCE, VIRTUAL_TYPES
@@ -184,10 +183,7 @@ export default [
         redirect(to) {
           return {
             name:   'c-cluster-explorer',
-            params: {
-              ...(to?.params || {}),
-              product: EXPLORER,
-            }
+            params: { ...(to?.params || {}) }
           };
         }
       },

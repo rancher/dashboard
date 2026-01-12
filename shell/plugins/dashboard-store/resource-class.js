@@ -1363,6 +1363,7 @@ export default class Resource {
 
   get _detailLocation() {
     const schema = this.$getters['schemaFor'](this.type);
+    const isNamespaced = schema?.attributes?.namespaced;
 
     const id = this.id?.replace(/.*\//, '');
 
@@ -1372,7 +1373,7 @@ export default class Resource {
         product:   this.$rootGetters['productId'],
         cluster:   this.$rootGetters['clusterId'],
         resource:  this.type,
-        namespace: this.metadata?.namespace,
+        namespace: isNamespaced && this.metadata?.namespace ? this.metadata.namespace : undefined,
         id,
       }
     };

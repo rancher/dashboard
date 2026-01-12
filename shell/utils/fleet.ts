@@ -184,7 +184,7 @@ class Fleet {
   }
 
   detailLocation(r: Resource, mgmtClusterName: string): any {
-    return mapStateToEnum(r.state) === STATES_ENUM.MISSING ? undefined : {
+    const location = mapStateToEnum(r.state) === STATES_ENUM.MISSING ? undefined : {
       name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
       params: {
         product:   EXPLORER_NAME,
@@ -194,6 +194,13 @@ class Fleet {
         id:        r.name,
       },
     };
+
+    // Having an undefined param can yield a console warning like [Vue Router warn]: Discarded invalid param(s) "namespace" when navigating
+    if (location && !location.params.namespace) {
+      delete location.params.namespace;
+    }
+
+    return location;
   }
 
   /**

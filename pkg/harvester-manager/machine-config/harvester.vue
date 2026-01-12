@@ -725,7 +725,7 @@ export default {
       const notAllocatable = this.vGpus
         .map((type) => {
           const allocated = this.machinePools.reduce((acc, machinePool) => {
-            const vGPURequests = JSON.parse(machinePool?.config?.vgpuInfo || '')?.vGPURequests;
+            const vGPURequests = JSON.parse(machinePool?.config?.vgpuInfo || '{}')?.vGPURequests;
 
             const vGpuTypes = vGPURequests?.map((r) => r?.deviceName).filter((f) => f) || [];
 

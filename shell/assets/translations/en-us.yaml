@@ -1808,6 +1808,7 @@ cluster:
     current: (current)
     experimental: (experimental)
     deprecated: (deprecated)
+    manual: (manually upgraded)
     deprecatedPatches: Show deprecated Kubernetes patch versions
     deprecatedPatchWarning: We recommend using the latest patch version for each minor Kubernetes version. Deprecated patch versions can be useful for migration purposes.
   legacyWarning: The legacy feature flag is enabled and not all legacy features are supported in Kubernetes 1.21+.
@@ -4620,6 +4621,7 @@ moveModal:
   description: 'You are moving the following namespaces:'
   moveButtonLabel: Move
   targetProject: Target Project
+  noProject: None (remove from any project)
 
 nameNsDescription:
   name:
