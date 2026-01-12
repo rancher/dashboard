@@ -22,8 +22,24 @@ export default {
   data() {
     return { selectedName: null, errors: [] };
   },
-  computed: { ...mapGetters({ t: 'i18n/t' }) },
-  methods:  {
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+    workerNodes() {
+      const keys = [
+        `node-role.kubernetes.io/control-plane`,
+        `node-role.kubernetes.io/etcd`
+      ];
+
+      return this.allNodeObjects
+        .filter((node) => {
+          const taints = node?.spec?.taints || [];
+
+          return taints.every((taint) => !keys.includes(taint.key));
+        })
+        .map((node) => node.id);
+    }
+  },
+  methods: {
     changed(tab) {
       const key = this.idKey;
 
@@ -494,7 +510,7 @@ export default {
               <NodeScheduling
                 :mode="mode"
                 :value="podTemplateSpec"
-                :nodes="allNodes"
+                :nodes="workerNodes"
                 :loading="isLoadingSecondaryResources"
               />
             </Tab>
