@@ -1,0 +1,26 @@
+{
+  "name": "add-new-prod",
+  "description": "Testing new prod add",
+  "version": "1.0.0",
+  "private": false,
+  "rancher": {
+    "annotations": {
+      "catalog.cattle.io/rancher-version": ">= v2.10.0",
+      "catalog.cattle.io/display-name": "Add New Prod"
+    }
+  },
+
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "@vue/cli-plugin-typescript": "~5.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
