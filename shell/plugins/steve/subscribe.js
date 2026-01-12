@@ -875,6 +875,7 @@ const defaultActions = {
 
     const targetRevision = new SteveRevision(revision);
     const activeRevision = new SteveRevision(activeRevisionSt);
+    const cachedRevision = new SteveRevision(cachedRevisionSt);
     const currentRevision = new SteveRevision(activeRevisionSt || cachedRevisionSt);
 
     // Three cases to support HA scenarios 2 + 3
@@ -882,11 +883,15 @@ const defaultActions = {
     // 2. current version is older than target revision - reset previous (drop older requests with older revision, use new revision)
     // 3. current version is same as target revision - we're retrying
 
+    // There are two places we do this to cover the two cases we make http request following socket changes
+    // shell/utils/pagination-wrapper.ts - request
+    // shell/plugins/steve/subscribe.js - fetchPageResources
+
     if (currentRevision.isNewerThan(targetRevision)) {
       // Case 1 - abort/ignore (don't overwrite new with old)
 
       // eslint-disable-next-line no-console
-      console.warn(`Ignoring subscribe request to update '${ type }' with revision '${ targetRevision.revision }' (previously processed '${ currentRevision.revision }'). ` +
+      console.warn(`Ignoring subscribe request to update '${ type }' with revision '${ targetRevision.revision }' (active revision '${ currentRevision.revision } & cached revision '${ cachedRevision.revision }''). ` +
               `This probably means the replica that provided the web socket message has not yet correctly synced it's cache with other fresher replicas.`);
 
       return;

@@ -54,6 +54,16 @@ interface BackOffArgs<MetadataType = any> {
   mode?: ''
 }
 
+const metadataToString = (metadata: any) => {
+  if (!metadata) {
+    return '';
+  }
+
+  return JSON.stringify(metadata, (_, value) => {
+    return value === undefined ? '' : value;
+  });
+};
+
 export type BackOffExecuteArgs<MetadataType> = BackOffArgs<MetadataType>
 
 export interface BackOffRecurseArgs<MetadataType> extends BackOffArgs<MetadataType> {
@@ -121,7 +131,7 @@ class BackOff {
 
     // eslint-disable-next-line no-console
     console[level](
-      `%cBackOff${ safeType }%c... \n%cId%c:          ${ id }\n%cDescription%c: ${ description }\n%cStatus%c:      ${ status }\n%cMetadata%c:    ${ metadata ? JSON.stringify(metadata) : '' }\n%cCache %c:       ${ Object.keys(this.map).map((e) => `"${ e }"`).join(' + ') }`,
+      `%cBackOff${ safeType }%c... \n%cId%c:          ${ id }\n%cDescription%c: ${ description }\n%cStatus%c:      ${ status }\n%cMetadata%c:    ${ metadataToString(metadata) }\n%cCache %c:       ${ Object.keys(this.map).map((e) => `"${ e }"`).join(' + ') }`,
       logStyle, logStyleReset,
       logStyle, logStyleReset,
       logStyle, logStyleReset,
@@ -214,13 +224,13 @@ class BackOff {
     if (!this.map[id]) {
       // was reset, don't care now, abort
       // could be a pagination-wrapper request with a stale revision, which can be safely ignored
-      return this.logAndError('warn', {
+      return this.logAndError('info', {
         id, status: 'Aborting (backoff was reset, do not continue to process)', description, metadata, type: LOG_TYPE.RECURSE
       });
     }
 
     if (this.map[id].recurse?.id !== backOffEntry.recurse?.id) {
-      return this.logAndError('warn', {
+      return this.logAndError('info', {
         id, status: 'Aborting (stale backoff, a new one exists)', description, metadata, type: LOG_TYPE.RECURSE
       });
     }

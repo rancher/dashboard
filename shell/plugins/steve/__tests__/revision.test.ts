@@ -22,6 +22,13 @@ describe('class: SteveRevision', () => {
       expect(rev.asNumber).toBeNaN();
       expect(rev.isNumber).toBe(false);
     });
+
+    it('should handle undefined', () => {
+      const rev = new SteveRevision(undefined);
+
+      expect(rev.asNumber).toBeNaN();
+      expect(rev.isNumber).toBe(false);
+    });
   });
 
   describe('method: isNewerThan', () => {
@@ -56,6 +63,20 @@ describe('class: SteveRevision', () => {
     it('should return false if provided revision is not a number', () => {
       const r1 = new SteveRevision('10');
       const r2 = new SteveRevision('abc');
+
+      expect(r1.isNewerThan(r2)).toBe(false);
+    });
+
+    it('should return false if current revision is undefined', () => {
+      const r1 = new SteveRevision(undefined);
+      const r2 = new SteveRevision('10');
+
+      expect(r1.isNewerThan(r2)).toBe(false);
+    });
+
+    it('should return false if provided revision is undefined', () => {
+      const r1 = new SteveRevision('10');
+      const r2 = new SteveRevision(undefined);
 
       expect(r1.isNewerThan(r2)).toBe(false);
     });
