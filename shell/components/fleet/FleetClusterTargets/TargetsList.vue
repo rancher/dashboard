@@ -42,11 +42,11 @@ export default {
         <router-link
           :to="cluster.detailLocation"
           target="_blank"
+          class="link-main"
         >
-          {{ cluster.name }} <i class="icon icon-external-link" />
+          {{ cluster.name }}&nbsp;<i class="link-icon icon icon-external-link" />
         </router-link>
       </span>
-
       <span
         v-if="!clustersRenderList.length"
         class="text-label"
@@ -68,5 +68,17 @@ export default {
   }
   .targets-list-list {
     overflow-y: scroll;
+  }
+  .link-main{
+    word-spacing: 22px;
+  }
+  .link-icon {
+    position: absolute;
+    margin-left: -14px; // Remove the space of the icon to make it float to accomodate the underline
+    display: none; // Make the icon disappear by default
+  }
+
+  .link-main:hover .link-icon {
+    display: inline; // Only appear when hovered
   }
 </style>
