@@ -221,6 +221,6 @@
   "resolutions": {
     "html-webpack-plugin": "5.0.0",
     "@aws-sdk/types": "3.862.0",
-    "@smithy/smithy-client": "4.5.0"
+    "@smithy/smithy-client": "4.10.3"
   }
 }
