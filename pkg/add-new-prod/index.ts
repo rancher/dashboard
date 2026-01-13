@@ -1,5 +1,5 @@
 import { importTypes } from '@rancher/auto-import';
-import { IPlugin } from '@shell/core/types';
+import { IPlugin, StandardProductName } from '@shell/core/types';
 
 // Init the package
 export default function(plugin: IPlugin) {
@@ -78,43 +78,6 @@ export default function(plugin: IPlugin) {
     weight: -100, // does not matter for inner structure root weight (this is just for sidebar ordering)
     label:  'Simple with Children'
   }, [
-    // {
-    //   name:      'page1',
-    //   label:     'My label for page 1',
-    //   component: () => import('./components/Test.vue'),
-    //   children:  [
-    //     {
-    //       name:      'hello0',
-    //       label:     'Testing 12',
-    //       labelKey:  'aks.label',
-    //       component: () => import('./components/Test.vue')
-    //     } as any,
-    //     {
-    //       name:      'hello1',
-    //       label:     'Testing 1',
-    //       labelKey:  'aks.label',
-    //       component: () => import('./components/Test.vue')
-    //     },
-    //     {
-    //       name:      'hello2',
-    //       label:     'Testing 2',
-    //       // labelKey: 'aks.label',
-    //       component: () => import('./components/Test.vue')
-    //     },
-    //     {
-    //       name:      'hello3',
-    //       label:     'Testing 3',
-    //       labelKey:  'aks.label',
-    //       component: () => import('./components/Test.vue')
-    //     },
-    //   ]
-    // },
-    { type: 'upgrade.cattle.io.plan' },
-    {
-      name:      'page2',
-      label:     'My label for page 2',
-      component: () => import('./components/Test.vue')
-    },
     {
       name:      'page1',
       label:     'My label for page 1',
@@ -133,18 +96,30 @@ export default function(plugin: IPlugin) {
           component: () => import('./components/Test.vue')
         },
         {
-          name:      'hello2',
-          label:     'Testing 2',
-          // labelKey: 'aks.label',
-          component: () => import('./components/Test.vue')
-        },
-        {
           name:      'hello3',
-          label:     'Testing 3',
           labelKey:  'aks.label',
           component: () => import('./components/Test.vue')
         },
+        {
+          name:      'hello2',
+          label:     'Testing 2',
+          component: () => import('./components/Test.vue')
+        }
       ]
     },
+    { type: 'upgrade.cattle.io.plan' },
+    {
+      name:      'page2',
+      label:     'My label for page 2',
+      component: () => import('./components/Test.vue')
+    },
   ]);
+
+  // plugin.extendProduct(StandardProductName.SETTINGS, [
+  //   {
+  //     name:      'mysettings',
+  //     label:     'Custom',
+  //     component: () => import('./components/Test.vue')
+  //   }
+  // ]);
 }

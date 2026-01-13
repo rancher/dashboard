@@ -244,6 +244,7 @@ export type ProductChild = ProductChildType | ProductChildResource | ProductChil
  * Represents a navigation group in a product
  */
 export type ProductChildGroup = ProductChildMetadata & {
+  component?: RouteComponent | Lazy<RouteComponent>;
   children: ProductChild[];
   default?: string;
 };
