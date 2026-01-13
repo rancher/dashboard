@@ -9,8 +9,8 @@ export function gatherChildrenOrdering(children: any[]) {
   }, Infinity);
 
   if (minWeight === Infinity) {
-    // it has to be greater than 1000, because that's the default weight for root items
-    minWeight = 10000;
+    // 1000 is Root level default weight minus some space
+    minWeight = 999;
   }
 
   children.forEach((child, index) => {
@@ -19,6 +19,10 @@ export function gatherChildrenOrdering(children: any[]) {
     }
 
     if ((child as any).children) {
+      // groups should be below regular items
+      // until we are able to assign weights to groups
+      // and render them all under the "Root" group properly
+      child.weight = minWeight - (index + 1) - 500;
       gatherChildrenOrdering((child as any).children);
     }
   });

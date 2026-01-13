@@ -8,6 +8,7 @@ export function DSLRegistrationsPerProduct(store, prodName) {
     'basicGroupWeights',
     'basicTypeWeights',
     'groupDefaultTypes',
+    'groupLabels',
     // 'headers',
     // 'spoofedTypes',
     // 'typeOptions',
@@ -36,7 +37,7 @@ export function DSLRegistrationsPerProduct(store, prodName) {
     }
   });
 
-  console.error('*** PRODUCT DATA DEBUGGER **** DSLRegistrationsPerProduct', parsedData);
+  console.error('*** PRODUCT DATA DEBUGGER **** DSLRegistrationsPerProduct', parsedData); // eslint-disable-line no-console
 }
 
 export function registeredRoutes(store, prodName) {
@@ -44,5 +45,5 @@ export function registeredRoutes(store, prodName) {
 
   const parsedData = routes.filter((route) => route.path.includes(prodName));
 
-  console.error('*** PRODUCT DATA DEBUGGER **** registeredRoutes', parsedData);
+  console.error('*** PRODUCT DATA DEBUGGER **** registeredRoutes', parsedData); // eslint-disable-line no-console
 }

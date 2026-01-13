@@ -317,6 +317,12 @@ export function DSL(store, product, module = 'type-map') {
       }
     },
 
+    labelGroup(group, label, labelKey) {
+      store.commit(`${ module }/labelGroup`, {
+        group, label, labelKey
+      });
+    },
+
     setGroupDefaultType(input, defaultType) {
       if ( isArray(input) ) {
         store.commit(`${ module }/setGroupDefaultType`, { groups: input, defaultType });
@@ -397,6 +403,7 @@ export const state = function() {
     groupIgnore:             [],
     groupWeights:            {},
     groupDefaultTypes:       {},
+    groupLabels:             {},
     basicGroupWeights:       { [ROOT]: 1000 },
     groupMappings:           [],
     typeIgnore:              [],
@@ -496,6 +503,15 @@ export const getters = {
       });
 
       return out;
+    };
+  },
+
+  groupLabel(state) {
+    return (group) => {
+      // If this has been explicitly set, use that
+      if (state.groupLabels[group]) {
+        return state.groupLabels[group];
+      }
     };
   },
 
@@ -740,10 +756,21 @@ export const getters = {
 
         // Translate if an entry exists
         let label = name;
-        // i18n-uses nav.group.*
-        const key = `nav.group."${ name }"`;
+        let key;
 
-        if ( rootGetters['i18n/exists'](key) ) {
+        // See if we have a configured label for this group
+        const groupLabel = getters['groupLabel'](name);
+
+        if (groupLabel?.label) {
+          label = groupLabel.label;
+        } else if (groupLabel?.labelKey) {
+          key = groupLabel.labelKey;
+        } else {
+          // i18n-uses nav.group.*
+          key = `nav.group."${ name }"`;
+        }
+
+        if (key && rootGetters['i18n/exists'](key) ) {
           label = rootGetters['i18n/t'](key);
         }
 
@@ -1669,6 +1696,10 @@ export const mutations = {
     }
   },
 
+  labelGroup(state, { group, label, labelKey }) {
+    state.groupLabels[group.toLowerCase()] = { label, labelKey };
+  },
+
   // setGroupDefaultType({group: 'core', defaultType: 'name'});
   // By default when a group is clicked, the first item is selected - this allows
   // this behaviour to be changed and a named child type can be chosen
@@ -1799,6 +1830,24 @@ function _sortGroup(tree, mode) {
   for (const entry of tree.children ) {
     if ( entry.children ) {
       _sortGroup(entry, mode);
+      // if there's an overview item, move it to the top so that it can be perceived as a link, if needed
+      // being "overview" is what defines a sideMenu entry as a group AND a link target
+      // this allows for the prod registration abstraction to work properly for groups that are also links (which have a component)
+      let foundParent = -1;
+
+      entry.children.filter((c, index) => {
+        if (c.overview) {
+          foundParent = index;
+
+          return true;
+        }
+      });
+
+      if (foundParent >= 0) {
+        const arrItem = entry.children.splice(foundParent, 1)[0];
+
+        entry.children.unshift(arrItem);
+      }
     }
   }
 }

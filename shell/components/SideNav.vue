@@ -229,6 +229,8 @@ export default {
 
       this.getExplorerGroups(out);
 
+      console.error('SideNav getGroups result', out);
+
       replaceWith(this.groups, ...sortBy(out, ['weight:desc', 'label']));
 
       this.gettingGroups = false;
