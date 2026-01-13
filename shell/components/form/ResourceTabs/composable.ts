@@ -71,7 +71,6 @@ export const useTabResourceUpdater = () => {
   const updateResources = inject<any>(UPDATE_RESOURCES_PROVIDER_KEY);
 
   const updateTabResources = (resources?: any[]) => {
-    console.log('rrrrr', resources);
     updateResources?.(tabKey, resources);
   };
 
@@ -95,8 +94,6 @@ export const useTabResourceNamer = () => {
 
     resourceLedger.value[key] = resourceLedger.value[key] || { resources: [] };
     resourceLedger.value[key].resources = resources;
-
-    console.log('llll', resourceLedger.value);
   };
 
   provide(UPDATE_RESOURCES_PROVIDER_KEY, updateResources);

@@ -1,7 +1,7 @@
-import { Count, extractCounts, Props as ResourceRowProps } from '@shell/components/Resource/Detail/ResourceRow.vue';
+import { Count, Props as ResourceRowProps } from '@shell/components/Resource/Detail/ResourceRow.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { INGRESS, SERVICE } from '@shell/config/types';
-import { getHighestAlertColor, isHigherAlert, StateColor } from '@shell/utils/style';
+import { isHigherAlert, StateColor } from '@shell/utils/style';
 import { computed, Ref, toValue } from 'vue';
 import { useStore } from 'vuex';
 import { Props as StateCardProps } from '@shell/components/Resource/Detail/Card/StateCard/index.vue';
@@ -43,7 +43,7 @@ export function useResourceCardRow(label: string, resources: any[], stateColorKe
 
   return {
     label,
-    color: tuples.length ? tuples[0].color : undefined,
+    color:  tuples.length ? tuples[0].color : undefined,
     counts: tuples.length ? tuples : undefined,
     to
   };
@@ -123,13 +123,13 @@ export function useDefaultWorkloadInsightsCardProps(): StateCardProps {
   const rows: ResourceRowProps[] = [
     {
       label:  i18n.t('component.resource.detail.card.insightsCard.rows.conditions'),
-      to: '#conditions',
+      to:     '#conditions',
       color:  'disabled',
       counts: [{ label: 'Available', count: 1 }, { label: 'Progressing', count: 1 }]
     },
     {
       label:  i18n.t('component.resource.detail.card.insightsCard.rows.events'),
-      to: '#events',
+      to:     '#events',
       color:  'disabled',
       counts: [{ label: 'Normal', count: 2 }]
     }
