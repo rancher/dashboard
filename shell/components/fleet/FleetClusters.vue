@@ -25,6 +25,14 @@ export default {
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
+    },
+    removeSubRows: {
+      type:    Boolean,
+      default: false,
+    },
+    removeReadyColumns: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -72,6 +80,11 @@ export default {
         AGE,
       ];
 
+      if (this.removeReadyColumns) {
+        // Remove the ready columns, used when wants to show cluster of specific Fleet Application
+        out.splice(2, 3);
+      }
+
       return out;
     },
 
@@ -99,7 +112,6 @@ export default {
     :schema="schema"
     :headers="headers"
     :rows="rows"
-    :sub-rows="true"
     :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     key-field="_key"
@@ -151,7 +163,10 @@ export default {
       >{{ row.bundleInfo.total }}</span>
     </template>
 
-    <template #sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave}">
+    <template
+      v-if="!removeSubRows"
+      #sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave}"
+    >
       <tr
         class="labels-row sub-row"
         @mouseenter="onRowMouseEnter"
@@ -200,6 +215,14 @@ export default {
 &nbsp;
         </td>
       </tr>
+    </template>
+    <template
+      v-else
+      #sub-row
+    >
+      <tr
+        class="sub-row"
+      />
     </template>
   </ResourceTable>
 </template>

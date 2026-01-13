@@ -158,6 +158,14 @@ export default class FleetApplication extends SteveModel {
     return this.status?.perClusterResourceCounts?.[clusterId] || { desiredReady: 0 };
   }
 
+  get targetClustersWithStatusResourceCount() {
+    return this.targetClusters.map((targetCluster) => {
+      targetCluster.statusResourceCountsForCluster = this.statusResourceCountsForCluster(targetCluster.id);
+
+      return targetCluster;
+    });
+  }
+
   get resourcesStatuses() {
     if (isEmpty(this.status?.resources)) {
       return [];
