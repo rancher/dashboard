@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import RcCounterBadge from '@components/Pill/RcCounterBadge';
+import { RcCounterBadge } from '@components/Pill';
 import { StateColor, stateColorCssVar } from '@shell/utils/style';
 
 export interface Props {
