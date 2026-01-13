@@ -101,8 +101,8 @@ describe('component: Workload', () => {
       expect(result).toStrictEqual(newMessage);
     });
 
-    describe('workerNodes', () => {
-      it('should filter out nodes with control-plane or etcd taints', () => {
+    describe('secondaryResourceDataConfig', () => {
+      it('should filter out nodes with control-plane or etcd taints from workerNodes parsingFunc', () => {
         const allNodeObjects = [
           {
             id:   'node-1',
@@ -130,43 +130,9 @@ describe('component: Workload', () => {
           }
         ];
 
-        const mockedWorkloadMixinForWorkerNodes = {
-          ...baseMockedWorkloadMixin,
-          computed: { allNodeObjects: () => allNodeObjects }
-        };
-
-        const MockedWorkload = { ...Workload, mixins: [baseMockedValidationMixin, baseMockedCREMixin, mockedWorkloadMixinForWorkerNodes] };
-
-        const wrapper = shallowMount(MockedWorkload, {
-          props: {
-            value: {
-              metadata: {},
-              spec:     { template: {} }
-            },
-            params:        {},
-            fvFormIsValid: {}
-          },
-          global: {
-            mocks: {
-              $route:      { params: {}, query: {} },
-              $router:     { applyQuery: jest.fn() },
-              $fetchState: { pending: false },
-              $store:      {
-                getters: {
-                  'cluster/schemaFor': jest.fn(),
-                  'type-map/labelFor': jest.fn(),
-                  'i18n/t':            jest.fn(),
-                },
-              },
-            },
-            stubs: {
-              NameNsDescription: true,
-              CruResource:       true,
-            }
-          },
-        });
-
-        const result = (wrapper.vm as any).workerNodes;
+        const { data } = (Workload.mixins[2] as any).methods.secondaryResourceDataConfig.apply({ value: { metadata: { namespace: 'test' } } });
+        const workerNodesParsingFunc = data.node.applyTo.find((r: any) => r.var === 'workerNodes').parsingFunc;
+        const result = workerNodesParsingFunc(allNodeObjects);
 
         expect(result).toStrictEqual(['node-3', 'node-4', 'node-5', 'node-6']);
       });
