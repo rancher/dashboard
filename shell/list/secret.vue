@@ -8,7 +8,8 @@ import { TableColumn } from '@shell/types/store/type-map';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { mapGetters } from 'vuex';
 import { SECRET_CLONE, SECRET_PROJECT_SCOPED } from '@shell/config/table-headers';
-import { STEVE_SECRET_CLONE } from '@shell/config/pagination-table-headers';
+import { STEVE_SECRET_CLONE, STEVE_SECRET_PROJECT_SCOPED } from '@shell/config/pagination-table-headers';
+import { PagTableFetchPageSecondaryResourcesOpts } from '@shell/types/components/paginatedResourceTable';
 
 export default {
   name: 'ListSecret',
@@ -66,7 +67,7 @@ export default {
       if (this.currentCluster.isLocal) {
         // if the user is on the local cluster, add a column to let them know if it's a project scoped secret (from another cluster)
         headers.push(SECRET_PROJECT_SCOPED);
-        headersSSP.push(SECRET_PROJECT_SCOPED);
+        headersSSP.push(STEVE_SECRET_PROJECT_SCOPED);
       }
     }
 
@@ -88,6 +89,23 @@ export default {
     ...mapGetters(['currentCluster']),
   },
 
+  methods: {
+    async fetchPageSecondaryResources({
+      canPaginate, force, page, pagResult
+    }: PagTableFetchPageSecondaryResourcesOpts) {
+      if (!canPaginate || !page?.length) {
+        return;
+      }
+
+      // Fetch clusters other than the current one in order to populate the `Project Secret` column (specifically the cluster name where this PSS is in)
+      await Promise.all(page.map((s) => {
+        if (s.projectScopedClusterId) {
+          return this.$store.dispatch(`${ STORE.MANAGEMENT }/find`, { type: MANAGEMENT.CLUSTER, id: s.projectScopedClusterId });
+        }
+      }));
+    }
+  }
+
 };
 </script>
 
@@ -104,6 +122,8 @@ export default {
       :headers="namespacedHeaders"
       :pagination-headers="namespacedHeadersSsp"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+
+      :fetchPageSecondaryResources="fetchPageSecondaryResources"
     />
   </div>
 </template>
