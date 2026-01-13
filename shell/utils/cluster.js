@@ -242,7 +242,7 @@ export function filterOutDeprecatedPatchVersions(allVersions, currentVersion) {
   return filteredVersions;
 }
 
-export function getAllOptionsAfterCurrentVersion(store, versions, currentVersion, defaultVersion) {
+export function getAllOptionsAfterCurrentVersion(store, versions, currentVersion, defaultVersion, manual = false) {
   const out = (versions || []).filter((obj) => !!obj.serverArgs).map((obj) => {
     let disabled = false;
     let experimental = false;
@@ -260,6 +260,9 @@ export function getAllOptionsAfterCurrentVersion(store, versions, currentVersion
 
     if (isCurrentVersion) {
       label = `${ label } ${ store.getters['i18n/t']('cluster.kubernetesVersion.current') }`;
+      if (manual) {
+        label = `${ label } ${ store.getters['i18n/t']('cluster.kubernetesVersion.manual') }`;
+      }
     }
 
     if (experimental) {
