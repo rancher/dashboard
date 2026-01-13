@@ -26,7 +26,7 @@ const clusterToolsUrl = router.resolve({
   <Card :title="i18n.t('component.resource.detail.card.extrasCard.title')">
     <p
       v-clean-html="i18n.t('component.resource.detail.card.extrasCard.message', { extensionsUrl, clusterToolsUrl }, true)"
-      class="message"
+      class="message text-deemphasized"
     />
   </Card>
 </template>
@@ -35,9 +35,5 @@ const clusterToolsUrl = router.resolve({
 .message {
   margin: 0;
   line-height: 1.5;
-
-  a {
-    text-decoration: underline;
-  }
 }
 </style>
