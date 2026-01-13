@@ -258,6 +258,7 @@ export default {
       secondaryResourceData:      this.secondaryResourceDataConfig(),
       namespacedConfigMaps:       [],
       allNodes:                   null,
+      workerNodes:                null,
       allNodeObjects:             [],
       namespacedSecrets:          [],
       imagePullNamespacedSecrets: [],
@@ -647,7 +648,24 @@ export default {
                 parsingFunc: (data) => {
                   return data.map((node) => node.id);
                 }
-              }
+              },
+              {
+                var:         'workerNodes',
+                parsingFunc: (data) => {
+                  const keys = [
+                    `node-role.kubernetes.io/control-plane`,
+                    `node-role.kubernetes.io/etcd`
+                  ];
+
+                  return data
+                    .filter((node) => {
+                      const taints = node?.spec?.taints || [];
+
+                      return taints.every((taint) => !keys.includes(taint.key));
+                    })
+                    .map((node) => node.id);
+                }
+              },
             ]
           },
           [SERVICE]: {
