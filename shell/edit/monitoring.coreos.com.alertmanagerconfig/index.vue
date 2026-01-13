@@ -55,18 +55,12 @@ export default {
   },
 
   data() {
-    this.value.applyDefaults();
-
-    const defaultReceiverValues = {};
-    const receiverOptions = (this.value?.spec?.receivers || []).map((receiver) => receiver.name);
-
     return {
       actionMenuTargetElement:  null,
       actionMenuTargetEvent:    null,
       config:                   _CONFIG,
       create:                   _CREATE,
-      createReceiverLink:       this.value.getCreateReceiverRoute(),
-      defaultReceiverValues,
+      defaultReceiverValues:    {},
       receiverActionMenuIsOpen: false,
       receiverTableHeaders:     [
         {
@@ -88,7 +82,6 @@ export default {
       ],
       newReceiverType:      null,
       receiverActions:      [],
-      receiverOptions,
       receiverTypes:        RECEIVERS_TYPES,
       selectedReceiverName: '',
       selectedRowValue:     null,
@@ -97,7 +90,6 @@ export default {
   },
 
   computed: {
-
     editorMode() {
       if ( this.mode === _VIEW ) {
         return EDITOR_MODES.VIEW_CODE;
@@ -105,7 +97,20 @@ export default {
 
       return EDITOR_MODES.EDIT_CODE;
     },
+
+    receiverOptions() {
+      return (this.value?.spec?.receivers || []).map((receiver) => receiver.name);
+    },
+
+    createReceiverLink() {
+      return this.value.getCreateReceiverRoute();
+    },
   },
+
+  created() {
+    this.value.applyDefaults();
+  },
+
   methods: {
 
     translateReceiverTypes() {

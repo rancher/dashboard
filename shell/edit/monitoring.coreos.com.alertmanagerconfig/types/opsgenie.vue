@@ -60,39 +60,29 @@ export default {
     }
   },
   data() {
-    this.value['httpConfig'] = this.value.httpConfig || {};
-    this.value['sendResolved'] = typeof this.value.sendResolved === 'boolean' ? this.value.send_resolved : true;
-    this.value['responders'] = this.value.responders || [];
-
-    const responders = this.value.responders.map((responder) => {
-      const target = TARGETS.find((target) => responder[target.value]);
-
-      return {
-        type:   responder.type,
-        target: target.value,
-        value:  responder[target.value]
-      };
-    });
-
     return {
       defaultResponder: {
         type:   TYPES[0].value,
         target: TARGETS[0].value,
         value:  ''
       },
-      responders,
+      responders: [],
       TARGETS,
       TYPES,
-      view:                    _VIEW,
-      initialApiKeySecretName: this.value?.apiKey?.name ? this.value.apiKey.name : '',
-      initialApiKeySecretKey:  this.value?.apiKey?.key ? this.value.apiKey.key : '',
-      none:                    '__[[NONE]]__',
+      view:       _VIEW,
+      none:       '__[[NONE]]__',
     };
   },
 
   computed: {
     isView() {
       return this.mode === _VIEW;
+    },
+    initialApiKeySecretName() {
+      return this.value?.apiKey?.name || '';
+    },
+    initialApiKeySecretKey() {
+      return this.value?.apiKey?.key || '';
     }
   },
 
@@ -110,6 +100,22 @@ export default {
         this.value['responders'] = responders;
       }
     }
+  },
+
+  created() {
+    this.value.httpConfig = this.value.httpConfig || {};
+    this.value.sendResolved = typeof this.value.sendResolved === 'boolean' ? this.value.sendResolved : true;
+    this.value.responders = this.value.responders || [];
+
+    this.responders = this.value.responders.map((responder) => {
+      const target = TARGETS.find((target) => responder[target.value]);
+
+      return {
+        type:   responder.type,
+        target: target.value,
+        value:  responder[target.value]
+      };
+    });
   },
 
   methods: {

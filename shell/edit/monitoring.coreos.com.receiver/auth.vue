@@ -24,39 +24,42 @@ export default {
     }
   },
   data() {
-    this.value['basic_auth'] = this.value.basic_auth || {};
+    return { authType: null };
+  },
+  computed: {
+    authOptions() {
+      return [
+        {
+          value: 'none',
+          label: this.t('monitoringReceiver.auth.none.label')
+        },
+        {
+          value:   'basic_auth',
+          label:   this.t('monitoringReceiver.auth.basicAuth.label'),
+          default: {}
+        },
+        {
+          value:   'bearer_token',
+          label:   this.t('monitoringReceiver.auth.bearerToken.label'),
+          default: ''
+        },
+        {
+          value:   'bearer_token_file',
+          label:   this.t('monitoringReceiver.auth.bearerTokenFile.label'),
+          default: ''
+        }
+      ];
+    },
+    authTypes() {
+      return this.authOptions.map((option) => option.value);
+    },
+  },
+  created() {
+    this.value.basic_auth = this.value.basic_auth || {};
+    const authType = this.authTypes.find((authType) => !isEmpty(this.value[authType])) || this.authTypes[0];
 
-    const authOptions = [
-      {
-        value: 'none',
-        label: this.t('monitoringReceiver.auth.none.label')
-      },
-      {
-        value:   'basic_auth',
-        label:   this.t('monitoringReceiver.auth.basicAuth.label'),
-        default: {}
-      },
-      {
-        value:   'bearer_token',
-        label:   this.t('monitoringReceiver.auth.bearerToken.label'),
-        default: ''
-      },
-      {
-        value:   'bearer_token_file',
-        label:   this.t('monitoringReceiver.auth.bearerTokenFile.label'),
-        default: ''
-      }
-    ];
-    const authTypes = authOptions.map((option) => option.value);
-    const authType = authTypes.find((authType) => !isEmpty(this.value[authType])) || authTypes[0];
-
-    this.initializeType(authOptions, authType);
-
-    return {
-      authOptions,
-      authTypes,
-      authType
-    };
+    this.authType = authType;
+    this.initializeType(this.authOptions, authType);
   },
   methods: {
     initializeType(authOptions, type) {
