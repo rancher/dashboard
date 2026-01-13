@@ -5,33 +5,29 @@ import { useStore } from 'vuex';
 import { BLANK_CLUSTER } from '@shell/store/store-types';
 </script>
 <script setup lang="ts">
+import { useRouter } from 'vue-router';
+
 const store = useStore();
+const router = useRouter();
 const i18n = useI18n(store);
 
-const extensionsLink = {
+const extensionsUrl = router.resolve({
   name:   'c-cluster-uiplugins',
   params: { cluster: BLANK_CLUSTER }
-};
+}).href;
 
-const clusterToolsLink = {
+const clusterToolsUrl = router.resolve({
   name:   'c-cluster-apps-charts',
   params: { cluster: BLANK_CLUSTER }
-};
+}).href;
 </script>
 
 <template>
   <Card :title="i18n.t('component.resource.detail.card.extrasCard.title')">
-    <p class="message">
-      {{ i18n.t('component.resource.detail.card.extrasCard.message.prefix') }}
-      <router-link :to="extensionsLink">
-        {{ i18n.t('component.resource.detail.card.extrasCard.message.extensions') }}
-      </router-link>
-      {{ i18n.t('component.resource.detail.card.extrasCard.message.conjunction') }}
-      <router-link :to="clusterToolsLink">
-        {{ i18n.t('component.resource.detail.card.extrasCard.message.clusterTools') }}
-      </router-link>
-      {{ i18n.t('component.resource.detail.card.extrasCard.message.suffix') }}
-    </p>
+    <p
+      v-clean-html="i18n.t('component.resource.detail.card.extrasCard.message', { extensionsUrl, clusterToolsUrl }, true)"
+      class="message"
+    />
   </Card>
 </template>
 

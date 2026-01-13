@@ -9109,12 +9109,7 @@ component:
             events: Events
         extrasCard:
           title: Extras
-          message:
-            prefix: 'Consider installing additional '
-            extensions: extensions
-            conjunction: ' and / or '
-            clusterTools: cluster tools
-            suffix: ' to enrich your Rancher experience.'
+          message: 'Consider installing additional <a href="{extensionsUrl}">extensions</a> and / or <a href="{clusterToolsUrl}">cluster tools</a> to enrich your Rancher experience.'
         scaler:
           ariaLabel:
             increase: Increase {resourceName}
