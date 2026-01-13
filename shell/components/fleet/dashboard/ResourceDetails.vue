@@ -117,7 +117,6 @@ export default {
             <FleetClusters
               :schema="clusterSchema"
               :rows="value.targetClustersWithStatusResourceCount"
-              :paging="true"
               :table-actions="false"
               :row-actions="false"
               :search="true"
