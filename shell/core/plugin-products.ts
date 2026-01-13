@@ -1,7 +1,7 @@
 import {
-  IPlugin, ProductChild, ProductChildGroup, ProductMetadata, ProductChildMetadata, ProductChildPage, ProductSinglePage, ProductChildResource
+  IPlugin, ProductChild, ProductChildGroup, ProductMetadata, ProductChildPage, ProductSinglePage, ProductChildResource
 } from '@shell/core/types';
-import { RouteRecordRaw, Router } from 'vue-router';
+import { Router } from 'vue-router';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
 import { DSLRegistrationsPerProduct, registeredRoutes } from '@shell/core/productDebugger';
 import {
@@ -25,8 +25,7 @@ export class PluginProduct {
 
   // the constructor is where we add routes to vue-router for the product being added
   constructor(plugin: IPlugin, product: string | ProductMetadata | ProductSinglePage, private config: ProductChild[]) {
-    console.error(`Adding product ${ product.name } with config`, config);
-    console.log('product', product);
+    console.error(`Adding product ${ (product as ProductMetadata).name }`, product, 'with config:::', config); // eslint-disable-line no-console
 
     // IMPORTANT NOTE: ROUTES MUST BE ADDED TO VUE-ROUTER BEFORE THE PRODUCT IS REGISTERED VIA DSL!!!!
     // hence why we deal with them in the constructor
@@ -55,8 +54,6 @@ export class PluginProduct {
 
         // update config with reordered children
         this.config = reorderedChildren;
-
-        console.error('******* plugin-products ---- Reordered children for product default route', this.config);
       }
 
       // If the product has a `component` field, then this is a single page product
@@ -79,7 +76,6 @@ export class PluginProduct {
 
         this.addRoutes(plugin, this.name, this.config);
       } else {
-        console.log('******* plugin-products ---- hitting else....', this.config);
         // This is the general case - product with config items and no single page component
         this.addRoutes(plugin, this.name, this.config);
       }
@@ -105,7 +101,7 @@ export class PluginProduct {
         if ((this.config[0] as any).name) {
           // IF the first page is a group AND doesn't have a component, then route to the first child of the group
           if ((this.config[0] as any).children && (this.config[0] as any).children.length && !(this.config[0] as any).component) {
-            defaultRoute = generateTopLevelExtensionVirtualTypeRoute(this.name, this.config[0].children[0] as ProductChildPage, { omitPath: true });
+            defaultRoute = generateTopLevelExtensionVirtualTypeRoute(this.name, (this.config[0] as ProductChildGroup).children[0] as ProductChildPage, { omitPath: true });
           } else if ((this.config[0] as any).children && (this.config[0] as any).children.length && (this.config[0] as any).component) {
             // IF the first page is a group AND HAS a component, then route to the group page itself
             defaultRoute = generateTopLevelExtensionVirtualTypeRoute(this.name, undefined, { omitPath: true, component: (this.config[0] as any).component });
@@ -120,11 +116,8 @@ export class PluginProduct {
       } else {
         // this is the "to" route for a simple page product (no config items)
         defaultRoute = generateTopLevelExtensionSimpleBaseRoute(this.name, { omitPath: true });
-        console.log('******* plugin-products ---- SHOULD NOT BE HITTING THIS!!!!');
         basicType(names);
       }
-
-      console.log('******* plugin-products ---- defaultRoute', defaultRoute);
 
       // register the new product via DSL
       product({
@@ -141,9 +134,8 @@ export class PluginProduct {
 
     // Now deal with each config item
     this.config.forEach((item) => {
-      const names = this.getIDsForGroupsOrBasicTypes(this.name, this.config);
-
-      console.log('******* plugin-products ---- names for each config item', names);
+      // needs to be "true" so that group base pages are registered correctly (when group parent has component)
+      const names = this.getIDsForGroupsOrBasicTypes(this.name, this.config, true);
 
       // Add the first-level child navigation items
       basicType(names);
@@ -155,17 +147,18 @@ export class PluginProduct {
       if (typeof item === 'object' && (item as any).name && (item as any).children) {
         const itemGroup = item as ProductChildGroup;
 
-        // TODO: GROUP CANNOT HAVE A TYPE OR COMPONENT!!
-        if (Array.isArray(itemGroup.children)) {
-          const navNames = this.getIDsForGroupsOrBasicTypes(`${ this.name }-${ itemGroup.name }`, itemGroup.children);
+        // we'll concatenate the group name to the parent product name to create unique group basicType IDs
+        const groupName = `${ this.name }-${ itemGroup.name }`;
 
-          navNames.push(`${ this.name }-${ itemGroup.name }`);
-          console.log('******* plugin-products ---- GROUP CHILDREN navNames', navNames);
-          // console.log('******* plugin-products ---- itemGroup', itemGroup);
-          // console.log('******* plugin-products ---- itemGroup.name', itemGroup.name);
+        if (Array.isArray(itemGroup.children)) {
+          const navNames = this.getIDsForGroupsOrBasicTypes(groupName, itemGroup.children);
+
+          // looking at current records of registered products,
+          // the parent group item is also added to the group
+          navNames.push(groupName);
 
           // Register the group items under the same basic type
-          basicType(navNames, `${ this.name }-${ itemGroup.name }`);
+          basicType(navNames, groupName);
 
           // Generate the virtual type (if needed) and configure weight etc for each child item
           itemGroup.children.forEach((subItem: any) => configureItem(`${ this.name }`, subItem, itemGroup.name));
@@ -173,16 +166,16 @@ export class PluginProduct {
           // set the group indication IF there's no component page for the actual group item
           // TODO: force the group indication with a property on the group item called "default"?
           if (!itemGroup.component) {
-            setGroupDefaultType(`${ this.name }-${ itemGroup.name }`, navNames[0]);
+            setGroupDefaultType(groupName, navNames[0]);
           }
 
           if (item.weight) {
-            weightGroup(`${ this.name }-${ itemGroup.name }`, item.weight, true);
+            weightGroup(groupName, item.weight, true);
           }
 
-          // if (itemGroup.label || itemGroup.labelKey) {
-          //   labelGroup(itemGroup.name, itemGroup.label, itemGroup.labelKey);
-          // }
+          if (itemGroup.label || itemGroup.labelKey) {
+            labelGroup(groupName, itemGroup.label, itemGroup.labelKey);
+          }
         } else {
           throw new Error('Children defined for group are not in an array format');
         }
@@ -190,13 +183,11 @@ export class PluginProduct {
     });
 
     function configureItem(parentName: string, item: ProductChild, groupNaming?: string) {
-      console.log('******* plugin-products ---- configureItem', parentName, item, groupNaming);
+      console.log('******* plugin-products ---- configureItem', parentName, item, groupNaming); // eslint-disable-line no-console
 
       // Page with a "component" specified maps to a virtualType
       if ((item as any).component) {
-        // console.log('******* plugin-products ---- configureItem ---- IT HAS COMPONENT!', item);
         const pageChild = item as ProductChildPage;
-        const itemOrder = pageChild.weight;
 
         let name = `${ parentName }-${ pageChild.name }`;
 
@@ -211,10 +202,10 @@ export class PluginProduct {
           // labelKey:   'catalog.charts.header',
           namespaced: false,
           name,
-          // weight:     pageChild.weight
+          weight:     pageChild.weight // ordering is done here and not via "weightType"
         } as any;
 
-        // if the item has children, then it's a group virtualType, so set "exact" and "overview" to "true"
+        // if the item with COMPONENT has children then it's a GROUP virtualType, so set "exact" and "overview" to "true"
         // so that when navigating to the group page, it shows the custom page for the group
         if ((item as any).children) {
           virtualTypeConfig.exact = true;
@@ -225,19 +216,12 @@ export class PluginProduct {
         }
 
         virtualType(virtualTypeConfig);
-
-        if (itemOrder) {
-          weightType(name, itemOrder, true);
-        }
       } else if ((item as any).type) {
         // Page with a "type" specified maps to a configureType
         const typeItem = item as ProductChildResource;
-        const itemOrder = typeItem.weight;
 
         const pageChild = item as ProductChildPage;
         const route = generateTopLevelExtensionConfigureTypeRoute(parentName, pageChild);
-
-        // console.log('******* plugin-products ---- configureItem ---- IT HAS TYPE!', item);
 
         // TODO: ALLOW TO OVERRIDE THIS CONFIGURATION VIA item.configureTypeConfig???
         configureType(typeItem.type, {
@@ -248,8 +232,8 @@ export class PluginProduct {
           customRoute: route
         });
 
-        if (itemOrder) {
-          weightType(typeItem.type, itemOrder, true);
+        if (typeItem.weight) {
+          weightType(typeItem.type, typeItem.weight, true);
         }
       }
     }
@@ -259,9 +243,9 @@ export class PluginProduct {
     registeredRoutes(store, this.name);
 
     // DEBUGGING HELPERS for explorer product!!!!!!
-    console.error('*** EXPLORER PRODUCT DATA DEBUGGER ****');
-    DSLRegistrationsPerProduct(store, 'explorer');
-    registeredRoutes(store, 'explorer');
+    // console.error('--------- *** EXPLORER PRODUCT DATA DEBUGGER **** ------------');
+    // DSLRegistrationsPerProduct(store, 'explorer');
+    // registeredRoutes(store, 'explorer');
   }
 
   // Add routes for any items that need them
@@ -277,8 +261,6 @@ export class PluginProduct {
         } else {
           route = generateTopLevelExtensionVirtualTypeRoute(parentName, undefined, { component: pageChild.component });
         }
-
-        console.error('******* plugin-products ---- Adding group route for', parentName, child, 'route:', route);
 
         // add the route for the group page/parent
         plugin.addRoute(route);
@@ -312,7 +294,6 @@ export class PluginProduct {
       if (excludeGrouping && Array.isArray((item as any).children)) {
         return null;
       }
-      // console.error('******* plugin-products ---- getIDsForGroupsOrBasicTypes item', item);
 
       if (typeof item === 'string') {
         return item;
