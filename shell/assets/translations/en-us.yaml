@@ -3029,9 +3029,9 @@ fleet:
       matching:
         title: |-
           {n, plural,
-            =0 {No selected clusters}
-            =1 {1 selected cluster}
-            other {{n, number} selected clusters}
+            =0 {No clusters selected}
+            =1 {1 cluster selected}
+            other {{n, number} clusters selected}
             }
         placeholder: Select clusters by name, labels or groups
         empty: No clusters in the workspace
