@@ -1,5 +1,5 @@
 <script>
-import { useTabCountWatcher, useTabResourceNamer } from '@shell/components/form/ResourceTabs/composable';
+import { useTabCountWatcher } from '@shell/components/form/ResourceTabs/composable';
 
 export default {
   inject: ['addTab', 'removeTab', 'sideTabs'],
@@ -57,11 +57,8 @@ export default {
 
   setup(props) {
     const { count, isCountVisible } = useTabCountWatcher();
-    const { nameResources } = useTabResourceNamer();
 
-    return {
-      inferredCount: count, isInferredCountVisible: isCountVisible, nameResources
-    };
+    return { inferredCount: count, isInferredCountVisible: isCountVisible };
   },
 
   data() {

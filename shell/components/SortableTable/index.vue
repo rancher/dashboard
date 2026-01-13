@@ -26,7 +26,7 @@ import ButtonMultiAction from '@shell/components/ButtonMultiAction.vue';
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import { useRuntimeFlag } from '@shell/composables/useRuntimeFlag';
 import ActionDropdownShell from '@shell/components/ActionDropdownShell.vue';
-import { useTabCountUpdater, useTabResourceUpdater } from '@shell/components/form/ResourceTabs/composable';
+import { useTabCountUpdater } from '@shell/components/form/ResourceTabs/composable';
 
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
@@ -564,14 +564,12 @@ export default {
     const store = useStore();
     const { featureDropdownMenu } = useRuntimeFlag(store);
     const { updateTabCount, clearTabCount } = useTabCountUpdater();
-    const { updateTabResources } = useTabResourceUpdater();
 
     return {
       table,
       featureDropdownMenu,
       updateTabCount,
-      clearTabCount,
-      updateTabResources
+      clearTabCount
     };
   },
 
