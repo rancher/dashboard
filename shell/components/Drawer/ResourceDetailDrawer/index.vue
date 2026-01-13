@@ -59,7 +59,6 @@ useResourceDetailDrawerProvider();
 </script>
 <template>
   <Drawer
-    class="resource-detail-drawer"
     :ariaTarget="title"
     @close="emit('close')"
   >

@@ -76,7 +76,6 @@ export default {
 
 <template>
   <Drawer
-    class="resource-detail-drawer"
     :ariaTarget="value.id"
     :removeFooter="true"
     @close="closePanel"
@@ -123,7 +122,9 @@ export default {
               :row-actions="false"
               :search="true"
               :remove-sub-rows="true"
+              :remove-state-column="true"
               :remove-ready-columns="true"
+              :ignore-filter="true"
               paging-label="sortableTable.paging.resource"
             />
           </DrawerCard>

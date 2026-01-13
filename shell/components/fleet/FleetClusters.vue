@@ -33,6 +33,14 @@ export default {
     removeReadyColumns: {
       type:    Boolean,
       default: false,
+    },
+    removeStateColumn: {
+      type:    Boolean,
+      default: false,
+    },
+    ignoreFilter: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -85,6 +93,11 @@ export default {
         out.splice(2, 3);
       }
 
+      if (this.removeStateColumn) {
+        // Remove the state column, normally used to avoid inconsistency of state related to the bundle
+        out.splice(0, 1);
+      }
+
       return out;
     },
 
@@ -114,6 +127,7 @@ export default {
     :rows="rows"
     :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    :ignore-filter="ignoreFilter"
     key-field="_key"
   >
     <template #cell:workspace="{row}">
