@@ -1,27 +1,11 @@
-<script lang="ts">
+<script setup lang="ts">
 import SubtleLink from '@shell/components/SubtleLink.vue';
 import StateDot from '@shell/components/StateDot/index.vue';
-import { StateColor } from '@shell/utils/style';
 import { sumBy } from 'lodash';
-import { RouteLocationRaw } from 'vue-router';
 import { computed } from 'vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStore } from 'vuex';
-
-export interface Count {
-  label: string;
-  count: number;
-}
-
-export interface Props {
-  label: string;
-  to?: RouteLocationRaw;
-  color?: StateColor;
-  counts?: Count[];
-}
-</script>
-
-<script setup lang="ts">
+import { Props } from './ResourceRow.types';
 const {
   label, to, counts, color
 } = defineProps<Props>();

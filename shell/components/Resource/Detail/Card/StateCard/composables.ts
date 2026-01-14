@@ -1,10 +1,10 @@
-import { Count, Props as ResourceRowProps } from '@shell/components/Resource/Detail/ResourceRow.vue';
+import { Count, Props as ResourceRowProps } from '@shell/components/Resource/Detail/ResourceRow.types';
 import { useI18n } from '@shell/composables/useI18n';
 import { INGRESS, SERVICE } from '@shell/config/types';
 import { isHigherAlert, StateColor } from '@shell/utils/style';
 import { computed, Ref, toValue } from 'vue';
 import { useStore } from 'vuex';
-import { Props as StateCardProps } from '@shell/components/Resource/Detail/Card/StateCard/index.vue';
+import { Props as StateCardProps } from '@shell/components/Resource/Detail/Card/StateCard/types';
 import { RouteLocationRaw } from 'vue-router';
 
 export function useResourceCardRow(label: string, resources: any[], stateColorKey = 'stateSimpleColor', stateDisplayKey = 'stateDisplay', to?: RouteLocationRaw): ResourceRowProps {
