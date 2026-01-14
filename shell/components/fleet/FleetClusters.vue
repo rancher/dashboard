@@ -30,14 +30,6 @@ export default {
       type:    Boolean,
       default: false,
     },
-    removeReadyColumns: {
-      type:    Boolean,
-      default: false,
-    },
-    removeStateColumn: {
-      type:    Boolean,
-      default: false,
-    },
     ignoreFilter: {
       type:    Boolean,
       default: false,
@@ -87,16 +79,6 @@ export default {
         },
         AGE,
       ];
-
-      if (this.removeReadyColumns) {
-        // Remove the ready columns, used when wants to show cluster of specific Fleet Application
-        out.splice(2, 3);
-      }
-
-      if (this.removeStateColumn) {
-        // Remove the state column, normally used to avoid inconsistency of state related to the bundle
-        out.splice(0, 1);
-      }
 
       return out;
     },

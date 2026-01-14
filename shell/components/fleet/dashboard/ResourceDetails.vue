@@ -116,13 +116,11 @@ export default {
           <DrawerCard>
             <FleetClusters
               :schema="clusterSchema"
-              :rows="value.targetClustersWithStatusResourceCount"
+              :rows="value.targetClusters"
               :table-actions="false"
               :row-actions="false"
               :search="true"
               :remove-sub-rows="true"
-              :remove-state-column="true"
-              :remove-ready-columns="true"
               :ignore-filter="true"
               paging-label="sortableTable.paging.resource"
             />
