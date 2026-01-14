@@ -13,6 +13,7 @@ import Cards from '@shell/components/Resource/Detail/Cards.vue';
 export interface Props {
   value?: Object;
   resourceSubtype?: string;
+  isCustomDetailOrEdit?: boolean;
 }
 
 </script>
@@ -20,7 +21,7 @@ export interface Props {
 <script lang="ts" setup>
 import { useStore } from 'vuex';
 
-const props = withDefaults(defineProps<Props>(), { value: () => ({}), resourceSubtype: undefined });
+const props = withDefaults(defineProps<Props>(), { value: () => ({}), resourceSubtype: undefined, isCustomDetailOrEdit: false });
 
 const uiCtxResource = computed(() => {
   const {
@@ -66,6 +67,7 @@ const store = useStore();
       class="mmt-4"
     />
     <Cards
+      v-if="props.isCustomDetailOrEdit"
       class="mb-20"
       :resource="props.value"
     />
