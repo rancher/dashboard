@@ -51,4 +51,40 @@ describe('slideInApiImpl', () => {
       componentProps: { ...config }, // The implementation spreads the config
     });
   });
+
+  it('should open a slide-in panel with an undefined config gracefully', () => {
+    // 3. Act
+    slideInApi.open(MockComponent, undefined);
+
+    // 4. Assert
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+    expect(mockCommit).toHaveBeenCalledWith('slideInPanel/open', {
+      component:      MockComponent,
+      componentProps: {},
+    });
+  });
+
+  it('should handle config with props property', () => {
+    const config = {
+      title: 'Test Panel',
+      props: {
+        foo: 'bar',
+        baz: 123
+      }
+    };
+
+    // 3. Act
+    slideInApi.open(MockComponent, config);
+
+    // 4. Assert
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+    expect(mockCommit).toHaveBeenCalledWith('slideInPanel/open', {
+      component:      MockComponent,
+      componentProps: {
+        title: 'Test Panel',
+        foo:   'bar',
+        baz:   123
+      },
+    });
+  });
 });

@@ -25,9 +25,13 @@ export class SlideInApiImpl implements SlideInApi {
    * @param config - Slide-In configuration object
    */
   public open(component: Component, config?: SlideInConfig): void {
+    const props = config?.props || {};
+
+    delete config?.props;
+
     this.store.commit('slideInPanel/open', {
       component,
-      componentProps: { ...config || {} }
+      componentProps: { ...(config || {}), ...props }
     });
   }
 }
