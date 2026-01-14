@@ -72,7 +72,7 @@ const displayCounts = computed(() => {
           :key="count.label"
           class="count"
         >
-          {{ count.count }} {{ count.label }}<span class="and">&nbsp;+&nbsp;</span>
+          <span class="count-value">{{ count.count }}</span>&nbsp;<div class="count-label">{{ count.label }}</div><span class="and">&nbsp;+&nbsp;</span>
         </span>
       </div>
     </div>
@@ -88,13 +88,31 @@ const displayCounts = computed(() => {
     .right {
       flex-grow: 1;
       text-align: right;
+      overflow: hidden;
     }
 
     .counts {
-      display: inline-flex;
+      display: flex;
       flex-direction: row;
       justify-content: flex-end;
       align-items: center;
+      max-width: 100%;
+      overflow: hidden;
+
+      .count {
+        display: flex;
+        justify-content: flex-end;
+        min-width: 0;
+      }
+
+      .count:not(.count + .count) {
+        max-width: calc(100% - 90px);
+
+        .count-label {
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
     }
 
     .count:last-of-type .and {
