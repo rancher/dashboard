@@ -494,7 +494,7 @@ export default {
               <NodeScheduling
                 :mode="mode"
                 :value="podTemplateSpec"
-                :nodes="allNodes"
+                :nodes="workerNodes"
                 :loading="isLoadingSecondaryResources"
               />
             </Tab>
