@@ -3,7 +3,11 @@
     "master": {
       "milestone": "v2.14.0",
       "e2e": {
-        "docker-image": "rancher/rancher:head"
+        "rancher-image": {
+          "namespace": "rancher",
+          "name": "rancher",
+          "tag": "head"
+        }
       },
       "rancher-rancher-repo": {
         "main": {
@@ -15,9 +19,14 @@
       }
     },
     "release-2.13": {
-      "milestone": "v2.13.1",
+      "milestone": "v2.13.2",
       "e2e": {
-        "docker-image": "rancher/rancher:v2.13-head"
+        "rancher-image": {
+          "registry": "stgregistry.suse.com",
+          "namespace": "rancher",
+          "name": "rancher",
+          "tag": "v2.13-head"
+        }
       },
       "rancher-rancher-repo": {
         "release/v2.13": {
@@ -29,9 +38,14 @@
       }
     },
     "release-2.12": {
-      "milestone": "v2.12.5",
+      "milestone": "v2.12.6",
       "e2e": {
-        "docker-image": "rancher/rancher:v2.12-head"
+        "rancher-image": {
+          "registry": "stgregistry.suse.com",
+          "namespace": "rancher",
+          "name": "rancher",
+          "tag": "v2.12-head"
+        }
       },
       "rancher-rancher-repo": {
         "release/v2.12": {
@@ -43,9 +57,14 @@
       }
     },
     "release-2.11": {
-      "milestone": "v2.11.9",
+      "milestone": "v2.11.10",
       "e2e": {
-        "docker-image": "rancher/rancher:v2.11-head"
+        "rancher-image": {
+          "registry": "stgregistry.suse.com",
+          "namespace": "rancher",
+          "name": "rancher",
+          "tag": "v2.11-head"
+        }
       },
       "rancher-rancher-repo": {
         "release/v2.12": {
