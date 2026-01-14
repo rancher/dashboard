@@ -25,11 +25,37 @@ export interface KubeLabelSelector {
  * https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#objectmeta-v1-meta
  */
 export interface KubeMetadata {
+  namespace?: string,
+  name: string
+
   labels?: { [key: string]: string },
   annotations?: { [key: string]: string },
 }
 
-export interface RancherKubeMetadata extends KubeMetadata {
-  namespace?: string,
-  name: string
+/**
+ * Kube API JSON response for LIST requests
+ */
+export interface KubeListResponse<T = any> {
+  kind: string,
+  apiVersion: string,
+
+  items: T[],
+
+  // Bucket for everything else (hopefully to remove once above populated)
+  [key: string]: any
+}
+
+/**
+ * Kube API JSON response for GET requests
+ */
+export interface KubeGetResponse {
+  kind: string,
+  apiVersion: string,
+
+  metadata: KubeMetadata,
+  spec: any,
+  status: any,
+
+  // Bucket for everything else (hopefully to remove once above populated)
+  [key: string]: any
 }
