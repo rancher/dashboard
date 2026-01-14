@@ -324,3 +324,31 @@ describe('Cloud Credential', { tags: ['@manager', '@adminUser'] }, () => {
     }
   });
 });
+<<<<<<< Updated upstream
+=======
+
+describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+  beforeEach(() => {
+    cy.login();
+    // Set theme to light
+    cy.setUserPreference({ theme: 'ui-light' });
+    HomePagePo.goTo(); // this is needed to ensure we have a valid authentication session
+  });
+
+  it('should display empty cloud credential creation page', () => {
+    const cloudCredentialsPage = new CloudCredentialsPagePo();
+
+    cloudCredentialsPage.goTo();
+    cloudCredentialsPage.waitForPage();
+    cloudCredentialsPage.create();
+    cloudCredentialsPage.createEditCloudCreds().waitForPage();
+    cloudCredentialsPage.createEditCloudCreds().cloudServiceOptions().selectSubTypeByIndex(0).click();
+    cloudCredentialsPage.createEditCloudCreds().waitForPage('type=aws');
+
+    // hide cloud credential elements before taking percy snapshot
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]', '[data-testid="nav_header_showUserMenu"]', '.clusters');
+    // takes percy snapshot.
+    cy.percySnapshot('empty cloud credential creation page');
+  });
+});
+>>>>>>> Stashed changes
