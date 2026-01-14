@@ -83,28 +83,7 @@ export default {
   },
 
   data() {
-    const inStore = this.$store.getters['currentStore'](EVENT);
-    const eventSchema = this.$store.getters[`${ inStore }/schemaFor`](EVENT); // @TODO be smarter about which resources actually ever have events
-
-    const paginationHeaders = eventSchema ? [
-      STEVE_EVENT_LAST_SEEN,
-      STEVE_EVENT_TYPE,
-      REASON,
-      headerFromSchemaColString('Subobject', eventSchema, this.$store.getters, true),
-      headerFromSchemaColString('Source', eventSchema, this.$store.getters, true),
-      MESSAGE,
-      STEVE_EVENT_FIRST_SEEN,
-      headerFromSchemaColString('Count', eventSchema, this.$store.getters, true),
-      STEVE_NAME_COL,
-    ] : [];
-
-    return {
-      eventSchema,
-      EVENT,
-      inStore,
-      showConditions: false,
-      paginationHeaders
-    };
+    return { showConditions: false };
   },
 
   beforeUnmount() {
@@ -118,6 +97,28 @@ export default {
   },
 
   computed: {
+    inStore() {
+      return this.$store.getters['currentStore'](EVENT);
+    },
+
+    eventSchema() {
+      return this.$store.getters[`${ this.inStore }/schemaFor`](EVENT);
+    },
+
+    paginationHeaders() {
+      return this.eventSchema ? [
+        STEVE_EVENT_LAST_SEEN,
+        STEVE_EVENT_TYPE,
+        REASON,
+        headerFromSchemaColString('Subobject', this.eventSchema, this.$store.getters, true),
+        headerFromSchemaColString('Source', this.eventSchema, this.$store.getters, true),
+        MESSAGE,
+        STEVE_EVENT_FIRST_SEEN,
+        headerFromSchemaColString('Count', this.eventSchema, this.$store.getters, true),
+        STEVE_NAME_COL,
+      ] : [];
+    },
+
     isNamespace() {
       return this.value?.type === NAMESPACE;
     },

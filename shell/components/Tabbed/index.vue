@@ -109,6 +109,14 @@ export default {
   },
 
   data() {
+    return {
+      tabs:          [],
+      extensionTabs: [],
+      activeTabName: null
+    };
+  },
+
+  created() {
     const location = this.getInitialTabLocation();
     let extensionTabs = this.showExtensionTabs ? getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, location, this.$route, this, this.extensionParams) || [] : [];
     const legacyExtensionTabs = this.showExtensionTabs ? getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams) || [] : [];
@@ -125,11 +133,8 @@ export default {
       };
     });
 
-    return {
-      tabs:          [...parsedExtTabs],
-      extensionTabs: parsedExtTabs,
-      activeTabName: null
-    };
+    this.tabs.push(...parsedExtTabs);
+    this.extensionTabs = parsedExtTabs;
   },
 
   computed: {

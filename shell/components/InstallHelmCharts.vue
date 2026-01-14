@@ -130,15 +130,6 @@ export default {
   },
 
   data() {
-    const repo = this.repoDisplayName || this.repoName;
-    const chart = this.chartDisplayName || this.chartName;
-    const stageNames = {
-      ADD_REPO:    'addRepo',
-      LOAD_CHARTS: 'loadCharts',
-      INSTALL:     'install',
-      WAIT:        'waitForLogs'
-    };
-
     return {
       throttledRefreshCharts: null,
 
@@ -172,38 +163,6 @@ export default {
       installOperationNamespace: '',
       operation:                 {}, // crd used to view helm install logs
       logsReady:                 false,
-      stageNames,
-      stages:                    {
-        [stageNames.ADD_REPO]: {
-          actionLabel:  this.t('catalog.install.button.stages.addRepo.action', { repo }),
-          waitingLabel: this.t('catalog.install.button.stages.addRepo.waiting', { repo }),
-          successLabel: this.t('catalog.install.button.stages.addRepo.success', { repo }),
-          errorLabel:   this.t('catalog.install.button.stages.addRepo.error', { repo }),
-          action:       this.addRepository
-        },
-        [stageNames.LOAD_CHARTS]: {
-          actionLabel:  this.t('catalog.install.button.stages.loadCharts.action', { repo }),
-          waitingLabel: this.t('catalog.install.button.stages.loadCharts.waiting', { repo }),
-          successLabel: this.t('catalog.install.button.stages.loadCharts.success', { chart }),
-          errorLabel:   this.t('catalog.install.button.stages.loadCharts.error', { chart }),
-          action:       this.fetchRepoCharts
-        },
-        // using action label for 'success' here  and in waitForLogs to hack around a timing issue where the success message briefly shows
-        [stageNames.INSTALL]: {
-          actionLabel:  this.t('catalog.install.button.stages.installChart.action', { chart }),
-          waitingLabel: this.t('catalog.install.button.stages.installChart.waiting', { chart }),
-          successLabel: this.t('catalog.install.button.stages.installChart.action', { chart }),
-          errorLabel:   this.t('catalog.install.button.stages.installChart.error', { chart }),
-          action:       this.installChart
-        },
-        [stageNames.WAIT]: {
-          actionLabel:  this.t('catalog.install.button.stages.waitForLogs.action', { chart }),
-          waitingLabel: this.t('catalog.install.button.stages.waitForLogs.waiting', { chart }),
-          successLabel: this.t('catalog.install.button.stages.waitForLogs.action', { chart }),
-          errorLabel:   this.t('catalog.install.button.stages.waitForLogs.error', { chart }),
-          action:       () => this.logsReady ? this.openLogs() : this.waitForLogs()
-        }
-      },
 
       errors: [],
       btnCb:  () => {}
@@ -502,6 +461,57 @@ export default {
       repos:  'catalog/repos',
       t:      'i18n/t'
     }),
+
+    repo() {
+      return this.repoDisplayName || this.repoName;
+    },
+
+    chartNameDisplay() {
+      return this.chartDisplayName || this.chartName;
+    },
+
+    stageNames() {
+      return {
+        ADD_REPO:    'addRepo',
+        LOAD_CHARTS: 'loadCharts',
+        INSTALL:     'install',
+        WAIT:        'waitForLogs'
+      };
+    },
+
+    stages() {
+      return {
+        [this.stageNames.ADD_REPO]: {
+          actionLabel:  this.t('catalog.install.button.stages.addRepo.action', { repo: this.repo }),
+          waitingLabel: this.t('catalog.install.button.stages.addRepo.waiting', { repo: this.repo }),
+          successLabel: this.t('catalog.install.button.stages.addRepo.success', { repo: this.repo }),
+          errorLabel:   this.t('catalog.install.button.stages.addRepo.error', { repo: this.repo }),
+          action:       this.addRepository
+        },
+        [this.stageNames.LOAD_CHARTS]: {
+          actionLabel:  this.t('catalog.install.button.stages.loadCharts.action', { repo: this.repo }),
+          waitingLabel: this.t('catalog.install.button.stages.loadCharts.waiting', { repo: this.repo }),
+          successLabel: this.t('catalog.install.button.stages.loadCharts.success', { chart: this.chartNameDisplay }),
+          errorLabel:   this.t('catalog.install.button.stages.loadCharts.error', { chart: this.chartNameDisplay }),
+          action:       this.fetchRepoCharts
+        },
+        // using action label for 'success' here  and in waitForLogs to hack around a timing issue where the success message briefly shows
+        [this.stageNames.INSTALL]: {
+          actionLabel:  this.t('catalog.install.button.stages.installChart.action', { chart: this.chartNameDisplay }),
+          waitingLabel: this.t('catalog.install.button.stages.installChart.waiting', { chart: this.chartNameDisplay }),
+          successLabel: this.t('catalog.install.button.stages.installChart.action', { chart: this.chartNameDisplay }),
+          errorLabel:   this.t('catalog.install.button.stages.installChart.error', { chart: this.chartNameDisplay }),
+          action:       this.installChart
+        },
+        [this.stageNames.WAIT]: {
+          actionLabel:  this.t('catalog.install.button.stages.waitForLogs.action', { chart: this.chartNameDisplay }),
+          waitingLabel: this.t('catalog.install.button.stages.waitForLogs.waiting', { chart: this.chartNameDisplay }),
+          successLabel: this.t('catalog.install.button.stages.waitForLogs.action', { chart: this.chartNameDisplay }),
+          errorLabel:   this.t('catalog.install.button.stages.waitForLogs.error', { chart: this.chartNameDisplay }),
+          action:       () => this.logsReady ? this.openLogs() : this.waitForLogs()
+        }
+      };
+    },
 
     currentCluster() {
       const storeCluster = this.$store.getters['currentCluster'];

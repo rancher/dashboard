@@ -22,44 +22,48 @@ export default {
   },
 
   data() {
-    const eventHeaders = [
-      {
-        name:     'severity',
-        label:    'Severity',
-        labelKey: 'monitoring.overview.alertsList.severity.label',
-        value:    'labels.severity',
-        sort:     ['labels.severity', 'labels.alertname'],
-        width:    125,
-      },
-      {
-        name:     'name',
-        label:    'Name',
-        labelKey: 'generic.name',
-        value:    'labels.alertname',
-        sort:     ['labels.alertname', 'labels.severity'],
-      },
-      {
-        name:      'message',
-        label:     'message',
-        labelKey:  'monitoring.overview.alertsList.message.label',
-        value:     'annotations',
-        formatter: 'RunBookLink',
-        sort:      ['annotations.message', 'labels.alertname', 'labels.severity'],
-      },
-    ];
-
     return {
-      inStore:            this.$store.getters['currentProduct'].inStore,
       alertManagerPoller: new Poller(
         this.loadAlertManagerEvents,
         ALERTMANAGER_POLL_RATE_MS,
         MAX_FAILURES
       ),
       allAlerts: [],
-      eventHeaders
     };
   },
-  computed: { ...mapGetters(['currentCluster']) },
+  computed: {
+    ...mapGetters(['currentCluster']),
+    inStore() {
+      return this.$store.getters['currentProduct'].inStore;
+    },
+    eventHeaders() {
+      return [
+        {
+          name:     'severity',
+          label:    'Severity',
+          labelKey: 'monitoring.overview.alertsList.severity.label',
+          value:    'labels.severity',
+          sort:     ['labels.severity', 'labels.alertname'],
+          width:    125,
+        },
+        {
+          name:     'name',
+          label:    'Name',
+          labelKey: 'generic.name',
+          value:    'labels.alertname',
+          sort:     ['labels.alertname', 'labels.severity'],
+        },
+        {
+          name:      'message',
+          label:     'message',
+          labelKey:  'monitoring.overview.alertsList.message.label',
+          value:     'annotations',
+          formatter: 'RunBookLink',
+          sort:      ['annotations.message', 'labels.alertname', 'labels.severity'],
+        },
+      ];
+    }
+  },
 
   mounted() {
     this.fetchDeps();

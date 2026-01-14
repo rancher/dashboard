@@ -30,16 +30,14 @@ export default {
     }
   },
   data() {
-    const { resource } = this.$route.params;
-
     return {
       hasCustomRemove:     false,
-      randomPosition:      Math.random(),
+      randomPosition:      0,
       confirmName:         '',
       error:               '',
       warning:             '',
       preventDelete:       false,
-      removeComponent:     shallowRef(this.$store.getters['type-map/importCustomPromptRemove'](resource)),
+      removeComponent:     null,
       chartsToRemoveIsApp: false,
       chartsDeleteCrd:     false,
       showModal:           false,
@@ -211,6 +209,13 @@ export default {
         this.warning = '';
       }
     }
+  },
+
+  created() {
+    const { resource } = this.$route.params;
+
+    this.randomPosition = Math.random();
+    this.removeComponent = shallowRef(this.$store.getters['type-map/importCustomPromptRemove'](resource));
   },
 
   methods: {
