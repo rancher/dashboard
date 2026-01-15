@@ -789,10 +789,6 @@ export default {
           :class="{'show-toc':showToc}"
           :style="[minHeight ? { 'min-height': minHeight } : {}]"
         >
-          <!-- <div
-            class="resource-container cru__content"
-            :style="[minHeight ? { 'min-height': minHeight } : {}]"
-          > -->
           <div
             class="cru__content"
           >
@@ -1029,7 +1025,7 @@ form.create-resource-container .cru {
 
   &__toc {
     width: 250px;
-    margin-left: 24px;
+    margin-left: var(--gap-lg);
     min-width: 250px;
     max-width: 250px;
   }
