@@ -1,7 +1,10 @@
 <script>
 import { mapState } from 'vuex';
+import TruncatedMessage from '@shell/components/TruncatedMessage.vue';
 
 export default {
+  components: { TruncatedMessage },
+
   data() {
     return { autoRemoveTimer: null };
   },
@@ -39,6 +42,11 @@ export default {
 
     closeAll() {
       this.$store.dispatch('growl/clear');
+    },
+
+    onExpand(growlId) {
+      // When user expands the message, disable timeout for this growl
+      this.$store.dispatch('growl/disableTimeout', growlId);
     },
 
     closeExpired() {
@@ -131,7 +139,11 @@ export default {
               :id="`growl-message-${ growl.id }`"
               :class="{ 'has-title': !!growl.title }"
             >
-              {{ growl.message }}
+              <TruncatedMessage
+                :message="growl.message"
+                :max-lines="3"
+                @expand="onExpand(growl.id)"
+              />
             </p>
           </div>
         </div>

@@ -79,6 +79,7 @@ generic:
   readFromFile: Read from File
   readFromFileArea: Read from File - {area}
   readFromFolder: Read from Folder
+  readMore: read more
   reload: Reload
   register: Register
   remove: Remove

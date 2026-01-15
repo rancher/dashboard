@@ -51,6 +51,14 @@ export const mutations = {
 
   clear(state) {
     clear(state.stack);
+  },
+
+  disableTimeout(state, id) {
+    const obj = findBy(state.stack, 'id', id);
+
+    if ( obj ) {
+      obj.timeout = 0;
+    }
   }
 };
 
@@ -61,6 +69,10 @@ export const actions = {
 
   remove({ commit }, id ) {
     commit('remove', id);
+  },
+
+  disableTimeout({ commit }, id) {
+    commit('disableTimeout', id);
   },
 
   async close({ commit, dispatch, getters }, id ) {

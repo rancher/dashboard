@@ -53,6 +53,7 @@ generic:
   plusMore: "+ {n} 更多"
   readFromFile: 从文件读取
   readFromFolder: 从文件夹读取
+  readMore: 阅读更多
   reload: 重新加载
   register: 注册
   remove: 移除

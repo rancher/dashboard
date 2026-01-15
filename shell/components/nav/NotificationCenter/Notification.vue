@@ -9,6 +9,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import { NotificationAction, NotificationLevel, StoredNotification } from '@shell/types/notifications';
 import { DropdownContext, defaultContext } from '@components/RcDropdown/types';
 import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
+import TruncatedMessage from '@shell/components/TruncatedMessage.vue';
 
 const CLASSES = {
   [NotificationLevel.Announcement]: 'icon-notify-announcement text-info',
@@ -277,7 +278,10 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
           v-if="item.message"
           class="message"
         >
-          {{ item.message }}
+          <TruncatedMessage
+            :message="item.message"
+            :max-lines="3"
+          />
         </div>
         <div
           v-if="item.level === NotificationLevel.Task && typeof item.progress === 'number'"
