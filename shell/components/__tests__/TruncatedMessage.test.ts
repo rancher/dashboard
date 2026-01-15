@@ -11,21 +11,15 @@ const mockT = (key: string) => {
 };
 
 const createMockStore = () => {
-  return createStore({
-    getters: {
-      'i18n/t': () => mockT,
-    }
-  });
+  return createStore({ getters: { 'i18n/t': () => mockT } });
 };
 
-describe('TruncatedMessage Component', () => {
+describe('truncatedMessage Component', () => {
   it('renders short message without truncation', () => {
     const shortMessage = 'This is a short message.';
     const wrapper = mount(TruncatedMessage, {
-      props: { message: shortMessage },
-      global: {
-        plugins: [createMockStore()],
-      }
+      props:  { message: shortMessage },
+      global: { plugins: [createMockStore()] }
     });
 
     expect(wrapper.text()).toContain(shortMessage);
@@ -37,9 +31,7 @@ describe('TruncatedMessage Component', () => {
     const message = 'This is a test message.';
     const wrapper = mount(TruncatedMessage, {
       props:  { message },
-      global: {
-        plugins: [createMockStore()],
-      }
+      global: { plugins: [createMockStore()] }
     });
 
     const truncatedText = wrapper.find('.truncated-text');
@@ -54,9 +46,7 @@ describe('TruncatedMessage Component', () => {
         message,
         maxLines: 5
       },
-      global: {
-        plugins: [createMockStore()],
-      }
+      global: { plugins: [createMockStore()] }
     });
 
     const truncatedText = wrapper.find('.truncated-text');
@@ -68,9 +58,7 @@ describe('TruncatedMessage Component', () => {
     const message = 'This is a test message.';
     const wrapper = mount(TruncatedMessage, {
       props:  { message },
-      global: {
-        plugins: [createMockStore()],
-      }
+      global: { plugins: [createMockStore()] }
     });
 
     const readMoreLink = wrapper.find('.read-more-link');
@@ -84,9 +72,7 @@ describe('TruncatedMessage Component', () => {
     const message = 'This is a test message that should be expanded.';
     const wrapper = mount(TruncatedMessage, {
       props:  { message },
-      global: {
-        plugins: [createMockStore()],
-      }
+      global: { plugins: [createMockStore()] }
     });
 
     const readMoreLink = wrapper.find('.read-more-link');
@@ -96,7 +82,7 @@ describe('TruncatedMessage Component', () => {
     // After expansion, the truncated text should not be visible
     expect(wrapper.find('.truncated-text').exists()).toBe(false);
     expect(wrapper.find('.read-more-link').exists()).toBe(false);
-    
+
     // The full message should be displayed
     expect(wrapper.text()).toBe(message);
   });
@@ -105,9 +91,7 @@ describe('TruncatedMessage Component', () => {
     const message = 'This is a test message.';
     const wrapper = mount(TruncatedMessage, {
       props:  { message },
-      global: {
-        plugins: [createMockStore()],
-      }
+      global: { plugins: [createMockStore()] }
     });
 
     const readMoreLink = wrapper.find('.read-more-link');

@@ -27,37 +27,39 @@ const expand = () => {
 </script>
 
 <template>
-  <div class="truncated-message">
+  <div
+    class="truncated-message"
+    :aria-expanded="isExpanded"
+  >
     <span
       v-if="!isExpanded"
       ref="messageContainer"
       class="truncated-text"
       :style="{ '-webkit-line-clamp': maxLines }"
-    >{{ message }}</span><span
+      :aria-label="message"
+    >{{ message }}</span>
+    <span
       v-if="!isExpanded"
       class="ellipsis-suffix"
-    >...&nbsp;<a
-      class="read-more-link"
-      href="#"
-      @click.prevent="expand"
-    >{{ t('generic.readMore') }}</a></span>
+    >
+      ...&nbsp;<a
+        class="read-more-link"
+        href="#"
+        :aria-label="`${t('generic.readMore')}: ${message}`"
+        @click.prevent="expand"
+      >{{ t('generic.readMore') }}</a>
+    </span>
     <span v-else>{{ message }}</span>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .truncated-message {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-
   .truncated-text {
     display: -webkit-box;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    flex: 1;
-    min-width: 0;
   }
 
   .ellipsis-suffix {
