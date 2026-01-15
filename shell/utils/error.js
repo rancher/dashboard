@@ -1,5 +1,5 @@
 import { isArray } from '@shell/utils/array';
-const AWS_SDK_UNHANDLED_ERROR = "reading 'Error'";
+const AWS_SDK_UNHANDLED_ERROR = 'Deserialization error:';
 
 export class ClusterNotFoundError extends Error {
   static NAME = 'ClusterNotFoundError'
