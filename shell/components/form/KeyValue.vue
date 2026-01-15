@@ -308,25 +308,25 @@ export default {
      */
     allKeyErrors() {
       const errors = { ...this.keyErrors };
-      
+
       // Detect duplicate keys
       const keyCounts = {};
-      
+
       this.rows.forEach((row) => {
         const key = row[this.keyName];
-        
+
         if (key && key.trim()) {
           keyCounts[key] = (keyCounts[key] || 0) + 1;
         }
       });
-      
+
       // Add duplicate key errors
       Object.keys(keyCounts).forEach((key) => {
         if (keyCounts[key] > 1) {
           errors[key] = this.t('keyValue.duplicateKey');
         }
       });
-      
+
       return errors;
     }
   },
