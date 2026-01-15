@@ -482,33 +482,6 @@ export default {
           </div>
         </template>
 
-        <div class="row mb-20">
-          <div class="col span-6">
-            <LabeledSelect
-              v-model:value="pkceMethod"
-              :options="pkceOptions"
-              :mode="mode"
-              :label="t('authConfig.oidc.pkce.label')"
-              :placeholder="t('authConfig.oidc.pkce.placeholder')"
-              :tooltip="t('authConfig.oidc.pkce.tooltip')"
-            />
-          </div>
-        </div>
-
-        <!-- Scopes -->
-        <div class="row mb-20">
-          <div class="col span-6">
-            <ArrayList
-              v-model:value="oidcScope"
-              :mode="mode"
-              :title="t('authConfig.oidc.scope.label')"
-              :value-placeholder="t('authConfig.oidc.scope.placeholder')"
-              :protip="t('authConfig.oidc.scope.protip', {}, true)"
-              @update:value="updateScope"
-            />
-          </div>
-        </div>
-
         <template v-if="!isAmazonCognito">
           <!-- Generated vs Specific Endpoints -->
           <div class="row mb-20">
@@ -590,7 +563,10 @@ export default {
           </div>
 
           <!-- Advanced section -->
-          <AdvancedSection :mode="mode">
+          <AdvancedSection
+            class="mb-20"
+            :mode="mode"
+          >
             <div class="row mb-20">
               <div class="col span-6">
                 <LabeledInput
@@ -646,10 +622,38 @@ export default {
           </div>
         </template>
 
+        <!-- PKCE Method -->
+        <div class="row mb-20">
+          <div class="col span-6">
+            <LabeledSelect
+              v-model:value="pkceMethod"
+              :options="pkceOptions"
+              :mode="mode"
+              :label="t('authConfig.oidc.pkce.label')"
+              :placeholder="t('authConfig.oidc.pkce.placeholder')"
+              :tooltip="t('authConfig.oidc.pkce.tooltip')"
+            />
+          </div>
+        </div>
+
+        <!-- Scopes -->
+        <div class="row mb-20">
+          <div class="col span-6">
+            <ArrayList
+              v-model:value="oidcScope"
+              :mode="mode"
+              :title="t('authConfig.oidc.scope.label')"
+              :value-placeholder="t('authConfig.oidc.scope.placeholder')"
+              :protip="t('authConfig.oidc.scope.protip', {}, true)"
+              @update:value="updateScope"
+            />
+          </div>
+        </div>
+
         <!-- SLO logout -->
         <div
           v-if="isLogoutAllSupported"
-          class="mt-40 mb-20"
+          class="mb-20"
         >
           <div class="row">
             <div class="col span-12">
