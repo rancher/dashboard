@@ -8509,6 +8509,7 @@ keyValue:
   keyPlaceholder: e.g. foo
   valuePlaceholder: e.g. bar
   protip: 'Paste lines of <em>key=value</em> or <em>key:value</em> into any key field for easy bulk entry'
+  duplicateKey: Duplicate key
 
 registryMirror:
   header: Mirrors

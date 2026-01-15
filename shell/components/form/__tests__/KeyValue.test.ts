@@ -212,4 +212,59 @@ describe('component: KeyValue', () => {
     expect(rowAdd.attributes('aria-label')).toBe('%generic.ariaLabel.addKeyValue%');
     expect(readKeyValueFromFile.attributes('aria-label')).toBe('%generic.ariaLabel.readKeyValue%');
   });
+
+  it('should detect duplicate keys and show error tooltips', async() => {
+    const wrapper = mount(KeyValue, {
+      props: {
+        value:          { key1: 'value1' },
+        mode:           'edit',
+        valueMultiline: false,
+        asMap:          true
+      }
+    });
+
+    // Initially no duplicates, no errors
+    expect(wrapper.vm.allKeyErrors).toEqual({});
+
+    // Add a duplicate key by manually modifying rows
+    wrapper.vm.rows.push({
+      key:       'key1',
+      value:     'value2',
+      binary:    false,
+      canEncode: false,
+      supported: true
+    });
+
+    await nextTick();
+
+    // Now there should be a duplicate key error
+    expect(wrapper.vm.allKeyErrors.key1).toBe('%keyValue.duplicateKey%');
+  });
+
+  it('should merge external keyErrors with duplicate key errors', async() => {
+    const wrapper = mount(KeyValue, {
+      props: {
+        value:          { key1: 'value1', key2: 'value2' },
+        mode:           'edit',
+        valueMultiline: false,
+        asMap:          true,
+        keyErrors:      { key2: 'External error' }
+      }
+    });
+
+    // Add a duplicate for key1
+    wrapper.vm.rows.push({
+      key:       'key1',
+      value:     'value3',
+      binary:    false,
+      canEncode: false,
+      supported: true
+    });
+
+    await nextTick();
+
+    // Should have both external error and duplicate error
+    expect(wrapper.vm.allKeyErrors.key1).toBe('%keyValue.duplicateKey%');
+    expect(wrapper.vm.allKeyErrors.key2).toBe('External error');
+  });
 });
