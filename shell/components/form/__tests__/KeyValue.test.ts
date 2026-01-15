@@ -224,7 +224,7 @@ describe('component: KeyValue', () => {
     });
 
     // Initially no duplicates, no errors
-    expect(wrapper.vm.allKeyErrors).toEqual({});
+    expect(wrapper.vm.allKeyErrors).toStrictEqual({});
 
     // Add a duplicate key by manually modifying rows
     wrapper.vm.rows.push({
