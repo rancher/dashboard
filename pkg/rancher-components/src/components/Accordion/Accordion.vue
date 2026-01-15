@@ -54,6 +54,16 @@ export default defineComponent({
   methods: {
     toggle() {
       this.isOpen = !this.isOpen;
+    },
+
+    scrollTo() {
+      this.isOpen = true;
+
+      this.$nextTick(() => {
+        const el = this.$el as HTMLElement;
+
+        el.scrollIntoView(true);
+      });
     }
   },
 });
