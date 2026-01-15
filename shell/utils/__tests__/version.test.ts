@@ -1,4 +1,4 @@
-import { isDevBuild, isUpgradeFromPreToStable } from '@shell/utils/version';
+import { isDevBuild } from '@shell/utils/version';
 
 describe('fx: isDevBuild', () => {
   it.each([
@@ -17,20 +17,4 @@ describe('fx: isDevBuild', () => {
   );
 });
 
-describe('fx: isUpgradeFromPreToStable', () => {
-  it('should be true when going from pre-release to stable of same version', () => {
-    expect(isUpgradeFromPreToStable('1.0.0-rc1', '1.0.0')).toBe(true);
-  });
 
-  it('should be false when going from stable to pre-release', () => {
-    expect(isUpgradeFromPreToStable('1.0.0', '1.0.0-rc1')).toBe(false );
-  });
-
-  it('should be false for stable to stable', () => {
-    expect(isUpgradeFromPreToStable('1.0.0', '1.1.0')).toBe(false);
-  });
-
-  it('should be false for pre-release to pre-release', () => {
-    expect(isUpgradeFromPreToStable('1.0.0-rc1', '1.0.0-rc2')).toBe(false);
-  });
-});
