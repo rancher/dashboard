@@ -18,6 +18,8 @@ import {
 
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import Wizard from '@shell/components/Wizard';
+import { useFormSummary } from '@shell/components/TableOfContents/composables';
+import debounce from 'lodash/debounce';
 
 import { provide } from 'vue';
 
@@ -174,6 +176,14 @@ export default {
     }
   },
 
+  setup() {
+    const { findComponents, getComponentTitle, scrollToComponent } = useFormSummary();
+
+    return {
+      findComponents, getComponentTitle, scrollToComponent
+    };
+  },
+
   data(props) {
     const inStore = this.$store.getters['currentStore'](this.resource);
     const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource.type);
@@ -205,7 +215,8 @@ export default {
         5: '16px',
         6: '14px'
       },
-      schema
+      schema,
+      accordions: [],
     };
   },
 
@@ -294,7 +305,9 @@ export default {
       this.$emit('select-type', this._selectedSubtype);
     }
 
-    provide('updateToc', this.updateToc);
+    const debouncedFindAccordions = debounce(this.findAccordions);
+
+    provide('updateToc', debouncedFindAccordions);
   },
 
   mounted() {
@@ -307,13 +320,9 @@ export default {
 
   methods: {
     stringify,
-    // tell the table of contents component to re-fetch accordions
-    updateToc() {
-      const toc = this.$refs.toc;
 
-      if (toc && !isEmpty(toc)) {
-        toc.debouncedFindAccordions();
-      }
+    findAccordions() {
+      this.accordions = this.findComponents('accordion-container');
     },
 
     confirmCancel(isCancelNotBack = true) {
@@ -813,6 +822,7 @@ export default {
             v-if="showToc"
             ref="toc"
             class="cru__toc"
+            :accordions="accordions"
           />
         </div>
         <slot name="form-footer">
