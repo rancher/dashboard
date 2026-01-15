@@ -719,8 +719,8 @@ export default {
               :aria-rowindex="i+1"
               :aria-colindex="1"
               :class="{
-                'labeled-input-key': keyErrors[row.key],
-                'has-clean-tooltip': keyErrors[row.key],
+                'labeled-input-key': allKeyErrors[row.key],
+                'has-clean-tooltip': allKeyErrors[row.key],
               }"
             >
               <slot
