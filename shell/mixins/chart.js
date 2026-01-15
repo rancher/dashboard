@@ -1,5 +1,4 @@
 
-import semver from 'semver';
 import { mapGetters } from 'vuex';
 import {
   REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, DEPRECATED as DEPRECATED_QUERY, HIDDEN, _FLAGGED, _CREATE, _EDIT
@@ -11,13 +10,12 @@ import { NAME as MANAGER } from '@shell/config/product/manager';
 import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
 import { formatSi, parseSi } from '@shell/utils/units';
 import { CAPI, CATALOG } from '@shell/config/types';
-import { isPrerelease, compare } from '@shell/utils/version';
+import { isPrerelease } from '@shell/utils/version';
+import { compareChartVersions } from '@shell/utils/chart';
 import difference from 'lodash/difference';
 import { LINUX, APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import { clone } from '@shell/utils/object';
 import { merge } from 'lodash';
-
-import { compareChartVersions } from '@shell/utils/chart';
 
 export default {
   data() {

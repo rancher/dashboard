@@ -341,7 +341,7 @@ describe('chartMixin', () => {
         getters:  {
           currentCluster:  () => {},
           isRancher:       () => true,
-          'catalog/repo':  () => (() => 'repo'),
+          'catalog/repo':  () => () => 'repo',
           'catalog/chart': () => ({ versions }),
           'prefs/get':     () => (key: string) => true,
           'i18n/t':        () => jest.fn()
@@ -357,9 +357,7 @@ describe('chartMixin', () => {
         DummyComponent,
         {
           data() {
-            return {
-              chart: { versions }
-            };
+            return { chart: { versions } };
           },
           global: {
             mocks: {
@@ -373,7 +371,7 @@ describe('chartMixin', () => {
       const result = wrapper.vm.mappedVersions;
       const resultVersions = result.map((v: any) => v.version);
 
-      expect(resultVersions).toEqual([
+      expect(resultVersions).toStrictEqual([
         '108.0.0+up0.25.1',
         '108.0.0+up0.25.0',
         '108.0.0+up0.25.0-rc.5',
