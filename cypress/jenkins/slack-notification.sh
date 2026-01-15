@@ -14,7 +14,7 @@ send_slack_notification() {
     
     if [ -z "$bot_token" ]; then
         echo "Warning: UI_SLACK_BOT_TOKEN not set, skipping Slack notification"
-        return 0
+        return 1
     fi
     
     # Prepare the JSON payload
@@ -137,10 +137,9 @@ send_jenkins_e2e_failure_notification() {
     message+="• *Timestamp:* $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
     
     echo "Sending Slack notification for $build_status build..."
-    send_slack_notification "$build_status" "$message" "$slack_bot_token" "$slack_channel"
-    
-    if [ $? -eq 0 ]; then
+    if send_slack_notification "$build_status" "$message" "$slack_bot_token" "$slack_channel"; then
         echo "Slack notification sent successfully"
+        return 0
     else
         echo "Failed to send Slack notification"
         return 1
