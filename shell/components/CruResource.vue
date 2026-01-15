@@ -1041,7 +1041,7 @@ form.create-resource-container .cru {
 
   &__toc {
     width: 250px;
-    margin-left: 24px;
+    margin-left: var(--gap-lg);
     min-width: 250px;
     max-width: 250px;
   }

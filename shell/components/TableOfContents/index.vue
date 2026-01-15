@@ -130,7 +130,7 @@ defineExpose({ debouncedFindAccordions });
   }
 
   li:not(:last-child) {
-    margin-bottom: 8px;
+    margin-bottom: var(--gap);
   }
 
   h4 {
@@ -139,9 +139,9 @@ defineExpose({ debouncedFindAccordions });
   }
 
   li ul {
-    padding-left: 16px;
+    padding-left: var(--gap-md);
     & li {
-      margin-top: 8px;
+      margin-top: var(--gap);
       margin-bottom: 0px;
     }
   }
@@ -149,7 +149,7 @@ defineExpose({ debouncedFindAccordions });
   .toc-container {
     position: sticky;
     top: 0;
-    padding: 16px;
+    padding: var(--gap-md);
     // border: 1px solid var(--border);
     border-radius: var(--border-radius);
     background-color: var(--subtle-overlay-bg ); //TODO nb confirm which var to use here
