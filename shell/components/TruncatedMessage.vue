@@ -33,7 +33,10 @@ const expand = () => {
       ref="messageContainer"
       class="truncated-text"
       :style="{ '-webkit-line-clamp': maxLines }"
-    >{{ message }}</span><span v-if="!isExpanded" class="ellipsis-suffix">...&nbsp;<a
+    >{{ message }}</span><span
+      v-if="!isExpanded"
+      class="ellipsis-suffix"
+    >...&nbsp;<a
       class="read-more-link"
       href="#"
       @click.prevent="expand"
