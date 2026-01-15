@@ -1,4 +1,4 @@
-import { getCurrentInstance, nextTick } from 'vue';
+import { getCurrentInstance } from 'vue';
 
 export function useFormSummary() {
   const root = getCurrentInstance();
@@ -49,15 +49,11 @@ export function useFormSummary() {
     return findChildComponents([], parent.vnode, searchClass);
   };
 
-  const scrollToComponent = (vnode: any, parentVNode?: any) => {
+  const scrollToComponent = (vnode: any) => {
     const comp = getComponentFromVNode(vnode);
 
     if (!comp) {
       return;
-    }
-
-    if (parentVNode) {
-      scrollToComponent(parentVNode);
     }
 
     if (comp.ctx.scrollTo) {
