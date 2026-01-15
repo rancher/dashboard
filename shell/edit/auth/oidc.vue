@@ -16,6 +16,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { BASE_SCOPES } from '@shell/store/auth';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import isUrl from 'is-url';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 
 export default {
   components: {
@@ -32,6 +33,7 @@ export default {
     RadioGroup,
     Checkbox,
     CopyToClipboardText,
+    LabeledSelect,
   },
 
   emits: ['validationChanged'],
@@ -62,6 +64,7 @@ export default {
       oidcScope:       [],
       SLO_OPTION_VALUES,
       addCustomClaims: false,
+      pkceMethod:      null,
     };
   },
 
@@ -169,6 +172,10 @@ export default {
 
     sloEndSessionEndpointUiEnabled() {
       return this.sloType === SLO_OPTION_VALUES.all || this.sloType === SLO_OPTION_VALUES.both;
+    },
+
+    pkceOptions() {
+      return ['S256', 'plain'];
     }
   },
 
@@ -474,6 +481,19 @@ export default {
             </div>
           </div>
         </template>
+
+        <div class="row mb-20">
+          <div class="col span-6">
+            <LabeledSelect
+              v-model:value="pkceMethod"
+              :options="pkceOptions"
+              :mode="mode"
+              :label="t('authConfig.oidc.pkce.label')"
+              :placeholder="t('authConfig.oidc.pkce.placeholder')"
+              :tooltip="t('authConfig.oidc.pkce.tooltip')"
+            />
+          </div>
+        </div>
 
         <!-- Scopes -->
         <div class="row mb-20">

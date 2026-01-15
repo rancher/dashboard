@@ -787,6 +787,10 @@ authConfig:
       label: Scopes
       placeholder: openid
       protip: The <code>openid</code>, <code>profile</code>, and <code>email</code> scopes are required and cannot be removed.
+    pkce:
+      label: PKCE Method
+      placeholder: Choose a PKCE method..
+      tooltip: Choose which Proof Key for Code Exchange (PKCE) challenge method is used. If not specified, Keycloak does not apply PKCE to a client unless the client sends an authorization request with an appropriate code challenge and code exchange method.
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
