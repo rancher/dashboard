@@ -32,12 +32,6 @@ export default defineComponent({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
-    containerId() {
-      const title = this.titleKey ? this.t(this.titleKey) : this.title;
-
-      return title.replace(' ', '-').toLowerCase() + '-accordion';
-    },
-
     displayTitle() {
       return this.titleKey ? this.t(this.titleKey) : this.title;
     },
@@ -71,7 +65,6 @@ export default defineComponent({
 
 <template>
   <div
-    :id="containerId"
     class="accordion-container"
   >
     <div

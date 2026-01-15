@@ -290,6 +290,10 @@ export default {
       }), {});
     },
 
+    canShowToc() {
+      return this.showToc && this.accordions.length > 0;
+    },
+
   },
 
   created() {
@@ -795,7 +799,7 @@ export default {
         <div
           v-if="_selectedSubtype || !subtypes.length"
           class="cru__content_toc_container resource-container"
-          :class="{'show-toc':showToc}"
+          :class="{'show-toc':canShowToc}"
           :style="[minHeight ? { 'min-height': minHeight } : {}]"
         >
           <div
@@ -804,7 +808,7 @@ export default {
             <slot />
           </div>
           <TableOfContents
-            v-if="showToc"
+            v-if="canShowToc"
             ref="toc"
             class="cru__toc"
             :accordions="accordions"
