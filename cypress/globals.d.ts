@@ -75,7 +75,7 @@ declare global {
   namespace Cypress {
     interface Chainable {
       setupWebSocket: any;
-      hideElementBySelector(text:string) :void;
+      hideElementBySelector(...selectors: string[]): Chainable<void>;
       state(state: any): any;
 
       login(username?: string, password?: string, cacheSession?: boolean, skipNavigation?: boolean, acceptConfirmation?: string): Chainable<Element>;
