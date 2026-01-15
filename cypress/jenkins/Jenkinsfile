@@ -4,6 +4,8 @@
 def upstream = !currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')
 def buildtype = upstream ? "RecurringRun" : "AdHoc"
 def branch = "master"
+def testExecutionResult = null
+
 if ("${env.branch}" != "null" && "${env.branch}" != "") {
   branch = "${env.branch}"
 }
@@ -34,103 +36,119 @@ node {
                         string(credentialsId: 'UI_SLACK_CHANNEL', variable: 'UI_SLACK_CHANNEL')
                         ]) {
         withEnv(paramsMap) {
-            stage('Checkout') {
-            deleteDir()
-            checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: "*/${branch}"]],
-                        extensions: scm.extensions + [[$class: 'CleanCheckout']],
-                        userRemoteConfigs: scm.userRemoteConfigs
-                    ])
-            dir('./corral-packages') {
+            try {
+              stage('Checkout') {
+                deleteDir()
                 checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: "*/${corralBranch}"]],
-                    extensions: scm.extensions + [[$class: 'CleanCheckout']],
-                    userRemoteConfigs: [[url: 'https://github.com/'+corralRepo]]
-                ])
-                sh 'git --no-pager branch'
-                def ciFilename = "dashboard-tests.yaml"
-                def ciConfigContents = env.CORRAL_PACKAGE_CONFIG
-                if (ciConfigContents != null) {
-                    writeFile file: "./packages/aws/"+ciFilename, text: ciConfigContents
-                }
-            }
-            }
-            try {
-              stage('Run Tests') {
-                sh 'pwd'
-                sh 'ls -al cypress/jenkins'
-                sh 'cypress/jenkins/init.sh'
-              }
-            } catch (err) {
-                echo "Error: " + err
-                currentBuild.result = 'FAILURE'
-                error()
-            }
-            try {
-              stage('Grab Results') {
-                  sh "cypress/jenkins/scpget.sh dashboard/results.xml"
-                  sh "cypress/jenkins/scpget.sh dashboard/cypress/reports/html/* html"
-              }
-            } catch(err) {
-                echo "Error: " + err
-                currentBuild.result = 'FAILURE'
-            }
-            if ("${env.CLEANUP}".toLowerCase() == "true") {
-                try {
-                  stage('Clean Test Environment') {  
-                    sh "corrals=\$(${WORKSPACE}/bin/corral list | grep -v \"NAME\" | grep -v \"-\" | cut -d' ' -f 2)" +
-                    "&& for corral in \$corrals; do ${WORKSPACE}/bin/corral delete \$corral; done"
-                  }
-                } catch(err) {
-                  echo "Error: " + err
-                  currentBuild.result = 'FAILURE'
-                }
-            }
-            try {
-              stage('Test Report') {
-                  step([$class: 'JUnitResultArchiver', testResults: '**/results.xml'])
-                  sh "pwd && ls -al && ls -al cypress"
-                  publishHTML(target : [allowMissing: false,
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true,
-                    // The path is relative to ${WORKSPACE}
-                    reportDir: 'html',
-                    reportFiles: 'index.html',
-                    reportName: 'html-report',
-                    reportTitles: 'Report'])
-              }
-            }
-            catch(err) {
-              echo "Error: " + err
-              currentBuild.result = 'FAILURE'
-            }
-            if ("${env.QASE_REPORT}".toLowerCase() == "true") {
-                try {
-                  stage('Publish to TC Management') {
-                    withCredentials([ string(credentialsId: 'QASE_AUTOMATION_TOKEN', variable: 'QASE_AUTOMATION_TOKEN')]) {
-                      withEnv(["BUILDTYPE=${buildtype}"]) {
-                        sh "cypress/jenkins/transform-junit.sh"
-                      }
+                            $class: 'GitSCM',
+                            branches: [[name: "*/${branch}"]],
+                            extensions: scm.extensions + [[$class: 'CleanCheckout']],
+                            userRemoteConfigs: scm.userRemoteConfigs
+                        ])
+                dir('./corral-packages') {
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: "*/${corralBranch}"]],
+                        extensions: scm.extensions + [[$class: 'CleanCheckout']],
+                        userRemoteConfigs: [[url: 'https://github.com/'+corralRepo]]
+                    ])
+                    sh 'git --no-pager branch'
+                    def ciFilename = "dashboard-tests.yaml"
+                    def ciConfigContents = env.CORRAL_PACKAGE_CONFIG
+                    if (ciConfigContents != null) {
+                        writeFile file: "./packages/aws/"+ciFilename, text: ciConfigContents
                     }
                 }
-                } catch(err) {
-                    echo "Error: " + err
-                    currentBuild.result = 'FAILURE'
+              }
+              stage('Run Tests') {
+                try {
+                  sh 'pwd'
+                  sh 'ls -al cypress/jenkins'
+                  sh 'cypress/jenkins/init.sh'
+                } catch (err) {
+                  echo "Error: " + err
+                  currentBuild.result = 'FAILURE'
+                  throw err
                 }
-            }
-            
-            // Send Slack notification on failure or unstable builds
-            if (currentBuild.result == 'FAILURE' || currentBuild.result == 'UNSTABLE') {
-                if ("${env.SLACK_NOTIFICATION}".toLowerCase() != "false") {
-                    echo "Sending Slack notification for ${currentBuild.result} build"
-                    sh "cypress/jenkins/slack-notification.sh ${currentBuild.result}"
-                } else {
-                    echo "Slack notification disabled (see jenkins-job-builder/qa-ui-tests.yml)"
+              }
+            } catch (err) {
+              echo "Pipeline aborted early: ${err}"
+              currentBuild.result = 'FAILURE'
+            } finally {
+              stage('Grab Results') {
+                // Safe to run even if init.sh failed (scp fails gracefully)
+                sh "cypress/jenkins/scpget.sh dashboard/results.xml || true"
+                sh "cypress/jenkins/scpget.sh dashboard/cypress/reports/html/* html"
+              }
+              if ("${env.CLEANUP}".toLowerCase() == "true") {
+                stage('Clean Test Environment') {  
+                  sh "corrals=\$(${WORKSPACE}/bin/corral list | grep -v \"NAME\" | grep -v \"-\" | cut -d' ' -f 2)" +
+                  "&& for corral in \$corrals; do ${WORKSPACE}/bin/corral delete \$corral; done"
                 }
-            } else {
-                echo "Build successful, no Slack notification needed"
+              }
+              try {
+                stage('Test Report') {
+                    if (fileExists('results.xml')) {
+                        junit testResults: '**/results.xml', allowEmptyResults: true
+                        
+                        def resultsContent = readFile('results.xml').trim()
+                        if (resultsContent.contains('<failure')) {
+                            testExecutionResult = 'UNSTABLE'
+                        } else if (resultsContent.contains('<testcase')) {
+                            testExecutionResult = 'SUCCESS'
+                        } else {
+                            testExecutionResult = null
+                        }
+                    } else {
+                        testExecutionResult = null
+                    }
+                    publishHTML(target : [allowMissing: false,
+                      alwaysLinkToLastBuild: true,
+                      keepAll: true,
+                      // The path is relative to ${WORKSPACE}
+                      reportDir: 'html',
+                      reportFiles: 'index.html',
+                      reportName: 'html-report',
+                      reportTitles: 'Report'])
+                }
+              }
+              catch(err) {
+                echo "Error in Test Report stage: " + err
+                // Only set testExecutionResult if it's null and tests actually ran
+                // Check XML to determine if tests passed or failed, not just assume FAILURE
+                if (testExecutionResult == null && fileExists('results.xml')) {
+                    def resultsContent = readFile('results.xml').trim()
+                    if (resultsContent.contains('<testcase')) {
+                        // Tests ran - check if they failed or passed
+                        if (resultsContent.contains('<failure')) {
+                            testExecutionResult = 'UNSTABLE'
+                        } else {
+                            testExecutionResult = 'SUCCESS'
+                        }
+                    }
+                }
+                currentBuild.result = 'FAILURE'
+              }
+              if ("${env.QASE_REPORT}".toLowerCase() == "true") {
+                  try {
+                    stage('Publish to TC Management') {
+                      withCredentials([ string(credentialsId: 'QASE_AUTOMATION_TOKEN', variable: 'QASE_AUTOMATION_TOKEN')]) {
+                        withEnv(["BUILDTYPE=${buildtype}"]) {
+                          sh "cypress/jenkins/transform-junit.sh"
+                        }
+                      }
+                    }
+                  } catch(err) {
+                      echo "Error: " + err
+                      currentBuild.result = 'FAILURE'
+                  }
+              }
+              
+              if (testExecutionResult == 'FAILURE' || testExecutionResult == 'UNSTABLE') {
+                  if ("${env.SLACK_NOTIFICATION}".toLowerCase() != "false") {
+                      sh "cypress/jenkins/slack-notification.sh ${testExecutionResult}"
+                  }
+              }
             }
         }
       }
