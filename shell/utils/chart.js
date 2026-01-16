@@ -6,8 +6,7 @@ import { compatibleVersionsFor } from '@shell/store/catalog';
  * Compares two chart versions using SemVer logic, with special handling for Rancher's "up" build metadata.
  *
  * It uses `semver.compare` for the primary comparison. If versions are considered equal (SemVer ignores build metadata),
- * it checks if both versions have build metadata starting with "up". If so, it strips the "up" prefix and recursively
- * compares the remaining strings as versions.
+ * it checks if both versions have build metadata starting with "up". If so, it strips the "up" prefix and compares the remaining strings as versions.
  *
  * If the "up" logic doesn't apply or results in equality, it falls back to `semver.compareBuild` to handle
  * other build metadata differences (e.g. sorting alphabetically).
@@ -40,9 +39,18 @@ export function compareChartVersions(v1, v2) {
     if (buildC.startsWith('up') && buildT.startsWith('up')) {
       const subC = buildC.substring(2);
       const subT = buildT.substring(2);
+      const subCValid = semver.valid(subC, { loose: true });
+      const subTValid = semver.valid(subT, { loose: true });
 
-      if (semver.valid(subC, { loose: true }) && semver.valid(subT, { loose: true })) {
+      if (subCValid && subTValid) {
+        // Both "up" metadata parts are valid semver: compare them semantically.
         diff = semver.compare(subC, subT, { loose: true });
+      } else if (subCValid && !subTValid) {
+        // Only v1 has valid "up" metadata: prefer v1 over v2.
+        diff = 1;
+      } else if (!subCValid && subTValid) {
+        // Only v2 has valid "up" metadata: prefer v2 over v1.
+        diff = -1;
       }
     }
 

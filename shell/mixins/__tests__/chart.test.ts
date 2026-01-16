@@ -331,6 +331,8 @@ describe('chartMixin', () => {
         { version: '1.0.0-beta', created: '2026-01-01' },
         { version: '1.0.0+build.1', created: '2026-01-01' },
         { version: '1.0.0+build.2', created: '2026-01-01' },
+        { version: '1.0.0+up1.0.0', created: '2026-01-01' },
+        { version: '1.0.0+upFoo', created: '2026-01-01' },
         { version: '108.0.0+up0.25.0-rc.5', created: '2026-01-01' },
         { version: '108.0.0+up0.25.1', created: '2026-01-01' },
         { version: '0.0.1', created: '2026-01-01' }
@@ -387,6 +389,8 @@ describe('chartMixin', () => {
         '2.0.0-alpha',
         '1.2.3',
         '1.2.3-dev',
+        '1.0.0+up1.0.0',
+        '1.0.0+upFoo',
         '1.0.0+build.2',
         '1.0.0+build.1',
         '1.0.0-beta.11',
