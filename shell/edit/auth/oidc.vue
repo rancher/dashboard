@@ -539,7 +539,7 @@ export default {
             </div>
           </div>
 
-          <div class="row mb-20">
+          <div class="row">
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.issuer"
@@ -564,7 +564,7 @@ export default {
 
           <!-- Advanced section -->
           <AdvancedSection
-            class="mb-20"
+            class="mb-40"
             :mode="mode"
           >
             <div class="row mb-20">
