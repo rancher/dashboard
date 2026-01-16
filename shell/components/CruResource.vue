@@ -206,7 +206,6 @@ export default {
         6: '14px'
       },
       schema,
-      // accordions: [],
     };
   },
 

@@ -3,8 +3,6 @@ import { defineComponent, inject } from 'vue';
 import { mapGetters } from 'vuex';
 
 export default defineComponent({
-  name: 'Accordion',
-
   props: {
     title: {
       type:    String,
