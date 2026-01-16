@@ -175,11 +175,9 @@ export default {
   },
 
   setup() {
-    const { findComponents, getComponentTitle, scrollToComponent } = useFormSummary();
+    const { matchingComponents } = useFormSummary('accordion-container');
 
-    return {
-      findComponents, getComponentTitle, scrollToComponent
-    };
+    return { accordions: matchingComponents };
   },
 
   data(props) {
@@ -208,7 +206,7 @@ export default {
         6: '14px'
       },
       schema,
-      accordions: [],
+      // accordions: [],
     };
   },
 
@@ -291,7 +289,7 @@ export default {
     },
 
     canShowToc() {
-      return this.showToc && this.accordions.length > 0;
+      return this.showToc && (this.accordions || []).length > 0;
     },
 
   },
@@ -300,10 +298,6 @@ export default {
     if ( this._selectedSubtype ) {
       this.$emit('select-type', this._selectedSubtype);
     }
-
-    const debouncedFindAccordions = debounce(this.findAccordions);
-
-    provide('updateToc', debouncedFindAccordions);
   },
 
   mounted() {
@@ -316,10 +310,6 @@ export default {
 
   methods: {
     stringify,
-
-    findAccordions() {
-      this.accordions = this.findComponents('accordion-container');
-    },
 
     confirmCancel(isCancelNotBack = true) {
       if (isCancelNotBack) {

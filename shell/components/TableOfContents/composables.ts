@@ -1,9 +1,12 @@
-import { getCurrentInstance } from 'vue';
+import debounce from 'lodash/debounce';
+import { getCurrentInstance, provide, ref } from 'vue';
 
-export function useFormSummary() {
+export function useFormSummary(searchClass: string) {
   const root = getCurrentInstance();
 
-  const hasClass = (vNode: any, searchClass: string) => {
+  const matchingComponents = ref([] as any[]);
+
+  const hasClass = (vNode: any) => {
     const className = vNode?.el?.className || '';
 
     // // TODO nb better way of doing this that doesn't rely on a class
@@ -11,14 +14,14 @@ export function useFormSummary() {
     return typeof className === 'string' && className.includes(searchClass);
   };
 
-  const findChildComponents = (components = [] as any[], node: any, searchClass: string) => {
+  const findChildComponents = (components = [] as any[], node: any ) => {
     let nextInput = components;
 
-    if (hasClass(node, searchClass)) {
+    if (hasClass(node)) {
       const out = {
         node,
         children: [],
-        title:    getComponentTitle(node),
+        label:    getComponentLabel(node),
         scrollTo: () => scrollToComponent(node)
       };
 
@@ -35,19 +38,20 @@ export function useFormSummary() {
 
     children.map((c) => {
       if (c.__vnode) {
-        return findChildComponents(nextInput, c.__vnode, searchClass );
+        return findChildComponents(nextInput, c.__vnode );
       }
     });
 
     return components;
   };
 
-  const findComponents = (searchClass: string) => {
+  const findComponents = () => {
     const parent = root?.parent || {} as any;
 
-    // accordions.value = findChildComponents([], parent.vnode, searchClass) || [];
-    return findChildComponents([], parent.vnode, searchClass);
+    matchingComponents.value = findChildComponents([], parent.vnode) || [];
   };
+
+  const debouncedFindComponents = debounce(findComponents);
 
   const scrollToComponent = (vnode: any) => {
     const comp = getComponentFromVNode(vnode);
@@ -63,7 +67,7 @@ export function useFormSummary() {
     }
   };
 
-  const getComponentTitle = (vnode : any) => {
+  const getComponentLabel = (vnode : any) => {
     const fallback = vnode?.el?.id;
 
     const componentContext = getComponentFromVNode(vnode)?.ctx;
@@ -75,9 +79,7 @@ export function useFormSummary() {
     return vnode?.component ? vnode.component : vnode?.ctx?.vnode?.component;
   };
 
-  return {
-    findComponents,
-    scrollToComponent,
-    getComponentTitle
-  };
+  provide('updateSummary', debouncedFindComponents);
+
+  return { matchingComponents };
 }

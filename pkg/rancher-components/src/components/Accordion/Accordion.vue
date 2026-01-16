@@ -24,8 +24,8 @@ export default defineComponent({
 
   data() {
     return {
-      isOpen:    this.openInitially,
-      updateToc: inject('updateToc') as Function
+      isOpen:        this.openInitially,
+      updateSummary: inject('updateSummary') as Function
     };
   },
 
@@ -38,11 +38,11 @@ export default defineComponent({
   },
 
   mounted() {
-    this.updateToc();
+    this.updateSummary();
   },
 
   beforeUnmount() {
-    this.updateToc();
+    this.updateSummary();
   },
 
   methods: {
