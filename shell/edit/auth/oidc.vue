@@ -64,7 +64,6 @@ export default {
       oidcScope:       [],
       SLO_OPTION_VALUES,
       addCustomClaims: false,
-      pkceMethod:      null,
     };
   },
 
@@ -176,7 +175,7 @@ export default {
 
     pkceOptions() {
       return ['S256', 'plain'];
-    }
+    },
   },
 
   watch: {
@@ -626,12 +625,13 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledSelect
-              v-model:value="pkceMethod"
+              v-model:value="model.pkceMethod"
               :options="pkceOptions"
               :mode="mode"
               :label="t('authConfig.oidc.pkce.label')"
               :placeholder="t('authConfig.oidc.pkce.placeholder')"
               :tooltip="t('authConfig.oidc.pkce.tooltip')"
+              :clearable="true"
             />
           </div>
         </div>
