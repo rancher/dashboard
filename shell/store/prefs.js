@@ -233,13 +233,13 @@ export const getters = {
       }
       const clusterPref = getters['get'](CLUSTER);
 
-      return { name: 'c-cluster-explorer', params: { product: 'explorer', cluster: clusterPref } };
+      return { name: 'c-cluster-explorer', params: { cluster: clusterPref } };
     }
     case (!!afterLoginRoutePref.match(/.+-dashboard$/)):
     {
       const clusterId = afterLoginRoutePref.split('-dashboard')[0];
 
-      return { name: 'c-cluster-explorer', params: { product: 'explorer', cluster: clusterId } };
+      return { name: 'c-cluster-explorer', params: { cluster: clusterId } };
     }
     default:
       return { name: afterLoginRoutePref };
@@ -523,15 +523,14 @@ export const actions = {
   setBrandStyle({ rootState, rootGetters }, dark = false) {
     if (rootState.managementReady) {
       try {
-        const brandSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.BRAND);
+        const brandSetting = rootGetters['management/brand'];
 
-        if (brandSetting && brandSetting.value && brandSetting.value !== '') {
-          const brand = brandSetting.value;
-          const brandMeta = getBrandMeta(brand);
+        if (brandSetting !== '') {
+          const brandMeta = getBrandMeta(brandSetting);
           const hasStylesheet = brandMeta.hasStylesheet === 'true';
 
           if (hasStylesheet) {
-            document.body.classList.add(brand);
+            document.body.classList.add(brandMeta);
           } else {
             // TODO option apply color at runtime
           }

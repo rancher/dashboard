@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, computed, defineProps, defineEmits } from 'vue';
+import { ref, computed } from 'vue';
 import { _EDIT } from '@shell/config/query-params';
 import { TYPES } from '@shell/models/secret';
 import { SECRET } from '@shell/config/types';

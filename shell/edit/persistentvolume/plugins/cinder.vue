@@ -14,24 +14,25 @@ export default {
       required: true,
     },
   },
-  data() {
-    const readOnlyOptions = [
-      {
-        label: this.t('generic.yes'),
-        value: true
-      },
-      {
-        label: this.t('generic.no'),
-        value: false
-      }
-    ];
-
+  created() {
     this.value.spec['cinder'] = this.value.spec.cinder || {};
     this.value.spec.cinder['readOnly'] = this.value.spec.cinder.readOnly || false;
     this.value.spec.cinder['secretRef'] = this.value.spec.cinder.secretRef || {};
-
-    return { readOnlyOptions };
   },
+  computed: {
+    readOnlyOptions() {
+      return [
+        {
+          label: this.t('generic.yes'),
+          value: true
+        },
+        {
+          label: this.t('generic.no'),
+          value: false
+        }
+      ];
+    }
+  }
 };
 </script>
 

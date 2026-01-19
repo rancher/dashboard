@@ -1127,6 +1127,7 @@ catalog:
       home: Homepage
       repository: Repository Page
       maintainers: Maintainers
+      maintainerContactTooltip: Contact {maintainer}
       related: Related
       chartUrls: Chart
       keywords: Keywords
@@ -1731,6 +1732,7 @@ cluster:
         addVolume: Add Volume
         addVMImage: Add VM Image
         storageClass: Storage Class
+      reservedMemory: Reserved Memory
       sshUser: SSH User
       userData:
         label: User Data Template
@@ -1776,6 +1778,8 @@ cluster:
         placeholder: e.g. 2
       memory:
         placeholder: e.g. 4
+      reservedMemory:
+        placeholder: e.g. 256
       disk:
         placeholder: e.g. 4
       namespace:
@@ -1805,6 +1809,7 @@ cluster:
     current: (current)
     experimental: (experimental)
     deprecated: (deprecated)
+    manual: (manually upgraded)
     deprecatedPatches: Show deprecated Kubernetes patch versions
     deprecatedPatchWarning: We recommend using the latest patch version for each minor Kubernetes version. Deprecated patch versions can be useful for migration purposes.
   legacyWarning: The legacy feature flag is enabled and not all legacy features are supported in Kubernetes 1.21+.
@@ -2345,6 +2350,7 @@ cluster:
       placeholder: Search for a member to provide cluster access
       searchPlaceholder: Start typing to search
       noResults: No results found
+      minCharacters: Type at least {count} characters to search
   privateRegistry:
     header: Registry for Rancher System Container Images
     label: Enable cluster scoped container registry for Rancher system container images
@@ -4616,6 +4622,7 @@ moveModal:
   description: 'You are moving the following namespaces:'
   moveButtonLabel: Move
   targetProject: Target Project
+  noProject: None (remove from any project)
 
 nameNsDescription:
   name:
@@ -5260,7 +5267,8 @@ plugins:
   closePluginPanel: Close plugin description panel
   viewVersionDetails: View extension {name} version {version} details/Readme
   labels:
-    primeOnly: Prime-only
+    isDeveloper: Developer Load
+    primeOnly: Prime only
     builtin: Built-In
     experimental: Experimental
     third-party: Third-Party
@@ -5328,7 +5336,7 @@ plugins:
   warnNoAuth: This version of the extension will be loaded before authentication and will have access to the login process.
   manageCatalog:
     label: Manage Extension Catalogs
-    title: Extension
+    title: Extensions
     subtitle: Catalogs
     imageLoad:
       load: Import Extension Catalog

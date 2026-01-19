@@ -238,6 +238,15 @@ case "${RANCHER_IMAGE_TAG}" in
     *)
 esac
 corral config vars set cypress_tags "${CYPRESS_TAGS}"
+
+# Save all values to a file for the Slack notification script
+cat > "${WORKSPACE}/notification_values.txt" << EOF
+RANCHER_VERSION=${RANCHER_VERSION}
+RANCHER_IMAGE_TAG=${RANCHER_IMAGE_TAG}
+RANCHER_CHART_URL=${RANCHER_CHART_URL}
+RANCHER_HELM_REPO=${RANCHER_HELM_REPO}
+CYPRESS_TAGS=${CYPRESS_TAGS}
+EOF
 corral config vars set cypress_version "${CYPRESS_VERSION}"
 corral config vars set yarn_version "${YARN_VERSION}"
 corral config vars set kubectl_version "${KUBECTL_VERSION}"

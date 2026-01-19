@@ -60,6 +60,7 @@ export enum ExtensionPoint {
   PANEL = 'Panel', // eslint-disable-line no-unused-vars
   CARD = 'Card', // eslint-disable-line no-unused-vars
   TABLE_COL = 'TableColumn', // eslint-disable-line no-unused-vars
+  TABLE = 'Table', // eslint-disable-line no-unused-vars
 }
 
 /** Enum regarding action locations that are extensible in the UI */
@@ -79,6 +80,11 @@ export enum PanelLocation {
 /** Enum regarding tab locations that are extensible in the UI */
 export enum TabLocation {
   RESOURCE_DETAIL = 'tab', // eslint-disable-line no-unused-vars
+  OTHER = 'other-tab-locations', // eslint-disable-line no-unused-vars
+  RESOURCE_DETAIL_PAGE = 'resource-detail-page', // eslint-disable-line no-unused-vars
+  RESOURCE_CREATE_PAGE = 'resource-create-page', // eslint-disable-line no-unused-vars
+  RESOURCE_EDIT_PAGE = 'resource-edit-page', // eslint-disable-line no-unused-vars
+  RESOURCE_SHOW_CONFIGURATION = 'resource-show-configuration', // eslint-disable-line no-unused-vars
   CLUSTER_CREATE_RKE2 = 'cluster-create-rke2', // eslint-disable-line no-unused-vars
 }
 
@@ -91,6 +97,16 @@ export enum CardLocation {
 export enum TableColumnLocation {
   RESOURCE = 'resource-list', // eslint-disable-line no-unused-vars
 }
+
+/** Enum regarding table locations that are extensible in the UI */
+export enum TableLocation {
+  RESOURCE = 'resource-list', // eslint-disable-line no-unused-vars
+}
+
+/** Definition of a Table extension hook */
+export type TableAction = {
+  tableHook: Function
+};
 
 /** Definition of the shortcut object (keyboard shortcuts) */
 export type ShortCutKey = {
@@ -235,6 +251,11 @@ export interface ProductOptions {
   ifHaveType?: string | RegExp;
 
   /**
+   * Hide the product if the type is present (opposite of ifHaveType)
+   */
+  ifNotHaveType?: string | RegExp;
+
+  /**
    * The vuex store that this product should use by default i.e. 'management'
    */
   inStore?: string;
@@ -283,6 +304,11 @@ export interface ProductOptions {
  * Configuration required to show a header in a ResourceTable
  */
 export interface HeaderOptions {
+  /**
+   * Order/position of the table column added by an extension
+   */
+  weight?: number;
+
   /**
    * Name of the header. This should be unique.
    */
@@ -653,6 +679,15 @@ export interface IPlugin {
    *  As per `column`, but is used where server-side pagination is enabled
    */
   addTableColumn(where: TableColumnLocation | string, when: LocationConfig | string, column: TableColumn, paginationColumn?: TableColumn): void;
+
+  /**
+   * Adds to Table events hook on ResourceTable
+   *
+   * @param where
+   * @param when
+   * @param action
+   */
+  addTableHook(where: TableLocation | string, when: LocationConfig | string, action: TableAction): void;
 
   /**
    * Set the component to use for the landing home page

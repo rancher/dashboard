@@ -305,7 +305,7 @@ export default {
         namespace.value = toRef(props.forceNamespace);
         updateNamespace(namespace);
       } else if (props.namespaceKey) {
-        namespace.value = get(v, props.namespaceKey);
+        namespace.value = get(v.value, props.namespaceKey);
       } else {
         namespace.value = metadata?.namespace;
       }

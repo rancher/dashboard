@@ -40,10 +40,10 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
 
     // click on install button on card
     extensionsPo.extensionCardInstallClick(extensionName);
-    extensionsPo.extensionInstallModal().should('be.visible' );
+    extensionsPo.installModal().checkVisible();
 
     // click install
-    extensionsPo.installModalInstallClick();
+    extensionsPo.installModal().installButton().click();
 
     // check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
@@ -65,7 +65,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
 
     const appRepoList: RepositoriesPagePo = new RepositoriesPagePo('local', 'apps');
 
-    appRepoList.goTo();
+    appRepoList.goTo('local', 'apps');
     appRepoList.waitForPage();
     cy.get('h1').contains('Repositories').should('exist');
   });

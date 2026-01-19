@@ -1,4 +1,5 @@
 import { isArray } from '@shell/utils/array';
+const AWS_SDK_UNHANDLED_ERROR = 'Deserialization error:';
 
 export class ClusterNotFoundError extends Error {
   static NAME = 'ClusterNotFoundError'
@@ -128,4 +129,12 @@ export const normalizeError = (err) => {
     message,
     statusCode: (err.statusCode || err.status || (err.response && err.response.status) || 500)
   };
+};
+
+export const formatAWSError = (err) => {
+  if (err instanceof TypeError && err.message.includes(AWS_SDK_UNHANDLED_ERROR)) {
+    return err.$response.reason;
+  }
+
+  return err;
 };

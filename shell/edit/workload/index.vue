@@ -169,9 +169,10 @@ export default {
         ref="containersTabbed"
         class="deployment-tabs"
         :show-tabs-add-remove="true"
-        :default-tab="defaultTab"
+        :default-tab="defaultTab || defaultWorkloadTab"
         :flat="true"
         :use-hash="useTabbedHash"
+        :showExtensionTabs="false"
         data-testid="workload-horizontal-tabs"
         @changed="changed"
       >
@@ -516,7 +517,7 @@ export default {
               <NodeScheduling
                 :mode="mode"
                 :value="podTemplateSpec"
-                :nodes="allNodes"
+                :nodes="workerNodes"
                 :loading="isLoadingSecondaryResources"
               />
             </Tab>

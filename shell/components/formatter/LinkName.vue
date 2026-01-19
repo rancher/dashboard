@@ -41,6 +41,11 @@ export default {
         product:   this.product || EXPLORER,
       };
 
+      // Having an undefined param can yield a console warning like [Vue Router warn]: Discarded invalid param(s) "namespace" when navigating
+      if (!params.namespace) {
+        delete params.namespace;
+      }
+
       return { name, params };
     },
 

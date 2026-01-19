@@ -52,7 +52,8 @@ export default {
     'group-value-change',
     'selection',
     'rowClick',
-    'enter'
+    'enter',
+    'sortable-table-interaction',
   ],
 
   components: {
@@ -765,7 +766,7 @@ export default {
                 needRef = true;
               } else {
                 // Check if we have a formatter from a plugin
-                const pluginFormatter = this.$plugin?.getDynamic('formatters', c.formatter);
+                const pluginFormatter = this.$extension?.getDynamic('formatters', c.formatter);
 
                 if (pluginFormatter) {
                   component = defineAsyncComponent(pluginFormatter);
@@ -1058,6 +1059,23 @@ export default {
     },
 
     paginationChanged() {
+      // event used for extensions TABLE hooks
+      this.$emit('sortable-table-interaction', {
+        pagination: {
+          page:    this.page,
+          perPage: this.perPage,
+        },
+        filtering: {
+          searchFields: this.searchFields,
+          searchQuery:  this.searchQuery
+        },
+        sorting: {
+          sort:       this.sortFields,
+          sortBy:     this.sortBy,
+          descending: this.descending
+        }
+      });
+
       if (!this.externalPaginationEnabled) {
         return;
       }

@@ -1,5 +1,5 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
-import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2ClusterWithoutMachineConfigParams } from '@/cypress/globals';
+import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2ClusterWithoutMachineConfigParams, UserPreferences } from '@/cypress/globals';
 import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
 import { CypressChainable } from '~/cypress/e2e/po/po.types';
 import { MEDIUM_API_DELAY } from '~/cypress/support/utils/api-endpoints';
@@ -20,7 +20,7 @@ Cypress.Commands.add('login', (
   acceptConfirmation = '', // Use when we expect the confirmation dialog to be present (expected button text)
 ) => {
   const login = () => {
-    cy.intercept('POST', '/v3-public/localProviders/local*').as('loginReq');
+    cy.intercept('POST', '/v1-public/login*').as('loginReq');
 
     if (!skipNavigation) {
       LoginPagePo.goTo(); // Needs to happen before the page element is created/located
@@ -57,6 +57,7 @@ Cypress.Commands.add('login', (
           username,
           password,
           description:  'UI session',
+          type:         'localProvider',
           responseType: 'cookie'
         }
       );

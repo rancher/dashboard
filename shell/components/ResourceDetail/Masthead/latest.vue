@@ -42,27 +42,29 @@ const store = useStore();
 </script>
 
 <template>
-  <TitleBar v-bind="titleBarProps" />
-  <Banner
-    v-if="bannerProps"
-    v-ui-context="{
-      store: store,
-      icon: 'icon-info',
-      hookable: true,
-      value: {
-        bannerProps,
-        resource: uiCtxResource
-      },
-      tag: '__details-state-banner',
-      description: 'Status Message'
-    }"
-    class="new state-banner"
-    v-bind="bannerProps"
-  />
-  <Metadata
-    v-bind="metadataProps"
-    class="mmt-4"
-  />
+  <div>
+    <TitleBar v-bind="titleBarProps" />
+    <Banner
+      v-if="bannerProps"
+      v-ui-context="{
+        store: store,
+        icon: 'icon-info',
+        hookable: true,
+        value: {
+          bannerProps,
+          resource: uiCtxResource
+        },
+        tag: '__details-state-banner',
+        description: 'Status Message'
+      }"
+      class="new state-banner"
+      v-bind="bannerProps"
+    />
+    <Metadata
+      v-bind="metadataProps"
+      class="mmt-4"
+    />
+  </div>
 </template>
 
 <style lang="scss" scoped>

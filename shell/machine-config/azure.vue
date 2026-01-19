@@ -37,7 +37,7 @@ const defaultConfig = {
   faultDomainCount:      '3',
   image:                 'canonical:ubuntu-24_04-lts:server-gen1:latest',
   location:              'westus',
-  managedDisks:          false,
+  managedDisks:          true,
   noPublicIp:            false,
   nsg:                   null,
   privateIpAddress:      null,

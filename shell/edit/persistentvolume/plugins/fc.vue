@@ -17,25 +17,24 @@ export default {
       required: true,
     },
   },
-  data() {
-    const readOnlyOptions = [
-      {
-        label: this.t('generic.yes'),
-        value: true
-      },
-      {
-        label: this.t('generic.no'),
-        value: false
-      }
-    ];
-
+  created() {
     this.value.spec['fc'] = this.value.spec.fc || {};
     this.value.spec.fc['readOnly'] = this.value.spec.fc.readOnly || false;
     this.value.spec.fc['secretRef'] = this.value.spec.fc.secretRef || {};
-
-    return { readOnlyOptions };
   },
   computed: {
+    readOnlyOptions() {
+      return [
+        {
+          label: this.t('generic.yes'),
+          value: true
+        },
+        {
+          label: this.t('generic.no'),
+          value: false
+        }
+      ];
+    },
     lun: {
       get() {
         return this.value.spec.fc.lun;

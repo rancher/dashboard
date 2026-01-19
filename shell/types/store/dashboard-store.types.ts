@@ -48,11 +48,6 @@ export interface ActionFindAllArgs extends ActionCoreFindArgs {
   depaginate?: boolean,
 }
 
-export interface ActionFindPageTransientResult<T> {
-  pagination: StorePagination,
-  data: T[],
-}
-
 /**
  * Args used for findPage action
  */
@@ -81,19 +76,46 @@ export interface ActionFindPageArgs extends ActionCoreFindArgs {
    * If true don't persist the http response to the store, just pass it back
    */
   transient?: boolean,
+  /**
+   * The target minimum revision for the resource.
+   *
+   * If this is higher than the latest revision known to rancher then an error will be returned
+   */
+  revision?: string
 }
 
-export type ActionFindPageResponse<T = any> = {
+/**
+ * Response to a transient (not stored in cache) findPage action
+ */
+export type ActionFindPageTransientResponse<T = any> = {
   data: T[],
   pagination?: StorePagination
-} | T[];
+};
 
+/**
+ * Response to the findPage action
+ *
+ * If the request was transient (not stored in cache) this will be an object contain all the details of the request
+ *
+ * If the request was not transient this will just be the array of resources
+ */
+export type ActionFindPageResponse<T = any> = ActionFindPageTransientResponse | T[];
+
+/**
+ * Args used for findPage action
+ */
 export interface ActionFindMatchingArgs extends ActionCoreFindArgs {
   labelSelector: KubeLabelSelector,
   namespaced?: string,
   depaginate?: boolean
 }
 
+/**
+ * Response to the findMatching action
+ */
 export type ActionFindMatchingResponse<T = any> = ActionFindPageResponse<T>
 
+/**
+ * Args used for findLabelSelector action
+ */
 export type ActionFindLabelSelectorArgs = ActionFindPageArgs | ActionFindMatchingArgs;
