@@ -96,6 +96,8 @@ describe('systemInfoProvider', () => {
         return undefined;
       }),
       'management/schemaFor': jest.fn(),
+      localCluster:           mockClusters.find((c) => c.id === 'local') || null,
+      'features/get':         jest.fn(() => 'abc'),
     };
 
     (version.getVersionData as jest.Mock).mockReturnValue({
@@ -128,6 +130,7 @@ describe('systemInfoProvider', () => {
     expect(qs).toContain('bl=en-US');
     expect(qs).toContain('bs=1024x768');
     expect(qs).toContain('ss=1920x1080');
+    expect(qs).toContain('ff-usc=abc');
   });
 
   it('should handle missing or partial data gracefully', () => {
@@ -159,6 +162,10 @@ describe('systemInfoProvider', () => {
 
     mockGetters['uiplugins/plugins'] = null; // No plugins
     mockGetters['auth/principalId'] = null; // No user
+    mockGetters['localCluster'] = null; // No clusters
+    mockGetters['features/get'] = () => {
+      throw new Error('unknown feature');
+    };
 
     const infoProvider = new SystemInfoProvider(mockGetters, {});
     const qs = infoProvider.buildQueryString();
@@ -175,6 +182,7 @@ describe('systemInfoProvider', () => {
     expect(qs).not.toContain('lnc=');
     expect(qs).not.toContain('xkn=');
     expect(qs).not.toContain('xcc=');
+    expect(qs).not.toContain('ff-usc=');
   });
 
   it('should handle getAll returning undefined when types are not registered', () => {
@@ -191,6 +199,7 @@ describe('systemInfoProvider', () => {
 
     mockGetters['auth/principalId'] = 'user-456';
     mockGetters['uiplugins/plugins'] = []; // No plugins
+    mockGetters['localCluster'] = null; // No clusters
 
     const infoProvider = new SystemInfoProvider(mockGetters, {});
     const qs = infoProvider.buildQueryString();
@@ -199,7 +208,6 @@ describe('systemInfoProvider', () => {
     expect(mockGetters['management/byId']).toHaveBeenCalledWith(MANAGEMENT.SETTING, 'install-uuid');
     expect(mockGetters['management/byId']).toHaveBeenCalledWith(MANAGEMENT.SETTING, 'server-version-type');
     expect(mockGetters['management/typeRegistered']).toHaveBeenCalledWith(COUNT);
-    expect(mockGetters['management/typeRegistered']).toHaveBeenCalledWith(MANAGEMENT.CLUSTER);
     expect(mockGetters['management/all']).not.toHaveBeenCalled();
 
     // Verify the query string is built with fallback or empty values
@@ -225,6 +233,16 @@ describe('systemInfoProvider', () => {
         return { id, value: '' }; // Empty values for all settings
       }
     });
+
+    // local cluster with missing properties
+    const localCluster = {
+      id:      'local',
+      isLocal: true,
+      status:  { nodeCount: 1 },
+      // kubernetesVersionBase is missing
+      // provisioner is missing
+    };
+
     mockGetters['management/all'].mockImplementation((type: string) => {
       if (type === MANAGEMENT.SETTING) {
         // Return settings, but with empty values
@@ -237,20 +255,14 @@ describe('systemInfoProvider', () => {
         return [{ counts: { [MANAGEMENT.CLUSTER]: { summary: { count: 1 } } } }];
       }
       if (type === MANAGEMENT.CLUSTER) {
-        // local cluster with missing properties
-        return [{
-          id:      'local',
-          isLocal: true,
-          status:  { nodeCount: 1 },
-          // kubernetesVersionBase is missing
-          // provisioner is missing
-        }];
+        return [localCluster];
       }
 
       return [];
     });
 
     mockGetters['auth/principalId'] = null; // No user
+    mockGetters['localCluster'] = localCluster;
 
     const infoProvider = new SystemInfoProvider(mockGetters, {});
     const qs = infoProvider.buildQueryString();

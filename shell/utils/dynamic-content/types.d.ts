@@ -56,7 +56,7 @@ export type Context = {
  * Version information
  */
 export type VersionInfo = {
-  version: SemVer | null;
+  version: SemVer;
   isPrime: boolean;
 };
 
@@ -91,11 +91,63 @@ export type SupportInfo = {
 };
 
 /**
+ * Call to action for an announcement
+ */
+export type CallToAction = {
+  action: string;
+  link: string;
+};
+
+/**
+ * Announcements to be shown in the notification center or on the home page
+ *
+ * Target determines where the notification will be shown, supported values:
+ *
+ * - `notification/announcement` - Shown with `Announcement` level in the Notification Center
+ * - `notification/info` - Shown with `Info` level in the Notification Center
+ * - `notification/warning` - Shown with `Warning` level in the Notification Center
+ * - `homepage/banner` - Shown on the home page as a banner beneath the main banner
+ * - `homepage/rhs` - Shown on the home page as a panel beneath the right-hand side links panel
+ *
+ */
+export type Announcement = {
+  id: string; // Unique id for this announcement
+  title: string; // Title to be shown
+  message: string; // Message/Body for the announcement
+  target: string; // Where the announcement should be shown
+  version?: string; // Version or semver expression for when to show this announcement
+  audience?: 'admin' | 'all'; // Audience - show for just Admins or for all users
+  icon?: string;
+  cta?: {
+    primary: CallToAction, // Must have a primary call to action, if we have a cta field
+    secondary?: CallToAction,
+  },
+  style?: string; // Styling information that will be interpreted by the rendering component
+};
+
+/**
+ * Icon information
+ */
+export type AnnouncementNotificationIconData = {
+  light: string; // Light mode icon/image
+  dark?: string; // Light mode icon/image
+};
+
+/**
+ * Custom data for announcements stored with the notification
+ */
+export type AnnouncementNotificationData = {
+  icon?: AnnouncementNotificationIconData; // Icon/Image to show
+  location: string; // Location of the announcement in the UI
+};
+
+/**
  * Main type for the metadata that is retrieved from the dynamic content endpoint
  */
 export type DynamicContent = {
   version: string;
   releases: ReleaseInfo[],
   support: SupportInfo,
+  announcements: Announcement[],
   settings?: Partial<SettingsInfo>,
 };

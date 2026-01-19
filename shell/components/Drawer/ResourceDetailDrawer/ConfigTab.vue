@@ -1,17 +1,11 @@
-<script lang="ts">
+<script setup lang="ts">
 import { useI18n } from '@shell/composables/useI18n';
 import { _VIEW } from '@shell/config/query-params';
 import { useStore } from 'vuex';
 import Tab from '@shell/components/Tabbed/Tab.vue';
+import { ConfigProps } from '@shell/components/Drawer/ResourceDetailDrawer/types';
 
-export interface Props {
-  resource: any;
-  component: any;
-  resourceType: string;
-}
-</script>
-<script setup lang="ts">
-const props = defineProps<Props>();
+const props = defineProps<ConfigProps>();
 const store = useStore();
 const i18n = useI18n(store);
 </script>
@@ -31,6 +25,7 @@ const i18n = useI18n(store);
         :real-mode="_VIEW"
         :initial-value="props.resource"
         :use-tabbed-hash="false /* Have to disable hashing on child components or it modifies the url and closes the drawer */"
+        :default-tab="props.defaultTab"
         as="config"
       />
     </div>

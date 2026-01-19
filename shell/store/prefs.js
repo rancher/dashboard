@@ -1,6 +1,7 @@
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, STEVE } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
+import { getBrandMeta } from '@shell/utils/brand';
 
 const definitions = {};
 /**
@@ -119,6 +120,7 @@ export const SCALE_POOL_PROMPT = create('scale-pool-prompt', null, { parseJSON }
 export const READ_NEW_RELEASE = create('read-new-release', '', { parseJSON });
 export const READ_SUPPORT_NOTICE = create('read-support-notice', '', { parseJSON });
 export const READ_UPCOMING_SUPPORT_NOTICE = create('read-upcoming-support-notice', '', { parseJSON });
+export const READ_ANNOUNCEMENTS = create('read-announcements', '', { parseJSON });
 
 // --------------------
 
@@ -231,13 +233,13 @@ export const getters = {
       }
       const clusterPref = getters['get'](CLUSTER);
 
-      return { name: 'c-cluster-explorer', params: { product: 'explorer', cluster: clusterPref } };
+      return { name: 'c-cluster-explorer', params: { cluster: clusterPref } };
     }
     case (!!afterLoginRoutePref.match(/.+-dashboard$/)):
     {
       const clusterId = afterLoginRoutePref.split('-dashboard')[0];
 
-      return { name: 'c-cluster-explorer', params: { product: 'explorer', cluster: clusterId } };
+      return { name: 'c-cluster-explorer', params: { cluster: clusterId } };
     }
     default:
       return { name: afterLoginRoutePref };
@@ -521,16 +523,14 @@ export const actions = {
   setBrandStyle({ rootState, rootGetters }, dark = false) {
     if (rootState.managementReady) {
       try {
-        const brandSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.BRAND);
+        const brandSetting = rootGetters['management/brand'];
 
-        if (brandSetting && brandSetting.value && brandSetting.value !== '') {
-          const brand = brandSetting.value;
-
-          const brandMeta = require(`~shell/assets/brand/${ brand }/metadata.json`);
+        if (brandSetting !== '') {
+          const brandMeta = getBrandMeta(brandSetting);
           const hasStylesheet = brandMeta.hasStylesheet === 'true';
 
           if (hasStylesheet) {
-            document.body.classList.add(brand);
+            document.body.classList.add(brandMeta);
           } else {
             // TODO option apply color at runtime
           }

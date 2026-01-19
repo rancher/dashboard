@@ -35,6 +35,7 @@
 //   ifHave,                  -- Show this product only if the given capability is available
 //   ifHaveGroup,             -- Show this product only if the given group exists in the store [inStore]
 //   ifHaveType,              -- Show this product only if the given type exists in the store [inStore], This can also be specified as an object { type: TYPE, store: 'management' } if the type isn't in the current [inStore]
+//   ifNotHaveType,           -- Hide this product if the given type exists in the store [inStore] (opposite of ifHaveType)
 //   ifHaveVerb,              -- In combination with ifHaveTYpe, show it only if the type also has this collectionMethod
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
 //   rootProduct,             -- Optional root (parent) product - if set, used to optimize navigation when product changes stays within root product
@@ -152,6 +153,7 @@ import { haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 import { createHeaders, rowValueGetter } from '@shell/store/type-map.utils';
 import { defineAsyncComponent } from 'vue';
+import { filterLocationValidParams } from '@shell/utils/router';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -238,7 +240,7 @@ export function DSL(store, product, module = 'type-map') {
       };
 
       // Convert strings to regex's - we do this once here for efficiency
-      for ( const k of ['ifHaveGroup', 'ifHaveType'] ) {
+      for ( const k of ['ifHaveGroup', 'ifHaveType', 'ifNotHaveType'] ) {
         if ( opt[k] ) {
           if (Array.isArray(opt[k])) {
             opt[k] = opt[k].map((r) => regexToString(ensureRegex(r)));
@@ -365,7 +367,7 @@ export function DSL(store, product, module = 'type-map') {
 
 let called = false;
 
-export async function applyProducts(store, $plugin) {
+export async function applyProducts(store, $extension) {
   if (called) {
     return;
   }
@@ -379,7 +381,7 @@ export async function applyProducts(store, $plugin) {
     }
   }
   // Load the products from all plugins
-  $plugin.loadProducts();
+  $extension.loadProducts();
 }
 
 export function productsLoaded() {
@@ -694,7 +696,7 @@ export const getters = {
             }
           };
 
-          typeObj.route = route;
+          typeObj.route = filterLocationValidParams(rootState.$router, route);
         }
 
         // Cluster ID and Product should always be set
@@ -711,7 +713,7 @@ export const getters = {
           exact:        typeObj.exact || false,
           'exact-path': typeObj['exact-path'] || false,
           namespaced,
-          route,
+          route:        filterLocationValidParams(rootState.$router, route),
           name:         typeObj.name,
           weight:       typeObj.weight || getters.typeWeightFor(typeObj.schema?.id || label, isBasic),
           overview:     !!typeObj.overview,
@@ -1419,6 +1421,14 @@ export const getters = {
         }
       }
 
+      if ( p.ifNotHaveType ) {
+        const haveIds = knownTypes[module].filter((t) => t.match(stringToRegex(p.ifNotHaveType)) );
+
+        if ( haveIds.length ) {
+          return false;
+        }
+      }
+
       if ( p.ifHaveGroup && !knownGroups[module].find((t) => t.match(stringToRegex(p.ifHaveGroup)) ) ) {
         return false;
       }
@@ -1895,7 +1905,7 @@ function ifHave(getters, option) {
   case IF_HAVE.NOT_V1_ISTIO: {
     return !isV1Istio(getters);
   }
-  case IF_HAVE.MULTI_CLUSTER: {
+  case IF_HAVE.MULTI_CLUSTER: { // Used by harvester extension
     return getters.isMultiCluster;
   }
   case IF_HAVE.NEUVECTOR_NAMESPACE: {
@@ -1904,10 +1914,10 @@ function ifHave(getters, option) {
   case IF_HAVE.ADMIN: {
     return isAdminUser(getters);
   }
-  case IF_HAVE.MCM_DISABLED: {
+  case IF_HAVE.MCM_DISABLED: { // There's a general MCM ff, this is conflating it with a harvester concept
     return !getters['isRancherInHarvester'];
   }
-  case IF_HAVE.NOT_STANDALONE_HARVESTER: {
+  case IF_HAVE.NOT_STANDALONE_HARVESTER: { // Not used by harvester extension...
     return !getters['isStandaloneHarvester'];
   }
   default:
@@ -2026,7 +2036,7 @@ function hasCustom(state, rootState, kind, key, fallback) {
   }
 
   // Check to see if the custom kind is provided by a plugin (ignore booleans)
-  const pluginComponent = rootState.$plugin.getDynamic(kind, key);
+  const pluginComponent = rootState.$extension.getDynamic(kind, key);
 
   if (typeof pluginComponent !== 'boolean' && !!pluginComponent) {
     cache[key] = true;
@@ -2046,7 +2056,7 @@ function hasCustom(state, rootState, kind, key, fallback) {
 }
 
 function loadExtension(rootState, kind, key, fallback) {
-  const ext = rootState.$plugin.getDynamic(kind, key);
+  const ext = rootState.$extension.getDynamic(kind, key);
 
   if (ext) {
     if (typeof ext === 'function') {

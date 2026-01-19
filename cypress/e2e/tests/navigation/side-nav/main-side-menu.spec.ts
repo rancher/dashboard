@@ -97,10 +97,20 @@ describe('Side Menu: main', () => {
     it('Should show tooltip on mouse-hover when the menu is collapsed', { tags: ['@navigation', '@adminUser', '@standardUser'] }, () => {
       const burgerMenuPo = new BurgerMenuPo();
 
-      burgerMenuPo.allClusters().first().trigger('mouseover');
-      BurgerMenuPo.checkIconTooltipOff();
+      // Collapse the menu
       BurgerMenuPo.toggle();
-      BurgerMenuPo.checkIconTooltipOn();
+      BurgerMenuPo.checkClosed();
+
+      // Hover over the first cluster icon and check that the tooltip is shown with the correct content
+      burgerMenuPo.firstClusterIcon().realHover();
+      BurgerMenuPo.checkIconTooltipOn('local');
+
+      // Open the menu
+      BurgerMenuPo.toggle();
+      BurgerMenuPo.checkOpen();
+
+      burgerMenuPo.firstClusterIcon().realHover();
+      BurgerMenuPo.checkIconTooltipOff();
     });
 
     // TODO: #5966: Verify cause of race condition issue making navigation link not trigger

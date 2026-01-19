@@ -1,0 +1,149 @@
+name: Build and Release Extension Charts via PR Creation
+
+on:
+  workflow_call:
+    inputs:
+      target_branch:
+        required: true
+        type: string
+      tagged_release:
+        required: true
+        type: string
+    outputs:
+      release-job-status: 
+        value: ${{ jobs.release-create-pr.outputs.release-job-status }}
+
+env:
+  ACTIONS_RUNNER_DEBUG: false
+  CI_COMMIT_MESSAGE: CI Build Artifacts
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./
+
+jobs:
+  build-extension-artifact:
+    name: Build extension artifact
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    outputs:
+      build-status: ${{ job.status }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Configure Git
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.8.0
+
+      - name: Setup Nodejs with yarn caching
+        uses: actions/setup-node@v6
+        with:
+          cache: yarn
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Parse Extension Name
+        if: github.ref_type == 'tag'
+        id: parsed-name
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          yarn parse-tag-name ${{ inputs.tagged_release }} ${{ github.run_id }} "charts"
+
+      - name: Run build script
+        shell: bash
+        id: build_script
+        run: |
+          publish="yarn publish-pkgs -s ${{ github.repository }} -b ${{ inputs.target_branch }}"
+
+          if [[ -n "${{ inputs.tagged_release }}" ]]; then
+            publish="$publish -t ${{ inputs.tagged_release }}"
+          fi
+
+          $publish
+
+      - name: Upload charts artifact
+        if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request')
+        uses: actions/upload-artifact@v6
+        with:
+          name: charts-create-pr
+          path: tmp
+
+  release-create-pr:
+    name: Create PR for release build
+    if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request')
+    needs: build-extension-artifact
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      deployments: write
+      pages: write
+      # permission needed for PR creation on this job
+      pull-requests: write
+    outputs:
+      release-job-status: ${{ job.status }}
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@v6
+        with:
+          ref: '${{ inputs.target_branch }}'
+
+      - name: Configure Git
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: charts-create-pr
+
+      - name: Generate branch name based on date and time
+        run: echo "NOW=$(date +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_ENV
+
+      - name: Commit Changes and push to a branch
+        run: |
+          git checkout -b sync-${{ env.NOW }}
+          git add ./{assets,charts,extensions,index.yaml}
+          git commit -a -m "Merging extension ${{ inputs.tagged_release }} ${{ env.NOW }}"
+          git push origin sync-${{ env.NOW }}
+
+      - name: Create Pull Request
+        id: create_pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Create the PR using the GitHub CLI
+          pr_number=$(gh pr create \
+            --title "Create PR for extension ${{ inputs.tagged_release }} release: ${{ env.NOW }}" \
+            --body "This PR was automatically created by a GitHub Action." \
+            --base "${{ inputs.target_branch }}" \
+            --head sync-${{ env.NOW }} \
+            --fill \
+            --repo ${{ github.repository }} | awk '{print $NF}') # Get the PR URL and Extract the last element (the PR number)
+
+          # Check if pr_number is empty (creation failed)
+          if [ -z "$pr_number" ]; then
+            echo "Failed to create PR."
+            exit 1
+          fi
+
+          echo "pr_num=$pr_number" >> $GITHUB_OUTPUT

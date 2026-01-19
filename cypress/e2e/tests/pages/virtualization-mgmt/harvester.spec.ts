@@ -90,7 +90,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     extensionsPo.extensionCard(harvesterTitle).checkVisible();
 
     // verify harvester repo is added to repos list page
-    appRepoList.goTo();
+    appRepoList.goTo(undefined, 'manager');
     appRepoList.waitForPage();
     appRepoList.sortableTable().rowElementWithName(harvesterGitRepoName).should('be.visible');
     appRepoList.list().state(harvesterGitRepoName).contains('Active', LONG_TIMEOUT_OPT);
@@ -145,7 +145,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     // Wait for repository to be downloaded and ready
     cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', harvesterGitRepoName);
 
-    appRepoList.goTo();
+    appRepoList.goTo(undefined, 'manager');
     appRepoList.waitForPage();
     appRepoList.sortableTable().rowElementWithName(harvesterGitRepoName).should('be.visible');
     appRepoList.list().state(harvesterGitRepoName).contains('Active', LONG_TIMEOUT_OPT);
@@ -156,11 +156,11 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
 
     // click on install button on card
     extensionsPo.extensionCardInstallClick(harvesterTitle);
-    extensionsPo.extensionInstallModal().should('be.visible');
+    extensionsPo.installModal().checkVisible();
 
     // select latest version and click install
-    extensionsPo.installModalSelectVersionClick(1);
-    extensionsPo.installModalInstallClick();
+    extensionsPo.installModal().selectVersionClick(1);
+    extensionsPo.installModal().installButton().click();
     cy.wait('@installHarvesterExtension').its('response.statusCode').should('eq', 201);
     extensionsPo.waitForPage(null, 'installed');
 
@@ -216,7 +216,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     // Wait for repository to be downloaded and ready
     cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', harvesterGitRepoName);
 
-    appRepoList.goTo();
+    appRepoList.goTo(undefined, 'manager');
     appRepoList.waitForPage();
     appRepoList.sortableTable().rowElementWithName(harvesterGitRepoName).should('be.visible');
     appRepoList.list().state(harvesterGitRepoName).contains('Active', LONG_TIMEOUT_OPT);
@@ -225,21 +225,18 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     extensionsPo.waitForPage(null, 'available', MEDIUM_TIMEOUT_OPT);
     extensionsPo.loading().should('not.exist');
 
-    // get harvester extension versions
-    cy.getRancherResource('v1', 'catalog.cattle.io.clusterrepos/harvester?link=index').then((resp: Cypress.Response<any>) => {
-      const fetchedVersions = resp?.body.entries.harvester.map((item: any) => item.version);
-
-      cy.wrap(fetchedVersions).as('harvesterVersions');
-    });
-
     // click on install button on card
     extensionsPo.extensionCardInstallClick(harvesterTitle);
-    extensionsPo.extensionInstallModal().should('be.visible');
+    extensionsPo.installModal().checkVisible();
 
-    cy.get('@harvesterVersions').then((versions) => {
+    // Note - We can't fetch version from `catalog.cattle.io.clusterrepos/harvester?link=index` given it won't filter out invalid extensions
+    // for example in rancher 2.12 the harvester 1.7.0 extension is invalid... however still returned... resulting in expected versions that don't exist as valid options
+
+    extensionsPo.installModal().versionLabelSelect().toggle();
+    extensionsPo.installModal().versionLabelSelect().getOptionsAsStrings().then((versions) => {
       // select older version and click install
-      extensionsPo.installModalSelectVersionClick(2);
-      extensionsPo.installModalInstallClick();
+      extensionsPo.installModal().selectVersionClick(2, false);
+      extensionsPo.installModal().installButton().click();
       cy.wait('@installHarvesterExtension').its('response.statusCode').should('eq', 201);
       extensionsPo.waitForPage(null, 'installed');
 

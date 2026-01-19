@@ -442,12 +442,14 @@ export default {
           </div>
         </template>
 
-        <template v-if="addCustomClaims">
+        <!-- Custom Claims -->
+        <template v-if="addCustomClaims && isGenericOidc">
           <h4>{{ t('authConfig.oidc.customClaims.label') }}</h4>
           <div class="row mb-20">
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.nameClaim"
+                data-testid="input-name-claim"
                 :label="t(`authConfig.oidc.customClaims.nameClaim.label`)"
                 :mode="mode"
               />
@@ -455,6 +457,7 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.groupsClaim"
+                data-testid="input-groups-claim"
                 :label="t(`authConfig.oidc.customClaims.groupsClaim.label`)"
                 :mode="mode"
               />
@@ -464,6 +467,7 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.emailClaim"
+                data-testid="input-email-claim"
                 :label="t(`authConfig.oidc.customClaims.emailClaim.label`)"
                 :mode="mode"
               />

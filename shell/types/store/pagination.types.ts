@@ -13,6 +13,8 @@ import { KubeLabelSelector } from '@shell/types/kube/kube-api';
 // The two important / complex params are currently
 // - `filter` https://github.com/rancher/steve?tab=readme-ov-file#filter
 //   - represented by `PaginationParamFilter extends PaginationParam`
+//   - a filter has filter fields which are made up of a field name, equality and value/s
+//     - filter=<field><equality><value>
 //   - Examples
 //     - filter=metadata.name=123
 //     - filter=metadata.name=123,metadata.name=456 (name is 123 OR 456)
@@ -46,12 +48,109 @@ export interface PaginationSort {
 }
 
 /**
+ * Equalities that can be used with a `filter` query param
+ *
+ * filter=<field><equality><values>
+ *
+ * For example
+ * - filter=a=b
+ * - filter=a!=b
+ * - filter=a NOT IN (b,c,d)
+ */
+export const enum PaginationFilterEquality {
+  /**
+   * Field is in a collection of values
+   */
+  IN = ' IN ', // eslint-disable-line no-unused-vars
+  /**
+   * Field is not in a collection of values
+   */
+  NOT_IN = ' NOTIN ', // eslint-disable-line no-unused-vars
+  /**
+   * Field matches a value
+   */
+  EQUALS= '=', // eslint-disable-line no-unused-vars
+  /**
+   * Field does not match a value
+   */
+  NOT_EQUALS= '!=', // eslint-disable-line no-unused-vars
+  /**
+   * Unknown
+   */
+  STRICT_EQUALS = '==', // eslint-disable-line no-unused-vars
+  /**
+   * Field must partially match a value
+   */
+  CONTAINS= '~', // eslint-disable-line no-unused-vars
+  /**
+   * Field must not partially match a value
+   */
+  NOT_CONTAINS= '!~', // eslint-disable-line no-unused-vars
+  /**
+   * Field must be greater than a value
+   */
+  GREATER_THAN= 'gt', // eslint-disable-line no-unused-vars
+  /**
+   * Field must be less than a value
+   */
+  LESS_THAN= 'lt', // eslint-disable-line no-unused-vars
+}
+
+/**
+ * Ctor args for a @PaginationFilterField
+ */
+type FilterFieldCtorArgs = {
+  /**
+   * Name of field within the object to filter by for example the x of x=y
+   *
+   * This can be optional for some (projectsornamespaces)
+   */
+  field?: string;
+    /**
+   * Value of field within the object to filter by for example the y of x=y
+   *
+   * This can be empty if `exists` is true
+   */
+  value?: string;
+  /**
+   * Equality field within the object to filter by for example the `=` or `!=` of x=y
+   *
+   * @deprecated Please use `equality` instead of equals and exact
+   */
+  equals?: boolean;
+  /**
+   * Match the field exactly. False for partial matches
+   *
+   * Value: pod1
+   * Exact: true. "p" no, "pod", no, "pod1" yes
+   * Exact: false. "p" yes, "pod", yes, "pod1" yes
+   *
+   * @deprecated Please use `equality` instead of equals and exact
+   */
+  exact?: boolean,
+  /**
+   * Check if the field/property exists, regardless of value
+   *
+   * If this is false it does not flip the expectation, just doesn't add the field
+   */
+  exists?: boolean,
+  /**
+   * Equality symbol used to compare the field with the value
+   */
+  equality?: PaginationFilterEquality
+}
+
+/**
  * Filter the pagination result by these specific fields
+ *
+ * In format of <field><equality><value>
  *
  * For example
  *
  * - metadata.name=test
  * - metadata.namespace!=system
+ *
+ * These are sub items for @PaginationParam, for example filter=<PaginationFilterField>
  *
  * For more information regarding the API see https://github.com/rancher/steve?tab=readme-ov-file#query-parameters
  */
@@ -70,6 +169,8 @@ export class PaginationFilterField {
   value?: string;
   /**
    * Equality field within the object to filter by for example the `=` or `!=` of x=y
+   *
+   * @deprecated Please use `equality` instead of equals and exact
    */
   equals?: boolean;
   /**
@@ -78,9 +179,14 @@ export class PaginationFilterField {
    * Value: pod1
    * Exact: true. "p" no, "pod", no, "pod1" yes
    * Exact: false. "p" yes, "pod", yes, "pod1" yes
+   *
+   * @deprecated Please use `equality` instead of equals and exact
    */
   exact?: boolean;
-
+  /**
+   * Equality symbol used to compare the field with the value
+   */
+  equality?: PaginationFilterEquality;
   /**
    * Check if the field/property exists, regardless of value
    *
@@ -88,17 +194,51 @@ export class PaginationFilterField {
    */
   exists?: boolean;
 
-  constructor(
-    {
-      field, value = '', equals = true, exact = true, exists = false
-    }:
-    { field?: string; value?: string; equals?: boolean; exact?: boolean; exists?:boolean;}
-  ) {
+  constructor(args: FilterFieldCtorArgs) {
+    const {
+      field, value = '', equals = true, exact = true, equality = undefined, exists = false
+    } = args;
+
     this.field = field;
     this.value = value;
     this.equals = equals;
     this.exact = exact;
     this.exists = exists;
+
+    const _equality = PaginationFilterField.safeEquality({
+      field, value, equals, exact, equality, exists
+    });
+
+    if (_equality) {
+      this.equality = _equality;
+    } else {
+      throw new Error('A pagination filter must have either equals or equality set');
+    }
+  }
+
+  /**
+   * Determine equality for this field.
+   *
+   * Mainly to ensure legacy objects using deprecated fields instead of new equality field fall back on something sensible
+   */
+  static safeEquality(args: FilterFieldCtorArgs | PaginationFilterField): PaginationFilterEquality | undefined {
+    if (args.equality) {
+      return args.equality;
+    }
+
+    if (args.equals === true) {
+      if (args.exact === true) {
+        return PaginationFilterEquality.EQUALS;
+      } else {
+        return PaginationFilterEquality.CONTAINS;
+      }
+    } else if (args.equals === false) {
+      if (args.exact === true) {
+        return PaginationFilterEquality.NOT_EQUALS;
+      } else {
+        return PaginationFilterEquality.NOT_CONTAINS;
+      }
+    }
   }
 }
 
@@ -202,7 +342,15 @@ export abstract class PaginationParam {
 }
 
 /**
- * This is a convenience class for the `filter` param which works some magic, adds defaults and converts to the required PaginationParam format
+ * This is a convenience class for the `filter` param which works some magic, adds defaults and converts to the required PaginationParam format.
+ *
+ * for example
+ *
+ * - filter=???
+ *
+ * including `fields` this could be
+ *
+ * - filter=a=b
  *
  * See description for {@link PaginationParam} for how multiple of these can be combined together to AND or OR together
  *
@@ -238,7 +386,7 @@ export class PaginationParamFilter extends PaginationParam {
   /**
    * Convenience method when you just want an instance of {@link PaginationParamFilter} with a simple `filter=x=y` param
    */
-  static createSingleField(field: { field?: string; value?: string; equals?: boolean; exact?: boolean, exists?: boolean }): PaginationParam {
+  static createSingleField(field: FilterFieldCtorArgs): PaginationParam {
     return new PaginationParamFilter({ fields: [new PaginationFilterField(field)] });
   }
 
@@ -451,6 +599,7 @@ export interface StorePaginationResult {
    * The last time the resource was updated. Used to assist list watching for changes
    */
   timestamp: number,
+  revision: string,
 }
 
 export interface StorePaginationRequest {

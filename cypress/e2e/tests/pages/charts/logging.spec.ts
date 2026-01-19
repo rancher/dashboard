@@ -10,6 +10,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import ChartInstalledAppsListPagePo from '@/cypress/e2e/po/pages/chart-installed-apps.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { CLUSTER_APPS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import CardPo from '~/cypress/e2e/po/components/card.po';
 
 describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, () => {
   const kubectl = new Kubectl();
@@ -112,9 +113,10 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     const clusterTools = new ClusterToolsPagePo('local');
     const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
 
-    installedAppsPage.goTo();
+    installedAppsPage.goTo('local', 'apps');
     installedAppsPage.waitForPage();
     cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+    installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
     installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
     installedAppsPage.appsList().sortableTable().noRowsShouldNotExist();
     installedAppsPage.appsList().resourceTableDetails(chartApp, 1).should('exist');
@@ -134,6 +136,10 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     promptRemove.checkbox().set();
     promptRemove.checkbox().isChecked();
     promptRemove.remove();
+
+    const card = new CardPo();
+
+    card.checkNotExists(MEDIUM_TIMEOUT_OPT);
     cy.wait('@chartUninstall').its('response.statusCode').should('eq', 201);
     cy.wait('@crdUninstall').its('response.statusCode').should('eq', 201);
 
@@ -142,9 +148,10 @@ describe('Logging Chart', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
     kubectl.closeTerminalByTabName('Uninstall cattle-logging-system:rancher-logging-crd');
 
-    installedAppsPage.goTo();
+    installedAppsPage.goTo('local', 'apps');
     installedAppsPage.waitForPage();
     cy.wait('@getCharts', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
+    installedAppsPage.appsList().checkVisible(MEDIUM_TIMEOUT_OPT);
     installedAppsPage.appsList().sortableTable().checkLoadingIndicatorNotVisible();
     installedAppsPage.appsList().sortableTable().noRowsShouldNotExist();
     installedAppsPage.appsList().sortableTable().rowNames('.col-link-detail', MEDIUM_TIMEOUT_OPT)

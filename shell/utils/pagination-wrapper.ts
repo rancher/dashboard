@@ -1,10 +1,13 @@
 import paginationUtils from '@shell/utils/pagination-utils';
 import { PaginationArgs, PaginationResourceContext } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
-import { ActionFindPageArgs, ActionFindPageTransientResult } from '@shell/types/store/dashboard-store.types';
+import { ActionFindPageArgs, ActionFindPageTransientResponse } from '@shell/types/store/dashboard-store.types';
 import { STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_MODE } from '@shell/types/store/subscribe.types';
 import { Reactive, reactive } from 'vue';
 import { STEVE_UNWATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_LISTENER_CALLBACK, STEVE_WATCH_EVENT_PARAMS, STEVE_WATCH_EVENT_PARAMS_COMMON } from '@shell/types/store/subscribe-events.types';
+import backOff from '@shell/utils/back-off';
+import { SteveRevision } from '@shell/plugins/steve/revision';
+import { STEVE_RESPONSE_CODE } from '@shell/types/rancher/steve.api';
 
 interface Args {
   $store: VuexStore,
@@ -19,7 +22,7 @@ interface Args {
   /**
    * Callback called when the resource is changed (notified by socket)
    */
-  onChange?: () => void,
+  onChange?: STEVE_WATCH_EVENT_LISTENER_CALLBACK,
 
   formatResponse?: {
     /**
@@ -30,8 +33,8 @@ interface Args {
   }
 }
 
-interface Result<T> extends Omit<ActionFindPageTransientResult<T>, 'data'> {
-  data: Reactive<T[]>
+interface Result<T> extends Omit<ActionFindPageTransientResponse<T>, 'data'> {
+  data: Reactive<T[]> | T[]
 }
 
 /**
@@ -50,9 +53,12 @@ class PaginationWrapper<T extends object> {
   private $store: VuexStore;
   private enabledFor: PaginationResourceContext;
   private onChange?: STEVE_WATCH_EVENT_LISTENER_CALLBACK;
-  private id: string;
+  public id: string;
+  private backOffId: string;
   private classify: boolean;
   private reactive: boolean;
+  private cachedRevision?: string;
+  private cachedResult?: Result<T>;
 
   public isEnabled: boolean;
   private steveWatchParams: STEVE_WATCH_EVENT_PARAMS_COMMON | undefined;
@@ -64,39 +70,119 @@ class PaginationWrapper<T extends object> {
 
     this.$store = $store;
     this.id = id;
+    this.backOffId = `${ this.id }`;
     this.enabledFor = enabledFor;
     this.onChange = onChange;
     this.classify = formatResponse?.classify || false;
     this.reactive = formatResponse?.reactive || false;
 
-    this.isEnabled = paginationUtils.isEnabled({ rootGetters: $store.getters, $plugin: this.$store.$plugin }, enabledFor);
+    this.isEnabled = paginationUtils.isEnabled({ rootGetters: $store.getters, $extension: this.$store.$extension }, enabledFor);
   }
 
-  async request(args: {
-      pagination: PaginationArgs,
+  async request(requestArgs: {
+    forceWatch?: boolean,
+    pagination: PaginationArgs,
+    revision?: string,
   }): Promise<Result<T>> {
-    if (!this.isEnabled) {
-      throw new Error(`Wrapper for type '${ this.enabledFor.store }/${ this.enabledFor.resource?.id }' in context '${ this.enabledFor.resource?.context }' not supported`);
-    }
-    const { pagination } = args;
-    const opt: ActionFindPageArgs = {
-      watch:     false,
-      pagination,
-      transient: true,
-    };
+    const { pagination, forceWatch, revision } = requestArgs;
+    const type = this.enabledFor.resource?.id;
 
-    // Fetch
-    const out: ActionFindPageTransientResult<T> = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type: this.enabledFor.resource?.id });
+    if (!this.isEnabled) {
+      throw new Error(`Wrapper for type '${ this.enabledFor.store }/${ type }' in context '${ this.enabledFor.resource?.context }' not supported`);
+    }
+
+    const backOffId = this.backOffId;
+
+    const activeRevisionSt = backOff.getBackOff(backOffId)?.metadata.revision;
+    const cachedRevisionSt = this.cachedRevision;
+
+    const targetRevision = new SteveRevision(revision);
+    const activeRevision = new SteveRevision(activeRevisionSt);
+    const cachedRevision = new SteveRevision(cachedRevisionSt);
+    const currentRevision = new SteveRevision(activeRevisionSt || cachedRevisionSt);
+
+    // Three cases to support HA scenarios 2 + 3
+    // 1. current version is newer than target revision - abort/ignore (don't overwrite new with old)
+    // 2. current version in cache is older than target revision - reset previous (drop older requests with older revision, use new revision)
+    // 3. current version in cache is same as target revision - we're retrying
+
+    // There are two places we do this to cover the two cases we make http request following socket changes
+    // shell/utils/pagination-wrapper.ts - request
+    // shell/plugins/steve/subscribe.js - fetchPageResources
+
+    if (currentRevision.isNewerThan(targetRevision)) {
+      if (activeRevision.isNewerThan(targetRevision)) {
+        // eslint-disable-next-line no-console
+        console.info(`Ignoring event listener request to update '${ this.id }' with revision '${ targetRevision.revision }' (newer in-progress revision '${ activeRevision.revision }'). `);
+
+        // Case 1 - abort/ignore (don't overwrite new with old). Specifically we're fetching something with a higher revision, ignore the newer request with older revision
+        return Promise.reject(new Error('Ignoring current request in favour of other in-progress request with newer revision')); // This will abort the current batch of updates, meaning the other in-progress can update with the newer revision
+      }
+
+      if (cachedRevision.isNewerThan(targetRevision)) {
+        // eslint-disable-next-line no-console
+        console.info(`Ignoring event listener request to update '${ this.id }' with revision '${ targetRevision.revision }' (newer cached revision '${ cachedRevision.revision }'). `);
+
+        // Case 1 - abort/ignore (don't overwrite new with old). Specifically we're already fetched something with a higher revision, ignore the newer request with older revision and just return the cached version
+        if (this.cachedResult) {
+          return this.cachedResult;
+        }
+
+        return Promise.reject(new Error('Cache has higher revision than target revision... but no cached results?'));
+      }
+    }
+
+    if (targetRevision.isNewerThan(activeRevision)) {
+      // Case 2 - reset previous (drop older requests with older revision, use new revision)
+
+      // eslint-disable-next-line no-console
+      console.info(`Dropping event listener request to update '${ this.id }' with revision '${ currentRevision.revision }' (newer target revision '${ targetRevision.revision }'). `);
+
+      backOff.reset(backOffId);
+    }
+
+    // Keep making requests until we make one that succeeds, fails with unknown revision or we run out of retries
+    const out = await backOff.recurse<any, ActionFindPageTransientResponse<T>>({
+      id:              backOffId,
+      metadata:        { revision },
+      description:     `Fetching resources for ${ type } (wrapper). Initial request, or triggered by web socket`,
+      continueOnError: async(err) => {
+        // Have we made a request to a stale replica that does not know about the required revision? If so continue to try until we hit a ripe replica
+        return err?.status === 400 && err?.code === STEVE_RESPONSE_CODE.UNKNOWN_REVISION;
+      },
+      delayedFn: async() => {
+        const opt: ActionFindPageArgs = {
+          watch:     false,
+          pagination,
+          transient: true,
+          revision
+        };
+        const res: ActionFindPageTransientResponse<T> = await this.$store.dispatch(`${ this.enabledFor.store }/findPage`, { opt, type });
+
+        this.cachedRevision = res.pagination?.result.revision;
+
+        return res;
+      },
+    });
+
+    if (!out) {
+      // Skip
+      throw new Error(`Wrapper for type '${ this.enabledFor.store }/${ type }' in context '${ this.enabledFor.resource?.context }' failed to fetch resources`);
+    }
 
     // Watch
-    if (this.onChange && !this.steveWatchParams) {
+    const firstTime = !this.steveWatchParams;
+
+    if (this.onChange && (firstTime || forceWatch) ) {
       this.steveWatchParams = {
         event:  STEVE_WATCH_EVENT_TYPES.CHANGES,
         id:     this.id,
         params: {
-          type: this.enabledFor.resource?.id as string,
-          mode: STEVE_WATCH_MODE.RESOURCE_CHANGES,
-        }
+          type:  type as string,
+          mode:  STEVE_WATCH_MODE.RESOURCE_CHANGES,
+          force: forceWatch,
+        },
+
       };
 
       this.watch();
@@ -108,13 +194,15 @@ class PaginationWrapper<T extends object> {
     }
 
     if (this.reactive) {
-      return {
+      this.cachedResult = {
         ...out,
         data: reactive(out.data)
       };
+    } else {
+      this.cachedResult = out;
     }
 
-    return out;
+    return this.cachedResult;
   }
 
   private async watch() {

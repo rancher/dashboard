@@ -27,7 +27,7 @@ export async function processReleaseVersion(context: Context, releaseInfo: Relea
   const versions = releaseInfo.map((v: any) => semver.coerce(v.name));
 
   // Sort the versions, so that the newest is first in the list
-  versions.sort((a: any, b: any) => semver.gt(b, a) ? 1 : -1);
+  versions.sort((a: any, b: any) => semver.rcompare(a, b));
 
   // Find first newer version
   const newer = versions.find((v: any) => semver.gt(v, version));

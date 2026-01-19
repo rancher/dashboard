@@ -1,6 +1,6 @@
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
-import CardPo from '@/cypress/e2e/po/components/card.po';
+// import CardPo from '@/cypress/e2e/po/components/card.po';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
@@ -107,70 +107,71 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     cy.wait('@copyKubeConfig');
   });
 
-  it('can add cluster badge', () => {
-    const settings = {
-      description: {
-        original: '',
-        new:      'E2E Test'
-      },
-      iconText:        'E2E',
-      backgroundColor: {
-        original: '#ff0000',
-        new:      '#f80dd8',
-        newRGB:   'rgb(248, 13, 216)'
-      }
-    };
+  // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/15697
+  // it('can add cluster badge', () => {
+  //   const settings = {
+  //     description: {
+  //       original: '',
+  //       new:      'E2E Test'
+  //     },
+  //     iconText:        'E2E',
+  //     backgroundColor: {
+  //       original: '#ff0000',
+  //       new:      '#f80dd8',
+  //       newRGB:   'rgb(248, 13, 216)'
+  //     }
+  //   };
 
-    ClusterDashboardPagePo.navTo();
+  //   ClusterDashboardPagePo.navTo();
 
-    // Add Badge
-    clusterDashboard.customizeAppearanceButton().click();
+  //   // Add Badge
+  //   clusterDashboard.customizeAppearanceButton().click();
 
-    const customClusterCard = new CardPo();
+  //   const customClusterCard = new CardPo();
 
-    customClusterCard.getTitle().contains('Cluster Appearance');
+  //   customClusterCard.getTitle().contains('Cluster Appearance');
 
-    // update badge
-    clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
-    clusterDashboard.customBadge().badgeCustomDescription().set(settings.description.new);
+  //   // update badge
+  //   clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
+  //   clusterDashboard.customBadge().badgeCustomDescription().set(settings.description.new);
 
-    // update color
-    clusterDashboard.customBadge().colorPicker().value().should('not.eq', settings.backgroundColor.new);
-    clusterDashboard.customBadge().selectCheckbox('Badge background color').set();
-    clusterDashboard.customBadge().colorPicker().set(settings.backgroundColor.new);
-    clusterDashboard.customBadge().colorPicker().previewColor().should('eq', settings.backgroundColor.newRGB);
+  //   // update color
+  //   clusterDashboard.customBadge().colorPicker().value().should('not.eq', settings.backgroundColor.new);
+  //   clusterDashboard.customBadge().selectCheckbox('Badge background color').set();
+  //   clusterDashboard.customBadge().colorPicker().set(settings.backgroundColor.new);
+  //   clusterDashboard.customBadge().colorPicker().previewColor().should('eq', settings.backgroundColor.newRGB);
 
-    // update icon
-    clusterDashboard.customBadge().selectCheckbox('Use custom badge').set();
-    clusterDashboard.customBadge().iconText().set(settings.iconText);
-    clusterDashboard.customBadge().clusterIcon().contains(settings.iconText);
+  //   // update icon
+  //   clusterDashboard.customBadge().selectCheckbox('Use custom badge').set();
+  //   clusterDashboard.customBadge().iconText().set(settings.iconText);
+  //   clusterDashboard.customBadge().clusterIcon().contains(settings.iconText);
 
-    // Apply Changes
-    clusterDashboard.customBadge().applyAndWait('/v3/clusters/local');
+  //   // Apply Changes
+  //   clusterDashboard.customBadge().applyAndWait('/v3/clusters/local');
 
-    // check header and side nav for update
-    header.clusterIcon().children().should('have.class', 'cluster-badge-logo');
-    header.clusterName().should('contain', 'local');
-    header.customBadge().should('contain', settings.description.new);
-    const burgerMenu = new BurgerMenuPo();
+  //   // check header and side nav for update
+  //   header.clusterIcon().children().should('have.class', 'cluster-badge-logo');
+  //   header.clusterName().should('contain', 'local');
+  //   header.customBadge().should('contain', settings.description.new);
+  //   const burgerMenu = new BurgerMenuPo();
 
-    burgerMenu.clusterNotPinnedList().first().find('span').should('contain', settings.iconText);
+  //   burgerMenu.clusterNotPinnedList().first().find('span').should('contain', settings.iconText);
 
-    // Reset
-    clusterDashboard.customizeAppearanceButton().click();
-    clusterDashboard.customBadge().selectCheckbox('Use custom badge').set();
-    clusterDashboard.customBadge().selectCheckbox('Badge background color').set();
-    clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
+  //   // Reset
+  //   clusterDashboard.customizeAppearanceButton().click();
+  //   clusterDashboard.customBadge().selectCheckbox('Use custom badge').set();
+  //   clusterDashboard.customBadge().selectCheckbox('Badge background color').set();
+  //   clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
 
-    // Apply Changes
-    clusterDashboard.customBadge().applyAndWait('/v3/clusters/local');
+  //   // Apply Changes
+  //   clusterDashboard.customBadge().applyAndWait('/v3/clusters/local');
 
-    // check header and side nav for update
-    header.clusterIcon().children().should('have.class', 'cluster-local-logo');
-    header.clusterName().should('contain', 'local');
-    header.customBadge().should('not.exist');
-    burgerMenu.clusterNotPinnedList().first().find('svg').should('have.class', 'cluster-local-logo');
-  });
+  //   // check header and side nav for update
+  //   header.clusterIcon().children().should('have.class', 'cluster-local-logo');
+  //   header.clusterName().should('contain', 'local');
+  //   header.customBadge().should('not.exist');
+  //   burgerMenu.clusterNotPinnedList().first().find('svg').should('have.class', 'cluster-local-logo');
+  // });
 
   it('can view deployments', () => {
     clusterDashboard.goTo();
@@ -182,7 +183,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     }).then((el: any) => {
       el.click();
 
-      const workloadDeployments = new WorkloadsDeploymentsListPagePo('local', 'apps.deployment');
+      const workloadDeployments = new WorkloadsDeploymentsListPagePo('local', 'apps.deployment' as any);
 
       workloadDeployments.waitForPage();
     });
@@ -378,7 +379,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
         cy.deleteRancherResource('v3', 'projects', projectId);
       });
 
-      cy.get('@createUserRequest').then((req) => {
+      cy.get('@createUserRequest').then((req: any) => {
         const userId = req.body.id;
 
         cy.deleteRancherResource('v3', 'users', userId);

@@ -233,7 +233,7 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
  * Are we in the vai enabled world where mgmt clusters are paginated?
  */
 const paginateClusters = ({ rootGetters, state }) => {
-  return paginationUtils.isEnabled({ rootGetters, $plugin: state.$plugin }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
+  return paginationUtils.isEnabled({ rootGetters, $extension: state.$extension }, { store: 'management', resource: { id: MANAGEMENT.CLUSTER, context: 'side-bar' } });
 };
 
 export const state = () => {
@@ -262,8 +262,9 @@ export const state = () => {
     $router:                 markRaw({}),
     $route:                  markRaw({}),
     $plugin:                 markRaw({}),
+    $extension:              markRaw({}),
     showWorkspaceSwitcher:   true,
-
+    localCluster:            null,
   };
 };
 
@@ -272,10 +273,20 @@ export const getters = {
     return state.clusterReady === true;
   },
 
-  isMultiCluster(state, getters) {
-    const clusters = getters['management/all'](MANAGEMENT.CLUSTER);
+  /**
+   * Cache of the mgmt cluster fetched at start up
+   *
+   * We cannot rely on the store to cache this as the store may contain a page without the local cluster
+   */
+  localCluster(state) {
+    return state.localCluster;
+  },
 
-    if (clusters.length === 1 && clusters[0].metadata?.name === 'local') {
+  isMultiCluster(state, getters) {
+    const clusterCount = getters['management/all'](COUNT)?.[0]?.counts?.[MANAGEMENT.CLUSTER]?.summary?.count || 0;
+    const localCluster = getters['localCluster'];
+
+    if (clusterCount === 1 && !!localCluster) {
       return false;
     } else {
       return true;
@@ -592,10 +603,9 @@ export const getters = {
   },
 
   isStandaloneHarvester(state, getters) {
-    const clusters = getters['management/all'](MANAGEMENT.CLUSTER);
-    const cluster = clusters.find((c) => c.id === 'local') || {};
+    const localCluster = getters['localCluster'];
 
-    return getters['isSingleProduct'] && cluster.isHarvester && !getters['isRancherInHarvester'];
+    return getters['isSingleProduct'] && localCluster?.isHarvester && !getters['isRancherInHarvester'];
   },
 
   showTopLevelMenu(getters) {
@@ -640,9 +650,10 @@ export const mutations = {
   clearPageActionHandler(state) {
     state.pageActionHandler = null;
   },
-  managementChanged(state, { ready, isRancher }) {
+  managementChanged(state, { ready, isRancher, localCluster }) {
     state.managementReady = ready;
     state.isRancher = isRancher;
+    state.localCluster = localCluster;
   },
   clusterReady(state, ready) {
     state.clusterReady = ready;
@@ -765,6 +776,7 @@ export const mutations = {
   },
 
   setPlugin(state, pluginDefinition) {
+    state.$extension = markRaw(pluginDefinition || {});
     state.$plugin = markRaw(pluginDefinition || {});
   },
 
@@ -846,11 +858,21 @@ export const actions = {
 
     res = await allHash(promises);
 
+    let localCluster = null;
+
     if (!res[MANAGEMENT.SETTING] || !paginateClusters({ rootGetters, state })) {
       // This introduces a synchronous request, however we need settings to determine if SSP is enabled
-      // Eventually it will be removed when SSP is always on
-      res[MANAGEMENT.CLUSTER] = await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { watch: false } });
+      await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { watch: false } });
       toWatch.push(MANAGEMENT.CLUSTER);
+
+      localCluster = getters['management/byId'](MANAGEMENT.CLUSTER, 'local');
+    } else {
+      try {
+        localCluster = await dispatch('management/find', {
+          type: MANAGEMENT.CLUSTER, id: 'local', opt: { watch: false }
+        });
+      } catch (e) { // we don't care about errors, specifically 404s
+      }
     }
 
     // See comment above. Now that we have feature flags we can watch resources
@@ -858,11 +880,7 @@ export const actions = {
       dispatch('management/watch', { type });
     });
 
-    const isMultiCluster = getters['isMultiCluster'];
-
     // If the local cluster is a Harvester cluster and 'rancher-manager-support' is true, it means that the embedded Rancher is being used.
-    const localCluster = res[MANAGEMENT.CLUSTER]?.find((c) => c.id === 'local');
-
     if (localCluster?.isHarvester) {
       const harvesterSetting = await dispatch('cluster/findAll', { type: HCI.SETTING, opt: { url: `/v1/harvester/${ HCI.SETTING }s` } });
       const rancherManagerSupport = harvesterSetting.find((setting) => setting.id === 'rancher-manager-support');
@@ -904,6 +922,7 @@ export const actions = {
     commit('managementChanged', {
       ready: true,
       isRancher,
+      localCluster
     });
 
     if ( res[FLEET.WORKSPACE] ) {
@@ -913,6 +932,8 @@ export const actions = {
         getters
       });
     }
+
+    const isMultiCluster = getters['isMultiCluster'];
 
     console.log(`Done loading management; isRancher=${ isRancher }; isMultiCluster=${ isMultiCluster }`); // eslint-disable-line no-console
   },
@@ -1176,7 +1197,7 @@ export const actions = {
 
     store.dispatch('gcStopIntervals');
 
-    Object.values(this.$plugin.getPlugins()).forEach((p) => {
+    Object.values(this.$extension.getPlugins()).forEach((p) => {
       if (p.onLogOut) {
         p.onLogOut(store);
       }
@@ -1232,10 +1253,10 @@ export const actions = {
     }
   },
 
-  nuxtClientInit({ dispatch, commit, rootState }, nuxt) {
-    commit('setRouter', nuxt.app.router);
-    commit('setRoute', nuxt.route);
-    commit('setPlugin', nuxt.app.$plugin);
+  dashboardClientInit({ dispatch, commit, rootState }, context) {
+    commit('setRouter', context.app.router);
+    commit('setRoute', context.route);
+    commit('setPlugin', context.app.$extension);
 
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');

@@ -238,5 +238,26 @@ describe('chartMixin', () => {
         icon: 'icon-downgrade-alt',
       });
     });
+
+    it('should return "upgrade" action when upgrading from a pre-release to a stable version', () => {
+      const wrapper = mount(DummyComponent, {
+        data: () => ({
+          existing: { spec: { chart: { metadata: { version: '1.0.0-rc1' } } } },
+          version:  { version: '1.0.0' }
+        }),
+        global: {
+          mocks: {
+            $store: mockStore,
+            $route: { query: {} }
+          }
+        }
+      });
+
+      expect(wrapper.vm.action).toStrictEqual({
+        name: 'upgrade',
+        tKey: 'upgrade',
+        icon: 'icon-upgrade-alt',
+      });
+    });
   });
 });

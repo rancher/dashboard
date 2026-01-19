@@ -1,6 +1,9 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
+import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
+import LabeledInputPo from '~/cypress/e2e/po/components/labeled-input.po';
+import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
 
 export class InstallChartPage extends PagePo {
   private static createPath(clusterId: string) {
@@ -55,7 +58,15 @@ export class InstallChartPage extends PagePo {
     return this.self().get('[data-testid="NameNsDescriptionNameInput"]');
   }
 
-  tabsCountOnInstallQuestions() {
-    return new TabbedPo().allTabs();
+  chartVersionSelector(): LabeledSelectPo {
+    return new LabeledSelectPo('[data-testid="chart-version-selector"]');
+  }
+
+  customRegistryCheckbox(): CheckboxInputPo {
+    return new CheckboxInputPo('[data-testid="custom-registry-checkbox"]');
+  }
+
+  customRegistryInput(): LabeledInputPo {
+    return new LabeledInputPo('[data-testid="custom-registry-input"]');
   }
 }

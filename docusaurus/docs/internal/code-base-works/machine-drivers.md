@@ -9,7 +9,7 @@ A machine driver consists of:
 
 ## Driver binary
 
-To tell Rancher about a new driver, go to Cluster Management -> Drivers -> Node Drivers -> Add Node Driver.  Set the URL the binary should be downloaded from.  If the UI will need to communicate with an API to show options (e.g getting data from `api.mycloudprovider.com`), add it to the list of Whitelist Domains.  Click Create to save.  The driver is downloaded and loaded and becomes available in the UI using all the generic driver support.  This just lists all the fields that the driver says it has and makes some guesses about likely sounding names.  The user ultimately has to figure out which ones are required or important and set those.  To improve on that, continue reading.
+To tell Rancher about a new driver, go to Cluster Management -> Providers -> Node Drivers -> Add Node Driver.  Set the URL the binary should be downloaded from.  If the UI will need to communicate with an API to show options (e.g getting data from `api.mycloudprovider.com`), add it to the list of Whitelist Domains.  Click Create to save.  The driver is downloaded and loaded and becomes available in the UI using all the generic driver support.  This just lists all the fields that the driver says it has and makes some guesses about likely sounding names.  The user ultimately has to figure out which ones are required or important and set those.  To improve on that, continue reading.
 
 For more advanced control, the machine driver custom resource supports several annotations:
 
@@ -27,7 +27,7 @@ The standard drivers included in Rancher and their options are defined [here](ht
 
 ## Cloud Credential
 
-Cloud Credentials store the username & password, or other similar information, needed to talk to a particular provider.  There is typically a 1-to-1 mapping of cloud credentials to drivers.  If one provider (e.g. Amazon) has both a *Machine* driver for RKE (using EC2) and a *Cluster* driver for Kontainer Engine (using EKS) then you can and should use a single shared type of credential (e.g. `aws`) for both.
+Cloud Credentials store the username & password, or other similar information, needed to talk to a particular provider.  There is typically a 1-to-1 mapping of cloud credentials to drivers.  If one provider (e.g. Amazon) has both a *Machine* driver for RKE (using EC2) and a *Hosted provider* (using EKS) then you can and should use a single shared type of credential (e.g. `aws`) for both.
 
 The cloud credential component lives in the top-level `cloud-credential` directory in the repo.  The file should be named the same as the driver, in all lowercase (e.g. `cloud-credential/digitalocean.vue`).
 

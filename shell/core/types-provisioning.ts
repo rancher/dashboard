@@ -61,9 +61,13 @@ export interface ClusterProvisionerContext {
    */
   axios: any,
   /**
-   * Definition of the extension
+   * [Deprecated] Definition of the extension
    */
   $plugin: any,
+  /**
+   * Definition of the extension
+   */
+  $extension: any,
   /**
    * Function to retrieve a localised string
    */
@@ -157,6 +161,9 @@ export interface IClusterProvisioner {
    * If not set, the card will be shown in the cluster creation page
    */
   hideCreate?: boolean
+
+  /** Is extension Prime-only */
+  prime?: boolean
 
   /**
    * Also show the provider card in the cluster importing flow

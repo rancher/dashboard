@@ -1,11 +1,14 @@
-import { get } from '@shell/utils/object';
+import { get, isEmpty } from '@shell/utils/object';
+import { generateRandomAlphaString } from '@shell/utils/string';
 
 interface Context {
   tag: string;
   path?: string;
   value?: any;
+  hookable?: boolean;
   description?: string;
   icon?: string;
+  store?: any;
 }
 
 function isValid(context: Context ): context is Context {
@@ -43,10 +46,17 @@ function isValid(context: Context ): context is Context {
 */
 export default {
   async mounted(el: any, binding: { value: Context, instance: any }) {
-    const context = binding.value;
+    const context: Context = binding.value;
+
+    if (!context || isEmpty(context)) {
+      return;
+    }
 
     if (!isValid(context)) {
-      throw new Error(`Invalid ui-context value: ${ JSON.stringify({ tag: (context as Context).tag, description: (context as Context).description }) }`);
+      // eslint-disable-next-line no-console
+      console.warn(`[ui-context] invalid value: ${ JSON.stringify({ tag: (context as Context).tag, description: (context as Context).description }) }`);
+
+      return;
     }
 
     if (context.path === undefined && context.value === undefined) {
@@ -57,7 +67,10 @@ export default {
       const value = get(binding.instance, context.path);
 
       if (value === undefined) {
-        throw new Error(`[ui-context] path "${ context.path }" is undefined on the component instance`);
+        // eslint-disable-next-line no-console
+        console.warn(`[ui-context] path "${ context.path }" is undefined on the component instance`);
+
+        return;
       }
 
       context.value = value;
@@ -65,12 +78,26 @@ export default {
 
     delete context.path;
 
-    el._uiContextId = await binding.instance.$store.dispatch('ui-context/add', context);
+    if (context.hookable) {
+      const hookId = generateRandomAlphaString(12);
+
+      el.setAttribute('ux-context-hook-id', hookId);
+      (context as any).hookId = hookId;
+    }
+
+    const store = context.store || binding.instance.$store || binding.instance.store;
+
+    if (store) {
+      delete context.store;
+      const id = await store.dispatch('ui-context/add', context);
+
+      el._uiContextRemove = async() => await store.dispatch('ui-context/remove', id);
+    }
   },
 
-  async beforeUnmount(el: any, binding: { instance: any }) {
-    const store = binding.instance.$store;
-
-    await store.dispatch('ui-context/remove', el._uiContextId);
+  async beforeUnmount(el: any) {
+    if (el._uiContextRemove) {
+      await el._uiContextRemove();
+    }
   }
 };

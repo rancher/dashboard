@@ -13,9 +13,17 @@ export interface STEVE_WATCH_EVENT_PARAMS_COMMON {
 }
 
 /**
+ * Args for @STEVE_WATCH_EVENT_LISTENER_CALLBACK
+ */
+export type STEVE_WATCH_EVENT_LISTENER_CALLBACK_PARAMS = {
+  forceWatch?: boolean,
+  revision?: string,
+}
+
+/**
  * Executes when a watch event has a listener and it's triggered
  */
-export type STEVE_WATCH_EVENT_LISTENER_CALLBACK = () => void
+export type STEVE_WATCH_EVENT_LISTENER_CALLBACK = (params: STEVE_WATCH_EVENT_LISTENER_CALLBACK_PARAMS) => void
 
 /**
  * Common params used when a watcher adds a listener to a watch

@@ -7,16 +7,17 @@ env:
   TEST_PERSIST_BUILD: true
 jobs:
   validate:
+    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-validate-plugins')"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Enable Corepack
         run: corepack enable
 
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -26,7 +27,7 @@ jobs:
         shell: bash
 
       - name: Upload files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: test

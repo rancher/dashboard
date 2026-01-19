@@ -1,5 +1,4 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
 import NameNsDescriptionPo from '@/cypress/e2e/po/components/name-ns-description.po';
@@ -13,6 +12,7 @@ import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import { GetOptions } from '@/cypress/e2e/po/components/component.po';
 import RcItemCardPo from '@/cypress/e2e/po/components/rc-item-card.po';
 import TooltipPo from '@/cypress/e2e/po/components/tooltip.po';
+import InstallExtensionDialog from '@/cypress/e2e/po/prompts/installExtensionDialog.po';
 
 export default class ExtensionsPagePo extends PagePo {
   static url = '/c/local/uiplugins'
@@ -108,7 +108,7 @@ export default class ExtensionsPagePo extends PagePo {
    * @param name - A name for the repository
    * @returns {Cypress.Chainable}
    */
-  addExtensionsRepositoryDirectLink(repo: string, branch: string, name: string, waitForActiveState = true): Cypress.Chainable {
+  addExtensionsRepositoryDirectLink(repo: string, branch: string, name: string, waitForActiveState = true) {
     const appRepoList = new RepositoriesPagePo('local', 'apps');
     const appRepoCreate = new AppClusterRepoEditPo('local', 'create');
 
@@ -175,32 +175,8 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   // ------------------ extension install modal ------------------
-  extensionInstallModal() {
-    return this.self().get('[data-testid="install-extension-modal"]');
-  }
-
-  installModalSelectVersionLabel(label: string): Cypress.Chainable {
-    const selectVersion = new LabeledSelectPo(this.extensionInstallModal().getId('install-ext-modal-select-version'));
-
-    selectVersion.toggle();
-
-    return selectVersion.setOptionAndClick(label);
-  }
-
-  installModalSelectVersionClick(optionIndex: number): Cypress.Chainable {
-    const selectVersion = new LabeledSelectPo(this.extensionInstallModal().getId('install-ext-modal-select-version'));
-
-    selectVersion.toggle();
-
-    return selectVersion.clickOption(optionIndex);
-  }
-
-  installModalCancelClick(): Cypress.Chainable {
-    return this.extensionInstallModal().getId('install-ext-modal-cancel-btn').click();
-  }
-
-  installModalInstallClick(): Cypress.Chainable {
-    return this.extensionInstallModal().getId('install-ext-modal-install-btn').click();
+  installModal() {
+    return new InstallExtensionDialog();
   }
 
   // ------------------ extension uninstall modal ------------------

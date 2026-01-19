@@ -693,7 +693,7 @@ export default {
               :aria-colindex="1"
               :class="{
                 'labeled-input-key': keyErrors[row.key],
-                'v-popper--has-tooltip': keyErrors[row.key],
+                'has-clean-tooltip': keyErrors[row.key],
               }"
             >
               <slot

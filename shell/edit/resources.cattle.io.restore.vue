@@ -310,7 +310,7 @@ export default {
             <template #label>
               <label
                 v-clean-tooltip="t('backupRestoreOperator.deleteTimeout.tip')"
-                class="v-popper--has-tooltip"
+                class="has-clean-tooltip"
               >
                 {{ t('backupRestoreOperator.deleteTimeout.label') }} <i class="icon icon-info" />
               </label>

@@ -19,9 +19,9 @@ describe('GitHub App', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
     cy.login();
     HomePagePo.goToAndWaitForGet();
     AuthProviderPo.navTo();
-    authProviderPo.waitForPage();
+    authProviderPo.waitForUrlPathWithoutContext();
     authProviderPo.selectProvider(AuthProvider.GITHUB_APP);
-    githubAppPo.waitForPage();
+    githubAppPo.waitForUrlPathWithoutContext();
   });
 
   it('can navigate to Auth Provider and Select GitHub App', () => {

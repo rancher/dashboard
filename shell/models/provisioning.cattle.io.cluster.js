@@ -1,5 +1,7 @@
 import {
-  CAPI, MANAGEMENT, NAMESPACE, NORMAN, SNAPSHOT, HCI, LOCAL_CLUSTER
+  CAPI, MANAGEMENT, NAMESPACE, NORMAN, SNAPSHOT, HCI, LOCAL_CLUSTER,
+  CONFIG_MAP, AUTOSCALER_CONFIG_MAP_ID,
+  EVENT
 } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
@@ -7,10 +9,14 @@ import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
-import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ARCHITECTURE } from '@shell/config/labels-annotations';
 import { KEV1 } from '@shell/models/management.cattle.io.kontainerdriver';
+import jsyaml from 'js-yaml';
+import { defineAsyncComponent, markRaw } from 'vue';
+import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
+import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { isHostedProvider } from '@shell/utils/provider';
 
 const RKE1_ALLOWED_ACTIONS = [
   'promptRemove',
@@ -20,6 +26,11 @@ const RKE1_ALLOWED_ACTIONS = [
   'download',
   'viewInApi'
 ];
+
+const AUTOSCALER_STATUS = {
+  PROVISIONING: 'provisioning',
+  UNAVAILABLE:  'unavailable'
+};
 
 /**
  * Class representing Cluster resource.
@@ -48,6 +59,17 @@ export default class ProvCluster extends SteveModel {
         label:   this.t('cluster.detail.machines'),
         content: this.desired,
       },
+      {
+        label:         'Autoscaler',
+        content:       this.isAutoscalerEnabled,
+        valueOverride: {
+          component: markRaw(defineAsyncComponent(() => import('@shell/components/formatter/Autoscaler.vue'))),
+          props:     {
+            value: true,
+            row:   this
+          }
+        }
+      }
     ].filter((x) => !!x.content);
 
     if (!this.machineProvider) {
@@ -148,7 +170,14 @@ export default class ProvCluster extends SteveModel {
         label:   this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
         icon:    'icon icon-refresh',
         enabled: canEditRKE2cluster
-      }, { divider: true }];
+      },
+      {
+        action:  'toggleAutoscalerRunner',
+        label:   this.isAutoscalerPaused ? 'Resume Autoscaler' : 'Pause Autoscaler',
+        icon:    `icon ${ this.isAutoscalerPaused ? 'icon-play' : 'icon-pause' }`,
+        enabled: this.canPauseResumeAutoscaler
+      },
+      { divider: true }];
 
     const all = actions.concat(out);
 
@@ -231,26 +260,6 @@ export default class ProvCluster extends SteveModel {
     }
   }
 
-  goToViewYaml() {
-    let location;
-
-    if ( !this.isRke2 ) {
-      location = this.mgmt?.detailLocation;
-    }
-
-    if ( !location ) {
-      location = this.detailLocation;
-    }
-
-    location.query = {
-      ...location.query,
-      [MODE]: _VIEW,
-      [AS]:   _YAML
-    };
-
-    this.currentRouter().push(location);
-  }
-
   get canDelete() {
     return super.canDelete && this.stateObj?.name !== 'removing';
   }
@@ -264,9 +273,26 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isHostedKubernetesProvider() {
-    const providers = ['AKS', 'EKS', 'GKE'];
+    const context = {
+      dispatch:   this.$dispatch,
+      getters:    this.$getters,
+      axios:      this.$axios,
+      $extension: this.$extension,
+      t:          (...args) => this.t.apply(this, args),
+    };
 
-    return providers.includes(this.provisioner);
+    return isHostedProvider(context, this.provisioner);
+  }
+
+  get providerConfig() {
+    if ( this.isRke2 ) {
+      return this.spec.rkeConfig;
+    }
+    if (this.mgmt && this.mgmt.config) {
+      return this.mgmt.config;
+    }
+
+    return null;
   }
 
   get isPrivateHostedProvider() {
@@ -300,19 +326,21 @@ export default class ProvCluster extends SteveModel {
 
     // imported rke2 and k3s have status.driver === rke2 and k3s respectively
     // Provisioned rke2 and k3s have status.driver === imported
-    if (this.mgmt?.status?.provider === 'k3s' || this.mgmt?.status?.provider === 'rke2') {
-      return this.mgmt?.status?.driver === this.mgmt?.status?.provider;
+    const provider = this.mgmt?.status?.provider;
+    const driver = this.mgmt?.status?.driver;
+
+    // The main case
+    if (provider === 'k3s' || provider === 'rke2') {
+      return driver === provider;
+    }
+    // The 'waiting' case
+    if (!provider && (driver === 'k3s' || driver === 'rke2')) {
+      return true;
     }
 
     // imported KEv2
     // we can't rely on this.provisioner to determine imported-ness for these clusters, as it will return 'aks' 'eks' 'gke' for both provisioned and imported clusters
-    const kontainerConfigs = ['aksConfig', 'eksConfig', 'gkeConfig'];
-
-    const isImportedKontainer = kontainerConfigs.filter((key) => {
-      return this.mgmt?.spec?.[key]?.imported === true;
-    }).length;
-
-    if (isImportedKontainer) {
+    if (this.isHostedKubernetesProvider && !!this.providerConfig.imported) {
       return true;
     }
 
@@ -361,7 +389,11 @@ export default class ProvCluster extends SteveModel {
   }
 
   get mgmtClusterId() {
-    return this.status?.clusterName;
+    // when a cluster is created `this` instance isn't immediately updated with `status.clusterName`
+    // Workaround - Get fresh copy from the store
+    const pCluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, this.id);
+
+    return this.status?.clusterName || pCluster?.status?.clusterName;
   }
 
   get mgmt() {
@@ -1022,5 +1054,197 @@ export default class ProvCluster extends SteveModel {
 
   get fullDetailPageOverride() {
     return true;
+  }
+
+  async loadAutoscalerEvents() {
+    const autoscalerConfigMap = await this.loadAutoscalerConfigMap();
+    const eventSchema = this.$rootGetters['management/schemaFor'](EVENT);
+    const fields = [new PaginationFilterField({
+      field: 'involvedObject.uid',
+      value: autoscalerConfigMap.metadata.uid,
+      exact: true,
+    }),
+    new PaginationFilterField({
+      field: 'metadata.namespace',
+      value: 'kube-system',
+      exact: true,
+    })];
+    const pagination = {
+      page:     1,
+      pageSize: 200,
+      filters:  [
+        new PaginationParamFilter({ fields })
+      ]
+
+    };
+    const params = stevePaginationUtils.createParamsForPagination({ schema: eventSchema, opt: { pagination } });
+    const url = `/k8s/clusters/${ this.mgmtClusterId }/v1/${ EVENT }?${ params }`;
+
+    const events = (await this.$dispatch('cluster/request', { url }, { root: true }))?.data || [];
+
+    return events.filter((event) => event.involvedObject.name === 'cluster-autoscaler-status');
+  }
+
+  get hasAccessToAutoscalerConfigMap() {
+    // This may change but for now this is the best proxy we have for access to the configmap without attempting to access it and getting a 404.
+    return this.canEdit;
+  }
+
+  async loadAutoscalerConfigMap() {
+    const url = `/k8s/clusters/${ this.mgmtClusterId }/v1/${ CONFIG_MAP }/${ AUTOSCALER_CONFIG_MAP_ID }`;
+
+    return await this.$dispatch('cluster/request', { url }, { root: true });
+  }
+
+  get canPauseResumeAutoscaler() {
+    return this.isAutoscalerEnabled && this.canExplore && this.hasAccessToAutoscalerConfigMap;
+  }
+
+  async loadAutoscalerStatus() {
+    if (!this.canExplore) {
+      return AUTOSCALER_STATUS.PROVISIONING;
+    }
+
+    if (!this.hasAccessToAutoscalerConfigMap) {
+      return AUTOSCALER_STATUS.UNAVAILABLE;
+    }
+
+    try {
+      const configMap = await this.loadAutoscalerConfigMap();
+      const yaml = configMap?.data?.status || '';
+
+      return jsyaml.load(yaml);
+    } catch (ex) {
+      console.error(ex); // eslint-disable-line no-console
+
+      return AUTOSCALER_STATUS.UNAVAILABLE;
+    }
+  }
+
+  async loadAutoscalerDetails() {
+    const out = [];
+
+    if (this.isAutoscalerPaused) {
+      out.push({
+        label: this.t('autoscaler.card.details.status'),
+        value: this.t('autoscaler.card.details.paused')
+      });
+
+      return out;
+    }
+
+    const status = await this.loadAutoscalerStatus();
+
+    if (status === AUTOSCALER_STATUS.UNAVAILABLE) {
+      out.push({
+        label: this.t('autoscaler.card.details.status'),
+        value: this.t('autoscaler.card.details.unavailable')
+      });
+
+      return out;
+    }
+
+    if (status === AUTOSCALER_STATUS.PROVISIONING) {
+      out.push({
+        label: this.t('autoscaler.card.details.status'),
+        value: this.t('autoscaler.card.details.provisioning')
+      });
+
+      return out;
+    }
+
+    if (status.autoscalerStatus) {
+      out.push({
+        label: this.t('autoscaler.card.details.status'),
+        value: status.autoscalerStatus
+      });
+    }
+
+    if (status.clusterWide?.health?.status) {
+      const statusValue = status.clusterWide.health.status;
+
+      out.push({
+        label: this.t('autoscaler.card.details.health'),
+        value: {
+          component: 'BadgeStateFormatter',
+          props:     {
+            value: statusValue, arbitrary: true, row: {}
+          },
+        }
+      });
+    }
+
+    if (status.clusterWide?.scaleDown?.lastTransitionTime) {
+      out.push({
+        label: this.t('autoscaler.card.details.scaleDown'),
+        value: {
+          component: 'LiveDate',
+          props:     {
+            value:     status.clusterWide.scaleDown.lastTransitionTime,
+            addSuffix: true
+          }
+        }
+      });
+    }
+
+    if (status.clusterWide?.scaleUp?.lastTransitionTime) {
+      out.push({
+        label: this.t('autoscaler.card.details.scaleUp'),
+        value: {
+          component: 'LiveDate',
+          props:     {
+            value:     status.clusterWide.scaleUp.lastTransitionTime,
+            addSuffix: true
+          }
+        }
+      });
+    }
+
+    if (status.clusterWide?.health?.nodeCounts?.registered) {
+      out.push({ label: this.t('autoscaler.card.details.nodes') });
+
+      out.push({
+        label: this.t('autoscaler.card.details.ready'),
+        value: status.clusterWide.health.nodeCounts.registered.ready || '0'
+      });
+      out.push({
+        label: this.t('autoscaler.card.details.notStarted'),
+        value: status.clusterWide.health.nodeCounts.registered.notStarted || '0'
+      });
+      out.push({
+        label: this.t('autoscaler.card.details.inTotal'),
+        value: status.clusterWide.health.nodeCounts.registered.total || '0'
+      });
+    }
+
+    return out;
+  }
+
+  get isAutoscalerEnabled() {
+    return !!this.spec?.rkeConfig?.machinePools?.some((pool) => {
+      return typeof pool.autoscalingMinSize !== 'undefined' || typeof pool.autoscalingMaxSize !== 'undefined';
+    });
+  }
+
+  get isAutoscalerPaused() {
+    return !!this.metadata?.annotations?.[CAPI_ANNOTATIONS.AUTOSCALER_CLUSTER_PAUSE];
+  }
+
+  pauseAutoscaler() {
+    this.setAnnotation(CAPI_ANNOTATIONS.AUTOSCALER_CLUSTER_PAUSE, 'true');
+  }
+
+  resumeAutoscaler() {
+    this.setAnnotation(CAPI_ANNOTATIONS.AUTOSCALER_CLUSTER_PAUSE, undefined);
+  }
+
+  toggleAutoscalerRunner() {
+    if (this.isAutoscalerPaused) {
+      this.resumeAutoscaler();
+    } else {
+      this.pauseAutoscaler();
+    }
+
+    return this.save();
   }
 }

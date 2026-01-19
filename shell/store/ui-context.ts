@@ -1,6 +1,7 @@
 interface Context {
   tag: string;
   value: any;
+  hookId?: string;
   description?: string;
   icon?: string;
 }

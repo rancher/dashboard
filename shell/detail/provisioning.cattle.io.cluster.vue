@@ -33,6 +33,8 @@ import { isAlternate } from '@shell/utils/platform';
 import DetailPage from '@shell/components/Resource/Detail/Page.vue';
 import Masthead from '@shell/components/Resource/Detail/Masthead/index.vue';
 import { useDefaultMastheadProps } from '@shell/components/Resource/Detail/Masthead/composable';
+import AutoscalerTab from '@shell/components/AutoscalerTab.vue';
+import { isAutoscalerFeatureFlagEnabled } from '@shell/utils/autoscaler-utils';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -62,6 +64,7 @@ export default {
   emits: ['input'],
 
   components: {
+    AutoscalerTab,
     Banner,
     ResourceTable,
     ResourceTabs,
@@ -93,15 +96,15 @@ export default {
     await this.value.waitForProvisioner();
 
     // Support for the 'provisioner' extension
-    const extClass = this.$plugin.getDynamic('provisioner', this.value.machineProvider);
+    const extClass = this.$extension.getDynamic('provisioner', this.value.machineProvider);
 
     if (extClass) {
       this.extProvider = new extClass({
-        dispatch: this.$store.dispatch,
-        getters:  this.$store.getters,
-        axios:    this.$store.$axios,
-        $plugin:  this.$store.app.$plugin,
-        $t:       this.t
+        dispatch:   this.$store.dispatch,
+        getters:    this.$store.getters,
+        axios:      this.$store.$axios,
+        $extension: this.$store.app.$extension,
+        $t:         this.t
       });
 
       this.extDetailTabs = {
@@ -575,6 +578,7 @@ export default {
       // Hosted kubernetes providers with private endpoints need the registration tab
       // https://github.com/rancher/dashboard/issues/6036
       // https://github.com/rancher/dashboard/issues/4545
+
       if ( this.value.isHostedKubernetesProvider && this.value.isPrivateHostedProvider && !this.isClusterReady ) {
         return this.extDetailTabs.registration;
       }
@@ -620,6 +624,10 @@ export default {
 
     extDetailTabsConditions() {
       return this.extDetailTabs?.conditions;
+    },
+
+    showAutoScalerTab() {
+      return isAutoscalerFeatureFlagEnabled(this.$store) && this.value.hasAccessToAutoscalerConfigMap;
     }
   },
 
@@ -870,7 +878,7 @@ export default {
                     </div>
                   </div>
                   <div
-                    v-if="group.ref"
+                    v-if="group.ref && !group.ref.isAutoscalerEnabled"
                     class="right group-header-buttons mr-20"
                   >
                     <MachineSummaryGraph
@@ -885,6 +893,7 @@ export default {
                         :disabled="!group.ref.canScaleDownPool()"
                         type="button"
                         class="btn btn-sm role-secondary"
+                        data-testid="scale-down-button"
                         @click="toggleScaleDownModal($event, group.ref)"
                       >
                         <i class="icon icon-sm icon-minus" />
@@ -894,6 +903,7 @@ export default {
                         :disabled="!group.ref.canScaleUpPool()"
                         type="button"
                         class="btn btn-sm role-secondary ml-10"
+                        data-testid="scale-up-button"
                         @click="group.ref.scalePool(1)"
                       >
                         <i class="icon icon-sm icon-plus" />
@@ -1119,6 +1129,10 @@ export default {
               </template>
             </SortableTable>
           </Tab>
+          <AutoscalerTab
+            v-if="showAutoScalerTab"
+            :value="value"
+          />
         </ResourceTabs>
       </div>
     </template>

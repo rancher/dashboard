@@ -4,11 +4,11 @@ import { IF_HAVE } from '@shell/store/type-map';
 import { SCC } from '@shell/store/features';
 
 // Product configuration
-export function init($plugin: IPlugin, store: any) {
+export function init($extension: IPlugin, store: any) {
   const {
     virtualType,
     basicType
-  } = $plugin.DSL(store, PRODUCT_SETTING_NAME);
+  } = $extension.DSL(store, PRODUCT_SETTING_NAME);
 
   virtualType({
     ifHave:    IF_HAVE.ADMIN,

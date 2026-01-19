@@ -25,6 +25,10 @@ export function importDetail(name) {
   return () => undefined;
 }
 
+export function importDrawer(name) {
+  return () => undefined;
+}
+
 export function importEdit(name) {
   return () => undefined;
 }
@@ -37,7 +41,7 @@ export function listProducts() {
   return [];
 }
 
-export function loadProduct(name, $plugin) {
+export function loadProduct(name, $extension) {
   return () => undefined;
 }
 

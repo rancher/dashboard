@@ -5,7 +5,7 @@ import { ref } from 'vue';
 import { useStore } from 'vuex';
 
 export interface Props {
-    value: string;
+  value: string;
 }
 
 const props = defineProps<Props>();
@@ -52,6 +52,9 @@ const onClick = (ev: MouseEvent) => {
     border-radius: 50%;
     justify-content: center;
     align-items: center;
+    padding: 0;
+    line-height: initial;
+    min-height: initial;
 
     border: 1px solid var(--primary);
     color: var(--primary);

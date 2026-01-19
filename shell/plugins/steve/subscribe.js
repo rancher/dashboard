@@ -20,40 +20,67 @@
  *
  * Below are some VERY brief steps for common flows. Some will link together
  *
- * Successfully flow - watch
+ * # Successfully flow
+ * ## watch - standard mode
  * 1. UI --> Rancher: _watch_ request
  * 2. Rancher --> UI: `resource.start`. UI sets watch as started
  * ...
  * 3. Rancher --> UI: `resource.change` (contains data). UI caches data
  *
- * Successful flow - watch - new mode
+ * ## watch - new resource.changes mode
  * 1. UI --> Rancher: _watch_ request
  * 2. Rancher --> UI: `resource.start`. UI sets watch as started
  * ...
  * 3. Rancher --> UI: `resource.changes` (contains no data). UI makes a HTTP request to fetch data
  *
- * Successful flow - unwatch
+ * ## watch - unwatch
  * 1. UI --> Rancher: _unwatch_ request
  * 2. Rancher --> UI: `resource.stop`. UI sets watch as stopped
  *
- * Successful flow - resource.stop received
+ * ## watch - resource.stop received
  * 1. Rancher --> UI: `resource.stop`. UI sets watch as stopped
  * 2. UI --> Rancher: _watch_ request
  *
- * Successful flow - socket disconnected
+ * ## watch - socket disconnected
  * 1. Socket closes|disconnects (not sure which)
  * 2. UI: reopens socket
  * 3. UI --> Rancher: _watch_ request (for every started watch)
  *
- * Error Flow
+ * # Error Flow
+ * ## resource.error
  * 1. UI --> Rancher: _watch_ request
  * 2. Rancher --> UI: `resource.start`. UI sets watch as started
  * 3. Rancher --> UI: `resource.error`. UI sets watch as errored.
  *   a) UI: in the event of 'too old' the UI will make a http request to fetch a new revision and re-watch with it. This process is delayed on each call
  * 4. Rancher --> UI: `resource.stop`. UI sets watch as stop (note the resource.stop flow above is avoided given error state)
  *
+ * # HA Support for Stale Replicates - https://github.com/rancher/dashboard/issues/14974
+ *
+ * ## Scenario 1 - handle case where watch request is handled by a stale replica
+ * 1. UI --> Rancher: _watch_ request (contains latest revision)
+ * 2. Rancher --> UI: `resource.error` (stale replica does not know new revision)
+ * 3. Rancher --> UI: `resource.stop` (stale replica cannot provide updates for unknown revision)
+ * 4. UI --> Rancher : UI makes a HTTP request to fetch data
+ * 5. Loop back to step 1 (if stale again, backoff retry)
+ *
+ * ## Scenario 2 - handle case where http request is handled by a stale replica (don't fetch stale data)
+ * 1. UI --> Rancher: _watch_ request
+ * 2. Rancher --> UI: `resource.start`. UI sets watch as started
+ * ...
+ * 3. Rancher --> UI: `resource.changes` (sent by good replica containing good revision)
+ * 4. UI --> Rancher : UI makes a HTTP request to fetch data. Stale Replica handles request, does not know revision, returns error
+ * 5. Loop back to step 4 (if errors with stale again, backoff retry)
+ *
+ * ## Scenario 3 - handle case where update request was sent by stale replica (don't overwrite good data with stale)
+ * 1. UI --> Rancher: _watch_ request
+ * 2. Rancher --> UI: `resource.start`. UI sets watch as started
+ * ...
+ * 3. Rancher --> UI: `resource.changes` (sent by stale replica containing stale revision)
+ * 4. UI compares stale revision with newer store revision
+ * 5. UI does not make new http request, which could be handled by stale replica --> overwrites newer local values
+ *
  * Additionally
- * - if we receive resource.stop, unless the watch is in error, we immediately send back a watch event
+ * - if we receive resource.stop, unless the watch is in error, we immediately send back a watch request to re-start the watch
  * - if the web socket is disconnected (for steve based sockets it happens every 30 mins, or when there are permission changes)
  *   the ui will re-connect it and re-watch all previous watches using a best effort revision
  */
@@ -68,7 +95,6 @@ import Socket, {
   EVENT_CONNECTED,
   EVENT_DISCONNECTED,
   EVENT_MESSAGE,
-  //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR,
   EVENT_DISCONNECT_ERROR,
   NO_WATCH,
@@ -90,6 +116,8 @@ import { STEVE_WATCH_EVENT_TYPES, STEVE_WATCH_MODE } from '@shell/types/store/su
 import paginationUtils from '@shell/utils/pagination-utils';
 import backOff from '@shell/utils/back-off';
 import { SteveWatchEventListenerManager } from '@shell/plugins/subscribe-events';
+import { SteveRevision } from '@shell/plugins/steve/revision';
+import { STEVE_RESPONSE_CODE } from '@shell/types/rancher/steve.api';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
@@ -683,7 +711,7 @@ const sharedActions = {
   /**
    * Ensure there's no back-off process waiting to run for
    * - resource.changes fetchResources
-   * - resource.error resyncWatches
+   * - resource.error resyncWatch
    */
   resetWatchBackOff({ state, getters, commit }, {
     type, compareWatches, resetInError = true, resetStarted = true
@@ -820,17 +848,117 @@ const defaultActions = {
   async resyncWatch({ getters, dispatch }, params) {
     console.info(`Resync [${ getters.storeName }]`, params); // eslint-disable-line no-console
 
+    const { backOffId, ...others } = params;
+
     await dispatch('fetchResources', {
-      ...params,
-      opt: { force: true, forceWatch: true }
+      params: others,
+      backOffId,
+      opt:    { force: true, forceWatch: true }
     });
+  },
+
+  /**
+   * Helper function used by fetchResources
+   *
+   * Integrates the concept of 'back-off' to reduce spam, overwrite stale old requests, etc
+   */
+  async fetchPageResources({ getters, dispatch }, {
+    opt, storePagination, params, backOffId
+  }) {
+    const { resourceType, namespace, revision } = params;
+    const type = resourceType || params.type;
+
+    const safeBackOffId = backOffId || getters.backOffId(params, `fetchPageResources`);
+
+    const activeRevisionSt = backOff.getBackOff(safeBackOffId)?.metadata?.revision;
+    const cachedRevisionSt = getters['typeEntry'](resourceType || type)?.revision;
+
+    const targetRevision = new SteveRevision(revision);
+    const activeRevision = new SteveRevision(activeRevisionSt);
+    const cachedRevision = new SteveRevision(cachedRevisionSt);
+    const currentRevision = new SteveRevision(activeRevisionSt || cachedRevisionSt);
+
+    // Three cases to support HA scenarios 2 + 3
+    // 1. current version is newer than target revision - abort/ignore (don't overwrite new with old)
+    // 2. current version is older than target revision - reset previous (drop older requests with older revision, use new revision)
+    // 3. current version is same as target revision - we're retrying
+
+    // There are two places we do this to cover the two cases we make http request following socket changes
+    // shell/utils/pagination-wrapper.ts - request
+    // shell/plugins/steve/subscribe.js - fetchPageResources
+
+    if (currentRevision.isNewerThan(targetRevision)) {
+      // Case 1 - abort/ignore (don't overwrite new with old)
+
+      // eslint-disable-next-line no-console
+      console.warn(`Ignoring subscribe request to update '${ type }' with revision '${ targetRevision.revision }' (active revision '${ currentRevision.revision } & cached revision '${ cachedRevision.revision }''). ` +
+              `This probably means the replica that provided the web socket message has not yet correctly synced it's cache with other fresher replicas.`);
+
+      return;
+    }
+
+    if (targetRevision.isNewerThan(activeRevision)) {
+      // Case 2 - reset previous (drop older requests with older revision, use new revision)
+
+      console.info(`Dropping previous subscribe request to update '${ type }' with revision '${ currentRevision.revision }' (new target revision '${ targetRevision.revision }'). `); // eslint-disable-line no-console
+
+      backOff.reset(safeBackOffId);
+    }
+
+    try {
+      // Keep making requests until we make one that succeeds, fails with unknown revision or we run out of retries
+      await backOff.recurse({
+        id:          safeBackOffId,
+        metadata:    { revision },
+        description: `Fetching resources for ${ type }. Triggered by web socket`,
+        canFn:       () => {
+          if (!getters.canBackoff(this.$socket)) {
+            console.info(`Aborting subscribe request to update '${ type }' with revision '${ currentRevision.revision }' (socket closed). `); // eslint-disable-line no-console
+
+            return false;
+          }
+
+          if (!getters['watchStarted'](params)) {
+            // No watch has started... but are we in initial state where the watch failed due to a bad revision?
+            const inError = getters.inError(params);
+
+            if (inError !== REVISION_TOO_OLD) {
+              console.info(`Aborting subscribe request to update '${ type }' with revision '${ currentRevision.revision }' (resource not watched). `); // eslint-disable-line no-console
+
+              return false;
+            }
+          }
+
+          return true;
+        },
+        continueOnError: async(err) => {
+          // Have we made a request to a stale replica that does not know about the required revision? If so continue to try until we hit a ripe replica
+          return err?.status === 400 && err?.code === STEVE_RESPONSE_CODE.UNKNOWN_REVISION;
+        },
+        delayedFn: async() => {
+          return await dispatch('findPage', {
+            type,
+            opt: {
+              ...opt,
+              namespaced: namespace,
+              revision,
+              // This brings in page, page size, filter, etc
+              ...storePagination.request,
+            }
+          });
+        },
+      });
+    } catch (err) {
+      // Nothing depends on the error higher in the call stack, so prevent dev full screen errors by catching it
+      console.info(`Failed subscribe request to update '${ type }' with revision '${ currentRevision.revision }' (error). `, err); // eslint-disable-line no-console
+    }
   },
 
   async fetchResources({
     state, getters, dispatch, commit
-  }, { opt, ...params }) {
+  }, { opt, params, backOffId }) {
     const {
-      resourceType, namespace, id, selector, mode
+      resourceType, namespace, id, selector, mode, revision
     } = params;
 
     if (!resourceType) {
@@ -840,6 +968,7 @@ const defaultActions = {
     }
 
     if ( id ) {
+      // Fetch an individual resource
       await dispatch('find', {
         type: resourceType,
         id,
@@ -857,6 +986,7 @@ const defaultActions = {
     let have = []; let want = [];
 
     if ( selector ) {
+      // Fetch a selection of resources
       have = getters['matching'](resourceType, selector).slice();
       want = await dispatch('findMatching', {
         type: resourceType,
@@ -864,40 +994,45 @@ const defaultActions = {
         opt,
       });
     } else {
+      // Fetch all or a page of resources
       if (mode === STEVE_WATCH_MODE.RESOURCE_CHANGES) {
+        // Fetch a page of resources
+
         // Other findX use options (id/ns/selector) from the messages received over socket.
-        // However paginated requests have more complex params so grab them from store from the store.
+        // However paginated requests have more complex params so grab them from the store.
+
         // of type @StorePagination
         const storePagination = getters['havePage'](resourceType);
 
         if (!!storePagination) {
-          have = []; // findPage removes stale entries, so we don't need to rely on below process to remove them
-
-          // This could have been kicked off given a resource.changes message
-          // If the messages come in quicker than findPage completes (resource.changes debounce time >= http request time),
-          // and the request is the same, only the first request will be processed. all others until it finishes will be ignored
-          // (see deferred process - `waiting.push(later);` - in request action).
-          // If this becomes an issue we need to debounce and work around the deferred issue within request
-          want = await dispatch('findPage', {
-            type: resourceType,
-            opt:  {
-              ...opt,
-              namespaced: namespace,
-              // This brings in page, page size, filter, etc
-              ...storePagination.request
-            }
+          await dispatch('fetchPageResources', {
+            params,
+            storePagination,
+            opt,
+            backOffId
           });
+
+          // findPage removes stale entries, so we don't need to rely on below process to remove them
+          have = [];
+          want = [];
         }
 
         // Should any listeners be notified of this request for them to kick off their own event handling?
-        getters.listenerManager.triggerEventListener({ event: STEVE_WATCH_MODE.RESOURCE_CHANGES, params });
+        getters.listenerManager.triggerEventListener({
+          event:  STEVE_WATCH_MODE.RESOURCE_CHANGES,
+          params: {
+            ...params,
+            revision,
+            forceWatch: opt.forceWatch,
+          }
+        });
       } else {
+        // Fetch all of a resource
         have = getters['all'](resourceType).slice();
 
         if ( namespace ) {
           have = have.filter((x) => x.metadata?.namespace === namespace);
         }
-
         want = await dispatch('findAll', {
           type:           resourceType,
           watchNamespace: namespace,
@@ -1106,7 +1241,7 @@ const defaultActions = {
       // 2) will be cleared when resyncWatch --> watch (with force) --> resource.start completes
       commit('setInError', { msg, reason: REVISION_TOO_OLD });
 
-      // See Scenario 1 from https://github.com/rancher/dashboard/issues/14974
+      // HA scenario 1 - handle case where stale replica processes watch request
       // The watch that results from resyncWatch will fail and end up here if the revision isn't (yet) known
       // So re-retry resyncWatch until it does OR
       // - we're already re-retrying
@@ -1116,11 +1251,17 @@ const defaultActions = {
       // - we need to stop (socket is disconnected or closed, type is 'forgotten', watch is unwatched)
       //   - `reset` called asynchronously
       //   - Note - we won't need to clear the id outside of the above scenarios because `too old` only occurs on fresh watches (covered by above scenarios)
+
+      const backOffId = getters.backOffId(msg, REVISION_TOO_OLD);
+
       backOff.execute({
-        id:          getters.backOffId(msg, REVISION_TOO_OLD),
+        id:          backOffId,
         description: `Invalid watch revision, re-syncing`,
         canFn:       () => getters.canBackoff(this.$socket),
-        delayedFn:   () => dispatch('resyncWatch', msg),
+        delayedFn:   () => dispatch('resyncWatch', {
+          ...msg,
+          backOffId: undefined,
+        }),
       });
     } else if ( err.includes('the server does not allow this method on the requested resource')) {
       commit('setInError', { msg, reason: NO_PERMS });
@@ -1181,17 +1322,33 @@ const defaultActions = {
       });
 
       if (hasEventListeners) {
-        // If there's event listeners always kick them off
-        // - The re-watch associated with normal watches will watch from a revision from it's own cache
-        // - The revision in that cache might be ahead of the state the listeners have, so the watch won't ping something for the listeners to trigger on
-        // - so to work around this whenever we start the watches again trigger off the changes for it
-        // Improvement - we only do one event here (currently the only one supported), could expand to others
-        getters.listenerManager.triggerEventListener({ event: STEVE_WATCH_EVENT_TYPES.CHANGES, params: obj });
+        const inError = getters.inError(obj); // We don't want to force listeners to resync if the socket is in error (handled by resource.error mechanism)
+
+        if (!inError) {
+          // If there's event listeners kick them off
+          // - The re-watch associated with normal watches will watch from a revision from it's own cache
+          // - The revision in that cache might be ahead of the state the listeners have, so the watch won't ping something for the listeners to trigger on
+          // - so to work around this whenever we start the watches again trigger off the changes for it
+          // Improvement - we only do one event here (currently the only one supported), could expand to others
+          getters.listenerManager.triggerEventListener({ event: STEVE_WATCH_EVENT_TYPES.CHANGES, params: obj });
+        }
       }
     }
   },
 
   'ws.resource.create'(ctx, msg) {
+    const data = msg.data;
+    const type = data?.type;
+
+    const havePage = ctx.getters['havePage'](type);
+
+    if (havePage) {
+      console.warn(`Prevented watch \`resource.create\` data from polluting the cache for type "${ type }" (currently represents a page). To prevent any further issues the watch has been stopped.`, msg); // eslint-disable-line no-console
+      ctx.dispatch('unwatch', { ...msg, type });
+
+      return;
+    }
+
     ctx.state.debugSocket && console.info(`Resource Create [${ ctx.getters.storeName }]`, msg.resourceType, msg); // eslint-disable-line no-console
     queueChange(ctx, msg, true, 'Create');
   },
@@ -1222,8 +1379,8 @@ const defaultActions = {
     const havePage = ctx.getters['havePage'](type);
 
     if (havePage) {
-      console.warn(`Prevented watch \`resource.change\` data from polluting the cache for type "${ type }" (currently represents a page). To prevent any further issues the watch has been stopped.`, data); // eslint-disable-line no-console
-      ctx.dispatch('unwatch', data);
+      console.warn(`Prevented watch \`resource.change\` data from polluting the cache for type "${ type }" (currently represents a page). To prevent any further issues the watch has been stopped.`, msg); // eslint-disable-line no-console
+      ctx.dispatch('unwatch', { ...msg, type });
 
       return;
     }
@@ -1248,10 +1405,10 @@ const defaultActions = {
     }
   },
 
-  'ws.resource.changes'({ dispatch }, msg) {
-    dispatch('fetchResources', {
-      ...msg,
-      opt: { force: true, load: _MERGE }
+  async 'ws.resource.changes'({ dispatch }, msg) {
+    await dispatch('fetchResources', {
+      params: msg,
+      opt:    { force: true, load: _MERGE }
     } );
   },
 
@@ -1267,6 +1424,15 @@ const defaultActions = {
       if (worker) {
         worker.postMessage({ removeSchema: data.id });
       }
+    }
+
+    const havePage = ctx.getters['havePage'](type);
+
+    if (havePage) {
+      console.warn(`Prevented watch \`resource.remove\` data from polluting the cache for type "${ type }" (currently represents a page). To prevent any further issues the watch has been stopped.`, msg); // eslint-disable-line no-console
+      ctx.dispatch('unwatch', { ...msg, type });
+
+      return;
     }
 
     queueChange(ctx, msg, false, 'Remove');
@@ -1384,7 +1550,7 @@ const defaultGetters = {
    * @param postFix - something else to uniquely id this back-off
    */
   backOffId: () => (obj, postFix) => {
-    return `${ keyForSubscribe(obj) }${ postFix ? `:${ postFix }` : '' }`;
+    return `${ keyForSubscribe(obj) }${ postFix ? `:detail=${ postFix }` : '' }`;
   },
 
   /**
@@ -1425,15 +1591,15 @@ const defaultGetters = {
    */
   nextResourceVersion: (state, getters) => (type, id) => {
     type = normalizeType(type);
-    let revision = 0;
+    let nextRevision = 0;
 
     if ( id ) {
       const existing = getters['byId'](type, id);
 
-      revision = existing?.metadata?.resourceVersion;
+      nextRevision = existing?.metadata?.resourceVersion;
     }
 
-    if ( !revision ) {
+    if ( !nextRevision ) {
       const cache = state.types[type];
 
       // No Cache, nothing to compare to, return early
@@ -1441,27 +1607,29 @@ const defaultGetters = {
         return null;
       }
 
-      revision = Number(cache.revision);
+      const cacheRevision = new SteveRevision(cache.revision);
 
       // Cached LIST revision isn't a number, cannot compare to, return early
-      if (Number.isNaN(revision)) {
+      if (!cacheRevision.isNumber) {
         return cache.revision || null;
       }
 
+      nextRevision = cacheRevision;
+
       for ( const obj of cache.list || [] ) {
         if ( obj && obj.metadata ) {
-          const neu = Number(obj.metadata.resourceVersion);
+          const candidateRevision = new SteveRevision(obj.metadata.resourceVersion);
 
-          if (Number.isNaN(neu)) {
-            continue;
+          if (candidateRevision.isNewerThan(nextRevision)) {
+            nextRevision = candidateRevision;
           }
-
-          revision = Math.max(revision, neu);
         }
       }
+
+      nextRevision = nextRevision.asNumber;
     }
 
-    return revision || null;
+    return nextRevision || null;
   },
 
   /**

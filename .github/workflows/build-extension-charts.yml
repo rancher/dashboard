@@ -46,7 +46,7 @@ jobs:
     steps:
       - if: inputs.is_test == 'true'
         name: Checkout (test flow)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: rancher/${{ inputs.test_ext_repo }}
           ref: ${{ inputs.test_ext_branch }}
@@ -54,7 +54,7 @@ jobs:
       
       - if: inputs.is_test != 'true'
         name: Checkout (normal flow)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -72,7 +72,7 @@ jobs:
           version: v3.8.0
 
       - name: Setup Nodejs with yarn caching
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           cache: yarn
           node-version-file: '.nvmrc'
@@ -106,7 +106,7 @@ jobs:
 
       - name: Upload charts artifact
         if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') || inputs.is_test == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: charts
           path: tmp
@@ -125,7 +125,7 @@ jobs:
       release-status: ${{ job.status }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: '${{ inputs.target_branch }}'
 
@@ -135,7 +135,7 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Download build artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: charts
 

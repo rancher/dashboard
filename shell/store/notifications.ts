@@ -1,6 +1,12 @@
 import { md5 } from '@shell/utils/crypto';
 import { randomStr } from '@shell/utils/string';
-import { EncryptedNotification, Notification, StoredNotification } from '@shell/types/notifications';
+import {
+  EncryptedNotification,
+  Notification,
+  NotificationLevel,
+  NotificationHandlerExtensionName,
+  StoredNotification
+} from '@shell/types/notifications';
 import { encrypt, decrypt, deriveKey } from '@shell/utils/crypto/encryption';
 
 /**
@@ -65,6 +71,9 @@ async function saveEncryptedNotification(getters: any, notification: Notificatio
     level:           notification.level,
     primaryAction:   notification.primaryAction,
     secondaryAction: notification.secondaryAction,
+    preference:      notification.preference,
+    handlerName:     notification.handlerName,
+    data:            notification.data,
   };
 
   const localStorageKey = getters['localStorageKey'];
@@ -108,15 +117,23 @@ export const getters = {
     return state.notifications;
   },
 
+  visible: (state: NotificationsStore) => {
+    return state.notifications.filter((n) => n.level !== NotificationLevel.Hidden);
+  },
+
+  hidden: (state: NotificationsStore) => {
+    return state.notifications.filter((n) => n.level === NotificationLevel.Hidden);
+  },
+
   item: (state: NotificationsStore) => {
     return (id: string) => {
       return state.notifications.find((i) => i.id === id);
     };
   },
 
-  // Count of unread notifications
+  // Count of unread notifications - only considers visible notifications
   unreadCount: (state: NotificationsStore) => {
-    return state.notifications.filter((n) => !n.read).length;
+    return state.notifications.filter((n) => !n.read && n.level !== NotificationLevel.Hidden).length;
   },
 
   /**
@@ -192,9 +209,10 @@ export const mutations = {
     syncIndex(state);
   },
 
+  // Only mark visible notifications as read via mark all
   markAllRead(state: NotificationsStore) {
     state.notifications.forEach((notification) => {
-      if (!notification.read) {
+      if (!notification.read && notification.level !== NotificationLevel.Hidden) {
         notification.read = true;
       }
     });
@@ -252,6 +270,20 @@ export const mutations = {
   },
 };
 
+async function callNotifyHandler({ $extension }: any, notification: Notification, read: boolean) {
+  if (notification?.handlerName) {
+    const handler = $extension.getDynamic(NotificationHandlerExtensionName, notification.handlerName);
+
+    if (handler) {
+      try {
+        await handler.onReadUpdated(notification, read);
+      } catch (e) {
+        console.error('Error invoking notification handler', e); // eslint-disable-line no-console
+      }
+    }
+  }
+}
+
 export const actions = {
   async add( { commit, dispatch, getters }: any, notification: Notification) {
     // We encrypt the notification on add - this is the only time we will encrypt it
@@ -267,6 +299,8 @@ export const actions = {
 
     // Show a growl for the notification if necessary
     dispatch('growl/notification', notification, { root: true });
+
+    return notification.id;
   },
 
   async fromGrowl( { commit, getters }: any, notification: Notification) {
@@ -295,6 +329,10 @@ export const actions = {
     if (notification?.preference) {
       await dispatch('prefs/set', notification.preference, { root: true });
     }
+
+    if (notification?.handlerName) {
+      await callNotifyHandler({ $extension: (this as any).$extension }, notification, true);
+    }
   },
 
   async markUnread({ commit, dispatch, getters }: any, id: string) {
@@ -309,6 +347,10 @@ export const actions = {
         value: notification.preference.unsetValue || '',
       }, { root: true });
     }
+
+    if (notification?.handlerName) {
+      await callNotifyHandler({ $extension: (this as any).$extension }, notification, false);
+    }
   },
 
   async markAllRead({ commit, dispatch, getters }: any) {
@@ -320,6 +362,13 @@ export const actions = {
 
     for (let i = 0; i < withPreference.length; i++) {
       await dispatch('prefs/set', withPreference[i].preference, { root: true });
+    }
+
+    // For all notifications that have a handler, call the handler
+    const withHandler = getters.all.filter((n: Notification) => !!n.handlerName);
+
+    for (let i = 0; i < withHandler.length; i++) {
+      await callNotifyHandler({ $extension: (this as any).$extension }, withHandler[i], true);
     }
   },
 

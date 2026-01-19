@@ -34,7 +34,7 @@ export function init(store) {
     showWorkspaceSwitcher: true,
     to:                    {
       name:   'c-cluster-fleet',
-      params: { resource: FLEET.DASHBOARD, cluster: BLANK_CLUSTER }
+      params: { cluster: BLANK_CLUSTER }
     },
   });
 

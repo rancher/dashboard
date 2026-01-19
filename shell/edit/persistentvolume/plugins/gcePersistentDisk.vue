@@ -14,25 +14,24 @@ export default {
       required: true,
     },
   },
-  data() {
+  created() {
     this.value.spec['gcePersistentDisk'] = this.value.spec.gcePersistentDisk || {};
     this.value.spec.gcePersistentDisk['readOnly'] = this.value.spec.gcePersistentDisk.readOnly || false;
     this.value.spec.gcePersistentDisk['partition'] = this.value.spec.gcePersistentDisk.partition || 0;
-
-    const readOnlyOptions = [
-      {
-        label: this.t('generic.yes'),
-        value: true
-      },
-      {
-        label: this.t('generic.no'),
-        value: false
-      }
-    ];
-
-    return { readOnlyOptions };
   },
   computed: {
+    readOnlyOptions() {
+      return [
+        {
+          label: this.t('generic.yes'),
+          value: true
+        },
+        {
+          label: this.t('generic.no'),
+          value: false
+        }
+      ];
+    },
     partition: {
       get() {
         return this.value.spec.gcePersistentDisk.partition;

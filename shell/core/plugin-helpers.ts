@@ -147,8 +147,8 @@ export function getApplicableExtensionEnhancements<T>(
   const extensionEnhancements: T[] = [];
 
   // gate it so that we prevent errors on older versions of dashboard
-  if (pluginCtx.$plugin?.getUIConfig) {
-    const actions = pluginCtx.$plugin.getUIConfig(actionType, uiArea);
+  if (pluginCtx.$extension?.getUIConfig) {
+    const actions = pluginCtx.$extension.getUIConfig(actionType, uiArea);
 
     actions.forEach((action: any, i: number) => {
       if (checkExtensionRouteBinding(currRoute, action.locationConfig, context || {})) {
@@ -195,6 +195,8 @@ export function getApplicableExtensionEnhancements<T>(
                 if (i < keyboardCombo.length - 1) {
                   if (key === 'meta') {
                     key = '\u2318';
+                  } else if (isMac && key === 'alt') {
+                    key = '⌥';
                   } else {
                     key = ucFirst(key);
                   }

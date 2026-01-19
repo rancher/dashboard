@@ -57,7 +57,7 @@ import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import MemberRoles from '@shell/edit/provisioning.cattle.io.cluster/tabs/MemberRoles';
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/tabs/Basics';
 import Etcd from '@shell/edit/provisioning.cattle.io.cluster/tabs/etcd';
-import Networking from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking';
+import Networking, { STACK_PREFS } from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking';
 import Upgrade from '@shell/edit/provisioning.cattle.io.cluster/tabs/upgrade';
 import Registries from '@shell/edit/provisioning.cattle.io.cluster/tabs/registries';
 import AddOnConfig from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnConfig';
@@ -219,6 +219,10 @@ export default {
       this.value.spec.rkeConfig.machineGlobalConfig = {};
     }
 
+    if (!this.value.spec.rkeConfig.networking) {
+      this.value.spec.rkeConfig.networking = {};
+    }
+
     if (!this.value.spec.rkeConfig.machineSelectorConfig?.length) {
       this.value.spec.rkeConfig.machineSelectorConfig = [{ config: {} }];
     }
@@ -268,6 +272,7 @@ export default {
       machinePoolValidation:                    {}, // map of validation states for each machine pool
       machinePoolErrors:                        {},
       addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
+      stackPreferenceError:                     false, //  spec.networking.stackPreference is validated in conjunction with hasSomeIpv6Pools
       allNamespaces:                            [],
       extensionTabs:                            getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
       clusterAgentDeploymentCustomization:      null,
@@ -497,7 +502,7 @@ export default {
      * 2) Override via hardcoded setting
      */
     cloudCredentialsOverride() {
-      const cloudCredential = this.$plugin.getDynamic('cloud-credential', this.provider);
+      const cloudCredential = this.$extension.getDynamic('cloud-credential', this.provider);
 
       if (cloudCredential === undefined) {
         return CLOUD_CREDENTIAL_OVERRIDE[this.provider];
@@ -522,16 +527,16 @@ export default {
      * Extension provider where being provisioned by an extension
      */
     extensionProvider() {
-      const extClass = this.$plugin.getDynamic('provisioner', this.provider);
+      const extClass = this.$extension.getDynamic('provisioner', this.provider);
 
       if (extClass) {
         return new extClass({
-          dispatch: this.$store.dispatch,
-          getters:  this.$store.getters,
-          axios:    this.$store.$axios,
-          $plugin:  this.$store.app.$plugin,
-          $t:       this.t,
-          isCreate: this.isCreate
+          dispatch:   this.$store.dispatch,
+          getters:    this.$store.getters,
+          axios:      this.$store.$axios,
+          $extension: this.$store.app.$extension,
+          $t:         this.t,
+          isCreate:   this.isCreate
         });
       }
 
@@ -843,6 +848,10 @@ export default {
       }
     },
 
+    hasSomeIpv6Pools() {
+      return !!(this.machinePools || []).find((p) => p.hasIpv6);
+    },
+
     validationPassed() {
       const validRequiredPools = this.hasMachinePools ? this.hasRequiredNodes() : true;
 
@@ -853,8 +862,9 @@ export default {
 
       const hasAddonConfigErrors = Object.values(this.addonConfigValidation).filter((v) => v === false).length > 0;
 
-      return validRequiredPools && base && !hasAddonConfigErrors;
+      return validRequiredPools && base && !hasAddonConfigErrors && !this.stackPreferenceError;
     },
+
     currentCluster() {
       if (this.mode === _EDIT) {
         return { ...this.value };
@@ -862,6 +872,7 @@ export default {
         return this.$store.getters['customisation/getPreviewCluster'];
       }
     },
+
     localValue: {
       get() {
         return this.value;
@@ -870,6 +881,7 @@ export default {
         this.$emit('update:value', newValue);
       }
     },
+
     hideFooter() {
       return this.needCredential && !this.credentialId;
     },
@@ -879,6 +891,7 @@ export default {
             this.fvFormIsValid &&
             this.etcdConfigValid;
     },
+
   },
 
   watch: {
@@ -973,6 +986,18 @@ export default {
         // No cloud provider available? Then clear cloud provider setting. This will recalculate addonNames...
         // ... which will eventually update `value.spec.rkeConfig.chartValues`
         this.agentConfig['cloud-provider-name'] = undefined;
+      }
+    },
+
+    hasSomeIpv6Pools(neu) {
+      if (this.isCreate && this.localValue.spec.rkeConfig.networking.stackPreference !== STACK_PREFS.IPV6) { // if stack pref is ipv6, the user has manually configured that and we shouldn't change it
+        if (neu) {
+          this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.DUAL;
+
+          return;
+        }
+
+        this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.IPV4;
       }
     },
   },
@@ -1303,13 +1328,14 @@ export default {
       const name = `pool${ ++this.lastIdx }`;
 
       const pool = {
-        id:     name,
+        id:      name,
         config,
-        remove: false,
-        create: true,
-        update: false,
-        uid:    name,
-        pool:   {
+        remove:  false,
+        create:  true,
+        update:  false,
+        uid:     name,
+        hasIpv6: false,
+        pool:    {
           name,
           etcdRole:             numCurrentPools === 0,
           controlPlaneRole:     numCurrentPools === 0,
@@ -2231,6 +2257,7 @@ export default {
     handleTabChange(data) {
       this.activeTab = data;
     },
+
   }
 };
 </script>
@@ -2413,6 +2440,7 @@ export default {
           :side-tabs="true"
           class="min-height"
           :use-hash="useTabbedHash"
+          :default-tab="defaultTab"
           @changed="handleTabChange"
         >
           <Tab
@@ -2445,6 +2473,7 @@ export default {
               :cloud-provider-options="cloudProviderOptions"
               :is-azure-provider-unsupported="isAzureProviderUnsupported"
               :can-azure-migrate-on-edit="canAzureMigrateOnEdit"
+              :has-some-ipv6-pools="hasSomeIpv6Pools"
               @update:value="$emit('input', $event)"
               @cilium-values-changed="handleCiliumValuesChanged"
               @enabled-system-services-changed="handleEnabledSystemServicesChanged"
@@ -2492,12 +2521,15 @@ export default {
             v-if="haveArgInfo"
             name="networking"
             label-key="cluster.tabs.networking"
+            :error="stackPreferenceError"
           >
             <Networking
               v-model:value="localValue"
               :mode="mode"
               :selected-version="selectedVersion"
               :truncate-limit="truncateLimit"
+              :machine-pools="machinePools"
+              :has-some-ipv6-pools="hasSomeIpv6Pools"
               @truncate-hostname-changed="truncateHostname"
               @cluster-cidr-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['cluster-cidr'] = val"
               @service-cidr-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['service-cidr'] = val"
@@ -2508,6 +2540,8 @@ export default {
               @local-cluster-auth-endpoint-changed="enableLocalClusterAuthEndpoint"
               @ca-certs-changed="(val)=>localValue.spec.localClusterAuthEndpoint.caCerts = val"
               @fqdn-changed="(val)=>localValue.spec.localClusterAuthEndpoint.fqdn = val"
+              @stack-preference-changed="(val)=>localValue.spec.rkeConfig.networking.stackPreference = val"
+              @validationChanged="(val)=>stackPreferenceError = !val"
             />
           </Tab>
 

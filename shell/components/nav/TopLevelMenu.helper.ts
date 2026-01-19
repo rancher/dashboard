@@ -28,6 +28,9 @@ interface UpdateArgs {
   searchTerm: string,
   pinnedIds: string[],
   unPinnedMax?: number,
+  forceWatch?: boolean,
+  mgmtClusterRevision?: string,
+  provClusterRevision?: string,
 }
 
 type MgmtCluster = {
@@ -178,7 +181,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     // No need to monitor for changes, the UNPINNED request will handle it
     this.clustersPinnedWrapper = new PaginationWrapper({
       $store,
-      id:         'tlm-pinned-clusters',
+      id:         'top-level-menu-pinned-clusters',
       enabledFor: {
         store:    STORE.MANAGEMENT,
         resource: {
@@ -191,10 +194,19 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     // Fetch all UNPINNED clusters capped at 10 (see `clustersOthers` description for details)
     this.clustersOthersWrapper = new PaginationWrapper({
       $store,
-      id:       'tlm-unpinned-clusters',
-      onChange: async() => {
-        if (this.args) {
-          await this.update(this.args);
+      id:       'top-level-menu-unpinned-clusters',
+      onChange: async({ forceWatch, revision }) => {
+        if (!this.args) {
+          return;
+        }
+        try {
+          await this.update({
+            ...this.args,
+            forceWatch,
+            mgmtClusterRevision: revision,
+          });
+        } catch {
+          // Failures should be logged lower down, not much we can do here except catch to prevent whole ui page warnings in dev mode
         }
       },
       enabledFor: {
@@ -209,10 +221,19 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     // Fetch all prov clusters for the mgmt clusters we have
     this.provClusterWrapper = new PaginationWrapper({
       $store,
-      id:       'tlm-prov-clusters',
-      onChange: async() => {
-        if (this.args) {
-          await this.update(this.args);
+      id:       'top-level-menu-prov-clusters',
+      onChange: async({ forceWatch, revision }) => {
+        if (!this.args) {
+          return;
+        }
+        try {
+          await this.update({
+            ...this.args,
+            forceWatch,
+            provClusterRevision: revision,
+          });
+        } catch {
+          // Failures should be logged lower down, not much we can do here except catch to prevent whole ui page warnings in dev mode
         }
       },
       enabledFor: {
@@ -244,7 +265,8 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       pinned: MgmtCluster[],
       notPinned: MgmtCluster[]
     } = await allHash(promises) as any;
-    const provClusters = await this.updateProvCluster(res.notPinned, res.pinned);
+
+    const provClusters = await this.updateProvCluster(res.notPinned, res.pinned, args);
     const provClustersByMgmtId = provClusters.reduce((res: { [mgmtId: string]: ProvCluster}, provCluster: ProvCluster) => {
       if (provCluster.mgmtClusterId) {
         res[provCluster.mgmtClusterId] = provCluster;
@@ -340,6 +362,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     }
 
     return this.clustersPinnedWrapper.request({
+      forceWatch: args.forceWatch,
       pagination: {
         filters: this.constructParams({
           pinnedIds:     args.pinnedIds,
@@ -349,7 +372,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 DEFAULT_SORT,
         projectsOrNamespaces: []
       },
-    }).then((r) => r.data);
+      revision: args.mgmtClusterRevision
+    })
+      .then((r) => r.data);
   }
 
   /**
@@ -357,6 +382,7 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
    */
   private async updateOthers(args: UpdateArgs): Promise<MgmtCluster[]> {
     return this.clustersOthersWrapper.request({
+      forceWatch: args.forceWatch,
       pagination: {
         filters: this.constructParams({
           searchTerm:        args.searchTerm,
@@ -369,14 +395,17 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 DEFAULT_SORT,
         projectsOrNamespaces: []
       },
-    }).then((r) => r.data);
+      revision: args.mgmtClusterRevision
+    })
+      .then((r) => r.data);
   }
 
   /**
    * Find all provisioning clusters associated with the displayed mgmt clusters
    */
-  private async updateProvCluster(notPinned: MgmtCluster[], pinned: MgmtCluster[]): Promise<ProvCluster[]> {
+  private async updateProvCluster(notPinned: MgmtCluster[], pinned: MgmtCluster[], args: UpdateArgs): Promise<ProvCluster[]> {
     return this.provClusterWrapper.request({
+      forceWatch: args.forceWatch,
       pagination: {
         filters: [
           PaginationParamFilter.createMultipleFields(
@@ -390,7 +419,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
         sort:                 [],
         projectsOrNamespaces: []
       },
-    }).then((r) => r.data);
+      revision: args.provClusterRevision
+    })
+      .then((r) => r.data);
   }
 }
 
@@ -575,6 +606,8 @@ export class TopLevelMenuHelperLegacy extends BaseTopLevelMenuHelper implements 
  */
 class TopLevelMenuHelperService {
   private _helper?: TopLevelMenuHelper;
+  public initialized = false;
+
   public init($store: VuexStore) {
     if (this._helper) {
       return;
@@ -589,6 +622,8 @@ class TopLevelMenuHelperService {
     });
 
     this._helper = canPagination ? new TopLevelMenuHelperPagination({ $store }) : new TopLevelMenuHelperLegacy({ $store });
+
+    this.initialized = true;
   }
 
   public async reset() {

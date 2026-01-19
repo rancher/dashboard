@@ -31,7 +31,8 @@ export default {
     },
     descending: {
       type:     Boolean,
-      required: true
+      required: false,
+      default:  false
     },
     hasAdvancedFiltering: {
       type:     Boolean,

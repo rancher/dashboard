@@ -222,6 +222,13 @@ export const MANAGEMENT = {
   OIDC_CLIENT:                   'management.cattle.io.oidcclient'
 };
 
+export const BRAND = {
+  SUSE:    'suse',
+  CSP:     'csp',
+  FEDERAL: 'federal',
+  RGS:     'rgs',
+};
+
 export const EXT = { USER_ACTIVITY: 'ext.cattle.io.useractivity' };
 
 export const CAPI = {
@@ -364,3 +371,5 @@ export const DEFAULT_GRAFANA_STORAGE_SIZE = '10Gi';
 
 export const DEPRECATED = 'Deprecated';
 export const EXPERIMENTAL = 'Experimental';
+export const AUTOSCALER_CONFIG_MAP_ID = 'kube-system/cluster-autoscaler-status';
+export const HOSTED_PROVIDER = 'hostedprovider';

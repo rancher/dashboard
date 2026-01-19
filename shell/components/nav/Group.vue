@@ -1,5 +1,6 @@
 <script>
 import Type from '@shell/components/nav/Type';
+import { filterLocationValidParams } from '@shell/utils/router';
 export default {
   name: 'Group',
 
@@ -41,6 +42,11 @@ export default {
     fixedOpen: {
       type:    Boolean,
       default: false,
+    },
+
+    highlightRoute: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -73,7 +79,8 @@ export default {
         const overviewRoute = grp?.route;
 
         if (overviewRoute && grp.overview) {
-          const route = this.$router.resolve(overviewRoute || {});
+          const validRoute = filterLocationValidParams(this.$router, overviewRoute || {});
+          const route = this.$router.resolve(validRoute);
 
           return this.$route.fullPath.split('#')[0] === route?.fullPath;
         }
@@ -89,6 +96,10 @@ export default {
       set(v) {
         this.expanded = v;
       }
+    },
+
+    headerRoute() {
+      return filterLocationValidParams(this.$router, this.group.children[0].route);
     }
   },
 
@@ -130,11 +141,24 @@ export default {
           index = (found === -1) ? 0 : found;
         }
 
-        const route = items[index].route;
+        const item = items[index];
+        const route = item.route;
 
         if (route) {
-          this.$router.replace(route);
+          const validRoute = filterLocationValidParams(this.$router, route);
+
+          this.$router.replace(validRoute);
+        } else if (item) {
+          this.routeToFirstChild(item);
         }
+      }
+    },
+
+    routeToFirstChild(item) {
+      if (item.children.length && item.children[0].route) {
+        const validRoute = filterLocationValidParams(this.$router, item.children[0].route);
+
+        this.$router.replace(validRoute);
       }
     },
 
@@ -182,7 +206,8 @@ export default {
           const matchesNavLevel = navLevels.filter((param) => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
           const withoutHash = this.$route.hash ? this.$route.fullPath.slice(0, this.$route.fullPath.indexOf(this.$route.hash)) : this.$route.fullPath;
           const withoutQuery = withoutHash.split('?')[0];
-          const itemFullPath = this.$router.resolve(item.route).fullPath;
+          const validItemRoute = filterLocationValidParams(this.$router, item.route);
+          const itemFullPath = this.$router.resolve(validItemRoute).fullPath;
 
           if (matchesNavLevel || itemFullPath === withoutQuery) {
             return true;
@@ -224,7 +249,7 @@ export default {
 <template>
   <div
     class="accordion"
-    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': isGroupActive }"
+    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': highlightRoute && isGroupActive }"
   >
     <div
       v-if="showHeader || (!onlyHasOverview && canCollapse)"
@@ -233,7 +258,7 @@ export default {
       <div
         v-if="showHeader"
         class="header"
-        :class="{'active': isOverview, 'noHover': !canCollapse || fixedOpen}"
+        :class="{'active': highlightRoute && isOverview, 'noHover': !canCollapse || fixedOpen}"
         role="button"
         :tabindex="fixedOpen ? -1 : 0"
         :aria-label="group.labelDisplay || group.label || ''"
@@ -244,7 +269,7 @@ export default {
         <slot name="header">
           <router-link
             v-if="hasOverview"
-            :to="group.children[0].route"
+            :to="headerRoute"
             :exact="group.children[0].exact"
             :tabindex="-1"
           >
@@ -302,6 +327,7 @@ export default {
             :can-collapse="canCollapse"
             :group="child"
             :fixed-open="fixedOpen"
+            :highlight-route="highlightRoute"
             @selected="groupSelected($event)"
             @expand="expandGroup($event)"
             @close="close($event)"
@@ -313,6 +339,7 @@ export default {
           :is-root="depth == 0 && !showHeader"
           :type="child"
           :depth="depth"
+          :highlight-route="highlightRoute"
           @selected="selectType($event)"
         />
       </template>
@@ -455,7 +482,7 @@ export default {
     }
 
     &.depth-1 {
-      > .header {
+      > .accordion-item > .header {
         padding-left: 20px;
         > H6 {
           line-height: 18px;
@@ -474,7 +501,7 @@ export default {
     }
 
     &:not(.depth-0) {
-      > .header {
+      > .accordion-item > .header {
         > H6 {
           // Child groups that aren't linked themselves
           display: inline-block;

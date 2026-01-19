@@ -49,6 +49,14 @@ $primary-50      : #A7BFF1; // Active dark
 $primary-20      : #EDF2FC;
 $primary-15      : #EEF1F6; // Category active light
 
+$green-140    : #025937;
+$green-120    : #008657;
+$green-jungle : #30BA78;
+$green-80     : #42D29F;
+$green-60     : #83E1BE;
+$green-40     : #C0EFDE;
+$green-20     : #EAFAF4;
+
 $secondary       : $grey-50;
 $link            : $primary-80;
 
@@ -212,7 +220,7 @@ BODY, .theme-light {
   }
 
   --muted                      : #6F6F8B;
-  --deemphasized               : #6F6F8B;
+  --deemphasized               : #6C6C76;
 
   .text-muted {
     color: var(--muted) !important;
@@ -827,7 +835,7 @@ BODY, .theme-dark {
   --slider-light-bg-right      : #{rgba($darker, 0)};
 
   --muted                      : #8F8F9C;
-  --deemphasized               : #8F8F9C;
+  --deemphasized               : #B6B6C2;
 
   --body-bg                    : #{$body-bg};
   --body-text                  : #FFFAFA;
@@ -847,7 +855,7 @@ BODY, .theme-dark {
   // Header, Footer and Consent banner defaults
   --banner-text-color          : #{$lightest};
 
-  --primary-keyboard-focus     : #6889EE;
+  --primary-keyboard-focus     : hsl(from var(--primary) h s calc(l + 10));
 
   --nav-bg                     : #{$body-bg};
   --nav-active                 : #333;

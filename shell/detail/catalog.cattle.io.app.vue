@@ -159,6 +159,7 @@ export default {
           :scrolling="false"
           :value="valuesYaml"
           editor-mode="VIEW_CODE"
+          mode="view"
         />
       </Tab>
       <Tab

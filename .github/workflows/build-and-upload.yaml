@@ -23,12 +23,12 @@ jobs:
     name: Build & Upload Hosted
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
         # Note - Cannot use the setup action here as it uses a different yarn install arg
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -70,12 +70,12 @@ jobs:
     name: Build & Upload Embedded
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
         # Note - Cannot use the setup action here as it uses a different yarn install arg
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'

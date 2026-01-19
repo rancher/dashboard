@@ -1,8 +1,13 @@
 <script>
+import { h } from 'vue';
 import { NAME as SETTINGS } from '@shell/config/product/settings';
 import { MANAGEMENT } from '@shell/config/types';
 
 export default {
+  render() {
+    // Suppress warning: Component is missing template or render function
+    return h('div');
+  },
   beforeCreate() {
     const hasSettings = !!this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
 

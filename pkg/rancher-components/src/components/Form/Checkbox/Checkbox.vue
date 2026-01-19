@@ -269,7 +269,7 @@ export default defineComponent({
     class="checkbox-outer-container"
     data-checkbox-ctrl
     :class="{
-      'v-popper--has-tooltip': hasTooltip,
+      'has-clean-tooltip': hasTooltip,
     }"
   >
     <label
@@ -445,7 +445,7 @@ $fontColor: var(--input-label);
     -ms-transform: rotate(0deg) scale(1);
     transform: rotate(0deg) scale(1);
     opacity:1;
-    border: 1px solid var(--active, var(--primary));
+    border: 1px solid var(--checkbox-border, var(--primary));
   }
 
   // Custom Checkbox tick

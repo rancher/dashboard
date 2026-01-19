@@ -42,14 +42,14 @@ jobs:
     steps:
       - if: inputs.is_test == 'true'
         name: Checkout repository (test flow)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: rancher/${{ inputs.test_ext_repo }}
           ref: ${{ inputs.test_ext_branch }}
       
       - if: inputs.is_test != 'true'
         name: Checkout repository (normal flow)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Enable Corepack
         run: corepack enable
@@ -72,7 +72,7 @@ jobs:
           version: v3.8.0
 
       - name: Setup Nodejs with yarn caching
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: yarn

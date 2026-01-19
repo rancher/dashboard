@@ -7,8 +7,9 @@ import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
-import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT, VERY_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { FeatureFlagsPagePo } from '@/cypress/e2e/po/pages/global-settings/feature-flags.po';
+import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 
 const fleetClusterListPage = new FleetClusterListPagePo();
 const fleetAppBundlesListPage = new FleetApplicationListPagePo();
@@ -29,6 +30,7 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
   let removeWorkspace = false;
   let disableFeature = false;
   let clusterName = '';
+  let cloudcredentialId = '';
   let gitRepo = '';
   let customWorkspace = '';
   const feature = 'provisioningv2-fleet-workspace-back-population';
@@ -43,7 +45,7 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
       gitRepo = name;
     });
 
-    cy.createE2EResourceName('rke2cluster').then((name) => {
+    cy.createE2EResourceName('fleetrke2cluster').then((name) => {
       clusterName = name;
 
       // create real cluster
@@ -69,7 +71,9 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
           namespace,
         },
         metadata: { labels: { foo: 'bar' } }
-      }).then(() => {
+      }).then((req) => {
+        cloudcredentialId = req.body.spec.cloudCredentialSecretName;
+
         removeCluster = true;
       });
     });
@@ -80,7 +84,7 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
   it('data is populated in fleet cluster list and detail view', () => {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
-    clusterList.list().state(clusterName).contains('Active', { timeout: 700000 });
+    clusterList.list().state(clusterName).contains('Active', VERY_LONG_TIMEOUT_OPT);
 
     // create gitrepo
     cy.createRancherResource('v1', 'fleet.cattle.io.gitrepos', gitRepoTargetAllClustersRequest(namespace, gitRepo, gitRepoUrl, branch, paths)).then(() => {
@@ -274,32 +278,41 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
       disableFeature = true;
     });
 
+    const loadingPo = new LoadingPo('.loading-indicator');
+
     // go to fleet clusters
-    fleetClusterListPage.goTo();
-    fleetClusterListPage.waitForPage();
-    headerPo.selectWorkspace(namespace);
-
-    cy.intercept('PUT', '/v1/userpreferences/*').as('changeWorkspace');
-    fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Change workspace')
-      .click();
-    fleetClusterListPage.changeWorkspaceForm().workspaceSelect().toggle();
-    fleetClusterListPage.changeWorkspaceForm().workspaceSelect().clickOptionWithLabel(customWorkspace);
-    fleetClusterListPage.changeWorkspaceForm().applyAndWait('v3/clusters/*');
-    fleetClusterListPage.list().resourceTable().sortableTable()
-      .checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
-
     FleetClusterListPagePo.navTo();
     fleetClusterListPage.waitForPage();
-    headerPo.selectWorkspace(customWorkspace);
-    cy.wait('@changeWorkspace');
-    fleetClusterListPage.resourceTableDetails(clusterName, 2).isVisible();
+    loadingPo.checkNotExists(MEDIUM_TIMEOUT_OPT);
+    headerPo.selectWorkspace(namespace);
 
-    // restore
-    fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Change workspace')
-      .click();
-    fleetClusterListPage.changeWorkspaceForm().workspaceSelect().toggle();
-    fleetClusterListPage.changeWorkspaceForm().workspaceSelect().clickOptionWithLabel(namespace);
-    fleetClusterListPage.changeWorkspaceForm().applyAndWait('v3/clusters/*');
+    cy.intercept('GET', '/v3/clusters').as('getClusters');
+    cy.intercept('PUT', '/v1/userpreferences/*').as('changeWorkspace');
+    cy.getClusterIdByName(clusterName).then((clusterId) => {
+      fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Change workspace')
+        .should('exist')
+        .click();
+      cy.wait('@getClusters');
+      fleetClusterListPage.changeWorkspaceForm().workspaceSelect().toggle();
+      fleetClusterListPage.changeWorkspaceForm().workspaceSelect().clickOptionWithLabel(customWorkspace);
+      fleetClusterListPage.changeWorkspaceForm().applyAndWait(`v3/clusters/${ clusterId }`);
+      fleetClusterListPage.list().resourceTable().sortableTable()
+        .checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
+
+      FleetClusterListPagePo.navTo();
+      fleetClusterListPage.waitForPage();
+      headerPo.selectWorkspace(customWorkspace);
+      cy.wait('@changeWorkspace');
+      fleetClusterListPage.resourceTableDetails(clusterName, 2).isVisible();
+
+      // restore
+      fleetClusterListPage.list().actionMenu(clusterName).getMenuItem('Change workspace')
+        .should('exist')
+        .click();
+      fleetClusterListPage.changeWorkspaceForm().workspaceSelect().toggle();
+      fleetClusterListPage.changeWorkspaceForm().workspaceSelect().clickOptionWithLabel(namespace);
+      fleetClusterListPage.changeWorkspaceForm().applyAndWait(`v3/clusters/${ clusterId }`);
+    });
     fleetClusterListPage.list().resourceTable().sortableTable()
       .checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
 
@@ -364,6 +377,11 @@ describe('Fleet Clusters - bundle manifests are deployed from the BundleDeployme
       featureFlagsPage.list().clickRowActionMenuItem(feature, 'Deactivate');
       featureFlagsPage.clickCardActionButtonAndWait('Deactivate', feature, false, { waitForModal: true, waitForRequest: true });
       featureFlagsPage.list().details(feature, 0).should('include.text', 'Disabled');
+    }
+
+    if (cloudcredentialId) {
+      // delete cloud credential
+      cy.deleteRancherResource('v3', 'cloudCredentials', cloudcredentialId, false);
     }
   });
 });

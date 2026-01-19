@@ -67,18 +67,19 @@ export default {
     const shellShortcut = '(Ctrl+`)';
 
     return {
-      authInfo:               {},
-      show:                   false,
-      showTooltip:            false,
-      isUserMenuOpen:         false,
-      isPageActionMenuOpen:   false,
-      kubeConfigCopying:      false,
+      authInfo:                {},
+      show:                    false,
+      showTooltip:             false,
+      isUserMenuOpen:          false,
+      isPageActionMenuOpen:    false,
+      kubeConfigCopying:       false,
       searchShortcut,
       shellShortcut,
       LOGGED_OUT,
-      navHeaderRight:         null,
-      extensionHeaderActions: getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, this.$route),
-      ctx:                    this
+      navHeaderRight:          null,
+      extensionHeaderActions:  getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, this.$route),
+      extensionActionsEnabled: {},
+      ctx:                     this
     };
   },
 
@@ -96,7 +97,6 @@ export default {
       'isSingleProduct',
       'isRancherInHarvester',
       'showTopLevelMenu',
-      'isMultiCluster',
       'showWorkspaceSwitcher'
     ]),
 
@@ -252,8 +252,9 @@ export default {
       handler(neu) {
         if (neu) {
           this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, neu);
+          this.updateExtensionActionsEnabled();
 
-          this.navHeaderRight = this.$plugin?.getDynamic('component', 'NavHeaderRight');
+          this.navHeaderRight = this.$extension?.getDynamic('component', 'NavHeaderRight');
         }
       },
       immediate: true,
@@ -368,7 +369,7 @@ export default {
       });
     },
 
-    handleExtensionAction(action, event) {
+    async handleExtensionAction(action, event) {
       const fn = action.invoke;
       const opts = {
         event,
@@ -377,7 +378,7 @@ export default {
         product: this.currentProduct.name,
         cluster: this.currentCluster,
       };
-      const enabled = action.enabled ? action.enabled.apply(this, [this.ctx]) : true;
+      const enabled = await this.isActionEnabled(action);
 
       if (fn && enabled) {
         fn.apply(this, [opts, [], { $route: this.$route }]);
@@ -393,7 +394,25 @@ export default {
       }
 
       return null;
-    }
+    },
+
+    async updateExtensionActionsEnabled() {
+      for (const [i, action] of this.extensionHeaderActions.entries()) {
+        this.extensionActionsEnabled[i] = await this.isActionEnabled(action);
+      }
+    },
+
+    async isActionEnabled(action) {
+      if (action.enabled === undefined) {
+        return true;
+      }
+
+      if (typeof action.enabled === 'function') {
+        return await action.enabled(this.ctx);
+      }
+
+      return action.enabled;
+    },
   }
 };
 </script>
@@ -404,7 +423,7 @@ export default {
     data-testid="header"
   >
     <div>
-      <TopLevelMenu v-if="isRancherInHarvester || isMultiCluster || !isSingleProduct" />
+      <TopLevelMenu v-if="showTopLevelMenu" />
     </div>
 
     <div
@@ -475,7 +494,7 @@ export default {
             :alt="t('branding.logos.label')"
           />
           <div
-            v-if="!currentCluster"
+            v-if="!currentCluster && !$route.path.startsWith('/c/')"
             class="simple-title"
           >
             <BrandImage
@@ -642,7 +661,7 @@ export default {
           :key="`${action.label}${i}`"
           v-clean-tooltip="handleExtensionTooltip(action)"
           v-shortkey="action.shortcutKey"
-          :disabled="action.enabled ? !action.enabled(ctx) : false"
+          :disabled="!extensionActionsEnabled[i]"
           type="button"
           class="btn header-btn role-tertiary"
           :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
@@ -837,6 +856,7 @@ export default {
 
     .product-name {
       font-size: 16px;
+      font-family: var(--title-font-family, unset); // Use the var if set, otherwise unset and use the font defined by the parent
     }
 
     .side-menu-logo {

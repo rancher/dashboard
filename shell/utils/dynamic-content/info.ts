@@ -10,6 +10,7 @@ import {
 import { SETTING } from '@shell/config/settings';
 import { getVersionData } from '@shell/config/version';
 import { SettingsInfo } from '@shell/utils/dynamic-content/types';
+import { STEVE_CACHE } from '@shell/store/features';
 
 const QS_VERSION = 'v1'; // Include a version number in the query string in case we want to version the set of params we are sending
 const UNKNOWN = 'unknown';
@@ -25,6 +26,29 @@ const SUSE_EXTENSIONS = [
   'supportability-review-app',
   'virtual-clusters'
 ];
+
+type FeatureFlagInfos = {
+  [id: string]: {
+    /**
+     * Query param, in format `ff-<param>`
+     */
+    param: string,
+    /**
+      * The actual value used by the UI, roughly spec.value || status.default
+      */
+    value: string,
+  }
+};
+
+/**
+ * Explicit ff's to send
+ */
+const ffs: FeatureFlagInfos = {
+  [STEVE_CACHE]: {
+    param: 'usc',
+    value: '',
+  }
+};
 
 /**
  * System information that is collected and which can then be encoded into a query string in the dyanmic content request
@@ -47,6 +71,7 @@ type SystemInfo = {
   browserSize: string;
   screenSize: string;
   language: string;
+  featureFlags: FeatureFlagInfos
 };
 
 /**
@@ -107,8 +132,7 @@ export class SystemInfoProvider {
     // High-level information from clusters
     const counts = this.getAll(getters, COUNT)?.[0]?.counts || {};
     const clusterCount = counts[MANAGEMENT.CLUSTER] || {};
-    const all = this.getAll(getters, MANAGEMENT.CLUSTER);
-    const localCluster = all ? all.find((c: any) => c.isLocal) : undefined;
+    const localCluster = getters['localCluster'];
 
     // Stats for installed extensions
     const uiExtensionList = getters['uiplugins/plugins'];
@@ -132,6 +156,19 @@ export class SystemInfoProvider {
     const screenSize = `${ window.screen?.width || '?' }x${ window.screen?.height || '?' }`;
     const browserSize = `${ window.innerWidth }x${ window.innerHeight }`;
 
+    const safeFfs = Object.entries(ffs).reduce((res, [id, ff]) => {
+      try {
+        res[id] = {
+          param: ff.param,
+          value: getters['features/get'](id),
+        };
+      } catch (e) {
+        console.debug(`Cannot include Feature Flag "${ id }" in dynamic feature request: `, e); // eslint-disable-line no-console
+      }
+
+      return res;
+    }, {} as FeatureFlagInfos);
+
     return {
       systemUUID,
       userHash,
@@ -147,6 +184,7 @@ export class SystemInfoProvider {
       screenSize,
       browserSize,
       language:           window.navigator?.language,
+      featureFlags:       safeFfs,
     };
   }
 
@@ -213,6 +251,10 @@ export class SystemInfoProvider {
     if (systemData.screenSize !== '?x?') {
       params.push(`ss=${ systemData.screenSize }`);
     }
+
+    Object.values(systemData.featureFlags).forEach((ff) => {
+      params.push(`ff-` + `${ ff.param }=${ ff.value }`);
+    });
 
     return params.join('&');
   }

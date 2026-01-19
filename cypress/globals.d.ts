@@ -1,7 +1,13 @@
-import { Verbs } from '@shell/types/api';
-import { UserPreferences } from '@shell/types/userPreferences';
+// External version of globals.d.ts for @rancher/cypress package
+// Dependencies on @shell/types removed for standalone use
 
-type Matcher = '$' | '^' | '~' | '*' | '';
+type Verbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+
+export interface UserPreferences {
+  [key: string]: any;
+}
+
+export type Matcher = '$' | '^' | '~' | '*' | '';
 
 export type CreateUserParams = {
   username: string,
@@ -69,7 +75,7 @@ declare global {
   namespace Cypress {
     interface Chainable {
       setupWebSocket: any;
-      hideElementBySelector(text:string) :void;
+      hideElementBySelector(...selectors: string[]): Chainable<void>;
       state(state: any): any;
 
       login(username?: string, password?: string, cacheSession?: boolean, skipNavigation?: boolean, acceptConfirmation?: string): Chainable<Element>;
@@ -94,6 +100,7 @@ declare global {
       createAmazonMachineConfig(instanceType: string, region: string, vpcId: string, zone: string, type: string, clusterName: string, namespace: string): Chainable;
       createAmazonRke2Cluster(params: CreateAmazonRke2ClusterParams): Chainable;
       createAmazonRke2ClusterWithoutMachineConfig(params: CreateAmazonRke2ClusterWithoutMachineConfigParams): Chainable;
+      getKubernetesReleases(rkeType: 'rke2' | 'k3s'): Chainable;
       createSecret(namespace: string, name: string, options?: { type?: string; metadata?: any; data?: any }): Chainable;
       createConfigMap(namespace: string, name: string, options?: { metadata?: any; data?: any }): Chainable;
       createService(namespace: string, name: string, options?: { type?: string; ports?: any[]; spec?: any; metadata?: any }): Chainable;
@@ -151,7 +158,7 @@ declare global {
       }): Chainable;
 
       tableRowsPerPageAndNamespaceFilter(rows: number, clusterName: string, groupBy: string, namespaceFilter: string)
-      tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces: string}, iteration?: number)
+      tableRowsPerPageAndPreferences(rows: number, preferences: { clusterName: string, groupBy: string, namespaceFilter: string, allNamespaces?: string}, iteration?: number)
 
       setUserPreference(prefs: any);
 
@@ -213,6 +220,11 @@ declare global {
       shouldHaveCssVar(name: string, value: string);
 
       /**
+       * realHover event from cypress-real-events
+       */
+      realHover(): Chainable<Element>;
+
+      /**
        * Fetch the steve `revision` / timestamp of request
        */
       fetchRevision(): Chainable<string>;
@@ -232,6 +244,14 @@ declare global {
        */
       checkElementAccessibility(selector: any, description?: string);
 
+      /**
+       * Custom command to delete Cypress.config('downloadsFolder') folder
+       * @example
+       *  cy.deleteDownloadsFolder()
+       *
+       *  copied from node_modules/cypress-delete-downloads-folder/src/index.d.ts
+       */
+      deleteDownloadsFolder(): Chainable<null>
     }
   }
 }

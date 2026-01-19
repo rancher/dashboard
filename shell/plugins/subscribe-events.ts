@@ -167,7 +167,7 @@ export class SteveWatchEventListenerManager {
 
     if (eventWatcher) {
       Object.values(eventWatcher.callbacks).forEach((cb) => {
-        cb();
+        cb({ forceWatch: params.forceWatch, revision: params.revision }); // eslint-disable-line node/no-callback-literal
       });
     }
   }
@@ -176,7 +176,9 @@ export class SteveWatchEventListenerManager {
     const watch = this.getWatch({ params });
 
     watch.listeners.forEach((l) => {
-      Object.values(l.callbacks || {}).forEach((cb) => cb());
+      Object.values(l.callbacks || {}).forEach((cb) => {
+        cb({ forceWatch: params.forceWatch, revision: params.revision });// eslint-disable-line node/no-callback-literal
+      });
     });
   }
 

@@ -1,11 +1,11 @@
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import ComponentPo, { GetOptions } from '@/cypress/e2e/po/components/component.po';
 
 export default class ResourceDetailMastheadPo extends ComponentPo {
   /**
    * Get the resource status badge in the masthead
    */
-  resourceStatus() {
-    return this.self().find('h1.title .badge-state .msg');
+  resourceStatus(options?: GetOptions) {
+    return this.self().find('h1.title .badge-state .msg', options);
   }
 
   /**

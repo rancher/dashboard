@@ -14,6 +14,7 @@ import { clone, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
 import { stringify } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
+import { useResourceDetailPageProvider } from '@shell/composables/resourceDetail';
 
 function modeFor(route) {
   if ( route.query?.mode === _IMPORT ) {
@@ -116,6 +117,7 @@ export default {
 
     if ( mode === _VIEW && hasCustomDetail && (!requested || requested === _DETAIL) ) {
       as = _DETAIL;
+      useResourceDetailPageProvider();
     } else if ( hasCustomEdit && (!requested || requested === _CONFIG) ) {
       as = _CONFIG;
     } else {
@@ -310,7 +312,7 @@ export default {
       }), {});
     },
     isFullPageOverride() {
-      return this.isView && this.value.fullDetailPageOverride;
+      return this.isView && this.value.fullDetailPageOverride && !this.isYaml;
     }
   },
 
@@ -351,6 +353,7 @@ export default {
 
   methods: {
     stringify,
+
     setSubtype(subtype) {
       this.resourceSubtype = subtype;
     },
@@ -430,6 +433,7 @@ export default {
     :is="showComponent"
     v-else-if="isFullPageOverride"
     v-model:value="value"
+    v-ui-context="{ icon: 'icon-folder', value: value.name, tag: value.kind?.toLowerCase(), description: value.kind }"
     v-bind="$data"
     :done-params="doneParams"
     :done-route="doneRoute"
@@ -446,6 +450,7 @@ export default {
   <div v-else>
     <Masthead
       v-if="showMasthead"
+      v-ui-context="{ icon: 'icon-folder', value: liveModel.name, tag: liveModel.kind?.toLowerCase(), description: liveModel.kind }"
       :resource="resourceType"
       :value="liveModel"
       :mode="mode"
@@ -499,6 +504,7 @@ export default {
       v-else
       ref="comp"
       v-model:value="value"
+      v-ui-context="{ icon: 'icon-folder', value: value.name, tag: value.kind?.toLowerCase(), description: value.kind }"
       v-bind="$data"
       :done-params="doneParams"
       :done-route="doneRoute"
