@@ -7367,6 +7367,15 @@ workload:
         afterLocalhostProfile: 
           selected: Localhost Profile input appeared.
           unselected: Localhost Profile input has been hidden.
+        types:
+          none:
+            label: None
+          runtimeDefault:
+            label: RuntimeDefault - inherit the default seccomp profile
+          localhost:
+            label: Localhost - define a custom seccomp profile
+          unconfined:
+            label: Unconfined - no seccomp profile
       shareProcessNamespace: Share single process namespace
       supplementalGroups: Additional Group IDs
       sysctls: Sysctls

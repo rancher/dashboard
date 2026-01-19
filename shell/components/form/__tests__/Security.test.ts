@@ -1,11 +1,11 @@
 import { mount } from '@vue/test-utils';
-import Security from '@shell/components/form/Security.vue';
+import Security, { FORM_TYPES } from '@shell/components/form/Security.vue';
 import { _EDIT } from '@shell/config/query-params';
 
 describe('component: Security', () => {
   describe('formType: container', () => {
     it('should display all the container inputs', () => {
-      const wrapper = mount(Security, { props: { mode: _EDIT, formType: 'container' } });
+      const wrapper = mount(Security, { props: { mode: _EDIT, formType: FORM_TYPES.CONTAINER } });
 
       const inputWrappers = wrapper.findAll('[data-testid^=input-security-]');
       const actualIds = inputWrappers.map((wrap) => wrap.attributes('data-testid'));
@@ -25,7 +25,7 @@ describe('component: Security', () => {
     });
 
     it('should hide fields when privileged is checked', async() => {
-      const wrapper = mount(Security, { props: { mode: _EDIT, formType: 'container' } });
+      const wrapper = mount(Security, { props: { mode: _EDIT, formType: FORM_TYPES.CONTAINER } });
 
       // Before: Check that the fields are visible
       let allowPrivilegeEscalation = wrapper.find('[data-testid="input-security-allowPrivilegeEscalation"]');
@@ -52,7 +52,7 @@ describe('component: Security', () => {
     it('should display localhostProfile when seccompProfile type is Localhost', async() => {
       const wrapper = mount(Security, {
         props: {
-          mode: _EDIT, formType: 'container', seccompProfileTypes: ['None', 'Unconfined', 'RuntimeDefault', 'Localhost']
+          mode: _EDIT, formType: FORM_TYPES.CONTAINER, seccompProfileTypes: ['None', 'Unconfined', 'RuntimeDefault', 'Localhost']
         }
       });
 
@@ -70,7 +70,7 @@ describe('component: Security', () => {
     it.each([
       'runAsUser',
     ])('should emit an update on %p input', (field) => {
-      const wrapper = mount(Security, { props: { mode: _EDIT, formType: 'container' } });
+      const wrapper = mount(Security, { props: { mode: _EDIT, formType: FORM_TYPES.CONTAINER } });
       const input = wrapper.find(`[data-testid="input-security-${ field }"]`).find('input');
       const newValue = 123;
 
@@ -85,7 +85,7 @@ describe('component: Security', () => {
       'runasNonRoot',
       'readOnlyRootFilesystem',
     ])('should emit an update on %p checkbox option change', (field) => {
-      const wrapper = mount(Security, { props: { mode: _EDIT, formType: 'container' } });
+      const wrapper = mount(Security, { props: { mode: _EDIT, formType: FORM_TYPES.CONTAINER } });
       const radioOption = wrapper
         .find(`[data-testid="input-security-${ field }"]`)
         .find('label');
@@ -99,7 +99,7 @@ describe('component: Security', () => {
       'add',
       'drop',
     ])('should emit an update on %p selection change', async(field) => {
-      const wrapper = mount(Security, { props: { mode: _EDIT, formType: 'container' } });
+      const wrapper = mount(Security, { props: { mode: _EDIT, formType: FORM_TYPES.CONTAINER } });
       const select = wrapper.find(`[data-testid="input-security-${ field }"]`);
 
       select.find('button').trigger('click');
@@ -112,7 +112,7 @@ describe('component: Security', () => {
 
   describe('formType: pod', () => {
     it('should display all the pod inputs', () => {
-      const wrapper = mount(Security, { props: { mode: _EDIT, formType: 'pod' } });
+      const wrapper = mount(Security, { props: { mode: _EDIT, formType: FORM_TYPES.POD } });
 
       const inputWrappers = wrapper.findAll('[data-testid^=input-security-]');
       const actualIds = inputWrappers.map((wrap) => wrap.attributes('data-testid'));
@@ -131,7 +131,7 @@ describe('component: Security', () => {
       'fsGroup',
       'runAsUser',
     ])('should emit an update on %p input', (field) => {
-      const wrapper = mount(Security, { props: { mode: _EDIT, formType: 'pod' } });
+      const wrapper = mount(Security, { props: { mode: _EDIT, formType: FORM_TYPES.POD } });
       const input = wrapper.find(`[data-testid="input-security-${ field }"]`).find('input');
       const newValue = 123;
 

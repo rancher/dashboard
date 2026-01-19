@@ -284,6 +284,7 @@ export default {
       tabChange:                  0,
       savePvcHookName:            'savePvcHook',
       tabWeightMap:               TAB_WEIGHT_MAP,
+      // [fvFormRulesets][localhostProfile] added as default not required, needs to be on the INDEX 0
       fvFormRuleSets:             [{
         path:           'podTemplateSpec.securityContext.seccompProfile.localhostProfile',
         rules:          [''],
@@ -302,18 +303,18 @@ export default {
       return [
         {
           value: 'None',
-          label: 'None'
+          label: this.t('workload.container.security.seccompProfile.types.none.label')
         },
         {
           value: 'RuntimeDefault',
-          label: 'RuntimeDefault - inherit the default seccomp profile'
+          label: this.t('workload.container.security.seccompProfile.types.runtimeDefault.label')
         },
         {
           value: 'Localhost',
-          label: 'Localhost - define a custom seccomp profile'
+          label: this.t('workload.container.security.seccompProfile.types.localhost.label')
         }, {
           value: 'Unconfined',
-          label: 'Unconfined - no seccomp profile'
+          label: this.t('workload.container.security.seccompProfile.types.unconfined.label')
         }];
     },
 
@@ -600,6 +601,7 @@ export default {
 
     'podTemplateSpec.securityContext.seccompProfile.type'(neu) {
       if (neu === 'Localhost') {
+        // [fvFormRulesets][localhostProfile] added here, should be required if Localhost selected
         this.fvFormRuleSets[0] = {
           path:           'podTemplateSpec.securityContext.seccompProfile.localhostProfile',
           rules:          ['required'],
@@ -607,6 +609,7 @@ export default {
           translationKey: 'workload.container.security.localhostProfile.label'
         };
       } else {
+        // [fvFormRulesets][localhostProfile] added here, should not be required if Localhost selected
         this.fvFormRuleSets[0] = {
           path:           'podTemplateSpec.securityContext.seccompProfile.localhostProfile',
           rules:          [''],

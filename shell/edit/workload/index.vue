@@ -3,6 +3,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 import { mapGetters } from 'vuex';
+import { FORM_TYPES } from '@shell/components/form/Security';
 
 export default {
   name:   'Workload',
@@ -20,7 +21,11 @@ export default {
     },
   },
   data() {
-    return { selectedName: null, errors: [] };
+    return {
+      selectedName: null,
+      errors:       [],
+      FORM_TYPES
+    };
   },
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
@@ -352,7 +357,7 @@ export default {
                 v-model:value="allContainers[i].securityContext"
                 :mode="mode"
                 :seccomp-profile-types="seccompProfileTypes"
-                :form-type="'container'"
+                :form-type="FORM_TYPES.CONTAINER"
               />
             </Tab>
             <Tab
@@ -545,7 +550,7 @@ export default {
                 v-model:value="podTemplateSpec.securityContext"
                 :mode="mode"
                 :seccomp-profile-types="seccompProfileTypes"
-                :form-type="'pod'"
+                :form-type="FORM_TYPES.POD"
               />
             </Tab>
             <Tab

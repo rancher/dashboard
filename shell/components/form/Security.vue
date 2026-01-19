@@ -1,10 +1,15 @@
 <script>
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { _VIEW } from '@shell/config/query-params';
+import { _VIEW, _EDIT } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import SeccompProfile from '@shell/components/form/SeccompProfile';
+
+export const FORM_TYPES = {
+  CONTAINER: 'container',
+  POD:       'pod'
+};
 
 const allCapabilities = ['ALL',
   'AUDIT_CONTROL',
@@ -62,8 +67,8 @@ export default {
         return {};
       }
     },
-    formType:            { type: String, default: 'container' },
-    mode:                { type: String, default: 'edit' },
+    formType:            { type: String, default: FORM_TYPES.CONTAINER },
+    mode:                { type: String, default: _EDIT },
     seccompProfileTypes: {
       type:    Array,
       default: () => []
@@ -71,7 +76,7 @@ export default {
   },
 
   data() {
-    if (this.formType === 'container') {
+    if (this.formType === FORM_TYPES.CONTAINER) {
       return {
         allCapabilities,
         securityContext: {
@@ -85,7 +90,8 @@ export default {
           seccompProfile:           this.value.seccompProfile,
           fsGroup:                  this.value.fsGroup,
         },
-        afterPrivilegedTickedMessage: ''
+        afterPrivilegedTickedMessage: '',
+        FORM_TYPES,
       };
     } else {
       return {
@@ -96,7 +102,8 @@ export default {
           runAsUser:      this.value.runAsUser,
           seccompProfile: this.value.seccompProfile,
         },
-        afterPrivilegedTickedMessage: ''
+        afterPrivilegedTickedMessage: '',
+        FORM_TYPES,
       };
     }
   },
@@ -150,7 +157,7 @@ export default {
 
 <template>
   <div
-    v-if="formType === 'pod'"
+    v-if="formType === FORM_TYPES.POD"
   >
     <div class="row">
       <div
@@ -177,7 +184,7 @@ export default {
     </div>
   </div>
   <div
-    v-if="formType === 'container'"
+    v-if="formType === FORM_TYPES.CONTAINER"
   >
     <div
       class="row"
@@ -235,7 +242,7 @@ export default {
       </div>
     </div>
   </div>
-  <div v-if="!securityContext.privileged && formType === 'container' || formType === 'pod'">
+  <div v-if="!securityContext.privileged && formType === FORM_TYPES.CONTAINER || formType === FORM_TYPES.POD">
     <div class="spacer" />
     <SeccompProfile
       v-model:value="securityContext.seccompProfile"
@@ -284,7 +291,7 @@ export default {
       </div>
     </div>
   </div>
-  <div v-if="formType === 'container'">
+  <div v-if="formType === FORM_TYPES.CONTAINER">
     <div class="spacer" />
     <div class="row">
       <div class="col span-6">
@@ -304,7 +311,7 @@ export default {
       </div>
     </div>
   </div>
-  <div v-if="formType === 'container'">
+  <div v-if="formType === FORM_TYPES.CONTAINER">
     <div class="spacer" />
     <fieldset>
       <legend class="h3-legend">
