@@ -5946,10 +5946,10 @@ cron-validator@1.4.0:
   resolved "https://registry.yarnpkg.com/cron-validator/-/cron-validator-1.4.0.tgz#77ed4277b086c22e74ee65640f8456747afd4885"
   integrity sha512-wGcJ9FCy65iaU6egSH8b5dZYJF7GU/3Jh06wzaT9lsa5dbqExjljmu+0cJ8cpKn+vUyZa/EM4WAxeLR6SypJXw==
 
-cronstrue@2.53.0:
-  version "2.53.0"
-  resolved "https://registry.yarnpkg.com/cronstrue/-/cronstrue-2.53.0.tgz#5bbcd7483636b99379480f624faef5056f3efbd8"
-  integrity sha512-CkAcaI94xL8h6N7cGxgXfR5D7oV2yVtDzB9vMZP8tIgPyEv/oc/7nq9rlk7LMxvc3N+q6LKZmNLCVxJRpyEg8A==
+cronstrue@3.9.0:
+  version "3.9.0"
+  resolved "https://registry.yarnpkg.com/cronstrue/-/cronstrue-3.9.0.tgz#a3c3ae3e218235a123c80de8db95a93e45a9d8ba"
+  integrity sha512-T3S35zmD0Ai2B4ko6+mEM+k9C6tipe2nB9RLiGT6QL2Wn0Vsn2cCZAC8Oeuf4CaE00GZWVdpYitbpWCNlIWqdA==
 
 cross-env@7.0.3:
   version "7.0.3"
