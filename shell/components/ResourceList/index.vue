@@ -86,6 +86,15 @@ export default {
     }
   },
 
+  beforeMount() {
+    const inStore = this.$store.getters['currentStore'](this.resource);
+    const canList = this.$store.getters[`${ inStore }/canList`](this.resource);
+
+    if (!canList) {
+      this.$store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceListNotListable', { resource: this.schema.id }, true)));
+    }
+  },
+
   data() {
     const getters = this.$store.getters;
     const params = { ...this.$route.params };

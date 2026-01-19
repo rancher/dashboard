@@ -354,7 +354,23 @@ export default {
   canList: (state, getters) => (type) => {
     const schema = getters.schemaFor(type);
 
-    return schema && schema.hasLink('collection');
+    // TODO: RC remove from side bar... or keep in side bar to allow create... but just don't list
+
+    if (!schema) {
+      return false;
+    }
+
+    if (!schema.hasLink('collection')) {
+      // This is the URL the UI will use to list
+      return false;
+    }
+
+    if (!schema.attributes?.verbs.find((x) => x.toLowerCase() === 'list')) {
+      // This is the explicit permission to LIST (for example endpoint could just allow POST)
+      return false;
+    }
+
+    return true;
   },
 
   typeRegistered: (state, getters) => (type) => {

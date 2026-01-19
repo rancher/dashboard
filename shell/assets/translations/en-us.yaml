@@ -310,6 +310,7 @@ nav:
     clusterNotFound: Cluster { clusterId } not found
     productNotFound: Product { productNotFound } not found
     resourceNotFound: Resource type { resource } not found
+    resourceListNotListable: Resource type { resource } cannot be listed
     resourceListNotFound: Resource type { resource } not found, unable to display list
     resourceIdNotFound: Resource { resource } with id { fqid } not found, unable to display resource details
     reload: Reload
