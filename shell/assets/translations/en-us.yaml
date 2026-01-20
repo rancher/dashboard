@@ -3018,24 +3018,36 @@ fleet:
       notReady: Not Ready
       waitApplied: Wait Applied
   clusterTargets:
-    title: Select by name
-    label: Clusters
     advancedConfigs: Advanced target configurations are defined, check the YAML file for further details.
-    placeholders:
-      selectMultiple: Select Multiple Clusters
+    clusters:
+      title: Clusters
+      byName:
+        placeholder: Select Multiple Clusters
+        label: Select by cluster name
+      byLabel:
+        title: Select by labels
+        addSelector: Add cluster selector
+        labelKey: Label
+    clusterGroups:
+      title: Cluster Groups
+      byName:
+        label: Select by cluster group name
+        placeholder: Select Multiple Cluster Groups
     rules:
-      title: Select by labels
-      addSelector: Add cluster selector
-      labelKey: Label
       matching:
-        title: Selected clusters
-        placeholder: Select clusters by name or labels
+        title: |-
+          {n, plural,
+            =0 {No clusters selected}
+            =1 {1 cluster selected}
+            other {{n, number} clusters selected}
+            }
+        placeholder: Select clusters by name, labels or groups
         empty: No clusters in the workspace
         plusMore: |-
           {n, plural,
             =1 {+ 1 more cluster}
             other {+ {n, number} more clusters}
-          }
+            }
   application:
     pageTitle: App Bundles
     menuLabel: App Bundles

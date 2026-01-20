@@ -86,7 +86,6 @@ const defaultGkeConfig = {
   clusterName:           '',
   description:           '',
   enableKubernetesAlpha: false,
-  // googleCredentialSecret: '',
   ipAllocationPolicy:    {
     clusterIpv4CidrBlock:       '',
     clusterSecondaryRangeName:  null,
@@ -190,7 +189,6 @@ export default defineComponent({
       const liveNormanCluster = await this.value.findNormanCluster();
 
       this.normanCluster = await store.dispatch(`rancher/clone`, { resource: liveNormanCluster });
-      this.originalVersion = this.normanCluster?.gkeConfig?.kubernetesVersion;
     } else {
       if (this.isImport) {
         this.normanCluster = await store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...cloneDeep(defaultImportedCluster) }, { root: true });
@@ -204,6 +202,8 @@ export default defineComponent({
     // ensure any fields editable through this UI that have been altered in aws are shown here - see syncUpstreamConfig jsdoc for details
     if (!this.isNewOrUnprovisioned) {
       syncUpstreamConfig('gke', this.normanCluster);
+      // kubernetesVersion is null on imported cluster until this point
+      this.originalVersion = this.normanCluster?.gkeConfig?.kubernetesVersion;
     }
 
     if (!this.isImport) {

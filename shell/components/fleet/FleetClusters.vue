@@ -161,19 +161,20 @@ export default {
 
     <template
       v-if="!removeSubRows"
-      #sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave}"
+      #additional-sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave, showSubRow}"
     >
       <tr
-        class="labels-row sub-row"
+        class="labels-row additional-sub-row"
+        :class="{ 'has-sub-row': showSubRow}"
         @mouseenter="onRowMouseEnter"
         @mouseleave="onRowMouseLeave"
       >
-        <template v-if="row.customLabels.length">
+        <template v-if="row.customLabels && row.customLabels.length">
           <td>&nbsp;</td>
           <td>&nbsp;</td>
           <td :colspan="fullColspan-2">
             <span
-              v-if="row.customLabels.length"
+              v-if="row.customLabels && row.customLabels.length"
               class="mt-5"
             > {{ t('fleet.cluster.labels') }}:
               <span
@@ -195,7 +196,7 @@ export default {
                 </Tag>
               </span>
               <a
-                v-if="row.customLabels.length > 7"
+                v-if="row.customLabels && row.customLabels.length > 7"
                 href="#"
                 @click.prevent="toggleCustomLabels(row)"
               >
