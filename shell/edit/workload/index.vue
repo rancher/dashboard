@@ -210,6 +210,7 @@ export default {
                       name="initContainer"
                       :options="[true, false]"
                       :labels="[t('workload.container.init'), t('workload.container.standard')]"
+                      :aria-label="t('workload.container.initContainer.label')"
                       @update:value="updateInitContainer($event, allContainers[i])"
                     />
                   </div>
