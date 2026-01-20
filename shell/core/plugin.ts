@@ -24,8 +24,8 @@ import {
   ProductSinglePage,
   ProductChild,
   StandardProductName,
-  // ResourceTypeConfig,
-  TableAction
+  TableAction,
+  ResourceTypeConfig
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import { defineAsyncComponent, markRaw, Component } from 'vue';
@@ -49,6 +49,7 @@ export type ProductFunction = (plugin: IPlugin, store: any) => void;
 export class Plugin implements IPlugin {
   public id: string;
   public name: string;
+  public topLevelProduct = false;
   public types: ExtensionManagerTypes = {};
   public l10n: { [key: string]: Function[] } = {};
   public modelExtensions: { [key: string]: Function[] } = {};
@@ -86,6 +87,14 @@ export class Plugin implements IPlugin {
     });
   }
 
+  configureResourceType(type: string, config: ResourceTypeConfig): void {
+    throw new Error('Method not implemented.');
+  }
+
+  resourceNameFor(apiGroup: string, type: string): string {
+    throw new Error('Method not implemented.');
+  }
+
   get environment(): ExtensionEnvironment {
     const versionData = getVersionData();
 
@@ -116,6 +125,10 @@ export class Plugin implements IPlugin {
 
   set validators(vals: {[key:string]: Function }) {
     this._validators = vals;
+  }
+
+  registerTopLevelProduct() {
+    this.topLevelProduct = true;
   }
 
   // Track which products the plugin creates

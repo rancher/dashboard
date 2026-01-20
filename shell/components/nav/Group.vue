@@ -269,8 +269,9 @@ export default {
         @keyup.space="groupSelected()"
       >
         <slot name="header">
+          <!-- Group overview with link -->
           <router-link
-            v-if="hasOverview"
+            v-if="hasOverview && hasChildren"
             :to="headerRoute"
             :exact="group.children[0].exact"
             :tabindex="-1"
@@ -279,6 +280,17 @@ export default {
               <span v-clean-html="group.labelDisplay || group.label" />
             </h6>
           </router-link>
+          <!-- Simple child (nav item) -->
+          <router-link
+            v-else-if="!hasChildren"
+            :to="group.route"
+            :exact="group.exact"
+          >
+            <h6>
+              <span v-clean-html="group.labelDisplay || group.label" />
+            </h6>
+          </router-link>
+          <!-- Non-linked group header -->
           <h6
             v-else
           >
@@ -287,7 +299,7 @@ export default {
         </slot>
       </div>
       <i
-        v-if="!onlyHasOverview && canCollapse"
+        v-if="!onlyHasOverview && canCollapse && hasChildren"
         class="icon toggle toggle-accordion"
         :class="{'icon-chevron-right': !isExpanded, 'icon-chevron-down': isExpanded}"
         role="button"
@@ -377,6 +389,7 @@ export default {
       display: block;
       box-sizing:border-box;
       height: 100%;
+
       &:hover{
         text-decoration: none;
       }
@@ -386,6 +399,17 @@ export default {
       > H6 {
         text-transform: none;
         padding: 8px 0 8px 16px;
+      }
+
+      &.router-link-active {
+        color: var(--on-active, var(--primary-hover-text));
+        background-color: var(--active-nav, var(--primary-hover-bg));
+
+        h6 {
+          padding: 8px 0 8px 16px;
+          font-weight: bold;
+          color: var(--on-active, var(--primary-hover-text));
+        }
       }
     }
   }

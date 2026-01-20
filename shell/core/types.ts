@@ -2,6 +2,9 @@ import { ProductFunction } from './plugin';
 import { RouteComponent, RouteRecordRaw } from 'vue-router';
 import type { ExtensionManager } from '@shell/types/extension-manager';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
+import { STEVE_LIST_GROUPS } from '@shell/config/pagination-table-headers';
+import { MANAGEMENT } from '@shell/config/types';
+import path from 'path/win32';
 
 // Cluster Provisioning types
 export * from './types-provisioning';
@@ -218,6 +221,61 @@ export type ProductChildPageChildRoute = {
 }
 
 /**
+ * Represents the allowed configuration for a virtualType
+ */
+export type VirtualTypeConfiguration = {
+  ifHave?: boolean; // display virtualType only if condition is met (relates to IF_HAVE in shell/store/type-map)
+  ifFeature?: string; // display virtualType only if feature is present (relates to shell/store/features)
+  ifHaveType?: string; // display virtualType only if resource type exists
+  ifHaveVerb?: string; // used in conjusction with "ifHaveType" display virtualType only if resource type allows this verb
+  labelKey?: string; // translation key for the label
+  name?: string; // name of the setting page
+  route?: RouteRecordRaw | PluginRouteRecordRaw | Object; // route definition for this virtualType
+  icon?: 'compass'; // icon for the virtualType (relates to icons in https://github.com/rancher/icons)
+  namespaced?: boolean; // whether this virtualType is namespaced or not
+  weight?: number; // ordering weight for the virtualType
+  exact?: boolean; // whether this virtualType is exact match
+  overview?: boolean; // whether this virtualType has an overview page
+  'exact-path'?: boolean; // whether this virtualType has an exact path match
+}
+
+/**
+ * Represents the allowed configuration for a configureType
+ */
+export type ConfigureTypeConfiguration = {
+  displayName?: string; // Override for the name displayed
+  listCreateButtonLabelKey?: string; // override for the create button string on a list view
+  isCreatable?: boolean; // If false, disable create even if schema says it's allowed
+  isEditable?: boolean; // Ditto, for edit
+  isRemovable?: boolean; // Ditto, for remove/delete
+  showState?: boolean; // If false, hide state in columns and masthead
+  showAge?: boolean; // If false, hide age in columns and masthead
+  showConfigView?: boolean; // If false, hide masthead config button in view mode
+  showListMasthead?: boolean; // If false, hide masthead in list view
+  canYaml?: boolean; // If false, cannnot edit or show yaml
+  // resource: undefined; // Use this resource in ResourceDetails instead
+  // resourceDetail: undefined; // Use this resource specifically for ResourceDetail's detail component
+  // resourceEdit: undefined; // Use this resource specifically for ResourceDetail's edit component
+  // depaginate: undefined; // Use this to depaginate requests for this type
+  resourceEditMasthead?: boolean; // Show the Masthead in the edit resource component
+  customRoute?: RouteRecordRaw; // define a custom route for this resource type (use this wisely!)
+  // notFilterNamespace: undefined; // Define namespaces that do not need to be filtered
+  localOnly?: boolean; // Hide this type from the nav/search bar on downstream clusters (will only show in "local" cluster)
+}
+
+// used in configureType options
+// to be typed later if needed
+// listGroups: [
+//       {
+//         icon:       'icon-role-binding',
+//         value:      'node',
+//         field:      'roleDisplay',
+//         hideColumn: ROLE.name,
+//         tooltipKey: 'resourceTable.groupBy.role'
+//       }
+//     ]
+
+/**
  * Represents a custom page
  */
 export type ProductChildPage = ProductChildMetadata & {
@@ -225,6 +283,7 @@ export type ProductChildPage = ProductChildMetadata & {
   path?: string; // Optional route path override
   component: RouteComponent | Lazy<RouteComponent>;
   extraRoutes?: ProductChildPageChildRoute[]; // Optional extra routes to create
+  config?: VirtualTypeConfiguration | ConfigureTypeConfiguration; // optional configuration for virtualType or configureType
 };
 
 /**
@@ -473,6 +532,40 @@ export interface HeaderOptions {
    * @returns Can return {@link string | number | null | undefined} to display in the column
    */
   getValue?: (row: any) => string | number | null | undefined;
+}
+
+/**
+ * Product registration route generation options
+ */
+export type ProductRegistrationRouteGenerationOptions = {
+  /**
+   * Whether to generate the route for an existing product - extending a product - or a new top level product
+   */
+  extendProduct? : boolean;
+  /**
+   * Component to be used for the route (used in virtualType and configureType routes)
+   */
+  component?: any;
+  /**
+   * Generated route should omit the path property
+   */
+  omitPath?: boolean;
+  /**
+   * Component to be used for the resource list route (used in resource routes only)
+   */
+  resourceListComponent?: any;
+  /**
+   * Component to be used for the resource create route (used in resource routes only)
+   */
+  resourceCreateComponent?: any;
+  /**
+   * Component to be used for the resource item route (used in resource routes only)
+   */
+  resourceItemComponent?: any;
+  /**
+   * Component to be used for the resource item namespaced route (used in resource routes only)
+   */
+  resourceItemNamespacedComponent?: any;
 }
 
 /**
@@ -742,6 +835,11 @@ export type ModelExtensionConstructor = (context: ModelExtensionContext) => Obje
  * Interface for a UI Extension
  */
 export interface IExtension {
+  /**
+   * Register a top-level product as a flag on the plugin
+   */
+  registerTopLevelProduct(): void;
+
   /**
    * Add a product
    * @param name

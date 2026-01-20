@@ -255,6 +255,14 @@ export default {
       const name = this.currentProduct.name;
 
       return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
+    },
+
+    // Determine if we are on a route that shows the logo instead of the product label
+    // This is to enforce the logo display on certain routes like home, about, prefs, account, etc
+    isLogoRoute() {
+      const routesWithLogo = ['home', 'about', 'diagnostic', 'prefs', 'account', 'account-create-key'];
+
+      return routesWithLogo.includes(this.$route.name);
     }
   },
 
@@ -552,7 +560,7 @@ export default {
       </div>
 
       <div
-        v-if="productLabel"
+        v-if="productLabel && !isLogoRoute"
         class="product-name"
       >
         {{ productLabel }}
