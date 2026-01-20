@@ -2,9 +2,6 @@ import { ProductFunction } from './plugin';
 import { RouteComponent, RouteRecordRaw } from 'vue-router';
 import type { ExtensionManager } from '@shell/types/extension-manager';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
-import { STEVE_LIST_GROUPS } from '@shell/config/pagination-table-headers';
-import { MANAGEMENT } from '@shell/config/types';
-import path from 'path/win32';
 
 // Cluster Provisioning types
 export * from './types-provisioning';
@@ -188,9 +185,18 @@ export type LocationConfig = {
 };
 
 export enum StandardProductName {
+  // eslint-disable-next-line no-unused-vars
   EXPLORER = 'explorer',
+  // eslint-disable-next-line no-unused-vars
   MANAGER = 'manager',
+  // eslint-disable-next-line no-unused-vars
   SETTINGS = 'settings',
+  // eslint-disable-next-line no-unused-vars
+  FLEET = 'fleet',
+  // eslint-disable-next-line no-unused-vars
+  AUTH = 'auth',
+  // eslint-disable-next-line no-unused-vars
+  HARVESTER_MANAGER = 'harvesterManager',
 }
 
 type Lazy<T> = () => Promise<T>;
