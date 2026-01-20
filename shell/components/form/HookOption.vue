@@ -20,6 +20,10 @@ export default {
       default: () => {
         return {};
       }
+    },
+    label: {
+      type:    String,
+      default: null
     }
   },
 
@@ -123,6 +127,7 @@ export default {
           t('workload.container.lifecycleHook.httpGet.add'),
         ]"
         :mode="mode"
+        :label="label"
         @update:value="update"
       />
     </div>
