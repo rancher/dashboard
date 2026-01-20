@@ -3591,6 +3591,7 @@ hpa:
     last: Last Scale Time
     max: Maximum Replicas
     min: Minimum Replicas
+    targetReferenceType: Target Type
     targetReference: Target Reference
 
 import:
@@ -8363,6 +8364,11 @@ typeLabel:
     {count, plural,
       one { Role }
       other { Roles }
+    }
+  replicationcontroller: |-
+    {count, plural,
+      one { Replication Controller }
+      other { Replication Controllers }
     }
   scheduling.k8s.io.priorityclass: |-
     {count, plural,
