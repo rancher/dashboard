@@ -72,49 +72,49 @@ export default function(plugin: IPlugin) {
   //   }
   // ]);
 
-  // Add a simple product with children + type
-  plugin.addProduct({
-    name:   'alex-simple-children',
-    weight: -100, // does not matter for inner structure root weight (this is just for sidebar ordering)
-    label:  'Simple with Children'
-  }, [
-    { type: 'fleet.cattle.io.clustergroup' },
-    {
-      name:      'page1',
-      label:     'My label for page 1',
-      component: () => import('./components/Test.vue'),
-      children:  [
-        {
-          name:      'hello0',
-          label:     'Testing 12',
-          labelKey:  'aks.label',
-          component: () => import('./components/Test.vue')
-        } as any,
-        {
-          name:      'hello1',
-          label:     'Testing 1',
-          labelKey:  'aks.label',
-          component: () => import('./components/Test.vue')
-        },
-        {
-          name:      'hello3',
-          labelKey:  'aks.label',
-          component: () => import('./components/Test.vue')
-        },
-        {
-          name:      'hello2',
-          label:     'Testing 2',
-          component: () => import('./components/Test.vue')
-        }
-      ]
-    },
-    { type: 'upgrade.cattle.io.plan' },
-    {
-      name:      'page2',
-      label:     'My label for page 2',
-      component: () => import('./components/Test.vue')
-    },
-  ]);
+  // // Add a simple product with children + type
+  // plugin.addProduct({
+  //   name:   'alex-simple-children',
+  //   weight: -100, // does not matter for inner structure root weight (this is just for sidebar ordering)
+  //   label:  'Simple with Children'
+  // }, [
+  //   { type: 'fleet.cattle.io.clustergroup' },
+  //   {
+  //     name:      'page1',
+  //     label:     'My label for page 1',
+  //     component: () => import('./components/Test.vue'),
+  //     children:  [
+  //       {
+  //         name:      'hello0',
+  //         label:     'Testing 12',
+  //         labelKey:  'aks.label',
+  //         component: () => import('./components/Test.vue')
+  //       } as any,
+  //       {
+  //         name:      'hello1',
+  //         label:     'Testing 1',
+  //         labelKey:  'aks.label',
+  //         component: () => import('./components/Test.vue')
+  //       },
+  //       {
+  //         name:      'hello3',
+  //         labelKey:  'aks.label',
+  //         component: () => import('./components/Test.vue')
+  //       },
+  //       {
+  //         name:      'hello2',
+  //         label:     'Testing 2',
+  //         component: () => import('./components/Test.vue')
+  //       }
+  //     ]
+  //   },
+  //   { type: 'upgrade.cattle.io.plan' },
+  //   {
+  //     name:      'page2',
+  //     label:     'My label for page 2',
+  //     component: () => import('./components/Test.vue')
+  //   },
+  // ]);
 
   // // extend an existing standard product WITHOOUT configuring any children
   // plugin.extendProduct(StandardProductName.EXPLORER, []);
@@ -129,42 +129,42 @@ export default function(plugin: IPlugin) {
   //   }
   // ]);
 
-//   // extend an existing standard product ADDING new children (mixed virtual types and resource types, with nested children)
-//   plugin.extendProduct(StandardProductName.EXPLORER, [
-//     {
-//       name:     'page1',
-//       label:    'My label for page 1',
-//       weight:   -10,
-//       // component: () => import('./components/Test.vue'),
-//       children: [
-//         {
-//           name:      'hello0',
-//           label:     'Testing 12',
-//           labelKey:  'aks.label',
-//           component: () => import('./components/Test.vue')
-//         } as any,
-//         {
-//           name:      'hello1',
-//           label:     'Testing 1',
-//           component: () => import('./components/Test.vue')
-//         },
-//         {
-//           name:      'hello3',
-//           labelKey:  'generic.unified',
-//           component: () => import('./components/Test.vue')
-//         },
-//         {
-//           name:      'hello2',
-//           label:     'Testing 2',
-//           component: () => import('./components/Test.vue')
-//         }
-//       ]
-//     },
-//     { type: 'upgrade.cattle.io.plan' },
-//     {
-//       name:      'page2',
-//       label:     'My label for page 2',
-//       component: () => import('./components/Test.vue')
-//     }
-//   ]);
+  // extend an existing standard product ADDING new children (mixed virtual types and resource types, with nested children)
+  plugin.extendProduct(StandardProductName.SETTINGS, [
+    {
+      name:     'page1',
+      label:    'My label for page 1',
+      weight:   -10,
+      // component: () => import('./components/Test.vue'),
+      children: [
+        {
+          name:      'hello0',
+          label:     'Testing 12',
+          labelKey:  'aks.label',
+          component: () => import('./components/Test.vue')
+        } as any,
+        {
+          name:      'hello1',
+          label:     'Testing 1',
+          component: () => import('./components/Test.vue')
+        },
+        {
+          name:      'hello3',
+          labelKey:  'generic.unified',
+          component: () => import('./components/Test.vue')
+        },
+        {
+          name:      'hello2',
+          label:     'Testing 2',
+          component: () => import('./components/Test.vue')
+        }
+      ]
+    },
+    { type: 'upgrade.cattle.io.plan' },
+    {
+      name:      'page2',
+      label:     'My label for page 2',
+      component: () => import('./components/Test.vue')
+    }
+  ]);
 }

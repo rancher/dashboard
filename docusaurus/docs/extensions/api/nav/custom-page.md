@@ -1,5 +1,7 @@
 # Custom page
 
+> Legacy DSL doc. The recommended flow is on the main Products page.
+
 ## Defining a custom page for an Extension (virtualType)
 As we've seen from the previous chapter, a developer can register a top-level product with the `product` function. How about adding a custom page to your extension product? To do that, we can use the function `virtualType` coming from `$extension.DSL`. As an example usage of that method, one could do the following:
 
