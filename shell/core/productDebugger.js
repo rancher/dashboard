@@ -1,6 +1,5 @@
 
 export function DSLRegistrationsPerProduct(store, prodName) {
-  // console.error('*** PRODUCT DATA DEBUGGER **** DSLRegistrationsPerProduct for product:', store._state.data);
   const parsedData = {};
   const typeMapData = store._state.data['type-map'];
 

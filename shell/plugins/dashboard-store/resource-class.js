@@ -1369,6 +1369,32 @@ export default class Resource {
 
     const id = this.id?.replace(/.*\//, '');
 
+    // this is the logic to determine if the resource is top level product or not
+    // changes c-cluster-product-resource to product-c-cluster-resource
+    // this is for the new extension product registration model
+    let currPluginName = '';
+    const plugins = this.$extension.getPlugins();
+
+    Object.keys(plugins).forEach((key) => {
+      if (plugins[key].productNames.includes(this.$rootGetters['productId'])) {
+        currPluginName = key;
+      }
+    });
+
+    if (currPluginName && plugins[currPluginName]?.topLevelProduct) {
+      return {
+        name:   `${ this.$rootGetters['productId'] }-c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
+        params: {
+          product:   this.$rootGetters['productId'],
+          cluster:   this.$rootGetters['clusterId'],
+          resource:  this.type,
+          namespace: isNamespaced && this.metadata?.namespace ? this.metadata.namespace : undefined,
+          id,
+        }
+      };
+    }
+
+    // normal cluster scoped resource route as we know
     return {
       name:   `c-cluster-product-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
       params: {
