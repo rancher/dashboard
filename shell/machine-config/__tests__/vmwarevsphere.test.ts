@@ -57,6 +57,7 @@ describe('component: vmwarevsphere', () => {
 
       const dataCenterElement = wrapper.find(`[data-testid="datacenter"]`).element;
       const resourcePoolElement = wrapper.find(`[data-testid="resourcePool"]`).element;
+      const storageTypeElement = wrapper.find(`[data-testid="storageType"]`).element;
       const dataStoreElement = wrapper.find(`[data-testid="dataStore"]`).element;
       const folderElement = wrapper.find(`[data-testid="folder"]`).element;
       const hostElement = wrapper.find(`[data-testid="host"]`).element;
@@ -64,6 +65,7 @@ describe('component: vmwarevsphere', () => {
 
       expect(dataCenterElement).toBeDefined();
       expect(resourcePoolElement).toBeDefined();
+      expect(storageTypeElement).toBeDefined();
       expect(dataStoreElement).toBeDefined();
       expect(folderElement).toBeDefined();
       expect(hostElement).toBeDefined();
@@ -295,6 +297,32 @@ describe('component: vmwarevsphere', () => {
       await wrapper.vm.$nextTick();
 
       expect(wrapper.vm.value.network).toStrictEqual([legacyName]);
+    });
+  });
+
+  describe('storage type toggling', () => {
+    it('should toggle storage type to datastore-cluster and clear datastore value', async() => {
+      const wrapper = mount(vmwarevsphere, defaultCreateSetup);
+
+      wrapper.vm.value.datastore = 'some-datastore';
+      await wrapper.setData({ storageType: 'datastore-cluster' });
+
+      expect(wrapper.vm.storageType).toBe('datastore-cluster');
+      expect(wrapper.vm.value.datastore).toBe('');
+    });
+
+    it('should toggle storage type to datastore and clear datastoreCluster value', async() => {
+      const wrapper = mount(vmwarevsphere, defaultCreateSetup);
+
+      // Initialize with datastore-cluster selected
+      await wrapper.setData({ storageType: 'datastore-cluster' });
+      wrapper.vm.value.datastoreCluster = 'some-cluster';
+
+      // Switch back to datastore
+      await wrapper.setData({ storageType: 'datastore' });
+
+      expect(wrapper.vm.storageType).toBe('datastore');
+      expect(wrapper.vm.value.datastoreCluster).toBe('');
     });
   });
 });

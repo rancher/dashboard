@@ -2004,7 +2004,8 @@ cluster:
         description: Choose what hypervisor the virtual machine will be scheduled to
         dataCenter: Data Center
         resourcePool: Resource Pool
-        dataStore: Data Store
+        dataStore: Datastore
+        dataStoreCluster: Datastore Cluster
         folder: Folder
         host:
           label: Host
