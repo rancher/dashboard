@@ -306,7 +306,7 @@ export const createExtensionManager = (context) => {
 
     // Apply the plugin based on its metadata
     applyPlugin(plugin) {
-      // Types
+    // Types
       Object.keys(plugin.types).forEach((typ) => {
         Object.keys(plugin.types[typ]).forEach((name) => {
           this.register(typ, name, plugin.types[typ][name]);
@@ -459,9 +459,11 @@ export const createExtensionManager = (context) => {
     getProviders(context) {
       // Custom Providers from extensions - initialize each with the store and the i18n service
       // Wrap in try ... catch, to prevent errors in an extension breaking the page
+
       const extensions = context.$extension.listDynamic('provisioner').map((name) => {
         try {
           const provisioner = context.$extension.getDynamic('provisioner', name);
+
           const defaults = {
             isCreate: false,
             isEdit:   false,
