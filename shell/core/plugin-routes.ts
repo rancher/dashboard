@@ -23,8 +23,6 @@ export class PluginRoutes {
   }
 
   public addRoutes(newRouteInfos: RouteInfo[]) {
-    console.log('Adding routes:', newRouteInfos); // eslint-disable-line no-console
-
     newRouteInfos.forEach((routeInfo) => {
       if (routeInfo.parent) {
         this.router.addRoute(routeInfo.parent, routeInfo.route);

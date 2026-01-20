@@ -144,11 +144,18 @@ const sidebars = {
               label: 'Navigation & Pages',
               items: [
                 'api/nav/products',
-                'api/nav/custom-page',
-                'api/nav/resource-page',
-                'api/nav/side-menu',
-                'api/nav/routing',
-                'api/nav/templates',
+                {
+                  type:  'category',
+                  label: 'Legacy Navigation & Pages',
+                  items: [
+                    'api/nav/products-legacy',
+                    'api/nav/custom-page',
+                    'api/nav/resource-page',
+                    'api/nav/side-menu',
+                    'api/nav/routing',
+                    'api/nav/templates',
+                  ],
+                },
               ]
             },
             'api/actions',
