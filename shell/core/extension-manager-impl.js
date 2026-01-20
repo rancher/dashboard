@@ -2,7 +2,7 @@ import { productsLoaded } from '@shell/store/type-map';
 import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
 import { EXT_IDS, Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
-import { UI_PLUGIN_BASE_URL, UI_PLUGIN_CHART_ANNOTATIONS } from '@shell/config/uiplugins';
+import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 import { ExtensionPoint } from './types';
 import { addLinkInterceptor, removeLinkInterceptor } from '@shell/plugins/clean-html';
 
@@ -22,8 +22,6 @@ export const createExtensionManager = (context) => {
   const pluginRoutes = new PluginRoutes(app.router);
 
   const uiConfig = {};
-
-  const prime = {};
 
   // Builtin extensions - these are registered when the UI loads and then initialized/loaded at the same time as the external extensions
   let builtin = [];
@@ -308,12 +306,10 @@ export const createExtensionManager = (context) => {
 
     // Apply the plugin based on its metadata
     applyPlugin(plugin) {
-      const annotations = plugin._metadata?.rancher?.annotations || {};
-
       // Types
       Object.keys(plugin.types).forEach((typ) => {
         Object.keys(plugin.types[typ]).forEach((name) => {
-          this.register(typ, name, plugin.types[typ][name], annotations);
+          this.register(typ, name, plugin.types[typ][name]);
         });
       });
 
@@ -378,7 +374,7 @@ export const createExtensionManager = (context) => {
    * @param {String} name unique name of 'something'
    * @param {Function} fn function that dynamically loads the module for the thing being registered
    */
-    register(type, name, fn, annotations = {}) {
+    register(type, name, fn) {
       if (!dynamic[type]) {
         dynamic[type] = {};
       }
@@ -393,15 +389,6 @@ export const createExtensionManager = (context) => {
       } else {
         dynamic[type][name] = fn;
       }
-
-      if ( !!annotations[UI_PLUGIN_CHART_ANNOTATIONS.PRIME_ONLY]) {
-        if (!prime[type]) {
-          prime[type] = new Set();
-        }
-        if (!prime[type].has(name)) {
-          prime[type].add(name);
-        }
-      }
     },
 
     unregister(type, name, fn) {
@@ -415,9 +402,6 @@ export const createExtensionManager = (context) => {
         }
       } else if (dynamic[type]?.[name]) {
         delete dynamic[type][name];
-      }
-      if (prime[type]?.has(name)) {
-        prime[type].delete(name);
       }
     },
 
@@ -451,14 +435,6 @@ export const createExtensionManager = (context) => {
     getAllUIConfig() {
       return uiConfig;
     },
-    /**
-     *
-     * Returns all prime extensions
-     */
-
-    getPrime() {
-      return prime;
-    },
 
     // Timestamp that a UI package was last loaded
     // Typically used to invalidate caches (e.g. i18n) when new plugins are loaded
@@ -483,18 +459,13 @@ export const createExtensionManager = (context) => {
     getProviders(context) {
       // Custom Providers from extensions - initialize each with the store and the i18n service
       // Wrap in try ... catch, to prevent errors in an extension breaking the page
-      // console.log(context.$extension.getAllUIConfig()); useless
-      const TYPE = 'provisioner';
-      const extensions = context.$extension.listDynamic(TYPE).map((name) => {
+      const extensions = context.$extension.listDynamic('provisioner').map((name) => {
         try {
-          const provisioner = context.$extension.getDynamic(TYPE, name);
-          const isPrime = context.$extension.getPrime()[TYPE].has(name) || false;
-
+          const provisioner = context.$extension.getDynamic('provisioner', name);
           const defaults = {
             isCreate: false,
             isEdit:   false,
-            isView:   false,
-            isPrime
+            isView:   false
           };
 
           return new provisioner({ ...defaults, ...context });

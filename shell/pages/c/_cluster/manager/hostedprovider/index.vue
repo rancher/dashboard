@@ -7,7 +7,6 @@ import Masthead from '@shell/components/ResourceList/Masthead';
 import Banner from '@components/Banner/Banner.vue';
 import RcStatusBadge from '@components/Pill/RcStatusBadge/RcStatusBadge.vue';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { isRancherPrime } from '@shell/config/version';
 import { stateDisplay, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import { getHostedProviders } from '@shell/utils/provider';
 
@@ -23,7 +22,6 @@ export default {
       allProviders:    null,
       resource:        HOSTED_PROVIDER,
       schema:          this.$store.getters['rancher/schemaFor'](HOSTED_PROVIDER),
-      prime:           isRancherPrime(),
       settingResource: null
     };
   },
@@ -107,14 +105,13 @@ export default {
     async generateRows() {
       this.rows = this.allProviders.map((p) => {
         const active = p.id in this.settings ? this.settings[p.id] : true;
-        const canNotPrime = p.context.isPrime && !this.prime;
         const canNotChangeSettings = !this.settingResource?.canUpdate;
         const enableAction = {
           action:   'activate',
           label:    this.t('action.activate'),
           icon:     'icon icon-play',
           bulkable: true,
-          enabled:  !active && !canNotPrime && !canNotChangeSettings,
+          enabled:  !active && !canNotChangeSettings,
           invoke:   async(opts, resources) => {
             await this.setSetting(resources, true);
           }
@@ -137,7 +134,6 @@ export default {
           name:        p.label,
           nameDisplay: p.label,
           description: p.description || '',
-          prime:       p.context.isPrime,
           active,
           availableActions
         };
@@ -192,13 +188,6 @@ export default {
         <div class="col">
           <div class="row">
             <span class="mr-10">{{ row.name }}</span>
-            <RcStatusBadge
-              v-if="row.prime"
-              class="prime-badge"
-              status="success"
-            >
-              {{ t('providers.hosted.prime') }}
-            </RcStatusBadge>
           </div>
           <div
             v-if="row.description"
@@ -211,10 +200,3 @@ export default {
     </ResourceTable>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.prime-badge {
-  font-size: 10px;
-  line-height: 15px;
-}
-</style>
