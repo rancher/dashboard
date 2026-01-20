@@ -1,5 +1,7 @@
 # Resource page
 
+> Legacy DSL doc. The recommended flow is on the main Products page.
+
 ## Defining a kubernetes resource as a page for an Extension (configureType)
 One of the most common view types in Rancher Dashboard is the list view for a kubernetes resource. What if you wanted to include a similiar view on your Extension product for a given resource? For that we can use the function `configureType` coming from `$extension.DSL`. As an example usage of that method, one could do the following:
 
