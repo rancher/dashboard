@@ -46,13 +46,21 @@ export default {
       const counts = this.$store.getters[`${ product.inStore }/all`](COUNT)?.[0]?.counts || {};
 
       out.forEach((o) => {
-        o.children?.forEach((t) => {
+        o.children = o.children?.reduce((res, t) => {
+          if (!this.$store.getters[`${ product.inStore }/canList`](t.name)) {
+            return res;
+          }
+
           const count = counts[t.name];
 
           t.count = count ? count.summary.count || 0 : null;
           t.byNamespace = count ? count.namespaces : {};
           t.revision = count ? count.revision : null;
-        });
+
+          res.push(t);
+
+          return res;
+        }, []);
       });
 
       this.groups = out;

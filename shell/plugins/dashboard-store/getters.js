@@ -354,8 +354,6 @@ export default {
   canList: (state, getters) => (type) => {
     const schema = getters.schemaFor(type);
 
-    // TODO: RC remove from side bar... or keep in side bar to allow create... but just don't list
-
     if (!schema) {
       return false;
     }
@@ -365,8 +363,8 @@ export default {
       return false;
     }
 
-    if (!schema.attributes?.verbs.find((x) => x.toLowerCase() === 'list')) {
-      // This is the explicit permission to LIST (for example endpoint could just allow POST)
+    if (!schema.attributes?.verbs?.find((x) => x.toLowerCase() === 'list')) {
+      // This is the explicit permission to LIST (for example resource type could just allow POST)
       return false;
     }
 
