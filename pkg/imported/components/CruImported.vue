@@ -22,6 +22,8 @@ import { NAME as HARVESTER_MANAGER } from '@shell/config/harvester-manager-types
 import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@shell/store/features';
 import { HIDE_DESC, mapPref } from '@shell/store/prefs';
 import { addObject } from '@shell/utils/array';
+import { AGENT_CONFIGURATION_TYPES, initSchedulingCustomization } from '@shell/utils/cluster';
+
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import genericImportedClusterValidators from '../util/validators';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
@@ -30,7 +32,6 @@ import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annota
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization';
-import { initSchedulingCustomization } from '@shell/utils/cluster';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 const defaultCluster = {
@@ -97,6 +98,8 @@ export default defineComponent({
 
       this.clusterAgentDefaultPC = sc.clusterAgentDefaultPC;
       this.clusterAgentDefaultPDB = sc.clusterAgentDefaultPDB;
+      this.fleetAgentDefaultPC = sc.fleetAgentDefaultPC;
+      this.fleetAgentDefaultPDB = sc.fleetAgentDefaultPDB;
       this.schedulingCustomizationFeatureEnabled = sc.schedulingCustomizationFeatureEnabled;
       this.schedulingCustomizationOriginallyEnabled = sc.schedulingCustomizationOriginallyEnabled;
       this.errors = this.errors.concat(sc.errors);
@@ -118,6 +121,8 @@ export default defineComponent({
       schedulingCustomizationOriginallyEnabled: false,
       clusterAgentDefaultPC:                    null,
       clusterAgentDefaultPDB:                   null,
+      fleetAgentDefaultPC:                      null,
+      fleetAgentDefaultPDB:                     null,
       // When disabling clusterAgentDeploymentCustomization, we need to replace the whole object
       needsReplace:                             false,
       fvFormRuleSets:                           [{
@@ -134,6 +139,7 @@ export default defineComponent({
         rules: ['registryUrl']
       }
       ],
+      AGENT_CONFIGURATION_TYPES,
     };
   },
 
@@ -372,13 +378,29 @@ export default defineComponent({
       }
       this.versionManagementOld = this.normanCluster.annotations[IMPORTED_CLUSTER_VERSION_MANAGEMENT];
     },
-    setSchedulingCustomization(val) {
-      if (val) {
-        this.needsReplace = false;
-        set(this.normanCluster, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+    setSchedulingCustomization({ event, agentType }) {
+      if (event) {
+        switch (agentType) {
+        case AGENT_CONFIGURATION_TYPES.CLUSTER:
+          this.needsReplace = false;
+          set(this.normanCluster, 'clusterAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.clusterAgentDefaultPC, podDisruptionBudget: this.clusterAgentDefaultPDB });
+          break;
+        case AGENT_CONFIGURATION_TYPES.FLEET:
+          this.needsReplace = false;
+          set(this.normanCluster, 'fleetAgentDeploymentCustomization.schedulingCustomization', { priorityClass: this.fleetAgentDefaultPC, podDisruptionBudget: this.fleetAgentDefaultPDB });
+          break;
+        default:
+        }
       } else {
-        this.needsReplace = true;
-        delete this.normanCluster.clusterAgentDeploymentCustomization.schedulingCustomization;
+        switch (agentType) {
+        case AGENT_CONFIGURATION_TYPES.CLUSTER:
+          this.needsReplace = true;
+          delete this.normanCluster.clusterAgentDeploymentCustomization.schedulingCustomization; break;
+        case AGENT_CONFIGURATION_TYPES.FLEET:
+          this.needsReplace = true;
+          delete this.normanCluster.fleetAgentDeploymentCustomization.schedulingCustomization; break;
+        default:
+        }
       }
     },
   },
@@ -501,9 +523,29 @@ export default defineComponent({
         <SchedulingCustomization
           :value="clusterAgentDeploymentCustomization.schedulingCustomization"
           :mode="mode"
+          :type="AGENT_CONFIGURATION_TYPES.CLUSTER"
           :feature="schedulingCustomizationFeatureEnabled"
           :default-p-c="clusterAgentDefaultPC"
           :default-p-d-b="clusterAgentDefaultPDB"
+          @scheduling-customization-changed="setSchedulingCustomization"
+        />
+      </Accordion>
+      <Accordion
+        v-if="schedulingCustomizationVisible"
+        class="mb-20 accordion"
+        title-key="cluster.agentConfig.tabs.fleet"
+        :open-initially="false"
+      >
+        <h3>
+          {{ t('cluster.agentConfig.groups.schedulingCustomization') }}
+        </h3>
+        <SchedulingCustomization
+          :value="fleetAgentDeploymentCustomization.schedulingCustomization"
+          :mode="mode"
+          :type="AGENT_CONFIGURATION_TYPES.FLEET"
+          :feature="schedulingCustomizationFeatureEnabled"
+          :default-p-c="fleetAgentDefaultPC"
+          :default-p-d-b="fleetAgentDefaultPDB"
           @scheduling-customization-changed="setSchedulingCustomization"
         />
       </Accordion>
