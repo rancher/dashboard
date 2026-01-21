@@ -324,5 +324,41 @@ describe('component: vmwarevsphere', () => {
       expect(wrapper.vm.storageType).toBe('datastore');
       expect(wrapper.vm.value.datastoreCluster).toBe('');
     });
+
+    it('should initialize storage type to datastore-cluster if value has datastoreCluster set', () => {
+      const setup = {
+        ...defaultEditSetup,
+        propsData: {
+          ...defaultEditSetup.propsData,
+          value: {
+            ...defaultEditSetup.propsData.value,
+            datastoreCluster: 'existing-cluster',
+            datastore:        ''
+          }
+        }
+      };
+      const wrapper = mount(vmwarevsphere, setup);
+
+      expect(wrapper.vm.storageType).toBe('datastore-cluster');
+    });
+
+    it('should correctly toggle the visibility of datastore and datastore cluster selects', async() => {
+      const wrapper = mount(vmwarevsphere, defaultCreateSetup);
+      const dataStoreContainer = wrapper.find('[data-testid="dataStore"]');
+
+      // Default state: datastore
+      let select = dataStoreContainer.findComponent({ name: 'LabeledSelect' });
+
+      expect(select.exists()).toBe(true);
+      expect(select.props('label')).toBe('%cluster.machineConfig.vsphere.scheduling.dataStore%');
+
+      // Toggle to datastore-cluster
+      await wrapper.setData({ storageType: 'datastore-cluster' });
+
+      select = dataStoreContainer.findComponent({ name: 'LabeledSelect' });
+
+      expect(select.exists()).toBe(true);
+      expect(select.props('label')).toBe('%cluster.machineConfig.vsphere.scheduling.dataStoreCluster%');
+    });
   });
 });
