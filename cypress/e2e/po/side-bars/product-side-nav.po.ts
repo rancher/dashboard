@@ -27,7 +27,7 @@ export default class ProductNavPo extends ComponentPo {
    * Get all the visible child links
    */
   visibleNavTypes(): Cypress.Chainable {
-    return this.self().find('.accordion.expanded li.nav-type>a');
+    return this.self().find('.accordion.expanded li.nav-type>a, .accordion:not(.has-children):not(.expanded) .accordion-item a');
   }
 
   /**
