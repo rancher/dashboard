@@ -150,10 +150,6 @@ export default {
 
       await this.loadDataCenters();
       if (datacenterAlreadySet) {
-        if (this.value.datastoreCluster) {
-          this.storageType = 'datastore-cluster';
-        }
-
         this.loadAllDatacenterResources();
       }
     } catch (e) {
@@ -248,7 +244,7 @@ export default {
       haveTemplates:            null,
       vAppOptions,
       vappMode:                 VAPP_MODE.DISABLED,
-      storageType:              'datastore',
+      storageType:              this.value.datastoreCluster ? 'datastore-cluster' : 'datastore',
       storageOptions:           [
         {
           label: this.t('cluster.machineConfig.vsphere.scheduling.dataStore'),
