@@ -81,5 +81,5 @@ jobs:
             if (prMilestoneTitle === expectedMilestone) {
                 core.info(`✅ Milestone '${prMilestoneTitle}' matches the expected branch milestone '${expectedMilestone}'.`);
             } else {
-                core.setFailed(`❌ Pull Request milestone '${prMilestoneTitle}' does not match the expected milestone '${expectedMilestone}' for the target branch '${prTargetBranch}'. Please update the PR milestone.`);
+                core.setFailed(`❌ Pull Request milestone '${prMilestoneTitle}' does not match the required milestone '${expectedMilestone}' for the target branch '${prTargetBranch}'`);
             }
