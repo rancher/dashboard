@@ -359,7 +359,7 @@ export default {
     }
 
     if (!schema.hasLink('collection')) {
-      // This is the URL the UI will use to list
+      // This is the URL the UI will use to list. It will exist even if there's no GET/LIST permissions (to support POST)
       return false;
     }
 
