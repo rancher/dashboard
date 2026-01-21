@@ -1,7 +1,85 @@
 import Secret from '@shell/models/secret';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
+import { UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
+import { MANAGEMENT } from '@shell/config/types';
+import { STORE } from '@shell/store/store-types';
 
 describe('class Secret', () => {
+  describe('Project Scoped Secrets', () => {
+    const projectId = 'p-project';
+    const clusterId = 'c-cluster';
+    const projectName = 'My Project';
+    const clusterName = 'My Cluster';
+
+    const mockRootGetters = {
+      'isRancher':      true,
+      'currentCluster': { id: clusterId },
+      [`${ STORE.MANAGEMENT }/byId`]: (type: string, id: string) => {
+        if (type === MANAGEMENT.CLUSTER && id === clusterId) {
+          return { nameDisplay: clusterName };
+        }
+        if (type === MANAGEMENT.PROJECT && id === `${ clusterId }/${ projectId }`) {
+          return { nameDisplay: projectName };
+        }
+
+        return undefined;
+      }
+    };
+
+    it('should return clusterAndProjectLabel for a Source Project Secret', () => {
+      const secret = new Secret({
+        metadata: {
+          namespace:   `${ clusterId }-${ projectId }`,
+          labels:      { [UI_PROJECT_SECRET]: projectId },
+          annotations: {}
+        }
+      });
+
+      Object.defineProperty(secret, '$rootGetters', {
+        get() {
+          return mockRootGetters;
+        }
+      });
+
+      expect(secret.clusterAndProjectLabel).toBe(`${ projectName } (${ clusterName })`);
+    });
+
+    it('should return clusterAndProjectLabel for a Copied Project Secret', () => {
+      const secret = new Secret({
+        metadata: {
+          namespace:   'some-user-ns',
+          labels:      { [UI_PROJECT_SECRET]: projectId },
+          annotations: { [UI_PROJECT_SECRET_COPY]: 'true' }
+        }
+      });
+
+      Object.defineProperty(secret, '$rootGetters', {
+        get() {
+          return mockRootGetters;
+        }
+      });
+
+      expect(secret.clusterAndProjectLabel).toBe(`${ projectName } (${ clusterName })`);
+    });
+
+    it('should return empty string for a Regular Secret', () => {
+      const secret = new Secret({
+        metadata: {
+          namespace: 'default',
+          labels:    {}
+        }
+      });
+
+      Object.defineProperty(secret, '$rootGetters', {
+        get() {
+          return mockRootGetters;
+        }
+      });
+
+      expect(secret.clusterAndProjectLabel).toBe('');
+    });
+  });
+
   describe('cleanForDownload', () => {
     it('should contains the type attribute if cleanForDownload', async() => {
       const secret = new Secret({});
