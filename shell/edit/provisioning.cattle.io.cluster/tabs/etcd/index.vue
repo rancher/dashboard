@@ -124,6 +124,7 @@ export default {
       <S3Config
         v-if="s3Backup"
         v-model:value="etcd.s3"
+        :local-retention-count="etcd.snapshotRetention"
         :namespace="value.metadata.namespace"
         :register-before-hook="registerBeforeHook"
         :mode="mode"
