@@ -53,6 +53,11 @@ export default {
     },
 
     valuesYaml() {
+      // Prevent crash if data hasn't been fetched yet (e.g. secret during upgrade)
+      if (!this.value?.valuesLoaded) {
+        return '';
+      }
+
       const combined = mergeWithReplace(
         merge({}, this.value?.chartValues || {}),
         this.value?.values || {},

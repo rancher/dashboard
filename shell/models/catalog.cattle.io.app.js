@@ -443,6 +443,14 @@ export default class CatalogApp extends SteveModel {
   }
 
   /**
+   * Safely checks if the required data is loaded.
+   * This avoids the exceptions thrown by `values` and `chartValues` when the data (e.g. secret) is missing.
+   */
+  get valuesLoaded() {
+    return !!this._values && !!this._chartValues;
+  }
+
+  /**
    * The user's helm values
    */
   get values() {

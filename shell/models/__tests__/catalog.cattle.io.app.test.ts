@@ -145,4 +145,37 @@ describe('class CatalogApp', () => {
       expect(catalogApp.upgradeAvailable).toBe(expected);
     });
   });
+
+  describe('valuesLoaded', () => {
+    it('should be false if data is missing (e.g. secret)', () => {
+      const catalogApp = new CatalogApp({});
+
+      jest.spyOn(catalogApp, '_secret', 'get').mockReturnValue(null);
+
+      expect(catalogApp.valuesLoaded).toBe(false);
+    });
+
+    it('should be false if part of the data is missing', () => {
+      const catalogApp = new CatalogApp({});
+
+      jest.spyOn(catalogApp, '_secret', 'get').mockReturnValue({ data: {} });
+
+      expect(catalogApp.valuesLoaded).toBe(false);
+    });
+
+    it('should be true if all required data is present', () => {
+      const catalogApp = new CatalogApp({});
+
+      jest.spyOn(catalogApp, '_secret', 'get').mockReturnValue({
+        data: {
+          release: {
+            config: { foo: 'bar' },
+            chart:  { values: { baz: 'qux' } }
+          }
+        }
+      });
+
+      expect(catalogApp.valuesLoaded).toBe(true);
+    });
+  });
 });
