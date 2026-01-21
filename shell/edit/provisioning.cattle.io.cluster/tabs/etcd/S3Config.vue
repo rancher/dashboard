@@ -6,6 +6,7 @@ import { NORMAN } from '@shell/config/types';
 import FormValidation from '@shell/mixins/form-validation';
 import UnitInput from '@shell/components/form/UnitInput';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+import { _CREATE } from '@shell/config/query-params';
 
 const RETENTION_DEFAULT = 5;
 
@@ -71,6 +72,9 @@ export default {
       ]
     };
   },
+  created() {
+    this.differentRetention = !(this.mode === _CREATE || this.value?.retention === this.localRetentionCount);
+  },
 
   computed: {
 
@@ -85,6 +89,7 @@ export default {
 
       return {};
     },
+
     localCountToUse() {
       return this.localRetentionCount === null || this.localRetentionCount === undefined ? RETENTION_DEFAULT : this.localRetentionCount;
     },

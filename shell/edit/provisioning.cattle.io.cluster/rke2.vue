@@ -2273,7 +2273,7 @@ export default {
     v-else
     ref="cruresource"
     :mode="mode"
-    :validation-passed="overallFormValidationPassed"
+    :validation-passed="true"
     :resource="value"
     :errors="errors"
     :cancel-event="true"
