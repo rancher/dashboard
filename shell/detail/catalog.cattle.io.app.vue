@@ -129,7 +129,7 @@ export default {
     >
       {{ t('catalog.app.section.lastOperation') }}: ( {{ latestOperation.status.action }} ) - <a @click="latestOperation.openLogs()">  {{ t('catalog.app.section.openLogs') }}</a>
     </span>
-    hohohoho
+
     <ResourceTabs
       class="mt-20"
       default-tab="resources"
