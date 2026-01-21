@@ -53,6 +53,11 @@ export default {
     },
 
     valuesYaml() {
+      // Prevent crash if data hasn't been fetched yet (e.g. secret during upgrade)
+      if (!this.value?.valuesLoaded) {
+        return '';
+      }
+
       const combined = mergeWithReplace(
         merge({}, this.value?.chartValues || {}),
         this.value?.values || {},
@@ -124,7 +129,7 @@ export default {
     >
       {{ t('catalog.app.section.lastOperation') }}: ( {{ latestOperation.status.action }} ) - <a @click="latestOperation.openLogs()">  {{ t('catalog.app.section.openLogs') }}</a>
     </span>
-
+    hohohoho
     <ResourceTabs
       class="mt-20"
       default-tab="resources"
