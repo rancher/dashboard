@@ -48,9 +48,6 @@ ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/models/namespace.js --declaration
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/models/networking.k8s.io.ingress.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/models/ > /dev/null
 ${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/models/catalog.cattle.io.clusterrepo.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/models/ > /dev/null
 
-# # store
-${BASE_DIR}/node_modules/.bin/tsc ${SHELL_DIR}/store/store-types.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store/ > /dev/null
-
 #./node_modules/.bin/tsc ${SHELL_DIR}/plugins/dashboard-store/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store
 
 # Go through all of the folders and combine by wrapping with 'declare module'
