@@ -68,9 +68,7 @@ jobs:
             const branchConfig = config.branches[prTargetBranch];
 
             if (!branchConfig) {
-                // If the branch is not found in the config, it might be a new or unsupported branch.
-                // You can choose to fail here or allow it. Allowing it by default for flexibility.
-                core.warning(`⚠️ Target branch '${prTargetBranch}' not found in the config file. Skipping milestone check.`);
+                core.setFailed(`❌ Pull Request branch '${prTargetBranch}' not found in ${configFilePath}.`);
                 return;
             }
 
