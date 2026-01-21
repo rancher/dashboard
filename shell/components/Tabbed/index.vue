@@ -128,7 +128,8 @@ export default {
     return {
       tabs:          [...parsedExtTabs],
       extensionTabs: parsedExtTabs,
-      activeTabName: null
+      activeTabName: null,
+      tabRefs:       {}
     };
   },
 
@@ -263,7 +264,10 @@ export default {
       this.select(nextName);
 
       this.$nextTick(() => {
-        this.$refs.tablist.focus();
+        this.$refs.tablist.removeAttribute('tabindex');
+        if (this.tabRefs[nextName]) {
+          this.tabRefs[nextName].focus();
+        }
       });
 
       function getCyclicalIdx(currentIdx, direction, tabsLength) {
@@ -323,14 +327,16 @@ export default {
         :key="tab.name"
         :data-testid="tab.name"
         :class="{tab: true, active: tab.active, disabled: tab.disabled, error: (tab.error)}"
-        role="presentation"
       >
         <a
+          :id="`tab-${tab.name}`"
+          :ref="(el) => { if (el) tabRefs[tab.name] = el; }"
           :data-testid="`btn-${tab.name}`"
           :aria-controls="tab.name"
           :aria-selected="tab.active"
           :aria-label="tab.labelDisplay || ''"
           role="tab"
+          :tabindex="tab.active ? '0' : '-1'"
           @click.prevent="select(tab.name, $event)"
           @keyup.enter.space="select(tab.name, $event)"
         >
