@@ -63,14 +63,19 @@ export default {
       // If ssp is enabled the store not have all projects. ensure we have them all
       await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
       if (this.isCreate) {
-        // Pick first project as default
-        this.projectName = this.filteredProjects[0].metadata.name;
+        // Pick first project with a backing namespace as default.
+        // Without this, we might pick a project that is still initializing, causing validation errors.
+        const project = this.filteredProjects.find((p) => p.status?.backingNamespace);
 
-        this.value.metadata.labels = this.value.metadata.labels || {};
+        if (project) {
+          this.projectName = project.metadata.name;
 
-        // Set namespace and project-scoped label
-        this.value.metadata.namespace = this.filteredProjects[0].status.backingNamespace;
-        this.value.metadata.labels[UI_PROJECT_SECRET] = this.filteredProjects[0].metadata.name;
+          this.value.metadata.labels = this.value.metadata.labels || {};
+
+          // Set namespace and project-scoped label
+          this.value.metadata.namespace = project.status.backingNamespace;
+          this.value.metadata.labels[UI_PROJECT_SECRET] = project.metadata.name;
+        }
       } else {
         this.projectName = this.filteredProjects.find((p) => p.metadata.name === projectScopedLabel).metadata.name;
       }
@@ -314,6 +319,15 @@ export default {
       }
 
       if (this.isProjectScoped) {
+        // We removed the automatic validation rule for namespace (see watcher below) to allow the Create button
+        // to be active while the user selects a project. However, we must strictly validate it here before saving.
+        if (!this.value.metadata.namespace) {
+          this.errors = [this.t('validation.required', { key: 'Namespace' })];
+          btnCb(false);
+
+          return;
+        }
+
         // Always create project-scoped secrets in the upstream local cluster
         const url = this.$store.getters['management/urlFor'](this.value.type, this.value.id);
 
@@ -378,14 +392,39 @@ export default {
   },
 
   watch: {
+    isProjectScoped(neu) {
+      if (neu) {
+        // When project-scoped, the namespace is set programmatically based on the selected project.
+        // We remove the strict 'required' check here so the "Create" button isn't disabled by the
+        // form validator while the logic settles. We manually validate in saveSecret().
+        this.fvFormRuleSets = this.fvFormRuleSets.filter((rule) => rule.path !== 'metadata.namespace');
+      } else {
+        const hasNamespace = this.fvFormRuleSets.find((rule) => rule.path === 'metadata.namespace');
+
+        if (!hasNamespace) {
+          this.fvFormRuleSets.push({
+            path:  'metadata.namespace',
+            rules: ['required'],
+          });
+        }
+      }
+    },
+
     projectName(neu) {
       if (this.isCreate && neu) {
         this.value.metadata.labels = this.value.metadata.labels || {};
         this.value.metadata.labels[UI_PROJECT_SECRET] = neu;
 
-        const projectScopedNamespace = this.filteredProjects.find((p) => p.metadata.name === neu).status.backingNamespace;
+        const project = this.filteredProjects.find((p) => p.metadata.name === neu);
+        const ns = project?.status?.backingNamespace;
 
-        this.value.metadata.namespace = projectScopedNamespace;
+        if (ns) {
+          this.value.metadata.namespace = ns;
+        } else {
+          // If the project has no backing namespace (e.g. initializing), clear the value
+          // so the manual validation in saveSecret blocks the save.
+          this.value.metadata.namespace = null;
+        }
       }
     }
   }
