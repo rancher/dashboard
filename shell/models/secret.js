@@ -547,14 +547,6 @@ export default class Secret extends SteveModel {
     return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, `${ this.projectScopedClusterId }/${ this.projectScopedProjectId }`);
   }
 
-  get projectScopedSecretCluster() {
-    if (!this.isProjectScopedRelated ) {
-      return undefined;
-    }
-
-    return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, `${ this.projectScopedClusterId }/${ this.projectScopedProjectId }`);
-  }
-
   get clusterAndProjectLabel() {
     if (!this.isProjectScopedRelated) {
       return '';
