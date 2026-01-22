@@ -764,11 +764,11 @@ export default class Workload extends WorkloadService {
     return {
       component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue'))),
       props:     {
-        title:          this.t('component.resource.detail.card.podsCard.title'),
-        resources:      this.pods,
-        'show-scaling': this.canUpdate && scalingTypes.includes(this.type),
-        onIncrease:     () => this.scale(true),
-        onDecrease:     () => this.scale(false)
+        title:       this.t('component.resource.detail.card.podsCard.title'),
+        resources:   this.pods,
+        showScaling: this.canUpdate && scalingTypes.includes(this.type),
+        onIncrease:  () => this.scale(true),
+        onDecrease:  () => this.scale(false)
       }
     };
   }
@@ -783,9 +783,9 @@ export default class Workload extends WorkloadService {
     return {
       component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue'))),
       props:     {
-        title:          this.t('component.resource.detail.card.jobsCard.title'),
-        resources:      this.jobs,
-        'show-scaling': false,
+        title:       this.t('component.resource.detail.card.jobsCard.title'),
+        resources:   this.jobs,
+        showScaling: false,
       }
     };
   }

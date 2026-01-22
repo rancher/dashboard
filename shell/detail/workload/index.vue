@@ -13,7 +13,6 @@ import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
 import { PROJECT } from '@shell/config/labels-annotations';
-import { useDefaultWorkloadInsightsCardProps } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 
 const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';
 const WORKLOAD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-1/rancher-workload?orgId=1';
@@ -52,10 +51,6 @@ export default {
       hash.pods = this.value.fetchPods();
     }
 
-    if (this.serviceSchema) {
-      hash.servicesInNamespace = this.$store.dispatch('cluster/findAll', { type: SERVICE, opt: { namespaced: this.value.metadata.namespace } });
-    }
-
     if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
       hash.jobs = this.value.matchingJobs();
     }
@@ -91,7 +86,6 @@ export default {
 
   data() {
     return {
-      servicesInNamespace:             [],
       allIngresses:                    [],
       matchingIngresses:               [],
       allNodes:                        [],
@@ -217,12 +211,6 @@ export default {
 
       return !jobGauges.find((jg) => jg.count === total);
     }
-  },
-
-  setup() {
-    const insightCardProps = useDefaultWorkloadInsightsCardProps();
-
-    return { insightCardProps };
   },
 
   methods: {

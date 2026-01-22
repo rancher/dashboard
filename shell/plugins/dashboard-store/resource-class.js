@@ -2114,7 +2114,8 @@ export default class Resource {
   }
 
   get resourceEvents() {
-    return this.$rootGetters['cluster/all'](EVENT);
+    return this.$rootGetters['cluster/all'](EVENT)
+      .filter((e) => e.involvedObject?.uid === this.metadata?.uid);
   }
 
   get insightCardProps() {

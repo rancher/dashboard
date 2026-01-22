@@ -271,7 +271,7 @@ describe('class: Workload', () => {
 
       expect(card).not.toBeNull();
       expect(card.props.title).toBe('component.resource.detail.card.podsCard.title');
-      expect(card.props['show-scaling']).toBe(true);
+      expect(card.props.showScaling).toBe(true);
     });
 
     it('should return card for DaemonSet type without scaling', () => {
@@ -291,7 +291,7 @@ describe('class: Workload', () => {
       const card = workload.podsCard;
 
       expect(card).not.toBeNull();
-      expect(card.props['show-scaling']).toBe(false);
+      expect(card.props.showScaling).toBe(false);
     });
 
     it('should return null for unsupported types like CronJob', () => {
@@ -326,7 +326,7 @@ describe('class: Workload', () => {
 
       const card = workload.podsCard;
 
-      expect(card.props['show-scaling']).toBe(false);
+      expect(card.props.showScaling).toBe(false);
     });
   });
 
@@ -348,7 +348,7 @@ describe('class: Workload', () => {
 
       expect(card).not.toBeNull();
       expect(card.props.title).toBe('component.resource.detail.card.jobsCard.title');
-      expect(card.props['show-scaling']).toBe(false);
+      expect(card.props.showScaling).toBe(false);
     });
 
     it('should return null for non-CronJob types', () => {

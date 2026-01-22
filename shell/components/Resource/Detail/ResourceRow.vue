@@ -72,7 +72,7 @@ const displayCounts = computed(() => {
           :key="count.label"
           class="count"
         >
-          <span class="count-value">{{ count.count }}</span>&nbsp;<div class="count-label">{{ count.label }}</div><span class="and">&nbsp;+&nbsp;</span>
+          <span class="count-value">{{ count.count }}</span>&nbsp;<span class="count-label">{{ count.label }}</span><span class="and">&nbsp;+&nbsp;</span>
         </span>
       </div>
     </div>
