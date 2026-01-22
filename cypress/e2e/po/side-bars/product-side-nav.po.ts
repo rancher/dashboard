@@ -16,6 +16,14 @@ export default class ProductNavPo extends ComponentPo {
   }
 
   /**
+   * Get all navigation accordion items
+   * @returns {Cypress.Chainable}
+   */
+  accordionItems(): Cypress.Chainable {
+    return this.self().find('.accordion-item');
+  }
+
+  /**
    * Get all the expanded accordion groups
    * @returns
    */
@@ -95,7 +103,7 @@ export default class ProductNavPo extends ComponentPo {
    * Active navigation item
    */
   activeNavItem() {
-    return this.groups().find('.router-link-active').should('exist').invoke('text')
+    return this.accordionItems().find('.router-link-active').should('exist').invoke('text')
       .then((s) => s.trim());
   }
 }

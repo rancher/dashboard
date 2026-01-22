@@ -58,8 +58,37 @@ export default function(plugin: IPlugin) {
   // it will grab information such as `name` and `description`
   plugin.metadata = require('./package.json');
 
+  const productMetadata: ProductMetadata = {
+    name:  'my-product',
+    label: 'My Product',
+    icon:  'gear',
+  };
+
+  const productConfig: ProductChild[] = [
+    {
+      name:      'overview', // custom page
+      label:     'Overview',
+      component: () => import('./components/overview.vue'),
+    },
+    {
+      type:   'provisioning.cattle.io.cluster', // resource page
+      label:  'Custom Clusters view',
+    },
+    {
+      name:      'custom-settings', // group with children (only allowed for custom pages)
+      label:     'Custom Settings',
+      children: [
+        {
+          name:      'general',
+          label:     'General',
+          component: () => import('./components/general.vue'),
+        },
+      ],
+    },
+  ];
+
   // Load a product
-  plugin.addProduct(require('./product'));
+  plugin.addProduct(productMetadata, productConfig);
   
   // => => => Add Vuex store
   plugin.addDashboardStore(extensionStore.config.namespace, extensionStore.specifics, extensionStore.config);
