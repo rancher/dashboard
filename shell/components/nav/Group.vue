@@ -280,22 +280,28 @@ export default {
               <span v-clean-html="group.labelDisplay || group.label" />
             </h6>
           </router-link>
-          <!-- Simple child (nav item) -->
-          <router-link
-            v-else-if="!hasChildren"
-            :to="group.route"
-            :exact="group.exact"
-          >
-            <h6>
-              <span v-clean-html="group.labelDisplay || group.label" />
-            </h6>
-          </router-link>
           <!-- Non-linked group header -->
           <h6
-            v-else
+            v-else-if="hasChildren"
           >
             <span v-clean-html="group.labelDisplay || group.label" />
           </h6>
+          <!-- Simple child (nav item) -->
+          <ul
+            v-else
+            class="list-unstyled body root-depth"
+            v-bind="$attrs"
+          >
+            <Type
+
+              :key="id+'_' + group.name + '_type'"
+              :is-root="depth == 0 && !showHeader"
+              :type="group"
+              :depth="depth"
+              :highlight-route="highlightRoute"
+              @selected="selectType($event)"
+            />
+          </ul>
         </slot>
       </div>
       <i
@@ -400,17 +406,6 @@ export default {
         text-transform: none;
         padding: 8px 0 8px 16px;
       }
-
-      &.router-link-active {
-        color: var(--on-active, var(--primary-hover-text));
-        background-color: var(--active-nav, var(--primary-hover-bg));
-
-        h6 {
-          padding: 8px 0 8px 16px;
-          font-weight: bold;
-          color: var(--on-active, var(--primary-hover-text));
-        }
-      }
     }
   }
 
@@ -507,6 +502,10 @@ export default {
             background: var(--category-active-hover, var(--primary));
           }
         }
+      }
+
+      .root-depth :deep() > .child.nav-type a {
+        padding-left: 14px;
       }
     }
 
