@@ -5,15 +5,15 @@ import { MANAGEMENT } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
 
 describe('class Secret', () => {
-  describe('Project Scoped Secrets', () => {
+  describe('project Scoped Secrets', () => {
     const projectId = 'p-project';
     const clusterId = 'c-cluster';
     const projectName = 'My Project';
     const clusterName = 'My Cluster';
 
     const mockRootGetters = {
-      'isRancher':      true,
-      'currentCluster': { id: clusterId },
+      isRancher:                      true,
+      currentCluster:                 { id: clusterId },
       [`${ STORE.MANAGEMENT }/byId`]: (type: string, id: string) => {
         if (type === MANAGEMENT.CLUSTER && id === clusterId) {
           return { nameDisplay: clusterName };
@@ -77,6 +77,32 @@ describe('class Secret', () => {
       });
 
       expect(secret.clusterAndProjectLabel).toBe('');
+    });
+
+    it('should fallback to IDs if Cluster and Project resources are missing', () => {
+      const secret = new Secret({
+        metadata: {
+          namespace:   `${ clusterId }-${ projectId }`,
+          labels:      { [UI_PROJECT_SECRET]: projectId },
+          annotations: {}
+        }
+      });
+
+      const mockMissingRootGetters = {
+        isRancher:                      true,
+        currentCluster:                 { id: clusterId },
+        [`${ STORE.MANAGEMENT }/byId`]: (type: string, id: string) => {
+          return undefined;
+        }
+      };
+
+      Object.defineProperty(secret, '$rootGetters', {
+        get() {
+          return mockMissingRootGetters;
+        }
+      });
+
+      expect(secret.clusterAndProjectLabel).toBe(`${ projectId } (${ clusterId })`);
     });
   });
 

@@ -559,7 +559,7 @@ export default class Secret extends SteveModel {
     if (!this.isProjectScopedRelated) {
       return '';
     }
-    const clusterName = this.projectCluster?.nameDisplay;
+    const clusterName = this.projectCluster?.nameDisplay || this.projectScopedClusterId;
     // project is going to be empty if upstream and trying to show pss from downstream clusters
     // we only ever have the current clusters projects. if we change this (fetch them in the list)
     // we wipe out the header ns filter projects
