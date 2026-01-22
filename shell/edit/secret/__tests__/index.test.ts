@@ -25,7 +25,7 @@ describe('component: Secret Index', () => {
     dispatch: jest.fn(),
   };
 
-  const defaultProps = {
+  const createDefaultProps = () => ({
     value: {
       _type:    'Opaque',
       metadata: {
@@ -36,12 +36,12 @@ describe('component: Secret Index', () => {
       },
     },
     mode: _CREATE,
-  };
+  });
 
   const createWrapper = (props = {}, routeQuery = {}, mocks = {}) => {
     return shallowMount(SecretIndex, {
       props: {
-        ...defaultProps,
+        ...createDefaultProps(),
         ...props,
       },
       global: {
@@ -49,6 +49,7 @@ describe('component: Secret Index', () => {
           $store:      mockStore,
           $route:      { query: routeQuery },
           $fetchState: { pending: false },
+          $t:          (key) => key,
           ...mocks,
         },
         stubs: {
@@ -103,6 +104,25 @@ describe('component: Secret Index', () => {
     expect(wrapper.vm.value.metadata.labels[UI_PROJECT_SECRET]).toBe('p2');
   });
 
+  it('should not select a project if none have a backingNamespace on fetch', async() => {
+    const projects = [
+      {
+        metadata: { name: 'p1' },
+        spec:     { clusterName: 'local' },
+        status:   {}
+      }
+    ];
+
+    mockStore.getters['management/all'].mockReturnValue(projects);
+
+    const wrapper = createWrapper({}, { [SECRET_SCOPE]: SECRET_QUERY_PARAMS.PROJECT_SCOPED });
+
+    await SecretIndex.fetch.call(wrapper.vm);
+
+    expect(wrapper.vm.projectName).toBeNull();
+    expect(wrapper.vm.value.metadata.namespace).toBe('');
+  });
+
   it('should remove namespace validation rule when isProjectScoped is true', async() => {
     const wrapper = createWrapper();
 
@@ -117,6 +137,15 @@ describe('component: Secret Index', () => {
 
     // Validation rule should be removed
     expect(wrapper.vm.fvFormRuleSets).not.toStrictEqual(expect.arrayContaining([
+      expect.objectContaining({ path: 'metadata.namespace' })
+    ]));
+
+    // Set isProjectScoped back to false
+    wrapper.setData({ isProjectScoped: false });
+    await wrapper.vm.$nextTick();
+
+    // Validation rule should be added back
+    expect(wrapper.vm.fvFormRuleSets).toStrictEqual(expect.arrayContaining([
       expect.objectContaining({ path: 'metadata.namespace' })
     ]));
   });
@@ -141,6 +170,7 @@ describe('component: Secret Index', () => {
     await wrapper.vm.$nextTick();
 
     expect(wrapper.vm.value.metadata.namespace).toBe('ns-p1');
+    expect(wrapper.vm.value.metadata.labels[UI_PROJECT_SECRET]).toBe('p1');
   });
 
   it('should clear namespace when projectName changes to a project without backingNamespace', async() => {
@@ -188,6 +218,10 @@ describe('component: Secret Index', () => {
     wrapper.setData({ isProjectScoped: true });
     wrapper.vm.value.metadata.namespace = 'valid-ns';
 
+    const mockUrl = 'https://my-rancher.com/v1/management.cattle.io.projects/local/p1';
+
+    mockStore.getters['management/urlFor'].mockReturnValue(mockUrl);
+
     // Mock the save mixin method
     jest.spyOn(wrapper.vm, 'save').mockImplementation();
 
@@ -196,6 +230,6 @@ describe('component: Secret Index', () => {
     await wrapper.vm.saveSecret(btnCb);
 
     expect(wrapper.vm.errors).toHaveLength(0);
-    expect(wrapper.vm.save).toHaveBeenCalledWith(btnCb, undefined);
+    expect(wrapper.vm.save).toHaveBeenCalledWith(btnCb, mockUrl);
   });
 });

@@ -60,7 +60,7 @@ export default {
     this.isProjectScoped = isProjectScoped;
 
     if (isProjectScoped) {
-      // If ssp is enabled the store not have all projects. ensure we have them all
+      // If SSP is enabled the store may not have all projects. Ensure we have them all
       await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
       if (this.isCreate) {
         // Pick first project with a backing namespace as default.
@@ -77,7 +77,7 @@ export default {
           this.value.metadata.labels[UI_PROJECT_SECRET] = project.metadata.name;
         }
       } else {
-        this.projectName = this.filteredProjects.find((p) => p.metadata.name === projectScopedLabel).metadata.name;
+        this.projectName = this.filteredProjects.find((p) => p.metadata.name === projectScopedLabel)?.metadata?.name;
       }
     }
   },
