@@ -16,6 +16,7 @@ import { allDashboardsExist } from '@shell/utils/grafana';
 import PlusMinus from '@shell/components/form/PlusMinus';
 import { matches } from '@shell/utils/selector';
 import { PROJECT } from '@shell/config/labels-annotations';
+import { fetchNodesForServiceTargets } from '@shell/models/service';
 
 const SCALABLE_TYPES = Object.values(SCALABLE_WORKLOAD_TYPES);
 const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';
@@ -35,22 +36,12 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    let hasNodes = false;
-
-    try {
-      const inStore = this.$store.getters['currentStore']();
-      const schema = this.$store.getters[`${ inStore }/schemaFor`](NODE);
-
-      if (schema) {
-        hasNodes = true;
-      }
-    } catch {}
-
     const hash = {
       allIngresses: this.$store.dispatch('cluster/findAll', { type: INGRESS }),
-      // Nodes should be fetched because they may be referenced in the target
-      // column of a service list item.
-      allNodes:     hasNodes ? this.$store.dispatch('cluster/findAll', { type: NODE }) : []
+      nodes:        fetchNodesForServiceTargets({
+        $store:  this.$store,
+        inStore: this.$store.getters['currentStore']()
+      })
     };
 
     if (this.podSchema) {
@@ -101,7 +92,6 @@ export default {
       allIngresses:                    [],
       matchingServices:                [],
       matchingIngresses:               [],
-      allNodes:                        [],
       WORKLOAD_METRICS_DETAIL_URL,
       WORKLOAD_METRICS_SUMMARY_URL,
       POD_PROJECT_METRICS_DETAIL_URL:  '',

@@ -1,7 +1,8 @@
 import find from 'lodash/find';
-import { POD } from '@shell/config/types';
+import { NODE, POD } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { parse } from '@shell/utils/selector';
+import { PaginationFilterEquality, PaginationParamFilter } from '@shell/types/store/pagination.types';
 
 // i18n-uses servicesPage.serviceTypes.clusterIp.*, servicesPage.serviceTypes.externalName.*, servicesPage.serviceTypes.headless.*
 // i18n-uses servicesPage.serviceTypes.loadBalancer.*, servicesPage.serviceTypes.nodePort.*
@@ -49,6 +50,43 @@ export const CLUSTERIP = (() => {
 
   return clusterIp.id;
 })();
+
+/**
+ * Use to populate the cache with a node that can be used in Service's target value
+ *
+ * Service's Target Cell --> shell/components/formatter/ServiceTargets.vue --> shell/components/formatter/Endpoints.vue --> Picks the first one that has a model's externalIp
+ */
+export const fetchNodesForServiceTargets = async({
+  $store,
+  inStore,
+}) => {
+  try {
+    const schema = $store.getters[`${ inStore }/schemaFor`](NODE);
+
+    if (schema) {
+      if ($store.getters[`${ inStore }/paginationEnabled`](NODE)) {
+        // Of type @ActionFindPageArgs
+        const findPageArgs = {
+          pagination: {
+            pageSize: 1,
+            // TODO: RC test once https://github.com/rancher/rancher/issues/53459 resolved
+            // filters:  [
+            //   PaginationParamFilter.createSingleField({
+            //     field:    'status.addresses.type',
+            //     value:    'ExternalIP',
+            //     equality: PaginationFilterEquality.EQUALS
+            //   }),
+            // ],
+          },
+        };
+
+        return $store.dispatch(`${ inStore }/findPage`, { type: NODE, opt: findPageArgs });
+      } else {
+        return $store.dispatch(`${ inStore }/findAll`, { type: NODE });
+      }
+    }
+  } catch {}
+};
 
 export default class Service extends SteveModel {
   get customValidationRules() {

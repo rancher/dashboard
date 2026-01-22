@@ -3,6 +3,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 import { mapGetters } from 'vuex';
+import { NODE } from '@shell/config/types';
 
 export default {
   name:   'Workload',
@@ -20,7 +21,12 @@ export default {
     },
   },
   data() {
-    return { selectedName: null, errors: [] };
+    const inStore = this.$store.getters['currentStore'](NODE);
+    const canNode = this.$store.getters[`${ inStore }/canList`](NODE);
+
+    return {
+      selectedName: null, errors: [], canNode
+    };
   },
   computed: { ...mapGetters({ t: 'i18n/t' }) },
   methods:  {
@@ -479,22 +485,23 @@ export default {
               name="podScheduling"
               :weight="tabWeightMap['podScheduling']"
             >
+              <!-- TODO: RC PR document -->
               <PodAffinity
                 :mode="mode"
                 :value="podTemplateSpec"
-                :nodes="allNodeObjects"
                 :loading="isLoadingSecondaryResources"
               />
             </Tab>
             <Tab
+              v-if="canNode"
               :label="t('workload.container.titles.nodeScheduling')"
               name="nodeScheduling"
               :weight="tabWeightMap['nodeScheduling']"
             >
+              <!-- TODO: RC PR document -->
               <NodeScheduling
                 :mode="mode"
                 :value="podTemplateSpec"
-                :nodes="workerNodes"
                 :loading="isLoadingSecondaryResources"
               />
             </Tab>

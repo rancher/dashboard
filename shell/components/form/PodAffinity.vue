@@ -11,7 +11,6 @@ import { randomStr } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import debounce from 'lodash/debounce';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
-import { getUniqueLabelKeys } from '@shell/utils/array';
 
 const NAMESPACE_SELECTION_OPTION_VALUES = {
   POD:      'pod',
@@ -45,11 +44,6 @@ export default {
     mode: {
       type:    String,
       default: 'create'
-    },
-
-    nodes: {
-      type:    Array,
-      default: () => []
     },
 
     namespaces: {
@@ -132,12 +126,11 @@ export default {
       return out;
     },
 
-    existingNodeLabels() {
-      return getUniqueLabelKeys(this.nodes);
-    },
-
     hasNodes() {
-      return this.nodes.length;
+      const inStore = this.$store.getters['currentStore'](NODE);
+      const canList = this.$store.getters[`${ inStore }/canList`](NODE);
+
+      return canList;
     },
 
     namespaceSelectionOptions() {
@@ -450,7 +443,6 @@ export default {
                 required
                 :label="t('workload.scheduling.affinity.topologyKey.label')"
                 :placeholder="topologyKeyPlaceholder"
-                :options="existingNodeLabels"
                 :disabled="mode==='view'"
                 :loading="loading"
                 :data-testid="`pod-affinity-topology-select-index${props.i}`"
