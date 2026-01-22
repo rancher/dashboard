@@ -17,17 +17,20 @@ Rancher Dashboard is the user interface for Rancher, built using Vue.js and Type
 - **Build**: `yarn build`
 - **Lint**: `yarn lint`
 - **Unit Tests**: `yarn test` (Jest)
-- **E2E Tests**: Requires configuration
+- **E2E Tests**: See contributors guide
 
 ## Boundaries
 
 - ✅ **Always:** 
   - Write to `creators/`, `cypress/`, `docs/`, `docusaurus/`, `pkg/`, `scripts/`, `shell/` and `storybook/`.
+  - Make commits in a new branch (for a PR).
   - Run tests before commits.
   - Follow existing naming conventions (PascalCase for components, camelCase for functions).
-- ⚠️ **Ask first:** Adding dependencies
+  - After changing a vue, js or ts file make sure it's automatically formatted with eslint
+- ⚠️ **Ask first:**
+  - Adding dependencies
 - 🚫 **Never:** 
-  - Commit secrets, `.env`, or API keys.
+  - Commit or log secrets, `.env`, or API keys.
   - Edit `node_modules/`.
   - Commit directly to `master` (use PRs).
 
