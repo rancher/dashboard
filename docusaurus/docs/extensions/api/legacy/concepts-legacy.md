@@ -24,7 +24,7 @@ product({
 
 You will be registering a new app/product that is global to the whole Rancher UI, much like `Fleet` or `Cluster Management`, and as a side-effect an icon will appear on the main side bar of Rancher:
 
-![Top Level Product](../screenshots/top-level-prod.png)
+![Top Level Product](../../screenshots/top-level-prod.png)
 
 All the pages that you register inside this product will appear as links on it's dedicated sub-menu providing that all the correct functions are used.
 
@@ -49,7 +49,7 @@ product({
 
 You will be registering a new app/product that only appears in the context of "Cluster explorer", like:
 
-![Cluster Level Product](../screenshots/c-level-prod.png)
+![Cluster Level Product](../../screenshots/c-level-prod.png)
 
 All the pages that you register inside this product will appear as links on it's dedicated sub-menu providing that all the correct functions are used.
 
@@ -126,7 +126,7 @@ const routeForATopLevelProductResource = {
 }
 ```
 
-With this overview on how routing works in Rancher Dashboard, we should be ready to cover the registration of custom pages, resource pages and general route definition. For more detailed information on **top-level product routing**, check this page **[here](./nav/routing.md#routes-definition-for-an-extension-as-a-top-level-product)**.
+With this overview on how routing works in Rancher Dashboard, we should be ready to cover the registration of custom pages, resource pages and general route definition. For more detailed information on **top-level product routing**, check this page **[here](./routing.md#routes-definition-for-an-extension-as-a-top-level-product)**.
 
-If you are interested in **cluster-level product routing**, check this page **[here](./nav/routing.md#routes-definition-for-an-extension-as-a-cluster-level-product)**.
+If you are interested in **cluster-level product routing**, check this page **[here](./routing.md#routes-definition-for-an-extension-as-a-cluster-level-product)**.
 

@@ -21,8 +21,7 @@ Here's the support matrix for every Extension API hook available in Rancher:
 | API | Rancher Version support (Minimum version)|
 | --- | --- |
 | [Metadata](./api/metadata) | v2.7.0 |
-| [Products](./api/nav/products) | v2.7.0 |
-| [Routes](./api/nav/routing) | v2.7.0 |
+| [Products](./api/products) | v2.14.0 |
 | [Actions](./api/actions) | v2.7.2 |
 | [Cards](./api/cards) | v2.7.2 |
 | [Panels](./api/panels) | v2.7.2 |
@@ -30,6 +29,8 @@ Here's the support matrix for every Extension API hook available in Rancher:
 | [Table Columns](./api/table-columns) | v2.7.2 |
 | [Table](./api/table) | v2.14.0 |
 | [Components](./api/components) | v2.7.0 |
+| [Legacy Products](./api/legacy/products-legacy) | v2.7.0 |
+| [Legacy Routes](./api/legacy/routing) | v2.7.0 |
 
 
 ## LocationConfig support matrix
