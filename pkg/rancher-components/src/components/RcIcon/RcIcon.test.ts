@@ -48,4 +48,46 @@ describe('rcIcon.vue', () => {
 
     expect(wrapper.attributes('aria-hidden')).toBe('true');
   });
+
+  it('defaults the color to "inherit" when the status prop is omitted', () => {
+    const wrapper = shallowMount(RcIcon, {
+      props: {
+        size: 'medium',
+        type: 'search',
+      },
+    });
+
+    const vm = wrapper.vm as unknown as { color: string };
+
+    expect(vm.color).toBe('inherit');
+  });
+
+  it('uses "inherit" color when status is explicitly set to "inherit"', () => {
+    const wrapper = shallowMount(RcIcon, {
+      props: {
+        size:   'medium',
+        type:   'search',
+        status: 'inherit'
+      },
+    });
+
+    const vm = wrapper.vm as unknown as { color: string };
+
+    expect(vm.color).toBe('inherit');
+  });
+
+  it('uses appropriate color when status is provided with a specific value', () => {
+    const wrapper = shallowMount(RcIcon, {
+      props: {
+        size:   'medium',
+        type:   'search',
+        status: 'success'
+      },
+    });
+
+    const vm = wrapper.vm as unknown as { color: string };
+
+    expect(vm.color).not.toBe('inherit');
+    expect(vm.color).toContain('--rc-success');
+  });
 });
