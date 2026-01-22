@@ -249,7 +249,8 @@ export default {
     return {
       rows,
       codeMirrorFocus: {},
-      lastUpdated:     null
+      lastUpdated:     null,
+      updatePending:   false
     };
   },
   computed: {
@@ -304,7 +305,12 @@ export default {
     }
   },
   created() {
-    this.queueUpdate = debounce(this.update, 500);
+    const debouncedUpdate = debounce(this.update, 500);
+
+    this.queueUpdate = () => {
+      this.updatePending = true;
+      debouncedUpdate();
+    };
   },
   watch: {
     /**
@@ -324,7 +330,7 @@ export default {
   },
   methods: {
     valuePropChanged(neu) {
-      if (!isEqual(neu, this.lastUpdated)) {
+      if (!this.updatePending && !isEqual(neu, this.lastUpdated)) {
         this.rows = this.getRows(neu);
       }
     },
@@ -510,6 +516,7 @@ export default {
         });
       }
       this.lastUpdated = out;
+      this.updatePending = false;
 
       this.$emit('update:value', out);
     },
