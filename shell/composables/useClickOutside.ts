@@ -76,6 +76,6 @@ export const useClickOutside = <T extends OnClickOutsideOptions>(
 
   onBeforeUnmount(() => {
     window.removeEventListener('click', listener as any);
-    window.removeEventListener('pointerDown', setShouldListen);
+    window.removeEventListener('pointerdown', setShouldListen);
   });
 };
