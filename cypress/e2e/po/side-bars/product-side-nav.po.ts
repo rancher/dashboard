@@ -20,7 +20,7 @@ export default class ProductNavPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   accordionItems(): Cypress.Chainable {
-    return this.self().find('.accordion-item');
+    return this.self().find('.accordion');
   }
 
   /**
