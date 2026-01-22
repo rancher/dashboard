@@ -238,6 +238,17 @@ export default {
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
   border: solid var(--border-width) var(--input-border);
+  contain: inline-size;
+
+  h5 {
+    margin-bottom: 15px;
+  }
+
+  .conceal {
+    white-space: nowrap;
+    display: block;
+    overflow-x: auto;
+  }
 
   .action-group {
     position: absolute;
