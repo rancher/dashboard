@@ -23,6 +23,9 @@ coverage
 # nyc test coverage
 .nyc_output
 
+# Unit tests
+unit-tests/
+
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
 
@@ -91,7 +94,8 @@ sw.*
 cypress/videos
 cypress/screenshots
 cypress/accessibility
-browser-logs
+cypress/reports
+browser-logs/
 setupTestEnv.sh
 
 # Storybook
