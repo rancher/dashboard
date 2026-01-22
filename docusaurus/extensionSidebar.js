@@ -148,12 +148,12 @@ const sidebars = {
                   type:  'category',
                   label: 'Legacy Navigation & Pages',
                   items: [
-                    'api/nav/products-legacy',
-                    'api/nav/custom-page',
-                    'api/nav/resource-page',
-                    'api/nav/side-menu',
-                    'api/nav/routing',
-                    'api/nav/templates',
+                    'api/nav/legacy/products-legacy',
+                    'api/nav/legacy/custom-page',
+                    'api/nav/legacy/resource-page',
+                    'api/nav/legacy/side-menu',
+                    'api/nav/legacy/routing',
+                    'api/nav/legacy/templates',
                   ],
                 },
               ]

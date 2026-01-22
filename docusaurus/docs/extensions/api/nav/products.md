@@ -5,7 +5,9 @@
 This page describes the updated way to create or extend products using the extension API. The legacy flow is preserved in a “Legacy navigation & pages” section below.
 
 ## "addProduct" method
-Creates a new product in Rancher (top-level navigation entry, routes, side menu, and pages defined by your config array).
+Creates a new product in Rancher (top-level navigation entry, routes, side menu, and pages defined by your config array). 
+
+Learn more about the items ordering [here](#ordering-rules-side-navigation-entries-order).
 
 ```
 plugin.addProduct(productMetadata, productConfig);
@@ -16,7 +18,7 @@ Where:
 | Argument | Type | Description |
 | --- | --- | --- |
 | `productMetadata` | object | Product name and other relevant metadata like `name`, `label`, `icon`, `weight`, etc |
-| `productConfig` | Array | Array of objects that specify the pages to be rendered, like custom pages (`virtualType`), resource pages (`configureType`), and groups. |
+| `productConfig` | Array | Array of objects that specify the pages to be rendered, like [custom pages](#custom-page), [resource pages](#resource-page), and [groups](#groups-and-overview-pages). |
 
 Example:
 ```ts
@@ -31,18 +33,18 @@ export default function init(plugin: IPlugin) {
 
   const productConfig: ProductChild[] = [
     {
-      name:      'overview',   // virtualType (custom page)
+      name:      'overview', // custom page
       label:     'Overview',
       component: () => import('./pages/overview.vue'),
       weight:    50,
     },
     {
-      type:   'provisioning.cattle.io.cluster', // configureType (resource page)
+      type:   'provisioning.cattle.io.cluster', // resource page
       label:  'Clusters',
       weight: 40,
     },
     {
-      name:     'settings', // group with children
+      name:     'settings', // group with children (only allowed for custom pages)
       label:    'Settings',
       children: [
         {
@@ -75,17 +77,20 @@ export default function init(plugin: IPlugin) {
 
 | Field | Type | Applies to | Description |
 | --- | --- | --- | --- |
-| `name` | string | custom page, group | Unique page/group id (used in route names) |
-| `labelKey` | string | custom page, group | i18n key; overrides `label` |
-| `label` | string | custom page, group | Display label (if no `labelKey`) |
-| `component` | component loader | custom page | Vue component for custom page. **Not allowed on group parent when extending**. |
-| `children` | ProductChildPage[] | group | Child pages inside a group (can have their own `component`, `label`, `labelKey`, `weight`) |
-| `type` | string | resource page | Kubernetes resource type (CRD or built-in) to render via resource views |
+| `name` | string |[custom page](#custom-page), [group](#groups-and-overview-pages) | Unique page/group id (used in route names) |
+| `labelKey` | string |[custom page](#custom-page), [group](#groups-and-overview-pages) | i18n key; overrides `label` |
+| `label` | string |[custom page](#custom-page), [group](#groups-and-overview-pages) | Display label (if no `labelKey`) |
+| `component` | component loader |[custom page](#custom-page) | Vue component for [custom page](#custom-page). **Not allowed on group parent when extending**. |
+| `children` | ProductChildPage[] | [group](#groups-and-overview-pages) | Child pages inside a group (can have their own `component`, `label`, `labelKey`, `weight`) |
+| `type` | string | [resource page](#resource-page) | Kubernetes resource type (CRD or built-in) to render via resource views |
+| `config` | object | [resource page](#resource-page), [custom page](#custom-page) | Advanced configuration object (optional). For resources, use to override default list/create/edit components. See [Custom resource components](#custom-resource-components). |
 | `weight` | number | all | Side-menu ordering (higher value = higher in order within scope) |
 
 
 ## "extendProduct" method
 Extend an existing product (`StandardProductName`) with extra pages, groups, and resources.
+
+Learn more about the items ordering [here](#ordering-rules-side-navigation-entries-order).
 
 ```
 plugin.extendProduct(productName, productConfig);
@@ -96,7 +101,7 @@ Where:
 | Argument | Type | Description |
 | --- | --- | --- |
 | `productName` | string | Product identifier to be extended. Admissible values are refered by `StandardProductName` |
-| `productConfig` | Array | Array of objects that specify the pages to be rendered, like custom pages (`virtualType`), resource pages (`configureType`), and groups. |
+| `productConfig` | Array | Array of objects that specify the pages to be rendered, like [custom pages](#custom-page), [resource pages](#resource-page), and groups. |
 
 
 Example:
@@ -106,13 +111,13 @@ import { IPlugin, ProductChild, StandardProductName } from '@shell/core/types';
 export default function init(plugin: IPlugin) {
   const config: ProductChild[] = [
     {
-      name:      'custom-settings',
+      name:      'custom-settings', // custom page
       label:     'Custom Settings',
       component: () => import('./pages/custom-settings.vue'),
       weight:    90,
     },
     {
-      type:   'upgrade.cattle.io.plan',
+      type:   'upgrade.cattle.io.plan', // resource page
       weight: 80,
     },
   ];
@@ -139,25 +144,26 @@ Current enum values for `StandardProductName`:
 
 | Field | Type | Applies to | Description |
 | --- | --- | --- | --- |
-| `name` | string | custom page, group | Unique page/group id (used in route names) |
-| `labelKey` | string | custom page, group | i18n key; overrides `label` |
-| `label` | string | custom page, group | Display label (if no `labelKey`) |
-| `component` | component loader | custom page | Vue component for custom page. **Not allowed on group parent when extending**. |
-| `children` | ProductChildPage[] | group | Child pages inside a group (can have their own `component`, `label`, `labelKey`, `weight`) |
-| `type` | string | resource page | Kubernetes resource type (CRD or built-in) to render via resource views |
+| `name` | string |[custom page](#custom-page), [group](#groups-and-overview-pages) | Unique page/group id (used in route names) |
+| `labelKey` | string |[custom page](#custom-page), [group](#groups-and-overview-pages) | i18n key; overrides `label` |
+| `label` | string |[custom page](#custom-page), [group](#groups-and-overview-pages) | Display label (if no `labelKey`) |
+| `component` | component loader |[custom page](#custom-page) | Vue component for [custom page](#custom-page). **Not allowed on group parent when extending**. |
+| `children` | ProductChildPage[] | [group](#groups-and-overview-pages) | Child pages inside a group (can have their own `component`, `label`, `labelKey`, `weight`) |
+| `type` | string | [resource page](#resource-page) | Kubernetes resource type (CRD or built-in) to render via resource views |
+| `config` | object | [resource page](#resource-page), [custom page](#custom-page) | Advanced configuration object (optional). For resources, use to override default list/create/edit components. See [Custom resource components](#custom-resource-components). |
 | `weight` | number | all | Side-menu ordering (higher value = higher in order within scope) |
 
 ## What Rancher wires in automatically
 
-- **Routes** — `addProduct` creates the Vue Router entries for every custom page (previously `virtualType`) and resource page (previously `configureType`). Top-level products get paths like `<product>/c/:cluster/<page>`, and resource routes (list/create/edit/show) reuse Rancher’s built-ins. `extendProduct` adds matching `c-cluster-<product>-*` routes so your additions sit inside the existing product.
+- **Routes** — `addProduct` creates the Vue Router entries for every [custom page](#custom-page) (previously `virtualType`) and [resource page](#resource-page) (previously `configureType`). Top-level products get paths like `<product>/c/:cluster/<page>`, and resource routes (list/create/edit/show) reuse Rancher’s built-ins. `extendProduct` adds matching `c-cluster-<product>-*` routes so your additions sit inside the existing product.
 - **Side menu** — all first-level children are registered as nav items; groups register their children as a second level. Labels/weights are picked from your config; i18n keys are honored.
 - **Default landing** — the first child after ordering becomes the product’s default route. If that child is a group, the default is the group page (when it has a component) or the group’s first child.
 
 ## Rules and constraints (what’s allowed)
 
-- `type` defines a resource page; `component` defines a custom page. Do not set both on the same item.
-- `children` turns an item into a **group**. A group may also provide a `component` to render an overview page. When **extending** an existing product, the group parent **cannot** have a `component` (route-matching conflict).
-- `name` is required for custom pages and groups; `type` is required for resource pages.
+- `type` defines a [resource page](#resource-page); `component` defines a [custom page](#custom-page). Do not set both on the same item.
+- `children` turns an item into a [**group**](#groups-and-overview-pages), **except for resource pages, which cannot have children (define a group)**. A group may also provide a `component` to render an overview page. When **extending** an existing product, the group parent **cannot** have a `component` (route-matching conflict).
+- `name` is required for [custom pages](#custom-page) and [groups](#groups-and-overview-pages); `type` is required for resource pages.
 - Only one set of resource CRUD routes is added per product; each `type` reuses them with the correct meta/params.
 
 
@@ -165,15 +171,60 @@ Current enum values for `StandardProductName`:
 
 ### Custom page
 
-- Represents a custom page rendered by your defined **component**.
+- Represents a [custom page](#custom-page) rendered by your defined **component**.
+
+It's defined by using the property `component`, like:
+
+```ts
+{
+  name:      'custom-settings',
+  label:     'Custom Settings',
+  component: () => import('./pages/custom-settings.vue'),
+  weight:    90,
+}
+```
 
 ### Resource page
 
-- Represents a Kubernetes resource list/detail/create UI using dashboard resource components. Under the hood
+- Represents a Kubernetes resource list/detail/create UI using dashboard resource components. Under the hood, Rancher auto-generates four routes: list, create, detail, and namespaced-detail views.
+
+It's defined by using the property `type`:
+
+```ts
+{
+  type:      'storage.k8s.io.storageclass',
+  label:     'Some custom label',
+  weight:    90,
+}
+```
+
+#### Custom resource components {#custom-resource-components}
+
+By default, resource pages use Rancher's built-in list/create/edit/show components. If you need to override these, pass custom components via `config`:
+
+```ts
+{
+  type:   'my.custom.io.resource',
+  label:  'My Resources',
+  config: {
+    resourceListComponent:           () => import('./components/MyList.vue'),
+    resourceCreateComponent:         () => import('./components/MyCreate.vue'),
+    resourceItemComponent:           () => import('./components/MyDetail.vue'),
+    resourceItemNamespacedComponent: () => import('./components/MyNamespacedDetail.vue'),
+  }
+}
+```
+
+| Component option | Route | Purpose |
+| --- | --- | --- |
+| `resourceListComponent` | List view | Renders the list of resources |
+| `resourceCreateComponent` | Create view | Renders the create/new resource form |
+| `resourceItemComponent` | Detail view | Renders a non-namespaced resource's detail page |
+| `resourceItemNamespacedComponent` | Namespaced detail view | Renders a namespaced resource's detail page |
 
 ### Groups and overview pages
 
-- A **group** is any item with `children`. Its `name` becomes the nav id; its children are second-level entries.
+- A **group** is a **custom page item** with `children`. Its `name` becomes the nav id; it's children are second-level entries.
 - A group **can** have a `component` when you create a new product. That component renders an overview page for the group (exact-match route) and is the target when the group is the first item in your config.
 - When extending an existing product, group parents must **not** provide `component`; add components to the children instead.
 

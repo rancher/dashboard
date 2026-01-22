@@ -267,6 +267,10 @@ export type ConfigureTypeConfiguration = {
   customRoute?: RouteRecordRaw; // define a custom route for this resource type (use this wisely!)
   // notFilterNamespace: undefined; // Define namespaces that do not need to be filtered
   localOnly?: boolean; // Hide this type from the nav/search bar on downstream clusters (will only show in "local" cluster)
+  resourceListComponent?: any; // Custom component for resource list view (overrides default Rancher component)
+  resourceCreateComponent?: any; // Custom component for resource create view (overrides default Rancher component)
+  resourceItemComponent?: any; // Custom component for resource detail view (overrides default Rancher component)
+  resourceItemNamespacedComponent?: any; // Custom component for namespaced resource detail view (overrides default Rancher component)
 }
 
 // used in configureType options
@@ -282,14 +286,16 @@ export type ConfigureTypeConfiguration = {
 //     ]
 
 /**
- * Represents a custom page
+ * Represents a page item (custom page or resource page) in a product's config
+ * - For custom pages: use `component` and optionally `name`
+ * - For resource pages: use `type` and optionally `config` to override components
  */
 export type ProductChildPage = ProductChildMetadata & {
-  type?: string; // resource type name (for configureType)
+  type?: string; // resource type name (for configureType) - mutually exclusive with component
   path?: string; // Optional route path override
   component: RouteComponent | Lazy<RouteComponent>;
   extraRoutes?: ProductChildPageChildRoute[]; // Optional extra routes to create
-  config?: VirtualTypeConfiguration | ConfigureTypeConfiguration; // optional configuration for virtualType or configureType
+  config?: VirtualTypeConfiguration | ConfigureTypeConfiguration; // optional configuration for virtualType or configureType (e.g., custom resource components)
 };
 
 /**

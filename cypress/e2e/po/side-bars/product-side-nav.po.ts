@@ -27,7 +27,7 @@ export default class ProductNavPo extends ComponentPo {
    * Get all the visible child links
    */
   visibleNavTypes(): Cypress.Chainable {
-    return this.self().find('.accordion.expanded li.nav-type>a, .accordion:not(.has-children):not(.expanded) .accordion-item a');
+    return this.self().find('.accordion.expanded li.nav-type>a, .accordion:not(.has-children):not(.expanded) li.nav-type>a');
   }
 
   /**
@@ -47,7 +47,7 @@ export default class ProductNavPo extends ComponentPo {
     cy.contains(label).should('exist', LONG_TIMEOUT_OPT);
 
     return this.self().should('exist', LONG_TIMEOUT_OPT)
-      .find('.child.nav-type a .label, .accordion .accordion-item a h6 span')
+      .find('.child.nav-type a .label')
       .filter(`:contains("${ label }")`)
       .filter((index, element) => {
         // Only match exact text, not partial matches
@@ -66,7 +66,7 @@ export default class ProductNavPo extends ComponentPo {
    * Check existence of menu side entry
    */
   checkSideMenuEntryByLabel(label: string, assertion: string): Cypress.Chainable {
-    return this.self().should('exist').find('.child.nav-type a .label, .accordion .accordion-item a h6 span').contains(label)
+    return this.self().should('exist').find('.child.nav-type a .label').contains(label)
       .should(assertion);
   }
 
