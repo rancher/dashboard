@@ -69,6 +69,8 @@ describe('component: Workload', () => {
             $store:      {
               getters: {
                 'cluster/schemaFor': jest.fn(),
+                'cluster/canList':   jest.fn(),
+                currentStore:        () => 'cluster',
                 'type-map/labelFor': jest.fn(),
                 'i18n/t':            (text: string, v: {[key:string]: string}) => {
                   return `${ text }, ${ Object.values(v || {}) }`;

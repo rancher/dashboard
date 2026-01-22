@@ -6,12 +6,17 @@ const requiredSetup = () => {
   return {
     global: {
       mocks: {
-        $store: {
+        $fetchState: { pending: false },
+        $store:      {
           getters: {
-            currentProduct: { inStore: 'cluster' },
-            'i18n/t':       (text: string) => text,
-            t:              (text: string) => text,
-          }
+            currentStore:                () => 'cluster',
+            currentProduct:              { inStore: 'cluster' },
+            'i18n/t':                    (text: string) => text,
+            t:                           (text: string) => text,
+            'cluster/paginationEnabled': () => false,
+            'cluster/all':               () => ['node-0', 'node-1'],
+          },
+          dispatch: jest.fn(),
         }
       },
     }
@@ -21,24 +26,22 @@ const requiredSetup = () => {
 describe('component: NodeScheduling', () => {
   const value = { nodeName: 'node-1' };
 
-  const nodes = ['node-0', 'node-1'];
-
   it.each([
     _VIEW,
     _CREATE,
     _EDIT
-  ])('should show NodeName option', (mode) => {
+  ])('should show NodeName option', async(mode) => {
     const wrapper = mount(
       NodeScheduling,
       {
         props: {
-          mode, loading: false, value, nodes
+          mode, loading: false, value
         },
         ...requiredSetup(),
       }
     );
 
     expect(wrapper.find('[data-testid="node-scheduling-selectNode"]').exists()).toBeTruthy();
-    expect(wrapper.find('[data-testid="node-scheduling-nodeSelector"]').element.textContent).toContain(value.nodeName);
+    expect(wrapper.find('[data-testid="node-scheduling-nodeSelector"] .vs__selected').text()).toBe(value.nodeName);
   });
 });
