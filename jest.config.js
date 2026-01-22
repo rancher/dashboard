@@ -69,7 +69,7 @@ module.exports = {
       outputName:      'unit-tests.xml'
     }
     ]
-  ],  
+  ],
 
   // Globals
   globals: { 'ts-jest': { isolatedModules: true } },
