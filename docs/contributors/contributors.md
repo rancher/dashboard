@@ -16,7 +16,8 @@ To get started, follow the `Getting Started` section.
 - **Code Style and Standards:**
   - `Language`: TypeScript is preferred for new code.
   - `Vue.js`:
-    - Composition API is preferred over Options API.
+    - Composition API components are preferred over Options API.
+    - Large pages with lots of code and styles should be avoided by breaking the page up into smaller Vue components.
     - Place source tag above template above style.
     - style tag should contain `lang='scss' scoped`.
   - `Linting`: Follow the ESLint configuration in the root.
@@ -34,13 +35,26 @@ To get started, follow the `Getting Started` section.
 
 ## Milestone guidance
 
-- All changes must first be made in the `master` branch
+- All issues must first be resolved in the `master` branch
 - If backports are needed they can be made via the backport bot
   - github issue
     - `/backport <target milestone>` e.g `/backport v2.12.2`
   - pull requests
     - `/backport <target milestone> <target branch>` e.g. `/backport v2.12.2 release-12`
     - All backported pull requests must link to a backported issue
+
+
+## Creating a branch
+
+### To resolve an issue
+- Checkout the branch matching the milestone of the issue `git checkout ${targetMilestoneBranch}`. Replace `${targetMilestoneBranch}` with the target milestone of the issue. For example
+  - `master` for the latest unreleased minor version
+  - `release-X` for release minor versions
+    - `release-2.14`
+    - `release-2.13`
+    - `release-2.12`
+- Ensure you have the latest of that branch `git pull --rebase`
+- Checkout the branch to commit the changes to `git checkout issue-${issueNumber}`. Replace `${issueNumber}` with the issue number.
 
 ## Creating a commit
 
@@ -56,4 +70,28 @@ To get started, follow the `Getting Started` section.
   - ALL CI gates have passed
   - At least one rancher/dashboard team member reviews and approves the PR
 
-TODO: RC should we move contributors content to the internal storybook and pull it in?
+## Testing
+
+### Unit Tests
+
+Please see [Rancher UI Internal Documentation - Testing - Unit Tests](https://extensions.rancher.io/internal/testing/unit-test) for more information
+
+- To run a single test file: yarn test `<full-path-to-test-file>`
+
+### E2E Tests (Cypress)
+
+- Interactive mode: `yarn cy:e2e`
+- Headless mode: `yarn cy:run`
+- Run a specific spec file: `yarn cy:run --spec cypress/e2e/tests/<path-to-spec>.spec.ts`
+
+#### Required Environment Variables
+
+- `TEST_PASSWORD` - Password for login (or CATTLE_BOOTSTRAP_PASSWORD for setup tests)
+- `TEST_BASE_URL` - Dashboard URL (defaults to https://localhost:8005)
+- `TEST_USERNAME` - Username (defaults to admin)
+
+#### Optional Environment Variables
+
+- `TEST_SKIP` - Comma-separated test directories to skip (e.g., setup,extensions)
+- `TEST_ONLY` - Comma-separated test directories to run exclusively
+- `GREP_TAGS` - Filter tests by tags

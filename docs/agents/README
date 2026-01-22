@@ -1,0 +1,8 @@
+This file contains the base templates used to construct the root agents and persona files.
+
+Process
+1. Make changes to `./docs/agents/root_agents.md` and `./docs/agents/root_personas.md`
+2. Make changes to `./docs/contributors/contributors.md`
+3. Run `./scripts/generate-agent-and-persona-mds.sh`
+   - This will replace the root agents.md and personas.md with the updated versions
+4. Commit all files from above that were touched
