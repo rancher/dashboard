@@ -6,6 +6,7 @@ import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import ChartInstalledAppsListPagePo from '@/cypress/e2e/po/pages/chart-installed-apps.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
+import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 
 const configMapPayload = {
   apiVersion: 'v1',
@@ -88,11 +89,24 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
 
       cy.intercept('POST', '/v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('installApp');
       installChartPage.installChart();
+
+      // Wait for the install request to complete before proceeding
+      cy.wait('@installApp', { requestTimeout: 20000 }).its('response.statusCode').should('eq', 201);
+
       namespacePicker.toggle();
       namespacePicker.clickOptionByLabel('All Namespaces');
       namespacePicker.isChecked('All Namespaces');
       namespacePicker.closeDropdown();
-      installedAppsPage.waitForInstallCloseTerminal('installApp', ['rancher-backup', 'rancher-backup-crd']);
+
+      // Wait for terminal and close it
+      const terminal = new Kubectl();
+
+      terminal.closeTerminal();
+
+      // Verify apps are deployed
+      ['rancher-backup', 'rancher-backup-crd'].forEach((item: string) => {
+        installedAppsPage.appsList().resourceTableDetails(item, 1).should('contain', 'Deployed');
+      });
 
       ChartPage.navTo(null, chartName);
       chartPage.waitForChartHeader(chartName, MEDIUM_TIMEOUT_OPT);
