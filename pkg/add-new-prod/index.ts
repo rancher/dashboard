@@ -160,6 +160,7 @@ export default function(plugin: IPlugin) {
         }
       ]
     },
+    { type: 'fleet.cattle.io.clustergroup' },
     { type: 'upgrade.cattle.io.plan' },
     {
       name:      'page2',
