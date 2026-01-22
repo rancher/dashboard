@@ -139,6 +139,36 @@ describe('component: KeyValue', () => {
   });
 
   it.each([
+    [{ testkey: 'testvalue' }, true],
+    [[{ key: 'testkey', value: 'testvalue' }], false]
+  ])('should not remove a newly added row when value prop changes during debounce', async(valueProp, asMap) => {
+    const wrapper = mount(KeyValue, {
+      props: {
+        value:          valueProp,
+        mode:           'edit',
+        mocks:          { $store: { getters: { 'i18n/t': jest.fn() } } },
+        valueMultiline: false,
+        asMap
+      }
+    });
+
+    const addButton = wrapper.find('[data-testid="add_row_item_button"]');
+
+    addButton.trigger('click');
+    await nextTick();
+
+    // Simulate the value prop changing before the debounced update fires
+    // This would happen if a parent component's computed property recalculates
+    wrapper.vm.valuePropChanged(valueProp);
+    await nextTick();
+
+    const secondKeyInput = wrapper.find('[data-testid="input-kv-item-key-1"]');
+
+    // The row should still exist even though valuePropChanged was called
+    expect(secondKeyInput.exists()).toBe(true);
+  });
+
+  it.each([
     [{ testkey: 'testvalue', testkey1: 'testvalue1' }, true],
     [[{ key: 'testkey', value: 'testvalue' }, { key: 'testkey1', value: 'testvalue1' }], false]
   ])('should remove a row when the remove button is pressed', async(valueProp, asMap) => {
