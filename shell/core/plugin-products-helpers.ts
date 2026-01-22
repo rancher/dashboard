@@ -1,5 +1,5 @@
 import { ProductChildPage, ProductRegistrationRouteGenerationOptions } from '@shell/core/types';
-import { BLANK_CLUSTER } from '@shell/store/store-types.js';
+import { BLANK_CLUSTER } from '@shell/store/store-types';
 
 export function gatherChildrenOrdering(children: any[]) {
   let minWeight = children.reduce((min, item) => {
