@@ -5,9 +5,11 @@
 This page describes the updated way to create or extend products using the extension API. The legacy flow is preserved in a “Legacy navigation & pages” section below.
 
 ## "addProduct" method
-Creates a new product in Rancher (top-level navigation entry, routes, side menu, and pages defined by your config array). 
+Creates a new product in Rancher (top-level navigation entry, routes, side menu, and pages defined by your config array).
 
-Learn more about the items ordering [here](#ordering-rules-side-navigation-entries-order).
+![Top Level Product](../screenshots/top-level-prod.png)
+
+Learn more about the side menu items ordering [here](#ordering-rules-side-navigation-entries-order).
 
 ```
 plugin.addProduct(productMetadata, productConfig);
@@ -22,9 +24,17 @@ Where:
 
 Example:
 ```ts
+import { importTypes } from '@rancher/auto-import';
 import { IPlugin, ProductMetadata, ProductChild } from '@shell/core/types';
 
 export default function init(plugin: IPlugin) {
+  // Auto-import model, detail, edit from the folders
+  importTypes(plugin);
+
+  // Provide extension metadata from package.json
+  // it will grab information such as `name` and `description`
+  plugin.metadata = require('./package.json');
+
   const productMetadata: ProductMetadata = {
     name:  'my-product',
     label: 'My Product',
@@ -35,22 +45,20 @@ export default function init(plugin: IPlugin) {
     {
       name:      'overview', // custom page
       label:     'Overview',
-      component: () => import('./pages/overview.vue'),
-      weight:    50,
+      component: () => import('./components/overview.vue'),
     },
     {
       type:   'provisioning.cattle.io.cluster', // resource page
-      label:  'Clusters',
-      weight: 40,
+      label:  'Custom Clusters view',
     },
     {
-      name:     'settings', // group with children (only allowed for custom pages)
-      label:    'Settings',
+      name:      'custom-settings', // group with children (only allowed for custom pages)
+      label:     'Custom Settings',
       children: [
         {
           name:      'general',
           label:     'General',
-          component: () => import('./pages/settings/general.vue'),
+          component: () => import('./components/general.vue'),
         },
       ],
     },
@@ -90,7 +98,9 @@ export default function init(plugin: IPlugin) {
 ## "extendProduct" method
 Extend an existing product (`StandardProductName`) with extra pages, groups, and resources.
 
-Learn more about the items ordering [here](#ordering-rules-side-navigation-entries-order).
+![Cluster Level Product](../screenshots/c-level-prod.png)
+
+Learn more about the side menu items ordering [here](#ordering-rules-side-navigation-entries-order).
 
 ```
 plugin.extendProduct(productName, productConfig);
@@ -106,19 +116,37 @@ Where:
 
 Example:
 ```ts
+import { importTypes } from '@rancher/auto-import';
 import { IPlugin, ProductChild, StandardProductName } from '@shell/core/types';
 
 export default function init(plugin: IPlugin) {
+  // Auto-import model, detail, edit from the folders
+  importTypes(plugin);
+
+  // Provide extension metadata from package.json
+  // it will grab information such as `name` and `description`
+  plugin.metadata = require('./package.json');
+
   const config: ProductChild[] = [
     {
-      name:      'custom-settings', // custom page
-      label:     'Custom Settings',
-      component: () => import('./pages/custom-settings.vue'),
-      weight:    90,
+      name:      'overview', // custom page
+      label:     'Overview',
+      component: () => import('./components/overview.vue'),
     },
     {
       type:   'upgrade.cattle.io.plan', // resource page
       weight: 80,
+    },
+    {
+      name:      'custom-settings', // group with children (only allowed for custom pages)
+      label:     'Custom Settings',
+      children: [
+        {
+          name:      'general',
+          label:     'General',
+          component: () => import('./components/general.vue'),
+        },
+      ],
     },
   ];
 
@@ -242,4 +270,4 @@ By default, resource pages use Rancher's built-in list/create/edit/show componen
 
 ### Legacy navigation & pages
 
-The prior DSL-first docs (manual `product`, `virtualType`, `configureType`, `basicType`, `weightType`, etc.) are kept for reference in the legacy section. Use them if you need full manual control but these will be **deprecated**.
+The [prior DSL-first docs](./legacy/products-legacy.md) (manual `product`, `virtualType`, `configureType`, `basicType`, `weightType`, etc.) are kept for reference in the legacy section. Use them if you need full manual control but these will be **deprecated**.
