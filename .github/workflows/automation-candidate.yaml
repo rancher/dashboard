@@ -1,12 +1,9 @@
-# create an automation task in qa-tasks repo of an issue when "/automation-candidate" is commented or labeled
+# create an automation task in qa-tasks repo of an issue when label "candidate-automation" is added
 name: Create issue for QA automation 
 
 run-name: "Create issue for QA automation  ${{ github.event.issue.number }}: ${{ github.event.issue.title }}"
 
 on:
-  issue_comment:
-    types:
-      - created
   issues:
     types:
       - labeled    
@@ -19,39 +16,15 @@ jobs:
       issues: write
       id-token: write
     runs-on: ubuntu-latest
-    if: |
-      (github.event_name == 'issue_comment' && (contains(github.event.comment.body, '/automation') || contains(github.event.comment.body, '/ac') || contains(github.event.comment.body, '/automation-candidate'))) ||
-      (github.event_name == 'issues' && github.event.label.name == 'candidate-automation')
+    if: github.event_name == 'issues' && github.event.label.name == 'candidate-automation'
     steps:
-      - name: Check org membership
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if gh api repos/${GITHUB_REPOSITORY}/collaborators/${GITHUB_ACTOR} --silent > /dev/null 2>&1; then
-              echo "${GITHUB_ACTOR} is a member"
-              echo "is_member=true" >> $GITHUB_ENV
-          else
-              echo "${GITHUB_ACTOR} is not a member of ${GITHUB_REPOSITORY_OWNER}" >> $GITHUB_STEP_SUMMARY
-              echo "is_member=false" >> $GITHUB_ENV
-          fi
-
-      - name: Notify non-member
-        if: env.is_member == 'false'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ORIGINAL_ISSUE_URL: ${{ github.event.issue.html_url }}
-        run: |
-          gh issue comment ${ORIGINAL_ISSUE_URL} --body "User @${GITHUB_ACTOR} is not a collaborator on this repository. No QA automation issue was created."
-
       - name: Read QA secrets
-        if: env.is_member == 'true'
         uses: rancher-eio/read-vault-secrets@main
         with:
           secrets: |
             github/token/rancher--qa-tasks--issues--write token | QA_GH_TOKEN
 
       - name: Create QA automation issue
-        if: env.is_member == 'true'
         env:
           GH_TOKEN: ${{ env.QA_GH_TOKEN }}
           ORIGINAL_ISSUE_NUMBER: ${{ github.event.issue.number }}
