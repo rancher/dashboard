@@ -27,7 +27,7 @@ import { dialogModal, promptModal } from '@/cypress/e2e/po/prompts/shared/modalI
 import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po';
 import { WorkLoadsDaemonsetsCreatePagePo, WorkloadsDaemonsetsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-daemonsets.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
-import { EXTRA_LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { RESTART_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { SecretsCreateEditPo, SecretsListPagePo } from '@/cypress/e2e/po/pages/explorer/secrets.po';
 import SlideInPo from '@/cypress/e2e/po/side-bars/slide-in.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
@@ -462,7 +462,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         });
 
         it('Kubectl Shell', () => {
-          header.kubectlShell().openTerminal(EXTRA_LONG_TIMEOUT_OPT);
+          header.kubectlShell().openTerminal(RESTART_TIMEOUT_OPT);
           header.kubectlShell().waitForTerminalToBeVisible();
 
           cy.injectAxe();
