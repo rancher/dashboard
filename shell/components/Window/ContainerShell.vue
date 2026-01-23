@@ -92,7 +92,7 @@ export default {
       retries:           0,
       currFocusedElem:   undefined,
       xtermContainerRef: undefined,
-      eventLogs:         []
+      eventLogs:         ['95']
     };
   },
 
@@ -161,11 +161,14 @@ export default {
   },
 
   async mounted() {
+    this.eventLogs.push('L164');
     document.addEventListener('keyup', this.handleKeyPress);
     this.$refs?.containerShell?.$el?.addEventListener('focusin', this.focusInHandler);
     this.$refs?.xterm.addEventListener('focusout', this.focusOutHandler);
-
+    this.eventLogs.push('L168');
     const nodeId = this.pod.spec?.nodeName;
+
+    this.eventLogs.push('L170');
 
     try {
       const schema = this.$store.getters[`cluster/schemaFor`](NODE);
