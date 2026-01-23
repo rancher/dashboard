@@ -91,7 +91,8 @@ export default {
       os:                undefined,
       retries:           0,
       currFocusedElem:   undefined,
-      xtermContainerRef: undefined
+      xtermContainerRef: undefined,
+      eventLogs:         []
     };
   },
 
@@ -324,12 +325,14 @@ export default {
         this.isOpen = false;
         this.isOpening = true;
         this.errorMsg = '';
+        this.eventLogs.push('Connecting');
       });
 
       this.socket.addEventListener(EVENT_CONNECT_ERROR, (e) => {
         this.isOpen = false;
         this.isOpening = false;
         console.error('Connect Error', e); // eslint-disable-line no-console
+        this.eventLogs.push('Connect Error', e);
       });
 
       this.socket.addEventListener(EVENT_CONNECTED, (e) => {
@@ -337,6 +340,7 @@ export default {
         this.isOpening = false;
         this.fit();
         this.flush();
+        this.eventLogs.push('Connected');
 
         if (this.commandOnFirstConnect) {
           this.terminal.paste(`${ this.commandOnFirstConnect }`);
@@ -346,9 +350,11 @@ export default {
       this.socket.addEventListener(EVENT_DISCONNECTED, (e) => {
         this.isOpen = false;
         this.isOpening = false;
+        this.eventLogs.push('Disconnected', JSON.stringify(e));
 
         // If we had an error message, try connecting with the next command
         if (this.errorMsg) {
+          this.eventLogs.push(this.errorMsg);
           this.terminal.writeln(this.errorMsg);
           if (this.backupShells.length && this.retries < 2) {
             this.retries++;
@@ -388,6 +394,7 @@ export default {
             customError = `[${ timestamp }] ${ this.t('wm.containerShell.logMessage.containerError', { logLevel: this.t('wm.containerShell.logLevel.error') }) }: ${ msg }`;
           }
           console.error(customError); // eslint-disable-line no-console
+          this.eventLogs.push(customError);
 
           if (`${ type }` === '3') {
             this.errorMsg = customError;
@@ -512,6 +519,13 @@ export default {
       </div>
     </template>
     <template #body>
+      <p>BlahBlahBlah</p>
+      <p
+        v-for="(log, i) in eventLogs"
+        :key="i"
+      >
+        {{ log }}
+      </p>
       <div
         class="shell-container"
         :class="{ open: isOpen, closed: !isOpen }"
