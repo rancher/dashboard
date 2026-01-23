@@ -91,6 +91,7 @@ export default function init(plugin: IPlugin) {
 | `component` | component loader |[custom page](#custom-page) | Vue component for [custom page](#custom-page). **Not allowed on group parent when extending**. |
 | `children` | ProductChildPage[] | [group](#groups-and-overview-pages) | Child pages inside a group (can have their own `component`, `label`, `labelKey`, `weight`) |
 | `type` | string | [resource page](#resource-page) | Kubernetes resource type (CRD or built-in) to render via resource views |
+| `headers` | object | [resource page](#resource-page) | Table columns configuration. See [Configuring table headers](#configuring-table-headers). |
 | `config` | object | [resource page](#resource-page), [custom page](#custom-page) | Advanced configuration object (optional). For resources, use to override default list/create/edit components. See [Custom resource components](#custom-resource-components). |
 | `weight` | number | all | Side-menu ordering (higher value = higher in order within scope) |
 
@@ -178,6 +179,7 @@ Current enum values for `StandardProductName`:
 | `component` | component loader |[custom page](#custom-page) | Vue component for [custom page](#custom-page). **Not allowed on group parent when extending**. |
 | `children` | ProductChildPage[] | [group](#groups-and-overview-pages) | Child pages inside a group (can have their own `component`, `label`, `labelKey`, `weight`) |
 | `type` | string | [resource page](#resource-page) | Kubernetes resource type (CRD or built-in) to render via resource views |
+| `headers` | object | [resource page](#resource-page) | Table columns configuration. See [Configuring table headers](#configuring-table-headers). |
 | `config` | object | [resource page](#resource-page), [custom page](#custom-page) | Advanced configuration object (optional). For resources, use to override default list/create/edit components. See [Custom resource components](#custom-resource-components). |
 | `weight` | number | all | Side-menu ordering (higher value = higher in order within scope) |
 
@@ -267,7 +269,70 @@ By default, resource pages use Rancher's built-in list/create/edit/show componen
 
 - Set `product.component` when calling `addProduct` to create a single-page product. Rancher registers a `plain` layout route and skips side-menu registration, so you get a full-bleed page with no sidebar.
 - If you pass an empty config without a `component`, Rancher injects a default “Main” page and side-menu entry for you.
+## Configuring table headers
 
+When defining [resource pages](#resource-page), you can configure the table columns displayed in the list view using the `headers` property. This provides a simple, type-safe way to customize which columns appear and how they behave.
+
+### Basic usage
+
+```ts
+{
+  type: 'apps.deployment',
+  headers: {
+    preset: 'namespaced',  // Adds: state, name, namespace, age
+    pagination: 'auto'      // Auto-maps to Steve/SSP equivalents
+  }
+}
+```
+
+### Common patterns
+
+**Using presets:**
+```ts
+headers: {
+  preset: 'namespaced',  // or 'cluster', 'workload', 'storage'
+  pagination: 'auto'
+}
+```
+
+**Explicit columns:**
+```ts
+headers: {
+  columns: ['state', 'name', 'namespace', 'node', 'age'],
+  pagination: 'auto'
+}
+```
+
+**Preset with additional columns:**
+```ts
+headers: {
+  preset: 'namespaced',
+  add: ['specType', 'targetPort'],  // Add service-specific columns
+  pagination: 'auto'
+}
+```
+
+### Available presets
+
+- `'namespaced'` — state, name, namespace, age
+- `'cluster'` — state, name, age
+- `'workload'` — state, name, namespace, type, images, endpoints, age
+- `'storage'` — state, name, capacity, storage class, age
+
+### Standard columns
+
+All standard Kubernetes resource columns are available as simple strings (with full TypeScript autocomplete):
+
+**Core:** `'state'`, `'name'`, `'namespace'`, `'age'`, `'node'`, `'version'`  
+**Workload:** `'type'`, `'pods'`, `'scale'`, `'workloadImages'`, `'workloadEndpoints'`  
+**Storage:** `'persistentVolumeSource'`, `'persistentVolumeClaim'`, `'reclaimPolicy'`, `'storageClassProvisioner'`  
+**Network:** `'ingressTarget'`, `'ingressClass'`, `'specType'`, `'targetPort'`, `'selector'`  
+**Events:** `'eventType'`, `'eventLastSeenTime'`, `'reason'`, `'message'`  
+...and many more (50+ total).
+
+### Customizing columns
+
+For advanced customization (disabling sort/search, custom widths, etc.), see the [detailed headers documentation](./headers.md).
 ### Legacy navigation & pages
 
 The [prior DSL-first docs](./legacy/products-legacy.md) (manual `product`, `virtualType`, `configureType`, `basicType`, `weightType`, etc.) are kept for reference in the legacy section. Use them if you need full manual control but these will be **deprecated**.

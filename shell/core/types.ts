@@ -2,6 +2,7 @@ import { ProductFunction } from './plugin';
 import { RouteComponent, RouteRecordRaw } from 'vue-router';
 import type { ExtensionManager } from '@shell/types/extension-manager';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
+import type { HeadersConfig } from './column-builder';
 
 // Cluster Provisioning types
 export * from './types-provisioning';
@@ -212,6 +213,15 @@ export type ProductChildType = string;
 export type ProductChildResource = {
   type: string;
   weight?: number;
+  /**
+   * Table column configuration for this resource type.
+   * Use standard column keys, builder pattern, or custom config.
+   * @example
+   * headers: { preset: 'namespaced', pagination: 'auto' }
+   * @example
+   * headers: { columns: ['state', 'name', column('targetPort').noSort(), 'age'] }
+   */
+  headers?: HeadersConfig;
 };
 
 export type ProductChildMetadata = {
