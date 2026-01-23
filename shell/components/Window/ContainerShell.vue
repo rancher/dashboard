@@ -265,7 +265,7 @@ export default {
       terminal.loadAddon(new addons.weblinks.WebLinksAddon());
       this.eventLogs.push('L263');
       terminal.open(this.$refs.xterm);
-      this.eventLogs.push('L265', this.webglAddon);
+      this.eventLogs.push('L265', !!this.webglAddon);
       if (this.webglAddon) {
         terminal.loadAddon(this.webglAddon);
       } else {
