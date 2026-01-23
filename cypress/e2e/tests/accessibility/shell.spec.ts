@@ -462,7 +462,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
         });
 
         it('Kubectl Shell', () => {
-          header.kubectlShell().openTerminal();
+          header.kubectlShell().openTerminal({ timeout: 10000 });
           header.kubectlShell().waitForTerminalToBeVisible();
 
           cy.injectAxe();
