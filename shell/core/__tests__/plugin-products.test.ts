@@ -34,6 +34,13 @@ jest.mock('@shell/core/plugin-products-helpers', () => ({
   ]),
 }));
 
+jest.mock('@shell/core/column-builder', () => ({
+  processHeadersConfig: jest.fn((config) => ({
+    defaults:   ['STATE', 'NAME', 'NAMESPACE', 'AGE'],
+    pagination: ['STEVE_NAME_COL', 'STEVE_NAMESPACE_COL', 'STEVE_AGE_COL'],
+  })),
+}));
+
 jest.mock('@shell/core/productDebugger', () => ({
   DSLRegistrationsPerProduct: jest.fn(),
   registeredRoutes:           jest.fn(),
@@ -53,6 +60,7 @@ function createMockPlugin(): IPlugin {
       configureType:       jest.fn(),
       weightType:          jest.fn(),
       product:             jest.fn(),
+      headers:             jest.fn(),
     })),
   } as any;
 }
@@ -329,7 +337,6 @@ describe('pluginProduct', () => {
       const config: ProductChildResource[] = [
         {
           type:   'custom.resource',
-          label:  'Custom Resource',
           weight: 5,
         },
       ];
@@ -1052,6 +1059,292 @@ describe('pluginProduct', () => {
         expect(mockDSL.labelGroup).toHaveBeenCalledTimes(1);
         expect(mockDSL.product).not.toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('headers configuration', () => {
+    let mockPlugin: IPlugin;
+    let mockStore: any;
+    let mockRouter: Router;
+    let mockDSL: any;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+
+      mockPlugin = createMockPlugin();
+      mockStore = createMockStore();
+      mockRouter = createMockRouter();
+      mockDSL = {
+        product:             jest.fn(),
+        basicType:           jest.fn(),
+        labelGroup:          jest.fn(),
+        setGroupDefaultType: jest.fn(),
+        weightGroup:         jest.fn(),
+        virtualType:         jest.fn(),
+        configureType:       jest.fn(),
+        weightType:          jest.fn(),
+        headers:             jest.fn(),
+      };
+
+      (mockPlugin.DSL as jest.Mock).mockReturnValue(mockDSL);
+    });
+
+    it('should process headers configuration when provided on resource page', () => {
+      const { processHeadersConfig } = require('@shell/core/column-builder');
+
+      const productMetadata: ProductMetadata = {
+        name:  'test-product',
+        label: 'Test',
+      };
+      const config: ProductChildResource[] = [
+        {
+          type:    'apps.deployment',
+          headers: {
+            preset:     'namespaced',
+            pagination: 'auto',
+          },
+        },
+      ];
+
+      const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+
+      expect(processHeadersConfig).toHaveBeenCalledWith({
+        preset:     'namespaced',
+        pagination: 'auto',
+      });
+      expect(mockDSL.headers).toHaveBeenCalledWith(
+        'apps.deployment',
+        ['STATE', 'NAME', 'NAMESPACE', 'AGE'],
+        ['STEVE_NAME_COL', 'STEVE_NAMESPACE_COL', 'STEVE_AGE_COL']
+      );
+    });
+
+    it('should process headers with explicit columns configuration', () => {
+      const { processHeadersConfig } = require('@shell/core/column-builder');
+
+      const productMetadata: ProductMetadata = {
+        name:  'test-product',
+        label: 'Test',
+      };
+      const config: ProductChildResource[] = [
+        {
+          type:    'core.service',
+          headers: {
+            columns:    ['state', 'name', 'namespace', 'specType', 'age'],
+            pagination: 'auto',
+          },
+        },
+      ];
+
+      const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+
+      expect(processHeadersConfig).toHaveBeenCalledWith({
+        columns:    ['state', 'name', 'namespace', 'specType', 'age'],
+        pagination: 'auto',
+      });
+      expect(mockDSL.headers).toHaveBeenCalledWith(
+        'core.service',
+        expect.any(Array),
+        expect.any(Array)
+      );
+    });
+
+    it('should not call headers DSL method when no headers config provided', () => {
+      const productMetadata: ProductMetadata = {
+        name:  'test-product',
+        label: 'Test',
+      };
+      const config: ProductChildResource[] = [
+        { type: 'apps.deployment' },
+      ];
+
+      const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+
+      expect(mockDSL.headers).not.toHaveBeenCalledWith();
+    });
+
+    it('should handle errors in headers processing gracefully', () => {
+      const { processHeadersConfig } = require('@shell/core/column-builder');
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      processHeadersConfig.mockImplementationOnce(() => {
+        throw new Error('Invalid headers configuration');
+      });
+
+      const productMetadata: ProductMetadata = {
+        name:  'test-product',
+        label: 'Test',
+      };
+      const config: ProductChildResource[] = [
+        {
+          type:    'apps.deployment',
+          headers: { preset: 'invalid-preset' } as any,
+        },
+      ];
+
+      const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error processing headers for type "apps.deployment":',
+        expect.any(Error)
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should process headers for multiple resources', () => {
+      const { processHeadersConfig } = require('@shell/core/column-builder');
+
+      const productMetadata: ProductMetadata = {
+        name:  'multi-resource-product',
+        label: 'Multi Resource',
+      };
+      const config: ProductChildResource[] = [
+        {
+          type:    'apps.deployment',
+          headers: {
+            preset:     'workload',
+            pagination: 'auto',
+          },
+        },
+        {
+          type:    'core.service',
+          headers: {
+            preset:     'namespaced',
+            add:        ['specType', 'targetPort'],
+            pagination: 'auto',
+          },
+        },
+        {
+          type:    'core.pod',
+          headers: {
+            columns:    ['state', 'name', 'node', 'age'],
+            pagination: 'auto',
+          },
+        },
+      ];
+
+      const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+
+      expect(processHeadersConfig).toHaveBeenCalledTimes(3);
+      expect(mockDSL.headers).toHaveBeenCalledTimes(3);
+      expect(mockDSL.headers).toHaveBeenCalledWith(
+        'apps.deployment',
+        expect.any(Array),
+        expect.any(Array)
+      );
+      expect(mockDSL.headers).toHaveBeenCalledWith(
+        'core.service',
+        expect.any(Array),
+        expect.any(Array)
+      );
+      expect(mockDSL.headers).toHaveBeenCalledWith(
+        'core.pod',
+        expect.any(Array),
+        expect.any(Array)
+      );
+    });
+
+    it('should process headers when extending standard product', () => {
+      const { processHeadersConfig } = require('@shell/core/column-builder');
+
+      const config: ProductChildResource[] = [
+        {
+          type:    'apps.deployment',
+          headers: {
+            preset:     'workload',
+            pagination: 'auto',
+          },
+        },
+      ];
+
+      const pluginProduct = new PluginProduct(mockPlugin, StandardProductName.EXPLORER, config);
+
+      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+
+      expect(processHeadersConfig).toHaveBeenCalledWith(expect.any(Object));
+      expect(mockDSL.headers).toHaveBeenCalledWith(
+        'apps.deployment',
+        expect.any(Array),
+        expect.any(Array)
+      );
+    });
+
+    it('should handle mixed resource types with and without headers', () => {
+      const { processHeadersConfig } = require('@shell/core/column-builder');
+
+      const productMetadata: ProductMetadata = {
+        name:  'mixed-product',
+        label: 'Mixed',
+      };
+      const config: (ProductChildResource | ProductChildPage)[] = [
+        {
+          type:    'apps.deployment',
+          headers: {
+            preset:     'workload',
+            pagination: 'auto',
+          },
+        },
+        {
+          type: 'core.service',
+          // No headers config
+        },
+        {
+          name:      'custom-page',
+          label:     'Custom',
+          component: { name: 'CustomComponent' },
+        },
+      ];
+
+      const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+
+      expect(processHeadersConfig).toHaveBeenCalledTimes(1);
+      expect(mockDSL.headers).toHaveBeenCalledTimes(1);
+      expect(mockDSL.headers).toHaveBeenCalledWith(
+        'apps.deployment',
+        expect.any(Array),
+        expect.any(Array)
+      );
+    });
+
+    it('should preserve other resource configuration when headers are provided', () => {
+      const productMetadata: ProductMetadata = {
+        name:  'test-product',
+        label: 'Test',
+      };
+      const config: ProductChildResource[] = [
+        {
+          type:    'apps.deployment',
+          weight:  100,
+          headers: {
+            preset:     'workload',
+            pagination: 'auto',
+          },
+        },
+      ];
+
+      const pluginProduct = new PluginProduct(mockPlugin, productMetadata, config);
+
+      pluginProduct.apply(mockPlugin, mockStore, mockRouter, {});
+
+      expect(mockDSL.weightType).toHaveBeenCalledWith('apps.deployment', 100, true);
+      expect(mockDSL.headers).toHaveBeenCalledWith(
+        'apps.deployment',
+        expect.any(Array),
+        expect.any(Array)
+      );
     });
   });
 });
