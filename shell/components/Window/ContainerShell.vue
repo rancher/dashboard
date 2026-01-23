@@ -239,6 +239,7 @@ export default {
       try {
         this.webglAddon = new addons.webgl.WebglAddon();
       } catch (e) {
+        this.eventLogs.push(`Error webglAddon: ${ e }`);
         // Some browsers (Safari) don't support the webgl renderer, so don't use it.
         this.webglAddon = null;
         this.canvasAddon = new addons.canvas.CanvasAddon();
@@ -320,6 +321,7 @@ export default {
       }
 
       this.socket = new Socket(url, false, 0, 'base64.channel.k8s.io');
+      this.eventLogs.push('Before');
 
       this.socket.addEventListener(EVENT_CONNECTING, (e) => {
         this.isOpen = false;
@@ -402,8 +404,12 @@ export default {
         }
       });
 
-      this.socket.connect();
-      this.terminal.focus();
+      try {
+        this.socket.connect();
+        this.terminal.focus();
+      } catch (e) {
+        this.eventLogs.push(`Error connecting: ${ e }`);
+      }
     },
 
     flush() {
