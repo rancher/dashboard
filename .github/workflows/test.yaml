@@ -101,13 +101,13 @@ jobs:
       # 2. call it here
       # 3. call it from `a11y-test` as well
 
-      - name: Install Chrome 127
+      - name: Install Chrome 144
         run: |
           sudo apt-get install -y wget libu2f-udev
           cd /tmp
-          wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_127.0.6533.72-1_amd64.deb
-          sudo dpkg -i google-chrome-stable_127.0.6533.72-1_amd64.deb
-          sudo apt-get install -y --allow-downgrades ./google-chrome-stable_127.0.6533.72-1_amd64.deb
+          wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_144.0.7559.59-1_amd64.deb
+          sudo dpkg -i google-chrome-stable_144.0.7559.59-1_amd64.deb
+          sudo apt-get install -y --allow-downgrades ./google-chrome-stable_144.0.7559.59-1_amd64.deb
           google-chrome --version
 
       - name: Download e2e build
@@ -174,13 +174,13 @@ jobs:
       - name: Setup env
         uses: ./.github/actions/setup
 
-      - name: Install Chrome 127
+      - name: Install Chrome 144
         run: |
           sudo apt-get install -y wget libu2f-udev
           cd /tmp
-          wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_127.0.6533.72-1_amd64.deb
-          sudo dpkg -i google-chrome-stable_127.0.6533.72-1_amd64.deb
-          sudo apt-get install -y --allow-downgrades ./google-chrome-stable_127.0.6533.72-1_amd64.deb
+          wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_144.0.7559.59-1_amd64.deb
+          sudo dpkg -i google-chrome-stable_144.0.7559.59-1_amd64.deb
+          sudo apt-get install -y --allow-downgrades ./google-chrome-stable_144.0.7559.59-1_amd64.deb
           google-chrome --version
 
       - name: Download e2e build
