@@ -5,6 +5,7 @@ import {
 } from '@shell/core/types';
 import { Router } from 'vue-router';
 import EmptyProductPage from '@shell/components/EmptyProductPage.vue';
+import { processHeadersConfig } from '@shell/core/column-builder';
 // import { DSLRegistrationsPerProduct, registeredRoutes } from '@shell/core/productDebugger';
 import {
   gatherChildrenOrdering,
@@ -253,7 +254,9 @@ export class PluginProduct {
 
   // configure virtualType or configureType for a page item
   private configurePageItem(parentName: string, item: ProductChild, groupNaming?: string) {
-    const { configureType, virtualType, weightType } = this.DSLMethods;
+    const {
+      configureType, virtualType, weightType, headers
+    } = this.DSLMethods;
 
     // Page with a "component" specified maps to a virtualType
     if ((item as any).component) {
@@ -303,6 +306,18 @@ export class PluginProduct {
 
       configureType(typeItem.type, { ...configureTypeConfig, ...(pageChild.config || {}) });
 
+      // Process headers configuration if provided
+      if (typeItem.headers) {
+        try {
+          const processedHeaders = processHeadersConfig(typeItem.headers);
+
+          headers(typeItem.type, processedHeaders.defaults, processedHeaders.pagination);
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error(`Error processing headers for type "${ typeItem.type }":`, error);
+        }
+      }
+
       if (typeItem.weight) {
         weightType(typeItem.type, typeItem.weight, true);
       }
@@ -339,10 +354,19 @@ export class PluginProduct {
       } else if ((child as any).component) {
         // virtualType page
         const pageChild = child as ProductChildPage;
+
+        if (pageChild.type) {
+          throw new Error('Custom pages cannot have a "type" property - only resource pages can use "type".');
+        }
+
         const route = generateVirtualTypeRoute(parentName, pageChild, { component: pageChild.component, extendProduct: !this.newProduct });
 
         plugin.addRoute(route);
       } else if ((child as any).type) {
+        if ((child as ProductChildPage).component) {
+          throw new Error('Resource pages cannot have a "component" property - only custom pages can use "component".');
+        }
+
         // configureType page (resource)
         if (!this.addedResourceRoutes) {
           this.addedResourceRoutes = true;
