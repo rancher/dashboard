@@ -1,1 +1,0 @@
-Contributors guide can be found in [docs/contributors/contributors.md](docs/contributors/contributors.md)
