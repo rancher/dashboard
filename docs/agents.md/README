@@ -1,0 +1,27 @@
+# Agents.md
+
+This folder contains files used to construct a single root `AGENTS.md`
+
+We do this because
+- The single commonality between almost all AI tools is the root AGENTS.md
+- Referencing other files within an AGENTS.md may be ignored
+
+Process
+1. Add files to or update files in `./docs/agents.md/agents`, `./docs/agents.md/personas`, `./docs/agents.md/contributors`.
+2. Each file must
+  - Start markdown headers at the `##` level
+  - End in a new line
+  - Order contents in AGENTS.md by giving an optional number prefix
+3. Run `yarn agents:generate`.
+   - Take the contents of `./docs/agents.md/template_agents.md`
+   - Insert the contents of the agents, personas and contributors files
+   - Output to `./AGENTS.md`
+4. Commit all changes, including root `./AGENTS.md`
+
+
+Future Tasks
+- Add real world examples of code examples
+- Create a GH workflow to monitor `agents.md` folder files in a PR, if changed run generate script and add new AGENTS.md to PR
+- Determine how AI tool specific metadata code can be included
+- Determine how AI specific patterns, like co-pilot instructions, can be expressed in a way to be adopted by or reduce duplication with the root agents.md
+- Discuss the multiple agents vs personas approach works

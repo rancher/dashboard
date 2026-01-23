@@ -7,44 +7,38 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Source files
-ROOT_AGENTS="${PROJECT_ROOT}/docs/agents/root_agents.md"
-ROOT_PERSONAS="${PROJECT_ROOT}/docs/agents/root_personas.md"
-CONTRIBUTORS="${PROJECT_ROOT}/docs/contributors/contributors.md"
+TEMPLATE_FILE="${PROJECT_ROOT}/docs/agents.md/template_agents.md"
+AGENTS_DIR="${PROJECT_ROOT}/docs/agents.md/agents"
+CONTRIBUTORS_DIR="${PROJECT_ROOT}/docs/agents.md/contributors"
+PERSONAS_DIR="${PROJECT_ROOT}/docs/agents.md/personas"
 
-# Destination files
-DEST_AGENTS="${PROJECT_ROOT}/agents.md"
-DEST_PERSONAS="${PROJECT_ROOT}/personas.md"
+# Destination file
+OUTPUT_FILE="${PROJECT_ROOT}/AGENTS.md"
 
-insert_content() {
-    local file="$1"
-    while IFS= read -r content_line || [ -n "$content_line" ]; do
-        if [[ "$content_line" == \#* ]]; then
-            echo "#${content_line}"
-        else
-            echo "$content_line"
-        fi
-    done < "$file"
+insert_directory_contents() {
+    local dir="$1"
+    if [ -d "$dir" ]; then
+        for file in "$dir"/*; do
+            if [ -f "$file" ]; then
+                cat "$file"
+                echo ""
+            fi
+        done
+    fi
 }
 
-generate_agents() {
-    echo "Generating ${DEST_AGENTS}..."
-    while IFS= read -r line || [ -n "$line" ]; do
-        if [[ "$line" == *"<personas>"* ]]; then
-            insert_content "${ROOT_PERSONAS}"
-        elif [[ "$line" == *"<contributors>"* ]]; then
-            insert_content "${CONTRIBUTORS}"
-        else
-            echo "$line"
-        fi
-    done < "${ROOT_AGENTS}" > "${DEST_AGENTS}"
-}
+echo "Generating ${OUTPUT_FILE}..."
 
-generate_personas() {
-    echo "Generating ${DEST_PERSONAS}..."
-    cp "${ROOT_PERSONAS}" "${DEST_PERSONAS}"
-}
-
-generate_agents
-generate_personas
+while IFS= read -r line || [ -n "$line" ]; do
+    if [[ "$line" == *"<agents>"* ]]; then
+        insert_directory_contents "${AGENTS_DIR}"
+    elif [[ "$line" == *"<contributors>"* ]]; then
+        insert_directory_contents "${CONTRIBUTORS_DIR}"
+    elif [[ "$line" == *"<personas>"* ]]; then
+        insert_directory_contents "${PERSONAS_DIR}"
+    else
+        echo "$line"
+    fi
+done < "${TEMPLATE_FILE}" > "${OUTPUT_FILE}"
 
 echo "Done."
