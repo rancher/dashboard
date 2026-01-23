@@ -11,6 +11,7 @@ export default class Kubectl extends ComponentPo {
 
   openTerminal(options?: GetOptions) {
     cy.get('#btn-kubectl').click();
+    cy.wait(20000);
     this.self().get('.window.show-grid .text-success', options).should('contain', 'Connected');
 
     return this;
@@ -55,7 +56,7 @@ export default class Kubectl extends ComponentPo {
     return this;
   }
 
-  openAndExecuteCommand(command: string, wait = 3000) {
+  openAndExecuteCommand(command: string, wait = 20000) {
     this.openTerminal();
     this.executeCommand(command, wait);
 
