@@ -239,6 +239,7 @@ export default {
        */
       sortGeneration:               undefined,
       listAutoRefreshToggleEnabled: paginationUtils.listAutoRefreshToggleEnabled({ rootGetters: this.$store.getters }),
+      hasSearchFilter:              false,
     };
   },
 
@@ -619,7 +620,7 @@ export default {
      * Whether we should show namespace counts in group tabs
      */
     showNamespaceCounts() {
-      return (this.group === 'namespace' || this.group === 'metadata.namespace') && this.isNamespaced;
+      return (this.group === 'namespace' || this.group === 'metadata.namespace') && this.isNamespaced && !this.hasSearchFilter;
     },
   },
 
@@ -692,6 +693,8 @@ export default {
           }
         });
       }
+
+      this.hasSearchFilter = !!arg?.filtering?.searchQuery;
     }
   }
 };
@@ -773,14 +776,12 @@ export default {
     <template #group-by="{group: thisGroup}">
       <div class="group-tab">
         <span v-clean-html="thisGroup.ref" />
-        <template v-if="showNamespaceCounts">
-          <span
-            v-if="namespaceCounts[thisGroup.rows?.[0]?.metadata?.namespace]"
-            class="count"
-          >
-            ({{ namespaceCounts[thisGroup.rows?.[0]?.metadata?.namespace].count }})
-          </span>
-        </template>
+        <span
+          v-if="showNamespaceCounts"
+          class="count"
+        >
+          ({{ namespaceCounts[thisGroup.rows?.[0]?.metadata?.namespace].count }})
+        </span>
       </div>
     </template>
 
