@@ -127,6 +127,7 @@ export default {
 
   watch: {
     container() {
+      this.eventLogs.push('L130');
       this.connect();
     },
 
@@ -175,7 +176,9 @@ export default {
     } catch {}
 
     await this.setupTerminal();
+    this.eventLogs.push('L179');
     await this.connect();
+    this.eventLogs.push('L181');
 
     clearInterval(this.keepAliveTimer);
     this.keepAliveTimer = setInterval(() => {
@@ -308,18 +311,20 @@ export default {
     },
 
     async connect() {
+      this.eventLogs.push('L311');
       if (this.socket) {
+        this.eventLogs.push('L313');
         await this.socket.disconnect();
         this.socket = null;
         this.terminal.reset();
       }
-
+      this.eventLogs.push('L319');
       const url = this.getSocketUrl();
 
       if (!url) {
         return;
       }
-
+      this.eventLogs.push('L325');
       this.socket = new Socket(url, false, 0, 'base64.channel.k8s.io');
       this.eventLogs.push('Before');
 
