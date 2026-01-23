@@ -39,7 +39,7 @@ const ariaLabel = computed(() => i18n.t('component.drawer.chrome.ariaLabel.close
       <slot name="footer">
         <div class="actions">
           <RcButton
-            role="secondary"
+            variant="secondary"
             size="large"
             :aria-label="ariaLabel"
             @click="emit('close')"

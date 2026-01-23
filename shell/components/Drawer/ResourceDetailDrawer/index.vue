@@ -92,7 +92,7 @@ useResourceDetailDrawerProvider();
     <template #additional-actions>
       <RcButton
         v-if="canEdit"
-        role="primary"
+        variant="primary"
         size="large"
         :aria-label="action.ariaLabel"
         :data-testid="editBttnDataTestId"

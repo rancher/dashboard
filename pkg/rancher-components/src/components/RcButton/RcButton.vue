@@ -36,6 +36,10 @@ const buttonSizesNew: { size: ButtonSize, className: string }[] = [
 const props = withDefaults(defineProps<ButtonVariantProps & ButtonSizeProps & ButtonVariantNewProps & ButtonSizeNewProps & IconProps>(), { size: 'medium' });
 
 const activeVariantClassName = computed(() => {
+  if (props.variant === 'multiAction' || props.multiAction) {
+    console.warn('[RcButton] The "multiAction" variant is deprecated and will be removed in a future version.'); // eslint-disable-line no-console
+  }
+
   const activeVariant = buttonVariants.find(({ variant }) => props[variant]);
 
   if (activeVariant) {
