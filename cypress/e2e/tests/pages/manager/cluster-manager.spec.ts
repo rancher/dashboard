@@ -818,3 +818,25 @@ describe('Cluster Manager as standard user', { testIsolation: 'off', tags: ['@ma
     });
   });
 });
+describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () => {
+  before(() => {
+    cy.login();
+    // Set theme to light
+    cy.setUserPreference({ theme: 'ui-light' });
+  });
+  it('should display cluster manager page', () => {
+    const clusterList = new ClusterManagerListPagePo();
+
+    clusterList.goTo();
+    clusterList.checkIsCurrentPage();
+
+    clusterList.sortableTable().checkVisible();
+    clusterList.sortableTable().checkLoadingIndicatorNotVisible();
+    clusterList.sortableTable().noRowsShouldNotExist();
+
+    // hide elements before taking percy snapshot
+    cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="sortable-cell-0-5"]');
+    // takes percy snapshot.
+    cy.percySnapshot('cluster manager list page');
+  });
+});
