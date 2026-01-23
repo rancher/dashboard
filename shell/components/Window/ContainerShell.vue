@@ -177,8 +177,11 @@ export default {
         await this.$store.dispatch('cluster/find', { type: NODE, id: nodeId });
       }
     } catch {}
-
-    await this.setupTerminal();
+    try {
+      await this.setupTerminal();
+    } catch (e) {
+      this.eventLogs.push(`Error setupTerminal: ${ e }`);
+    }
     this.eventLogs.push('L179');
     await this.connect();
     this.eventLogs.push('L181');
@@ -218,9 +221,11 @@ export default {
     },
 
     async setupTerminal() {
+      this.eventLogs.push('L224');
       const docStyle = getComputedStyle(document.querySelector('body'));
       const xterm = await import(/* webpackChunkName: "xterm" */ 'xterm');
 
+      this.eventLogs.push('L227');
       const addons = await allHash({
         fit:      import(/* webpackChunkName: "xterm" */ 'xterm-addon-fit'),
         webgl:    import(/* webpackChunkName: "xterm" */ 'xterm-addon-webgl'),
@@ -228,6 +233,8 @@ export default {
         search:   import(/* webpackChunkName: "xterm" */ 'xterm-addon-search'),
         canvas:   import(/* webpackChunkName: "xterm" */ 'xterm-addon-canvas')
       });
+
+      this.eventLogs.push('L235');
 
       const terminal = new xterm.Terminal({
         theme: {
@@ -239,9 +246,11 @@ export default {
         ...this.xtermConfig,
       });
 
+      this.eventLogs.push('L246');
+
       this.fitAddon = new addons.fit.FitAddon();
       this.searchAddon = new addons.search.SearchAddon();
-
+      this.eventLogs.push('L250');
       try {
         this.webglAddon = new addons.webgl.WebglAddon();
       } catch (e) {
@@ -250,20 +259,24 @@ export default {
         this.webglAddon = null;
         this.canvasAddon = new addons.canvas.CanvasAddon();
       }
-
+      this.eventLogs.push('L259');
       terminal.loadAddon(this.fitAddon);
       terminal.loadAddon(this.searchAddon);
       terminal.loadAddon(new addons.weblinks.WebLinksAddon());
+      this.eventLogs.push('L263');
       terminal.open(this.$refs.xterm);
-
+      this.eventLogs.push('L265', this.webglAddon);
       if (this.webglAddon) {
         terminal.loadAddon(this.webglAddon);
       } else {
         terminal.loadAddon(this.canvasAddon);
       }
+      this.eventLogs.push('L271');
 
       this.fit();
+      this.eventLogs.push('L273');
       this.flush();
+      this.eventLogs.push('L276');
 
       terminal.onData((input) => {
         const msg = `0${ base64Encode(input) }`;
@@ -272,6 +285,7 @@ export default {
       });
 
       this.terminal = terminal;
+      this.eventLogs.push('L285');
     },
 
     write(msg) {
