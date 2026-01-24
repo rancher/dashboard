@@ -95,6 +95,7 @@ watch(
           :data-testid="showConfigurationDataTestId"
           class="show-configuration"
           :primary="true"
+          size="large"
           :aria-label="i18n.t('component.resource.detail.titleBar.ariaLabel.showConfiguration', { resource: resourceName })"
           @click="() => emit('show-configuration', showConfigurationReturnFocusSelector)"
         >
@@ -106,7 +107,7 @@ watch(
         </RcButton>
         <ActionMenu
           v-if="actionMenuResource"
-          button-role="multiAction"
+          button-variant="multiAction"
           :resource="actionMenuResource"
           data-testid="masthead-action-menu"
           :button-aria-label="i18n.t('component.resource.detail.titleBar.ariaLabel.actionMenu', { resource: resourceName })"

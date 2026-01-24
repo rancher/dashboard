@@ -559,7 +559,7 @@ export default {
             <template v-if="featureDropdownMenu">
               <ActionMenu
                 v-if="isView"
-                button-role="multiAction"
+                button-variant="multiAction"
                 button-size="compact"
                 :resource="value"
                 data-testid="masthead-action-menu"
