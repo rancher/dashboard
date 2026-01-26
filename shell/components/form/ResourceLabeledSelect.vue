@@ -165,5 +165,16 @@ export default defineComponent({
     :paginate="paginateType"
     :multiple="$attrs.multiple || false"
     @update:value="$emit('update:value', $event)"
-  />
+  >
+    <template
+      v-for="(_, slot) in $slots"
+      :key="slot"
+      #[slot]="scope"
+    >
+      <slot
+        :name="slot"
+        v-bind="scope"
+      />
+    </template>
+  </LabeledSelect>
 </template>

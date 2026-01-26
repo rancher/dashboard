@@ -1,0 +1,30 @@
+import { Meta, Canvas, Story, Controls } from '@storybook/blocks';
+import * as RcButtonStories from './RcButton.stories';
+
+
+
+# RcButton
+
+Use RcButton for performing actions, such as submitting forms or opening dialogs. The button component supports different visual styles (variants), sizes, and can include icons.
+
+<Canvas of={RcButtonStories.Default} layout="centered" />
+
+<Controls of={RcButtonStories.Default} />
+
+## Button Variants
+
+Different button variants for different purposes and visual hierarchy:
+
+<Canvas of={RcButtonStories.AllVariants} />
+
+## Button Sizes
+
+Buttons are available in three sizes: small, medium (default), and large:
+
+<Canvas of={RcButtonStories.AllSizes} />
+
+## Buttons with Icons
+
+Buttons can include icons on the left, right, or both sides:
+
+<Canvas of={RcButtonStories.WithIcons} />

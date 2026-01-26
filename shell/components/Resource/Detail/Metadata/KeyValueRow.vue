@@ -43,7 +43,7 @@ const previewId = randomStr();
   >
     <RcButton
       ref="button"
-      ghost
+      variant="ghost"
       aria-haspopup="dialog"
       :aria-expanded="showPreview"
       :aria-controls="previewId"
@@ -103,9 +103,11 @@ const previewId = randomStr();
     line-height: normal;
   }
 
-  & .btn {
+  & .btn.btn-medium.rc-button.variant-ghost {
     line-height: initial;
     min-height: initial;
+
+    padding: 0;
   }
 
   &.active {
