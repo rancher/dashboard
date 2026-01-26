@@ -477,6 +477,20 @@ describe('class StevePaginationUtils', () => {
       expect(result).toBe('filter=spec.containers.image~nginx&filter=metadata.name!=test');
     });
 
+    it.each([
+      ['test', 'test'],
+      ['-test', '"-test"'],
+      ['te-st', '"te-st"'],
+      ['test-', '"test-"'],
+    ])('should handle filter value %s with hyphens', (x, y) => {
+      const filters = [
+        new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: x })] }),
+      ];
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+
+      expect(result).toBe(`filter=metadata.name=${ y }`);
+    });
+
     it('should handle IN and NOT_IN operators', () => {
       const filters = [
         new PaginationParamFilter({
