@@ -1,8 +1,8 @@
 name: 'Install Chrome'
-description: 'Installs a specific version of Google Chrome'
+description: 'Installs a specific version of Google Chrome. Versions can be found in the chrome releases blog: https://chromereleases.googleblog.com/search/label/Desktop%20Update'
 inputs:
   chrome-version:
-    description: 'The version of Google Chrome to target'
+    description: 'The version of Google Chrome to target. Versions are formatted as `144.0.7559.96-1`.'
     required: true
 runs:
   using: "composite"
