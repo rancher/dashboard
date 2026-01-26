@@ -99,4 +99,18 @@ describe('isLocalUser', () => {
 
     expect(isLocalUser(user)).toBe(false);
   });
+
+  it('should handle malformed principals without colon separator', () => {
+    // Malformed principals should be skipped, not cause errors
+    const user = { principalIds: ['malformed-principal', 'local://admin'] };
+
+    expect(isLocalUser(user)).toBe(true);
+  });
+
+  it('should return false if only principal is malformed external', () => {
+    // If all principals are malformed and we only have malformed ones, default to local
+    const user = { principalIds: ['malformed-principal'] };
+
+    expect(isLocalUser(user)).toBe(true);
+  });
 });

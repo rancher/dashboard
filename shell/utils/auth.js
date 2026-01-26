@@ -313,6 +313,12 @@ export function isLocalUser(user) {
 
   for (const p of principals) {
     const idx = p.indexOf(':');
+
+    // Skip malformed principals (no colon separator)
+    if (idx === -1) {
+      continue;
+    }
+
     const driver = p.substring(0, idx).toLowerCase().split('_')[0];
 
     // If any principal is not local or system, user is not local
