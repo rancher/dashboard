@@ -420,12 +420,12 @@ export default {
           </div>
         </div>
 
-        <template v-if="isGenericOidc || supportsGroupSearch">
-          <div
-            class="row mb-20"
-          >
-            <div class="col span-6 checkbox-flex">
-              <!-- Allow group search -->
+        <div
+          class="row mb-20"
+        >
+          <div class="col span-6 checkbox-flex">
+            <!-- Allow group search -->
+            <template v-if="isGenericOidc || supportsGroupSearch">
               <Checkbox
                 v-if="supportsGroupSearch"
                 v-model:value="model.groupSearchEnabled"
@@ -442,9 +442,15 @@ export default {
                 :tooltip="t('authConfig.oidc.customClaims.enable.tooltip')"
                 :mode="mode"
               />
-            </div>
+            </template>
+            <Checkbox
+              v-model:value="model.pkceMethod"
+              :value-when-true="PKCE_S256"
+              :label="t('authConfig.oidc.pkce.label')"
+              :tooltip="t('authConfig.oidc.pkce.tooltip')"
+            />
           </div>
-        </template>
+        </div>
 
         <!-- Custom Claims -->
         <template v-if="addCustomClaims && isGenericOidc">
@@ -618,18 +624,6 @@ export default {
             </div>
           </div>
         </template>
-
-        <!-- PKCE Method -->
-        <div class="row mb-20">
-          <div class="col span-6">
-            <Checkbox
-              v-model:value="model.pkceMethod"
-              :value-when-true="PKCE_S256"
-              :label="t('authConfig.oidc.pkce.label')"
-              :tooltip="t('authConfig.oidc.pkce.tooltip')"
-            />
-          </div>
-        </div>
 
         <!-- Scopes -->
         <div class="row mb-20">
