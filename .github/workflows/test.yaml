@@ -146,6 +146,7 @@ jobs:
         run: yarn docker:local:logs
 
       - name: Create Artifacts Folder
+        if: ${{ always() }}
         run: |
           mkdir artifacts
           cp -r cypress/screenshots artifacts 2>/dev/null || :
@@ -156,6 +157,7 @@ jobs:
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v5
+        if: ${{ always() }}
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-artifacts-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
           path: artifacts/
