@@ -1,20 +1,20 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { RcIcon } from '@components/RcIcon';
-import { RcIconSize, RcIconType } from '@components/RcIcon/types';
+import { RcIconTypeToClass, RcIconSizeToCSS } from '@components/RcIcon/types';
 import { StatusDefinitions } from '@components/utils/status';
 
 const meta: Meta<typeof RcIcon> = {
   component: RcIcon,
   argTypes:  {
     type: {
-      options:     Object.keys(RcIconType),
+      options:     Object.keys(RcIconTypeToClass),
       control:     { type: 'select' },
       description: `Determines which icon will be shown.`
     },
     size: {
-      options:     Object.keys(RcIconSize),
+      options:     Object.keys(RcIconSizeToCSS),
       control:     { type: 'select' },
-      description: "Determines the size of the icon. `small`, `medium`, and `large` are the standard sizes and 'none' should be used if you plan to style it yourself. We highly discourage using `none` we'd like to limit the amount of sizes we use."
+      description: "Determines the size of the icon. `small`, `medium`, and `large` are the standard sizes and 'inherit' should be used if you plan to style it yourself. We highly discourage using `inherit` we'd like to limit the amount of sizes we use."
     },
     status: {
       options:     [...Object.keys(StatusDefinitions), 'inherit'],
@@ -46,7 +46,7 @@ export const All: Story = {
   render: (args: any) => ({
     components: { RcIcon },
     setup() {
-      return { args, types: Object.keys(RcIconType) };
+      return { args, types: Object.keys(RcIconTypeToClass) };
     },
     template: `<div style="display: flex; max-width: 100%; flex-wrap: wrap; ">
       <div v-for="type in types" :key="type" style="display: inline-flex; justify-content: center; align-items: center; flex-direction: column; flex-basis: 25%; margin-bottom: 20px;">

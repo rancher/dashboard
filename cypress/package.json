@@ -1,6 +1,6 @@
 {
   "name": "@rancher/cypress",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Cypress E2E test, utilities, page objects, and blueprints for Rancher Dashboard",
   "bin": {
     "rancher-cypress": "./bin/cli.js"

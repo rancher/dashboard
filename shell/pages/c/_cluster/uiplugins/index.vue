@@ -917,7 +917,7 @@ export default {
         <div v-if="hasFeatureFlag && hasMenuActions">
           <ActionMenu
             data-testid="extensions-page-menu"
-            button-role="tertiary"
+            button-variant="tertiary"
             :button-aria-label="t('plugins.labels.menu')"
             :custom-actions="menuActions"
             @devLoad="showDeveloperLoadDialog"

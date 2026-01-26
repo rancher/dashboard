@@ -107,7 +107,7 @@ describe('component: TitleBar/index', () => {
     const actions = wrapper.find('.top > .actions');
     const actionMenuComponent = actions.getComponent<any>('action-menu-stub');
 
-    expect(actionMenuComponent.props('buttonRole')).toStrictEqual('multiAction');
+    expect(actionMenuComponent.props('buttonVariant')).toStrictEqual('multiAction');
     expect(actionMenuComponent.props('resource')).toStrictEqual(actionMenuResource);
   });
 
