@@ -22,3 +22,5 @@ declare module '@shell/store/store-types' {
   export const STORE: any;
   export const BLANK_CLUSTER: string;
 }
+
+declare module '@shell/config/pagination-table-headers';
