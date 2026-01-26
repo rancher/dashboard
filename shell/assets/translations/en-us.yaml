@@ -7357,6 +7357,8 @@ workload:
       sysctls: Sysctls
       sysctlsKey: Name
     standard: Standard Container
+    initContainer:
+      label: Init Containers
     terminationState: "Last state: Terminated with {lsExitCode}: {lsDescription}, started: {lsStartedAt}, finished: {lsFinishedAt}"
     titles:
       pods: Pods

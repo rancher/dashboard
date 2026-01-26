@@ -246,6 +246,8 @@ export default {
         role="button"
         :tabindex="fixedOpen ? -1 : 0"
         :aria-label="group.labelDisplay || group.label || ''"
+        :aria-expanded="!canCollapse || isExpanded"
+        :aria-controls="!canCollapse ? null : `group-${id}`"
         @click="groupSelected()"
         @keyup.enter="groupSelected()"
         @keyup.space="groupSelected()"
@@ -275,6 +277,8 @@ export default {
         role="button"
         tabindex="0"
         :aria-label="t('nav.ariaLabel.collapseExpand')"
+        :aria-expanded="isExpanded"
+        :aria-controls="`group-${id}`"
         @click="peek($event, true)"
         @keyup.enter="peek($event, true)"
         @keyup.space="peek($event, true)"
@@ -282,6 +286,7 @@ export default {
     </div>
     <ul
       v-if="isExpanded"
+      :id="`group-${id}`"
       class="list-unstyled body"
       v-bind="$attrs"
     >
