@@ -21,6 +21,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import isUrl from 'is-url';
 import { isLocalhost } from '@shell/utils/validators/setting';
 import Loading from '@shell/components/Loading';
+import { isLocalUser } from '@shell/utils/auth';
 
 const calcIsFirstLogin = (store) => {
   const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
@@ -74,12 +75,14 @@ export default {
   async beforeCreate() {
     const isFirstLogin = calcIsFirstLogin(this.$store);
     const mustChangePassword = await calcMustChangePassword(this.$store);
+    const v3User = this.$store.getters['auth/v3User'];
 
     if (isFirstLogin) {
       // Always show setup if this is the first log in
       return;
-    } else if (mustChangePassword) {
-      // If the password needs changing and this isn't the first log in ensure we have the password
+    } else if (mustChangePassword && isLocalUser(v3User)) {
+      // Only enforce password change for local users
+      // Auth provider users (OAuth, SAML, etc.) don't have passwords managed by Rancher
       if (!!this.$store.getters['auth/initialPass']) {
         // Got it... show setup
         return;

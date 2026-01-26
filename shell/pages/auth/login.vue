@@ -33,6 +33,7 @@ import Loading from '@shell/components/Loading';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import TabTitle from '@shell/components/TabTitle.vue';
 import { getBrandMeta } from '@shell/utils/brand';
+import { isLocalUser } from '@shell/utils/auth';
 
 export default {
   name:       'Login',
@@ -320,7 +321,9 @@ export default {
           $extension: this.$store.$extension,
         });
 
-        if (this.firstLogin || user[0]?.mustChangePassword) {
+        // Only redirect to setup for password change if user is local
+        // Auth provider users (OAuth, SAML, etc.) don't have passwords managed by Rancher
+        if ((this.firstLogin || user[0]?.mustChangePassword) && isLocalUser(user[0])) {
           this.$store.dispatch('auth/setInitialPass', this.password);
           this.$router.push({ name: 'auth-setup' });
         } else {

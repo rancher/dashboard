@@ -295,3 +295,28 @@ export function notLoggedIn(store, redirect, route) {
 export function noAuth(store) {
   store.commit('auth/hasAuth', false);
 }
+
+/**
+ * Check if a user is a local user based on their principal IDs
+ * @param {Object} user - User object with principalIds array
+ * @returns {boolean} - True if user is local, false if auth provider user
+ */
+export function isLocalUser(user) {
+  const principals = user?.principalIds || [];
+
+  if (!principals.length) {
+    return true; // Default to local if no principals
+  }
+
+  for (const p of principals) {
+    const idx = p.indexOf(':');
+    const driver = p.substr(0, idx).toLowerCase().split('_')[0];
+
+    // If any principal is not local or system, user is not local
+    if (driver !== 'local' && driver !== 'system') {
+      return false;
+    }
+  }
+
+  return true;
+}
