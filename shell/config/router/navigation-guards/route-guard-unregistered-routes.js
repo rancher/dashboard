@@ -1,5 +1,12 @@
 export function install(router, context) {
-  router.afterEach((to, from, next) => handleRouteGuardUnregisteredRoutes(to, from, next, context));
+  router.beforeEach(async(to, from, next) => {
+    try {
+      await handleRouteGuardUnregisteredRoutes(to, from, next, context);
+    } catch (error) {
+      console.error('Error in unregistered routes nav guard:', error); // eslint-disable-line no-console
+      next();
+    }
+  });
 }
 
 /*
@@ -32,4 +39,7 @@ export async function handleRouteGuardUnregisteredRoutes(to, from, next, { store
       }
     }
   }
+
+  // Always call next() if not redirected
+  return next();
 }
