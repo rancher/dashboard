@@ -5,7 +5,6 @@ import {
   CONFIG_MAP,
   SECRET,
   WORKLOAD_TYPES,
-  NODE,
   SERVICE,
   PVC,
   SERVICE_ACCOUNT,
@@ -257,9 +256,6 @@ export default {
     return {
       secondaryResourceData:      this.secondaryResourceDataConfig(),
       namespacedConfigMaps:       [],
-      allNodes:                   null,
-      workerNodes:                null,
-      allNodeObjects:             [],
       namespacedSecrets:          [],
       imagePullNamespacedSecrets: [],
       allServices:                [],
@@ -640,34 +636,7 @@ export default {
               }
             ]
           },
-          [NODE]: {
-            applyTo: [
-              { var: 'allNodeObjects' },
-              {
-                var:         'allNodes',
-                parsingFunc: (data) => {
-                  return data.map((node) => node.id);
-                }
-              },
-              {
-                var:         'workerNodes',
-                parsingFunc: (data) => {
-                  const keys = [
-                    `node-role.kubernetes.io/control-plane`,
-                    `node-role.kubernetes.io/etcd`
-                  ];
-
-                  return data
-                    .filter((node) => {
-                      const taints = node?.spec?.taints || [];
-
-                      return taints.every((taint) => !keys.includes(taint.key));
-                    })
-                    .map((node) => node.id);
-                }
-              },
-            ]
-          },
+          // TODO: RC create issue, all services fetched (but not all secrets)
           [SERVICE]: {
             applyTo: [
               { var: 'allServices' },

@@ -234,6 +234,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [NODE]: [
       { field: 'status.nodeInfo.kubeletVersion' },
       { field: 'status.nodeInfo.operatingSystem' },
+      // { field: 'spec.taints.key' }, // TODO: RC Pending on https://github.com/rancher/rancher/issues/53459
+      // { field: 'status.addresses.type' }, // TODO: RC Pending on https://github.com/rancher/rancher/issues/53459
     ],
     [POD]: [
       { field: 'spec.containers.image' },
