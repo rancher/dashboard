@@ -321,9 +321,11 @@ export default {
           $extension: this.$store.$extension,
         });
 
+        const loggedInUser = user[0];
+
         // Always redirect to setup for first login regardless of auth method
         // For password changes, only redirect if user is local (auth provider users don't have Rancher passwords)
-        if (this.firstLogin || (user[0]?.mustChangePassword && isLocalUser(user[0]))) {
+        if (this.firstLogin || (loggedInUser?.mustChangePassword && isLocalUser(loggedInUser))) {
           this.$store.dispatch('auth/setInitialPass', this.password);
           this.$router.push({ name: 'auth-setup' });
         } else {
