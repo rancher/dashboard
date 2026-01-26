@@ -18,6 +18,8 @@ import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import isUrl from 'is-url';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 
+const PKCE_S256 = 'S256';
+
 export default {
   components: {
     Banner,
@@ -171,10 +173,6 @@ export default {
 
     sloEndSessionEndpointUiEnabled() {
       return this.sloType === SLO_OPTION_VALUES.all || this.sloType === SLO_OPTION_VALUES.both;
-    },
-
-    pkceOptions() {
-      return ['S256', 'plain'];
     },
   },
 
@@ -624,14 +622,11 @@ export default {
         <!-- PKCE Method -->
         <div class="row mb-20">
           <div class="col span-6">
-            <LabeledSelect
+            <Checkbox
               v-model:value="model.pkceMethod"
-              :options="pkceOptions"
-              :mode="mode"
+              :value-when-true="PKCE_S256"
               :label="t('authConfig.oidc.pkce.label')"
-              :placeholder="t('authConfig.oidc.pkce.placeholder')"
               :tooltip="t('authConfig.oidc.pkce.tooltip')"
-              :clearable="true"
             />
           </div>
         </div>
