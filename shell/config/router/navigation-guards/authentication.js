@@ -1,5 +1,7 @@
 import { routeRequiresAuthentication } from '@shell/utils/router';
-import { isLoggedIn, notLoggedIn, noAuth, findMe, isLocalUser } from '@shell/utils/auth';
+import {
+  isLoggedIn, notLoggedIn, noAuth, findMe, isLocalUser
+} from '@shell/utils/auth';
 import { RANCHER_AS_OIDC_QUERY_PARAMS } from '@shell/config/query-params';
 
 const R_OIDC_PROV_PARAMS = 'rancher-as-oidc-prov-params';
