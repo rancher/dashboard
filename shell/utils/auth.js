@@ -304,13 +304,16 @@ export function noAuth(store) {
 export function isLocalUser(user) {
   const principals = user?.principalIds || [];
 
+  // Users without principals should be treated as local users for safety.
+  // This prevents accidentally bypassing password change requirements for edge cases
+  // like partially initialized users or users created before external auth was configured.
   if (!principals.length) {
-    return true; // Default to local if no principals
+    return true;
   }
 
   for (const p of principals) {
     const idx = p.indexOf(':');
-    const driver = p.substr(0, idx).toLowerCase().split('_')[0];
+    const driver = p.substring(0, idx).toLowerCase().split('_')[0];
 
     // If any principal is not local or system, user is not local
     if (driver !== 'local' && driver !== 'system') {
