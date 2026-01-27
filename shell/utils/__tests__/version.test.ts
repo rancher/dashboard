@@ -38,20 +38,20 @@ describe('fx: isUpgradeFromPreToStable', () => {
 describe('fx: getReleaseNotesURL', () => {
   describe('when version is not provided', () => {
     it('should return the community dev URL', () => {
-      expect(getReleaseNotesURL(false, undefined)).toBe('https://github.com/rancher/rancher/releases/lastest');
-      expect(getReleaseNotesURL(false, '')).toBe('https://github.com/rancher/rancher/releases/lastest');
-      expect(getReleaseNotesURL(true, undefined)).toBe('https://github.com/rancher/rancher/releases/lastest');
+      expect(getReleaseNotesURL(false, undefined)).toBe('https://github.com/rancher/rancher/releases/latest');
+      expect(getReleaseNotesURL(false, '')).toBe('https://github.com/rancher/rancher/releases/latest');
+      expect(getReleaseNotesURL(true, undefined)).toBe('https://github.com/rancher/rancher/releases/latest');
     });
   });
 
   describe('community (non-prime) URLs', () => {
     it('should return dev URL for dev builds', () => {
-      expect(getReleaseNotesURL(false, 'dev')).toBe('https://github.com/rancher/rancher/releases/lastest');
-      expect(getReleaseNotesURL(false, 'master')).toBe('https://github.com/rancher/rancher/releases/lastest');
-      expect(getReleaseNotesURL(false, 'head')).toBe('https://github.com/rancher/rancher/releases/lastest');
-      expect(getReleaseNotesURL(false, '2.8.0-head')).toBe('https://github.com/rancher/rancher/releases/lastest');
-      expect(getReleaseNotesURL(false, '2.8.0-rc1')).toBe('https://github.com/rancher/rancher/releases/lastest');
-      expect(getReleaseNotesURL(false, '2.8.0-alpha1')).toBe('https://github.com/rancher/rancher/releases/lastest');
+      expect(getReleaseNotesURL(false, 'dev')).toBe('https://github.com/rancher/rancher/releases/latest');
+      expect(getReleaseNotesURL(false, 'master')).toBe('https://github.com/rancher/rancher/releases/latest');
+      expect(getReleaseNotesURL(false, 'head')).toBe('https://github.com/rancher/rancher/releases/latest');
+      expect(getReleaseNotesURL(false, '2.8.0-head')).toBe('https://github.com/rancher/rancher/releases/latest');
+      expect(getReleaseNotesURL(false, '2.8.0-rc1')).toBe('https://github.com/rancher/rancher/releases/latest');
+      expect(getReleaseNotesURL(false, '2.8.0-alpha1')).toBe('https://github.com/rancher/rancher/releases/latest');
     });
 
     it('should return release URL with version for stable releases', () => {
