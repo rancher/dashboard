@@ -6775,10 +6775,10 @@ cypress-delete-downloads-folder@0.0.4:
   resolved "https://registry.npmjs.org/cypress-delete-downloads-folder/-/cypress-delete-downloads-folder-0.0.4.tgz#00693d4d7a36b552e7a11148e49d2c4c34ed3ec3"
   integrity sha512-0zix5YIROeMHCrCGQVmMP+jUL3KtKliAs1msSnHCPwkX8rNL4DioI8UHvbBVVghWA3vxWN6GCtV1qW+5DHi9Bg==
 
-cypress-mochawesome-reporter@3.8.2:
-  version "3.8.2"
-  resolved "https://registry.npmjs.org/cypress-mochawesome-reporter/-/cypress-mochawesome-reporter-3.8.2.tgz#44a5e640916ac9686b0cb0d6882b2d4baa33729d"
-  integrity sha512-oJZkNzhNmN9ZD+LmZyFuPb8aWaIijyHyqYh52YOBvR6B6ckfJNCHP3A98a+/nG0H4t46CKTNwo+wNpMa4d2kjA==
+cypress-mochawesome-reporter@3.8.4:
+  version "3.8.4"
+  resolved "https://registry.yarnpkg.com/cypress-mochawesome-reporter/-/cypress-mochawesome-reporter-3.8.4.tgz#80298bf2490b3741280a8c68c0b3af964e5505d6"
+  integrity sha512-ytn8emXyR5nz2+uqqgwqEwpeR9oILEIFSWl2lt2eyHICb2d0s/Hu7bPPo02bEf8UkqJohwg00yZ+jDH6oUqmzw==
   dependencies:
     commander "^10.0.1"
     fs-extra "^10.0.1"

@@ -186,7 +186,7 @@
     "cypress": "11.1.0",
     "cypress-axe": "1.6.0",
     "cypress-delete-downloads-folder": "0.0.4",
-    "cypress-mochawesome-reporter": "3.8.2",
+    "cypress-mochawesome-reporter": "3.8.4",
     "cypress-real-events": "1.14.0",
     "cypress-terminal-report": "^7.2.0",
     "eslint": "7.32.0",
