@@ -3,6 +3,7 @@ import { defineConfig } from 'cypress';
 import websocketTasks from './support/utils/webSocket-utils';
 import path from 'path';
 const { removeDirectory } = require('cypress-delete-downloads-folder');
+const { beforeRunHook, afterRunHook } = require('cypress-mochawesome-reporter/lib');
 
 // Required for env vars to be available in cypress
 require('dotenv').config();
@@ -159,6 +160,19 @@ const baseConfig = defineConfig({
         require('./support/plugins/accessibility').default(on, config);
       } else {
         require('cypress-mochawesome-reporter/plugin')(on);
+
+        on('before:run', async (details) => {
+          await beforeRunHook(details);
+        });
+
+        // Done this way to catch errors when there are no tests run
+        on('after:run', async () => {
+          try {
+            await afterRunHook();
+          } catch (error) {
+            console.error(error); // eslint-disable-line no-console
+          }
+        });
       }
 
       return config;
