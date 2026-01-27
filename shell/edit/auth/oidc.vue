@@ -316,6 +316,9 @@ export default {
             <tr v-if="model.authEndpoint">
               <td>{{ t('authConfig.oidc.authEndpoint') }}: </td><td>{{ model.authEndpoint }}</td>
             </tr>
+            <tr v-if="model.pkceMethod">
+              <td>{{ t('authConfig.pkceMethod.label') }}: </td><td>{{ model.pkceMethod }}</td>
+            </tr>
             <tr v-if="isLogoutAllSupported">
               <td>{{ t('authConfig.slo.sloTitle') }}: </td><td>{{ sloTypeText }}</td>
             </tr>

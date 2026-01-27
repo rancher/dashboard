@@ -790,6 +790,8 @@ authConfig:
     pkce:
       label: Enable PKCE (S256)
       tooltip: Enable Proof Key for Code Exchange (PKCE) using the S256 code challenge method. When enabled, this client must use PKCE with S256 for authorization requests.
+    pkceMethod:
+      label: PKCE Method
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
