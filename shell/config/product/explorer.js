@@ -404,7 +404,7 @@ export function init(store) {
     [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Completions', {
       ...DURATION,
       value:     'metadata.fields.3',
-      sort:      false,
+      sort:      'metadata.fields.3',
       search:    'metadata.fields.3',
       formatter: undefined, // Now that sort/search is remote we're not doing weird things with start time (see `duration` in model)
     }, STEVE_AGE_COL],
