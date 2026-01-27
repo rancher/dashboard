@@ -16,7 +16,6 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { BASE_SCOPES } from '@shell/store/auth';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import isUrl from 'is-url';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 
 const PKCE_S256 = 'S256';
 
@@ -35,7 +34,6 @@ export default {
     RadioGroup,
     Checkbox,
     CopyToClipboardText,
-    LabeledSelect,
   },
 
   emits: ['validationChanged'],
@@ -429,6 +427,12 @@ export default {
         >
           <div class="col span-6 checkbox-flex">
             <!-- Allow group search -->
+            <Checkbox
+              v-model:value="model.pkceMethod"
+              :value-when-true="PKCE_S256"
+              :label="t('authConfig.oidc.pkce.label')"
+              :tooltip="t('authConfig.oidc.pkce.tooltip')"
+            />
             <template v-if="isGenericOidc || supportsGroupSearch">
               <Checkbox
                 v-if="supportsGroupSearch"
@@ -447,12 +451,6 @@ export default {
                 :mode="mode"
               />
             </template>
-            <Checkbox
-              v-model:value="model.pkceMethod"
-              :value-when-true="PKCE_S256"
-              :label="t('authConfig.oidc.pkce.label')"
-              :tooltip="t('authConfig.oidc.pkce.tooltip')"
-            />
           </div>
         </div>
 
