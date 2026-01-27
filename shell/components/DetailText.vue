@@ -167,8 +167,12 @@ export default {
     <h5
       v-if="labelKey"
       v-t="labelKey"
+      :title="itemLabel"
     />
-    <h5 v-else-if="label">
+    <h5
+      v-else-if="label"
+      :title="label"
+    >
       {{ label }}
     </h5>
 
@@ -242,6 +246,11 @@ export default {
 
   h5 {
     margin-bottom: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    // Accounting for the button on the right
+    max-width: calc(100% - 150px);
   }
 
   .conceal {
