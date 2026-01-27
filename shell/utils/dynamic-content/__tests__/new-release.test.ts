@@ -190,7 +190,7 @@ describe('processReleaseVersion', () => {
       },
     });
     expect(mockRemoveMatchingNotifications).toHaveBeenCalledWith(mockContextPrime, 'new-release-', '2.13.0');
-  });  
+  });
 
   it('should add a multiple new releases notification when both newer patch and newer major/minor exist', async() => {
     const releaseInfo = [{ name: '2.13.0' }, { name: '2.12.1' }, { name: '2.12.0' }];
