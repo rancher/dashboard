@@ -42,6 +42,10 @@ export default {
 
   mixins: [CreateEditView, AuthConfig],
 
+  setup() {
+    return { PKCE_S256 };
+  },
+
   data() {
     return {
       customEndpoint: {
