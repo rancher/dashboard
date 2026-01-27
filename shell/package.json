@@ -111,7 +111,7 @@
     "jsonpath-plus": "10.3.0",
     "jsrsasign": "11.0.0",
     "jszip": "3.10.1",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "marked": "4.0.17",
     "node-polyfill-webpack-plugin": "3.0.0",
     "nodemon": "2.0.22",
