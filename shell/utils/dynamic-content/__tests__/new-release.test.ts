@@ -7,6 +7,7 @@ import semver from 'semver';
 
 describe('processReleaseVersion', () => {
   let mockContext: Context;
+  let mockContextPrime: Context;
   let mockDispatch: jest.Mock;
   let mockGetters: any;
   let mockLogger: any;
@@ -50,10 +51,24 @@ describe('processReleaseVersion', () => {
         prime:        false,
         distribution: 'community',
       },
-      settings: {
-        releaseNotesUrl: 'https://example.com/releases/v$version',
-        suseExtensions:  [],
+      settings: { suseExtensions: [] },
+    };
+
+    mockContextPrime = {
+      dispatch: mockDispatch,
+      getters:  mockGetters,
+      axios:    {},
+      logger:   mockLogger,
+      isAdmin:  true,
+      config:   {
+        enabled:      true,
+        debug:        false,
+        log:          false,
+        endpoint:     '',
+        prime:        true,
+        distribution: 'prime',
       },
+      settings: { suseExtensions: [] },
     };
 
     // Mock the utility function. Default: notification does not exist, so add it.
@@ -119,7 +134,7 @@ describe('processReleaseVersion', () => {
       },
       primaryAction: {
         label:  'More Info',
-        target: 'https://example.com/releases/v2.12.1',
+        target: 'https://github.com/rancher/rancher/releases/tag/v2.12.1',
       },
     });
     expect(mockRemoveMatchingNotifications).toHaveBeenCalledWith(mockContext, 'new-release-', '2.12.1');
@@ -145,11 +160,37 @@ describe('processReleaseVersion', () => {
       },
       primaryAction: {
         label:  'More Info',
-        target: 'https://example.com/releases/v2.13.0',
+        target: 'https://github.com/rancher/rancher/releases/tag/v2.13.0',
       },
     });
     expect(mockRemoveMatchingNotifications).toHaveBeenCalledWith(mockContext, 'new-release-', '2.13.0');
   });
+
+  it('should add a single new release notification for a newer major/minor version (no patch) (Prime)', async() => {
+    const releaseInfo = [{ name: '2.13.0' }, { name: '2.12.0' }];
+    const versionInfo: VersionInfo = { version: semver.coerce('2.12.0')!, isPrime: true };
+
+    await processReleaseVersion(mockContextPrime, releaseInfo, versionInfo);
+
+    expect(mockLogger.info).toHaveBeenCalledWith('Found a newer release: 2.13.0');
+    expect(mockLogger.info).not.toHaveBeenCalledWith(expect.stringContaining('Also found a newer patch release'));
+    expect(mockDispatch).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).toHaveBeenCalledWith('notifications/add', {
+      id:         'new-release-2.13.0',
+      level:      NotificationLevel.Announcement,
+      title:      'A new Rancher release is available',
+      message:    'Rancher 2.13.0 has been released',
+      preference: {
+        key:   READ_NEW_RELEASE,
+        value: '2.13.0',
+      },
+      primaryAction: {
+        label:  'More Info',
+        target: 'https://documentation.suse.com/cloudnative/rancher-manager/v2.13/en/release-notes/v2.13.0.html',
+      },
+    });
+    expect(mockRemoveMatchingNotifications).toHaveBeenCalledWith(mockContextPrime, 'new-release-', '2.13.0');
+  });  
 
   it('should add a multiple new releases notification when both newer patch and newer major/minor exist', async() => {
     const releaseInfo = [{ name: '2.13.0' }, { name: '2.12.1' }, { name: '2.12.0' }];
@@ -171,11 +212,11 @@ describe('processReleaseVersion', () => {
       },
       primaryAction: {
         label:  'More Info for 2.12.1',
-        target: 'https://example.com/releases/v2.12.1',
+        target: 'https://github.com/rancher/rancher/releases/tag/v2.12.1',
       },
       secondaryAction: {
         label:  'More Info for 2.13.0',
-        target: 'https://example.com/releases/v2.13.0',
+        target: 'https://github.com/rancher/rancher/releases/tag/v2.13.0',
       },
     });
     expect(mockRemoveMatchingNotifications).toHaveBeenCalledWith(mockContext, 'new-release-', '2.12.1-2.13.0');
