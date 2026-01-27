@@ -124,7 +124,9 @@ export default defineConfig({
       require('cypress-terminal-report/src/installLogsPrinter')(on, {
         outputRoot:           `${ config.projectRoot }/browser-logs/`,
         outputTarget:         { 'out.html': 'html' },
-        logToFilesOnAfterRun: true,
+        // Disabled in Jenkins config only to prevent conflict with cypress-mochawesome-reporter's after:run hook
+        // Both plugins use after:run; this prevents Cypress from exiting before HTML reports are generated
+        logToFilesOnAfterRun: false,
         printLogsToConsole:   'never',
         // printLogsToFile:      'always', // default prints on failures
       });
