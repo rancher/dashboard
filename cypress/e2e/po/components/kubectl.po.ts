@@ -33,6 +33,7 @@ export default class Kubectl extends ComponentPo {
 
   terminalRow() {
     return this.self().then(($el) => {
+      // Depending on if we could load webGL, this will change
       if ($el.find('.xterm-cursor-layer').length > 0) {
         return $el.find('.xterm-cursor-layer');
       }
