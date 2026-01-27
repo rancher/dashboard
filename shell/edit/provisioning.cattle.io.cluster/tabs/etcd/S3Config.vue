@@ -72,7 +72,7 @@ export default {
       ]
     };
   },
-  created() {
+  mounted() {
     this.differentRetention = !(this.mode === _CREATE || this.value?.retention === this.localRetentionCount);
   },
 
@@ -102,6 +102,12 @@ export default {
   watch: {
     fvFormIsValid(newValue) {
       this.$emit('validationChanged', !!newValue);
+    },
+    localRetentionCount(neu) {
+      if (!this.differentRetention) {
+        this.config.retention = this.localCountToUse;
+        this.update();
+      }
     }
   },
 
@@ -110,6 +116,10 @@ export default {
       const out = { ...this.config };
 
       this.$emit('update:value', out);
+    },
+    resetRetention() {
+      this.config.retention = this.localCountToUse;
+      this.update();
     }
   },
 };
@@ -205,7 +215,7 @@ export default {
           :mode="mode"
           :options="retentionOptionsOptions"
           :row="true"
-          @update:value="config.retention = localCountToUse"
+          @update:value="resetRetention"
         />
         <UnitInput
           v-if="differentRetention"
