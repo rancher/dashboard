@@ -159,14 +159,13 @@ const baseConfig = defineConfig({
       if (process.env.TEST_A11Y) {
         require('./support/plugins/accessibility').default(on, config);
       } else {
-        require('cypress-mochawesome-reporter/plugin')(on);
-
-        on('before:run', async (details) => {
+        // Add in the cypress-mochawesome-reporter reporter hooks
+        on('before:run', async(details) => {
           await beforeRunHook(details);
         });
 
         // Done this way to catch errors when there are no tests run
-        on('after:run', async () => {
+        on('after:run', async() => {
           try {
             await afterRunHook();
           } catch (error) {
