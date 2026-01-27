@@ -1211,7 +1211,7 @@ catalog:
         tag: tag
   install:
     action:
-      goToUpgrade: Edit/Upgrade
+      goToUpgrade: Edit / Change Version
     appReadmeMissing: This chart doesn't have any additional chart information.
     appReadmeTitle: Chart Information (Helm README)
     button:
