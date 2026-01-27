@@ -144,7 +144,7 @@ export async function markReadReleaseNotes(store) {
 
 const DEFAULT_RELEASE_NOTES_URLS = {
   COMMUNITY: {
-    DEV:     'https://github.com/rancher/rancher/releases/lastest',
+    DEV:     'https://github.com/rancher/rancher/releases/latest',
     RELEASE: 'https://github.com/rancher/rancher/releases/tag/v$VERSION',
   },
   PRIME: {
