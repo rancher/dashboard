@@ -1,4 +1,4 @@
-import { Ref, ComputedRef, ref, computed } from 'vue';
+import { ref, Ref } from 'vue';
 import { useStore } from 'vuex';
 
 import { SETTING } from '@shell/config/settings';
@@ -24,10 +24,8 @@ interface UseUserRetentionValidation {
   validateDeleteInactiveUserAfterDuration: (duration: string) => string | undefined;
   validateDeleteInactiveUserAfter: (duration: string) => string | undefined;
   validateDurationAgainstAuthUserSession: (duration: string) => string | undefined;
-  setValidation: (formField: SettingValidation, isValid: boolean) => void;
   removeValidation : (setting: SettingValidation) => void;
   addValidation: (setting: SettingValidation) => void;
-  isFormValid: ComputedRef<boolean>;
 }
 
 class ExpectedValidationError extends Error {
@@ -50,16 +48,6 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     [SETTING.DELETE_INACTIVE_USER_AFTER]:  true,
     [SETTING.USER_RETENTION_CRON]:         true,
   });
-
-  const isFormValid = computed(() => {
-    const validations = validation.value;
-
-    return !Object.values(validations).includes(false);
-  });
-
-  const setValidation = (formField: SettingValidation, isValid: boolean) => {
-    validation.value[formField] = isValid;
-  };
 
   const removeValidation = (setting: SettingValidation) => {
     const { [setting]: _, ...rest } = validation.value;
@@ -193,9 +181,7 @@ export const useUserRetentionValidation = (disableAfterPeriod: Ref<boolean>, del
     validateDeleteInactiveUserAfterDuration,
     validateDeleteInactiveUserAfter,
     validateDurationAgainstAuthUserSession,
-    setValidation,
     removeValidation,
     addValidation,
-    isFormValid,
   };
 };
