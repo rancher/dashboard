@@ -29,10 +29,6 @@ export default {
   },
   mixins: [CreateEditView, FormValidation],
 
-  data() {
-    return { $fetchState: { pending: false } };
-  },
-
   created() {
     if ( !this.value.spec ) {
       this.value.spec = { enabled: false };
@@ -50,7 +46,6 @@ export default {
     :subtypes="[]"
     :validation-passed="fvFormIsValid"
     :errors="errors"
-    :description="t('auditPolicy.description')"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"
@@ -58,16 +53,10 @@ export default {
     <NameNsDescription
       v-if="!isView"
       :value="value"
-      :rules="{name: fvGetAndReportPathRules('metadata.name'), description: []}"
       :mode="mode"
       :namespaced="schema.attributes.namespaced"
       :nameRequired="false"
       :register-before-hook="registerBeforeHook"
-    />
-    <Error
-      :value="value.spec"
-      :rules="fvGetAndReportPathRules('spec')"
-      as-banner
     />
     <Tabbed :side-tabs="true">
       <Tab

@@ -56,7 +56,7 @@ export default {
     <template #cell:enabled="{row}">
       <BadgeState
         :color="row.spec.enabled ? 'bg-success' : 'badge-disabled'"
-        :label="row.spec.enabled ? t('auditPolicy.enabled') : t('auditPolicy.disabled') "
+        :label="row.spec.enabled ? t('generic.enabled') : t('generic.disabled') "
       />
     </template>
   </ResourceTable>

@@ -3603,14 +3603,8 @@ import:
     }
 
 auditPolicy:
-  description: Define rules for what events should be logged.
-  enabled: Enabled
-  disabled: Disabled
   active: Active
   inactive: Inactive
-  action:
-    enable: Enable
-    disable: Disable
   reasons:
     PolicyNotYetActivated: Not yet activated
     PolicyIsActive: Active
@@ -3632,7 +3626,7 @@ auditPolicy:
         3: 3 - Log response body
         title: Log Levels
         label: Level
-        tooltip: Each log level is cumulative and each subsequent level logs the previous level data. Each log transaction for a request/response pair uses the same auditID value.
+        tooltip: Each log level is cumulative, higher logs levels include the data included in lower levels. Each log entry contains both request and response information.
       request:
         title: Request
         requestHeaders: Request Headers
@@ -3664,6 +3658,7 @@ auditPolicy:
     paths:
       title: Paths
       label: Paths
+      tooltip: Paths redacts information from request and response bodies based on json path expressions
       placeholder: e.g. $.gitCommit
       add: Add Path
   error:
@@ -7883,6 +7878,7 @@ typeDescription:
   logging.banzaicloud.io.output: An output defines which logging providers that logs can be sent to. The output needs to be in the same namespace as the flow that is using it.
   group.principal: Assigning global roles to a group only works with external auth providers that support groups. Local authorization does not support groups.
   management.cattle.io.oidcclient: Here you can add applications to Rancher's single sign-on identity provider
+  auditlog.cattle.io.auditpolicy: Define rules that determine which Rancher API events are logged and the level of detail they contain.
 
 typeLabel:
   management.cattle.io.oidcclient: |-

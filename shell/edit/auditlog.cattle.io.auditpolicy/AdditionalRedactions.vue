@@ -84,7 +84,15 @@ const redactionLabel = computed(() => {
             </fieldset>
             <div class="spacer" />
             <fieldset>
-              <h2>{{ t("auditPolicy.additionalRedactions.paths.title") }}</h2>
+              <h2>
+                {{ t("auditPolicy.additionalRedactions.paths.title") }}                  <i
+                  v-clean-tooltip="{content: t('auditPolicy.additionalRedactions.paths.tooltip'), triggers: ['hover', 'touch', 'focus'] }"
+                  v-stripped-aria-label="t('auditPolicy.additionalRedactions.paths.tooltip')"
+                  class="icon icon-info"
+                  tabindex="0"
+                  role="tooltip"
+                />
+              </h2>
               <div class="row">
                 <div class="col span-12">
                   <ArrayList

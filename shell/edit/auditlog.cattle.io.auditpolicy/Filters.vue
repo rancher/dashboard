@@ -71,7 +71,7 @@ function updateRow(key: 'action' | 'requestURI', index: number, value: string) {
           @update:value="addRow('action', $event)"
         >
           <template v-slot:column-headers>
-            <div class="responders-heading mb-10">
+            <div class="filters-heading mb-10">
               <div
                 class="row"
               >
@@ -112,23 +112,8 @@ function updateRow(key: 'action' | 'requestURI', index: number, value: string) {
 </template>
 
 <style lang="scss" scoped>
-  .responders-heading {
+  .filters-heading {
     display: grid;
     grid-template-columns: auto $array-list-remove-margin;
-  }
-
-  .responder {
-    &, .target-container {
-      width: 100%;
-    }
-
-    .target-container :deep() .unlabeled-select {
-      min-width: 35%;
-      height: 100%;
-    }
-
-    .target {
-      height: 100%;
-    }
   }
 </style>

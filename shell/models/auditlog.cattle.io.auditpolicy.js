@@ -7,7 +7,7 @@ export default class AuditPolicy extends SteveModel {
 
     insertAt(out, 0, {
       action:   'enable',
-      label:    this.t('auditPolicy.action.enable'),
+      label:    this.t('action.enable'),
       icon:     'icon icon-play',
       enabled:  (this.canEdit || this.canEditYaml) && !this.spec.enabled,
       bulkable: true,
@@ -15,7 +15,7 @@ export default class AuditPolicy extends SteveModel {
     });
     insertAt(out, 0, {
       action:   'disable',
-      label:    this.t('auditPolicy.action.disable'),
+      label:    this.t('action.disable'),
       icon:     'icon icon-pause',
       enabled:  (this.canEdit || this.canEditYaml) && this.spec.enabled,
       bulkable: true,

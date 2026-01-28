@@ -10,7 +10,7 @@ exports[`component: CRUAuditPolicy (index) rendering & initial state should rend
     cancelevent="false"
     canyaml="true"
     componenttestid="form"
-    description="auditPolicy.description"
+    description=""
     errors=""
     finishmode="finish"
     minheight=""
