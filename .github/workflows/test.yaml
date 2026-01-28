@@ -96,10 +96,10 @@ jobs:
 
       # Installing fixed version of Chrome since latest version does not work (128 didn't work)
       # Leaving this here again in case we need to pin to a specific Chrome version in the future
-      - name: Install Chrome
-        uses: ./.github/actions/install-chrome
-        with:
-          chrome-version: '143.0.7499.192-1'
+      # - name: Install Chrome
+      #   uses: ./.github/actions/install-chrome
+      #   with:
+      #     chrome-version: '143.0.7499.192-1'
 
       - name: Download e2e build
         uses:  actions/download-artifact@v7
@@ -165,10 +165,10 @@ jobs:
       - name: Setup env
         uses: ./.github/actions/setup
 
-      - name: Install Chrome
-        uses: ./.github/actions/install-chrome
-        with:
-          chrome-version: '143.0.7499.192-1'
+      # - name: Install Chrome
+      #   uses: ./.github/actions/install-chrome
+      #   with:
+      #     chrome-version: '143.0.7499.192-1'
 
       - name: Download e2e build
         uses:  actions/download-artifact@v7
