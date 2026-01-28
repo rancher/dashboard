@@ -787,6 +787,11 @@ authConfig:
       label: Scopes
       placeholder: openid
       protip: The <code>openid</code>, <code>profile</code>, and <code>email</code> scopes are required and cannot be removed.
+    pkce:
+      label: Enable PKCE (S256)
+      tooltip: Enable Proof Key for Code Exchange (PKCE) using the S256 code challenge method. When enabled, this client must use PKCE with S256 for authorization requests.
+    pkceMethod:
+      label: PKCE Method
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
