@@ -172,8 +172,11 @@ export default {
         await this.$store.dispatch('cluster/find', { type: NODE, id: nodeId });
       }
     } catch {}
-
-    await this.setupTerminal();
+    try {
+      await this.setupTerminal();
+    } catch (e) {
+      this.errorMsg = e;
+    }
     await this.connect();
 
     clearInterval(this.keepAliveTimer);
@@ -234,26 +237,20 @@ export default {
 
       this.fitAddon = new addons.fit.FitAddon();
       this.searchAddon = new addons.search.SearchAddon();
-
-      try {
-        this.webglAddon = new addons.webgl.WebglAddon();
-      } catch (e) {
-        // Some browsers (Safari) don't support the webgl renderer, so don't use it.
-        this.webglAddon = null;
-        this.canvasAddon = new addons.canvas.CanvasAddon();
-      }
-
       terminal.loadAddon(this.fitAddon);
       terminal.loadAddon(this.searchAddon);
       terminal.loadAddon(new addons.weblinks.WebLinksAddon());
       terminal.open(this.$refs.xterm);
 
-      if (this.webglAddon) {
+      try {
+        this.webglAddon = new addons.webgl.WebglAddon();
         terminal.loadAddon(this.webglAddon);
-      } else {
+      } catch (e) {
+        // Some browsers (Safari) don't support the webgl renderer, so don't use it.
+        this.webglAddon = null;
+        this.canvasAddon = new addons.canvas.CanvasAddon();
         terminal.loadAddon(this.canvasAddon);
       }
-
       this.fit();
       this.flush();
 
