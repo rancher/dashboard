@@ -159,7 +159,7 @@ onMounted(async() => {
           class="mt-20"
         />
         <RcButton
-          secondary
+          variant="secondary"
           class="mt-20"
           data-testid="registration-offline-visit-scc"
           :disabled="isRegistered || isRegistering"

@@ -349,7 +349,7 @@ export default {
                   v-for="btn in panelActions"
                   :key="btn.action"
                   class="mmr-3 mmb-3"
-                  :[btn.role]="true"
+                  :variant="btn.role"
                   @click="onButtonClick(btn)"
                 >
                   <i :class="['icon', btn.icon, 'mmr-2']" />{{ btn.label }}

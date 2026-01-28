@@ -689,8 +689,8 @@ export default {
           :aria-label="t('nav.userMenu.label')"
         >
           <rc-dropdown-trigger
-            ghost
-            small
+            variant="ghost"
+            size="small"
             data-testid="nav_header_showUserMenu"
             :aria-label="t('nav.userMenu.button.label')"
           >

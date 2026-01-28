@@ -427,16 +427,16 @@ export default {
             @update:value="updateMatchExpressions(i, $event, selector.key)"
           />
           <RcButton
-            small
-            link
+            size="small"
+            variant="link"
             @click="removeMatchExpressions(selector.key)"
           >
             <i class="icon icon-x" />
           </RcButton>
         </div>
         <RcButton
-          small
-          secondary
+          size="small"
+          variant="secondary"
           class="mmt-4"
           @click="addMatchExpressions"
         >

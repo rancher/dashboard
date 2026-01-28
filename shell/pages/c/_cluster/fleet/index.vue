@@ -493,8 +493,8 @@ export default {
             @update:value="viewMode = $event"
           />
           <RcButton
-            small
-            ghost
+            size="small"
+            variant="ghost"
             data-testid="fleet-dashboard-expand-all"
             class="collapse-all-btn"
             @click="toggleCardAll(allCardsExpanded ? 'collapse' : 'expand')"
@@ -579,8 +579,8 @@ export default {
               :data-testid="'expand-button'"
             >
               <RcButton
-                small
-                ghost
+                size="small"
+                variant="ghost"
                 :aria-label="`workspace-expand-btn-${ workspace.id }`"
                 :data-testid="`workspace-expand-btn-${ workspace.id }`"
                 @click="toggleCard(workspace.id)"
@@ -646,7 +646,7 @@ export default {
               class="create-button"
             >
               <RcButton
-                small
+                size="small"
                 @click="createResource(workspace.id)"
               >
                 {{ t('fleet.application.intro.add') }}

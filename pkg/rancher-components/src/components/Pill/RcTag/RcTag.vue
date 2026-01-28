@@ -16,7 +16,7 @@ const emit = defineEmits(['close']);
     <slot name="default" />
     <RcButton
       v-if="props.showClose"
-      ghost
+      variant="ghost"
       :aria-label="props.closeAriaLabel"
       @click="emit('close')"
     >
