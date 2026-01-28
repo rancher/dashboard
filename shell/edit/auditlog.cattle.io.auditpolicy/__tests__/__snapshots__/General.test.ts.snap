@@ -43,7 +43,7 @@ exports[`component: General rendering & initial state should render with default
         <h4>
           auditPolicy.general.verbosity.level.title 
           <i
-            class="icon icon-info v-popper--has-tooltip"
+            class="icon icon-info has-clean-tooltip"
           />
         </h4>
         <div
