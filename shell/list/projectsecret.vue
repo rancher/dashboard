@@ -170,7 +170,7 @@ export default {
     createLocation() {
       return {
         name:   'c-cluster-product-resource-create',
-        params: { resource: SECRET },
+        params: { resource: VIRTUAL_TYPES.PROJECT_SECRETS },
         query:  { [SECRET_SCOPE]: SECRET_QUERY_PARAMS.PROJECT_SCOPED }
       };
     },
