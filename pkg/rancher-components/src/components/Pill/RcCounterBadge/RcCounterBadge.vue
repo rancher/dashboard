@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RcCounterBadgeProps } from '@components/Pill/RcCounterBadge/types';
+import { RcCounterBadgeProps } from './types';
 import { computed } from 'vue';
 const props = withDefaults(defineProps<RcCounterBadgeProps>(), { disabled: false });
 const displayCount = computed(() => props.count < 1000 ? props.count : '999+');

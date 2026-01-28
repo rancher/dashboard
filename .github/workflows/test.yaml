@@ -96,19 +96,10 @@ jobs:
 
       # Installing fixed version of Chrome since latest version does not work (128 didn't work)
       # Leaving this here again in case we need to pin to a specific Chrome version in the future
-      # NOTE - If we need to pin chrome again we should...
-      # 1. create a repo gh action to install chrome (see .github/actions)
-      # 2. call it here
-      # 3. call it from `a11y-test` as well
-
-      # - name: Install Chrome 127
-      #   run: |
-      #     sudo apt-get install -y wget libu2f-udev
-      #     cd /tmp
-      #     wget -q http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_127.0.6533.72-1_amd64.deb
-      #     sudo dpkg -i google-chrome-stable_127.0.6533.72-1_amd64.deb
-      #     sudo apt-get install -y --allow-downgrades ./google-chrome-stable_127.0.6533.72-1_amd64.deb
-      #     google-chrome --version
+      - name: Install Chrome
+        uses: ./.github/actions/install-chrome
+        with:
+          chrome-version: '143.0.7499.192-1'
 
       - name: Download e2e build
         uses:  actions/download-artifact@v7
@@ -173,6 +164,11 @@ jobs:
           fetch-depth: 1
       - name: Setup env
         uses: ./.github/actions/setup
+
+      - name: Install Chrome
+        uses: ./.github/actions/install-chrome
+        with:
+          chrome-version: '143.0.7499.192-1'
 
       - name: Download e2e build
         uses:  actions/download-artifact@v7

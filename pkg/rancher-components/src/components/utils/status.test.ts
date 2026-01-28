@@ -1,5 +1,5 @@
 
-import { reactive } from 'vue';
+import { ref } from 'vue';
 import { wrapIfVar, useStatusColors, Status } from './status';
 
 describe('utils: status', () => {
@@ -18,20 +18,22 @@ describe('utils: status', () => {
   });
 
   describe('useStatusColors', () => {
-    it.each([
+    const statuses: Status[] = [
       'info',
       'success',
       'warning',
       'error',
       'unknown',
       'none'
-    ])('solid: should return the correct colors for status: %p', (status: Status) => {
-      const props = reactive({ status });
+    ];
+
+    it.each(statuses)('solid: should return the correct colors for status: %p', (status) => {
+      const statusRef = ref(status as Status);
       const {
         borderColor,
         backgroundColor,
         textColor
-      } = useStatusColors(props, 'solid');
+      } = useStatusColors(statusRef, 'solid');
 
       expect(borderColor.value).toBe(`var(--rc-${ status })`);
       if (status !== 'none') {
@@ -41,20 +43,13 @@ describe('utils: status', () => {
       expect(textColor.value).toBe(`var(--rc-${ status }-secondary)`);
     });
 
-    it.each([
-      'info',
-      'success',
-      'warning',
-      'error',
-      'unknown',
-      'none'
-    ])('outlined: should return the correct colors for status: %p', (status: Status) => {
-      const props = reactive({ status });
+    it.each(statuses)('outlined: should return the correct colors for status: %p', (status) => {
+      const statusRef = ref(status as Status);
       const {
         borderColor,
         backgroundColor,
         textColor
-      } = useStatusColors(props, 'outlined');
+      } = useStatusColors(statusRef, 'outlined');
 
       expect(borderColor.value).toBe(`var(--rc-${ status }-secondary)`);
       if (status !== 'none') {

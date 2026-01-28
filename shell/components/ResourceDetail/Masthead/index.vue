@@ -48,6 +48,7 @@ const showLatestMasthead = computed(() => isNewDetailPageEnabled.value && isView
     v-if="showLatestMasthead"
     :value="props.value"
     :resourceSubtype="props.resourceSubtype"
+    :isCustomDetailOrEdit="props.hasDetail || props.hasEdit"
   />
   <Legacy
     v-else

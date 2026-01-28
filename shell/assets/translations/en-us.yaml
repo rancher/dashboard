@@ -121,6 +121,7 @@ generic:
         1d: 1d
         7d: 7d
         30d: 30d
+  tooltip: Tooltip
   completed: Completed
   enable: Enable
   disable: Disable
@@ -1210,7 +1211,7 @@ catalog:
         tag: tag
   install:
     action:
-      goToUpgrade: Edit/Upgrade
+      goToUpgrade: Edit / Change Version
     appReadmeMissing: This chart doesn't have any additional chart information.
     appReadmeTitle: Chart Information (Helm README)
     button:
@@ -3603,6 +3604,7 @@ hpa:
     last: Last Scale Time
     max: Maximum Replicas
     min: Minimum Replicas
+    targetReferenceType: Target Type
     targetReference: Target Reference
 
 import:
@@ -7344,34 +7346,57 @@ workload:
     removeContainer: Remove Container
     addContainer: Add Container
     security:
-      addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs
       allowPrivilegeEscalation:
-        label: Privilege Escalation
-        'false': No
-        'true': "Yes: container can gain more privileges than its parent process"
-      dropCapabilities: Drop Capabilities
+        title: Privilege Escalation
+        'true': "Container can gain more privileges than its parent process"
+      capabilities:
+        title: Capabilities
+        add: Add Capabilities
+        drop: Drop Capabilities
       fsGroup: Filesystem Group
       hostIPC: Use Host IPC Namespace
       hostPID: Use Host PID Namespace
       podFsGroup: Pod Filesystem Group
       privileged:
-        label: Privileged
-        'false': No
-        'true': "Yes: container has full access to the host"
+        title: Privileged
+        'true': "Container has full access to the host"
+        help: Enabling privilege will hide Privilege Escalation and seccompProfile.
+        afterTick: 
+          'true': Privilege Escalation and seccompProfile have been hidden.
+          'false': Privilege Escalation and seccompProfile appeared.
       readOnlyRootFilesystem:
-        label: Read-Only Root Filesystem
-        'false': No
-        'true': "Yes: container has a read-only root filesystem"
+        title: Read-Only Root Filesystem
+        'true': "Container has a read-only root filesystem"
       runAsGroup: Run as Group ID
       runAsNonRoot:
-        label: Run as Non-Root
-        'false': No
-        'true': "Yes: container must run as a non-root user"
+        title: Run as Non-Root
+        'true': "Container must run as a non-root user"
       runAsNonRootOptions:
-        noOption: "No"
-        yesOption: "Yes: containers must run as non-root-user"
-      runAsUser: Run as User ID
+        'true': "Containers must run as non-root-user"
+      runAsUser: 
+        title: Run as User ID
+        label: User ID
+      seccompProfile:
+        pod: Pod Seccomp Profile
+        container: Seccomp Profile
+        type: Type
+        localhostProfile:
+          label: Localhost Profile Path
+          tooltip: Points to a specific seccomp file that must already exist on the machine running the container.
+          placeholder: e.g. path/to/json
+        afterLocalhostProfile: 
+          selected: Localhost Profile input appeared.
+          unselected: Localhost Profile input has been hidden.
+        types:
+          none:
+            label: None
+          runtimeDefault:
+            label: RuntimeDefault - inherit the default seccomp profile
+          localhost:
+            label: Localhost - define a custom seccomp profile
+          unconfined:
+            label: Unconfined - no seccomp profile
       shareProcessNamespace: Share single process namespace
       supplementalGroups: Additional Group IDs
       sysctls: Sysctls
@@ -7506,6 +7531,7 @@ workload:
   validation:
     containers: Containers
     containerImage: Container {name} - "Container Image" is required.
+    localhostProfile: Container {name} - "Container Localhost Profile" is required when SeccompProfile Type is Localhost.
   replicas: Replicas
   showTabs: 'Show Advanced Options'
   scheduling:
@@ -8378,6 +8404,11 @@ typeLabel:
       one { Role }
       other { Roles }
     }
+  replicationcontroller: |-
+    {count, plural,
+      one { Replication Controller }
+      other { Replication Controllers }
+    }
   scheduling.k8s.io.priorityclass: |-
     {count, plural,
       one { PriorityClass }
@@ -9113,11 +9144,17 @@ component:
         podsCard:
           title: Pods
           ariaResourceName: pods
+        jobsCard:
+          title: Jobs
+          ariaResourceName: jobs
         insightsCard:
           title: Insights
           rows:
             conditions: Conditions
             events: Events
+        extrasCard:
+          title: Extras
+          message: 'Consider installing additional <a class="secondary text-deemphasized" href="{extensionsUrl}">extensions</a> and / or <a class="secondary-text-link" href="{clusterToolsUrl}">cluster tools</a> to enrich your Rancher experience.'
         scaler:
           ariaLabel:
             increase: Increase {resourceName}
