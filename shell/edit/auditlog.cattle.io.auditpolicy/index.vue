@@ -8,7 +8,6 @@ import Labels from '@shell/components/form/Labels.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Loading from '@shell/components/Loading.vue';
-import Error from '@shell/components/form/Error.vue';
 import General from '@shell/edit/auditlog.cattle.io.auditpolicy/General.vue';
 import Filters from '@shell/edit/auditlog.cattle.io.auditpolicy/Filters.vue';
 import AdditionalRedactions from '@shell/edit/auditlog.cattle.io.auditpolicy/AdditionalRedactions.vue';
@@ -25,7 +24,6 @@ export default {
     AdditionalRedactions,
     Tab,
     Tabbed,
-    Error,
   },
   mixins: [CreateEditView, FormValidation],
 
