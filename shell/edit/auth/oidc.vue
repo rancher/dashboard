@@ -149,6 +149,14 @@ export default {
       return this.model?.id === 'genericoidc';
     },
 
+    isKeycloak() {
+      return this.model?.id === 'keycloakoidc';
+    },
+
+    supportsCustomClaims() {
+      return this.isGenericOidc || this.isKeycloak;
+    },
+
     isLogoutAllSupported() {
       return this.model?.logoutAllSupported;
     },
@@ -269,7 +277,7 @@ export default {
     },
 
     willSave() {
-      if (this.isGenericOidc && !this.addCustomClaims) {
+      if (this.supportsCustomClaims && !this.addCustomClaims) {
         this.model.nameClaim = undefined;
         this.model.groupsClaim = undefined;
         this.model.emailClaim = undefined;
@@ -416,7 +424,7 @@ export default {
           </div>
         </div>
 
-        <template v-if="isGenericOidc || supportsGroupSearch">
+        <template v-if="supportsCustomClaims || supportsGroupSearch">
           <div
             class="row mb-20"
           >
@@ -431,7 +439,7 @@ export default {
                 :mode="mode"
               />
               <Checkbox
-                v-if="isGenericOidc"
+                v-if="supportsCustomClaims"
                 v-model:value="addCustomClaims"
                 data-testid="input-add-custom-claims"
                 :label="t('authConfig.oidc.customClaims.enable.label')"
@@ -443,7 +451,7 @@ export default {
         </template>
 
         <!-- Custom Claims -->
-        <template v-if="addCustomClaims && isGenericOidc">
+        <template v-if="addCustomClaims && supportsCustomClaims">
           <h4>{{ t('authConfig.oidc.customClaims.label') }}</h4>
           <div class="row mb-20">
             <div class="col span-6">
