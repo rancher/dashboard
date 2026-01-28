@@ -17,3 +17,5 @@ export const RESTART_TIMEOUT_OPT = { timeout: 120000 };
  * Medium timeout to use when a test requires a little longer for something to change in the UI
  */
 export const MEDIUM_TIMEOUT_OPT = { timeout: 30000 };
+
+export const VERY_LONG_TIMEOUT_OPT = { timeout: 700000 };

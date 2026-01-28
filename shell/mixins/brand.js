@@ -36,7 +36,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters({ loggedIn: 'auth/loggedIn' }),
+    ...mapGetters({ loggedIn: 'auth/loggedIn', brand: 'management/brand' }),
 
     // added to fix https://github.com/rancher/dashboard/issues/10788
     // because on logout the brand mixin is mounted, but then a management store reset happens
@@ -44,12 +44,6 @@ export default {
     // which in turn will populate again globalSettings
     globalSettings() {
       return this.$store.getters['management/all'](MANAGEMENT.SETTING);
-    },
-
-    brand() {
-      const setting = this.globalSettings?.find((gs) => gs.id === SETTING.BRAND);
-
-      return setting?.value;
     },
 
     color() {

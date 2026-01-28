@@ -53,6 +53,11 @@ export default {
     },
 
     valuesYaml() {
+      // Prevent crash if data hasn't been fetched yet (e.g. secret during upgrade)
+      if (!this.value?.valuesLoaded) {
+        return '';
+      }
+
       const combined = mergeWithReplace(
         merge({}, this.value?.chartValues || {}),
         this.value?.values || {},
@@ -159,6 +164,7 @@ export default {
           :scrolling="false"
           :value="valuesYaml"
           editor-mode="VIEW_CODE"
+          mode="view"
         />
       </Tab>
       <Tab

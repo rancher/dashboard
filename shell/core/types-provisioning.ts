@@ -61,9 +61,13 @@ export interface ClusterProvisionerContext {
    */
   axios: any,
   /**
-   * Definition of the extension
+   * [Deprecated] Definition of the extension
    */
   $plugin: any,
+  /**
+   * Definition of the extension
+   */
+  $extension: any,
   /**
    * Function to retrieve a localised string
    */

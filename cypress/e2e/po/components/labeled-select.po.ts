@@ -54,6 +54,15 @@ export default class LabeledSelectPo extends ComponentPo {
   }
 
   /**
+   * As per `getOptions` but returns actual string values instead of elements
+   */
+  getOptionsAsStrings(): Cypress.Chainable<string[]> {
+    return this.getOptions().then((options) => {
+      return options.toArray().map((option) => option.textContent.trim());
+    });
+  }
+
+  /**
    * Check dropdown is open
    * @returns
    */
@@ -75,6 +84,22 @@ export default class LabeledSelectPo extends ComponentPo {
    */
   filterByName(name: string) {
     return this.self().type(name);
+  }
+
+  /**
+   * Click the deselect X button for a selected item
+   * @param label The label of the selected item to deselect
+   * @returns
+   */
+  clickDeselectButton(label: string): Cypress.Chainable {
+    return this.self()
+      .contains(label)
+      .then(($selectedItem) => {
+        // Use within() to scope the search to the selected item and click the button within that scope
+        return cy.wrap($selectedItem).within(() => {
+          cy.get('button.vs__deselect').click();
+        });
+      });
   }
 
   static byLabel(self: CypressChainable, label: string): LabeledSelectPo {

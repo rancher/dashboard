@@ -8,7 +8,7 @@ export default class ClusterManagerEditRke2CustomPagePo extends ClusterManagerCr
     return `/c/${ clusterId }/manager/provisioning.cattle.io.cluster/fleet-default/${ clusterName }`;
   }
 
-  static goTo(clusterId: string, clusterName: string): Cypress.Chainable<Cypress.AUTWindow> {
+  goTo(clusterId: string, clusterName: string): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(ClusterManagerEditRke2CustomPagePo.createPath(clusterId, clusterName));
   }
 

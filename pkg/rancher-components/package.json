@@ -5,7 +5,7 @@
     "url": "git://github.com/rancher/dashboard.git"
   },
   "license": "Apache-2.0",
-  "version": "0.3.0-alpha.2",
+  "version": "0.3.0-alpha.4",
   "module": "./main.js",
   "main": "./dist/@rancher/components.umd.min.js",
   "files": [
@@ -21,6 +21,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@rancher/icons": "^2.0.54",
     "lodash.debounce": "4.0.8"
   },
   "devDependencies": {

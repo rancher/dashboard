@@ -68,7 +68,7 @@ export default defineComponent({
     <template v-if="hover">
       <i
         v-clean-tooltip="tooltipContent"
-        v-stripped-aria-label="isObject(value) ? value.content : value"
+        v-stripped-aria-label="`${t('generic.tooltip')} - ${(isObject(value) ? value.content : value)}`"
         :class="{'hover':!value, [iconClass]: true}"
         class="icon status-icon"
         tabindex="0"

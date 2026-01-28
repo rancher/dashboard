@@ -19,13 +19,12 @@ import { InstallCodeMirror } from 'codemirror-editor-vue3';
 import * as intNumber from '@shell/directives/int-number';
 import dashboardClientInit from '@shell/plugins/dashboard-client-init';
 import plugin from '@shell/plugins/plugin';
-import plugins from '@shell/core/plugins.js';
 import pluginsLoader from '@shell/core/plugins-loader.js';
 import replaceAll from '@shell/plugins/replaceall';
 import steveCreateWorker from '@shell/plugins/steve-create-worker';
 import emberCookie from '@shell/plugins/ember-cookie';
 import ShortKey from '@shell/plugins/shortkey';
-import internalApiPlugin from '@shell/plugins/internal-api';
+import { initUiApis } from '@shell/apis/impl/apis';
 
 import 'floating-vue/dist/style.css';
 import { floatingVueOptions } from '@shell/plugins/floating-vue';
@@ -51,7 +50,7 @@ export async function installInjectedPlugins(app, vueApp) {
   const pluginDefinitions = [
     config,
     axios,
-    plugins,
+    initUiApis,
     pluginsLoader,
     axiosShell,
     intNumber,
@@ -61,7 +60,6 @@ export async function installInjectedPlugins(app, vueApp) {
     plugin,
     steveCreateWorker,
     emberCookie,
-    internalApiPlugin,
     dynamicContent,
   ];
 
@@ -69,7 +67,8 @@ export async function installInjectedPlugins(app, vueApp) {
     if (typeof pluginDefinition === 'function') {
       await pluginDefinition(
         app.context,
-        (key, value) => inject(key, value, app.context, vueApp)
+        (key, value) => inject(key, value, app.context, vueApp),
+        vueApp
       );
     }
   });

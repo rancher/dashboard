@@ -33,7 +33,7 @@ export default class NodeDriverCreateEditPo extends PagePo {
   }
 
   addWhitelistDomain(domain: string, idx: number) {
-    return new ArrayListPo('[data-testid="driver-create-whitelist-list"]').setValueAtIndex(domain, idx);
+    return new ArrayListPo('[data-testid="driver-create-whitelist-list"]').setValueAtIndex(domain, idx, '');
   }
 
   saveCreateForm(): ResourceDetailPo {

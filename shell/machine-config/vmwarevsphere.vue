@@ -244,7 +244,17 @@ export default {
       haveTemplates:            null,
       vAppOptions,
       vappMode:                 VAPP_MODE.DISABLED,
-
+      storageType:              this.value.datastoreCluster ? 'datastore-cluster' : 'datastore',
+      storageOptions:           [
+        {
+          label: this.t('cluster.machineConfig.vsphere.scheduling.dataStore'),
+          value: 'datastore'
+        },
+        {
+          label: this.t('cluster.machineConfig.vsphere.scheduling.dataStoreCluster'),
+          value: 'datastore-cluster'
+        }
+      ],
       osOptions:        OS_OPTIONS,
       validationErrors: {},
     };
@@ -381,6 +391,19 @@ export default {
     'value.contentLibrary'() {
       this.loadLibraryTemplates();
     },
+    storageType(val) {
+      if (val === 'datastore-cluster') {
+        set(this.value, 'datastore', '');
+        if (!this.dataStoreClustersResults) {
+          this.loadDataStoreClusters();
+        }
+      } else {
+        set(this.value, 'datastoreCluster', '');
+        if (!this.dataStoresResults) {
+          this.loadDataStores();
+        }
+      }
+    },
     'value.creationType'(value) {
       set(this.value, 'cloneFrom', '');
       const boot2dockerUrl = value === CREATION_METHOD.LEGACY ? BOOT_2_DOCKER_URL : '';
@@ -447,7 +470,7 @@ export default {
         if (this.mode === _CREATE || this.poolCreateMode) {
           set(this.value, 'datacenter', options[0]);
           set(this.value, 'cloneFrom', undefined);
-          set(this.value, 'useDataStoreCluster', false);
+          this.storageType = 'datastore';
         }
 
         if ([_EDIT, _VIEW].includes(this.mode) && !this.poolCreateMode) {
@@ -530,7 +553,7 @@ export default {
     },
 
     async loadDataStoreClusters() {
-      set(this, 'dataStoreResults', null);
+      set(this, 'dataStoreClustersResults', null);
 
       const options = await this.requestOptions('data-store-clusters', this.value.datacenter);
       const content = this.mapPathOptionsToContent(options);
@@ -633,7 +656,13 @@ export default {
 
     loadAllDatacenterResources() {
       this.loadResourcePools();
-      this.loadDataStores();
+      if (this.storageType === 'datastore') {
+        this.loadDataStores();
+        this.dataStoreClustersResults = null;
+      } else {
+        this.loadDataStoreClusters();
+        this.dataStoresResults = null;
+      }
       this.loadFolders();
       this.loadHosts();
       this.loadTemplates();
@@ -833,10 +862,25 @@ export default {
           </div>
           <div class="row mt-10">
             <div
+              class="col span-12"
+              data-testid="storageType"
+            >
+              <RadioGroup
+                v-model:value="storageType"
+                name="storageType"
+                :options="storageOptions"
+                :disabled="isDisabled"
+                :row="true"
+              />
+            </div>
+          </div>
+          <div class="row mt-10">
+            <div
               class="col span-6"
               data-testid="dataStore"
             >
               <LabeledSelect
+                v-if="storageType === 'datastore'"
                 v-model:value="value.datastore"
                 :loading="dataStoresLoading"
                 :mode="mode"
@@ -844,6 +888,16 @@ export default {
                 :label="t('cluster.machineConfig.vsphere.scheduling.dataStore')"
                 :disabled="isDisabled"
                 :tooltip="value.datastore"
+              />
+              <LabeledSelect
+                v-else
+                v-model:value="value.datastoreCluster"
+                :loading="dataStoreClustersLoading"
+                :mode="mode"
+                :options="dataStoreClusters"
+                :label="t('cluster.machineConfig.vsphere.scheduling.dataStoreCluster')"
+                :disabled="isDisabled"
+                :tooltip="value.datastoreCluster"
               />
             </div>
             <div

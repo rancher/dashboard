@@ -1,0 +1,138 @@
+name: Test build of extensions in repository
+
+on:
+  workflow_call:
+    inputs:
+      disable_exts_build:
+        required: false
+        type: string
+        default: ''
+        description: 'A comma-separated list of package subfolder names (under pkg/) to exclude from the build matrix.'
+    outputs:
+      build-job-status: 
+        value: ${{ jobs.test-build.outputs.build-status }}
+
+jobs:
+  find-extensions:
+    name: Find Extensions to Build
+    runs-on: ubuntu-latest
+    outputs:
+      final_matrix_json: ${{ steps.set-final-matrix.outputs.json }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Find and Filter Subfolders
+        id: set-matrix
+        shell: bash
+        run: |
+          # 1. Define the extensions to ignore from the workflow input
+          # Converts the comma-separated string into a bash array for easy lookup
+          IFS=',' read -r -a DISABLED_PKGS <<< "${{ inputs.disable_exts_build }}"
+          
+          # 2. Find all potential extensions (folders with package.json)
+          # find pkg/ -maxdepth 2 -type f -name "package.json" -printf '%h\n' | sed -E 's/pkg\/(.*)/\1/'
+          ALL_PKGS_STR=$(find pkg/ -maxdepth 2 -type f -name "package.json" -printf '%h\n' | sed -E 's/pkg\/(.*)/\1/')
+          
+          # 3. Filter out disabled extensions
+          PKGS_TO_BUILD=()
+          while IFS= read -r PKG_NAME; do
+            # Check if the current package name is in the DISABLED_PKGS array
+            IS_DISABLED=false
+            for DISABLED in "${DISABLED_PKGS[@]}"; do
+              if [ "$PKG_NAME" == "$DISABLED" ]; then
+                echo "Skipping disabled package: $PKG_NAME"
+                IS_DISABLED=true
+                break
+              fi
+            done
+            
+            # If not disabled, add it to the list to build
+            if ! $IS_DISABLED; then
+              PKGS_TO_BUILD+=("$PKG_NAME")
+            fi
+          done <<< "$ALL_PKGS_STR"
+
+          if [ ${#PKGS_TO_BUILD[@]} -eq 0 ]; then
+             echo "::warning::All packages were skipped or not found."
+             MATRIX='{"folder": []}' # Use single quotes for simple string
+             echo "ALL_SKIPPED=true" >> $GITHUB_OUTPUT
+          else
+             # 1. Join the array elements with a comma and space (e.g., elemental, elemental-v2)
+             PKGS_CSV=$(IFS=,; echo "${PKGS_TO_BUILD[*]}")
+             
+             # 2. Add quotes around each item and the array brackets.
+             # We replace the comma with '", "' and wrap the whole thing in '["...""]'
+             # This creates: ["elemental", "elemental-v2"]
+             JSON_ARRAY=$(echo "$PKGS_CSV" | sed 's/,/","/g' | sed 's/^/["/' | sed 's/$/"]/')
+             
+             # 3. Create the final matrix object using single quotes for the outer JSON string
+             # This ensures the internal double quotes for the array elements are preserved.
+             MATRIX='{"folder": '"$JSON_ARRAY"'}'
+             
+             echo "ALL_SKIPPED=false" >> $GITHUB_OUTPUT
+             echo "Final packages CSV: $PKGS_CSV"
+          fi
+
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "Final extensions to build: ${PKGS_TO_BUILD[*]}"
+      
+      - name: Set Final Conditional Matrix
+        id: set-final-matrix
+        # 1. Pass the outputs as environment variables
+        # This preserves the quotes and special characters *exactly*.
+        env:
+          ALL_SKIPPED: ${{ steps.set-matrix.outputs.ALL_SKIPPED }}
+          ORIGINAL_MATRIX: ${{ steps.set-matrix.outputs.matrix }}
+        shell: bash
+        run: |
+          SKIP_MATRIX='{"folder": ["_skip_"]}'
+          
+          if [ "$ALL_SKIPPED" == "true" ]; then
+            # Use the simple skip matrix
+            FINAL_JSON="$SKIP_MATRIX"
+          else
+            # 2. Use the environment variable. Its value is the *literal*
+            # string {"folder": ["elemental","elemental-v2"]}
+            FINAL_JSON="$ORIGINAL_MATRIX"
+          fi
+          
+          # 3. Set the output
+          echo "json=$FINAL_JSON" >> $GITHUB_OUTPUT
+
+  test-build:
+    name: Test build ${{ matrix.folder }}
+    runs-on: ubuntu-latest
+    needs: find-extensions
+    outputs:
+      build-status: ${{ job.status }}
+      
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.find-extensions.outputs.final_matrix_json) }}
+
+    steps:
+      - name: Checkout Repository
+        if: ${{ matrix.folder != '_skip_' }}
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install Node
+        if: ${{ matrix.folder != '_skip_' }}
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+
+      - name: Install Dependencies
+        if: ${{ matrix.folder != '_skip_' }}
+        shell: bash
+        run: yarn install
+
+      - name: "Build extension: ${{ matrix.folder }}"
+        if: ${{ matrix.folder != '_skip_' }}
+        run: yarn build-pkg ${{ matrix.folder }}

@@ -202,7 +202,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // go to repos list page
     const appRepoList = new RepositoriesPagePo(cluster, 'apps');
 
-    appRepoList.goTo();
+    appRepoList.goTo(cluster, 'apps');
     appRepoList.waitForPage();
     appRepoList.sortableTable().rowElementWithName(UI_PLUGINS_PARTNERS_REPO_URL).should('exist');
   });
@@ -227,7 +227,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     const appRepoList = new RepositoriesPagePo(cluster, 'apps');
 
     // Ensure that the banner should be shown (by confirming that a required repo isn't there)
-    appRepoList.goTo();
+    appRepoList.goTo(cluster, 'apps');
     appRepoList.waitForPage();
     appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
     appRepoList.sortableTable().noRowsShouldNotExist();
@@ -303,11 +303,11 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // click on install button on card
     extensionsPo.extensionCardInstallClick(EXTENSION_NAME);
-    extensionsPo.extensionInstallModal().should('be.visible');
+    extensionsPo.installModal().checkVisible();
 
     // select version and click install
-    extensionsPo.installModalSelectVersionClick(2);
-    extensionsPo.installModalInstallClick();
+    extensionsPo.installModal().selectVersionClick(2);
+    extensionsPo.installModal().installButton().click();
     cy.wait('@installExtension').its('response.statusCode').should('eq', 201);
 
     // let's check the extension reload banner and reload the page
@@ -351,7 +351,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // click on update button on card
     extensionsPo.extensionCardUpgradeClick(EXTENSION_NAME);
-    extensionsPo.installModalInstallClick();
+    extensionsPo.installModal().installButton().click();
     cy.wait('@upgradeExtension').its('response.statusCode').should('eq', 201);
 
     // let's check the extension reload banner and reload the page
@@ -377,7 +377,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     // click on the downgrade button on card
     // this will downgrade to the immediate previous version
     extensionsPo.extensionCardDowngradeClick(EXTENSION_NAME);
-    extensionsPo.installModalInstallClick();
+    extensionsPo.installModal().installButton().click();
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
@@ -401,10 +401,10 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // click on install button on card
     extensionsPo.extensionCardInstallClick(DISABLED_CACHE_EXTENSION_NAME);
-    extensionsPo.extensionInstallModal().should('be.visible');
+    extensionsPo.installModal().checkVisible();
 
     // click install
-    extensionsPo.installModalInstallClick();
+    extensionsPo.installModal().installButton().click();
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
@@ -450,8 +450,8 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
     // Install unauthenticated extension
     extensionsPo.extensionCardInstallClick(UNAUTHENTICATED_EXTENSION_NAME);
-    extensionsPo.extensionInstallModal().should('be.visible');
-    extensionsPo.installModalInstallClick();
+    extensionsPo.installModal().checkVisible();
+    extensionsPo.installModal().installButton().click();
 
     // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');

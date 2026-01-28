@@ -30,8 +30,6 @@ const LOCAL_STORAGE_UPDATE_FETCHING = 'rancher-updates-fetching'; // Local stora
 
 const BACKOFFS = [1, 1, 1, 2, 2, 3, 5]; // Backoff in days for the contiguous number of errors (i.e. after 1 errors, we wait 1 day, after 3 errors, we wait 2 days, etc.)
 
-const DEFAULT_RELEASE_NOTES_URL = 'https://github.com/rancher/rancher/releases/tag/v$version'; // Default release notes URL
-
 /**
  * Fetch dynamic content if needed and process it if it has changed since we last checked
  */
@@ -63,10 +61,7 @@ export async function fetchAndProcessDynamicContent(dispatch: Function, getters:
     logger,
     config,
     isAdmin:  isAdminUser(getters),
-    settings: {
-      releaseNotesUrl: DEFAULT_RELEASE_NOTES_URL,
-      suseExtensions:  [],
-    }
+    settings: { suseExtensions: [] }
   };
 
   logger.debug('Read configuration', context.config);

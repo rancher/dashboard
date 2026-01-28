@@ -52,7 +52,8 @@ export default {
     'group-value-change',
     'selection',
     'rowClick',
-    'enter'
+    'enter',
+    'sortable-table-interaction',
   ],
 
   components: {
@@ -765,7 +766,7 @@ export default {
                 needRef = true;
               } else {
                 // Check if we have a formatter from a plugin
-                const pluginFormatter = this.$plugin?.getDynamic('formatters', c.formatter);
+                const pluginFormatter = this.$extension?.getDynamic('formatters', c.formatter);
 
                 if (pluginFormatter) {
                   component = defineAsyncComponent(pluginFormatter);
@@ -1058,6 +1059,23 @@ export default {
     },
 
     paginationChanged() {
+      // event used for extensions TABLE hooks
+      this.$emit('sortable-table-interaction', {
+        pagination: {
+          page:    this.page,
+          perPage: this.perPage,
+        },
+        filtering: {
+          searchFields: this.searchFields,
+          searchQuery:  this.searchQuery
+        },
+        sorting: {
+          sort:       this.sortFields,
+          sortBy:     this.sortBy,
+          descending: this.descending
+        }
+      });
+
       if (!this.externalPaginationEnabled) {
         return;
       }
@@ -1572,6 +1590,18 @@ export default {
             :onRowMouseEnter="onRowMouseEnter"
             :onRowMouseLeave="onRowMouseLeave"
           >
+            <slot
+              :full-colspan="fullColspan"
+              :row="row.row"
+              :show-sub-row="row.showSubRow"
+              :sub-matches="subMatches"
+              :keyField="keyField"
+              :componentTestid="componentTestid"
+              :i="i"
+              :onRowMouseEnter="onRowMouseEnter"
+              :onRowMouseLeave="onRowMouseLeave"
+              name="additional-sub-row"
+            />
             <tr
               v-if="row.row.stateDescription"
               :key="row.row[keyField] + '-description'"
@@ -1906,9 +1936,22 @@ export default {
         &.main-row.has-sub-row {
           border-bottom: 0;
         }
+        &.additional-sub-row.has-sub-row {
+          border-bottom: 0;
+        }
 
         // if a main-row is hovered also hover it's sibling sub row. note - the reverse is handled in selection.js
         &.main-row:not(.row-selected):hover + .sub-row {
+          background-color: var(--sortable-table-hover-bg);
+        }
+
+        // Case with only additional-sub-row
+        &.main-row:not(.row-selected):hover + .additional-sub-row {
+          background-color: var(--sortable-table-hover-bg);
+        }
+
+        // Case with both additional-sub-row and sub-row
+        &.main-row:not(.row-selected):hover + .additional-sub-row + .sub-row{
           background-color: var(--sortable-table-hover-bg);
         }
 

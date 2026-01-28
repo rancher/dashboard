@@ -82,7 +82,11 @@ export const RBAC = {
 
 export const WORKLOAD = 'workload';
 
-// The types that are aggregated into a "workload"
+/**
+ * Rancher Workload types
+ *
+ * The types that are aggregated into a "workload"
+ */
 export const WORKLOAD_TYPES = {
   DEPLOYMENT:             'apps.deployment',
   CRON_JOB:               'batch.cronjob',
@@ -93,15 +97,44 @@ export const WORKLOAD_TYPES = {
   REPLICATION_CONTROLLER: 'replicationcontroller',
 };
 
+/**
+ * Kube Workload Kinds
+ */
+export const WORKLOAD_KINDS = {
+  DEPLOYMENT:             'Deployment',
+  CRON_JOB:               'CronJob',
+  DAEMON_SET:             'DaemonSet',
+  JOB:                    'Job',
+  STATEFUL_SET:           'StatefulSet',
+  REPLICA_SET:            'ReplicaSet',
+  REPLICATION_CONTROLLER: 'ReplicationController',
+};
+
+/**
+ * Map Rancher Workload types to Kube Workload Kinds
+ */
 export const WORKLOAD_TYPE_TO_KIND_MAPPING = {
   // Each deployment creates a replicaset and the metrics are published for a replicaset.
-  [WORKLOAD_TYPES.DEPLOYMENT]:             'ReplicaSet',
-  [WORKLOAD_TYPES.CRON_JOB]:               'CronJob',
-  [WORKLOAD_TYPES.DAEMON_SET]:             'DaemonSet',
-  [WORKLOAD_TYPES.JOB]:                    'Job',
-  [WORKLOAD_TYPES.STATEFUL_SET]:           'StatefulSet',
-  [WORKLOAD_TYPES.REPLICA_SET]:            'ReplicaSet',
-  [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 'ReplicationController',
+  [WORKLOAD_TYPES.DEPLOYMENT]:             WORKLOAD_KINDS.DEPLOYMENT,
+  [WORKLOAD_TYPES.CRON_JOB]:               WORKLOAD_KINDS.CRON_JOB,
+  [WORKLOAD_TYPES.DAEMON_SET]:             WORKLOAD_KINDS.DAEMON_SET,
+  [WORKLOAD_TYPES.JOB]:                    WORKLOAD_KINDS.JOB,
+  [WORKLOAD_TYPES.STATEFUL_SET]:           WORKLOAD_KINDS.STATEFUL_SET,
+  [WORKLOAD_TYPES.REPLICA_SET]:            WORKLOAD_KINDS.REPLICA_SET,
+  [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: WORKLOAD_KINDS.REPLICATION_CONTROLLER,
+};
+
+/**
+ * Map Kube Workload Kinds types to Rancher Workload
+ */
+export const WORKLOAD_KIND_TO_TYPE_MAPPING = {
+  [WORKLOAD_KINDS.DEPLOYMENT]:             WORKLOAD_TYPES.DEPLOYMENT,
+  [WORKLOAD_KINDS.CRON_JOB]:               WORKLOAD_TYPES.CRON_JOB,
+  [WORKLOAD_KINDS.DAEMON_SET]:             WORKLOAD_TYPES.DAEMON_SET,
+  [WORKLOAD_KINDS.JOB]:                    WORKLOAD_TYPES.JOB,
+  [WORKLOAD_KINDS.STATEFUL_SET]:           WORKLOAD_TYPES.STATEFUL_SET,
+  [WORKLOAD_KINDS.REPLICA_SET]:            WORKLOAD_TYPES.REPLICA_SET,
+  [WORKLOAD_KINDS.REPLICATION_CONTROLLER]: WORKLOAD_TYPES.REPLICATION_CONTROLLER,
 };
 
 export const METRICS_SUPPORTED_KINDS = [
@@ -221,6 +254,13 @@ export const MANAGEMENT = {
   RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
   CLUSTER_PROXY_CONFIG:          'management.cattle.io.clusterproxyconfig',
   OIDC_CLIENT:                   'management.cattle.io.oidcclient'
+};
+
+export const BRAND = {
+  SUSE:    'suse',
+  CSP:     'csp',
+  FEDERAL: 'federal',
+  RGS:     'rgs',
 };
 
 export const EXT = { USER_ACTIVITY: 'ext.cattle.io.useractivity' };

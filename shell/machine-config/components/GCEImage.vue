@@ -8,7 +8,7 @@ import { getGKEImageFamilies, getGKEFamiliesFromProject } from '@shell/component
 import debounce from 'lodash/debounce';
 import { mapGetters } from 'vuex';
 
-const DEFAULT_PROJECTS = 'suse-cloud, ubuntu-os-cloud, rhel-cloud';
+const DEFAULT_PROJECTS = 'ubuntu-os-cloud';
 const DEFAULT_MIN_DISK = 10;
 
 export default {

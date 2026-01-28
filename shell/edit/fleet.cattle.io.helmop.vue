@@ -80,6 +80,7 @@ export default {
         type:        CONFIG_MAP
       }
     }, this.$store);
+    this.currentUser = await this.value.getCurrentUser();
   },
 
   data() {
@@ -405,6 +406,10 @@ export default {
 
     updateBeforeSave() {
       this.value.spec['correctDrift'] = { enabled: this.correctDriftEnabled };
+
+      if (this.mode === _CREATE) {
+        this.value.metadata.labels[FLEET_LABELS.CREATED_BY_USER_ID] = this.currentUser.id;
+      }
     },
 
     durationSeconds(value) {

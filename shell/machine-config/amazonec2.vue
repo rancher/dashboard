@@ -12,7 +12,7 @@ import { NORMAN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { convertStringToKV, convertKVToString } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
-import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
+import { stringify, exceptionToErrorsArray, formatAWSError } from '@shell/utils/error';
 import EC2Networking from './components/EC2Networking.vue';
 
 const DEFAULT_GROUP = 'rancher-nodes';
@@ -139,7 +139,7 @@ export default {
 
       this.loadedRegionalFor = region;
     } catch (e) {
-      this.errors = exceptionToErrorsArray(e);
+      this.errors = exceptionToErrorsArray(formatAWSError(e));
     }
   },
 

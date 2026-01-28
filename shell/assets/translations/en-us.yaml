@@ -121,6 +121,7 @@ generic:
         1d: 1d
         7d: 7d
         30d: 30d
+  tooltip: Tooltip
   completed: Completed
   enable: Enable
   disable: Disable
@@ -789,6 +790,11 @@ authConfig:
       label: Scopes
       placeholder: openid
       protip: The <code>openid</code>, <code>profile</code>, and <code>email</code> scopes are required and cannot be removed.
+    pkce:
+      label: Enable PKCE (S256)
+      tooltip: Enable Proof Key for Code Exchange (PKCE) using the S256 code challenge method. When enabled, this client must use PKCE with S256 for authorization requests.
+    pkceMethod:
+      label: PKCE Method
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
@@ -1129,6 +1135,7 @@ catalog:
       home: Homepage
       repository: Repository Page
       maintainers: Maintainers
+      maintainerContactTooltip: Contact {maintainer}
       related: Related
       chartUrls: Chart
       keywords: Keywords
@@ -1212,7 +1219,7 @@ catalog:
         tag: tag
   install:
     action:
-      goToUpgrade: Edit/Upgrade
+      goToUpgrade: Edit / Change Version
     appReadmeMissing: This chart doesn't have any additional chart information.
     appReadmeTitle: Chart Information (Helm README)
     button:
@@ -1733,6 +1740,7 @@ cluster:
         addVolume: Add Volume
         addVMImage: Add VM Image
         storageClass: Storage Class
+      reservedMemory: Reserved Memory
       sshUser: SSH User
       userData:
         label: User Data Template
@@ -1778,6 +1786,8 @@ cluster:
         placeholder: e.g. 2
       memory:
         placeholder: e.g. 4
+      reservedMemory:
+        placeholder: e.g. 256
       disk:
         placeholder: e.g. 4
       namespace:
@@ -1807,6 +1817,7 @@ cluster:
     current: (current)
     experimental: (experimental)
     deprecated: (deprecated)
+    manual: (manually upgraded)
     deprecatedPatches: Show deprecated Kubernetes patch versions
     deprecatedPatchWarning: We recommend using the latest patch version for each minor Kubernetes version. Deprecated patch versions can be useful for migration purposes.
   legacyWarning: The legacy feature flag is enabled and not all legacy features are supported in Kubernetes 1.21+.
@@ -2002,7 +2013,8 @@ cluster:
         description: Choose what hypervisor the virtual machine will be scheduled to
         dataCenter: Data Center
         resourcePool: Resource Pool
-        dataStore: Data Store
+        dataStore: Datastore
+        dataStoreCluster: Datastore Cluster
         folder: Folder
         host:
           label: Host
@@ -2347,6 +2359,7 @@ cluster:
       placeholder: Search for a member to provide cluster access
       searchPlaceholder: Start typing to search
       noResults: No results found
+      minCharacters: Type at least {count} characters to search
   privateRegistry:
     header: Registry for Rancher System Container Images
     label: Enable cluster scoped container registry for Rancher system container images
@@ -2724,7 +2737,6 @@ cruResource:
 providers:
   hosted: 
     title: Hosted Providers
-    prime: Prime only
     warning: Disabling providers will make any clusters that use them uneditable
 drivers:
   kontainer:
@@ -3011,24 +3023,36 @@ fleet:
       notReady: Not Ready
       waitApplied: Wait Applied
   clusterTargets:
-    title: Select by name
-    label: Clusters
     advancedConfigs: Advanced target configurations are defined, check the YAML file for further details.
-    placeholders:
-      selectMultiple: Select Multiple Clusters
+    clusters:
+      title: Clusters
+      byName:
+        placeholder: Select Multiple Clusters
+        label: Select by cluster name
+      byLabel:
+        title: Select by labels
+        addSelector: Add cluster selector
+        labelKey: Label
+    clusterGroups:
+      title: Cluster Groups
+      byName:
+        label: Select by cluster group name
+        placeholder: Select Multiple Cluster Groups
     rules:
-      title: Select by labels
-      addSelector: Add cluster selector
-      labelKey: Label
       matching:
-        title: Selected clusters
-        placeholder: Select clusters by name or labels
+        title: |-
+          {n, plural,
+            =0 {No clusters selected}
+            =1 {1 cluster selected}
+            other {{n, number} clusters selected}
+            }
+        placeholder: Select clusters by name, labels or groups
         empty: No clusters in the workspace
         plusMore: |-
           {n, plural,
             =1 {+ 1 more cluster}
             other {+ {n, number} more clusters}
-          }
+            }
   application:
     pageTitle: App Bundles
     menuLabel: App Bundles
@@ -3588,6 +3612,7 @@ hpa:
     last: Last Scale Time
     max: Maximum Replicas
     min: Minimum Replicas
+    targetReferenceType: Target Type
     targetReference: Target Reference
 
 import:
@@ -4680,6 +4705,7 @@ moveModal:
   description: 'You are moving the following namespaces:'
   moveButtonLabel: Move
   targetProject: Target Project
+  noProject: None (remove from any project)
 
 nameNsDescription:
   name:
@@ -5324,7 +5350,8 @@ plugins:
   closePluginPanel: Close plugin description panel
   viewVersionDetails: View extension {name} version {version} details/Readme
   labels:
-    primeOnly: Prime-only
+    isDeveloper: Developer Load
+    primeOnly: Prime only
     builtin: Built-In
     experimental: Experimental
     third-party: Third-Party
@@ -5392,7 +5419,7 @@ plugins:
   warnNoAuth: This version of the extension will be loaded before authentication and will have access to the login process.
   manageCatalog:
     label: Manage Extension Catalogs
-    title: Extension
+    title: Extensions
     subtitle: Catalogs
     imageLoad:
       load: Import Extension Catalog
@@ -7389,39 +7416,64 @@ workload:
     removeContainer: Remove Container
     addContainer: Add Container
     security:
-      addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs
       allowPrivilegeEscalation:
-        label: Privilege Escalation
-        'false': No
-        'true': "Yes: container can gain more privileges than its parent process"
-      dropCapabilities: Drop Capabilities
+        title: Privilege Escalation
+        'true': "Container can gain more privileges than its parent process"
+      capabilities:
+        title: Capabilities
+        add: Add Capabilities
+        drop: Drop Capabilities
       fsGroup: Filesystem Group
       hostIPC: Use Host IPC Namespace
       hostPID: Use Host PID Namespace
       podFsGroup: Pod Filesystem Group
       privileged:
-        label: Privileged
-        'false': No
-        'true': "Yes: container has full access to the host"
+        title: Privileged
+        'true': "Container has full access to the host"
+        help: Enabling privilege will hide Privilege Escalation and seccompProfile.
+        afterTick: 
+          'true': Privilege Escalation and seccompProfile have been hidden.
+          'false': Privilege Escalation and seccompProfile appeared.
       readOnlyRootFilesystem:
-        label: Read-Only Root Filesystem
-        'false': No
-        'true': "Yes: container has a read-only root filesystem"
+        title: Read-Only Root Filesystem
+        'true': "Container has a read-only root filesystem"
       runAsGroup: Run as Group ID
       runAsNonRoot:
-        label: Run as Non-Root
-        'false': No
-        'true': "Yes: container must run as a non-root user"
+        title: Run as Non-Root
+        'true': "Container must run as a non-root user"
       runAsNonRootOptions:
-        noOption: "No"
-        yesOption: "Yes: containers must run as non-root-user"
-      runAsUser: Run as User ID
+        'true': "Containers must run as non-root-user"
+      runAsUser: 
+        title: Run as User ID
+        label: User ID
+      seccompProfile:
+        pod: Pod Seccomp Profile
+        container: Seccomp Profile
+        type: Type
+        localhostProfile:
+          label: Localhost Profile Path
+          tooltip: Points to a specific seccomp file that must already exist on the machine running the container.
+          placeholder: e.g. path/to/json
+        afterLocalhostProfile: 
+          selected: Localhost Profile input appeared.
+          unselected: Localhost Profile input has been hidden.
+        types:
+          none:
+            label: None
+          runtimeDefault:
+            label: RuntimeDefault - inherit the default seccomp profile
+          localhost:
+            label: Localhost - define a custom seccomp profile
+          unconfined:
+            label: Unconfined - no seccomp profile
       shareProcessNamespace: Share single process namespace
       supplementalGroups: Additional Group IDs
       sysctls: Sysctls
       sysctlsKey: Name
     standard: Standard Container
+    initContainer:
+      label: Init Containers
     terminationState: "Last state: Terminated with {lsExitCode}: {lsDescription}, started: {lsStartedAt}, finished: {lsFinishedAt}"
     titles:
       pods: Pods
@@ -7549,6 +7601,7 @@ workload:
   validation:
     containers: Containers
     containerImage: Container {name} - "Container Image" is required.
+    localhostProfile: Container {name} - "Container Localhost Profile" is required when SeccompProfile Type is Localhost.
   replicas: Replicas
   showTabs: 'Show Advanced Options'
   scheduling:
@@ -8427,6 +8480,11 @@ typeLabel:
       one { Role }
       other { Roles }
     }
+  replicationcontroller: |-
+    {count, plural,
+      one { Replication Controller }
+      other { Replication Controllers }
+    }
   scheduling.k8s.io.priorityclass: |-
     {count, plural,
       one { PriorityClass }
@@ -9162,11 +9220,17 @@ component:
         podsCard:
           title: Pods
           ariaResourceName: pods
+        jobsCard:
+          title: Jobs
+          ariaResourceName: jobs
         insightsCard:
           title: Insights
           rows:
             conditions: Conditions
             events: Events
+        extrasCard:
+          title: Extras
+          message: 'Consider installing additional <a class="secondary text-deemphasized" href="{extensionsUrl}">extensions</a> and / or <a class="secondary-text-link" href="{clusterToolsUrl}">cluster tools</a> to enrich your Rancher experience.'
         scaler:
           ariaLabel:
             increase: Increase {resourceName}

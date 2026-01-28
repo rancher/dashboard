@@ -7,6 +7,10 @@ import findIndex from 'lodash/findIndex';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import Tab from '@shell/components/Tabbed/Tab';
+import { ref } from 'vue';
+import { useIsInResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/composables';
+import { useIsInResourceDetailPage } from '@shell/composables/resourceDetail';
+import { useIsInResourceCreatePage, useIsInResourceEditPage } from '@shell/composables/cruResource';
 
 export default {
   name: 'Tabbed',
@@ -105,7 +109,14 @@ export default {
   },
 
   data() {
-    const extensionTabs = this.showExtensionTabs ? getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams) || [] : [];
+    const location = this.getInitialTabLocation();
+    let extensionTabs = this.showExtensionTabs ? getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, location, this.$route, this, this.extensionParams) || [] : [];
+    const legacyExtensionTabs = this.showExtensionTabs ? getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams) || [] : [];
+
+    if (!extensionTabs.length) {
+      // Support legacy tabs for RESOURCE_DETAIL location
+      extensionTabs = legacyExtensionTabs;
+    }
 
     const parsedExtTabs = extensionTabs.map((item) => {
       return {
@@ -117,7 +128,8 @@ export default {
     return {
       tabs:          [...parsedExtTabs],
       extensionTabs: parsedExtTabs,
-      activeTabName: null
+      activeTabName: null,
+      tabRefs:       {}
     };
   },
 
@@ -130,7 +142,18 @@ export default {
     // hide tabs based on tab count IF flag is active
     hideTabs() {
       return this.hideSingleTab && this.sortedTabs.length === 1;
-    }
+    },
+  },
+
+  setup() {
+    const isInResourceDetailDrawer = ref(useIsInResourceDetailDrawer());
+    const isInResourceDetailPage = ref(useIsInResourceDetailPage());
+    const isInResourceEditPage = ref(useIsInResourceEditPage());
+    const isInResourceCreatePage = ref(useIsInResourceCreatePage());
+
+    return {
+      isInResourceDetailDrawer, isInResourceDetailPage, isInResourceEditPage, isInResourceCreatePage
+    };
   },
 
   watch: {
@@ -166,6 +189,19 @@ export default {
   },
 
   methods: {
+    getInitialTabLocation() {
+      if (this.isInResourceEditPage) {
+        return TabLocation.RESOURCE_EDIT_PAGE;
+      } else if (this.isInResourceDetailDrawer) {
+        return TabLocation.RESOURCE_SHOW_CONFIGURATION;
+      } else if (this.isInResourceDetailPage) {
+        return TabLocation.RESOURCE_DETAIL_PAGE;
+      } else if (this.isInResourceCreatePage) {
+        return TabLocation.RESOURCE_CREATE_PAGE;
+      } else {
+        return TabLocation.OTHER;
+      }
+    },
     hasIcon(tab) {
       return tab.displayAlertIcon || (tab.error && !tab.active);
     },
@@ -228,7 +264,10 @@ export default {
       this.select(nextName);
 
       this.$nextTick(() => {
-        this.$refs.tablist.focus();
+        this.$refs.tablist.removeAttribute('tabindex');
+        if (this.tabRefs[nextName]) {
+          this.tabRefs[nextName].focus();
+        }
       });
 
       function getCyclicalIdx(currentIdx, direction, tabsLength) {
@@ -288,14 +327,16 @@ export default {
         :key="tab.name"
         :data-testid="tab.name"
         :class="{tab: true, active: tab.active, disabled: tab.disabled, error: (tab.error)}"
-        role="presentation"
       >
         <a
+          :id="`tab-${tab.name}`"
+          :ref="(el) => { if (el) tabRefs[tab.name] = el; }"
           :data-testid="`btn-${tab.name}`"
           :aria-controls="tab.name"
           :aria-selected="tab.active"
           :aria-label="tab.labelDisplay || ''"
           role="tab"
+          :tabindex="tab.active ? '0' : '-1'"
           @click.prevent="select(tab.name, $event)"
           @keyup.enter.space="select(tab.name, $event)"
         >

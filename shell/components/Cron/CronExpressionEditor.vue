@@ -268,7 +268,7 @@ const handleBlur = (field: CronField) => {
 </template>
 
 <style scoped lang="scss">
-$input-max-width: 110px;
+$input-max-width: 120px;
 
 .cron-row {
   display: flex;

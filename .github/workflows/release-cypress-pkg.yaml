@@ -1,0 +1,63 @@
+name: Publish Cypress Suite Package
+
+on:
+  push:
+    tags:
+      - 'cypress-pkg-v*'
+  workflow_call:
+    inputs:
+      tag:
+        required: false
+        type: string
+    outputs:
+      build-release-cypress-suite-status: 
+        value: ${{ jobs.build.outputs.build-status }}
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./cypress
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.repository == 'rancher/dashboard' && (github.event_name == 'workflow_call' || (github.event_name == 'push' && github.event.ref == 'refs/tags/${{ github.ref_name }}'))
+    outputs:
+      build-status: ${{ job.status }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@rancher'
+
+      # Ensure latest npm version is installed - 11.5.1 is required to pass OIDC token to npm publish
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Install packages
+        run: yarn install --frozen-lockfile
+
+      - name: Build Cypress Package
+        run: yarn build-pkg
+
+      - name: Publish Cypress Package to npm
+        run: yarn publish-pkg
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}

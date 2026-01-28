@@ -12,7 +12,7 @@ export default class EmberAddPodSecurityTemplatePo extends EmberComponentPo {
   }
 
   addDescription() {
-    this.self().find('div > a.btn', 'Add a Description').click();
+    this.self().find('div > a.btn').contains('Add a Description').click();
   }
 
   accordion() {

@@ -416,7 +416,7 @@ export default defineComponent({
     :done-route="doneRoute"
     :errors="[...fvUnreportedValidationErrors, ...configUnreportedErrors]"
     :validation-passed="fvFormIsValid && ( configIsValid || isImport)"
-    @error="e=>errors=e"
+    @error="e=>configUnreportedErrors=e"
     @finish="save"
   >
     <SelectCredential

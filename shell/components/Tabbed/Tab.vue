@@ -137,6 +137,7 @@ export default {
     :id="name"
     :aria-hidden="!active"
     role="tabpanel"
+    :aria-labelledby="`tab-${name}`"
   >
     <div
       v-if="shouldShowHeader"

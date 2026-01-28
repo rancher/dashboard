@@ -725,7 +725,7 @@ export default {
       const notAllocatable = this.vGpus
         .map((type) => {
           const allocated = this.machinePools.reduce((acc, machinePool) => {
-            const vGPURequests = JSON.parse(machinePool?.config?.vgpuInfo || '')?.vGPURequests;
+            const vGPURequests = JSON.parse(machinePool?.config?.vgpuInfo || '{}')?.vGPURequests;
 
             const vGpuTypes = vGPURequests?.map((r) => r?.deviceName).filter((f) => f) || [];
 
@@ -1273,6 +1273,20 @@ export default {
               t('cluster.harvester.machinePool.sshUser.placeholder')
             "
             tooltip-key="cluster.harvester.machinePool.sshUser.toolTip"
+          />
+        </div>
+      </div>
+      <div class="row mt-20">
+        <div class="col span-6">
+          <UnitInput
+            v-model:value="value.reservedMemorySize"
+            v-int-number
+            label-key="cluster.credential.harvester.reservedMemory"
+            output-as="string"
+            suffix="MiB"
+            :mode="mode"
+            :disabled="disabled"
+            :placeholder="t('cluster.harvester.machinePool.reservedMemory.placeholder')"
           />
         </div>
       </div>

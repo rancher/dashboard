@@ -3,7 +3,7 @@ import ActionMenu from '@/cypress/e2e/po/components/action-menu.po';
 
 export default class RcItemCardPo extends ComponentPo {
   static getCardById(id: string) {
-    return new RcItemCardPo(`[data-testid="item-card-${ id }"`);
+    return new RcItemCardPo(`[data-testid="item-card-${ id }"]`);
   }
 
   static getCardByTitle(title: string) {

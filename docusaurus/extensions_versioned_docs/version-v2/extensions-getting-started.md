@@ -45,7 +45,7 @@ There are a few options available to be passed as an argument to the `@rancher/e
 
 |          Option           | Description                                                                                                                                                                                                                                                                             |
 | :-----------------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|     `--update \| -u`      | This will update all dependencies within the extension to match the declared version of the `@rancher/shell` library based on the tag. See the [Updating Guide](./updating-extensions.md) for usage.                                                                                               |
+|     `--update \| -u`      | This will update all dependencies within the extension to match the declared version of the `@rancher/shell` library based on the tag.                                                                                     |
 | `--app-name \| -a <name>` | Allows specifying a different name for the skeleton application instead of using the extension name.                                                                                                                                                                                    |
 |  `--skeleton-only \| -s`  | Installs only the skeleton application without creating the extension package.                                                                                                                                                                                                          |
 |           `-l`            | This will automatically add the [`.gitlab-ci.yml`](https://github.com/rancher/dashboard/blob/master/creators/extension/app/files/.gitlab-ci.yml) pipeline file for integration with GitLab                                                                                              |
@@ -219,11 +219,11 @@ Next, create a new file `./pkg/my-app/product.ts` with this content:
 ```ts
 import { IPlugin } from '@shell/core/types';
 
-export function init($plugin: IPlugin, store: any) {
+export function init($extension: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
   const BLANK_CLUSTER = '_';
 
-  const { product } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
+  const { product } = $extension.DSL(store, YOUR_PRODUCT_NAME);
 
   product({
     icon: 'gear',

@@ -13,7 +13,7 @@ export default class ChartRepositoriesPagePo extends PagePo {
     return `/c/${ clusterId }/${ product }/catalog.cattle.io.clusterrepo`;
   }
 
-  static goTo(clusterId: string, product: 'apps' | 'manager'): Cypress.Chainable<Cypress.AUTWindow> {
+  goTo(clusterId: string, product: 'apps' | 'manager'): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(ChartRepositoriesPagePo.createPath(clusterId, product));
   }
 
@@ -64,7 +64,7 @@ export default class ChartRepositoriesPagePo extends PagePo {
     const interceptName = `validateGoTo${ Date.now() }`;
 
     cy.intercept('GET', endpoint).as(interceptName);
-    this.goTo();
+    this.goTo(this.clusterId, this.product);
     cy.wait(`@${ interceptName }`, { timeout: 15000 }).its('response.statusCode').should('eq', 200);
   }
 }

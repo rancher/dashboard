@@ -16,6 +16,7 @@ import jsyaml from 'js-yaml';
 import { defineAsyncComponent, markRaw } from 'vue';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { isHostedProvider } from '@shell/utils/provider';
 
 const RKE1_ALLOWED_ACTIONS = [
   'promptRemove',
@@ -272,9 +273,26 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isHostedKubernetesProvider() {
-    const providers = ['AKS', 'EKS', 'GKE'];
+    const context = {
+      dispatch:   this.$dispatch,
+      getters:    this.$getters,
+      axios:      this.$axios,
+      $extension: this.$extension,
+      t:          (...args) => this.t.apply(this, args),
+    };
 
-    return providers.includes(this.provisioner);
+    return isHostedProvider(context, this.provisioner);
+  }
+
+  get providerConfig() {
+    if ( this.isRke2 ) {
+      return this.spec.rkeConfig;
+    }
+    if (this.mgmt && this.mgmt.config) {
+      return this.mgmt.config;
+    }
+
+    return null;
   }
 
   get isPrivateHostedProvider() {
@@ -308,19 +326,21 @@ export default class ProvCluster extends SteveModel {
 
     // imported rke2 and k3s have status.driver === rke2 and k3s respectively
     // Provisioned rke2 and k3s have status.driver === imported
-    if (this.mgmt?.status?.provider === 'k3s' || this.mgmt?.status?.provider === 'rke2') {
-      return this.mgmt?.status?.driver === this.mgmt?.status?.provider;
+    const provider = this.mgmt?.status?.provider;
+    const driver = this.mgmt?.status?.driver;
+
+    // The main case
+    if (provider === 'k3s' || provider === 'rke2') {
+      return driver === provider;
+    }
+    // The 'waiting' case
+    if (!provider && (driver === 'k3s' || driver === 'rke2')) {
+      return true;
     }
 
     // imported KEv2
     // we can't rely on this.provisioner to determine imported-ness for these clusters, as it will return 'aks' 'eks' 'gke' for both provisioned and imported clusters
-    const kontainerConfigs = ['aksConfig', 'eksConfig', 'gkeConfig'];
-
-    const isImportedKontainer = kontainerConfigs.filter((key) => {
-      return this.mgmt?.spec?.[key]?.imported === true;
-    }).length;
-
-    if (isImportedKontainer) {
+    if (this.isHostedKubernetesProvider && !!this.providerConfig.imported) {
       return true;
     }
 
