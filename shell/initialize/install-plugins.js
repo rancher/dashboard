@@ -1,7 +1,6 @@
 import PortalVue from 'portal-vue';
 import Vue3Resize from 'vue3-resize';
 import FloatingVue from 'floating-vue';
-import vSelect from 'vue-select';
 import 'vue3-resize/dist/vue3-resize.css';
 
 // import '@shell/plugins/extend-router';
@@ -43,7 +42,6 @@ export async function installPlugins(vueApp) {
       preventContainer: ['#modal-container-element']
     });
   vueApp.use(InstallCodeMirror);
-  vueApp.component('v-select', vSelect);
 }
 
 export async function installInjectedPlugins(app, vueApp) {
