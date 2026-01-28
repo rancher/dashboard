@@ -276,8 +276,8 @@ export default {
     <RcButton
       v-if="!isView"
       ref="add-button"
-      small
-      secondary
+      size="small"
+      variant="secondary"
       class="mmt-6"
       data-testid="fleet-values-from-add"
       @click="addValueFrom"

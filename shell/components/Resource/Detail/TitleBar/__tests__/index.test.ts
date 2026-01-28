@@ -77,7 +77,7 @@ describe('component: TitleBar/index', () => {
     const button = wrapper.find('.top > .actions > .show-configuration');
     const buttonComponent = button.getComponent<any>('rc-button-stub');
 
-    expect(buttonComponent.props('primary')).toStrictEqual(true);
+    expect(buttonComponent.props('variant')).toStrictEqual('primary');
     button.trigger('click');
 
     expect(wrapper.emitted()).toHaveProperty('show-configuration');

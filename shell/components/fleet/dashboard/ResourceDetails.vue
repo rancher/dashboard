@@ -92,8 +92,8 @@ export default {
         />
       </h3>
       <RcButton
-        small
-        ghost
+        size="small"
+        variant="ghost"
         data-testid="slide-in-close"
         :aria-label="'slide-in-close'"
         tabindex="0"

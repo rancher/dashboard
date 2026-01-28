@@ -79,7 +79,7 @@ export default {
       >
         <rc-dropdown-trigger
           data-testid="locale-selector"
-          link
+          variant="link"
           class="baseline locale-selector-btn"
           :aria-label="t('locale.menu')"
         >

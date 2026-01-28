@@ -94,7 +94,7 @@ watch(
           v-if="onShowConfiguration"
           :data-testid="showConfigurationDataTestId"
           class="show-configuration"
-          :primary="true"
+          variant="primary"
           size="large"
           :aria-label="i18n.t('component.resource.detail.titleBar.ariaLabel.showConfiguration', { resource: resourceName })"
           @click="() => emit('show-configuration', showConfigurationReturnFocusSelector)"
