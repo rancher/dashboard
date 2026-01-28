@@ -59,6 +59,12 @@ export default {
     };
   },
 
+  created() {
+    if (this.workspace !== this.value.namespace) {
+      this.$store.commit('updateWorkspace', { value: this.value.namespace, getters: this.$store.getters });
+    }
+  },
+
   computed: {
     clusterId() {
       return this.value.id;

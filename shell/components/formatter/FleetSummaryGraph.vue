@@ -18,13 +18,16 @@ export default {
       type:     String,
       required: false,
       default:  null,
-    }
+    },
   },
 
   computed: {
     summary() {
       if (this.clusterId) {
         return this.row.statusResourceCountsForCluster(this.clusterId);
+      }
+      if (this.row.statusResourceCountsForCluster) {
+        return this.row.statusResourceCountsForCluster;
       }
 
       return this.row.status?.resourceCounts || {};

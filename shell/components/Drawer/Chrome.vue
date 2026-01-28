@@ -35,7 +35,10 @@ const ariaLabel = computed(() => i18n.t('component.drawer.chrome.ariaLabel.close
     <div class="body pp-4">
       <slot name="body" />
     </div>
-    <div class="footer pp-4">
+    <div
+      v-if="!removeFooter"
+      class="footer pp-4"
+    >
       <slot name="footer">
         <div class="actions">
           <RcButton
@@ -73,6 +76,8 @@ const ariaLabel = computed(() => i18n.t('component.drawer.chrome.ariaLabel.close
       height: var(--header-height);
 
       & > .title {
+        display: flex;
+        align-items: center;
         flex: 1;
         font-size: 16px;
       }
