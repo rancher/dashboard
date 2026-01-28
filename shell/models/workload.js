@@ -3,10 +3,12 @@ import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import day from 'dayjs';
-import { convertSelectorObj, parse } from '@shell/utils/selector';
+import { convertSelectorObj, parse, matches } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
 import { matching } from '@shell/utils/selector-typed';
+import { defineAsyncComponent, markRaw } from 'vue';
+import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -177,6 +179,22 @@ export default class Workload extends WorkloadService {
   async scaleUp() {
     set(this.spec, 'replicas', this.spec.replicas + 1);
     await this.save();
+  }
+
+  async scale(isUp) {
+    try {
+      if (isUp) {
+        await this.scaleUp();
+      } else {
+        await this.scaleDown();
+      }
+    } catch (err) {
+      this.$store.dispatch('growl/fromError', {
+        title: this.t('workload.list.errorCannotScale', { direction: isUp ? 'up' : 'down', workloadName: this.name }),
+        err
+      },
+      { root: true });
+    }
   }
 
   get state() {
@@ -665,32 +683,6 @@ export default class Workload extends WorkloadService {
     }).filter((x) => !!x);
   }
 
-  get jobGauges() {
-    const out = {
-      succeeded: { color: 'success', count: 0 }, running: { color: 'info', count: 0 }, failed: { color: 'error', count: 0 }
-    };
-
-    if (this.type === WORKLOAD_TYPES.CRON_JOB) {
-      this.jobs.forEach((job) => {
-        const { status = {} } = job;
-
-        out.running.count += status.active || 0;
-        out.succeeded.count += status.succeeded || 0;
-        out.failed.count += status.failed || 0;
-      });
-    } else if (this.type === WORKLOAD_TYPES.JOB) {
-      const { status = {} } = this;
-
-      out.running.count = status.active || 0;
-      out.succeeded.count = status.succeeded || 0;
-      out.failed.count = status.failed || 0;
-    } else {
-      return null;
-    }
-
-    return out;
-  }
-
   get currentRevisionNumber() {
     if (this.ownedByWorkload || this.kind === 'Job' || this.kind === 'CronJob') {
       return undefined;
@@ -730,5 +722,79 @@ export default class Workload extends WorkloadService {
     });
 
     return val;
+  }
+
+  get servicesInNamespace() {
+    return this.$rootGetters['cluster/all'](SERVICE).filter((s) => s.metadata.namespace === this.metadata.namespace);
+  }
+
+  get relatedServices() {
+    // Find Services that have selectors that match this workload's Pod(s).
+    return this.servicesInNamespace.filter((service) => {
+      const selector = service.spec.selector;
+
+      for (let i = 0; i < this.pods.length; i++) {
+        const pod = this.pods[i];
+
+        if (service.metadata?.namespace === this.metadata?.namespace && matches(pod, selector)) {
+          return true;
+        }
+      }
+
+      return false;
+    });
+  }
+
+  get resourcesCardRows() {
+    return [
+      useResourceCardRow(this.t('component.resource.detail.card.resourcesCard.rows.services'), this.relatedServices, undefined, undefined, '#services'),
+      ...this._resourcesCardRows,
+    ];
+  }
+
+  get podsCard() {
+    const supportedTypes = [WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.DAEMON_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.STATEFUL_SET];
+
+    if (!supportedTypes.includes(this.type)) {
+      return null;
+    }
+
+    const scalingTypes = [WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET];
+
+    return {
+      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue'))),
+      props:     {
+        title:       this.t('component.resource.detail.card.podsCard.title'),
+        resources:   this.pods,
+        showScaling: this.canUpdate && scalingTypes.includes(this.type),
+        onIncrease:  () => this.scale(true),
+        onDecrease:  () => this.scale(false)
+      }
+    };
+  }
+
+  get jobsCard() {
+    const supportedTypes = [WORKLOAD_TYPES.CRON_JOB];
+
+    if (!supportedTypes.includes(this.type)) {
+      return null;
+    }
+
+    return {
+      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StatusCard/index.vue'))),
+      props:     {
+        title:       this.t('component.resource.detail.card.jobsCard.title'),
+        resources:   this.jobs,
+        showScaling: false,
+      }
+    };
+  }
+
+  get cards() {
+    return [
+      this.podsCard,
+      this.jobsCard,
+      ...this._cards
+    ];
   }
 }

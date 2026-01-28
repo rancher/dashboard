@@ -45,7 +45,7 @@ export default {
           :resource="value.data"
           :button-aria-label="t('advancedSettings.edit.label')"
           data-testid="action-button"
-          button-role="tertiary"
+          button-variant="tertiary"
         />
       </div>
     </div>

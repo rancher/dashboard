@@ -699,19 +699,19 @@ export default {
 
     const res = await dispatch('request', { opt, type });
 
-    await dispatch('load', { data: res, invalidatePageCache: opt.invalidatePageCache });
+    if (!opt.transient) {
+      await dispatch('load', { data: res, invalidatePageCache: opt.invalidatePageCache });
+    }
 
-    if ( opt.watch !== false ) {
+    if (!opt.transient && opt.watch !== false ) {
       dispatch('watch', createFindWatchArg({
         type, id, opt, res
       }));
     }
 
-    out = getters.byId(type, id);
-
     garbageCollect.gcUpdateLastAccessed(ctx, type);
 
-    return out;
+    return opt.transient ? await dispatch('create', res) : getters.byId(type, id);
   },
 
   /**

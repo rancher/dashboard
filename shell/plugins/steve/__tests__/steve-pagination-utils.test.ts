@@ -477,6 +477,20 @@ describe('class StevePaginationUtils', () => {
       expect(result).toBe('filter=spec.containers.image~nginx&filter=metadata.name!=test');
     });
 
+    it.each([
+      ['test', 'test'],
+      ['-test', '"-test"'],
+      ['te-st', '"te-st"'],
+      ['test-', '"test-"'],
+    ])('should handle filter value %s with hyphens', (x, y) => {
+      const filters = [
+        new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: x })] }),
+      ];
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+
+      expect(result).toBe(`filter=metadata.name=${ y }`);
+    });
+
     it('should handle IN and NOT_IN operators', () => {
       const filters = [
         new PaginationParamFilter({
@@ -501,6 +515,22 @@ describe('class StevePaginationUtils', () => {
       const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
 
       expect(result).toBe('filter=metadata.name IN (test1,test2)&filter=metadata.namespace NOTIN (ns1,ns2)');
+    });
+
+    it.each([
+      [null, '""'],
+      [undefined, '""'],
+      [false, 'false'],
+      [true, 'true'],
+      [0, '0'],
+      [1, '1'],
+    ])('should handle falsy filter value %s', (x: any, y) => {
+      const filters = [
+        new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: x })] }),
+      ];
+      const result = testStevePaginationUtils.convertPaginationParams({ schema, filters });
+
+      expect(result).toBe(`filter=metadata.name=${ y }`);
     });
   });
 });

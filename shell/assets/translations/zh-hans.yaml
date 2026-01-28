@@ -874,8 +874,6 @@ catalog:
       windows: Windows
     search: 筛选
   install:
-    action:
-      goToUpgrade: 编辑/升级
     appReadmeMissing: 此 Chart 没有其他 Chart 信息。
     appReadmeTitle: Chart 信息（Helm 自述）
     chart: Chart

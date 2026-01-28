@@ -17,9 +17,8 @@ describe('findMatchingIngresses', () => {
     const mockThis = {
       ingressSchema:     true,
       allIngresses:      [],
-      matchingServices:  [],
       matchingIngresses: [],
-      value:             { metadata: { namespace: 'test' } }
+      value:             { metadata: { namespace: 'test' }, relatedServices: [] }
     };
 
     findMatchingIngresses.call(mockThis);
@@ -35,9 +34,8 @@ describe('findMatchingIngresses', () => {
           spec:     { rules: [{ http: { paths: [{ backend: { service: { name: 'service1' } } }] } }] }
         }
       ],
-      matchingServices:  [{ metadata: { name: 'service1' } }],
       matchingIngresses: [],
-      value:             { metadata: { namespace: 'test' } }
+      value:             { metadata: { namespace: 'test' }, relatedServices: [{ metadata: { name: 'service1' } }] }
     };
 
     findMatchingIngresses.call(mockThis);
@@ -54,9 +52,8 @@ describe('findMatchingIngresses', () => {
           spec:     { rules: [{ http: { paths: [{ backend: { service: { name: 'service1' } } }] } }] }
         }
       ],
-      matchingServices:  [{ metadata: { name: 'service1' } }],
       matchingIngresses: [],
-      value:             { metadata: { namespace: 'test' } }
+      value:             { metadata: { namespace: 'test' }, relatedServices: [{ metadata: { name: 'service1' } }] }
     };
 
     findMatchingIngresses.call(mockThis);
@@ -72,9 +69,8 @@ describe('findMatchingIngresses', () => {
           spec:     { rules: [{ http: { paths: [{ backend: { service: { name: 'service2' } } }] } }] }
         }
       ],
-      matchingServices:  [{ metadata: { name: 'service1' } }],
       matchingIngresses: [],
-      value:             { metadata: { namespace: 'test' } }
+      value:             { metadata: { namespace: 'test' }, relatedServices: [{ metadata: { name: 'service1' } }] }
     };
 
     findMatchingIngresses.call(mockThis);
@@ -90,9 +86,8 @@ describe('findMatchingIngresses', () => {
           spec:     { }
         }
       ],
-      matchingServices:  [{ metadata: { name: 'service1' } }],
       matchingIngresses: [],
-      value:             { metadata: { namespace: 'test' } }
+      value:             { metadata: { namespace: 'test' }, relatedServices: [{ metadata: { name: 'service1' } }] }
     };
 
     findMatchingIngresses.call(mockThis);
@@ -108,9 +103,8 @@ describe('findMatchingIngresses', () => {
           spec:     { rules: [{ http: {} }] }
         }
       ],
-      matchingServices:  [{ metadata: { name: 'service1' } }],
       matchingIngresses: [],
-      value:             { metadata: { namespace: 'test' } }
+      value:             { metadata: { namespace: 'test' }, relatedServices: [{ metadata: { name: 'service1' } }] }
     };
 
     findMatchingIngresses.call(mockThis);
@@ -126,9 +120,8 @@ describe('findMatchingIngresses', () => {
           spec:     { rules: [{ http: { paths: [{ backend: {} }] } }] }
         }
       ],
-      matchingServices:  [{ metadata: { name: 'service1' } }],
       matchingIngresses: [],
-      value:             { metadata: { namespace: 'test' } }
+      value:             { metadata: { namespace: 'test' }, relatedServices: [{ metadata: { name: 'service1' } }] }
     };
 
     findMatchingIngresses.call(mockThis);
@@ -152,9 +145,8 @@ describe('findMatchingIngresses', () => {
           spec:     { rules: [{ http: { paths: [{ backend: { service: { name: 'service2' } } }] } }] }
         }
       ],
-      matchingServices:  [{ metadata: { name: 'service1' } }],
       matchingIngresses: [],
-      value:             { metadata: { namespace: 'test' } }
+      value:             { metadata: { namespace: 'test' }, relatedServices: [{ metadata: { name: 'service1' } }] }
     };
 
     findMatchingIngresses.call(mockThis);

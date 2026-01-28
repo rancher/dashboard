@@ -213,9 +213,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
    * Match
    * - a-z (case insensitive)
    * - 0-9
-   * - `-`, `_`, `.`
+   * - `_`, `.`
    */
-  static VALID_FIELD_VALUE_REGEX = /^[\w\-.]+$/;
+  static VALID_FIELD_VALUE_REGEX = /^[\w.]+$/;
 
   /**
    * Filtering with the vai cache supports specific fields
@@ -596,10 +596,11 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               if ([PaginationFilterEquality.IN, PaginationFilterEquality.NOT_IN].includes(equality)) {
                 safeValue = `(${ field.value })`;
               } else {
-                const encodedValue = encodeURIComponent(field.value || '');
+                const booleanSafeValue = typeof field.value === 'undefined' || field.value === null ? '' : field.value;
+                const encodedValue = encodeURIComponent(booleanSafeValue);
 
-                if (StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(field.value || '')) {
-                  // Does not contain any protected characters, send as is
+                if (StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(booleanSafeValue)) {
+                  // All characters safe, send as is
                   safeValue = encodedValue;
                 } else {
                   // Contains protected characters, wrap in quotes to ensure backend doesn't fail

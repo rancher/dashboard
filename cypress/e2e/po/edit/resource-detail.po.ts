@@ -68,6 +68,6 @@ export default class ResourceDetailPo extends ComponentPo {
   }
 
   resourceGauges() {
-    return this.self().find('.gauges .count-gauge');
+    return this.self().find('.status-row');
   }
 }

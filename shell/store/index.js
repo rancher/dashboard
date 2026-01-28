@@ -36,7 +36,8 @@ import { sortBy } from '@shell/utils/sort';
 import { addParam } from '@shell/utils/url';
 import semver from 'semver';
 import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
-import { isDevBuild } from '@shell/utils/version';
+import { getReleaseNotesURL } from '@shell/utils/version';
+import { getVersionData } from '@shell/config/version';
 import { markRaw } from 'vue';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { addReleaseNotesNotification } from '@shell/utils/release-notes';
@@ -628,14 +629,9 @@ export const getters = {
 
   releaseNotesUrl(state, getters) {
     const version = getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER)?.value;
+    const isPrime = getVersionData().RancherPrime === 'true';
 
-    const base = 'https://github.com/rancher/rancher/releases';
-
-    if (version && !isDevBuild(version)) {
-      return `${ base }/tag/${ version }`;
-    }
-
-    return `${ base }/latest`;
+    return getReleaseNotesURL(isPrime, version);
   },
 
   ...gcGetters

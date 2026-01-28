@@ -34,7 +34,6 @@ export type Configuration = {
  * Settings configuration that can be supplied in the dynamic content package
  */
 export type SettingsInfo = {
-  releaseNotesUrl: string; // URL format to use when generating release note links for new releases
   suseExtensions: string[]; // Names of extra SUSE UI extensions on top of the list built-in
   debugVersion?: string;
 };

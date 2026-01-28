@@ -270,6 +270,8 @@ export default function(
 
   const containerImage: Validator = (val: any) => !val?.image ? t('workload.validation.containerImage', { name: val.name }) : undefined;
 
+  const localhostProfile: Validator = (val: any) => (val?.securityContext?.seccompProfile?.type === 'Localhost' && !val?.securityContext.seccompProfile?.localhostProfile && !val?.securityContext?.privileged) ? t('workload.validation.localhostProfile', { name: val.name }) : undefined;
+
   const containerImages: Validator = (val: any | [any]) => {
     const containers = val.jobTemplate ? val?.jobTemplate?.spec?.template?.spec?.containers : val?.template?.spec?.containers;
 
@@ -602,6 +604,7 @@ export default function(
     clusterName,
     containerImage,
     containerImages,
+    localhostProfile,
     cronSchedule,
     dnsLabel,
     dnsLabelIanaServiceName,

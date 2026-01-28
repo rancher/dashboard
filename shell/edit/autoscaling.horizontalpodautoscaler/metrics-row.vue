@@ -8,6 +8,7 @@ import ObjectMetric, { DEFAULT_OBJECT_METRIC } from '@shell/edit/autoscaling.hor
 import PodMetric, { DEFAULT_POD_METRIC } from '@shell/edit/autoscaling.horizontalpodautoscaler/pod-metric';
 import ResourceMetric, { DEFAULT_RESOURCE_METRIC } from '@shell/edit/autoscaling.horizontalpodautoscaler/resource-metric';
 import { Banner } from '@components/Banner';
+import { WORKLOAD_KIND_TO_TYPE_MAPPING } from '@shell/config/types';
 
 const METRIC_TYPES = {
   external: { label: 'External' },
@@ -28,9 +29,15 @@ export default {
 
   props: {
     referent: {
-      type:    Object,
-      default: () => ({}),
+      type:    String,
+      default: undefined,
     },
+
+    namespace: {
+      type:    String,
+      default: undefined,
+    },
+
     value: {
       type:    Object,
       default: () => ({}),
@@ -51,6 +58,7 @@ export default {
     return {
       metricOptions: values(METRIC_TYPES),
       metricTypes:   METRIC_TYPES,
+      referentObj:   null,
     };
   },
 
@@ -68,10 +76,10 @@ export default {
       return this.checkSpecType('external');
     },
     showReferentWarning() {
-      const { referent } = this;
+      const { referentObj } = this;
 
-      if (!isEmpty(referent)) {
-        const containerRequests = referent.spec?.containers?.[0]?.resources?.requests;
+      if (!isEmpty(referentObj)) {
+        const containerRequests = referentObj.spec?.containers?.[0]?.resources?.requests;
 
         if (containerRequests && !containerRequests[this.value.name]) {
           return false;
@@ -117,6 +125,34 @@ export default {
         delete this.value[oldType.toLowerCase()];
       }
     },
+
+    referent: {
+      async handler() {
+        if (this.referent && this.namespace) {
+          const { name, kind } = this.referent;
+
+          if (name && kind) {
+            const type = WORKLOAD_KIND_TO_TYPE_MAPPING[kind];
+            const id = `${ this.namespace }/${ name }`;
+
+            if (type) {
+            // Use `find` in case the result we want is not in the drop down set of options... which means it won't initially be in the cache
+            // Use `transient` to not pollute the cache
+              const match = await this.$store.dispatch('cluster/find', {
+                type, id, transient: true
+              });
+
+              this.referentObj = match;
+
+              return;
+            }
+          }
+        }
+
+        this.referentObj = null;
+      },
+      immediate: true
+    }
   },
 
   methods: {

@@ -1,0 +1,18 @@
+name: 'Install Chrome'
+description: 'Installs a specific version of Google Chrome. Versions can be found in the chrome releases blog: https://chromereleases.googleblog.com/search/label/Desktop%20Update'
+inputs:
+  chrome-version:
+    description: 'The version of Google Chrome to target. Versions are formatted as `144.0.7559.96-1`.'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Install Chrome
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget libu2f-udev
+        cd /tmp
+        wget -q https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${{ inputs.chrome-version }}_amd64.deb
+        sudo apt-get install -y --allow-downgrades ./google-chrome-stable_${{ inputs.chrome-version }}_amd64.deb
+        google-chrome --version

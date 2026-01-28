@@ -1,0 +1,57 @@
+# create an automation task in qa-tasks repo of an issue when label "candidate-automation" is added
+name: Create issue for QA automation 
+
+run-name: "Create issue for QA automation  ${{ github.event.issue.number }}: ${{ github.event.issue.title }}"
+
+on:
+  issues:
+    types:
+      - labeled    
+
+
+jobs:
+  create-qa-automation-task:
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.label.name == 'candidate-automation'
+    steps:
+      - name: Read QA secrets
+        uses: rancher-eio/read-vault-secrets@main
+        with:
+          secrets: |
+            github/token/rancher--qa-tasks--issues--write token | QA_GH_TOKEN
+
+      - name: Create QA automation issue
+        env:
+          GH_TOKEN: ${{ env.QA_GH_TOKEN }}
+          ORIGINAL_ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ORIGINAL_ISSUE_URL: ${{ github.event.issue.html_url }}
+        run: |
+          declare -a additional_cmd
+          additional_cmd+=("--label" "area/automation-test-ui")
+          BODY=$(mktemp)
+          ORIGINAL_ISSUE=$(gh issue view -R ${GITHUB_REPOSITORY} ${ORIGINAL_ISSUE_NUMBER} --json title,projectItems)
+          ORIGINAL_TITLE=$(echo "${ORIGINAL_ISSUE}" | jq -r .title)
+          
+          ORIGINAL_PROJECTS=$(echo "${ORIGINAL_ISSUE}" | jq -r '.projectItems[].title' 2>/dev/null || echo "")
+
+          if [ -n "$ORIGINAL_PROJECTS" ]; then
+              while IFS= read -r project; do
+                  if [ -n "$project" ]; then
+                      additional_cmd+=("--project" "$project")
+                  fi
+              done <<< "$ORIGINAL_PROJECTS"
+          fi
+
+          echo -e "This is an issue that tracks QA automation testing for issue ${ORIGINAL_ISSUE_URL}, automatically created via [GitHub Actions workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) initiated by @${GITHUB_ACTOR}\n" > $BODY
+
+          if NEW_ISSUE=$(gh issue create -R "rancher/qa-tasks" --title "[UI Automation]: ${ORIGINAL_TITLE}" --body-file "${BODY}" "${additional_cmd[@]}"); then
+              echo "QA task issue created: ${NEW_ISSUE}" >> $GITHUB_STEP_SUMMARY
+          else
+              echo "Failed to create issue"
+              GH_TOKEN=${{ secrets.GITHUB_TOKEN }} gh issue comment ${ORIGINAL_ISSUE_URL} --body "No QA automation issue was created. Failed to create issue in rancher/qa-tasks."
+              exit 1
+          fi

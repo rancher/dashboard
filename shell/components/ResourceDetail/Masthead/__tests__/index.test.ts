@@ -8,7 +8,7 @@ jest.mock('@shell/composables/useIsNewDetailPageEnabled');
 jest.mock('@shell/components/ResourceDetail/Masthead/latest.vue', () => ({
   name:     'Latest',
   template: `<div>Latest</div>`,
-  props:    ['value', 'resourceSubtype']
+  props:    ['value', 'resourceSubtype', 'isCustomDetailOrEdit']
 }));
 jest.mock('@shell/components/ResourceDetail/Masthead/legacy.vue', () => ({
   name:     'Legacy',
@@ -66,5 +66,53 @@ describe('component: Masthead/index', () => {
     const component = wrapper.getComponent({ name: 'Legacy' });
 
     expect(component).toBeDefined();
+  });
+
+  it('should pass isCustomDetailOrEdit as true when hasDetail is true', () => {
+    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => true));
+    const props = {
+      value:     { type: 'VALUE' },
+      mode:      _VIEW,
+      hasDetail: true,
+      hasEdit:   false
+    };
+
+    const wrapper = mount(Index, { props });
+
+    const component = wrapper.getComponent({ name: 'Latest' });
+
+    expect(component.props('isCustomDetailOrEdit')).toBe(true);
+  });
+
+  it('should pass isCustomDetailOrEdit as true when hasEdit is true', () => {
+    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => true));
+    const props = {
+      value:     { type: 'VALUE' },
+      mode:      _VIEW,
+      hasDetail: false,
+      hasEdit:   true
+    };
+
+    const wrapper = mount(Index, { props });
+
+    const component = wrapper.getComponent({ name: 'Latest' });
+
+    expect(component.props('isCustomDetailOrEdit')).toBe(true);
+  });
+
+  it('should pass isCustomDetailOrEdit as false when both hasDetail and hasEdit are false', () => {
+    useIsNewDetailPageEnabledSpy.mockReturnValue(computed(() => true));
+    const props = {
+      value:     { type: 'VALUE' },
+      mode:      _VIEW,
+      hasDetail: false,
+      hasEdit:   false
+    };
+
+    const wrapper = mount(Index, { props });
+
+    const component = wrapper.getComponent({ name: 'Latest' });
+
+    expect(component.props('isCustomDetailOrEdit')).toBe(false);
   });
 });
