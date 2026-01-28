@@ -166,10 +166,10 @@ export default {
     } else if (this.$route.query[FROM_CLUSTER] === _FLAGGED) {
       /* For Fleet, use the fleet-default namespace. */
       this.forceNamespace = DEFAULT_WORKSPACE;
-    } else if ( this.chart?.targetNamespace ) {
+    } else if ( this.version?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE] ) {
       /* If a target namespace is defined in the chart,
       set the target namespace as default. */
-      this.forceNamespace = this.chart.targetNamespace;
+      this.forceNamespace = this.version.annotations[CATALOG_ANNOTATIONS.NAMESPACE];
     } else if ( this.query.appNamespace ) {
       /* If a namespace is defined in the URL query,
        use that namespace as default. */
@@ -219,13 +219,13 @@ export default {
         The target name indicates the name of the cluster
         group that the chart is meant to be installed in.
       */
-      if ( this.chart?.targetName ) {
+      if ( this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME] ) {
         /*
           Set the name of the chartInstallAction
           to the name of the cluster group
           where the chart should be installed.
         */
-        this.value.metadata.name = this.chart.targetName;
+        this.value.metadata.name = this.version.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME];
         this.nameDisabled = true;
       } else if ( this.query.appName ) {
         this.value.metadata.name = this.query.appName;
