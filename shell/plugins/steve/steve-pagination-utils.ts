@@ -213,9 +213,9 @@ class StevePaginationUtils extends NamespaceProjectFilters {
    * Match
    * - a-z (case insensitive)
    * - 0-9
-   * - `-`, `_`, `.`
+   * - `_`, `.`
    */
-  static VALID_FIELD_VALUE_REGEX = /^[\w\-.]+$/;
+  static VALID_FIELD_VALUE_REGEX = /^[\w.]+$/;
 
   /**
    * Filtering with the vai cache supports specific fields
