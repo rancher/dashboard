@@ -9144,11 +9144,17 @@ component:
         podsCard:
           title: Pods
           ariaResourceName: pods
+        jobsCard:
+          title: Jobs
+          ariaResourceName: jobs
         insightsCard:
           title: Insights
           rows:
             conditions: Conditions
             events: Events
+        extrasCard:
+          title: Extras
+          message: 'Consider installing additional <a class="secondary text-deemphasized" href="{extensionsUrl}">extensions</a> and / or <a class="secondary-text-link" href="{clusterToolsUrl}">cluster tools</a> to enrich your Rancher experience.'
         scaler:
           ariaLabel:
             increase: Increase {resourceName}
