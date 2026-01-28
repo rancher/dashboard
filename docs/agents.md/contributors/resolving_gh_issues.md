@@ -5,7 +5,7 @@
   - github issue
     - `/backport <target milestone>` e.g `/backport v2.12.2`
   - pull requests
-    - `/backport <target milestone> <target branch>` e.g. `/backport v2.12.2 release-12`
+    - `/backport <target milestone> <target branch>` e.g. `/backport v2.12.2 release-2.12`
     - All backported pull requests must link to a backported issue
 
 
