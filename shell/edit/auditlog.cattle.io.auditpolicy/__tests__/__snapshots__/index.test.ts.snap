@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`component: CRUAuditPolicy (index) rendering & initial state should render with default props (snapshot) 1`] = `
+<div
+  data-v-app=""
+>
+  
+  <!--v-if-->
+  <cru-resource-stub
+    cancelevent="false"
+    canyaml="true"
+    componenttestid="form"
+    description=""
+    errors=""
+    finishmode="finish"
+    minheight=""
+    mode="create"
+    namespacekey="metadata.namespace"
+    prevententersubmit="false"
+    resource="[object Object]"
+    showcancel="true"
+    steps=""
+    stepsoptions="[object Object]"
+    subtypes=""
+    validationpassed="true"
+  />
+  
+</div>
+`;
