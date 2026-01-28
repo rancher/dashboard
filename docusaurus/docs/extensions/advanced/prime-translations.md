@@ -1,6 +1,6 @@
 # Translations for Rancher Prime
 
-If you need to change your translation strings (check [here](localization.md) how we handle localization in general) for Rancher Prime, we currently offer a way to do so. Just follow this example:
+The example below demonstrates how to customize translation strings for Rancher Prime:
 
 ```ts
 import { importTypes } from '@rancher/auto-import';
