@@ -452,7 +452,7 @@ describe('component: Type', () => {
                 getters: {
                   currentStore:          () => 'cluster',
                   'cluster/count':       () => null,
-                  'type-map/optionsFor': () => {},                  
+                  'type-map/optionsFor': () => {},
                 }
               },
               $router: routerMock,
