@@ -167,8 +167,12 @@ export default {
     <h5
       v-if="labelKey"
       v-t="labelKey"
+      v-clean-tooltip="itemLabel"
     />
-    <h5 v-else-if="label">
+    <h5
+      v-else-if="label"
+      v-clean-tooltip="label"
+    >
       {{ label }}
     </h5>
 
@@ -190,13 +194,17 @@ export default {
       aria-live="polite"
     />
 
-    <span
+    <div
       v-else
-      v-clean-html="bodyHtml"
-      data-testid="detail-top_html"
-      :class="{'conceal': concealed, 'monospace': monospace && !isBinary}"
-      aria-live="polite"
-    />
+      :class="{'conceal-wrapper': concealed}"
+    >
+      <span
+        v-clean-html="bodyHtml"
+        data-testid="detail-top_html"
+        :class="{'conceal': concealed, 'monospace': monospace && !isBinary}"
+        aria-live="polite"
+      />
+    </div>
 
     <template v-if="!isBinary && !jsonStr && isLong && !expanded">
       <a
@@ -238,6 +246,30 @@ export default {
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
   border: solid var(--border-width) var(--input-border);
+  contain: inline-size;
+
+  h5 {
+    margin-bottom: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: fit-content;
+    // Accounting for the button on the right
+    max-width: calc(100% - 150px);
+  }
+
+  // This prevents the scrollbar from overlapping the text without changing the size of the detailtext container.
+  $scrollBarShift: 10px;
+  .conceal-wrapper {
+    overflow-x: auto;
+    padding-bottom: $scrollBarShift;
+    margin-bottom: -$scrollBarShift;
+  }
+
+  .conceal {
+    white-space: nowrap;
+    display: block;
+  }
 
   .action-group {
     position: absolute;
