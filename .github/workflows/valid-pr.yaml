@@ -19,16 +19,17 @@ jobs:
           PR_URL: ${{ github.event.pull_request.url }}
         run: ./.github/workflows/scripts/pr-check-checklist.sh
 
-  validate-milestone:
-    name: Milestone
+  validate-branch-milestone:
+    name: Branch Milestone
     runs-on: ubuntu-latest
     steps:
-      - name: Validate milestone
-        if: github.event.pull_request.milestone == null
-        run: |
-          echo "PR does not have a milestone"
-          exit 1
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+        # We only need to fetch the file on the default branch (where it usually lives)
+        # to ensure we get the latest configuration file.
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 1
 
-      - name: Milestone Found
-        if: github.event.pull_request.milestone != null
-        run: echo "PR has a milestone"
+      - name: Check PR Milestone against Branch Config
+        run: ./.github/workflows/scripts/pr-check-milestone.sh
