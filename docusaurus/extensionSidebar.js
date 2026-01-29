@@ -221,6 +221,7 @@ const sidebars = {
             'advanced/air-gapped-environments',
             // 'advanced/fix-annotations-published-extensions',
             'advanced/localization',
+            'advanced/prime-translations',
             'advanced/hooks',
             'advanced/stores',
             'advanced/version-compatibility',
