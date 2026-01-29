@@ -1,5 +1,7 @@
 # Side menu
 
+> Legacy DSL doc. The recommended flow is on the main Products page.
+
 ## Defining a page as a side-menu entry (basicType)
 
 With the `virtualType` and `configureType` we have learned how to configure a page for your Extension product, but that won't make it appear on the side-menu. For that you need to use the function `basicType` coming from `$extension.DSL`. As an example usage of that method, one could do the following:

@@ -1,7 +1,8 @@
 import { ProductFunction } from './plugin';
-import { RouteRecordRaw } from 'vue-router';
+import { RouteComponent, RouteRecordRaw } from 'vue-router';
 import type { ExtensionManager } from '@shell/types/extension-manager';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
+import type { HeadersConfig } from './column-builder';
 
 // Cluster Provisioning types
 export * from './types-provisioning';
@@ -184,6 +185,186 @@ export type LocationConfig = {
   context?: { [key: string]: string},
 };
 
+export enum StandardProductName {
+  // eslint-disable-next-line no-unused-vars
+  EXPLORER = 'explorer',
+  // eslint-disable-next-line no-unused-vars
+  MANAGER = 'manager',
+  // eslint-disable-next-line no-unused-vars
+  SETTINGS = 'settings',
+  // eslint-disable-next-line no-unused-vars
+  FLEET = 'fleet',
+  // eslint-disable-next-line no-unused-vars
+  AUTH = 'auth',
+  // eslint-disable-next-line no-unused-vars
+  HARVESTER_MANAGER = 'harvesterManager',
+}
+
+type Lazy<T> = () => Promise<T>;
+
+/**
+ * A product child that shows the given Kubernetes (or other) resource type in the navigation
+ */
+export type ProductChildType = string;
+
+/**
+ * Represents a navigation group in a product
+ */
+export type ProductChildResource = {
+  type: string;
+  weight?: number;
+  /**
+   * Table column configuration for this resource type.
+   * Use standard column keys, builder pattern, or custom config.
+   * @example
+   * headers: { preset: 'namespaced', pagination: 'auto' }
+   * @example
+   * headers: { columns: ['state', 'name', column('targetPort').noSort(), 'age'] }
+   */
+  headers?: HeadersConfig;
+};
+
+export type ProductChildMetadata = {
+  name: string;
+  label?: string;
+  labelKey?: string;
+  weight?: number;
+};
+
+export type ProductChildPageChildRoute = {
+  name: string;
+  component: RouteComponent | Lazy<RouteComponent>;
+}
+
+/**
+ * Represents the allowed configuration for a virtualType
+ */
+export type VirtualTypeConfiguration = {
+  ifHave?: boolean; // display virtualType only if condition is met (relates to IF_HAVE in shell/store/type-map)
+  ifFeature?: string; // display virtualType only if feature is present (relates to shell/store/features)
+  ifHaveType?: string; // display virtualType only if resource type exists
+  ifHaveVerb?: string; // used in conjusction with "ifHaveType" display virtualType only if resource type allows this verb
+  labelKey?: string; // translation key for the label
+  name?: string; // name of the setting page
+  route?: RouteRecordRaw | PluginRouteRecordRaw | Object; // route definition for this virtualType
+  icon?: 'compass'; // icon for the virtualType (relates to icons in https://github.com/rancher/icons)
+  namespaced?: boolean; // whether this virtualType is namespaced or not
+  weight?: number; // ordering weight for the virtualType
+  exact?: boolean; // whether this virtualType is exact match
+  overview?: boolean; // whether this virtualType has an overview page
+  'exact-path'?: boolean; // whether this virtualType has an exact path match
+}
+
+/**
+ * Represents the allowed configuration for a configureType
+ */
+export type ConfigureTypeConfiguration = {
+  displayName?: string; // Override for the name displayed
+  listCreateButtonLabelKey?: string; // override for the create button string on a list view
+  isCreatable?: boolean; // If false, disable create even if schema says it's allowed
+  isEditable?: boolean; // Ditto, for edit
+  isRemovable?: boolean; // Ditto, for remove/delete
+  showState?: boolean; // If false, hide state in columns and masthead
+  showAge?: boolean; // If false, hide age in columns and masthead
+  showConfigView?: boolean; // If false, hide masthead config button in view mode
+  showListMasthead?: boolean; // If false, hide masthead in list view
+  canYaml?: boolean; // If false, cannnot edit or show yaml
+  // resource: undefined; // Use this resource in ResourceDetails instead
+  // resourceDetail: undefined; // Use this resource specifically for ResourceDetail's detail component
+  // resourceEdit: undefined; // Use this resource specifically for ResourceDetail's edit component
+  // depaginate: undefined; // Use this to depaginate requests for this type
+  resourceEditMasthead?: boolean; // Show the Masthead in the edit resource component
+  customRoute?: RouteRecordRaw; // define a custom route for this resource type (use this wisely!)
+  // notFilterNamespace: undefined; // Define namespaces that do not need to be filtered
+  localOnly?: boolean; // Hide this type from the nav/search bar on downstream clusters (will only show in "local" cluster)
+  resourceListComponent?: any; // Custom component for resource list view (overrides default Rancher component)
+  resourceCreateComponent?: any; // Custom component for resource create view (overrides default Rancher component)
+  resourceItemComponent?: any; // Custom component for resource detail view (overrides default Rancher component)
+  resourceItemNamespacedComponent?: any; // Custom component for namespaced resource detail view (overrides default Rancher component)
+}
+
+// used in configureType options
+// to be typed later if needed
+// listGroups: [
+//       {
+//         icon:       'icon-role-binding',
+//         value:      'node',
+//         field:      'roleDisplay',
+//         hideColumn: ROLE.name,
+//         tooltipKey: 'resourceTable.groupBy.role'
+//       }
+//     ]
+
+/**
+ * Represents a page item (custom page or resource page) in a product's config
+ * - For custom pages: use `component` and optionally `name`
+ * - For resource pages: use `type` and optionally `config` to override components
+ */
+export type ProductChildPage = ProductChildMetadata & {
+  type?: string; // resource type name (for configureType) - mutually exclusive with component
+  path?: string; // Optional route path override
+  component: RouteComponent | Lazy<RouteComponent>;
+  extraRoutes?: ProductChildPageChildRoute[]; // Optional extra routes to create
+  config?: VirtualTypeConfiguration | ConfigureTypeConfiguration; // optional configuration for virtualType or configureType (e.g., custom resource components)
+};
+
+/**
+ * Represents a custom page
+ */
+export type ProductChildRoute = ProductChildMetadata & {
+  route: RouteRecordRaw;
+};
+
+/**
+ * Represents a product child in the navigation
+ * This can be a type, a group, or a route.
+ */
+export type ProductChild = ProductChildType | ProductChildResource | ProductChildGroup | ProductChildRoute | ProductChildPage; // eslint-disable-line no-use-before-define
+
+/**
+ * Represents a navigation group in a product
+ */
+export type ProductChildGroup = ProductChildMetadata & {
+  component?: RouteComponent | Lazy<RouteComponent>;
+  children: ProductChild[];
+  default?: string;
+};
+
+export type ProductConfig = {
+  product: string;
+  config: ProductChild[];
+}[];
+
+export interface ProductMetadata {
+  /**
+   * Product name
+   */
+  name: string;
+
+  /**
+   * The icon that should be displayed beside this item in the navigation.
+   */
+  icon?: string,
+
+  /**
+   * Alternative to the icon property. Use require to reference an SVG file
+   */
+  svg?: Function;
+
+  /**
+   * The category this product belongs under. i.e. 'config', default is 'global'
+   */
+  category?: string;
+
+  weight?: number;
+
+  label: string;
+}
+
+export type ProductSinglePage = ProductMetadata & {
+  component: RouteComponent | Lazy<RouteComponent>;
+};
+
 /**
  * Environment metadata that extensions can access
  */
@@ -291,6 +472,18 @@ export interface ProductOptions {
   name?: string;
 
   /**
+   *
+   */
+  label?: string;
+
+  labelKey?: string;
+
+  iconHeader?: string;
+
+  // Do not use - internal use only
+  version?: number;
+
+  /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // ifHaveVerb: string | RegExp;
@@ -364,9 +557,54 @@ export interface HeaderOptions {
 }
 
 /**
+ * Product registration route generation options
+ */
+export type ProductRegistrationRouteGenerationOptions = {
+  /**
+   * Whether to generate the route for an existing product - extending a product - or a new top level product
+   */
+  extendProduct? : boolean;
+  /**
+   * Component to be used for the route (used in virtualType and configureType routes)
+   */
+  component?: any;
+  /**
+   * Generated route should omit the path property
+   */
+  omitPath?: boolean;
+  /**
+   * Component to be used for the resource list route (used in resource routes only)
+   */
+  resourceListComponent?: any;
+  /**
+   * Component to be used for the resource create route (used in resource routes only)
+   */
+  resourceCreateComponent?: any;
+  /**
+   * Component to be used for the resource item route (used in resource routes only)
+   */
+  resourceItemComponent?: any;
+  /**
+   * Component to be used for the resource item namespaced route (used in resource routes only)
+   */
+  resourceItemNamespacedComponent?: any;
+}
+
+/**
  * Configuration required to show a header in a ResourceTable when server-side pagination is enable
  */
 export type PaginationHeaderOptions = Omit<HeaderOptions, 'getValue'>
+
+export type ResourceTypeConfig = {
+  options?: {
+    isCreatable?: boolean;
+    isEditable?: boolean;
+  },
+  listHeaders?: {
+    legacy?: HeaderOptions[];
+    paginated?: PaginationHeaderOptions[];
+  }
+};
 
 /**
  * External extension configuration for @HeaderOptions
@@ -492,6 +730,8 @@ export interface ConfigureVirtualTypeOptions extends ConfigureTypeOptions {
    * The route that this type should correspond to {@link PluginRouteRecordRaw} {@link RouteRecordRaw}
    */
   route: PluginRouteRecordRaw | RouteRecordRaw | Object;
+
+  weight?: number;
 }
 
 export interface DSLReturnType {
@@ -501,7 +741,7 @@ export interface DSLReturnType {
    * @param group Conditionally a group you want to places all the types in
    * @returns {@link void}
    */
-  basicType: (types: string[], group?: string) => void;
+  basicType: (types: string[] | string, group?: string) => void;
 
   /**
    * Configure a myriad of options for the specified type
@@ -572,6 +812,10 @@ export interface DSLReturnType {
   // moveType: (match, group)
   // setGroupDefaultType: (input, defaultType)
   // spoofedType: (obj)
+
+  labelGroup: (group: string, label: string | undefined, labelKey?: string) => void;
+
+  setGroupDefaultType: (group: string, defaultType: string) => void;
 }
 
 /**
@@ -610,14 +854,54 @@ export type ModelExtensionContext = {
 export type ModelExtensionConstructor = (context: ModelExtensionContext) => Object;
 
 /**
- * Interface for a Dashboard plugin
+ * Interface for a UI Extension
  */
-export interface IPlugin {
+export interface IExtension {
+  /**
+   * Register a top-level product as a flag on the plugin
+   */
+  registerTopLevelProduct(): void;
+
   /**
    * Add a product
+   * @param name
+   * @param config
+   * @param options
+   */
+  addProduct(product: ProductMetadata, config: ProductChild[], options?: ProductOptions): void;
+
+  /**
+   * Add a product
+   * @param product
+   */
+  addProduct(product: ProductSinglePage): void;
+
+  /**
+   * Add a product
+   * @deprecated Use other `addProduct` signatures instead
    * @param importFn Function that will import the module containing a product definition
    */
   addProduct(importFn: ProductFunction): void;
+
+  /**
+   * Extend an existing product
+   *
+   * @param product Product to be extended
+   * @param config Product extension configuration
+   */
+  extendProduct(product: StandardProductName | string, config: ProductChild[] | ProductChild): void;
+
+  /**
+   * Configure a resource type
+   * @param type Name of resource type to configure
+   * @param config Resource type configuration
+   */
+  configureResourceType(type: string, config: ResourceTypeConfig): void;
+
+  /*
+    Get the type name for a given API group and type
+  */
+  resourceNameFor(apiGroup: string, type: string): string;
 
   /**
    * Add a locale to the i18n store
@@ -765,6 +1049,9 @@ export interface IPlugin {
    */
   get environment(): ExtensionEnvironment;
 }
+
+// Legacy compatibility
+export type IPlugin = IExtension;
 
 // Internal interface
 // Built-in extensions may use this, but external extensions should not, as this is subject to change

@@ -6,10 +6,10 @@ Developers can author, release and maintain extensions independently of Rancher 
 
 Rancher defines a number of extension points - the [**Extensions API**](./api/overview.md) - which developers can take advantage of, to provide extra functionality, for example:
 
-- Add new UI screens to the top-level side navigation - [**Top-level product**](./usecases/top-level-product.md)
-- Add new UI screens to the cluster-level side navigation - [**Cluster-level product**](./usecases/cluster-level-product.md)
-- Add new hosted provider UI - [**Hosted provider**](./usecases/hosted-provider.md)
-- Add new UI screens to the navigation of the Cluster Explorer UI 
+- [**Create a new product**](./usecases/add-new-product.md) in Rancher
+- [**Extend an existing product**](./usecases/extend-existing-product.md) in Rancher
+- Add new [**Node driver**](./usecases/node-driver.md) UI
+- Add new [**Hosted provider**](./usecases/hosted-provider.md) UI
 - Add new UI for Kubernetes CRDs 
 - Extend existing views in Rancher Manager by adding panels, tabs and actions 
 - Customize the landing page 

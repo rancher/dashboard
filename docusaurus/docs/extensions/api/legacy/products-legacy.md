@@ -1,4 +1,4 @@
-# Products
+# Products (Legacy)
 
 A product is a top-level view in Rancher. A product typically adds a navigation entry into the
 top-level slide-in menu in Rancher. When the user navigates to the link, the product renders
@@ -6,7 +6,7 @@ the entire view beneath the header bar.
 
 Products typically declare their navigation such that it is presented on the left-hand side, e.g.
 
-## Registering a Product
+## Registering a Product (legacy DSL)
 
 Defining a product leverages the `addProduct` extension method, which should be defined on the `index.ts` on your root folder:
 
