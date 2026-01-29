@@ -194,12 +194,6 @@ export default {
             </span>
           </td>
         </template>
-        <td
-          v-else
-          :colspan="fullColspan"
-        >
-&nbsp;
-        </td>
       </tr>
     </template>
   </ResourceTable>
