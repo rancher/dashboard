@@ -36,7 +36,8 @@ export const useDefaultTitleBarProps = (resource: any, resourceSubtype?: Ref<str
         color: resourceValue.stateBackground,
         label: resourceValue.stateDisplay
       },
-      description: resourceValue.description,
+      description:       resourceValue.description,
+      additionalActions: resourceValue.detailPageAdditionalActions,
       onShowConfiguration
     };
   });
