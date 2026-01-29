@@ -159,9 +159,9 @@ class PaginationWrapper<T extends object> {
       },
       delayedFn: async() => {
         const opt: ActionFindPageArgs = {
-          watch:     false,
+          watch:       false,
           pagination,
-          transient: true,
+          transient:   true,
           saveCountAs: this.saveCountAs,
           revision
         };
