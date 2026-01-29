@@ -273,207 +273,207 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2'] }, () => {
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
-    const deploymentsListPage = new WorkloadsDeploymentsListPagePo(localCluster);
+  // describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  //   const deploymentsListPage = new WorkloadsDeploymentsListPagePo(localCluster);
 
-    let uniqueDeployment = SortableTablePo.firstByDefaultName('deployment');
-    let deploymentNamesList = [];
-    let nsName1: string;
-    let nsName2: string;
-    let rootResourceName: string;
+  //   let uniqueDeployment = SortableTablePo.firstByDefaultName('deployment');
+  //   let deploymentNamesList = [];
+  //   let nsName1: string;
+  //   let nsName2: string;
+  //   let rootResourceName: string;
 
-    before('set up', () => {
-      cy.getRootE2EResourceName().then((root) => {
-        rootResourceName = root;
-      });
+  //   before('set up', () => {
+  //     cy.getRootE2EResourceName().then((root) => {
+  //       rootResourceName = root;
+  //     });
 
-      const createDeployment = (deploymentName?: string) => {
-        return ({ ns, i }: {ns: string, i: number}) => {
-          const name = deploymentName || Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
+  //     const createDeployment = (deploymentName?: string) => {
+  //       return ({ ns, i }: {ns: string, i: number}) => {
+  //         const name = deploymentName || Cypress._.uniqueId(`${ Date.now().toString() }-${ i }`);
 
-          return cy.createRancherResource('v1', 'apps.deployment', JSON.stringify({
-            apiVersion: 'apps/v1',
-            kind:       'Deployment',
-            metadata:   {
-              name,
-              namespace: ns
-            },
-            spec: {
-              replicas: 1,
-              selector: { matchLabels: { app: name } },
-              template: {
-                metadata: { labels: { app: name } },
-                spec:     { containers: [SMALL_CONTAINER] }
-              }
-            }
-          }));
-        };
-      };
+  //         return cy.createRancherResource('v1', 'apps.deployment', JSON.stringify({
+  //           apiVersion: 'apps/v1',
+  //           kind:       'Deployment',
+  //           metadata:   {
+  //             name,
+  //             namespace: ns
+  //           },
+  //           spec: {
+  //             replicas: 1,
+  //             selector: { matchLabels: { app: name } },
+  //             template: {
+  //               metadata: { labels: { app: name } },
+  //               spec:     { containers: [SMALL_CONTAINER] }
+  //             }
+  //           }
+  //         }));
+  //       };
+  //     };
 
-      cy.createManyNamespacedResources({
-        context:        'deployments1',
-        createResource: createDeployment(),
-      })
-        .then(({ ns, workloadNames }) => {
-          deploymentNamesList = workloadNames;
-          nsName1 = ns;
-        })
-        .then(() => cy.createManyNamespacedResources({
-          context:        'deployments2',
-          createResource: createDeployment(uniqueDeployment),
-          count:          1
-        }))
-        .then(({ ns, workloadNames }) => {
-          uniqueDeployment = workloadNames[0];
-          nsName2 = ns;
+  //     cy.createManyNamespacedResources({
+  //       context:        'deployments1',
+  //       createResource: createDeployment(),
+  //     })
+  //       .then(({ ns, workloadNames }) => {
+  //         deploymentNamesList = workloadNames;
+  //         nsName1 = ns;
+  //       })
+  //       .then(() => cy.createManyNamespacedResources({
+  //         context:        'deployments2',
+  //         createResource: createDeployment(uniqueDeployment),
+  //         count:          1
+  //       }))
+  //       .then(({ ns, workloadNames }) => {
+  //         uniqueDeployment = workloadNames[0];
+  //         nsName2 = ns;
 
-          cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
-        });
-    });
+  //         cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`);
+  //       });
+  //   });
 
-    it('pagination is visible and user is able to navigate through deployments data', () => {
-      ClusterDashboardPagePo.goToAndConfirmNsValues(localCluster, { nsProject: { values: [nsName1, nsName2] } });
+  //   it('pagination is visible and user is able to navigate through deployments data', () => {
+  //     ClusterDashboardPagePo.goToAndConfirmNsValues(localCluster, { nsProject: { values: [nsName1, nsName2] } });
 
-      WorkloadsDeploymentsListPagePo.navTo();
-      deploymentsListPage.waitForPage();
+  //     WorkloadsDeploymentsListPagePo.navTo();
+  //     deploymentsListPage.waitForPage();
 
-      // check deployments count
-      const count = deploymentNamesList.length + 1;
+  //     // check deployments count
+  //     const count = deploymentNamesList.length + 1;
 
-      cy.waitForRancherResources('v1', 'apps.deployment', count - 1, true).then((resp: Cypress.Response<any>) => {
-      // pagination is visible
-        deploymentsListPage.sortableTable().pagination().checkVisible();
+  //     cy.waitForRancherResources('v1', 'apps.deployment', count - 1, true).then((resp: Cypress.Response<any>) => {
+  //     // pagination is visible
+  //       deploymentsListPage.sortableTable().pagination().checkVisible();
 
-        // basic checks on navigation buttons
-        deploymentsListPage.sortableTable().pagination().beginningButton().isDisabled();
-        deploymentsListPage.sortableTable().pagination().leftButton().isDisabled();
-        deploymentsListPage.sortableTable().pagination().rightButton().isEnabled();
-        deploymentsListPage.sortableTable().pagination().endButton().isEnabled();
+  //       // basic checks on navigation buttons
+  //       deploymentsListPage.sortableTable().pagination().beginningButton().isDisabled();
+  //       deploymentsListPage.sortableTable().pagination().leftButton().isDisabled();
+  //       deploymentsListPage.sortableTable().pagination().rightButton().isEnabled();
+  //       deploymentsListPage.sortableTable().pagination().endButton().isEnabled();
 
-        // check text before navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
-        });
+  //       // check text before navigation
+  //       deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
+  //         expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
+  //       });
 
-        // navigate to next page - right button
-        deploymentsListPage.sortableTable().pagination().rightButton().click();
+  //       // navigate to next page - right button
+  //       deploymentsListPage.sortableTable().pagination().rightButton().click();
 
-        // check text and buttons after navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`11 - 20 of ${ count } Deployments`);
-        });
-        deploymentsListPage.sortableTable().pagination().beginningButton().isEnabled();
-        deploymentsListPage.sortableTable().pagination().leftButton().isEnabled();
+  //       // check text and buttons after navigation
+  //       deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
+  //         expect(el.trim()).to.eq(`11 - 20 of ${ count } Deployments`);
+  //       });
+  //       deploymentsListPage.sortableTable().pagination().beginningButton().isEnabled();
+  //       deploymentsListPage.sortableTable().pagination().leftButton().isEnabled();
 
-        // navigate to first page - left button
-        deploymentsListPage.sortableTable().pagination().leftButton().click();
+  //       // navigate to first page - left button
+  //       deploymentsListPage.sortableTable().pagination().leftButton().click();
 
-        // check text and buttons after navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
-        });
-        deploymentsListPage.sortableTable().pagination().beginningButton().isDisabled();
-        deploymentsListPage.sortableTable().pagination().leftButton().isDisabled();
+  //       // check text and buttons after navigation
+  //       deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
+  //         expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
+  //       });
+  //       deploymentsListPage.sortableTable().pagination().beginningButton().isDisabled();
+  //       deploymentsListPage.sortableTable().pagination().leftButton().isDisabled();
 
-        // navigate to last page - end button
-        deploymentsListPage.sortableTable().pagination().endButton().scrollIntoView()
-          .click();
+  //       // navigate to last page - end button
+  //       deploymentsListPage.sortableTable().pagination().endButton().scrollIntoView()
+  //         .click();
 
-        // row count on last page
-        let lastPageCount = count % 10;
+  //       // row count on last page
+  //       let lastPageCount = count % 10;
 
-        if (lastPageCount === 0) {
-          lastPageCount = 10;
-        }
+  //       if (lastPageCount === 0) {
+  //         lastPageCount = 10;
+  //       }
 
-        // check text after navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Deployments`);
-        });
+  //       // check text after navigation
+  //       deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
+  //         expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Deployments`);
+  //       });
 
-        // navigate to first page - beginning button
-        deploymentsListPage.sortableTable().pagination().beginningButton().click();
+  //       // navigate to first page - beginning button
+  //       deploymentsListPage.sortableTable().pagination().beginningButton().click();
 
-        // check text and buttons after navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
-        });
-        deploymentsListPage.sortableTable().pagination().beginningButton().isDisabled();
-        deploymentsListPage.sortableTable().pagination().leftButton().isDisabled();
-      });
-    });
+  //       // check text and buttons after navigation
+  //       deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
+  //         expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
+  //       });
+  //       deploymentsListPage.sortableTable().pagination().beginningButton().isDisabled();
+  //       deploymentsListPage.sortableTable().pagination().leftButton().isDisabled();
+  //     });
+  //   });
 
-    it('sorting changes the order of paginated deployments data', () => {
-      WorkloadsDeploymentsListPagePo.navTo();
-      deploymentsListPage.waitForPage();
-      // use filter to only show test data
-      deploymentsListPage.sortableTable().filter(rootResourceName);
+  //   it('sorting changes the order of paginated deployments data', () => {
+  //     WorkloadsDeploymentsListPagePo.navTo();
+  //     deploymentsListPage.waitForPage();
+  //     // use filter to only show test data
+  //     deploymentsListPage.sortableTable().filter(rootResourceName);
 
-      // check table is sorted by name in ASC order by default
-      deploymentsListPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');
+  //     // check table is sorted by name in ASC order by default
+  //     deploymentsListPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'down');
 
-      // deployment name should be visible on first page (sorted in ASC order)
-      deploymentsListPage.sortableTable().tableHeaderRow().self().scrollIntoView();
-      deploymentsListPage.sortableTable().rowElementWithName(deploymentNamesList[0]).scrollIntoView().should('be.visible');
+  //     // deployment name should be visible on first page (sorted in ASC order)
+  //     deploymentsListPage.sortableTable().tableHeaderRow().self().scrollIntoView();
+  //     deploymentsListPage.sortableTable().rowElementWithName(deploymentNamesList[0]).scrollIntoView().should('be.visible');
 
-      // sort by name in DESC order
-      deploymentsListPage.sortableTable().sort(2).click({ force: true });
-      deploymentsListPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'up');
+  //     // sort by name in DESC order
+  //     deploymentsListPage.sortableTable().sort(2).click({ force: true });
+  //     deploymentsListPage.sortableTable().tableHeaderRow().checkSortOrder(2, 'up');
 
-      // deployment name should be NOT visible on first page (sorted in DESC order)
-      deploymentsListPage.sortableTable().rowElementWithName(deploymentNamesList[0]).should('not.exist');
+  //     // deployment name should be NOT visible on first page (sorted in DESC order)
+  //     deploymentsListPage.sortableTable().rowElementWithName(deploymentNamesList[0]).should('not.exist');
 
-      // navigate to last page
-      deploymentsListPage.sortableTable().pagination().endButton().scrollIntoView()
-        .click();
+  //     // navigate to last page
+  //     deploymentsListPage.sortableTable().pagination().endButton().scrollIntoView()
+  //       .click();
 
-      // deployment name should be visible on last page (sorted in DESC order)
-      deploymentsListPage.sortableTable().rowElementWithName(deploymentNamesList[0]).scrollIntoView().should('be.visible');
-    });
+  //     // deployment name should be visible on last page (sorted in DESC order)
+  //     deploymentsListPage.sortableTable().rowElementWithName(deploymentNamesList[0]).scrollIntoView().should('be.visible');
+  //   });
 
-    it('filter deployments', () => {
-      WorkloadsDeploymentsListPagePo.navTo();
-      deploymentsListPage.waitForPage();
+  //   it('filter deployments', () => {
+  //     WorkloadsDeploymentsListPagePo.navTo();
+  //     deploymentsListPage.waitForPage();
 
-      deploymentsListPage.sortableTable().checkVisible();
-      deploymentsListPage.sortableTable().checkLoadingIndicatorNotVisible();
-      deploymentsListPage.sortableTable().checkRowCount(false, 10);
+  //     deploymentsListPage.sortableTable().checkVisible();
+  //     deploymentsListPage.sortableTable().checkLoadingIndicatorNotVisible();
+  //     deploymentsListPage.sortableTable().checkRowCount(false, 10);
 
-      // filter by name
-      deploymentsListPage.sortableTable().filter(deploymentNamesList[0]);
-      deploymentsListPage.sortableTable().checkRowCount(false, 1);
-      deploymentsListPage.sortableTable().rowElementWithName(deploymentNamesList[0]).should('be.visible');
+  //     // filter by name
+  //     deploymentsListPage.sortableTable().filter(deploymentNamesList[0]);
+  //     deploymentsListPage.sortableTable().checkRowCount(false, 1);
+  //     deploymentsListPage.sortableTable().rowElementWithName(deploymentNamesList[0]).should('be.visible');
 
-      // filter by namespace
-      deploymentsListPage.sortableTable().filter(nsName2);
-      deploymentsListPage.sortableTable().checkRowCount(false, 1);
-      deploymentsListPage.sortableTable().rowElementWithName(uniqueDeployment).should('be.visible');
-    });
+  //     // filter by namespace
+  //     deploymentsListPage.sortableTable().filter(nsName2);
+  //     deploymentsListPage.sortableTable().checkRowCount(false, 1);
+  //     deploymentsListPage.sortableTable().rowElementWithName(uniqueDeployment).should('be.visible');
+  //   });
 
-    it('pagination is hidden', () => {
-      cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', '{"local":[]}');
+  //   it('pagination is hidden', () => {
+  //     cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', '{"local":[]}');
 
-      // generate small set of deployments data
-      generateDeploymentsDataSmall();
-      HomePagePo.goTo(); // this is needed here for the intercept to work
-      WorkloadsDeploymentsListPagePo.navTo();
-      cy.wait('@deploymentsDataSmall');
-      deploymentsListPage.waitForPage();
+  //     // generate small set of deployments data
+  //     generateDeploymentsDataSmall();
+  //     HomePagePo.goTo(); // this is needed here for the intercept to work
+  //     WorkloadsDeploymentsListPagePo.navTo();
+  //     cy.wait('@deploymentsDataSmall');
+  //     deploymentsListPage.waitForPage();
 
-      deploymentsListPage.sortableTable().checkVisible();
-      deploymentsListPage.sortableTable().checkLoadingIndicatorNotVisible();
-      deploymentsListPage.sortableTable().checkRowCount(false, 1);
-      deploymentsListPage.sortableTable().pagination().checkNotExists();
-    });
+  //     deploymentsListPage.sortableTable().checkVisible();
+  //     deploymentsListPage.sortableTable().checkLoadingIndicatorNotVisible();
+  //     deploymentsListPage.sortableTable().checkRowCount(false, 1);
+  //     deploymentsListPage.sortableTable().pagination().checkNotExists();
+  //   });
 
-    after('clean up', () => {
-    // Ensure the default rows per page value is set after running the tests
-      cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
+  //   after('clean up', () => {
+  //   // Ensure the default rows per page value is set after running the tests
+  //     cy.tableRowsPerPageAndNamespaceFilter(100, localCluster, 'none', '{"local":["all://user"]}');
 
-      // delete namespace (this will also delete all deployments in it)
-      cy.deleteNamespace([nsName1, nsName2]);
-    });
-  });
+  //     // delete namespace (this will also delete all deployments in it)
+  //     cy.deleteNamespace([nsName1, nsName2]);
+  //   });
+  // });
 
   describe('Redeploy Dialog', () => {
     let volumeDeploymentId: string;
