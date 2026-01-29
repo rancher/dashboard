@@ -60,7 +60,7 @@ export default {
       const inStore = this.$store.getters['currentStore'](this.type.name);
       const typeOptions = this.$store.getters[`type-map/optionsFor`](this.type.name);
 
-      if (typeOptions.custom?.countGetter && typeof typeOptions.custom?.countGetter === 'function') {
+      if (typeOptions?.custom?.countGetter && typeof typeOptions.custom?.countGetter === 'function') {
         return typeOptions.custom.countGetter(this.$store.getters);
       }
 
