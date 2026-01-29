@@ -1,5 +1,5 @@
 import { CATTLE_PUBLIC_ENDPOINTS, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
-import { NODE as NODE_TYPE } from '@shell/config/types';
+import { NODE as NODE_TYPE, NAMESPACE as NAMESPACE_TYPE } from '@shell/config/types';
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
 // Note: 'id' is always the last sort, so you don't have to specify it here.
@@ -158,12 +158,14 @@ export const NAME_UNLINKED = {
 };
 
 export const NAMESPACE = {
-  name:        'namespace',
-  labelKey:    'tableHeaders.namespace',
-  value:       'namespace',
-  getValue:    (row) => row.namespace,
-  sort:        'namespace',
-  dashIfEmpty: true,
+  name:          'namespace',
+  labelKey:      'tableHeaders.namespace',
+  value:         'namespace',
+  getValue:      (row) => row.namespace,
+  sort:          'namespace',
+  dashIfEmpty:   true,
+  formatter:     'LinkName',
+  formatterOpts: { type: NAMESPACE_TYPE },
 };
 
 export const NODE = {
