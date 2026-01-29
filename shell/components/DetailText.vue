@@ -167,11 +167,11 @@ export default {
     <h5
       v-if="labelKey"
       v-t="labelKey"
-      v-clean-tooltip="itemLabel"
+      v-clean-tooltip="{content: itemLabel, popperClass: 'detail-text-tooltip'}"
     />
     <h5
       v-else-if="label"
-      v-clean-tooltip="label"
+      v-clean-tooltip="{content: label, popperClass: 'detail-text-tooltip'}"
     >
       {{ label }}
     </h5>
@@ -209,6 +209,7 @@ export default {
     <template v-if="!isBinary && !jsonStr && isLong && !expanded">
       <a
         href="#"
+        class="more-characters"
         @click.prevent="expand"
       >{{ plusMore }}</a>
     </template>
@@ -298,5 +299,19 @@ export default {
 .monospace {
   white-space: pre-wrap;
   word-wrap: break-all
+}
+
+.more-characters {
+  margin-top: 8px;
+  display: inline-block;
+}
+</style>
+
+<style lang="scss">
+// The global styles for tooltips are in dashboard/shell/assets/styles/global/_tooltip.scss.
+// I don't want to make this change for all tooltips since there's 149 instances as of writing this
+// so I'm adding a global style here that's scoped to the class we're adding to the tooltips we have in this component.
+.detail-text-tooltip.v-popper__popper.v-popper--theme-tooltip {
+  overflow-wrap: anywhere;
 }
 </style>
