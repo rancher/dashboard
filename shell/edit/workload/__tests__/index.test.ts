@@ -26,7 +26,6 @@ describe('component: Workload', () => {
       isStatefulSet:               jest.fn(),
       headlessServices:            jest.fn(),
       defaultTab:                  jest.fn(),
-      allContainers:               jest.fn(),
       isPod:                       jest.fn(),
       tabWeightMap:                jest.fn(),
       podLabels:                   jest.fn(),
@@ -38,11 +37,11 @@ describe('component: Workload', () => {
       namespacedConfigMaps:        jest.fn(),
       podAnnotations:              jest.fn(),
       isJob:                       jest.fn(),
-      podFsGroup:                  jest.fn(),
       namespacedSecrets:           jest.fn(),
       registerBeforeHook:          jest.fn(),
       pvcs:                        jest.fn(),
-    }
+    },
+    computed: { allContainers: jest.fn(() => []) }
   };
 
   describe('component: Workload', () => {
@@ -53,7 +52,7 @@ describe('component: Workload', () => {
       ]
     ])('should map error message into object', (oldMessage, newMessage) => {
     // For this test, allNodeObjects is just a jest.fn() in the base mixin
-      const MockedWorkload = { ...Workload, mixins: [baseMockedValidationMixin, baseMockedCREMixin, { ...baseMockedWorkloadMixin, computed: { allNodeObjects: jest.fn() } }] };
+      const MockedWorkload = { ...Workload, mixins: [baseMockedValidationMixin, baseMockedCREMixin, { ...baseMockedWorkloadMixin, computed: { ...baseMockedWorkloadMixin.computed, allNodeObjects: jest.fn() } }] };
       const wrapper = shallowMount(MockedWorkload, {
         props: {
           value:         { metadata: {}, spec: { template: {} } },
