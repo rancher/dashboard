@@ -12,7 +12,7 @@ describe('action: redirectTo', () => {
     jest.spyOn(window, 'window', 'get');
     const store = {
       dispatch: jest.fn(() => {
-        return { scopes: 'groups' };
+        return { scopes: '' };
       })
     };
     const clientId = '123';
@@ -31,10 +31,14 @@ describe('action: redirectTo', () => {
   });
 
   it.each([
-    ['genericoidc', '://myhost/?redirect_uri=anyURI&scope=openid%20profile%20email&state=undefined'],
+    ['genericoidc', '://myhost/?redirect_uri=anyURI&scope=openid%20profile%20email%20groups&state=undefined'],
   ])('given provider %p should return URL %p', async(provider, expectation) => {
     jest.spyOn(window, 'window', 'get');
-    const store = { dispatch: jest.fn() };
+    const store = {
+      dispatch: jest.fn(() => {
+        return { scopes: 'groups' };
+      })
+    };
     const uri = 'anyURI'; // This field is added anyway, so we set a random value
     const options = {
       provider,
@@ -65,7 +69,11 @@ describe('action: redirectTo', () => {
         test:        true,
         redirect:    false
       };
-      const store = { dispatch: jest.fn() };
+      const store = {
+        dispatch: jest.fn(() => {
+          return { scopes: '' };
+        })
+      };
 
       jest.spyOn(window, 'window', 'get');
       const url = await actions.redirectTo(store as any, options);
@@ -83,7 +91,11 @@ describe('action: redirectTo', () => {
         test:        true,
         redirect:    false
       };
-      const store = { dispatch: jest.fn() };
+      const store = {
+        dispatch: jest.fn(() => {
+          return { scopes: 'openid' };
+        })
+      };
 
       jest.spyOn(window, 'window', 'get');
       const url = await actions.redirectTo(store as any, options);
