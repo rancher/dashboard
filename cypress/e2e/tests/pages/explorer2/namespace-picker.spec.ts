@@ -20,9 +20,9 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     HomePagePo.goTo();
     ClusterDashboardPagePo.navTo();
 
-    // reset namespace picker to default state
+    // reset namespace picker to default state with proper wait
     namespacePicker.toggle();
-    namespacePicker.clickOptionByLabel('Only User Namespaces');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Only User Namespaces');
     namespacePicker.isChecked('Only User Namespaces');
     namespacePicker.closeDropdown();
   });
@@ -31,8 +31,10 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     // Verify 'Namespace: cattle-fleet-system' appears once when filtering by Namespace
     // Verify multiple namespaces within Project: System display when filtering by Project
 
-    // group workloads by namespace
+    // group workloads by namespace - add intercept to wait for completion
+    cy.intercept('PUT', '/v1/userpreferences/*').as('updateNamespaceFilter');
     cy.updateNamespaceFilter('local', 'metadata.namespace', '{"local":["all://user"]}');
+    cy.wait('@updateNamespaceFilter');
 
     const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
@@ -82,27 +84,27 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.toggle();
 
     // Select 'All Namespaces'
-    namespacePicker.clickOptionByLabel('All Namespaces');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('All Namespaces');
     namespacePicker.isChecked('All Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Select 'Only User Namespaces'
-    namespacePicker.clickOptionByLabel('Only User Namespaces');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Only User Namespaces');
     namespacePicker.isChecked('Only User Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Select 'Only System Namespaces'
-    namespacePicker.clickOptionByLabel('Only System Namespaces');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Only System Namespaces');
     namespacePicker.isChecked('Only System Namespaces');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Select 'Only Namespaced Resources'
-    namespacePicker.clickOptionByLabel('Only Namespaced Resources');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Only Namespaced Resources');
     namespacePicker.isChecked('Only Namespaced Resources');
     namespacePicker.checkIcon().should('have.length', 1);
 
     // Select 'Only Cluster Resources'
-    namespacePicker.clickOptionByLabel('Only Cluster Resources');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Only Cluster Resources');
     namespacePicker.isChecked('Only Cluster Resources');
     namespacePicker.checkIcon().should('have.length', 1);
   });
@@ -113,7 +115,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.toggle();
 
     // Select 'Project: Default'
-    namespacePicker.clickOptionByLabel('Project: Default');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Project: Default');
     namespacePicker.isChecked('Project: Default');
     namespacePicker.checkIcon().should('have.length', 1);
 
@@ -123,7 +125,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.checkIcon().should('have.length', 2);
 
     // Select 'Project: System'
-    namespacePicker.clickOptionByLabel('Project: System');
+    namespacePicker.clickOptionByLabelAndWaitForRequest('Project: System');
     namespacePicker.isChecked('Project: System');
     namespacePicker.checkIcon().should('have.length', 3);
 
@@ -257,7 +259,46 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
   });
 
   after('clean up', () => {
-    cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+    // Use try-catch pattern to handle potential race conditions in namespace filter cleanup
+    cy.getRancherResource('v3', 'users?me=true').then((userResp: Cypress.Response<any>) => {
+      const userId = userResp.body.data[0].id.trim();
+
+      // Try to reset namespace filter, but don't fail the test if it conflicts
+      cy.request({
+        method:           'GET',
+        url:              `${ Cypress.env('api') }/v1/userpreferences/${ userId }`,
+        failOnStatusCode: false
+      }).then((resp: Cypress.Response<any>) => {
+        if (resp.status === 200) {
+          const userPreference = resp.body;
+          const updatedData = {
+            ...userPreference,
+            data: {
+              ...userPreference.data,
+              cluster:         'local',
+              'group-by':      'none',
+              'ns-by-cluster': '{"local":["all://user"]}'
+            }
+          };
+
+          cy.request({
+            method:           'PUT',
+            url:              `${ Cypress.env('api') }/v1/userpreferences/${ userId }`,
+            body:             updatedData,
+            failOnStatusCode: false,
+            timeout:          10000
+          }).then((updateResp: Cypress.Response<any>) => {
+            if (updateResp.status >= 400) {
+              cy.log(`Namespace filter cleanup failed with status ${ updateResp.status }, but continuing with test cleanup`);
+            } else {
+              cy.log('Namespace filter successfully reset during cleanup');
+            }
+          });
+        } else {
+          cy.log('Could not retrieve user preferences for cleanup, but continuing with test cleanup');
+        }
+      });
+    });
 
     if (removeProjectAndNs) {
       // delete project and ns
