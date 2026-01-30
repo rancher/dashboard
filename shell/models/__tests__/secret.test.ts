@@ -1,7 +1,62 @@
 import Secret from '@shell/models/secret';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
+import { VIRTUAL_TYPES } from '@shell/config/types';
+import { UI_PROJECT_SECRET } from '@shell/config/labels-annotations';
 
 describe('class Secret', () => {
+  describe('detailLocation', () => {
+    it('should return correct route for project scoped secret', () => {
+      const secret = new Secret({
+        metadata: {
+          namespace: 'c-cluster-p-project',
+          labels:    { [UI_PROJECT_SECRET]: 'p-project' }
+        },
+        id: 'c-cluster-p-project/my-secret'
+      });
+
+      // Mock $rootGetters
+      Object.defineProperty(secret, '$rootGetters', {
+        value: {
+          productId: 'explorer',
+          clusterId: 'c-cluster',
+          isRancher: true
+        }
+      });
+
+      const location = secret.detailLocation;
+
+      expect(location.name).toBe(`c-cluster-product-${ VIRTUAL_TYPES.PROJECT_SECRETS }-namespace-id`);
+      expect(location.params.resource).toBe(VIRTUAL_TYPES.PROJECT_SECRETS);
+      expect(location.params.product).toBe('explorer');
+      expect(location.params.cluster).toBe('c-cluster');
+      expect(location.params.namespace).toBe('c-cluster-p-project');
+      expect(location.params.id).toBe('my-secret');
+    });
+
+    it('should return default detailLocation for non-project scoped secret', () => {
+      const secret = new Secret({
+        metadata: { namespace: 'default' },
+        id:       'default/my-secret'
+      });
+
+      // Mock $rootGetters
+      Object.defineProperty(secret, '$rootGetters', {
+        value: {
+          productId: 'explorer',
+          clusterId: 'c-cluster',
+          isRancher: true
+        }
+      });
+
+      const expectedLocation = { name: 'some-route' };
+
+      // Mock _detailLocation (the parent class implementation or default behavior)
+      Object.defineProperty(secret, '_detailLocation', { value: expectedLocation });
+
+      expect(secret.detailLocation).toBe(expectedLocation);
+    });
+  });
+
   describe('cleanForDownload', () => {
     it('should contains the type attribute if cleanForDownload', async() => {
       const secret = new Secret({});
