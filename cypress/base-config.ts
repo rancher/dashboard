@@ -3,6 +3,7 @@ import { defineConfig } from 'cypress';
 import websocketTasks from './support/utils/webSocket-utils';
 import path from 'path';
 const { removeDirectory } = require('cypress-delete-downloads-folder');
+const { beforeRunHook, afterRunHook } = require('cypress-mochawesome-reporter/lib');
 
 // Required for env vars to be available in cypress
 require('dotenv').config();
@@ -127,6 +128,12 @@ const baseConfig = defineConfig({
     a11yFolder:          path.join('.', 'cypress', 'accessibility'),
     gkeServiceAccount:   process.env.GKE_SERVICE_ACCOUNT,
   },
+  reporter:        'cypress-mochawesome-reporter',
+  reporterOptions: {
+    saveJson:        true,
+    saveAllAttempts: false,
+    reportDir:       'cypress/reports'
+  },
   e2e: {
     fixturesFolder: 'cypress/e2e/blueprints',
     setupNodeEvents(on, config) {
@@ -151,6 +158,20 @@ const baseConfig = defineConfig({
       // this need to go after "cypress-terminal-report" always
       if (process.env.TEST_A11Y) {
         require('./support/plugins/accessibility').default(on, config);
+      } else {
+        // Add in the cypress-mochawesome-reporter reporter hooks
+        on('before:run', async(details) => {
+          await beforeRunHook(details);
+        });
+
+        // Done this way to catch errors when there are no tests run
+        on('after:run', async() => {
+          try {
+            await afterRunHook();
+          } catch (error) {
+            console.error(error); // eslint-disable-line no-console
+          }
+        });
       }
 
       return config;

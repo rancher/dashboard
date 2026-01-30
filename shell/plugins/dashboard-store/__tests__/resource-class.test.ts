@@ -429,4 +429,46 @@ describe('class: Resource', () => {
       expect(props.rows[1].label).toBe('component.resource.detail.card.insightsCard.rows.events');
     });
   });
+
+  describe('getter: detailPageAdditionalActions', () => {
+    it('should return undefined by default', () => {
+      const resource = new Resource({ type: 'test-type' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      expect(resource.detailPageAdditionalActions).toBeUndefined();
+    });
+
+    it('should allow subclasses to override and return button props array', () => {
+      class CustomResource extends Resource {
+        get detailPageAdditionalActions() {
+          return [
+            {
+              label: 'Action 1', variant: 'secondary', onClick: () => {}
+            },
+            {
+              label: 'Action 2', variant: 'primary', onClick: () => {}
+            }
+          ];
+        }
+      }
+
+      const resource = new CustomResource({ type: 'test-type' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      const actions = resource.detailPageAdditionalActions;
+
+      expect(Array.isArray(actions)).toBe(true);
+      expect(actions).toHaveLength(2);
+      expect(actions[0].label).toBe('Action 1');
+      expect(actions[0].variant).toBe('secondary');
+      expect(actions[1].label).toBe('Action 2');
+      expect(actions[1].variant).toBe('primary');
+    });
+  });
 });
