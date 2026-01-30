@@ -1,4 +1,4 @@
-apiVersion: cluster.x-k8s.io/v1beta1
+apiVersion: cluster.x-k8s.io/v1beta2
 kind: Machine
 metadata:
   creationTimestamp: '2023-12-06T22:21:54Z'
@@ -6,7 +6,7 @@ metadata:
   labels:
     cluster.x-k8s.io/cluster-name: local
   managedFields:
-    - apiVersion: cluster.x-k8s.io/v1beta1
+    - apiVersion: cluster.x-k8s.io/v1beta2
       fieldsType: FieldsV1
       fieldsV1:
         f:spec:
@@ -27,7 +27,4 @@ spec:
   bootstrap:
     dataSecretName: secretname
   clusterName: local
-  infrastructureRef:
-    namespace: default
-    resourceVersion: abc123
   nodeDeletionTimeout: 10s

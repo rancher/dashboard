@@ -364,7 +364,7 @@ export default {
         const machineFullName = machineNameFn(this.value.name, mp.name);
 
         const machines = this.value.machines.filter((machine) => {
-          const isElementalCluster = machine.spec?.infrastructureRef?.apiVersion.startsWith('elemental.cattle.io');
+          const isElementalCluster = (machine.spec?.infrastructureRef?.apiGroup).startsWith('elemental.cattle.io');
           const machinePoolInfName = machine.spec?.infrastructureRef?.name;
 
           if (isElementalCluster) {
