@@ -777,10 +777,10 @@ export default {
       <div class="group-tab">
         <span v-clean-html="thisGroup.ref" />
         <span
-          v-if="showNamespaceCounts"
+          v-if="showNamespaceCounts && Number.isInteger(namespaceCounts[thisGroup.rows?.[0]?.metadata?.namespace]?.count)"
           class="count"
         >
-          ({{ namespaceCounts[thisGroup.rows?.[0]?.metadata?.namespace].count }})
+          ({{ namespaceCounts[thisGroup.rows?.[0]?.metadata?.namespace]?.count }})
         </span>
       </div>
     </template>
