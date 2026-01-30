@@ -31,6 +31,7 @@ import Import from './Import.vue';
 
 import EKSValidators from '../util/validators';
 import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
+import { formatAWSError } from '@shell/utils/error';
 
 const DEFAULT_CLUSTER = {
   dockerRootDir:                       '/var/lib/docker',
@@ -577,9 +578,10 @@ export default defineComponent({
       }
       this.loadingIam = true;
       const store = this.$store as Store<any>;
-      const iamClient = await store.dispatch('aws/iam', { region, cloudCredentialId: amazonCredentialSecret });
 
       try {
+        const iamClient = await store.dispatch('aws/iam', { region, cloudCredentialId: amazonCredentialSecret });
+
         const res = await store.dispatch('aws/depaginateList', { client: iamClient, cmd: 'listRoles' });
 
         this.iamInfo = res;
@@ -610,7 +612,7 @@ export default defineComponent({
       } catch (err: any) {
         const errors = this.errors as any[];
 
-        errors.push(err);
+        errors.push(formatAWSError(err));
       }
       this.loadingSshKeyPairs = false;
     },

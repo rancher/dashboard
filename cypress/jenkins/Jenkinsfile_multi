@@ -77,8 +77,9 @@ node {
                                         string(name: 'CHROME_VERSION', value: "${CHROME_VERSION}"),
                                         string(name: 'QASE_PROJECT', value: "${QASE_PROJECT}"),
                                         string(name: 'QASE_REPORT', value: "${QASE_REPORT}"),
-                                        string(name: 'RANCHER_IMAGE_TAG', value: rancher_version)]
-                            echo "RANCHER_TAG: ${rancher_version}, K8S_VERSION: ${k8s_version}, CYPRESS_TAGS: ${ct}"
+                                        string(name: 'RANCHER_IMAGE_TAG', value: rancher_version),
+                                        string(name: 'RANCHER_HELM_REPO', value: "${RANCHER_HELM_REPO}")]
+                            echo "RANCHER_TAG: ${rancher_version}, K8S_VERSION: ${k8s_version}, CYPRESS_TAGS: ${ct}, RANCHER_HELM_REPO: ${RANCHER_HELM_REPO}"
                             build (job: 'ui-automation-job', parameters: params, propagate: false, wait: false)
                         }
                         

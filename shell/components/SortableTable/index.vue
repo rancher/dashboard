@@ -1590,6 +1590,18 @@ export default {
             :onRowMouseEnter="onRowMouseEnter"
             :onRowMouseLeave="onRowMouseLeave"
           >
+            <slot
+              :full-colspan="fullColspan"
+              :row="row.row"
+              :show-sub-row="row.row.stateDescription"
+              :sub-matches="subMatches"
+              :keyField="keyField"
+              :componentTestid="componentTestid"
+              :i="i"
+              :onRowMouseEnter="onRowMouseEnter"
+              :onRowMouseLeave="onRowMouseLeave"
+              name="additional-sub-row"
+            />
             <tr
               v-if="row.row.stateDescription"
               :key="row.row[keyField] + '-description'"
@@ -1924,9 +1936,22 @@ export default {
         &.main-row.has-sub-row {
           border-bottom: 0;
         }
+        &.additional-sub-row.has-sub-row {
+          border-bottom: 0;
+        }
 
         // if a main-row is hovered also hover it's sibling sub row. note - the reverse is handled in selection.js
         &.main-row:not(.row-selected):hover + .sub-row {
+          background-color: var(--sortable-table-hover-bg);
+        }
+
+        // Case with only additional-sub-row
+        &.main-row:not(.row-selected):hover + .additional-sub-row {
+          background-color: var(--sortable-table-hover-bg);
+        }
+
+        // Case with both additional-sub-row and sub-row
+        &.main-row:not(.row-selected):hover + .additional-sub-row + .sub-row{
           background-color: var(--sortable-table-hover-bg);
         }
 

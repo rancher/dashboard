@@ -2,6 +2,8 @@ import ChartMixin from '@shell/mixins/chart';
 import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
 import { mount } from '@vue/test-utils';
 import { APP_UPGRADE_STATUS } from '@shell/store/catalog';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { CATALOG } from '@shell/config/types';
 
 describe('chartMixin', () => {
   const testCases = {
@@ -150,6 +152,67 @@ describe('chartMixin', () => {
       await wrapper.vm.fetchChart();
 
       expect(mockStore.getters['catalog/version']).toHaveBeenCalledWith(expect.objectContaining({ showDeprecated: true }));
+    });
+
+    it('should find existing app using version annotations', async() => {
+      const mockStore = {
+        dispatch: jest.fn((action, payload) => {
+          if (action === 'cluster/find') {
+            return Promise.resolve({ id: payload.id, fetchValues: jest.fn() });
+          }
+
+          return Promise.resolve();
+        }),
+        getters: {
+          currentCluster: () => {},
+          isRancher:      () => true,
+          'catalog/repo': () => {
+            return () => 'repo';
+          },
+          'catalog/chart': () => {
+            return {
+              id: 'chart-id', versions: [{ version: '1.0.0' }], matchingInstalledApps: []
+            };
+          },
+          'catalog/version': () => ({
+            version:     '1.0.0',
+            annotations: {
+              [CATALOG_ANNOTATIONS.NAMESPACE]:    'custom-ns',
+              [CATALOG_ANNOTATIONS.RELEASE_NAME]: 'custom-name',
+            }
+          }),
+          'prefs/get': () => {},
+          'i18n/t':    () => jest.fn()
+        }
+      };
+
+      const DummyComponent = {
+        mixins:   [ChartMixin],
+        template: '<div></div>',
+      };
+
+      const wrapper = mount(
+        DummyComponent,
+        {
+          global: {
+            mocks: {
+              $store: mockStore,
+              $route: {
+                query: {
+                  chart:       'chart_name',
+                  versionName: '1.0.0'
+                }
+              }
+            }
+          }
+        });
+
+      await wrapper.vm.fetchChart();
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith('cluster/find', {
+        type: CATALOG.APP,
+        id:   'custom-ns/custom-name'
+      });
     });
   });
 

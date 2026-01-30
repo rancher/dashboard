@@ -25,6 +25,14 @@ export default {
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
+    },
+    removeSubRows: {
+      type:    Boolean,
+      default: false,
+    },
+    ignoreFilter: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -99,9 +107,9 @@ export default {
     :schema="schema"
     :headers="headers"
     :rows="rows"
-    :sub-rows="true"
     :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    :ignore-filter="ignoreFilter"
     key-field="_key"
   >
     <template #cell:workspace="{row}">
@@ -151,18 +159,22 @@ export default {
       >{{ row.bundleInfo.total }}</span>
     </template>
 
-    <template #sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave}">
+    <template
+      v-if="!removeSubRows"
+      #additional-sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave, showSubRow}"
+    >
       <tr
-        class="labels-row sub-row"
+        class="labels-row additional-sub-row"
+        :class="{ 'has-sub-row': showSubRow}"
         @mouseenter="onRowMouseEnter"
         @mouseleave="onRowMouseLeave"
       >
-        <template v-if="row.customLabels.length">
+        <template v-if="row.customLabels && row.customLabels.length">
           <td>&nbsp;</td>
           <td>&nbsp;</td>
           <td :colspan="fullColspan-2">
             <span
-              v-if="row.customLabels.length"
+              v-if="row.customLabels && row.customLabels.length"
               class="mt-5"
             > {{ t('fleet.cluster.labels') }}:
               <span
@@ -184,7 +196,7 @@ export default {
                 </Tag>
               </span>
               <a
-                v-if="row.customLabels.length > 7"
+                v-if="row.customLabels && row.customLabels.length > 7"
                 href="#"
                 @click.prevent="toggleCustomLabels(row)"
               >
@@ -193,13 +205,15 @@ export default {
             </span>
           </td>
         </template>
-        <td
-          v-else
-          :colspan="fullColspan"
-        >
-&nbsp;
-        </td>
       </tr>
+    </template>
+    <template
+      v-else
+      #sub-row
+    >
+      <tr
+        class="sub-row"
+      />
     </template>
   </ResourceTable>
 </template>

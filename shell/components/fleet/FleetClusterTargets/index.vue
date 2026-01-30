@@ -16,13 +16,16 @@ import TargetsList from '@shell/components/fleet/FleetClusterTargets/TargetsList
 
 export interface Cluster {
   name: string,
-  nameDisplay: string
+  nameDisplay: string,
+  detailLocation: object,
 }
 
 interface DataType {
   targetMode: TargetMode,
   allClusters: any[],
+  allClusterGroups: any[],
   selectedClusters: string[],
+  selectedClusterGroups: string[],
   clusterSelectors: Selector[],
   key: number,
 }
@@ -76,19 +79,26 @@ export default {
       allClusters: {
         inStoreType: 'management',
         type:        FLEET.CLUSTER
-      }
-    }, this.$store) as { allClusters: any[] };
+      },
+      allClusterGroups: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER_GROUP
+      },
+    }, this.$store) as { allClusters: any[], allClusterGroups: any[] };
 
     this.allClusters = hash.allClusters || [];
+    this.allClusterGroups = hash.allClusterGroups || [];
   },
 
   data(): DataType {
     return {
-      targetMode:       'all',
-      allClusters:      [],
-      selectedClusters: [],
-      clusterSelectors: [],
-      key:              0 // Generates a unique key to handle Targets
+      targetMode:            'all',
+      allClusters:           [],
+      allClusterGroups:      [],
+      selectedClusters:      [],
+      selectedClusterGroups: [],
+      clusterSelectors:      [],
+      key:                   0 // Generates a unique key to handle Targets
     };
   },
 
@@ -96,10 +106,9 @@ export default {
     this.fromTargets();
 
     if (this.mode === _CREATE) {
-      this.update();
-
       // Restore the targetMode from parent component; this is the case of edit targets in CREATE mode, go to YAML editor and come back to the form
       this.targetMode = this.created || 'all';
+      this.update();
     } else {
       this.targetMode = FleetUtils.Application.getTargetMode(this.targets || [], this.namespace);
     }
@@ -153,6 +162,14 @@ export default {
         .map((x) => ({ label: x.nameDisplay, value: x.metadata.name }));
     },
 
+    clusterGroupsOptions() {
+      return this.allClusterGroups
+        .filter((x) => x.metadata.namespace === this.namespace)
+        .map((x) => {
+          return { label: x.nameDisplay, value: x.metadata.name };
+        });
+    },
+
     isLocal() {
       return this.namespace === 'fleet-local';
     },
@@ -174,6 +191,12 @@ export default {
 
     selectClusters(list: string[]) {
       this.selectedClusters = list;
+
+      this.update();
+    },
+
+    selectClusterGroups(list: string[]) {
+      this.selectedClusterGroups = list;
 
       this.update();
     },
@@ -224,9 +247,13 @@ export default {
           clusterGroupSelector,
         } = target;
 
-        // If clusterGroup or clusterGroupSelector are defined, targets are marked as complex and won't handle by the UI
-        if (clusterGroup || clusterGroupSelector) {
+        // If clusterGroupSelector are defined, targets are marked as complex and won't handle by the UI
+        if (clusterGroupSelector) {
           return;
+        }
+
+        if (clusterGroup) {
+          this.selectedClusterGroups.push(clusterGroup);
         }
 
         if (clusterName) {
@@ -254,20 +281,22 @@ export default {
       case 'all':
         return [excludeHarvesterRule];
       case 'clusters':
-        return this.normalizeTargets(this.selectedClusters, this.clusterSelectors);
+        return this.normalizeTargets(this.selectedClusters, this.clusterSelectors, this.selectedClusterGroups);
       case 'advanced':
       case 'local':
         return this.targets;
       }
     },
 
-    normalizeTargets(selected: string[], clusterMatchExpressions: Selector[]) {
+    normalizeTargets(selected: string[], clusterMatchExpressions: Selector[], selectedClusterGroups: string[]): Target[] | undefined {
       const targets: Target[] = [];
 
+      // Select by name
       selected.forEach((clusterName) => {
         targets.push({ clusterName });
       });
 
+      // Select by labels
       clusterMatchExpressions.forEach((elem) => {
         const { matchLabels: labels, matchExpressions: expressions } = elem || {};
 
@@ -311,6 +340,11 @@ export default {
         }
       });
 
+      // Select by cluster group
+      selectedClusterGroups.forEach((clusterGroup) => {
+        targets.push({ clusterGroup });
+      });
+
       if (targets.length) {
         return targets;
       }
@@ -321,6 +355,7 @@ export default {
     reset() {
       this.targetMode = 'all';
       this.selectedClusters = [];
+      this.selectedClusterGroups = [];
       this.clusterSelectors = [];
     }
   },
@@ -356,25 +391,25 @@ export default {
   >
     <div class="col span-9">
       <h3 class="m-0">
-        {{ t('fleet.clusterTargets.title') }}
+        {{ t('fleet.clusterTargets.clusters.title') }}
       </h3>
       <LabeledSelect
         data-testid="fleet-target-cluster-name-selector"
         class="mmt-4"
         :value="selectedClusters"
-        :label="t('fleet.clusterTargets.label')"
+        :label="t('fleet.clusterTargets.clusters.byName.label')"
         :options="clustersOptions"
         :taggable="true"
         :close-on-select="false"
         :mode="mode"
         :multiple="true"
-        :placeholder="t('fleet.clusterTargets.placeholders.selectMultiple')"
+        :placeholder="t('fleet.clusterTargets.clusters.byName.placeholder')"
         @update:value="selectClusters"
       />
-      <div class="mmt-8">
-        <h3 class="m-0">
-          {{ t('fleet.clusterTargets.rules.title') }}
-        </h3>
+      <div class="mmt-6">
+        <h4 class="m-0">
+          {{ t('fleet.clusterTargets.clusters.byLabel.title') }}
+        </h4>
         <div
           v-for="(selector, i) in clusterSelectors"
           :key="selector.key"
@@ -386,7 +421,7 @@ export default {
             :value="selector"
             :mode="mode"
             :initial-empty-row="true"
-            :label-key="t('fleet.clusterTargets.rules.labelKey')"
+            :label-key="t('fleet.clusterTargets.clusters.byLabel.labelKey')"
             :add-icon="'icon-plus'"
             :add-class="'btn-sm'"
             @update:value="updateMatchExpressions(i, $event, selector.key)"
@@ -402,12 +437,30 @@ export default {
         <RcButton
           small
           secondary
-          class="mmt-6"
+          class="mmt-4"
           @click="addMatchExpressions"
         >
           <i class="icon icon-plus" />
-          <span>{{ t('fleet.clusterTargets.rules.addSelector') }}</span>
+          <span>{{ t('fleet.clusterTargets.clusters.byLabel.addSelector') }}</span>
         </RcButton>
+      </div>
+      <div class="mmt-8">
+        <h3 class="m-0">
+          {{ t('fleet.clusterTargets.clusterGroups.title') }}
+        </h3>
+        <LabeledSelect
+          data-testid="fleet-target-cluster-group-selector"
+          class="mmt-4"
+          :value="selectedClusterGroups"
+          :label="t('fleet.clusterTargets.clusterGroups.byName.label')"
+          :options="clusterGroupsOptions"
+          :taggable="true"
+          :close-on-select="false"
+          :mode="mode"
+          :multiple="true"
+          :placeholder="t('fleet.clusterTargets.clusterGroups.byName.placeholder')"
+          @update:value="selectClusterGroups"
+        />
       </div>
     </div>
     <div class="col span-3">
@@ -450,6 +503,6 @@ export default {
   }
 
   .target-list {
-    max-height: 250px;
+    max-height: 320px;
   }
 </style>

@@ -83,6 +83,11 @@ export default {
     componentTestid: {
       type:    String,
       default: 'tabbed'
+    },
+
+    removeBorders: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -128,7 +133,8 @@ export default {
     return {
       tabs:          [...parsedExtTabs],
       extensionTabs: parsedExtTabs,
-      activeTabName: null
+      activeTabName: null,
+      tabRefs:       {}
     };
   },
 
@@ -263,7 +269,10 @@ export default {
       this.select(nextName);
 
       this.$nextTick(() => {
-        this.$refs.tablist.focus();
+        this.$refs.tablist.removeAttribute('tabindex');
+        if (this.tabRefs[nextName]) {
+          this.tabRefs[nextName].focus();
+        }
       });
 
       function getCyclicalIdx(currentIdx, direction, tabsLength) {
@@ -299,7 +308,8 @@ export default {
     class="tabbed-container"
     :class="{
       'side-tabs': !!sideTabs,
-      'tabs-only': tabsOnly
+      'tabs-only': tabsOnly,
+      'remove-borders': removeBorders
     }"
     :data-testid="componentTestid"
   >
@@ -308,7 +318,7 @@ export default {
       ref="tablist"
       role="tablist"
       class="tabs"
-      :class="{'clearfix':!sideTabs, 'vertical': sideTabs, 'horizontal': !sideTabs}"
+      :class="{'clearfix':!sideTabs, 'vertical': sideTabs, 'horizontal': !sideTabs, 'remove-borders': removeBorders}"
       :data-testid="`${componentTestid}-block`"
       tabindex="0"
       @keydown.right.prevent="selectNext(1)"
@@ -323,14 +333,16 @@ export default {
         :key="tab.name"
         :data-testid="tab.name"
         :class="{tab: true, active: tab.active, disabled: tab.disabled, error: (tab.error)}"
-        role="presentation"
       >
         <a
+          :id="`tab-${tab.name}`"
+          :ref="(el) => { if (el) tabRefs[tab.name] = el; }"
           :data-testid="`btn-${tab.name}`"
           :aria-controls="tab.name"
           :aria-selected="tab.active"
           :aria-label="tab.labelDisplay || ''"
           role="tab"
+          :tabindex="tab.active ? '0' : '-1'"
           @click.prevent="select(tab.name, $event)"
           @keyup.enter.space="select(tab.name, $event)"
         >
@@ -442,6 +454,17 @@ export default {
     display: flex;
     flex-direction: row;
 
+    &.remove-borders {
+      border: none;
+
+      + .tab-container {
+        border: none;
+        border-top: 1px solid var(--border);
+        padding: 0;
+        padding-top: 24px;
+      }
+    }
+
     + .tab-container {
       border: solid thin var(--border);
     }
@@ -458,7 +481,7 @@ export default {
   .tab {
     position: relative;
     float: left;
-    padding: 0 8px 0 0;
+    padding: 0 4px 0 4px;
     cursor: pointer;
 
     A {

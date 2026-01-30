@@ -1,0 +1,63 @@
+# Agents.md
+
+This folder contains files used to construct a single root `AGENTS.md`
+
+We do this because
+- The single commonality between almost all AI tools is that they look for a root `AGENTS.md`
+- Having the information in a single place for all AI tools is better than duplicating and maintaining the information in multiple files for each AI tool
+
+## Process
+1. Add files to or update files in `./docs/agents.md/agents`, `./docs/agents.md/personas`, `./docs/agents.md/contributors`.
+2. Each file must
+  - Start markdown headers at the `##` level
+  - End in a new line
+  - Order contents in AGENTS.md by giving an optional number prefix
+3. Run `yarn agents:generate`.
+   - Take the contents of `./docs/agents.md/template_agents.md`
+   - Insert the contents of the agents, personas and contributors files
+   - Output to `./AGENTS.md`
+4. Commit all changes, including root `./AGENTS.md` and any files that link to it
+
+## Guidances
+
+### Examples
+
+When referencing code or configuration it's good to include an example
+
+## Future Tasks
+- Add real world examples when references code
+- Create a GH workflow to monitor `agents.md` folder files in a PR, if changed run generate script and add new AGENTS.md to PR
+- Discuss
+  - Three multi AI tool related questions
+    - Questions
+      - how AI specific patterns, like co-pilot instructions, can be expressed in a way to be adopted by or reduce duplication with the root agents.md
+      - how AI tool specific metadata code can be included
+      - multiple agents vs personas approach works
+    - Proposal
+      - Generic information applicable to all AI tools is added to the root `agents.md`
+      - Agent, instruction or other AI specific files or patterns can be used in files specific to that AI tool. They must not contain duplicate information to the root `agents.md`
+      - The root `agents.md` continues to be AI tool agnostic
+  - How can folder specific agents be used
+    - Proposal
+      - `agents.md` are added to folders as long as most LLMs can make use of them and they do not duplicate information in the root `agents.md`
+
+## Test Prompts
+
+To validate LLMs are picking up information consider running the following prompts.
+
+### Information
+
+Can they provide correct information?
+
+- `what's this project about?`
+- `can you tell me the process for fixing a github issue in this repo?`
+- `what makes a good software developer?`
+- `what should never be done in this project?`
+- `what are the folders in this project for?`
+- `what are the env vars i could use when running e2e tests?`
+
+### Actions
+
+Can they use the information in their actions?
+
+Pending

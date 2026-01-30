@@ -6,6 +6,7 @@ on:
 
 permissions:
   issues: read
+  organization: read
  
 jobs:
   notify-on-milestone-change:
@@ -38,11 +39,13 @@ jobs:
     - name: Check Team Membership
       id: check_team
       continue-on-error: true
+      if: |
+        github.event.sender.login != 'rancher-ui-project-bot' &&
+        github.event.sender.login != 'rancher-backport-assistant'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh api --silent \
-          /orgs/rancher/teams/ui/memberships/${{ github.event.sender.login }}
+        gh api --silent /orgs/rancher/teams/ui/memberships/${{ env.ACTOR }}
     - name: "Send Slack message if user is not a team member"
       if: steps.check_team.outcome == 'failure'
       uses: slackapi/slack-github-action@v2.1.1

@@ -177,24 +177,32 @@ export default {
       }
     },
 
-    onRowMouseEnter(e) {
+    removeOrAddHover(option, e) {
+      // Hardcoded logic to not overcomplicate just adding the conditions of next and previous
       const tr = e.target.closest('TR');
 
-      if (tr.classList.contains('sub-row')) {
-        const trMainRow = tr.previousElementSibling;
+      if (tr.classList.contains('sub-row') || tr.classList.contains('additional-sub-row')) {
+        const trPreviousRow = tr.previousElementSibling;
+        const trNextRow = tr.nextElementSibling;
 
-        trMainRow.classList.add('sub-row-hovered');
+        trPreviousRow.classList[option]('sub-row-hovered');
+
+        if (!trPreviousRow.classList.contains('main-row')) {
+          const trMainRow = trPreviousRow.previousElementSibling;
+
+          trMainRow.classList[option]('sub-row-hovered');
+        }
+        if (trNextRow?.classList.contains('sub-row')) {
+          trNextRow.classList[option]('sub-row-hovered');
+        }
       }
+    },
+    onRowMouseEnter(e) {
+      this.removeOrAddHover('add', e);
     },
 
     onRowMouseLeave(e) {
-      const tr = e.target.closest('TR');
-
-      if (tr.classList.contains('sub-row')) {
-        const trMainRow = tr.previousElementSibling;
-
-        trMainRow.classList.remove('sub-row-hovered');
-      }
+      this.removeOrAddHover('remove', e);
     },
 
     nodeForEvent(e) {
@@ -486,6 +494,11 @@ export default {
 
       this.$nextTick(() => {
         this.$emit('selection', this.selectedRows);
+        if (this.selectedRows && this.selectedRows.length) {
+          for ( let i = 0 ; i < this.selectedRows.length ; i++ ) {
+            this.updateInput(this.selectedRows[i], true, this.keyField);
+          }
+        }
       });
     },
 
@@ -505,7 +518,7 @@ export default {
           let tr = input.closest('tr');
           let first = true;
 
-          while ( tr && (first || tr.classList.contains('sub-row') ) ) {
+          while ( tr && (first || tr.classList.contains('sub-row') || tr.classList.contains('additional-sub-row')) ) {
             if (on) {
               tr.classList.add('row-selected');
             } else {
