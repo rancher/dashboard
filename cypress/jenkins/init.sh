@@ -344,13 +344,11 @@ corral config vars set nodejs_version "${NODEJS_VERSION}"
 corral config vars set dashboard_repo "${DASHBOARD_REPO}"
 corral config vars set dashboard_branch "${DASHBOARD_BRANCH}"
 
-# Disable vai where it doesn't exist or is turn off by default
-case "${RANCHER_IMAGE_TAG}" in
-    "v2.7-head" | "v2.8-head" | "v2.9-head" )
-        CYPRESS_TAGS="${CYPRESS_TAGS}+-@noVai"
-        ;;
-    *)
-esac
+# Jenkins pipeline runs against Vai-enabled Rancher; append exclusion of @noVai tests
+# (e.g. priority/no-vai-setup.spec.ts which disables the Vai feature flag).
+if [[ -n "${CYPRESS_TAGS}" ]]; then
+  CYPRESS_TAGS="${CYPRESS_TAGS}+-@noVai"
+fi
 corral config vars set cypress_tags "${CYPRESS_TAGS}"
 
 # Save all values to a file for the Slack notification script

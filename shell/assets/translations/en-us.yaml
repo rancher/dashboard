@@ -2964,6 +2964,10 @@ fleet:
     expandAll: Expand All
     collapseAll: Collapse All
     state: State
+    resourceDetails:
+      clusters: Clusters
+      resources: Resources
+      source: Source
     viewMode:
       table: Show table
       cards: Show cards

@@ -26,8 +26,8 @@ const hasOptions = (options: DropdownOption[]) => {
     @update:open="(e: boolean) => emit('update:open', e)"
   >
     <rc-dropdown-trigger
-      :[buttonVariant]="true"
-      :[buttonSize]="true"
+      :variant="buttonVariant"
+      :size="buttonSize"
       :data-testid="dataTestid"
       :aria-label="buttonAriaLabel"
     >

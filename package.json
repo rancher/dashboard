@@ -58,7 +58,8 @@
     "docs:start": "cd docusaurus/ && yarn start",
     "docs:serve": "cd docusaurus/ && yarn serve",
     "migrate": "node ./shell/scripts/vue-migrate.js",
-    "publish:lib": "cd pkg/rancher-components && npm publish"
+    "publish:lib": "cd pkg/rancher-components && npm publish",
+    "agents:generate": "./scripts/generate-agent-and-persona-mds.sh"
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "3.863.0",

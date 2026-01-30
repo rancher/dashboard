@@ -81,7 +81,8 @@ export default defineConfig({
     username,
     password:            process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword:   process.env.CATTLE_BOOTSTRAP_PASSWORD,
-    grepTags:            process.env.GREP_TAGS,
+    // Jenkins runs against Vai-enabled Rancher; exclude @noVai tests.
+    grepTags:            `${ process.env.GREP_TAGS }+-@noVai`,
     // the below env vars are only available to tests that run in Jenkins
     awsAccessKey:        process.env.AWS_ACCESS_KEY_ID,
     awsSecretKey:        process.env.AWS_SECRET_ACCESS_KEY,
