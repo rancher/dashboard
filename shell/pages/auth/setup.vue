@@ -4,7 +4,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 import AsyncButton from '@shell/components/AsyncButton';
 import { LOGGED_OUT, SETUP } from '@shell/config/query-params';
-import { NORMAN, MANAGEMENT } from '@shell/config/types';
+import { NORMAN, MANAGEMENT, EXT } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
 import { getVendor, getProduct, setVendor } from '@shell/config/private-label';
@@ -229,14 +229,20 @@ export default {
         await this.$store.dispatch('loadManagement');
 
         if ( this.mustChangePassword ) {
-          await this.$store.dispatch('rancher/request', {
-            url:    '/v3/users?action=changepassword',
-            method: 'post',
-            data:   {
-              currentPassword: this.current,
-              newPassword:     this.password
-            },
-          });
+          const passwordChangeRequest = await this.$store.dispatch('management/create', { type: EXT.PASSWORD_CHANGE_REQUESTS });
+
+          if (!passwordChangeRequest?.canChangePassword) {
+            this.errors = exceptionToErrorsArray(this.t('changePassword.errors.cannotChange'));
+            throw new Error(this.t('changePassword.errors.cannotChange'));
+          }
+
+          passwordChangeRequest.spec = {
+            currentPassword: this.current,
+            newPassword:     this.password,
+            userID:          this.v3User?.id
+          };
+
+          await passwordChangeRequest.save();
         } else {
           promises.push(setSetting(this.$store, SETTING.FIRST_LOGIN, 'false'));
         }

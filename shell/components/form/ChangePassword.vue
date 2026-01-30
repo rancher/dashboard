@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
-import { NORMAN } from '@shell/config/types';
+import { NORMAN, EXT } from '@shell/config/types';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 
 // Component handles three use cases
@@ -28,6 +28,8 @@ export default {
   },
   async fetch() {
     if (this.isChange) {
+      this.passwordChangeRequest = await this.$store.dispatch('management/create', { type: EXT.PASSWORD_CHANGE_REQUESTS });
+
       // Fetch the username for hidden input fields. The value itself is not needed if create or changing another user's password
       const users = await this.$store.dispatch('rancher/findAll', {
         type: NORMAN.USER,
@@ -35,12 +37,15 @@ export default {
       });
       const user = users?.[0];
 
+      this.userId = user?.id;
       this.username = user?.username;
     }
     this.userChangeOnLogin = this.mustChangePassword;
   },
   data(ctx) {
     return {
+      passwordChangeRequest:      undefined,
+      userId:                     '',
       username:                   '',
       errorMessages:              [],
       pCanShowMismatchedPassword: false,
@@ -57,6 +62,10 @@ export default {
   },
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
+    canChangePassword() {
+      return !!this.passwordChangeRequest?.canChangePassword;
+    },
 
     isRandomGenerated: {
       get() {
@@ -249,15 +258,19 @@ export default {
     },
 
     async changePassword() {
+      if (!this.canChangePassword) {
+        this.errorMessages = [this.t('changePassword.errors.cannotChange')];
+        throw new Error(this.t('changePassword.errors.cannotChange'));
+      }
+
       try {
-        await this.$store.dispatch('rancher/collectionAction', {
-          type:       NORMAN.USER,
-          actionName: 'changepassword',
-          body:       {
-            currentPassword: this.form.currentP,
-            newPassword:     this.isRandomGenerated ? this.form.genP : this.form.newP
-          },
-        });
+        this.passwordChangeRequest.spec = {
+          currentPassword: this.form.currentP,
+          newPassword:     this.isRandomGenerated ? this.form.genP : this.form.newP,
+          userID:          this.userId
+        };
+
+        await this.passwordChangeRequest.save();
       } catch (err) {
         this.errorMessages = [err.message || this.t('changePassword.errors.failedToChange')];
         throw err;

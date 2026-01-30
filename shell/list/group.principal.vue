@@ -2,7 +2,7 @@
 import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 import Masthead from '@shell/components/ResourceList/Masthead';
-import { NORMAN, MANAGEMENT } from '@shell/config/types';
+import { NORMAN, MANAGEMENT, EXT } from '@shell/config/types';
 import AsyncButton from '@shell/components/AsyncButton';
 import { applyProducts } from '@shell/store/type-map';
 import { NAME } from '@shell/config/product/auth';
@@ -44,14 +44,14 @@ export default {
 
     const nonLocalAuthProvider = !!hash.providers.find((p) => p.name !== 'local' && p.enabled === true);
 
-    this.canRefreshAccess = nonLocalAuthProvider && !!hash.user?.actions?.refreshauthprovideraccess;
+    this.membershipRefreshRequests = await this.$store.dispatch('management/create', { type: EXT.GROUP_MEMBERSHIP_REFRESH_REQUESTS });
     this.canCreateGlobalRoleBinding = nonLocalAuthProvider && grbSchema?.collectionMethods?.includes('POST');
   },
   data() {
     return {
       rows:                       [],
+      membershipRefreshRequests:  undefined,
       canCreateGlobalRoleBinding: false,
-      canRefreshAccess:           false,
       assignLocation:             {
         path:  `/c/${ BLANK_CLUSTER }/${ NAME }/${ NORMAN.SPOOFED.GROUP_PRINCIPAL }/assign-edit`,
         query: { [MODE]: _EDIT }
@@ -59,8 +59,14 @@ export default {
       initialLoad: true,
     };
   },
-  computed: { ...mapState('action-menu', ['showPromptRemove', 'toRemove']) },
-  watch:    {
+  computed: {
+    ...mapState('action-menu', ['showPromptRemove', 'toRemove']),
+
+    canRefreshMemberships() {
+      return !!this.membershipRefreshRequests?.canRefreshMemberships;
+    }
+  },
+  watch: {
     async toRemove(resources) {
       if (this.initialLoad) {
         this.initialLoad = false;
@@ -86,11 +92,9 @@ export default {
     },
     async refreshGroupMemberships(buttonDone) {
       try {
-        await this.$store.dispatch('rancher/request', {
-          url:    '/v3/users?action=refreshauthprovideraccess',
-          method: 'post',
-          data:   { },
-        });
+        // userId specifies the user ID. Use '*' for all users. Check the schemaDefinition for more details.
+        this.membershipRefreshRequests.spec = { userId: '*' };
+        await this.membershipRefreshRequests.save();
 
         await this.updateGroupPrincipals(true);
 
@@ -125,7 +129,7 @@ export default {
     >
       <template #extraActions>
         <AsyncButton
-          v-if="canRefreshAccess"
+          v-if="canRefreshMemberships"
           mode="refresh"
           :action-label="t('authGroups.actions.refresh')"
           :waiting-label="t('authGroups.actions.refresh')"
