@@ -252,6 +252,9 @@ export default defineComponent({
     clusterAgentDeploymentCustomization() {
       return this.normanCluster.clusterAgentDeploymentCustomization || {};
     },
+    fleetAgentDeploymentCustomization() {
+      return this.normanCluster.fleetAgentDeploymentCustomization || {};
+    },
     schedulingCustomizationVisible() {
       return !this.isLocal && (this.schedulingCustomizationFeatureEnabled || this.schedulingCustomizationOriginallyEnabled);
     },
