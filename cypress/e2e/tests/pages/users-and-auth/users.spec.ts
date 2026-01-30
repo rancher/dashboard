@@ -124,9 +124,9 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     // Refresh Group Membership and verify request is made
     usersPo.goTo();
     usersPo.waitForPage();
-    cy.intercept('POST', '/v3/users?action=refreshauthprovideraccess').as('refreshGroup');
+    cy.intercept('POST', '/v1/ext.cattle.io.groupmembershiprefreshrequests').as('refreshGroup');
     usersPo.list().refreshGroupMembership().click();
-    cy.wait('@refreshGroup').its('response.statusCode').should('eq', 200);
+    cy.wait('@refreshGroup').its('response.statusCode').should('eq', 201);
   });
 
   describe('Action Menu', () => {
@@ -156,10 +156,10 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
     it('can Refresh Group Memberships', () => {
       // Refresh Group Membership and verify request is made
-      cy.intercept('POST', `/v3/users/${ userId }?action=refreshauthprovideraccess`).as('refreshGroup');
+      cy.intercept('POST', `/v1/ext.cattle.io.groupmembershiprefreshrequests`).as('refreshGroup');
       usersPo.waitForRequests();
       usersPo.list().clickRowActionMenuItem(standardUsername, 'Refresh Group Memberships');
-      cy.wait('@refreshGroup').its('response.statusCode').should('eq', 200);
+      cy.wait('@refreshGroup').its('response.statusCode').should('eq', 201);
     });
 
     it('can Edit Config', () => {

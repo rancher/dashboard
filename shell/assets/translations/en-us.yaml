@@ -1450,6 +1450,7 @@ changePassword:
     failedToChange: Failed to change password
     failedDeleteKey: Failed to delete key
     failedDeleteKeys: Failed to delete keys
+    cannotChange: This user does not have permissions to change their password
 
 chartHeading:
   overview: Overview

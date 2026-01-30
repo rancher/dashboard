@@ -1,4 +1,4 @@
-import { NORMAN } from '@shell/config/types';
+import { NORMAN, EXT } from '@shell/config/types';
 import HybridModel, { cleanHybridResources } from '@shell/plugins/steve/hybrid-class';
 import day from 'dayjs';
 
@@ -175,7 +175,7 @@ export default class User extends HybridModel {
     const clone = await this.$dispatch('clone', { resource: this });
 
     // Remove local properties
-    delete clone.canRefreshAccess;
+    delete clone.canRefreshMemberships;
 
     return clone._save(opt);
   }
@@ -204,12 +204,11 @@ export default class User extends HybridModel {
   }
 
   async refreshGroupMembership() {
-    const user = await this.$dispatch('rancher/find', {
-      type: NORMAN.USER,
-      id:   this.id,
-    }, { root: true });
+    const membershipRefreshRequests = await this.$dispatch('create', { type: EXT.GROUP_MEMBERSHIP_REFRESH_REQUESTS });
 
-    await user.doAction('refreshauthprovideraccess');
+    // userId specifies the user ID. Use '*' for all users. Check the schemaDefinition for more details.
+    membershipRefreshRequests.spec = { userId: this.id };
+    await membershipRefreshRequests.save();
   }
 
   canActivate(state) {
