@@ -18,8 +18,7 @@ import { sortBy } from '@shell/utils/sort';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
 import { markRaw } from 'vue';
-import { _MULTI } from '@shell/plugins/dashboard-store/actions';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { MANAGEMENT, NORMAN, EXT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { LOGIN_ERRORS } from '@shell/store/auth';
 import {
@@ -286,13 +285,22 @@ export default {
           }
         });
 
-        const user = await this.$store.dispatch('rancher/findAll', {
-          type: NORMAN.USER,
-          opt:  { url: '/v3/users?me=true', load: _MULTI }
+        // we have to do the XHR requests because we don't have schemas loaded yet...
+        let mgmtUser;
+        const selfUser = await this.$store.dispatch('management/request', {
+          url:    `/v1/${ EXT.SELFUSER }`,
+          method: 'POST',
+          data:   {}
         });
 
-        if (!!user?.[0]) {
-          this.$store.dispatch('auth/gotUser', user[0]);
+        if (selfUser) {
+          mgmtUser = await this.$store.dispatch('management/request', { url: `/v1/${ MANAGEMENT.USER }/${ selfUser.status.userID }` });
+
+          console.error('LOGIN LOCAL ::: mgmtUser', mgmtUser);
+        }
+
+        if (!!mgmtUser) {
+          this.$store.dispatch('auth/gotUser', mgmtUser);
         }
 
         if ( this.remember ) {
@@ -320,7 +328,7 @@ export default {
           $extension: this.$store.$extension,
         });
 
-        if (this.firstLogin || user[0]?.mustChangePassword) {
+        if (this.firstLogin || mgmtUser?.mustChangePassword) {
           this.$store.dispatch('auth/setInitialPass', this.password);
           this.$router.push({ name: 'auth-setup' });
         } else {

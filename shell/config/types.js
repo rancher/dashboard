@@ -262,7 +262,12 @@ export const BRAND = {
   RGS:     'rgs',
 };
 
-export const EXT = { USER_ACTIVITY: 'ext.cattle.io.useractivity' };
+export const EXT = {
+  USER_ACTIVITY:                     'ext.cattle.io.useractivity',
+  SELFUSER:                          'ext.cattle.io.selfuser',
+  GROUP_MEMBERSHIP_REFRESH_REQUESTS: 'ext.cattle.io.groupmembershiprefreshrequest',
+  PASSWORD_CHANGE_REQUESTS:          'ext.cattle.io.passwordchangerequest'
+};
 
 export const CAPI = {
   CAPI_CLUSTER:         'cluster.x-k8s.io.cluster',

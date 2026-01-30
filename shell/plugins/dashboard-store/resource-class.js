@@ -39,7 +39,7 @@ import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
-import { EVENT } from '@shell/config/types';
+import { EVENT, EXT } from '@shell/config/types';
 import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
@@ -1284,6 +1284,14 @@ export default class Resource {
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {
+        // Very hacky stuff... but Steve API doesn't always return the ID in the response, even though it's there server side
+        // So if it's missing, and it's a self user, set it from the status userID
+        // so that we can leverage the store loading mechanism properly
+        // TBD if this is needed for this usecase
+        if (this.type === EXT.SELFUSER) {
+          res.id = res.status?.userID;
+        }
+
         await this.$dispatch('load', {
           data: res, existing: (forNew ? this : undefined ), invalidatePageCache
         });
