@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import RKE2 from '@shell/edit/provisioning.cattle.io.cluster/rke2.vue';
 import { AGENT_CONFIGURATION_TYPES } from '@shell/utils/cluster';
@@ -15,8 +15,14 @@ const mockStore = {
     'i18n/withFallback':               jest.fn().mockImplementation((key) => key),
     'features/get':                    jest.fn().mockReturnValue(() => true),
     'plugins/cloudProviderForDriver':  jest.fn().mockReturnValue(undefined),
-    currentCluster:                    jest.fn().mockReturnValue({}),
-    'customisation/getPreviewCluster': jest.fn().mockReturnValue({ badge: {} })
+    currentCluster:                    {},
+    'customisation/getPreviewCluster': {
+      badge: {
+        iconText: '', color: '', text: ''
+      }
+    },
+    productId:    'rancher',
+    currentStore: jest.fn().mockReturnValue('management')
   },
   dispatch: jest.fn().mockResolvedValue({ data: [] })
 };
@@ -27,8 +33,11 @@ const mockRoute = {
 };
 
 const mockValue = {
-  metadata: { name: 'test-cluster' },
-  spec:     {
+  metadata: {
+    name:        'test-cluster',
+    annotations: {}
+  },
+  spec: {
     kubernetesVersion: 'v1.25.0+rke2r1',
     rkeConfig:         {
       machineGlobalConfig:   {},
@@ -43,7 +52,7 @@ const mockValue = {
 };
 
 const createWrapper = (propsData: any = {}) => {
-  return mount(RKE2, {
+  return shallowMount(RKE2, {
     propsData: {
       mode:     'create',
       value:    { ...mockValue, ...propsData.value },
@@ -52,18 +61,28 @@ const createWrapper = (propsData: any = {}) => {
     },
     global: {
       mocks: {
-        $store:     mockStore,
-        $route:     mockRoute,
-        $router:    { replace: jest.fn() },
-        t:          jest.fn().mockImplementation((key) => key),
-        $extension: { getDynamic: jest.fn().mockReturnValue(undefined) }
+        $store:      mockStore,
+        $route:      mockRoute,
+        $router:     { replace: jest.fn() },
+        t:           jest.fn().mockImplementation((key) => key),
+        $extension:  { getDynamic: jest.fn().mockReturnValue(undefined) },
+        $fetchState: { pending: false, error: null }
       }
+    },
+    data() {
+      return {
+        loadedOnce:   true,
+        rke2Versions: null,
+        k3sVersions:  null,
+        defaultRke2:  'v1.25.0+rke2r1',
+        defaultK3s:   'v1.25.0+k3s1'
+      } as any;
     }
   });
 };
 
 describe('component: RKE2 - Fleet Agent Configuration', () => {
-  let wrapper;
+  let wrapper: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -199,7 +218,7 @@ describe('component: RKE2 - Fleet Agent Configuration', () => {
   });
 
   describe('flannel Masquerade Configuration', () => {
-    let k3sWrapper;
+    let k3sWrapper: any;
 
     beforeEach(() => {
       const k3sValue = {
@@ -214,9 +233,6 @@ describe('component: RKE2 - Fleet Agent Configuration', () => {
       };
 
       k3sWrapper = createWrapper({ value: k3sValue });
-
-      // Mock k3s version
-      k3sWrapper.vm.selectedVersion = { label: 'k3s-v1.25.0+k3s1' };
     });
 
     afterEach(() => {
