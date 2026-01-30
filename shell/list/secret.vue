@@ -64,6 +64,8 @@ export default {
       headers.push(SECRET_CLONE);
       headersSSP.push(STEVE_SECRET_CLONE);
       if (this.currentCluster.isLocal) {
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
+
         // if the user is on the local cluster, add a column to let them know if it's a project scoped secret (from another cluster)
         headers.push(SECRET_PROJECT_SCOPED);
         headersSSP.push(SECRET_PROJECT_SCOPED);

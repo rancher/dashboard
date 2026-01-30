@@ -510,6 +510,10 @@ export default class Secret extends SteveModel {
       return undefined;
     }
 
+    if (this.isProjectSecretCopy) {
+      return this.$rootGetters['currentCluster']?.id;
+    }
+
     const clusterId = this.metadata.namespace.replace(`-${ this.projectScopedProjectId }`, '');
 
     // default and system pss don't follow the patter of <cluster>-<project>, so if they match assume its one of them
@@ -525,7 +529,7 @@ export default class Secret extends SteveModel {
   }
 
   get projectCluster() {
-    if (!this.isProjectScoped) {
+    if (!this.isProjectScopedRelated) {
       return undefined;
     }
 
@@ -536,15 +540,7 @@ export default class Secret extends SteveModel {
    * If this is a project scoped secret, return it
    */
   get project() {
-    if (!this.isProjectScoped ) {
-      return undefined;
-    }
-
-    return this.$rootGetters[`${ STORE.MANAGEMENT }/byId`](MANAGEMENT.PROJECT, `${ this.projectScopedClusterId }/${ this.projectScopedProjectId }`);
-  }
-
-  get projectScopedSecretCluster() {
-    if (!this.isProjectScoped ) {
+    if (!this.isProjectScopedRelated ) {
       return undefined;
     }
 
@@ -552,10 +548,10 @@ export default class Secret extends SteveModel {
   }
 
   get clusterAndProjectLabel() {
-    if (!this.isProjectScoped) {
+    if (!this.isProjectScopedRelated) {
       return '';
     }
-    const clusterName = this.projectCluster?.nameDisplay;
+    const clusterName = this.projectCluster?.nameDisplay || this.projectScopedClusterId;
     // project is going to be empty if upstream and trying to show pss from downstream clusters
     // we only ever have the current clusters projects. if we change this (fetch them in the list)
     // we wipe out the header ns filter projects
