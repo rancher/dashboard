@@ -10,7 +10,11 @@ import { createStore } from 'vuex';
 describe('action: redirectTo', () => {
   it('should include query parameters from redirect', async() => {
     jest.spyOn(window, 'window', 'get');
-    const store = { dispatch: jest.fn() };
+    const store = {
+      dispatch: jest.fn(() => {
+        return { scopes: 'groups' };
+      })
+    };
     const clientId = '123';
     const uri = 'anyURI';
     const scope = 'anything';
