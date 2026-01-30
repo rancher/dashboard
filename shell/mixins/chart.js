@@ -282,48 +282,6 @@ export default {
 
       this.fetchStoreChart();
 
-      if ( this.query.appNamespace && this.query.appName ) {
-        // First check the URL query for an app name and namespace.
-        // Use those values to check for a catalog app resource.
-        // If found, set the form to edit mode. If not, set the
-        // form to create mode.
-
-        try {
-          this.existing = await this.$store.dispatch('cluster/find', {
-            type: CATALOG.APP,
-            id:   `${ this.query.appNamespace }/${ this.query.appName }`,
-          });
-
-          await this.existing?.fetchValues(true);
-
-          this.mode = _EDIT;
-        } catch (e) {
-          this.mode = _CREATE;
-          this.existing = null;
-        }
-      } else if ( this.chart?.targetNamespace && this.chart?.targetName ) {
-        // If the app name and namespace values are not provided in the
-        // query, fall back on target values defined in the Helm chart itself.
-
-        // Ask to install a special chart with fixed namespace/name
-        // or edit it if there's an existing install.
-
-        try {
-          this.existing = await this.$store.dispatch('cluster/find', {
-            type: CATALOG.APP,
-            id:   `${ this.chart.targetNamespace }/${ this.chart.targetName }`,
-          });
-          this.mode = _EDIT;
-        } catch (e) {
-          this.mode = _CREATE;
-          this.existing = null;
-        }
-      } else {
-        // Regular create
-
-        this.mode = _CREATE;
-      }
-
       if ( !this.chart ) {
         return;
       }
@@ -387,6 +345,62 @@ export default {
         this.versionInfoError = e;
 
         console.error('Unable to fetch VersionInfo: ', e); // eslint-disable-line no-console
+      }
+
+      if ( this.query.appNamespace && this.query.appName ) {
+        // First check the URL query for an app name and namespace.
+        // Use those values to check for a catalog app resource.
+        // If found, set the form to edit mode. If not, set the
+        // form to create mode.
+
+        try {
+          this.existing = await this.$store.dispatch('cluster/find', {
+            type: CATALOG.APP,
+            id:   `${ this.query.appNamespace }/${ this.query.appName }`,
+          });
+
+          await this.existing?.fetchValues(true);
+
+          this.mode = _EDIT;
+        } catch (e) {
+          this.mode = _CREATE;
+          this.existing = null;
+        }
+      } else {
+        const targetNamespace = this.version?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE];
+        const targetName = this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
+
+        if ( targetNamespace && targetName ) {
+          // If the app name and namespace values are not provided in the
+          // query, fall back on target values defined in the Helm chart itself.
+
+          // Ask to install a special chart with fixed namespace/name
+          // or edit it if there's an existing install.
+
+          try {
+            this.existing = await this.$store.dispatch('cluster/find', {
+              type: CATALOG.APP,
+              id:   `${ targetNamespace }/${ targetName }`,
+            });
+            this.mode = _EDIT;
+          } catch (e) {
+            this.mode = _CREATE;
+            this.existing = null;
+          }
+        } else if (this.chart) {
+          const matching = this.chart.matchingInstalledApps;
+
+          if (matching.length === 1) {
+            this.existing = matching[0];
+            this.mode = _EDIT;
+          } else {
+            this.mode = _CREATE;
+          }
+        } else {
+          // Regular create
+
+          this.mode = _CREATE;
+        }
       }
     }, // End of fetchChart
 
