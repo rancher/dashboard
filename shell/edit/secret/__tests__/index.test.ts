@@ -194,7 +194,7 @@ describe('component: Secret Index', () => {
     wrapper.setData({ projectName: 'p1' });
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.vm.value.metadata.namespace).toBeNull();
+    expect(wrapper.vm.value.metadata.namespace).toBeUndefined();
   });
 
   it('should fail validation in saveSecret if namespace is missing when Project Scoped', async() => {

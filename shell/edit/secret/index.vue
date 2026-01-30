@@ -415,16 +415,7 @@ export default {
         this.value.metadata.labels = this.value.metadata.labels || {};
         this.value.metadata.labels[UI_PROJECT_SECRET] = neu;
 
-        const project = this.filteredProjects.find((p) => p.metadata.name === neu);
-        const ns = project?.status?.backingNamespace;
-
-        if (ns) {
-          this.value.metadata.namespace = ns;
-        } else {
-          // If the project has no backing namespace (e.g. initializing), clear the value
-          // so the manual validation in saveSecret blocks the save.
-          this.value.metadata.namespace = null;
-        }
+        this.value.metadata.namespace = this.filteredProjects.find((p) => p.metadata.name === neu)?.status?.backingNamespace;
       }
     }
   }
