@@ -11,8 +11,8 @@ describe('action: redirectTo', () => {
   it('should include query parameters from redirect', async() => {
     jest.spyOn(window, 'window', 'get');
     const store = {
-      dispatch: jest.fn(() => {
-        return { scopes: '' };
+      dispatch: jest.fn((x) => {
+        if (x === 'getAuthProvider') return { scopes: '' };
       })
     };
     const clientId = '123';
@@ -35,8 +35,8 @@ describe('action: redirectTo', () => {
   ])('given provider %p should return URL %p', async(provider, expectation) => {
     jest.spyOn(window, 'window', 'get');
     const store = {
-      dispatch: jest.fn(() => {
-        return { scopes: 'groups' };
+      dispatch: jest.fn((x) => {
+        if (x === 'getAuthProvider') return { scopes: 'groups' };
       })
     };
     const uri = 'anyURI'; // This field is added anyway, so we set a random value
@@ -70,8 +70,8 @@ describe('action: redirectTo', () => {
         redirect:    false
       };
       const store = {
-        dispatch: jest.fn(() => {
-          return { scopes: '' };
+        dispatch: jest.fn((x) => {
+          if (x === 'getAuthProvider') return { scopes: '' };
         })
       };
 
@@ -92,8 +92,8 @@ describe('action: redirectTo', () => {
         redirect:    false
       };
       const store = {
-        dispatch: jest.fn(() => {
-          return { scopes: 'openid' };
+        dispatch: jest.fn((x) => {
+          if (x === 'getAuthProvider') return { scopes: 'openid' };
         })
       };
 
