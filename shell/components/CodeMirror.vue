@@ -330,9 +330,6 @@ export default {
         border-color: var(--primary-border);
       }
 
-      .CodeMirror-wrap pre {
-        word-break: break-word;
-      }
       .CodeMirror-code {
         .CodeMirror-line {
           &:not(:last-child)>span:after,
@@ -425,6 +422,10 @@ export default {
 
       .CodeMirror-gutters {
         background: inherit;
+      }
+
+      .CodeMirror-wrap pre {
+        word-break: break-word;
       }
     }
 
