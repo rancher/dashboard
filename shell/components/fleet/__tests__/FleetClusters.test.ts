@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import FleetClusters from '@shell/components/fleet/FleetClusters.vue';
-import ResourceTable from '@shell/components/ResourceTable';
+import ResourceTable from '@shell/components/ResourceTable.vue';
 
 describe('component: FleetClusters', () => {
   const mockStore = {
@@ -52,8 +52,19 @@ describe('component: FleetClusters', () => {
         components: { ResourceTable },
         stubs:      {
           ResourceTable: {
-            template: '<div class="resource-table"><slot name="additional-sub-row" :fullColspan="10" :row="rows[0]" :onRowMouseEnter="() => {}" :onRowMouseLeave="() => {}" :showSubRow="true" /></div>',
-            props:    ['rows', 'schema', 'headers', 'subRows', 'loading', 'useQueryParamsForSimpleFiltering', 'keyField']
+            template: `
+              <div class="resource-table">
+                <slot 
+                  name="additional-sub-row" 
+                  :fullColspan="10" 
+                  :row="rows[0]" 
+                  :onRowMouseEnter="() => {}" 
+                  :onRowMouseLeave="() => {}" 
+                  :showSubRow="rows[0].stateDescription" 
+                />
+              </div>
+            `,
+            props: ['rows', 'schema', 'headers', 'subRows', 'loading', 'useQueryParamsForSimpleFiltering', 'keyField']
           },
           Tag: { template: '<span class="tag"><slot /></span>' }
         }
@@ -202,7 +213,8 @@ describe('component: FleetClusters', () => {
     it('should apply has-sub-row class when showSubRow is true', () => {
       const rows = [{
         customLabels:        ['label1'],
-        displayCustomLabels: false
+        displayCustomLabels: false,
+        stateDescription:    'Active',
       }];
 
       const wrapper = createWrapper({ rows });
@@ -469,6 +481,96 @@ describe('component: FleetClusters', () => {
       const wrapper = createWrapper({ rows });
 
       expect(wrapper.find('.mr-5').exists()).toBe(true);
+    });
+  });
+
+  // Tests for gap removal fix - Issue #16502
+  describe('additional-sub-row properties passed properly', () => {
+    it('should render additional-sub-row when customLabels is empty', () => {
+      const rows = [{
+        customLabels:        [],
+        displayCustomLabels: false
+      }];
+
+      const wrapper = createWrapper({ rows });
+      const additionalSubRow = wrapper.find('.labels-row.additional-sub-row');
+
+      // Should exist when no custom labels, it should be there to have the border
+      expect(additionalSubRow.exists()).toBe(true);
+    });
+
+    it('should render additional-sub-row when customLabels is undefined', () => {
+      const rows = [{
+        customLabels:        undefined,
+        displayCustomLabels: false
+      }];
+
+      const wrapper = createWrapper({ rows });
+      const additionalSubRow = wrapper.find('.labels-row.additional-sub-row');
+
+      // Should exist when no custom labels, it should be there to have the border
+      expect(additionalSubRow.exists()).toBe(true);
+    });
+
+    it('should render additional-sub-row when customLabels is null', () => {
+      const rows = [{
+        customLabels:        null,
+        displayCustomLabels: false
+      }];
+
+      const wrapper = createWrapper({ rows });
+      const additionalSubRow = wrapper.find('.labels-row.additional-sub-row');
+
+      // Should not exist when customLabels is null
+      expect(additionalSubRow.exists()).toBe(true);
+    });
+
+    it('should handle mixed scenarios - some clusters with labels, some without', () => {
+      const mixedRows = [
+        {
+          id:                  'cluster-1',
+          customLabels:        ['env:prod'],
+          displayCustomLabels: false
+        },
+        {
+          id:                  'cluster-2',
+          customLabels:        [],
+          displayCustomLabels: false
+        },
+        {
+          id:                  'cluster-3',
+          customLabels:        ['team:backend', 'region:us-west'],
+          displayCustomLabels: false
+        }
+      ];
+
+      // We need to create separate wrappers since our stub only shows one row
+      const wrapper1 = createWrapper({ rows: [mixedRows[0]] });
+      const wrapper2 = createWrapper({ rows: [mixedRows[1]] });
+      const wrapper3 = createWrapper({ rows: [mixedRows[2]] });
+
+      // Cluster 1: has labels -> should render additional-sub-row
+      expect(wrapper1.find('tr.additional-sub-row').exists()).toBe(true);
+
+      // Cluster 2: no labels -> should render additional-sub-row
+      expect(wrapper2.find('tr.additional-sub-row').exists()).toBe(true);
+
+      // Cluster 3: has labels -> should render additional-sub-row
+      expect(wrapper3.find('tr.additional-sub-row').exists()).toBe(true);
+    });
+
+    it('should render additional-sub-row without the has-sub-row when there is no stateDescription', () => {
+      const rows = [{
+        customLabels:        null,
+        displayCustomLabels: false,
+        stateDescription:    null,
+      }];
+
+      const wrapper = createWrapper({ rows });
+      const additionalSubRow = wrapper.find('.labels-row.additional-sub-row.has-sub-row');
+
+      // Should not exist when customLabels is null
+      expect(additionalSubRow.exists()).toBe(false);
     });
   });
 });

@@ -81,7 +81,8 @@ export default defineConfig({
     username,
     password:            process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword:   process.env.CATTLE_BOOTSTRAP_PASSWORD,
-    grepTags:            process.env.GREP_TAGS,
+    // Jenkins runs against Vai-enabled Rancher; exclude @noVai tests.
+    grepTags:            `${ process.env.GREP_TAGS }+-@noVai`,
     // the below env vars are only available to tests that run in Jenkins
     awsAccessKey:        process.env.AWS_ACCESS_KEY_ID,
     awsSecretKey:        process.env.AWS_SECRET_ACCESS_KEY,
@@ -124,7 +125,9 @@ export default defineConfig({
       require('cypress-terminal-report/src/installLogsPrinter')(on, {
         outputRoot:           `${ config.projectRoot }/browser-logs/`,
         outputTarget:         { 'out.html': 'html' },
-        logToFilesOnAfterRun: true,
+        // Disabled in Jenkins config only to prevent conflict with cypress-mochawesome-reporter's after:run hook
+        // Both plugins use after:run; this prevents Cypress from exiting before HTML reports are generated
+        logToFilesOnAfterRun: false,
         printLogsToConsole:   'never',
         // printLogsToFile:      'always', // default prints on failures
       });

@@ -17,6 +17,8 @@ import { BASE_SCOPES } from '@shell/store/auth';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import isUrl from 'is-url';
 
+const PKCE_S256 = 'S256';
+
 export default {
   components: {
     Banner,
@@ -37,6 +39,10 @@ export default {
   emits: ['validationChanged'],
 
   mixins: [CreateEditView, AuthConfig],
+
+  setup() {
+    return { PKCE_S256 };
+  },
 
   data() {
     return {
@@ -149,6 +155,14 @@ export default {
       return this.model?.id === 'genericoidc';
     },
 
+    isKeycloak() {
+      return this.model?.id === 'keycloakoidc';
+    },
+
+    supportsCustomClaims() {
+      return this.isGenericOidc || this.isKeycloak;
+    },
+
     isLogoutAllSupported() {
       return this.model?.logoutAllSupported;
     },
@@ -169,7 +183,7 @@ export default {
 
     sloEndSessionEndpointUiEnabled() {
       return this.sloType === SLO_OPTION_VALUES.all || this.sloType === SLO_OPTION_VALUES.both;
-    }
+    },
   },
 
   watch: {
@@ -269,7 +283,7 @@ export default {
     },
 
     willSave() {
-      if (this.isGenericOidc && !this.addCustomClaims) {
+      if (this.supportsCustomClaims && !this.addCustomClaims) {
         this.model.nameClaim = undefined;
         this.model.groupsClaim = undefined;
         this.model.emailClaim = undefined;
@@ -309,6 +323,9 @@ export default {
             <tr><td>{{ t('authConfig.oidc.issuer') }}: </td><td>{{ model.issuer }}</td></tr>
             <tr v-if="model.authEndpoint">
               <td>{{ t('authConfig.oidc.authEndpoint') }}: </td><td>{{ model.authEndpoint }}</td>
+            </tr>
+            <tr v-if="model.pkceMethod">
+              <td>{{ t('authConfig.oidc.pkceMethod.label') }}: </td><td>{{ model.pkceMethod }}</td>
             </tr>
             <tr v-if="isLogoutAllSupported">
               <td>{{ t('authConfig.slo.sloTitle') }}: </td><td>{{ sloTypeText }}</td>
@@ -416,34 +433,38 @@ export default {
           </div>
         </div>
 
-        <template v-if="isGenericOidc || supportsGroupSearch">
-          <div
-            class="row mb-20"
-          >
-            <div class="col span-6 checkbox-flex">
-              <!-- Allow group search -->
-              <Checkbox
-                v-if="supportsGroupSearch"
-                v-model:value="model.groupSearchEnabled"
-                data-testid="input-group-search"
-                :label="t('authConfig.oidc.groupSearch.label')"
-                :tooltip="t('authConfig.oidc.groupSearch.tooltip')"
-                :mode="mode"
-              />
-              <Checkbox
-                v-if="isGenericOidc"
-                v-model:value="addCustomClaims"
-                data-testid="input-add-custom-claims"
-                :label="t('authConfig.oidc.customClaims.enable.label')"
-                :tooltip="t('authConfig.oidc.customClaims.enable.tooltip')"
-                :mode="mode"
-              />
-            </div>
+        <div
+          class="row mb-20"
+        >
+          <div class="col span-6 checkbox-flex">
+            <!-- Allow group search -->
+            <Checkbox
+              v-model:value="model.pkceMethod"
+              :value-when-true="PKCE_S256"
+              :label="t('authConfig.oidc.pkce.label')"
+              :tooltip="t('authConfig.oidc.pkce.tooltip')"
+            />
+            <Checkbox
+              v-if="supportsGroupSearch"
+              v-model:value="model.groupSearchEnabled"
+              data-testid="input-group-search"
+              :label="t('authConfig.oidc.groupSearch.label')"
+              :tooltip="t('authConfig.oidc.groupSearch.tooltip')"
+              :mode="mode"
+            />
+            <Checkbox
+              v-if="supportsCustomClaims"
+              v-model:value="addCustomClaims"
+              data-testid="input-add-custom-claims"
+              :label="t('authConfig.oidc.customClaims.enable.label')"
+              :tooltip="t('authConfig.oidc.customClaims.enable.tooltip')"
+              :mode="mode"
+            />
           </div>
-        </template>
+        </div>
 
         <!-- Custom Claims -->
-        <template v-if="addCustomClaims && isGenericOidc">
+        <template v-if="addCustomClaims && supportsCustomClaims">
           <h4>{{ t('authConfig.oidc.customClaims.label') }}</h4>
           <div class="row mb-20">
             <div class="col span-6">
@@ -474,20 +495,6 @@ export default {
             </div>
           </div>
         </template>
-
-        <!-- Scopes -->
-        <div class="row mb-20">
-          <div class="col span-6">
-            <ArrayList
-              v-model:value="oidcScope"
-              :mode="mode"
-              :title="t('authConfig.oidc.scope.label')"
-              :value-placeholder="t('authConfig.oidc.scope.placeholder')"
-              :protip="t('authConfig.oidc.scope.protip', {}, true)"
-              @update:value="updateScope"
-            />
-          </div>
-        </div>
 
         <template v-if="!isAmazonCognito">
           <!-- Generated vs Specific Endpoints -->
@@ -546,7 +553,7 @@ export default {
             </div>
           </div>
 
-          <div class="row mb-20">
+          <div class="row">
             <div class="col span-6">
               <LabeledInput
                 v-model:value="model.issuer"
@@ -570,7 +577,10 @@ export default {
           </div>
 
           <!-- Advanced section -->
-          <AdvancedSection :mode="mode">
+          <AdvancedSection
+            class="mb-40"
+            :mode="mode"
+          >
             <div class="row mb-20">
               <div class="col span-6">
                 <LabeledInput
@@ -626,10 +636,24 @@ export default {
           </div>
         </template>
 
+        <!-- Scopes -->
+        <div class="row mb-20">
+          <div class="col span-6">
+            <ArrayList
+              v-model:value="oidcScope"
+              :mode="mode"
+              :title="t('authConfig.oidc.scope.label')"
+              :value-placeholder="t('authConfig.oidc.scope.placeholder')"
+              :protip="t('authConfig.oidc.scope.protip', {}, true)"
+              @update:value="updateScope"
+            />
+          </div>
+        </div>
+
         <!-- SLO logout -->
         <div
           v-if="isLogoutAllSupported"
-          class="mt-40 mb-20"
+          class="mb-20"
         >
           <div class="row">
             <div class="col span-12">

@@ -196,7 +196,7 @@ export function init(store) {
   configureType(SECRET, { showListMasthead: false });
   weightType(SECRET, 1, false);
 
-  configureType(VIRTUAL_TYPES.PROJECT_SECRETS, { showListMasthead: false });
+  configureType(VIRTUAL_TYPES.PROJECT_SECRETS, { showListMasthead: false, resource: SECRET });
   weightType(VIRTUAL_TYPES.PROJECT_SECRETS, 2, false);
 
   configureType(EVENT, { limit: 500 });
@@ -647,7 +647,6 @@ export function init(store) {
       name:   'c-cluster-product-resource',
       params: { resource: VIRTUAL_TYPES.PROJECT_SECRETS }
     },
-    exact:      true,
     ifHaveType: [{
       store: 'management',
       type:  SECRET

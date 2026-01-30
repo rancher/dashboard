@@ -5,7 +5,7 @@ import { useRoute } from 'vue-router';
 
 import { isAlternate } from '@shell/utils/platform';
 import { RcDropdownMenu } from '@components/RcDropdown';
-import { ButtonRoleProps, ButtonSizeProps } from '@components/RcButton/types';
+import { ButtonVariant, ButtonSize } from '@components/RcButton/types';
 import { DropdownOption } from '@components/RcDropdown/types';
 
 defineOptions({ inheritAttrs: false });
@@ -13,8 +13,8 @@ defineOptions({ inheritAttrs: false });
 const store = useStore();
 
 type RcDropdownMenuComponentProps = {
-  buttonRole?: keyof ButtonRoleProps;
-  buttonSize?: keyof ButtonSizeProps;
+  buttonVariant?: ButtonVariant;
+  buttonSize?: ButtonSize;
   buttonAriaLabel?: string;
   dropdownAriaLabel?: string;
   dataTestid?: string;
@@ -97,7 +97,7 @@ const menuOptions = () => {
 
 <template>
   <rc-dropdown-menu
-    :button-role="buttonRole || 'link'"
+    :button-variant="buttonVariant || 'link'"
     :button-size="buttonSize || 'small'"
     :button-aria-label="buttonAriaLabel"
     :dropdown-aria-label="dropdownAriaLabel"

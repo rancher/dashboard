@@ -59,7 +59,6 @@ useResourceDetailDrawerProvider();
 </script>
 <template>
   <Drawer
-    class="resource-detail-drawer"
     :ariaTarget="title"
     @close="emit('close')"
   >
@@ -72,10 +71,10 @@ useResourceDetailDrawerProvider();
     </template>
     <template #body>
       <Tabbed
-        class="tabbed"
         :useHash="false"
         :showExtensionTabs="false"
         :componentTestid="componentTestid"
+        :remove-borders="true"
         @changed="({selectedName}) => {activeTab = selectedName;}"
       >
         <ConfigTab
@@ -92,7 +91,8 @@ useResourceDetailDrawerProvider();
     <template #additional-actions>
       <RcButton
         v-if="canEdit"
-        :primary="true"
+        variant="primary"
+        size="large"
         :aria-label="action.ariaLabel"
         :data-testid="editBttnDataTestId"
         @click="action.action"
@@ -102,20 +102,3 @@ useResourceDetailDrawerProvider();
     </template>
   </Drawer>
 </template>
-
-<style lang="scss" scoped>
-.resource-detail-drawer {
-  :deep() .tabbed {
-    & > .tabs {
-      border: none;
-    }
-
-    & > .tab-container {
-      border: none;
-      border-top: 1px solid var(--border);
-      padding: 0;
-      padding-top: 24px;
-    }
-  }
-}
-</style>

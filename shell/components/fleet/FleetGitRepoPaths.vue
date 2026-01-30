@@ -335,8 +335,8 @@ export default {
             </h4>
             <RcButton
               v-if="!isView"
-              small
-              link
+              size="small"
+              variant="link"
               @click="removePaths(i)"
             >
               <i class="icon icon-x" />

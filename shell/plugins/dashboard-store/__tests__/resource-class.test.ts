@@ -1,6 +1,7 @@
 import jsyaml from 'js-yaml';
 import Resource from '@shell/plugins/dashboard-store/resource-class.js';
 import { resourceClassJunkObject } from '@shell/plugins/dashboard-store/__tests__/utils/store-mocks';
+import { EVENT } from '@shell/config/types';
 
 describe('class: Resource', () => {
   describe('given custom resource keys', () => {
@@ -235,6 +236,239 @@ describe('class: Resource', () => {
 
       expect(resourceInstance.followLink).toHaveBeenCalledTimes(1);
       expect(mockStore.dispatch).not.toHaveBeenCalledWith('load', expect.any(Object));
+    });
+  });
+
+  describe('getter: resourceConditions', () => {
+    it('should return empty array when status.conditions is undefined', () => {
+      const resource = new Resource({ type: 'test' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      expect(resource.resourceConditions).toStrictEqual([]);
+    });
+
+    it('should return empty array when status is undefined', () => {
+      const resource = new Resource({ type: 'test', status: {} }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      expect(resource.resourceConditions).toStrictEqual([]);
+    });
+
+    it('should map conditions correctly', () => {
+      const resource = new Resource({
+        type:   'test',
+        status: {
+          conditions: [
+            {
+              type: 'Ready', status: 'True', message: 'Resource is ready', lastTransitionTime: '2024-01-01T00:00:00Z'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      const conditions = resource.resourceConditions;
+
+      expect(conditions).toHaveLength(1);
+      expect(conditions[0].condition).toBe('Ready');
+      expect(conditions[0].status).toBe('True');
+      expect(conditions[0].message).toBe('Resource is ready');
+      expect(conditions[0].stateSimpleColor).toBe('disabled');
+      expect(conditions[0].time).toBe('2024-01-01T00:00:00Z');
+    });
+
+    it('should set error color when condition has error', () => {
+      const resource = new Resource({
+        type:   'test',
+        status: {
+          conditions: [
+            {
+              type: 'Ready', status: 'False', error: true, message: 'Something failed'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      const conditions = resource.resourceConditions;
+
+      expect(conditions[0].stateSimpleColor).toBe('error');
+      expect(conditions[0].error).toBe(true);
+    });
+
+    it('should prepend reason to message when present', () => {
+      const resource = new Resource({
+        type:   'test',
+        status: {
+          conditions: [
+            {
+              type: 'Ready', status: 'False', reason: 'MinimumReplicasUnavailable', message: 'Deployment does not have minimum availability.'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      const conditions = resource.resourceConditions;
+
+      expect(conditions[0].message).toBe('[MinimumReplicasUnavailable] Deployment does not have minimum availability.');
+    });
+
+    it('should use Unknown for missing type and status', () => {
+      const resource = new Resource({
+        type:   'test',
+        status: {
+          conditions: [
+            { message: 'Some message' },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      const conditions = resource.resourceConditions;
+
+      expect(conditions[0].condition).toBe('Unknown');
+      expect(conditions[0].status).toBe('Unknown');
+    });
+
+    it('should prioritize time fields correctly', () => {
+      const resource = new Resource({
+        type:   'test',
+        status: {
+          conditions: [
+            {
+              type: 'Test', lastProbeTime: 'probe-time', lastUpdateTime: 'update-time', lastTransitionTime: 'transition-time'
+            },
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      const conditions = resource.resourceConditions;
+
+      expect(conditions[0].time).toBe('probe-time');
+    });
+  });
+
+  describe('getter: resourceEvents', () => {
+    it('should return events from the store', () => {
+      const mockEvents = [{ type: 'Normal', reason: 'Test' }];
+      const resource = new Resource({ type: 'test' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn(), 'cluster/all': (type: string) => (type === EVENT ? mockEvents : []) },
+      });
+
+      expect(resource.resourceEvents).toStrictEqual(mockEvents);
+    });
+  });
+
+  describe('getter: cards', () => {
+    it('should return an array containing the insight card', () => {
+      const resource = new Resource({ type: 'test' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: {
+          'i18n/t':      (key: string) => key,
+          'cluster/all': () => []
+        },
+      });
+
+      const cards = resource.cards;
+
+      expect(cards).toHaveLength(1);
+      expect(cards[0]).toHaveProperty('component');
+      expect(cards[0]).toHaveProperty('props');
+    });
+  });
+
+  describe('getter: insightCardProps', () => {
+    it('should return props with title and rows', () => {
+      const resource = new Resource({
+        type:   'test',
+        status: {
+          conditions: [
+            { type: 'Ready', status: 'True' }
+          ]
+        }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: {
+          'i18n/t':      (key: string) => key,
+          'cluster/all': () => []
+        },
+      });
+
+      const props = resource.insightCardProps;
+
+      expect(props.title).toBe('component.resource.detail.card.insightsCard.title');
+      expect(props.rows).toHaveLength(2);
+      expect(props.rows[0].label).toBe('component.resource.detail.card.insightsCard.rows.conditions');
+      expect(props.rows[1].label).toBe('component.resource.detail.card.insightsCard.rows.events');
+    });
+  });
+
+  describe('getter: detailPageAdditionalActions', () => {
+    it('should return undefined by default', () => {
+      const resource = new Resource({ type: 'test-type' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      expect(resource.detailPageAdditionalActions).toBeUndefined();
+    });
+
+    it('should allow subclasses to override and return button props array', () => {
+      class CustomResource extends Resource {
+        get detailPageAdditionalActions() {
+          return [
+            {
+              label: 'Action 1', variant: 'secondary', onClick: () => {}
+            },
+            {
+              label: 'Action 2', variant: 'primary', onClick: () => {}
+            }
+          ];
+        }
+      }
+
+      const resource = new CustomResource({ type: 'test-type' }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': jest.fn() },
+      });
+
+      const actions = resource.detailPageAdditionalActions;
+
+      expect(Array.isArray(actions)).toBe(true);
+      expect(actions).toHaveLength(2);
+      expect(actions[0].label).toBe('Action 1');
+      expect(actions[0].variant).toBe('secondary');
+      expect(actions[1].label).toBe('Action 2');
+      expect(actions[1].variant).toBe('primary');
     });
   });
 });

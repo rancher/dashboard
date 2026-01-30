@@ -75,19 +75,14 @@ describe('component: RKE2Networking', () => {
     expect(wrapper.emitted('validationChanged')).toHaveLength(2);
   });
 
-  it.each([
-    ['cluster-cidr', '2001:db8::/48'],
-    ['service-cidr', '2001:db8:1::/112'],
-  ])('should show an ipv6 warning banner when %p is an ipv6 address', async(field, address) => {
+  it('should show a flannel masq input when provisioning k3s and flannel is enabled', () => {
     const spec = { ...defaultSpec } as any;
-
-    spec.rkeConfig.machineGlobalConfig[field] = address;
 
     const wrapper = shallowMount(Networking, {
       propsData: {
         mode:            'create',
         value:           { spec },
-        selectedVersion: { serverArgs: mockServerArgs },
+        selectedVersion: { serverArgs: mockServerArgs, label: 'k3s' },
       },
       global: {
         mocks: {
@@ -97,25 +92,19 @@ describe('component: RKE2Networking', () => {
       },
     });
 
-    const banner = wrapper.findComponent('[data-testid="network-tab-ipv6StackPreferenceWarning"]');
+    const input = wrapper.findComponent('[data-testid="cluster-rke2-flannel-masq-checkbox"]');
 
-    expect(banner.exists()).toBe(true);
+    expect(input.exists()).toBe(true);
   });
 
-  it('should not show an ipv6 warning banner when neither cluster-cidr nor service-cidr are ipv6', async() => {
+  it('should not show a flannel masq input when provisioning rke2', () => {
     const spec = { ...defaultSpec } as any;
-
-    spec.rkeConfig.machineGlobalConfig = {
-      cni:            'calico',
-      'cluster-cidr': '10.0.0.0/16',
-      'service-cidr': '10.0.1.0/16'
-    } ;
 
     const wrapper = shallowMount(Networking, {
       propsData: {
         mode:            'create',
         value:           { spec },
-        selectedVersion: { serverArgs: mockServerArgs },
+        selectedVersion: { serverArgs: mockServerArgs, label: 'rke2' },
       },
       global: {
         mocks: {
@@ -125,9 +114,61 @@ describe('component: RKE2Networking', () => {
       },
     });
 
-    const banner = wrapper.findComponent('[data-testid="network-tab-ipv6StackPreferenceWarning"]');
+    const input = wrapper.findComponent('[data-testid="cluster-rke2-flannel-masq-checkbox"]');
 
-    expect(banner.exists()).toBe(false);
+    expect(wrapper.vm.showFlannelMasq).toBe(false);
+    expect(input.exists()).toBe(false);
+  });
+
+  it('should automatically check the flannel masq input when stack preference is changed from ipv4 to ipv6 or dual', async() => {
+    const spec = { ...defaultSpec } as any;
+
+    spec.rkeConfig.networking.stackPreference = 'ipv4';
+
+    const wrapper = shallowMount(Networking, {
+      propsData: {
+        mode:            'create',
+        value:           { spec },
+        selectedVersion: { serverArgs: mockServerArgs, label: 'k3s' },
+      },
+      global: { mocks: {} }
+    });
+
+    const newSpec = { ...spec };
+
+    newSpec.rkeConfig.networking.stackPreference = 'dual';
+
+    await wrapper.setProps({ value: { spec: newSpec } });
+
+    expect(wrapper.emitted('enable-flannel-masq-changed')?.[0]?.[0]).toBe(true);
+  });
+
+  it('should automatically un-check the flannel masq input when stack preference is changed from ipv6 or dual to ipv4', async() => {
+    const spec = { ...defaultSpec } as any;
+
+    spec.rkeConfig.networking.stackPreference = 'ipv6';
+
+    const wrapper = shallowMount(Networking, {
+      propsData: {
+        mode:            'create',
+        value:           { spec },
+        selectedVersion: { serverArgs: mockServerArgs, label: 'k3s' },
+      },
+      global: {
+        mocks: {
+          ...defaultMocks,
+          $store: { getters: defaultGetters },
+        },
+      },
+    });
+
+    const newSpec = { ...spec };
+
+    newSpec.rkeConfig.networking.stackPreference = 'ipv4';
+
+    await wrapper.setProps({ value: { spec: newSpec } });
+
+    expect(wrapper.emitted('enable-flannel-masq-changed')?.[0]?.[0]).toBe(false);
   });
 
   it('should not automatically update stack preference or validate it when editing an existing cluster even if its set to ipv4 and the user appears to have ipv6 pools', async() => {

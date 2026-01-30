@@ -2,22 +2,18 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { NAMESPACE as NAMESPACE_COL } from '@shell/config/table-headers';
 import {
-  POD, WORKLOAD_TYPES, SCALABLE_WORKLOAD_TYPES, SERVICE, INGRESS, NODE, NAMESPACE, WORKLOAD_TYPE_TO_KIND_MAPPING, METRICS_SUPPORTED_KINDS
+  POD, WORKLOAD_TYPES, SERVICE, INGRESS, NODE, NAMESPACE, WORKLOAD_TYPE_TO_KIND_MAPPING, METRICS_SUPPORTED_KINDS
 } from '@shell/config/types';
 import ResourceTable from '@shell/components/ResourceTable';
 import Tab from '@shell/components/Tabbed/Tab';
 import Loading from '@shell/components/Loading';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
-import CountGauge from '@shell/components/CountGauge';
 import { allHash } from '@shell/utils/promise';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
-import PlusMinus from '@shell/components/form/PlusMinus';
-import { matches } from '@shell/utils/selector';
 import { PROJECT } from '@shell/config/labels-annotations';
 
-const SCALABLE_TYPES = Object.values(SCALABLE_WORKLOAD_TYPES);
 const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';
 const WORKLOAD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-1/rancher-workload?orgId=1';
 
@@ -27,9 +23,7 @@ export default {
     Tab,
     Loading,
     ResourceTabs,
-    CountGauge,
     ResourceTable,
-    PlusMinus
   },
 
   mixins: [CreateEditView],
@@ -57,10 +51,6 @@ export default {
       hash.pods = this.value.fetchPods();
     }
 
-    if (this.serviceSchema) {
-      hash.servicesInNamespace = this.$store.dispatch('cluster/findAll', { type: SERVICE, opt: { namespaced: this.value.metadata.namespace } });
-    }
-
     if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
       hash.jobs = this.value.matchingJobs();
     }
@@ -85,7 +75,6 @@ export default {
         this.showProjectMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [this.WORKLOAD_PROJECT_METRICS_DETAIL_URL, this.WORKLOAD_PROJECT_METRICS_SUMMARY_URL], 'cluster', projectId);
       }
     }
-    this.findMatchingServices();
     this.findMatchingIngresses();
   },
 
@@ -97,9 +86,7 @@ export default {
 
   data() {
     return {
-      servicesInNamespace:             [],
       allIngresses:                    [],
-      matchingServices:                [],
       matchingIngresses:               [],
       allNodes:                        [],
       WORKLOAD_METRICS_DETAIL_URL,
@@ -223,55 +210,10 @@ export default {
       const total = this.isCronJob ? this.totalRuns : this.value.pods.length;
 
       return !jobGauges.find((jg) => jg.count === total);
-    },
-
-    canScale() {
-      return !!SCALABLE_TYPES.includes(this.value.type) && this.value.canUpdate;
-    },
+    }
   },
 
   methods: {
-    async scale(isUp) {
-      try {
-        if (isUp) {
-          await this.value.scaleUp();
-        } else {
-          await this.value.scaleDown();
-        }
-      } catch (err) {
-        this.$store.dispatch('growl/fromError', {
-          title: this.t('workload.list.errorCannotScale', { direction: isUp ? 'up' : 'down', workloadName: this.value.name }),
-          err
-        },
-        { root: true });
-      }
-    },
-    async scaleDown() {
-      await this.scale(false);
-    },
-    async scaleUp() {
-      await this.scale(true);
-    },
-    findMatchingServices() {
-      if (!this.serviceSchema) {
-        return [];
-      }
-
-      // Find Services that have selectors that match this workload's Pod(s).
-      this.matchingServices = this.servicesInNamespace.filter((service) => {
-        const selector = service.spec.selector;
-
-        for (let i = 0; i < this.value.pods.length; i++) {
-          const pod = this.value.pods[i];
-
-          if (service.metadata?.namespace === this.value.metadata?.namespace && matches(pod, selector)) {
-            return true;
-          }
-        }
-
-        return false;
-      });
-    },
     findMatchingIngresses() {
       if (!this.ingressSchema) {
         return [];
@@ -297,8 +239,8 @@ export default {
 
               if (!targetServiceName) continue;
 
-              for (let k = 0; k < this.matchingServices.length; k++) {
-                const service = this.matchingServices[k];
+              for (let k = 0; k < this.value.relatedServices.length; k++) {
+                const service = this.value.relatedServices[k];
                 const matchingServiceName = service?.metadata?.name;
 
                 if (ingress.metadata?.namespace === this.value.metadata?.namespace && matchingServiceName === targetServiceName) {
@@ -331,50 +273,6 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <div
-      v-if="canScale"
-      class="right-align flex"
-    >
-      <PlusMinus
-        class="text-right"
-        :label="t('tableHeaders.scale')"
-        :value="value.spec.replicas"
-        :disabled="!isScalable"
-        @minus="scaleDown"
-        @plus="scaleUp"
-      />
-    </div>
-    <h3>
-      {{ isJob || isCronJob ? t('workload.detailTop.runs') :t('workload.detailTop.pods') }}
-    </h3>
-    <div
-      v-if="value.pods || value.jobGauges"
-      class="gauges mb-20"
-      :class="{'gauges__pods': !!value.pods}"
-    >
-      <template v-if="value.jobGauges">
-        <CountGauge
-          v-for="(group, key) in value.jobGauges"
-          :key="key"
-          :total="isCronJob? totalRuns : value.pods.length"
-          :useful="group.count || 0"
-          :graphical="showJobGaugeCircles"
-          :primary-color-var="`--sizzle-${group.color}`"
-          :name="t(`workload.gaugeStates.${key}`)"
-        />
-      </template>
-      <template v-else>
-        <CountGauge
-          v-for="(group, key) in podGauges"
-          :key="key"
-          :total="value.pods.length"
-          :useful="group.count || 0"
-          :graphical="showPodGaugeCircles"
-          :primary-color-var="`--sizzle-${group.color}`"
-          :name="key"
-        />
-      </template>
-    </div>
     <ResourceTabs
       :value="value"
     >
@@ -455,7 +353,7 @@ export default {
           {{ t('workload.detail.cannotViewServices') }}
         </p>
         <p
-          v-else-if="matchingServices.length === 0"
+          v-else-if="value.relatedServices.length === 0"
           class="caption"
         >
           {{ t('workload.detail.cannotFindServices') }}
@@ -467,8 +365,8 @@ export default {
           {{ t('workload.detail.serviceListCaption') }}
         </p>
         <ResourceTable
-          v-if="serviceSchema && matchingServices.length > 0"
-          :rows="matchingServices"
+          v-if="serviceSchema && value.relatedServices.length > 0"
+          :rows="value.relatedServices"
           :headers="serviceHeaders"
           key-field="id"
           :schema="serviceSchema"
