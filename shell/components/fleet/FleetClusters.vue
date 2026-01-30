@@ -25,6 +25,14 @@ export default {
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
+    },
+    removeSubRows: {
+      type:    Boolean,
+      default: false,
+    },
+    ignoreFilter: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -99,9 +107,9 @@ export default {
     :schema="schema"
     :headers="headers"
     :rows="rows"
-    :sub-rows="true"
     :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    :ignore-filter="ignoreFilter"
     key-field="_key"
   >
     <template #cell:workspace="{row}">
@@ -151,7 +159,10 @@ export default {
       >{{ row.bundleInfo.total }}</span>
     </template>
 
-    <template #additional-sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave, showSubRow}">
+    <template
+      v-if="!removeSubRows"
+      #additional-sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave, showSubRow}"
+    >
       <tr
         class="labels-row additional-sub-row"
         :class="{ 'has-sub-row': showSubRow}"
@@ -195,6 +206,14 @@ export default {
           </td>
         </template>
       </tr>
+    </template>
+    <template
+      v-else
+      #sub-row
+    >
+      <tr
+        class="sub-row"
+      />
     </template>
   </ResourceTable>
 </template>
