@@ -111,6 +111,8 @@ export const SETTING = {
   IMPORTED_CLUSTER_VERSION_MANAGEMENT:           'imported-cluster-version-management',
   CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS:          'cluster-agent-default-priority-class',
   CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET: 'cluster-agent-default-pod-disruption-budget',
+  FLEET_AGENT_DEFAULT_PRIORITY_CLASS:            'fleet-agent-default-priority-class',
+  FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET:   'fleet-agent-default-pod-disruption-budget',
   KEV2_OPERATORS:                                'kev2-operators',
   /**
    * Dynamic Content settings

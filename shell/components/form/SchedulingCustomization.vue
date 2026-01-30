@@ -7,6 +7,10 @@ export default {
   components: { Checkbox, Banner },
   emits:      ['scheduling-customization-changed'],
   props:      {
+    type: {
+      type:     String,
+      required: true,
+    },
     value: {
       type:    Object,
       default: () => {},
@@ -62,7 +66,7 @@ export default {
       label-key="cluster.agentConfig.subGroups.schedulingCustomization.label"
       descriptionKey="cluster.agentConfig.subGroups.schedulingCustomization.description"
       data-testid="scheduling-customization-checkbox"
-      @update:value="$emit('scheduling-customization-changed', $event)"
+      @update:value="$emit('scheduling-customization-changed', { event: $event, agentType: type })"
     >
       <template
         v-if="feature && isEdit && settingMissmatch"
@@ -77,7 +81,7 @@ export default {
           :value="applyGlobal"
           :mode="mode"
           label-key="cluster.agentConfig.subGroups.schedulingCustomization.innerCheckbox"
-          @update:value="$emit('scheduling-customization-changed', feature)"
+          @update:value="$emit('scheduling-customization-changed', { event: $event, agentType: type })"
         />
       </template>
     </Checkbox>
