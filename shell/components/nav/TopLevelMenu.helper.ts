@@ -1,4 +1,4 @@
-import { CAPI, MANAGEMENT } from '@shell/config/types';
+import { CAPI, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
 import { STORE } from '@shell/store/store-types';
 import { PaginationParam, PaginationParamFilter, PaginationSort } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
@@ -216,7 +216,8 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
           context: 'side-bar',
         }
       },
-      formatResponse: { classify: true }
+      formatResponse: { classify: true },
+      saveCountAs:    SAVED_COUNTS.K8S_CLUSTERS
     });
     // Fetch all prov clusters for the mgmt clusters we have
     this.provClusterWrapper = new PaginationWrapper({
