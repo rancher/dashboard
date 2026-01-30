@@ -9,7 +9,7 @@ import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/w
 
 const localCluster = 'local';
 
-describe('Deployments', { testIsolation: 'off', tags: ['@explorer2'] }, () => {
+describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
