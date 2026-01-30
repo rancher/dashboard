@@ -97,7 +97,8 @@ export const deploymentCreateRequest = {
         initContainers:   [],
         imagePullSecrets: [],
         volumes:          [],
-        affinity:         {}
+        affinity:         {},
+        securityContext:  { seccompProfile: { type: 'RuntimeDefault' } }
       },
       metadata: {
         labels:    { 'workload.user.cattle.io/workloadselector': 'apps.deployment-default-test-deployment' },

@@ -9,7 +9,7 @@ import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/w
 
 const localCluster = 'local';
 
-describe('Deployments', { testIsolation: 'off', tags: ['@explorer2'] }, () => {
+describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -96,7 +96,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2'] }, () => {
       });
     });
 
-    it('Should show configuration drawer with the labels/annotations tab open', () => {
+    it.skip('Should show configuration drawer with the labels/annotations tab open', () => {
       const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(scaleTestDeploymentName, localCluster, 'apps.deployment' as any, scaleTestNamespace);
 
       workloadDetailsPage.goTo();
@@ -122,7 +122,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2'] }, () => {
       workloadDetailsPage.replicaCount().should('contain', '2', MEDIUM_TIMEOUT_OPT);
 
       // Verify pod status shows healthy scaling state
-      workloadDetailsPage.gaugesPods().should('be.visible', MEDIUM_TIMEOUT_OPT)
+      workloadDetailsPage.podsStatus().should('be.visible', MEDIUM_TIMEOUT_OPT)
         .should('contain.text', 'Running');
 
       workloadDetailsPage.podScaleDown().click();

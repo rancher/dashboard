@@ -19,7 +19,10 @@ const i18n = useI18n(store);
 </script>
 
 <template>
-  <div class="scaler">
+  <div
+    class="scaler"
+    data-testid="scaler"
+  >
     <button
       class="decrease"
       :aria-label="i18n.t('component.resource.detail.card.scaler.ariaLabel.decrease', {resourceName: props.ariaResourceName})"
