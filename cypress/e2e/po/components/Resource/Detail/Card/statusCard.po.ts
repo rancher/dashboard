@@ -1,5 +1,4 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
-import { CypressChainable } from '@/cypress/e2e/po/po.types';
 import ScalerPo from '@/cypress/e2e/po/components/Resource/Detail/Card/scaler.po';
 
 export default class CardPo extends ComponentPo {
@@ -20,7 +19,7 @@ export default class CardPo extends ComponentPo {
   }
 
   podsRunningTotal(): Cypress.Chainable {
-    return this.self().find('.rc-counter-badge .inactive');
+    return this.self().get('[data-testid="rc-counter-badge"]');
   }
 
   replicaCount(): Cypress.Chainable {
