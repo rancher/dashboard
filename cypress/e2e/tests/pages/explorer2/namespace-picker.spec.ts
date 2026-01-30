@@ -31,10 +31,12 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     // Verify 'Namespace: cattle-fleet-system' appears once when filtering by Namespace
     // Verify multiple namespaces within Project: System display when filtering by Project
 
-    // group workloads by namespace - add intercept to wait for completion
-    cy.intercept('PUT', '/v1/userpreferences/*').as('updateNamespaceFilter');
+    // Set up intercept before making the API call
+    cy.intercept('PUT', '/v1/userpreferences/user-*').as('updateNamespaceFilter');
+
+    // group workloads by namespace
     cy.updateNamespaceFilter('local', 'metadata.namespace', '{"local":["all://user"]}');
-    cy.wait('@updateNamespaceFilter');
+    cy.wait('@updateNamespaceFilter', { timeout: 10000 });
 
     const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 

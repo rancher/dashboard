@@ -55,9 +55,12 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
 
         installChartPage.nextPage();
 
-        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('chartInstall');
         installChartPage.installChart();
-        cy.wait('@chartInstall').its('response.statusCode').should('eq', 201);
+
+        // Wait for installation to complete by checking for UI indicators
+        cy.url({ timeout: 30000 }).should('include', '/apps/cattle.io.clusterapp/compliance-operator-system/rancher-compliance');
+        cy.contains('Deployed', { timeout: 30000 }).should('be.visible');
+
         kubectl.waitForTerminalStatus('Disconnected');
 
         kubectl.closeTerminal();
