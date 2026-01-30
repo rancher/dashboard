@@ -4,6 +4,11 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { NORMAN } from '@shell/config/types';
 import FormValidation from '@shell/mixins/form-validation';
+import UnitInput from '@shell/components/form/UnitInput';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+import { _CREATE } from '@shell/config/query-params';
+
+const RETENTION_DEFAULT = 5;
 
 export default {
   emits: ['update:value', 'validationChanged'],
@@ -12,6 +17,8 @@ export default {
     LabeledInput,
     Checkbox,
     SelectOrCreateAuthSecret,
+    UnitInput,
+    RadioGroup
   },
   mixins: [FormValidation],
 
@@ -35,6 +42,10 @@ export default {
       type:     Function,
       required: true,
     },
+    localRetentionCount: {
+      type:    Number,
+      default: null,
+    }
   },
 
   data() {
@@ -47,9 +58,11 @@ export default {
         folder:              '',
         region:              '',
         skipSSLVerify:       false,
+        retention:           null,
         ...(this.value || {}),
       },
-      fvFormRuleSets: [
+      differentRetention: false,
+      fvFormRuleSets:     [
         {
           path: 'endpoint', rootObject: this.config, rules: ['awsStyleEndpoint']
         },
@@ -58,6 +71,9 @@ export default {
         },
       ]
     };
+  },
+  mounted() {
+    this.differentRetention = !(this.mode === _CREATE || this.value?.retention === this.localRetentionCount);
   },
 
   computed: {
@@ -73,10 +89,25 @@ export default {
 
       return {};
     },
+
+    localCountToUse() {
+      return this.localRetentionCount === null || this.localRetentionCount === undefined ? RETENTION_DEFAULT : this.localRetentionCount;
+    },
+    retentionOptionsOptions() {
+      return [
+        { label: this.t('cluster.rke2.etcd.s3config.snapshotRetention.options.localDefined', { count: this.localCountToUse }), value: false }, { label: this.t('cluster.rke2.etcd.s3config.snapshotRetention.options.manual'), value: true }
+      ];
+    }
   },
   watch: {
     fvFormIsValid(newValue) {
       this.$emit('validationChanged', !!newValue);
+    },
+    localRetentionCount(neu) {
+      if (!this.differentRetention) {
+        this.config.retention = this.localCountToUse;
+        this.update();
+      }
     }
   },
 
@@ -86,6 +117,10 @@ export default {
 
       this.$emit('update:value', out);
     },
+    resetRetention() {
+      this.config.retention = this.localCountToUse;
+      this.update();
+    }
   },
 };
 </script>
@@ -150,7 +185,6 @@ export default {
         />
       </div>
     </div>
-
     <div
       v-if="!ccData.defaultSkipSSLVerify"
       class="mt-20"
@@ -171,6 +205,28 @@ export default {
         :placeholder="ccData.defaultEndpointCA"
         @update:value="update"
       />
+    </div>
+    <div class="row mt-20">
+      <div class="col span-6">
+        <h4>{{ t('cluster.rke2.etcd.s3config.snapshotRetention.title') }}</h4>
+        <RadioGroup
+          v-model:value="differentRetention"
+          name="s3config-retention"
+          :mode="mode"
+          :options="retentionOptionsOptions"
+          :row="true"
+          @update:value="resetRetention"
+        />
+        <UnitInput
+          v-if="differentRetention"
+          v-model:value="config.retention"
+          :label="t('cluster.rke2.etcd.s3config.snapshotRetention.label')"
+          :mode="mode"
+          :suffix="t('cluster.rke2.snapshots.s3Suffix')"
+          class="mt-10"
+          @update:value="update"
+        />
+      </div>
     </div>
   </div>
 </template>
