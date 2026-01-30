@@ -42,12 +42,20 @@ export default {
   computed: { ...QUOTA_COMPUTED },
 
   methods: {
-    updateType(i, type) {
-      this.typeValues[i] = type;
+    updateType(event) {
+      const { index, type } = event;
+
+      this.typeValues[index] = type;
     },
     remainingTypes(currentType) {
       return this.mappedTypes
-        .filter((mappedType) => !this.typeValues.includes(mappedType.value) || mappedType.value === currentType);
+        .filter((mappedType) => {
+          if (mappedType.value === 'custom') {
+            return true;
+          }
+
+          return !this.typeValues.includes(mappedType.value) || mappedType.value === currentType;
+        });
     },
     emitRemove(data) {
       this.$emit('remove', data.row?.value);
@@ -60,6 +68,9 @@ export default {
     <div class="headers mb-10">
       <div class="mr-10">
         <label>{{ t('resourceQuota.headers.resourceType') }}</label>
+      </div>
+      <div class="mr-20">
+        <label>{{ t('resourceQuota.headers.resourceIdentifier') }}</label>
       </div>
       <div class="mr-20">
         <label>{{ t('resourceQuota.headers.projectLimit') }}</label>
@@ -83,8 +94,9 @@ export default {
           :mode="mode"
           :types="remainingTypes(typeValues[props.i])"
           :type="typeValues[props.i]"
+          :index="props.i"
           @input="$emit('input', $event)"
-          @type-change="updateType(props.i, $event)"
+          @type-change="updateType($event)"
         />
       </template>
     </ArrayList>

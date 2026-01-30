@@ -1,5 +1,12 @@
 export const RANCHER_TYPES = [
   {
+    value:          'custom',
+    inputExponent:  0,
+    baseUnit:       '',
+    labelKey:       'resourceQuota.custom',
+    placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
+  },
+  {
     value:          'configMaps',
     inputExponent:  0,
     baseUnit:       '',
