@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.paths.json",
   "compilerOptions": {
-    "target": "ES2018",
+    "target": "esnext",
     "module": "ESNext",
     "moduleResolution": "Node",
     "lib": [
