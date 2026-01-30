@@ -27,6 +27,33 @@ describe('class Secret', () => {
 
       expect(location.name).toBe(`c-cluster-product-${ VIRTUAL_TYPES.PROJECT_SECRETS }-namespace-id`);
       expect(location.params.resource).toBe(VIRTUAL_TYPES.PROJECT_SECRETS);
+      expect(location.params.product).toBe('explorer');
+      expect(location.params.cluster).toBe('c-cluster');
+      expect(location.params.namespace).toBe('c-cluster-p-project');
+      expect(location.params.id).toBe('my-secret');
+    });
+
+    it('should return default detailLocation for non-project scoped secret', () => {
+      const secret = new Secret({
+        metadata: { namespace: 'default' },
+        id:       'default/my-secret'
+      });
+
+      // Mock $rootGetters
+      Object.defineProperty(secret, '$rootGetters', {
+        value: {
+          productId: 'explorer',
+          clusterId: 'c-cluster',
+          isRancher: true
+        }
+      });
+
+      const expectedLocation = { name: 'some-route' };
+
+      // Mock _detailLocation (the parent class implementation or default behavior)
+      Object.defineProperty(secret, '_detailLocation', { value: expectedLocation });
+
+      expect(secret.detailLocation).toBe(expectedLocation);
     });
   });
 
