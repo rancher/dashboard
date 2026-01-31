@@ -102,7 +102,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       workloadDetailsPage.goTo();
       workloadDetailsPage.waitForDetailsPage(scaleTestDeploymentName);
 
-      workloadDetailsPage.openEmptyShowConfigurationAnnotationsLink();
+      workloadDetailsPage.openEmptyShowConfigurationLabelsLink();
       workloadDetailsPage.labelsAndAnnotationsTab().should('be.visible');
     });
 
