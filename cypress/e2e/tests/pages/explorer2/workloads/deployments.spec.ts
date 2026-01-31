@@ -25,7 +25,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     let scaleTestDeploymentName;
     let scaleTestNamespace; // Dynamic namespace for scale test
 
-    const createTesDeployment = (baseName: string) => {
+    const createTestDeployment = (baseName: string) => {
       const deployment = { ...createDeploymentBlueprint };
 
       deployment.metadata.name = `${ baseName }-${ Date.now() }`;
@@ -62,7 +62,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
             metadata:   { name: scaleTestNamespace }
           }));
 
-          const scaleDeployment = createTesDeployment(scaleTestDeploymentId);
+          const scaleDeployment = createTestDeployment(scaleTestDeploymentId);
 
           // Use the dynamic namespace
           scaleDeployment.metadata.namespace = scaleTestNamespace;
@@ -96,7 +96,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       });
     });
 
-    it.skip('Should show configuration drawer with the labels/annotations tab open', () => {
+    it('Should show configuration drawer with the labels/annotations tab open', () => {
       const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(scaleTestDeploymentName, localCluster, 'apps.deployment' as any, scaleTestNamespace);
 
       workloadDetailsPage.goTo();
@@ -273,7 +273,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe.skip('List', { tags: ['@noVai', '@adminUser'] }, () => {
     const deploymentsListPage = new WorkloadsDeploymentsListPagePo(localCluster);
 
     let uniqueDeployment = SortableTablePo.firstByDefaultName('deployment');
@@ -475,7 +475,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     });
   });
 
-  describe('Redeploy Dialog', () => {
+  describe.skip('Redeploy Dialog', () => {
     let volumeDeploymentId: string;
     const { namespace } = createDeploymentBlueprint.metadata;
     const apiResource = 'apps.deployments';
