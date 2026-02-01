@@ -52,9 +52,9 @@ export default {
         // The format is different between 'Resource' metrics and others.
         // See for examples: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/#appendix-horizontal-pod-autoscaler-status-conditions
         if (metricType !== 'resource') {
-          currentMatch = findBy(currentMetrics, `${ metricType }.metric.name`, metricValue.metric.name);
+          currentMatch = findBy(currentMetrics, `${ metricType }.metric.name`, metricValue?.metric?.name);
         } else {
-          currentMatch = findBy(currentMetrics, 'resource.name', metric.resource.name);
+          currentMatch = findBy(currentMetrics, 'resource.name', metric.resource?.name);
         }
 
         const current = currentMatch ? get(currentMatch, `${ camelCase(metric.type) }.current`) : null;
