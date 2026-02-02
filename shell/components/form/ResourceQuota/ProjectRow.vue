@@ -149,6 +149,7 @@ export default {
       :mode="mode"
       :placeholder="t('resourceQuota.resourceIdentifier.placeholder')"
       class="mr-10"
+      data-testid="projectrow-custom-type-input"
       @update:value="updateCustomType($event)"
     />
     <UnitInput
