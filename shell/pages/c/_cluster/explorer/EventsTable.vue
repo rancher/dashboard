@@ -170,8 +170,8 @@ export default {
         <rc-dropdown-trigger
           data-testid="events-list-row-count-menu-toggle"
           :aria-label="t('glance.changeEventsListRowCount')"
-          ghost
-          small
+          variant="ghost"
+          size="small"
         >
           <i class="icon icon-gear" />
         </rc-dropdown-trigger>

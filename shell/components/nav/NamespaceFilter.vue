@@ -785,8 +785,8 @@ export default {
           <!-- block user from removing the last selection if ns forced filtering is on -->
           <RcButton
             v-if="!namespaceFilterMode || value.length > 1"
-            small
-            ghost
+            size="small"
+            variant="ghost"
             class="ns-chip-button"
             :data-testid="`namespaces-values-close-${j}`"
             :aria-label="t('namespaceFilter.removeNamespace', { name: ns.label })"
@@ -847,8 +847,8 @@ export default {
           >
           <RcButton
             v-if="hasFilter"
-            small
-            ghost
+            size="small"
+            variant="ghost"
             class="ns-filter-clear"
             :aria-label="t('namespaceFilter.button.clearFilter')"
             @click="clearFilter"
@@ -870,8 +870,8 @@ export default {
         </div>
         <RcButton
           v-else
-          small
-          ghost
+          size="small"
+          variant="ghost"
           class="ns-clear"
           :aria-label="t('namespaceFilter.button.clear')"
           @click="clear"
