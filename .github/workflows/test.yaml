@@ -118,7 +118,10 @@ jobs:
       - name: Setup Rancher and user
         run: |
           yarn e2e:prod
-          mv cypress e2e_setup
+          mkdir e2e_setup
+          cp -r cypress/screenshots e2e_setup 2>/dev/null || :
+          cp -r cypress/videos e2e_setup 2>/dev/null || :
+          cp -r cypress/reports/* e2e_setup || :
           cp ${{ env.E2E_RANCHER_LOG }} e2e_setup/rancher.logs 2>/dev/null || :
           cp browser-logs/out.html e2e_setup/browser-logs.html 2>/dev/null || :
         env: 
