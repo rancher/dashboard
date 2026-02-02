@@ -4,6 +4,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { downloadFile } from '@shell/utils/download';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { sortBy } from '@shell/utils/sort';
+import { formatSi } from '@shell/utils/units';
 
 export default {
   name: 'Diagnostic',
@@ -128,15 +129,36 @@ export default {
     }
 
     if ( window?.performance?.memory?.jsHeapSizeLimit ) {
-      systemInformation.jsMemory.value += this.t('about.diagnostic.systemInformation.memJsHeapLimit', { jsHeapSizeLimit: window?.performance?.memory?.jsHeapSizeLimit });
+      const formattedHeapLimit = formatSi(window.performance.memory.jsHeapSizeLimit, {
+        increment:    1024,
+        suffix:       'B',
+        firstSuffix:  'B',
+        maxPrecision: 2
+      });
+
+      systemInformation.jsMemory.value += this.t('about.diagnostic.systemInformation.memJsHeapLimit', { jsHeapSizeLimit: formattedHeapLimit });
     }
 
     if ( window?.performance?.memory?.totalJSHeapSize ) {
-      systemInformation.jsMemory.value += `, ${ this.t('about.diagnostic.systemInformation.memTotalJsHeapSize', { totalJSHeapSize: window?.performance?.memory?.totalJSHeapSize }) }`;
+      const formattedTotalHeapSize = formatSi(window.performance.memory.totalJSHeapSize, {
+        increment:    1024,
+        suffix:       'B',
+        firstSuffix:  'B',
+        maxPrecision: 2
+      });
+
+      systemInformation.jsMemory.value += `, ${ this.t('about.diagnostic.systemInformation.memTotalJsHeapSize', { totalJSHeapSize: formattedTotalHeapSize }) }`;
     }
 
     if ( window?.performance?.memory?.usedJSHeapSize ) {
-      systemInformation.jsMemory.value += `, ${ this.t('about.diagnostic.systemInformation.memUsedJsHeapSize', { usedJSHeapSize: window?.performance?.memory?.usedJSHeapSize }) }`;
+      const formattedUsedHeapSize = formatSi(window.performance.memory.usedJSHeapSize, {
+        increment:    1024,
+        suffix:       'B',
+        firstSuffix:  'B',
+        maxPrecision: 2
+      });
+
+      systemInformation.jsMemory.value += `, ${ this.t('about.diagnostic.systemInformation.memUsedJsHeapSize', { usedJSHeapSize: formattedUsedHeapSize }) }`;
     }
 
     this.systemInformation = systemInformation;
