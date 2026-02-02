@@ -44,7 +44,7 @@ export default {
 
   created() {
     if (this.type.startsWith(TYPES.EXTENDED)) {
-      this.customType = this.type.split('.')[1];
+      this.customType = this.type.substring(`${ TYPES.EXTENDED }.`.length);
     } else {
       this.customType = this.type;
     }

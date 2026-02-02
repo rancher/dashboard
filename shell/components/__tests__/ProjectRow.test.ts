@@ -130,4 +130,17 @@ describe('component: ProjectRow.vue', () => {
     expect(wrapper.vm.value.spec.resourceQuota.limit.extended['custom.resource/foo']).toBe(1);
     expect(wrapper.vm.value.spec.namespaceDefaultResourceQuota.limit.extended['custom.resource/foo']).toBe(2);
   });
+
+  it('should handle custom resource types with periods', () => {
+    const wrapper = shallowMount(ProjectRow, {
+      ...defaultMountOptions,
+      props: {
+        ...defaultMountOptions.props,
+        type: 'extended.requests.nvidia.com/gpu'
+      }
+    });
+
+    expect(wrapper.vm.isCustom).toBe(true);
+    expect(wrapper.vm.customType).toBe('requests.nvidia.com/gpu');
+  });
 });
