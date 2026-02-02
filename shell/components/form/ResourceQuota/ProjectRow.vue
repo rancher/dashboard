@@ -45,6 +45,8 @@ export default {
   created() {
     if (this.type.startsWith(TYPES.EXTENDED)) {
       this.customType = this.type.split('.')[1];
+    } else {
+      this.customType = this.type;
     }
   },
 
@@ -86,8 +88,10 @@ export default {
 
       this.deleteResourceLimits(oldResourceKey);
 
-      if (type === TYPES.EXTENDED || this.isCustom) {
+      if (type === TYPES.EXTENDED) {
         this.customType = '';
+      } else {
+        this.customType = type;
       }
 
       this.$emit('type-change', { index: this.index, type });
