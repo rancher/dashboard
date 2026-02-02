@@ -1,6 +1,8 @@
+export const TYPES = { EXTENDED: 'extended' };
+
 export const RANCHER_TYPES = [
   {
-    value:          'extended',
+    value:          TYPES.EXTENDED,
     inputExponent:  0,
     baseUnit:       '',
     labelKey:       'resourceQuota.custom',

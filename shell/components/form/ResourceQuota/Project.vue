@@ -1,7 +1,7 @@
 <script>
 import ArrayList from '@shell/components/form/ArrayList';
 import Row from './ProjectRow';
-import { QUOTA_COMPUTED } from './shared';
+import { QUOTA_COMPUTED, TYPES } from './shared';
 
 export default {
   emits: ['remove', 'input'],
@@ -40,7 +40,7 @@ export default {
     const extendedKeys = Object.keys(limit.extended || {});
 
     this.typeValues = Object.keys(limit).flatMap((k) => {
-      if (k !== 'extended') {
+      if (k !== TYPES.EXTENDED) {
         return k;
       }
 
@@ -59,7 +59,7 @@ export default {
     remainingTypes(currentType) {
       return this.mappedTypes
         .filter((mappedType) => {
-          if (mappedType.value === 'extended') {
+          if (mappedType.value === TYPES.EXTENDED) {
             return true;
           }
 

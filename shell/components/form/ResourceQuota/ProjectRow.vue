@@ -2,7 +2,7 @@
 import Select from '@shell/components/form/Select';
 import UnitInput from '@shell/components/form/UnitInput';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { ROW_COMPUTED } from './shared';
+import { ROW_COMPUTED, TYPES } from './shared';
 
 export default {
   emits: ['type-change'],
@@ -43,7 +43,7 @@ export default {
   },
 
   created() {
-    if (this.type.startsWith('extended')) {
+    if (this.type.startsWith(TYPES.EXTENDED)) {
       this.customType = this.type.split('.')[1];
     }
   },
@@ -52,11 +52,15 @@ export default {
     ...ROW_COMPUTED,
 
     localType() {
-      return this.type.startsWith('extended') ? this.type.split('.')[0] : this.type;
+      return this.type.startsWith(TYPES.EXTENDED) ? this.type.split('.')[0] : this.type;
+    },
+
+    isCustom() {
+      return this.localType === TYPES.EXTENDED;
     },
 
     resourceQuotaLimit() {
-      if (this.localType === 'extended') {
+      if (this.isCustom) {
         return this.value.spec.resourceQuota?.limit.extended || {};
       }
 
@@ -64,7 +68,7 @@ export default {
     },
 
     namespaceDefaultResourceQuotaLimit() {
-      if (this.localType === 'extended') {
+      if (this.isCustom) {
         return this.value.spec.namespaceDefaultResourceQuota?.limit.extended || {};
       }
 
@@ -72,17 +76,17 @@ export default {
     },
 
     currentResourceType() {
-      return this.localType === 'extended' ? this.customType : this.localType;
+      return this.isCustom ? this.customType : this.localType;
     }
   },
 
   methods: {
     updateType(type) {
-      const oldResourceKey = this.localType === 'extended' ? this.customType : this.localType;
+      const oldResourceKey = this.isCustom ? this.customType : this.localType;
 
       this.deleteResourceLimits(oldResourceKey);
 
-      if (type === 'extended' || this.localType === 'extended') {
+      if (type === TYPES.EXTENDED || this.isCustom) {
         this.customType = '';
       }
 
@@ -102,7 +106,7 @@ export default {
         this.value.spec[prop] = { limit: { } };
       }
 
-      if (this.localType === 'extended') {
+      if (this.isCustom) {
         if (!this.value.spec[prop].limit.extended) {
           this.value.spec[prop].limit.extended = { };
         }
@@ -141,7 +145,7 @@ export default {
     />
     <LabeledInput
       :value="customType"
-      :disabled="localType !== 'extended'"
+      :disabled="!isCustom"
       :mode="mode"
       :placeholder="t('resourceQuota.resourceIdentifier.placeholder')"
       class="mr-10"
