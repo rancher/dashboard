@@ -1,11 +1,11 @@
 import { CATALOG, CLUSTER_BADGE } from '@shell/config/labels-annotations';
-import { NODE, FLEET, MANAGEMENT, CAPI } from '@shell/config/types';
+import {
+  NODE, FLEET, MANAGEMENT, CAPI, EXT
+} from '@shell/config/types';
 import { insertAt, addObject, removeObject } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
-import jsyaml from 'js-yaml';
-import { eachLimit } from '@shell/utils/promise';
 import { addParams } from '@shell/utils/url';
 import { isEmpty } from '@shell/utils/object';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
@@ -50,6 +50,12 @@ export default class MgmtCluster extends SteveModel {
     return out;
   }
 
+  get canCreateKubeconfig() {
+    const schema = this.$rootGetters['management/schemaFor'](EXT.KUBECONFIG);
+
+    return (schema?.collectionMethods || []).includes('POST');
+  }
+
   get _availableActions() {
     const out = super._availableActions;
 
@@ -66,14 +72,14 @@ export default class MgmtCluster extends SteveModel {
       label:      this.t('nav.kubeconfig.download'),
       icon:       'icon icon-download',
       bulkable:   true,
-      enabled:    this.$rootGetters['isRancher'] && this.hasAction('generateKubeconfig'),
+      enabled:    this.$rootGetters['isRancher'] && this.canCreateKubeconfig,
     });
 
     insertAt(out, 2, {
       action:   'copyKubeConfig',
       label:    this.t('cluster.copyConfig'),
       bulkable: false,
-      enabled:  this.$rootGetters['isRancher'] && this.hasAction('generateKubeconfig'),
+      enabled:  this.$rootGetters['isRancher'] && this.canCreateKubeconfig,
       icon:     'icon icon-copy',
     });
 
@@ -381,10 +387,14 @@ export default class MgmtCluster extends SteveModel {
     }, { root: true });
   }
 
-  async generateKubeConfig() {
-    const res = await this.doAction('generateKubeconfig');
+  async generateKubeConfig(clusters = [this.id]) {
+    const res = await this.$dispatch('management/request', {
+      url:    `/v1/${ EXT.KUBECONFIG }`,
+      method: 'POST',
+      data:   { spec: { clusters } }
+    }, { root: true });
 
-    return res.config;
+    return res.status?.value;
   }
 
   async downloadKubeConfig() {
@@ -394,29 +404,10 @@ export default class MgmtCluster extends SteveModel {
   }
 
   async downloadKubeConfigBulk(items) {
-    let obj = {};
-    let first = true;
+    const clusters = items.map((item) => item.mgmt?.id || item.id);
+    const config = await this.generateKubeConfig(clusters);
 
-    await eachLimit(items, 10, (item, idx) => {
-      return item.generateKubeConfig().then((config) => {
-        const entry = jsyaml.load(config);
-
-        if ( first ) {
-          obj = entry;
-          first = false;
-        } else {
-          obj.clusters.push(...entry.clusters);
-          obj.users.push(...entry.users);
-          obj.contexts.push(...entry.contexts);
-        }
-      });
-    });
-
-    delete obj['current-context'];
-
-    const out = jsyaml.dump(obj);
-
-    downloadFile('kubeconfig.yaml', out, 'application/yaml');
+    downloadFile('kubeconfig.yaml', config, 'application/yaml');
   }
 
   async copyKubeConfig() {
