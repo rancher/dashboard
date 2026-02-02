@@ -63,9 +63,8 @@ export default {
       // If SSP is enabled the store may not have all projects. Ensure we have them all
       await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
       if (this.isCreate) {
-        // Pick first project with a backing namespace as default.
-        // Without this, we might pick a project that is still initializing, causing validation errors.
-        const project = this.filteredProjects.find((p) => p.status?.backingNamespace);
+        // Pick first project as default
+        const project = this.filteredProjects[0];
 
         if (project) {
           this.projectName = project.metadata.name;

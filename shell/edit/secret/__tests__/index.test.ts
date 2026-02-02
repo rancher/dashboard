@@ -78,12 +78,12 @@ describe('component: Secret Index', () => {
     mockStore.getters['cluster/all'].mockReturnValue([]);
   });
 
-  it('should pick the first project with a backingNamespace on fetch', async() => {
+  it('should pick the first project on fetch', async() => {
     const projects = [
       {
         metadata: { name: 'p1' },
         spec:     { clusterName: 'local' },
-        status:   {}
+        status:   { backingNamespace: 'ns-p1' }
       },
       {
         metadata: { name: 'p2' },
@@ -99,28 +99,9 @@ describe('component: Secret Index', () => {
     // Trigger fetch
     await SecretIndex.fetch.call(wrapper.vm);
 
-    expect(wrapper.vm.projectName).toBe('p2');
-    expect(wrapper.vm.value.metadata.namespace).toBe('ns-p2');
-    expect(wrapper.vm.value.metadata.labels[UI_PROJECT_SECRET]).toBe('p2');
-  });
-
-  it('should not select a project if none have a backingNamespace on fetch', async() => {
-    const projects = [
-      {
-        metadata: { name: 'p1' },
-        spec:     { clusterName: 'local' },
-        status:   {}
-      }
-    ];
-
-    mockStore.getters['management/all'].mockReturnValue(projects);
-
-    const wrapper = createWrapper({}, { [SECRET_SCOPE]: SECRET_QUERY_PARAMS.PROJECT_SCOPED });
-
-    await SecretIndex.fetch.call(wrapper.vm);
-
-    expect(wrapper.vm.projectName).toBeNull();
-    expect(wrapper.vm.value.metadata.namespace).toBe('');
+    expect(wrapper.vm.projectName).toBe('p1');
+    expect(wrapper.vm.value.metadata.namespace).toBe('ns-p1');
+    expect(wrapper.vm.value.metadata.labels[UI_PROJECT_SECRET]).toBe('p1');
   });
 
   it('should remove namespace validation rule when isProjectScoped is true', async() => {
@@ -171,30 +152,6 @@ describe('component: Secret Index', () => {
 
     expect(wrapper.vm.value.metadata.namespace).toBe('ns-p1');
     expect(wrapper.vm.value.metadata.labels[UI_PROJECT_SECRET]).toBe('p1');
-  });
-
-  it('should clear namespace when projectName changes to a project without backingNamespace', async() => {
-    const projects = [
-      {
-        metadata: { name: 'p1' },
-        spec:     { clusterName: 'local' },
-        status:   {} // No backing namespace
-      }
-    ];
-
-    mockStore.getters['management/all'].mockReturnValue(projects);
-
-    const wrapper = createWrapper({}, { [SECRET_SCOPE]: SECRET_QUERY_PARAMS.PROJECT_SCOPED });
-
-    // Set initial namespace
-    wrapper.vm.value.metadata.namespace = 'initial-ns';
-    wrapper.setData({ isProjectScoped: true });
-
-    // Change project name
-    wrapper.setData({ projectName: 'p1' });
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.vm.value.metadata.namespace).toBeUndefined();
   });
 
   it('should fail validation in saveSecret if namespace is missing when Project Scoped', async() => {
