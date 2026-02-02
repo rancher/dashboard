@@ -5,9 +5,9 @@ describe('page: diagnostic should', () => {
   it('format memory sizes in human-readable format', () => {
     const mockPerformance = {
       memory: {
-        jsHeapSizeLimit:  4294705152, // ~4GB in bytes
-        totalJSHeapSize:  2147483648, // ~2GB in bytes
-        usedJSHeapSize:   1073741824  // ~1GB in bytes
+        jsHeapSizeLimit: 4294705152, // ~4GB in bytes
+        totalJSHeapSize: 2147483648, // ~2GB in bytes
+        usedJSHeapSize:  1073741824 // ~1GB in bytes
       },
       now: () => Date.now()
     };
@@ -29,6 +29,20 @@ describe('page: diagnostic should', () => {
       configurable: true
     });
 
+    const mockTranslation = (key, args) => {
+      if (key === 'about.diagnostic.systemInformation.memJsHeapLimit') {
+        return `Heap Size limit: ${ args.jsHeapSizeLimit }`;
+      }
+      if (key === 'about.diagnostic.systemInformation.memTotalJsHeapSize') {
+        return `Total Heap Size: ${ args.totalJSHeapSize }`;
+      }
+      if (key === 'about.diagnostic.systemInformation.memUsedJsHeapSize') {
+        return `Used Heap Size: ${ args.usedJSHeapSize }`;
+      }
+
+      return key;
+    };
+
     const wrapper = shallowMount(Diagnostic, {
       global: {
         mocks: {
@@ -36,32 +50,8 @@ describe('page: diagnostic should', () => {
             dispatch: jest.fn(),
             getters:  {}
           },
-          $t: jest.fn((key, args) => {
-            if (key === 'about.diagnostic.systemInformation.memJsHeapLimit') {
-              return `Heap Size limit: ${ args.jsHeapSizeLimit }`;
-            }
-            if (key === 'about.diagnostic.systemInformation.memTotalJsHeapSize') {
-              return `Total Heap Size: ${ args.totalJSHeapSize }`;
-            }
-            if (key === 'about.diagnostic.systemInformation.memUsedJsHeapSize') {
-              return `Used Heap Size: ${ args.usedJSHeapSize }`;
-            }
-
-            return key;
-          }),
-          t: jest.fn((key, args) => {
-            if (key === 'about.diagnostic.systemInformation.memJsHeapLimit') {
-              return `Heap Size limit: ${ args.jsHeapSizeLimit }`;
-            }
-            if (key === 'about.diagnostic.systemInformation.memTotalJsHeapSize') {
-              return `Total Heap Size: ${ args.totalJSHeapSize }`;
-            }
-            if (key === 'about.diagnostic.systemInformation.memUsedJsHeapSize') {
-              return `Used Heap Size: ${ args.usedJSHeapSize }`;
-            }
-
-            return key;
-          })
+          $t: mockTranslation,
+          t:  mockTranslation
         },
         stubs: { AsyncButton: { template: '<div />' } }
       }

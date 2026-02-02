@@ -103,6 +103,13 @@ export default {
       deviceMemory
     } = window?.navigator;
 
+    const memoryFormatOptions = {
+      increment:    1024,
+      suffix:       'B',
+      firstSuffix:  'B',
+      maxPrecision: 2
+    };
+
     const systemInformation = {
       browser: {
         label: this.t('about.diagnostic.systemInformation.browser'),
@@ -129,34 +136,19 @@ export default {
     }
 
     if ( window?.performance?.memory?.jsHeapSizeLimit ) {
-      const formattedHeapLimit = formatSi(window.performance.memory.jsHeapSizeLimit, {
-        increment:    1024,
-        suffix:       'B',
-        firstSuffix:  'B',
-        maxPrecision: 2
-      });
+      const formattedHeapLimit = formatSi(window.performance.memory.jsHeapSizeLimit, memoryFormatOptions);
 
       systemInformation.jsMemory.value += this.t('about.diagnostic.systemInformation.memJsHeapLimit', { jsHeapSizeLimit: formattedHeapLimit });
     }
 
     if ( window?.performance?.memory?.totalJSHeapSize ) {
-      const formattedTotalHeapSize = formatSi(window.performance.memory.totalJSHeapSize, {
-        increment:    1024,
-        suffix:       'B',
-        firstSuffix:  'B',
-        maxPrecision: 2
-      });
+      const formattedTotalHeapSize = formatSi(window.performance.memory.totalJSHeapSize, memoryFormatOptions);
 
       systemInformation.jsMemory.value += `, ${ this.t('about.diagnostic.systemInformation.memTotalJsHeapSize', { totalJSHeapSize: formattedTotalHeapSize }) }`;
     }
 
     if ( window?.performance?.memory?.usedJSHeapSize ) {
-      const formattedUsedHeapSize = formatSi(window.performance.memory.usedJSHeapSize, {
-        increment:    1024,
-        suffix:       'B',
-        firstSuffix:  'B',
-        maxPrecision: 2
-      });
+      const formattedUsedHeapSize = formatSi(window.performance.memory.usedJSHeapSize, memoryFormatOptions);
 
       systemInformation.jsMemory.value += `, ${ this.t('about.diagnostic.systemInformation.memUsedJsHeapSize', { usedJSHeapSize: formattedUsedHeapSize }) }`;
     }
