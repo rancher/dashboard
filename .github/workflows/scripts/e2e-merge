@@ -1,0 +1,419 @@
+#!/usr/bin/env node
+
+/**
+ * E2E Report Merge Script
+ * 
+ * This script merges two e2e test report folders into one.
+ * It copies video and screenshot files from the secondary folder to the primary folder,
+ * and merges the test data from both index.json files.
+ * 
+ * Usage: ./e2e-merge <primary-e2e-folder> <secondary-e2e-folder>
+ * 
+ * Example: ./e2e-merge ./artifacts ./e2e_setup
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+// ANSI color codes for logging
+const colors = {
+  reset:   '\x1b[0m',
+  bright:  '\x1b[1m',
+  red:     '\x1b[31m',
+  green:   '\x1b[32m',
+  yellow:  '\x1b[33m',
+  blue:    '\x1b[34m',
+  cyan:    '\x1b[36m',
+};
+
+function log(message, color = colors.reset) {
+  console.log(`${ color }${ message }${ colors.reset }`);
+}
+
+function logInfo(message) {
+  log(`ℹ️  ${ message }`, colors.cyan);
+}
+
+function logSuccess(message) {
+  log(`✅ ${ message }`, colors.green);
+}
+
+function logWarning(message) {
+  log(`⚠️  ${ message }`, colors.yellow);
+}
+
+function logError(message) {
+  log(`❌ ${ message }`, colors.red);
+}
+
+function logHeader(message) {
+  console.log();
+  log(`${ colors.bright }═══════════════════════════════════════════════════════════${ colors.reset }`);
+  log(`${ colors.bright }  ${ message }${ colors.reset }`);
+  log(`${ colors.bright }═══════════════════════════════════════════════════════════${ colors.reset }`);
+  console.log();
+}
+
+/**
+ * Copy a directory recursively
+ */
+function copyDirectoryRecursive(source, destination, stats = { files: 0, errors: 0 }) {
+  if (!fs.existsSync(source)) {
+    logWarning(`Source directory does not exist: ${ source }`);
+
+    return stats;
+  }
+
+  // Create destination directory if it doesn't exist
+  if (!fs.existsSync(destination)) {
+    fs.mkdirSync(destination, { recursive: true });
+    logInfo(`Created directory: ${ destination }`);
+  }
+
+  const items = fs.readdirSync(source);
+
+  for (const item of items) {
+    // Skip hidden files like .DS_Store
+    if (item.startsWith('.')) {
+      continue;
+    }
+
+    const sourcePath = path.join(source, item);
+    const destPath = path.join(destination, item);
+
+    const itemStats = fs.statSync(sourcePath);
+
+    if (itemStats.isDirectory()) {
+      copyDirectoryRecursive(sourcePath, destPath, stats);
+    } else {
+      try {
+        fs.copyFileSync(sourcePath, destPath);
+        logInfo(`Copied: ${ item }`);
+        stats.files++;
+      } catch (err) {
+        logError(`Failed to copy ${ item }: ${ err.message }`);
+        stats.errors++;
+      }
+    }
+  }
+
+  return stats;
+}
+
+/**
+ * Count total tests in an index.json structure
+ */
+function countTests(data) {
+  return {
+    total:    data.stats?.tests || 0,
+    passed:   data.stats?.passes || 0,
+    failed:   data.stats?.failures || 0,
+    pending:  data.stats?.pending || 0,
+    skipped:  data.stats?.skipped || 0,
+    suites:   data.stats?.suites || 0,
+    duration: data.stats?.duration || 0,
+  };
+}
+
+/**
+ * Format duration in milliseconds to human readable format
+ */
+function formatDuration(ms) {
+  if (ms < 1000) {
+    return `${ ms }ms`;
+  }
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+
+  if (minutes > 0) {
+    return `${ minutes }m ${ remainingSeconds }s`;
+  }
+
+  return `${ seconds }s`;
+}
+
+/**
+ * Merge two index.json data structures
+ */
+function mergeIndexData(primaryData, secondaryData) {
+  const merged = { ...primaryData };
+
+  // Merge stats
+  merged.stats = {
+    suites:          (primaryData.stats?.suites || 0) + (secondaryData.stats?.suites || 0),
+    tests:           (primaryData.stats?.tests || 0) + (secondaryData.stats?.tests || 0),
+    passes:          (primaryData.stats?.passes || 0) + (secondaryData.stats?.passes || 0),
+    pending:         (primaryData.stats?.pending || 0) + (secondaryData.stats?.pending || 0),
+    failures:        (primaryData.stats?.failures || 0) + (secondaryData.stats?.failures || 0),
+    testsRegistered: (primaryData.stats?.testsRegistered || 0) + (secondaryData.stats?.testsRegistered || 0),
+    passPercent:     0, // Will be recalculated
+    pendingPercent:  0, // Will be recalculated
+    other:           (primaryData.stats?.other || 0) + (secondaryData.stats?.other || 0),
+    hasOther:        primaryData.stats?.hasOther || secondaryData.stats?.hasOther || false,
+    skipped:         (primaryData.stats?.skipped || 0) + (secondaryData.stats?.skipped || 0),
+    hasSkipped:      primaryData.stats?.hasSkipped || secondaryData.stats?.hasSkipped || false,
+    // Use the earliest start time and latest end time
+    start:           getEarliestDate(primaryData.stats?.start, secondaryData.stats?.start),
+    end:             getLatestDate(primaryData.stats?.end, secondaryData.stats?.end),
+    duration:        (primaryData.stats?.duration || 0) + (secondaryData.stats?.duration || 0),
+  };
+
+  // Recalculate percentages
+  if (merged.stats.tests > 0) {
+    merged.stats.passPercent = Math.round((merged.stats.passes / merged.stats.tests) * 100 * 100) / 100;
+    merged.stats.pendingPercent = Math.round((merged.stats.pending / merged.stats.tests) * 100 * 100) / 100;
+  }
+
+  // Merge results arrays - prepend secondary results to primary
+  merged.results = [
+    ...(secondaryData.results || []),
+    ...(primaryData.results || []),
+  ];
+
+  return merged;
+}
+
+/**
+ * Get the earliest of two ISO date strings
+ */
+function getEarliestDate(date1, date2) {
+  if (!date1) {
+    return date2;
+  }
+  if (!date2) {
+    return date1;
+  }
+
+  return new Date(date1) < new Date(date2) ? date1 : date2;
+}
+
+/**
+ * Get the latest of two ISO date strings
+ */
+function getLatestDate(date1, date2) {
+  if (!date1) {
+    return date2;
+  }
+  if (!date2) {
+    return date1;
+  }
+
+  return new Date(date1) > new Date(date2) ? date1 : date2;
+}
+
+/**
+ * Encode JSON data for HTML attribute (convert to HTML entities)
+ */
+function encodeJsonForHtmlAttribute(jsonData) {
+  const jsonString = JSON.stringify(jsonData);
+
+  // Encode special characters as HTML entities
+  return jsonString
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * Update the index.html file with the merged data
+ * The data-raw attribute on the body tag contains HTML-entity encoded JSON
+ */
+function updateIndexHtml(htmlPath, mergedData) {
+  if (!fs.existsSync(htmlPath)) {
+    logWarning(`index.html not found: ${ htmlPath }`);
+
+    return false;
+  }
+
+  try {
+    logInfo(`Reading: ${ htmlPath }`);
+    let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+
+    // Create the new encoded JSON
+    const encodedJson = encodeJsonForHtmlAttribute(mergedData);
+
+    // Use regex to replace the data-raw attribute content
+    // Match: data-raw="..." where ... is any content (non-greedy)
+    const dataRawRegex = /data-raw="[^"]*"/;
+
+    if (!dataRawRegex.test(htmlContent)) {
+      logWarning('Could not find data-raw attribute in index.html');
+
+      return false;
+    }
+
+    htmlContent = htmlContent.replace(dataRawRegex, `data-raw="${ encodedJson }"`);
+
+    fs.writeFileSync(htmlPath, htmlContent);
+    logSuccess(`Updated index.html with merged data`);
+
+    return true;
+  } catch (err) {
+    logError(`Failed to update index.html: ${ err.message }`);
+
+    return false;
+  }
+}
+
+/**
+ * Print summary table
+ */
+function printSummary(primaryStats, secondaryStats, combinedStats, filesCopied) {
+  logHeader('MERGE SUMMARY');
+
+  const divider = '─'.repeat(60);
+
+  console.log(divider);
+  console.log(`${ colors.bright }                    │ Primary │ Secondary │ Combined${ colors.reset }`);
+  console.log(divider);
+  console.log(`  Test Suites       │ ${ String(primaryStats.suites).padStart(7) } │ ${ String(secondaryStats.suites).padStart(9) } │ ${ String(combinedStats.suites).padStart(8) }`);
+  console.log(`  Total Tests       │ ${ String(primaryStats.total).padStart(7) } │ ${ String(secondaryStats.total).padStart(9) } │ ${ String(combinedStats.total).padStart(8) }`);
+  console.log(`  ${ colors.green }Passed${ colors.reset }            │ ${ String(primaryStats.passed).padStart(7) } │ ${ String(secondaryStats.passed).padStart(9) } │ ${ String(combinedStats.passed).padStart(8) }`);
+  console.log(`  ${ colors.red }Failed${ colors.reset }            │ ${ String(primaryStats.failed).padStart(7) } │ ${ String(secondaryStats.failed).padStart(9) } │ ${ String(combinedStats.failed).padStart(8) }`);
+  console.log(`  ${ colors.yellow }Pending${ colors.reset }           │ ${ String(primaryStats.pending).padStart(7) } │ ${ String(secondaryStats.pending).padStart(9) } │ ${ String(combinedStats.pending).padStart(8) }`);
+  console.log(`  Skipped           │ ${ String(primaryStats.skipped).padStart(7) } │ ${ String(secondaryStats.skipped).padStart(9) } │ ${ String(combinedStats.skipped).padStart(8) }`);
+  console.log(divider);
+  console.log(`  Duration          │ ${ formatDuration(primaryStats.duration).padStart(7) } │ ${ formatDuration(secondaryStats.duration).padStart(9) } │ ${ formatDuration(combinedStats.duration).padStart(8) }`);
+  console.log(divider);
+  console.log();
+  console.log(`  ${ colors.cyan }Files copied from secondary:${ colors.reset } ${ filesCopied }`);
+  console.log();
+}
+
+/**
+ * Main function
+ */
+function main() {
+  const args = process.argv.slice(2);
+
+  if (args.length !== 2) {
+    logError('Usage: e2e-merge <primary-e2e-folder> <secondary-e2e-folder>');
+    logInfo('Example: e2e-merge ./artifacts ./e2e_setup');
+    process.exit(1);
+  }
+
+  const [primaryFolder, secondaryFolder] = args.map((p) => path.resolve(p));
+
+  logHeader('E2E REPORT MERGE');
+
+  logInfo(`Primary folder:   ${ primaryFolder }`);
+  logInfo(`Secondary folder: ${ secondaryFolder }`);
+  console.log();
+
+  // Validate folders exist
+  if (!fs.existsSync(primaryFolder)) {
+    logError(`Primary folder does not exist: ${ primaryFolder }`);
+    process.exit(1);
+  }
+
+  if (!fs.existsSync(secondaryFolder)) {
+    logError(`Secondary folder does not exist: ${ secondaryFolder }`);
+    process.exit(1);
+  }
+
+  // Copy videos from secondary to primary
+  logHeader('COPYING VIDEO FILES');
+  const secondaryVideosPath = path.join(secondaryFolder, 'videos');
+  const primaryVideosPath = path.join(primaryFolder, 'videos');
+  const videoStats = copyDirectoryRecursive(secondaryVideosPath, primaryVideosPath);
+
+  if (videoStats.files > 0) {
+    logSuccess(`Copied ${ videoStats.files } video file(s)`);
+  } else {
+    logInfo('No video files to copy');
+  }
+
+  // Copy screenshots from secondary to primary
+  logHeader('COPYING SCREENSHOT FILES');
+  const secondaryScreenshotsPath = path.join(secondaryFolder, 'screenshots');
+  const primaryScreenshotsPath = path.join(primaryFolder, 'screenshots');
+  const screenshotStats = copyDirectoryRecursive(secondaryScreenshotsPath, primaryScreenshotsPath);
+
+  if (screenshotStats.files > 0) {
+    logSuccess(`Copied ${ screenshotStats.files } screenshot file(s)`);
+  } else {
+    logInfo('No screenshot files to copy');
+  }
+
+  // Read index.json files
+  logHeader('MERGING TEST DATA');
+  const primaryIndexPath = path.join(primaryFolder, 'index.json');
+  const secondaryIndexPath = path.join(secondaryFolder, 'index.json');
+
+  if (!fs.existsSync(primaryIndexPath)) {
+    logError(`Primary index.json not found: ${ primaryIndexPath }`);
+    process.exit(1);
+  }
+
+  if (!fs.existsSync(secondaryIndexPath)) {
+    logError(`Secondary index.json not found: ${ secondaryIndexPath }`);
+    process.exit(1);
+  }
+
+  let primaryData, secondaryData;
+
+  try {
+    logInfo(`Reading: ${ primaryIndexPath }`);
+    primaryData = JSON.parse(fs.readFileSync(primaryIndexPath, 'utf8'));
+  } catch (err) {
+    logError(`Failed to parse primary index.json: ${ err.message }`);
+    process.exit(1);
+  }
+
+  try {
+    logInfo(`Reading: ${ secondaryIndexPath }`);
+    secondaryData = JSON.parse(fs.readFileSync(secondaryIndexPath, 'utf8'));
+  } catch (err) {
+    logError(`Failed to parse secondary index.json: ${ err.message }`);
+    process.exit(1);
+  }
+
+  // Get stats before merge
+  const primaryStats = countTests(primaryData);
+  const secondaryStats = countTests(secondaryData);
+
+  logInfo(`Primary:   ${ primaryStats.total } tests (${ primaryStats.passed } passed, ${ primaryStats.failed } failed)`);
+  logInfo(`Secondary: ${ secondaryStats.total } tests (${ secondaryStats.passed } passed, ${ secondaryStats.failed } failed)`);
+
+  // Merge the data
+  const mergedData = mergeIndexData(primaryData, secondaryData);
+  const combinedStats = countTests(mergedData);
+
+  logSuccess(`Combined:  ${ combinedStats.total } tests (${ combinedStats.passed } passed, ${ combinedStats.failed } failed)`);
+
+  // Write merged index.json back to primary folder
+  try {
+    const outputPath = primaryIndexPath;
+
+    fs.writeFileSync(outputPath, JSON.stringify(mergedData, null, 2));
+    logSuccess(`Written merged index.json to: ${ outputPath }`);
+  } catch (err) {
+    logError(`Failed to write merged index.json: ${ err.message }`);
+    process.exit(1);
+  }
+
+  // Update index.html with merged data
+  logHeader('UPDATING HTML REPORT');
+  const primaryHtmlPath = path.join(primaryFolder, 'index.html');
+
+  updateIndexHtml(primaryHtmlPath, mergedData);
+
+  // Print summary
+  const totalFilesCopied = videoStats.files + screenshotStats.files;
+
+  printSummary(primaryStats, secondaryStats, combinedStats, totalFilesCopied);
+
+  // Exit with error if there were any failures in the combined results
+  if (combinedStats.failed > 0) {
+    logWarning(`There are ${ combinedStats.failed } failing test(s) in the combined results`);
+    process.exit(0); // Still exit 0 as the merge was successful
+  }
+
+  logSuccess('E2E report merge completed successfully!');
+}
+
+// Run main function
+main();
