@@ -1,8 +1,8 @@
 import ProjectRow from '@shell/components/form/ResourceQuota/ProjectRow.vue';
-import { RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
+import { RANCHER_TYPES, TYPES } from '@shell/components/form/ResourceQuota/shared';
 import { shallowMount } from '@vue/test-utils';
 
-const CONFIGMAP_STRING = RANCHER_TYPES[0].value;
+const CONFIGMAP_STRING = TYPES.CONFIG_MAPS;
 
 describe('component: ProjectRow.vue', () => {
   const wrapper = shallowMount(ProjectRow,
@@ -11,6 +11,7 @@ describe('component: ProjectRow.vue', () => {
         mode:  'edit',
         types: RANCHER_TYPES,
         type:  CONFIGMAP_STRING,
+        index: 0,
         value: {
           spec: {
             namespaceDefaultResourceQuota: { limit: {} },
@@ -54,6 +55,6 @@ describe('component: ProjectRow.vue', () => {
     });
 
     expect(wrapper.emitted('type-change')).toBeTruthy();
-    expect(wrapper.emitted('type-change')[0]).toStrictEqual([CONFIGMAP_STRING]);
+    expect(wrapper.emitted('type-change')[0]).toStrictEqual([{ index: 0, type: CONFIGMAP_STRING }]);
   });
 });
