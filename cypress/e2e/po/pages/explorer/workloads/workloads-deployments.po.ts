@@ -15,7 +15,7 @@ export class WorkloadsDeploymentsDetailsPagePo extends WorkloadDetailsPageBasePo
   }
 
   labelsAndAnnotationsTab() {
-    return this.self().find('[data-testid="btn-labels"]');
+    return cy.get('[data-testid="btn-labels"]');
   }
 }
 

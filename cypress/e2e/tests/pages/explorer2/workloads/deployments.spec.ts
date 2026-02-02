@@ -114,6 +114,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
 
       workloadDetailsPage.replicaCount().should('contain', '1', MEDIUM_TIMEOUT_OPT);
 
+      workloadDetailsPage.waitForScaleButtonsEnabled();
       workloadDetailsPage.podScaleUp().click();
 
       workloadDetailsPage.waitForScaleButtonsEnabled();
@@ -273,7 +274,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     });
   });
 
-  describe.skip('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
     const deploymentsListPage = new WorkloadsDeploymentsListPagePo(localCluster);
 
     let uniqueDeployment = SortableTablePo.firstByDefaultName('deployment');
@@ -475,7 +476,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     });
   });
 
-  describe.skip('Redeploy Dialog', () => {
+  describe('Redeploy Dialog', () => {
     let volumeDeploymentId: string;
     const { namespace } = createDeploymentBlueprint.metadata;
     const apiResource = 'apps.deployments';
