@@ -1,6 +1,6 @@
 export const RANCHER_TYPES = [
   {
-    value:          'custom',
+    value:          'extended',
     inputExponent:  0,
     baseUnit:       '',
     labelKey:       'resourceQuota.custom',
@@ -137,7 +137,7 @@ export const HARVESTER_TYPES = [
 
 export const ROW_COMPUTED = {
   typeOption() {
-    return this.types.find((type) => type.value === this.type);
+    return this.types.find((type) => type.value === this.type.split('.')[0]);
   }
 };
 

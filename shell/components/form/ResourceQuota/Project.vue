@@ -36,7 +36,16 @@ export default {
     this.value.spec['namespaceDefaultResourceQuota'] = this.value.spec.namespaceDefaultResourceQuota || { limit: {} };
     this.value.spec['resourceQuota'] = this.value.spec.resourceQuota || { limit: {} };
 
-    this.typeValues = Object.keys(this.value.spec.resourceQuota.limit);
+    const limit = this.value.spec.resourceQuota.limit;
+    const extendedKeys = Object.keys(limit.extended || {});
+
+    this.typeValues = Object.keys(limit).flatMap((k) => {
+      if (k !== 'extended') {
+        return k;
+      }
+
+      return extendedKeys.map((ek) => `extended.${ ek }`);
+    });
   },
 
   computed: { ...QUOTA_COMPUTED },
@@ -50,7 +59,7 @@ export default {
     remainingTypes(currentType) {
       return this.mappedTypes
         .filter((mappedType) => {
-          if (mappedType.value === 'custom') {
+          if (mappedType.value === 'extended') {
             return true;
           }
 
