@@ -118,6 +118,9 @@ jobs:
       - name: Setup Rancher and user
         run: |
           yarn e2e:prod
+          mv cypress e2e_setup
+          cp ${{ env.E2E_RANCHER_LOG }} e2e_setup/rancher.logs 2>/dev/null || :
+          cp browser-logs/out.html e2e_setup/browser-logs.html 2>/dev/null || :
         env: 
           GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: admin
@@ -145,6 +148,7 @@ jobs:
           cp -r cypress/reports/* artifacts || :
           cp ${{ env.E2E_RANCHER_LOG }} artifacts/rancher.logs 2>/dev/null || :
           cp browser-logs/out.html artifacts/browser-logs.html 2>/dev/null || :
+          mv e2e_setup artifacts/e2e_setup 2>/dev/null || :
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v6
