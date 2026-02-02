@@ -535,7 +535,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     });
 
     after(() => {
-      cy.deleteRancherResource('v1', apiResource, `${ namespace }/${ volumeDeploymentId }`);
+      cy.deleteRancherResource('v1', apiResource, `${ namespace }/${ volumeDeploymentId }`, false);
     });
   });
 });
