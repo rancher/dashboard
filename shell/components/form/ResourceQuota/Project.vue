@@ -2,11 +2,16 @@
 import ArrayList from '@shell/components/form/ArrayList';
 import Row from './ProjectRow';
 import { QUOTA_COMPUTED, TYPES } from './shared';
+import Banner from '@components/Banner/Banner.vue';
 
 export default {
   emits: ['remove', 'input'],
 
-  components: { ArrayList, Row },
+  components: {
+    ArrayList,
+    Row,
+    Banner,
+  },
 
   props: {
     mode: {
@@ -74,6 +79,11 @@ export default {
 </script>
 <template>
   <div>
+    <Banner
+      color="info"
+      label-key="resourceQuota.banner"
+      class="mb-20"
+    />
     <div class="headers mb-10">
       <div class="mr-10">
         <label>{{ t('resourceQuota.headers.resourceType') }}</label>
