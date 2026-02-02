@@ -100,7 +100,7 @@ describe('component: ProjectRow.vue', () => {
     await wrapper.vm.updateType(TYPES.EXTENDED);
 
     expect(wrapper.emitted('type-change')).toHaveLength(1);
-    expect(wrapper.emitted('type-change')[0][0]).toEqual({ index: 0, type: TYPES.EXTENDED });
+    expect(wrapper.emitted('type-change')[0][0]).toStrictEqual({ index: 0, type: TYPES.EXTENDED });
   });
 
   it('should update custom resource types', async() => {
