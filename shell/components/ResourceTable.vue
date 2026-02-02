@@ -427,7 +427,7 @@ export default {
     },
 
     _applicableExtensionTableHooks() {
-      if (this.$store.$plugin?.getUIConfig) {
+      if (this.$store.$extension?.getUIConfig) {
         const extensionTableHooks = getApplicableExtensionEnhancements(this, ExtensionPoint.TABLE, TableLocation.RESOURCE, this.$route);
 
         return extensionTableHooks;
