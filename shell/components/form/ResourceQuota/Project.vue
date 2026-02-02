@@ -79,7 +79,13 @@ export default {
         <label>{{ t('resourceQuota.headers.resourceType') }}</label>
       </div>
       <div class="mr-20">
-        <label>{{ t('resourceQuota.headers.resourceIdentifier') }}</label>
+        <label>
+          {{ t('resourceQuota.headers.resourceIdentifier') }}
+          <i
+            v-clean-tooltip="t('resourceQuota.resourceIdentifier.tooltip')"
+            class="icon icon-info"
+          />
+        </label>
       </div>
       <div class="mr-20">
         <label>{{ t('resourceQuota.headers.projectLimit') }}</label>

@@ -8864,6 +8864,7 @@ resourceQuota:
   custom: Custom
   resourceIdentifier:
     placeholder: e.g. configmaps
+    tooltip: Select 'Custom' from the Resource Type list and enter the resource name (e.g., 'requests.nvidia.com/gpu') to add custom resources quotas.
   configMaps: Config Maps
   limitsCpu: CPU Limit
   limitsMemory: Memory Limit
