@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         # We only need to fetch the file on the default branch (where it usually lives)
         # to ensure we get the latest configuration file.
         with:
