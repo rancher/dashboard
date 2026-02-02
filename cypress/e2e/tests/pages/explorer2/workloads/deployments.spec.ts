@@ -125,7 +125,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       // Verify pod status shows healthy scaling state
       workloadDetailsPage.podsStatus().should('be.visible', MEDIUM_TIMEOUT_OPT)
         .should('contain.text', 'Running');
-
+      workloadDetailsPage.waitForScaleButtonsEnabled();
       workloadDetailsPage.podScaleDown().click();
       workloadDetailsPage.waitForScaleButtonsEnabled();
       workloadDetailsPage.waitForPendingOperationsToComplete();
