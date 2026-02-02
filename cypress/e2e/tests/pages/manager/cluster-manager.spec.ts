@@ -654,14 +654,15 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     clusterList.list().openBulkActionDropdown();
     clusterList.list().bulkActionButton('Download KubeConfig').click();
     cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 201);
-    const downloadedFilename = path.join(downloadsFolder, 'kubeconfig.yaml');
+    const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
+
 
     cy.readFile(downloadedFilename).then((buffer) => {
       const obj: any = jsyaml.load(buffer);
 
       // Basic checks on the downloaded YAML
       expect(obj.apiVersion).to.equal('v1');
-      expect(obj.clusters[0].name).to.equal('local');
+      expect(obj.clusters[1].name).to.equal('local');
       expect(obj.kind).to.equal('Config');
     });
   });
