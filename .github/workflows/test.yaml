@@ -151,7 +151,7 @@ jobs:
           cp -r cypress/reports/* artifacts || :
           cp ${{ env.E2E_RANCHER_LOG }} artifacts/rancher.logs 2>/dev/null || :
           cp browser-logs/out.html artifacts/browser-logs.html 2>/dev/null || :
-          ./scripts/e2e-merge artifacts e2e_setup || :
+          ./.github/workflows/scripts/e2e-merge artifacts e2e_setup || :
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v6
