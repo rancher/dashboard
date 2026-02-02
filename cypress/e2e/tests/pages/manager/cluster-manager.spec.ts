@@ -656,7 +656,6 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 201);
     const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
 
-
     cy.readFile(downloadedFilename).then((buffer) => {
       const obj: any = jsyaml.load(buffer);
 

@@ -388,11 +388,12 @@ export default class MgmtCluster extends SteveModel {
   }
 
   async generateKubeConfig(clusters = [this.id]) {
-    const res = await this.$dispatch('management/request', {
-      url:    `/v1/${ EXT.KUBECONFIG }`,
-      method: 'POST',
-      data:   { spec: { clusters } }
+    const memoryResource = await this.$dispatch('management/create', {
+      type: EXT.KUBECONFIG,
+      spec: { clusters }
     }, { root: true });
+
+    const res = await memoryResource.save();
 
     return res.status?.value;
   }
