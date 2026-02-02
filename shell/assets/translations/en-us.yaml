@@ -8850,7 +8850,7 @@ notifications:
     showCheckboxLabel: Show custom login error
     messageLabel: Text to display
 resourceQuota:
-  banner: Resource quotas limit resource consumption in a project. They can be standard (e.g. CPU Limit, Memory Reservation) or custom. Custom quotas use a resource identifier to specify non-standard resources.
+  banner: Resource quotas limit resource consumption in a project. They can be standard (e.g. CPU Limit, Memory Reservation) or custom. Custom quotas use a resource identifier to specify non-standard resources. <a href="https://ranchermanager.docs.rancher.com/how-to-guides/advanced-user-guides/manage-projects/manage-project-resource-quotas" target="_blank" rel="noopener noreferrer nofollow">Read more about Project Resource Quotas in the Rancher Docs.</a><span class="sr-only">Opens in a new tab</span>
   label: Resource Quotas
   headers:
     limit: Limit
