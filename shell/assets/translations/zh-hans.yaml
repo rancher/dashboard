@@ -651,6 +651,10 @@ asyncButton:
     action: 保存
     success: 已保存
     waiting: 正在保存&hellip;
+  editVersion:
+    action: 保存更改
+    success: 已保存
+    waiting: 正在保存更改&hellip;
   enable:
     action: 启用
     success: 启用
@@ -939,6 +943,7 @@ catalog:
             install { 创建 }
             upgrade { 升级 }
             update { 更新 }
+            editVersion { 更新 }
           } 这个 {existing, select,
             true { 应用 }
             false { Chart}
