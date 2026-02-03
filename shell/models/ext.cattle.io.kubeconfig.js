@@ -1,6 +1,5 @@
-import { CAPI, MANAGEMENT, EXT } from '@shell/config/types';
+import { CAPI, MANAGEMENT } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { downloadFile } from '@shell/utils/download';
 
 export default class Kubeconfig extends SteveModel {
   get _availableActions() {
@@ -11,7 +10,7 @@ export default class Kubeconfig extends SteveModel {
   }
 
   /**
-   * Calculates the expiry timestamp from creationTimestamp + ttl (in seconds).
+   * Calculates the expiry timestamp from creationTimestamp + ttl.
    * Returns an ISO date string for use with LiveDate formatter.
    */
   get expiresAt() {
@@ -29,56 +28,54 @@ export default class Kubeconfig extends SteveModel {
   }
 
   /**
-   * Returns a sortable string for the clusters column.
-   * Sorts by cluster name first (alphanumeric), then by cluster ID (alphanumeric).
+   * Returns cluster information for display and linking.
+   * Each object contains {label, location} where location is null if cluster doesn't exist.
    */
-  get clustersSortable() {
+  get referencedClusters() {
     const clusterIds = this.spec?.clusters || [];
-    // Kubeconfig stores management cluster IDs, so look up provisioning clusters by mgmtClusterId
     const provClusters = this.$rootGetters['management/all'](CAPI.RANCHER_CLUSTER) || [];
     const mgmtClusters = this.$rootGetters['management/all'](MANAGEMENT.CLUSTER) || [];
 
-    const sortableNames = clusterIds.map((id) => {
-      // First try to find provisioning cluster by management cluster ID
+    return clusterIds.map((id) => {
       const provCluster = provClusters.find((c) => c.mgmt?.id === id || c.status?.clusterName === id);
-      // Also check management clusters directly
       const mgmtCluster = mgmtClusters.find((c) => c.id === id);
-
       const cluster = provCluster || mgmtCluster;
 
-      if (cluster) {
-        // Cluster exists: use name for primary sort, id for secondary
-        return `${ cluster.nameDisplay?.toLowerCase() || '' }\u0000${ id.toLowerCase() }`;
-      }
-
-      // Cluster doesn't exist: sort by ID (after all named clusters)
-      return `\uffff${ id.toLowerCase() }`;
+      return {
+        label:    cluster?.nameDisplay || this.t('"ext.cattle.io.kubeconfig".deleted', { name: id }),
+        location: provCluster?.detailLocation || mgmtCluster?.detailLocation || null
+      };
     });
-
-    // Sort and join for consistent ordering
-    return sortableNames.sort().join(',');
   }
 
   /**
-   * Downloads the kubeconfig file.
-   * Note: status.value is not persisted for security reasons (contains tokens),
-   * so we must fetch the individual resource to get the generated content.
+   * Returns referenced clusters sorted: existing clusters first (by name), then deleted clusters.
    */
-  async download() {
-    const filename = `${ this.metadata?.name || 'kubeconfig' }.yaml`;
+  get sortedReferencedClusters() {
+    return this.referencedClusters.slice().sort((a, b) => {
+      const aExists = a.location !== null;
+      const bExists = b.location !== null;
 
-    // status.value is only populated on individual GET requests, not in list responses
-    // Fetch the full resource to get the generated kubeconfig content
-    const fullResource = await this.$dispatch('management/find', {
-      type: EXT.KUBECONFIG,
-      id:   this.id,
-      opt:  { force: true }
-    }, { root: true });
+      if (aExists && !bExists) {
+        return -1;
+      }
+      if (!aExists && bExists) {
+        return 1;
+      }
 
-    const content = fullResource?.status?.value;
+      const aName = a.label.toLowerCase();
+      const bName = b.label.toLowerCase();
 
-    if (content) {
-      await downloadFile(filename, content, 'application/yaml');
-    }
+      return aName.localeCompare(bName, undefined, { numeric: true });
+    });
+  }
+
+  /**
+   * Returns a sortable string for the clusters column.
+   */
+  get referencedClustersSortable() {
+    return this.sortedReferencedClusters
+      .map((c) => c.label.toLowerCase())
+      .join(',');
   }
 }

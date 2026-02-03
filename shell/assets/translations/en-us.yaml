@@ -9299,3 +9299,6 @@ autoscaler:
       unavailable: Unavailable
   tab:
     title: Autoscaler
+
+ext.cattle.io.kubeconfig:
+  deleted: "{name} (deleted)"

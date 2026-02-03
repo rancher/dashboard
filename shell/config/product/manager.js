@@ -202,7 +202,7 @@ export function init(store) {
       name:      'clusters',
       labelKey:  'tableHeaders.clusters',
       value:     'spec.clusters',
-      sort:      ['clustersSortable'],
+      sort:      ['referencedClustersSortable'],
       formatter: 'KubeconfigClusters',
     },
     {
