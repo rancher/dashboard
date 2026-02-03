@@ -232,7 +232,7 @@ export const actions = {
     let redirectUrl = opt.redirectUrl;
 
     if ( !redirectUrl ) {
-      redirectUrl = driver.redirectUrl;
+      redirectUrl = driver?.redirectUrl;
     }
     let returnToUrl = `${ window.location.origin }/verify-auth`;
 
@@ -265,7 +265,7 @@ export const actions = {
       scopes = [joinStringList(scopes[0], opt.scopes)];
     }
 
-    if (driver.scopes) {
+    if (driver?.scopes) {
       scopes = [joinStringList(scopes[0], driver.scopes)];
     }
 
