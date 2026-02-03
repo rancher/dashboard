@@ -86,11 +86,21 @@ export default {
     />
     <div class="headers mb-10">
       <div class="mr-10">
-        <label>{{ t('resourceQuota.headers.resourceType') }}</label>
+        <label>
+          {{ t('resourceQuota.headers.resourceType') }}
+          <span
+            class="required mr-5"
+            aria-hidden="true"
+          >*</span>
+        </label>
       </div>
       <div class="mr-20">
         <label>
           {{ t('resourceQuota.headers.resourceIdentifier') }}
+          <span
+            class="required mr-5"
+            aria-hidden="true"
+          >*</span>
           <i
             v-clean-tooltip="t('resourceQuota.resourceIdentifier.tooltip')"
             class="icon icon-info"
@@ -140,5 +150,9 @@ export default {
     div {
         width: 100%;
     }
+}
+
+.required {
+  color: var(--error);
 }
 </style>

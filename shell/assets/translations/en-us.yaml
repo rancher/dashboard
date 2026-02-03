@@ -8895,6 +8895,8 @@ resourceQuota:
     unitlessPlaceholder: e.g. 10
   add:
     label: Add Resource
+  errors:
+    customTypeRequired: Resource identifier is required
   tooltip:
     reserved: 'Other Namespaces:'
     namespace: 'This Namespace:'

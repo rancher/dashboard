@@ -79,6 +79,23 @@ export default {
 
     currentResourceType() {
       return this.isCustom ? this.customType : this.localType;
+    },
+
+    customTypeRules() {
+      // Return a validation rule that makes the field required when isCustom is true
+      if (this.isCustom) {
+        return [
+          (value) => {
+            if (!value) {
+              return this.t('resourceQuota.errors.customTypeRequired');
+            }
+
+            return undefined;
+          }
+        ];
+      }
+
+      return [];
     }
   },
 
@@ -150,8 +167,10 @@ export default {
     <LabeledInput
       :value="customType"
       :disabled="!isCustom"
+      :required="isCustom"
       :mode="mode"
       :placeholder="t('resourceQuota.resourceIdentifier.placeholder')"
+      :rules="customTypeRules"
       class="mr-10"
       data-testid="projectrow-custom-type-input"
       @update:value="updateCustomType($event)"
