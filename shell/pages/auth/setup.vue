@@ -32,7 +32,7 @@ const calcIsFirstLogin = (store) => {
 const calcMustChangePassword = async(store) => {
   await store.dispatch('auth/getUser');
 
-  const out = store.getters['auth/v3User']?.mustChangePassword;
+  const out = store.getters['auth/user']?.mustChangePassword;
 
   return out;
 };
@@ -63,7 +63,7 @@ export default {
       current:            null,
       password:           randomStr(),
       confirm:            null,
-      v3User:             null,
+      user:               null,
       serverUrl:          null,
       mcmEnabled:         null,
       eula:               false,
@@ -125,7 +125,7 @@ export default {
     const me = findBy(principals, 'me', true);
 
     const current = this.$route.query[SETUP] || this.$store.getters['auth/initialPass'];
-    const v3User = this.$store.getters['auth/v3User'] ?? {};
+    const user = this.$store.getters['auth/user'] ?? {};
 
     const mcmFeature = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.FEATURE, id: 'multi-cluster-management', opt: { url: `/v1/${ MANAGEMENT.FEATURE }/multi-cluster-management` }
@@ -150,7 +150,7 @@ export default {
     this['isFirstLogin'] = isFirstLogin;
     this['mustChangePassword'] = mustChangePassword;
     this['current'] = current;
-    this['v3User'] = v3User;
+    this['user'] = user;
     this['serverUrl'] = serverUrl;
     this['mcmEnabled'] = mcmEnabled;
     this['principals'] = principals;
@@ -239,7 +239,7 @@ export default {
           passwordChangeRequest.spec = {
             currentPassword: this.current,
             newPassword:     this.password,
-            userID:          this.v3User?.id
+            userID:          this.user?.id
           };
 
           await passwordChangeRequest.save();
@@ -247,7 +247,7 @@ export default {
           promises.push(setSetting(this.$store, SETTING.FIRST_LOGIN, 'false'));
         }
 
-        const user = this.v3User;
+        const user = this.user;
 
         user.mustChangePassword = false;
         this.$store.dispatch('auth/gotUser', user);

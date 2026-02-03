@@ -131,7 +131,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
   describe('Action Menu', () => {
     it('can Deactivate and Activate user', () => {
-      cy.intercept('GET', '/v3/users?limit=0').as('getUsers');
+      cy.intercept('GET', '/v1/management.cattle.io.users?*').as('getUsers');
       usersPo.goTo();
       usersPo.waitForPage();
       cy.wait('@getUsers');
@@ -173,7 +173,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       const mgmtUserEditPo = new MgmtUserEditPo();
 
       mgmtUserEditPo.description().set('e2e_test');
-      mgmtUserEditPo.saveAndWaitForRequests('PUT', `/v3/users/${ userId }`).then((res) => {
+      mgmtUserEditPo.saveAndWaitForRequests('PUT', `/v1/management.cattle.io.users/${ userId }`).then((res) => {
         expect(res.response?.statusCode).to.equal(200);
         expect(res.response?.body.description).to.equal('e2e_test');
       });
@@ -217,7 +217,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       const promptRemove = new PromptRemove();
 
-      cy.intercept('DELETE', '/v3/users/*').as('deleteUser');
+      cy.intercept('DELETE', '/v1/management.cattle.io.users/*').as('deleteUser');
       promptRemove.confirm(standardUsername);
       promptRemove.remove();
       cy.wait('@deleteUser').its('response.statusCode').should('eq', 200);
@@ -228,7 +228,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   describe('Bulk Actions', () => {
     it('can Deactivate and Activate users', () => {
       // Deactivate user and check state is Inactive
-      cy.intercept('PUT', '/v3/users/*').as('updateUsers');
+      cy.intercept('PUT', '/v1/management.cattle.io.users/*').as('updateUsers');
       usersPo.waitForRequests();
       usersPo.list().selectAll().set();
       usersPo.list().deactivate().click();
@@ -264,7 +264,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.list().bulkActionButton('Delete').click({ force: true });
       const promptRemove = new PromptRemove();
 
-      cy.intercept('DELETE', '/v3/users/*').as('deleteUser');
+      cy.intercept('DELETE', '/v1/management.cattle.io.users/*').as('deleteUser');
       promptRemove.confirm(userBaseUsername);
       promptRemove.remove();
       cy.wait('@deleteUser').its('response.statusCode').should('eq', 200);
@@ -280,7 +280,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
     before('set up', () => {
       cy.login();
-      cy.getRancherResource('v3', 'users').then((resp: Cypress.Response<any>) => {
+      cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
         initialCount = resp.body.data.length - 1;
       });
       cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
@@ -315,7 +315,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       const count = initialCount + 26;
 
       // check users count
-      cy.waitForRancherResources('v3', 'users', count).then((resp: Cypress.Response<any>) => {
+      cy.waitForRancherResources('v1', 'management.cattle.io.users', count).then((resp: Cypress.Response<any>) => {
         const count = resp.body.data.length;
 
         // pagination is visible

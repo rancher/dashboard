@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
-import { NORMAN, EXT } from '@shell/config/types';
+import { NORMAN, EXT, MANAGEMENT } from '@shell/config/types';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 
 // Component handles three use cases
@@ -27,22 +27,30 @@ export default {
     }
   },
   async fetch() {
-    if (this.isChange) {
-      this.passwordChangeRequest = await this.$store.dispatch('management/create', { type: EXT.PASSWORD_CHANGE_REQUESTS });
+    this.selfUser = await this.$store.dispatch('management/create', { type: EXT.SELFUSER });
+    this.passwordChangeRequest = await this.$store.dispatch('management/create', { type: EXT.PASSWORD_CHANGE_REQUESTS });
 
-      // Fetch the username for hidden input fields. The value itself is not needed if create or changing another user's password
-      const users = await this.$store.dispatch('rancher/findAll', {
-        type: NORMAN.USER,
-        opt:  { url: '/v3/users', filter: { me: true } }
+    if (this.selfUser?.canGetUser) {
+      // this will fetch the current user data (basically user id)
+      const selfUserLoaded = await this.selfUser.save();
+
+      // Fetch the username for hidden input fields. The former "setpassword" action did not require userID, but the new
+      // PasswordChangeRequest does.
+      const user = await this.$store.dispatch('management/find', {
+        type: MANAGEMENT.USER,
+        id:   selfUserLoaded.id
       });
-      const user = users?.[0];
 
       this.userId = user?.id;
       this.username = user?.username;
+
+      this.userChangeOnLogin = this.mustChangePassword;
+    } else {
+      this.errorMessages = [this.t('changePassword.errors.cannotFetchSelf')];
+      throw new Error(this.t('changePassword.errors.cannotFetchSelf'));
     }
-    this.userChangeOnLogin = this.mustChangePassword;
   },
-  data(ctx) {
+  data() {
     return {
       passwordChangeRequest:      undefined,
       userId:                     '',
@@ -236,39 +244,34 @@ export default {
       });
     },
 
-    async save(user) {
+    async save() {
       if (this.isChange) {
-        await this.changePassword();
+        await this.changePassword(true);
         if (this.form.deleteKeys) {
           await this.deleteKeys();
         }
       } else if (this.isEdit) {
-        return this.setPassword(user);
+        return this.changePassword();
       }
     },
 
-    async setPassword(user) {
-      // Error handling is catered for by caller
-      await this.$store.dispatch('rancher/resourceAction', {
-        type:       NORMAN.USER,
-        actionName: 'setpassword',
-        resource:   user,
-        body:       { newPassword: this.isRandomGenerated ? this.form.genP : this.form.newP },
-      });
-    },
-
-    async changePassword() {
+    async changePassword(isChangingPassword = false) {
       if (!this.canChangePassword) {
         this.errorMessages = [this.t('changePassword.errors.cannotChange')];
         throw new Error(this.t('changePassword.errors.cannotChange'));
       }
 
+      const spec = {
+        newPassword: this.isRandomGenerated ? this.form.genP : this.form.newP,
+        userID:      this.userId
+      };
+
+      if (isChangingPassword) {
+        spec.currentPassword = this.form.currentP;
+      }
+
       try {
-        this.passwordChangeRequest.spec = {
-          currentPassword: this.form.currentP,
-          newPassword:     this.isRandomGenerated ? this.form.genP : this.form.newP,
-          userID:          this.userId
-        };
+        this.passwordChangeRequest.spec = spec;
 
         await this.passwordChangeRequest.save();
       } catch (err) {
