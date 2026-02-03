@@ -7,14 +7,14 @@ export default class ScalerPo extends ComponentPo {
   }
 
   getValue(): CypressChainable {
-    return this.self().get('.value');
+    return this.self().get('[data-testid="scaler-value"]');
   }
 
   decreaseButton(): CypressChainable {
-    return this.self().get('.decrease');
+    return this.self().get('[data-testid="scaler-decrease"]');
   }
 
   increaseButton(): CypressChainable {
-    return this.self().get('.increase');
+    return this.self().get('[data-testid="scaler-increase"]');
   }
 }

@@ -27,17 +27,22 @@ const i18n = useI18n(store);
       class="decrease"
       :aria-label="i18n.t('component.resource.detail.card.scaler.ariaLabel.decrease', {resourceName: props.ariaResourceName})"
       :disabled="!!props.min && (props.value <= props.min)"
+      data-testid="scaler-decrease"
       @click="() => emit('decrease', props.value - 1)"
     >
       <i class="icon icon-sm icon-minus" />
     </button>
-    <div class="value">
+    <div
+      class="value"
+      data-testid="scaler-value"
+    >
       {{ props.value }}
     </div>
     <button
       class="increase"
       :aria-label="i18n.t('component.resource.detail.card.scaler.ariaLabel.increase', {resourceName: props.ariaResourceName})"
       :disabled="!!props.max && (props.value >= props.max)"
+      data-testid="scaler-increase"
       @click="() => emit('increase', props.value + 1)"
     >
       <i class="icon icon-sm icon-plus" />
