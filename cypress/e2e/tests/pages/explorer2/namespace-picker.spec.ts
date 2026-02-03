@@ -31,12 +31,8 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     // Verify 'Namespace: cattle-fleet-system' appears once when filtering by Namespace
     // Verify multiple namespaces within Project: System display when filtering by Project
 
-    // Set up intercept before making the API call
-    cy.intercept('PUT', '/v1/userpreferences/user-*').as('updateNamespaceFilter');
-
-    // group workloads by namespace
+    // group workloads by namespace - updateNamespaceFilter handles its own waiting internally
     cy.updateNamespaceFilter('local', 'metadata.namespace', '{"local":["all://user"]}');
-    cy.wait('@updateNamespaceFilter', { timeout: 10000 });
 
     const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
@@ -50,12 +46,21 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     workloadsPodPage.list().resourceTable().sortableTable().groupByButtons(1)
       .click();
 
+    // Wait for the namespace picker to be ready before interacting with it
+    namespacePicker.namespaceDropdown().should('be.visible');
+
     // Filter by Namespace: Select 'cattle-fleet-system'
     namespacePicker.toggle();
+    namespacePicker.getOptions().should('be.visible');
     namespacePicker.getOptions().find('#ns_cattle-fleet-system').should('exist');
     namespacePicker.clickOptionByLabel('cattle-fleet-system');
     namespacePicker.isChecked('cattle-fleet-system');
     namespacePicker.closeDropdown();
+    // Wait for dropdown to close
+    namespacePicker.getOptions().should('not.be.visible');
+
+    // Wait for the table to update before checking for group elements
+    workloadsPodPage.list().resourceTable().sortableTable().checkVisible();
     workloadsPodPage.list().resourceTable().sortableTable()
       .groupElementWithName('cattle-fleet-system')
       .scrollIntoView()
@@ -64,6 +69,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
 
     // clear selection: from dropdown controller
     namespacePicker.toggle();
+    namespacePicker.getOptions().should('be.visible');
     namespacePicker.selectedValues().find('i').trigger('click');
     // 'Only User Namespaces' option should be selected after clearing
     namespacePicker.isChecked('Only User Namespaces');
@@ -72,6 +78,11 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.clickOptionByLabel('Project: System');
     namespacePicker.isChecked('Project: System');
     namespacePicker.closeDropdown();
+    // Wait for dropdown to close
+    namespacePicker.getOptions().should('not.be.visible');
+
+    // Wait for table to update before checking for group elements
+    workloadsPodPage.list().resourceTable().sortableTable().checkVisible();
     workloadsPodPage.list().resourceTable().sortableTable().groupElementWithName('kube-system')
       .scrollIntoView()
       .should('be.visible');

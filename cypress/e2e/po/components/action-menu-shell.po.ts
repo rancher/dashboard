@@ -10,11 +10,11 @@ export default class ActionMenuPo extends ComponentPo {
   }
 
   getMenuItem(name: string) {
-    return this.self().get('[dropdown-menu-item]').contains(name);
+    return this.self().find('[dropdown-menu-item]').contains(name);
   }
 
   menuItemNames() {
-    return this.self().get('[dropdown-menu-item]').then(($els) => {
+    return this.self().find('[dropdown-menu-item]').then(($els) => {
       return (
         Cypress.$.makeArray($els)
           // and extract inner text from each

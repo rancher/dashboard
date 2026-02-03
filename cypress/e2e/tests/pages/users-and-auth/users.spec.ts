@@ -140,6 +140,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       // Deactivate user and check state is Inactive
       menu.checkVisible();
+      menu.self().should('contain', 'Disable'); // Wait for menu items to load
       menu.getMenuItem('Disable').click();
       menu.checkNotExists();
 
@@ -148,6 +149,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       // Activate user and check state is Active
       menu = usersPo.list().actionMenu(standardUsername);
       menu.checkVisible();
+      menu.self().should('contain', 'Enable'); // Wait for menu items to load
       menu.getMenuItem('Enable').click();
       menu.checkNotExists();
 

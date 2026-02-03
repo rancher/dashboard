@@ -5,6 +5,7 @@ import { MEDIUM_TIMEOUT_OPT, LONG_TIMEOUT_OPT } from '@/cypress/support/utils/ti
 import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import { CompliancePo, ComplianceListPo } from '~/cypress/e2e/po/other-products/compliance.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import ChartInstalledAppsListPagePo from '@/cypress/e2e/po/pages/chart-installed-apps.po';
 
 describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, () => {
   before(() => {
@@ -43,11 +44,11 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
     describe('Compliance Chart setup', () => {
       it('Complete install and a Scan is created', () => {
         cy.updateNamespaceFilter('local', 'none', '{"local":[]}');
-        const kubectl = new Kubectl();
         const compliance = new CompliancePo();
         const complianceList = new ComplianceListPo();
         const sideNav = new ProductNavPo();
         const terminal = new Kubectl();
+        const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
 
         ChartPage.navTo(null, 'Rancher Compliance');
         chartPage.waitForChartHeader('Rancher Compliance', MEDIUM_TIMEOUT_OPT);
@@ -55,15 +56,13 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
 
         installChartPage.nextPage();
 
+        // Add API intercept before installation
+        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('complianceInstall');
+
         installChartPage.installChart();
 
-        // Wait for installation to complete by checking for UI indicators
-        cy.url({ timeout: 30000 }).should('include', '/apps/cattle.io.clusterapp/compliance-operator-system/rancher-compliance');
-        cy.contains('Deployed', { timeout: 30000 }).should('be.visible');
-
-        kubectl.waitForTerminalStatus('Disconnected');
-
-        kubectl.closeTerminal();
+        // Wait for installation to complete using robust method
+        installedAppsPage.waitForInstallCloseTerminal('complianceInstall', ['rancher-compliance', 'rancher-compliance-crd']);
 
         sideNav.navToSideMenuGroupByLabel('Compliance');
         complianceList.waitForPage();
