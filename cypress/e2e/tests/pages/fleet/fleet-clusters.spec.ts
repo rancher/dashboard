@@ -421,8 +421,16 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
   });
 
   it('should only display action menu with allowed actions only', () => {
+    // Ensure table is fully loaded before interacting with action menu
+    fleetClusterListPage.list().resourceTable().sortableTable().checkVisible();
+    fleetClusterListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
     const constActionMenu = fleetClusterListPage.list().resourceTable().sortableTable()
       .rowActionMenuOpen('local');
+
+    // Wait for action menu dropdown to be fully rendered and populated
+    cy.get('[dropdown-menu-collection]').should('be.visible');
+    cy.get('[dropdown-menu-item]').should('have.length.at.least', 1);
 
     const allowedActions: MenuActions[] = [
       MenuActions.Pause,

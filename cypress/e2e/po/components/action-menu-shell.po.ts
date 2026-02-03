@@ -2,7 +2,13 @@ import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
 export default class ActionMenuPo extends ComponentPo {
   constructor(arg?:any) {
-    super(arg || cy.get('[dropdown-menu-collection]'));
+    if (arg) {
+      super(arg);
+    } else {
+      // Ensure dropdown menu collection exists before creating the component
+      cy.get('[dropdown-menu-collection]', { timeout: 10000 }).should('be.visible');
+      super(cy.get('[dropdown-menu-collection]'));
+    }
   }
 
   clickMenuItem(index: number) {
@@ -10,6 +16,9 @@ export default class ActionMenuPo extends ComponentPo {
   }
 
   getMenuItem(name: string) {
+    // Ensure dropdown menu items are loaded before searching
+    this.self().find('[dropdown-menu-item]').should('have.length.at.least', 1);
+
     return this.self().find('[dropdown-menu-item]').contains(name);
   }
 

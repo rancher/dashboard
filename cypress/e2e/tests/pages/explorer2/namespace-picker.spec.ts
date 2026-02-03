@@ -51,15 +51,18 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
 
     // Filter by Namespace: Select 'cattle-fleet-system'
     namespacePicker.toggle();
+    // Wait for dropdown to open and options to be populated
     namespacePicker.getOptions().should('be.visible');
     namespacePicker.getOptions().find('#ns_cattle-fleet-system').should('exist');
     namespacePicker.clickOptionByLabel('cattle-fleet-system');
     namespacePicker.isChecked('cattle-fleet-system');
     namespacePicker.closeDropdown();
-    // Wait for dropdown to close
-    namespacePicker.getOptions().should('not.be.visible');
+    // Wait for dropdown to close completely before proceeding
+    cy.get('[data-testid="namespaces-filter"]').should('be.visible');
+    namespacePicker.getOptions().should('not.exist');
 
-    // Wait for the table to update before checking for group elements
+    // Wait for API call to complete and table to update after namespace filter change
+    cy.wait('@getPods');
     workloadsPodPage.list().resourceTable().sortableTable().checkVisible();
     workloadsPodPage.list().resourceTable().sortableTable()
       .groupElementWithName('cattle-fleet-system')
@@ -69,6 +72,7 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
 
     // clear selection: from dropdown controller
     namespacePicker.toggle();
+    // Wait for dropdown options to be available before interacting
     namespacePicker.getOptions().should('be.visible');
     namespacePicker.selectedValues().find('i').trigger('click');
     // 'Only User Namespaces' option should be selected after clearing
@@ -78,10 +82,12 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     namespacePicker.clickOptionByLabel('Project: System');
     namespacePicker.isChecked('Project: System');
     namespacePicker.closeDropdown();
-    // Wait for dropdown to close
-    namespacePicker.getOptions().should('not.be.visible');
+    // Wait for dropdown to close completely
+    cy.get('[data-testid="namespaces-filter"]').should('be.visible');
+    namespacePicker.getOptions().should('not.exist');
 
-    // Wait for table to update before checking for group elements
+    // Wait for API call to complete and table to update after project filter change
+    cy.wait('@getPods');
     workloadsPodPage.list().resourceTable().sortableTable().checkVisible();
     workloadsPodPage.list().resourceTable().sortableTable().groupElementWithName('kube-system')
       .scrollIntoView()

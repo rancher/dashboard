@@ -50,19 +50,26 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
         const terminal = new Kubectl();
         const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
 
+        // Add API intercept before navigating to chart to ensure we catch the install request
+        cy.intercept('POST', '/v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('complianceInstall');
+
         ChartPage.navTo(null, 'Rancher Compliance');
         chartPage.waitForChartHeader('Rancher Compliance', MEDIUM_TIMEOUT_OPT);
         chartPage.goToInstall();
 
         installChartPage.nextPage();
-
-        // Add API intercept before installation
-        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('complianceInstall');
-
         installChartPage.installChart();
 
-        // Wait for installation to complete using robust method
-        installedAppsPage.waitForInstallCloseTerminal('complianceInstall', ['rancher-compliance', 'rancher-compliance-crd']);
+        // Wait for installation request to complete - increased timeout for chart installation
+        cy.wait('@complianceInstall', { timeout: 30000 }).its('response.statusCode').should('eq', 201);
+
+        // Wait for terminal to disconnect indicating installation is complete
+        terminal.waitForTerminalStatus('Disconnected', LONG_TIMEOUT_OPT);
+        terminal.closeTerminal();
+
+        // Verify apps are deployed
+        installedAppsPage.appsList().resourceTableDetails('rancher-compliance', 1).should('contain', 'Deployed');
+        installedAppsPage.appsList().resourceTableDetails('rancher-compliance-crd', 1).should('contain', 'Deployed');
 
         sideNav.navToSideMenuGroupByLabel('Compliance');
         complianceList.waitForPage();
