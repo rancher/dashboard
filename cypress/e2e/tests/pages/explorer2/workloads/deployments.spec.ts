@@ -114,8 +114,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
 
       workloadDetailsPage.replicaCount().should('contain', '1', MEDIUM_TIMEOUT_OPT);
 
-      workloadDetailsPage.waitForScaleButtonsEnabled();
-      workloadDetailsPage.podScaleUp().click();
+      workloadDetailsPage.podScaleUp().should('be.enabled').click();
 
       workloadDetailsPage.waitForScaleButtonsEnabled();
       workloadDetailsPage.waitForPendingOperationsToComplete();
@@ -125,8 +124,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       // Verify pod status shows healthy scaling state
       workloadDetailsPage.podsStatus().should('be.visible', MEDIUM_TIMEOUT_OPT)
         .should('contain.text', 'Running');
-      workloadDetailsPage.waitForScaleButtonsEnabled();
-      workloadDetailsPage.podScaleDown().click();
+      workloadDetailsPage.podScaleDown().should('be.enabled').click();
       workloadDetailsPage.waitForScaleButtonsEnabled();
       workloadDetailsPage.waitForPendingOperationsToComplete();
 
@@ -501,14 +499,14 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     };
 
     before(() => {
-      cy.createE2EResourceName('volume-deployment').then((name) => {
+      cy.createE2EResourceName('volume-deployment-2').then((name) => {
         volumeDeploymentId = name;
 
         const volumeDeployment = { ...createDeploymentBlueprint };
 
-        volumeDeployment.metadata.name = name;
+        volumeDeployment.metadata.name = volumeDeploymentId;
 
-        cy.createRancherResource('v1', apiResource, JSON.stringify(volumeDeployment));
+        cy.createRancherResource('v1', 'apps.deployment', JSON.stringify(volumeDeployment));
       });
     });
 
