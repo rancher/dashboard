@@ -233,7 +233,14 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     appRepoList.sortableTable().noRowsShouldNotExist();
     appRepoList.sortableTable().rowNames().then((names: any) => {
       if (names.includes(UI_PLUGINS_PARTNERS_REPO_NAME)) {
-        appRepoList.list().actionMenu(UI_PLUGINS_PARTNERS_REPO_NAME).getMenuItem('Delete').click();
+        const actionMenu = appRepoList.list().actionMenu(UI_PLUGINS_PARTNERS_REPO_NAME);
+
+        // Ensure action menu is fully loaded before accessing menu items
+        actionMenu.checkVisible();
+        cy.get('[dropdown-menu-collection]').should('be.visible');
+        cy.get('[dropdown-menu-item]').should('have.length.at.least', 1);
+
+        actionMenu.getMenuItem('Delete').click();
         const promptRemove = new PromptRemove();
 
         return promptRemove.remove();
