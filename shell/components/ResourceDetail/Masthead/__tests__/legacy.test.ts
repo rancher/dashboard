@@ -34,7 +34,7 @@ describe('component: Masthead/legacy', () => {
     (useRuntimeFlag as jest.Mock).mockReturnValue({ featureDropdownMenu: false });
   });
 
-  it('should return fallback schema with ID when the schema is missing (e.g. virtual types)', () => {
+  it('should return fallback schema with ID when the schema is missing (e.g. projectsecret)', () => {
     const resource = 'projectsecret';
 
     mockStore.getters['cluster/schemaFor'].mockReturnValue(undefined);
