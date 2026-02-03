@@ -580,10 +580,10 @@ describe('Settings', { testIsolation: 'off' }, () => {
       expect(obj.apiVersion).to.equal('v1');
       expect(obj.kind).to.equal('Config');
       expect(obj.clusters.length).to.be.gte(1);
-      const localCluster = obj.clusters.find((c: any) => c.name === 'local');
-
-      expect(localCluster).to.be.an('object');
+      expect(obj.clusters[1].name).to.equal('local');
       expect(obj.users[0].user.token).to.have.length.gt(0);
+      expect(obj.apiVersion).to.equal('v1');
+      expect(obj.kind).to.equal('Config');
     });
 
     resetSettings.push('kubeconfig-generate-token');
