@@ -8850,7 +8850,7 @@ notifications:
     showCheckboxLabel: Show custom login error
     messageLabel: Text to display
 resourceQuota:
-  banner: Resource quotas limit resource consumption in a project. They can be standard (e.g. CPU Limit, Memory Reservation) or custom. Custom quotas use a resource identifier to specify non-standard resources. <a href="https://ranchermanager.docs.rancher.com/how-to-guides/advanced-user-guides/manage-projects/manage-project-resource-quotas" target="_blank" rel="noopener noreferrer nofollow">Read more about Project Resource Quotas in the Rancher Docs.</a><span class="sr-only">Opens in a new tab</span>
+  banner: Limit resource consumption in a project for both standard (e.g. CPU Limit) and custom resource types. For custom resource types you have to provide the resource identifier yourself. Want to learn more about resource quotas? Read our <a href="https://ranchermanager.docs.rancher.com/how-to-guides/advanced-user-guides/manage-projects/manage-project-resource-quotas" target="_blank" rel="noopener noreferrer nofollow">documentation <i class="icon icon-external-link"></i></a><span class="sr-only">Opens in a new tab</span>
   label: Resource Quotas
   headers:
     limit: Limit
@@ -8865,7 +8865,7 @@ resourceQuota:
   custom: Custom
   resourceIdentifier:
     placeholder: e.g. configmaps
-    tooltip: Select 'Custom' from the Resource Type list and enter the resource name (e.g., 'requests.nvidia.com/gpu') to add custom resources quotas.
+    tooltip: Select 'Custom' from the 'Resource Type' list and enter the resource identifier (e.g. requests.nvidia.com/gpu) to add custom resources quotas.
   configMaps: Config Maps
   limitsCpu: CPU Limit
   limitsMemory: Memory Limit
