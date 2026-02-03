@@ -214,7 +214,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         ClusterManagerListPagePo.navTo();
 
-        cy.intercept('POST', '/v1/ext.cattle.io.kubeconfig').as('copyKubeConfig');
+        cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('copyKubeConfig');
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Copy KubeConfig to Clipboard').click();
         cy.wait('@copyKubeConfig');
 
@@ -280,7 +280,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       it('can download KubeConfig', () => {
         clusterList.goTo();
-        cy.intercept('POST', '/v1/ext.cattle.io.kubeconfig').as('generateKubeconfig');
+        cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeconfig');
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download KubeConfig').click();
         cy.wait('@generateKubeconfig').its('response.statusCode').should('eq', 200);
 
@@ -650,7 +650,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     ClusterManagerListPagePo.navTo();
     clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
       .click();
-    cy.intercept('POST', '/v1/ext.cattle.io.kubeconfig').as('generateKubeConfig');
+    cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
     clusterList.list().openBulkActionDropdown();
     clusterList.list().bulkActionButton('Download KubeConfig').click();
     cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 201);

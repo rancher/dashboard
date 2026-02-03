@@ -101,7 +101,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
   it('can copy the kubeconfig to clipboard', () => {
     ClusterDashboardPagePo.navTo();
-    cy.intercept('POST', '/v1/ext.cattle.io.kubeconfig').as('copyKubeConfig');
+    cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('copyKubeConfig');
     header.copyKubeconfig().click();
     header.copyKubeConfigCheckmark().should('be.visible');
     cy.wait('@copyKubeConfig');
