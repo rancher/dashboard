@@ -27,28 +27,28 @@ export function compareChartVersions(v1, v2) {
   let diff = semver.compare(v1, v2, { loose: true });
 
   if (diff === 0) {
-    const vC = semver.parse(v1, { loose: true });
-    const vT = semver.parse(v2, { loose: true });
-    const buildC = vC.build.join('.');
-    const buildT = vT.build.join('.');
+    const parsedV1 = semver.parse(v1, { loose: true });
+    const parsedV2 = semver.parse(v2, { loose: true });
+    const buildV1 = parsedV1.build.join('.');
+    const buildV2 = parsedV2.build.join('.');
 
     // Special logic for Rancher charts where "up" prefix in build metadata contains version info.
     // E.g. 108.0.0+up0.25.0-rc.4 vs 108.0.0+up0.25.0
     // Standard semver.compareBuild would sort ASCII: "up...-rc" > "up..." (incorrect for RC)
     // We strip "up" and compare the rest as versions to properly handle pre-releases (RC < Stable).
-    if (buildC.startsWith('up') && buildT.startsWith('up')) {
-      const subC = buildC.substring(2);
-      const subT = buildT.substring(2);
-      const subCValid = semver.valid(subC, { loose: true });
-      const subTValid = semver.valid(subT, { loose: true });
+    if (buildV1.startsWith('up') && buildV2.startsWith('up')) {
+      const subV1 = buildV1.substring(2);
+      const subV2 = buildV2.substring(2);
+      const subV1Valid = semver.valid(subV1, { loose: true });
+      const subV2Valid = semver.valid(subV2, { loose: true });
 
-      if (subCValid && subTValid) {
+      if (subV1Valid && subV2Valid) {
         // Both "up" metadata parts are valid semver: compare them semantically.
-        diff = semver.compare(subC, subT, { loose: true });
-      } else if (subCValid && !subTValid) {
+        diff = semver.compare(subV1, subV2, { loose: true });
+      } else if (subV1Valid && !subV2Valid) {
         // Only v1 has valid "up" metadata: prefer v1 over v2.
         diff = 1;
-      } else if (!subCValid && subTValid) {
+      } else if (!subV1Valid && subV2Valid) {
         // Only v2 has valid "up" metadata: prefer v2 over v1.
         diff = -1;
       }
