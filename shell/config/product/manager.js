@@ -126,6 +126,7 @@ export function init(store) {
   weightType(CAPI.MACHINE_DEPLOYMENT, 4, true);
   weightType(CAPI.MACHINE_SET, 3, true);
   weightType(CAPI.MACHINE, 2, true);
+  configureType(EXT.KUBECONFIG, { canYaml: false });
   weightType(EXT.KUBECONFIG, 1, true);
   weightType(CATALOG.CLUSTER_REPO, 0, true);
   weightType(MANAGEMENT.PSA, 5, true);
@@ -203,6 +204,7 @@ export function init(store) {
       labelKey:  'tableHeaders.clusters',
       value:     'spec.clusters',
       sort:      ['referencedClustersSortable'],
+      search:    ['referencedClustersSortable'],
       formatter: 'KubeconfigClusters',
     },
     {
