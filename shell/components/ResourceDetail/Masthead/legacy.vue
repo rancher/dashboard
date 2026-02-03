@@ -122,8 +122,13 @@ export default {
 
     schema() {
       const inStore = this.storeOverride || this.$store.getters['currentStore'](this.resource);
+      const schema = this.$store.getters[`${ inStore }/schemaFor`]( this.resource );
 
-      return this.$store.getters[`${ inStore }/schemaFor`]( this.resource );
+      if (!schema && this.resource) {
+        return { id: this.resource };
+      }
+
+      return schema;
     },
 
     isView() {
