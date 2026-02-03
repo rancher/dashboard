@@ -18,14 +18,18 @@ export default class ActionMenuPo extends ComponentPo {
     // Wait for dropdown menu to be ready and items to be populated
     this.self().should('be.visible');
 
-    // Wait for menu items to exist with a more specific error message
-    this.self().find('[dropdown-menu-item]').should('exist').then(($items) => {
-      if ($items.length === 0) {
-        throw new Error(`No dropdown menu items found for menu item "${ name }"`);
-      }
-    });
+    // Wait for dropdown content to be fully loaded - check for loading indicators
+    this.self().should('not.contain', 'Loading...');
+    this.self().should('not.have.class', 'loading');
 
-    return this.self().find('[dropdown-menu-item]').contains(name);
+    // Wait for menu items to exist and be populated (more than 0)
+    this.self().find('[dropdown-menu-item]').should('have.length.greaterThan', 0);
+
+    // Additional wait to ensure items are interactable
+    this.self().find('[dropdown-menu-item]').should('be.visible');
+
+    // Find the specific menu item, with retry logic
+    return this.self().find('[dropdown-menu-item]').contains(name).should('be.visible');
   }
 
   menuItemNames() {

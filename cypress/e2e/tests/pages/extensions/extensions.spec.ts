@@ -238,13 +238,6 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
 
         const actionMenu = appRepoList.list().actionMenu(UI_PLUGINS_PARTNERS_REPO_NAME);
 
-        // Ensure action menu is fully loaded before accessing menu items
-        actionMenu.checkVisible();
-
-        // Wait for dropdown menu to be populated
-        cy.get('[dropdown-menu-collection]').should('be.visible');
-        cy.get('[dropdown-menu-item]').should('exist');
-
         actionMenu.getMenuItem('Delete').click();
         const promptRemove = new PromptRemove();
 
