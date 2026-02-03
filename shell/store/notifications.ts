@@ -387,7 +387,7 @@ export const actions = {
    */
   async init({ commit, getters } : any, userData: any) {
     const userKey = userData.id;
-    const userId = userData.v3User?.uuid;
+    const userId = userData.user?.metadata?.uuid;
 
     if (!userKey || !userId) {
       console.error('Unable to initialize notifications - required user info not available'); // eslint-disable-line no-console

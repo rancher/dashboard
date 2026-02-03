@@ -1,5 +1,5 @@
 <script>
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { MANAGEMENT } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import GlobalRoleBindings from '@shell/components/GlobalRoleBindings.vue';
 import ChangePassword from '@shell/components/form/ChangePassword';
@@ -129,6 +129,7 @@ export default {
 
     async createUser() {
       // Ensure username is unique (this does not happen in the backend)
+      // TODO: if users are a big list, then this should be paginated - use "filter"
       const users = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER });
 
       if (users.find((u) => u.username === this.form.username)) {
@@ -136,18 +137,17 @@ export default {
       }
 
       const user = await this.$store.dispatch('rancher/create', {
-        type:               NORMAN.USER,
+        type:               MANAGEMENT.USER,
         description:        this.form.description,
         enabled:            true,
         mustChangePassword: this.form.password.userChangeOnLogin,
-        name:               this.form.displayName,
+        displayName:        this.form.displayName,
         password:           this.form.password.password,
         username:           this.form.username
       });
 
-      const newNormanUser = await user.save();
-
-      return this.$store.dispatch('management/find', { type: MANAGEMENT.USER, id: newNormanUser.id });
+      // cannot seem to find the schema when doing save, so manually specify url
+      return await user.save({ url: '/v1/management.cattle.io.users' });
     },
 
     async editUser() {
@@ -155,15 +155,12 @@ export default {
         return;
       }
 
-      const normanUser = await this.$store.dispatch('rancher/find', {
-        type: NORMAN.USER,
-        id:   this.value.id || this.user?.id,
-      });
+      this.value.description = this.form.description;
+      this.value.displayName = this.form.displayName;
+      this.value.mustChangePassword = this.form.password.userChangeOnLogin;
 
-      // Save change of password
-      // - Password must be changed before editing mustChangePassword (setpassword action sets this to false)
       if (this.form.password.password) {
-        await this.$refs.changePassword.save(normanUser);
+        await this.$refs.changePassword.save(this.value);
 
         // Why the wait? Without these the user updates below are ignored
         // - The update request succeeds and shows the correct values in it's response.
@@ -173,18 +170,7 @@ export default {
         await wait(5000);
       }
 
-      // Save user updates
-      normanUser.description = this.form.description;
-      normanUser._name = this.form.displayName;
-      normanUser.mustChangePassword = this.form.password.userChangeOnLogin;
-
-      await normanUser.save();
-
-      return await this.$store.dispatch('management/find', {
-        type: MANAGEMENT.USER,
-        id:   this.value.id,
-        opt:  { force: true }
-      });
+      this.value.save();
     },
 
     async updateRoles(userId) {

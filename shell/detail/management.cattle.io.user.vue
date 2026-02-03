@@ -31,7 +31,6 @@ export default {
     if (this.canSeeRoleTemplates) {
       // Upfront fetch, avoid async computes
       await Promise.all([
-        await this.$store.dispatch('rancher/find', { type: NORMAN.USER, id: this.value.id }),
         await this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE }),
         await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING }),
         await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING })

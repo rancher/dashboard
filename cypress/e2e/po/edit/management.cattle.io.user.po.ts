@@ -48,7 +48,7 @@ export default class MgmtUserEditPo extends BaseDetailPagePo {
       return null;
     }
 
-    cy.intercept('POST', 'v3/users').as('userCreation');
+    cy.intercept('POST', 'v1/management.cattle.io.users').as('userCreation');
     cy.intercept('POST', 'v3/globalrolebindings').as('globalRoleBindingsCreation');
 
     this.resourceDetail().cruResource().saveOrCreate()

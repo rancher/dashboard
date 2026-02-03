@@ -1,7 +1,7 @@
 import { matching, convertSelectorObj } from '@shell/utils/selector';
 import isEmpty from 'lodash/isEmpty';
 import { escapeHtml } from '@shell/utils/string';
-import { FLEET } from '@shell/config/types';
+import { FLEET, MANAGEMENT, EXT } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -30,18 +30,31 @@ function normalizeStateCounts(data) {
 
 export default class FleetApplication extends SteveModel {
   async getCurrentUser() {
-    const user = this.$rootGetters['auth/v3User'];
+    const user = this.$rootGetters['auth/user'];
 
     if (user?.id) {
       return user;
     }
 
-    const res = await this.$dispatch('rancher/request', {
-      url:    '/v3/users?me=true',
-      method: 'get',
-    }, { root: true });
+    const selfUser = await this.$dispatch('management/create', { type: EXT.SELFUSER }, { root: true });
 
-    return res?.data?.[0] || {};
+    if (selfUser?.canGetUser) {
+      // this will fetch the current user data (basically user id)
+      const selfUserLoaded = await selfUser.save();
+
+      const user = await this.$dispatch('management/find', {
+        type: MANAGEMENT.USER,
+        id:   selfUserLoaded.id
+      }, { root: true });
+
+      if (user) {
+        this.$dispatch('auth/gotUser', user, { root: true });
+
+        return user;
+      }
+    }
+
+    return {};
   }
 
   pause() {

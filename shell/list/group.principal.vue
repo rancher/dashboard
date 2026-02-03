@@ -9,7 +9,6 @@ import { NAME } from '@shell/config/product/auth';
 import { MODE, _EDIT } from '@shell/config/query-params';
 import { mapState } from 'vuex';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
-import { allHash } from '@shell/utils/promise';
 
 export default {
   components: {
@@ -37,12 +36,9 @@ export default {
     const authConfigSchema = this.$store.getters[`management/schemaFor`](MANAGEMENT.AUTH_CONFIG);
     const grbSchema = this.$store.getters['rancher/schemaFor'](NORMAN.GLOBAL_ROLE_BINDING);
 
-    const hash = await allHash({
-      user:      this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' }),
-      providers: authConfigSchema ? this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG }) : Promise.resolve([])
-    });
+    const providers = authConfigSchema ? await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG }) : [];
 
-    const nonLocalAuthProvider = !!hash.providers.find((p) => p.name !== 'local' && p.enabled === true);
+    const nonLocalAuthProvider = !!providers.find((p) => p.name !== 'local' && p.enabled === true);
 
     this.membershipRefreshRequests = await this.$store.dispatch('management/create', { type: EXT.GROUP_MEMBERSHIP_REFRESH_REQUESTS });
     this.canCreateGlobalRoleBinding = nonLocalAuthProvider && grbSchema?.collectionMethods?.includes('POST');

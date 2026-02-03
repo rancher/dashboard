@@ -1,24 +1,14 @@
 import { NORMAN, EXT } from '@shell/config/types';
-import HybridModel, { cleanHybridResources } from '@shell/plugins/steve/hybrid-class';
+import SteveModel from '@shell/plugins/steve/steve-class';
 import day from 'dayjs';
 
-export default class User extends HybridModel {
+export default class User extends SteveModel {
   // Preserve description
   constructor(data, ctx, rehydrateNamespace = null, setClone = false) {
     const _description = data.description;
 
     super(data, ctx, rehydrateNamespace, setClone);
     this.description = _description;
-  }
-
-  // Clean the Norman properties, but keep description
-  cleanResource(data) {
-    const desc = data.description;
-    const clean = cleanHybridResources(data);
-
-    clean._description = desc;
-
-    return clean;
   }
 
   get isSystem() {
@@ -181,7 +171,7 @@ export default class User extends HybridModel {
   }
 
   async setEnabled(enabled) {
-    const clone = await this.$dispatch('rancher/clone', { resource: this.norman }, { root: true });
+    const clone = await this.$dispatch('clone', { resource: this });
 
     clone.enabled = enabled;
     await clone.save();
@@ -283,19 +273,8 @@ export default class User extends HybridModel {
     return true;
   }
 
+  // TODO: can this be removed safely? not easy to track usage...
   get norman() {
     return this.$rootGetters['rancher/byId'](NORMAN.USER, this.id);
-  }
-
-  get canDelete() {
-    return this.norman?.hasLink('remove') && !this.isCurrentUser;
-  }
-
-  get canUpdate() {
-    return this.norman?.hasLink('update');
-  }
-
-  remove() {
-    return this.norman?.remove();
   }
 }
