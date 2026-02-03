@@ -125,6 +125,9 @@ export default {
       const schema = this.$store.getters[`${ inStore }/schemaFor`]( this.resource );
 
       if (!schema && this.resource) {
+        // For virtual types (like projectsecret) or cases where the schema isn't loaded yet,
+        // return a minimal object with the ID. This ensures getters like 'labelFor' can
+        // still generate a display name (e.g. "Project Secret") using translations.
         return { id: this.resource };
       }
 

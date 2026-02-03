@@ -93,6 +93,10 @@ export default {
     const route = this.$route;
     const params = route.params;
     let resourceType = this.resourceOverride || params.resource;
+
+    // Preserve the original resource (e.g. 'projectsecret') before it's remapped to an underlying
+    // schema (e.g. 'secret') for logic reuse. The Masthead needs this original context to
+    // display the specific title rather than the generic underlying type.
     const originalResourceType = resourceType;
 
     const inStore = this.storeOverride || store.getters['currentStore'](resourceType);
