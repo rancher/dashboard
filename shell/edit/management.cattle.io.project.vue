@@ -49,6 +49,7 @@ export default {
       HARVESTER_TYPES,
       RANCHER_TYPES,
       fvFormRuleSets:     [{ path: 'spec.displayName', rules: ['required'] }],
+      resourceQuotaKey:   0,
     };
   },
   computed: {
@@ -190,6 +191,9 @@ export default {
           }
         }
       });
+
+      // Incrementing the key forces the ResourceQuota component to re-render
+      this.resourceQuotaKey++;
     }
   },
 };
@@ -249,6 +253,7 @@ export default {
         :weight="9"
       >
         <ResourceQuota
+          :key="resourceQuotaKey"
           :value="value"
           :mode="canEditTabElements"
           :types="isStandaloneHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
