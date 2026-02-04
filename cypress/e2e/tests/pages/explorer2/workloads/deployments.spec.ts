@@ -26,7 +26,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     let scaleTestNamespace; // Dynamic namespace for scale test
 
     const createTestDeployment = (baseName: string) => {
-      const deployment = { ...createDeploymentBlueprint };
+      const deployment = structuredClone(createDeploymentBlueprint);
 
       deployment.metadata.name = `${ baseName }-${ Date.now() }`;
 
