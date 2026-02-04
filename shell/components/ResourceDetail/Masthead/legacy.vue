@@ -125,9 +125,10 @@ export default {
       const schema = this.$store.getters[`${ inStore }/schemaFor`]( this.resource );
 
       if (!schema && this.resource) {
-        // For virtual types (like projectsecret) or cases where the schema isn't loaded yet,
-        // return a minimal object with the ID. This ensures getters like 'labelFor' can
-        // still generate a display name (e.g. "Project Secret") using translations.
+        // When we intentionally pass a virtual type (like 'projectsecret') to the Masthead
+        // to preserve its display title, it won't have a backend schema. We must return
+        // a fallback object with the ID because the 'labelFor' getter expects a schema-like
+        // object to determine the resource ID for translation lookups.
         return { id: this.resource };
       }
 

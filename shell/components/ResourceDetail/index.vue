@@ -6,7 +6,7 @@ import {
   _VIEW, _EDIT, _CLONE, _IMPORT, _STAGE, _CREATE,
   AS, _YAML, _DETAIL, _CONFIG, PREVIEW, MODE,
 } from '@shell/config/query-params';
-import { SCHEMA, VIRTUAL_TYPES } from '@shell/config/types';
+import { SCHEMA } from '@shell/config/types';
 import { createYaml } from '@shell/utils/create-yaml';
 import Masthead from '@shell/components/ResourceDetail/Masthead';
 import DetailTop from '@shell/components/DetailTop';
@@ -94,11 +94,9 @@ export default {
     const params = route.params;
     let resourceType = this.resourceOverride || params.resource;
 
-    // 'projectsecret' is a virtual type configured in 'shell/config/product/explorer.js' using
-    // configureType(..., { resource: SECRET }). It maps to 'secret' for reuse, but we must
-    // explicitly capture the original ID here so the Masthead displays the specific
-    // "Project Secret" title instead of the generic "Secret".
-    const mastheadResourceType = resourceType === VIRTUAL_TYPES.PROJECT_SECRETS ? resourceType : null;
+    // This is needed for cases like 'project secret' where a virtual type mapping to a different type (e.g. 'secret') could cause masthead to display the mapping type (e.g. 'secret') instead of the original type (e.g. 'project secret')
+    // we store the original resource type before any potential remapping and then passing it to the masthead component
+    const originalResourceType = resourceType;
 
     const inStore = this.storeOverride || store.getters['currentStore'](resourceType);
     const realMode = this.realMode;
@@ -234,7 +232,7 @@ export default {
       hasCustomEdit,
       canViewYaml,
       resourceType,
-      mastheadResourceType,
+      originalResourceType,
       as,
       yaml,
       initialModel,
@@ -260,7 +258,7 @@ export default {
       hasCustomDetail:      null,
       hasCustomEdit:        null,
       resourceType:         null,
-      mastheadResourceType: null,
+      originalResourceType: null,
       asYaml:               null,
       yaml:                 null,
       liveModel:            null,
@@ -459,7 +457,7 @@ export default {
     <Masthead
       v-if="showMasthead"
       v-ui-context="{ icon: 'icon-folder', value: liveModel.name, tag: liveModel.kind?.toLowerCase(), description: liveModel.kind }"
-      :resource="mastheadResourceType || resourceType"
+      :resource="originalResourceType || resourceType"
       :value="liveModel"
       :mode="mode"
       :real-mode="realMode"
