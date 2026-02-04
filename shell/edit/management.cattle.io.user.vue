@@ -1,5 +1,5 @@
 <script>
-import { MANAGEMENT } from '@shell/config/types';
+import { MANAGEMENT, SECRET } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import GlobalRoleBindings from '@shell/components/GlobalRoleBindings.vue';
 import ChangePassword from '@shell/components/form/ChangePassword';
@@ -9,6 +9,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
 import { wait } from '@shell/utils/async';
+import { base64Encode } from '@shell/utils/crypto';
 
 export default {
   components: {
@@ -130,24 +131,45 @@ export default {
     async createUser() {
       // Ensure username is unique (this does not happen in the backend)
       // TODO: if users are a big list, then this should be paginated - use "filter"
+      let userSaved;
       const users = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER });
 
       if (users.find((u) => u.username === this.form.username)) {
         throw new Error(this.t('user.edit.credentials.username.exists'));
       }
 
-      const user = await this.$store.dispatch('rancher/create', {
-        type:               MANAGEMENT.USER,
-        description:        this.form.description,
-        enabled:            true,
-        mustChangePassword: this.form.password.userChangeOnLogin,
-        displayName:        this.form.displayName,
-        password:           this.form.password.password,
-        username:           this.form.username
-      });
+      try {
+        // never use "password" as it's deprecated!
+        const user = await this.$store.dispatch('rancher/create', {
+          type:               MANAGEMENT.USER,
+          description:        this.form.description,
+          enabled:            true,
+          mustChangePassword: this.form.password.userChangeOnLogin,
+          displayName:        this.form.displayName,
+          username:           this.form.username
+        });
 
-      // cannot seem to find the schema when doing save, so manually specify url
-      return await user.save({ url: '/v1/management.cattle.io.users' });
+        // cannot seem to find the schema when doing save, so manually specify url
+        userSaved = await user.save({ url: '/v1/management.cattle.io.users' });
+
+        if (this.form.password.password) {
+          // create secret to hold user password
+          const secret = await this.$store.dispatch('cluster/create', {
+            type:     SECRET,
+            metadata: {
+              namespace: 'cattle-local-user-passwords',
+              name:      userSaved.id
+            },
+            data: { password: base64Encode(this.form.password.password) }
+          });
+
+          await secret.save();
+        }
+      } catch (error) {
+        throw new Error(error);
+      }
+
+      return userSaved;
     },
 
     async editUser() {
@@ -155,13 +177,13 @@ export default {
         return;
       }
 
+      // never use this.value.password as it's deprecated!
       this.value.description = this.form.description;
       this.value.displayName = this.form.displayName;
       this.value.mustChangePassword = this.form.password.userChangeOnLogin;
 
       if (this.form.password.password) {
         await this.$refs.changePassword.save(this.value);
-
         // Why the wait? Without these the user updates below are ignored
         // - The update request succeeds and shows the correct values in it's response.
         // - Fetching the norman user again sometimes shows the correct value, sometimes not
@@ -170,7 +192,11 @@ export default {
         await wait(5000);
       }
 
-      this.value.save();
+      try {
+        this.value.save();
+      } catch (error) {
+        throw new Error(error);
+      }
     },
 
     async updateRoles(userId) {
