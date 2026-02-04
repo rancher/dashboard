@@ -890,8 +890,11 @@ asyncButton:
     waiting: Saving&hellip;
   download:
     action: Download
+    errorIcon: error
     success: Saving
+    successIcon: checkmark
     waiting: Downloading&hellip;
+    waitingIcon: spinner
   downgrade:
     action: Downgrade
     success: Downgraded
