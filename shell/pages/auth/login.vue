@@ -294,7 +294,8 @@ export default {
         });
 
         if (selfUser) {
-          mgmtUser = await this.$store.dispatch('management/request', { url: `/v1/${ MANAGEMENT.USER }/${ selfUser.status.userID }` });
+          await this.$store.dispatch('auth/updateSelfUser', selfUser);
+          mgmtUser = await this.$store.dispatch('management/request', { url: `/v1/${ MANAGEMENT.USER }/${ selfUser.status?.userID }` });
         }
 
         if (!!mgmtUser) {

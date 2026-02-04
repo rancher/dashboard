@@ -42,6 +42,7 @@ export const state = function() {
     principalId: null,
     user:        null,
     initialPass: null,
+    selfUser:    null,
   };
 };
 
@@ -72,6 +73,10 @@ export const getters = {
 
   isGithub(state) {
     return state.principalId && state.principalId.startsWith('github_user://');
+  },
+
+  selfUser(state) {
+    return state.selfUser;
   }
 };
 
@@ -83,6 +88,10 @@ export const mutations = {
   gotUser(state, user) {
     // Always deference to avoid race condition when setting `mustChangePassword`
     state.user = { ...user };
+  },
+
+  gotSelfUser(state, selfUser) {
+    state.selfUser = selfUser;
   },
 
   hasAuth(state, hasAuth) {
@@ -114,6 +123,30 @@ export const actions = {
     commit('gotHeader', fromHeader);
   },
 
+  async updateSelfUser({ dispatch, commit }, selfUser) {
+    const classifiedSelfUser = await dispatch('management/create', selfUser, { root: true });
+
+    commit('gotSelfUser', classifiedSelfUser);
+  },
+
+  async getSelfUser({ commit, dispatch, getters }) {
+    if (getters.selfUser) {
+      return Promise.resolve(getters.selfUser);
+    }
+
+    try {
+      const selfUser = await dispatch('management/request', {
+        url:    `/v1/${ EXT.SELFUSER }`,
+        method: 'POST',
+        data:   {},
+      }, { root: true });
+
+      await dispatch('updateSelfUser', selfUser);
+    } catch (err) {
+      throw new Error(err);
+    }
+  },
+
   async getUser({ dispatch, commit, getters }) {
     if (getters.user) {
       return;
@@ -121,14 +154,12 @@ export const actions = {
 
     try {
       let mgmtUser;
-      const selfUser = await dispatch('management/request', {
-        url:    `/v1/${ EXT.SELFUSER }`,
-        method: 'POST',
-        data:   {}
-      }, { root: true });
+
+      await dispatch('getSelfUser');
+      const selfUser = getters.selfUser;
 
       if (selfUser) {
-        mgmtUser = await dispatch('management/request', { url: `/v1/${ MANAGEMENT.USER }/${ selfUser.status.userID }` }, { root: true });
+        mgmtUser = await dispatch('management/request', { url: `/v1/${ MANAGEMENT.USER }/${ selfUser.status?.userID }` }, { root: true });
       }
 
       commit('gotUser', mgmtUser);

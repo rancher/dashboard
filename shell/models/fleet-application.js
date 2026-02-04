@@ -36,15 +36,12 @@ export default class FleetApplication extends SteveModel {
       return user;
     }
 
-    const selfUser = await this.$dispatch('management/create', { type: EXT.SELFUSER }, { root: true });
+    const selfUser = await this.$dispatch('auth/getSelfUser');
 
-    if (selfUser?.canGetUser) {
-      // this will fetch the current user data (basically user id)
-      const selfUserLoaded = await selfUser.save();
-
+    if (selfUser?.canGetUser && selfUser.status?.userID) {
       const user = await this.$dispatch('management/find', {
         type: MANAGEMENT.USER,
-        id:   selfUserLoaded.id
+        id:   selfUser.status?.userID
       }, { root: true });
 
       if (user) {

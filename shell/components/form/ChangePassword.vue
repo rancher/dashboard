@@ -27,18 +27,15 @@ export default {
     }
   },
   async fetch() {
-    this.selfUser = await this.$store.dispatch('management/create', { type: EXT.SELFUSER });
+    this.selfUser = await this.$store.dispatch('auth/getSelfUser');
     this.passwordChangeRequest = await this.$store.dispatch('management/create', { type: EXT.PASSWORD_CHANGE_REQUESTS });
 
-    if (this.selfUser?.canGetUser) {
-      // this will fetch the current user data (basically user id)
-      const selfUserLoaded = await this.selfUser.save();
-
+    if (this.selfUser?.canGetUser && this.selfUser.status?.userID) {
       // Fetch the username for hidden input fields. The former "setpassword" action did not require userID, but the new
       // PasswordChangeRequest does.
       const user = await this.$store.dispatch('management/find', {
         type: MANAGEMENT.USER,
-        id:   selfUserLoaded.id
+        id:   this.selfUser.status?.userID
       });
 
       this.userId = user?.id;
