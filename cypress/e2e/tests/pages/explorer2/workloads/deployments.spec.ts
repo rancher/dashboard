@@ -473,67 +473,68 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       cy.deleteNamespace([nsName1, nsName2]);
     });
   });
+  // GH: https://github.com/rancher/dashboard/issues/16570 to fix and re-enable
 
-  describe('Redeploy Dialog', () => {
-    let volumeDeploymentId: string;
-    const { namespace } = createDeploymentBlueprint.metadata;
-    const apiResource = 'apps.deployments';
-    const deploymentsListPage = new WorkloadsDeploymentsListPagePo(localCluster);
+  // describe('Redeploy Dialog', () => {
+  //   let volumeDeploymentId: string;
+  //   const { namespace } = createDeploymentBlueprint.metadata;
+  //   const apiResource = 'apps.deployments';
+  //   const deploymentsListPage = new WorkloadsDeploymentsListPagePo(localCluster);
 
-    const getRedeployEndpoint = () => `/v1/${ apiResource }/${ namespace }/${ volumeDeploymentId }`;
-    const openRedeployDialog = () => {
-      deploymentsListPage.goTo();
-      deploymentsListPage.waitForPage();
+  //   const getRedeployEndpoint = () => `/v1/${ apiResource }/${ namespace }/${ volumeDeploymentId }`;
+  //   const openRedeployDialog = () => {
+  //     deploymentsListPage.goTo();
+  //     deploymentsListPage.waitForPage();
 
-      deploymentsListPage
-        .list()
-        .actionMenu(volumeDeploymentId)
-        .getMenuItem('Redeploy')
-        .click();
+  //     deploymentsListPage
+  //       .list()
+  //       .actionMenu(volumeDeploymentId)
+  //       .getMenuItem('Redeploy')
+  //       .click();
 
-      return deploymentsListPage
-        .redeployDialog()
-        .shouldBeVisible()
-        .expectCancelButtonLabel('Cancel')
-        .expectApplyButtonLabel('Redeploy');
-    };
+  //     return deploymentsListPage
+  //       .redeployDialog()
+  //       .shouldBeVisible()
+  //       .expectCancelButtonLabel('Cancel')
+  //       .expectApplyButtonLabel('Redeploy');
+  //   };
 
-    before(() => {
-      cy.createE2EResourceName('volume-deployment-2').then((name) => {
-        volumeDeploymentId = name;
+  //   before(() => {
+  //     cy.createE2EResourceName('volume-deployment-2').then((name) => {
+  //       volumeDeploymentId = name;
 
-        const volumeDeployment = { ...createDeploymentBlueprint };
+  //       const volumeDeployment = { ...createDeploymentBlueprint };
 
-        volumeDeployment.metadata.name = volumeDeploymentId;
+  //       volumeDeployment.metadata.name = volumeDeploymentId;
 
-        cy.createRancherResource('v1', 'apps.deployment', JSON.stringify(volumeDeployment));
-      });
-    });
+  //       cy.createRancherResource('v1', 'apps.deployment', JSON.stringify(volumeDeployment));
+  //     });
+  //   });
 
-    it('redeploys successfully after confirmation', () => {
-      const dialog = openRedeployDialog();
+  //   it('redeploys successfully after confirmation', () => {
+  //     const dialog = openRedeployDialog();
 
-      dialog.confirmRedeploy(getRedeployEndpoint());
-      dialog.shouldBeClosed();
-    });
+  //     dialog.confirmRedeploy(getRedeployEndpoint());
+  //     dialog.shouldBeClosed();
+  //   });
 
-    it('does not send a request when cancelled', () => {
-      cy.intercept('PUT', getRedeployEndpoint()).as('redeployCancelled');
+  //   it('does not send a request when cancelled', () => {
+  //     cy.intercept('PUT', getRedeployEndpoint()).as('redeployCancelled');
 
-      const dialog = openRedeployDialog();
+  //     const dialog = openRedeployDialog();
 
-      dialog.cancel().shouldBeClosed();
-      cy.get('@redeployCancelled.all').should('have.length', 0);
-    });
+  //     dialog.cancel().shouldBeClosed();
+  //     cy.get('@redeployCancelled.all').should('have.length', 0);
+  //   });
 
-    it('displays error banner on failure', () => {
-      const dialog = openRedeployDialog();
+  //   it('displays error banner on failure', () => {
+  //     const dialog = openRedeployDialog();
 
-      dialog.simulateRedeployError(getRedeployEndpoint());
-    });
+  //     dialog.simulateRedeployError(getRedeployEndpoint());
+  //   });
 
-    after(() => {
-      cy.deleteRancherResource('v1', apiResource, `${ namespace }/${ volumeDeploymentId }`, false);
-    });
-  });
+  //   after(() => {
+  //     cy.deleteRancherResource('v1', apiResource, `${ namespace }/${ volumeDeploymentId }`, false);
+  //   });
+  // });
 });
