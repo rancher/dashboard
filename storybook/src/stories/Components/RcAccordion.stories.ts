@@ -83,13 +83,16 @@ export const CollapsedState: Story = {
 
 export const WithHeaderSlots: Story = {
   render: () => ({
-    components: { RcAccordion, RcCounterBadge, RcStatusBadge },
-    template:   `<div style="display: flex; flex-direction: column; gap: 16px; max-width: 800px;">
+    components: {
+      RcAccordion, RcCounterBadge, RcStatusBadge, RcIcon
+    },
+    template: `<div style="display: flex; flex-direction: column; gap: 16px; max-width: 800px;">
         <RcAccordion title="Machine Pools" variant="primary" :model-value="true">
-          <template #header-left>
+          <template #notifications>
             <RcCounterBadge :count="2" type="inactive" />
+            <RcIcon type="error" status="error" size="large" />
           </template>
-          <template #header-right>
+          <template #actions>
             <RcStatusBadge status="warning">1 etcd</RcStatusBadge>
             <RcStatusBadge status="warning">1 control plane</RcStatusBadge>
             <RcStatusBadge status="warning">1 worker</RcStatusBadge>
@@ -109,12 +112,12 @@ export const NestedAccordions: Story = {
     components: { RcAccordion, RcButton, RcIcon, RcCounterBadge },
     template:   `<div style="max-width: 800px;">
         <RcAccordion title="Machine Pools" variant="primary" :model-value="true">
-          <template #header-left>
+          <template #notifications>
             <RcCounterBadge :count="2" type="inactive" />
           </template>
           <div style="display: flex; flex-direction: column; gap: 16px; padding-left: 24px;">
             <RcAccordion title="Control" variant="secondary" :model-value="true">
-              <template #header-right>
+              <template #actions>
                 <RcButton variant="ghost">
                   <RcIcon type="copy" size="medium" />
                 </RcButton>
@@ -125,7 +128,7 @@ export const NestedAccordions: Story = {
               <p>Control pool configuration content goes here.</p>
             </RcAccordion>
             <RcAccordion title="Workers" variant="secondary" :model-value="true">
-              <template #header-right>
+              <template #actions>
                 <RcButton variant="ghost">
                   <RcIcon type="copy" size="medium" />
                 </RcButton>

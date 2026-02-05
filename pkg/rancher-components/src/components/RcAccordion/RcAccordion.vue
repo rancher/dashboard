@@ -49,12 +49,12 @@ const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-ri
         >
           {{ props.title }}
         </div>
-        <div class="rc-accordion-header-left" @click.stop>
-          <slot name="header-left" />
+        <div class="rc-accordion-header-notifications" @click.stop>
+          <slot name="notifications" />
         </div>
       </div>
-      <div class="rc-accordion-header-right" @click.stop>
-        <slot name="header-right" />
+      <div class="rc-accordion-header-actions" @click.stop>
+        <slot name="actions" />
       </div>
     </div>
     <div
@@ -116,7 +116,13 @@ const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-ri
     min-width: 0;
   }
 
-  &-header-right {
+  &-header-notifications {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &-header-actions {
     display: flex;
     align-items: center;
     gap: 12px;
