@@ -1,7 +1,7 @@
 import { matching, convertSelectorObj } from '@shell/utils/selector';
 import isEmpty from 'lodash/isEmpty';
 import { escapeHtml } from '@shell/utils/string';
-import { FLEET, MANAGEMENT, EXT } from '@shell/config/types';
+import { FLEET, MANAGEMENT } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
