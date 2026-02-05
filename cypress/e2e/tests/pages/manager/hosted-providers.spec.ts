@@ -144,7 +144,27 @@ describe('Hosted Providers', { testIsolation: 'off', tags: ['@manager', '@adminU
     providersPage.list().resourceTable().sortableTable().checkVisible();
     providersPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
-    // Wait for UI to reflect the inactive state from previous test
+    // Explicitly ensure EKS and GKE are in Inactive state before bulk activation
+    // Check current state and deactivate if needed
+    providersPage.list().details(EKS, 1).then(($el) => {
+      if ($el.text().includes('Active')) {
+        cy.intercept('PUT', `v1/management.cattle.io.settings/kev2-operators`).as('deactivateEKS');
+        providersPage.list().actionMenu(EKS).getMenuItem('Deactivate').click();
+        cy.wait('@deactivateEKS');
+        providersPage.list().details(EKS, 1).should('contain', 'Inactive');
+      }
+    });
+
+    providersPage.list().details(GKE, 1).then(($el) => {
+      if ($el.text().includes('Active')) {
+        cy.intercept('PUT', `v1/management.cattle.io.settings/kev2-operators`).as('deactivateGKE');
+        providersPage.list().actionMenu(GKE).getMenuItem('Deactivate').click();
+        cy.wait('@deactivateGKE');
+        providersPage.list().details(GKE, 1).should('contain', 'Inactive');
+      }
+    });
+
+    // Ensure both providers are now inactive
     providersPage.list().details(EKS, 1).should('contain', 'Inactive');
     providersPage.list().details(GKE, 1).should('contain', 'Inactive');
     providersPage.list().resourceTable().sortableTable().rowSelectCtlWithName(EKS)

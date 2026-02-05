@@ -27,6 +27,21 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     cy.login();
   });
 
+  beforeEach(() => {
+    // Aggressively clean up any modal overlays before each test
+    cy.get('body').then(($body) => {
+      // Close any existing modals by clicking overlay or escape
+      if ($body.find('.modal-overlay').length > 0) {
+        cy.get('.modal-overlay').click({ force: true, multiple: true });
+        cy.wait(500); // Brief wait for modal to close
+      }
+      // Also try pressing escape key to close modals
+      cy.get('body').type('{esc}', { force: true });
+      // Ensure no modal overlays remain
+      cy.get('.modal-overlay').should('not.exist');
+    });
+  });
+
   it('should show the cluster drivers list page', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
@@ -92,13 +107,6 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   });
 
   it('can activate drivers in bulk', () => {
-    // Ensure any modals are closed before starting
-    cy.get('body').then(($body) => {
-      if ($body.find('.modal-overlay').length > 0) {
-        cy.get('.modal-overlay').click({ force: true });
-      }
-    });
-
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
 
@@ -106,21 +114,32 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     driversPage.list().resourceTable().sortableTable().checkVisible();
     driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
-    // Ensure drivers start in Inactive state
+    // Explicitly ensure drivers are in Inactive state with proper API intercepts
     driversPage.list().details(openTelekomDriver, 1).then(($el) => {
       if ($el.text().includes('Active')) {
+        cy.intercept('POST', '/v3/kontainerDrivers/opentelekomcloudcontainerengine?action=deactivate').as('deactivateOpenTelekom1');
         driversPage.list().actionMenu(openTelekomDriver).getMenuItem('Deactivate').click();
+        const deactivateDialog = new DeactivateDriverDialogPo();
+
+        deactivateDialog.deactivate();
+        cy.wait('@deactivateOpenTelekom1');
         driversPage.list().details(openTelekomDriver, 1).should('contain', 'Inactive');
       }
     });
 
     driversPage.list().details(oracleDriver, 1).then(($el) => {
       if ($el.text().includes('Active')) {
+        cy.intercept('POST', '/v3/kontainerDrivers/oraclecontainerengine?action=deactivate').as('deactivateOracle1');
         driversPage.list().actionMenu(oracleDriver).getMenuItem('Deactivate').click();
+        const deactivateDialog = new DeactivateDriverDialogPo();
+
+        deactivateDialog.deactivate();
+        cy.wait('@deactivateOracle1');
         driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
       }
     });
 
+    // Verify both drivers are now inactive
     driversPage.list().details(openTelekomDriver, 1).should('contain', 'Inactive');
     driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
     driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(openTelekomDriver)
@@ -154,6 +173,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+    // Ensure table is loaded and no modal overlays
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     driversPage.list().details(openTelekomDriver, 1).should('contain', 'Active');
 
     driversPage.list().actionMenu(openTelekomDriver).getMenuItem('Deactivate').click();
@@ -172,6 +194,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+    // Ensure table is loaded and no modal overlays
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
     cy.intercept('POST', `/v3/kontainerDrivers/*?action=deactivate`).as('deactivateDriver');
 
@@ -198,6 +223,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+    // Ensure table is loaded and no modal overlays
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
     cy.intercept('POST', `/v3/kontainerDrivers/*?action=activate`).as('activateDriver');
 
@@ -224,6 +252,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+    // Ensure table is loaded and no modal overlays
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     driversPage.list().details(linodeDriver, 1).should('contain', 'Inactive');
 
     driversPage.list().actionMenu(linodeDriver).getMenuItem('Activate').click();
@@ -236,6 +267,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   it('can edit a cluster driver', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+    // Ensure table is loaded and no modal overlays
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     driversPage.list().actionMenu(downloadUrl).getMenuItem('Edit Config').click();
     createDriverPage.downloadUrl().set(downloadUrlUpdated);
     cy.intercept('PUT', '/v3/kontainerDrivers/*').as('updateDriver');
@@ -254,6 +288,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   it('can deactivate drivers in bulk', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+    // Ensure table is loaded and no modal overlays
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     driversPage.list().details(openTelekomDriver, 1).scrollIntoView().should('contain', 'Active');
     driversPage.list().details(oracleDriver, 1).scrollIntoView().should('contain', 'Active');
     driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(openTelekomDriver)

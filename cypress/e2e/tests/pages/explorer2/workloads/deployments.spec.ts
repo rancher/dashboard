@@ -6,6 +6,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { generateDeploymentsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployments-get';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 const localCluster = 'local';
 
@@ -109,18 +110,17 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     it('Should be able to scale the number of pods', () => {
       const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(scaleTestDeploymentName, localCluster, 'apps.deployment' as any, scaleTestNamespace);
 
-      // Add API intercepts for scaling operations
-      cy.intercept('PUT', `/v1/apps.deployments/${ scaleTestNamespace }/${ scaleTestDeploymentName }`).as('scaleDeployment');
-
       workloadDetailsPage.goTo();
       workloadDetailsPage.waitForDetailsPage(scaleTestDeploymentName);
 
       workloadDetailsPage.replicaCount().should('contain', '1', MEDIUM_TIMEOUT_OPT);
 
+      // Add API intercept for scale up operation
+      cy.intercept('PUT', `/v1/apps.deployments/${ scaleTestNamespace }/${ scaleTestDeploymentName }`).as('scaleUpDeployment');
       workloadDetailsPage.podScaleUp().should('be.enabled').click();
 
       // Wait for scale up API call and UI update
-      cy.wait('@scaleDeployment').its('response.statusCode').should('eq', 200);
+      cy.wait('@scaleUpDeployment').its('response.statusCode').should('eq', 200);
       workloadDetailsPage.waitForScaleButtonsEnabled();
       workloadDetailsPage.waitForPendingOperationsToComplete();
 
@@ -129,10 +129,13 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       // Verify pod status shows healthy scaling state
       workloadDetailsPage.podsStatus().should('be.visible', MEDIUM_TIMEOUT_OPT)
         .should('contain.text', 'Running');
+
+      // Add API intercept for scale down operation
+      cy.intercept('PUT', `/v1/apps.deployments/${ scaleTestNamespace }/${ scaleTestDeploymentName }`).as('scaleDownDeployment');
       workloadDetailsPage.podScaleDown().should('be.enabled').click();
 
       // Wait for scale down API call and UI update
-      cy.wait('@scaleDeployment').its('response.statusCode').should('eq', 200);
+      cy.wait('@scaleDownDeployment').its('response.statusCode').should('eq', 200);
       workloadDetailsPage.waitForScaleButtonsEnabled();
       workloadDetailsPage.waitForPendingOperationsToComplete();
 
@@ -267,9 +270,21 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       deploymentsListPage.waitForPage();
       deploymentsListPage.listElementWithName(deploymentId).should('exist');
 
-      // Scroll element into view before opening action menu
+      // Custom delete implementation with force clicks for reliability
+      cy.intercept('DELETE', 'v1/apps.deployments/**').as('deleteDeployment');
+
+      // Scroll element into view and force open action menu
       deploymentsListPage.listElementWithName(deploymentId).scrollIntoView();
-      deploymentsListPage.deleteAndWaitForRequest(deploymentId);
+      deploymentsListPage.sortableTable().rowActionMenuOpen(deploymentId).getMenuItem('Delete')
+        .scrollIntoView()
+        .click({ force: true });
+
+      // Handle the confirmation prompt
+      const promptRemove = new PromptRemove();
+
+      promptRemove.remove();
+
+      cy.wait('@deleteDeployment');
       deploymentsListPage.listElementWithName(deploymentId).should('not.exist');
     });
 
