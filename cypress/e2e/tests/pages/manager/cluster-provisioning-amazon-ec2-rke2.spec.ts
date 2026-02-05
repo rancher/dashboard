@@ -7,7 +7,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT, VERY_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
-import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+// import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
@@ -51,7 +51,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
 
   it('can create an RKE2 cluster using Amazon cloud provider', function() {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2AmazonPagePo();
-    const cloudCredForm = createRKE2ClusterPage.cloudCredentialsForm();
+    // const cloudCredForm = createRKE2ClusterPage.cloudCredentialsForm();
 
     cy.intercept('GET', '/v1-rke2-release/releases').as('getRke2Releases');
 
