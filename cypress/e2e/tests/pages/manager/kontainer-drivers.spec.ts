@@ -92,8 +92,19 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   });
 
   it('can activate drivers in bulk', () => {
+    // Ensure any modals are closed before starting
+    cy.get('body').then(($body) => {
+      if ($body.find('.modal-overlay').length > 0) {
+        cy.get('.modal-overlay').click({ force: true });
+      }
+    });
+
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+
+    // Ensure table is fully loaded
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
     // Ensure drivers start in Inactive state
     driversPage.list().details(openTelekomDriver, 1).then(($el) => {
@@ -274,17 +285,33 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   });
 
   it('can delete a driver', () => {
+    // Ensure any modals are closed before starting
+    cy.get('body').then(($body) => {
+      if ($body.find('.modal-overlay').length > 0) {
+        cy.get('.modal-overlay').click({ force: true });
+      }
+    });
+
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+
+    // Ensure table is fully loaded
+    driversPage.list().resourceTable().sortableTable().checkVisible();
+    driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
     cy.intercept('DELETE', '/v3/kontainerDrivers/*', {
       statusCode: 200,
       body:       { }
     }).as('deleteDriver');
+
+    // Scroll element into view and select with force
+    driversPage.list().resourceTable().sortableTable().rowElementWithName(exampleDriver)
+      .scrollIntoView();
     driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(exampleDriver)
       .set();
     driversPage.list().resourceTable().sortableTable().bulkActionDropDownOpen();
     driversPage.list().resourceTable().sortableTable().bulkActionDropDownButton('Delete')
-      .click();
+      .click({ force: true });
 
     driversPage.list().resourceTable().sortableTable().rowNames()
       .then((rows: any) => {

@@ -140,6 +140,10 @@ describe('Hosted Providers', { testIsolation: 'off', tags: ['@manager', '@adminU
     HostedProvidersPagePo.navTo();
     providersPage.waitForPage();
 
+    // Ensure the table is fully loaded before checking states
+    providersPage.list().resourceTable().sortableTable().checkVisible();
+    providersPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
     // Wait for UI to reflect the inactive state from previous test
     providersPage.list().details(EKS, 1).should('contain', 'Inactive');
     providersPage.list().details(GKE, 1).should('contain', 'Inactive');

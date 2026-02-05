@@ -109,6 +109,9 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     it('Should be able to scale the number of pods', () => {
       const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(scaleTestDeploymentName, localCluster, 'apps.deployment' as any, scaleTestNamespace);
 
+      // Add API intercepts for scaling operations
+      cy.intercept('PUT', `/v1/apps.deployments/${ scaleTestNamespace }/${ scaleTestDeploymentName }`).as('scaleDeployment');
+
       workloadDetailsPage.goTo();
       workloadDetailsPage.waitForDetailsPage(scaleTestDeploymentName);
 
@@ -116,6 +119,8 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
 
       workloadDetailsPage.podScaleUp().should('be.enabled').click();
 
+      // Wait for scale up API call and UI update
+      cy.wait('@scaleDeployment').its('response.statusCode').should('eq', 200);
       workloadDetailsPage.waitForScaleButtonsEnabled();
       workloadDetailsPage.waitForPendingOperationsToComplete();
 
@@ -125,6 +130,9 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       workloadDetailsPage.podsStatus().should('be.visible', MEDIUM_TIMEOUT_OPT)
         .should('contain.text', 'Running');
       workloadDetailsPage.podScaleDown().should('be.enabled').click();
+
+      // Wait for scale down API call and UI update
+      cy.wait('@scaleDeployment').its('response.statusCode').should('eq', 200);
       workloadDetailsPage.waitForScaleButtonsEnabled();
       workloadDetailsPage.waitForPendingOperationsToComplete();
 
@@ -258,6 +266,9 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       deploymentsListPage.goTo();
       deploymentsListPage.waitForPage();
       deploymentsListPage.listElementWithName(deploymentId).should('exist');
+
+      // Scroll element into view before opening action menu
+      deploymentsListPage.listElementWithName(deploymentId).scrollIntoView();
       deploymentsListPage.deleteAndWaitForRequest(deploymentId);
       deploymentsListPage.listElementWithName(deploymentId).should('not.exist');
     });
