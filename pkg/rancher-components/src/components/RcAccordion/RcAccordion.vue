@@ -87,30 +87,31 @@ const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-ri
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 24px;
+    gap: var(--gap-lg);
     cursor: pointer;
     user-select: none;
-    padding: 16px;
+    padding: var(--gap-md);
 
     button.rc-accordion-toggle-button.btn-medium {
-      width: 16px;
-      height: 16px;
-      min-height: 16px;
+      $icon-size: 16px;
+      width: var($icon-size);
+      height: var($icon-size);
+      min-height: var($icon-size);
       padding: 0;
     }
 
     .rc-accordion-title {
-      font-size: 18px;
+      font-size: var(--font-size-lg);
       font-style: normal;
       font-weight: 600;
-      line-height: 24px;
+      line-height: var(--line-height-lg);
     }
   }
 
   &-header-left {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--gap);
     flex: 1;
     min-width: 0;
   }
@@ -140,7 +141,7 @@ const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-ri
   }
 
   &-body {
-    padding: 8px 40px 16px 40px;
+    padding: var(--gap) calc(var(--gap-md) + var(--gap-lg)) var(--gap-md) calc(var(--gap-md) + var(--gap-lg));
   }
 }
 </style>

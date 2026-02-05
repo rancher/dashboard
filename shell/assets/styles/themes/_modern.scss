@@ -676,6 +676,14 @@ BODY, .theme-light {
   --gap-md                     : 16px;
   --gap-lg                     : 24px;
 
+  --font-size                  : 14px;
+  --font-size-md               : 16px;
+  --font-size-lg               : 18px;
+
+  --line-height                : 18px;
+  --line-height-md             : 20px;
+  --line-height-lg             : 24px;
+
   --click-badge-error          : #{$lightest};
   --click-badge-error-bg       : #B13333;
   --click-badge-error-border   : #7C0015;
