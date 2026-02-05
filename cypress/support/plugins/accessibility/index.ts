@@ -61,8 +61,6 @@ const chain: TestViolation[] = [{
   leaf:       false,
 }];
 
-const allResults = [];
-
 const allViolations = [] as any[];
 const screenshots = [] as Screenshot[];
 let folder;
@@ -194,8 +192,6 @@ function registerHooks(on, config) {
   on('after:spec', (spec, results) => {
     // Pop the spec off of the chain
     chain.pop();
-
-    allResults.push(results);
   });
 
   on('after:screenshot', (details) => {
@@ -208,13 +204,13 @@ function registerHooks(on, config) {
     });
   });
 
-  on('after:run', () => {
+  on('after:run', (results) => {
     const root = chain[0];
 
     tidy(root);
 
     const data = {
-      results:  allResults,
+      stats:    results,
       children: root
     };
 
