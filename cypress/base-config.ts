@@ -158,22 +158,21 @@ const baseConfig = defineConfig({
       // this need to go after "cypress-terminal-report" always
       if (process.env.TEST_A11Y) {
         require('./support/plugins/accessibility').default(on, config);
+      } else {
+        // Add in the cypress-mochawesome-reporter reporter hooks to generate test report
+        on('before:run', async(details) => {
+          await beforeRunHook(details);
+        });
+
+        // Done this way to catch errors when there are no tests run
+        on('after:run', async() => {
+          try {
+            await afterRunHook();
+          } catch (error) {
+            console.error(error); // eslint-disable-line no-console
+          }
+        });
       }
-
-      // Add in the cypress-mochawesome-reporter reporter hooks to generate ßtest report
-      // We also do this for Accessibility tests, so we can track how many tests we have
-      on('before:run', async(details) => {
-        await beforeRunHook(details);
-      });
-
-      // Done this way to catch errors when there are no tests run
-      on('after:run', async() => {
-        try {
-          await afterRunHook();
-        } catch (error) {
-          console.error(error); // eslint-disable-line no-console
-        }
-      });
 
       return config;
     },

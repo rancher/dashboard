@@ -61,6 +61,8 @@ const chain: TestViolation[] = [{
   leaf:       false,
 }];
 
+let total = 0;
+
 const allViolations = [] as any[];
 const screenshots = [] as Screenshot[];
 let folder;
@@ -189,9 +191,11 @@ function registerHooks(on, config) {
     chain.push(newSpec);
   });
 
-  on('after:spec', () => {
+  on('after:spec', (spec) => {
     // Pop the spec off of the chain
     chain.pop();
+
+    total++;
   });
 
   on('after:screenshot', (details) => {
@@ -208,6 +212,8 @@ function registerHooks(on, config) {
     const root = chain[0];
 
     tidy(root);
+
+    (root as any).totalTests = total;
 
     fs.writeFileSync(path.join(folder, 'accessibility.json'), JSON.stringify(root.children, null, 2));
 
