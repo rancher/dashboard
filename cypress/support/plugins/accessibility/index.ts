@@ -219,7 +219,7 @@ function registerHooks(on, config) {
 
     const data = {
       stats,
-      children: root
+      children: root.children
     };
 
     fs.writeFileSync(path.join(folder, 'accessibility.json'), JSON.stringify(data, null, 2));
