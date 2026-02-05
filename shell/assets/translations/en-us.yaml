@@ -3640,10 +3640,11 @@ auditPolicy:
     enabled:
       label: Enabled
       title: Enabled
-      checkbox: Enables the audit log
+      checkbox: Enables this audit policy
     verbosity:
       label: Log Verbosity
       title: Log Verbosity
+      banner: Policy Log Verbosity and install time audit level are additive.
       level:
         0: 0 - Log request and response metadata
         1: 1 - Log request and response headers

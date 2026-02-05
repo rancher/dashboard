@@ -5,6 +5,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { AuditPolicy } from '@shell/edit/auditlog.cattle.io.auditpolicy/types';
+import Banner from '@components/Banner/Banner.vue';
 
 // Component Props & Emits
 const props = defineProps({
@@ -98,6 +99,12 @@ const levelOptionsMap = computed(() => levelOptions.map((value) => {
       <div class="col span-6">
         <fieldset>
           <h3>{{ t("auditPolicy.general.verbosity.title") }}</h3>
+          <Banner
+            class="mt-0"
+            color="info"
+            label-key="auditPolicy.general.verbosity.banner"
+          />
+
           <h4>
             {{ t("auditPolicy.general.verbosity.level.title") }}
             <i
