@@ -1385,6 +1385,49 @@ export default class Resource {
     return this._detailLocation;
   }
 
+  /**
+   * Override this getter to provide additional action buttons or a custom component
+   * for the detail page title bar.
+   *
+   * @returns {undefined|object|Array} A Vue component definition, an array of RcButton props, or undefined
+   *
+   * @example
+   * // Using an array of button props with the new variant/size props
+   * get detailPageAdditionalActions() {
+   *   return [
+   *     { label: 'Action 1', variant: 'secondary', onClick: () => this.doAction1() },
+   *     { label: 'Action 2', variant: 'primary', size: 'large', onClick: () => this.doAction2() }
+   *   ];
+   * }
+   *
+   * @example
+   * // Using defineComponent with h() render function for custom rendering
+   * import { defineComponent, h } from 'vue';
+   * import RcButton from '@components/RcButton/RcButton.vue';
+   *
+   * get detailPageAdditionalActions() {
+   *   return defineComponent({
+   *     render() {
+   *       return h(RcButton, {
+   *         variant: 'primary',
+   *         onClick: () => console.log('clicked')
+   *       }, () => 'Click Me');
+   *     }
+   *   });
+   * }
+   *
+   * @example
+   * // Using dynamic import for a custom component
+   * import { defineAsyncComponent } from 'vue';
+   *
+   * get detailPageAdditionalActions() {
+   *   return defineAsyncComponent(() => import('@shell/components/MyCustomActions.vue'));
+   * }
+   */
+  get detailPageAdditionalActions() {
+    return undefined;
+  }
+
   goToDetail() {
     this.currentRouter().push(this.detailLocation);
   }

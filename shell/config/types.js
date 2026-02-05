@@ -263,7 +263,10 @@ export const BRAND = {
   RGS:     'rgs',
 };
 
-export const EXT = { USER_ACTIVITY: 'ext.cattle.io.useractivity' };
+export const EXT = {
+  USER_ACTIVITY: 'ext.cattle.io.useractivity',
+  KUBECONFIG:    'ext.cattle.io.kubeconfig',
+};
 
 export const CAPI = {
   CAPI_CLUSTER:         'cluster.x-k8s.io.cluster',

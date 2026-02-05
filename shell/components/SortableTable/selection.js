@@ -192,7 +192,7 @@ export default {
 
           trMainRow.classList[option]('sub-row-hovered');
         }
-        if (trNextRow.classList.contains('sub-row')) {
+        if (trNextRow?.classList.contains('sub-row')) {
           trNextRow.classList[option]('sub-row-hovered');
         }
       }
