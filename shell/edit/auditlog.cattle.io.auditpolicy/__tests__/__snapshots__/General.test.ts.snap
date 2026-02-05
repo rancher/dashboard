@@ -40,6 +40,14 @@ exports[`component: General rendering & initial state should render with default
         <h3>
           auditPolicy.general.verbosity.title
         </h3>
+        <banner-stub
+          class="mt-0"
+          closable="false"
+          color="info"
+          disabled="false"
+          labelkey="auditPolicy.general.verbosity.banner"
+          stacked="false"
+        />
         <h4>
           auditPolicy.general.verbosity.level.title 
           <i
