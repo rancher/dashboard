@@ -203,6 +203,10 @@ jobs:
           TEST_USERNAME: admin
           TEST_A11Y: true
 
+      - name: Copy accessibility e2e report info
+        run: |
+          cp cypress/reports/index.json cypress/accessibility/e2e-report.json 2>/dev/null || :
+
       - name: Upload report
         uses: actions/upload-artifact@v6
         with:
