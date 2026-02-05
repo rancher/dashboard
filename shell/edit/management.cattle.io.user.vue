@@ -163,7 +163,7 @@ export default {
             data: { password: base64Encode(this.form.password.password) }
           });
 
-          await secret.save();
+          await secret.save({ url: '/v1/secrets' });
         }
       } catch (error) {
         throw new Error(error);
