@@ -56,7 +56,11 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   it('has the correct title', () => {
     ClusterDashboardPagePo.navTo();
 
-    cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Cluster Dashboard' : 'Rancher - local - Cluster Dashboard';
+
+      cy.title().should('eq', expectedTitle);
+    });
   });
 
   it('shows fleet controller status', () => {
