@@ -195,7 +195,7 @@ function registerHooks(on, config) {
     // Pop the spec off of the chain
     chain.pop();
 
-    allResults.push(results)
+    allResults.push(results);
   });
 
   on('after:screenshot', (details) => {
@@ -214,7 +214,7 @@ function registerHooks(on, config) {
     tidy(root);
 
     const data = {
-      results: allResults,
+      results:  allResults,
       children: root
     };
 
