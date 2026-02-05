@@ -1,6 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { RcAccordion } from '@components/RcAccordion';
 import { RcAccordionVariant } from '@components/RcAccordion/types';
+import { RcButton } from '@components/RcButton';
+import { RcIcon } from '@components/RcIcon';
+import RcCounterBadge from '@components/Pill/RcCounterBadge/RcCounterBadge.vue';
+import RcStatusBadge from '@components/Pill/RcStatusBadge/RcStatusBadge.vue';
 
 const meta: Meta<typeof RcAccordion> = {
   component: RcAccordion,
@@ -17,10 +21,6 @@ const meta: Meta<typeof RcAccordion> = {
     modelValue: {
       control:     { type: 'boolean' },
       description: 'Controls the expanded/collapsed state. Use with v-model for two-way binding.'
-    },
-    openInitially: {
-      control:     { type: 'boolean' },
-      description: 'Initial expanded state when not using v-model. Only used on mount.'
     },
   }
 };
@@ -39,9 +39,9 @@ export const Default: Story = {
       </RcAccordion>`,
   }),
   args: {
-    title:         'Section Title',
-    variant:       'primary',
-    openInitially: true,
+    title:      'Section Title',
+    variant:    'primary',
+    modelValue: true,
   },
 };
 
@@ -49,10 +49,10 @@ export const Variants: Story = {
   render: () => ({
     components: { RcAccordion },
     template:   `<div style="display: flex; flex-direction: column; gap: 16px; max-width: 800px;">
-        <RcAccordion title="Primary Variant" variant="primary" open-initially>
+        <RcAccordion title="Primary Variant" variant="primary" :model-value="true">
           <p>Primary variant has a white background. Use this for top-level accordions.</p>
         </RcAccordion>
-        <RcAccordion title="Secondary Variant" variant="secondary" open-initially>
+        <RcAccordion title="Secondary Variant" variant="secondary" :model-value="true">
           <p>Secondary variant has a light gray background. Use this for nested accordions.</p>
         </RcAccordion>
       </div>`,
@@ -70,7 +70,7 @@ export const CollapsedState: Story = {
         <RcAccordion title="Click to expand" variant="primary">
           <p>This accordion starts collapsed.</p>
         </RcAccordion>
-        <RcAccordion title="Already expanded" variant="primary" open-initially>
+        <RcAccordion title="Already expanded" variant="primary" :model-value="true">
           <p>This accordion starts expanded.</p>
         </RcAccordion>
       </div>`,
@@ -83,16 +83,16 @@ export const CollapsedState: Story = {
 
 export const WithHeaderSlots: Story = {
   render: () => ({
-    components: { RcAccordion },
+    components: { RcAccordion, RcCounterBadge, RcStatusBadge },
     template:   `<div style="display: flex; flex-direction: column; gap: 16px; max-width: 800px;">
-        <RcAccordion title="Machine Pools" variant="primary" open-initially>
+        <RcAccordion title="Machine Pools" variant="primary" :model-value="true">
           <template #header-left>
-            <span style="background: #f4f5fb; padding: 1px 8px; border-radius: 30px; font-size: 13px;">2</span>
+            <RcCounterBadge :count="2" type="inactive" />
           </template>
           <template #header-right>
-            <span style="background: #ffe47a; color: #473900; padding: 1px 8px; border-radius: 30px; font-size: 12px;">1 etcd</span>
-            <span style="background: #ffe47a; color: #473900; padding: 1px 8px; border-radius: 30px; font-size: 12px;">1 control plane</span>
-            <span style="background: #ffe47a; color: #473900; padding: 1px 8px; border-radius: 30px; font-size: 12px;">1 worker</span>
+            <RcStatusBadge status="warning">1 etcd</RcStatusBadge>
+            <RcStatusBadge status="warning">1 control plane</RcStatusBadge>
+            <RcStatusBadge status="warning">1 worker</RcStatusBadge>
           </template>
           <p>Accordion content with header slots for badges and status indicators.</p>
         </RcAccordion>
@@ -106,32 +106,32 @@ export const WithHeaderSlots: Story = {
 
 export const NestedAccordions: Story = {
   render: () => ({
-    components: { RcAccordion },
+    components: { RcAccordion, RcButton, RcIcon, RcCounterBadge },
     template:   `<div style="max-width: 800px;">
-        <RcAccordion title="Machine Pools" variant="primary" open-initially>
+        <RcAccordion title="Machine Pools" variant="primary" :model-value="true">
           <template #header-left>
-            <span style="background: #f4f5fb; padding: 1px 8px; border-radius: 30px; font-size: 13px;">2</span>
+            <RcCounterBadge :count="2" type="inactive" />
           </template>
           <div style="display: flex; flex-direction: column; gap: 16px; padding-left: 24px;">
-            <RcAccordion title="Control" variant="secondary" open-initially>
+            <RcAccordion title="Control" variant="secondary" :model-value="true">
               <template #header-right>
-                <button style="background: none; border: none; cursor: pointer; padding: 4px;">
-                  <i class="icon icon-copy" style="font-size: 18px;" />
-                </button>
-                <button style="background: none; border: none; cursor: pointer; padding: 4px;">
-                  <i class="icon icon-trash" style="font-size: 18px;" />
-                </button>
+                <RcButton variant="ghost">
+                  <RcIcon type="copy" size="medium" />
+                </RcButton>
+                <RcButton variant="ghost">
+                  <RcIcon type="trash" size="medium" />
+                </RcButton>
               </template>
               <p>Control pool configuration content goes here.</p>
             </RcAccordion>
-            <RcAccordion title="Workers" variant="secondary">
+            <RcAccordion title="Workers" variant="secondary" :model-value="true">
               <template #header-right>
-                <button style="background: none; border: none; cursor: pointer; padding: 4px;">
-                  <i class="icon icon-copy" style="font-size: 18px;" />
-                </button>
-                <button style="background: none; border: none; cursor: pointer; padding: 4px;">
-                  <i class="icon icon-trash" style="font-size: 18px;" />
-                </button>
+                <RcButton variant="ghost">
+                  <RcIcon type="copy" size="medium" />
+                </RcButton>
+                <RcButton variant="ghost">
+                  <RcIcon type="trash" size="medium" />
+                </RcButton>
               </template>
               <p>Workers pool configuration content goes here.</p>
             </RcAccordion>

@@ -18,10 +18,4 @@ export interface RcAccordionProps {
    * Use with v-model for two-way binding.
    */
   modelValue?: boolean;
-
-  /**
-   * Initial expanded state when not using v-model.
-   * Only used on mount.
-   */
-  openInitially?: boolean;
 }

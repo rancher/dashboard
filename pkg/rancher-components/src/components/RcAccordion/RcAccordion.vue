@@ -1,25 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { RcAccordionProps } from './types';
+import RcButton from '@components/RcButton/RcButton.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 
-const props = withDefaults(defineProps<RcAccordionProps>(), {
-  variant:       'primary',
-  openInitially: false,
-});
+const props = withDefaults(defineProps<RcAccordionProps>(), { variant: 'primary' });
 
 const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
 
-// Use a function to get the initial value
-const getInitialExpanded = (): boolean => {
-  if (props.modelValue !== undefined) {
-    return props.modelValue;
-  }
-
-  return props.openInitially;
-};
-
-const expanded = ref(getInitialExpanded());
+const expanded = ref(props.modelValue ?? false);
 
 watch(
   () => props.modelValue,
@@ -45,34 +34,36 @@ const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-ri
   >
     <div
       class="rc-accordion-header"
-      role="button"
-      tabindex="0"
-      :aria-expanded="expanded"
       data-testid="rc-accordion-header-testid"
       @click="toggle"
-      @keydown.enter="toggle"
-      @keydown.space.prevent="toggle"
     >
       <div class="rc-accordion-header-left">
-        <RcIcon
-          class="rc-accordion-toggle-icon"
-          :type="chevronIcon"
-          size="small"
-          data-testid="rc-accordion-chevron-testid"
-        />
-        <span
+        <RcButton
+          class="rc-accordion-toggle-btn"
+          variant="ghost"
+          :aria-expanded="expanded"
+          data-testid="rc-accordion-toggle-testid"
+          @click.stop="toggle"
+        >
+          <RcIcon
+            class="rc-accordion-toggle-icon"
+            :type="chevronIcon"
+            size="small"
+            data-testid="rc-accordion-chevron-testid"
+          />
+        </RcButton>
+        <div
           v-if="props.title"
           class="rc-accordion-title"
           data-testid="rc-accordion-title-testid"
         >
           {{ props.title }}
-        </span>
-        <slot name="header-left" />
+        </div>
+        <div class="rc-accordion-header-left" @click.stop>
+          <slot name="header-left" />
+        </div>
       </div>
-      <div
-        class="rc-accordion-header-right"
-        @click.stop
-      >
+      <div class="rc-accordion-header-right" @click.stop>
         <slot name="header-right" />
       </div>
     </div>
@@ -88,17 +79,16 @@ const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-ri
 
 <style lang="scss" scoped>
 .rc-accordion {
-  border-radius: var(--border-radius-lg, 8px);
-  overflow: hidden;
+  border-radius: var(--border-radius-lg);
 
   // Primary variant - white background
   &.primary {
-    background-color: var(--body-bg, #fff);
+    background-color: var(--body-bg);
   }
 
   // Secondary variant - light gray background (for nested accordions)
   &.secondary {
-    background-color: var(--box-bg, #f4f5fa);
+    background-color: var(--box-bg);
   }
 
   &-header {
@@ -109,11 +99,6 @@ const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-ri
     padding: 16px;
     cursor: pointer;
     user-select: none;
-
-    &:focus-visible {
-      outline: 2px solid var(--primary);
-      outline-offset: -2px;
-    }
   }
 
   &-header-left {
@@ -133,7 +118,7 @@ const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-ri
 
   &-toggle-icon {
     flex-shrink: 0;
-    color: var(--body-text, #141419);
+    color: var(--body-text);
     transition: transform 0.2s ease;
   }
 
@@ -142,7 +127,7 @@ const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-ri
     font-weight: 600;
     font-size: 18px;
     line-height: 24px;
-    color: var(--body-text, #141419);
+    color: var(--body-text);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
