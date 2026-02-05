@@ -209,10 +209,10 @@ function registerHooks(on, config) {
 
     tidy(root);
 
-    const stats = { ... results };
+    const stats = { ...results };
 
     delete stats.runs;
-    delete stats.config
+    delete stats.config;
     delete stats.runUrl;
     delete stats.osName;
     delete stats.osVersion;
