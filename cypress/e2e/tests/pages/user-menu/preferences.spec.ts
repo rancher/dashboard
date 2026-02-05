@@ -241,8 +241,9 @@ describe('User can update their preferences', () => {
 
     repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
 
-    // Wait for page to load and preferences to take effect
-    cy.wait(2000);
+    // Wait for repository list to load completely
+    repoList.checkVisible();
+    repoList.resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
     // Open action menu and wait for it to be populated
     repoList.actionMenu('Partners');
@@ -252,7 +253,9 @@ describe('User can update their preferences', () => {
     // Check that 'View in API' exists when preference is enabled using direct dropdown check
     cy.get('[dropdown-menu-collection]:visible').within(() => {
       cy.get('[dropdown-menu-item]').contains('View in API').should('exist');
-    }); prefPage.goTo();
+    });
+
+    prefPage.goTo();
     prefPage.viewInApiCheckbox().checkVisible();
     cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate2');
     prefPage.viewInApiCheckbox().set();
@@ -265,8 +268,9 @@ describe('User can update their preferences', () => {
 
     repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
 
-    // Wait for page to load and preferences to take effect
-    cy.wait(2000);
+    // Wait for repository list to load completely
+    repoList.checkVisible();
+    repoList.resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
     // Open action menu and wait for it to be populated
     repoList.actionMenu('Partners');

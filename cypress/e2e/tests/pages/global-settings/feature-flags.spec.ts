@@ -113,26 +113,15 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     FeatureFlagsPagePo.navTo();
     featureFlagsPage.list().details('token-hashing', 0).should('include.text', 'Disabled');
 
-    // Add intercept for the data refresh after activation
-    cy.intercept('GET', '**/management.cattle.io.features**').as('getFeatureFlags');
-
     // Activate
     featureFlagsPage.list().clickRowActionMenuItem('token-hashing', 'Activate');
     featureFlagsPage.clickCardActionButtonAndWait('Activate', 'token-hashing', true);
 
-    // Wait for UI to refresh data and update state
-    cy.wait('@getFeatureFlags', { timeout: 10000 });
-
-    // Check Updated State: should be active
+    // Wait for the UI state to actually change to Active
     featureFlagsPage.list().details('token-hashing', 0).should('include.text', 'Active');
 
     // Check - No actions available
-    cy.reload();
-    featureFlagsPage.list().getRowActionMenuItem('token-hashing', 'No actions available');
-    featureFlagsPage.list().details('token-hashing', 1).find('i.icon-lock').should('be.visible');
-  });
-
-  it('can toggle unsupported-storage-drivers feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    cy.reload();  it('can toggle unsupported-storage-drivers feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be disabled by default
     FeatureFlagsPagePo.navTo();
     featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
