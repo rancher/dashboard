@@ -28,6 +28,5 @@ spec:
     dataSecretName: secretname
   clusterName: local
   infrastructureRef:
-    namespace: default
     resourceVersion: abc123
   nodeDeletionTimeout: 10s

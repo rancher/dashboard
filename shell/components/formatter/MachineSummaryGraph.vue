@@ -60,6 +60,7 @@ export default {
     <div
       class="content"
       :class="{ horizontal }"
+      data-testid="machine-progress-count"
     >
       <ProgressBarMulti
         v-if="row.stateParts"
