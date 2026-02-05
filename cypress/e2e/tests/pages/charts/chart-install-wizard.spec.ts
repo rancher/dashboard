@@ -86,7 +86,7 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
       chartPage.goToInstall();
       installChartPage.nextPage();
 
-      cy.intercept('POST', '/v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('installApp');
+      cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('installApp');
       installChartPage.installChart();
       namespacePicker.toggle();
       namespacePicker.clickOptionByLabel('All Namespaces');

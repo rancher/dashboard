@@ -118,6 +118,8 @@ describe('Hosted Providers', { testIsolation: 'off', tags: ['@manager', '@adminU
         }
       });
     });
+
+    // Wait for UI to reflect the deactivation
     providersPage.list().details(EKS, 1).should('contain', 'Inactive');
     providersPage.list().details(GKE, 1).should('contain', 'Inactive');
 
@@ -137,6 +139,8 @@ describe('Hosted Providers', { testIsolation: 'off', tags: ['@manager', '@adminU
 
     HostedProvidersPagePo.navTo();
     providersPage.waitForPage();
+
+    // Wait for UI to reflect the inactive state from previous test
     providersPage.list().details(EKS, 1).should('contain', 'Inactive');
     providersPage.list().details(GKE, 1).should('contain', 'Inactive');
     providersPage.list().resourceTable().sortableTable().rowSelectCtlWithName(EKS)

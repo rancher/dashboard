@@ -45,6 +45,15 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   // });
 
   it('can create new driver', () => {
+    // Clean up any existing driver with the same URL to avoid 409 conflicts
+    cy.getRancherResource('v3', 'kontainerdrivers').then((resp: Cypress.Response<any>) => {
+      const existingDriver = resp.body.data?.find((driver: any) => driver.url === downloadUrl);
+
+      if (existingDriver) {
+        cy.deleteRancherResource('v3', 'kontainerDrivers', existingDriver.id);
+      }
+    });
+
     cy.intercept('POST', `/v3/kontainerdrivers`).as('createRequest');
     const requestData = {
       type:   'kontainerDriver',
