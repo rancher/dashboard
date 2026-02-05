@@ -770,6 +770,46 @@ export default {
           :label="steps[2].label"
           :weight="2"
         >
+          <h3 v-t="'fleet.gitRepo.target.label'" />
+          <FleetClusterTargets
+            :targets="value.spec.targets"
+            :matching="value.targetClusters"
+            :namespace="value.metadata.namespace"
+            :mode="realMode"
+            :created="targetsCreated"
+            @update:value="updateTargets"
+            @created="targetsCreated=$event"
+          />
+
+          <h4 class="mmt-16">
+            {{ t('fleet.gitRepo.target.additionalOptions') }}
+          </h4>
+          <div class="row mt-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="value.spec.serviceAccount"
+                :mode="mode"
+                label-key="fleet.gitRepo.serviceAccount.label"
+                placeholder-key="fleet.gitRepo.serviceAccount.placeholder"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="value.spec.targetNamespace"
+                :mode="mode"
+                label-key="fleet.gitRepo.targetNamespace.label"
+                placeholder-key="fleet.gitRepo.targetNamespace.placeholder"
+                label="Target Namespace"
+                placeholder="Optional: Require all resources to be in this namespace"
+              />
+            </div>
+          </div>
+        </Tab>
+        <Tab
+          :name="steps[3].name"
+          :label="steps[3].label"
+          :weight="1"
+        >
           <Banner
             v-if="!isView"
             color="info"
@@ -932,46 +972,6 @@ export default {
                 />
               </div>
             </template>
-          </div>
-        </Tab>
-        <Tab
-          :name="steps[3].name"
-          :label="steps[3].label"
-          :weight="1"
-        >
-          <h3 v-t="'fleet.gitRepo.target.label'" />
-          <FleetClusterTargets
-            :targets="value.spec.targets"
-            :matching="value.targetClusters"
-            :namespace="value.metadata.namespace"
-            :mode="realMode"
-            :created="targetsCreated"
-            @update:value="updateTargets"
-            @created="targetsCreated=$event"
-          />
-
-          <h4 class="mmt-16">
-            {{ t('fleet.gitRepo.target.additionalOptions') }}
-          </h4>
-          <div class="row mt-20">
-            <div class="col span-6">
-              <LabeledInput
-                v-model:value="value.spec.serviceAccount"
-                :mode="mode"
-                label-key="fleet.gitRepo.serviceAccount.label"
-                placeholder-key="fleet.gitRepo.serviceAccount.placeholder"
-              />
-            </div>
-            <div class="col span-6">
-              <LabeledInput
-                v-model:value="value.spec.targetNamespace"
-                :mode="mode"
-                label-key="fleet.gitRepo.targetNamespace.label"
-                placeholder-key="fleet.gitRepo.targetNamespace.placeholder"
-                label="Target Namespace"
-                placeholder="Optional: Require all resources to be in this namespace"
-              />
-            </div>
           </div>
         </Tab>
         <Tab
