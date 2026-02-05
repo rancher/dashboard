@@ -159,7 +159,7 @@ const baseConfig = defineConfig({
       if (process.env.TEST_A11Y) {
         require('./support/plugins/accessibility').default(on, config);
       } else {
-        // Add in the cypress-mochawesome-reporter reporter hooks to generate test report
+        // Add in the cypress-mochawesome-reporter reporter hooks
         on('before:run', async(details) => {
           await beforeRunHook(details);
         });
