@@ -2537,9 +2537,6 @@ cluster:
       caCerts:
         label: CA Certificates
         toolTip: Certificates required for the client to successfully verify the validity of the certificate returned by the endpoint.
-      ipv6:
-        warning: It looks like you are using an IPv6 CIDR. Your node driver may require additional configuration to support this.
-        enable: Enable IPv6 support
     etcd:
       disableSnapshots:
         label: Automatic Backups
@@ -2576,6 +2573,10 @@ cluster:
         dual: Dual-Stack
       errorNeedsIpv6: Stack preference must be set to dual-stack or ipv6 if using ipv6 networking in nodepools.
   k3s:
+    flannelMasq:
+      title: IPv6 NAT
+      label: Enable Flannel IPv6 Masquerade
+      banner: It looks like you're using IPv6. If your IPv6 addresses are not publically routed, for example in the ULA range, you might want to check this option to enable IPv6 NAT; by default, pods use their IPv6 address for outgoing communication.
     systemService:
       coredns: 'CoreDNS'
       local-storage: 'Local Storage'
@@ -2963,6 +2964,10 @@ fleet:
     expandAll: Expand All
     collapseAll: Collapse All
     state: State
+    resourceDetails:
+      clusters: Clusters
+      resources: Resources
+      source: Source
     viewMode:
       table: Show table
       cards: Show cards
@@ -8850,6 +8855,7 @@ notifications:
     showCheckboxLabel: Show custom login error
     messageLabel: Text to display
 resourceQuota:
+  banner: Limit resource consumption in a project for both standard (e.g. CPU Limit) and custom resource types. For custom resource types you have to provide the resource identifier yourself. Want to learn more about resource quotas? Read our <a href="https://ranchermanager.docs.rancher.com/how-to-guides/advanced-user-guides/manage-projects/manage-project-resource-quotas" target="_blank" rel="noopener noreferrer nofollow">documentation <i class="icon icon-external-link"></i></a><span class="sr-only">Opens in a new tab</span>
   label: Resource Quotas
   headers:
     limit: Limit
@@ -8857,9 +8863,14 @@ resourceQuota:
     projectLimit: Project Limit
     projectResourceAvailability: Project Resource Availability
     resourceType: Resource Type
+    resourceIdentifier: Resource Identifier
   helpText: Configure how much of the resources the namespace as a whole can consume.
   helpTextDetail: The amount of resources the namespace as a whole can consume.
   helpTextHarvester: VMs need to reserve additional memory overhead.
+  custom: Custom
+  resourceIdentifier:
+    placeholder: e.g. configmaps
+    tooltip: Select 'Custom' from the 'Resource Type' list and enter the resource identifier (e.g. requests.nvidia.com/gpu) to add custom resources quotas.
   configMaps: Config Maps
   limitsCpu: CPU Limit
   limitsMemory: Memory Limit
@@ -8889,6 +8900,8 @@ resourceQuota:
     unitlessPlaceholder: e.g. 10
   add:
     label: Add Resource
+  errors:
+    customTypeRequired: Resource identifier is required
   tooltip:
     reserved: 'Other Namespaces:'
     namespace: 'This Namespace:'

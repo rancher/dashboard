@@ -196,7 +196,7 @@ export function init(store) {
   configureType(SECRET, { showListMasthead: false });
   weightType(SECRET, 1, false);
 
-  configureType(VIRTUAL_TYPES.PROJECT_SECRETS, { showListMasthead: false });
+  configureType(VIRTUAL_TYPES.PROJECT_SECRETS, { showListMasthead: false, resource: SECRET });
   weightType(VIRTUAL_TYPES.PROJECT_SECRETS, 2, false);
 
   configureType(EVENT, { limit: 500 });
@@ -404,7 +404,7 @@ export function init(store) {
     [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Completions', {
       ...DURATION,
       value:     'metadata.fields.3',
-      sort:      false,
+      sort:      'metadata.fields.3',
       search:    'metadata.fields.3',
       formatter: undefined, // Now that sort/search is remote we're not doing weird things with start time (see `duration` in model)
     }, STEVE_AGE_COL],
@@ -647,7 +647,6 @@ export function init(store) {
       name:   'c-cluster-product-resource',
       params: { resource: VIRTUAL_TYPES.PROJECT_SECRETS }
     },
-    exact:      true,
     ifHaveType: [{
       store: 'management',
       type:  SECRET

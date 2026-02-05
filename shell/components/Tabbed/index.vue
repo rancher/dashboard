@@ -83,6 +83,11 @@ export default {
     componentTestid: {
       type:    String,
       default: 'tabbed'
+    },
+
+    removeBorders: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -303,7 +308,8 @@ export default {
     class="tabbed-container"
     :class="{
       'side-tabs': !!sideTabs,
-      'tabs-only': tabsOnly
+      'tabs-only': tabsOnly,
+      'remove-borders': removeBorders
     }"
     :data-testid="componentTestid"
   >
@@ -312,7 +318,7 @@ export default {
       ref="tablist"
       role="tablist"
       class="tabs"
-      :class="{'clearfix':!sideTabs, 'vertical': sideTabs, 'horizontal': !sideTabs}"
+      :class="{'clearfix':!sideTabs, 'vertical': sideTabs, 'horizontal': !sideTabs, 'remove-borders': removeBorders}"
       :data-testid="`${componentTestid}-block`"
       tabindex="0"
       @keydown.right.prevent="selectNext(1)"
@@ -448,6 +454,17 @@ export default {
     display: flex;
     flex-direction: row;
 
+    &.remove-borders {
+      border: none;
+
+      + .tab-container {
+        border: none;
+        border-top: 1px solid var(--border);
+        padding: 0;
+        padding-top: 24px;
+      }
+    }
+
     + .tab-container {
       border: solid thin var(--border);
     }
@@ -464,7 +481,7 @@ export default {
   .tab {
     position: relative;
     float: left;
-    padding: 0 8px 0 0;
+    padding: 0 4px 0 4px;
     cursor: pointer;
 
     A {

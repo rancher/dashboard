@@ -1,6 +1,6 @@
 {
   "name": "@rancher/shell",
-  "version": "3.0.9-rc.1",
+  "version": "3.0.9-rc.2",
   "description": "Rancher Dashboard Shell",
   "repository": "https://github.com/rancher/dashboard",
   "license": "Apache-2.0",
@@ -76,7 +76,7 @@
     "d3-selection": "3.0.0",
     "d3": "7.3.0",
     "dayjs": "1.11.18",
-    "defu": "5.0.1",
+    "defu": "6.1.4",
     "diff2html": "3.4.24",
     "dompurify": "3.2.5",
     "element-matches": "^0.1.2",
