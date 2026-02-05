@@ -49,17 +49,23 @@ const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-ri
         >
           {{ props.title }}
         </div>
-        <div class="rc-accordion-header-notifications" @click.stop>
+        <div
+          class="rc-accordion-header-notifications"
+          @click.stop
+        >
           <slot name="notifications" />
         </div>
       </div>
-      <div class="rc-accordion-header-actions" @click.stop>
+      <div
+        class="rc-accordion-header-actions"
+        @click.stop
+      >
         <slot name="actions" />
       </div>
     </div>
     <div
-      :id="panelId"
       v-show="expanded"
+      :id="panelId"
       role="region"
       :aria-labelledby="props.title ? headerId : undefined"
       class="rc-accordion-body"

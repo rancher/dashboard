@@ -109,8 +109,10 @@ export const WithHeaderSlots: Story = {
 
 export const NestedAccordions: Story = {
   render: () => ({
-    components: { RcAccordion, RcButton, RcIcon, RcCounterBadge },
-    template:   `<div style="max-width: 800px;">
+    components: {
+      RcAccordion, RcButton, RcIcon, RcCounterBadge
+    },
+    template: `<div style="max-width: 800px;">
         <RcAccordion title="Machine Pools" variant="primary" :model-value="true">
           <template #notifications>
             <RcCounterBadge :count="2" type="inactive" />
