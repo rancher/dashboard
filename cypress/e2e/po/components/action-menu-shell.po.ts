@@ -15,21 +15,19 @@ export default class ActionMenuPo extends ComponentPo {
   }
 
   getMenuItem(name: string) {
-    // Wait for dropdown menu to be ready and items to be populated
-    this.self().should('be.visible');
+    // First ensure the dropdown collection exists and is visible
+    cy.get('[dropdown-menu-collection]:visible').should('exist');
 
-    // Wait for dropdown content to be fully loaded - check for loading indicators
-    this.self().should('not.contain', 'Loading...');
-    this.self().should('not.have.class', 'loading');
+    // Wait for the dropdown to be properly rendered and not show "No actions available"
+    cy.get('[dropdown-menu-collection]:visible').should('not.contain', 'No actions available');
 
-    // Wait for menu items to exist and be populated (more than 0)
-    this.self().find('[dropdown-menu-item]').should('have.length.greaterThan', 0);
+    // Wait for menu items to be populated - use retry logic for async loading
+    cy.get('[dropdown-menu-collection]:visible').within(() => {
+      cy.get('[dropdown-menu-item]:not([disabled])').should('have.length.greaterThan', 0);
+    });
 
-    // Additional wait to ensure items are interactable
-    this.self().find('[dropdown-menu-item]').should('be.visible');
-
-    // Find the specific menu item, with retry logic
-    return this.self().find('[dropdown-menu-item]').contains(name).should('be.visible');
+    // Now find the specific menu item using global selector for reliability
+    return cy.get('[dropdown-menu-collection]:visible [dropdown-menu-item]').contains(name).should('be.visible');
   }
 
   menuItemNames() {
