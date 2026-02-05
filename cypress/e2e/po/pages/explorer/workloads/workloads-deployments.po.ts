@@ -10,12 +10,12 @@ export class WorkloadsDeploymentsDetailsPagePo extends WorkloadDetailsPageBasePo
     super(workloadId, clusterId, workloadType, queryParams, namespaceId);
   }
 
-  openEmptyShowConfigurationAnnotationsLink() {
-    return this.self().find('[data-testid="empty-show-configuration_annotations"]').click();
+  openEmptyShowConfigurationLabelsLink() {
+    return this.self().find('[data-testid="empty-show-configuration_labels"]').click();
   }
 
   labelsAndAnnotationsTab() {
-    return this.self().find('[data-testid="btn-labels"]');
+    return cy.get('[data-testid="btn-labels"]');
   }
 }
 
