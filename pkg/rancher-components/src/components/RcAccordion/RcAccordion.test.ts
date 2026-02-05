@@ -4,7 +4,7 @@ import RcAccordion from './RcAccordion.vue';
 
 describe('rcAccordion.vue', () => {
   const isBodyVisible = (wrapper: ReturnType<typeof mount>) => {
-    const body = wrapper.find('[data-testid="rc-accordion-body"]');
+    const body = wrapper.find('.rc-accordion-body');
 
     return body.attributes('style') !== 'display: none;';
   };
@@ -12,19 +12,19 @@ describe('rcAccordion.vue', () => {
   it('renders with the correct variant class', () => {
     const wrapper = mount(RcAccordion, { props: { variant: 'primary' } });
 
-    expect(wrapper.classes()).toContain('rc-accordion--primary');
+    expect(wrapper.classes()).toContain('primary');
   });
 
   it('renders with secondary variant class', () => {
     const wrapper = mount(RcAccordion, { props: { variant: 'secondary' } });
 
-    expect(wrapper.classes()).toContain('rc-accordion--secondary');
+    expect(wrapper.classes()).toContain('secondary');
   });
 
   it('displays the title when provided', () => {
     const wrapper = mount(RcAccordion, { props: { title: 'Test Title' } });
 
-    expect(wrapper.find('[data-testid="rc-accordion-title"]').text()).toBe('Test Title');
+    expect(wrapper.find('.rc-accordion-title').text()).toBe('Test Title');
   });
 
   it('starts collapsed by default', async() => {
@@ -34,9 +34,7 @@ describe('rcAccordion.vue', () => {
     expect(isBodyVisible(wrapper)).toBe(false);
   });
 
-  it('respects openInitially prop', async() => {
-    // Due to Vue Test Utils timing with Composition API,
-    // we verify openInitially by checking that modelValue=true works
+  it('starts expanded when modelValue is true', async() => {
     const wrapper = mount(RcAccordion, {
       props: {
         title:      'Test',
@@ -48,13 +46,32 @@ describe('rcAccordion.vue', () => {
     expect(isBodyVisible(wrapper)).toBe(true);
   });
 
+  it('manages its own state when no v-model is provided', async() => {
+    const wrapper = mount(RcAccordion, { props: { title: 'Test' } });
+
+    await nextTick();
+    expect(isBodyVisible(wrapper)).toBe(false);
+
+    // Click to expand
+    await wrapper.find('.rc-accordion-header').trigger('click');
+    await nextTick();
+    await flushPromises();
+    expect(isBodyVisible(wrapper)).toBe(true);
+
+    // Click to collapse
+    await wrapper.find('.rc-accordion-header').trigger('click');
+    await nextTick();
+    await flushPromises();
+    expect(isBodyVisible(wrapper)).toBe(false);
+  });
+
   it('toggles expanded state on header click', async() => {
     const wrapper = mount(RcAccordion, { props: { title: 'Test' } });
 
     await nextTick();
     expect(isBodyVisible(wrapper)).toBe(false);
 
-    await wrapper.find('[data-testid="rc-accordion-header"]').trigger('click');
+    await wrapper.find('.rc-accordion-header').trigger('click');
     await nextTick();
     await flushPromises();
 
@@ -64,7 +81,7 @@ describe('rcAccordion.vue', () => {
   it('emits update:modelValue when toggled', async() => {
     const wrapper = mount(RcAccordion, { props: { title: 'Test' } });
 
-    await wrapper.find('[data-testid="rc-accordion-header"]').trigger('click');
+    await wrapper.find('.rc-accordion-header').trigger('click');
     await nextTick();
 
     expect(wrapper.emitted('update:modelValue')).toBeTruthy();
@@ -92,19 +109,19 @@ describe('rcAccordion.vue', () => {
     const wrapper = mount(RcAccordion, { props: { title: 'Test' } });
 
     await nextTick();
-    expect(wrapper.find('[data-testid="rc-accordion-header"]').attributes('aria-expanded')).toBe('false');
+    expect(wrapper.find('.rc-accordion-toggle-btn').attributes('aria-expanded')).toBe('false');
 
-    await wrapper.find('[data-testid="rc-accordion-header"]').trigger('click');
+    await wrapper.find('.rc-accordion-header').trigger('click');
     await nextTick();
     await flushPromises();
 
-    expect(wrapper.find('[data-testid="rc-accordion-header"]').attributes('aria-expanded')).toBe('true');
+    expect(wrapper.find('.rc-accordion-toggle-btn').attributes('aria-expanded')).toBe('true');
   });
 
   it('toggles on Enter key press', async() => {
     const wrapper = mount(RcAccordion, { props: { title: 'Test' } });
 
-    await wrapper.find('[data-testid="rc-accordion-header"]').trigger('keydown', { key: 'Enter' });
+    await wrapper.find('.rc-accordion-toggle-btn').trigger('keydown', { key: 'Enter' });
     await nextTick();
     await flushPromises();
 
@@ -114,7 +131,7 @@ describe('rcAccordion.vue', () => {
   it('toggles on Space key press', async() => {
     const wrapper = mount(RcAccordion, { props: { title: 'Test' } });
 
-    await wrapper.find('[data-testid="rc-accordion-header"]').trigger('keydown', { key: ' ' });
+    await wrapper.find('.rc-accordion-toggle-btn').trigger('keydown', { key: ' ' });
     await nextTick();
     await flushPromises();
 
@@ -124,14 +141,14 @@ describe('rcAccordion.vue', () => {
   it('renders slot content in body', async() => {
     const wrapper = mount(RcAccordion, {
       props: {
-        title:         'Test',
-        openInitially: true
+        title:      'Test',
+        modelValue: true
       },
       slots: { default: '<p>Slot content</p>' },
     });
 
     await nextTick();
-    expect(wrapper.find('[data-testid="rc-accordion-body"]').html()).toContain('Slot content');
+    expect(wrapper.find('.rc-accordion-body').html()).toContain('Slot content');
   });
 
   it('renders header-left slot content', () => {
@@ -140,7 +157,7 @@ describe('rcAccordion.vue', () => {
       slots: { 'header-left': '<span class="badge">2</span>' },
     });
 
-    expect(wrapper.find('.rc-accordion__header-left').html()).toContain('badge');
+    expect(wrapper.find('.rc-accordion-header-left').html()).toContain('badge');
   });
 
   it('renders header-right slot content', () => {
@@ -149,12 +166,12 @@ describe('rcAccordion.vue', () => {
       slots: { 'header-right': '<button>Action</button>' },
     });
 
-    expect(wrapper.find('.rc-accordion__header-right').html()).toContain('Action');
+    expect(wrapper.find('.rc-accordion-header-right').html()).toContain('Action');
   });
 
   it('defaults to primary variant when not specified', () => {
     const wrapper = mount(RcAccordion, { props: { title: 'Test' } });
 
-    expect(wrapper.classes()).toContain('rc-accordion--primary');
+    expect(wrapper.classes()).toContain('primary');
   });
 });

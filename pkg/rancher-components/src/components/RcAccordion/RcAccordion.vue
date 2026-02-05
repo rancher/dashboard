@@ -1,27 +1,19 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { computed, useId } from 'vue';
 import { RcAccordionProps } from './types';
 import RcButton from '@components/RcButton/RcButton.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 
 const props = withDefaults(defineProps<RcAccordionProps>(), { variant: 'primary' });
 
-const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void}>();
+const expanded = defineModel<boolean>({ default: false });
 
-const expanded = ref(props.modelValue ?? false);
-
-watch(
-  () => props.modelValue,
-  (newValue) => {
-    if (newValue !== undefined) {
-      expanded.value = newValue;
-    }
-  }
-);
+const id = useId();
+const panelId = `rc-accordion-panel-${ id }`;
+const headerId = `rc-accordion-header-${ id }`;
 
 const toggle = () => {
   expanded.value = !expanded.value;
-  emit('update:modelValue', expanded.value);
 };
 
 const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-right');
@@ -34,7 +26,6 @@ const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-ri
   >
     <div
       class="rc-accordion-header"
-      data-testid="rc-accordion-header-testid"
       @click="toggle"
     >
       <div class="rc-accordion-header-left">
@@ -42,20 +33,19 @@ const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-ri
           class="rc-accordion-toggle-btn"
           variant="ghost"
           :aria-expanded="expanded"
-          data-testid="rc-accordion-toggle-testid"
+          :aria-controls="panelId"
           @click.stop="toggle"
         >
           <RcIcon
             class="rc-accordion-toggle-icon"
             :type="chevronIcon"
             size="small"
-            data-testid="rc-accordion-chevron-testid"
           />
         </RcButton>
         <div
           v-if="props.title"
+          :id="headerId"
           class="rc-accordion-title"
-          data-testid="rc-accordion-title-testid"
         >
           {{ props.title }}
         </div>
@@ -68,9 +58,11 @@ const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-ri
       </div>
     </div>
     <div
+      :id="panelId"
       v-show="expanded"
+      role="region"
+      :aria-labelledby="props.title ? headerId : undefined"
       class="rc-accordion-body"
-      data-testid="rc-accordion-body-testid"
     >
       <slot />
     </div>
