@@ -406,7 +406,10 @@ export default {
         :placeholder="t('fleet.clusterTargets.clusters.byName.placeholder')"
         @update:value="selectClusters"
       />
-      <div class="mmt-6">
+      <div
+        v-if="!isView || (isView && clusterSelectors && clusterSelectors.length > 0)"
+        class="mmt-6"
+      >
         <h4 class="m-0">
           {{ t('fleet.clusterTargets.clusters.byLabel.title') }}
         </h4>
@@ -427,6 +430,7 @@ export default {
             @update:value="updateMatchExpressions(i, $event, selector.key)"
           />
           <RcButton
+            v-if="!isView"
             size="small"
             variant="link"
             @click="removeMatchExpressions(selector.key)"
@@ -435,6 +439,7 @@ export default {
           </RcButton>
         </div>
         <RcButton
+          v-if="!isView"
           size="small"
           variant="secondary"
           class="mmt-4"
