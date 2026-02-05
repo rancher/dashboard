@@ -50,27 +50,29 @@ describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, ()
         const terminal = new Kubectl();
         const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
 
-        // Add API intercept before navigating to chart to ensure we catch the install request
-        // Use broader pattern to catch different possible API endpoints
+        // Add API intercepts before starting the installation process
         cy.intercept('POST', '**/catalog.cattle.io.clusterrepos/**').as('complianceInstall');
-        cy.intercept('POST', '**/action=install').as('anyInstallAction');
+        cy.intercept('POST', '**/action=install').as('installAction');
+        cy.intercept('GET', '**/catalog.cattle.io.app**').as('getInstalledApps');
 
         ChartPage.navTo(null, 'Rancher Compliance');
         chartPage.waitForChartHeader('Rancher Compliance', MEDIUM_TIMEOUT_OPT);
         chartPage.goToInstall();
 
         installChartPage.nextPage();
-
-        // Add API intercept just before installation action
-        cy.intercept('POST', '**/catalog.cattle.io.clusterrepos/**').as('complianceInstall');
-
         installChartPage.installChart();
 
         // Wait for terminal to show installation progress and complete
         terminal.waitForTerminalStatus('Disconnected', LONG_TIMEOUT_OPT);
         terminal.closeTerminal();
 
-        // Verify apps are deployed using a more robust approach
+        // Navigate to installed apps page explicitly and wait for it to load
+        installedAppsPage.goTo('local', 'apps');
+
+        // Wait for the page to load and API calls to complete
+        cy.wait('@getInstalledApps', { timeout: 30000 });
+
+        // Wait for the apps list element to be visible
         cy.get('[data-testid="installed-app-catalog-list"]', { timeout: 30000 }).should('be.visible');
 
         // Wait for table to load and check for deployed apps

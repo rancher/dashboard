@@ -241,9 +241,18 @@ describe('User can update their preferences', () => {
 
     repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
 
-    repoList.actionMenu('Partners').getMenuItem('View in API').should('exist');
+    // Wait for page to load and preferences to take effect
+    cy.wait(2000);
 
-    prefPage.goTo();
+    // Open action menu and wait for it to be populated
+    repoList.actionMenu('Partners');
+    cy.get('[dropdown-menu-collection]:visible').should('be.visible');
+    cy.get('[dropdown-menu-item]').should('have.length.at.least', 1);
+
+    // Check that 'View in API' exists when preference is enabled using direct dropdown check
+    cy.get('[dropdown-menu-collection]:visible').within(() => {
+      cy.get('[dropdown-menu-item]').contains('View in API').should('exist');
+    }); prefPage.goTo();
     prefPage.viewInApiCheckbox().checkVisible();
     cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate2');
     prefPage.viewInApiCheckbox().set();
@@ -256,7 +265,18 @@ describe('User can update their preferences', () => {
 
     repoListPage.waitForGoTo(`${ CLUSTER_REPOS_BASE_URL }?*`);
 
-    repoList.actionMenu('Partners').getMenuItem('View in API').should('not.exist');
+    // Wait for page to load and preferences to take effect
+    cy.wait(2000);
+
+    // Open action menu and wait for it to be populated
+    repoList.actionMenu('Partners');
+    cy.get('[dropdown-menu-collection]:visible').should('be.visible');
+    cy.get('[dropdown-menu-item]').should('have.length.at.least', 1);
+
+    // Check that 'View in API' does NOT exist when preference is disabled
+    cy.get('[dropdown-menu-collection]:visible').within(() => {
+      cy.get('[dropdown-menu-item]').contains('View in API').should('not.exist');
+    });
   });
 
   it('Can select Show system Namespaces managed by Rancher (not intended for editing or deletion)', { tags: ['@userMenu', '@adminUser', '@standardUser'] }, () => {

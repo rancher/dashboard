@@ -429,7 +429,7 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
       .rowActionMenuOpen('local');
 
     // Wait for action menu dropdown to be fully rendered and populated
-    cy.get('[dropdown-menu-collection]').should('be.visible');
+    cy.get('[dropdown-menu-collection]:visible').should('be.visible');
     cy.get('[dropdown-menu-item]').should('have.length.at.least', 1);
 
     const allowedActions: MenuActions[] = [
@@ -446,9 +446,11 @@ describe('Fleet CLuster List - resources', { tags: ['@fleet', '@adminUser'] }, (
       constActionMenu.getMenuItem(action).should('exist');
     });
 
-    // Disabled actions should not exist
+    // For disabled actions, check that they don't exist in the dropdown
     disabledActions.forEach((action) => {
-      constActionMenu.getMenuItem(action).should('not.exist');
+      cy.get('[dropdown-menu-collection]:visible').within(() => {
+        cy.get('[dropdown-menu-item]').contains(action).should('not.exist');
+      });
     });
   });
 

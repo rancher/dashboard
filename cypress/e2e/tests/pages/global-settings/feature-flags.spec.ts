@@ -113,9 +113,15 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     FeatureFlagsPagePo.navTo();
     featureFlagsPage.list().details('token-hashing', 0).should('include.text', 'Disabled');
 
+    // Add intercept for the data refresh after activation
+    cy.intercept('GET', '**/management.cattle.io.features**').as('getFeatureFlags');
+
     // Activate
     featureFlagsPage.list().clickRowActionMenuItem('token-hashing', 'Activate');
     featureFlagsPage.clickCardActionButtonAndWait('Activate', 'token-hashing', true);
+
+    // Wait for UI to refresh data and update state
+    cy.wait('@getFeatureFlags', { timeout: 10000 });
 
     // Check Updated State: should be active
     featureFlagsPage.list().details('token-hashing', 0).should('include.text', 'Active');
