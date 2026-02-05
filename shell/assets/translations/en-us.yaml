@@ -3652,7 +3652,7 @@ auditPolicy:
         3: 3 - Log response body
         title: Log Levels
         label: Level
-        tooltip: Each log level is cumulative, higher logs levels include the data included in lower levels. Each log entry contains both request and response information.
+        tooltip: Each log level is cumulative, higher log levels include the data from lower levels. Each log entry contains both request and response information.
       request:
         title: Request
         requestHeaders: Request Headers
