@@ -13,6 +13,7 @@ exports[`component: AdditionalRedactions rendering & initial state should render
         flat="false"
         hidesingletab="false"
         nocontent="false"
+        removeborders="false"
         scrollonchange="false"
         showextensiontabs="true"
         showtabsaddremove="true"
