@@ -189,7 +189,7 @@ function registerHooks(on, config) {
     chain.push(newSpec);
   });
 
-  on('after:spec', (spec) => {
+  on('after:spec', () => {
     // Pop the spec off of the chain
     chain.pop();
   });
