@@ -50,6 +50,8 @@ describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser']
 
     // Go to install page
     chartsPage.clickChart(CHART.name);
+    // Wait for navigation to the chart page to complete
+    cy.url().should('include', `/apps/charts/chart?repo-type=cluster&repo=${ CHART.repo }&chart=${ CHART.id }`);
     chartPage.waitForChartPage(CHART.repo, CHART.id);
     productNavPo.activeNavItem().should('equal', 'Charts');
 

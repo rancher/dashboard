@@ -94,6 +94,22 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
   it('can activate drivers in bulk', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
+
+    // Ensure drivers start in Inactive state
+    driversPage.list().details(openTelekomDriver, 1).then(($el) => {
+      if ($el.text().includes('Active')) {
+        driversPage.list().actionMenu(openTelekomDriver).getMenuItem('Deactivate').click();
+        driversPage.list().details(openTelekomDriver, 1).should('contain', 'Inactive');
+      }
+    });
+
+    driversPage.list().details(oracleDriver, 1).then(($el) => {
+      if ($el.text().includes('Active')) {
+        driversPage.list().actionMenu(oracleDriver).getMenuItem('Deactivate').click();
+        driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
+      }
+    });
+
     driversPage.list().details(openTelekomDriver, 1).should('contain', 'Inactive');
     driversPage.list().details(oracleDriver, 1).should('contain', 'Inactive');
     driversPage.list().resourceTable().sortableTable().rowSelectCtlWithName(openTelekomDriver)
