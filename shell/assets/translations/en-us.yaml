@@ -5704,7 +5704,7 @@ promptRemove:
   promptConfirmation: "Do not prompt again for confirmation when scaling down."
   foreground: "Foreground"
   background: "Background"
-  orphan: "Orpahn"
+  orphan: "Orphan"
   propagationPolicyLabel: "Choose how you want downstream resources to be treated."
   propagationPolicyOrphan: "Removes the resource but leaves dependents orphaned."
   propagationPolicyForeground: "Deletes dependents before removing the resource."
