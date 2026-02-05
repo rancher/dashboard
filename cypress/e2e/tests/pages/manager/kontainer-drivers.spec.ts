@@ -33,7 +33,8 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
       // Close any existing modals by clicking overlay or escape
       if ($body.find('.modal-overlay').length > 0) {
         cy.get('.modal-overlay').click({ force: true, multiple: true });
-        cy.wait(500); // Brief wait for modal to close
+        // Wait for modal to be closed instead of arbitrary time
+        cy.get('.modal-overlay').should('not.exist');
       }
       // Also try pressing escape key to close modals
       cy.get('body').type('{esc}', { force: true });
