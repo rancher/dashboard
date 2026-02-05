@@ -30,7 +30,7 @@ const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-ri
     >
       <div class="rc-accordion-header-left">
         <RcButton
-          class="rc-accordion-toggle-btn"
+          class="rc-accordion-toggle-button"
           variant="ghost"
           :aria-expanded="expanded"
           :aria-controls="panelId"
@@ -88,9 +88,23 @@ const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-ri
     align-items: center;
     justify-content: space-between;
     gap: 24px;
-    padding: 16px;
     cursor: pointer;
     user-select: none;
+    padding: 16px;
+
+    button.rc-accordion-toggle-button.btn-medium {
+      width: 16px;
+      height: 16px;
+      min-height: 16px;
+      padding: 0;
+    }
+
+    .rc-accordion-title {
+      font-size: 18px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: 24px;
+    }
   }
 
   &-header-left {
@@ -126,7 +140,7 @@ const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-ri
   }
 
   &-body {
-    padding: 0 16px 16px 24px;
+    padding: 8px 40px 16px 40px;
   }
 }
 </style>
