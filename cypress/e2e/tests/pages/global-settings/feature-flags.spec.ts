@@ -119,9 +119,9 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
 
     // Wait for the UI state to actually change to Active
     featureFlagsPage.list().details('token-hashing', 0).should('include.text', 'Active');
+  });
 
-    // Check - No actions available
-    cy.reload();  it('can toggle unsupported-storage-drivers feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
+  it('can toggle unsupported-storage-drivers feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
     // Check Current State: should be disabled by default
     FeatureFlagsPagePo.navTo();
     featureFlagsPage.list().details('unsupported-storage-drivers', 0).should('include.text', 'Disabled');
