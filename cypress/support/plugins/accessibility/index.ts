@@ -61,7 +61,7 @@ const chain: TestViolation[] = [{
   leaf:       false,
 }];
 
-let total = 0;
+const allResults = [];
 
 const allViolations = [] as any[];
 const screenshots = [] as Screenshot[];
@@ -191,11 +191,11 @@ function registerHooks(on, config) {
     chain.push(newSpec);
   });
 
-  on('after:spec', (spec) => {
+  on('after:spec', (spec, results) => {
     // Pop the spec off of the chain
     chain.pop();
 
-    total++;
+    allResults.push(results)
   });
 
   on('after:screenshot', (details) => {
@@ -213,9 +213,12 @@ function registerHooks(on, config) {
 
     tidy(root);
 
-    (root as any).totalTests = total;
+    const data = {
+      results: allResults,
+      children: root
+    };
 
-    fs.writeFileSync(path.join(folder, 'accessibility.json'), JSON.stringify(root.children, null, 2));
+    fs.writeFileSync(path.join(folder, 'accessibility.json'), JSON.stringify(data, null, 2));
 
     const reportHTML = createHtmlReport({
       results: { violations: deDuplicate(allViolations) },
