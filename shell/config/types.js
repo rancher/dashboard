@@ -268,7 +268,7 @@ export const EXT = {
   SELFUSER:                          'ext.cattle.io.selfuser',
   GROUP_MEMBERSHIP_REFRESH_REQUESTS: 'ext.cattle.io.groupmembershiprefreshrequest',
   PASSWORD_CHANGE_REQUESTS:          'ext.cattle.io.passwordchangerequest',
-  KUBECONFIG:                        'ext.cattle.io.kubeconfig'
+  KUBECONFIG:                        'ext.cattle.io.kubeconfig',
 };
 
 export const CAPI = {
