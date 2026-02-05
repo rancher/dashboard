@@ -3094,6 +3094,7 @@ fleet:
       label: Authentication
       git: Git Authentication
       helm: Helm Authentication
+      githubdotcomPasswordBanner: 'GitHub no longer supports password authentication for repositories. Please use a personal access token with the required permissions, and enter it in the password field instead of your GitHub password.'
     caBundle:
       label: Certificates
       placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"
