@@ -58,7 +58,7 @@ describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser']
     chartsPage.chartsSearchFilterInput().should('have.value', CHART.name);
 
     // Ensure the specific chart exists before trying to click it
-    chartsPage.getChartByName(CHART.name).should('be.visible');
+    chartsPage.getChartByName(CHART.name).self().should('be.visible');
 
     // Go to install page
     chartsPage.clickChart(CHART.name);
