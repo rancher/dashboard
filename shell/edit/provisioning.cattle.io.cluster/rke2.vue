@@ -2218,6 +2218,15 @@ export default {
     handleRegistrySecretChanged(neu) {
       this.registrySecret = neu;
     },
+
+    handleFlannelMasqChanged(neu) {
+      if (neu || neu === false) {
+        this.serverConfig['enable-flannel-masq'] = neu;
+      } else {
+        delete this.serverConfig['enable-flannel-masq'];
+      }
+    },
+
     validateClusterName() {
       if (!this.value.metadata.name && this.agentConfig?.['cloud-provider-name'] === HARVESTER) {
         this.errors.push(this.t('validation.required', { key: this.t('cluster.name.label') }, true));
@@ -2530,6 +2539,7 @@ export default {
               :truncate-limit="truncateLimit"
               :machine-pools="machinePools"
               :has-some-ipv6-pools="hasSomeIpv6Pools"
+              :enable-flannel-masq="serverConfig['enable-flannel-masq']"
               @truncate-hostname-changed="truncateHostname"
               @cluster-cidr-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['cluster-cidr'] = val"
               @service-cidr-changed="(val)=>localValue.spec.rkeConfig.machineGlobalConfig['service-cidr'] = val"
@@ -2542,6 +2552,7 @@ export default {
               @fqdn-changed="(val)=>localValue.spec.localClusterAuthEndpoint.fqdn = val"
               @stack-preference-changed="(val)=>localValue.spec.rkeConfig.networking.stackPreference = val"
               @validationChanged="(val)=>stackPreferenceError = !val"
+              @enable-flannel-masq-changed="handleFlannelMasqChanged"
             />
           </Tab>
 

@@ -10,7 +10,8 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 
 export interface Props {
-  pods?: any[];
+  title: string;
+  resources?: any[];
   showScaling?: boolean;
 }
 </script>
@@ -19,7 +20,7 @@ export interface Props {
 const store = useStore();
 const i18n = useI18n(store);
 
-const props = withDefaults(defineProps<Props>(), { pods: undefined, showScaling: false });
+const props = withDefaults(defineProps<Props>(), { resources: undefined, showScaling: false });
 const emit = defineEmits(['decrease', 'increase']);
 
 const segmentAccumulator = computed(() => {
@@ -28,8 +29,8 @@ const segmentAccumulator = computed(() => {
   }
   const accumulator: {[key in StateColor]?: Value} = {};
 
-  props.pods?.forEach((pod: any) => {
-    const color: StateColor = pod.stateSimpleColor;
+  props.resources?.forEach((resource: any) => {
+    const color: StateColor = resource.stateSimpleColor;
 
     accumulator[color] = accumulator[color] || { count: 0 };
     accumulator[color].count++;
@@ -45,10 +46,10 @@ const rowAccumulator = computed(() => {
   }
   const accumulator: {[key in string]: Value} = {};
 
-  props.pods?.forEach((pod: any) => {
-    accumulator[pod.stateDisplay] = accumulator[pod.stateDisplay] || { count: 0 };
-    accumulator[pod.stateDisplay].count++;
-    accumulator[pod.stateDisplay].color = pod.stateSimpleColor.replace('text-', '') as StateColor;
+  props.resources?.forEach((resource: any) => {
+    accumulator[resource.stateDisplay] = accumulator[resource.stateDisplay] || { count: 0 };
+    accumulator[resource.stateDisplay].count++;
+    accumulator[resource.stateDisplay].color = resource.stateSimpleColor.replace('text-', '') as StateColor;
   });
 
   return accumulator;
@@ -58,7 +59,7 @@ const percent = (count: number, total: number) => {
   return count / total * 100;
 };
 
-const count = computed(() => props.pods?.length || 0);
+const count = computed(() => props.resources?.length || 0);
 
 const segmentColors = computed(() => Object.keys(segmentAccumulator.value) as StateColor[]);
 const segments = computed(() => segmentColors.value.map((color: StateColor) => ({
@@ -82,7 +83,10 @@ const rows = computed(() => {
 </script>
 
 <template>
-  <Card :title="i18n.t('component.resource.detail.card.podsCard.title')">
+  <Card
+    :title="title"
+    data-testid="resource-detail-status-card"
+  >
     <template
       v-if="props.showScaling"
       #heading-action

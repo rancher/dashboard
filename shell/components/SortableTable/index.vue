@@ -1593,7 +1593,7 @@ export default {
             <slot
               :full-colspan="fullColspan"
               :row="row.row"
-              :show-sub-row="row.showSubRow"
+              :show-sub-row="row.row.stateDescription"
               :sub-matches="subMatches"
               :keyField="keyField"
               :componentTestid="componentTestid"

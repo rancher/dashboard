@@ -81,7 +81,7 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
       }
     }
 
-    .v-popper, .btn.role-link {
+    .v-popper, .btn.variant-link.rc-button {
       height: 24px;
       min-height: initial;
       padding: 0;
@@ -91,7 +91,7 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
       padding: 0;
     }
 
-    .btn.role-link {
+    .btn.variant-link.rc-button.variant-ghost {
       color: #141419;
       padding: 0 12px;
       i {

@@ -167,8 +167,12 @@ export default {
     <h5
       v-if="labelKey"
       v-t="labelKey"
+      v-clean-tooltip="{content: itemLabel, popperClass: 'detail-text-tooltip'}"
     />
-    <h5 v-else-if="label">
+    <h5
+      v-else-if="label"
+      v-clean-tooltip="{content: label, popperClass: 'detail-text-tooltip'}"
+    >
       {{ label }}
     </h5>
 
@@ -190,17 +194,22 @@ export default {
       aria-live="polite"
     />
 
-    <span
+    <div
       v-else
-      v-clean-html="bodyHtml"
-      data-testid="detail-top_html"
-      :class="{'conceal': concealed, 'monospace': monospace && !isBinary}"
-      aria-live="polite"
-    />
+      :class="{'conceal-wrapper': concealed}"
+    >
+      <span
+        v-clean-html="bodyHtml"
+        data-testid="detail-top_html"
+        :class="{'conceal': concealed, 'monospace': monospace && !isBinary}"
+        aria-live="polite"
+      />
+    </div>
 
     <template v-if="!isBinary && !jsonStr && isLong && !expanded">
       <a
         href="#"
+        class="more-characters"
         @click.prevent="expand"
       >{{ plusMore }}</a>
     </template>
@@ -238,6 +247,30 @@ export default {
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
   border: solid var(--border-width) var(--input-border);
+  contain: inline-size;
+
+  h5 {
+    margin-bottom: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: fit-content;
+    // Accounting for the button on the right
+    max-width: calc(100% - 150px);
+  }
+
+  // This prevents the scrollbar from overlapping the text without changing the size of the detailtext container.
+  $scrollBarShift: 10px;
+  .conceal-wrapper {
+    overflow-x: auto;
+    padding-bottom: $scrollBarShift;
+    margin-bottom: -$scrollBarShift;
+  }
+
+  .conceal {
+    white-space: nowrap;
+    display: block;
+  }
 
   .action-group {
     position: absolute;
@@ -266,5 +299,19 @@ export default {
 .monospace {
   white-space: pre-wrap;
   word-wrap: break-all
+}
+
+.more-characters {
+  margin-top: 8px;
+  display: inline-block;
+}
+</style>
+
+<style lang="scss">
+// The global styles for tooltips are in dashboard/shell/assets/styles/global/_tooltip.scss.
+// I don't want to make this change for all tooltips since there's 149 instances as of writing this
+// so I'm adding a global style here that's scoped to the class we're adding to the tooltips we have in this component.
+.detail-text-tooltip.v-popper__popper.v-popper--theme-tooltip {
+  overflow-wrap: anywhere;
 }
 </style>

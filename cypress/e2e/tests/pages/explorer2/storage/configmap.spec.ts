@@ -14,7 +14,11 @@ describe('ConfigMap', { testIsolation: 'off', tags: ['@explorer2', '@adminUser']
     configMapListPage.goTo();
     configMapListPage.baseResourceList().masthead().title().should('include', `ConfigMaps`);
 
-    cy.title().should('eq', 'Rancher - local - ConfigMaps');
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - ConfigMaps' : 'Rancher - local - ConfigMaps';
+
+      cy.title().should('eq', expectedTitle);
+    });
   });
 
   it('creates a configmap and displays it in the list', () => {

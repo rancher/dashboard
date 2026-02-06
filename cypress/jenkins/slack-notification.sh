@@ -14,7 +14,7 @@ send_slack_notification() {
     
     if [ -z "$bot_token" ]; then
         echo "Warning: UI_SLACK_BOT_TOKEN not set, skipping Slack notification"
-        return 0
+        return 1
     fi
     
     # Prepare the JSON payload
@@ -78,6 +78,7 @@ send_jenkins_e2e_failure_notification() {
     local rancher_image_tag=$(read_notification_value "RANCHER_IMAGE_TAG")
     local rancher_chart_url=$(read_notification_value "RANCHER_CHART_URL")
     local rancher_helm_repo=$(read_notification_value "RANCHER_HELM_REPO")
+    local helm_repo_name=$(read_notification_value "HELM_REPO_NAME")
     local cypress_tags=$(read_notification_value "CYPRESS_TAGS")
     
     # Get Slack bot token and channel from Secrets Manager
@@ -116,6 +117,10 @@ send_jenkins_e2e_failure_notification() {
     if [ -n "$rancher_image_tag" ] && [ "$rancher_image_tag" != "Unknown" ]; then
         message+="• *Rancher Image:* $rancher_image_tag\n"
     fi
+
+    if [ -n "$helm_repo_name" ] && [ "$helm_repo_name" != "Unknown" ]; then
+        message+="• *Helm Repo Name:* $helm_repo_name\n"
+    fi
     
     if [ -n "$rancher_chart_url" ] && [ "$rancher_chart_url" != "Unknown" ]; then
         message+="• *Chart URL:* $rancher_chart_url\n"
@@ -132,10 +137,9 @@ send_jenkins_e2e_failure_notification() {
     message+="• *Timestamp:* $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
     
     echo "Sending Slack notification for $build_status build..."
-    send_slack_notification "$build_status" "$message" "$slack_bot_token" "$slack_channel"
-    
-    if [ $? -eq 0 ]; then
+    if send_slack_notification "$build_status" "$message" "$slack_bot_token" "$slack_channel"; then
         echo "Slack notification sent successfully"
+        return 0
     else
         echo "Failed to send Slack notification"
         return 1

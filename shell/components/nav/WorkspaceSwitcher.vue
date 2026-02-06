@@ -66,7 +66,7 @@ export default {
   created() {
     // in fleet standard user with just the project owner and global git repo permissions
     // returns 'default'
-    const initValue = !this.workspace ? this.$store.getters['prefs/get'](LAST_NAMESPACE) : '';
+    const initValue = this.workspace || this.$store.getters['prefs/get'](LAST_NAMESPACE) || '';
 
     this.value = (initValue === 'default' || initValue === '') && this.options.length ? this.options[0].value : initValue;
   },

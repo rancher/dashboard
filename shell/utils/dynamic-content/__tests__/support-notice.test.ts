@@ -52,10 +52,7 @@ describe('processSupportNotices', () => {
         prime:        false,
         distribution: 'community',
       },
-      settings: {
-        releaseNotesUrl: '',
-        suseExtensions:  [],
-      },
+      settings: { suseExtensions: [] },
     };
 
     // Mock the utility function. Default: notification does not exist, so add it.

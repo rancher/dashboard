@@ -121,6 +121,7 @@ generic:
         1d: 1d
         7d: 7d
         30d: 30d
+  tooltip: Tooltip
   completed: Completed
   enable: Enable
   disable: Disable
@@ -786,6 +787,11 @@ authConfig:
       label: Scopes
       placeholder: openid
       protip: The <code>openid</code>, <code>profile</code>, and <code>email</code> scopes are required and cannot be removed.
+    pkce:
+      label: Enable PKCE (S256)
+      tooltip: Enable Proof Key for Code Exchange (PKCE) using the S256 code challenge method. When enabled, this client must use PKCE with S256 for authorization requests.
+    pkceMethod:
+      label: PKCE Method
     cert:
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
@@ -1210,7 +1216,7 @@ catalog:
         tag: tag
   install:
     action:
-      goToUpgrade: Edit/Upgrade
+      goToUpgrade: Edit / Change Version
     appReadmeMissing: This chart doesn't have any additional chart information.
     appReadmeTitle: Chart Information (Helm README)
     button:
@@ -2004,7 +2010,8 @@ cluster:
         description: Choose what hypervisor the virtual machine will be scheduled to
         dataCenter: Data Center
         resourcePool: Resource Pool
-        dataStore: Data Store
+        dataStore: Datastore
+        dataStoreCluster: Datastore Cluster
         folder: Folder
         host:
           label: Host
@@ -2530,9 +2537,6 @@ cluster:
       caCerts:
         label: CA Certificates
         toolTip: Certificates required for the client to successfully verify the validity of the certificate returned by the endpoint.
-      ipv6:
-        warning: It looks like you are using an IPv6 CIDR. Your node driver may require additional configuration to support this.
-        enable: Enable IPv6 support
     etcd:
       disableSnapshots:
         label: Automatic Backups
@@ -2569,6 +2573,10 @@ cluster:
         dual: Dual-Stack
       errorNeedsIpv6: Stack preference must be set to dual-stack or ipv6 if using ipv6 networking in nodepools.
   k3s:
+    flannelMasq:
+      title: IPv6 NAT
+      label: Enable Flannel IPv6 Masquerade
+      banner: It looks like you're using IPv6. If your IPv6 addresses are not publically routed, for example in the ULA range, you might want to check this option to enable IPv6 NAT; by default, pods use their IPv6 address for outgoing communication.
     systemService:
       coredns: 'CoreDNS'
       local-storage: 'Local Storage'
@@ -2727,7 +2735,6 @@ cruResource:
 providers:
   hosted: 
     title: Hosted Providers
-    prime: Prime only
     warning: Disabling providers will make any clusters that use them uneditable
 drivers:
   kontainer:
@@ -2957,6 +2964,10 @@ fleet:
     expandAll: Expand All
     collapseAll: Collapse All
     state: State
+    resourceDetails:
+      clusters: Clusters
+      resources: Resources
+      source: Source
     viewMode:
       table: Show table
       cards: Show cards
@@ -3604,6 +3615,7 @@ hpa:
     last: Last Scale Time
     max: Maximum Replicas
     min: Minimum Replicas
+    targetReferenceType: Target Type
     targetReference: Target Reference
 
 import:
@@ -7345,39 +7357,64 @@ workload:
     removeContainer: Remove Container
     addContainer: Add Container
     security:
-      addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs
       allowPrivilegeEscalation:
-        label: Privilege Escalation
-        'false': No
-        'true': "Yes: container can gain more privileges than its parent process"
-      dropCapabilities: Drop Capabilities
+        title: Privilege Escalation
+        'true': "Container can gain more privileges than its parent process"
+      capabilities:
+        title: Capabilities
+        add: Add Capabilities
+        drop: Drop Capabilities
       fsGroup: Filesystem Group
       hostIPC: Use Host IPC Namespace
       hostPID: Use Host PID Namespace
       podFsGroup: Pod Filesystem Group
       privileged:
-        label: Privileged
-        'false': No
-        'true': "Yes: container has full access to the host"
+        title: Privileged
+        'true': "Container has full access to the host"
+        help: Enabling privilege will hide Privilege Escalation and seccompProfile.
+        afterTick: 
+          'true': Privilege Escalation and seccompProfile have been hidden.
+          'false': Privilege Escalation and seccompProfile appeared.
       readOnlyRootFilesystem:
-        label: Read-Only Root Filesystem
-        'false': No
-        'true': "Yes: container has a read-only root filesystem"
+        title: Read-Only Root Filesystem
+        'true': "Container has a read-only root filesystem"
       runAsGroup: Run as Group ID
       runAsNonRoot:
-        label: Run as Non-Root
-        'false': No
-        'true': "Yes: container must run as a non-root user"
+        title: Run as Non-Root
+        'true': "Container must run as a non-root user"
       runAsNonRootOptions:
-        noOption: "No"
-        yesOption: "Yes: containers must run as non-root-user"
-      runAsUser: Run as User ID
+        'true': "Containers must run as non-root-user"
+      runAsUser: 
+        title: Run as User ID
+        label: User ID
+      seccompProfile:
+        pod: Pod Seccomp Profile
+        container: Seccomp Profile
+        type: Type
+        localhostProfile:
+          label: Localhost Profile Path
+          tooltip: Points to a specific seccomp file that must already exist on the machine running the container.
+          placeholder: e.g. path/to/json
+        afterLocalhostProfile: 
+          selected: Localhost Profile input appeared.
+          unselected: Localhost Profile input has been hidden.
+        types:
+          none:
+            label: None
+          runtimeDefault:
+            label: RuntimeDefault - inherit the default seccomp profile
+          localhost:
+            label: Localhost - define a custom seccomp profile
+          unconfined:
+            label: Unconfined - no seccomp profile
       shareProcessNamespace: Share single process namespace
       supplementalGroups: Additional Group IDs
       sysctls: Sysctls
       sysctlsKey: Name
     standard: Standard Container
+    initContainer:
+      label: Init Containers
     terminationState: "Last state: Terminated with {lsExitCode}: {lsDescription}, started: {lsStartedAt}, finished: {lsFinishedAt}"
     titles:
       pods: Pods
@@ -7505,6 +7542,7 @@ workload:
   validation:
     containers: Containers
     containerImage: Container {name} - "Container Image" is required.
+    localhostProfile: Container {name} - "Container Localhost Profile" is required when SeccompProfile Type is Localhost.
   replicas: Replicas
   showTabs: 'Show Advanced Options'
   scheduling:
@@ -8377,6 +8415,11 @@ typeLabel:
       one { Role }
       other { Roles }
     }
+  replicationcontroller: |-
+    {count, plural,
+      one { Replication Controller }
+      other { Replication Controllers }
+    }
   scheduling.k8s.io.priorityclass: |-
     {count, plural,
       one { PriorityClass }
@@ -8813,6 +8856,7 @@ notifications:
     showCheckboxLabel: Show custom login error
     messageLabel: Text to display
 resourceQuota:
+  banner: Limit resource consumption in a project for both standard (e.g. CPU Limit) and custom resource types. For custom resource types you have to provide the resource identifier yourself. Want to learn more about resource quotas? Read our <a href="https://ranchermanager.docs.rancher.com/how-to-guides/advanced-user-guides/manage-projects/manage-project-resource-quotas" target="_blank" rel="noopener noreferrer nofollow">documentation <i class="icon icon-external-link"></i></a><span class="sr-only">Opens in a new tab</span>
   label: Resource Quotas
   headers:
     limit: Limit
@@ -8820,9 +8864,14 @@ resourceQuota:
     projectLimit: Project Limit
     projectResourceAvailability: Project Resource Availability
     resourceType: Resource Type
+    resourceIdentifier: Resource Identifier
   helpText: Configure how much of the resources the namespace as a whole can consume.
   helpTextDetail: The amount of resources the namespace as a whole can consume.
   helpTextHarvester: VMs need to reserve additional memory overhead.
+  custom: Custom
+  resourceIdentifier:
+    placeholder: e.g. configmaps
+    tooltip: Select 'Custom' from the 'Resource Type' list and enter the resource identifier (e.g. requests.nvidia.com/gpu) to add custom resources quotas.
   configMaps: Config Maps
   limitsCpu: CPU Limit
   limitsMemory: Memory Limit
@@ -8852,6 +8901,8 @@ resourceQuota:
     unitlessPlaceholder: e.g. 10
   add:
     label: Add Resource
+  errors:
+    customTypeRequired: Resource identifier is required
   tooltip:
     reserved: 'Other Namespaces:'
     namespace: 'This Namespace:'
@@ -9112,11 +9163,17 @@ component:
         podsCard:
           title: Pods
           ariaResourceName: pods
+        jobsCard:
+          title: Jobs
+          ariaResourceName: jobs
         insightsCard:
           title: Insights
           rows:
             conditions: Conditions
             events: Events
+        extrasCard:
+          title: Extras
+          message: 'Consider installing additional <a class="secondary text-deemphasized" href="{extensionsUrl}">extensions</a> and / or <a class="secondary-text-link" href="{clusterToolsUrl}">cluster tools</a> to enrich your Rancher experience.'
         scaler:
           ariaLabel:
             increase: Increase {resourceName}

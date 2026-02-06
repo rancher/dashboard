@@ -33,12 +33,14 @@ import forIn from 'lodash/forIn';
 import isEmpty from 'lodash/isEmpty';
 import isFunction from 'lodash/isFunction';
 import isString from 'lodash/isString';
-import { markRaw } from 'vue';
+import { defineAsyncComponent, markRaw } from 'vue';
 
 import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
+import { EVENT } from '@shell/config/types';
+import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -1383,6 +1385,49 @@ export default class Resource {
     return this._detailLocation;
   }
 
+  /**
+   * Override this getter to provide additional action buttons or a custom component
+   * for the detail page title bar.
+   *
+   * @returns {undefined|object|Array} A Vue component definition, an array of RcButton props, or undefined
+   *
+   * @example
+   * // Using an array of button props with the new variant/size props
+   * get detailPageAdditionalActions() {
+   *   return [
+   *     { label: 'Action 1', variant: 'secondary', onClick: () => this.doAction1() },
+   *     { label: 'Action 2', variant: 'primary', size: 'large', onClick: () => this.doAction2() }
+   *   ];
+   * }
+   *
+   * @example
+   * // Using defineComponent with h() render function for custom rendering
+   * import { defineComponent, h } from 'vue';
+   * import RcButton from '@components/RcButton/RcButton.vue';
+   *
+   * get detailPageAdditionalActions() {
+   *   return defineComponent({
+   *     render() {
+   *       return h(RcButton, {
+   *         variant: 'primary',
+   *         onClick: () => console.log('clicked')
+   *       }, () => 'Click Me');
+   *     }
+   *   });
+   * }
+   *
+   * @example
+   * // Using dynamic import for a custom component
+   * import { defineAsyncComponent } from 'vue';
+   *
+   * get detailPageAdditionalActions() {
+   *   return defineAsyncComponent(() => import('@shell/components/MyCustomActions.vue'));
+   * }
+   */
+  get detailPageAdditionalActions() {
+    return undefined;
+  }
+
   goToDetail() {
     this.currentRouter().push(this.detailLocation);
   }
@@ -2090,5 +2135,56 @@ export default class Resource {
    */
   get yamlFolding() {
     return [];
+  }
+
+  get resourceConditions() {
+    return (this.status?.conditions || []).map((cond) => {
+      let message = cond.message || '';
+
+      if ( cond.reason ) {
+        message = `[${ cond.reason }] ${ message }`.trim();
+      }
+
+      return {
+        condition:        cond.type || 'Unknown',
+        status:           cond.status || 'Unknown',
+        stateSimpleColor: cond.error ? 'error' : 'disabled',
+        error:            cond.error,
+        time:             cond.lastProbeTime || cond.lastUpdateTime || cond.lastTransitionTime,
+        message,
+      };
+    });
+  }
+
+  get resourceEvents() {
+    return this.$rootGetters['cluster/all'](EVENT)
+      .filter((e) => e.involvedObject?.uid === this.metadata?.uid);
+  }
+
+  get insightCardProps() {
+    const rows = [
+      useResourceCardRow(this.t('component.resource.detail.card.insightsCard.rows.conditions'), this.resourceConditions, undefined, 'condition', '#conditions'),
+      useResourceCardRow(this.t('component.resource.detail.card.insightsCard.rows.events'), this.resourceEvents, undefined, undefined, '#events'),
+    ];
+
+    return {
+      title: this.t('component.resource.detail.card.insightsCard.title'),
+      rows
+    };
+  }
+
+  get insightCard() {
+    return {
+      component: markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/Card/StateCard/index.vue'))),
+      props:     this.insightCardProps
+    };
+  }
+
+  get _cards() {
+    return [this.insightCard];
+  }
+
+  get cards() {
+    return this._cards;
   }
 }

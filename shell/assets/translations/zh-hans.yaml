@@ -651,6 +651,10 @@ asyncButton:
     action: 保存
     success: 已保存
     waiting: 正在保存&hellip;
+  editVersion:
+    action: 保存更改
+    success: 已保存
+    waiting: 正在保存更改&hellip;
   enable:
     action: 启用
     success: 启用
@@ -874,8 +878,13 @@ catalog:
       windows: Windows
     search: 筛选
   install:
-    action:
-      goToUpgrade: 编辑/升级
+    warning:
+      managed: |-
+        警告，{manager} 管理 {name} 应用的部署和升级。不支持升级此应用。<br>
+        {version, select,
+          null { }
+          other { 在大多数情况下，无需用户干预即可确保 {version} 版本与你正在运行的 Rancher 版本兼容。}
+        }
     appReadmeMissing: 此 Chart 没有其他 Chart 信息。
     appReadmeTitle: Chart 信息（Helm 自述）
     chart: Chart
@@ -941,6 +950,8 @@ catalog:
             install { 创建 }
             upgrade { 升级 }
             update { 更新 }
+            editVersion { 更新 }
+            downgrade { 降级 }
           } 这个 {existing, select,
             true { 应用 }
             false { Chart}
