@@ -109,33 +109,39 @@ describe('rcAccordion.vue', () => {
     const wrapper = mount(RcAccordion, { props: { title: 'Test' } });
 
     await nextTick();
-    expect(wrapper.find('.rc-accordion-toggle-btn').attributes('aria-expanded')).toBe('false');
+    expect(wrapper.find('.rc-accordion-toggle-button').attributes('aria-expanded')).toBe('false');
 
     await wrapper.find('.rc-accordion-header').trigger('click');
     await nextTick();
     await flushPromises();
 
-    expect(wrapper.find('.rc-accordion-toggle-btn').attributes('aria-expanded')).toBe('true');
+    expect(wrapper.find('.rc-accordion-toggle-button').attributes('aria-expanded')).toBe('true');
   });
 
-  it('toggles on Enter key press', async() => {
+  it('toggles on toggle button click', async() => {
     const wrapper = mount(RcAccordion, { props: { title: 'Test' } });
 
-    await wrapper.find('.rc-accordion-toggle-btn').trigger('keydown', { key: 'Enter' });
+    await wrapper.find('.rc-accordion-toggle-button').trigger('click');
     await nextTick();
     await flushPromises();
 
     expect(isBodyVisible(wrapper)).toBe(true);
   });
 
-  it('toggles on Space key press', async() => {
+  it('toggles back to collapsed on second toggle button click', async() => {
     const wrapper = mount(RcAccordion, { props: { title: 'Test' } });
 
-    await wrapper.find('.rc-accordion-toggle-btn').trigger('keydown', { key: ' ' });
+    await wrapper.find('.rc-accordion-toggle-button').trigger('click');
     await nextTick();
     await flushPromises();
 
     expect(isBodyVisible(wrapper)).toBe(true);
+
+    await wrapper.find('.rc-accordion-toggle-button').trigger('click');
+    await nextTick();
+    await flushPromises();
+
+    expect(isBodyVisible(wrapper)).toBe(false);
   });
 
   it('renders slot content in body', async() => {
@@ -151,22 +157,22 @@ describe('rcAccordion.vue', () => {
     expect(wrapper.find('.rc-accordion-body').html()).toContain('Slot content');
   });
 
-  it('renders header-left slot content', () => {
+  it('renders notifications slot content', () => {
     const wrapper = mount(RcAccordion, {
       props: { title: 'Test' },
-      slots: { 'header-left': '<span class="badge">2</span>' },
+      slots: { notifications: '<span class="badge">2</span>' },
     });
 
-    expect(wrapper.find('.rc-accordion-header-left').html()).toContain('badge');
+    expect(wrapper.find('.rc-accordion-header-notifications').html()).toContain('badge');
   });
 
-  it('renders header-right slot content', () => {
+  it('renders actions slot content', () => {
     const wrapper = mount(RcAccordion, {
       props: { title: 'Test' },
-      slots: { 'header-right': '<button>Action</button>' },
+      slots: { actions: '<button>Action</button>' },
     });
 
-    expect(wrapper.find('.rc-accordion-header-right').html()).toContain('Action');
+    expect(wrapper.find('.rc-accordion-header-actions').html()).toContain('Action');
   });
 
   it('defaults to primary variant when not specified', () => {
