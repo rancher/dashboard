@@ -52,13 +52,11 @@ describe('rcAccordion.vue', () => {
     await nextTick();
     expect(isBodyVisible(wrapper)).toBe(false);
 
-    // Click to expand
     await wrapper.find('.rc-accordion-header').trigger('click');
     await nextTick();
     await flushPromises();
     expect(isBodyVisible(wrapper)).toBe(true);
 
-    // Click to collapse
     await wrapper.find('.rc-accordion-header').trigger('click');
     await nextTick();
     await flushPromises();

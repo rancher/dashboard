@@ -20,7 +20,7 @@ const meta: Meta<typeof RcAccordion> = {
     },
     modelValue: {
       control:     { type: 'boolean' },
-      description: 'Controls the expanded/collapsed state. Use with v-model for two-way binding.'
+      description: `Controls the expanded/collapsed state. Use with v-model for two-way binding.\n\n**NOTE:** If omitted, the component will manage it's own state, starting closed by default.`
     },
   }
 };
