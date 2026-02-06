@@ -110,7 +110,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     });
   });
 
-  it('has the correct title for Prime users and should display banner on main extensions screen EVEN IF setting is empty string', () => {
+  it('has the correct title for Prime users and should display banner on main extensions screen EVEN IF setting is empty string', { tags: '@noPrime' }, () => {
     cy.getRancherResource('v3', 'setting', 'display-add-extension-repos-banner', null).then((resp: Cypress.Response<any>) => {
       const notFound = resp.status === 404;
       const requiredValue = resp.body?.value === '';
