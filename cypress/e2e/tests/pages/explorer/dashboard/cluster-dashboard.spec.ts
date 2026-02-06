@@ -56,7 +56,11 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
   it('has the correct title', () => {
     ClusterDashboardPagePo.navTo();
 
-    cy.title().should('eq', 'Rancher - local - Cluster Dashboard');
+    cy.getRancherVersion().then((version) => {
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Cluster Dashboard' : 'Rancher - local - Cluster Dashboard';
+
+      cy.title().should('eq', expectedTitle);
+    });
   });
 
   it('shows fleet controller status', () => {
@@ -101,7 +105,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
   it('can copy the kubeconfig to clipboard', () => {
     ClusterDashboardPagePo.navTo();
-    cy.intercept('POST', '*action=generateKubeconfig').as('copyKubeConfig');
+    cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('copyKubeConfig');
     header.copyKubeconfig().click();
     header.copyKubeConfigCheckmark().should('be.visible');
     cy.wait('@copyKubeConfig');

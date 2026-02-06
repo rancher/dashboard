@@ -344,10 +344,17 @@ corral config vars set nodejs_version "${NODEJS_VERSION}"
 corral config vars set dashboard_repo "${DASHBOARD_REPO}"
 corral config vars set dashboard_branch "${DASHBOARD_BRANCH}"
 
-# Jenkins pipeline runs against Vai-enabled Rancher; append exclusion of @noVai tests
-# (e.g. priority/no-vai-setup.spec.ts which disables the Vai feature flag).
+# Exclude tagged E2E tests that don't apply to Rancher build:
+# - @noVai: Jenkins pipeline runs against Vai-enabled Rancher; skip tests that assume Vai is off
+#   (e.g. priority/no-vai-setup.spec.ts which disables the Vai feature flag).
+# - @noPrime: on Prime/alpha/latest, skip tests that assume non-Prime defaults
+#   (e.g. priority/oidc-provider-setup.spec.ts — OIDC Provider is already enabled on Prime).
 if [[ -n "${CYPRESS_TAGS}" ]]; then
-  CYPRESS_TAGS="${CYPRESS_TAGS}+-@noVai"
+  if [[ "${RANCHER_HELM_REPO}" == "rancher-prime" || "${RANCHER_HELM_REPO}" == "rancher-latest" || "${RANCHER_HELM_REPO}" == "rancher-alpha" ]]; then
+    CYPRESS_TAGS="${CYPRESS_TAGS}+-@noVai+-@noPrime"
+  else
+    CYPRESS_TAGS="${CYPRESS_TAGS}+-@noVai"
+  fi
 fi
 corral config vars set cypress_tags "${CYPRESS_TAGS}"
 

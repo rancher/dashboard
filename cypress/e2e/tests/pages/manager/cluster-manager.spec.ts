@@ -214,7 +214,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         ClusterManagerListPagePo.navTo();
 
-        cy.intercept('POST', '*action=generateKubeconfig').as('copyKubeConfig');
+        cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('copyKubeConfig');
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Copy KubeConfig to Clipboard').click();
         cy.wait('@copyKubeConfig');
 
@@ -280,7 +280,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       it('can download KubeConfig', () => {
         clusterList.goTo();
-        cy.intercept('POST', '/v3/clusters/**').as('generateKubeconfig');
+        cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeconfig');
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download KubeConfig').click();
         cy.wait('@generateKubeconfig').its('response.statusCode').should('eq', 200);
 
@@ -650,9 +650,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     ClusterManagerListPagePo.navTo();
     clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
       .click();
-    cy.intercept('POST', '/v3/clusters/local?action=generateKubeconfig').as('generateKubeConfig');
-    clusterList.list().downloadKubeConfig().click({ force: true });
-    cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 200);
+    cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
+    clusterList.list().openBulkActionDropdown();
+    clusterList.list().bulkActionButton('Download KubeConfig').click();
+    cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 201);
     const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
 
     cy.readFile(downloadedFilename).then((buffer) => {
@@ -660,7 +661,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       // Basic checks on the downloaded YAML
       expect(obj.apiVersion).to.equal('v1');
-      expect(obj.clusters[0].name).to.equal('local');
+      expect(obj.clusters[1].name).to.equal('local');
       expect(obj.kind).to.equal('Config');
     });
   });
