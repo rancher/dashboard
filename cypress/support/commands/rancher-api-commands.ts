@@ -2,7 +2,7 @@ import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2ClusterWithoutMachineConfigParams, UserPreferences } from '@/cypress/globals';
 import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
 import { CypressChainable } from '~/cypress/e2e/po/po.types';
-import { MEDIUM_API_DELAY } from '~/cypress/support/utils/api-endpoints';
+import { base64Encode } from '@shell/utils/crypto';
 
 // This file contains commands which makes API requests to the rancher API.
 // It includes the `login` command to store the `token` to use
@@ -85,7 +85,7 @@ Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => 
     .then((e2eName) => {
       return cy.request({
         method:           'POST',
-        url:              `${ Cypress.env('api') }/v3/users`,
+        url:              `${ Cypress.env('api') }/v1/management.cattle.io.users`,
         failOnStatusCode: false,
         headers:          {
           'x-api-csrf': token.value,
@@ -95,8 +95,7 @@ Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => 
           type:               'user',
           enabled:            true,
           mustChangePassword: false,
-          username:           e2eName,
-          password:           password || Cypress.env('password')
+          username:           e2eName
         }
       });
     })
@@ -110,28 +109,56 @@ Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => 
 
         const userPrincipalId = resp.body.principalIds[0];
 
-        if (globalRole) {
-          return cy.setGlobalRoleBinding(resp.body.id, globalRole.role)
-            .then(() => {
-              if (clusterRole) {
-                const { clusterId, role } = clusterRole;
+        return cy.createUserPasswordAsSecret(resp.body.id, password || Cypress.env('password'))
+          .then(() => {
+            if (globalRole) {
+              return cy.setGlobalRoleBinding(resp.body.id, globalRole.role)
+                .then(() => {
+                  if (clusterRole) {
+                    const { clusterId, role } = clusterRole;
 
-                return cy.setClusterRoleBinding(clusterId, userPrincipalId, role);
-              }
-            })
-            .then(() => {
-              if (projectRole) {
-                const { clusterId, projectName, role } = projectRole;
+                    return cy.setClusterRoleBinding(clusterId, userPrincipalId, role);
+                  }
+                })
+                .then(() => {
+                  if (projectRole) {
+                    const { clusterId, projectName, role } = projectRole;
 
-                return cy.setProjectRoleBinding(clusterId, userPrincipalId, projectName, role);
-              }
-            })
-            .then(() => {
-              // return response of original user
-              return resp;
-            });
-        }
+                    return cy.setProjectRoleBinding(clusterId, userPrincipalId, projectName, role);
+                  }
+                })
+                .then(() => {
+                  // return response of original user
+                  return resp;
+                });
+            }
+          });
       }
+    });
+});
+
+/**
+ * Create user password as Secret via api request
+ */
+Cypress.Commands.add('createUserPasswordAsSecret', (userId, password) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v1/secrets`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:     'secret',
+      metadata: {
+        namespace: 'cattle-local-user-passwords',
+        name:      userId
+      },
+      data: { password: base64Encode(password) }
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
     });
 });
 
