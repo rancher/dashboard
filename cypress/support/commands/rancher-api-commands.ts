@@ -2,7 +2,8 @@ import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { CreateUserParams, CreateAmazonRke2ClusterParams, CreateAmazonRke2ClusterWithoutMachineConfigParams, UserPreferences } from '@/cypress/globals';
 import { groupByPayload } from '@/cypress/e2e/blueprints/user_preferences/group_by';
 import { CypressChainable } from '~/cypress/e2e/po/po.types';
-import { base64Encode } from '@shell/utils/crypto';
+import { MEDIUM_API_DELAY } from '@/cypress/support/utils/api-endpoints';
+import { base64Encode } from '@shell/utils/crypto/index.js';
 
 // This file contains commands which makes API requests to the rancher API.
 // It includes the `login` command to store the `token` to use
@@ -107,31 +108,44 @@ Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => 
       } else {
         expect(resp.status).to.eq(201);
 
-        const userPrincipalId = resp.body.principalIds[0];
+        // we now need to do a GET to the user to get the principalId to set the role bindings
+        // in v1/management.cattle.io.users response, principalIds is not included, but we need it to set the role bindings
+        // and also create the user password as secret, which is required for login
+        cy.request({
+          method:  'GET',
+          url:     `${ Cypress.env('api') }/v1/management.cattle.io.users/${ resp.body.id }`,
+          headers: {
+            'x-api-csrf': token.value,
+            Accept:       'application/json'
+          },
+        })
+          .then((userDataResp) => {
+            const userPrincipalId = userDataResp.body.principalIds[0];
 
-        return cy.createUserPasswordAsSecret(resp.body.id, password || Cypress.env('password'))
-          .then(() => {
-            if (globalRole) {
-              return cy.setGlobalRoleBinding(resp.body.id, globalRole.role)
-                .then(() => {
-                  if (clusterRole) {
-                    const { clusterId, role } = clusterRole;
+            return cy.createUserPasswordAsSecret(resp.body.id, password || Cypress.env('password'))
+              .then(() => {
+                if (globalRole) {
+                  return cy.setGlobalRoleBinding(resp.body.id, globalRole.role)
+                    .then(() => {
+                      if (clusterRole) {
+                        const { clusterId, role } = clusterRole;
 
-                    return cy.setClusterRoleBinding(clusterId, userPrincipalId, role);
-                  }
-                })
-                .then(() => {
-                  if (projectRole) {
-                    const { clusterId, projectName, role } = projectRole;
+                        return cy.setClusterRoleBinding(clusterId, userPrincipalId, role);
+                      }
+                    })
+                    .then(() => {
+                      if (projectRole) {
+                        const { clusterId, projectName, role } = projectRole;
 
-                    return cy.setProjectRoleBinding(clusterId, userPrincipalId, projectName, role);
-                  }
-                })
-                .then(() => {
-                  // return response of original user
-                  return resp;
-                });
-            }
+                        return cy.setProjectRoleBinding(clusterId, userPrincipalId, projectName, role);
+                      }
+                    })
+                    .then(() => {
+                      // return response of original user
+                      return resp;
+                    });
+                }
+              });
           });
       }
     });
