@@ -435,11 +435,11 @@ export default function init(plugin: IPlugin) {
 }
 ```
 
-## Migration from Legacy DSL
+## Migration from deprecated DSL
 
-If you're migrating from the legacy `headers()` DSL method, the new system is backward-compatible. Under the hood, your configuration is transformed into DSL calls:
+If you're migrating from the deprecated `headers()` DSL method, the new system is backward-compatible. Under the hood, your configuration is transformed into DSL calls:
 
-**Legacy DSL:**
+**Deprecated DSL:**
 ```ts
 headers(schema) {
   return [
@@ -512,4 +512,4 @@ If server-side pagination isn't working correctly:
 
 - [Product Registration](./products.md) — Main product registration documentation
 - [Table Columns](./table-columns.md) — Adding custom columns via `addTableColumn` method
-- [Legacy Products](./legacy/products-legacy.md) — Legacy DSL-based product registration
+- [Deprecated Products](./deprecated/products-deprecated.md) — Deprecated DSL-based product registration

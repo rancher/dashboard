@@ -2,7 +2,7 @@
 
 *(Rancher version v2.14.0)*
 
-This page describes the updated way to create or extend products using the extension API. The legacy flow is preserved in a “Legacy navigation & pages” section below.
+This page describes the updated way to create or extend products using the extension API. The deprecated flow is preserved in a "Deprecated navigation & pages” section below.
 
 ## "addProduct" method
 Creates a new product in Rancher (top-level navigation entry, routes, side menu, and pages defined by your config array).
@@ -333,6 +333,6 @@ All standard Kubernetes resource columns are available as simple strings (with f
 ### Customizing columns
 
 For advanced customization (disabling sort/search, custom widths, etc.), see the [detailed headers documentation](./headers.md).
-### Legacy navigation & pages
+### Deprecated navigation & pages
 
-The [prior DSL-first docs](./legacy/products-legacy.md) (manual `product`, `virtualType`, `configureType`, `basicType`, `weightType`, etc.) are kept for reference in the legacy section. Use them if you need full manual control but these will be **deprecated**.
+The [prior DSL-first docs](./deprecated/products-deprecated.md) (manual `product`, `virtualType`, `configureType`, `basicType`, `weightType`, etc.) are kept for reference in the deprecated section. Use them if you need full manual control but these will be **deprecated**.

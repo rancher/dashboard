@@ -8,8 +8,8 @@ Rancher defines a number of extension points - the [**Extensions API**](./api/ov
 
 - [**Create a new product**](./usecases/add-new-product.md) in Rancher
 - [**Extend an existing product**](./usecases/extend-existing-product.md) in Rancher
-- Add new [**Node driver**](./usecases/node-driver.md) UI
-- Add new [**Hosted provider**](./usecases/hosted-provider.md) UI
+- Add UI support for a new [**Node Driver managed Cluster**](./usecases/node-driver.md) UI
+- Add UI support a new [**Hosted provider Cluster**](./usecases/hosted-provider.md) UI
 - Add new UI for Kubernetes CRDs 
 - Extend existing views in Rancher Manager by adding panels, tabs and actions 
 - Customize the landing page 

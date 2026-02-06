@@ -1,6 +1,6 @@
-# Concepts
+# Concepts (deprecated)
 
-## What is a top-level product?
+## What is a top-level product? (deprecated)
 
 A "top-level product" inside the Rancher UI is a product that interacts with the Rancher cluster and **may** interact with one or several downstream clusters, depending on the code you develop for it. 
 
@@ -28,7 +28,7 @@ You will be registering a new app/product that is global to the whole Rancher UI
 
 All the pages that you register inside this product will appear as links on it's dedicated sub-menu providing that all the correct functions are used.
 
-## What is a cluster-level product?
+## What is a cluster-level product? (deprecated)
 
 A "cluster-level product" inside the Rancher UI is a product that interacts with the Rancher cluster and can **only** interact with one downstream cluster.
 
@@ -54,7 +54,7 @@ You will be registering a new app/product that only appears in the context of "C
 All the pages that you register inside this product will appear as links on it's dedicated sub-menu providing that all the correct functions are used.
 
 
-## Overview on routing structure for Rancher Dashboard
+## Overview on routing structure for Rancher Dashboard (deprecated)
 
 To become familiar with routing on VueJS and route definition we recommend that you should give a read about the [Essentials on Vue Router](https://v3.router.vuejs.org/guide/) and also the definition of a [Vue Router route](https://v3.router.vuejs.org/api/#routes).
 
