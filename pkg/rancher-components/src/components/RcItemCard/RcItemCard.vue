@@ -185,6 +185,7 @@ const cardMeta = computed(() => ({
   <div
     ref="cardEl"
     class="item-card"
+    :data-testid="`item-card-${id}`"
     :class="{
       'clickable':
         clickable
@@ -227,7 +228,6 @@ const cardMeta = computed(() => ({
             :role="cardMeta.role"
             :tabindex="cardMeta.tabIndex"
             :aria-label="cardMeta.ariaLabel"
-            :data-testid="`item-card-${id}`"
             @click.self="_handleCardClick"
             @keydown.enter="_handleCardClick"
             @keydown.space.prevent="_handleCardClick"
