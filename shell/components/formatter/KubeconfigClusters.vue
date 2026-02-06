@@ -1,4 +1,6 @@
 <script>
+const MAX_DISPLAY = 25;
+
 export default {
   props: {
     row: {
@@ -12,8 +14,14 @@ export default {
   },
 
   computed: {
-    clusters() {
+    allClusters() {
       return this.row?.sortedReferencedClusters || [];
+    },
+    clusters() {
+      return this.allClusters.slice(0, MAX_DISPLAY);
+    },
+    remainingCount() {
+      return Math.max(0, this.allClusters.length - MAX_DISPLAY);
     }
   }
 };
@@ -41,7 +49,13 @@ export default {
       </span>
     </template>
     <span
-      v-if="clusters.length === 0"
+      v-if="remainingCount > 0"
+      class="text-muted"
+    >
+      {{ t('ext.cattle.io.kubeconfig.moreClusterCount', { remainingCount: remainingCount }) }}
+    </span>
+    <span
+      v-if="allClusters.length === 0"
       class="text-muted"
     >
       &mdash;
@@ -51,6 +65,11 @@ export default {
 
 <style lang="scss" scoped>
 .kubeconfig-clusters {
-  display: inline;
+  display: block;
+  width: 0;
+  min-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

@@ -9302,3 +9302,4 @@ autoscaler:
 
 ext.cattle.io.kubeconfig:
   deleted: "{name} (deleted)"
+  moreClusterCount: " + {remainingCount} more"
