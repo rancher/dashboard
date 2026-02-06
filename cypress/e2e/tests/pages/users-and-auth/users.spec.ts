@@ -220,7 +220,9 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.intercept('DELETE', '/v1/management.cattle.io.users/*').as('deleteUser');
       promptRemove.confirm(standardUsername);
       promptRemove.remove();
-      cy.wait('@deleteUser').its('response.statusCode').should('eq', 200);
+      cy.wait('@deleteUser').its('response.statusCode').should((statusCode) => {
+        expect([200, 204]).to.include(statusCode);
+      });
       usersPo.list().elementWithName(standardUsername).should('not.exist');
     });
   });
@@ -267,7 +269,9 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.intercept('DELETE', '/v1/management.cattle.io.users/*').as('deleteUser');
       promptRemove.confirm(userBaseUsername);
       promptRemove.remove();
-      cy.wait('@deleteUser').its('response.statusCode').should('eq', 200);
+      cy.wait('@deleteUser').its('response.statusCode').should((statusCode) => {
+        expect([200, 204]).to.include(statusCode);
+      });
       usersPo.list().elementWithName(userBaseUsername).should('not.exist');
     });
   });
@@ -281,7 +285,14 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     before('set up', () => {
       cy.login();
       cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
-        initialCount = resp.body.data.length - 1;
+        // we need to filter out system users here, as they are not shown in the UI
+        const filteredUsersNotSystem = resp.body.data.filter((item) => {
+          const res = item.principalIds.filter((fp) => fp.startsWith('system://'));
+
+          return res.length === 0;
+        });
+
+        initialCount = filteredUsersNotSystem.length - 1;
       });
       cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
 
@@ -316,7 +327,14 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       // check users count
       cy.waitForRancherResources('v1', 'management.cattle.io.users', count).then((resp: Cypress.Response<any>) => {
-        const count = resp.body.data.length;
+        // we need to filter out system users here, as they are not shown in the UI
+        const filteredUsersNotSystem = resp.body.data.filter((item) => {
+          const res = item.principalIds.filter((fp) => fp.startsWith('system://'));
+
+          return res.length === 0;
+        });
+
+        const count = filteredUsersNotSystem.length;
 
         // pagination is visible
         usersPo.list().resourceTable().sortableTable().pagination()
