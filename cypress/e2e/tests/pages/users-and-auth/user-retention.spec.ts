@@ -146,7 +146,7 @@ describe('User Retention', { testIsolation: 'off' }, () => {
       updateUserRetentionSetting('delete-inactive-user-after', null);
 
       // delete users
-      userIdsList.forEach((r) => cy.deleteRancherResource('v3', 'Users', r, false));
+      userIdsList.forEach((r) => cy.deleteRancherResource('v1', 'management.cattle.io.users', r, false));
     });
   });
 

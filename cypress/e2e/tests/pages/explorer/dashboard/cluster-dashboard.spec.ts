@@ -386,7 +386,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
       cy.get('@createUserRequest').then((req: any) => {
         const userId = req.body.id;
 
-        cy.deleteRancherResource('v3', 'users', userId);
+        cy.deleteRancherResource('v1', 'management.cattle.io.users', userId);
       });
     });
   });
