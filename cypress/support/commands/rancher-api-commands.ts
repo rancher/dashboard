@@ -426,6 +426,25 @@ Cypress.Commands.add('requestBase64Image', (url: string) => {
 });
 
 /**
+ * Get Rancher version info from /rancherversion (includes RancherPrime for product type).
+ */
+Cypress.Commands.add('getRancherVersion', () => {
+  return cy.request({
+    method:  'GET',
+    url:     `${ Cypress.env('api') }/rancherversion`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    failOnStatusCode: false
+  }).then((resp) => {
+    expect(resp.status).to.eq(200);
+
+    return JSON.parse(resp.body);
+  });
+});
+
+/**
  * Get a v3 / v1 resource
  * url is constructed based if resourceId is supplied or not
  */
