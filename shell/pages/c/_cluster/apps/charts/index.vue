@@ -607,6 +607,7 @@ export default {
             :content="card.content"
             :value="card.rawChart"
             variant="medium"
+            role="link"
             :class="{ 'single-card': appChartCards.length === 1 }"
             :clickable="true"
             @card-click="selectChart"

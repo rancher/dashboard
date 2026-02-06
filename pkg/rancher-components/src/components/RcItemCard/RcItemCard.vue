@@ -110,6 +110,8 @@ interface RcItemCardProps {
 
   /** Makes the card clickable and emits 'card-click' on click/enter/space */
   clickable?: boolean;
+
+  role?: 'link' | 'button' | undefined;
 }
 
 const props = defineProps<RcItemCardProps>();
@@ -173,8 +175,8 @@ const statusTooltips = computed(() => props.header.statuses?.map((status) => lab
 const cardMeta = computed(() => ({
   ariaLabel:       props.clickable ? t('itemCard.ariaLabel.clickable', { cardTitle: labelText(props.header.title) }) : undefined,
   tabIndex:        props.clickable ? '0' : undefined,
-  role:            props.clickable ? 'button' : undefined,
-  actionMenuLabel: props.actions && t('itemCard.actionMenu.label', { cardTitle: labelText(props.header.title) })
+  role:            props.role ?? (props.clickable ? 'button' : undefined),
+  actionMenuLabel: props.actions && t('itemCard.actionMenu.label', { cardTitle: labelText(props.header.title) }),
 }));
 
 </script>
