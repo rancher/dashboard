@@ -152,7 +152,9 @@ describe('rcItemCard', () => {
       }
     });
 
-    await wrapper.trigger('keydown.enter');
+    const clickTarget = wrapper.find('.item-card-header-left');
+
+    await clickTarget.trigger('keydown.enter');
     expect(wrapper.emitted('card-click')).toBeTruthy();
   });
 
