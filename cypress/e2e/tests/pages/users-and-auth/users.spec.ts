@@ -27,250 +27,250 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     cy.login();
   });
 
-  // it('can create Admin', () => {
-  //   const adminUsername = `${ runPrefix }-admin-user`;
-  //   const adminPassword = 'admin-password';
+  it('can create Admin', () => {
+    const adminUsername = `${ runPrefix }-admin-user`;
+    const adminPassword = 'admin-password';
 
-  //   usersPo.goTo();
-  //   usersPo.waitForPage();
-  //   BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Users & Authentication');
-  //   usersPo.list().create();
+    usersPo.goTo();
+    usersPo.waitForPage();
+    BurgerMenuPo.checkIfMenuItemLinkIsHighlighted('Users & Authentication');
+    usersPo.list().create();
 
-  //   userCreate.waitForPage();
-  //   userCreate.username().set(adminUsername);
-  //   userCreate.newPass().set(adminPassword);
-  //   userCreate.confirmNewPass().set(adminPassword);
-  //   userCreate.selectCheckbox('Administrator').set();
-  //   userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
-  // });
+    userCreate.waitForPage();
+    userCreate.username().set(adminUsername);
+    userCreate.newPass().set(adminPassword);
+    userCreate.confirmNewPass().set(adminPassword);
+    userCreate.selectCheckbox('Administrator').set();
+    userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
+  });
 
-  // it('can create User-Base', () => {
-  //   const userBasePassword = 'userBase-password';
+  it('can create User-Base', () => {
+    const userBasePassword = 'userBase-password';
 
-  //   usersPo.goTo();
-  //   usersPo.waitForPage();
-  //   usersPo.list().create();
+    usersPo.goTo();
+    usersPo.waitForPage();
+    usersPo.list().create();
 
-  //   userCreate.waitForPage();
-  //   userCreate.username().set(userBaseUsername);
-  //   userCreate.newPass().set(userBasePassword);
-  //   userCreate.confirmNewPass().set(userBasePassword);
-  //   userCreate.selectCheckbox('User-Base').set();
-  //   userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
+    userCreate.waitForPage();
+    userCreate.username().set(userBaseUsername);
+    userCreate.newPass().set(userBasePassword);
+    userCreate.confirmNewPass().set(userBasePassword);
+    userCreate.selectCheckbox('User-Base').set();
+    userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
 
-  //   usersPo.waitForPage();
-  //   usersPo.list().elementWithName(userBaseUsername).scrollIntoView().should('be.visible');
-  // });
+    usersPo.waitForPage();
+    usersPo.list().elementWithName(userBaseUsername).scrollIntoView().should('be.visible');
+  });
 
-  // it('can create Standard User and view their details', () => {
-  //   usersPo.goTo();
-  //   usersPo.waitForPage();
-  //   usersPo.list().create();
+  it('can create Standard User and view their details', () => {
+    usersPo.goTo();
+    usersPo.waitForPage();
+    usersPo.list().create();
 
-  //   userCreate.username().set(standardUsername);
-  //   userCreate.newPass().set(standardPassword);
-  //   userCreate.confirmNewPass().set(standardPassword);
+    userCreate.username().set(standardUsername);
+    userCreate.newPass().set(standardPassword);
+    userCreate.confirmNewPass().set(standardPassword);
 
-  //   // verify standard user checkbox selected by default
-  //   userCreate.selectCheckbox('Standard User').isChecked();
+    // verify standard user checkbox selected by default
+    userCreate.selectCheckbox('Standard User').isChecked();
 
-  //   userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings').then((res) => {
-  //     userId = res.response?.body.userId;
+    userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings').then((res) => {
+      userId = res.response?.body.userId;
 
-  //     usersPo.waitForPage();
-  //     usersPo.list().elementWithName(standardUsername).scrollIntoView().should('be.visible');
+      usersPo.waitForPage();
+      usersPo.list().elementWithName(standardUsername).scrollIntoView().should('be.visible');
 
-  //     // view user's details
-  //     usersPo.list().details(standardUsername, 2).find('a').click();
+      // view user's details
+      usersPo.list().details(standardUsername, 2).find('a').click();
 
-  //     const userDetails = usersPo.detail(userId);
+      const userDetails = usersPo.detail(userId);
 
-  //     userDetails.waitForPage();
-  //     userDetails.mastheadTitle().should('contain', standardUsername);
-  //   });
-  // });
+      userDetails.waitForPage();
+      userDetails.mastheadTitle().should('contain', standardUsername);
+    });
+  });
 
-  // it('shows global roles in specific order', () => {
-  //   // Intercept roles request and change the order
-  //   cy.intercept('GET', `/v1/management.cattle.io.globalroles?*`, (req) => {
-  //     req.continue((res) => {
-  //       // Move the Administrator role to the end of the list
-  //       const adminIndex = res.body.data.findIndex((item) => item.id === 'admin');
-  //       const adminRole = res.body.data[adminIndex];
+  it('shows global roles in specific order', () => {
+    // Intercept roles request and change the order
+    cy.intercept('GET', `/v1/management.cattle.io.globalroles?*`, (req) => {
+      req.continue((res) => {
+        // Move the Administrator role to the end of the list
+        const adminIndex = res.body.data.findIndex((item) => item.id === 'admin');
+        const adminRole = res.body.data[adminIndex];
 
-  //       res.body.data.splice(adminIndex, 1);
-  //       res.body.data.push(adminRole);
+        res.body.data.splice(adminIndex, 1);
+        res.body.data.push(adminRole);
 
-  //       res.send(res.body);
-  //     });
-  //   });
+        res.send(res.body);
+      });
+    });
 
-  //   usersPo.goTo();
-  //   usersPo.waitForPage();
-  //   usersPo.list().create();
-  //   userCreate.waitForPage();
+    usersPo.goTo();
+    usersPo.waitForPage();
+    usersPo.list().create();
+    userCreate.waitForPage();
 
-  //   const mgmtUserEditPo = new MgmtUserEditPo();
+    const mgmtUserEditPo = new MgmtUserEditPo();
 
-  //   mgmtUserEditPo.globalRoleBindings().globalOptions().then((list) => {
-  //     expect(list.length).to.eq(3);
-  //     expect(list[0]).to.eq('Administrator');
-  //     expect(list[1]).to.eq('Standard User');
-  //     expect(list[2]).to.eq('User-Base');
-  //   });
-  // });
+    mgmtUserEditPo.globalRoleBindings().globalOptions().then((list) => {
+      expect(list.length).to.eq(3);
+      expect(list[0]).to.eq('Administrator');
+      expect(list[1]).to.eq('Standard User');
+      expect(list[2]).to.eq('User-Base');
+    });
+  });
 
-  // it('can Refresh Group Memberships', () => {
-  //   // Refresh Group Membership and verify request is made
-  //   usersPo.goTo();
-  //   usersPo.waitForPage();
-  //   cy.intercept('POST', '/v1/ext.cattle.io.groupmembershiprefreshrequests').as('refreshGroup');
-  //   usersPo.list().refreshGroupMembership().click();
-  //   cy.wait('@refreshGroup').its('response.statusCode').should('eq', 201);
-  // });
+  it('can Refresh Group Memberships', () => {
+    // Refresh Group Membership and verify request is made
+    usersPo.goTo();
+    usersPo.waitForPage();
+    cy.intercept('POST', '/v1/ext.cattle.io.groupmembershiprefreshrequests').as('refreshGroup');
+    usersPo.list().refreshGroupMembership().click();
+    cy.wait('@refreshGroup').its('response.statusCode').should('eq', 201);
+  });
 
-  // describe('Action Menu', () => {
-  //   it('can Deactivate and Activate user', () => {
-  //     cy.intercept('GET', '/v1/management.cattle.io.users?*').as('getUsers');
-  //     usersPo.goTo();
-  //     usersPo.waitForPage();
-  //     cy.wait('@getUsers');
+  describe('Action Menu', () => {
+    it('can Deactivate and Activate user', () => {
+      cy.intercept('GET', '/v1/management.cattle.io.users?*').as('getUsers');
+      usersPo.goTo();
+      usersPo.waitForPage();
+      cy.wait('@getUsers');
 
-  //     let menu = usersPo.list().actionMenu(standardUsername);
+      let menu = usersPo.list().actionMenu(standardUsername);
 
-  //     // Deactivate user and check state is Inactive
-  //     menu.checkVisible();
-  //     menu.getMenuItem('Disable').click();
-  //     menu.checkNotExists();
+      // Deactivate user and check state is Inactive
+      menu.checkVisible();
+      menu.getMenuItem('Disable').click();
+      menu.checkNotExists();
 
-  //     usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-xmark');
+      usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-xmark');
 
-  //     // Activate user and check state is Active
-  //     menu = usersPo.list().actionMenu(standardUsername);
-  //     menu.checkVisible();
-  //     menu.getMenuItem('Enable').click();
-  //     menu.checkNotExists();
+      // Activate user and check state is Active
+      menu = usersPo.list().actionMenu(standardUsername);
+      menu.checkVisible();
+      menu.getMenuItem('Enable').click();
+      menu.checkNotExists();
 
-  //     usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-check');
-  //   });
+      usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-check');
+    });
 
-  //   it('can Refresh Group Memberships', () => {
-  //     // Refresh Group Membership and verify request is made
-  //     cy.intercept('POST', `/v1/ext.cattle.io.groupmembershiprefreshrequests`).as('refreshGroup');
-  //     usersPo.waitForRequests();
-  //     usersPo.list().clickRowActionMenuItem(standardUsername, 'Refresh Group Memberships');
-  //     cy.wait('@refreshGroup').its('response.statusCode').should('eq', 201);
-  //   });
+    it('can Refresh Group Memberships', () => {
+      // Refresh Group Membership and verify request is made
+      cy.intercept('POST', `/v1/ext.cattle.io.groupmembershiprefreshrequests`).as('refreshGroup');
+      usersPo.waitForRequests();
+      usersPo.list().clickRowActionMenuItem(standardUsername, 'Refresh Group Memberships');
+      cy.wait('@refreshGroup').its('response.statusCode').should('eq', 201);
+    });
 
-  //   it('can Edit Config', () => {
-  //     // Edit user and make sure edit is saved
-  //     const userEdit = usersPo.createEdit(userId);
+    it('can Edit Config', () => {
+      // Edit user and make sure edit is saved
+      const userEdit = usersPo.createEdit(userId);
 
-  //     usersPo.waitForRequests();
-  //     usersPo.list().clickRowActionMenuItem(standardUsername, 'Edit Config');
-  //     userEdit.waitForPage();
-  //     userEdit.mastheadTitle().should('contain', standardUsername);
-  //     const mgmtUserEditPo = new MgmtUserEditPo();
+      usersPo.waitForRequests();
+      usersPo.list().clickRowActionMenuItem(standardUsername, 'Edit Config');
+      userEdit.waitForPage();
+      userEdit.mastheadTitle().should('contain', standardUsername);
+      const mgmtUserEditPo = new MgmtUserEditPo();
 
-  //     mgmtUserEditPo.description().set('e2e_test');
-  //     mgmtUserEditPo.saveAndWaitForRequests('PUT', `/v1/management.cattle.io.users/${ userId }`).then((res) => {
-  //       expect(res.response?.statusCode).to.equal(200);
-  //       expect(res.response?.body.description).to.equal('e2e_test');
-  //     });
-  //   });
+      mgmtUserEditPo.description().set('e2e_test');
+      mgmtUserEditPo.saveAndWaitForRequests('PUT', `/v1/management.cattle.io.users/${ userId }`).then((res) => {
+        expect(res.response?.statusCode).to.equal(200);
+        expect(res.response?.body.description).to.equal('e2e_test');
+      });
+    });
 
-  //   it('can Edit YAML', () => {
-  //     // Edit YAML and verify user lands on correct page
+    it('can Edit YAML', () => {
+      // Edit YAML and verify user lands on correct page
 
-  //     // We don't have a good pattern for the view/edit yaml page yet
-  //     const viewYaml = usersPo.createEdit(userId);
+      // We don't have a good pattern for the view/edit yaml page yet
+      const viewYaml = usersPo.createEdit(userId);
 
-  //     usersPo.goTo();
-  //     usersPo.waitForPage();
-  //     usersPo.list().clickRowActionMenuItem(standardUsername, 'Edit YAML');
-  //     cy.url().should('include', `?mode=edit&as=yaml`);
-  //     viewYaml.mastheadTitle().should('contain', standardUsername);
-  //   });
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().clickRowActionMenuItem(standardUsername, 'Edit YAML');
+      cy.url().should('include', `?mode=edit&as=yaml`);
+      viewYaml.mastheadTitle().should('contain', standardUsername);
+    });
 
-  //   it('can Download YAML', () => {
-  //     // Download YAML and verify file exists
-  //     const downloadedFilename = path.join(downloadsFolder, `${ standardUsername }.yaml`);
+    it('can Download YAML', () => {
+      // Download YAML and verify file exists
+      const downloadedFilename = path.join(downloadsFolder, `${ standardUsername }.yaml`);
 
-  //     usersPo.goTo();
-  //     usersPo.waitForPage();
-  //     usersPo.list().clickRowActionMenuItem(standardUsername, 'Download YAML');
-  //     cy.readFile(downloadedFilename).should('exist').then((buffer) => {
-  //       const obj: any = jsyaml.load(buffer);
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().clickRowActionMenuItem(standardUsername, 'Download YAML');
+      cy.readFile(downloadedFilename).should('exist').then((buffer) => {
+        const obj: any = jsyaml.load(buffer);
 
-  //       // Basic checks on the downloaded YAML
-  //       expect(obj.username).to.equal(standardUsername);
-  //       expect(obj.apiVersion).to.equal('management.cattle.io/v3');
-  //       expect(obj.kind).to.equal('User');
-  //     });
-  //   });
+        // Basic checks on the downloaded YAML
+        expect(obj.username).to.equal(standardUsername);
+        expect(obj.apiVersion).to.equal('management.cattle.io/v3');
+        expect(obj.kind).to.equal('User');
+      });
+    });
 
-  //   it('can Delete user', () => {
-  //     // Delete user and verify user is removed from list
-  //     usersPo.goTo();
-  //     usersPo.waitForPage();
-  //     usersPo.list().clickRowActionMenuItem(standardUsername, 'Delete');
+    it('can Delete user', () => {
+      // Delete user and verify user is removed from list
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().clickRowActionMenuItem(standardUsername, 'Delete');
 
-  //     const promptRemove = new PromptRemove();
+      const promptRemove = new PromptRemove();
 
-  //     cy.intercept('DELETE', '/v1/management.cattle.io.users/*').as('deleteUser');
-  //     promptRemove.confirm(standardUsername);
-  //     promptRemove.remove();
-  //     cy.wait('@deleteUser').its('response.statusCode').should('eq', 200);
-  //     usersPo.list().elementWithName(standardUsername).should('not.exist');
-  //   });
-  // });
+      cy.intercept('DELETE', '/v1/management.cattle.io.users/*').as('deleteUser');
+      promptRemove.confirm(standardUsername);
+      promptRemove.remove();
+      cy.wait('@deleteUser').its('response.statusCode').should('eq', 200);
+      usersPo.list().elementWithName(standardUsername).should('not.exist');
+    });
+  });
 
-  // describe('Bulk Actions', () => {
-  //   it('can Deactivate and Activate users', () => {
-  //     // Deactivate user and check state is Inactive
-  //     cy.intercept('PUT', '/v1/management.cattle.io.users/*').as('updateUsers');
-  //     usersPo.waitForRequests();
-  //     usersPo.list().selectAll().set();
-  //     usersPo.list().deactivate().click();
-  //     cy.wait('@updateUsers');
-  //     usersPo.list().details('admin', 1).find('i').should('have.class', 'icon-user-check');
-  //     usersPo.list().details(userBaseUsername, 1).find('i').should('have.class', 'icon-user-xmark');
+  describe('Bulk Actions', () => {
+    it('can Deactivate and Activate users', () => {
+      // Deactivate user and check state is Inactive
+      cy.intercept('PUT', '/v1/management.cattle.io.users/*').as('updateUsers');
+      usersPo.waitForRequests();
+      usersPo.list().selectAll().set();
+      usersPo.list().deactivate().click();
+      cy.wait('@updateUsers');
+      usersPo.list().details('admin', 1).find('i').should('have.class', 'icon-user-check');
+      usersPo.list().details(userBaseUsername, 1).find('i').should('have.class', 'icon-user-xmark');
 
-  //     // Activate user and check state is Active
-  //     usersPo.list().activate().click();
-  //     cy.wait('@updateUsers');
-  //     usersPo.list().details(userBaseUsername, 1).find('i').should('have.class', 'icon-user-check');
-  //   });
+      // Activate user and check state is Active
+      usersPo.list().activate().click();
+      cy.wait('@updateUsers');
+      usersPo.list().details(userBaseUsername, 1).find('i').should('have.class', 'icon-user-check');
+    });
 
-  //   it('can Download YAML', () => {
-  //     // Download YAML and verify file exists
-  //     usersPo.waitForRequests();
-  //     usersPo.list().selectAll().set();
-  //     usersPo.list().openBulkActionDropdown();
+    it('can Download YAML', () => {
+      // Download YAML and verify file exists
+      usersPo.waitForRequests();
+      usersPo.list().selectAll().set();
+      usersPo.list().openBulkActionDropdown();
 
-  //     cy.intercept('GET', `${ USERS_BASE_URL }/*`).as('downloadYaml');
-  //     usersPo.list().bulkActionButton('Download YAML').click({ force: true });
-  //     cy.wait('@downloadYaml', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
-  //     const downloadedFilename = path.join(downloadsFolder, 'resources.zip');
+      cy.intercept('GET', `${ USERS_BASE_URL }/*`).as('downloadYaml');
+      usersPo.list().bulkActionButton('Download YAML').click({ force: true });
+      cy.wait('@downloadYaml', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
+      const downloadedFilename = path.join(downloadsFolder, 'resources.zip');
 
-  //     cy.readFile(downloadedFilename).should('exist');
-  //   });
+      cy.readFile(downloadedFilename).should('exist');
+    });
 
-  //   it('can Delete user', () => {
-  //     // Delete user and verify user is removed from list
-  //     usersPo.waitForRequests();
-  //     usersPo.list().elementWithName(userBaseUsername).click();
-  //     usersPo.list().openBulkActionDropdown();
-  //     usersPo.list().bulkActionButton('Delete').click({ force: true });
-  //     const promptRemove = new PromptRemove();
+    it('can Delete user', () => {
+      // Delete user and verify user is removed from list
+      usersPo.waitForRequests();
+      usersPo.list().elementWithName(userBaseUsername).click();
+      usersPo.list().openBulkActionDropdown();
+      usersPo.list().bulkActionButton('Delete').click({ force: true });
+      const promptRemove = new PromptRemove();
 
-  //     cy.intercept('DELETE', '/v1/management.cattle.io.users/*').as('deleteUser');
-  //     promptRemove.confirm(userBaseUsername);
-  //     promptRemove.remove();
-  //     cy.wait('@deleteUser').its('response.statusCode').should('eq', 200);
-  //     usersPo.list().elementWithName(userBaseUsername).should('not.exist');
-  //   });
-  // });
+      cy.intercept('DELETE', '/v1/management.cattle.io.users/*').as('deleteUser');
+      promptRemove.confirm(userBaseUsername);
+      promptRemove.remove();
+      cy.wait('@deleteUser').its('response.statusCode').should('eq', 200);
+      usersPo.list().elementWithName(userBaseUsername).should('not.exist');
+    });
+  });
 
   describe('List', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
     let uniqueUserName = SortableTablePo.firstByDefaultName('user');
