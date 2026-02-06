@@ -189,13 +189,7 @@ const cardMeta = computed(() => ({
       'clickable':
         clickable
     }"
-    :role="cardMeta.role"
-    :tabindex="cardMeta.tabIndex"
-    :aria-label="cardMeta.ariaLabel"
-    :data-testid="`item-card-${id}`"
     @click="_handleCardClick"
-    @keydown.enter="_handleCardClick"
-    @keydown.space.prevent="_handleCardClick"
   >
     <div :class="['item-card-body', variant]">
       <template v-if="variant !== 'small'">
@@ -228,7 +222,16 @@ const cardMeta = computed(() => ({
 
       <div :class="['item-card-body-details', variant]">
         <div :class="['item-card-header', variant]">
-          <div class="item-card-header-left">
+          <div
+            class="item-card-header-left"
+            :role="cardMeta.role"
+            :tabindex="cardMeta.tabIndex"
+            :aria-label="cardMeta.ariaLabel"
+            :data-testid="`item-card-${id}`"
+            @click.self="_handleCardClick"
+            @keydown.enter="_handleCardClick"
+            @keydown.space.prevent="_handleCardClick"
+          >
             <template v-if="variant === 'small'">
               <slot name="item-card-image">
                 <div
