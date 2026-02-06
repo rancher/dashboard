@@ -44,7 +44,7 @@ function onClickItem(type: string, label: string) {
             variant="ghost"
             class="app-chart-card-footer-button secondary-text-link"
             data-testid="app-chart-card-footer-item-text"
-            :aria-label="t('catalog.charts.appChartCard.footerItem.ariaLabel')"
+            :aria-label="t('catalog.charts.appChartCard.footerItem.ariaLabel', { filter: label })"
             @click="onClickItem(footerItem.type, label)"
           >
             <template

@@ -1183,7 +1183,7 @@ catalog:
       subHeaderItem:
         missingVersionDate: Last updated date is not available for this chart
       footerItem:
-        ariaLabel: Apply filter
+        ariaLabel: 'Apply {filter} filter'
     statusFilterCautions:
       installation: Installation status cannot be determined with 100% accuracy
       upgradeable: Upgradeable status cannot be determined with 100% accuracy
