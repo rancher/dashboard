@@ -325,9 +325,14 @@ $image-medium-box-width: 48px;
     border-color: var(--primary);
   }
 
-  &:focus-visible {
+  &:has(.item-card-header-left:focus-visible) {
+    border-color: var(--primary);
     @include focus-outline;
     outline-offset: -2px;
+  }
+
+  &:focus-visible {
+    outline: none;
   }
 
   &-image {
@@ -363,6 +368,10 @@ $image-medium-box-width: 48px;
     &-left {
       flex-grow: 1;
       min-width: 0;
+
+      &:focus-visible {
+        outline: none;
+      }
     }
 
     &-title {

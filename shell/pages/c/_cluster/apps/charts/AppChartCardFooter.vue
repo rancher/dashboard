@@ -116,5 +116,11 @@ button.variant-ghost.app-chart-card-footer-button {
   padding: 0;
   gap: 0;
   min-height: 20px;
+
+  &:focus-visible {
+    border-color: var(--primary);
+    @include focus-outline;
+    outline-offset: -2px;
+  }
 }
 </style>
