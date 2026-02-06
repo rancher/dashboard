@@ -39,6 +39,7 @@ describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser']
   it('Chart and sub-pages are highlighted correctly', () => {
     HomePagePo.goTo();
     chartsPage.goTo();
+    chartsPage.waitForPage();
 
     const productNavPo = new ProductNavPo();
 
@@ -48,8 +49,20 @@ describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser']
       });
     productNavPo.activeNavItem().should('equal', 'Charts');
 
+    // Wait for charts to load by ensuring at least one chart card is visible
+    cy.get('[data-testid="card"]', { timeout: 10000 }).should('have.length.greaterThan', 0);
+
+    // Search for the chart if it's not immediately visible
+    chartsPage.chartsSearchFilterInput().type(CHART.name);
+    // Wait for search results to filter
+    chartsPage.chartsSearchFilterInput().should('have.value', CHART.name);
+
+    // Ensure the specific chart exists before trying to click it
+    chartsPage.getChartByName(CHART.name).should('be.visible');
+
     // Go to install page
     chartsPage.clickChart(CHART.name);
+
     // Wait for navigation to the chart page to complete
     cy.url().should('include', `/apps/charts/chart?repo-type=cluster&repo=${ CHART.repo }&chart=${ CHART.id }`);
     chartPage.waitForChartPage(CHART.repo, CHART.id);
