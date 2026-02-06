@@ -1,9 +1,9 @@
-# Extension as a top-level product
+# Extension as a top-level product (deprecated)
 
-## What is a top-level product
-If you're not familiar with a top-level product is, check it's definition [here](../../api/legacy/concepts-legacy.md#what-is-a-top-level-product).
+## What is a top-level product (deprecated)
+If you're not familiar with a top-level product is, check it's definition [here](../../api/deprecated/concepts-deprecated.md#what-is-a-top-level-product).
 
-## Top-level product full code example
+## Top-level product full code example (deprecated)
 As a full example of an Extension as top-level product, let's start with the definition of `product.ts` config:
 
 ```ts
@@ -108,7 +108,7 @@ export function init($extension: IPlugin, store: any) {
 
 In the example above, we are registering 2 pages: a resource page called `YOUR_K8S_RESOURCE_NAME` and a custom page called `CUSTOM_PAGE_NAME`. These need to be reflected in the routes definition that is provided to the `addRoutes` method.
 
-> Note: For more information on routing for a Top-level-product, check [here](../../api/legacy/routing.md#routes-definition-for-an-extension-as-a-top-level-product)
+> Note: For more information on routing for a Top-level-product, check [here](../../api/deprecated/routing.md#routes-definition-for-an-extension-as-a-top-level-product)
 
 The `/routing/extension-routing.ts` would then be defined like:
 

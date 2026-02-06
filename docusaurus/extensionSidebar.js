@@ -160,15 +160,15 @@ const sidebars = {
             'api/common',
             {
               type:  'category',
-              label: 'Legacy Products, Navigation & Pages',
+              label: 'Deprecated Products, Navigation & Pages',
               items: [
-                'api/legacy/concepts-legacy',
-                'api/legacy/products-legacy',
-                'api/legacy/custom-page',
-                'api/legacy/resource-page',
-                'api/legacy/side-menu',
-                'api/legacy/routing',
-                'api/legacy/templates',
+                'api/deprecated/concepts-deprecated',
+                'api/deprecated/products-deprecated',
+                'api/deprecated/custom-page',
+                'api/deprecated/resource-page',
+                'api/deprecated/side-menu',
+                'api/deprecated/routing',
+                'api/deprecated/templates',
               ],
             },
           ]
@@ -245,10 +245,10 @@ const sidebars = {
             'usecases/hosted-provider',
             {
               type:  'category',
-              label: 'Legacy Products',
+              label: 'Deprecated Products',
               items: [
-                'usecases/legacy/top-level-product',
-                'usecases/legacy/cluster-level-product',
+                'usecases/deprecated/top-level-product',
+                'usecases/deprecated/cluster-level-product',
               ],
             },
           ]
