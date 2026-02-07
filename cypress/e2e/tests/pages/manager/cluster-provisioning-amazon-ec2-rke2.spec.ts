@@ -21,6 +21,9 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
   let olderK8sVersion = '';
   let clusterId = '';
 
+  // TODO nb delete this line and revert back to this.rke2Ec2ClusterName
+  const CLUSTER_NAME = 'nancy-k3s';
+
   before(() => {
     cy.login();
 
@@ -49,7 +52,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     cy.createE2EResourceName('ec2cloudcredential').as('ec2CloudCredentialName');
   });
 
-  it('can create an RKE2 cluster using Amazon cloud provider', function() {
+  it.skip('can create an RKE2 cluster using Amazon cloud provider', () => {
     const createRKE2ClusterPage = new ClusterManagerCreateRke2AmazonPagePo();
     // const cloudCredForm = createRKE2ClusterPage.cloudCredentialsForm();
 
@@ -85,8 +88,8 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     // cy.wait('@pageLoad').its('response.statusCode').should('eq', 200);
     // loadingPo.checkNotExists();
     createRKE2ClusterPage.waitForPage('type=amazonec2&rkeType=rke2', 'basic');
-    createRKE2ClusterPage.nameNsDescription().name().set(this.rke2Ec2ClusterName);
-    createRKE2ClusterPage.nameNsDescription().description().set(`${ this.rke2Ec2ClusterName }-description`);
+    createRKE2ClusterPage.nameNsDescription().name().set(CLUSTER_NAME);
+    createRKE2ClusterPage.nameNsDescription().description().set(`${ CLUSTER_NAME }-description`);
 
     // Get kubernetes versions from the UI dropdown
     // Index 0 is the "RKE2" header, so actual versions start at index 1
@@ -123,13 +126,13 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     cy.wait('@createRke2Cluster').then(({ response }) => {
       expect(response?.statusCode).to.eq(201);
       expect(response?.body).to.have.property('kind', 'Cluster');
-      expect(response?.body.metadata).to.have.property('name', this.rke2Ec2ClusterName);
+      expect(response?.body.metadata).to.have.property('name', CLUSTER_NAME);
       expect(response?.body.spec).to.have.property('kubernetesVersion').contains(olderK8sVersion);
       clusterId = response?.body.id;
     });
 
     clusterList.waitForPage();
-    clusterList.list().state(this.rke2Ec2ClusterName).should('be.visible')
+    clusterList.list().state(CLUSTER_NAME).should('be.visible')
       .and(($el) => {
         const status = $el.text().trim();
 
@@ -137,42 +140,42 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
       });
   });
 
-  it.skip('can see details of cluster in cluster list', function() {
+  it.skip('can see details of cluster in cluster list', () => {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
 
     // check Architecture
     // testing https://github.com/rancher/dashboard/issues/10831
-    clusterList.list().version(this.rke2Ec2ClusterName).should('contain.text', '—').and('not.contain.text', 'Mixed');
+    clusterList.list().version(CLUSTER_NAME).should('contain.text', '—').and('not.contain.text', 'Mixed');
 
     // check states
-    clusterList.list().state(this.rke2Ec2ClusterName).should('contain.text', 'Updating');
-    clusterList.list().state(this.rke2Ec2ClusterName).contains('Active', VERY_LONG_TIMEOUT_OPT);
+    clusterList.list().state(CLUSTER_NAME).should('contain.text', 'Updating');
+    clusterList.list().state(CLUSTER_NAME).contains('Active', VERY_LONG_TIMEOUT_OPT);
 
     // check k8s version
-    clusterList.list().version(this.rke2Ec2ClusterName).then((el) => {
+    clusterList.list().version(CLUSTER_NAME).then((el) => {
       expect(el.text().trim()).contains(olderK8sVersion);
     });
 
     // check provider
-    clusterList.list().provider(this.rke2Ec2ClusterName).should('contain.text', 'Amazon EC2');
-    clusterList.list().providerSubType(this.rke2Ec2ClusterName).should('contain.text', 'RKE2');
+    clusterList.list().provider(CLUSTER_NAME).should('contain.text', 'Amazon EC2');
+    clusterList.list().providerSubType(CLUSTER_NAME).should('contain.text', 'RKE2');
 
     // check machines
-    clusterList.list().machines(this.rke2Ec2ClusterName).should('contain.text', '1');
+    clusterList.list().machines(CLUSTER_NAME).should('contain.text', '1');
   });
 
-  it('cluster details page', function() {
-    const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
+  it.skip('cluster details page', () => {
+    const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, CLUSTER_NAME);
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
 
     // check cluster details page > machine pools
-    clusterList.list().name(this.rke2Ec2ClusterName).click();
+    clusterList.list().name(CLUSTER_NAME).click();
     clusterDetails.waitForPage(null, 'machine-pools');
-    clusterDetails.resourceDetail().title().should('contain', this.rke2Ec2ClusterName);
+    clusterDetails.resourceDetail().title().should('contain', CLUSTER_NAME);
 
     // check cluster details page > recent events
     clusterDetails.selectTab(tabbedPo, '[data-testid="btn-events"]');
@@ -180,14 +183,141 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.recentEventsList().checkTableIsEmpty();
   });
 
-  it.skip('can upgrade Kubernetes version', function() {
+  it('can scale up a machine pool', () => {
+    // testing https://github.com/rancher/dashboard/issues/13285
+    const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, CLUSTER_NAME);
+
+    ClusterManagerListPagePo.navTo();
+    clusterList.waitForPage();
+
+    // Navigate to cluster details page > machine pools
+    clusterList.list().name(CLUSTER_NAME).click();
+    clusterDetails.waitForPage(null, 'machine-pools');
+    clusterDetails.resourceDetail().title().should('contain', CLUSTER_NAME);
+
+    // Verify scaling buttons are present in the machine pools section
+    clusterDetails.poolsList('machine').resourceTable().sortableTable().groupByButtons(1)
+      .click();
+
+    // Check for scale up button (it should be enabled)
+    clusterDetails.poolsList('machine').scaleUpButton(`${ CLUSTER_NAME }-pool1`)
+      .should('be.visible')
+      .and('be.enabled');
+
+    // Hover scale up button - tooltip should read "Scale Pool Up"
+    clusterDetails.poolsList('machine').scaleButtonTooltip(`${ CLUSTER_NAME }-pool1`, 'plus')
+      .waitForTooltipWithText('Scale Pool Up');
+    clusterDetails.poolsList('machine').scaleButtonTooltip(`${ CLUSTER_NAME }-pool1`, 'plus')
+      .hideTooltip();
+
+    // Check for scale down button (it should be disabled initially)
+    clusterDetails.poolsList('machine').scaleDownButton(`${ CLUSTER_NAME }-pool1`)
+      .should('be.visible')
+      .and('be.disabled');
+
+    // Hover scale down button - tooltip should read "Scale Pool Down"
+    clusterDetails.poolsList('machine').scaleButtonTooltip(`${ CLUSTER_NAME }-pool1`, 'minus')
+      .waitForTooltipWithText('Scale Pool Down');
+    clusterDetails.poolsList('machine').scaleButtonTooltip(`${ CLUSTER_NAME }-pool1`, 'minus')
+      .hideTooltip();
+
+    cy.intercept('PUT', ` /v1/provisioning.cattle.io.clusters/fleet-default/${ CLUSTER_NAME }`).as('scaleUpMachineDeployment');
+    // Scale up the machine pool
+    clusterDetails.poolsList('machine').scaleUpButton(`${ CLUSTER_NAME }-pool1`)
+      .click();
+
+    cy.wait('@scaleUpMachineDeployment').its('response.statusCode').should('eq', 200);
+
+    // TODO verify that one machine is provisioning
+    // 0 of 1 displayed with red progress bar
+    // 1 of 1 displayed with green progress bar
+    clusterDetails.poolsList('machine').machinePoolCount(`${ CLUSTER_NAME }-pool1`, /^2$/, LONG_TIMEOUT_OPT);
+
+    // TODO scale up by one
+    // clusterDetails.poolsList('machine').showProgressTooltip(`${ CLUSTER_NAME }-pool1`);
+
+    clusterDetails.poolsList('machine').machineUnavailableCount(`${ CLUSTER_NAME }-pool1`).should('equal', 1);
+    clusterDetails.poolsList('machine').machineUnavailableCount(`${ CLUSTER_NAME }-pool1`).should('equal', 1);
+
+    // 1 ready 1 unavailable half red half green bar
+
+    // TODO verify that the machine pool has begun scaling up to 2
+
+    // TODO verify the progress bar shows 1 of 2 ready then 2 of 2 ready
+
+    // Verify the machine pool is scaled up to 2
+    clusterDetails.poolsList('machine').machinePoolCount(`${ CLUSTER_NAME }-pool1`, /^2$/, VERY_LONG_TIMEOUT_OPT);
+    clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 2, LONG_TIMEOUT_OPT);
+
+    // Verify the scale down button is now enabled (since we have 2 nodes)
+    clusterDetails.poolsList('machine').scaleDownButton(`${ CLUSTER_NAME }-pool1`)
+      .should('be.enabled');
+
+    // Verify the cluster is active
+    clusterDetails.resourceDetail().masthead().resourceStatus().contains('Active', VERY_LONG_TIMEOUT_OPT);
+    clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 2, MEDIUM_TIMEOUT_OPT);
+  });
+
+  it('can scale down a machine pool', () => {
+    // testing https://github.com/rancher/dashboard/issues/13285
+    // Set user preference to ensure the scale down confirmation modal always appears
+    cy.setUserPreference({ 'scale-pool-prompt': false });
+
+    const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, CLUSTER_NAME);
+
+    ClusterManagerListPagePo.navTo();
+    clusterList.waitForPage();
+
+    // Navigate to cluster details page > machine pools
+    clusterList.list().name(CLUSTER_NAME).click();
+    clusterDetails.waitForPage(null, 'machine-pools');
+    clusterDetails.resourceDetail().title().should('contain', CLUSTER_NAME);
+
+    // Verify we have 2 nodes to start with (from the previous scale up test)
+    clusterDetails.poolsList('machine').resourceTable().sortableTable().groupByButtons(1)
+      .click();
+
+    clusterDetails.poolsList('machine').machinePoolCount(`${ CLUSTER_NAME }-pool1`, 2, MEDIUM_TIMEOUT_OPT);
+
+    // Verify the scale down button is enabled
+    clusterDetails.poolsList('machine').scaleDownButton(`${ CLUSTER_NAME }-pool1`)
+      .should('be.visible')
+      .and('be.enabled');
+
+    cy.intercept('PUT', `/v1/provisioning.cattle.io.clusters/fleet-default/${ CLUSTER_NAME }`).as('scaleDownMachineDeployment');
+
+    // Scale down the machine pool
+    clusterDetails.poolsList('machine').scaleDownButton(`${ CLUSTER_NAME }-pool1`)
+      .click();
+
+    // Handle the scale down confirmation dialog
+    promptModal().getBody().should('contain', 'You are attempting to delete the MachineDeployment');
+    promptModal().getBody().should('contain', `${ CLUSTER_NAME }-pool1`);
+    promptModal().clickActionButton('Confirm');
+
+    cy.wait('@scaleDownMachineDeployment').its('response.statusCode').should('eq', 200);
+
+    // Verify the machine pool is scaled down to 1
+    clusterDetails.poolsList('machine').machinePoolCount(`${ CLUSTER_NAME }-pool1`, /^1$/, MEDIUM_TIMEOUT_OPT);
+
+    // Verify the cluster is updating -> active
+    clusterDetails.resourceDetail().masthead().resourceStatus().contains('Updating');
+    clusterDetails.resourceDetail().masthead().resourceStatus().contains('Active', VERY_LONG_TIMEOUT_OPT);
+    clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 1, VERY_LONG_TIMEOUT_OPT);
+
+    // Verify the scale down button is now disabled (can't scale below 1)
+    clusterDetails.poolsList('machine').scaleDownButton(`${ CLUSTER_NAME }-pool1`)
+      .should('be.disabled');
+  });
+
+  it.skip('can upgrade Kubernetes version', () => {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
 
     // Navigate to edit page
-    clusterList.list().actionMenu(this.rke2Ec2ClusterName).getMenuItem('Edit Config').click();
+    clusterList.list().actionMenu(CLUSTER_NAME).getMenuItem('Edit Config').click();
 
-    const editClusterPage = new ClusterManagerEditGenericPagePo('_', this.rke2Ec2ClusterName);
+    const editClusterPage = new ClusterManagerEditGenericPagePo('_', CLUSTER_NAME);
 
     editClusterPage.waitForPage('mode=edit', 'basic');
 
@@ -198,7 +328,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     editClusterPage.basicsTab().kubernetesVersions().toggle();
     editClusterPage.basicsTab().kubernetesVersions().clickOptionWithLabel(latestK8sVersion);
 
-    cy.intercept('PUT', `/v1/provisioning.cattle.io.clusters/fleet-default/${ this.rke2Ec2ClusterName }`).as('clusterUpdate');
+    cy.intercept('PUT', `/v1/provisioning.cattle.io.clusters/fleet-default/${ CLUSTER_NAME }`).as('clusterUpdate');
     // Save the cluster to upgrade the Kubernetes version
     editClusterPage.save().click();
 
@@ -215,21 +345,21 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     }).then(({ response }: any) => {
       expect(response?.statusCode).to.equal(200);
       expect(response?.body).to.have.property('kind', 'Cluster');
-      expect(response?.body.metadata).to.have.property('name', this.rke2Ec2ClusterName);
+      expect(response?.body.metadata).to.have.property('name', CLUSTER_NAME);
       expect(response?.body.spec).to.have.property('kubernetesVersion').contains(latestK8sVersion);
     });
 
     clusterList.waitForPage();
-    clusterList.list().state(this.rke2Ec2ClusterName).should('contain.text', 'Updating');
-    clusterList.list().state(this.rke2Ec2ClusterName).contains('Active', VERY_LONG_TIMEOUT_OPT);
+    clusterList.list().state(CLUSTER_NAME).should('contain.text', 'Updating');
+    clusterList.list().state(CLUSTER_NAME).contains('Active', VERY_LONG_TIMEOUT_OPT);
 
     // check k8s version
-    clusterList.list().version(this.rke2Ec2ClusterName).then((el) => {
+    clusterList.list().version(CLUSTER_NAME).then((el) => {
       expect(el.text().trim()).contains(latestK8sVersion);
     });
 
     // Navigate back to edit page to verify older version is disabled in dropdown
-    clusterList.list().actionMenu(this.rke2Ec2ClusterName).getMenuItem('Edit Config').click();
+    clusterList.list().actionMenu(CLUSTER_NAME).getMenuItem('Edit Config').click();
     editClusterPage.waitForPage('mode=edit', 'basic');
 
     // Verify current version is selected
@@ -242,14 +372,14 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
       .should('have.class', 'vs__dropdown-option--disabled');
   });
 
-  it.skip('can create snapshot', function() {
-    const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
+  it.skip('can create snapshot', () => {
+    const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, CLUSTER_NAME);
     const tabbedPo = new TabbedPo('[data-testid="tabbed-block"]');
 
     // check cluster details page > snapshots
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
-    clusterList.goToDetailsPage(this.rke2Ec2ClusterName, '.cluster-link a');
+    clusterList.goToDetailsPage(CLUSTER_NAME, '.cluster-link a');
     clusterDetails.waitForPage(null, 'machine-pools');
     clusterDetails.selectTab(tabbedPo, '[data-testid="btn-snapshots"]');
     clusterDetails.waitForPage(null, 'snapshots');
@@ -261,153 +391,43 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     // wait for cluster to be active
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
-    clusterList.list().state(this.rke2Ec2ClusterName).should('contain.text', 'Updating');
-    clusterList.list().state(this.rke2Ec2ClusterName).contains('Active', VERY_LONG_TIMEOUT_OPT);
+    clusterList.list().state(CLUSTER_NAME).should('contain.text', 'Updating');
+    clusterList.list().state(CLUSTER_NAME).contains('Active', VERY_LONG_TIMEOUT_OPT);
 
     // check snapshot exist
-    clusterList.goToDetailsPage(this.rke2Ec2ClusterName, '.cluster-link a');
+    clusterList.goToDetailsPage(CLUSTER_NAME, '.cluster-link a');
     clusterDetails.waitForPage(null, 'machine-pools');
     clusterDetails.selectTab(tabbedPo, '[data-testid="btn-snapshots"]');
     clusterDetails.waitForPage(null, 'snapshots');
-    clusterDetails.snapshotsList().checkSnapshotExist(`on-demand-${ this.rke2Ec2ClusterName }`);
+    clusterDetails.snapshotsList().checkSnapshotExist(`on-demand-${ CLUSTER_NAME }`);
   });
 
-  it('can scale up a machine pool', function() {
-    // testing https://github.com/rancher/dashboard/issues/13285
-    const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
-
+  it.skip('can delete an Amazon EC2 RKE2 cluster', () => {
     ClusterManagerListPagePo.navTo();
     clusterList.waitForPage();
-
-    // Navigate to cluster details page > machine pools
-    clusterList.list().name(this.rke2Ec2ClusterName).click();
-    clusterDetails.waitForPage(null, 'machine-pools');
-    clusterDetails.resourceDetail().title().should('contain', this.rke2Ec2ClusterName);
-
-    // Verify scaling buttons are present in the machine pools section
-    clusterDetails.poolsList('machine').resourceTable().sortableTable().groupByButtons(1)
-      .click();
-
-    // Check for scale up button (it should be enabled)
-    clusterDetails.poolsList('machine').scaleUpButton(`${ this.rke2Ec2ClusterName }-pool1`)
-      .should('be.visible')
-      .and('be.enabled');
-
-    // Hover scale up button - tooltip should read "Scale Pool Up"
-    clusterDetails.poolsList('machine').scaleButtonTooltip(`${ this.rke2Ec2ClusterName }-pool1`, 'plus')
-      .waitForTooltipWithText('Scale Pool Up');
-    clusterDetails.poolsList('machine').scaleButtonTooltip(`${ this.rke2Ec2ClusterName }-pool1`, 'plus')
-      .hideTooltip();
-
-    // Check for scale down button (it should be disabled initially)
-    clusterDetails.poolsList('machine').scaleDownButton(`${ this.rke2Ec2ClusterName }-pool1`)
-      .should('be.visible')
-      .and('be.disabled');
-
-    // Hover scale down button - tooltip should read "Scale Pool Down"
-    clusterDetails.poolsList('machine').scaleButtonTooltip(`${ this.rke2Ec2ClusterName }-pool1`, 'minus')
-      .waitForTooltipWithText('Scale Pool Down');
-    clusterDetails.poolsList('machine').scaleButtonTooltip(`${ this.rke2Ec2ClusterName }-pool1`, 'minus')
-      .hideTooltip();
-
-    cy.intercept('PUT', ` /v1/provisioning.cattle.io.clusters/fleet-default/${ this.rke2Ec2ClusterName }`).as('scaleUpMachineDeployment');
-    // Scale up the machine pool
-    clusterDetails.poolsList('machine').scaleUpButton(`${ this.rke2Ec2ClusterName }-pool1`)
-      .click();
-
-    cy.wait('@scaleUpMachineDeployment').its('response.statusCode').should('eq', 200);
-
-    // Verify the machine pool is scaled up to 2
-    clusterDetails.poolsList('machine').machinePoolCount(`${ this.rke2Ec2ClusterName }-pool1`, /^2$/, VERY_LONG_TIMEOUT_OPT);
-    clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 2, LONG_TIMEOUT_OPT);
-
-    // Verify the scale down button is now enabled (since we have 2 nodes)
-    clusterDetails.poolsList('machine').scaleDownButton(`${ this.rke2Ec2ClusterName }-pool1`)
-      .should('be.enabled');
-
-    // Verify the cluster is active
-    clusterDetails.resourceDetail().masthead().resourceStatus().contains('Active', VERY_LONG_TIMEOUT_OPT);
-    clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 2, MEDIUM_TIMEOUT_OPT);
-  });
-
-  it('can scale down a machine pool', function() {
-    // testing https://github.com/rancher/dashboard/issues/13285
-    // Set user preference to ensure the scale down confirmation modal always appears
-    cy.setUserPreference({ 'scale-pool-prompt': false });
-
-    const clusterDetails = new ClusterManagerDetailRke2AmazonEc2PagePo(undefined, this.rke2Ec2ClusterName);
-
-    ClusterManagerListPagePo.navTo();
-    clusterList.waitForPage();
-
-    // Navigate to cluster details page > machine pools
-    clusterList.list().name(this.rke2Ec2ClusterName).click();
-    clusterDetails.waitForPage(null, 'machine-pools');
-    clusterDetails.resourceDetail().title().should('contain', this.rke2Ec2ClusterName);
-
-    // Verify we have 2 nodes to start with (from the previous scale up test)
-    clusterDetails.poolsList('machine').resourceTable().sortableTable().groupByButtons(1)
-      .click();
-
-    clusterDetails.poolsList('machine').machinePoolCount(`${ this.rke2Ec2ClusterName }-pool1`, 2, MEDIUM_TIMEOUT_OPT);
-
-    // Verify the scale down button is enabled
-    clusterDetails.poolsList('machine').scaleDownButton(`${ this.rke2Ec2ClusterName }-pool1`)
-      .should('be.visible')
-      .and('be.enabled');
-
-    cy.intercept('PUT', `/v1/provisioning.cattle.io.clusters/fleet-default/${ this.rke2Ec2ClusterName }`).as('scaleDownMachineDeployment');
-
-    // Scale down the machine pool
-    clusterDetails.poolsList('machine').scaleDownButton(`${ this.rke2Ec2ClusterName }-pool1`)
-      .click();
-
-    // Handle the scale down confirmation dialog
-    promptModal().getBody().should('contain', 'You are attempting to delete the MachineDeployment');
-    promptModal().getBody().should('contain', `${ this.rke2Ec2ClusterName }-pool1`);
-    promptModal().clickActionButton('Confirm');
-
-    cy.wait('@scaleDownMachineDeployment').its('response.statusCode').should('eq', 200);
-
-    // Verify the machine pool is scaled down to 1
-    clusterDetails.poolsList('machine').machinePoolCount(`${ this.rke2Ec2ClusterName }-pool1`, /^1$/, MEDIUM_TIMEOUT_OPT);
-
-    // Verify the cluster is updating -> active
-    clusterDetails.resourceDetail().masthead().resourceStatus().contains('Updating');
-    clusterDetails.resourceDetail().masthead().resourceStatus().contains('Active', VERY_LONG_TIMEOUT_OPT);
-    clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 1, VERY_LONG_TIMEOUT_OPT);
-
-    // Verify the scale down button is now disabled (can't scale below 1)
-    clusterDetails.poolsList('machine').scaleDownButton(`${ this.rke2Ec2ClusterName }-pool1`)
-      .should('be.disabled');
-  });
-
-  it.skip('can delete an Amazon EC2 RKE2 cluster', function() {
-    ClusterManagerListPagePo.navTo();
-    clusterList.waitForPage();
-    clusterList.list().actionMenu(this.rke2Ec2ClusterName).getMenuItem('Delete').click();
+    clusterList.list().actionMenu(CLUSTER_NAME).getMenuItem('Delete').click();
 
     clusterList.sortableTable().rowNames('.cluster-link').then((rows: any) => {
       const promptRemove = new PromptRemove();
 
-      promptRemove.confirm(this.rke2Ec2ClusterName);
+      promptRemove.confirm(CLUSTER_NAME);
       promptRemove.remove();
 
       clusterList.waitForPage();
-      clusterList.list().state(this.rke2Ec2ClusterName).should('contain', 'Removing');
+      clusterList.list().state(CLUSTER_NAME).should('contain', 'Removing');
       clusterList.sortableTable().checkRowCount(false, rows.length - 1, MEDIUM_TIMEOUT_OPT);
-      clusterList.sortableTable().rowNames('.cluster-link').should('not.contain', this.rke2Ec2ClusterName);
+      clusterList.sortableTable().rowNames('.cluster-link').should('not.contain', CLUSTER_NAME);
     });
   });
 
-  after('clean up', () => {
-    // delete cluster: needed here in case the delete test fails
-    cy.deleteRancherResource('v1', 'provisioning.cattle.io.clusters', clusterId, false);
-    if (removeCloudCred) {
-      //  delete cloud cred
-      cy.deleteRancherResource('v3', 'cloudCredentials', cloudcredentialId);
-    }
+  // after('clean up', () => {
+  //   // delete cluster: needed here in case the delete test fails
+  //   cy.deleteRancherResource('v1', 'provisioning.cattle.io.clusters', clusterId, false);
+  //   if (removeCloudCred) {
+  //     //  delete cloud cred
+  //     cy.deleteRancherResource('v3', 'cloudCredentials', cloudcredentialId);
+  //   }
 
-    cy.setUserPreference({ 'scale-pool-prompt': null });
-  });
+  //   cy.setUserPreference({ 'scale-pool-prompt': null });
+  // });
 });

@@ -14,9 +14,51 @@ export default class MachinePoolsListPo extends BaseResourceList {
 
   machinePoolCount(poolName: string, count: number | RegExp, options?: GetOptions) {
     return this.resourceTable().sortableTable().groupElementWithName(poolName)
-      // .find('.group-header-buttons')
       .find('[data-testid="machine-progress-count"] .count')
       .contains(count, options);
+  }
+
+  showProgressTooltip(poolName: string) {
+    // TODO nb data testid for popper
+    cy.get('.v-popper__popper--shown').then(($popper) => {
+      if ($popper.length === 0) {
+        this.resourceTable().sortableTable().groupElementWithName(poolName)
+          .find('[data-testid="machine-progress-count"] .progress-bar')
+          .click();
+      }
+    });
+  }
+
+  // TODO nb data testid for this popper
+  // TODO nb one method that the contains text string is passed to
+  machineReadyCount(poolName: string, options?: GetOptions) {
+    this.showProgressTooltip(poolName);
+
+    return cy.get('.v-popper__popper--shown tr', options)
+      .contains('Ready')
+      .closest('tr')
+      .contains(/\d+/)
+      .invoke('text');
+  }
+
+  machineUnavailableCount(poolName: string, options?: GetOptions) {
+    this.showProgressTooltip(poolName);
+
+    return cy.get('.v-popper__popper--shown tr', options)
+      .contains('Unavailable')
+      .closest('tr')
+      .contains(/\d+/)
+      .invoke('text');
+  }
+
+  machinePendingCount(poolName: string, options?: GetOptions) {
+    this.showProgressTooltip(poolName);
+
+    return cy.get('.v-popper__popper--shown tr', options)
+      .contains('Pending')
+      .closest('tr')
+      .contains(/\d+/)
+      .invoke('text');
   }
 
   scaleDownButton(poolName: string) {
