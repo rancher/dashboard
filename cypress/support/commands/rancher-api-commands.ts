@@ -201,6 +201,8 @@ Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => 
                   // return response of original user
                     return resp;
                   });
+              } else {
+                return resp;
               }
             });
         });
@@ -550,6 +552,10 @@ Cypress.Commands.add('getRancherVersion', () => {
 Cypress.Commands.add('getRancherResource', (prefix, resourceType, resourceId?, expectedStatusCode = 200) => {
   let url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }`;
 
+  if (resourceId) {
+    url += `/${ resourceId }`;
+  }
+
   const requestData: any = {
     method:  'GET',
     url,
@@ -558,10 +564,6 @@ Cypress.Commands.add('getRancherResource', (prefix, resourceType, resourceId?, e
       Accept:       'application/json'
     },
   };
-
-  if (resourceId) {
-    url += `/${ resourceId }`;
-  }
 
   if (resourceType === 'ext.cattle.io.selfuser') {
     requestData.method = 'POST';
