@@ -566,6 +566,7 @@ Cypress.Commands.add('getRancherResource', (prefix, resourceType, resourceId?, e
   if (resourceType === 'ext.cattle.io.selfuser') {
     requestData.method = 'POST';
     requestData.body = {};
+    expectedStatusCode = 201;
   }
 
   return cy.request(requestData)
