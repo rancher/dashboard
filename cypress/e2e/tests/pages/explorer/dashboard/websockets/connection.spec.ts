@@ -31,8 +31,8 @@ describe('Pod management and WebSocket interaction', { tags: ['@jenkins', '@admi
 
   it('should create a new pod', () => {
     // get user id
-    cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
-      const userId = resp.body.data[0].id.trim();
+    cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+      const userId = resp.body.status.userID;
 
       // create project
       cy.createProject(projName, 'local', userId).then((resp: Cypress.Response<any>) => {

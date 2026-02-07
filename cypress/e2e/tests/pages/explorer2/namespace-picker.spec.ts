@@ -205,8 +205,8 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
 
   it('newly created project/namespace appears in namespace picker', { tags: ['@explorer2', '@adminUser'] }, () => {
     // get user id
-    cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
-      const userId = resp.body.data[0].id.trim();
+    cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+      const userId = resp.body.status.userID;
 
       // create project
       cy.createProject(projName, 'local', userId).then((resp: Cypress.Response<any>) => {
@@ -229,8 +229,8 @@ describe('Namespace picker', { testIsolation: 'off' }, () => {
     const nsNameToDelete = `namespace-to-delete${ +new Date() }`;
 
     // get user id
-    cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
-      const userId = resp.body.data[0].id.trim();
+    cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+      const userId = resp.body.status.userID;
 
       // create project
       cy.createProject(projNameToDelete, 'local', userId).then((resp: Cypress.Response<any>) => {

@@ -550,18 +550,25 @@ Cypress.Commands.add('getRancherVersion', () => {
 Cypress.Commands.add('getRancherResource', (prefix, resourceType, resourceId?, expectedStatusCode = 200) => {
   let url = `${ Cypress.env('api') }/${ prefix }/${ resourceType }`;
 
-  if (resourceId) {
-    url += `/${ resourceId }`;
-  }
-
-  return cy.request({
+  const requestData: any = {
     method:  'GET',
     url,
     headers: {
       'x-api-csrf': token.value,
       Accept:       'application/json'
     },
-  })
+  };
+
+  if (resourceId) {
+    url += `/${ resourceId }`;
+  }
+
+  if (resourceType === 'ext.cattle.io.selfuser') {
+    requestData.method = 'POST';
+    requestData.body = {};
+  }
+
+  return cy.request(requestData)
     .then((resp) => {
       if (expectedStatusCode) {
         expect(resp.status).to.eq(expectedStatusCode);
@@ -1043,8 +1050,8 @@ Cypress.Commands.add('createAmazonMachineConfig', (instanceType, region, vpcId, 
 
 // update resource list view preference
 Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string, iteration = 0) => {
-  return cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
-    const userId = resp.body.data[0].id.trim();
+  return cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+    const userId = resp.body.status.userID;
 
     const payload = groupByPayload(userId, clusterName, groupBy, namespaceFilter);
 
@@ -1229,8 +1236,8 @@ Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preference
     clusterName, groupBy, namespaceFilter, allNamespaces
   } = preferences;
 
-  return cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
-    const userId = resp.body.data[0].id.trim();
+  return cy.getRancherResource('v1', 'ext.cattle.io.selfuser').then((resp: Cypress.Response<any>) => {
+    const userId = resp.body.status.userID;
     const payload = {
       id:   `${ userId }`,
       type: 'userpreference',
