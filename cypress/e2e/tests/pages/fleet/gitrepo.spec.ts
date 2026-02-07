@@ -43,7 +43,7 @@ describe('Git Repo', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, (
     const gitRepoCreatePage = new FleetGitRepoCreateEditPo();
 
     beforeEach(() => {
-      cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+      cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
         adminUserId = resp.body.data[0].id.trim();
       });
 

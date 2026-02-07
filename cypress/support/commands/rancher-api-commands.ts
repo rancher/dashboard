@@ -84,6 +84,7 @@ Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => 
 
   return cy.createE2EResourceName(username, options?.createNameOptions)
     .then((e2eName) => {
+      // Store the username for potential cleanup
       return cy.request({
         method:           'POST',
         url:              `${ Cypress.env('api') }/v1/management.cattle.io.users`,
@@ -98,56 +99,111 @@ Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => 
           mustChangePassword: false,
           username:           e2eName
         }
+      }).then((resp) => {
+        // If user already exists, delete and recreate
+        if ((resp.status === 400 || resp.status === 422) &&
+            (resp.body.message?.includes('already in use') || resp.body.message?.includes('already exists'))) {
+          cy.log('User already exists. Deleting and recreating...', e2eName);
+
+          // Get the existing user ID first
+          return cy.request({
+            method:           'GET',
+            url:              `${ Cypress.env('api') }/v1/management.cattle.io.users`,
+            failOnStatusCode: false,
+            headers:          {
+              'x-api-csrf': token.value,
+              Accept:       'application/json'
+            }
+          }).then((usersResp) => {
+            const existingUser = usersResp.body.data?.find((u: any) => u.username === e2eName);
+
+            if (existingUser) {
+              cy.log('Found existing user, deleting...', existingUser.id);
+
+              return cy.deleteRancherResource('v1', 'management.cattle.io.users', existingUser.id, false)
+                .then(() => {
+                  cy.log('Deleted existing user, recreating...', e2eName);
+
+                  // Recreate the user
+                  return cy.request({
+                    method:           'POST',
+                    url:              `${ Cypress.env('api') }/v1/management.cattle.io.users`,
+                    failOnStatusCode: false,
+                    headers:          {
+                      'x-api-csrf': token.value,
+                      Accept:       'application/json'
+                    },
+                    body: {
+                      type:               'user',
+                      enabled:            true,
+                      mustChangePassword: false,
+                      username:           e2eName
+                    }
+                  });
+                });
+            }
+
+            return resp;
+          });
+        }
+
+        return cy.wrap(resp);
       });
     })
-    .then((resp) => {
-      if (resp.status === 422 && resp.body.message === 'Username is already in use.') {
-        cy.log('User already exists. Skipping user creation');
-
-        return '';
-      } else {
-        expect(resp.status).to.eq(201);
-
-        // we now need to do a GET to the user to get the principalId to set the role bindings
-        // in v1/management.cattle.io.users response, principalIds is not included, but we need it to set the role bindings
-        // and also create the user password as secret, which is required for login
-        cy.request({
-          method:  'GET',
-          url:     `${ Cypress.env('api') }/v1/management.cattle.io.users/${ resp.body.id }`,
-          headers: {
-            'x-api-csrf': token.value,
-            Accept:       'application/json'
-          },
-        })
-          .then((userDataResp) => {
-            const userPrincipalId = userDataResp.body.principalIds[0];
-
-            return cy.createUserPasswordAsSecret(resp.body.id, password || Cypress.env('password'))
-              .then(() => {
-                if (globalRole) {
-                  return cy.setGlobalRoleBinding(resp.body.id, globalRole.role)
-                    .then(() => {
-                      if (clusterRole) {
-                        const { clusterId, role } = clusterRole;
-
-                        return cy.setClusterRoleBinding(clusterId, userPrincipalId, role);
-                      }
-                    })
-                    .then(() => {
-                      if (projectRole) {
-                        const { clusterId, projectName, role } = projectRole;
-
-                        return cy.setProjectRoleBinding(clusterId, userPrincipalId, projectName, role);
-                      }
-                    })
-                    .then(() => {
-                      // return response of original user
-                      return resp;
-                    });
-                }
-              });
-          });
+    .then((resp: any) => {
+      if (resp.status !== 201) {
+        cy.log('ERROR: User creation failed', { status: resp.status, body: resp.body });
+        // eslint-disable-next-line no-console
+        console.error('ERROR: User creation failed', { status: resp.status, body: resp.body });
       }
+      expect(resp.status).to.eq(201);
+
+      // we now need to do a GET to the user to get the principalId to set the role bindings
+      // in v1/management.cattle.io.users response, principalIds is not included, but we need it to set the role bindings
+      // and also create the user password as secret, which is required for login
+      cy.request({
+        method:           'GET',
+        url:              `${ Cypress.env('api') }/v1/management.cattle.io.users/${ resp.body.id }`,
+        failOnStatusCode: false,
+        headers:          {
+          'x-api-csrf': token.value,
+          Accept:       'application/json'
+        },
+      })
+        .then((userDataResp) => {
+          if (userDataResp.status !== 200) {
+            cy.log('ERROR: Failed to get user data', { status: userDataResp.status, body: userDataResp.body });
+            // eslint-disable-next-line no-console
+            console.error('ERROR: Failed to get user data', { status: userDataResp.status, body: userDataResp.body });
+          }
+
+          const userPrincipalId = userDataResp.body.principalIds[0];
+
+          return cy.createUserPasswordAsSecret(resp.body.id, password || Cypress.env('password'))
+            .then(() => {
+              if (globalRole) {
+                return cy.setGlobalRoleBinding(resp.body.id, globalRole.role)
+                  .then(() => {
+                    if (clusterRole) {
+                      const { clusterId, role } = clusterRole;
+
+                      return cy.setClusterRoleBinding(clusterId, userPrincipalId, role);
+                    }
+                  })
+                  .then(() => {
+                    if (projectRole) {
+                      const { clusterId, projectName, role } = projectRole;
+
+                      return cy.setProjectRoleBinding(clusterId, userPrincipalId, projectName, role);
+                    }
+                  })
+                  .then(() => {
+                  // return response of original user
+                    return resp;
+                  });
+              }
+            });
+        });
     });
 });
 
@@ -987,7 +1043,7 @@ Cypress.Commands.add('createAmazonMachineConfig', (instanceType, region, vpcId, 
 
 // update resource list view preference
 Cypress.Commands.add('updateNamespaceFilter', (clusterName: string, groupBy:string, namespaceFilter: string, iteration = 0) => {
-  return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+  return cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
     const userId = resp.body.data[0].id.trim();
 
     const payload = groupByPayload(userId, clusterName, groupBy, namespaceFilter);
@@ -1173,7 +1229,7 @@ Cypress.Commands.add('tableRowsPerPageAndPreferences', (rows: number, preference
     clusterName, groupBy, namespaceFilter, allNamespaces
   } = preferences;
 
-  return cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+  return cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
     const userId = resp.body.data[0].id.trim();
     const payload = {
       id:   `${ userId }`,

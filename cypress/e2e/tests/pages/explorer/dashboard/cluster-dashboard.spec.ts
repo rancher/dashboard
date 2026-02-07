@@ -225,7 +225,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
     // Create a pod to trigger events
 
     // get user id
-    cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+    cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
       const userId = resp.body.data[0].id.trim();
 
       // create project
@@ -328,7 +328,7 @@ describe('Cluster Dashboard', { testIsolation: 'off', tags: ['@explorer', '@admi
 
       // log in as admin
       cy.login();
-      cy.getRancherResource('v3', 'users?me=true').then((resp: Cypress.Response<any>) => {
+      cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
         const adminUserId = resp.body.data[0].id.trim();
 
         // create project
