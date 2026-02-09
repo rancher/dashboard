@@ -49,10 +49,10 @@ describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser']
       });
     productNavPo.activeNavItem().should('equal', 'Charts');
 
-    // Wait for charts to load by ensuring at least one chart card is visible
-    cy.get('[data-testid="card"]', { timeout: 10000 }).should('have.length.greaterThan', 0);
+    // Wait for charts page to load - check for loading indicator to disappear
+    cy.get('[data-testid="sortable-table-list-container"]', { timeout: 10000 }).should('be.visible');
 
-    // Search for the chart if it's not immediately visible
+    // Search for the chart to ensure it's available
     chartsPage.chartsSearchFilterInput().type(CHART.name);
     // Wait for search results to filter
     chartsPage.chartsSearchFilterInput().should('have.value', CHART.name);

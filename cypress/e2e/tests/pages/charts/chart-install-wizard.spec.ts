@@ -48,7 +48,7 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
     });
 
     it('Resource dropdown picker has ConfigMaps listed', () => {
-      ChartPage.navTo(null, 'rancher-demo');
+      ChartPage.navTo(undefined, 'rancher-demo');
       chartPage.waitForChartHeader('rancher-demo', MEDIUM_TIMEOUT_OPT);
       chartPage.goToInstall();
       installChartPage.chartName().type('rancher-demo');
@@ -81,20 +81,27 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
       const installedAppsPage = new ChartInstalledAppsListPagePo('local', 'apps');
 
       // We need to install the chart first to have the versions selector show up later when we come back to the install page
-      ChartPage.navTo(null, chartName);
+      ChartPage.navTo(undefined, chartName);
       chartPage.waitForChartHeader(chartName, MEDIUM_TIMEOUT_OPT);
       chartPage.goToInstall();
       installChartPage.nextPage();
 
-      cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('installApp');
-      installChartPage.installChart();
+      // Set up namespace selection before installing
       namespacePicker.toggle();
       namespacePicker.clickOptionByLabel('All Namespaces');
       namespacePicker.isChecked('All Namespaces');
       namespacePicker.closeDropdown();
+
+      // Set up API intercept right before the install action
+      cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('installApp');
+
+      // Now install the chart
+      installChartPage.installChart();
+
+      // Wait for install to complete
       installedAppsPage.waitForInstallCloseTerminal('installApp', ['rancher-backup', 'rancher-backup-crd']);
 
-      ChartPage.navTo(null, chartName);
+      ChartPage.navTo(undefined, chartName);
       chartPage.waitForChartHeader(chartName, MEDIUM_TIMEOUT_OPT);
       chartPage.goToInstall();
 
