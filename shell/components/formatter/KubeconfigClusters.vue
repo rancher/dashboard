@@ -1,30 +1,37 @@
-<script>
+<script lang="ts">
+import { defineComponent, PropType } from 'vue';
+
+interface ClusterReference {
+  label: string;
+  location?: object;
+}
+
 const MAX_DISPLAY = 25;
 
-export default {
+export default defineComponent({
   props: {
     row: {
-      type:     Object,
+      type:     Object as PropType<{ id: string; sortedReferencedClusters?: ClusterReference[] }>,
       required: true
     },
     value: {
-      type:    Array,
+      type:    Array as PropType<unknown[]>,
       default: () => []
     }
   },
 
   computed: {
-    allClusters() {
+    allClusters(): ClusterReference[] {
       return this.row?.sortedReferencedClusters || [];
     },
-    clusters() {
+    clusters(): ClusterReference[] {
       return this.allClusters.slice(0, MAX_DISPLAY);
     },
-    remainingCount() {
+    remainingCount(): number {
       return Math.max(0, this.allClusters.length - MAX_DISPLAY);
     }
   }
-};
+});
 </script>
 
 <template>
