@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable.vue';
-import { CAPI, EXT, MANAGEMENT } from '@shell/config/types';
+import { CAPI, MANAGEMENT } from '@shell/config/types';
 import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import { PagTableFetchPageSecondaryResourcesOpts, PagTableFetchSecondaryResourcesOpts, PagTableFetchSecondaryResourcesReturns } from '@shell/types/components/paginatedResourceTable';
@@ -23,12 +23,13 @@ export default defineComponent({
     }
   },
 
-  data() {
-    return {
-      resource:            (EXT as any).KUBECONFIG,
-      canViewProvClusters: !!this.$store.getters['management/canList'](CAPI.RANCHER_CLUSTER),
-      canViewMgmtClusters: !!this.$store.getters['management/canList'](MANAGEMENT.CLUSTER),
-    };
+  computed: {
+    canViewProvClusters(): boolean {
+      return !!this.$store.getters['management/canList'](CAPI.RANCHER_CLUSTER);
+    },
+    canViewMgmtClusters(): boolean {
+      return !!this.$store.getters['management/canList'](MANAGEMENT.CLUSTER);
+    }
   },
 
   methods: {
