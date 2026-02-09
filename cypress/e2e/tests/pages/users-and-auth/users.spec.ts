@@ -127,26 +127,6 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     cy.intercept('POST', '/v1/ext.cattle.io.groupmembershiprefreshrequests').as('refreshGroup');
     usersPo.list().refreshGroupMembership().click();
     cy.wait('@refreshGroup').its('response.statusCode').should('eq', 201);
-
-    // DEBUG: Check if refresh disabled the user
-    cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
-      const user = resp.body.data.find((u: any) => u.username === standardUsername);
-
-      // eslint-disable-next-line no-console
-      console.log(`After Refresh Group Memberships: User enabled=${ user?.enabled }`);
-      cy.log(`After Refresh Group Memberships: User enabled=${ user?.enabled }`);
-      // eslint-disable-next-line no-console
-      console.log(`After Refresh Group Memberships: user ::: ${ user }`);
-      // eslint-disable-next-line no-console
-      console.log(`After Refresh Group Memberships: user stringify ::: ${ JSON.stringify(user) }`);
-      cy.log(`After Refresh Group Memberships: user ::: ${ user }`);
-      cy.log(`After Refresh Group Memberships: user stringify ::: ${ JSON.stringify(user) }`);
-      if (!user?.enabled) {
-        // eslint-disable-next-line no-console
-        console.log('⚠️ REFRESH GROUP MEMBERSHIPS DISABLED THE USER!');
-        cy.log('⚠️ REFRESH GROUP MEMBERSHIPS DISABLED THE USER!');
-      }
-    });
   });
 
   describe('Action Menu', () => {
@@ -155,45 +135,6 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.goTo();
       usersPo.waitForPage();
       cy.wait('@getUsers');
-
-      // DEBUG: Log user state at the very start of this test
-      cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
-        const user = resp.body.data.find((u: any) => u.username === standardUsername);
-
-        // eslint-disable-next-line no-console
-        console.log(`TEST START: User enabled=${ user?.enabled }, username=${ user?.username }`);
-        // eslint-disable-next-line no-console
-        console.log(`TEST START: user ::: ${ user }`);
-        // eslint-disable-next-line no-console
-        console.log(`TEST START: user stringify ::: ${ JSON.stringify(user) }`);
-        cy.log(`TEST START: User enabled=${ user?.enabled }, username=${ user?.username }`);
-        cy.log(`TEST START: user ::: ${ user }`);
-        cy.log(`TEST START: user stringify ::: ${ JSON.stringify(user) }`);
-        if (!user?.enabled) {
-          // eslint-disable-next-line no-console
-          console.log('⚠️ USER IS DISABLED AT TEST START - investigating why...');
-          cy.log('⚠️ USER IS DISABLED AT TEST START - investigating why...');
-        }
-      });
-
-      // // Ensure user is in enabled state first by checking if they're disabled and enabling if needed
-      // cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
-      //   const user = resp.body.data.find((u: any) => u.username === standardUsername);
-
-      //   if (user && !user.enabled) {
-      //     // User is disabled, enable first via API
-      //     cy.request({
-      //       method:  'PUT',
-      //       url:     `${ Cypress.env('api') }/v1/management.cattle.io.users/${ user.id }`,
-      //       body:    { ...user, enabled: true },
-      //       headers: { Accept: 'application/json' }
-      //     });
-      //     // Reload the page to reflect the change
-      //     usersPo.goTo();
-      //     usersPo.waitForPage();
-      //     cy.wait('@getUsers');
-      //   }
-      // });
 
       let menu = usersPo.list().actionMenu(standardUsername);
 
