@@ -222,16 +222,26 @@ export default class SortableTablePo extends ComponentPo {
       .click()
       .should('have.attr', 'aria-expanded', 'true');
 
-    return this.rowActionMenu();
+    const menu = this.rowActionMenu();
+
+    // Ensure the menu is actually visible before returning
+    menu.checkVisible();
+
+    return menu;
   }
 
   rowActionMenuClose(name: string) {
-    this.rowWithName(name).actionBtn().then((el) => {
-      expect(el).to.have.attr('aria-expanded', 'true');
-    }).click()
+    this.rowWithName(name).actionBtn()
+      .should('have.attr', 'aria-expanded', 'true')
+      .click()
       .should('have.attr', 'aria-expanded', 'false');
 
-    return this.rowActionMenu();
+    const menu = this.rowActionMenu();
+
+    // Ensure the menu is actually gone before returning
+    menu.checkNotExists();
+
+    return menu;
   }
 
   /**
