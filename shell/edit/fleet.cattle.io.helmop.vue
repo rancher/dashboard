@@ -246,6 +246,7 @@ export default {
 
   methods: {
     onSourceTypeSelect(type) {
+      this.sourceType = type;
       delete this.value.spec.helm.repo;
       delete this.value.spec.helm.chart;
       delete this.value.spec.helm.version;
@@ -469,10 +470,9 @@ export default {
     :subtypes="[]"
     :validation-passed="true"
     :errors="errors"
-    :steps="!isView ? steps : undefined"
+    :steps="steps"
     :finish-mode="'finish'"
     class="wizard"
-    :inline-steps="isView"
     @cancel="done"
     @error="e=>errors = e"
     @finish="save"

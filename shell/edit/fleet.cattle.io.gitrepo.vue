@@ -417,10 +417,9 @@ export default {
     :subtypes="[]"
     :validation-passed="true"
     :errors="errors"
-    :steps="!isView ? steps : undefined"
+    :steps="steps"
     :finish-mode="'finish'"
     class="wizard"
-    :inline-steps="isView"
     @cancel="done"
     @error="e=>errors = e"
     @finish="save"
@@ -503,7 +502,7 @@ export default {
         :use-hash="true"
       >
         <Tab
-          :name="steps[0].name"
+          :name="steps[1].name"
           :label="steps[1].label"
           :weight="3"
         >

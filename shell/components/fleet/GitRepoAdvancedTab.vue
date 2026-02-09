@@ -201,7 +201,9 @@ const updatePollingInterval = (value) => {
     </template>
     <div class="spacer" />
 
-    <h2 v-t="'fleet.gitRepo.ociStorageSecret.title'" />
+    <h2>
+      {{ t('fleet.gitRepo.ociStorageSecret.title') }}
+    </h2>
     <div class="row mt-20">
       <div class="col span-6">
         <FleetOCIStorageSecret
@@ -214,7 +216,9 @@ const updatePollingInterval = (value) => {
     </div>
     <div class="spacer" />
 
-    <h2 v-t="'fleet.gitRepo.resources.label'" />
+    <h2>
+      {{ t('fleet.gitRepo.resources.label') }}
+    </h2>
     <div class="resource-handling">
       <Checkbox
         :value="correctDriftEnabled"
@@ -238,7 +242,9 @@ const updatePollingInterval = (value) => {
     </div>
 
     <div class="spacer" />
-    <h2 v-t="'fleet.gitRepo.polling.label'" />
+    <h2>
+      {{ t('fleet.gitRepo.polling.label') }}
+    </h2>
     <div class="row polling">
       <div class="col span-6">
         <Checkbox

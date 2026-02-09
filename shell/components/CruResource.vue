@@ -126,11 +126,6 @@ export default {
       default: () => ({ editFirstStep: true })
     },
 
-    inlineSteps: {
-      type:    Boolean,
-      default: false
-    },
-
     // The set of labels to display for the finish AsyncButton
     finishMode: {
       type:    String,
@@ -663,25 +658,8 @@ export default {
           </div>
         </slot>
       </div>
-      <template v-if="showAsForm && steps.length && inlineSteps">
-        <template
-          v-for="(step, i) in steps"
-          :key="i"
-        >
-          <h1>{{ step.label }}</h1>
-          <div
-            class="step-container__step"
-          >
-            <slot
-              :step="step"
-              :name="step.name"
-            />
-          </div>
-          <div class="spacer" />
-        </template>
-      </template>
       <!------ MULTI STEP PROCESS ------>
-      <template v-if="showAsForm && steps.length && !inlineSteps">
+      <template v-if="showAsForm && steps.length">
         <div
           v-if="_selectedSubtype || !subtypes.length"
           class="resource-container cru__content cru__content-wizard"
