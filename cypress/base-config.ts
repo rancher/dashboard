@@ -149,8 +149,8 @@ const baseConfig = defineConfig({
         outputRoot:           `${ config.projectRoot }/browser-logs/`,
         outputTarget:         { 'out.html': 'html' },
         logToFilesOnAfterRun: true,
-        printLogsToConsole:   'always',
-        printLogsToFile:      'always',
+        printLogsToConsole:   'never',
+        // printLogsToFile:      'always', // default prints on failures
       });
 
       // Load Accessibility plugin if configured
