@@ -8,9 +8,12 @@ export interface SchemaAttributeColumn {
   type: string,
 }
 
+export type SchemaAttributeVerbs = 'get' | 'patch' | 'list' | 'update'
+
 export interface SchemaAttribute {
   columns: SchemaAttributeColumn[],
   namespaced: boolean
+  verbs: SchemaAttributeVerbs[]
 }
 
 /**

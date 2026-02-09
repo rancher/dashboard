@@ -120,7 +120,7 @@ export default {
 
   methods: {
     async initializeInactivityData() {
-      const canListUserAct = this.$store.getters[`management/canList`](EXT.USER_ACTIVITY);
+      const canListUserAct = this.$store.getters[`management/canGet`](EXT.USER_ACTIVITY);
       const canListTokens = this.$store.getters[`rancher/canList`](NORMAN.TOKEN);
 
       if (canListUserAct && canListTokens) {

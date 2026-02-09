@@ -351,24 +351,16 @@ export default {
     return out;
   },
 
+  canGet: (state, getters) => (type) => {
+    const schema = getters.schemaFor(type);
+
+    return schema?.canGet;
+  },
+
   canList: (state, getters) => (type) => {
     const schema = getters.schemaFor(type);
 
-    if (!schema) {
-      return false;
-    }
-
-    if (!schema.hasLink('collection')) {
-      // This is the URL the UI will use to list. It will exist even if there's no GET/LIST permissions (to support POST)
-      return false;
-    }
-
-    if (!schema.attributes?.verbs?.find((x) => x.toLowerCase() === 'list')) {
-      // This is the explicit permission to LIST (for example resource type could just allow POST)
-      return false;
-    }
-
-    return true;
+    return schema?.canList;
   },
 
   typeRegistered: (state, getters) => (type) => {

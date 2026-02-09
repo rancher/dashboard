@@ -1,6 +1,7 @@
 import { STEVE } from '@shell/config/types';
-import Schema from './schema';
+import ModelSchema from './schema';
 import { wait } from '@shell/utils/async';
+import { Schema as RawSchema, SchemaAttributeVerbs } from '@shell/plugins/steve/schema';
 
 interface ResourceField {
   type: string,
@@ -31,10 +32,25 @@ const SchemaDefinitionCache: { [store: string]: {
   definitions: SchemaDefinitions,
 } } = {};
 
+const canSchema = (
+  { schema, verb }: { schema: RawSchema & SteveSchema, verb: SchemaAttributeVerbs }
+) => {
+  if (!schema.hasLink('collection')) {
+    // The UI will use this to build the URLs. It will exist even if there's no GET/LIST permissions (to support POST)
+    return false;
+  }
+
+  if (!schema.attributes?.verbs?.find((x) => x.toLowerCase() === verb)) {
+    return false;
+  }
+
+  return true;
+};
+
 /**
  * Steve Schema specific functionality
  */
-export default class SteveSchema extends Schema {
+export default class SteveSchema extends ModelSchema {
   static reset(store: string): void {
     delete SchemaDefinitionCache[store];
   }
@@ -231,6 +247,18 @@ export default class SteveSchema extends Schema {
    */
   get schemaDefinitionUrl(): string {
     return this.links?.self?.replace('/schemas/', '/schemaDefinitions/');
+  }
+
+  get canGet(): boolean {
+    return canSchema({ schema: this.schema, verb: 'get' });
+  }
+
+  get canList(): boolean {
+    return canSchema({ schema: this.schema, verb: 'list' });
+  }
+
+  get schema(): Schema {
+    return this as unknown as RawSchema & SteveSchema;
   }
 
   /*********************

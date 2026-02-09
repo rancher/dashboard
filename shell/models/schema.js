@@ -7,6 +7,14 @@ export default class Schema extends Resource {
   get groupName() {
     return this.attributes.namespaced ? 'ns' : 'cluster';
   }
+
+  get canGet() {
+    return this.hasLink('collection');
+  }
+
+  get canList() {
+    return this.hasLink('collection');
+  }
 }
 
 /**
