@@ -2218,7 +2218,7 @@ cluster:
         fleet: Fleet Agent
         label: Prevent Rancher {agent} pod eviction
         description: This ensures that the {agent} pod is not evicted due to node pressure, resource constraints or scheduler policies.
-        banner: This feature has been enabled with settings that are different from the global default settings.
+        banner: This feature is currently configured with settings which differ to the default Global Settings. Enable the checkbox below to overwrite the current settings with the default Global Settings.
         innerCheckbox: Apply global settings for Priority Class and Pod Disruption Budget
     banners:
       advanced: These are advanced configuration options. Generally, they should be left as-is.
