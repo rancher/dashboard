@@ -3649,7 +3649,7 @@ auditPolicy:
     verbosity:
       label: Log Verbosity
       title: Log Verbosity
-      banner: Policy Log Verbosity and install time audit level are additive.
+      banner: Audit Log Verbosity and install time Audit Log settings are additive.
       level:
         0: 0 - Log request and response metadata
         1: 1 - Log request and response headers
@@ -3658,6 +3658,8 @@ auditPolicy:
         title: Log Levels
         label: Level
         tooltip: Each log level is cumulative, higher log levels include the data from lower levels. Each log entry contains both request and response information.
+      requestResponse:
+        tooltip: Override the Log Level and explicitly include Headers / Body
       request:
         title: Request
         requestHeaders: Request Headers

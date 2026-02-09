@@ -127,7 +127,13 @@ const levelOptionsMap = computed(() => levelOptions.map((value) => {
             class="row"
           >
             <div class="col span-6">
-              <h4>{{ t("auditPolicy.general.verbosity.request.title") }}</h4>
+              <h4>
+                {{ t("auditPolicy.general.verbosity.request.title") }}
+                <i
+                  v-clean-tooltip="t('auditPolicy.general.verbosity.requestResponse.tooltip')"
+                  class="icon icon-info"
+                />
+              </h4>
               <div class="row">
                 <Checkbox
                   v-model:value="spec.verbosity!.request!.headers"
@@ -144,7 +150,13 @@ const levelOptionsMap = computed(() => levelOptions.map((value) => {
               </div>
             </div>
             <div class="col span-6">
-              <h4>{{ t("auditPolicy.general.verbosity.response.title") }}</h4>
+              <h4>
+                {{ t("auditPolicy.general.verbosity.response.title") }}
+                <i
+                  v-clean-tooltip="t('auditPolicy.general.verbosity.requestResponse.tooltip')"
+                  class="icon icon-info"
+                />
+              </h4>
               <div class="row">
                 <Checkbox
                   v-model:value="spec.verbosity!.response!.headers"
