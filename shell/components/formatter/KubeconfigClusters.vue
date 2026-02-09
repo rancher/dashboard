@@ -1,5 +1,5 @@
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
+<script setup lang="ts">
+import { computed } from 'vue';
 
 interface ClusterReference {
   label: string;
@@ -8,29 +8,21 @@ interface ClusterReference {
 
 const MAX_DISPLAY = 25;
 
-export default defineComponent({
-  props: {
-    row: {
-      type:     Object as PropType<{ id: string; sortedReferencedClusters?: ClusterReference[] }>,
-      required: true
-    },
-    value: {
-      type:    Array as PropType<unknown[]>,
-      default: () => []
-    }
-  },
+const props = defineProps<{
+  row: { id: string; sortedReferencedClusters?: ClusterReference[] };
+  value?: unknown[];
+}>();
 
-  computed: {
-    allClusters(): ClusterReference[] {
-      return this.row?.sortedReferencedClusters || [];
-    },
-    clusters(): ClusterReference[] {
-      return this.allClusters.slice(0, MAX_DISPLAY);
-    },
-    remainingCount(): number {
-      return Math.max(0, this.allClusters.length - MAX_DISPLAY);
-    }
-  }
+const allClusters = computed<ClusterReference[]>(() => {
+  return props.row?.sortedReferencedClusters || [];
+});
+
+const clusters = computed<ClusterReference[]>(() => {
+  return allClusters.value.slice(0, MAX_DISPLAY);
+});
+
+const remainingCount = computed<number>(() => {
+  return Math.max(0, allClusters.value.length - MAX_DISPLAY);
 });
 </script>
 
