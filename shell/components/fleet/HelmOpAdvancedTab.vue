@@ -36,7 +36,8 @@ defineProps({
   },
   pollingInterval: {
     type:     Number,
-    required: true
+    required: false,
+    default:  undefined
   },
   isPollingEnabled: {
     type:     Boolean,
