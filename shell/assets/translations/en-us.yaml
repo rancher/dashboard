@@ -2197,12 +2197,15 @@ cluster:
   agentConfig:
     tabs:
       agentsSchedulingCustomization: Agents Scheduling Customization
+      cluster: Cluster Agent
+      fleet: Fleet Agent
     groups:
       deploymentLabels: Deployment Labels
       selector: Selector
       podAffinity: Affinity
       podTolerations: Tolerations
       podRequestsAndLimits: Requests and Limits
+      schedulingCustomization: Scheduling Customization
       agentsSchedulingCustomization:
         cluster: Cluster Agent
         fleet: Fleet Agent
