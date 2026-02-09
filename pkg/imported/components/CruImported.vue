@@ -125,6 +125,7 @@ export default defineComponent({
       fleetAgentDefaultPDB:                     null,
       // When disabling clusterAgentDeploymentCustomization, we need to replace the whole object
       needsReplace:                             false,
+      clusterAgentDefaultPriorityClassHash:     SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS,
       fvFormRuleSets:                           [{
         path:  'name',
         rules: ['clusterNameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
@@ -521,8 +522,10 @@ export default defineComponent({
         :open-initially="false"
       >
         {{ t('cluster.agentConfig.groups.agentsScheduling.text') }}
+
+        <!-- Hardcoding the HASH because it is the first of the parameters inline -->
         <router-link
-          :to="{ name: 'c-cluster-settings'}"
+          :to="{ name: 'c-cluster-settings', hash: `#${clusterAgentDefaultPriorityClassHash}` }"
           target="_blank"
           rel="noopener"
         >
