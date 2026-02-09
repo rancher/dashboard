@@ -49,8 +49,8 @@ describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser']
       });
     productNavPo.activeNavItem().should('equal', 'Charts');
 
-    // Wait for charts page to load - check for loading indicator to disappear
-    cy.get('[data-testid="sortable-table-list-container"]', { timeout: 10000 }).should('be.visible');
+    // Wait for charts page to load - check for chart container to appear
+    cy.get('[data-testid="app-chart-cards-container"]', { timeout: 10000 }).should('be.visible');
 
     // Search for the chart to ensure it's available
     chartsPage.chartsSearchFilterInput().type(CHART.name);
