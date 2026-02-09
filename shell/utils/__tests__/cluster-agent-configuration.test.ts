@@ -29,6 +29,12 @@ describe('utils: cluster - Agent Configuration Types and Scheduling Customizatio
       if (actionType === 'management/find' && actionPayload?.id === 'cluster-agent-default-pod-disruption-budget') {
         return Promise.resolve({ value: JSON.stringify({ maxUnavailable: 1 }) });
       }
+      if (actionType === 'management/find' && actionPayload?.id === 'fleet-agent-default-priority-class') {
+        return Promise.resolve({ value: JSON.stringify({ value: 99, preemptionPolicy: 'PreemptLowerPriority' }) });
+      }
+      if (actionType === 'management/find' && actionPayload?.id === 'fleet-agent-default-pod-disruption-budget') {
+        return Promise.resolve({ value: JSON.stringify({ maxUnavailable: 2 }) });
+      }
 
       return Promise.resolve({ value: '{}' });
     });
@@ -60,8 +66,8 @@ describe('utils: cluster - Agent Configuration Types and Scheduling Customizatio
 
       expect(result.clusterAgentDefaultPC).toStrictEqual({ value: 100, preemptionPolicy: 'PreemptLowerPriority' });
       expect(result.clusterAgentDefaultPDB).toStrictEqual({ maxUnavailable: 1 });
-      expect(result.fleetAgentDefaultPC).toStrictEqual({ value: 100, preemptionPolicy: 'PreemptLowerPriority' });
-      expect(result.fleetAgentDefaultPDB).toStrictEqual({ maxUnavailable: 1 });
+      expect(result.fleetAgentDefaultPC).toStrictEqual({ value: 99, preemptionPolicy: 'PreemptLowerPriority' });
+      expect(result.fleetAgentDefaultPDB).toStrictEqual({ maxUnavailable: 2 });
       expect(result.schedulingCustomizationFeatureEnabled).toBe(true);
     });
 
@@ -86,8 +92,8 @@ describe('utils: cluster - Agent Configuration Types and Scheduling Customizatio
       await initSchedulingCustomization(value, mockFeatures, mockStore, _CREATE);
 
       expect(value.fleetAgentDeploymentCustomization.schedulingCustomization).toStrictEqual({
-        priorityClass:       { value: 100, preemptionPolicy: 'PreemptLowerPriority' },
-        podDisruptionBudget: { maxUnavailable: 1 }
+        priorityClass:       { value: 99, preemptionPolicy: 'PreemptLowerPriority' },
+        podDisruptionBudget: { maxUnavailable: 2 }
       });
     });
 
@@ -135,7 +141,7 @@ describe('utils: cluster - Agent Configuration Types and Scheduling Customizatio
     });
 
     it('should detect originally enabled scheduling customization for fleet agent in EDIT mode', async() => {
-      const value = createMockValue({ fleetAgentDeploymentCustomization: { schedulingCustomization: { priorityClass: { value: 100 } } } });
+      const value = createMockValue({ fleetAgentDeploymentCustomization: { schedulingCustomization: { priorityClass: { value: 99 } } } });
 
       mockFeatures.mockReturnValue(true);
 
@@ -145,7 +151,7 @@ describe('utils: cluster - Agent Configuration Types and Scheduling Customizatio
     });
 
     it('should detect originally enabled when either cluster or fleet agent has customization', async() => {
-      const value = createMockValue({ fleetAgentDeploymentCustomization: { schedulingCustomization: { priorityClass: { value: 100 } } } });
+      const value = createMockValue({ fleetAgentDeploymentCustomization: { schedulingCustomization: { priorityClass: { value: 99 } } } });
       // clusterAgentDeploymentCustomization has no schedulingCustomization
 
       mockFeatures.mockReturnValue(true);

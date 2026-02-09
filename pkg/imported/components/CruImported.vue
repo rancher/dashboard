@@ -517,11 +517,25 @@ export default defineComponent({
       <Accordion
         v-if="schedulingCustomizationVisible"
         class="mb-20 accordion"
-        title-key="cluster.agentConfig.tabs.cluster"
+        title-key="cluster.agentConfig.tabs.agentsSchedulingCustomization"
         :open-initially="false"
       >
+        <Banner color="info">
+          {{ t('cluster.agentConfig.groups.agentsSchedulingCustomization.banner') }}
+          <router-link
+            :to="{ name: 'c-cluster-settings'}"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ t('cluster.agentConfig.groups.agentsSchedulingCustomization.bannerLink') }}
+            <i
+              class="icon icon-external-link"
+              :alt="t('kubectl-explain.externalLink')"
+            />
+          </router-link>
+        </Banner>
         <h3>
-          {{ t('cluster.agentConfig.groups.schedulingCustomization') }}
+          {{ t('cluster.agentConfig.groups.agentsSchedulingCustomization.cluster') }}
         </h3>
         <SchedulingCustomization
           :value="clusterAgentDeploymentCustomization.schedulingCustomization"
@@ -532,15 +546,9 @@ export default defineComponent({
           :default-p-d-b="clusterAgentDefaultPDB"
           @scheduling-customization-changed="setSchedulingCustomization"
         />
-      </Accordion>
-      <Accordion
-        v-if="schedulingCustomizationVisible"
-        class="mb-20 accordion"
-        title-key="cluster.agentConfig.tabs.fleet"
-        :open-initially="false"
-      >
+        <div class="spacer-small" />
         <h3>
-          {{ t('cluster.agentConfig.groups.schedulingCustomization') }}
+          {{ t('cluster.agentConfig.groups.agentsSchedulingCustomization.fleet') }}
         </h3>
         <SchedulingCustomization
           :value="fleetAgentDeploymentCustomization.schedulingCustomization"

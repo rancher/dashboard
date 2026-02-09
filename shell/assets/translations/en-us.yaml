@@ -2196,21 +2196,24 @@ cluster:
       tooltip: 'Additional Kubernetes Manifest YAML to be applied to the cluster on startup.'
   agentConfig:
     tabs:
-      cluster: Cluster Agent
-      fleet: Fleet Agent
+      agentsSchedulingCustomization: Agents Scheduling Customization
     groups:
       deploymentLabels: Deployment Labels
       selector: Selector
       podAffinity: Affinity
       podTolerations: Tolerations
       podRequestsAndLimits: Requests and Limits
-      schedulingCustomization: Scheduling Customization
+      agentsSchedulingCustomization:
+        cluster: Cluster Agent
+        fleet: Fleet Agent
+        banner: 'Access the global settings to change the configuration.' 
+        bannerLink: 'Global Settings'
     subGroups:
       podAffinityAnti: Pod Affinity/Anti-Affinity
       nodeAffinity: Node Affinity
-      schedulingCustomization:
-        label: Prevent Rancher cluster agent pod eviction
-        description: This ensures that the cluster agent pod is not evicted due to node pressure, resource constraints or scheduler policies.
+      agentsSchedulingCustomization:
+        label: Prevent Rancher {agent} agent pod eviction
+        description: This ensures that the {agent} agent pod is not evicted due to node pressure, resource constraints or scheduler policies.
         banner: This feature has been enabled with settings that are different from the global default settings.
         innerCheckbox: Apply global settings for Priority Class and Pod Disruption Budget
     banners:

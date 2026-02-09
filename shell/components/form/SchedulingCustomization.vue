@@ -63,8 +63,8 @@ export default {
     <Checkbox
       :value="enabled"
       :mode="mode"
-      label-key="cluster.agentConfig.subGroups.schedulingCustomization.label"
-      descriptionKey="cluster.agentConfig.subGroups.schedulingCustomization.description"
+      :label="t('cluster.agentConfig.subGroups.agentsSchedulingCustomization.label', { agent: type })"
+      :description="t('cluster.agentConfig.subGroups.agentsSchedulingCustomization.description', { agent: type })"
       data-testid="scheduling-customization-checkbox"
       @update:value="$emit('scheduling-customization-changed', { event: $event, agentType: type })"
     >
@@ -75,12 +75,12 @@ export default {
         <Banner
           class="mt-10 mb-10"
           color="info"
-          label-key="cluster.agentConfig.subGroups.schedulingCustomization.banner"
+          :label="t('cluster.agentConfig.subGroups.agentsSchedulingCustomization.banner', { agent: type })"
         />
         <Checkbox
           :value="applyGlobal"
           :mode="mode"
-          label-key="cluster.agentConfig.subGroups.schedulingCustomization.innerCheckbox"
+          :label="t('cluster.agentConfig.subGroups.agentsSchedulingCustomization.innerCheckbox', { agent: type })"
           @update:value="$emit('scheduling-customization-changed', { event: $event, agentType: type })"
         />
       </template>

@@ -339,12 +339,12 @@ export async function initSchedulingCustomization(value, features, store, mode) 
 
   // Fleet Agent Config
   try {
-    fleetAgentDefaultPC = JSON.parse((await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_PRIORITY_CLASS })).value) || null;
+    fleetAgentDefaultPC = JSON.parse((await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.FLEET_AGENT_DEFAULT_PRIORITY_CLASS })).value) || null;
   } catch (e) {
     errors.push(e);
   }
   try {
-    fleetAgentDefaultPDB = JSON.parse((await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.CLUSTER_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET })).value) || null;
+    fleetAgentDefaultPDB = JSON.parse((await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.FLEET_AGENT_DEFAULT_POD_DISTRIBUTION_BUDGET })).value) || null;
   } catch (e) {
     errors.push(e);
   }
