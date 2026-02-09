@@ -2,29 +2,22 @@
 import { mapGetters } from 'vuex';
 import { AUTH_TYPE, NORMAN, SECRET } from '@shell/config/types';
 import { set } from '@shell/utils/object';
-import { Banner } from '@components/Banner';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
-import InputWithSelect from '@shell/components/form/InputWithSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
-import Labels from '@shell/components/form/Labels';
 import Loading from '@shell/components/Loading';
-import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
-import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { CATALOG, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FormValidation from '@shell/mixins/form-validation';
-import UnitInput from '@shell/components/form/UnitInput';
-import FleetClusterTargets from '@shell/components/fleet/FleetClusterTargets/index.vue';
 import { toSeconds } from '@shell/utils/duration';
-import FleetGitRepoPaths from '@shell/components/fleet/FleetGitRepoPaths.vue';
-import FleetOCIStorageSecret from '@shell/components/fleet/FleetOCIStorageSecret.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
+import GitRepoMetadataTab from '@shell/components/fleet/GitRepoMetadataTab.vue';
+import GitRepoRepositoryTab from '@shell/components/fleet/GitRepoRepositoryTab.vue';
+import GitRepoTargetTab from '@shell/components/fleet/GitRepoTargetTab.vue';
+import GitRepoAdvancedTab from '@shell/components/fleet/GitRepoAdvancedTab.vue';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
 
 const MINIMUM_POLLING_INTERVAL = 15;
 const DEFAULT_POLLING_INTERVAL = 60;
@@ -41,22 +34,15 @@ export default {
   emits: ['input'],
 
   components: {
-    Checkbox,
-    Banner,
     CruResource,
-    FleetOCIStorageSecret,
-    FleetGitRepoPaths,
-    InputWithSelect,
-    Labels,
-    LabeledInput,
-    LabeledSelect,
     Loading,
-    NameNsDescription,
-    SelectOrCreateAuthSecret,
-    FleetClusterTargets,
-    UnitInput,
     Tabbed,
     Tab,
+    GitRepoMetadataTab,
+    GitRepoRepositoryTab,
+    GitRepoTargetTab,
+    GitRepoAdvancedTab,
+    NameNsDescription,
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -440,265 +426,64 @@ export default {
     @finish="save"
   >
     <template #stepMetadata>
-      <NameNsDescription
-        v-if="!isView"
-        :value="value"
-        :namespaced="false"
-        :mode="mode"
-        @update:value="$emit('input', $event)"
-      />
-      <Labels
+      <GitRepoMetadataTab
         :value="value"
         :mode="mode"
-        :display-side-by-side="false"
-        :add-icon="'icon-plus'"
+        :is-view="isView"
+        @input="$emit('input', $event)"
       />
     </template>
     <template #stepRepo>
-      <h2 v-t="'fleet.gitRepo.repo.title'" />
-      <div
-        class="row mb-20"
-        :class="{'mt-20': isView}"
-      >
-        <div class="col span-6">
-          <LabeledInput
-            v-model:value="value.spec.repo"
-            :mode="mode"
-            label-key="fleet.gitRepo.repo.label"
-            :placeholder="t('fleet.gitRepo.repo.placeholder', null, true)"
-            :required="true"
-            :rules="fvGetAndReportPathRules('spec.repo')"
-          />
-        </div>
-        <div class="col span-6">
-          <InputWithSelect
-            :data-testid="`gitrepo-${ref}`"
-            :mode="mode"
-            :select-label="t('fleet.gitRepo.ref.label')"
-            :select-value="ref"
-            :text-label="t(`fleet.gitRepo.ref.${ref}Label`)"
-            :text-placeholder="t(`fleet.gitRepo.ref.${ref}Placeholder`)"
-            :text-value="refValue"
-            :text-required="true"
-            :options="[{label: t('fleet.gitRepo.ref.branch'), value: 'branch'}, {label: t('fleet.gitRepo.ref.revision'), value: 'revision'}]"
-            @update:value="changeRef($event)"
-          />
-        </div>
-      </div>
-
-      <FleetGitRepoPaths
-        :value="{
-          paths: value.spec.paths,
-          bundles: value.spec.bundles
-        }"
+      <GitRepoRepositoryTab
+        :value="value"
         :mode="mode"
+        :is-view="isView"
+        :ref-type="ref"
+        :ref-value="refValue"
         :touched="touched"
-        @update:value="updatePaths"
+        :fv-get-and-report-path-rules="fvGetAndReportPathRules"
+        @update:ref="changeRef"
+        @update:paths="updatePaths"
         @touched="touched=$event"
       />
     </template>
 
     <template #stepAdvanced>
-      <Banner
-        v-if="!isView"
-        color="info"
-        label-key="fleet.gitRepo.add.steps.advanced.info"
-        data-testid="gitrepo-advanced-info"
-      />
-
-      <h2 v-t="'fleet.gitRepo.auth.title'" />
-
-      <SelectOrCreateAuthSecret
-        data-testid="gitrepo-git-auth"
-        :value="value.spec.clientSecretName"
-        :register-before-hook="registerBeforeHook"
-        :namespace="value.metadata.namespace"
-        :delegate-create-to-parent="true"
-        in-store="management"
-        :pre-select="tempCachedValues.clientSecretName"
+      <GitRepoAdvancedTab
+        :value="value"
         :mode="mode"
-        generate-name="gitrepo-auth-"
-        label-key="fleet.gitRepo.auth.git"
-        :cache-secrets="true"
-        :show-ssh-known-hosts="true"
-        @update:value="updateAuth($event, 'clientSecretName')"
-        @inputauthval="updateCachedAuthVal($event, 'clientSecretName')"
-      />
-      <SelectOrCreateAuthSecret
-        data-testid="gitrepo-helm-auth"
-        :value="value.spec.helmSecretName"
+        :is-view="isView"
+        :workspace="workspace"
+        :tls-mode="tlsMode"
+        :tls-options="tlsOptions"
+        :ca-bundle="caBundle"
+        :is-tls="isTls"
+        :display-helm-repo-url-regex="displayHelmRepoURLRegex"
+        :temp-cached-values="tempCachedValues"
+        :correct-drift-enabled="correctDriftEnabled"
+        :polling-interval="pollingInterval"
+        :show-polling-interval-warning="showPollingIntervalWarning"
+        :specify-option="_SPECIFY"
         :register-before-hook="registerBeforeHook"
-        :namespace="value.metadata.namespace"
-        :delegate-create-to-parent="true"
-        in-store="management"
-        :mode="mode"
-        generate-name="helmrepo-auth-"
-        label-key="fleet.gitRepo.auth.helm"
-        :pre-select="tempCachedValues.helmSecretName"
-        :cache-secrets="true"
-        :show-ssh-known-hosts="true"
-        @update:value="updateAuth($event, 'helmSecretName')"
-        @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
+        @update:tls-mode="updateTlsMode"
+        @update:ca-bundle="caBundle = $event"
+        @update:auth="updateAuth($event.value, $event.key)"
+        @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
+        @update:correct-drift="correctDriftEnabled = $event"
+        @update:polling-enabled="enablePolling"
+        @update:polling-interval="updatePollingInterval"
       />
-
-      <div
-        v-if="displayHelmRepoURLRegex"
-        class="row mt-20"
-      >
-        <div
-          class="col span-6"
-          data-testid="gitrepo-helm-repo-url-regex"
-        >
-          <LabeledInput
-            v-model:value="value.spec.helmRepoURLRegex"
-            :mode="mode"
-            label-key="fleet.gitRepo.helmRepoURLRegex"
-          />
-        </div>
-      </div>
-
-      <template v-if="isTls">
-        <div class="row mt-20">
-          <div class="col span-6">
-            <LabeledSelect
-              :label="t('fleet.gitRepo.tls.label')"
-              :mode="mode"
-              :value="tlsMode"
-              :options="tlsOptions"
-              @update:value="updateTlsMode($event)"
-            />
-          </div>
-          <div
-            v-if="tlsMode === _SPECIFY"
-            class="col span-6"
-          >
-            <LabeledInput
-              v-model:value="caBundle"
-              :mode="mode"
-              type="multiline"
-              label-key="fleet.gitRepo.caBundle.label"
-              placeholder-key="fleet.gitRepo.caBundle.placeholder"
-            />
-          </div>
-        </div>
-      </template>
-      <div class="spacer" />
-
-      <h2 v-t="'fleet.gitRepo.ociStorageSecret.title'" />
-      <div class="row mt-20">
-        <div class="col span-6">
-          <FleetOCIStorageSecret
-            :secret="value.spec.ociRegistrySecret"
-            :workspace="workspace"
-            :mode="mode"
-            @update:value="value.spec.ociRegistrySecret=$event"
-          />
-        </div>
-      </div>
-      <div class="spacer" />
-
-      <h2 v-t="'fleet.gitRepo.resources.label'" />
-      <div class="resource-handling">
-        <Checkbox
-          v-model:value="correctDriftEnabled"
-          :tooltip="t('fleet.gitRepo.resources.correctDriftTooltip')"
-          data-testid="gitRepo-correctDrift-checkbox"
-          class="check"
-          type="checkbox"
-          label-key="fleet.gitRepo.resources.correctDrift"
-          :mode="mode"
-        />
-        <Checkbox
-          v-model:value="value.spec.keepResources"
-          :tooltip="t('fleet.gitRepo.resources.keepResourcesTooltip')"
-          data-testid="gitRepo-keepResources-checkbox"
-          class="check"
-          type="checkbox"
-          label-key="fleet.gitRepo.resources.keepResources"
-          :mode="mode"
-        />
-      </div>
-
-      <div class="spacer" />
-      <h2 v-t="'fleet.gitRepo.polling.label'" />
-      <div class="row polling">
-        <div class="col span-6">
-          <Checkbox
-            :value="value.isPollingEnabled"
-            data-testid="gitRepo-enablePolling-checkbox"
-            class="check"
-            type="checkbox"
-            label-key="fleet.gitRepo.polling.enable"
-            :mode="mode"
-            @update:value="enablePolling"
-          />
-        </div>
-        <template v-if="value.isPollingEnabled">
-          <div class="col">
-            <Banner
-              v-if="showPollingIntervalWarning"
-              color="warning"
-              label-key="fleet.gitRepo.polling.pollingInterval.minimumValueWarning"
-              data-testid="gitRepo-pollingInterval-minimumValueWarning"
-            />
-            <Banner
-              v-if="value.isWebhookConfigured"
-              color="warning"
-              label-key="fleet.gitRepo.polling.pollingInterval.webhookWarning"
-              data-testid="gitRepo-pollingInterval-webhookWarning"
-            />
-          </div>
-          <div class="col span-6">
-            <UnitInput
-              v-model:value="pollingInterval"
-              data-testid="gitRepo-pollingInterval-input"
-              min="1"
-              :suffix="t('suffix.seconds', { count: pollingInterval })"
-              :label="t('fleet.gitRepo.polling.pollingInterval.label')"
-              :mode="mode"
-              tooltip-key="fleet.gitRepo.polling.pollingInterval.tooltip"
-              @blur.capture="updatePollingInterval(pollingInterval)"
-            />
-          </div>
-        </template>
-      </div>
     </template>
 
     <template #stepTarget>
-      <h2 v-t="'fleet.gitRepo.target.label'" />
-      <FleetClusterTargets
-        :targets="value.spec.targets"
-        :matching="value.targetClusters"
-        :namespace="value.metadata.namespace"
-        :mode="realMode"
-        :created="targetsCreated"
-        @update:value="updateTargets"
+      <GitRepoTargetTab
+        :value="value"
+        :mode="mode"
+        :real-mode="realMode"
+        :targets-created="targetsCreated"
+        @update:targets="updateTargets"
         @created="targetsCreated=$event"
       />
-
-      <h3 class="mmt-16">
-        {{ t('fleet.gitRepo.target.additionalOptions') }}
-      </h3>
-      <div class="row mt-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model:value="value.spec.serviceAccount"
-            :mode="mode"
-            label-key="fleet.gitRepo.serviceAccount.label"
-            placeholder-key="fleet.gitRepo.serviceAccount.placeholder"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model:value="value.spec.targetNamespace"
-            :mode="mode"
-            label-key="fleet.gitRepo.targetNamespace.label"
-            placeholder-key="fleet.gitRepo.targetNamespace.placeholder"
-            label="Target Namespace"
-            placeholder="Optional: Require all resources to be in this namespace"
-          />
-        </div>
-      </div>
     </template>
 
     <template
@@ -706,7 +491,6 @@ export default {
       #single
     >
       <NameNsDescription
-        v-if="isView"
         :value="value"
         :namespaced="false"
         :mode="mode"
@@ -723,45 +507,16 @@ export default {
           :label="steps[1].label"
           :weight="3"
         >
-          <h3 v-t="'fleet.gitRepo.repo.title'" />
-          <div
-            class="row mb-20"
-            :class="{'mt-20': isView}"
-          >
-            <div class="col span-6">
-              <LabeledInput
-                v-model:value="value.spec.repo"
-                :mode="mode"
-                label-key="fleet.gitRepo.repo.label"
-                :placeholder="t('fleet.gitRepo.repo.placeholder', null, true)"
-                :required="true"
-                :rules="fvGetAndReportPathRules('spec.repo')"
-              />
-            </div>
-            <div class="col span-6">
-              <InputWithSelect
-                :data-testid="`gitrepo-${ref}`"
-                :mode="mode"
-                :select-label="t('fleet.gitRepo.ref.label')"
-                :select-value="ref"
-                :text-label="t(`fleet.gitRepo.ref.${ref}Label`)"
-                :text-placeholder="t(`fleet.gitRepo.ref.${ref}Placeholder`)"
-                :text-value="refValue"
-                :text-required="true"
-                :options="[{label: t('fleet.gitRepo.ref.branch'), value: 'branch'}, {label: t('fleet.gitRepo.ref.revision'), value: 'revision'}]"
-                @update:value="changeRef($event)"
-              />
-            </div>
-          </div>
-
-          <FleetGitRepoPaths
-            :value="{
-              paths: value.spec.paths,
-              bundles: value.spec.bundles
-            }"
+          <GitRepoRepositoryTab
+            :value="value"
             :mode="mode"
+            :is-view="isView"
+            :ref-type="ref"
+            :ref-value="refValue"
             :touched="touched"
-            @update:value="updatePaths"
+            :fv-get-and-report-path-rules="fvGetAndReportPathRules"
+            @update:ref="changeRef"
+            @update:paths="updatePaths"
             @touched="touched=$event"
           />
         </Tab>
@@ -770,220 +525,55 @@ export default {
           :label="steps[2].label"
           :weight="2"
         >
-          <h3 v-t="'fleet.gitRepo.target.label'" />
-          <FleetClusterTargets
-            :targets="value.spec.targets"
-            :matching="value.targetClusters"
-            :namespace="value.metadata.namespace"
-            :mode="realMode"
-            :created="targetsCreated"
-            @update:value="updateTargets"
+          <GitRepoTargetTab
+            :value="value"
+            :mode="mode"
+            :real-mode="realMode"
+            :targets-created="targetsCreated"
+            @update:targets="updateTargets"
             @created="targetsCreated=$event"
           />
-
-          <h4 class="mmt-16">
-            {{ t('fleet.gitRepo.target.additionalOptions') }}
-          </h4>
-          <div class="row mt-20">
-            <div class="col span-6">
-              <LabeledInput
-                v-model:value="value.spec.serviceAccount"
-                :mode="mode"
-                label-key="fleet.gitRepo.serviceAccount.label"
-                placeholder-key="fleet.gitRepo.serviceAccount.placeholder"
-              />
-            </div>
-            <div class="col span-6">
-              <LabeledInput
-                v-model:value="value.spec.targetNamespace"
-                :mode="mode"
-                label-key="fleet.gitRepo.targetNamespace.label"
-                placeholder-key="fleet.gitRepo.targetNamespace.placeholder"
-                label="Target Namespace"
-                placeholder="Optional: Require all resources to be in this namespace"
-              />
-            </div>
-          </div>
         </Tab>
         <Tab
           :name="steps[3].name"
           :label="steps[3].label"
           :weight="1"
         >
-          <Banner
-            v-if="!isView"
-            color="info"
-            label-key="fleet.gitRepo.add.steps.advanced.info"
-            data-testid="gitrepo-advanced-info"
-          />
-
-          <h3 v-t="'fleet.gitRepo.auth.title'" />
-
-          <SelectOrCreateAuthSecret
-            data-testid="gitrepo-git-auth"
-            :value="value.spec.clientSecretName"
-            :register-before-hook="registerBeforeHook"
-            :namespace="value.metadata.namespace"
-            :delegate-create-to-parent="true"
-            in-store="management"
-            :pre-select="tempCachedValues.clientSecretName"
+          <GitRepoAdvancedTab
+            :value="value"
             :mode="mode"
-            generate-name="gitrepo-auth-"
-            label-key="fleet.gitRepo.auth.git"
-            :cache-secrets="true"
-            :show-ssh-known-hosts="true"
-            @update:value="updateAuth($event, 'clientSecretName')"
-            @inputauthval="updateCachedAuthVal($event, 'clientSecretName')"
-          />
-          <SelectOrCreateAuthSecret
-            data-testid="gitrepo-helm-auth"
-            :value="value.spec.helmSecretName"
+            :is-view="isView"
+            :workspace="workspace"
+            :tls-mode="tlsMode"
+            :tls-options="tlsOptions"
+            :ca-bundle="caBundle"
+            :is-tls="isTls"
+            :display-helm-repo-url-regex="displayHelmRepoURLRegex"
+            :temp-cached-values="tempCachedValues"
+            :correct-drift-enabled="correctDriftEnabled"
+            :polling-interval="pollingInterval"
+            :show-polling-interval-warning="showPollingIntervalWarning"
+            :specify-option="_SPECIFY"
             :register-before-hook="registerBeforeHook"
-            :namespace="value.metadata.namespace"
-            :delegate-create-to-parent="true"
-            in-store="management"
-            :mode="mode"
-            generate-name="helmrepo-auth-"
-            label-key="fleet.gitRepo.auth.helm"
-            :pre-select="tempCachedValues.helmSecretName"
-            :cache-secrets="true"
-            :show-ssh-known-hosts="true"
-            @update:value="updateAuth($event, 'helmSecretName')"
-            @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
+            @update:tls-mode="updateTlsMode"
+            @update:ca-bundle="caBundle = $event"
+            @update:auth="updateAuth($event.value, $event.key)"
+            @update:cached-auth="updateCachedAuthVal($event.value, $event.key)"
+            @update:correct-drift="correctDriftEnabled = $event"
+            @update:polling-enabled="enablePolling"
+            @update:polling-interval="updatePollingInterval"
           />
-
-          <div
-            v-if="displayHelmRepoURLRegex"
-            class="row mt-20"
-          >
-            <div
-              class="col span-6"
-              data-testid="gitrepo-helm-repo-url-regex"
-            >
-              <LabeledInput
-                v-model:value="value.spec.helmRepoURLRegex"
-                :mode="mode"
-                label-key="fleet.gitRepo.helmRepoURLRegex"
-              />
-            </div>
-          </div>
-
-          <template v-if="isTls">
-            <div class="row mt-20">
-              <div class="col span-6">
-                <LabeledSelect
-                  :label="t('fleet.gitRepo.tls.label')"
-                  :mode="mode"
-                  :value="tlsMode"
-                  :options="tlsOptions"
-                  @update:value="updateTlsMode($event)"
-                />
-              </div>
-              <div
-                v-if="tlsMode === _SPECIFY"
-                class="col span-6"
-              >
-                <LabeledInput
-                  v-model:value="caBundle"
-                  :mode="mode"
-                  type="multiline"
-                  label-key="fleet.gitRepo.caBundle.label"
-                  placeholder-key="fleet.gitRepo.caBundle.placeholder"
-                />
-              </div>
-            </div>
-          </template>
-          <div class="spacer" />
-
-          <h3 v-t="'fleet.gitRepo.ociStorageSecret.title'" />
-          <div class="row mt-20">
-            <div class="col span-6">
-              <FleetOCIStorageSecret
-                :secret="value.spec.ociRegistrySecret"
-                :workspace="workspace"
-                :mode="mode"
-                @update:value="value.spec.ociRegistrySecret=$event"
-              />
-            </div>
-          </div>
-          <div class="spacer" />
-
-          <h3 v-t="'fleet.gitRepo.resources.label'" />
-          <div class="resource-handling">
-            <Checkbox
-              v-model:value="correctDriftEnabled"
-              :tooltip="t('fleet.gitRepo.resources.correctDriftTooltip')"
-              data-testid="gitRepo-correctDrift-checkbox"
-              class="check"
-              type="checkbox"
-              label-key="fleet.gitRepo.resources.correctDrift"
-              :mode="mode"
-            />
-            <Checkbox
-              v-model:value="value.spec.keepResources"
-              :tooltip="t('fleet.gitRepo.resources.keepResourcesTooltip')"
-              data-testid="gitRepo-keepResources-checkbox"
-              class="check"
-              type="checkbox"
-              label-key="fleet.gitRepo.resources.keepResources"
-              :mode="mode"
-            />
-          </div>
-
-          <div class="spacer" />
-          <h3 v-t="'fleet.gitRepo.polling.label'" />
-          <div class="row polling">
-            <div class="col span-6">
-              <Checkbox
-                :value="value.isPollingEnabled"
-                data-testid="gitRepo-enablePolling-checkbox"
-                class="check"
-                type="checkbox"
-                label-key="fleet.gitRepo.polling.enable"
-                :mode="mode"
-                @update:value="enablePolling"
-              />
-            </div>
-            <template v-if="value.isPollingEnabled">
-              <div class="col">
-                <Banner
-                  v-if="showPollingIntervalWarning"
-                  color="warning"
-                  label-key="fleet.gitRepo.polling.pollingInterval.minimumValueWarning"
-                  data-testid="gitRepo-pollingInterval-minimumValueWarning"
-                />
-                <Banner
-                  v-if="value.isWebhookConfigured"
-                  color="warning"
-                  label-key="fleet.gitRepo.polling.pollingInterval.webhookWarning"
-                  data-testid="gitRepo-pollingInterval-webhookWarning"
-                />
-              </div>
-              <div class="col span-6">
-                <UnitInput
-                  v-model:value="pollingInterval"
-                  data-testid="gitRepo-pollingInterval-input"
-                  min="1"
-                  :suffix="t('suffix.seconds', { count: pollingInterval })"
-                  :label="t('fleet.gitRepo.polling.pollingInterval.label')"
-                  :mode="mode"
-                  tooltip-key="fleet.gitRepo.polling.pollingInterval.tooltip"
-                  @blur.capture="updatePollingInterval(pollingInterval)"
-                />
-              </div>
-            </template>
-          </div>
         </Tab>
         <Tab
           name="labels"
           label-key="generic.labelsAndAnnotations"
           :weight="4"
         >
-          <Labels
+          <GitRepoMetadataTab
             :value="value"
             :mode="mode"
-            :display-side-by-side="false"
-            :add-icon="'icon-plus'"
+            :is-view="isView"
+            @input="$emit('input', $event)"
           />
         </Tab>
       </Tabbed>
@@ -992,26 +582,8 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .spacer {
-    padding: 30px 0 0 0;
-  }
-  :deep() .select-or-create-auth-secret {
-    .row {
-      margin-top: 10px !important;
-    }
-  }
   :deep() .input-container .in-input.labeled-select {
     min-width: 110px;
     width: 20%;
-  }
-  .resource-handling {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  .polling {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
   }
 </style>
