@@ -158,6 +158,11 @@ Cypress.Commands.add('createUser', (params: CreateUserParams, options = { }) => 
       }
       expect(resp.status).to.eq(201);
 
+      // Wait for the user to be fully created before proceeding with next steps
+      // seen some weirdness where we don't have principalIds available immediately after user creation,
+      // which causes subsequent API calls to fail, so adding a wait here to mitigate that
+      cy.wait(300); // eslint-disable-line cypress/no-unnecessary-waiting
+
       // we now need to do a GET to the user to get the principalId to set the role bindings
       // in v1/management.cattle.io.users response, principalIds is not included, but we need it to set the role bindings
       // and also create the user password as secret, which is required for login
