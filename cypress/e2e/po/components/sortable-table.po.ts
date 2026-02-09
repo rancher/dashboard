@@ -218,28 +218,29 @@ export default class SortableTablePo extends ComponentPo {
    * For a row with the given name open it's action menu and return the drop down
    */
   rowActionMenuOpen(name: string) {
-    this.rowWithName(name).actionBtn()
-      .click()
-      .should('have.attr', 'aria-expanded', 'true');
+    this.rowWithName(name).actionBtn().click();
+
+    // Wait for the dropdown to actually appear in the DOM first
+    cy.get('[dropdown-menu-collection]').should('be.visible');
+
+    // Then verify aria-expanded is set correctly
+    this.rowWithName(name).actionBtn().should('have.attr', 'aria-expanded', 'true');
 
     const menu = this.rowActionMenu();
-
-    // Ensure the menu is actually visible before returning
-    menu.checkVisible();
 
     return menu;
   }
 
   rowActionMenuClose(name: string) {
-    this.rowWithName(name).actionBtn()
-      .should('have.attr', 'aria-expanded', 'true')
-      .click()
-      .should('have.attr', 'aria-expanded', 'false');
+    this.rowWithName(name).actionBtn().click();
+
+    // Wait for the dropdown to actually disappear from the DOM first
+    cy.get('[dropdown-menu-collection]').should('not.be.visible');
+
+    // Then verify aria-expanded is set correctly
+    this.rowWithName(name).actionBtn().should('have.attr', 'aria-expanded', 'false');
 
     const menu = this.rowActionMenu();
-
-    // Ensure the menu is actually gone before returning
-    menu.checkNotExists();
 
     return menu;
   }
