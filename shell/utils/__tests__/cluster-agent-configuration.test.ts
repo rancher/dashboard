@@ -1,5 +1,6 @@
-import { AGENT_CONFIGURATION_TYPES, initSchedulingCustomization } from '@shell/utils/cluster';
+import { initSchedulingCustomization } from '@shell/utils/cluster';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { AGENT_CONFIGURATION_TYPES } from '@shell/config/settings';
 
 const mockStore = { dispatch: jest.fn() };
 

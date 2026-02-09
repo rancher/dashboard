@@ -11,10 +11,6 @@ import { _CREATE, _EDIT } from '@shell/config/query-params';
 import isEmptyLodash from 'lodash/isEmpty';
 import { set, diff, isEmpty, clone } from '@shell/utils/object';
 
-export const AGENT_CONFIGURATION_TYPES = {
-  CLUSTER: 'cluster',
-  FLEET:   'fleet'
-};
 /**
  * Combination of paginationFilterHiddenLocalCluster and paginationFilterOnlyKubernetesClusters
  *

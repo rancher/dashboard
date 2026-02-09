@@ -162,6 +162,11 @@ export default {
       class="edit-help"
     />
 
+    <Banner
+      color="info"
+      :label="t('advancedSettings.edit.agentConfigBanner.text', { agent: t('advancedSettings.edit.agentConfigBanner.' + setting.agent) })"
+      data-testid="setting-agent-config-banner"
+    />
     <div class="edit-change mt-20">
       <h5 v-t="'advancedSettings.edit.changeSetting'" />
       <button

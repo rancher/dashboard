@@ -1,7 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import RKE2 from '@shell/edit/provisioning.cattle.io.cluster/rke2.vue';
-import { AGENT_CONFIGURATION_TYPES } from '@shell/utils/cluster';
+import { AGENT_CONFIGURATION_TYPES } from '@shell/config/settings';
 
 const mockStore = {
   getters: {

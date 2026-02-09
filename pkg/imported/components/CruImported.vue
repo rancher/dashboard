@@ -22,12 +22,12 @@ import { NAME as HARVESTER_MANAGER } from '@shell/config/harvester-manager-types
 import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@shell/store/features';
 import { HIDE_DESC, mapPref } from '@shell/store/prefs';
 import { addObject } from '@shell/utils/array';
-import { AGENT_CONFIGURATION_TYPES, initSchedulingCustomization } from '@shell/utils/cluster';
+import { initSchedulingCustomization } from '@shell/utils/cluster';
+import { AGENT_CONFIGURATION_TYPES, SETTING } from '@shell/config/settings';
 
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import genericImportedClusterValidators from '../util/validators';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import { SETTING } from '@shell/config/settings';
 import { IMPORTED_CLUSTER_VERSION_MANAGEMENT } from '@shell/config/labels-annotations';
 import cloneDeep from 'lodash/cloneDeep';
 import { VERSION_MANAGEMENT_DEFAULT } from '@pkg/imported/util/shared.ts';
@@ -517,26 +517,24 @@ export default defineComponent({
       <Accordion
         v-if="schedulingCustomizationVisible"
         class="mb-20 accordion"
-        title-key="cluster.agentConfig.tabs.agentsSchedulingCustomization"
+        title-key="cluster.agentConfig.tabs.agentsScheduling"
         :open-initially="false"
       >
-        <Banner color="info">
-          {{ t('cluster.agentConfig.groups.agentsSchedulingCustomization.banner') }}
-          <router-link
-            :to="{ name: 'c-cluster-settings'}"
-            target="_blank"
-            rel="noopener"
-          >
-            {{ t('cluster.agentConfig.groups.agentsSchedulingCustomization.bannerLink') }}
-            <i
-              class="icon icon-external-link"
-              :alt="t('kubectl-explain.externalLink')"
-            />
-          </router-link>
-        </Banner>
-        <h3>
-          {{ t('cluster.agentConfig.groups.agentsSchedulingCustomization.cluster') }}
-        </h3>
+        {{ t('cluster.agentConfig.groups.agentsScheduling.text') }}
+        <router-link
+          :to="{ name: 'c-cluster-settings'}"
+          target="_blank"
+          rel="noopener"
+        >
+          {{ t('cluster.agentConfig.groups.agentsScheduling.textLink') }}
+          <i
+            class="icon icon-external-link"
+            :alt="t('kubectl-explain.externalLink')"
+          />
+        </router-link>
+        .
+        <div class="spacer-small" />
+        <h3>{{ t('cluster.agentConfig.groups.agentsScheduling.label') }}</h3>
         <SchedulingCustomization
           :value="clusterAgentDeploymentCustomization.schedulingCustomization"
           :mode="mode"
@@ -544,12 +542,9 @@ export default defineComponent({
           :feature="schedulingCustomizationFeatureEnabled"
           :default-p-c="clusterAgentDefaultPC"
           :default-p-d-b="clusterAgentDefaultPDB"
+          :checkbox-with-only-agent-name="true"
           @scheduling-customization-changed="setSchedulingCustomization"
         />
-        <div class="spacer-small" />
-        <h3>
-          {{ t('cluster.agentConfig.groups.agentsSchedulingCustomization.fleet') }}
-        </h3>
         <SchedulingCustomization
           :value="fleetAgentDeploymentCustomization.schedulingCustomization"
           :mode="mode"
@@ -557,6 +552,7 @@ export default defineComponent({
           :feature="schedulingCustomizationFeatureEnabled"
           :default-p-c="fleetAgentDefaultPC"
           :default-p-d-b="fleetAgentDefaultPDB"
+          :checkbox-with-only-agent-name="true"
           @scheduling-customization-changed="setSchedulingCustomization"
         />
       </Accordion>

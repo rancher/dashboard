@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import SchedulingCustomization from '@shell/components/form/SchedulingCustomization.vue';
-import { AGENT_CONFIGURATION_TYPES } from '@shell/utils/cluster';
+import { AGENT_CONFIGURATION_TYPES } from '@shell/config/settings';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 
 const mockStore = { getters: { 'i18n/t': jest.fn().mockImplementation((key: string) => key) } };

@@ -30,6 +30,10 @@ export default {
     defaultPDB: {
       type:    Object,
       default: () => {},
+    },
+    checkboxWithOnlyAgentName: {
+      type:    Boolean,
+      default: false
     }
   },
   data() {
@@ -63,8 +67,8 @@ export default {
     <Checkbox
       :value="enabled"
       :mode="mode"
-      :label="t('cluster.agentConfig.subGroups.agentsSchedulingCustomization.label', { agent: type })"
-      :description="t('cluster.agentConfig.subGroups.agentsSchedulingCustomization.description', { agent: type })"
+      :label="checkboxWithOnlyAgentName ? t(`cluster.agentConfig.subGroups.agentsScheduling.${type}`) : t('cluster.agentConfig.subGroups.agentsScheduling.label', { agent: t(`cluster.agentConfig.subGroups.agentsScheduling.${type}`)})"
+      :description="checkboxWithOnlyAgentName ? '' :t('cluster.agentConfig.subGroups.agentsScheduling.description', { agent: t(`cluster.agentConfig.subGroups.agentsScheduling.${type}`)})"
       data-testid="scheduling-customization-checkbox"
       @update:value="$emit('scheduling-customization-changed', { event: $event, agentType: type })"
     >
@@ -75,12 +79,12 @@ export default {
         <Banner
           class="mt-10 mb-10"
           color="info"
-          :label="t('cluster.agentConfig.subGroups.agentsSchedulingCustomization.banner', { agent: type })"
+          :label="t('cluster.agentConfig.subGroups.agentsScheduling.banner', { agent: t(`cluster.agentConfig.subGroups.agentsScheduling.${type}`)})"
         />
         <Checkbox
           :value="applyGlobal"
           :mode="mode"
-          :label="t('cluster.agentConfig.subGroups.agentsSchedulingCustomization.innerCheckbox', { agent: type })"
+          :label="t('cluster.agentConfig.subGroups.agentsScheduling.innerCheckbox', { agent: t(`cluster.agentConfig.subGroups.agentsScheduling.${type}`)})"
           @update:value="$emit('scheduling-customization-changed', { event: $event, agentType: type })"
         />
       </template>
