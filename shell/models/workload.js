@@ -794,6 +794,7 @@ export default class Workload extends WorkloadService {
     return [
       this.podsCard,
       this.jobsCard,
+      this.insightCard,
       ...this._cards
     ];
   }

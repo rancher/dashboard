@@ -2181,7 +2181,8 @@ export default class Resource {
   }
 
   get _cards() {
-    return [this.insightCard];
+    // All cards are opt in, we're leaving the insights card as part of the base resource since it should proliferate to most resources
+    return [];
   }
 
   get cards() {
