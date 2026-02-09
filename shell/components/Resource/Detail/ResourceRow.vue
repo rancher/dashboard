@@ -57,7 +57,7 @@ const displayCounts = computed(() => {
         v-if="!counts || counts.length == 0"
         class="text-muted"
       >
-        &mdash;
+        0
       </div>
       <div
         v-else
