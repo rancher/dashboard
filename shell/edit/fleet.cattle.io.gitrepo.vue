@@ -529,6 +529,7 @@ export default {
         label-key="fleet.gitRepo.auth.git"
         :cache-secrets="true"
         :show-ssh-known-hosts="true"
+        :is-github-dot-com-repository="isGitHubDotComRepository"
         @update:value="updateAuth($event, 'clientSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'clientSecretName')"
       />

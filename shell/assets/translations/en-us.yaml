@@ -3105,7 +3105,7 @@ fleet:
       label: Authentication
       git: Git Authentication
       helm: Helm Authentication
-      githubdotcomPasswordBanner: 'GitHub no longer supports password authentication for repositories. Please use a personal access token with the required permissions, and enter it in the password field instead of your GitHub password.'
+      githubdotcomPasswordBanner: 'GitHub no longer supports password authentication for repositories. Please enter a personal access token with the required permissions instead of your GitHub password.'
     caBundle:
       label: Certificates
       placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"
@@ -6170,6 +6170,7 @@ selectOrCreateAuthSecret:
   basic:
     username: Username
     password: Password
+    passwordPersonalAccessToken: Password/Personal Access Token
   rke:
     info: "An RKE Auth Config secret contains the username and password concatenated and base64 encoded into the secret's 'auth' key"
   namespaceGroup: "Namespace: {name}"
