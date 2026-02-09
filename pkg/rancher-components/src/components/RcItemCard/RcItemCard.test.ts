@@ -124,7 +124,7 @@ describe('rcItemCard', () => {
       }
     });
 
-    const root = wrapper.get(`[data-testid="item-card-${ id }"]`);
+    const root = wrapper.get(`[data-testid="card-header-left"]`);
 
     expect(root.attributes('role')).toBe('button');
     expect(root.attributes('tabindex')).toBe('0');

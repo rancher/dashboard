@@ -213,6 +213,7 @@ const cardMeta = computed(() => ({
         <div :class="['item-card-header', variant]">
           <div
             class="item-card-header-left"
+            :data-testid="`card-header-left`"
             :role="cardMeta.role"
             :tabindex="cardMeta.tabIndex"
             :aria-label="cardMeta.ariaLabel"
