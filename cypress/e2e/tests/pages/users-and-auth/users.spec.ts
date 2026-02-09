@@ -121,7 +121,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
   });
 
   it('can Refresh Group Memberships', () => {
-    // Refresh Group Membership and verify request is made
+    // Refresh Group Membership and verify request is made.
     usersPo.goTo();
     usersPo.waitForPage();
     cy.intercept('POST', '/v1/ext.cattle.io.groupmembershiprefreshrequests').as('refreshGroup');
