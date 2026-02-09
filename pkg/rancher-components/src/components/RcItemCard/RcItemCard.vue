@@ -159,9 +159,10 @@ const contentText = computed(() => labelText(props.content));
 const statusTooltips = computed(() => props.header.statuses?.map((status) => labelText(status.tooltip)) || []);
 
 const cardMeta = computed(() => ({
-  ariaLabel: props.clickable ? t('itemCard.ariaLabel.clickable', { cardTitle: labelText(props.header.title) }) : undefined,
-  tabIndex:  props.clickable ? '0' : undefined,
-  role:      props.clickable ? 'button' : undefined
+  ariaLabel:       props.clickable ? t('itemCard.ariaLabel.clickable', { cardTitle: labelText(props.header.title) }) : undefined,
+  tabIndex:        props.clickable ? '0' : undefined,
+  role:            props.clickable ? 'button' : undefined,
+  actionMenuLabel: props.actions && t('itemCard.actionMenu.label', { cardTitle: labelText(props.header.title) })
 }));
 
 </script>
@@ -269,6 +270,7 @@ const cardMeta = computed(() => ({
               <rc-item-card-action class="item-card-header-action-menu">
                 <ActionMenu
                   data-testid="item-card-header-action-menu"
+                  :button-aria-label="cardMeta.actionMenuLabel"
                   :custom-actions="actions"
                   @action-invoked="(payload) => emit('action-invoked', payload)"
                 />

@@ -2543,7 +2543,7 @@ cluster:
       snapshotScheduleCron:
         label: Cron Schedule
       snapshotRetention:
-        label: Snapshot retention count
+        label: Local snapshot retention count
         tooltip: Each backup records 1 snapshot per etcd node. If you specify 3 snapshots and you have 3 etcd nodes you will only retain 1 full backup.
       exportMetric:
         label: Metrics
@@ -2552,6 +2552,13 @@ cluster:
       s3backups:
         label: Save Backups to S3
       s3config:
+        snapshotRetention:
+          title: S3 Snapshot Retention
+          label: S3 Snapshot Retention Count
+          options:
+            manual: Set manually
+            localDefined: Same as local ({count} Snaphots)
+            localUndefined: Same as local
         bucket:
           label: Bucket
         folder:
@@ -3880,6 +3887,8 @@ istio:
 itemCard:
   ariaLabel:
     clickable: Click on card for {cardTitle}
+  actionMenu:
+    label: '{cardTitle} actions'
 jwt:
   title: JWT Authentication
   actions:
