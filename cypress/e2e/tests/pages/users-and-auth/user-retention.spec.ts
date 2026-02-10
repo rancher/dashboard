@@ -54,9 +54,11 @@ describe('User Retention', { testIsolation: 'off' }, () => {
       userRetentionPo.waitForPage();
       cy.wait('@pageLoad');
 
+      userRetentionPo.disableAfterPeriodInput().expectToBeDisabled();
       userRetentionPo.disableAfterPeriodCheckbox().set();
       userRetentionPo.disableAfterPeriodInput().expectToBeEnabled();
       userRetentionPo.disableAfterPeriodInput().set('300h');
+      userRetentionPo.deleteAfterPeriodInput().expectToBeDisabled();
       userRetentionPo.deleteAfterPeriodCheckbox().set();
       userRetentionPo.deleteAfterPeriodInput().expectToBeEnabled();
       userRetentionPo.deleteAfterPeriodInput().set('600h');
