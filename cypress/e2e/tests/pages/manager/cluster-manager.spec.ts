@@ -128,7 +128,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           // The test validate the warning when selecting none, but now this get back to calico.
           // A CNI is mandatory to get the cluster active otherwise manual intervention is needed or
           // the use of a cloud provider but that's not in scope.
-          spec: { rkeConfig: { machineGlobalConfig: { cni: 'calico' }, machinePoolDefaults: { hostnameLengthLimit: 15 } } }
+          spec: { rkeConfig: { machineGlobalConfig: { cni: 'calico', 'ingress-controller': 'ingress-nginx' }, machinePoolDefaults: { hostnameLengthLimit: 15 } } }
         };
 
         cy.userPreferences();
