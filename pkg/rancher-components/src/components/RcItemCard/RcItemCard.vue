@@ -167,6 +167,7 @@ const cardMeta = computed(() => ({
   actionMenuLabel: props.actions && t('itemCard.actionMenu.label', { cardTitle: labelText(props.header.title) }),
 }));
 
+const cursorValue = computed(() => props.clickable ? 'pointer' : 'auto');
 </script>
 
 <template>
@@ -321,6 +322,7 @@ $image-medium-box-width: 48px;
   border-radius: var(--border-radius-md);
   border: 1px solid var(--border);
   background: var(--body-bg);
+  cursor: v-bind(cursorValue);
 
   &.clickable:hover {
     border-color: var(--primary);
