@@ -90,6 +90,13 @@ export class WorkloadDetailsPageBasePo extends BaseDetailPagePo {
   }
 
   /**
+   * Wait until there's exactly one pods status count element
+   */
+  waitForSinglePodsStatusCount(): Cypress.Chainable {
+    return cy.get('[data-testid="rc-counter-badge"]').should('have.length', 1);
+  }
+
+  /**
    * Wait for the workload details page to be fully loaded
    * This ensures the masthead title is present and the scaling controls are ready
    */
