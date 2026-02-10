@@ -493,17 +493,10 @@ export default class Secret extends SteveModel {
   }
 
   /**
-   * is this a project scoped secret .... or also a cloned project scoped secret
-   */
-  get isProjectScopedRelated() {
-    return !!this.metadata.labels?.[UI_PROJECT_SECRET];
-  }
-
-  /**
    * is this a project scoped secret
    */
   get isProjectScoped() {
-    return this.isProjectScopedRelated && !this.isProjectSecretCopy && this.$rootGetters['isRancher'];
+    return !!this.metadata.labels?.[UI_PROJECT_SECRET] && !this.isProjectSecretCopy && this.$rootGetters['isRancher'];
   }
 
   get projectScopedClusterId() {
@@ -603,20 +596,20 @@ export default class Secret extends SteveModel {
     };
   }
 
+  get hasProjectScopedUrlQueryParam() {
+    return this.currentRoute()?.query?.[SECRET_SCOPE] === SECRET_QUERY_PARAMS.PROJECT_SCOPED;
+  }
+
   get parentNameOverride() {
-    if (this.currentRoute()?.query?.[SECRET_SCOPE] === SECRET_QUERY_PARAMS.PROJECT_SCOPED) {
+    if (this.hasProjectScopedUrlQueryParam || this.isProjectScoped) {
       return this.$rootGetters['i18n/t'](`typeLabel."${ VIRTUAL_TYPES.PROJECT_SECRETS }"`, { count: 1 })?.trim();
     }
 
-    if (!this.isProjectScoped) {
-      return super.parentNameOverride;
-    }
-
-    return this.$rootGetters['i18n/t'](`typeLabel."${ VIRTUAL_TYPES.PROJECT_SECRETS }"`, { count: 1 })?.trim();
+    return super.parentNameOverride;
   }
 
   get parentLocationOverride() {
-    if (this.currentRoute()?.query?.[SECRET_SCOPE] === SECRET_QUERY_PARAMS.PROJECT_SCOPED) {
+    if (this.hasProjectScopedUrlQueryParam || this.isProjectScoped) {
       return {
         name:   'c-cluster-product-resource',
         params: {
@@ -627,11 +620,7 @@ export default class Secret extends SteveModel {
       };
     }
 
-    if (!this.isProjectScoped) {
-      return super.parentNameOverride;
-    }
-
-    return this.listLocation;
+    return super.parentLocationOverride;
   }
 
   get groupByProject() {
