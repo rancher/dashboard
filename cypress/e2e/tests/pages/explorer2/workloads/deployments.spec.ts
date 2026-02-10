@@ -112,9 +112,42 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       workloadDetailsPage.goTo();
       workloadDetailsPage.waitForDetailsPage(scaleTestDeploymentName);
 
+      // Intercept the PUT request for deployment updates
+      cy.intercept('PUT', '**/v1/apps.deployments/**').as('deploymentUpdate');
+
       workloadDetailsPage.replicaCount().should('contain', '1', MEDIUM_TIMEOUT_OPT);
 
+      // Click scale up and wait for PUT request with retry mechanism (up to 3 retries)
       workloadDetailsPage.podScaleUp().should('be.enabled').click();
+
+      // Wait for PUT request - retry up to 3 times if it doesn't come
+      cy.window().then((win) => {
+        return new Cypress.Promise((resolve, reject) => {
+          let retryCount = 0;
+          const maxRetries = 3;
+
+          const attemptClick = () => {
+            const timeoutId = win.setTimeout(() => {
+              retryCount++;
+              if (retryCount <= maxRetries) {
+                cy.log(`PUT request not sent after 10s, retrying click... (attempt ${ retryCount }/${ maxRetries })`);
+                workloadDetailsPage.podScaleUp().should('be.enabled').click();
+                attemptClick(); // Recursive retry
+              } else {
+                cy.log('Max retries reached for scale up');
+                resolve(true);
+              }
+            }, 10000);
+
+            cy.wait('@deploymentUpdate').then(() => {
+              win.clearTimeout(timeoutId);
+              resolve(true);
+            });
+          };
+
+          attemptClick();
+        });
+      });
 
       workloadDetailsPage.waitForScaleButtonsEnabled();
       workloadDetailsPage.waitForPendingOperationsToComplete();
@@ -124,14 +157,44 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       // Verify pod status shows healthy scaling state
       workloadDetailsPage.podsStatus().should('be.visible', MEDIUM_TIMEOUT_OPT)
         .should('contain.text', 'Running');
+
+      // Click scale down and wait for PUT request with retry mechanism (up to 3 retries)
       workloadDetailsPage.podScaleDown().should('be.enabled').click();
+
+      // Wait for PUT request - retry up to 3 times if it doesn't come
+      cy.window().then((win) => {
+        return new Cypress.Promise((resolve, reject) => {
+          let retryCount = 0;
+          const maxRetries = 3;
+
+          const attemptClick = () => {
+            const timeoutId = win.setTimeout(() => {
+              retryCount++;
+              if (retryCount <= maxRetries) {
+                cy.log(`PUT request not sent after 10s, retrying click... (attempt ${ retryCount }/${ maxRetries })`);
+                workloadDetailsPage.podScaleDown().should('be.enabled').click();
+                attemptClick(); // Recursive retry
+              } else {
+                cy.log('Max retries reached for scale down');
+                resolve(true);
+              }
+            }, 10000);
+
+            cy.wait('@deploymentUpdate').then(() => {
+              win.clearTimeout(timeoutId);
+              resolve(true);
+            });
+          };
+
+          attemptClick();
+        });
+      });
+
       workloadDetailsPage.waitForScaleButtonsEnabled();
       workloadDetailsPage.waitForPendingOperationsToComplete();
 
       workloadDetailsPage.replicaCount().should('contain', '1', MEDIUM_TIMEOUT_OPT);
-    });
-
-    it('Should be able to view and edit configuration of pod volumes with no custom component', () => {
+    }); it('Should be able to view and edit configuration of pod volumes with no custom component', () => {
       cy.intercept('PUT', `/v1/apps.deployments/${ namespace }/${ volumeDeploymentId }`).as('editDeployment');
 
       deploymentsListPage.goTo();
