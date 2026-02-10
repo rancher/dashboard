@@ -661,6 +661,20 @@ describe('component: rke2', () => {
       expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NGINX);
     });
 
+    it('should set ingress-controller to undefined by default when nginx is not supported', async() => {
+      const wrapper = createWrapper();
+
+      await wrapper.setData({
+        rke2Versions: [{
+          id:         k8sVersion,
+          version:    k8sVersion,
+          serverArgs: { disable: { options: [] } }
+        }]
+      });
+
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBeUndefined();
+    });
+
     it('should set ingress-controller to ingress-nginx on change when nginx is supported and not disabled', () => {
       const wrapper = createWrapper();
 

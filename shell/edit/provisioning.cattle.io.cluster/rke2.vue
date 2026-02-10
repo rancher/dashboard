@@ -1889,7 +1889,7 @@ export default {
       if (!this.serverConfig?.profile) {
         this.serverConfig.profile = null;
       }
-      this.updateNginxConfiguration([]);
+      this.updateNginxConfiguration(this.serverConfig?.disable || []);
     },
 
     chartVersionKey(name) {
