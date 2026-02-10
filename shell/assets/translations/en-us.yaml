@@ -3849,6 +3849,8 @@ istio:
 itemCard:
   ariaLabel:
     clickable: Click on card for {cardTitle}
+  actionMenu:
+    label: '{cardTitle} actions'
 jwt:
   title: JWT Authentication
   actions:
