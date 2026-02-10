@@ -3,6 +3,7 @@ import { CERTMANAGER, KUBERNETES, UI_PROJECT_SECRET, UI_PROJECT_SECRET_COPY } fr
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { removeObjects } from '@shell/utils/array';
 import { MANAGEMENT, SERVICE_ACCOUNT, VIRTUAL_TYPES } from '@shell/config/types';
+import { SECRET_SCOPE, SECRET_QUERY_PARAMS } from '@shell/config/query-params';
 import { set } from '@shell/utils/object';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -603,6 +604,10 @@ export default class Secret extends SteveModel {
   }
 
   get parentNameOverride() {
+    if (this.currentRoute()?.query?.[SECRET_SCOPE] === SECRET_QUERY_PARAMS.PROJECT_SCOPED) {
+      return this.$rootGetters['i18n/t'](`typeLabel."${ VIRTUAL_TYPES.PROJECT_SECRETS }"`, { count: 1 })?.trim();
+    }
+
     if (!this.isProjectScoped) {
       return super.parentNameOverride;
     }
@@ -611,6 +616,17 @@ export default class Secret extends SteveModel {
   }
 
   get parentLocationOverride() {
+    if (this.currentRoute()?.query?.[SECRET_SCOPE] === SECRET_QUERY_PARAMS.PROJECT_SCOPED) {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  this.$rootGetters['productId'],
+          cluster:  this.$rootGetters['clusterId'],
+          resource: VIRTUAL_TYPES.PROJECT_SECRETS,
+        }
+      };
+    }
+
     if (!this.isProjectScoped) {
       return super.parentNameOverride;
     }
