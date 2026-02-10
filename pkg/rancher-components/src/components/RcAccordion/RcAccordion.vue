@@ -1,0 +1,159 @@
+<script setup lang="ts">
+import { computed, useId } from 'vue';
+import { RcAccordionProps } from './types';
+import RcButton from '@components/RcButton/RcButton.vue';
+import RcIcon from '@components/RcIcon/RcIcon.vue';
+
+const props = withDefaults(defineProps<RcAccordionProps>(), { variant: 'primary' });
+
+const expanded = defineModel<boolean>({ default: false });
+
+const id = useId();
+const panelId = `rc-accordion-panel-${ id }`;
+const headerId = `rc-accordion-header-${ id }`;
+
+const toggle = () => {
+  expanded.value = !expanded.value;
+};
+
+const chevronIcon = computed(() => expanded.value ? 'chevron-down' : 'chevron-right');
+</script>
+
+<template>
+  <div
+    class="rc-accordion"
+    :class="[props.variant, { 'rc-accordion-expanded': expanded }]"
+  >
+    <div
+      class="rc-accordion-header"
+      @click="toggle"
+    >
+      <div class="rc-accordion-header-left">
+        <RcButton
+          class="rc-accordion-toggle-button"
+          variant="ghost"
+          :aria-expanded="expanded"
+          :aria-controls="panelId"
+          @click.stop="toggle"
+        >
+          <RcIcon
+            class="rc-accordion-toggle-icon"
+            :type="chevronIcon"
+            size="small"
+          />
+        </RcButton>
+        <div
+          v-if="props.title"
+          :id="headerId"
+          class="rc-accordion-title"
+        >
+          {{ props.title }}
+        </div>
+        <div
+          class="rc-accordion-header-notifications"
+          @click.stop
+        >
+          <slot name="notifications" />
+        </div>
+      </div>
+      <div
+        class="rc-accordion-header-actions"
+        @click.stop
+      >
+        <slot name="actions" />
+      </div>
+    </div>
+    <div
+      v-show="expanded"
+      :id="panelId"
+      role="region"
+      :aria-labelledby="props.title ? headerId : undefined"
+      class="rc-accordion-body"
+    >
+      <slot />
+    </div>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.rc-accordion {
+  border-radius: var(--border-radius-lg);
+
+  // Primary variant - white background
+  &.primary {
+    background-color: var(--body-bg);
+  }
+
+  // Secondary variant - light gray background (for nested accordions)
+  &.secondary {
+    background-color: var(--box-bg);
+  }
+
+  &-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap-lg);
+    cursor: pointer;
+    user-select: none;
+    padding: var(--gap-md);
+
+    button.rc-accordion-toggle-button.btn-medium {
+      $icon-size: 16px;
+      width: var($icon-size);
+      height: var($icon-size);
+      min-height: var($icon-size);
+      padding: 0;
+    }
+
+    .rc-accordion-title {
+      font-size: var(--font-size-lg);
+      font-style: normal;
+      font-weight: 600;
+      line-height: var(--line-height-lg);
+    }
+  }
+
+  &-header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--gap);
+    flex: 1;
+    min-width: 0;
+  }
+
+  &-header-notifications {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  &-toggle-icon {
+    flex-shrink: 0;
+    color: var(--body-text);
+    transition: transform 0.2s ease;
+  }
+
+  &-title {
+    font-family: 'Lato', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 24px;
+    color: var(--body-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &-body {
+    padding: var(--gap) calc(var(--gap-md) + var(--gap-lg)) var(--gap-md) calc(var(--gap-md) + var(--gap-lg));
+  }
+}
+</style>

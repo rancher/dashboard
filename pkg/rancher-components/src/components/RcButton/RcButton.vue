@@ -238,12 +238,7 @@ button {
     padding: 0;
     background-color: transparent;
 
-    &:focus, &.focused {
-      @include focus-outline;
-      outline-offset: 0;
-    }
-
-    &:focus-visible {
+    &:focus-visible, &.focused {
       @include focus-outline;
       outline-offset: 0;
     }
