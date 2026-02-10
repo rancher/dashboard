@@ -19,7 +19,8 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
   // const cloudcredentialId = '';
   let latestK8sVersion = '';
   let olderK8sVersion = '';
-  // let clusterId = '';
+  // eslint-disable-next-line no-unused-vars
+  let clusterId = '';
 
   // TODO nb delete this line and revert back to this.rke2Ec2ClusterName
   const CLUSTER_NAME = 'nancy-k3s-bigger';
