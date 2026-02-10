@@ -141,8 +141,8 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       usersPo.list().details(standardUsername, 1).find('i').should('have.class', 'icon-user-xmark');
 
-      // Wait for the menu to fully close before opening again
-      cy.get('[dropdown-menu-collection]').should('not.be.visible');
+      // Wait for the menu to fully close before opening again - check that no visible dropdown exists
+      cy.get('[dropdown-menu-collection]:visible').should('not.exist');
 
       // Activate user and check state is Active
       usersPo.list().actionMenu(standardUsername).getMenuItem('Enable').click();
