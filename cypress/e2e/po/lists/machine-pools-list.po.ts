@@ -12,10 +12,9 @@ export default class MachinePoolsListPo extends BaseResourceList {
     return new ResourceTablePo(this.self()).downloadYamlButton();
   }
 
-  machinePoolCount(poolName: string, count: number | RegExp, options?: GetOptions) {
+  machinePoolReadyofDesiredCount(poolName: string, options?: GetOptions) {
     return this.resourceTable().sortableTable().groupElementWithName(poolName)
-      .find('[data-testid="machine-progress-count"] .count')
-      .contains(count, options);
+      .find('[data-testid="machine-progress-count"] .count', options);
   }
 
   showProgressTooltip(poolName: string) {
@@ -34,7 +33,7 @@ export default class MachinePoolsListPo extends BaseResourceList {
   machineReadyCount(poolName: string, options?: GetOptions) {
     this.showProgressTooltip(poolName);
 
-    return cy.get('.v-popper__popper--shown tr', options)
+    return cy.get('.v-popper__popper--shown', options)
       .contains('Ready')
       .closest('tr')
       .contains(/\d+/)
@@ -44,7 +43,7 @@ export default class MachinePoolsListPo extends BaseResourceList {
   machineUnavailableCount(poolName: string, options?: GetOptions) {
     this.showProgressTooltip(poolName);
 
-    return cy.get('.v-popper__popper--shown tr', options)
+    return cy.get('.v-popper__popper--shown', options)
       .contains('Unavailable')
       .closest('tr')
       .contains(/\d+/)
@@ -54,7 +53,7 @@ export default class MachinePoolsListPo extends BaseResourceList {
   machinePendingCount(poolName: string, options?: GetOptions) {
     this.showProgressTooltip(poolName);
 
-    return cy.get('.v-popper__popper--shown tr', options)
+    return cy.get('.v-popper__popper--shown', options)
       .contains('Pending')
       .closest('tr')
       .contains(/\d+/)

@@ -22,7 +22,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
   let clusterId = '';
 
   // TODO nb delete this line and revert back to this.rke2Ec2ClusterName
-  const CLUSTER_NAME = 'nancy-k3s';
+  const CLUSTER_NAME = 'nancy-k3s-bigger';
 
   before(() => {
     cy.login();
@@ -221,23 +221,25 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.poolsList('machine').scaleButtonTooltip(`${ CLUSTER_NAME }-pool1`, 'minus')
       .hideTooltip();
 
-    cy.intercept('PUT', ` /v1/provisioning.cattle.io.clusters/fleet-default/${ CLUSTER_NAME }`).as('scaleUpMachineDeployment');
+    cy.intercept('PUT', `/v1/provisioning.cattle.io.clusters/fleet-default/${ CLUSTER_NAME }`).as('scaleUpMachineDeployment');
+
+    // table should say 1 or "0 of 1" if machine hasn't finished provisioning at this point
+    clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ CLUSTER_NAME }-pool1`, LONG_TIMEOUT_OPT).contains(/1$/);
+
     // Scale up the machine pool
     clusterDetails.poolsList('machine').scaleUpButton(`${ CLUSTER_NAME }-pool1`)
       .click();
 
     cy.wait('@scaleUpMachineDeployment').its('response.statusCode').should('eq', 200);
 
-    // TODO verify that one machine is provisioning
+    clusterDetails.poolsList('machine').machineUnavailableCount(`${ CLUSTER_NAME }-pool1`).should('be.greaterThan', 0);
+    clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ CLUSTER_NAME }-pool1`).contains(/^[0-9] of 2$/);
+
     // 0 of 1 displayed with red progress bar
     // 1 of 1 displayed with green progress bar
-    clusterDetails.poolsList('machine').machinePoolCount(`${ CLUSTER_NAME }-pool1`, /^2$/, LONG_TIMEOUT_OPT);
 
     // TODO scale up by one
     // clusterDetails.poolsList('machine').showProgressTooltip(`${ CLUSTER_NAME }-pool1`);
-
-    clusterDetails.poolsList('machine').machineUnavailableCount(`${ CLUSTER_NAME }-pool1`).should('equal', 1);
-    clusterDetails.poolsList('machine').machineUnavailableCount(`${ CLUSTER_NAME }-pool1`).should('equal', 1);
 
     // 1 ready 1 unavailable half red half green bar
 
@@ -246,7 +248,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     // TODO verify the progress bar shows 1 of 2 ready then 2 of 2 ready
 
     // Verify the machine pool is scaled up to 2
-    clusterDetails.poolsList('machine').machinePoolCount(`${ CLUSTER_NAME }-pool1`, /^2$/, VERY_LONG_TIMEOUT_OPT);
+    clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ CLUSTER_NAME }-pool1`, VERY_LONG_TIMEOUT_OPT).contains(/^2$/);
     clusterDetails.poolsList('machine').resourceTable().sortableTable().checkRowCount(false, 2, LONG_TIMEOUT_OPT);
 
     // Verify the scale down button is now enabled (since we have 2 nodes)
@@ -277,7 +279,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     clusterDetails.poolsList('machine').resourceTable().sortableTable().groupByButtons(1)
       .click();
 
-    clusterDetails.poolsList('machine').machinePoolCount(`${ CLUSTER_NAME }-pool1`, 2, MEDIUM_TIMEOUT_OPT);
+    clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ CLUSTER_NAME }-pool1`, MEDIUM_TIMEOUT_OPT).contains(/^2$/);
 
     // Verify the scale down button is enabled
     clusterDetails.poolsList('machine').scaleDownButton(`${ CLUSTER_NAME }-pool1`)
@@ -298,7 +300,7 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
     cy.wait('@scaleDownMachineDeployment').its('response.statusCode').should('eq', 200);
 
     // Verify the machine pool is scaled down to 1
-    clusterDetails.poolsList('machine').machinePoolCount(`${ CLUSTER_NAME }-pool1`, /^1$/, MEDIUM_TIMEOUT_OPT);
+    clusterDetails.poolsList('machine').machinePoolReadyofDesiredCount(`${ CLUSTER_NAME }-pool1`, MEDIUM_TIMEOUT_OPT).contains(/^1$/);
 
     // Verify the cluster is updating -> active
     clusterDetails.resourceDetail().masthead().resourceStatus().contains('Updating');

@@ -37,7 +37,10 @@ export default {
     offset="1"
   >
     <template #popper>
-      <table class="fixed">
+      <table
+        data-testid="machine-progress-popper"
+        class="fixed"
+      >
         <tbody>
           <tr
             v-for="(obj, i) in row.stateParts"
@@ -49,7 +52,10 @@ export default {
             >
               {{ obj.label }}
             </td>
-            <td class="text-right">
+            <td
+              :data-testid="`machine-progress-popper-${obj.label.toLowerCase()}`"
+              class="text-right"
+            >
               {{ obj.value }}
             </td>
           </tr>
@@ -66,6 +72,7 @@ export default {
         v-if="row.stateParts"
         :values="row.stateParts"
         class="progress-bar"
+        data-testid="machine-progress-bar"
       />
       <span
         v-if="row.desired === ready"
