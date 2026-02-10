@@ -42,7 +42,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
         volumeDeploymentId = name;
 
         // Create a deployment with volumes for the volume-related tests
-        const volumeDeployment = { ...createDeploymentBlueprint };
+        const volumeDeployment = structuredClone(createDeploymentBlueprint);
 
         volumeDeployment.metadata.name = volumeDeploymentId;
         cy.createRancherResource('v1', 'apps.deployment', JSON.stringify(volumeDeployment));
@@ -502,7 +502,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       cy.createE2EResourceName('volume-deployment-2').then((name) => {
         volumeDeploymentId = name;
 
-        const volumeDeployment = { ...createDeploymentBlueprint };
+        const volumeDeployment = structuredClone(createDeploymentBlueprint);
 
         volumeDeployment.metadata.name = volumeDeploymentId;
 
