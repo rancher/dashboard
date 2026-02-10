@@ -112,7 +112,17 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       workloadDetailsPage.goTo();
       workloadDetailsPage.waitForDetailsPage(scaleTestDeploymentName);
 
-      workloadDetailsPage.replicaCount().should('contain', '1', MEDIUM_TIMEOUT_OPT);
+      // Reset replicas to 1 to handle test retries with testIsolation off
+      workloadDetailsPage.replicaCount().then(($el) => {
+        const count = parseInt($el.text().trim());
+
+        if (count > 1) {
+          workloadDetailsPage.podScaleDown().should('be.enabled').click();
+          workloadDetailsPage.waitForScaleButtonsEnabled();
+          workloadDetailsPage.waitForPendingOperationsToComplete();
+          workloadDetailsPage.replicaCount().should('contain', '1', MEDIUM_TIMEOUT_OPT);
+        }
+      });
 
       workloadDetailsPage.podScaleUp().should('be.enabled').click();
 
