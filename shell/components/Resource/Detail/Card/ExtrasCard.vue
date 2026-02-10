@@ -47,6 +47,7 @@ const linkTarget = computed(() => isAdmin.value ? '_self' : '_blank');
 <style lang="scss" scoped>
 .message {
   margin: 0;
-  line-height: 1.5;
+  margin-top: -2px;
+  line-height: 20px;
 }
 </style>
