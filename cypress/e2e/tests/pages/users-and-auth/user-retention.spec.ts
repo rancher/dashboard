@@ -1,6 +1,7 @@
 import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import UserRetentionPo from '@/cypress/e2e/po/pages/users-and-auth/user.retention.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import { MEDIUM_TIMEOUT_OPT } from '~/cypress/support/utils/timeouts';
 
 function updateUserRetentionSetting(settingId, newValue) {
   cy.getRancherResource('v1', 'management.cattle.io.settings').then((data: any) => {
@@ -69,8 +70,12 @@ describe('User Retention', { testIsolation: 'off' }, () => {
 
       cy.intercept('PUT', '/v1/management.cattle.io.settings/*').as('saveUserRetention');
       userRetentionPo.saveButton().click();
+
+      // Wait for the first request to complete successfully
       cy.wait('@saveUserRetention').its('response.statusCode').should('eq', 200);
-      cy.get('@saveUserRetention.all').should('have.length', 5);
+
+      // Wait for all 5 requests to complete, with proper timeout
+      cy.get('@saveUserRetention.all', MEDIUM_TIMEOUT_OPT).should('have.length', 5);
 
       cy.url().should('include', '/management.cattle.io.user');
 
