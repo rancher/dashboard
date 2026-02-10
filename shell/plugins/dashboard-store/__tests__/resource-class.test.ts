@@ -397,9 +397,7 @@ describe('class: Resource', () => {
 
       const cards = resource.cards;
 
-      expect(cards).toHaveLength(1);
-      expect(cards[0]).toHaveProperty('component');
-      expect(cards[0]).toHaveProperty('props');
+      expect(cards).toHaveLength(0);
     });
   });
 

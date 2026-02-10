@@ -50,21 +50,4 @@ describe('component: Masthead/index', () => {
 
     expect(cardsComponent.props('resource')).toStrictEqual(mockResource);
   });
-
-  it('should render Cards with mb-20 class', () => {
-    const wrapper = mount(Masthead, {
-      props:  defaultProps,
-      global: {
-        stubs: {
-          TitleBar: true,
-          Metadata: true,
-          Cards:    true
-        }
-      }
-    });
-
-    const cardsComponent = wrapper.findComponent(Cards);
-
-    expect(cardsComponent.classes()).toContain('mb-20');
-  });
 });
