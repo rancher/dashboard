@@ -94,10 +94,6 @@ export default {
     const params = route.params;
     let resourceType = this.resourceOverride || params.resource;
 
-    // This is needed for cases like 'project secret' where a virtual type mapping to a different type (e.g. 'secret') could cause masthead to display the mapping type (e.g. 'secret') instead of the original type (e.g. 'project secret')
-    // we store the original resource type before any potential remapping and then passing it to the masthead component
-    const originalResourceType = resourceType;
-
     const inStore = this.storeOverride || store.getters['currentStore'](resourceType);
     const realMode = this.realMode;
 
@@ -232,7 +228,6 @@ export default {
       hasCustomEdit,
       canViewYaml,
       resourceType,
-      originalResourceType,
       as,
       yaml,
       initialModel,
@@ -255,21 +250,20 @@ export default {
       resourceSubtype: null,
 
       // Set by fetch
-      hasCustomDetail:      null,
-      hasCustomEdit:        null,
-      resourceType:         null,
-      originalResourceType: null,
-      asYaml:               null,
-      yaml:                 null,
-      liveModel:            null,
-      initialModel:         null,
-      mode:                 null,
-      as:                   null,
-      value:                null,
-      model:                null,
-      notFound:             null,
-      canViewYaml:          null,
-      errors:               []
+      hasCustomDetail: null,
+      hasCustomEdit:   null,
+      resourceType:    null,
+      asYaml:          null,
+      yaml:            null,
+      liveModel:       null,
+      initialModel:    null,
+      mode:            null,
+      as:              null,
+      value:           null,
+      model:           null,
+      notFound:        null,
+      canViewYaml:     null,
+      errors:          []
     };
   },
 
@@ -457,7 +451,7 @@ export default {
     <Masthead
       v-if="showMasthead"
       v-ui-context="{ icon: 'icon-folder', value: liveModel.name, tag: liveModel.kind?.toLowerCase(), description: liveModel.kind }"
-      :resource="originalResourceType || resourceType"
+      :resource="resourceType"
       :value="liveModel"
       :mode="mode"
       :real-mode="realMode"

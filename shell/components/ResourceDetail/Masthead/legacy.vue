@@ -122,17 +122,8 @@ export default {
 
     schema() {
       const inStore = this.storeOverride || this.$store.getters['currentStore'](this.resource);
-      const schema = this.$store.getters[`${ inStore }/schemaFor`]( this.resource );
 
-      if (!schema && this.resource) {
-        // When we intentionally pass a virtual type (like 'projectsecret') to the Masthead
-        // to preserve its display title, it won't have a backend schema. We must return
-        // a fallback object with the ID because the 'labelFor' getter expects a schema-like
-        // object to determine the resource ID for translation lookups.
-        return { id: this.resource };
-      }
-
-      return schema;
+      return this.$store.getters[`${ inStore }/schemaFor`]( this.resource );
     },
 
     isView() {
