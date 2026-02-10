@@ -177,7 +177,8 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   rowActionMenu() {
-    return new ActionMenuPo();
+    // Get the visible dropdown menu - this ensures we only interact with a menu that's actually open
+    return new ActionMenuPo(cy.get('[dropdown-menu-collection]:visible'));
   }
 
   noRowsShouldNotExist() {
@@ -220,23 +221,11 @@ export default class SortableTablePo extends ComponentPo {
   rowActionMenuOpen(name: string) {
     this.rowWithName(name).actionBtn().click();
 
-    // Wait for the dropdown to actually appear in the DOM first
-    // this guarantees that if the dropdown is already open from a previous action,
-    // we won't proceed until it's closed and re-opened,
-    // which is important to avoid test failures due to trying to interact with a dropdown that is in the process of closing
-    // looking at aria-expanded attribute is not sufficient as it can be true while the dropdown
-    // is still in the process of closing and being removed from the DOM
-    // which creates a race condition where if we try to interact with the dropdown before it's fully open, it can cause test failures
-    cy.get('body').find('[dropdown-menu-collection]').should('be.visible');
-
     return this.rowActionMenu();
   }
 
   rowActionMenuClose(name: string) {
     this.rowWithName(name).actionBtn().click();
-
-    // Wait for the dropdown to actually disappear from the DOM first
-    cy.get('body').find('[dropdown-menu-collection]').should('not.be.visible');
 
     return this.rowActionMenu();
   }

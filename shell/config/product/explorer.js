@@ -541,13 +541,6 @@ export function init(store) {
     USER_ID,
     USER_DISPLAY_NAME,
     USER_PROVIDER,
-    {
-      name:          'enabled',
-      labelKey:      'generic.enabled',
-      value:         'enabled',
-      canBeVariable: true,
-      align:         'left',
-    },
     USERNAME,
     USER_LAST_LOGIN,
     USER_DISABLED_IN,
