@@ -220,370 +220,370 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  // describe('Bulk Actions', () => {
-  //   it('can Deactivate and Activate users', () => {
-  //     // Deactivate user and check state is Inactive
-  //     cy.intercept('PUT', '/v1/management.cattle.io.users/*').as('updateUsers');
-  //     usersPo.waitForRequests();
-  //     usersPo.list().selectAll().set();
-  //     usersPo.list().deactivate().click();
-  //     cy.wait('@updateUsers');
-  //     usersPo.list().details('admin', 1).find('i').should('have.class', 'icon-user-check');
-  //     usersPo.list().details(userBaseUsername, 1).find('i').should('have.class', 'icon-user-xmark');
-
-  //     // Activate user and check state is Active
-  //     usersPo.list().activate().click();
-  //     cy.wait('@updateUsers');
-  //     usersPo.list().details(userBaseUsername, 1).find('i').should('have.class', 'icon-user-check');
-  //   });
-
-  //   it('can Download YAML', () => {
-  //     // Download YAML and verify file exists
-  //     usersPo.waitForRequests();
-  //     usersPo.list().selectAll().set();
-  //     usersPo.list().openBulkActionDropdown();
-
-  //     cy.intercept('GET', `${ USERS_BASE_URL }/*`).as('downloadYaml');
-  //     usersPo.list().bulkActionButton('Download YAML').click({ force: true });
-  //     cy.wait('@downloadYaml', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
-  //     const downloadedFilename = path.join(downloadsFolder, 'resources.zip');
-
-  //     cy.readFile(downloadedFilename).should('exist');
-  //   });
-
-  //   it('can Delete user', () => {
-  //     // Delete user and verify user is removed from list
-  //     usersPo.waitForRequests();
-  //     usersPo.list().elementWithName(userBaseUsername).click();
-  //     usersPo.list().openBulkActionDropdown();
-  //     usersPo.list().bulkActionButton('Delete').click({ force: true });
-  //     const promptRemove = new PromptRemove();
-
-  //     cy.intercept('DELETE', '/v1/management.cattle.io.users/*').as('deleteUser');
-  //     promptRemove.confirm(userBaseUsername);
-  //     promptRemove.remove();
-  //     cy.wait('@deleteUser').its('response.statusCode').should((statusCode) => {
-  //       expect([200, 204]).to.include(statusCode);
-  //     });
-  //     usersPo.list().elementWithName(userBaseUsername).should('not.exist');
-  //   });
-  // });
-
-  // describe('List', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
-  //   let uniqueUserName = SortableTablePo.firstByDefaultName('user');
-
-  //   const userIdsList = [];
-  //   let initialCount;
-
-  //   before('set up', () => {
-  //     cy.login();
-  //     cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
-  //       // we need to filter out system users here, as they are not shown in the UI
-  //       const filteredUsersNotSystem = resp.body.data.filter((item) => {
-  //         const res = item.principalIds.filter((fp) => fp.startsWith('system://'));
-
-  //         return res.length === 0;
-  //       });
-
-  //       initialCount = filteredUsersNotSystem.length - 1;
-  //     });
-  //     cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
-
-  //     // create users
-  //     let i = 0;
-
-  //     while (i < 25) {
-  //       const userName = Cypress._.uniqueId(Date.now().toString());
-
-  //       cy.createUser({ username: userName }).then((resp: Cypress.Response<any>) => {
-  //         const userId = resp.body.id;
-
-  //         userIdsList.push(userId);
-  //       });
-
-  //       i++;
-  //     }
-
-  //     // create one more for sorting test
-  //     cy.createUser({ username: uniqueUserName }, { createNameOptions: { prefixContext: true } }).then((resp: Cypress.Response<any>) => {
-  //       const userId = resp.body.id;
-
-  //       uniqueUserName = resp.body.username;
-  //       userIdsList.push(userId);
-  //     });
-  //   });
-
-  //   it('pagination is visible and user is able to navigate through users data', () => {
-  //     usersPo.goTo(); // This is needed for the @noVai only world
-  //     usersPo.waitForPage();
-  //     const count = initialCount + 26;
-
-  //     // check users count
-  //     cy.waitForRancherResources('v1', 'management.cattle.io.users', count).then((resp: Cypress.Response<any>) => {
-  //       // we need to filter out system users here, as they are not shown in the UI
-  //       const filteredUsersNotSystem = resp.body.data.filter((item) => {
-  //         const res = item.principalIds.filter((fp) => fp.startsWith('system://'));
-
-  //         return res.length === 0;
-  //       });
-
-  //       const count = filteredUsersNotSystem.length;
-
-  //       // pagination is visible
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .checkVisible();
-
-  //       // basic checks on navigation buttons
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .beginningButton()
-  //         .isDisabled();
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .leftButton()
-  //         .isDisabled();
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .rightButton()
-  //         .isEnabled();
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .endButton()
-  //         .isEnabled();
-
-  //       // check text before navigation
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .paginationText()
-  //         .then((el) => {
-  //           expect(el.trim()).to.eq(`1 - 10 of ${ count } Users`);
-  //         });
-
-  //       // navigate to next page - right button
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .rightButton()
-  //         .click();
-
-  //       // check text and buttons after navigation
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .paginationText()
-  //         .then((el) => {
-  //           expect(el.trim()).to.eq(`11 - 20 of ${ count } Users`);
-  //         });
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .beginningButton()
-  //         .isEnabled();
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .leftButton()
-  //         .isEnabled();
-
-  //       // navigate to first page - left button
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .leftButton()
-  //         .click();
-
-  //       // check text and buttons after navigation
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .paginationText()
-  //         .then((el) => {
-  //           expect(el.trim()).to.eq(`1 - 10 of ${ count } Users`);
-  //         });
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .beginningButton()
-  //         .isDisabled();
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .leftButton()
-  //         .isDisabled();
-
-  //       // navigate to last page - end button
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .endButton()
-  //         .scrollIntoView()
-  //         .click();
-
-  //       // row count on last page
-  //       let lastPageCount = count % 10;
-
-  //       if (lastPageCount === 0) {
-  //         lastPageCount = 10;
-  //       }
-
-  //       // check text after navigation
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .paginationText()
-  //         .then((el) => {
-  //           expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Users`);
-  //         });
-
-  //       // navigate to first page - beginning button
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .beginningButton()
-  //         .click();
-
-  //       // check text and buttons after navigation
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .paginationText()
-  //         .then((el) => {
-  //           expect(el.trim()).to.eq(`1 - 10 of ${ count } Users`);
-  //         });
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .beginningButton()
-  //         .isDisabled();
-  //       usersPo.list().resourceTable().sortableTable().pagination()
-  //         .leftButton()
-  //         .isDisabled();
-  //     });
-  //   });
-
-  //   it('filter users', () => {
-  //     UsersPo.navTo();
-  //     usersPo.waitForPage();
-
-  //     usersPo.list().resourceTable().sortableTable().checkVisible();
-  //     usersPo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
-
-  //     // filter by id
-  //     usersPo.list().resourceTable().sortableTable().filter(userIdsList[0]);
-  //     usersPo.list().resourceTable().sortableTable().checkRowCount(false, 1);
-  //     usersPo.list().resourceTable().sortableTable().rowElementWithName(userIdsList[0])
-  //       .should('be.visible');
-
-  //     // filter by name
-  //     usersPo.list().resourceTable().sortableTable().filter(uniqueUserName);
-  //     usersPo.list().resourceTable().sortableTable().checkRowCount(false, 1);
-  //     usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
-  //       .should('be.visible');
-
-  //     usersPo.list().resourceTable().sortableTable().resetFilter();
-  //   });
-
-  //   it('sorting changes the order of paginated users data', () => {
-  //     UsersPo.navTo();
-  //     usersPo.waitForPage();
-
-  //     // check table is sorted by name in ASC order by default
-  //     usersPo.list().resourceTable().sortableTable().tableHeaderRow()
-  //       .checkSortOrder(3, 'down');
-
-  //     // user name should be visible on first page (sorted in ASC order)
-  //     usersPo.list().resourceTable().sortableTable().tableHeaderRow()
-  //       .self()
-  //       .scrollIntoView();
-  //     usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
-  //       .scrollIntoView()
-  //       .should('be.visible');
-
-  //     // navigate to last page
-  //     usersPo.list().resourceTable().sortableTable().pagination()
-  //       .endButton()
-  //       .scrollIntoView()
-  //       .click();
-
-  //     // user name should NOT be visible on last page (sorted in ASC order)
-  //     usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
-  //       .should('not.exist');
-
-  //     // sort by name in DESC order
-  //     usersPo.list().resourceTable().sortableTable().sort(3)
-  //       .click();
-  //     usersPo.list().resourceTable().sortableTable().tableHeaderRow()
-  //       .checkSortOrder(3, 'up');
-
-  //     // user name should be NOT visible on first page (sorted in DESC order)
-  //     usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
-  //       .should('not.exist');
-
-  //     // navigate to last page
-  //     usersPo.list().resourceTable().sortableTable().pagination()
-  //       .endButton()
-  //       .scrollIntoView()
-  //       .click();
-
-  //     // user name should be visible on last page (sorted in DESC order)
-  //     usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
-  //       .scrollIntoView()
-  //       .should('be.visible');
-  //   });
-
-  //   it('pagination is hidden', () => {
-  //     generateUsersDataSmall();
-  //     usersPo.goTo(); // this is needed here for the intercept to work
-  //     UsersPo.navTo();
-  //     usersPo.waitForPage();
-  //     cy.wait('@usersDataSmall');
-
-  //     usersPo.list().resourceTable().sortableTable().checkVisible();
-  //     usersPo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
-  //     usersPo.list().resourceTable().sortableTable().checkRowCount(false, 2);
-  //     usersPo.list().resourceTable().sortableTable().pagination()
-  //       .checkNotExists();
-  //   });
-
-  //   after(() => {
-  //     cy.deleteManyResources({
-  //       toDelete: userIdsList,
-  //       deleteFn: (r) => cy.deleteRancherResource('v1', 'management.cattle.io.users', r, false)
-  //     });
-
-  //     // Ensure the default rows per page value is set after executing the tests
-  //     cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
-  //   });
-  // });
-
-  // describe('Create admin user with standard user', () => {
-  //   before(() => {
-  //     cy.login();
-  //   });
-
-  //   it('User creation should complete after admin user fails to create for Standard user with Manage Users Role', () => {
-  //     // create standard user
-  //     usersPo.goTo();
-  //     usersPo.waitForPage();
-  //     usersPo.list().create();
-
-  //     userCreate.username().set(standardUsername);
-  //     userCreate.newPass().set(standardPassword);
-  //     userCreate.confirmNewPass().set(standardPassword);
-  //     userCreate.selectCheckbox('Manage Users').set();
-  //     userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings', true);
-
-  //     // check that the user is on the list view before attempting to login
-  //     usersPo.goTo();
-  //     usersPo.waitForPage();
-  //     usersPo.list().elementWithName(standardUsername).should('exist');
-
-  //     // logout admin
-  //     cy.logout();
-
-  //     // login as standard user
-  //     cy.login(standardUsername, standardPassword);
-
-  //     // navigate to the users page and attempt to create an admin user
-  //     HomePagePo.goToAndWaitForGet();
-  //     usersPo.goTo();
-  //     usersPo.waitForPage();
-  //     usersPo.list().create();
-
-  //     const runTimestamp = +new Date();
-  //     const runPrefix = `e2e-test-${ runTimestamp }`;
-  //     const adminUsername = `${ runPrefix }-admin-user`;
-  //     const adminPassword = 'admin-password';
-
-  //     userCreate.username().set(adminUsername);
-  //     userCreate.newPass().set(adminPassword);
-  //     userCreate.confirmNewPass().set(adminPassword);
-  //     userCreate.selectCheckbox('Administrator').set();
-  //     userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
-
-  //     // the error banner should be displayed
-  //     const banner = new FixedBannerPo('#cru-errors');
-
-  //     banner.checkExists();
-  //     banner.text().should('eq', 'You cannot assign Global Permissions that are higher than your own. Please verify the permissions you are attempting to assign.');
-
-  //     // update the Global Permissions
-  //     userCreate.selectCheckbox('User-Base').set();
-  //     userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
-
-  //     // save and assert that the new user exists
-  //     usersPo.goTo();
-  //     usersPo.waitForPage();
-  //     usersPo.list().elementWithName(adminUsername).should('exist');
-  //   });
-  // });
+  describe('Bulk Actions', () => {
+    it('can Deactivate and Activate users', () => {
+      // Deactivate user and check state is Inactive
+      cy.intercept('PUT', '/v1/management.cattle.io.users/*').as('updateUsers');
+      usersPo.waitForRequests();
+      usersPo.list().selectAll().set();
+      usersPo.list().deactivate().click();
+      cy.wait('@updateUsers');
+      usersPo.list().details('admin', 1).find('i').should('have.class', 'icon-user-check');
+      usersPo.list().details(userBaseUsername, 1).find('i').should('have.class', 'icon-user-xmark');
+
+      // Activate user and check state is Active
+      usersPo.list().activate().click();
+      cy.wait('@updateUsers');
+      usersPo.list().details(userBaseUsername, 1).find('i').should('have.class', 'icon-user-check');
+    });
+
+    it('can Download YAML', () => {
+      // Download YAML and verify file exists
+      usersPo.waitForRequests();
+      usersPo.list().selectAll().set();
+      usersPo.list().openBulkActionDropdown();
+
+      cy.intercept('GET', `${ USERS_BASE_URL }/*`).as('downloadYaml');
+      usersPo.list().bulkActionButton('Download YAML').click({ force: true });
+      cy.wait('@downloadYaml', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
+      const downloadedFilename = path.join(downloadsFolder, 'resources.zip');
+
+      cy.readFile(downloadedFilename).should('exist');
+    });
+
+    it('can Delete user', () => {
+      // Delete user and verify user is removed from list
+      usersPo.waitForRequests();
+      usersPo.list().elementWithName(userBaseUsername).click();
+      usersPo.list().openBulkActionDropdown();
+      usersPo.list().bulkActionButton('Delete').click({ force: true });
+      const promptRemove = new PromptRemove();
+
+      cy.intercept('DELETE', '/v1/management.cattle.io.users/*').as('deleteUser');
+      promptRemove.confirm(userBaseUsername);
+      promptRemove.remove();
+      cy.wait('@deleteUser').its('response.statusCode').should((statusCode) => {
+        expect([200, 204]).to.include(statusCode);
+      });
+      usersPo.list().elementWithName(userBaseUsername).should('not.exist');
+    });
+  });
+
+  describe('List', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
+    let uniqueUserName = SortableTablePo.firstByDefaultName('user');
+
+    const userIdsList = [];
+    let initialCount;
+
+    before('set up', () => {
+      cy.login();
+      cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
+        // we need to filter out system users here, as they are not shown in the UI
+        const filteredUsersNotSystem = resp.body.data.filter((item) => {
+          const res = item.principalIds.filter((fp) => fp.startsWith('system://'));
+
+          return res.length === 0;
+        });
+
+        initialCount = filteredUsersNotSystem.length - 1;
+      });
+      cy.tableRowsPerPageAndNamespaceFilter(10, 'local', 'none', '{\"local\":[]}');
+
+      // create users
+      let i = 0;
+
+      while (i < 25) {
+        const userName = Cypress._.uniqueId(Date.now().toString());
+
+        cy.createUser({ username: userName }).then((resp: Cypress.Response<any>) => {
+          const userId = resp.body.id;
+
+          userIdsList.push(userId);
+        });
+
+        i++;
+      }
+
+      // create one more for sorting test
+      cy.createUser({ username: uniqueUserName }, { createNameOptions: { prefixContext: true } }).then((resp: Cypress.Response<any>) => {
+        const userId = resp.body.id;
+
+        uniqueUserName = resp.body.username;
+        userIdsList.push(userId);
+      });
+    });
+
+    it('pagination is visible and user is able to navigate through users data', () => {
+      usersPo.goTo(); // This is needed for the @noVai only world
+      usersPo.waitForPage();
+      const count = initialCount + 26;
+
+      // check users count
+      cy.waitForRancherResources('v1', 'management.cattle.io.users', count).then((resp: Cypress.Response<any>) => {
+        // we need to filter out system users here, as they are not shown in the UI
+        const filteredUsersNotSystem = resp.body.data.filter((item) => {
+          const res = item.principalIds.filter((fp) => fp.startsWith('system://'));
+
+          return res.length === 0;
+        });
+
+        const count = filteredUsersNotSystem.length;
+
+        // pagination is visible
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .checkVisible();
+
+        // basic checks on navigation buttons
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .beginningButton()
+          .isDisabled();
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .leftButton()
+          .isDisabled();
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .rightButton()
+          .isEnabled();
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .endButton()
+          .isEnabled();
+
+        // check text before navigation
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Users`);
+          });
+
+        // navigate to next page - right button
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .rightButton()
+          .click();
+
+        // check text and buttons after navigation
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`11 - 20 of ${ count } Users`);
+          });
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .beginningButton()
+          .isEnabled();
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .leftButton()
+          .isEnabled();
+
+        // navigate to first page - left button
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .leftButton()
+          .click();
+
+        // check text and buttons after navigation
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Users`);
+          });
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .beginningButton()
+          .isDisabled();
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .leftButton()
+          .isDisabled();
+
+        // navigate to last page - end button
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .endButton()
+          .scrollIntoView()
+          .click();
+
+        // row count on last page
+        let lastPageCount = count % 10;
+
+        if (lastPageCount === 0) {
+          lastPageCount = 10;
+        }
+
+        // check text after navigation
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Users`);
+          });
+
+        // navigate to first page - beginning button
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .beginningButton()
+          .click();
+
+        // check text and buttons after navigation
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .paginationText()
+          .then((el) => {
+            expect(el.trim()).to.eq(`1 - 10 of ${ count } Users`);
+          });
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .beginningButton()
+          .isDisabled();
+        usersPo.list().resourceTable().sortableTable().pagination()
+          .leftButton()
+          .isDisabled();
+      });
+    });
+
+    it('filter users', () => {
+      UsersPo.navTo();
+      usersPo.waitForPage();
+
+      usersPo.list().resourceTable().sortableTable().checkVisible();
+      usersPo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
+      // filter by id
+      usersPo.list().resourceTable().sortableTable().filter(userIdsList[0]);
+      usersPo.list().resourceTable().sortableTable().checkRowCount(false, 1);
+      usersPo.list().resourceTable().sortableTable().rowElementWithName(userIdsList[0])
+        .should('be.visible');
+
+      // filter by name
+      usersPo.list().resourceTable().sortableTable().filter(uniqueUserName);
+      usersPo.list().resourceTable().sortableTable().checkRowCount(false, 1);
+      usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
+        .should('be.visible');
+
+      usersPo.list().resourceTable().sortableTable().resetFilter();
+    });
+
+    it('sorting changes the order of paginated users data', () => {
+      UsersPo.navTo();
+      usersPo.waitForPage();
+
+      // check table is sorted by name in ASC order by default
+      usersPo.list().resourceTable().sortableTable().tableHeaderRow()
+        .checkSortOrder(3, 'down');
+
+      // user name should be visible on first page (sorted in ASC order)
+      usersPo.list().resourceTable().sortableTable().tableHeaderRow()
+        .self()
+        .scrollIntoView();
+      usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
+        .scrollIntoView()
+        .should('be.visible');
+
+      // navigate to last page
+      usersPo.list().resourceTable().sortableTable().pagination()
+        .endButton()
+        .scrollIntoView()
+        .click();
+
+      // user name should NOT be visible on last page (sorted in ASC order)
+      usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
+        .should('not.exist');
+
+      // sort by name in DESC order
+      usersPo.list().resourceTable().sortableTable().sort(3)
+        .click();
+      usersPo.list().resourceTable().sortableTable().tableHeaderRow()
+        .checkSortOrder(3, 'up');
+
+      // user name should be NOT visible on first page (sorted in DESC order)
+      usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
+        .should('not.exist');
+
+      // navigate to last page
+      usersPo.list().resourceTable().sortableTable().pagination()
+        .endButton()
+        .scrollIntoView()
+        .click();
+
+      // user name should be visible on last page (sorted in DESC order)
+      usersPo.list().resourceTable().sortableTable().rowElementWithName(uniqueUserName)
+        .scrollIntoView()
+        .should('be.visible');
+    });
+
+    it('pagination is hidden', () => {
+      generateUsersDataSmall();
+      usersPo.goTo(); // this is needed here for the intercept to work
+      UsersPo.navTo();
+      usersPo.waitForPage();
+      cy.wait('@usersDataSmall');
+
+      usersPo.list().resourceTable().sortableTable().checkVisible();
+      usersPo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      usersPo.list().resourceTable().sortableTable().checkRowCount(false, 2);
+      usersPo.list().resourceTable().sortableTable().pagination()
+        .checkNotExists();
+    });
+
+    after(() => {
+      cy.deleteManyResources({
+        toDelete: userIdsList,
+        deleteFn: (r) => cy.deleteRancherResource('v1', 'management.cattle.io.users', r, false)
+      });
+
+      // Ensure the default rows per page value is set after executing the tests
+      cy.tableRowsPerPageAndNamespaceFilter(100, 'local', 'none', '{"local":["all://user"]}');
+    });
+  });
+
+  describe('Create admin user with standard user', () => {
+    before(() => {
+      cy.login();
+    });
+
+    it('User creation should complete after admin user fails to create for Standard user with Manage Users Role', () => {
+      // create standard user
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().create();
+
+      userCreate.username().set(standardUsername);
+      userCreate.newPass().set(standardPassword);
+      userCreate.confirmNewPass().set(standardPassword);
+      userCreate.selectCheckbox('Manage Users').set();
+      userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings', true);
+
+      // check that the user is on the list view before attempting to login
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().elementWithName(standardUsername).should('exist');
+
+      // logout admin
+      cy.logout();
+
+      // login as standard user
+      cy.login(standardUsername, standardPassword);
+
+      // navigate to the users page and attempt to create an admin user
+      HomePagePo.goToAndWaitForGet();
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().create();
+
+      const runTimestamp = +new Date();
+      const runPrefix = `e2e-test-${ runTimestamp }`;
+      const adminUsername = `${ runPrefix }-admin-user`;
+      const adminPassword = 'admin-password';
+
+      userCreate.username().set(adminUsername);
+      userCreate.newPass().set(adminPassword);
+      userCreate.confirmNewPass().set(adminPassword);
+      userCreate.selectCheckbox('Administrator').set();
+      userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
+
+      // the error banner should be displayed
+      const banner = new FixedBannerPo('#cru-errors');
+
+      banner.checkExists();
+      banner.text().should('eq', 'You cannot assign Global Permissions that are higher than your own. Please verify the permissions you are attempting to assign.');
+
+      // update the Global Permissions
+      userCreate.selectCheckbox('User-Base').set();
+      userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
+
+      // save and assert that the new user exists
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().elementWithName(adminUsername).should('exist');
+    });
+  });
 });
