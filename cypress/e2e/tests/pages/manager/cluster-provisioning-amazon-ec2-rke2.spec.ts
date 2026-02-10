@@ -15,11 +15,11 @@ describe('Deploy RKE2 cluster using node driver on Amazon EC2', { tags: ['@manag
   const clusterList = new ClusterManagerListPagePo();
   const loadingPo = new LoadingPo('.loading-indicator');
 
-  const removeCloudCred = false;
-  const cloudcredentialId = '';
+  // const removeCloudCred = false;
+  // const cloudcredentialId = '';
   let latestK8sVersion = '';
   let olderK8sVersion = '';
-  let clusterId = '';
+  // let clusterId = '';
 
   // TODO nb delete this line and revert back to this.rke2Ec2ClusterName
   const CLUSTER_NAME = 'nancy-k3s-bigger';
