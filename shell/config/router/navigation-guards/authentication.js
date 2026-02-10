@@ -1,5 +1,7 @@
 import { routeRequiresAuthentication } from '@shell/utils/router';
-import { isLoggedIn, notLoggedIn, noAuth, findMe } from '@shell/utils/auth';
+import {
+  isLoggedIn, notLoggedIn, noAuth, findMe, isLocalUser
+} from '@shell/utils/auth';
 import { RANCHER_AS_OIDC_QUERY_PARAMS } from '@shell/config/query-params';
 
 const R_OIDC_PROV_PARAMS = 'rancher-as-oidc-prov-params';
@@ -62,7 +64,9 @@ export async function authenticate(to, from, next, { store }) {
 
     const v3User = store.getters['auth/v3User'] || {};
 
-    if (v3User?.mustChangePassword) {
+    // Only redirect to setup if user must change password AND is a local user
+    // Auth provider users (OAuth, SAML, etc.) don't have passwords managed by Rancher
+    if (v3User?.mustChangePassword && isLocalUser(v3User)) {
       return next({ name: 'auth-setup' });
     }
 
