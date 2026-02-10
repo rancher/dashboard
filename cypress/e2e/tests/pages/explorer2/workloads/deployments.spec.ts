@@ -118,13 +118,18 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
 
       workloadDetailsPage.waitForScaleButtonsEnabled();
       workloadDetailsPage.waitForPendingOperationsToComplete();
-
       workloadDetailsPage.replicaCount().should('contain', '2', MEDIUM_TIMEOUT_OPT);
 
       // Verify pod status shows healthy scaling state
       workloadDetailsPage.podsStatus().should('be.visible', MEDIUM_TIMEOUT_OPT)
         .should('contain.text', 'Running');
-      workloadDetailsPage.podScaleDown().should('be.enabled').click();
+
+      // Wait until there's only one pods status count element
+      cy.get('[data-testid="rc-counter-badge"]').should('have.length', 1);
+
+      workloadDetailsPage.podsStatusCount().should('be.visible', MEDIUM_TIMEOUT_OPT)
+        .should('contain', '2');
+      workloadDetailsPage.podScaleDown().click();
       workloadDetailsPage.waitForScaleButtonsEnabled();
       workloadDetailsPage.waitForPendingOperationsToComplete();
 
