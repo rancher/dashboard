@@ -1004,6 +1004,18 @@ export default {
         // ... which will eventually update `value.spec.rkeConfig.chartValues`
         this.agentConfig['cloud-provider-name'] = undefined;
       }
+    },
+
+    hasSomeIpv6Pools(neu) {
+      if (this.isCreate && this.localValue.spec.rkeConfig.networking.stackPreference !== STACK_PREFS.IPV6) { // if stack pref is ipv6, the user has manually configured that and we shouldn't change it
+        if (neu) {
+          this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.DUAL;
+
+          return;
+        }
+
+        this.localValue.spec.rkeConfig.networking.stackPreference = STACK_PREFS.IPV4;
+      }
     }
   },
 
@@ -2217,11 +2229,21 @@ export default {
       }
     },
 
-    updateNginxConfiguration(val) {
-      if (val.includes(NGINX_SUPPORTED) || !this.nginxSupported) {
-        this.serverConfig[INGRESS_CONTROLLER] = undefined;
-      } else if (this.serverConfig[INGRESS_CONTROLLER] !== INGRESS_NGINX) {
-        this.serverConfig[INGRESS_CONTROLLER] = INGRESS_NGINX;
+    updateNginxConfiguration(disabledServerConfig) {
+      // We only need to explicitly set INGRESS_CONTROLLER for RKE2, we continue to rely on disable list for K3s
+      if (!this.value?.isK3s) {
+        // For new instances, we want Traefik to be default
+        if (this.isCreate) {
+          this.serverConfig[INGRESS_CONTROLLER] = TRAEFIK;
+        // Older existing instances might be relying on default setting, which is changing from nginx to traefik
+        // so we need to make sure to set it to nginx explicitly to avoid breaking existing clusters
+        } else if (!this.serverConfig[INGRESS_CONTROLLER]) {
+          if (!disabledServerConfig.includes(RKE2_INGRESS_NGINX) && this.nginxSupported) {
+            this.serverConfig[INGRESS_CONTROLLER] = INGRESS_NGINX;
+          } else {
+            this.serverConfig[INGRESS_CONTROLLER] = INGRESS_NONE;
+          }
+        }
       }
     },
 
