@@ -30,7 +30,7 @@ describe('Support Page', () => {
       supportPage.waitForPage();
     });
 
-    it('can click on Suse Rancher Support link', () => {
+    it('can click on Suse Rancher Support link', { tags: '@noPrime' }, () => {
       catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://www.rancher.com/');
 
       supportPage.clickExternalSupportLinks(0);
@@ -40,7 +40,7 @@ describe('Support Page', () => {
       });
     });
 
-    it('can click on Contact us for pricing link', () => {
+    it('can click on Contact us for pricing link', { tags: '@noPrime' }, () => {
       catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://www.rancher.com/pricing');
 
       supportPage.clickExternalSupportLinks(1);
@@ -50,14 +50,30 @@ describe('Support Page', () => {
       });
     });
 
+    it('can click on Suse Customer Center link', { tags: ['@jenkins', '@prime'] }, () => {
+      catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://scc.suse.com/');
+
+      supportPage.clickSccLink();
+
+      cy.origin('https://scc.suse.com/', () => {
+        cy.url().should('include', 'scc.suse.com/');
+      });
+    });
+
     it('can click on Docs link', () => {
       catchTargetPageException(RANCHER_PAGE_EXCEPTIONS, 'https://ranchermanager.docs.rancher.com');
 
-      supportPage.supportLinks().should('have.length', 5);
+      supportPage.supportLinks().should('have.length.at.least', 5);
       supportPage.clickSupportLink(0, true);
 
-      cy.origin('https://ranchermanager.docs.rancher.com', () => {
-        cy.url().should('include', 'ranchermanager.docs.rancher.com');
+      // Doc link differs between Rancher Prime and Community
+      cy.getRancherVersion().then((version) => {
+        const expectedOrigin = version.RancherPrime === 'true' ? 'https://documentation.suse.com' : 'https://ranchermanager.docs.rancher.com';
+        const expectedUrl = version.RancherPrime === 'true' ? 'documentation.suse.com/cloudnative/rancher-manager' : 'ranchermanager.docs.rancher.com';
+
+        cy.origin(expectedOrigin, { args: { expectedUrl } }, ({ expectedUrl }) => {
+          cy.url().should('include', expectedUrl);
+        });
       });
     });
 
@@ -94,6 +110,16 @@ describe('Support Page', () => {
       // click Get Started link
       supportPage.clickSupportLink(4, true);
       cy.url().should('include', 'getting-started/overview');
+    });
+
+    it('can click on SUSE Application Collection link', { tags: ['@jenkins', '@prime'] }, () => {
+      catchTargetPageException(RANCHER_PAGE_EXCEPTIONS);
+
+      // click SUSE Application Collection link
+      supportPage.clickSupportLink(5, true);
+      cy.origin('https://apps.rancher.io/', () => {
+        cy.url().should('include', 'apps.rancher.io/');
+      });
     });
   });
 });
