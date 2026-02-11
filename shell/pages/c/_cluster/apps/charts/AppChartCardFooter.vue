@@ -41,7 +41,7 @@ function onClickItem(type: string, label: string) {
         >
           <rc-button
             v-clean-tooltip="footerItem.labelTooltip"
-            variant="ghost"
+            ghost
             class="app-chart-card-footer-button secondary-text-link"
             data-testid="app-chart-card-footer-item-text"
             :aria-label="t('catalog.charts.appChartCard.footerItem.ariaLabel', { filter: label })"
@@ -112,10 +112,11 @@ function onClickItem(type: string, label: string) {
   }
 }
 
-button.variant-ghost.app-chart-card-footer-button {
+BUTTON.app-chart-card-footer-button {
   padding: 0;
   gap: 0;
   min-height: 20px;
+  line-height: initial;
 
   &:focus-visible {
     border-color: var(--primary);
