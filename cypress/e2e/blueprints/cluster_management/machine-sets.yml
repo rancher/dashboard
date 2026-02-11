@@ -29,26 +29,10 @@ spec:
 #          uid: string
     spec:
       bootstrap:
-#        configRef:
-#          apiVersion: string
-#          fieldPath: string
-#          kind: string
-#          name: string
-#          namespace: string
-#          resourceVersion: string
-#          uid: string
-#        data: string
          dataSecretName: secretName
       clusterName: local
-#      failureDomain: string
       infrastructureRef:
         apiGroup: rke-machine.cattle.io
         kind: Amazonec2Machine
         name: name123
-#      nodeDrainTimeout: string
-#      providerID: string
-#      version: string
   clusterName: local
-#  deletePolicy: string
-#  minReadySeconds: int
-#  replicas: int

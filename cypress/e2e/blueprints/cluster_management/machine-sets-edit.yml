@@ -42,7 +42,7 @@ spec:
       bootstrap: 
         dataSecretName: secretname
       clusterName: local
-    infrastructureRef:
-      apiGroup: rke-machine.cattle.io
-      kind: Amazonec2Machine
-      name: name123
+      infrastructureRef:
+        apiGroup: rke-machine.cattle.io
+        kind: Amazonec2Machine
+        name: name123
