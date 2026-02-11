@@ -6400,6 +6400,7 @@ setup:
   useRandom: Use a randomly generated password
   copyRandom: Copy random password to clipboard
   welcome: Welcome to {vendor}!
+  setup: Setup
 
 sortableTable:
   ariaLabel:
