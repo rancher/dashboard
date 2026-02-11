@@ -151,10 +151,10 @@ describe('component: ScaleMachineDownDialog', () => {
   });
 
   describe('showScaling', () => {
-    it('should return true if replicas do not match readyReplicas', () => {
+    it('should return true if replicas do not match readyReplicas', async() => {
       const wrapper = createWrapper();
 
-      wrapper.setData({
+      await wrapper.setData({
         workerMachineSets: [{
           data: [{
             spec:   { replicas: 2 },
@@ -166,10 +166,10 @@ describe('component: ScaleMachineDownDialog', () => {
       expect(wrapper.vm.showScaling).toBe(true);
     });
 
-    it('should return false if replicas match readyReplicas', () => {
+    it('should return false if replicas match readyReplicas', async() => {
       const wrapper = createWrapper();
 
-      wrapper.setData({
+      await wrapper.setData({
         workerMachineSets: [{
           data: [{
             spec:   { replicas: 2 },

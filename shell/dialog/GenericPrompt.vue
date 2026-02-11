@@ -42,9 +42,10 @@ export default {
       type:    String,
       default: 'role-primary',
     },
-  },
-  data() {
-    return { errors: [] };
+    errors: {
+      type:    Array,
+      default: () => []
+    }
   },
 
   methods: {

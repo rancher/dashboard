@@ -4,7 +4,7 @@ import { MANAGEMENT, CAPI } from '@shell/config/types';
 import GenericPrompt from './GenericPrompt';
 
 export default {
-  emits: ['close'],
+  emits: ['close', 'error'],
 
   components: { GenericPrompt },
 
@@ -23,16 +23,18 @@ export default {
           this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT }),
           this.$store.dispatch('management/findAll', { type: CAPI.MACHINE })
         ]);
+        const machineSetPromises = this.safeMachinesToDelete.filter((machine) => machine.isWorker).map((machine) => this.getMachineSets(machine));
+
+        this.workerMachineSets = await Promise.all(machineSetPromises);
       } else {
         await Promise.all([
           this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL }),
           this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE })
         ]);
       }
-      const machineSetPromises = this.safeMachinesToDelete.filter((machine) => machine.isWorker).map((machine) => this.getMachineSets(machine));
-
-      this.workerMachineSets = await Promise.all(machineSetPromises);
-    } catch (e) {}
+    } catch (e) {
+      this.errors.push(e);
+    }
     this.loading = false;
   },
 
@@ -60,7 +62,8 @@ export default {
         applyAction: this.remove,
       },
       workerMachineSets: [],
-      loading:           false
+      loading:           false,
+      errors:            []
     };
   },
   computed: {
@@ -69,7 +72,7 @@ export default {
         const data = machineSet?.data || [];
 
         for (const ms of data) {
-          if (ms.spec.replicas !== ms.status.readyReplicas) {
+          if (!ms?.spec?.replicas || !ms?.status?.readyReplicas || ms.spec.replicas !== ms.status.readyReplicas) {
             return true;
           }
         }
@@ -152,6 +155,7 @@ export default {
   <GenericPrompt
     v-bind="config"
     action-color="bg-error role-primary"
+    :errors="errors"
     @close="$emit('close')"
   >
     <template #body>
@@ -164,9 +168,9 @@ export default {
         </div>
         <div v-else>
           <div v-if="showScaling">
-            <span v-clean-html="t('promptScaleMachineDown.scaling', {}, true)" />
+            <span v-clean-html="t('promptScaleMachineDown.scaling', { count: resources.length }, true)" />
           </div>
-          <div v-else-if="allToDelete.length === 1">
+          <div v-else-if="safeMachinesToDelete.length === 1">
             {{ t('promptRemove.attemptingToRemove', { type }) }} <b>{{ safeMachinesToDelete[0].nameDisplay }}</b>
           </div>
           <div v-else>
