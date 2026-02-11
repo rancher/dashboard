@@ -98,10 +98,21 @@ describe('Hosted Providers', { testIsolation: 'off', tags: ['@manager', '@adminU
     providersPage.waitForPage();
     providersPage.list().details(EKS, 1).should('contain', 'Active');
     providersPage.list().details(GKE, 1).should('contain', 'Active');
+    // Check EKS checkbox: verify not checked -> click -> verify checked
+    providersPage.list().resourceTable().sortableTable().rowSelectCtlWithName(EKS)
+      .isNotChecked();
     providersPage.list().resourceTable().sortableTable().rowSelectCtlWithName(EKS)
       .set();
+    providersPage.list().resourceTable().sortableTable().rowSelectCtlWithName(EKS)
+      .isChecked();
+
+    // Check GKE checkbox: verify not checked -> click -> verify checked
+    providersPage.list().resourceTable().sortableTable().rowSelectCtlWithName(GKE)
+      .isNotChecked();
     providersPage.list().resourceTable().sortableTable().rowSelectCtlWithName(GKE)
       .set();
+    providersPage.list().resourceTable().sortableTable().rowSelectCtlWithName(GKE)
+      .isChecked();
 
     cy.intercept('PUT', `v1/management.cattle.io.settings/kev2-operators`).as('updateProviders');
 
@@ -167,10 +178,22 @@ describe('Hosted Providers', { testIsolation: 'off', tags: ['@manager', '@adminU
     // Ensure both providers are now inactive
     providersPage.list().details(EKS, 1).should('contain', 'Inactive');
     providersPage.list().details(GKE, 1).should('contain', 'Inactive');
+
+    // Check EKS checkbox: verify not checked -> click -> verify checked
+    providersPage.list().resourceTable().sortableTable().rowSelectCtlWithName(EKS)
+      .isNotChecked();
     providersPage.list().resourceTable().sortableTable().rowSelectCtlWithName(EKS)
       .set();
+    providersPage.list().resourceTable().sortableTable().rowSelectCtlWithName(EKS)
+      .isChecked();
+
+    // Check GKE checkbox: verify not checked -> click -> verify checked
+    providersPage.list().resourceTable().sortableTable().rowSelectCtlWithName(GKE)
+      .isNotChecked();
     providersPage.list().resourceTable().sortableTable().rowSelectCtlWithName(GKE)
       .set();
+    providersPage.list().resourceTable().sortableTable().rowSelectCtlWithName(GKE)
+      .isChecked();
 
     cy.intercept('PUT', `v1/management.cattle.io.settings/kev2-operators`).as('updateProviders');
 
@@ -182,8 +205,9 @@ describe('Hosted Providers', { testIsolation: 'off', tags: ['@manager', '@adminU
       resValue.forEach((item: any) => {
         if (item.name in expected) {
           const state = item['active'];
+          const expectedState = expected[item.name as keyof typeof expected];
 
-          expect(state).to.eq(expected[item.name]);
+          expect(state).to.eq(expectedState);
         }
       });
     });
