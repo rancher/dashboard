@@ -5782,7 +5782,7 @@ promptScaleMachineDown:
   attemptingToRemove: "You are attempting to delete {count} {type}"
   retainedMachine1: At least one Machine must exist for roles Control Plane and Etcd.
   retainedMachine2: <b>{ name }</b> will remain
-  scaling: This machine pool is still reconciling. A different node may be deleted instead of the one you selected. It’s best to wait until reconciliation finishes. Do you still want to mark this node for deletion?
+  scaling: This machine pool is still reconciling. A different node may be deleted instead of the one you selected. It’s best to wait until reconciliation finishes.<br> Do you still want to mark this node for deletion?
 
 promptSlo:
   title: "Log out"

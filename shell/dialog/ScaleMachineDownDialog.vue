@@ -16,17 +16,24 @@ export default {
   },
 
   async fetch() {
-    if (this.isRke2) {
-      await Promise.all([
-        this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT }),
-        this.$store.dispatch('management/findAll', { type: CAPI.MACHINE })
-      ]);
-    } else {
-      await Promise.all([
-        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL }),
-        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE })
-      ]);
-    }
+    this.loading = true;
+    try {
+      if (this.isRke2) {
+        await Promise.all([
+          this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT }),
+          this.$store.dispatch('management/findAll', { type: CAPI.MACHINE })
+        ]);
+      } else {
+        await Promise.all([
+          this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL }),
+          this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE })
+        ]);
+      }
+      const machineSetPromises = this.safeMachinesToDelete.filter((machine) => machine.isWorker).map((machine) => this.getMachineSets(machine));
+
+      this.machineSets = await Promise.all(machineSetPromises);
+    } catch (e) {}
+    this.loading = false;
   },
 
   data() {
@@ -51,11 +58,38 @@ export default {
         title:       this.t('promptRemove.title'),
         applyMode:   'delete',
         applyAction: this.remove,
-      }
+      },
+      machineSets: [],
+      loading:     false
     };
+  },
+  computed: {
+    showScaling() {
+      for (const machineSet of this.machineSets) {
+        const data = machineSet?.data || [];
+
+        for (const ms of data) {
+          if (ms.spec.replicas !== ms.status.readyReplicas) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    }
   },
 
   methods: {
+    getMachineSets(machine) {
+      const namespace = machine.namespace;
+      const labelSelector = { matchLabels: { [CAPI_LABELS.DEPLOYMENT_NAME]: machine.poolName } }; // machine.poolId
+
+      return this.$store.dispatch('management/findLabelSelector', {
+        type:     CAPI.MACHINE_SET,
+        matching: { namespace, labelSelector },
+        opt:      { transient: true }
+      });
+    },
     deleteType(type, allToDelete, cluster, isRke2) {
       const allToDeleteByType = allToDelete.reduce((res, m) => {
         if (m[type]) {
@@ -121,11 +155,22 @@ export default {
   >
     <template #body>
       <div class="pl-10 pr-10 mt-20 mb-20 body">
-        <div v-if="allToDelete.length === 1">
-          {{ t('promptRemove.attemptingToRemove', { type }) }} <b>{{ safeMachinesToDelete[0].nameDisplay }}</b>
+        <div
+          v-if="loading"
+          class="text-center"
+        >
+          <i class="icon icon-spinner icon-spin icon-lg" />
         </div>
         <div v-else>
-          {{ t('promptScaleMachineDown.attemptingToRemove', { type, count: allToDelete.length }, true) }}
+          <div v-if="showScaling">
+            <span v-clean-html="t('promptScaleMachineDown.scaling', {}, true)" />
+          </div>
+          <div v-else-if="allToDelete.length === 1">
+            {{ t('promptRemove.attemptingToRemove', { type }) }} <b>{{ safeMachinesToDelete[0].nameDisplay }}</b>
+          </div>
+          <div v-else>
+            {{ t('promptScaleMachineDown.attemptingToRemove', { type, count: allToDelete.length }, true) }}
+          </div>
         </div>
         <div
           v-if="ignored.length"
