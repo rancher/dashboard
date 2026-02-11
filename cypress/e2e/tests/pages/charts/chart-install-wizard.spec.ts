@@ -93,7 +93,7 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
       namespacePicker.closeDropdown();
 
       // Set up API intercept right before the install action
-      cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('installApp');
+      cy.intercept('POST', '**/catalog.cattle.io.**?action=+(install|upgrade)').as('installApp');
 
       // Now install the chart
       installChartPage.installChart();
