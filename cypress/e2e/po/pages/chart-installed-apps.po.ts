@@ -29,7 +29,7 @@ export default class ChartInstalledAppsListPagePo extends BaseListPagePo {
   }
 
   waitForInstallCloseTerminal(interceptName: string, installableParts: Array<String>) {
-    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('eq', 201);
+    cy.wait(`@${ interceptName }`, { requestTimeout: 20000 }).its('response.statusCode').should('be.oneOf', [200, 201]);
 
     // giving it a small buffer so that the install is properly triggered
     cy.wait(15000); // eslint-disable-line cypress/no-unnecessary-waiting

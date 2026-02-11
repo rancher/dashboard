@@ -92,14 +92,14 @@ describe('Charts Wizard', { testIsolation: 'off', tags: ['@charts', '@adminUser'
       namespacePicker.isChecked('All Namespaces');
       namespacePicker.closeDropdown();
 
-      // Set up API intercept right before the install action
-      cy.intercept('POST', '**/catalog.cattle.io.**?action=+(install|upgrade)').as('installApp');
+      // Set up API intercept right before the install action - use a single pattern that matches both
+      cy.intercept('POST', /\/v1\/catalog\.cattle\.io\.(clusterrepos|apps)\/.*\?action=(install|upgrade)/).as('installOrUpgradeApp');
 
       // Now install the chart
       installChartPage.installChart();
 
-      // Wait for install to complete
-      installedAppsPage.waitForInstallCloseTerminal('installApp', ['rancher-backup', 'rancher-backup-crd']);
+      // Wait for install or upgrade to complete
+      installedAppsPage.waitForInstallCloseTerminal('installOrUpgradeApp', ['rancher-backup', 'rancher-backup-crd']);
 
       ChartPage.navTo(undefined, chartName);
       chartPage.waitForChartHeader(chartName, MEDIUM_TIMEOUT_OPT);
