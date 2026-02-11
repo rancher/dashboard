@@ -31,6 +31,14 @@ export type UnregisterStore = (store: any) => void
 
 export type PluginRouteRecordRaw = { [key: string]: any }
 
+export type RouteRecordRawWithParams = Partial<RouteRecordRaw> & {
+  name?: string;
+  path?: string;
+  params?: Record<string, any>;
+  meta?: Record<string, any>;
+  component?: RouteComponent | Lazy<RouteComponent>;
+};
+
 export type OnEnterLeavePackageConfig = {
   clusterId: string,
   product: string,
@@ -277,10 +285,6 @@ export type ConfigureTypeConfiguration = {
   customRoute?: RouteRecordRaw; // define a custom route for this resource type (use this wisely!)
   // notFilterNamespace: undefined; // Define namespaces that do not need to be filtered
   localOnly?: boolean; // Hide this type from the nav/search bar on downstream clusters (will only show in "local" cluster)
-  resourceListComponent?: any; // Custom component for resource list view (overrides default Rancher component)
-  resourceCreateComponent?: any; // Custom component for resource create view (overrides default Rancher component)
-  resourceItemComponent?: any; // Custom component for resource detail view (overrides default Rancher component)
-  resourceItemNamespacedComponent?: any; // Custom component for namespaced resource detail view (overrides default Rancher component)
 }
 
 // used in configureType options
@@ -572,22 +576,6 @@ export type ProductRegistrationRouteGenerationOptions = {
    * Generated route should omit the path property
    */
   omitPath?: boolean;
-  /**
-   * Component to be used for the resource list route (used in resource routes only)
-   */
-  resourceListComponent?: any;
-  /**
-   * Component to be used for the resource create route (used in resource routes only)
-   */
-  resourceCreateComponent?: any;
-  /**
-   * Component to be used for the resource item route (used in resource routes only)
-   */
-  resourceItemComponent?: any;
-  /**
-   * Component to be used for the resource item namespaced route (used in resource routes only)
-   */
-  resourceItemNamespacedComponent?: any;
 }
 
 /**
